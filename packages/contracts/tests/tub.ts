@@ -1,45 +1,47 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import { Tub } from "../target/types/tub";
-import { Keypair } from "@solana/web3.js";
+import { Counter } from "../target/types/counter";
+import { PublicKey } from "@solana/web3.js";
 
-describe("tub", () => {
+describe("counter", () => {
   // Configure the client to use the local cluster.
-  anchor.setProvider(anchor.AnchorProvider.env());
+  const provider = anchor.AnchorProvider.env();
+  anchor.setProvider(provider);
 
-  const program = anchor.workspace.Tub as Program<Tub>;
-  const counterAccount = new Keypair();
+  const program = anchor.workspace.Counter as Program<Counter>;
+
+  const [counterPDA] = PublicKey.findProgramAddressSync(
+    [Buffer.from("counter")],
+    program.programId
+  );
 
   it("Is initialized!", async () => {
-    // Invoke the initialize instruction
-    const transactionSignature = await program.methods
-      .initialize()
-      .accounts({
-        counter: counterAccount.publicKey,
-      })
-      .signers([counterAccount]) // include counter keypair as additional signer
-      .rpc({ skipPreflight: true });
+    try {
+      const txSig = await program.methods
+        .initialize()
+        .accounts({
+          counter: counterPDA,
+        })
+        .rpc();
 
-    // Fetch the counter account data
-    const accountData = await program.account.counter.fetch(
-      counterAccount.publicKey
-    );
-
-    console.log(`Transaction Signature: ${transactionSignature}`);
-    console.log(`Count: ${accountData.count}`);
+      const accountData = await program.account.counter.fetch(counterPDA);
+      console.log(`Transaction Signature: ${txSig}`);
+      console.log(`Count: ${accountData.count}`);
+    } catch (error) {
+      // If PDA Account already created, then we expect an error
+      console.log(error);
+    }
   });
 
   it("Increment", async () => {
     const transactionSignature = await program.methods
       .increment()
       .accounts({
-        counter: counterAccount.publicKey,
+        counter: counterPDA,
       })
       .rpc();
 
-    const accountData = await program.account.counter.fetch(
-      counterAccount.publicKey
-    );
+    const accountData = await program.account.counter.fetch(counterPDA);
 
     console.log(`Transaction Signature: ${transactionSignature}`);
     console.log(`Count: ${accountData.count}`);

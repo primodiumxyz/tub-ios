@@ -1,7 +1,7 @@
 {
-  "address": "HGf7R9nd1HbbsSfUCgpejzF5RckRyS9eDDi61x39qQtQ",
+  "address": "C87Mkt2suddDsb6Y15hJyGQzu9itMhU7RGxTQw17mTm",
   "metadata": {
-    "name": "tub",
+    "name": "counter",
     "version": "0.1.0",
     "spec": "0.1.0",
     "description": "Created with Anchor"

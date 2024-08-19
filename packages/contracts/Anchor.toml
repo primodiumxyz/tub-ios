@@ -2,16 +2,20 @@
 
 [features]
 resolution = true
+seeds = true
 skip-lint = false
 
 [programs.localnet]
+tub = "HGf7R9nd1HbbsSfUCgpejzF5RckRyS9eDDi61x39qQtQ"
+
+[programs.devnet]
 tub = "HGf7R9nd1HbbsSfUCgpejzF5RckRyS9eDDi61x39qQtQ"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
+cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
