@@ -1,16 +1,49 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { Tub } from "../target/types/tub";
+import { PublicKey } from "@solana/web3.js";
 
-describe("tub", () => {
+describe("counter", () => {
   // Configure the client to use the local cluster.
-  anchor.setProvider(anchor.AnchorProvider.env());
+  const provider = anchor.AnchorProvider.env();
+  anchor.setProvider(provider);
 
   const program = anchor.workspace.Tub as Program<Tub>;
 
+  const [counterPDA] = PublicKey.findProgramAddressSync(
+    [Buffer.from("randomSeed")],
+    program.programId
+  );
+
   it("Is initialized!", async () => {
-    // Add your test here.
-    const tx = await program.methods.initialize().rpc();
-    console.log("Your transaction signature", tx);
+    try {
+      const txSig = await program.methods
+        .initialize()
+        .accountsPartial({
+          counter: counterPDA,
+        })
+        .rpc();
+
+      const accountData = await program.account.counter.fetch(counterPDA);
+      console.log(`Transaction Signature: ${txSig}`);
+      console.log(`Count: ${accountData.count}`);
+    } catch (error) {
+      // If PDA Account already created, then we expect an error
+      console.log(error);
+    }
+  });
+
+  it("Increment", async () => {
+    const transactionSignature = await program.methods
+      .increment()
+      .accounts({
+        counter: counterPDA,
+      })
+      .rpc();
+
+    const accountData = await program.account.counter.fetch(counterPDA);
+
+    console.log(`Transaction Signature: ${transactionSignature}`);
+    console.log(`Count: ${accountData.count}`);
   });
 });
