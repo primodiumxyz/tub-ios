@@ -5,7 +5,7 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-tub = "HGf7R9nd1HbbsSfUCgpejzF5RckRyS9eDDi61x39qQtQ"
+tub = "2a1T6Xhad5kf6VvdcebQfK6RzAxcHxiAhskRYKNzmTYw"
 
 [registry]
 url = "https://api.apr.dev"
