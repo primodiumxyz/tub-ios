@@ -1,5 +1,7 @@
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useWallet } from "@solana/wallet-adapter-react";
+import CounterState from "../components/CounterState";
+import IncrementButton from "../components/IncrementButton";
 
 export const Home = () => {
   const { publicKey } = useWallet();
@@ -8,6 +10,7 @@ export const Home = () => {
     return (
       <div>
         Please connect a wallet.
+        <CounterState />
         <WalletMultiButton />
       </div>
     );
@@ -15,6 +18,8 @@ export const Home = () => {
     return (
       <div>
         <p>Connected wallet: {publicKey.toString()}</p>
+        <CounterState />
+        <IncrementButton />
         <WalletMultiButton />
       </div>
     );
