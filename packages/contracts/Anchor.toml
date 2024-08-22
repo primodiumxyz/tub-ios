@@ -6,16 +6,18 @@ skip-lint = false
 
 [programs.localnet]
 tub = "2a1T6Xhad5kf6VvdcebQfK6RzAxcHxiAhskRYKNzmTYw"
+create-token = "6aLsHmmAB7GNbQn6czDjBMwjre5gFi8NQmtMk3SireBE"
 
 [programs.devnet]
 tub = "2a1T6Xhad5kf6VvdcebQfK6RzAxcHxiAhskRYKNzmTYw"
+create-token = "6aLsHmmAB7GNbQn6czDjBMwjre5gFi8NQmtMk3SireBE"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-# cluster = "Localnet"
-cluster = "devnet"
+cluster = "Localnet"
+# cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
