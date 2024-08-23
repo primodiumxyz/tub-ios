@@ -1,13 +1,12 @@
-#![allow(clippy::result_large_err)]
-
 use {
     anchor_lang::prelude::*,
     anchor_spl::{
+        associated_token::AssociatedToken,
         metadata::{
             create_metadata_accounts_v3, mpl_token_metadata::types::DataV2,
             CreateMetadataAccountsV3, Metadata,
         },
-        token::{Mint, Token},
+        token::{Mint, Token, TokenAccount},
     },
 };
 
@@ -19,24 +18,27 @@ pub mod create_token {
 
     pub fn create_token_mint_with_amount(
         ctx: Context<CreateTokenMintWithAmount>,
-        _token_decimals: u8,
+        token_decimals: u8,
         token_name: String,
         token_symbol: String,
         token_uri: String,
         amount_lamports: u64,
     ) -> Result<()> {
-        msg!("Creating metadata account...");
-        msg!(
-            "Metadata account address: {}",
-            &ctx.accounts.metadata_account.key()
-        );
-        msg!("Amount in lamports: {}", amount_lamports);
+        // Calculate the minimum balance for rent exemption
+        let rent = Rent::get()?;
+        let mint_space = 82;
+        let metadata_space = 679;
+        let associated_token_space = 165;
+        let escrow_space = 72;
+
+        let minimum_balance = rent.minimum_balance(mint_space)
+            .checked_add(rent.minimum_balance(metadata_space))
+            .and_then(|sum| sum.checked_add(rent.minimum_balance(associated_token_space)))
+            .and_then(|sum| sum.checked_add(rent.minimum_balance(escrow_space)))
+            .ok_or(ProgramError::ArithmeticOverflow)?;
 
         // Verify the transferred amount
-        let rent = Rent::get()?;
-        let minimum_balance = rent.minimum_balance(0);
-        
-        if ctx.accounts.payer.lamports() < amount_lamports + minimum_balance {
+        if ctx.accounts.payer.lamports() < amount_lamports.checked_add(minimum_balance).ok_or(ProgramError::ArithmeticOverflow)? {
             return Err(ProgramError::InsufficientFunds.into());
         }
 
@@ -45,15 +47,36 @@ pub mod create_token {
         let raw_token_amount = amount_lamports.checked_mul(tokens_per_sol).ok_or(ProgramError::ArithmeticOverflow)?;
         
         // Adjust for token decimals
-        let adjusted_token_amount = raw_token_amount.checked_mul(10u64.pow(_token_decimals as u32)).ok_or(ProgramError::ArithmeticOverflow)?;
+        let adjusted_token_amount = raw_token_amount.checked_mul(10u64.pow(token_decimals as u32)).ok_or(ProgramError::ArithmeticOverflow)?;
 
-        // Create token mint
-        create_token_mint(
-            ctx.accounts.create_token_mint_ctx(),
-            _token_decimals,
-            token_name,
-            token_symbol,
-            token_uri,
+        // Create metadata account
+        let metadata_account_info = &ctx.accounts.metadata_account;
+        let mint_account_info = &ctx.accounts.mint_account;
+        create_metadata_accounts_v3(
+            CpiContext::new(
+                ctx.accounts.token_metadata_program.to_account_info(),
+                CreateMetadataAccountsV3 {
+                    metadata: metadata_account_info.to_account_info(),
+                    mint: mint_account_info.to_account_info(),
+                    mint_authority: ctx.accounts.payer.to_account_info(),
+                    payer: ctx.accounts.payer.to_account_info(),
+                    update_authority: ctx.accounts.payer.to_account_info(),
+                    system_program: ctx.accounts.system_program.to_account_info(),
+                    rent: ctx.accounts.rent.to_account_info(),
+                },
+            ),
+            DataV2 {
+                name: token_name,
+                symbol: token_symbol,
+                uri: token_uri,
+                seller_fee_basis_points: 0,
+                creators: None,
+                collection: None,
+                uses: None,
+            },
+            true,
+            true,
+            None,
         )?;
 
         // Mint tokens to user's associated token account
@@ -69,56 +92,46 @@ pub mod create_token {
             adjusted_token_amount,
         )?;
 
-        // Calculate the PDA for the program account
-        let (pda, bump_seed) = Pubkey::find_program_address(
-            &[b"escrow", ctx.accounts.mint_account.key().as_ref()],
-            ctx.program_id
-        );
-
-        // Verify that the provided program_account matches the calculated PDA
-        if pda != ctx.accounts.program_account.key() {
-            return Err(ProgramError::InvalidAccountData.into());
-        }
-
-        // Transfer SOL from payer to program account (PDA)
+        // Transfer SOL from payer to escrow account
         let transfer_instruction = anchor_lang::system_program::Transfer {
             from: ctx.accounts.payer.to_account_info(),
-            to: ctx.accounts.program_account.to_account_info(),
+            to: ctx.accounts.escrow_account.to_account_info(),
         };
         anchor_lang::system_program::transfer(
-            CpiContext::new_with_signer(
+            CpiContext::new(
                 ctx.accounts.system_program.to_account_info(),
                 transfer_instruction,
-                &[&[b"escrow", ctx.accounts.mint_account.key().as_ref(), &[bump_seed]]],
             ),
             amount_lamports,
         )?;
 
+        // Initialize the escrow account
+        ctx.accounts.escrow_account.mint = ctx.accounts.mint_account.key();
+        ctx.accounts.escrow_account.authority = ctx.accounts.payer.key();
+
         Ok(())
     }
-
 }
 
 #[derive(Accounts)]
-#[instruction(_token_decimals: u8)]
+#[instruction(token_decimals: u8)]
 pub struct CreateTokenMintWithAmount<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
 
-    /// CHECK: Metadata account, initialized in instruction
     #[account(
         mut,
         seeds = [b"metadata", token_metadata_program.key().as_ref(), mint_account.key().as_ref()],
         bump,
         seeds::program = token_metadata_program.key(),
     )]
+    /// CHECK: Metadata account, initialized in instruction
     pub metadata_account: UncheckedAccount<'info>,
 
-    // Create new mint account
     #[account(
         init,
         payer = payer,
-        mint::decimals = _token_decimals,
+        mint::decimals = token_decimals,
         mint::authority = payer.key(),
     )]
     pub mint_account: Account<'info, Mint>,
@@ -140,17 +153,15 @@ pub struct CreateTokenMintWithAmount<'info> {
     )]
     pub escrow_account: Account<'info, EscrowAccount>,
 
-    #[account(
-        mut,
-        seeds = [b"escrow", mint_account.key().as_ref()],
-        bump
-    )]
-    /// CHECK: This is the program's PDA to receive SOL payment
-    pub program_account: UncheckedAccount<'info>,
-
     pub token_metadata_program: Program<'info, Metadata>,
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
     pub rent: Sysvar<'info, Rent>,
+}
+
+#[account]
+pub struct EscrowAccount {
+    pub mint: Pubkey,
+    pub authority: Pubkey,
 }
