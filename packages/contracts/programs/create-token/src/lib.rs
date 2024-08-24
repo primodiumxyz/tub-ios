@@ -3,11 +3,14 @@ use {
     anchor_spl::{
         associated_token::AssociatedToken,
         metadata::{
-            create_metadata_accounts_v3, mpl_token_metadata::types::DataV2,
-            CreateMetadataAccountsV3, Metadata,
+            create_metadata_accounts_v3,
+            CreateMetadataAccountsV3, 
+            Metadata,
+            mpl_token_metadata::types::DataV2,
         },
         token::{Mint, Token, TokenAccount},
     },
+    std::mem::size_of,
 };
 
 declare_id!("6aLsHmmAB7GNbQn6czDjBMwjre5gFi8NQmtMk3SireBE");
@@ -25,11 +28,17 @@ pub mod create_token {
         amount_lamports: u64,
     ) -> Result<()> {
         // Calculate the minimum balance for rent exemption
+        const MAX_NAME_LENGTH: usize = 32;
+        const MAX_SYMBOL_LENGTH: usize = 10;
+        const MAX_URI_LENGTH: usize = 200;
+        const MAX_METADATA_LEN: usize = 1 + 32 + 32 + MAX_NAME_LENGTH + MAX_SYMBOL_LENGTH + MAX_URI_LENGTH + 2 + 1 + 1 + 198;
+
+        let metadata_space = MAX_METADATA_LEN;
+
         let rent = Rent::get()?;
-        let mint_space = 82;
-        let metadata_space = 679;
-        let associated_token_space = 165;
-        let escrow_space = 72;
+        let mint_space = Mint::LEN;
+        let associated_token_space = TokenAccount::LEN;
+        let escrow_space = 8 + size_of::<Pubkey>() + size_of::<Pubkey>();
 
         let minimum_balance = rent.minimum_balance(mint_space)
             .checked_add(rent.minimum_balance(metadata_space))
