@@ -1,0 +1,6 @@
+{
+  "name": "Test Token",
+  "symbol": "Test",
+  "description": "A test token created via tests/create-token.ts",
+  "image": "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png"
+}
