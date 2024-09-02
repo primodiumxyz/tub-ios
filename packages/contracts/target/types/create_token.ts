@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/create_token.json`.
  */
 export type CreateToken = {
-  "address": "6aLsHmmAB7GNbQn6czDjBMwjre5gFi8NQmtMk3SireBE",
+  "address": "3krpCtQM8iFpe4ebKC3i3GmkqGDNHRWU2VtctanqFzYB",
   "metadata": {
     "name": "createToken",
     "version": "0.1.0",
@@ -14,20 +14,25 @@ export type CreateToken = {
   },
   "instructions": [
     {
-      "name": "createTokenMintWithAmount",
+      "name": "createToken",
       "discriminator": [
-        133,
-        112,
-        117,
-        11,
-        180,
-        202,
-        117,
-        169
+        84,
+        52,
+        204,
+        228,
+        24,
+        140,
+        234,
+        75
       ],
       "accounts": [
         {
           "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "mintAccount",
           "writable": true,
           "signer": true
         },
@@ -65,9 +70,61 @@ export type CreateToken = {
           }
         },
         {
-          "name": "mintAccount",
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "tokenMetadataProgram",
+          "address": "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "tokenName",
+          "type": "string"
+        },
+        {
+          "name": "tokenSymbol",
+          "type": "string"
+        },
+        {
+          "name": "tokenUri",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "mintToken",
+      "discriminator": [
+        172,
+        137,
+        183,
+        14,
+        207,
+        110,
+        234,
+        56
+      ],
+      "accounts": [
+        {
+          "name": "mintAuthority",
           "writable": true,
           "signer": true
+        },
+        {
+          "name": "recipient"
+        },
+        {
+          "name": "mintAccount",
+          "writable": true
         },
         {
           "name": "associatedTokenAccount",
@@ -76,7 +133,7 @@ export type CreateToken = {
             "seeds": [
               {
                 "kind": "account",
-                "path": "payer"
+                "path": "recipient"
               },
               {
                 "kind": "const",
@@ -160,33 +217,6 @@ export type CreateToken = {
           }
         },
         {
-          "name": "escrowAccount",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  101,
-                  115,
-                  99,
-                  114,
-                  111,
-                  119
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "mintAccount"
-              }
-            ]
-          }
-        },
-        {
-          "name": "tokenMetadataProgram",
-          "address": "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
-        },
-        {
           "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
@@ -197,67 +227,14 @@ export type CreateToken = {
         {
           "name": "systemProgram",
           "address": "11111111111111111111111111111111"
-        },
-        {
-          "name": "rent",
-          "address": "SysvarRent111111111111111111111111111111111"
         }
       ],
       "args": [
         {
-          "name": "tokenDecimals",
-          "type": "u8"
-        },
-        {
-          "name": "tokenName",
-          "type": "string"
-        },
-        {
-          "name": "tokenSymbol",
-          "type": "string"
-        },
-        {
-          "name": "tokenUri",
-          "type": "string"
-        },
-        {
-          "name": "amountLamports",
+          "name": "amount",
           "type": "u64"
         }
       ]
-    }
-  ],
-  "accounts": [
-    {
-      "name": "escrowAccount",
-      "discriminator": [
-        36,
-        69,
-        48,
-        18,
-        128,
-        225,
-        125,
-        135
-      ]
-    }
-  ],
-  "types": [
-    {
-      "name": "escrowAccount",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "mint",
-            "type": "pubkey"
-          },
-          {
-            "name": "authority",
-            "type": "pubkey"
-          }
-        ]
-      }
     }
   ]
 };

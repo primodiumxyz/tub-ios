@@ -1,8 +1,9 @@
 import * as anchor from "@coral-xyz/anchor";
-import { CreateToken } from "../target/types/create_token";
+import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { Keypair } from "@solana/web3.js";
+import type { CreateToken } from "../target/types/create_token";
 
-describe("Create Tokens", () => {
+describe("SPL Token Minter", () => {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
   const payer = provider.wallet as anchor.Wallet;
@@ -14,22 +15,12 @@ describe("Create Tokens", () => {
     uri: "https://raw.githubusercontent.com/solana-developers/program-examples/new-examples/tokens/tokens/.assets/spl-token.json",
   };
 
-  // Amount of lamports included in transaction
-  const amountLamports = new anchor.BN(1000000000); // 1 token with 9 decimals
+  // Generate new keypair to use as address for mint account.
+  const mintKeypair = new Keypair();
 
   it("Create an SPL Token!", async () => {
-    // Generate new keypair to use as address for mint account.
-    const mintKeypair = new Keypair();
-
-    // SPL Token default = 9 decimals
     const transactionSignature = await program.methods
-      .createTokenMintWithAmount(
-        9,
-        metadata.name,
-        metadata.symbol,
-        metadata.uri,
-        amountLamports
-      )
+      .createToken(metadata.name, metadata.symbol, metadata.uri)
       .accounts({
         payer: payer.publicKey,
         mintAccount: mintKeypair.publicKey,
@@ -38,7 +29,35 @@ describe("Create Tokens", () => {
       .rpc();
 
     console.log("Success!");
-    console.log(`Mint Address: ${mintKeypair.publicKey}`);
+    console.log(`   Mint Address: ${mintKeypair.publicKey}`);
+    console.log(`   Transaction Signature: ${transactionSignature}`);
+  });
+
+  it("Mint some tokens to your wallet!", async () => {
+    // Derive the associated token address account for the mint and payer.
+    const associatedTokenAccountAddress = getAssociatedTokenAddressSync(
+      mintKeypair.publicKey,
+      payer.publicKey
+    );
+
+    // Amount of tokens to mint.
+    const amount = new anchor.BN(100);
+
+    // Mint the tokens to the associated token account.
+    const transactionSignature = await program.methods
+      .mintToken(amount)
+      .accountsPartial({
+        mintAuthority: payer.publicKey,
+        recipient: payer.publicKey,
+        mintAccount: mintKeypair.publicKey,
+        associatedTokenAccount: associatedTokenAccountAddress,
+      })
+      .rpc();
+
+    console.log("Success!");
+    console.log(
+      `Associated Token Account Address: ${associatedTokenAccountAddress}`
+    );
     console.log(`Transaction Signature: ${transactionSignature}`);
   });
 });
