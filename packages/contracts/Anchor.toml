@@ -7,7 +7,7 @@ skip-lint = false
 [programs.devnet]
 create-token = "6aLsHmmAB7GNbQn6czDjBMwjre5gFi8NQmtMk3SireBE"
 token_metadata_program = "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
-tub = "4NFpe3u1BxcMWhZD8AKqUfWhBA73dJ9WZAP36SexG4d8"
+tub = "2pU9hf5hdvK1rNZjQ2aJNw2e9mB4UhUe53obiQfAMWKx"
 
 [programs.localnet]
 create-token = "6aLsHmmAB7GNbQn6czDjBMwjre5gFi8NQmtMk3SireBE"
@@ -17,7 +17,7 @@ tub = "4NFpe3u1BxcMWhZD8AKqUfWhBA73dJ9WZAP36SexG4d8"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
+cluster = "Devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]

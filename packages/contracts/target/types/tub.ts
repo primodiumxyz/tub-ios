@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/tub.json`.
  */
 export type Tub = {
-  "address": "4NFpe3u1BxcMWhZD8AKqUfWhBA73dJ9WZAP36SexG4d8",
+  "address": "2pU9hf5hdvK1rNZjQ2aJNw2e9mB4UhUe53obiQfAMWKx",
   "metadata": {
     "name": "tub",
     "version": "0.1.0",
