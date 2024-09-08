@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { programs } from "../anchor/setup";
+import { programs, ADDRESS_TOKEN_MINT_ACCOUNT } from "../anchor/setup";
 
-export default function IncrementButton() {
+export default function CreateTokenForm() {
   const { publicKey, sendTransaction } = useWallet();
   const { connection } = useConnection();
   const [isLoading, setIsLoading] = useState(false);
@@ -13,7 +13,16 @@ export default function IncrementButton() {
     setIsLoading(true);
 
     try {
-      const transaction = await programs.tub.methods.increment().transaction();
+      const transaction = await programs.createToken.methods
+        .createToken(
+          "Tub Test", // tokenName
+          "TUB", // tokenSymbol
+          "https://raw.githubusercontent.com/solana-developers/program-examples/new-examples/tokens/tokens/.assets/spl-token.json" // tokenUri
+        )
+        .accountsPartial({
+          mintAccount: ADDRESS_TOKEN_MINT_ACCOUNT,
+        })
+        .transaction();
 
       const transactionSignature = await sendTransaction(
         transaction,
