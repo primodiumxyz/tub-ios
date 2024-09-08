@@ -10,7 +10,7 @@ describe("counter", () => {
 
   const program = anchor.workspace.Tub as Program<Tub>;
 
-  const [tubPDA] = PublicKey.findProgramAddressSync(
+  const [counterPDA] = PublicKey.findProgramAddressSync(
     [Buffer.from("randomSeed")],
     program.programId
   );
@@ -20,11 +20,11 @@ describe("counter", () => {
       const txSig = await program.methods
         .initialize()
         .accountsPartial({
-          counter: tubPDA,
+          counter: counterPDA,
         })
         .rpc();
 
-      const accountData = await program.account.counter.fetch(tubPDA);
+      const accountData = await program.account.counter.fetch(counterPDA);
       console.log(`Transaction Signature: ${txSig}`);
       console.log(`Count: ${accountData.count}`);
     } catch (error) {
@@ -37,11 +37,11 @@ describe("counter", () => {
     const transactionSignature = await program.methods
       .increment()
       .accounts({
-        counter: tubPDA,
+        counter: counterPDA,
       })
       .rpc();
 
-    const accountData = await program.account.counter.fetch(tubPDA);
+    const accountData = await program.account.counter.fetch(counterPDA);
 
     console.log(`Transaction Signature: ${transactionSignature}`);
     console.log(`Count: ${accountData.count}`);

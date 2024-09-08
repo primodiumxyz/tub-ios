@@ -3,12 +3,7 @@ import { Tub } from "../../../contracts/target/types/tub";
 import IDL from "../../../contracts/target/idl/tub.json";
 import { clusterApiUrl, Connection, PublicKey } from "@solana/web3.js";
 
-// future environment variable
-const SOLANA_LOCALNET = false;
-
-const connection = SOLANA_LOCALNET
-  ? new Connection("http://localhost:8899/")
-  : new Connection(clusterApiUrl("devnet"), "confirmed");
+const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
 export const program = new Program<Tub>(IDL as Tub, {
   connection,
