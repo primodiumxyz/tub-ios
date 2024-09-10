@@ -13,12 +13,13 @@ import { Keypair } from "@solana/web3.js";
 // future environment variables
 export const SOLANA_LOCALNET = false;
 
-// const SOLANA_ADDRESS_TOKEN_PROGRAM =
-//   "AA8x8caQsYX3iCHp93QJpMCvxzA4hM6WvXZuza1ruSbe";
+// SPL token program deployed on-chain
+export const ADDRESS_TOKEN_PROGRAM =
+  "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA3";
 
 // token metadata program deployed on-chain
 export const ADDRESS_TOKEN_METADATA_PROGRAM =
-  "Dt3H1H6JjjaL4V6A2UkKQ6ivvYQqN8wZrVk4vieVvDd7";
+  "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s";
 const tokenMetadataProgramKey = new PublicKey(ADDRESS_TOKEN_METADATA_PROGRAM);
 
 // Generate new keypair for minting tokens
