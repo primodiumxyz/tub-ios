@@ -15,7 +15,7 @@ export const SOLANA_LOCALNET = false;
 
 // SPL token program deployed on-chain
 export const ADDRESS_TOKEN_PROGRAM =
-  "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA3";
+  "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
 
 // token metadata program deployed on-chain
 export const ADDRESS_TOKEN_METADATA_PROGRAM =
