@@ -1,62 +1,108 @@
 import { useState } from "react";
+
+import "../index.css";
+import { useCore } from "../hooks/useCore";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { PublicKey, SystemProgram } from "@solana/web3.js";
-import {
-  programs,
-  ADDRESS_TOKEN_MINT_ACCOUNT,
-  createTokenPDA,
-  ADDRESS_TOKEN_PROGRAM,
-  ADDRESS_TOKEN_METADATA_PROGRAM,
-} from "../anchor/setup";
 
 export default function CreateTokenForm() {
-  const { publicKey, sendTransaction } = useWallet();
+  const { programs } = useCore();
   const { connection } = useConnection();
+  const { publicKey, sendTransaction } = useWallet();
   const [isLoading, setIsLoading] = useState(false);
+  const [tokenName, setTokenName] = useState("Tub Test");
+  const [tokenSymbol, setTokenSymbol] = useState("TUB");
+  const [tokenUri, setTokenUri] = useState("https://raw.githubusercontent.com/solana-developers/program-examples/new-examples/tokens/tokens/.assets/spl-token.json");
 
-  const onClick = async () => {
-    if (!publicKey) return;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
     setIsLoading(true);
 
     try {
-      console.log(createTokenPDA);
-
+      console.log("Creating transaction...");
       const transaction = await programs.createToken.methods
-        .createToken(
-          "Tub Test", // tokenName
-          "TUB", // tokenSymbol
-          "https://raw.githubusercontent.com/solana-developers/program-examples/new-examples/tokens/tokens/.assets/spl-token.json" // tokenUri
-        )
-        .accountsPartial({
-          mintAccount: new PublicKey(ADDRESS_TOKEN_MINT_ACCOUNT),
-          metadataAccount: createTokenPDA,
-          payer: publicKey,
-          tokenProgram: new PublicKey(ADDRESS_TOKEN_PROGRAM),
-          tokenMetadataProgram: new PublicKey(ADDRESS_TOKEN_METADATA_PROGRAM),
-          systemProgram: SystemProgram.programId,
-          rent: new PublicKey("SysvarRent111111111111111111111111111111111"),
-        })
+        .createToken(tokenName, tokenSymbol, tokenUri)
+        // .accountsPartial({
+        //   mintAccount: new PublicKey(ADDRESS_TOKEN_MINT_ACCOUNT),
+        //   metadataAccount: createTokenPDA,
+        //   payer: publicKey,
+        //   tokenProgram: new PublicKey(ADDRESS_TOKEN_PROGRAM),
+        //   tokenMetadataProgram: new PublicKey(ADDRESS_TOKEN_METADATA_PROGRAM),
+        //   systemProgram: SystemProgram.programId,
+        //   rent: new PublicKey("SysvarRent111111111111111111111111111111111"),
+        // })
         .transaction();
 
-      const transactionSignature = await sendTransaction(
-        transaction,
-        connection
-      );
+      console.log("Transaction created successfully", {transaction});
+      console.log("Sending transaction...");
 
+      const transactionSignature = await sendTransaction(transaction, connection, {
+        skipPreflight: true,
+        preflightCommitment: 'confirmed'
+      });
+
+      console.log("Transaction sent successfully");
       console.log(
         `View on explorer: https://solana.fm/tx/${transactionSignature}?cluster=devnet-alpha`
       );
     } catch (error) {
-      console.log(error);
+      console.error("Error creating token:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <button className="w-24" onClick={onClick} disabled={!publicKey}>
-      {isLoading ? "Loading" : "Mint Token"}
-    </button>
+    <div className="create-token-form">
+      <h2 className="form-title">Create Token</h2>
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label htmlFor="tokenName" className="form-label">Token Name</label>
+          <input
+            type="text"
+            id="tokenName"
+            value={tokenName}
+            onChange={(e) => setTokenName(e.target.value)}
+            className="form-input"
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="tokenSymbol" className="form-label">Token Symbol</label>
+          <input
+            type="text"
+            id="tokenSymbol"
+            value={tokenSymbol}
+            onChange={(e) => setTokenSymbol(e.target.value)}
+            className="form-input"
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="tokenUri" className="form-label">Token URI</label>
+          <input
+            type="url"
+            id="tokenUri"
+            value={tokenUri}
+            onChange={(e) => setTokenUri(e.target.value)}
+            className="form-input"
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={!publicKey || isLoading}
+          className="submit-button"
+        >
+          {isLoading ? (
+            <>
+              <span className="loading-spinner"></span>
+              Creating Token...
+            </>
+          ) : (
+            "Create Token"
+          )}
+        </button>
+      </form>
+    </div>
   );
 }

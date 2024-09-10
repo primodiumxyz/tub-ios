@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useConnection } from "@solana/wallet-adapter-react";
-import { programs, tubPDA, CounterData } from "../anchor/setup";
+import { CounterData } from "../core/types";
+import { useCore } from "../hooks/useCore";
 
 export default function CounterState() {
-  const { connection } = useConnection();
   const [counterData, setCounterData] = useState<CounterData | null>(null);
-
+  const { programs, tubPDA } = useCore();
+  const { connection } = useConnection();
   const tubProgram = programs.tub;
 
   useEffect(() => {

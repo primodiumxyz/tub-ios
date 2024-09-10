@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { programs } from "../anchor/setup";
+import { useCore } from "../hooks/useCore";
 
 export default function IncrementButton() {
   const { publicKey, sendTransaction } = useWallet();
   const { connection } = useConnection();
+  const { programs } = useCore();
   const [isLoading, setIsLoading] = useState(false);
 
   const onClick = async () => {
