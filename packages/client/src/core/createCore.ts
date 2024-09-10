@@ -40,12 +40,12 @@ export const createCore = (
     ...(wallet.adapter as SignerWalletAdapter),
     publicKey,
   };
+
   const provider = new AnchorProvider(
     connection,
     walletAdapter,
     AnchorProvider.defaultOptions()
   );
-  wallet.adapter.sendTransaction;
 
   const programs = {
     tub: new Program<Tub>(IDLTub as Tub, provider),

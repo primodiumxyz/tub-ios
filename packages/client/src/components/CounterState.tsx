@@ -5,16 +5,16 @@ import { useCore } from "../hooks/useCore";
 
 export default function CounterState() {
   const [counterData, setCounterData] = useState<CounterData | null>(null);
-  const { programs, tubPDA } = useCore();
+  const { programs, pdas } = useCore();
   const { connection } = useConnection();
   const tubProgram = programs.tub;
 
   useEffect(() => {
-    tubProgram.account.counter.fetch(tubPDA).then((data) => {
+    tubProgram.account.counter.fetch(pdas.tub).then((data) => {
       setCounterData(data);
     });
 
-    const subscriptionId = connection.onAccountChange(tubPDA, (accountInfo) => {
+    const subscriptionId = connection.onAccountChange(pdas.tub, (accountInfo) => {
       setCounterData(
         tubProgram.coder.accounts.decode("counter", accountInfo.data)
       );
