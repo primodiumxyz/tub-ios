@@ -3,15 +3,18 @@ import { useState } from "react";
 import "../index.css";
 import { useCore } from "../hooks/useCore";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { PublicKey, SystemProgram } from "@solana/web3.js";
 
 export default function CreateTokenForm() {
-  const { programs } = useCore();
+  const { programs, constants, pdas } = useCore();
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
   const [isLoading, setIsLoading] = useState(false);
   const [tokenName, setTokenName] = useState("Tub Test");
   const [tokenSymbol, setTokenSymbol] = useState("TUB");
-  const [tokenUri, setTokenUri] = useState("https://raw.githubusercontent.com/solana-developers/program-examples/new-examples/tokens/tokens/.assets/spl-token.json");
+  const [tokenUri, setTokenUri] = useState(
+    "https://raw.githubusercontent.com/solana-developers/program-examples/new-examples/tokens/tokens/.assets/spl-token.json"
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,32 +22,42 @@ export default function CreateTokenForm() {
     setIsLoading(true);
 
     try {
-      console.log("Creating transaction...");
-      const transaction = await programs.createToken.methods
-        .createToken(tokenName, tokenSymbol, tokenUri)
-        // .accountsPartial({
-        //   mintAccount: new PublicKey(ADDRESS_TOKEN_MINT_ACCOUNT),
-        //   metadataAccount: createTokenPDA,
-        //   payer: publicKey,
-        //   tokenProgram: new PublicKey(ADDRESS_TOKEN_PROGRAM),
-        //   tokenMetadataProgram: new PublicKey(ADDRESS_TOKEN_METADATA_PROGRAM),
-        //   systemProgram: SystemProgram.programId,
-        //   rent: new PublicKey("SysvarRent111111111111111111111111111111111"),
-        // })
-        .transaction();
+      if (publicKey != null) {
+        console.log("Creating transaction...");
+        const transaction = await programs.createToken.methods
+          .createToken(tokenName, tokenSymbol, tokenUri)
+          .accountsPartial({
+            mintAccount: new PublicKey(constants.ADDRESS_TOKEN_MINT_ACCOUNT),
+            metadataAccount: pdas.createToken,
+            payer: publicKey.toString(),
+            tokenProgram: new PublicKey(constants.ADDRESS_TOKEN_PROGRAM),
+            tokenMetadataProgram: new PublicKey(
+              constants.ADDRESS_TOKEN_METADATA_PROGRAM
+            ),
+            systemProgram: SystemProgram.programId,
+            rent: new PublicKey("SysvarRent111111111111111111111111111111111"),
+          })
+          .transaction();
 
-      console.log("Transaction created successfully", {transaction});
-      console.log("Sending transaction...");
+        console.log(JSON.stringify(transaction));
 
-      const transactionSignature = await sendTransaction(transaction, connection, {
-        skipPreflight: true,
-        preflightCommitment: 'confirmed'
-      });
+        console.log("Transaction created successfully", { transaction });
+        console.log("Sending transaction...");
 
-      console.log("Transaction sent successfully");
-      console.log(
-        `View on explorer: https://solana.fm/tx/${transactionSignature}?cluster=devnet-alpha`
-      );
+        const transactionSignature = await sendTransaction(
+          transaction,
+          connection,
+          {
+            // skipPreflight: true,
+            // preflightCommitment: "confirmed",
+          }
+        );
+
+        console.log("Transaction sent successfully");
+        console.log(
+          `View on explorer: https://solana.fm/tx/${transactionSignature}?cluster=devnet-alpha`
+        );
+      }
     } catch (error) {
       console.error("Error creating token:", error);
     } finally {
@@ -57,7 +70,9 @@ export default function CreateTokenForm() {
       <h2 className="form-title">Create Token</h2>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label htmlFor="tokenName" className="form-label">Token Name</label>
+          <label htmlFor="tokenName" className="form-label">
+            Token Name
+          </label>
           <input
             type="text"
             id="tokenName"
@@ -68,7 +83,9 @@ export default function CreateTokenForm() {
           />
         </div>
         <div className="form-group">
-          <label htmlFor="tokenSymbol" className="form-label">Token Symbol</label>
+          <label htmlFor="tokenSymbol" className="form-label">
+            Token Symbol
+          </label>
           <input
             type="text"
             id="tokenSymbol"
@@ -79,7 +96,9 @@ export default function CreateTokenForm() {
           />
         </div>
         <div className="form-group">
-          <label htmlFor="tokenUri" className="form-label">Token URI</label>
+          <label htmlFor="tokenUri" className="form-label">
+            Token URI
+          </label>
           <input
             type="url"
             id="tokenUri"
