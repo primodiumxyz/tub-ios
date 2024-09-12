@@ -3,8 +3,8 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import CounterState from "../components/CounterState";
 import IncrementButton from "../components/IncrementButton";
 import { CoreProvider } from "../providers/CoreProvider";
-import TokenAccountsList from "../components/TokenAccountsList";
 import CreateTokenForm from "../components/CreateTokenForm";
+import MintTokenForm from "../components/MintTokenForm";
 
 export const Home = () => {
   const { publicKey, wallet } = useWallet();
@@ -35,6 +35,7 @@ export const Home = () => {
               <TokenAccountsList />
             </div>
           </div>
+          <MintTokenForm />
         </div>
       </CoreProvider>
     );
