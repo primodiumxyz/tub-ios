@@ -7,9 +7,11 @@ import { CreateToken } from "@tub/contracts/target/types/create_token";
 import IDLTub from "@tub/contracts/target/idl/tub.json";
 import IDLCreateToken from "@tub/contracts/target/idl/create_token.json";
 
-import { Keypair } from "@solana/web3.js";
 import { Wallet } from "@solana/wallet-adapter-react";
 import { SignerWalletAdapter } from "@solana/wallet-adapter-base";
+import { createUmi } from '@metaplex-foundation/umi-bundle-defaults'
+import { mplTokenMetadata } from '@metaplex-foundation/mpl-token-metadata'
+
 // Add this function to create an Anchor compatible wallet
 
 export const createCore = (
@@ -27,7 +29,9 @@ export const createCore = (
   // token metadata program deployed on-chain
   const ADDRESS_TOKEN_METADATA_PROGRAM =
     "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s";
-  const tokenMetadataProgramKey = new PublicKey(ADDRESS_TOKEN_METADATA_PROGRAM);
+
+// Use the RPC endpoint of your choice.
+const umi = createUmi(connection.rpcEndpoint).use(mplTokenMetadata())
 
   // =============================================================================
 
@@ -50,6 +54,7 @@ export const createCore = (
     ),
   };
 
+  
   // =============================================================================
   // PDA of Tub, the default counter program
   // seeds = [b"randomSeed"], // optional seeds for pda
@@ -59,6 +64,7 @@ export const createCore = (
   );
 
    return {
+    umi,
     constants: {
       SOLANA_LOCALNET,
       ADDRESS_TOKEN_PROGRAM,
