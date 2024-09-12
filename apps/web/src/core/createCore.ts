@@ -29,10 +29,6 @@ export const createCore = (
     "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s";
   const tokenMetadataProgramKey = new PublicKey(ADDRESS_TOKEN_METADATA_PROGRAM);
 
-  // Generate new keypair for minting tokens
-  const tokenMintAccount = new Keypair();
-  const ADDRESS_TOKEN_MINT_ACCOUNT = tokenMintAccount.publicKey.toString();
-
   // =============================================================================
 
   const walletAdapter = {
@@ -62,31 +58,15 @@ export const createCore = (
     programs.tub.programId
   );
 
-  // PDA of CreateToken, the program that creates new tokens
-  // seeds = [b"metadata", token_metadata_program.key().as_ref(), mint_account.key().as_ref()],
-  const [createTokenPDA] = PublicKey.findProgramAddressSync(
-    [
-      Buffer.from("metadata"),
-      tokenMetadataProgramKey.toBuffer(),
-      tokenMintAccount.publicKey.toBuffer(),
-    ],
-    tokenMetadataProgramKey
-  );
-
-  return {
+   return {
     constants: {
       SOLANA_LOCALNET,
       ADDRESS_TOKEN_PROGRAM,
       ADDRESS_TOKEN_METADATA_PROGRAM,
-      ADDRESS_TOKEN_MINT_ACCOUNT,
-    },
-    keypairs: {
-      tokenMintAccount,
     },
     programs,
     pdas: {
       tub: tubPDA,
-      createToken: createTokenPDA,
     },
   };
 };
