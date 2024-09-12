@@ -2,7 +2,8 @@ import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useWallet } from "@solana/wallet-adapter-react";
 import CounterState from "../components/CounterState";
 import IncrementButton from "../components/IncrementButton";
-import MintForm from "../components/CreateTokenForm";
+import CreateTokenForm from "../components/CreateTokenForm";
+import MintTokenForm from "../components/MintTokenForm";
 import { CoreProvider } from "../providers/CoreProvider";
 
 export const Home = () => {
@@ -29,7 +30,8 @@ export const Home = () => {
             <CounterState />
           </div>
           <hr />
-          <MintForm />
+          <CreateTokenForm />
+          <MintTokenForm />
         </div>
       </CoreProvider>
     );
