@@ -4,7 +4,7 @@ import CounterState from "../components/CounterState";
 import IncrementButton from "../components/IncrementButton";
 import { CoreProvider } from "../providers/CoreProvider";
 import CreateTokenForm from "../components/CreateTokenForm";
-import MintTokenForm from "../components/MintTokenForm";
+import TokenAccountsList from "../components/TokenAccountsList";
 
 export const Home = () => {
   const { publicKey, wallet } = useWallet();
@@ -33,9 +33,9 @@ export const Home = () => {
             <div className="flex gap-2 max-h-[500px] overflow-y-hidden">
               <CreateTokenForm />
               <TokenAccountsList />
+              {/* <MintTokenForm /> */}
             </div>
           </div>
-          <MintTokenForm />
         </div>
       </CoreProvider>
     );

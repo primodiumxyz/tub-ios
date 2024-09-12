@@ -6,7 +6,6 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      crypto: 'crypto-browserify',
       'node-fetch': 'isomorphic-fetch'
     }
   },

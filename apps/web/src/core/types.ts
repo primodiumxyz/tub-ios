@@ -1,6 +1,6 @@
 import { IdlAccounts } from "@coral-xyz/anchor";
-import { Tub } from "../../../contracts/target/types/tub";
-import { CreateToken } from "../../../contracts/target/types/create_token";
+import { Tub } from "@tub/contracts/target/types/tub";
+import { CreateToken } from "@tub/contracts/target/types/create_token";
 import { createCore } from "./createCore";
 
 export type Core = ReturnType<typeof createCore>
