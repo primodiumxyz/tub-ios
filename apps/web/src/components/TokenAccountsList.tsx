@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTokenStore } from "../store/tokenStore";
 import { useCore } from "../hooks/useCore";
 import { fetchDigitalAsset } from "@metaplex-foundation/mpl-token-metadata";
@@ -22,10 +22,11 @@ export default function TokenAccountsList() {
   const { publicKey, sendTransaction } = useWallet();
   const { connection } = useConnection();
   const tokenAccounts = useTokenStore((state) => state.tokenAccounts);
+
   const [tokenInfos, setTokenInfos] = useState<TokenInfo[]>([]);
   const [isLoading, setIsLoading] = useState<{ [key: number]: boolean }>({});
 
-  const fetchTokenInfos = async () => {
+  const fetchTokenInfos = useCallback(async () => {
     const infos = await Promise.all(
       tokenAccounts.map((account) => {
         try{
@@ -39,21 +40,24 @@ export default function TokenAccountsList() {
 
     setTokenInfos(
       infos.reduce((acc: TokenInfo[], info, i) => {
-        if (info) {
-          acc.push({
-            account: tokenAccounts[i],
-            address: info.mint.publicKey.toString(),
-            name: info.metadata.name,
-            symbol: info.metadata.symbol,
-            uri: info.metadata.uri,
-            supply: info.mint.supply,
-            mintAmount: "0",
-          });
-        }
-        return acc;
-      }, [] as TokenInfo[])
+        if(!info) return acc;
+        return [...acc, {
+          account: tokenAccounts[i],
+          address: info.mint.publicKey.toString(),
+          name: info.metadata.name,
+          symbol: info.metadata.symbol,
+          uri: info.metadata.uri,
+          supply: info.mint.supply,
+          mintAmount: tokenInfos.find((account) => {
+            console.log({account: account.address, info: info.mint.publicKey.toString()});
+            console.log(account);
+            return account.address.toString() === info.mint.publicKey.toString()})?.mintAmount ?? "0"
+
+        }]
+
+              }, [] as TokenInfo[])
     );
-  };
+  }, [umi, tokenAccounts, tokenInfos]);
 
   useEffect(() => {
     const fetchInterval = setInterval(() => {
@@ -62,12 +66,9 @@ export default function TokenAccountsList() {
       fetchTokenInfos();
     }, 5000); // 10000 milliseconds = 10 seconds
 
-    // Initial fetch
-    fetchTokenInfos();
-
     // Cleanup function to clear the interval when the component unmounts
     return () => clearInterval(fetchInterval);
-  }, []);
+  }, [fetchTokenInfos]);
 
   const handleMint = async (e: React.FormEvent, index: number) => {
     e.preventDefault();
@@ -170,7 +171,7 @@ export default function TokenAccountsList() {
 
                 <div className="">
                   <p className="text-sm font-semibold text-gray-600">Supply:</p>
-                  <p className="text-xs text-blue-500 break-all hover:underline">
+                  <p className="text-xs">
                     {info.supply.toString()}
                   </p>
                 </div>
