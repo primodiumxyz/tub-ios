@@ -2,26 +2,36 @@ import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useWallet } from "@solana/wallet-adapter-react";
 import CounterState from "../components/CounterState";
 import IncrementButton from "../components/IncrementButton";
+import MintForm from "../components/CreateTokenForm";
+import { CoreProvider } from "../providers/CoreProvider";
 
 export const Home = () => {
-  const { publicKey } = useWallet();
+  const { publicKey, wallet } = useWallet();
 
-  if (!publicKey) {
+  if (!wallet || !publicKey) {
     return (
       <div>
         Please connect a wallet.
-        <CounterState />
         <WalletMultiButton />
       </div>
     );
   } else {
     return (
-      <div>
-        <p>Connected wallet: {publicKey.toString()}</p>
-        <CounterState />
-        <IncrementButton />
-        <WalletMultiButton />
-      </div>
+      <CoreProvider wallet={wallet} publicKey={publicKey}>
+        <div>
+          <div style={{ display: "flex", flexDirection: "row" }}>
+            <p>Connected wallet: {publicKey.toString()}</p>
+            <WalletMultiButton />
+          </div>
+          <hr />
+          <div style={{ display: "flex", flexDirection: "row", gap: "10px" }}>
+            <IncrementButton />
+            <CounterState />
+          </div>
+          <hr />
+          <MintForm />
+        </div>
+      </CoreProvider>
     );
   }
 };

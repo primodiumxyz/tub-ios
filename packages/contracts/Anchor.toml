@@ -4,18 +4,19 @@
 resolution = true
 skip-lint = false
 
-[programs.localnet]
-tub = "2a1T6Xhad5kf6VvdcebQfK6RzAxcHxiAhskRYKNzmTYw"
-
 [programs.devnet]
-tub = "2a1T6Xhad5kf6VvdcebQfK6RzAxcHxiAhskRYKNzmTYw"
+create-token = "C1EHDWDzfcBjun8fTG8xa1oWR3Kv7t91mtkUcGT86QyK"
+tub = "GknSQQEnPaHG97wPG7yfQYJJcTQVaW1KDfpYDgtFqvM9"
+
+[programs.localnet]
+create-token = "C1EHDWDzfcBjun8fTG8xa1oWR3Kv7t91mtkUcGT86QyK"
+tub = "GknSQQEnPaHG97wPG7yfQYJJcTQVaW1KDfpYDgtFqvM9"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-# cluster = "Localnet"
-cluster = "devnet"
+cluster = "Devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
