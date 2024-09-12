@@ -110,11 +110,16 @@ export default function CreateTokenForm() {
   };
 
   return (
-    <div className="create-token-form">
-      <h2 className="form-title">Create Token</h2>
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-        <div className="form-group">
-          <label htmlFor="tokenName" className="form-label">
+    <div className="w-[400px] p-2 bg-slate-300 rounded-xl shadow-md flex flex-col gap-2">
+      <h2 className="text-base font-bold text-center  text-gray-800">
+        Create Token
+      </h2>
+      <form onSubmit={handleSubmit} className="w-full flex flex-col gap-2">
+        <div>
+          <label
+            htmlFor="tokenName"
+            className="block text-sm font-medium text-gray-600"
+          >
             Token Name
           </label>
           <input
@@ -122,12 +127,15 @@ export default function CreateTokenForm() {
             id="tokenName"
             value={tokenName}
             onChange={(e) => setTokenName(e.target.value)}
-            className="form-input"
+            className="w-full p-2 border border-gray-300 rounded-md text-base transition-colors focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
             required
           />
         </div>
-        <div className="form-group">
-          <label htmlFor="tokenSymbol" className="form-label">
+        <div className="">
+          <label
+            htmlFor="tokenSymbol"
+            className="block text-sm font-medium text-gray-600"
+          >
             Token Symbol
           </label>
           <input
@@ -135,12 +143,15 @@ export default function CreateTokenForm() {
             id="tokenSymbol"
             value={tokenSymbol}
             onChange={(e) => setTokenSymbol(e.target.value)}
-            className="form-input"
+            className="w-full p-2 border border-gray-300 rounded-md text-base transition-colors focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
             required
           />
         </div>
-        <div className="form-group">
-          <label htmlFor="tokenUri" className="form-label">
+        <div className="">
+          <label
+            htmlFor="tokenUri"
+            className="block text-sm font-medium text-gray-600"
+          >
             Token URI
           </label>
           <input
@@ -148,44 +159,36 @@ export default function CreateTokenForm() {
             id="tokenUri"
             value={tokenUri}
             onChange={(e) => setTokenUri(e.target.value)}
-            className="form-input"
+            className="w-full p-2 border border-gray-300 rounded-md text-base transition-colors focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
           />
         </div>
-        <div
-          style={{
-            padding: "1rem",
-            display: "flex",
-            flexDirection: "column",
-            background: "rgba(128, 0, 128, 0.1)",
-          }}
-        >
-          <p>
+        <div className="p-4 flex flex-col bg-slate-600 bg-opacity-10 rounded-md">
+          <p className="text-wrap text-sm text-gray-600 overflow-x-auto pb-2">
             Token Account: {tokenMintAccount?.publicKey.toString() ?? "None"}
           </p>
-<button
-          type="button"
-          onClick={generateTokenAccount}
-          className="submit-button"
-        >
-          Generate Token
-        </button>
-
-        </div>
-        
           <button
-            type="submit"
-           disabled={isLoading || publicKey == null || tokenMintAccount == null}
-            className="submit-button"
+            type="button"
+            onClick={generateTokenAccount}
+            className="w-full py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white border-none rounded-md text-base font-medium cursor-pointer transition-all hover:translate-y-[-1px] disabled:opacity-60 disabled:cursor-not-allowed mt-2"
           >
-            {isLoading ? (
-              <>
-                <span className="loading-spinner"></span>
-                Creating Token...
-              </>
-            ) : (
-              "Submit Transaction"
-            )}
+            Generate Token
           </button>
+        </div>
+
+        <button
+          type="submit"
+          disabled={isLoading || publicKey == null || tokenMintAccount == null}
+          className="w-full py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white border-none rounded-md text-base font-medium cursor-pointer transition-all hover:translate-y-[-1px] disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          {isLoading ? (
+            <>
+              <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
+              Creating Token...
+            </>
+          ) : (
+            "Submit Transaction"
+          )}
+        </button>
       </form>
     </div>
   );

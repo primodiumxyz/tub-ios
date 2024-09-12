@@ -18,12 +18,14 @@ export default function TokenAccountsList() {
 
   
   return (
-    <div className="token-accounts-list">
-      <h2>Created Tokens</h2>
-{tokenAccounts.length === 0 ? (
+    <div className="w-[400px] p-2 bg-slate-300 rounded-xl shadow-md flex flex-col gap-2">
+      <h2 className="text-base font-bold text-center  text-gray-800">
+        Created Tokens
+      </h2>
+      {tokenAccounts.length === 0 ? (
         <p>No tokens created yet.</p>
       ) : (
-        <ul>
+        <ul className="flex flex-col gap-2 overflow-y-auto">
           {tokenAccounts.map((account) => (
             <li key={account.publicKey.toString()}>
               <p>Address: {account.publicKey.toString()}</p>

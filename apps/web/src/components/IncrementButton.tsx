@@ -32,7 +32,7 @@ export default function IncrementButton() {
   };
 
   return (
-    <button className="w-24" onClick={onClick} disabled={!publicKey}>
+    <button className="btn-primary" onClick={onClick} disabled={!publicKey}>
       {isLoading ? "Loading" : "Increment"}
     </button>
   );
