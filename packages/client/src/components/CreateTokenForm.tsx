@@ -6,7 +6,7 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey, SystemProgram } from "@solana/web3.js";
 
 export default function CreateTokenForm() {
-  const { programs, constants, pdas } = useCore();
+  const { programs, constants, pdas, keypairs } = useCore();
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
   const [isLoading, setIsLoading] = useState(false);
@@ -37,7 +37,19 @@ export default function CreateTokenForm() {
             systemProgram: SystemProgram.programId,
             rent: new PublicKey("SysvarRent111111111111111111111111111111111"),
           })
+          .signers([keypairs.tokenMintAccount])
           .transaction();
+
+        transaction.feePayer = publicKey;
+        transaction.recentBlockhash = (
+          await connection.getLatestBlockhash()
+        ).blockhash;
+        transaction.sign(keypairs.tokenMintAccount);
+        console.log(
+          transaction
+            .serialize({ verifySignatures: false, requireAllSignatures: false })
+            .toString("base64")
+        );
 
         console.log(JSON.stringify(transaction));
 

@@ -1,7 +1,7 @@
 import { IdlAccounts, Program } from "@coral-xyz/anchor";
 import { Tub } from "../../../contracts/target/types/tub";
 import { CreateToken } from "../../../contracts/target/types/create_token";
-import { PublicKey } from "@solana/web3.js";
+import { Keypair, PublicKey } from "@solana/web3.js";
 
 export type Core = {
   constants: {
@@ -9,6 +9,9 @@ export type Core = {
     ADDRESS_TOKEN_PROGRAM: string;
     ADDRESS_TOKEN_METADATA_PROGRAM: string;
     ADDRESS_TOKEN_MINT_ACCOUNT: string;
+  };
+  keypairs: {
+    tokenMintAccount: Keypair;
   };
   programs: {
     tub: Program<Tub>;

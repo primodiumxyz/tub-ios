@@ -81,6 +81,9 @@ export const createCore = (
       ADDRESS_TOKEN_METADATA_PROGRAM,
       ADDRESS_TOKEN_MINT_ACCOUNT,
     },
+    keypairs: {
+      tokenMintAccount,
+    },
     programs,
     pdas: {
       tub: tubPDA,
