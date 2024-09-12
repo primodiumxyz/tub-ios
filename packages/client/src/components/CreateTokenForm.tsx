@@ -51,19 +51,19 @@ export default function CreateTokenForm() {
       console.log("Transaction created successfully", { transaction });
       console.log("Sending transaction...");
 
-      const transactionSignature = await sendTransaction(
-        transaction,
-        connection,
-        // {
-        //   skipPreflight: true,
-        //   preflightCommitment: "confirmed",
-        // }
-      );
+        const transactionSignature = await sendTransaction(
+          transaction,
+          connection,
+          {
+            // skipPreflight: true,
+            // preflightCommitment: "confirmed",
+          }
+        );
 
-      console.log("Transaction sent successfully");
-      console.log(
-        `View on explorer: https://solana.fm/tx/${transactionSignature}?cluster=devnet-alpha`
-      );
+        console.log("Transaction sent successfully");
+        console.log(
+          `View on explorer: https://solana.fm/tx/${transactionSignature}?cluster=devnet-alpha`
+        );
     } catch (error) {
       console.error("Error creating token:", error);
     } finally {
