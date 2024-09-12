@@ -1,5 +1,5 @@
 {
-  "name": "contracts",
+  "name": "@tub/contracts",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {

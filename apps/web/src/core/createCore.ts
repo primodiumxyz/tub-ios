@@ -1,11 +1,11 @@
 import { AnchorProvider, Program } from "@coral-xyz/anchor";
 import { Connection, PublicKey } from "@solana/web3.js";
 
-import { Tub } from "../../../contracts/target/types/tub";
-import { CreateToken } from "../../../contracts/target/types/create_token";
+import { Tub } from "@tub/contracts/target/types/tub";
+import { CreateToken } from "@tub/contracts/target/types/create_token";
 
-import IDLTub from "../../../contracts/target/idl/tub.json";
-import IDLCreateToken from "../../../contracts/target/idl/create_token.json";
+import IDLTub from "@tub/contracts/target/idl/tub.json";
+import IDLCreateToken from "@tub/contracts/target/idl/create_token.json";
 
 import { Keypair } from "@solana/web3.js";
 import { Wallet } from "@solana/wallet-adapter-react";
@@ -84,9 +84,6 @@ export const createCore = (
       tokenMintAccount,
     },
     programs,
-    keypairs: {
-      tokenMintAccount,
-    },
     pdas: {
       tub: tubPDA,
       createToken: createTokenPDA,
