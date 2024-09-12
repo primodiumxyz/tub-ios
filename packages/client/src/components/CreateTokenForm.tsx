@@ -18,6 +18,10 @@ export default function CreateTokenForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!publicKey) {
+      console.error("No public key found");
+      return;
+    }
 
     setIsLoading(true);
 
@@ -53,6 +57,7 @@ export default function CreateTokenForm() {
 
         console.log(JSON.stringify(transaction));
 
+        console.log(transaction.serializeMessage().toString("base64"));
         console.log("Transaction created successfully", { transaction });
         console.log("Sending transaction...");
 

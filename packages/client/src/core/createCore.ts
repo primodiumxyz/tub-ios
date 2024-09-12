@@ -8,7 +8,6 @@ import IDLTub from "../../../contracts/target/idl/tub.json";
 import IDLCreateToken from "../../../contracts/target/idl/create_token.json";
 
 import { Keypair } from "@solana/web3.js";
-import { Core } from "./types";
 import { Wallet } from "@solana/wallet-adapter-react";
 import { SignerWalletAdapter } from "@solana/wallet-adapter-base";
 // Add this function to create an Anchor compatible wallet
@@ -17,7 +16,7 @@ export const createCore = (
   publicKey: PublicKey,
   wallet: Wallet,
   connection: Connection
-): Core => {
+) => {
   // =============================================================================
   // future environment variables
   const SOLANA_LOCALNET = false;
@@ -85,6 +84,9 @@ export const createCore = (
       tokenMintAccount,
     },
     programs,
+    keypairs: {
+      tokenMintAccount,
+    },
     pdas: {
       tub: tubPDA,
       createToken: createTokenPDA,
