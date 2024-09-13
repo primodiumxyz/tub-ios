@@ -1,12 +1,14 @@
 use {
     anchor_lang::prelude::*,
     anchor_spl::{
+        associated_token::{get_associated_token_address, AssociatedToken},
         metadata::{
             create_metadata_accounts_v3, mpl_token_metadata::types::DataV2,
             CreateMetadataAccountsV3, Metadata,
         },
-        token::{Mint, Token},
+        token::{mint_to, Mint, MintTo, Token, TokenAccount},
     },
+    std::collections::BTreeMap,
 };
 
 #[derive(Accounts)]
@@ -32,7 +34,17 @@ pub struct CreateToken<'info> {
     )]
     pub metadata_account: UncheckedAccount<'info>,
 
+    #[account(
+        init_if_needed,
+        payer = payer,
+        associated_token::mint = mint_account,
+        associated_token::authority = payer,
+    )]
+    pub associated_token_account: Account<'info, TokenAccount>,
+
     pub token_program: Program<'info, Token>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+
     pub token_metadata_program: Program<'info, Metadata>,
     pub system_program: Program<'info, System>,
     pub rent: Sysvar<'info, Rent>,
@@ -43,9 +55,9 @@ pub fn create_token(
     token_name: String,
     token_symbol: String,
     token_uri: String,
+    lamports: u64,
 ) -> Result<()> {
     msg!("Creating metadata account");
-
 
     // Cross Program Invocation (CPI)
     // Invoking the create_metadata_account_v3 instruction on the token metadata program
@@ -74,6 +86,32 @@ pub fn create_token(
         false, // Is mutable
         true,  // Update authority is signer
         None,  // Collection details
+    )?;
+    // Calculate token amount based on SOL amount (100,000 tokens per SOL)
+    let token_amount = lamports.checked_mul(100_000).unwrap();
+
+    mint_to(
+        CpiContext::new(
+            ctx.accounts.token_program.to_account_info(),
+            MintTo {
+                mint: ctx.accounts.mint_account.to_account_info(),
+                to: ctx.accounts.associated_token_account.to_account_info(),
+                authority: ctx.accounts.payer.to_account_info(),
+            },
+        ),
+        token_amount,
+    )?;
+
+    // Transfer SOL from payer to program
+    anchor_lang::system_program::transfer(
+        CpiContext::new(
+            ctx.accounts.system_program.to_account_info(),
+            anchor_lang::system_program::Transfer {
+                from: ctx.accounts.payer.to_account_info(),
+                to: ctx.accounts.mint_account.to_account_info(),
+            },
+        ),
+        lamports,
     )?;
 
     msg!("Token created successfully.");

@@ -2468,6 +2468,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "tub-token"
+version = "0.1.0"
+dependencies = [
+ "anchor-lang",
+ "anchor-spl",
+]
+
+[[package]]
 name = "typenum"
 version = "1.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
