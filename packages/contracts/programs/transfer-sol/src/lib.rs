@@ -3,7 +3,7 @@
 use anchor_lang::prelude::*;
 use anchor_lang::system_program;
 
-declare_id!("GCGWryMFy4CY4fBEV3Fy7zcPG9kXP1iwigXNnkocaMkJ");
+declare_id!("B8SshXZbFQK29wAfCKciWnYvnReaJjpjmehq5v5RxVpc");
 
 #[program]
 pub mod transfer_sol {

@@ -5,7 +5,7 @@ use anchor_lang::prelude::*;
 pub mod instructions;
 use instructions::*;
 
-declare_id!("C1EHDWDzfcBjun8fTG8xa1oWR3Kv7t91mtkUcGT86QyK");
+declare_id!("7WmmmF6qrgzekGSx59Qnd4VJXcN4WHoe4SUaWXT9a3QW");
 
 #[program]
 pub mod create_token {

@@ -3,9 +3,10 @@ import { Connection, PublicKey } from "@solana/web3.js";
 
 import { Tub } from "@tub/contracts/target/types/tub";
 import { CreateToken } from "@tub/contracts/target/types/create_token";
-
+import { TransferSol } from "@tub/contracts/target/types/transfer_sol";
 import IDLTub from "@tub/contracts/target/idl/tub.json";
 import IDLCreateToken from "@tub/contracts/target/idl/create_token.json";
+import IDLTransferSol from "@tub/contracts/target/idl/transfer_sol.json";
 
 import { Wallet } from "@solana/wallet-adapter-react";
 import { SignerWalletAdapter } from "@solana/wallet-adapter-base";
@@ -52,6 +53,10 @@ const umi = createUmi(connection.rpcEndpoint).use(mplTokenMetadata())
       IDLCreateToken as CreateToken,
       provider
     ),
+    transferSol: new Program<TransferSol>(
+      IDLTransferSol as TransferSol,
+      provider
+    ),
   };
 
   
@@ -63,7 +68,14 @@ const umi = createUmi(connection.rpcEndpoint).use(mplTokenMetadata())
     programs.tub.programId
   );
 
-   return {
+
+
+  const [transferSolPDA] = PublicKey.findProgramAddressSync(
+    [Buffer.from("transfer_sol")],
+    programs.transferSol.programId
+  );
+
+  return {
     umi,
     constants: {
       SOLANA_LOCALNET,
@@ -73,6 +85,7 @@ const umi = createUmi(connection.rpcEndpoint).use(mplTokenMetadata())
     programs,
     pdas: {
       tub: tubPDA,
+      transferSol: transferSolPDA,
     },
   };
 };
