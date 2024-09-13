@@ -2454,6 +2454,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "transfer-sol"
+version = "0.1.0"
+dependencies = [
+ "anchor-lang",
+]
+
+[[package]]
 name = "tub"
 version = "0.1.0"
 dependencies = [
