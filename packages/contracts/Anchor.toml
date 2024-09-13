@@ -5,11 +5,13 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-create-token = "C1EHDWDzfcBjun8fTG8xa1oWR3Kv7t91mtkUcGT86QyK"
+create_token = "C1EHDWDzfcBjun8fTG8xa1oWR3Kv7t91mtkUcGT86QyK"
+transfer_sol = "GCGWryMFy4CY4fBEV3Fy7zcPG9kXP1iwigXNnkocaMkJ"
 tub = "GknSQQEnPaHG97wPG7yfQYJJcTQVaW1KDfpYDgtFqvM9"
 
 [programs.localnet]
-create-token = "C1EHDWDzfcBjun8fTG8xa1oWR3Kv7t91mtkUcGT86QyK"
+create_token = "C1EHDWDzfcBjun8fTG8xa1oWR3Kv7t91mtkUcGT86QyK"
+transfer_sol = "GCGWryMFy4CY4fBEV3Fy7zcPG9kXP1iwigXNnkocaMkJ"
 tub = "GknSQQEnPaHG97wPG7yfQYJJcTQVaW1KDfpYDgtFqvM9"
 
 [registry]
