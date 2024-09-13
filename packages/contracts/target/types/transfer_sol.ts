@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/transfer_sol.json`.
  */
 export type TransferSol = {
-  "address": "GCGWryMFy4CY4fBEV3Fy7zcPG9kXP1iwigXNnkocaMkJ",
+  "address": "B8SshXZbFQK29wAfCKciWnYvnReaJjpjmehq5v5RxVpc",
   "metadata": {
     "name": "transferSol",
     "version": "0.1.0",

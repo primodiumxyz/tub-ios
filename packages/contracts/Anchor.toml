@@ -5,14 +5,14 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-create_token = "C1EHDWDzfcBjun8fTG8xa1oWR3Kv7t91mtkUcGT86QyK"
-transfer_sol = "GCGWryMFy4CY4fBEV3Fy7zcPG9kXP1iwigXNnkocaMkJ"
-tub = "GknSQQEnPaHG97wPG7yfQYJJcTQVaW1KDfpYDgtFqvM9"
+create_token = "7WmmmF6qrgzekGSx59Qnd4VJXcN4WHoe4SUaWXT9a3QW"
+transfer_sol = "B8SshXZbFQK29wAfCKciWnYvnReaJjpjmehq5v5RxVpc"
+tub = "33k6geABgPqmEkAVQAHPpc2pnUMRP2yq8pSRNPsYy8bv"
 
 [programs.localnet]
-create_token = "C1EHDWDzfcBjun8fTG8xa1oWR3Kv7t91mtkUcGT86QyK"
-transfer_sol = "GCGWryMFy4CY4fBEV3Fy7zcPG9kXP1iwigXNnkocaMkJ"
-tub = "GknSQQEnPaHG97wPG7yfQYJJcTQVaW1KDfpYDgtFqvM9"
+create_token = "7WmmmF6qrgzekGSx59Qnd4VJXcN4WHoe4SUaWXT9a3QW"
+transfer_sol = "B8SshXZbFQK29wAfCKciWnYvnReaJjpjmehq5v5RxVpc"
+tub = "33k6geABgPqmEkAVQAHPpc2pnUMRP2yq8pSRNPsYy8bv"
 
 [registry]
 url = "https://api.apr.dev"

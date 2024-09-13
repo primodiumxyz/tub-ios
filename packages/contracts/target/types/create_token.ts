@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/create_token.json`.
  */
 export type CreateToken = {
-  "address": "C1EHDWDzfcBjun8fTG8xa1oWR3Kv7t91mtkUcGT86QyK",
+  "address": "7WmmmF6qrgzekGSx59Qnd4VJXcN4WHoe4SUaWXT9a3QW",
   "metadata": {
     "name": "createToken",
     "version": "0.1.0",
