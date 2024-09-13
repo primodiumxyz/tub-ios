@@ -51,7 +51,7 @@ export default function TransferSolForm({publicKey}: {publicKey: PublicKey}) {
 
       console.log("Creating transaction...");
       const transaction = await programs.transferSol.methods
-        .transferSolWithProgram(new BN(lamports))
+        .transferSolWithCpi(new BN(lamports))
         .accounts({
           payer: publicKey,
           recipient: recipientPublicKey,
