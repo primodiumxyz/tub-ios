@@ -1,24 +1,9 @@
-import { IdlAccounts, Program } from "@coral-xyz/anchor";
-import { Tub } from "../../../contracts/target/types/tub";
-import { CreateToken } from "../../../contracts/target/types/create_token";
-import { Keypair, PublicKey } from "@solana/web3.js";
+import { IdlAccounts } from "@coral-xyz/anchor";
+import { Tub } from "@tub/contracts/target/types/tub";
+import { CreateToken } from "@tub/contracts/target/types/create_token";
+import { createCore } from "./createCore";
 
-export type Core = {
-  constants: {
-    SOLANA_LOCALNET: boolean;
-    ADDRESS_TOKEN_PROGRAM: string;
-    ADDRESS_TOKEN_METADATA_PROGRAM: string;
-    ADDRESS_TOKEN_MINT_ACCOUNT: string;
-  };
-  keypairs: {
-    tokenMintAccount: Keypair;
-  };
-  programs: {
-    tub: Program<Tub>;
-    createToken: Program<CreateToken>;
-  };
-  pdas: Record<ProgramId, PublicKey>;
-};
+export type Core = ReturnType<typeof createCore>
 
 export type CounterData = IdlAccounts<Tub>["counter"];
 export type CreateMintData = IdlAccounts<CreateToken>["asdf"];
