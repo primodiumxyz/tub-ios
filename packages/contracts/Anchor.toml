@@ -18,7 +18,7 @@ tub = "33k6geABgPqmEkAVQAHPpc2pnUMRP2yq8pSRNPsYy8bv"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Devnet"
+cluster = "Localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
