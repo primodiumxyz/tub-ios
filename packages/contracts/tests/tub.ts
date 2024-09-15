@@ -1,49 +1,52 @@
 import * as anchor from "@coral-xyz/anchor";
-import { Program } from "@coral-xyz/anchor";
-import { Tub } from "../target/types/tub";
-import { PublicKey } from "@solana/web3.js";
+import { getAssociatedTokenAddressSync } from "@solana/spl-token";
+import { Keypair, PublicKey } from "@solana/web3.js";
+import type { TubToken } from "../target/types/tub_token";
+import { BN } from "@coral-xyz/anchor";
+import { expect } from "chai";
 
-describe("counter", () => {
-  // Configure the client to use the local cluster.
+describe("Tub Token Creator", () => {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
+  const payer = provider.wallet as anchor.Wallet;
+  const program = anchor.workspace.TubToken as anchor.Program<TubToken>;
 
-  const program = anchor.workspace.Tub as Program<Tub>;
+  const metadata = {
+    name: "Solana Gold",
+    symbol: "GOLDSOL",
+    uri: "https://raw.githubusercontent.com/solana-developers/program-examples/new-examples/tokens/tokens/.assets/spl-token.json",
+  };
 
-  const [counterPDA] = PublicKey.findProgramAddressSync(
-    [Buffer.from("randomSeed")],
-    program.programId
-  );
+  // Generate new keypair to use as address for mint account.
+  const mintKeypair = new Keypair();
 
-  it("Is initialized!", async () => {
-    try {
-      const txSig = await program.methods
-        .initialize()
-        .accountsPartial({
-          counter: counterPDA,
-        })
-        .rpc();
+  it("Create a Tub Token!", async () => {
 
-      const accountData = await program.account.counter.fetch(counterPDA);
-      console.log(`Transaction Signature: ${txSig}`);
-      console.log(`Count: ${accountData.count}`);
-    } catch (error) {
-      // If PDA Account already created, then we expect an error
-      console.log(error);
-    }
-  });
+    const prevBalance = await provider.connection.getBalance(payer.publicKey);
+    console.log({ prevBalance });
 
-  it("Increment", async () => {
+    const associatedTokenAccountAddress = getAssociatedTokenAddressSync(
+      mintKeypair.publicKey,
+      payer.publicKey
+    );
     const transactionSignature = await program.methods
-      .increment()
+      .createTubToken(metadata.name, metadata.symbol, metadata.uri, new BN(1e9))
       .accounts({
-        counter: counterPDA,
+        payer: payer.publicKey,
+        mintAccount: mintKeypair.publicKey,
       })
+      .signers([mintKeypair])
       .rpc();
 
-    const accountData = await program.account.counter.fetch(counterPDA);
+    console.log("Success!");
+    console.log(`   Mint Address: ${mintKeypair.publicKey}`);
+    console.log(`   Transaction Signature: ${transactionSignature}`);
 
-    console.log(`Transaction Signature: ${transactionSignature}`);
-    console.log(`Count: ${accountData.count}`);
+    // // it should mint 1e9 tokens * 100_000 to the mint address
+    // const mintBalance = await provider.connection.getTokenAccountBalance(new PublicKey(mintKeypair.publicKey));
+    // expect(Number(mintBalance.value.amount)).to.be.eq(prevMintBalance.value.amount + 1e9 * 100_000);
+    // // it should transfer 1e9 tokens from the payer address to the mint address
+    // const newBalance = await provider.connection.getBalance(payer.publicKey);
+    // expect(newBalance).to.be.eq(prevBalance - 1e9);
   });
 });
