@@ -50,8 +50,10 @@ describe("Tub Token Creator", () => {
     // expect(newBalance).to.be.eq(prevBalance - 1e9);
   });
 
-  it("Create an SPL Token!", async () => {
+  describe("Create and mint a token", () => {
+
   const mintKeypair = new Keypair();
+  it("Create an SPL Token!", async () => {
     const transactionSignature = await program.methods
       .createToken(metadata.name, metadata.symbol, metadata.uri)
       .accounts({
@@ -67,7 +69,6 @@ describe("Tub Token Creator", () => {
   });
 
   it("Mint some tokens to your wallet!", async () => {
-  const mintKeypair = new Keypair();
     // Derive the associated token address account for the mint and payer.
     const associatedTokenAccountAddress = getAssociatedTokenAddressSync(
       mintKeypair.publicKey,
@@ -90,8 +91,9 @@ describe("Tub Token Creator", () => {
 
     console.log("Success!");
     console.log(
-      `Associated Token Account Address: ${associatedTokenAccountAddress}`
-    );
-    console.log(`Transaction Signature: ${transactionSignature}`);
+        `Associated Token Account Address: ${associatedTokenAccountAddress}`
+      );
+      console.log(`Transaction Signature: ${transactionSignature}`);
+    });
   });
 });
