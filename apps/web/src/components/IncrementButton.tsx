@@ -14,7 +14,7 @@ export default function IncrementButton() {
     setIsLoading(true);
 
     try {
-      const transaction = await programs.tub.methods.increment().transaction();
+      const transaction = await programs.counter.methods.increment().transaction();
 
       const transactionSignature = await sendTransaction(
         transaction,

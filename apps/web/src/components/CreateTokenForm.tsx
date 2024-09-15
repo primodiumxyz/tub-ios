@@ -55,7 +55,7 @@ export default function CreateTokenForm() {
     );
 
     try {
-      const transaction = await programs.createToken.methods
+      const transaction = await programs.tub.methods
         .createToken(tokenName, tokenSymbol, tokenUri)
         .accountsPartial({
           mintAccount: tokenMintAccount.publicKey,
