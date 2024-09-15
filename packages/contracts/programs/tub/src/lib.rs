@@ -6,7 +6,7 @@ pub mod instructions;
 // use instructions::{CreateToken, create, MintToken, mint };
 use instructions::*;
 
-declare_id!("4PkPposur5Y4XZXTVQ8XrRy2UVrN6NYNT1PeoneUDqSL");
+declare_id!("33k6geABgPqmEkAVQAHPpc2pnUMRP2yq8pSRNPsYy8bv");
 
 #[program]
 pub mod tub {
