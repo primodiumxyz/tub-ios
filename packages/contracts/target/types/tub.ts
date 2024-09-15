@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/tub.json`.
  */
 export type Tub = {
-  "address": "33k6geABgPqmEkAVQAHPpc2pnUMRP2yq8pSRNPsYy8bv",
+  "address": "4PkPposur5Y4XZXTVQ8XrRy2UVrN6NYNT1PeoneUDqSL",
   "metadata": {
     "name": "tub",
     "version": "0.1.0",
@@ -14,124 +14,227 @@ export type Tub = {
   },
   "instructions": [
     {
-      "name": "increment",
+      "name": "createToken",
       "discriminator": [
-        11,
-        18,
-        104,
-        9,
-        104,
-        174,
-        59,
-        33
+        84,
+        52,
+        204,
+        228,
+        24,
+        140,
+        234,
+        75
       ],
       "accounts": [
         {
-          "name": "counter",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  114,
-                  97,
-                  110,
-                  100,
-                  111,
-                  109,
-                  83,
-                  101,
-                  101,
-                  100
-                ]
-              }
-            ]
-          }
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "initialize",
-      "discriminator": [
-        175,
-        175,
-        109,
-        31,
-        13,
-        152,
-        155,
-        237
-      ],
-      "accounts": [
-        {
-          "name": "user",
+          "name": "payer",
           "writable": true,
           "signer": true
         },
         {
-          "name": "counter",
+          "name": "mintAccount",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "metadataAccount",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "const",
                 "value": [
-                  114,
-                  97,
-                  110,
-                  100,
-                  111,
                   109,
-                  83,
                   101,
-                  101,
-                  100
+                  116,
+                  97,
+                  100,
+                  97,
+                  116,
+                  97
                 ]
+              },
+              {
+                "kind": "account",
+                "path": "tokenMetadataProgram"
+              },
+              {
+                "kind": "account",
+                "path": "mintAccount"
               }
-            ]
+            ],
+            "program": {
+              "kind": "account",
+              "path": "tokenMetadataProgram"
+            }
           }
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "tokenMetadataProgram",
+          "address": "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "tokenName",
+          "type": "string"
+        },
+        {
+          "name": "tokenSymbol",
+          "type": "string"
+        },
+        {
+          "name": "tokenUri",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "mintToken",
+      "discriminator": [
+        172,
+        137,
+        183,
+        14,
+        207,
+        110,
+        234,
+        56
+      ],
+      "accounts": [
+        {
+          "name": "mintAuthority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "recipient"
+        },
+        {
+          "name": "mintAccount",
+          "writable": true
+        },
+        {
+          "name": "associatedTokenAccount",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "recipient"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mintAccount"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         },
         {
           "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
       ],
-      "args": []
-    }
-  ],
-  "accounts": [
-    {
-      "name": "counter",
-      "discriminator": [
-        255,
-        176,
-        4,
-        245,
-        188,
-        253,
-        124,
-        25
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
       ]
-    }
-  ],
-  "types": [
-    {
-      "name": "counter",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "count",
-            "type": "u64"
-          },
-          {
-            "name": "bump",
-            "type": "u8"
-          }
-        ]
-      }
     }
   ]
 };

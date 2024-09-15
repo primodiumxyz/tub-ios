@@ -12,7 +12,7 @@ use {
 };
 
 #[derive(Accounts)]
-pub struct CreateToken<'info> {
+pub struct InitToken<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
 
@@ -50,8 +50,8 @@ pub struct CreateToken<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub fn create_token(
-    ctx: Context<CreateToken>,
+pub fn init_token(
+    ctx: Context<InitToken>,
     token_name: String,
     token_symbol: String,
     token_uri: String,
@@ -114,7 +114,7 @@ pub fn create_token(
         lamports,
     )?;
 
-    msg!("Token created successfully.");
+    msg!("Token initialized successfully.");
 
     Ok(())
 }
