@@ -18,9 +18,10 @@ tub = "33k6geABgPqmEkAVQAHPpc2pnUMRP2yq8pSRNPsYy8bv"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Devnet"
-# cluster = "Localnet"
+# cluster = "Devnet"
+cluster = "Localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
+# TODO: why is this yarn and not pnpm?
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"

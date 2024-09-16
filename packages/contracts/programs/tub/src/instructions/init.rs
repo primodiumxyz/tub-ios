@@ -1,62 +1,28 @@
+#![allow(clippy::result_large_err)]
+
 use {
     anchor_lang::prelude::*,
     anchor_spl::{
-        associated_token::{AssociatedToken},
         metadata::{
             create_metadata_accounts_v3, mpl_token_metadata::types::DataV2,
             CreateMetadataAccountsV3, Metadata,
         },
-        token::{mint_to, Mint, MintTo, Token, TokenAccount},
+        token::{Mint, Token},
     },
 };
-
-#[derive(Accounts)]
-pub struct InitToken<'info> {
-    #[account(mut)]
-    pub payer: Signer<'info>,
-
-    #[account(
-        init,
-        payer = payer,
-        mint::decimals = 9,
-        mint::authority = payer.key(),
-        mint::freeze_authority = payer.key(),
-
-    )]
-    pub mint_account: Account<'info, Mint>,
-    /// CHECK: Validate address by deriving pda
-    #[account(
-        mut,
-        seeds = [b"metadata", token_metadata_program.key().as_ref(), mint_account.key().as_ref()],
-        bump,
-        seeds::program = token_metadata_program.key(),
-    )]
-    pub metadata_account: UncheckedAccount<'info>,
-
-    #[account(
-        init_if_needed,
-        payer = payer,
-        associated_token::mint = mint_account,
-        associated_token::authority = payer,
-    )]
-    pub associated_token_account: Account<'info, TokenAccount>,
-
-    pub token_program: Program<'info, Token>,
-    pub associated_token_program: Program<'info, AssociatedToken>,
-
-    pub token_metadata_program: Program<'info, Metadata>,
-    pub system_program: Program<'info, System>,
-    pub rent: Sysvar<'info, Rent>,
-}
 
 pub fn init_token(
     ctx: Context<InitToken>,
     token_name: String,
     token_symbol: String,
     token_uri: String,
-    lamports: u64,
+    _lamports: u64,
 ) -> Result<()> {
-    msg!("Creating metadata account");
+    msg!("Creating metadata account... {}", _lamports);
+    msg!(
+        "Metadata account address: {}",
+        &ctx.accounts.metadata_account.key()
+    );
 
     // Cross Program Invocation (CPI)
     // Invoking the create_metadata_account_v3 instruction on the token metadata program
@@ -86,20 +52,6 @@ pub fn init_token(
         true,  // Update authority is signer
         None,  // Collection details
     )?;
-    // Calculate token amount based on SOL amount (100,000 tokens per SOL)
-    let token_amount = lamports.checked_mul(100_000).unwrap();
-
-    mint_to(
-        CpiContext::new(
-            ctx.accounts.token_program.to_account_info(),
-            MintTo {
-                mint: ctx.accounts.mint_account.to_account_info(),
-                to: ctx.accounts.associated_token_account.to_account_info(),
-                authority: ctx.accounts.payer.to_account_info(),
-            },
-        ),
-        token_amount,
-    )?;
 
     // Transfer SOL from payer to program
     anchor_lang::system_program::transfer(
@@ -110,10 +62,38 @@ pub fn init_token(
                 to: ctx.accounts.mint_account.to_account_info(),
             },
         ),
-        lamports,
+        _lamports,
     )?;
 
     msg!("Token initialized successfully.");
 
     Ok(())
+}
+
+#[derive(Accounts)]
+pub struct InitToken<'info> {
+    #[account(mut)]
+    pub payer: Signer<'info>,
+
+    /// CHECK: Validate address by deriving pda
+    #[account(
+        mut,
+        seeds = [b"metadata", token_metadata_program.key().as_ref(), mint_account.key().as_ref()],
+        bump,
+        seeds::program = token_metadata_program.key(),
+    )]
+    pub metadata_account: UncheckedAccount<'info>,
+    // Create new mint account
+    #[account(
+        init,
+        payer = payer,
+        mint::decimals = 9,
+        mint::authority = payer.key(),
+    )]
+    pub mint_account: Account<'info, Mint>,
+
+    pub token_metadata_program: Program<'info, Metadata>,
+    pub token_program: Program<'info, Token>,
+    pub system_program: Program<'info, System>,
+    pub rent: Sysvar<'info, Rent>,
 }

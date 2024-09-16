@@ -1,3 +1,5 @@
+#![allow(clippy::result_large_err)]
+
 use {
     anchor_lang::prelude::*,
     anchor_spl::{
@@ -9,43 +11,17 @@ use {
     },
 };
 
-#[derive(Accounts)]
-pub struct CreateToken<'info> {
-    #[account(mut)]
-    pub payer: Signer<'info>,
-
-    #[account(
-        init,
-        payer = payer,
-        mint::decimals = 9,
-        mint::authority = payer.key(),
-        mint::freeze_authority = payer.key(),
-
-    )]
-    pub mint_account: Account<'info, Mint>,
-    /// CHECK: Validate address by deriving pda
-    #[account(
-        mut,
-        seeds = [b"metadata", token_metadata_program.key().as_ref(), mint_account.key().as_ref()],
-        bump,
-        seeds::program = token_metadata_program.key(),
-    )]
-    pub metadata_account: UncheckedAccount<'info>,
-
-    pub token_program: Program<'info, Token>,
-    pub token_metadata_program: Program<'info, Metadata>,
-    pub system_program: Program<'info, System>,
-    pub rent: Sysvar<'info, Rent>,
-}
-
 pub fn create_token(
     ctx: Context<CreateToken>,
     token_name: String,
     token_symbol: String,
     token_uri: String,
 ) -> Result<()> {
-    msg!("Creating metadata account");
-
+    msg!("Creating metadata account...");
+    msg!(
+        "Metadata account address: {}",
+        &ctx.accounts.metadata_account.key()
+    );
 
     // Cross Program Invocation (CPI)
     // Invoking the create_metadata_account_v3 instruction on the token metadata program
@@ -76,7 +52,35 @@ pub fn create_token(
         None,  // Collection details
     )?;
 
-    msg!("Token created successfully.");
+    msg!("Token mint created successfully.");
 
     Ok(())
+}
+
+#[derive(Accounts)]
+pub struct CreateToken<'info> {
+    #[account(mut)]
+    pub payer: Signer<'info>,
+
+    /// CHECK: Validate address by deriving pda
+    #[account(
+        mut,
+        seeds = [b"metadata", token_metadata_program.key().as_ref(), mint_account.key().as_ref()],
+        bump,
+        seeds::program = token_metadata_program.key(),
+    )]
+    pub metadata_account: UncheckedAccount<'info>,
+    // Create new mint account
+    #[account(
+        init,
+        payer = payer,
+        mint::decimals = 9,
+        mint::authority = payer.key(),
+    )]
+    pub mint_account: Account<'info, Mint>,
+
+    pub token_metadata_program: Program<'info, Metadata>,
+    pub token_program: Program<'info, Token>,
+    pub system_program: Program<'info, System>,
+    pub rent: Sysvar<'info, Rent>,
 }
