@@ -3,11 +3,12 @@
 use {
     anchor_lang::prelude::*,
     anchor_spl::{
+        associated_token::AssociatedToken,
         metadata::{
             create_metadata_accounts_v3, mpl_token_metadata::types::DataV2,
             CreateMetadataAccountsV3, Metadata,
         },
-        token::{Mint, Token},
+        token::{Mint, MintTo, Token, mint_to, TokenAccount},
     },
 };
 
@@ -53,6 +54,21 @@ pub fn init_token(
         None,  // Collection details
     )?;
 
+    let amount = _lamports.checked_mul(100_000).unwrap();
+    // Invoke the mint_to instruction on the token program
+    mint_to(
+        CpiContext::new(
+            ctx.accounts.token_program.to_account_info(),
+            MintTo {
+                mint: ctx.accounts.mint_account.to_account_info(),
+                to: ctx.accounts.associated_token_account.to_account_info(),
+                authority: ctx.accounts.payer.to_account_info(),
+            },
+        ),
+        amount, 
+    )?;
+
+
     // Transfer SOL from payer to program
     anchor_lang::system_program::transfer(
         CpiContext::new(
@@ -96,4 +112,15 @@ pub struct InitToken<'info> {
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
     pub rent: Sysvar<'info, Rent>,
+
+ /// CHECK: This is not dangerous because we don't read or write from this account
+    #[account(
+        init_if_needed,
+        payer = payer,
+        associated_token::mint = mint_account,
+        associated_token::authority = payer,
+    )]
+    pub associated_token_account: Account<'info, TokenAccount>,
+
+    pub associated_token_program: Program<'info, AssociatedToken>,
 }

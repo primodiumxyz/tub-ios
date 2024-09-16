@@ -29,11 +29,16 @@ describe("Tub Token Creator", () => {
         mintKeypair.publicKey,
         payer.publicKey
       );
+
+      const _cost = 1e9;
+      const cost = new BN(_cost);
       const transactionSignature = await program.methods
-        .createToken(metadata.name, metadata.symbol, metadata.uri)
-        .accounts({
+        .initToken(metadata.name, metadata.symbol, metadata.uri, cost)
+        .accountsPartial({
           payer: payer.publicKey,
           mintAccount: mintKeypair.publicKey,
+          associatedTokenAccount: associatedTokenAccountAddress,
+          associatedTokenProgram: anchor.utils.token.ASSOCIATED_PROGRAM_ID
         })
         .signers([mintKeypair])
         .rpc();
@@ -46,9 +51,26 @@ describe("Tub Token Creator", () => {
       // const mintBalance = await provider.connection.getTokenAccountBalance(new PublicKey(mintKeypair.publicKey));
       // expect(Number(mintBalance.value.amount)).to.be.eq(prevMintBalance.value.amount + 1e9 * 100_000);
       // // it should transfer 1e9 tokens from the payer address to the mint address
-      // const newBalance = await provider.connection.getBalance(payer.publicKey);
-      // expect(newBalance).to.be.eq(prevBalance - 1e9);
+
+      const newPayerBalance = await provider.connection.getBalance(
+        payer.publicKey
+      );
+      expect(newPayerBalance).to.be.lte(
+        prevBalance - _cost,
+        "new payer balance incorrect"
+      );
+
+      const newMintBalance = await provider.connection.getBalance(
+        mintKeypair.publicKey
+      );
+      expect(newMintBalance).to.be.gte(_cost, "new mint balance incorrect");
+
+      const mintBalance = await provider.connection.getTokenAccountBalance(
+        associatedTokenAccountAddress
+      );
+      expect(Number(mintBalance.value.amount) ).to.be.eq(_cost * 100_000);
     });
+
   });
 
   describe("Create and mint a token", () => {
@@ -95,7 +117,9 @@ describe("Tub Token Creator", () => {
         `Associated Token Account Address: ${associatedTokenAccountAddress}`
       );
       console.log(`Transaction Signature: ${transactionSignature}`);
-      const mintBalance = await provider.connection.getTokenAccountBalance(associatedTokenAccountAddress);
+      const mintBalance = await provider.connection.getTokenAccountBalance(
+        associatedTokenAccountAddress
+      );
       expect(Number(mintBalance.value.amount) / 1e9).to.be.eq(_amount);
     });
   });
