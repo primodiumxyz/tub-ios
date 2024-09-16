@@ -11,6 +11,10 @@ declare_id!("33k6geABgPqmEkAVQAHPpc2pnUMRP2yq8pSRNPsYy8bv");
 pub mod tub {
     use super::*;
 
+     pub fn initialize(ctx: Context<InitializeEscrow>) -> Result<()> {
+        escrow::initialize_escrow(ctx)
+    }
+
     // creates a token and a metadata account
     // mints _lamports * 100_000 tokens
     // transfers _lamports lamports from the user to the token program
@@ -28,5 +32,9 @@ pub mod tub {
     // caller must be the mint authority
     pub fn mint_token(ctx: Context<MintToken>, amount: u64) -> Result<()> {
         mint::mint_token(ctx, amount)
+    }
+
+    pub fn withdraw_funds(ctx: Context<WithdrawFunds>, amount: u64) -> Result<()> {
+        escrow::withdraw_funds(ctx, amount)
     }
 }

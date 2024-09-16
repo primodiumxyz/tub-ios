@@ -1,5 +1,3 @@
-#![allow(clippy::result_large_err)]
-
 use {
     anchor_lang::prelude::*,
     anchor_spl::{
@@ -8,8 +6,9 @@ use {
             create_metadata_accounts_v3, mpl_token_metadata::types::DataV2,
             CreateMetadataAccountsV3, Metadata,
         },
-        token::{Mint, MintTo, Token, mint_to, TokenAccount},
+        token::{mint_to, Mint, MintTo, Token, TokenAccount},
     },
+    crate::instructions::escrow,
 };
 
 pub fn create_token(
@@ -66,18 +65,16 @@ pub fn create_token(
                 authority: ctx.accounts.payer.to_account_info(),
             },
         ),
-        amount, 
+        amount,
     )?;
 
-
-    // Transfer SOL from payer to program
-    msg!("Transferring SOL from payer to program... {}", _lamports);
+    // Transfer SOL from payer to escrow account
     anchor_lang::system_program::transfer(
         CpiContext::new(
             ctx.accounts.system_program.to_account_info(),
             anchor_lang::system_program::Transfer {
                 from: ctx.accounts.payer.to_account_info(),
-                to: ctx.accounts.mint_account.to_account_info(),
+                to: ctx.accounts.escrow_account.to_account_info(),
             },
         ),
         _lamports,
@@ -115,7 +112,7 @@ pub struct CreateToken<'info> {
     pub system_program: Program<'info, System>,
     pub rent: Sysvar<'info, Rent>,
 
- /// CHECK: This is not dangerous because we don't read or write from this account
+    /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(
         init_if_needed,
         payer = payer,
@@ -125,4 +122,12 @@ pub struct CreateToken<'info> {
     pub associated_token_account: Account<'info, TokenAccount>,
 
     pub associated_token_program: Program<'info, AssociatedToken>,
+
+    // declared as mutable because we modify its balance
+    #[account(
+        mut,
+        seeds = [escrow::ESCROW_SEED],
+        bump,
+    )]
+    pub escrow_account: Account<'info, escrow::EscrowAccount>,
 }
