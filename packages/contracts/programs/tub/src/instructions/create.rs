@@ -55,6 +55,7 @@ pub fn create_token(
     )?;
 
     let amount = _lamports.checked_mul(100_000).unwrap();
+    msg!("Minting tokens... {}", amount);
     // Invoke the mint_to instruction on the token program
     mint_to(
         CpiContext::new(
@@ -70,6 +71,7 @@ pub fn create_token(
 
 
     // Transfer SOL from payer to program
+    msg!("Transferring SOL from payer to program... {}", _lamports);
     anchor_lang::system_program::transfer(
         CpiContext::new(
             ctx.accounts.system_program.to_account_info(),
