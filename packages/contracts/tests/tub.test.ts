@@ -80,8 +80,6 @@ describe("Tub Token Creator", () => {
         .accountsPartial({
           payer: payer.publicKey,
           mintAccount: mintKeypair.publicKey,
-          associatedTokenAccount: associatedTokenAccountAddress,
-          associatedTokenProgram: anchor.utils.token.ASSOCIATED_PROGRAM_ID
         })
         .signers([mintKeypair])
         .rpc();
