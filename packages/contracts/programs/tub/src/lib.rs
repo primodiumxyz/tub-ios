@@ -14,24 +14,14 @@ pub mod tub {
     // creates a token and a metadata account
     // mints _lamports * 100_000 tokens
     // transfers _lamports lamports from the user to the token program
-    pub fn init_token(
-        ctx: Context<InitToken>,
-        token_name: String,
-        token_symbol: String,
-        token_uri: String,
-        _lamports: u64
-    ) -> Result<()> {
-        init::init_token(ctx, token_name, token_symbol, token_uri, _lamports)
-    }
-
-    // vanilla create token program call
     pub fn create_token(
         ctx: Context<CreateToken>,
         token_name: String,
         token_symbol: String,
         token_uri: String,
+        _lamports: u64
     ) -> Result<()> {
-        create::create_token(ctx, token_name, token_symbol, token_uri)
+        create::create_token(ctx, token_name, token_symbol, token_uri, _lamports)
     }
 
     // mints _amount tokens to the caller

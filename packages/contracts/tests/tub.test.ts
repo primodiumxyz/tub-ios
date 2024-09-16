@@ -19,7 +19,7 @@ describe("Tub Token Creator", () => {
 
   // Generate new keypair to use as address for mint account.
 
-  describe("Initialize a token", () => {
+  describe("Create a token", () => {
     it("token gets created", async () => {
       const mintKeypair = new Keypair();
       const prevBalance = await provider.connection.getBalance(payer.publicKey);
@@ -33,7 +33,7 @@ describe("Tub Token Creator", () => {
       const _cost = 1e9;
       const cost = new BN(_cost);
       const transactionSignature = await program.methods
-        .initToken(metadata.name, metadata.symbol, metadata.uri, cost)
+        .createToken(metadata.name, metadata.symbol, metadata.uri, cost)
         .accountsPartial({
           payer: payer.publicKey,
           mintAccount: mintKeypair.publicKey,
@@ -77,7 +77,7 @@ describe("Tub Token Creator", () => {
     const mintKeypair = new Keypair();
     it("Create an SPL Token!", async () => {
       const transactionSignature = await program.methods
-        .createToken(metadata.name, metadata.symbol, metadata.uri)
+        .createToken(metadata.name, metadata.symbol, metadata.uri, new BN(0))
         .accounts({
           payer: payer.publicKey,
           mintAccount: mintKeypair.publicKey,
