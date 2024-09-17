@@ -79,7 +79,7 @@ export default function TokenAccountsList({
       );
 
       console.log("Creating transaction...");
-      const transaction = await programs.createToken.methods
+      const transaction = await programs.tub.methods
         .mintToken(amount)
         .accountsPartial({
           mintAuthority: publicKey,

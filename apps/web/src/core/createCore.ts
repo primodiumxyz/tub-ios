@@ -2,11 +2,11 @@ import { AnchorProvider, Program } from "@coral-xyz/anchor";
 import { Connection, PublicKey } from "@solana/web3.js";
 
 import { Tub } from "@tub/contracts/target/types/tub";
-import { CreateToken } from "@tub/contracts/target/types/create_token";
+import { Counter } from "@tub/contracts/target/types/counter";
 import { TransferSol } from "@tub/contracts/target/types/transfer_sol";
 import IDLTub from "@tub/contracts/target/idl/tub.json";
-import IDLCreateToken from "@tub/contracts/target/idl/create_token.json";
 import IDLTransferSol from "@tub/contracts/target/idl/transfer_sol.json";
+import IDLCounter from "@tub/contracts/target/idl/counter.json";
 
 import { Wallet } from "@solana/wallet-adapter-react";
 import { SignerWalletAdapter } from "@solana/wallet-adapter-base";
@@ -49,10 +49,7 @@ const umi = createUmi(connection.rpcEndpoint).use(mplTokenMetadata())
 
   const programs = {
     tub: new Program<Tub>(IDLTub as Tub, provider),
-    createToken: new Program<CreateToken>(
-      IDLCreateToken as CreateToken,
-      provider
-    ),
+    counter: new Program<Counter>(IDLCounter as Counter, provider),
     transferSol: new Program<TransferSol>(
       IDLTransferSol as TransferSol,
       provider
@@ -62,17 +59,15 @@ const umi = createUmi(connection.rpcEndpoint).use(mplTokenMetadata())
   
   // =============================================================================
   // PDA of Tub, the default counter program
-  // seeds = [b"randomSeed"], // optional seeds for pda
-  const [tubPDA] = PublicKey.findProgramAddressSync(
-    [Buffer.from("randomSeed")],
-    programs.tub.programId
-  );
-
-
 
   const [transferSolPDA] = PublicKey.findProgramAddressSync(
     [Buffer.from("transfer_sol")],
     programs.transferSol.programId
+  );
+
+  const [counterPDA] = PublicKey.findProgramAddressSync(
+    [Buffer.from("randomSeed")],
+    programs.counter.programId
   );
 
   return {
@@ -84,7 +79,7 @@ const umi = createUmi(connection.rpcEndpoint).use(mplTokenMetadata())
     },
     programs,
     pdas: {
-      tub: tubPDA,
+      counter: counterPDA,
       transferSol: transferSolPDA,
     },
   };

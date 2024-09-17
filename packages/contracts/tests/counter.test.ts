@@ -1,6 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import { Tub } from "../target/types/tub";
+import { Counter } from "../target/types/counter";
 import { PublicKey } from "@solana/web3.js";
 
 describe("counter", () => {
@@ -8,7 +8,7 @@ describe("counter", () => {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
 
-  const program = anchor.workspace.Tub as Program<Tub>;
+  const program = anchor.workspace.Counter as Program<Counter>;
 
   const [counterPDA] = PublicKey.findProgramAddressSync(
     [Buffer.from("randomSeed")],
