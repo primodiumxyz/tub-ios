@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/tub.json`.
  */
 export type Tub = {
-  "address": "33k6geABgPqmEkAVQAHPpc2pnUMRP2yq8pSRNPsYy8bv",
+  "address": "5QRLue3cTqWno7RMXJKN5rDo4R3CAwXfQr8MAZwfFURj",
   "metadata": {
     "name": "tub",
     "version": "0.1.0",
@@ -180,19 +180,21 @@ export type Tub = {
           "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         },
         {
-          "name": "escrowAccount",
+          "name": "treasuryAccount",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "const",
                 "value": [
-                  101,
-                  115,
-                  99,
+                  116,
                   114,
-                  111,
-                  119
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
                 ]
               }
             ]
@@ -232,19 +234,21 @@ export type Tub = {
       ],
       "accounts": [
         {
-          "name": "escrowAccount",
+          "name": "treasuryAccount",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "const",
                 "value": [
-                  101,
-                  115,
-                  99,
+                  116,
                   114,
-                  111,
-                  119
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
                 ]
               }
             ]
@@ -411,7 +415,7 @@ export type Tub = {
       ],
       "accounts": [
         {
-          "name": "escrowAccount",
+          "name": "treasuryAccount",
           "writable": true
         },
         {
@@ -419,7 +423,7 @@ export type Tub = {
           "writable": true,
           "signer": true,
           "relations": [
-            "escrowAccount"
+            "treasuryAccount"
           ]
         },
         {
@@ -437,16 +441,16 @@ export type Tub = {
   ],
   "accounts": [
     {
-      "name": "escrowAccount",
+      "name": "treasuryAccount",
       "discriminator": [
-        36,
-        69,
-        48,
+        204,
+        140,
         18,
-        128,
-        225,
-        125,
-        135
+        173,
+        90,
+        152,
+        134,
+        123
       ]
     }
   ],
@@ -454,12 +458,12 @@ export type Tub = {
     {
       "code": 6000,
       "name": "insufficientFunds",
-      "msg": "Insufficient funds in the escrow account"
+      "msg": "Insufficient funds in the treasury account"
     }
   ],
   "types": [
     {
-      "name": "escrowAccount",
+      "name": "treasuryAccount",
       "type": {
         "kind": "struct",
         "fields": [

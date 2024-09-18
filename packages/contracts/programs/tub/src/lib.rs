@@ -5,14 +5,14 @@ use anchor_lang::prelude::*;
 pub mod instructions;
 use instructions::*;
 
-declare_id!("33k6geABgPqmEkAVQAHPpc2pnUMRP2yq8pSRNPsYy8bv");
+declare_id!("5QRLue3cTqWno7RMXJKN5rDo4R3CAwXfQr8MAZwfFURj");
 
 #[program]
 pub mod tub {
     use super::*;
 
-     pub fn initialize(ctx: Context<InitializeEscrow>) -> Result<()> {
-        escrow::initialize_escrow(ctx)
+     pub fn initialize(ctx: Context<InitializeTreasury>) -> Result<()> {
+        treasury::initialize_treasury(ctx)
     }
 
     // creates a token and a metadata account
@@ -35,6 +35,6 @@ pub mod tub {
     }
 
     pub fn withdraw_funds(ctx: Context<WithdrawFunds>, amount: u64) -> Result<()> {
-        escrow::withdraw_funds(ctx, amount)
+        treasury::withdraw_funds(ctx, amount)
     }
 }

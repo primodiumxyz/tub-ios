@@ -6,8 +6,8 @@ skip-lint = false
 
 [programs.devnet]
 create_token = "7WmmmF6qrgzekGSx59Qnd4VJXcN4WHoe4SUaWXT9a3QW"
-transfer_sol = "B8SshXZbFQK29wAfCKciWnYvnReaJjpjmehq5v5RxVpc"
-tub = "33k6geABgPqmEkAVQAHPpc2pnUMRP2yq8pSRNPsYy8bv"
+transfer_sol = "6fPqdih5jTJ1zR1XoX6h6fmQTbTYuvfFjgRYnFXejpED"
+tub = "5QRLue3cTqWno7RMXJKN5rDo4R3CAwXfQr8MAZwfFURj"
 
 [programs.localnet]
 create_token = "7WmmmF6qrgzekGSx59Qnd4VJXcN4WHoe4SUaWXT9a3QW"
@@ -18,10 +18,8 @@ tub = "33k6geABgPqmEkAVQAHPpc2pnUMRP2yq8pSRNPsYy8bv"
 url = "https://api.apr.dev"
 
 [provider]
-# cluster = "Devnet"
 cluster = "Localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
-# TODO: why is this yarn and not pnpm?
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"

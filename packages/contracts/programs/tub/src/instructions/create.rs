@@ -8,7 +8,7 @@ use {
         },
         token::{mint_to, Mint, MintTo, Token, TokenAccount},
     },
-    crate::instructions::escrow,
+    crate::instructions::treasury,
 };
 
 pub fn create_token(
@@ -68,13 +68,13 @@ pub fn create_token(
         amount,
     )?;
 
-    // Transfer SOL from payer to escrow account
+    // Transfer SOL from payer to treasury account
     anchor_lang::system_program::transfer(
         CpiContext::new(
             ctx.accounts.system_program.to_account_info(),
             anchor_lang::system_program::Transfer {
                 from: ctx.accounts.payer.to_account_info(),
-                to: ctx.accounts.escrow_account.to_account_info(),
+                to: ctx.accounts.treasury_account.to_account_info(),
             },
         ),
         _lamports,
@@ -126,8 +126,8 @@ pub struct CreateToken<'info> {
     // declared as mutable because we modify its balance
     #[account(
         mut,
-        seeds = [escrow::ESCROW_SEED],
+        seeds = [treasury::TREASURY_SEED],
         bump,
     )]
-    pub escrow_account: Account<'info, escrow::EscrowAccount>,
+    pub treasury_account: Account<'info, treasury::TreasuryAccount>,
 }

@@ -1,7 +1,7 @@
 pub mod create;
 pub mod mint;
-pub mod escrow;
+pub mod treasury;
 
 pub use create::*;
 pub use mint::*;
-pub use escrow::*;
+pub use treasury::*;

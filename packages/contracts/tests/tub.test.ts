@@ -10,9 +10,9 @@ describe("Tub Token Creator", () => {
   anchor.setProvider(provider);
   const payer = provider.wallet as anchor.Wallet;
   const program = anchor.workspace.Tub as anchor.Program<Tub>;
-  // only initialize escrow account if it doesn't exist
-  const [escrowPDA] = PublicKey.findProgramAddressSync(
-    [Buffer.from("escrow")],
+  // only initialize treasury account if it doesn't exist
+  const [treasuryPDA] = PublicKey.findProgramAddressSync(
+    [Buffer.from("treasury")],
     program.programId
   );
 
@@ -26,8 +26,7 @@ describe("Tub Token Creator", () => {
 
   before(async () => {
     try {
-      console.log({ escrowPDA });
-      await program.account.escrowAccount.fetch(escrowPDA);
+      await program.account.treasuryAccount.fetch(treasuryPDA);
     } catch (error) {
       const txSignature = await program.methods
         .initialize()
@@ -43,9 +42,9 @@ describe("Tub Token Creator", () => {
     it("token gets created", async () => {
       const mintKeypair = new Keypair();
       const prevBalance = await provider.connection.getBalance(payer.publicKey);
-      let prevEscrowBalance = 0;
+      let prevTreasuryBalance = 0;
       try {
-        prevEscrowBalance = await provider.connection.getBalance(escrowPDA);
+        prevTreasuryBalance = await provider.connection.getBalance(treasuryPDA);
       } catch (error) {
         console.log({ error });
       }
@@ -77,9 +76,9 @@ describe("Tub Token Creator", () => {
         "new payer balance incorrect"
       );
 
-      const escrowBalance = await provider.connection.getBalance(escrowPDA);
+      const treasuryBalance = await provider.connection.getBalance(treasuryPDA);
 
-      expect(escrowBalance - prevEscrowBalance).to.be.gte(
+      expect(treasuryBalance - prevTreasuryBalance).to.be.gte(
         _cost,
         "new mint balance incorrect"
       );
@@ -171,10 +170,10 @@ describe("Tub Token Creator", () => {
         `Associated Token Account Address: ${associatedTokenAccountAddress}`
       );
       console.log(`Transaction Signature: ${transactionSignature}`);
-      const escrowBalance = await provider.connection.getTokenAccountBalance(
+      const associatedTokenBalance = await provider.connection.getTokenAccountBalance(
         associatedTokenAccountAddress
       );
-      expect(Number(escrowBalance.value.amount) / 1e9).to.be.eq(_amount);
+      expect(Number(associatedTokenBalance.value.amount) / 1e9).to.be.eq(_amount);
     });
   });
 });

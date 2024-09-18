@@ -2,61 +2,61 @@ use anchor_lang::prelude::*;
 use anchor_lang::system_program;
 
 #[account]
-pub struct EscrowAccount {
+pub struct TreasuryAccount {
     pub balance: u64,
     pub authority: Pubkey,
 }
 
-pub const ESCROW_SEED: &[u8] = b"escrow";
+pub const TREASURY_SEED: &[u8] = b"treasury";
 
 #[derive(Accounts)]
-pub struct InitializeEscrow<'info> {
+pub struct InitializeTreasury<'info> {
     #[account(
         init,
         payer = authority,
         space = 8 + 8 + 32, // discriminator + balance + authority
-        seeds = [ESCROW_SEED],
+        seeds = [TREASURY_SEED],
         bump,
 
     )]
-    pub escrow_account: Account<'info, EscrowAccount>,
+    pub treasury_account: Account<'info, TreasuryAccount>,
 
     #[account(mut)]
     pub authority: Signer<'info>,
     pub system_program: Program<'info, System>,
 }
 
-pub fn initialize_escrow(ctx: Context<InitializeEscrow>) -> Result<()> {
-    let escrow_account = &mut ctx.accounts.escrow_account;
-    escrow_account.balance = 0;
-    escrow_account.authority = ctx.accounts.authority.key();
+pub fn initialize_treasury(ctx: Context<InitializeTreasury>) -> Result<()> {
+    let treasury_account = &mut ctx.accounts.treasury_account;
+    treasury_account.balance = 0;
+    treasury_account.authority = ctx.accounts.authority.key();
     Ok(())
 }
 
 #[derive(Accounts)]
 pub struct WithdrawFunds<'info> {
     #[account(mut, has_one = authority)]
-    pub escrow_account: Account<'info, EscrowAccount>,
+    pub treasury_account: Account<'info, TreasuryAccount>,
     #[account(mut)]
     pub authority: Signer<'info>,
     pub system_program: Program<'info, System>,
 }
 
 pub fn withdraw_funds(ctx: Context<WithdrawFunds>, amount: u64) -> Result<()> {
-    let escrow_account = &mut ctx.accounts.escrow_account;
+    let treasury_account = &mut ctx.accounts.treasury_account;
 
-    if amount > escrow_account.balance {
+    if amount > treasury_account.balance {
         return Err(ErrorCode::InsufficientFunds.into());
     }
 
-    escrow_account.balance = escrow_account.balance.checked_sub(amount).unwrap();
+    treasury_account.balance = treasury_account.balance.checked_sub(amount).unwrap();
 
-    // Transfer SOL from escrow account to authority
+    // Transfer SOL from treasury account to authority
     system_program::transfer(
         CpiContext::new(
             ctx.accounts.system_program.to_account_info(),
             system_program::Transfer {
-                from: escrow_account.to_account_info(),
+                from: treasury_account.to_account_info(),
                 to: ctx.accounts.authority.to_account_info(),
             },
         ),
@@ -70,6 +70,6 @@ pub fn withdraw_funds(ctx: Context<WithdrawFunds>, amount: u64) -> Result<()> {
 
 #[error_code]
 pub enum ErrorCode {
-    #[msg("Insufficient funds in the escrow account")]
+    #[msg("Insufficient funds in the treasury account")]
     InsufficientFunds,
 }
