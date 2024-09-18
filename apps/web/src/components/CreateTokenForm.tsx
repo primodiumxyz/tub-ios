@@ -5,6 +5,7 @@ import { useCore } from "../hooks/useCore";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { Keypair, PublicKey, SystemProgram } from "@solana/web3.js";
 import { useTokenStore } from "../store/tokenStore";
+import { BN } from "@coral-xyz/anchor";
 
 export default function CreateTokenForm() {
   const { programs, constants } = useCore();
@@ -56,7 +57,7 @@ export default function CreateTokenForm() {
 
     try {
       const transaction = await programs.tub.methods
-        .createToken(tokenName, tokenSymbol, tokenUri)
+        .createToken(tokenName, tokenSymbol, tokenUri, new BN(100))
         .accountsPartial({
           mintAccount: tokenMintAccount.publicKey,
           metadataAccount: createTokenPDA,
