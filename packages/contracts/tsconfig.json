@@ -8,6 +8,7 @@
     "esModuleInterop": true,
     "paths": {
       "*": ["./target/types/*"]
-    }
+    },
+    "composite": true
   }
 }
