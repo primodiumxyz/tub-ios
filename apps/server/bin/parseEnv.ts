@@ -3,7 +3,7 @@ import { z, ZodError, ZodIntersection, ZodTypeAny } from "zod";
 
 const commonSchema = z.object({
   SERVER_HOST: z.string().default("0.0.0.0"),
-  SERVER_PORT: z.coerce.number().positive().default(3002),
+  SERVER_PORT: z.coerce.number().positive().default(8080),
   // KEEPER_PRIVATE_KEY: z
   //   .string()
   //   .refine(isHex)

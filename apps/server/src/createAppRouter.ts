@@ -16,6 +16,15 @@ export function createAppRouter() {
     getStatus: t.procedure.query(({ ctx }) => {
       return ctx.tubService.getStatus();
     }),
+    incrementCall: t.procedure.mutation(({ ctx }) => {
+      ctx.tubService.incrementCall();
+    }),
+    createTokenCall: t.procedure.mutation(({ ctx }) => {
+      ctx.tubService.createTokenCall();
+    }),
+    mintCall: t.procedure.mutation(({ ctx }) => {
+      ctx.tubService.mintCall();
+    }),
   });
 }
 
