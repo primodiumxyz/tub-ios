@@ -1,6 +1,6 @@
 import { IdlAccounts } from "@coral-xyz/anchor";
 import { Counter } from "@tub/contracts/target/types/counter";
-import { createCore } from "./createCore";
+import { createCore, createPrograms } from "./createCore";
 
 export type Core = ReturnType<typeof createCore>;
 
@@ -11,3 +11,4 @@ export enum ProgramId {
   COUNTER = "counter",
   TRANSFER_SOL = "transferSol",
 }
+export type Programs = ReturnType<typeof createPrograms>;
