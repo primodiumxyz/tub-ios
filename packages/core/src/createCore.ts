@@ -56,13 +56,6 @@ const umi = createUmi(connection.rpcEndpoint).use(mplTokenMetadata())
   const programs = createPrograms(provider);
   
   // =============================================================================
-  // PDA of Tub, the default counter program
-
-  const [transferSolPDA] = PublicKey.findProgramAddressSync(
-    [Buffer.from("transfer_sol")],
-    programs.transferSol.programId
-  );
-
   const [counterPDA] = PublicKey.findProgramAddressSync(
     [Buffer.from("randomSeed")],
     programs.counter.programId
@@ -80,7 +73,6 @@ const umi = createUmi(connection.rpcEndpoint).use(mplTokenMetadata())
     programs,
     pdas: {
       counter: counterPDA,
-      transferSol: transferSolPDA,
     },
     calls,
   };

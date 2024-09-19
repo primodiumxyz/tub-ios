@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useConnection } from "@solana/wallet-adapter-react";
-import { CounterData } from "../core/types";
 import { useCore } from "../hooks/useCore";
+import { CounterData } from "@tub/core";
 
 export default function CounterState() {
   const [counterData, setCounterData] = useState<CounterData | null>(null);
@@ -23,8 +23,7 @@ export default function CounterState() {
     return () => {
       connection.removeAccountChangeListener(subscriptionId);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [counterProgram]);
+  }, [connection, counterProgram, pdas.counter]);
 
   return <p>Count: {counterData?.count?.toString()}</p>;
 }
