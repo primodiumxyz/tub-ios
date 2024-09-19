@@ -1,8 +1,9 @@
 import { createContext, ReactNode, useMemo } from "react";
-import { createCore } from "../core/createCore";
 import { useConnection, Wallet } from "@solana/wallet-adapter-react";
-import { Core } from "../core/types";
 import { PublicKey } from "@solana/web3.js";
+import { Core, createCore } from "@tub/core";
+import { SignerWalletAdapter } from "@solana/wallet-adapter-base";
+import { Wallet as AnchorWallet } from "@coral-xyz/anchor";
 
 export const CoreContext = createContext<Core | null>(null);
 
@@ -24,7 +25,13 @@ type Props = {
 export const CoreProvider = ({ children, wallet, publicKey }: Props): JSX.Element => {
   const { connection } = useConnection();
 
-  const core = useMemo(() => createCore(publicKey, wallet, connection), [publicKey, wallet, connection]);
+  
+  const walletAdapter = useMemo(() => ({
+    ...(wallet.adapter as SignerWalletAdapter),
+    publicKey,
+  }) as unknown as AnchorWallet, [wallet, publicKey]);
+
+  const core = useMemo(() => createCore(walletAdapter, connection), [walletAdapter, connection]);
 
 
   return <CoreContext.Provider value={core}>{children}</CoreContext.Provider>;
