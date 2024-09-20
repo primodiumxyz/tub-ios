@@ -14,14 +14,3 @@ afterEach(() => {
   // Clean up after each test
 });
 
-// Mock TubService
-vi.mock('../src/TubService', () => {
-  return {
-    TubService: vi.fn().mockImplementation(() => ({
-      getStatus: vi.fn().mockReturnValue({ status: 200 }),
-      incrementCall: vi.fn(),
-      subscribeToCounter: vi.fn(),
-      unsubscribeFromCounter: vi.fn(),
-    })),
-  };
-});

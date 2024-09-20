@@ -13,7 +13,6 @@ import { TubService } from "@/TubService";
 import { createCore } from "@core/createCore";
 import { clusterApiUrl, Connection, Keypair } from "@solana/web3.js";
 import { Wallet } from "@coral-xyz/anchor";
-import { z } from "zod";
 
 const env = parseEnv();
 
@@ -31,24 +30,22 @@ await server.register(fastifyWebsocket);
 server.get("/healthz", (req, res) => res.code(200).send());
 server.get("/readyz", (req, res) => res.code(200).send());
 
-
-
 const start = async () => {
   try {
-const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
-const wallet = new Wallet(Keypair.fromSecretKey(Buffer.from(env.PRIVATE_KEY, "hex")));
-const core = createCore(wallet, connection);
-const tubService = new TubService(core);
+    const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+    const wallet = new Wallet(Keypair.fromSecretKey(Buffer.from(env.PRIVATE_KEY, "hex")));
+    const core = createCore(wallet, connection);
+    const tubService = new TubService(core);
 
-// @see https://trpc.io/docs/server/adapters/fastify
-server.register(fastifyTRPCPlugin<AppRouter>, {
-  prefix: "/trpc",
-  useWSS: true,
-  trpcOptions: {
-    router: createAppRouter(),
-    createContext: async () => ({ tubService }),
-  },
-});
+    // @see https://trpc.io/docs/server/adapters/fastify
+    server.register(fastifyTRPCPlugin<AppRouter>, {
+      prefix: "/trpc",
+      useWSS: true,
+      trpcOptions: {
+        router: createAppRouter(),
+        createContext: async () => ({ tubService }),
+      },
+    });
     await server.listen({ host: env.SERVER_HOST, port: env.SERVER_PORT });
     console.log(`tub server listening on http://${env.SERVER_HOST}:${env.SERVER_PORT}`);
 
