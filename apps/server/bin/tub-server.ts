@@ -33,6 +33,7 @@ server.get("/readyz", (req, res) => res.code(200).send());
 export const start = async () => {
   try {
     const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+
     const wallet = new Wallet(Keypair.fromSecretKey(Buffer.from(env.PRIVATE_KEY, "hex")));
     const core = createCore(wallet, connection);
     const tubService = new TubService(core);
