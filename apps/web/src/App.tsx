@@ -12,6 +12,7 @@ import AppLoadingState from "./AppLoadingState";
 
 // Import wallet adapter CSS
 import "@solana/wallet-adapter-react-ui/styles.css";
+import { ServerProvider } from "./contexts/serverContext";
 
 export default function App() {
   const network = WalletAdapterNetwork.Devnet;
@@ -20,13 +21,15 @@ export default function App() {
 
   return (
     // Solana Providers and Adapters
-    <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>
-          {/* Screens */}
-          <AppLoadingState />
-        </WalletModalProvider>
-      </WalletProvider>
-    </ConnectionProvider>
+    <ServerProvider>
+      <ConnectionProvider endpoint={endpoint}>
+        <WalletProvider wallets={wallets} autoConnect>
+          <WalletModalProvider>
+            {/* Screens */}
+            <AppLoadingState />
+          </WalletModalProvider>
+        </WalletProvider>
+      </ConnectionProvider>
+    </ServerProvider>
   );
 }
