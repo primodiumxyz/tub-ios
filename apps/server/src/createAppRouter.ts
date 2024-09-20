@@ -10,18 +10,13 @@ export type AppContext = {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function createAppRouter() {
   const t = initTRPC.context<AppContext>().create();
-
   return t.router({
-    helloWorld: t.procedure.query(() => {
-      return `Hello World!`;
-    }),
     getStatus: t.procedure.query(({ ctx }) => {
       return ctx.tubService.getStatus();
     }),
     incrementCall: t.procedure.mutation(async ({ ctx }) => {
       await ctx.tubService.incrementCall();
     }),
-    
     onCounterUpdate: t.procedure.subscription(({ ctx }) => {
       return observable<number>((emit) => {
         const onUpdate = (value: number) => {
