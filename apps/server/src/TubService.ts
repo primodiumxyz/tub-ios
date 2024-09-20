@@ -15,8 +15,8 @@ export class TubService {
     return { status: 200 };
   }
 
-  incrementCall(): void {
-    this.core.calls.increment();
+  async incrementCall(): Promise<void> {
+    await this.core.calls.increment();
   }
 
   private initializeCounterSubscription() {

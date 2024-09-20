@@ -15,8 +15,8 @@ export function createAppRouter() {
     getStatus: t.procedure.query(({ ctx }) => {
       return ctx.tubService.getStatus();
     }),
-    incrementCall: t.procedure.mutation(({ ctx }) => {
-      ctx.tubService.incrementCall();
+    incrementCall: t.procedure.mutation(async ({ ctx }) => {
+      await ctx.tubService.incrementCall();
     }),
     onCounterUpdate: t.procedure.subscription(({ctx}) => {
       return observable<number>((emit) => {
