@@ -5,6 +5,7 @@ type CounterUpdateCallback = (value: number) => void;
 export class TubService {
   private core: Core;
   private counterSubscribers: Set<CounterUpdateCallback> = new Set();
+  private counter: number = 0;
 
   constructor(core: Core) {
     this.core = core;
@@ -19,13 +20,18 @@ export class TubService {
     await this.core.calls.increment();
   }
 
-  private initializeCounterSubscription() {
+  private async initializeCounterSubscription() {
     const counterProgram = this.core.programs.counter;
     const connection = this.core.connection;
     const pdas = this.core.pdas;
 
+    //get initial counter value
+    const counter = await counterProgram.account.counter.fetch(pdas.counter);
+    this.counter = counter.count.toNumber() ?? 0;
+
     connection.onAccountChange(pdas.counter, (accountInfo) => {
-      const counter : CounterData = counterProgram.coder.accounts.decode("counter", accountInfo.data)
+      const counter: CounterData = counterProgram.coder.accounts.decode("counter", accountInfo.data);
+      this.counter = counter.count.toNumber() ?? 0;
       this.notifySubscribers(counter.count.toNumber() ?? 0);
     });
   }
@@ -37,6 +43,9 @@ export class TubService {
   }
 
   subscribeToCounter(callback: CounterUpdateCallback) {
+    // send the current counter value to the subscriber
+    callback(this.counter);
+
     this.counterSubscribers.add(callback);
   }
 

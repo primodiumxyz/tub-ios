@@ -1,5 +1,5 @@
 {
-  "name": "@primodiumxyz/server",
+  "name": "@tub/server",
   "version": "0.0.1",
   "description": "Keeper API for Primodium games",
   "license": "MIT",

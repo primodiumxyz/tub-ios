@@ -1,29 +1,23 @@
 import { useEffect, useState } from "react";
-import { useConnection } from "@solana/wallet-adapter-react";
-import { useCore } from "../hooks/useCore";
-import { CounterData } from "@tub/core";
+import { useServer } from "../hooks/useServer";
 
 export default function CounterState() {
-  const [counterData, setCounterData] = useState<CounterData | null>(null);
-  const { programs, pdas } = useCore();
-  const { connection } = useConnection();
-  const counterProgram = programs.counter;
+  const [counter, setCounter] = useState<number | null>(null);
+  const { server, ready } = useServer();
 
   useEffect(() => {
-    counterProgram.account.counter.fetch(pdas.counter).then((data) => {
-      setCounterData(data);
-    });
+    if (!server || !ready) return;
 
-    const subscriptionId = connection.onAccountChange(pdas.counter, (accountInfo) => {
-      setCounterData(
-        counterProgram.coder.accounts.decode("counter", accountInfo.data)
-      );
+    const unsub = server.onCounterUpdate.subscribe(undefined, {
+      onData: (data) => {
+        setCounter(data);
+      },
     });
 
     return () => {
-      connection.removeAccountChangeListener(subscriptionId);
+      unsub.unsubscribe();
     };
-  }, [connection, counterProgram, pdas.counter]);
+  }, [server, ready]);
 
-  return <p>Count: {counterData?.count?.toString()}</p>;
+  return <p>Count: {counter}</p>;
 }
