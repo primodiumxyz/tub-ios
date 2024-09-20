@@ -56,32 +56,27 @@ const umi = createUmi(connection.rpcEndpoint).use(mplTokenMetadata())
   const programs = createPrograms(provider);
   
   // =============================================================================
-  // PDA of Tub, the default counter program
-
-  const [transferSolPDA] = PublicKey.findProgramAddressSync(
-    [Buffer.from("transfer_sol")],
-    programs.transferSol.programId
-  );
-
   const [counterPDA] = PublicKey.findProgramAddressSync(
     [Buffer.from("randomSeed")],
     programs.counter.programId
   );
 
-  const calls = createCalls(wallet, connection, programs);
 
+  const pdas = {
+      counter: counterPDA,
+    }
+
+  const calls = createCalls(wallet, connection, programs);
   const core = {
+    connection,
     umi,
     constants: {
       SOLANA_LOCALNET,
       ADDRESS_TOKEN_PROGRAM,
       ADDRESS_TOKEN_METADATA_PROGRAM,
     },
+    pdas,
     programs,
-    pdas: {
-      counter: counterPDA,
-      transferSol: transferSolPDA,
-    },
     calls,
   };
 

@@ -1,12 +1,11 @@
-import { createTRPCProxyClient, CreateTRPCProxyClient, httpBatchLink } from "@trpc/client";
+import { createTRPCProxyClient, CreateTRPCProxyClient, httpBatchLink, splitLink } from "@trpc/client";
+import { createWSClient, wsLink } from '@trpc/client/links/wsLink';
 
 import type { AppRouter } from "./createAppRouter";
 
 type CreateClientOptions = {
-  /**
-   * tRPC endpoint URL like `https://keeper.dev.linfra.xyz/trpc`.
-   */
-  url: string;
+  httpUrl: string;
+  wsUrl: string;
   token: string;
 };
 
@@ -16,14 +15,24 @@ type CreateClientOptions = {
  * @param {CreateClientOptions} options See `CreateClientOptions`.
  * @returns {CreateTRPCProxyClient<AppRouter>} A typed tRPC client.
  */
-export function createClient({ url, token }: CreateClientOptions): CreateTRPCProxyClient<AppRouter> {
+export function createClient({ httpUrl, wsUrl, token }: CreateClientOptions): CreateTRPCProxyClient<AppRouter> {
+  const wsClient = createWSClient({
+    url: wsUrl,
+  });
+
   return createTRPCProxyClient<AppRouter>({
     links: [
-      httpBatchLink({
-        url,
-        // headers: {
-        //   Authorization: `Bearer ${token}`,
-        // },
+      splitLink({
+        condition: (op) => op.type === 'subscription',
+        true: wsLink({
+          client: wsClient,
+        }),
+        false: httpBatchLink({
+          url: httpUrl,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }),
       }),
     ],
   });

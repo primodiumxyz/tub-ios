@@ -1,13 +1,13 @@
-import { isHex } from "viem";
 import { z, ZodError, ZodIntersection, ZodTypeAny } from "zod";
 
 const commonSchema = z.object({
   SERVER_HOST: z.string().default("0.0.0.0"),
   SERVER_PORT: z.coerce.number().positive().default(8080),
-  // KEEPER_PRIVATE_KEY: z
-  //   .string()
-  //   .refine(isHex)
-  //   .default("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"),
+  PRIVATE_KEY: z
+    .string()
+    .default(
+      "9344dc8d6fbc1a788e75195e0e6e4c5910b200633baf9818d956c80580e82303bd7e14bda125a12268d3862688f2acf77d1a2d0e258540d041bf9722cabd4a14",
+    ),
 });
 
 export function parseEnv<TSchema extends ZodTypeAny | undefined = undefined>(
