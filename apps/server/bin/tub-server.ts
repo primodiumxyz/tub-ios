@@ -54,7 +54,6 @@ export const start = async () => {
       createContext: async () => ({ tubService }),
     });
   } catch (err) {
-    console.error(env.PRIVATE_KEY);
     server.log.error(err);
     process.exit(1);
   }
