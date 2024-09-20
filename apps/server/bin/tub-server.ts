@@ -29,6 +29,7 @@ await server.register(fastifyWebsocket);
 // k8s healthchecks
 server.get("/healthz", (req, res) => res.code(200).send());
 server.get("/readyz", (req, res) => res.code(200).send());
+server.get("/", (req, res) => res.code(200).send("hello world"));
 
 export const start = async () => {
   try {

@@ -1,4 +1,4 @@
-import { Core } from "@tub/core";
+import { Core, CounterData } from "@tub/core";
 
 type CounterUpdateCallback = (value: number) => void;
 
@@ -25,8 +25,8 @@ export class TubService {
     const pdas = this.core.pdas;
 
     connection.onAccountChange(pdas.counter, (accountInfo) => {
-      const counter = counterProgram.coder.accounts.decode("counter", accountInfo.data);
-      this.notifySubscribers(counter.count);
+      const counter : CounterData = counterProgram.coder.accounts.decode("counter", accountInfo.data)
+      this.notifySubscribers(counter.count.toNumber() ?? 0);
     });
   }
 

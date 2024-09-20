@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TubService } from "../src/TubService";
+import { BN } from "@coral-xyz/anchor";
 
 describe("TubService", () => {
   let tubService: TubService;
@@ -45,7 +46,7 @@ describe("TubService", () => {
 
     // Simulate counter update
     const mockAccountInfo = { data: "mockData" };
-    const mockDecodedCounter = { count: 5 };
+    const mockDecodedCounter = { count: new BN(5) };
     mockCore.programs.counter.coder.accounts.decode.mockReturnValue(mockDecodedCounter);
     mockCore.connection.onAccountChange.mock.calls[0][1](mockAccountInfo);
 

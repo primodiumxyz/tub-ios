@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "lint": "eslint .",
-    "start": "tsx bin/tub-server",
+    "start": "tsx bin/index",
     "types:dev": "tsc --watch",
     "types:test": "tsc --noEmit --skipLibCheck",
     "test": "vitest run",
@@ -32,7 +32,7 @@
     "@types/ws": "^8.5.12",
     "debug": "^4.3.4",
     "dotenv": "^16.0.3",
-"fastify": "^4.21.0",
+    "fastify": "^4.21.0",
     "ws": "^8.18.0",
     "zod": "^3.21.4"
   },
