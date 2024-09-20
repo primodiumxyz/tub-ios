@@ -43,7 +43,9 @@ export class TubService {
   }
 
   subscribeToCounter(callback: CounterUpdateCallback) {
+    // send the current counter value to the subscriber
     callback(this.counter);
+
     this.counterSubscribers.add(callback);
   }
 
