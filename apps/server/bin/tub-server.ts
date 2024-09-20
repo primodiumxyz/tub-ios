@@ -17,7 +17,7 @@ import { Wallet } from "@coral-xyz/anchor";
 const env = parseEnv();
 
 // @see https://fastify.dev/docs/latest/
-const server = fastify({
+export const server = fastify({
   maxParamLength: 5000,
   logger: true,
 });
@@ -30,7 +30,7 @@ await server.register(fastifyWebsocket);
 server.get("/healthz", (req, res) => res.code(200).send());
 server.get("/readyz", (req, res) => res.code(200).send());
 
-const start = async () => {
+export const start = async () => {
   try {
     const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
     const wallet = new Wallet(Keypair.fromSecretKey(Buffer.from(env.PRIVATE_KEY, "hex")));
@@ -61,4 +61,3 @@ const start = async () => {
   }
 };
 
-start();

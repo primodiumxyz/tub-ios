@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { TubService } from '../src/TubService';
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { TubService } from "../src/TubService";
 
-describe('TubService', () => {
+describe("TubService", () => {
   let tubService: TubService;
   let mockCore: any;
 
@@ -23,28 +23,28 @@ describe('TubService', () => {
         onAccountChange: vi.fn(),
       },
       pdas: {
-        counter: 'mockCounterPDA',
+        counter: "mockCounterPDA",
       },
     };
     tubService = new TubService(mockCore);
   });
 
-  it('should return status 200', () => {
+  it("should return status 200", () => {
     expect(tubService.getStatus()).toEqual({ status: 200 });
   });
 
-  it('should increment call', () => {
+  it("should increment call", () => {
     tubService.incrementCall();
     expect(mockCore.calls.increment).toHaveBeenCalled();
   });
 
-  it('should subscribe and unsubscribe to counter updates', () => {
+  it("should subscribe and unsubscribe to counter updates", () => {
     const mockCallback = vi.fn();
     tubService.subscribeToCounter(mockCallback);
     expect(mockCore.connection.onAccountChange).toHaveBeenCalled();
 
     // Simulate counter update
-    const mockAccountInfo = { data: 'mockData' };
+    const mockAccountInfo = { data: "mockData" };
     const mockDecodedCounter = { count: 5 };
     mockCore.programs.counter.coder.accounts.decode.mockReturnValue(mockDecodedCounter);
     mockCore.connection.onAccountChange.mock.calls[0][1](mockAccountInfo);
