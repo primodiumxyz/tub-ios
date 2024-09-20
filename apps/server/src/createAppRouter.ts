@@ -1,8 +1,5 @@
-import { initTRPC, TRPCError } from "@trpc/server";
-import { isAddress } from "viem";
-import { z } from "zod";
+import { initTRPC } from "@trpc/server";
 import { observable } from '@trpc/server/observable';
-import { WebSocket } from 'ws';
 
 import { TubService } from "./TubService";
 

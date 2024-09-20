@@ -21,8 +21,11 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@coral-xyz/anchor": "^0.30.1",
     "@fastify/compress": "^6.5.0",
     "@fastify/cors": "^8.3.0",
+    "@fastify/websocket": "^11.0.0",
+    "@solana/web3.js": "^1.95.2",
     "@trpc/client": "10.34.0",
     "@trpc/server": "10.34.0",
     "@tub/core": "workspace:*",
@@ -30,7 +33,6 @@
     "debug": "^4.3.4",
     "dotenv": "^16.0.3",
     "fastify": "^4.21.0",
-    "viem": "2.9.20",
     "ws": "^8.18.0",
     "zod": "^3.21.4"
   },
