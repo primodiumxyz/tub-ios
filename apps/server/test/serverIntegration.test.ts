@@ -33,5 +33,27 @@ describe("Server Integration Tests", () => {
       const result = await client.incrementCall.mutate();
   });
 
+  it("should listen to counter updates", async () => {
+    const receivedValues: number[] = [];
+    const subscription = client.onCounterUpdate.subscribe(undefined, {
+      onData: (value) => {
+        receivedValues.push(value);
+      },
+    });
+
+    // Trigger a counter update
+    await client.incrementCall.mutate();
+
+    // Wait for a short time to allow the subscription to receive the update
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+
+    // Unsubscribe
+    subscription.unsubscribe();
+
+    // Check received values
+    expect(receivedValues.length).toBeGreaterThan(0);
+    expect(receivedValues[receivedValues.length - 1]).toBeGreaterThan(0);
+  });
+
   // Add more tests for other endpoints and functionalities
 });
