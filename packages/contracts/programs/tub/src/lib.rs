@@ -5,7 +5,7 @@ use anchor_lang::prelude::*;
 pub mod instructions;
 use instructions::*;
 
-declare_id!("33k6geABgPqmEkAVQAHPpc2pnUMRP2yq8pSRNPsYy8bv");
+declare_id!("5QRLue3cTqWno7RMXJKN5rDo4R3CAwXfQr8MAZwfFURj");
 
 #[program]
 pub mod tub {

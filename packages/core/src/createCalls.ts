@@ -10,6 +10,7 @@ export const createCalls = (wallet: Wallet, connection: Connection, programs: Pr
 
     // for some reason this returns early
     const {blockhash, lastValidBlockHeight} = await connection.getLatestBlockhash()
+    transaction.feePayer = wallet.publicKey;
     transaction.recentBlockhash = blockhash;
     transaction.lastValidBlockHeight = lastValidBlockHeight;
     await wallet.signTransaction(transaction);
