@@ -8,7 +8,8 @@ describe.only("Server Integration Tests", () => {
 
   beforeAll(async () => {
     await start();
-    const port = (server.server.address() as any).port;
+    const address = server.server.address();
+    const port = typeof address === 'string' ? address : address?.port;
     client = createTRPCProxyClient<AppRouter>({
       links: [
         httpBatchLink({
@@ -28,7 +29,14 @@ describe.only("Server Integration Tests", () => {
   });
 
   it("should increment call", async () => {
-    await client.incrementCall.mutate();
+    try {
+      const result = await client.incrementCall.mutate();
+      console.log("incremented call", result);
+      expect(result).toEqual('yes');
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
     // Add assertion to check if the call was incremented
     // This might involve checking the mock function in tubService
   });
