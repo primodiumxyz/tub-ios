@@ -61,19 +61,22 @@ const umi = createUmi(connection.rpcEndpoint).use(mplTokenMetadata())
     programs.counter.programId
   );
 
-  const calls = createCalls(wallet, connection, programs);
 
+  const pdas = {
+      counter: counterPDA,
+    }
+
+  const calls = createCalls(wallet, connection, programs);
   const core = {
+    connection,
     umi,
     constants: {
       SOLANA_LOCALNET,
       ADDRESS_TOKEN_PROGRAM,
       ADDRESS_TOKEN_METADATA_PROGRAM,
     },
+    pdas,
     programs,
-    pdas: {
-      counter: counterPDA,
-    },
     calls,
   };
 

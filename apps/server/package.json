@@ -15,17 +15,23 @@
     "lint": "eslint .",
     "start": "tsx bin/tub-server",
     "types:dev": "tsc --watch",
-    "types:test": "tsc --noEmit --skipLibCheck"
+    "types:test": "tsc --noEmit --skipLibCheck",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@fastify/compress": "^6.5.0",
     "@fastify/cors": "^8.3.0",
     "@trpc/client": "10.34.0",
     "@trpc/server": "10.34.0",
+    "@tub/core": "workspace:*",
+    "@types/ws": "^8.5.12",
     "debug": "^4.3.4",
     "dotenv": "^16.0.3",
     "fastify": "^4.21.0",
     "viem": "2.9.20",
+    "ws": "^8.18.0",
     "zod": "^3.21.4"
   },
   "devDependencies": {

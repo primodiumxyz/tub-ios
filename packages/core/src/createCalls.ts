@@ -21,4 +21,8 @@ export const createCalls = (wallet: Wallet, connection: Connection, programs: Pr
       console.log(error);
     }
   };
+
+  return {
+    increment,
+  };
 };

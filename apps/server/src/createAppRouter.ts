@@ -1,6 +1,8 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import { isAddress } from "viem";
 import { z } from "zod";
+import { observable } from '@trpc/server/observable';
+import { WebSocket } from 'ws';
 
 import { TubService } from "./TubService";
 
@@ -19,11 +21,16 @@ export function createAppRouter() {
     incrementCall: t.procedure.mutation(({ ctx }) => {
       ctx.tubService.incrementCall();
     }),
-    createTokenCall: t.procedure.mutation(({ ctx }) => {
-      ctx.tubService.createTokenCall();
-    }),
-    mintCall: t.procedure.mutation(({ ctx }) => {
-      ctx.tubService.mintCall();
+    onCounterUpdate: t.procedure.subscription(({ctx}) => {
+      return observable<number>((emit) => {
+        const onUpdate = (value: number) => {
+          emit.next(value);
+        };
+        ctx.tubService.subscribeToCounter(onUpdate);
+        return () => {
+          ctx.tubService.unsubscribeFromCounter(onUpdate);
+        };
+      });
     }),
   });
 }

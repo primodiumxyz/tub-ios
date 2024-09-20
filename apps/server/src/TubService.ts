@@ -1,25 +1,46 @@
-import { Hex } from "viem";
+import { Core } from "@tub/core";
+
+type CounterUpdateCallback = (value: number) => void;
 
 export class TubService {
-  // private tubPrivateKey: Hex;
+  private core: Core;
+  private counterSubscribers: Set<CounterUpdateCallback> = new Set();
 
-  // constructor(tubPrivateKey: Hex) {
-  //   this.tubPrivateKey = tubPrivateKey;
-  // }
+  constructor(core: Core) {
+    this.core = core;
+    this.initializeCounterSubscription();
+  }
 
   getStatus(): { status: number } {
     return { status: 200 };
   }
 
   incrementCall(): void {
-    // Placeholder for increment call logic
+    this.core.calls.increment();
   }
 
-  createTokenCall(): void {
-    // Placeholder for create_token call logic
+  private initializeCounterSubscription() {
+    const counterProgram = this.core.programs.counter;
+    const connection = this.core.connection;
+    const pdas = this.core.pdas;
+
+    connection.onAccountChange(pdas.counter, (accountInfo) => {
+      const counter = counterProgram.coder.accounts.decode("counter", accountInfo.data);
+      this.notifySubscribers(counter.count);
+    });
   }
 
-  mintCall(): void {
-    // Placeholder for mint call logic
+  private notifySubscribers(value: number) {
+    for (const subscriber of this.counterSubscribers) {
+      subscriber(value);
+    }
+  }
+
+  subscribeToCounter(callback: CounterUpdateCallback) {
+    this.counterSubscribers.add(callback);
+  }
+
+  unsubscribeFromCounter(callback: CounterUpdateCallback) {
+    this.counterSubscribers.delete(callback);
   }
 }
