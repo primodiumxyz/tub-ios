@@ -5,8 +5,9 @@
     "paths": {
       "@/*": ["./src/*"],
       "@bin/*": ["./bin/*"],
-      "@core/*": ["../../packages/core/src/*"]
+      "@core/*": ["../../packages/core/src/*"],
     }
+  
   },
   "include": ["**/*.ts"],
   "exclude": ["node_modules", "dist"],
