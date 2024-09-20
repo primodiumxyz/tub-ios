@@ -1,5 +1,5 @@
 {
-  "name": "@primodiumxyz/server",
+  "name": "@tub/server",
   "version": "0.0.1",
   "description": "Keeper API for Primodium games",
   "license": "MIT",
@@ -32,7 +32,7 @@
     "@types/ws": "^8.5.12",
     "debug": "^4.3.4",
     "dotenv": "^16.0.3",
-"fastify": "^4.21.0",
+    "fastify": "^4.21.0",
     "ws": "^8.18.0",
     "zod": "^3.21.4"
   },

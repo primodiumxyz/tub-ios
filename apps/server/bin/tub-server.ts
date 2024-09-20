@@ -1,18 +1,15 @@
 #!/usr/bin/env node
-
 import "dotenv/config";
-
+import { AppRouter, createAppRouter } from "@/createAppRouter";
+import { TubService } from "@/TubService";
+import { parseEnv } from "@bin/parseEnv";
+import { Wallet } from "@coral-xyz/anchor";
+import { createCore } from "@core/createCore";
+import fastifyWebsocket from "@fastify/websocket";
+import { clusterApiUrl, Connection, Keypair } from "@solana/web3.js";
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import { applyWSSHandler } from "@trpc/server/adapters/ws";
 import fastify from "fastify";
-import fastifyWebsocket from "@fastify/websocket";
-
-import { parseEnv } from "@bin/parseEnv";
-import { AppRouter, createAppRouter } from "@/createAppRouter";
-import { TubService } from "@/TubService";
-import { createCore } from "@core/createCore";
-import { clusterApiUrl, Connection, Keypair } from "@solana/web3.js";
-import { Wallet } from "@coral-xyz/anchor";
 
 const env = parseEnv();
 
@@ -56,8 +53,10 @@ export const start = async () => {
       createContext: async () => ({ tubService }),
     });
   } catch (err) {
+    console.error(env.PRIVATE_KEY);
     server.log.error(err);
     process.exit(1);
   }
 };
 
+start();
