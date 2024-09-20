@@ -1,6 +1,6 @@
 import { initTRPC } from "@trpc/server";
-import { observable } from '@trpc/server/observable';
-
+import { observable } from "@trpc/server/observable";
+import { z } from "zod";
 import { TubService } from "./TubService";
 
 export type AppContext = {
@@ -12,13 +12,17 @@ export function createAppRouter() {
   const t = initTRPC.context<AppContext>().create();
 
   return t.router({
+    helloWorld: t.procedure.query(() => {
+      return `Hello World!`;
+    }),
     getStatus: t.procedure.query(({ ctx }) => {
       return ctx.tubService.getStatus();
     }),
     incrementCall: t.procedure.mutation(async ({ ctx }) => {
       await ctx.tubService.incrementCall();
     }),
-    onCounterUpdate: t.procedure.subscription(({ctx}) => {
+    
+    onCounterUpdate: t.procedure.subscription(({ ctx }) => {
       return observable<number>((emit) => {
         const onUpdate = (value: number) => {
           emit.next(value);

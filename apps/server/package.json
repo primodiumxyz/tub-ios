@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "lint": "eslint .",
-    "start": "tsx bin/tub-server",
+    "start": "tsx bin/index",
     "types:dev": "tsc --watch",
     "types:test": "tsc --noEmit --skipLibCheck",
     "test": "vitest run",
