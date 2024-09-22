@@ -10,6 +10,11 @@ describe("Tub Token Creator", () => {
   anchor.setProvider(provider);
   const payer = provider.wallet as anchor.Wallet;
   const program = anchor.workspace.Tub as anchor.Program<Tub>;
+  // only initialize treasury account if it doesn't exist
+  const [treasuryPDA] = PublicKey.findProgramAddressSync(
+    [Buffer.from("treasury")],
+    program.programId
+  );
 
   const metadata = {
     name: "Solana Gold",
@@ -19,10 +24,30 @@ describe("Tub Token Creator", () => {
 
   // Generate new keypair to use as address for mint account.
 
+  before(async () => {
+    try {
+      await program.account.treasuryAccount.fetch(treasuryPDA);
+    } catch (error) {
+      const txSignature = await program.methods
+        .initialize()
+        .accounts({
+          authority: payer.publicKey,
+        })
+        .rpc();
+      console.log(`   Transaction Signature: ${txSignature}`);
+    }
+  });
+
   describe("Create a token", () => {
     it("token gets created", async () => {
       const mintKeypair = new Keypair();
       const prevBalance = await provider.connection.getBalance(payer.publicKey);
+      let prevTreasuryBalance = 0;
+      try {
+        prevTreasuryBalance = await provider.connection.getBalance(treasuryPDA);
+      } catch (error) {
+        console.log({ error });
+      }
 
       const associatedTokenAccountAddress = getAssociatedTokenAddressSync(
         mintKeypair.publicKey,
@@ -33,11 +58,9 @@ describe("Tub Token Creator", () => {
       const cost = new BN(_cost);
       const transactionSignature = await program.methods
         .createToken(metadata.name, metadata.symbol, metadata.uri, cost)
-        .accountsPartial({
+        .accounts({
           payer: payer.publicKey,
           mintAccount: mintKeypair.publicKey,
-          associatedTokenAccount: associatedTokenAccountAddress,
-          associatedTokenProgram: anchor.utils.token.ASSOCIATED_PROGRAM_ID
         })
         .signers([mintKeypair])
         .rpc();
@@ -53,15 +76,21 @@ describe("Tub Token Creator", () => {
         "new payer balance incorrect"
       );
 
-      const newMintBalance = await provider.connection.getBalance(
-        mintKeypair.publicKey
-      );
-      expect(newMintBalance).to.be.gte(_cost, "new mint balance incorrect");
+      const treasuryBalance = await provider.connection.getBalance(treasuryPDA);
 
-      const mintBalance = await provider.connection.getTokenAccountBalance(
-        associatedTokenAccountAddress
+      expect(treasuryBalance - prevTreasuryBalance).to.be.gte(
+        _cost,
+        "new mint balance incorrect"
       );
-      expect(Number(mintBalance.value.amount) ).to.be.eq(_cost * 100_000);
+
+      const associatedTokenBalance =
+        await provider.connection.getTokenAccountBalance(
+          associatedTokenAccountAddress
+        );
+
+      expect(Number(associatedTokenBalance.value.amount)).to.be.eq(
+        _cost * 100_000
+      );
     });
 
     it("token gets created with 0 cost", async () => {
@@ -74,14 +103,12 @@ describe("Tub Token Creator", () => {
 
       const _cost = 0;
       const cost = new BN(_cost);
-      console.log({cost, _cost})
+      console.log({ cost, _cost });
       const transactionSignature = await program.methods
         .createToken(metadata.name, metadata.symbol, metadata.uri, cost)
         .accountsPartial({
           payer: payer.publicKey,
           mintAccount: mintKeypair.publicKey,
-          associatedTokenAccount: associatedTokenAccountAddress,
-          associatedTokenProgram: anchor.utils.token.ASSOCIATED_PROGRAM_ID
         })
         .signers([mintKeypair])
         .rpc();
@@ -92,7 +119,10 @@ describe("Tub Token Creator", () => {
       const mintBalance = await provider.connection.getTokenAccountBalance(
         associatedTokenAccountAddress
       );
-      expect(Number(mintBalance.value.amount)).to.be.eq(0, "mint balance incorrect");
+      expect(Number(mintBalance.value.amount)).to.be.eq(
+        0,
+        "mint balance incorrect"
+      );
     });
   });
 
@@ -140,10 +170,10 @@ describe("Tub Token Creator", () => {
         `Associated Token Account Address: ${associatedTokenAccountAddress}`
       );
       console.log(`Transaction Signature: ${transactionSignature}`);
-      const mintBalance = await provider.connection.getTokenAccountBalance(
+      const associatedTokenBalance = await provider.connection.getTokenAccountBalance(
         associatedTokenAccountAddress
       );
-      expect(Number(mintBalance.value.amount) / 1e9).to.be.eq(_amount);
+      expect(Number(associatedTokenBalance.value.amount) / 1e9).to.be.eq(_amount);
     });
   });
 });
