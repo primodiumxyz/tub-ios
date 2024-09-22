@@ -1,39 +1,27 @@
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useServer } from "../hooks/useServer";
 import { useState } from "react";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { useCore } from "../hooks/useCore";
 
 export default function IncrementButton() {
-  const { publicKey, sendTransaction } = useWallet();
-  const { connection } = useConnection();
-  const { programs } = useCore();
+  const { publicKey } = useWallet();
+  const { server, ready } = useServer();
   const [isLoading, setIsLoading] = useState(false);
 
   const onClick = async () => {
-    if (!publicKey) return;
+    if (!server || !ready) return;
 
     setIsLoading(true);
-
-    try {
-      const transaction = await programs.counter.methods.increment().transaction();
-
-      const transactionSignature = await sendTransaction(
-        transaction,
-        connection
-      );
-
-      console.log(
-        `View on explorer: https://solana.fm/tx/${transactionSignature}?cluster=devnet-alpha`
-      );
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setIsLoading(false);
-    }
+    await server.incrementCall.mutate();
+    setIsLoading(false);
   };
 
   return (
-    <button className="btn-primary" onClick={onClick} disabled={!publicKey}>
-      {isLoading ? "Loading" : "Increment"}
+    <button
+      className="btn-primary"
+      onClick={onClick}
+      disabled={!publicKey || !ready || isLoading}
+    >
+      {isLoading || !ready ? "Loading..." : "Increment"}
     </button>
   );
 }

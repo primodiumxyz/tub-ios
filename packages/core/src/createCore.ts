@@ -1,4 +1,4 @@
-import { AnchorProvider, Program } from "@coral-xyz/anchor";
+import { AnchorProvider, Program, Wallet } from "@coral-xyz/anchor";
 import { Connection, PublicKey } from "@solana/web3.js";
 
 import { Tub } from "@tub/contracts/target/types/tub";
@@ -8,15 +8,24 @@ import IDLTub from "@tub/contracts/target/idl/tub.json";
 import IDLTransferSol from "@tub/contracts/target/idl/transfer_sol.json";
 import IDLCounter from "@tub/contracts/target/idl/counter.json";
 
-import { Wallet } from "@solana/wallet-adapter-react";
-import { SignerWalletAdapter } from "@solana/wallet-adapter-base";
 import { createUmi } from '@metaplex-foundation/umi-bundle-defaults'
 import { mplTokenMetadata } from '@metaplex-foundation/mpl-token-metadata'
+import { createCalls } from "./createCalls";
 
 // Add this function to create an Anchor compatible wallet
 
+export const createPrograms = (provider: AnchorProvider) => {
+  return {
+    tub: new Program<Tub>(IDLTub as Tub, provider),
+    counter: new Program<Counter>(IDLCounter as Counter, provider),
+    transferSol: new Program<TransferSol>(
+      IDLTransferSol as TransferSol,
+      provider
+    ),
+  };
+};
+
 export const createCore = (
-  publicKey: PublicKey,
   wallet: Wallet,
   connection: Connection
 ) => {
@@ -36,51 +45,40 @@ const umi = createUmi(connection.rpcEndpoint).use(mplTokenMetadata())
 
   // =============================================================================
 
-  const walletAdapter = {
-    ...(wallet.adapter as SignerWalletAdapter),
-    publicKey,
-  };
-
   const provider = new AnchorProvider(
     connection,
-    walletAdapter,
+    wallet,
     AnchorProvider.defaultOptions()
   );
 
-  const programs = {
-    tub: new Program<Tub>(IDLTub as Tub, provider),
-    counter: new Program<Counter>(IDLCounter as Counter, provider),
-    transferSol: new Program<TransferSol>(
-      IDLTransferSol as TransferSol,
-      provider
-    ),
-  };
 
+
+  const programs = createPrograms(provider);
   
   // =============================================================================
-  // PDA of Tub, the default counter program
-
-  const [transferSolPDA] = PublicKey.findProgramAddressSync(
-    [Buffer.from("transfer_sol")],
-    programs.transferSol.programId
-  );
-
   const [counterPDA] = PublicKey.findProgramAddressSync(
     [Buffer.from("randomSeed")],
     programs.counter.programId
   );
 
-  return {
+
+  const pdas = {
+      counter: counterPDA,
+    }
+
+  const calls = createCalls(wallet, connection, programs);
+  const core = {
+    connection,
     umi,
     constants: {
       SOLANA_LOCALNET,
       ADDRESS_TOKEN_PROGRAM,
       ADDRESS_TOKEN_METADATA_PROGRAM,
     },
+    pdas,
     programs,
-    pdas: {
-      counter: counterPDA,
-      transferSol: transferSolPDA,
-    },
+    calls,
   };
+
+  return core;
 };

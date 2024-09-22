@@ -1,7 +1,7 @@
 
 import { useContext } from "react";
-import { Core } from "../core/types";
 import { CoreContext } from "../providers/CoreProvider";
+import { Core } from "@tub/core";
 
 /**
  * Provides access to the CoreContext.
