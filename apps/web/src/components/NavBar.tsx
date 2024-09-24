@@ -28,7 +28,7 @@ export const NavBar = () => {
               active("/coins") ? "!text-blue-600" : ""
             }`}
           >
-            MONKEY COINS
+            Coins
           </Link>
         </li>
       </ul>
