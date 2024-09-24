@@ -1,4 +1,5 @@
 import { Core, CounterData } from "@tub/core";
+import { db } from "@tub/gql";
 
 type CounterUpdateCallback = (value: number) => void;
 
@@ -51,5 +52,33 @@ export class TubService {
 
   unsubscribeFromCounter(callback: CounterUpdateCallback) {
     this.counterSubscribers.delete(callback);
+  }
+
+  async registerNewUser(username: string, airdropAmount: bigint) {
+    const result = await db.registerNewUser(username, airdropAmount);
+
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+
+    return result.data;
+  }
+
+  async sellToken(tokenId: string, amount: bigint) {
+    console.log("To be implemented");
+  }
+
+  async buyToken(tokenId: string, amount: bigint) {
+    console.log("To be implemented");
+  }
+
+  async getAllTokens() {
+    const result = await db.getAllTokens();
+
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+
+    return result.data;
   }
 }
