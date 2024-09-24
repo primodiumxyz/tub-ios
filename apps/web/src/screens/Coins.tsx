@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CoinDisplay } from "../components/CoinDisplay";
 import { CoinData, generateRandomMemecoin } from "../utils/generateMemecoin";
 
@@ -6,16 +6,23 @@ import { CoinData, generateRandomMemecoin } from "../utils/generateMemecoin";
 export const Coins = () => {
   const [selectedCoin, setSelectedCoin] = useState<CoinData | null>(null);
 
-  const clearSelectedCoin = () => {
-    setSelectedCoin(null);
+  const gotoNext = () => {
+    const randomIndex = Math.floor(Math.random() * coins.length);
+    setSelectedCoin(coins[randomIndex]);
   };
 
   const coins = useMemo(() => {
     return Array.from({ length: 50 }, generateRandomMemecoin);
   }, []);
 
+  useEffect(() => {
+    if (coins.length > 0) {
+      setSelectedCoin(coins[0]);
+    }
+  }, [coins]);
+
   if (selectedCoin) {
-    return <CoinDisplay coinData={selectedCoin} clearSelectedCoin={clearSelectedCoin} />;
+    return <CoinDisplay coinData={selectedCoin} gotoNext={gotoNext} />;
   }
 
   return <div className="flex flex-wrap justify-center">

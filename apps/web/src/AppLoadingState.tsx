@@ -34,11 +34,13 @@ export const TubRoutes = () => {
           </div>
 
           <ServerStatus />
-          <div className="relative w-4/5 h-4/5 bg-slate-200 rounded-xl p-10 pt-4">
+
             <NavBar />
+          <div className="relative max-w-[400px] h-4/5 bg-black rounded-xl p-4 pt-10 overflow-hidden">
             <Routes>
-              <Route path="/" element={<IncrementForm />} />
-              <Route path="/coins" element={<Coins />} />
+              <Route path="/" element={<Coins />} />
+              <Route path="/counter" element={<IncrementForm />} />
+              <Route path="*" element={<div className="text-white text-2xl">404 - Page Not Found</div>} />
             </Routes>
           </div>
         </div>
