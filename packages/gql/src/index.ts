@@ -3,15 +3,9 @@ import * as mutations from "./lib/mutations";
 import * as queries from "./lib/queries";
 
 const db = {
+  // Queries
   getAllAccounts: () => client.query(queries.GetAllAccountsQuery, {}).toPromise(),
   getAllTokens: () => client.query(queries.GetAllTokensQuery, {}).toPromise(),
-  registerNewUser: (username: string, airdropAmount: bigint) =>
-    client
-      .mutation(mutations.RegisterNewUserMutation, {
-        username,
-        amount: airdropAmount.toString(),
-      })
-      .toPromise(),
   getAccountTokenBalance: async (accountId: string, tokenId: string) => {
     const credit = await client
       .query(queries.GetAccountTokenCreditQuery, {
@@ -33,6 +27,26 @@ const db = {
 
     return creditValue - debitValue;
   },
+  // Mutations
+  registerNewUser: (username: string, airdropAmount: bigint) =>
+    client
+      .mutation(mutations.RegisterNewUserMutation, {
+        username,
+        amount: airdropAmount,
+      })
+      .toPromise(),
+  buyToken: (accountId: string, tokenId: string, nTokens: bigint) =>
+    client.mutation(mutations.BuyTokenMutation, {
+      account: accountId,
+      token: tokenId,
+      amount: nTokens,
+    }).toPromise(),
+  sellToken: (accountId: string, tokenId: string, nTokens: bigint) =>
+    client.mutation(mutations.SellTokenMutation, {
+      account: accountId,
+      token: tokenId,
+      amount: nTokens,
+    }).toPromise(),
 };
 
 export { client, db };

@@ -14,21 +14,6 @@ directive @cached(
 ) on QUERY
 
 """
-Boolean expression to compare columns of type "Boolean". All fields are combined with logical 'AND'.
-"""
-input Boolean_comparison_exp {
-  _eq: Boolean
-  _gt: Boolean
-  _gte: Boolean
-  _in: [Boolean!]
-  _is_null: Boolean
-  _lt: Boolean
-  _lte: Boolean
-  _neq: Boolean
-  _nin: [Boolean!]
-}
-
-"""
 Boolean expression to compare columns of type "Int". All fields are combined with logical 'AND'.
 """
 input Int_comparison_exp {
@@ -137,7 +122,6 @@ type account {
   ): account_transaction_aggregate!
   created_at: timestamp!
   id: uuid!
-  transaction_lock: Boolean!
   username: String!
 }
 
@@ -169,7 +153,6 @@ input account_bool_exp {
   account_transactions_aggregate: account_transaction_aggregate_bool_exp
   created_at: timestamp_comparison_exp
   id: uuid_comparison_exp
-  transaction_lock: Boolean_comparison_exp
   username: String_comparison_exp
 }
 
@@ -190,7 +173,6 @@ input account_insert_input {
   account_transactions: account_transaction_arr_rel_insert_input
   created_at: timestamp
   id: uuid
-  transaction_lock: Boolean
   username: String
 }
 
@@ -243,7 +225,6 @@ input account_order_by {
   account_transactions_aggregate: account_transaction_aggregate_order_by
   created_at: order_by
   id: order_by
-  transaction_lock: order_by
   username: order_by
 }
 
@@ -263,9 +244,6 @@ enum account_select_column {
   id
 
   """column name"""
-  transaction_lock
-
-  """column name"""
   username
 }
 
@@ -275,7 +253,6 @@ input type for updating data in table "account"
 input account_set_input {
   created_at: timestamp
   id: uuid
-  transaction_lock: Boolean
   username: String
 }
 
@@ -294,7 +271,6 @@ input account_stream_cursor_input {
 input account_stream_cursor_value_input {
   created_at: timestamp
   id: uuid
-  transaction_lock: Boolean
   username: String
 }
 
@@ -733,9 +709,6 @@ enum account_update_column {
   id
 
   """column name"""
-  transaction_lock
-
-  """column name"""
   username
 }
 
@@ -963,6 +936,31 @@ type mutation_root {
 
     """upsert condition"""
     on_conflict: token_transaction_on_conflict
+  ): token_transaction
+
+  """
+  execute VOLATILE function "sell_token" which returns "token_transaction"
+  """
+  sell_token(
+    """
+    input parameters for function "sell_token"
+    """
+    args: sell_token_args!
+
+    """distinct select on columns"""
+    distinct_on: [token_transaction_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_transaction_order_by!]
+
+    """filter the rows returned"""
+    where: token_transaction_bool_exp
   ): token_transaction
 
   """
@@ -1389,6 +1387,13 @@ type query_root {
   fetch data from the table: "token_transaction" using primary key columns
   """
   token_transaction_by_pk(id: uuid!): token_transaction
+}
+
+input sell_token_args {
+  account_id: uuid
+  amount_to_sell: numeric
+  token_cost: numeric
+  token_id: uuid
 }
 
 type subscription_root {

@@ -16,8 +16,8 @@ export const client = new Client({
 export const graphql = initGraphQLTada<{
   introspection: introspection;
   scalars: {
-    UUID: string;
+    uuid: string;
     BigInt: bigint;
-    Numeric: bigint;
+    numeric: bigint;
   };
 }>();

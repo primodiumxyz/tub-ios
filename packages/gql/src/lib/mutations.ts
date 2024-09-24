@@ -9,3 +9,23 @@ export const RegisterNewUserMutation = graphql(`
     }
   }
 `);
+
+export const BuyTokenMutation = graphql(`
+  mutation BuyToken($account: uuid!, $token: uuid!, $amount: numeric!, $override_token_price: numeric) {
+    buy_token(
+      args: { account_id: $account, token_id: $token, amount_to_buy: $amount, token_cost: $override_token_price }
+    ) {
+      id
+    }
+  }
+`);
+
+export const SellTokenMutation = graphql(`
+  mutation SellToken($account: uuid!, $token: uuid!, $amount: numeric!, $override_token_price: numeric) {
+    sell_token(
+      args: { account_id: $account, token_id: $token, amount_to_sell: $amount, token_cost: $override_token_price }
+    ) {
+      id
+    }
+  }
+`);
