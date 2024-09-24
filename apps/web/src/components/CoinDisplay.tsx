@@ -1,51 +1,39 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { PriceGraph } from "../components/PriceGraph"; // Import the new component
+import { CoinData } from "../utils/generateMemecoin";
 
 type Price = {
   timestamp: number;
   price: number;
 };
 
-type CoinData = {
-  name: string;
-  symbol: string;
-};
-
-export const CoinDisplay = ({ coinId }: { coinId: string }) => {
+export const CoinDisplay = ({ coinData, clearSelectedCoin }: { coinData: CoinData, clearSelectedCoin: () => void }) => {
   // todo: fetch coin data from server
-  const [prices, setPrices] = useState<Price[]>([]);
   const [balance, setBalance] = useState(1000); // User's initial balance
   const [coinBalance, setCoinBalance] = useState(0); // User's coin balance
-  const [coinData, setCoinData] = useState<CoinData | null>({
-    name: "MONKEY COINS",
-    symbol: "MONK",
-  });
+
 
   const [buyAmount, setBuyAmount] = useState(0);
   const [sellAmount, setSellAmount] = useState(0);
 
-  useEffect(() => {
-    const generatePrice = () => {
-      const lastPrice =
-        prices.length > 0 ? prices[prices.length - 1].price : 50; // Default to 50 if no prices
+    const generatePrice = useCallback((lastPrice: number, timestamp?: number) => {
       const change = lastPrice * (Math.random() * 0.48 - 0.24); // 10% chance to generate a random change between -24% and 24%
-      const newPrice: Price = {
-        timestamp: Date.now(),
+      return {
+        timestamp: timestamp || Date.now(),
         price: Math.max(0, lastPrice + change), // Ensure price doesn't go below 0
       };
-      setPrices((prevPrices) => [...prevPrices, newPrice]);
-    };
+    }, []);
 
+  const [prices, setPrices] = useState<Price[]>([]);
+
+
+  useEffect(() => {
     const intervalId = setInterval(() => {
-      if (prices.length < 100) {
-        generatePrice();
-      } else {
-        clearInterval(intervalId);
-      }
+        const newPrice = prices.length > 0 ? generatePrice(prices[prices.length - 1].price) : generatePrice(50);
+        setPrices((prevPrices) => [...prevPrices, newPrice]);
     }, 1000); // 1000 milliseconds = 1 second
-
-    return () => clearInterval(intervalId); // Cleanup interval on component unmount
-  }, [prices]);
+    return () => clearInterval(intervalId);
+  }, [generatePrice, prices]);
 
   const handleBuy = () => {
     const currentPrice = prices[prices.length - 1]?.price || 0;
@@ -84,7 +72,8 @@ export const CoinDisplay = ({ coinId }: { coinId: string }) => {
   const currentPrice = prices[prices.length - 1]?.price || 0;
 
   return (
-    <div className="">
+    <div className="relative">
+      <button onClick={clearSelectedCoin} className="absolute top-0 right-0 text-sm text-gray-500 bg-orange-300 rounded-full px-2 py-1">GO BACK</button>
       <h1 className="text-2xl font-bold mb-4">{coinData?.name}</h1>
       <div className="flex flex-row gap-10">
         <PriceGraph prices={prices} /> {/* Use the new component */}
