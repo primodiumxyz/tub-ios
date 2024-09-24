@@ -1,5 +1,5 @@
-import CounterState from "./CounterState";
-import IncrementButton from "./IncrementButton";
+import CounterState from "../components/CounterState";
+import IncrementButton from "../components/IncrementButton";
 
 export default function IncrementForm() {
   return (
