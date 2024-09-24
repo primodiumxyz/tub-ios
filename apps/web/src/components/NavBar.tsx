@@ -13,7 +13,7 @@ export const NavBar = () => {
       <ul className="flex space-x-4">
         <li>
           <Link
-            to="/"
+            to="/counter"
             className={`text-gray-800 font-medium hover:text-blue-400 transition-colors ${
               active("/") ? "!text-blue-600" : ""
             }`}
@@ -23,9 +23,9 @@ export const NavBar = () => {
         </li>
         <li>
           <Link
-            to="/coins"
+            to="/"
             className={`text-gray-800 font-medium hover:text-blue-400 transition-colors ${
-              active("/coins") ? "!text-blue-600" : ""
+              active("/") ? "!text-blue-600" : ""
             }`}
           >
             Coins

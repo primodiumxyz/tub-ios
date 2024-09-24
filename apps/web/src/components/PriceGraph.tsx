@@ -12,14 +12,14 @@ type PriceGraphProps = {
 
 export const PriceGraph = ({ prices }: PriceGraphProps) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
-
+  const width = 300;
+  const height = 200;
   useEffect(() => {
     if (prices.length === 0) return;
 
     const svg = d3.select(svgRef.current);
-    const width = 600;
-    const height = 500;
-    const margin = { top: 20, right: 30, bottom: 50, left: 60 }; // Adjusted margins for labels
+
+    const margin = { top: 20, right: 30, bottom: 20, left: 10 }; // Adjusted margins for labels
 
     const x = d3
       .scaleTime()
@@ -40,47 +40,71 @@ export const PriceGraph = ({ prices }: PriceGraphProps) => {
 
     svg.selectAll("*").remove();
 
-    svg
-      .append("g")
-      .attr("transform", `translate(0,${height - margin.bottom})`)
-      .call(
-        d3
-          .axisBottom(x)
-          .ticks(width / 80)
-          .tickSizeOuter(0)
-      )
-      .append("text")
-      .attr("fill", "#000")
-      .attr("x", width / 2)
-      .attr("y", margin.bottom - 10)
-      .attr("text-anchor", "middle")
-      .text("Time");
 
-    svg
-      .append("g")
-      .attr("transform", `translate(${margin.left},0)`)
-      .call(d3.axisLeft(y).tickFormat(d => `$${d}`)) // Format y-axis labels with dollar sign
-      .append("text")
-      .attr("fill", "#000")
-      .attr("transform", "rotate(-90)")
-      .attr("x", -height / 2)
-      .attr("y", -margin.left + 20)
-      .attr("text-anchor", "middle")
-      .text("Price");
 
     svg
       .append("path")
       .datum(prices)
       .attr("fill", "none")
-      .attr("stroke", "steelblue")
+      .attr("stroke", "#6DF8FA")
       .attr("stroke-width", 1.5)
       .attr("d", line);
+
+    // Add a circle at the end of the line
+    const lastPrice = prices.length > 1 ? prices[prices.length - 1] : prices[0];
+    const secondLastPrice = prices.length > 2 ? prices[prices.length - 2] : prices[0];
+    const lastX = x(new Date(lastPrice.timestamp));
+    const lastY = y(lastPrice.price);
+    const pctChange = ((lastPrice.price - secondLastPrice.price) / secondLastPrice.price) * 100;
+    const pctChangeColor = pctChange > 0 ? "lawngreen" : "#FF6666"; // Lighten the red color
+  svg
+    .append("line")
+    .attr("x1", lastX)
+    .attr("y1", margin.top)
+    .attr("x2", lastX)
+    .attr("y2", height - margin.bottom)
+    .attr("stroke", pctChangeColor)
+    .attr("stroke-width", 1)
+    .attr("stroke-dasharray", "3,3");
+    svg
+      .append("circle")
+      .attr("cx", lastX)
+      .attr("cy", lastY)
+      .attr("r", 4)
+      .attr("fill", "none")
+      .attr("stroke", pctChangeColor)
+      .attr("stroke-width", 2);
+
+    // Add a pill-shaped element with the current price
+    const pillWidth = 40;
+    const pillHeight = 24;
+    const pillY = lastY - 30; // Position the pill above the circle
+
+    svg
+      .append("rect")
+      .attr("x", lastX - pillWidth / 2)
+      .attr("y", pillY)
+      .attr("width", pillWidth)
+      .attr("height", pillHeight)
+      .attr("rx", pillHeight / 2) // Rounded corners
+      .attr("ry", pillHeight / 2)
+      .attr("fill", pctChangeColor)
+      .attr("stroke-width", 1);
+
+    svg
+      .append("text")
+      .attr("x", lastX)
+      .attr("y", pillY + pillHeight / 2)
+      .attr("text-anchor", "middle")
+      .attr("dominant-baseline", "central")
+      .attr("fill", "black")
+      .attr("font-size", "12px")
+      .text(`${pctChange.toFixed(0)}%`);
   }, [prices]);
 
   return (
-    <div className="bg-white shadow-lg rounded-lg p-4">
-      <h2 className="text-xl font-semibold mb-4">Price Graph</h2>
-      <svg ref={svgRef} width={600} height={500}></svg>
+    <div className="shadow-lg rounded-lg p-4">
+      <svg ref={svgRef} width={width} height={height}></svg>
     </div>
   );
 };
