@@ -1,8 +1,8 @@
-import { createTRPCProxyClient, httpBatchLink, createWSClient, wsLink, splitLink } from "@trpc/client";
+import { createTRPCProxyClient, createWSClient, httpBatchLink, splitLink, wsLink } from "@trpc/client";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import WebSocket from "ws";
 import { server, start } from "../bin/tub-server";
 import { AppRouter } from "../src/createAppRouter";
-import WebSocket from 'ws';
 
 describe("Server Integration Tests", () => {
   let client: ReturnType<typeof createTRPCProxyClient<AppRouter>>;
@@ -11,7 +11,7 @@ describe("Server Integration Tests", () => {
     await start();
     const address = server.server.address();
 
-    const port = typeof address === 'string' ? address : address?.port;
+    const port = typeof address === "string" ? address : address?.port;
     const wsClient = createWSClient({
       url: `ws://localhost:${port}/trpc`,
       WebSocket: WebSocket as any,
@@ -20,7 +20,7 @@ describe("Server Integration Tests", () => {
     client = createTRPCProxyClient<AppRouter>({
       links: [
         splitLink({
-          condition: (op) => op.type === 'subscription',
+          condition: (op) => op.type === "subscription",
           true: wsLink({ client: wsClient }),
           false: httpBatchLink({
             url: `http://localhost:${port}/trpc`,
@@ -40,7 +40,7 @@ describe("Server Integration Tests", () => {
   });
 
   it("should increment call", async () => {
-      await client.incrementCall.mutate();
+    await client.incrementCall.mutate();
   });
 
   it("should listen to counter updates", async () => {
@@ -65,5 +65,17 @@ describe("Server Integration Tests", () => {
     expect(receivedValues[receivedValues.length - 1]).toBeGreaterThan(0);
   });
 
-  // Add more tests for other endpoints and functionalities
+  it("should return the list of tokens", async () => {
+    const result = await client.getAllTokens.query();
+    expect(result).toBeDefined();
+  });
+
+  it("should register a new user", async () => {
+    const result = await client.registerNewUser.mutate({
+      username: "PEPE",
+      airdropAmount: "100",
+    });
+
+    expect(result).toBeDefined();
+  });
 });

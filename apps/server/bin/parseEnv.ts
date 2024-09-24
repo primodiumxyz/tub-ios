@@ -3,6 +3,7 @@ import { z, ZodError, ZodIntersection, ZodTypeAny } from "zod";
 const commonSchema = z.object({
   SERVER_HOST: z.string().default("0.0.0.0"),
   SERVER_PORT: z.coerce.number().positive().default(8080),
+  HASURA_ADMIN_SECRET: z.string(),
   PRIVATE_KEY: z
     .string()
     .default(

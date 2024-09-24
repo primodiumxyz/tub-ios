@@ -28,6 +28,19 @@ export function createAppRouter() {
         };
       });
     }),
+    registerNewUser: t.procedure
+      .input(
+        z.object({
+          username: z.string(),
+          airdropAmount: z.string(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        return await ctx.tubService.registerNewUser(input.username, BigInt("100"));
+      }),
+    getAllTokens: t.procedure.query(async ({ ctx }) => {
+      return ctx.tubService.getAllTokens();
+    }),
   });
 }
 
