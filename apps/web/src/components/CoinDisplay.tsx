@@ -11,14 +11,15 @@ type CoinData = {
   symbol: string;
 };
 
-export const CoinDisplay = ({ coinId } : {coinId: string}) => {
-
-
+export const CoinDisplay = ({ coinId }: { coinId: string }) => {
   // todo: fetch coin data from server
   const [prices, setPrices] = useState<Price[]>([]);
   const [balance, setBalance] = useState(1000); // User's initial balance
   const [coinBalance, setCoinBalance] = useState(0); // User's coin balance
-  const [coinData, setCoinData] = useState<CoinData | null>({name: "MONKEY COINS", symbol: "MONK"});
+  const [coinData, setCoinData] = useState<CoinData | null>({
+    name: "MONKEY COINS",
+    symbol: "MONK",
+  });
 
   const [buyAmount, setBuyAmount] = useState(0);
   const [sellAmount, setSellAmount] = useState(0);
@@ -118,7 +119,7 @@ export const CoinDisplay = ({ coinId } : {coinId: string}) => {
             <button
               onClick={handleBuy}
               className="mt-2 bg-blue-500 text-white py-2 px-4 rounded disabled:opacity-50"
-              disabled={buyAmount <= 0 || buyAmount > balance / currentPrice  }
+              disabled={buyAmount <= 0 || buyAmount > balance / currentPrice}
             >
               Confirm Buy
             </button>
