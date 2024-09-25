@@ -73,4 +73,24 @@ describe("Server Integration Tests", () => {
 
     expect(result).toBeDefined();
   });
+
+  it("should airdrop tokens to a user", async () => {
+    const _result = await client.registerNewUser.mutate({
+      username: "TEST",
+      airdropAmount: "10",
+    });
+
+    const accountId = _result?.insert_account_one?.id;
+
+    if(!accountId) {
+      throw new Error("Account ID not found");
+    }
+
+    const result = await client.airdropNativeToUser.mutate({
+      accountId,
+      amount: "100000",
+    });
+
+    expect(result).toBeDefined();
+  });
 });

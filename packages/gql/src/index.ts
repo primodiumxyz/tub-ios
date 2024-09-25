@@ -36,10 +36,13 @@ type DbType = {
   ) => WrapperReturnType<K>;
 };
 
+//create client for db
+const client = createClient({url: process.env.GRAPHQL_URL!, hasuraAdminSecret: process.env.HASURA_ADMIN_SECRET!});
+
 // Create the db object dynamically
 const _queries = Object.entries(queries).reduce((acc, [key, operation]) => {
   // @ts-ignore
-  acc[key as keyof DbType] = createQueryWrapper(operation);
+  acc[key as keyof DbType] = createQueryWrapper(client, operation);
   return acc;
 }, {} as DbType);
 
@@ -47,15 +50,15 @@ const _queries = Object.entries(queries).reduce((acc, [key, operation]) => {
 // Create the db object dynamically
 const _mutations = Object.entries(mutations).reduce((acc, [key, operation]) => {
   // @ts-ignore
-  acc[key as keyof DbType] = createMutationWrapper(operation);
+  acc[key as keyof DbType] = createMutationWrapper(client, operation);
   return acc;
 }, {} as DbType);
+
 
 
 const db = {
   ..._queries,
   ..._mutations,
 };
-
 
 export { createClient, db, queries };
