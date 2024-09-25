@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { PriceGraph } from "../components/PriceGraph"; // Import the new component
 import { CoinData } from "../utils/generateMemecoin";
 import { useReward } from "react-rewards";
+import Slider from "./Slider";
 
 type Price = {
   timestamp: number;
@@ -185,9 +186,6 @@ const BuySellForm = ({
   coinBalance: number;
 }) => {
   const [activeTab, setActiveTab] = useState<"buy" | "sell">("buy");
-  const handleMaxBuy = () => {
-    setBuyAmountUSD(Math.floor(balance * 100) / 100);
-  };
 
   const handlePressBuy = () => {
     handleBuy();
@@ -199,88 +197,63 @@ const BuySellForm = ({
     setActiveTab("buy");
   };
 
+  const change = coinBalance * currentPrice - amountBought;
   return (
-    <div className="mt-6">
-      <div className="flex">
-        <button
-          className={`py-2 px-6 text-lg rounded-t-2xl ${
-            activeTab === "buy" ? "bg-white/50" : "bg-white/30"
-          }`}
-          onClick={() => setActiveTab("buy")}
-        >
-          Buy
-        </button>
-        <button
-          className={`py-2 px-6 text-lg rounded-t-2xl ${
-            activeTab === "sell" ? "bg-white/60" : "bg-white/30"
-          }`}
-          onClick={() => setActiveTab("sell")}
-        >
-          Sell
-        </button>
-      </div>
-      <div className="p-8 relative bg-white/50 rounded-b-3xl rounded-r-3xl">
-        <span
-          className="absolute top-1/2 right-1/2 transform -translate-y-1/2 -translate-x-1/2"
-          id="rewardId"
-        />
-        {activeTab === "buy" ? (
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <input
-                type="range"
-                min="0"
-                max={balance}
-                step="0.01"
-                value={buyAmountUSD}
-                onChange={(e) => setBuyAmountUSD(Number(e.target.value))}
-                className="w-full mr-2"
-              />
-              <button
-                onClick={handleMaxBuy}
-                className="bg-blue-500 text-white py-1 px-2 rounded"
-              >
-                Max
-              </button>
+    <div className="mt-6 relative">
+      <span
+        className="absolute top-1/2 right-1/2 transform -translate-y-1/2 -translate-x-1/2"
+        id="rewardId"
+      />
+      {activeTab === "buy" ? (
+        <div className="p-8 relative bg-white/50 rounded-3xl">
+          <div className="flex justify-between items-center">
+            <input
+              type="range"
+              min="0"
+              max={balance}
+              step="1"
+              value={buyAmountUSD}
+              onChange={(e) => setBuyAmountUSD(Number(e.target.value))}
+              className="w-full mr-2"
+            />
+            <div className="flex flex-col text-right w-fit">
+              <p className="font-bold text-2xl">${buyAmountUSD}</p>
             </div>
-            <p>
-              <span className="font-bold text-lg">
-                ${buyAmountUSD.toFixed(2)}
-              </span>{" "}
-              ({(buyAmountUSD / currentPrice).toFixed(2)}{" "}
-              {coinData?.symbol.toUpperCase()})
-            </p>
+          </div>
+          <p className="text-xs opacity-50 w-full text-right mb-2 ">
+            ({(buyAmountUSD / currentPrice).toFixed(2)}{" "}
+            {coinData?.symbol.toUpperCase()})
+          </p>
+
+          <Slider
+            onSlideComplete={handlePressBuy}
+            disabled={buyAmountUSD <= 0}
+            text="> > > >"
+          />
+        </div>
+      ) : (
+        <div>
+          <div className="flex flex-col items-center">
             <button
-              onClick={handlePressBuy}
-              className="mt-2 w-full bg-blue-500 text-white py-2 px-4 rounded disabled:opacity-50"
-              disabled={buyAmountUSD <= 0 || buyAmountUSD > balance}
+              onClick={handlePressSell}
+              className="mt-2 w-20 h-20 rounded-full text-black bg-white/50 disabled:opacity-50"
+              disabled={coinBalance <= 0}
             >
-              BUY!
+              SELL
             </button>
-          </div>
-        ) : (
-          <div>
-            <div className="flex flex-col items-center">
-              <p>
-                <span className="font-bold text-lg">
-                  ${(coinBalance * currentPrice).toFixed(2)}
-                </span>{" "}
-                ({coinBalance.toFixed(3)} {coinData?.symbol.toUpperCase()})
-              </p>
-              <p>
-                Earnings: ${(coinBalance * currentPrice - amountBought).toFixed(2)}
-              </p>
-              <button
-                onClick={handlePressSell}
-                className="mt-2 w-full bg-red-500 text-white py-2 px-4 rounded disabled:opacity-50"
-                disabled={coinBalance <= 0}
+            <div>
+              <span
+                className={`inline-block ml-1 ${
+                  change > 0 ? "text-green-500" : "text-red-500"
+                }`}
               >
-                SELL!
-              </button>
+                {change > 0 ? "▲" : "▼"}
+              </span>
+              <span className="ml-1">${Math.abs(change).toFixed(2)}</span>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
