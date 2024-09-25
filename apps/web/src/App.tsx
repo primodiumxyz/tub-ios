@@ -8,11 +8,10 @@ import { PhantomWalletAdapter } from "@solana/wallet-adapter-wallets";
 import { clusterApiUrl } from "@solana/web3.js";
 import { useMemo } from "react";
 
-import AppLoadingState from "./AppLoadingState";
-
 // Import wallet adapter CSS
 import "@solana/wallet-adapter-react-ui/styles.css";
 import { ServerProvider } from "./contexts/serverContext";
+import { TubRoutes } from "./AppLoadingState";
 
 export default function App() {
   const network = WalletAdapterNetwork.Devnet;
@@ -25,8 +24,7 @@ export default function App() {
       <ConnectionProvider endpoint={endpoint}>
         <WalletProvider wallets={wallets} autoConnect>
           <WalletModalProvider>
-            {/* Screens */}
-            <AppLoadingState />
+            <TubRoutes />
           </WalletModalProvider>
         </WalletProvider>
       </ConnectionProvider>
