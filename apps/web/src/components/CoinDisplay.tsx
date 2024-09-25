@@ -1,8 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { PriceGraph } from "../components/PriceGraph"; // Import the new component
 import { CoinData } from "../utils/generateMemecoin";
 import { useReward } from "react-rewards";
 import Slider from "./Slider";
+import { PublicKey } from "@solana/web3.js";
+
 
 type Price = {
   timestamp: number;
@@ -14,15 +16,18 @@ export const CoinDisplay = ({
   gotoNext,
 }: {
   coinData: CoinData;
+  publicKey: PublicKey;
   gotoNext?: () => void;
 }) => {
-  // todo: fetch coin data from server
+
   const [balance, setBalance] = useState(1000); // User's initial balance
   const [coinBalance, setCoinBalance] = useState(0); // User's coin balance
 
+  //   const { balance } = useSolBalance({ publicKey });
+  //   const { balance: coinBalance } = useTokenBalance({ publicKey, tokenId: coinData.id });
+
   const [buyAmountUSD, setBuyAmountUSD] = useState(Math.min(balance * 0.1, 10));
   const [amountBought, setAmountBought] = useState<number | null>(null);
-
   const generatePrice = useCallback((lastPrice: number, timestamp?: number) => {
     const change = lastPrice * (Math.random() * 0.48 - 0.24); // 10% chance to generate a random change between -24% and 24%
     return {
@@ -35,7 +40,6 @@ export const CoinDisplay = ({
     setCoinBalance(0);
     setPrices([]);
   }, [coinData]);
-
   const [prices, setPrices] = useState<Price[]>([]);
 
   useEffect(() => {
@@ -72,7 +76,6 @@ export const CoinDisplay = ({
   };
 
   const handleSell = () => {
-    const currentPrice = prices[prices.length - 1]?.price || 0;
     const sellAmountCoin = coinBalance;
 
     if (sellAmountCoin <= 0) {

@@ -3,15 +3,20 @@ import { initGraphQLTada } from "gql.tada";
 
 import { introspection } from "./graphql-env";
 
-export const client = new Client({
-  url: process.env.GRAPHQL_URL!,
-  fetchOptions: {
-    headers: {
-      "x-hasura-admin-secret": process.env.HASURA_ADMIN_SECRET!,
-    },
-  },
-  exchanges: [cacheExchange, fetchExchange],
-});
+export const createClient = ({ url, hasuraAdminSecret }: { url: string; hasuraAdminSecret?: string }) => {
+  const fetchOptions = hasuraAdminSecret
+    ? {
+        headers: {
+          "x-hasura-admin-secret": hasuraAdminSecret,
+        },
+      }
+    : undefined;
+  return new Client({
+    url,
+    fetchOptions,
+    exchanges: [cacheExchange, fetchExchange],
+  });
+};
 
 export const graphql = initGraphQLTada<{
   introspection: introspection;

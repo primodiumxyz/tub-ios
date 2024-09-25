@@ -38,7 +38,7 @@ export const TubRoutes = () => {
             <NavBar />
           <div className="relative max-w-[400px] h-4/5 bg-black rounded-xl p-4 pt-10 overflow-hidden">
             <Routes>
-              <Route path="/" element={<Coins />} />
+              <Route path="/" element={<Coins publicKey={publicKey} />} />
               <Route path="/counter" element={<IncrementForm />} />
               <Route path="*" element={<div className="text-white text-2xl">404 - Page Not Found</div>} />
             </Routes>

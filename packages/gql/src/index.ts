@@ -1,8 +1,8 @@
 import { TadaDocumentNode } from "gql.tada";
-import { client } from "./lib/init";
 import * as mutations from "./lib/mutations";
 import * as queries from "./lib/queries";
-import { OperationResult } from "@urql/core";
+import { Client, OperationResult } from "@urql/core";
+import { createClient } from "./lib/init";
 
 // Helper type to extract variables from a query or mutation
 type ExtractVariables<T> = T extends TadaDocumentNode<any, infer V, any> ? V : never;
@@ -14,12 +14,12 @@ type ExtractData<T> = T extends TadaDocumentNode<infer D, any, any> ? D : never;
 type OptionalArgs<T> = T extends Record<string, never> ? [] | [T] : [T];
 
 // Wrapper creator for both queries and mutations
-function createQueryWrapper<T extends TadaDocumentNode<any, any, any>>(operation: T) {
+function createQueryWrapper<T extends TadaDocumentNode<any, any, any>>(client: Client, operation: T) {
   return (args: ExtractVariables<T>): Promise<OperationResult<ExtractData<T>>> => 
     client.query(operation, args ?? {}).toPromise();
 }
 
-function createMutationWrapper<T extends TadaDocumentNode<any, any, any>>(operation: T) {
+function createMutationWrapper<T extends TadaDocumentNode<any, any, any>>(client: Client, operation: T) {
   return (args: ExtractVariables<T>): Promise<OperationResult<ExtractData<T>>> => 
     client.mutation(operation, args ?? {}).toPromise();
 }
@@ -58,4 +58,4 @@ const db = {
 };
 
 
-export { client, db, queries };
+export { createClient, db, queries };

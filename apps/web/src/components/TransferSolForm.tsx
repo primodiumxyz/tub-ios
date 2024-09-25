@@ -1,12 +1,16 @@
+import { BN } from "@coral-xyz/anchor";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { useMemo, useState } from "react";
 import { useCore } from "../hooks/useCore";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
-import { BN } from "@coral-xyz/anchor";
 import { Balance } from "./Balance";
-import { useBalance } from "../hooks/useBalance";
+import { useSolBalance } from "../hooks/useSolBalance";
 
-export default function TransferSolForm({publicKey}: {publicKey: PublicKey}) {
+export default function TransferSolForm({
+  publicKey,
+}: {
+  publicKey: PublicKey;
+}) {
   const { programs } = useCore();
   const { connection } = useConnection();
   const { sendTransaction } = useWallet();
@@ -14,23 +18,23 @@ export default function TransferSolForm({publicKey}: {publicKey: PublicKey}) {
   const [recipient, setRecipient] = useState("");
   const [amount, setAmount] = useState(0.1);
 
-  const balance = useBalance({ publicKey });
+  const balance = useSolBalance({ publicKey });
   const isValid = useMemo(() => {
-  try {
-    new PublicKey(recipient);
-    return true;
-  } catch (error) {
-    return false;
-  }
+    try {
+      new PublicKey(recipient);
+      return true;
+    } catch (f) {
+      return false;
+    }
   }, [recipient]);
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(e.target.value);
-    if(isNaN(value)) {
+    if (isNaN(value)) {
       setAmount(0);
     } else if (value > balance.balance) {
       setAmount(balance.balance);
-    } else if(value < 0) {
+    } else if (value < 0) {
       setAmount(0);
     } else {
       setAmount(value);
@@ -62,7 +66,10 @@ export default function TransferSolForm({publicKey}: {publicKey: PublicKey}) {
 
       console.log("Sending transaction...");
 
-      const transactionSignature = await sendTransaction(transaction, connection);
+      const transactionSignature = await sendTransaction(
+        transaction,
+        connection
+      );
 
       console.log("Transaction sent successfully");
       console.log(
@@ -80,7 +87,10 @@ export default function TransferSolForm({publicKey}: {publicKey: PublicKey}) {
       <h2 className="text-sm font-bold text-center ">Transfer SOL</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="recipient" className="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            htmlFor="recipient"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
             Recipient Public Key
           </label>
           <div className="relative">
@@ -100,7 +110,10 @@ export default function TransferSolForm({publicKey}: {publicKey: PublicKey}) {
           </div>
         </div>
         <div>
-          <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="amount"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Amount (SOL)
           </label>
           <input
