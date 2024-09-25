@@ -1,52 +1,60 @@
+import { TadaDocumentNode } from "gql.tada";
 import { client } from "./lib/init";
 import * as mutations from "./lib/mutations";
 import * as queries from "./lib/queries";
+import { OperationResult } from "@urql/core";
 
-const db = {
-  // Queries
-  getAllAccounts: () => client.query(queries.GetAllAccountsQuery, {}).toPromise(),
-  getAllTokens: () => client.query(queries.GetAllTokensQuery, {}).toPromise(),
-  getAccountTokenBalance: async (accountId: string, tokenId: string) => {
-    const credit = await client
-      .query(queries.GetAccountTokenCreditQuery, {
-        accountId,
-        tokenId,
-      })
-      .toPromise();
+// Helper type to extract variables from a query or mutation
+type ExtractVariables<T> = T extends TadaDocumentNode<any, infer V, any> ? V : never;
 
-      const creditValue = (credit.data?.token_transaction_aggregate.aggregate?.sum?.amount as bigint || null) ?? 0n;
+// Helper type to extract the data shape from a query or mutation
+type ExtractData<T> = T extends TadaDocumentNode<infer D, any, any> ? D : never;
 
-    const debit = await client
-      .query(queries.GetAccountTokenDebitQuery, {
-        accountId,
-        tokenId,
-      })
-      .toPromise();
+// Helper type to make args optional if they're an empty object
+type OptionalArgs<T> = T extends Record<string, never> ? [] | [T] : [T];
 
-      const debitValue = (debit.data?.token_transaction_aggregate.aggregate?.sum?.amount as bigint || null) ?? 0n;
+// Wrapper creator for both queries and mutations
+function createQueryWrapper<T extends TadaDocumentNode<any, any, any>>(operation: T) {
+  return (args: ExtractVariables<T>): Promise<OperationResult<ExtractData<T>>> => 
+    client.query(operation, args ?? {}).toPromise();
+}
 
-    return creditValue - debitValue;
-  },
-  // Mutations
-  registerNewUser: (username: string, airdropAmount: bigint) =>
-    client
-      .mutation(mutations.RegisterNewUserMutation, {
-        username,
-        amount: airdropAmount,
-      })
-      .toPromise(),
-  buyToken: (accountId: string, tokenId: string, nTokens: bigint) =>
-    client.mutation(mutations.BuyTokenMutation, {
-      account: accountId,
-      token: tokenId,
-      amount: nTokens,
-    }).toPromise(),
-  sellToken: (accountId: string, tokenId: string, nTokens: bigint) =>
-    client.mutation(mutations.SellTokenMutation, {
-      account: accountId,
-      token: tokenId,
-      amount: nTokens,
-    }).toPromise(),
+function createMutationWrapper<T extends TadaDocumentNode<any, any, any>>(operation: T) {
+  return (args: ExtractVariables<T>): Promise<OperationResult<ExtractData<T>>> => 
+    client.mutation(operation, args ?? {}).toPromise();
+}
+
+type AllOperations = typeof queries & typeof mutations;
+// Helper type to get the return type of createWrapper for a specific operation
+type WrapperReturnType<T extends keyof AllOperations> = 
+  ReturnType<ReturnType<typeof createQueryWrapper<AllOperations[T]>>>;
+
+// Define the db object type with specific return types for each operation
+type DbType = {
+  [K in keyof AllOperations]: (
+    ...args: OptionalArgs<ExtractVariables<AllOperations[K]>>
+  ) => WrapperReturnType<K>;
 };
 
-export { client, db };
+// Create the db object dynamically
+const _queries = Object.entries(queries).reduce((acc, [key, operation]) => {
+  // @ts-ignore
+  acc[key as keyof DbType] = createQueryWrapper(operation);
+  return acc;
+}, {} as DbType);
+
+
+// Create the db object dynamically
+const _mutations = Object.entries(mutations).reduce((acc, [key, operation]) => {
+  // @ts-ignore
+  acc[key as keyof DbType] = createMutationWrapper(operation);
+  return acc;
+}, {} as DbType);
+
+
+const db = {
+  ..._queries,
+  ..._mutations,
+};
+
+export { client, db, queries };

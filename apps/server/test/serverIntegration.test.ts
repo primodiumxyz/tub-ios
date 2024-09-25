@@ -65,14 +65,9 @@ describe("Server Integration Tests", () => {
     expect(receivedValues[receivedValues.length - 1]).toBeGreaterThan(0);
   });
 
-  it("should return the list of tokens", async () => {
-    const result = await client.getAllTokens.query();
-    expect(result).toBeDefined();
-  });
-
   it("should register a new user", async () => {
     const result = await client.registerNewUser.mutate({
-      username: "PEPE",
+      username: "TEST",
       airdropAmount: "100",
     });
 

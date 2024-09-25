@@ -10,6 +10,14 @@ export const RegisterNewUserMutation = graphql(`
   }
 `);
 
+export const RegisterNewTokenMutation = graphql(`
+  mutation RegisterNewToken($name: String!, $symbol: String!, $supply: numeric!, $uri: String) {
+    insert_token_one(object: { name: $name, symbol: $symbol, uri: $uri, supply: $supply }) {
+      id
+    }
+  }
+`);
+
 export const BuyTokenMutation = graphql(`
   mutation BuyToken($account: uuid!, $token: uuid!, $amount: numeric!, $override_token_price: numeric) {
     buy_token(
