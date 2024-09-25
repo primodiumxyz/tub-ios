@@ -1,4 +1,5 @@
 import { Core, CounterData } from "@tub/core";
+import { db } from "@tub/gql";
 
 type CounterUpdateCallback = (value: number) => void;
 
@@ -51,5 +52,74 @@ export class TubService {
 
   unsubscribeFromCounter(callback: CounterUpdateCallback) {
     this.counterSubscribers.delete(callback);
+  }
+
+  async registerNewUser(username: string, airdropAmount: bigint) {
+    const result = await db.RegisterNewUserMutation({
+      username: username,
+      amount: airdropAmount.toString(),
+    });
+
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+
+    return result.data;
+  }
+
+  async sellToken(accountId: string, tokenId: string, amount: bigint) {
+    const result = await db.SellTokenMutation({
+      account: accountId,
+      token: tokenId,
+      amount: amount.toString(),
+    });
+
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+
+    return result.data;
+  }
+
+  async buyToken(accountId: string, tokenId: string, amount: bigint) {
+    const result = await db.BuyTokenMutation({
+      account: accountId,
+      token: tokenId,
+      amount: amount.toString(),
+    });
+
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+
+    return result.data;
+  }
+
+  async registerNewToken(name: string, symbol: string, supply: bigint = 100n, uri?: string) {
+    const result = await db.RegisterNewTokenMutation({
+      name: name,
+      symbol: symbol,
+      supply: supply.toString(),
+      uri: uri,
+    });
+
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+
+    return result.data;
+  }
+
+  async airdropNativeToUser(accountId: string, amount: bigint) {
+    const result = await db.AirdropNativeToUserMutation({
+      account: accountId,
+      amount: amount.toString(),
+    });
+
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+
+    return result.data;
   }
 }

@@ -1,6 +1,6 @@
+import { BN } from "@coral-xyz/anchor";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TubService } from "../src/TubService";
-import { BN } from "@coral-xyz/anchor";
 
 describe("TubService", () => {
   let tubService: TubService;

@@ -29,6 +29,7 @@
     "@trpc/client": "10.34.0",
     "@trpc/server": "10.34.0",
     "@tub/core": "workspace:*",
+    "@tub/gql": "workspace:*",
     "@types/ws": "^8.5.12",
     "debug": "^4.3.4",
     "dotenv": "^16.0.3",

@@ -1,0 +1,2658 @@
+schema {
+  query: query_root
+  mutation: mutation_root
+  subscription: subscription_root
+}
+
+"""whether this query should be cached (Hasura Cloud only)"""
+directive @cached(
+  """measured in seconds"""
+  ttl: Int! = 60
+
+  """refresh the cache entry"""
+  refresh: Boolean! = false
+) on QUERY
+
+"""
+Boolean expression to compare columns of type "Int". All fields are combined with logical 'AND'.
+"""
+input Int_comparison_exp {
+  _eq: Int
+  _gt: Int
+  _gte: Int
+  _in: [Int!]
+  _is_null: Boolean
+  _lt: Int
+  _lte: Int
+  _neq: Int
+  _nin: [Int!]
+}
+
+"""
+Boolean expression to compare columns of type "String". All fields are combined with logical 'AND'.
+"""
+input String_comparison_exp {
+  _eq: String
+  _gt: String
+  _gte: String
+
+  """does the column match the given case-insensitive pattern"""
+  _ilike: String
+  _in: [String!]
+
+  """
+  does the column match the given POSIX regular expression, case insensitive
+  """
+  _iregex: String
+  _is_null: Boolean
+
+  """does the column match the given pattern"""
+  _like: String
+  _lt: String
+  _lte: String
+  _neq: String
+
+  """does the column NOT match the given case-insensitive pattern"""
+  _nilike: String
+  _nin: [String!]
+
+  """
+  does the column NOT match the given POSIX regular expression, case insensitive
+  """
+  _niregex: String
+
+  """does the column NOT match the given pattern"""
+  _nlike: String
+
+  """
+  does the column NOT match the given POSIX regular expression, case sensitive
+  """
+  _nregex: String
+
+  """does the column NOT match the given SQL regular expression"""
+  _nsimilar: String
+
+  """
+  does the column match the given POSIX regular expression, case sensitive
+  """
+  _regex: String
+
+  """does the column match the given SQL regular expression"""
+  _similar: String
+}
+
+"""
+columns and relationships of "account"
+"""
+type account {
+  """An array relationship"""
+  account_transactions(
+    """distinct select on columns"""
+    distinct_on: [account_transaction_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [account_transaction_order_by!]
+
+    """filter the rows returned"""
+    where: account_transaction_bool_exp
+  ): [account_transaction!]!
+
+  """An aggregate relationship"""
+  account_transactions_aggregate(
+    """distinct select on columns"""
+    distinct_on: [account_transaction_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [account_transaction_order_by!]
+
+    """filter the rows returned"""
+    where: account_transaction_bool_exp
+  ): account_transaction_aggregate!
+  created_at: timestamp!
+  id: uuid!
+  username: String!
+}
+
+"""
+aggregated selection of "account"
+"""
+type account_aggregate {
+  aggregate: account_aggregate_fields
+  nodes: [account!]!
+}
+
+"""
+aggregate fields of "account"
+"""
+type account_aggregate_fields {
+  count(columns: [account_select_column!], distinct: Boolean): Int!
+  max: account_max_fields
+  min: account_min_fields
+}
+
+"""
+Boolean expression to filter rows from the table "account". All fields are combined with a logical 'AND'.
+"""
+input account_bool_exp {
+  _and: [account_bool_exp!]
+  _not: account_bool_exp
+  _or: [account_bool_exp!]
+  account_transactions: account_transaction_bool_exp
+  account_transactions_aggregate: account_transaction_aggregate_bool_exp
+  created_at: timestamp_comparison_exp
+  id: uuid_comparison_exp
+  username: String_comparison_exp
+}
+
+"""
+unique or primary key constraints on table "account"
+"""
+enum account_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  account_pkey
+}
+
+"""
+input type for inserting data into table "account"
+"""
+input account_insert_input {
+  account_transactions: account_transaction_arr_rel_insert_input
+  created_at: timestamp
+  id: uuid
+  username: String
+}
+
+"""aggregate max on columns"""
+type account_max_fields {
+  created_at: timestamp
+  id: uuid
+  username: String
+}
+
+"""aggregate min on columns"""
+type account_min_fields {
+  created_at: timestamp
+  id: uuid
+  username: String
+}
+
+"""
+response of any mutation on the table "account"
+"""
+type account_mutation_response {
+  """number of rows affected by the mutation"""
+  affected_rows: Int!
+
+  """data from the rows affected by the mutation"""
+  returning: [account!]!
+}
+
+"""
+input type for inserting object relation for remote table "account"
+"""
+input account_obj_rel_insert_input {
+  data: account_insert_input!
+
+  """upsert condition"""
+  on_conflict: account_on_conflict
+}
+
+"""
+on_conflict condition type for table "account"
+"""
+input account_on_conflict {
+  constraint: account_constraint!
+  update_columns: [account_update_column!]! = []
+  where: account_bool_exp
+}
+
+"""Ordering options when selecting data from "account"."""
+input account_order_by {
+  account_transactions_aggregate: account_transaction_aggregate_order_by
+  created_at: order_by
+  id: order_by
+  username: order_by
+}
+
+"""primary key columns input for table: account"""
+input account_pk_columns_input {
+  id: uuid!
+}
+
+"""
+select columns of table "account"
+"""
+enum account_select_column {
+  """column name"""
+  created_at
+
+  """column name"""
+  id
+
+  """column name"""
+  username
+}
+
+"""
+input type for updating data in table "account"
+"""
+input account_set_input {
+  created_at: timestamp
+  id: uuid
+  username: String
+}
+
+"""
+Streaming cursor of the table "account"
+"""
+input account_stream_cursor_input {
+  """Stream column input with initial value"""
+  initial_value: account_stream_cursor_value_input!
+
+  """cursor ordering"""
+  ordering: cursor_ordering
+}
+
+"""Initial value of the column from where the streaming should start"""
+input account_stream_cursor_value_input {
+  created_at: timestamp
+  id: uuid
+  username: String
+}
+
+"""
+columns and relationships of "account_transaction"
+"""
+type account_transaction {
+  account: uuid!
+
+  """An object relationship"""
+  account_relationship: account!
+  amount: numeric!
+  created_at: timestamptz!
+  id: uuid!
+
+  """An array relationship"""
+  token_transactions(
+    """distinct select on columns"""
+    distinct_on: [token_transaction_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_transaction_order_by!]
+
+    """filter the rows returned"""
+    where: token_transaction_bool_exp
+  ): [token_transaction!]!
+
+  """An aggregate relationship"""
+  token_transactions_aggregate(
+    """distinct select on columns"""
+    distinct_on: [token_transaction_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_transaction_order_by!]
+
+    """filter the rows returned"""
+    where: token_transaction_bool_exp
+  ): token_transaction_aggregate!
+  transaction_type: transaction_type!
+}
+
+"""
+aggregated selection of "account_transaction"
+"""
+type account_transaction_aggregate {
+  aggregate: account_transaction_aggregate_fields
+  nodes: [account_transaction!]!
+}
+
+input account_transaction_aggregate_bool_exp {
+  count: account_transaction_aggregate_bool_exp_count
+}
+
+input account_transaction_aggregate_bool_exp_count {
+  arguments: [account_transaction_select_column!]
+  distinct: Boolean
+  filter: account_transaction_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+"""
+aggregate fields of "account_transaction"
+"""
+type account_transaction_aggregate_fields {
+  avg: account_transaction_avg_fields
+  count(columns: [account_transaction_select_column!], distinct: Boolean): Int!
+  max: account_transaction_max_fields
+  min: account_transaction_min_fields
+  stddev: account_transaction_stddev_fields
+  stddev_pop: account_transaction_stddev_pop_fields
+  stddev_samp: account_transaction_stddev_samp_fields
+  sum: account_transaction_sum_fields
+  var_pop: account_transaction_var_pop_fields
+  var_samp: account_transaction_var_samp_fields
+  variance: account_transaction_variance_fields
+}
+
+"""
+order by aggregate values of table "account_transaction"
+"""
+input account_transaction_aggregate_order_by {
+  avg: account_transaction_avg_order_by
+  count: order_by
+  max: account_transaction_max_order_by
+  min: account_transaction_min_order_by
+  stddev: account_transaction_stddev_order_by
+  stddev_pop: account_transaction_stddev_pop_order_by
+  stddev_samp: account_transaction_stddev_samp_order_by
+  sum: account_transaction_sum_order_by
+  var_pop: account_transaction_var_pop_order_by
+  var_samp: account_transaction_var_samp_order_by
+  variance: account_transaction_variance_order_by
+}
+
+"""
+input type for inserting array relation for remote table "account_transaction"
+"""
+input account_transaction_arr_rel_insert_input {
+  data: [account_transaction_insert_input!]!
+
+  """upsert condition"""
+  on_conflict: account_transaction_on_conflict
+}
+
+"""aggregate avg on columns"""
+type account_transaction_avg_fields {
+  amount: Float
+}
+
+"""
+order by avg() on columns of table "account_transaction"
+"""
+input account_transaction_avg_order_by {
+  amount: order_by
+}
+
+"""
+Boolean expression to filter rows from the table "account_transaction". All fields are combined with a logical 'AND'.
+"""
+input account_transaction_bool_exp {
+  _and: [account_transaction_bool_exp!]
+  _not: account_transaction_bool_exp
+  _or: [account_transaction_bool_exp!]
+  account: uuid_comparison_exp
+  account_relationship: account_bool_exp
+  amount: numeric_comparison_exp
+  created_at: timestamptz_comparison_exp
+  id: uuid_comparison_exp
+  token_transactions: token_transaction_bool_exp
+  token_transactions_aggregate: token_transaction_aggregate_bool_exp
+  transaction_type: transaction_type_comparison_exp
+}
+
+"""
+unique or primary key constraints on table "account_transaction"
+"""
+enum account_transaction_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  account_transaction_pkey
+}
+
+"""
+input type for incrementing numeric columns in table "account_transaction"
+"""
+input account_transaction_inc_input {
+  amount: numeric
+}
+
+"""
+input type for inserting data into table "account_transaction"
+"""
+input account_transaction_insert_input {
+  account: uuid
+  account_relationship: account_obj_rel_insert_input
+  amount: numeric
+  created_at: timestamptz
+  id: uuid
+  token_transactions: token_transaction_arr_rel_insert_input
+  transaction_type: transaction_type
+}
+
+"""aggregate max on columns"""
+type account_transaction_max_fields {
+  account: uuid
+  amount: numeric
+  created_at: timestamptz
+  id: uuid
+  transaction_type: transaction_type
+}
+
+"""
+order by max() on columns of table "account_transaction"
+"""
+input account_transaction_max_order_by {
+  account: order_by
+  amount: order_by
+  created_at: order_by
+  id: order_by
+  transaction_type: order_by
+}
+
+"""aggregate min on columns"""
+type account_transaction_min_fields {
+  account: uuid
+  amount: numeric
+  created_at: timestamptz
+  id: uuid
+  transaction_type: transaction_type
+}
+
+"""
+order by min() on columns of table "account_transaction"
+"""
+input account_transaction_min_order_by {
+  account: order_by
+  amount: order_by
+  created_at: order_by
+  id: order_by
+  transaction_type: order_by
+}
+
+"""
+response of any mutation on the table "account_transaction"
+"""
+type account_transaction_mutation_response {
+  """number of rows affected by the mutation"""
+  affected_rows: Int!
+
+  """data from the rows affected by the mutation"""
+  returning: [account_transaction!]!
+}
+
+"""
+input type for inserting object relation for remote table "account_transaction"
+"""
+input account_transaction_obj_rel_insert_input {
+  data: account_transaction_insert_input!
+
+  """upsert condition"""
+  on_conflict: account_transaction_on_conflict
+}
+
+"""
+on_conflict condition type for table "account_transaction"
+"""
+input account_transaction_on_conflict {
+  constraint: account_transaction_constraint!
+  update_columns: [account_transaction_update_column!]! = []
+  where: account_transaction_bool_exp
+}
+
+"""Ordering options when selecting data from "account_transaction"."""
+input account_transaction_order_by {
+  account: order_by
+  account_relationship: account_order_by
+  amount: order_by
+  created_at: order_by
+  id: order_by
+  token_transactions_aggregate: token_transaction_aggregate_order_by
+  transaction_type: order_by
+}
+
+"""primary key columns input for table: account_transaction"""
+input account_transaction_pk_columns_input {
+  id: uuid!
+}
+
+"""
+select columns of table "account_transaction"
+"""
+enum account_transaction_select_column {
+  """column name"""
+  account
+
+  """column name"""
+  amount
+
+  """column name"""
+  created_at
+
+  """column name"""
+  id
+
+  """column name"""
+  transaction_type
+}
+
+"""
+input type for updating data in table "account_transaction"
+"""
+input account_transaction_set_input {
+  account: uuid
+  amount: numeric
+  created_at: timestamptz
+  id: uuid
+  transaction_type: transaction_type
+}
+
+"""aggregate stddev on columns"""
+type account_transaction_stddev_fields {
+  amount: Float
+}
+
+"""
+order by stddev() on columns of table "account_transaction"
+"""
+input account_transaction_stddev_order_by {
+  amount: order_by
+}
+
+"""aggregate stddev_pop on columns"""
+type account_transaction_stddev_pop_fields {
+  amount: Float
+}
+
+"""
+order by stddev_pop() on columns of table "account_transaction"
+"""
+input account_transaction_stddev_pop_order_by {
+  amount: order_by
+}
+
+"""aggregate stddev_samp on columns"""
+type account_transaction_stddev_samp_fields {
+  amount: Float
+}
+
+"""
+order by stddev_samp() on columns of table "account_transaction"
+"""
+input account_transaction_stddev_samp_order_by {
+  amount: order_by
+}
+
+"""
+Streaming cursor of the table "account_transaction"
+"""
+input account_transaction_stream_cursor_input {
+  """Stream column input with initial value"""
+  initial_value: account_transaction_stream_cursor_value_input!
+
+  """cursor ordering"""
+  ordering: cursor_ordering
+}
+
+"""Initial value of the column from where the streaming should start"""
+input account_transaction_stream_cursor_value_input {
+  account: uuid
+  amount: numeric
+  created_at: timestamptz
+  id: uuid
+  transaction_type: transaction_type
+}
+
+"""aggregate sum on columns"""
+type account_transaction_sum_fields {
+  amount: numeric
+}
+
+"""
+order by sum() on columns of table "account_transaction"
+"""
+input account_transaction_sum_order_by {
+  amount: order_by
+}
+
+"""
+update columns of table "account_transaction"
+"""
+enum account_transaction_update_column {
+  """column name"""
+  account
+
+  """column name"""
+  amount
+
+  """column name"""
+  created_at
+
+  """column name"""
+  id
+
+  """column name"""
+  transaction_type
+}
+
+input account_transaction_updates {
+  """increments the numeric columns with given value of the filtered values"""
+  _inc: account_transaction_inc_input
+
+  """sets the columns of the filtered rows to the given values"""
+  _set: account_transaction_set_input
+
+  """filter the rows which have to be updated"""
+  where: account_transaction_bool_exp!
+}
+
+"""aggregate var_pop on columns"""
+type account_transaction_var_pop_fields {
+  amount: Float
+}
+
+"""
+order by var_pop() on columns of table "account_transaction"
+"""
+input account_transaction_var_pop_order_by {
+  amount: order_by
+}
+
+"""aggregate var_samp on columns"""
+type account_transaction_var_samp_fields {
+  amount: Float
+}
+
+"""
+order by var_samp() on columns of table "account_transaction"
+"""
+input account_transaction_var_samp_order_by {
+  amount: order_by
+}
+
+"""aggregate variance on columns"""
+type account_transaction_variance_fields {
+  amount: Float
+}
+
+"""
+order by variance() on columns of table "account_transaction"
+"""
+input account_transaction_variance_order_by {
+  amount: order_by
+}
+
+"""
+update columns of table "account"
+"""
+enum account_update_column {
+  """column name"""
+  created_at
+
+  """column name"""
+  id
+
+  """column name"""
+  username
+}
+
+input account_updates {
+  """sets the columns of the filtered rows to the given values"""
+  _set: account_set_input
+
+  """filter the rows which have to be updated"""
+  where: account_bool_exp!
+}
+
+input buy_token_args {
+  account_id: uuid
+  amount_to_buy: numeric
+  token_cost: numeric
+  token_id: uuid
+}
+
+"""ordering argument of a cursor"""
+enum cursor_ordering {
+  """ascending ordering of the cursor"""
+  ASC
+
+  """descending ordering of the cursor"""
+  DESC
+}
+
+"""mutation root"""
+type mutation_root {
+  """
+  execute VOLATILE function "buy_token" which returns "token_transaction"
+  """
+  buy_token(
+    """
+    input parameters for function "buy_token"
+    """
+    args: buy_token_args!
+
+    """distinct select on columns"""
+    distinct_on: [token_transaction_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_transaction_order_by!]
+
+    """filter the rows returned"""
+    where: token_transaction_bool_exp
+  ): token_transaction
+
+  """
+  delete data from the table: "account"
+  """
+  delete_account(
+    """filter the rows which have to be deleted"""
+    where: account_bool_exp!
+  ): account_mutation_response
+
+  """
+  delete single row from the table: "account"
+  """
+  delete_account_by_pk(id: uuid!): account
+
+  """
+  delete data from the table: "account_transaction"
+  """
+  delete_account_transaction(
+    """filter the rows which have to be deleted"""
+    where: account_transaction_bool_exp!
+  ): account_transaction_mutation_response
+
+  """
+  delete single row from the table: "account_transaction"
+  """
+  delete_account_transaction_by_pk(id: uuid!): account_transaction
+
+  """
+  delete data from the table: "token"
+  """
+  delete_token(
+    """filter the rows which have to be deleted"""
+    where: token_bool_exp!
+  ): token_mutation_response
+
+  """
+  delete single row from the table: "token"
+  """
+  delete_token_by_pk(id: uuid!): token
+
+  """
+  delete data from the table: "token_price_history"
+  """
+  delete_token_price_history(
+    """filter the rows which have to be deleted"""
+    where: token_price_history_bool_exp!
+  ): token_price_history_mutation_response
+
+  """
+  delete single row from the table: "token_price_history"
+  """
+  delete_token_price_history_by_pk(id: uuid!): token_price_history
+
+  """
+  delete data from the table: "token_transaction"
+  """
+  delete_token_transaction(
+    """filter the rows which have to be deleted"""
+    where: token_transaction_bool_exp!
+  ): token_transaction_mutation_response
+
+  """
+  delete single row from the table: "token_transaction"
+  """
+  delete_token_transaction_by_pk(id: uuid!): token_transaction
+
+  """
+  insert data into the table: "account"
+  """
+  insert_account(
+    """the rows to be inserted"""
+    objects: [account_insert_input!]!
+
+    """upsert condition"""
+    on_conflict: account_on_conflict
+  ): account_mutation_response
+
+  """
+  insert a single row into the table: "account"
+  """
+  insert_account_one(
+    """the row to be inserted"""
+    object: account_insert_input!
+
+    """upsert condition"""
+    on_conflict: account_on_conflict
+  ): account
+
+  """
+  insert data into the table: "account_transaction"
+  """
+  insert_account_transaction(
+    """the rows to be inserted"""
+    objects: [account_transaction_insert_input!]!
+
+    """upsert condition"""
+    on_conflict: account_transaction_on_conflict
+  ): account_transaction_mutation_response
+
+  """
+  insert a single row into the table: "account_transaction"
+  """
+  insert_account_transaction_one(
+    """the row to be inserted"""
+    object: account_transaction_insert_input!
+
+    """upsert condition"""
+    on_conflict: account_transaction_on_conflict
+  ): account_transaction
+
+  """
+  insert data into the table: "token"
+  """
+  insert_token(
+    """the rows to be inserted"""
+    objects: [token_insert_input!]!
+
+    """upsert condition"""
+    on_conflict: token_on_conflict
+  ): token_mutation_response
+
+  """
+  insert a single row into the table: "token"
+  """
+  insert_token_one(
+    """the row to be inserted"""
+    object: token_insert_input!
+
+    """upsert condition"""
+    on_conflict: token_on_conflict
+  ): token
+
+  """
+  insert data into the table: "token_price_history"
+  """
+  insert_token_price_history(
+    """the rows to be inserted"""
+    objects: [token_price_history_insert_input!]!
+
+    """upsert condition"""
+    on_conflict: token_price_history_on_conflict
+  ): token_price_history_mutation_response
+
+  """
+  insert a single row into the table: "token_price_history"
+  """
+  insert_token_price_history_one(
+    """the row to be inserted"""
+    object: token_price_history_insert_input!
+
+    """upsert condition"""
+    on_conflict: token_price_history_on_conflict
+  ): token_price_history
+
+  """
+  insert data into the table: "token_transaction"
+  """
+  insert_token_transaction(
+    """the rows to be inserted"""
+    objects: [token_transaction_insert_input!]!
+
+    """upsert condition"""
+    on_conflict: token_transaction_on_conflict
+  ): token_transaction_mutation_response
+
+  """
+  insert a single row into the table: "token_transaction"
+  """
+  insert_token_transaction_one(
+    """the row to be inserted"""
+    object: token_transaction_insert_input!
+
+    """upsert condition"""
+    on_conflict: token_transaction_on_conflict
+  ): token_transaction
+
+  """
+  execute VOLATILE function "sell_token" which returns "token_transaction"
+  """
+  sell_token(
+    """
+    input parameters for function "sell_token"
+    """
+    args: sell_token_args!
+
+    """distinct select on columns"""
+    distinct_on: [token_transaction_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_transaction_order_by!]
+
+    """filter the rows returned"""
+    where: token_transaction_bool_exp
+  ): token_transaction
+
+  """
+  update data of the table: "account"
+  """
+  update_account(
+    """sets the columns of the filtered rows to the given values"""
+    _set: account_set_input
+
+    """filter the rows which have to be updated"""
+    where: account_bool_exp!
+  ): account_mutation_response
+
+  """
+  update single row of the table: "account"
+  """
+  update_account_by_pk(
+    """sets the columns of the filtered rows to the given values"""
+    _set: account_set_input
+    pk_columns: account_pk_columns_input!
+  ): account
+
+  """
+  update multiples rows of table: "account"
+  """
+  update_account_many(
+    """updates to execute, in order"""
+    updates: [account_updates!]!
+  ): [account_mutation_response]
+
+  """
+  update data of the table: "account_transaction"
+  """
+  update_account_transaction(
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: account_transaction_inc_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: account_transaction_set_input
+
+    """filter the rows which have to be updated"""
+    where: account_transaction_bool_exp!
+  ): account_transaction_mutation_response
+
+  """
+  update single row of the table: "account_transaction"
+  """
+  update_account_transaction_by_pk(
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: account_transaction_inc_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: account_transaction_set_input
+    pk_columns: account_transaction_pk_columns_input!
+  ): account_transaction
+
+  """
+  update multiples rows of table: "account_transaction"
+  """
+  update_account_transaction_many(
+    """updates to execute, in order"""
+    updates: [account_transaction_updates!]!
+  ): [account_transaction_mutation_response]
+
+  """
+  update data of the table: "token"
+  """
+  update_token(
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: token_inc_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: token_set_input
+
+    """filter the rows which have to be updated"""
+    where: token_bool_exp!
+  ): token_mutation_response
+
+  """
+  update single row of the table: "token"
+  """
+  update_token_by_pk(
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: token_inc_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: token_set_input
+    pk_columns: token_pk_columns_input!
+  ): token
+
+  """
+  update multiples rows of table: "token"
+  """
+  update_token_many(
+    """updates to execute, in order"""
+    updates: [token_updates!]!
+  ): [token_mutation_response]
+
+  """
+  update data of the table: "token_price_history"
+  """
+  update_token_price_history(
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: token_price_history_inc_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: token_price_history_set_input
+
+    """filter the rows which have to be updated"""
+    where: token_price_history_bool_exp!
+  ): token_price_history_mutation_response
+
+  """
+  update single row of the table: "token_price_history"
+  """
+  update_token_price_history_by_pk(
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: token_price_history_inc_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: token_price_history_set_input
+    pk_columns: token_price_history_pk_columns_input!
+  ): token_price_history
+
+  """
+  update multiples rows of table: "token_price_history"
+  """
+  update_token_price_history_many(
+    """updates to execute, in order"""
+    updates: [token_price_history_updates!]!
+  ): [token_price_history_mutation_response]
+
+  """
+  update data of the table: "token_transaction"
+  """
+  update_token_transaction(
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: token_transaction_inc_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: token_transaction_set_input
+
+    """filter the rows which have to be updated"""
+    where: token_transaction_bool_exp!
+  ): token_transaction_mutation_response
+
+  """
+  update single row of the table: "token_transaction"
+  """
+  update_token_transaction_by_pk(
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: token_transaction_inc_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: token_transaction_set_input
+    pk_columns: token_transaction_pk_columns_input!
+  ): token_transaction
+
+  """
+  update multiples rows of table: "token_transaction"
+  """
+  update_token_transaction_many(
+    """updates to execute, in order"""
+    updates: [token_transaction_updates!]!
+  ): [token_transaction_mutation_response]
+}
+
+scalar numeric
+
+"""
+Boolean expression to compare columns of type "numeric". All fields are combined with logical 'AND'.
+"""
+input numeric_comparison_exp {
+  _eq: numeric
+  _gt: numeric
+  _gte: numeric
+  _in: [numeric!]
+  _is_null: Boolean
+  _lt: numeric
+  _lte: numeric
+  _neq: numeric
+  _nin: [numeric!]
+}
+
+"""column ordering options"""
+enum order_by {
+  """in ascending order, nulls last"""
+  asc
+
+  """in ascending order, nulls first"""
+  asc_nulls_first
+
+  """in ascending order, nulls last"""
+  asc_nulls_last
+
+  """in descending order, nulls first"""
+  desc
+
+  """in descending order, nulls first"""
+  desc_nulls_first
+
+  """in descending order, nulls last"""
+  desc_nulls_last
+}
+
+type query_root {
+  """
+  fetch data from the table: "account"
+  """
+  account(
+    """distinct select on columns"""
+    distinct_on: [account_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [account_order_by!]
+
+    """filter the rows returned"""
+    where: account_bool_exp
+  ): [account!]!
+
+  """
+  fetch aggregated fields from the table: "account"
+  """
+  account_aggregate(
+    """distinct select on columns"""
+    distinct_on: [account_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [account_order_by!]
+
+    """filter the rows returned"""
+    where: account_bool_exp
+  ): account_aggregate!
+
+  """fetch data from the table: "account" using primary key columns"""
+  account_by_pk(id: uuid!): account
+
+  """
+  fetch data from the table: "account_transaction"
+  """
+  account_transaction(
+    """distinct select on columns"""
+    distinct_on: [account_transaction_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [account_transaction_order_by!]
+
+    """filter the rows returned"""
+    where: account_transaction_bool_exp
+  ): [account_transaction!]!
+
+  """
+  fetch aggregated fields from the table: "account_transaction"
+  """
+  account_transaction_aggregate(
+    """distinct select on columns"""
+    distinct_on: [account_transaction_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [account_transaction_order_by!]
+
+    """filter the rows returned"""
+    where: account_transaction_bool_exp
+  ): account_transaction_aggregate!
+
+  """
+  fetch data from the table: "account_transaction" using primary key columns
+  """
+  account_transaction_by_pk(id: uuid!): account_transaction
+
+  """
+  fetch data from the table: "token"
+  """
+  token(
+    """distinct select on columns"""
+    distinct_on: [token_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_order_by!]
+
+    """filter the rows returned"""
+    where: token_bool_exp
+  ): [token!]!
+
+  """
+  fetch aggregated fields from the table: "token"
+  """
+  token_aggregate(
+    """distinct select on columns"""
+    distinct_on: [token_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_order_by!]
+
+    """filter the rows returned"""
+    where: token_bool_exp
+  ): token_aggregate!
+
+  """fetch data from the table: "token" using primary key columns"""
+  token_by_pk(id: uuid!): token
+
+  """
+  fetch data from the table: "token_price_history"
+  """
+  token_price_history(
+    """distinct select on columns"""
+    distinct_on: [token_price_history_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_price_history_order_by!]
+
+    """filter the rows returned"""
+    where: token_price_history_bool_exp
+  ): [token_price_history!]!
+
+  """
+  fetch aggregated fields from the table: "token_price_history"
+  """
+  token_price_history_aggregate(
+    """distinct select on columns"""
+    distinct_on: [token_price_history_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_price_history_order_by!]
+
+    """filter the rows returned"""
+    where: token_price_history_bool_exp
+  ): token_price_history_aggregate!
+
+  """
+  fetch data from the table: "token_price_history" using primary key columns
+  """
+  token_price_history_by_pk(id: uuid!): token_price_history
+
+  """
+  fetch data from the table: "token_transaction"
+  """
+  token_transaction(
+    """distinct select on columns"""
+    distinct_on: [token_transaction_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_transaction_order_by!]
+
+    """filter the rows returned"""
+    where: token_transaction_bool_exp
+  ): [token_transaction!]!
+
+  """
+  fetch aggregated fields from the table: "token_transaction"
+  """
+  token_transaction_aggregate(
+    """distinct select on columns"""
+    distinct_on: [token_transaction_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_transaction_order_by!]
+
+    """filter the rows returned"""
+    where: token_transaction_bool_exp
+  ): token_transaction_aggregate!
+
+  """
+  fetch data from the table: "token_transaction" using primary key columns
+  """
+  token_transaction_by_pk(id: uuid!): token_transaction
+}
+
+input sell_token_args {
+  account_id: uuid
+  amount_to_sell: numeric
+  token_cost: numeric
+  token_id: uuid
+}
+
+type subscription_root {
+  """
+  fetch data from the table: "account"
+  """
+  account(
+    """distinct select on columns"""
+    distinct_on: [account_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [account_order_by!]
+
+    """filter the rows returned"""
+    where: account_bool_exp
+  ): [account!]!
+
+  """
+  fetch aggregated fields from the table: "account"
+  """
+  account_aggregate(
+    """distinct select on columns"""
+    distinct_on: [account_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [account_order_by!]
+
+    """filter the rows returned"""
+    where: account_bool_exp
+  ): account_aggregate!
+
+  """fetch data from the table: "account" using primary key columns"""
+  account_by_pk(id: uuid!): account
+
+  """
+  fetch data from the table in a streaming manner: "account"
+  """
+  account_stream(
+    """maximum number of rows returned in a single batch"""
+    batch_size: Int!
+
+    """cursor to stream the results returned by the query"""
+    cursor: [account_stream_cursor_input]!
+
+    """filter the rows returned"""
+    where: account_bool_exp
+  ): [account!]!
+
+  """
+  fetch data from the table: "account_transaction"
+  """
+  account_transaction(
+    """distinct select on columns"""
+    distinct_on: [account_transaction_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [account_transaction_order_by!]
+
+    """filter the rows returned"""
+    where: account_transaction_bool_exp
+  ): [account_transaction!]!
+
+  """
+  fetch aggregated fields from the table: "account_transaction"
+  """
+  account_transaction_aggregate(
+    """distinct select on columns"""
+    distinct_on: [account_transaction_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [account_transaction_order_by!]
+
+    """filter the rows returned"""
+    where: account_transaction_bool_exp
+  ): account_transaction_aggregate!
+
+  """
+  fetch data from the table: "account_transaction" using primary key columns
+  """
+  account_transaction_by_pk(id: uuid!): account_transaction
+
+  """
+  fetch data from the table in a streaming manner: "account_transaction"
+  """
+  account_transaction_stream(
+    """maximum number of rows returned in a single batch"""
+    batch_size: Int!
+
+    """cursor to stream the results returned by the query"""
+    cursor: [account_transaction_stream_cursor_input]!
+
+    """filter the rows returned"""
+    where: account_transaction_bool_exp
+  ): [account_transaction!]!
+
+  """
+  fetch data from the table: "token"
+  """
+  token(
+    """distinct select on columns"""
+    distinct_on: [token_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_order_by!]
+
+    """filter the rows returned"""
+    where: token_bool_exp
+  ): [token!]!
+
+  """
+  fetch aggregated fields from the table: "token"
+  """
+  token_aggregate(
+    """distinct select on columns"""
+    distinct_on: [token_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_order_by!]
+
+    """filter the rows returned"""
+    where: token_bool_exp
+  ): token_aggregate!
+
+  """fetch data from the table: "token" using primary key columns"""
+  token_by_pk(id: uuid!): token
+
+  """
+  fetch data from the table: "token_price_history"
+  """
+  token_price_history(
+    """distinct select on columns"""
+    distinct_on: [token_price_history_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_price_history_order_by!]
+
+    """filter the rows returned"""
+    where: token_price_history_bool_exp
+  ): [token_price_history!]!
+
+  """
+  fetch aggregated fields from the table: "token_price_history"
+  """
+  token_price_history_aggregate(
+    """distinct select on columns"""
+    distinct_on: [token_price_history_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_price_history_order_by!]
+
+    """filter the rows returned"""
+    where: token_price_history_bool_exp
+  ): token_price_history_aggregate!
+
+  """
+  fetch data from the table: "token_price_history" using primary key columns
+  """
+  token_price_history_by_pk(id: uuid!): token_price_history
+
+  """
+  fetch data from the table in a streaming manner: "token_price_history"
+  """
+  token_price_history_stream(
+    """maximum number of rows returned in a single batch"""
+    batch_size: Int!
+
+    """cursor to stream the results returned by the query"""
+    cursor: [token_price_history_stream_cursor_input]!
+
+    """filter the rows returned"""
+    where: token_price_history_bool_exp
+  ): [token_price_history!]!
+
+  """
+  fetch data from the table in a streaming manner: "token"
+  """
+  token_stream(
+    """maximum number of rows returned in a single batch"""
+    batch_size: Int!
+
+    """cursor to stream the results returned by the query"""
+    cursor: [token_stream_cursor_input]!
+
+    """filter the rows returned"""
+    where: token_bool_exp
+  ): [token!]!
+
+  """
+  fetch data from the table: "token_transaction"
+  """
+  token_transaction(
+    """distinct select on columns"""
+    distinct_on: [token_transaction_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_transaction_order_by!]
+
+    """filter the rows returned"""
+    where: token_transaction_bool_exp
+  ): [token_transaction!]!
+
+  """
+  fetch aggregated fields from the table: "token_transaction"
+  """
+  token_transaction_aggregate(
+    """distinct select on columns"""
+    distinct_on: [token_transaction_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_transaction_order_by!]
+
+    """filter the rows returned"""
+    where: token_transaction_bool_exp
+  ): token_transaction_aggregate!
+
+  """
+  fetch data from the table: "token_transaction" using primary key columns
+  """
+  token_transaction_by_pk(id: uuid!): token_transaction
+
+  """
+  fetch data from the table in a streaming manner: "token_transaction"
+  """
+  token_transaction_stream(
+    """maximum number of rows returned in a single batch"""
+    batch_size: Int!
+
+    """cursor to stream the results returned by the query"""
+    cursor: [token_transaction_stream_cursor_input]!
+
+    """filter the rows returned"""
+    where: token_transaction_bool_exp
+  ): [token_transaction!]!
+}
+
+scalar timestamp
+
+"""
+Boolean expression to compare columns of type "timestamp". All fields are combined with logical 'AND'.
+"""
+input timestamp_comparison_exp {
+  _eq: timestamp
+  _gt: timestamp
+  _gte: timestamp
+  _in: [timestamp!]
+  _is_null: Boolean
+  _lt: timestamp
+  _lte: timestamp
+  _neq: timestamp
+  _nin: [timestamp!]
+}
+
+scalar timestamptz
+
+"""
+Boolean expression to compare columns of type "timestamptz". All fields are combined with logical 'AND'.
+"""
+input timestamptz_comparison_exp {
+  _eq: timestamptz
+  _gt: timestamptz
+  _gte: timestamptz
+  _in: [timestamptz!]
+  _is_null: Boolean
+  _lt: timestamptz
+  _lte: timestamptz
+  _neq: timestamptz
+  _nin: [timestamptz!]
+}
+
+"""
+columns and relationships of "token"
+"""
+type token {
+  id: uuid!
+  name: String!
+  supply: numeric!
+  symbol: String!
+  updated_at: timestamp!
+  uri: String
+}
+
+"""
+aggregated selection of "token"
+"""
+type token_aggregate {
+  aggregate: token_aggregate_fields
+  nodes: [token!]!
+}
+
+"""
+aggregate fields of "token"
+"""
+type token_aggregate_fields {
+  avg: token_avg_fields
+  count(columns: [token_select_column!], distinct: Boolean): Int!
+  max: token_max_fields
+  min: token_min_fields
+  stddev: token_stddev_fields
+  stddev_pop: token_stddev_pop_fields
+  stddev_samp: token_stddev_samp_fields
+  sum: token_sum_fields
+  var_pop: token_var_pop_fields
+  var_samp: token_var_samp_fields
+  variance: token_variance_fields
+}
+
+"""aggregate avg on columns"""
+type token_avg_fields {
+  supply: Float
+}
+
+"""
+Boolean expression to filter rows from the table "token". All fields are combined with a logical 'AND'.
+"""
+input token_bool_exp {
+  _and: [token_bool_exp!]
+  _not: token_bool_exp
+  _or: [token_bool_exp!]
+  id: uuid_comparison_exp
+  name: String_comparison_exp
+  supply: numeric_comparison_exp
+  symbol: String_comparison_exp
+  updated_at: timestamp_comparison_exp
+  uri: String_comparison_exp
+}
+
+"""
+unique or primary key constraints on table "token"
+"""
+enum token_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  token_pkey
+}
+
+"""
+input type for incrementing numeric columns in table "token"
+"""
+input token_inc_input {
+  supply: numeric
+}
+
+"""
+input type for inserting data into table "token"
+"""
+input token_insert_input {
+  id: uuid
+  name: String
+  supply: numeric
+  symbol: String
+  updated_at: timestamp
+  uri: String
+}
+
+"""aggregate max on columns"""
+type token_max_fields {
+  id: uuid
+  name: String
+  supply: numeric
+  symbol: String
+  updated_at: timestamp
+  uri: String
+}
+
+"""aggregate min on columns"""
+type token_min_fields {
+  id: uuid
+  name: String
+  supply: numeric
+  symbol: String
+  updated_at: timestamp
+  uri: String
+}
+
+"""
+response of any mutation on the table "token"
+"""
+type token_mutation_response {
+  """number of rows affected by the mutation"""
+  affected_rows: Int!
+
+  """data from the rows affected by the mutation"""
+  returning: [token!]!
+}
+
+"""
+input type for inserting object relation for remote table "token"
+"""
+input token_obj_rel_insert_input {
+  data: token_insert_input!
+
+  """upsert condition"""
+  on_conflict: token_on_conflict
+}
+
+"""
+on_conflict condition type for table "token"
+"""
+input token_on_conflict {
+  constraint: token_constraint!
+  update_columns: [token_update_column!]! = []
+  where: token_bool_exp
+}
+
+"""Ordering options when selecting data from "token"."""
+input token_order_by {
+  id: order_by
+  name: order_by
+  supply: order_by
+  symbol: order_by
+  updated_at: order_by
+  uri: order_by
+}
+
+"""primary key columns input for table: token"""
+input token_pk_columns_input {
+  id: uuid!
+}
+
+"""
+columns and relationships of "token_price_history"
+"""
+type token_price_history {
+  created_at: timestamp!
+  id: uuid!
+  price: numeric!
+  token: uuid!
+
+  """An object relationship"""
+  token_relationship: token!
+}
+
+"""
+aggregated selection of "token_price_history"
+"""
+type token_price_history_aggregate {
+  aggregate: token_price_history_aggregate_fields
+  nodes: [token_price_history!]!
+}
+
+"""
+aggregate fields of "token_price_history"
+"""
+type token_price_history_aggregate_fields {
+  avg: token_price_history_avg_fields
+  count(columns: [token_price_history_select_column!], distinct: Boolean): Int!
+  max: token_price_history_max_fields
+  min: token_price_history_min_fields
+  stddev: token_price_history_stddev_fields
+  stddev_pop: token_price_history_stddev_pop_fields
+  stddev_samp: token_price_history_stddev_samp_fields
+  sum: token_price_history_sum_fields
+  var_pop: token_price_history_var_pop_fields
+  var_samp: token_price_history_var_samp_fields
+  variance: token_price_history_variance_fields
+}
+
+"""aggregate avg on columns"""
+type token_price_history_avg_fields {
+  price: Float
+}
+
+"""
+Boolean expression to filter rows from the table "token_price_history". All fields are combined with a logical 'AND'.
+"""
+input token_price_history_bool_exp {
+  _and: [token_price_history_bool_exp!]
+  _not: token_price_history_bool_exp
+  _or: [token_price_history_bool_exp!]
+  created_at: timestamp_comparison_exp
+  id: uuid_comparison_exp
+  price: numeric_comparison_exp
+  token: uuid_comparison_exp
+  token_relationship: token_bool_exp
+}
+
+"""
+unique or primary key constraints on table "token_price_history"
+"""
+enum token_price_history_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  token_price_history_pkey
+}
+
+"""
+input type for incrementing numeric columns in table "token_price_history"
+"""
+input token_price_history_inc_input {
+  price: numeric
+}
+
+"""
+input type for inserting data into table "token_price_history"
+"""
+input token_price_history_insert_input {
+  created_at: timestamp
+  id: uuid
+  price: numeric
+  token: uuid
+  token_relationship: token_obj_rel_insert_input
+}
+
+"""aggregate max on columns"""
+type token_price_history_max_fields {
+  created_at: timestamp
+  id: uuid
+  price: numeric
+  token: uuid
+}
+
+"""aggregate min on columns"""
+type token_price_history_min_fields {
+  created_at: timestamp
+  id: uuid
+  price: numeric
+  token: uuid
+}
+
+"""
+response of any mutation on the table "token_price_history"
+"""
+type token_price_history_mutation_response {
+  """number of rows affected by the mutation"""
+  affected_rows: Int!
+
+  """data from the rows affected by the mutation"""
+  returning: [token_price_history!]!
+}
+
+"""
+on_conflict condition type for table "token_price_history"
+"""
+input token_price_history_on_conflict {
+  constraint: token_price_history_constraint!
+  update_columns: [token_price_history_update_column!]! = []
+  where: token_price_history_bool_exp
+}
+
+"""Ordering options when selecting data from "token_price_history"."""
+input token_price_history_order_by {
+  created_at: order_by
+  id: order_by
+  price: order_by
+  token: order_by
+  token_relationship: token_order_by
+}
+
+"""primary key columns input for table: token_price_history"""
+input token_price_history_pk_columns_input {
+  id: uuid!
+}
+
+"""
+select columns of table "token_price_history"
+"""
+enum token_price_history_select_column {
+  """column name"""
+  created_at
+
+  """column name"""
+  id
+
+  """column name"""
+  price
+
+  """column name"""
+  token
+}
+
+"""
+input type for updating data in table "token_price_history"
+"""
+input token_price_history_set_input {
+  created_at: timestamp
+  id: uuid
+  price: numeric
+  token: uuid
+}
+
+"""aggregate stddev on columns"""
+type token_price_history_stddev_fields {
+  price: Float
+}
+
+"""aggregate stddev_pop on columns"""
+type token_price_history_stddev_pop_fields {
+  price: Float
+}
+
+"""aggregate stddev_samp on columns"""
+type token_price_history_stddev_samp_fields {
+  price: Float
+}
+
+"""
+Streaming cursor of the table "token_price_history"
+"""
+input token_price_history_stream_cursor_input {
+  """Stream column input with initial value"""
+  initial_value: token_price_history_stream_cursor_value_input!
+
+  """cursor ordering"""
+  ordering: cursor_ordering
+}
+
+"""Initial value of the column from where the streaming should start"""
+input token_price_history_stream_cursor_value_input {
+  created_at: timestamp
+  id: uuid
+  price: numeric
+  token: uuid
+}
+
+"""aggregate sum on columns"""
+type token_price_history_sum_fields {
+  price: numeric
+}
+
+"""
+update columns of table "token_price_history"
+"""
+enum token_price_history_update_column {
+  """column name"""
+  created_at
+
+  """column name"""
+  id
+
+  """column name"""
+  price
+
+  """column name"""
+  token
+}
+
+input token_price_history_updates {
+  """increments the numeric columns with given value of the filtered values"""
+  _inc: token_price_history_inc_input
+
+  """sets the columns of the filtered rows to the given values"""
+  _set: token_price_history_set_input
+
+  """filter the rows which have to be updated"""
+  where: token_price_history_bool_exp!
+}
+
+"""aggregate var_pop on columns"""
+type token_price_history_var_pop_fields {
+  price: Float
+}
+
+"""aggregate var_samp on columns"""
+type token_price_history_var_samp_fields {
+  price: Float
+}
+
+"""aggregate variance on columns"""
+type token_price_history_variance_fields {
+  price: Float
+}
+
+"""
+select columns of table "token"
+"""
+enum token_select_column {
+  """column name"""
+  id
+
+  """column name"""
+  name
+
+  """column name"""
+  supply
+
+  """column name"""
+  symbol
+
+  """column name"""
+  updated_at
+
+  """column name"""
+  uri
+}
+
+"""
+input type for updating data in table "token"
+"""
+input token_set_input {
+  id: uuid
+  name: String
+  supply: numeric
+  symbol: String
+  updated_at: timestamp
+  uri: String
+}
+
+"""aggregate stddev on columns"""
+type token_stddev_fields {
+  supply: Float
+}
+
+"""aggregate stddev_pop on columns"""
+type token_stddev_pop_fields {
+  supply: Float
+}
+
+"""aggregate stddev_samp on columns"""
+type token_stddev_samp_fields {
+  supply: Float
+}
+
+"""
+Streaming cursor of the table "token"
+"""
+input token_stream_cursor_input {
+  """Stream column input with initial value"""
+  initial_value: token_stream_cursor_value_input!
+
+  """cursor ordering"""
+  ordering: cursor_ordering
+}
+
+"""Initial value of the column from where the streaming should start"""
+input token_stream_cursor_value_input {
+  id: uuid
+  name: String
+  supply: numeric
+  symbol: String
+  updated_at: timestamp
+  uri: String
+}
+
+"""aggregate sum on columns"""
+type token_sum_fields {
+  supply: numeric
+}
+
+"""
+columns and relationships of "token_transaction"
+"""
+type token_transaction {
+  account_transaction: uuid!
+
+  """An object relationship"""
+  account_transaction_relationship: account_transaction!
+  amount: numeric!
+  id: uuid!
+  token: uuid!
+
+  """An object relationship"""
+  token_relationship: token!
+  transaction_type: transaction_type!
+}
+
+"""
+aggregated selection of "token_transaction"
+"""
+type token_transaction_aggregate {
+  aggregate: token_transaction_aggregate_fields
+  nodes: [token_transaction!]!
+}
+
+input token_transaction_aggregate_bool_exp {
+  count: token_transaction_aggregate_bool_exp_count
+}
+
+input token_transaction_aggregate_bool_exp_count {
+  arguments: [token_transaction_select_column!]
+  distinct: Boolean
+  filter: token_transaction_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+"""
+aggregate fields of "token_transaction"
+"""
+type token_transaction_aggregate_fields {
+  avg: token_transaction_avg_fields
+  count(columns: [token_transaction_select_column!], distinct: Boolean): Int!
+  max: token_transaction_max_fields
+  min: token_transaction_min_fields
+  stddev: token_transaction_stddev_fields
+  stddev_pop: token_transaction_stddev_pop_fields
+  stddev_samp: token_transaction_stddev_samp_fields
+  sum: token_transaction_sum_fields
+  var_pop: token_transaction_var_pop_fields
+  var_samp: token_transaction_var_samp_fields
+  variance: token_transaction_variance_fields
+}
+
+"""
+order by aggregate values of table "token_transaction"
+"""
+input token_transaction_aggregate_order_by {
+  avg: token_transaction_avg_order_by
+  count: order_by
+  max: token_transaction_max_order_by
+  min: token_transaction_min_order_by
+  stddev: token_transaction_stddev_order_by
+  stddev_pop: token_transaction_stddev_pop_order_by
+  stddev_samp: token_transaction_stddev_samp_order_by
+  sum: token_transaction_sum_order_by
+  var_pop: token_transaction_var_pop_order_by
+  var_samp: token_transaction_var_samp_order_by
+  variance: token_transaction_variance_order_by
+}
+
+"""
+input type for inserting array relation for remote table "token_transaction"
+"""
+input token_transaction_arr_rel_insert_input {
+  data: [token_transaction_insert_input!]!
+
+  """upsert condition"""
+  on_conflict: token_transaction_on_conflict
+}
+
+"""aggregate avg on columns"""
+type token_transaction_avg_fields {
+  amount: Float
+}
+
+"""
+order by avg() on columns of table "token_transaction"
+"""
+input token_transaction_avg_order_by {
+  amount: order_by
+}
+
+"""
+Boolean expression to filter rows from the table "token_transaction". All fields are combined with a logical 'AND'.
+"""
+input token_transaction_bool_exp {
+  _and: [token_transaction_bool_exp!]
+  _not: token_transaction_bool_exp
+  _or: [token_transaction_bool_exp!]
+  account_transaction: uuid_comparison_exp
+  account_transaction_relationship: account_transaction_bool_exp
+  amount: numeric_comparison_exp
+  id: uuid_comparison_exp
+  token: uuid_comparison_exp
+  token_relationship: token_bool_exp
+  transaction_type: transaction_type_comparison_exp
+}
+
+"""
+unique or primary key constraints on table "token_transaction"
+"""
+enum token_transaction_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  token_transaction_pkey
+}
+
+"""
+input type for incrementing numeric columns in table "token_transaction"
+"""
+input token_transaction_inc_input {
+  amount: numeric
+}
+
+"""
+input type for inserting data into table "token_transaction"
+"""
+input token_transaction_insert_input {
+  account_transaction: uuid
+  account_transaction_relationship: account_transaction_obj_rel_insert_input
+  amount: numeric
+  id: uuid
+  token: uuid
+  token_relationship: token_obj_rel_insert_input
+  transaction_type: transaction_type
+}
+
+"""aggregate max on columns"""
+type token_transaction_max_fields {
+  account_transaction: uuid
+  amount: numeric
+  id: uuid
+  token: uuid
+  transaction_type: transaction_type
+}
+
+"""
+order by max() on columns of table "token_transaction"
+"""
+input token_transaction_max_order_by {
+  account_transaction: order_by
+  amount: order_by
+  id: order_by
+  token: order_by
+  transaction_type: order_by
+}
+
+"""aggregate min on columns"""
+type token_transaction_min_fields {
+  account_transaction: uuid
+  amount: numeric
+  id: uuid
+  token: uuid
+  transaction_type: transaction_type
+}
+
+"""
+order by min() on columns of table "token_transaction"
+"""
+input token_transaction_min_order_by {
+  account_transaction: order_by
+  amount: order_by
+  id: order_by
+  token: order_by
+  transaction_type: order_by
+}
+
+"""
+response of any mutation on the table "token_transaction"
+"""
+type token_transaction_mutation_response {
+  """number of rows affected by the mutation"""
+  affected_rows: Int!
+
+  """data from the rows affected by the mutation"""
+  returning: [token_transaction!]!
+}
+
+"""
+on_conflict condition type for table "token_transaction"
+"""
+input token_transaction_on_conflict {
+  constraint: token_transaction_constraint!
+  update_columns: [token_transaction_update_column!]! = []
+  where: token_transaction_bool_exp
+}
+
+"""Ordering options when selecting data from "token_transaction"."""
+input token_transaction_order_by {
+  account_transaction: order_by
+  account_transaction_relationship: account_transaction_order_by
+  amount: order_by
+  id: order_by
+  token: order_by
+  token_relationship: token_order_by
+  transaction_type: order_by
+}
+
+"""primary key columns input for table: token_transaction"""
+input token_transaction_pk_columns_input {
+  id: uuid!
+}
+
+"""
+select columns of table "token_transaction"
+"""
+enum token_transaction_select_column {
+  """column name"""
+  account_transaction
+
+  """column name"""
+  amount
+
+  """column name"""
+  id
+
+  """column name"""
+  token
+
+  """column name"""
+  transaction_type
+}
+
+"""
+input type for updating data in table "token_transaction"
+"""
+input token_transaction_set_input {
+  account_transaction: uuid
+  amount: numeric
+  id: uuid
+  token: uuid
+  transaction_type: transaction_type
+}
+
+"""aggregate stddev on columns"""
+type token_transaction_stddev_fields {
+  amount: Float
+}
+
+"""
+order by stddev() on columns of table "token_transaction"
+"""
+input token_transaction_stddev_order_by {
+  amount: order_by
+}
+
+"""aggregate stddev_pop on columns"""
+type token_transaction_stddev_pop_fields {
+  amount: Float
+}
+
+"""
+order by stddev_pop() on columns of table "token_transaction"
+"""
+input token_transaction_stddev_pop_order_by {
+  amount: order_by
+}
+
+"""aggregate stddev_samp on columns"""
+type token_transaction_stddev_samp_fields {
+  amount: Float
+}
+
+"""
+order by stddev_samp() on columns of table "token_transaction"
+"""
+input token_transaction_stddev_samp_order_by {
+  amount: order_by
+}
+
+"""
+Streaming cursor of the table "token_transaction"
+"""
+input token_transaction_stream_cursor_input {
+  """Stream column input with initial value"""
+  initial_value: token_transaction_stream_cursor_value_input!
+
+  """cursor ordering"""
+  ordering: cursor_ordering
+}
+
+"""Initial value of the column from where the streaming should start"""
+input token_transaction_stream_cursor_value_input {
+  account_transaction: uuid
+  amount: numeric
+  id: uuid
+  token: uuid
+  transaction_type: transaction_type
+}
+
+"""aggregate sum on columns"""
+type token_transaction_sum_fields {
+  amount: numeric
+}
+
+"""
+order by sum() on columns of table "token_transaction"
+"""
+input token_transaction_sum_order_by {
+  amount: order_by
+}
+
+"""
+update columns of table "token_transaction"
+"""
+enum token_transaction_update_column {
+  """column name"""
+  account_transaction
+
+  """column name"""
+  amount
+
+  """column name"""
+  id
+
+  """column name"""
+  token
+
+  """column name"""
+  transaction_type
+}
+
+input token_transaction_updates {
+  """increments the numeric columns with given value of the filtered values"""
+  _inc: token_transaction_inc_input
+
+  """sets the columns of the filtered rows to the given values"""
+  _set: token_transaction_set_input
+
+  """filter the rows which have to be updated"""
+  where: token_transaction_bool_exp!
+}
+
+"""aggregate var_pop on columns"""
+type token_transaction_var_pop_fields {
+  amount: Float
+}
+
+"""
+order by var_pop() on columns of table "token_transaction"
+"""
+input token_transaction_var_pop_order_by {
+  amount: order_by
+}
+
+"""aggregate var_samp on columns"""
+type token_transaction_var_samp_fields {
+  amount: Float
+}
+
+"""
+order by var_samp() on columns of table "token_transaction"
+"""
+input token_transaction_var_samp_order_by {
+  amount: order_by
+}
+
+"""aggregate variance on columns"""
+type token_transaction_variance_fields {
+  amount: Float
+}
+
+"""
+order by variance() on columns of table "token_transaction"
+"""
+input token_transaction_variance_order_by {
+  amount: order_by
+}
+
+"""
+update columns of table "token"
+"""
+enum token_update_column {
+  """column name"""
+  id
+
+  """column name"""
+  name
+
+  """column name"""
+  supply
+
+  """column name"""
+  symbol
+
+  """column name"""
+  updated_at
+
+  """column name"""
+  uri
+}
+
+input token_updates {
+  """increments the numeric columns with given value of the filtered values"""
+  _inc: token_inc_input
+
+  """sets the columns of the filtered rows to the given values"""
+  _set: token_set_input
+
+  """filter the rows which have to be updated"""
+  where: token_bool_exp!
+}
+
+"""aggregate var_pop on columns"""
+type token_var_pop_fields {
+  supply: Float
+}
+
+"""aggregate var_samp on columns"""
+type token_var_samp_fields {
+  supply: Float
+}
+
+"""aggregate variance on columns"""
+type token_variance_fields {
+  supply: Float
+}
+
+scalar transaction_type
+
+"""
+Boolean expression to compare columns of type "transaction_type". All fields are combined with logical 'AND'.
+"""
+input transaction_type_comparison_exp {
+  _eq: transaction_type
+  _gt: transaction_type
+  _gte: transaction_type
+  _in: [transaction_type!]
+  _is_null: Boolean
+  _lt: transaction_type
+  _lte: transaction_type
+  _neq: transaction_type
+  _nin: [transaction_type!]
+}
+
+scalar uuid
+
+"""
+Boolean expression to compare columns of type "uuid". All fields are combined with logical 'AND'.
+"""
+input uuid_comparison_exp {
+  _eq: uuid
+  _gt: uuid
+  _gte: uuid
+  _in: [uuid!]
+  _is_null: Boolean
+  _lt: uuid
+  _lte: uuid
+  _neq: uuid
+  _nin: [uuid!]
+}
