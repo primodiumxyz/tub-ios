@@ -24,5 +24,6 @@ export const graphql = initGraphQLTada<{
     uuid: string;
     bigint: bigint;
     numeric: string;
+    timestamp: Date;
   };
 }>();
