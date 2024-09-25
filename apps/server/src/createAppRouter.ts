@@ -1,5 +1,6 @@
 import { initTRPC } from "@trpc/server";
 import { observable } from "@trpc/server/observable";
+import { z } from "zod";
 import { TubService } from "./TubService";
 
 export type AppContext = {
