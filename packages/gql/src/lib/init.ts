@@ -17,7 +17,7 @@ export const graphql = initGraphQLTada<{
   introspection: introspection;
   scalars: {
     uuid: string;
-    BigInt: bigint;
-    numeric: bigint;
+    bigint: bigint;
+    numeric: string;
   };
 }>();
