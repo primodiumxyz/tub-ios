@@ -72,6 +72,16 @@ export function createAppRouter() {
       .mutation(async ({ ctx, input }) => {
         return await ctx.tubService.registerNewToken(input.name, input.symbol, input.supply ? BigInt(input.supply) : undefined, input.uri);
       }),
+    airdropNativeToUser: t.procedure
+      .input(
+        z.object({
+          accountId: z.string(),
+          amount: z.string(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        return await ctx.tubService.airdropNativeToUser(input.accountId, BigInt(input.amount));
+      }),
   });
 }
 

@@ -109,4 +109,17 @@ export class TubService {
 
     return result.data;
   }
+
+  async airdropNativeToUser(accountId: string, amount: bigint) {
+    const result = await db.AirdropNativeToUserMutation({
+      account: accountId,
+      amount: amount.toString(),
+    });
+
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+
+    return result.data;
+  }
 }

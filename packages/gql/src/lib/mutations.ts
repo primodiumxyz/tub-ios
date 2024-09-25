@@ -18,7 +18,7 @@ export const RegisterNewTokenMutation = graphql(`
   }
 `);
 
-export const BuyTokenMutation = graphql(`
+export const BuyTokenMutation = graphql(` 
   mutation BuyToken($account: uuid!, $token: uuid!, $amount: numeric!, $override_token_price: numeric) {
     buy_token(
       args: { account_id: $account, token_id: $token, amount_to_buy: $amount, token_cost: $override_token_price }
@@ -37,3 +37,12 @@ export const SellTokenMutation = graphql(`
     }
   }
 `);
+
+export const AirdropNativeToUserMutation = graphql(`
+  mutation AirdropNativeToUser($account: uuid!, $amount: numeric!) {
+    insert_account_transaction_one(object: { account: $account, amount: $amount, transaction_type: "credit" }) {
+      id
+    }
+  }
+`);
+  
