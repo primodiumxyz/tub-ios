@@ -70,4 +70,15 @@ export const GetLatestTokenPriceQuery = graphql(`
   }
 `);
 
+export const GetTokenPriceHistorySinceQuery = graphql(`
+  query GetTokenPriceHistorySince($tokenId: uuid!, $since: timestamp!) {
+    token_price_history(where: {token: {_eq: $tokenId}, created_at: {_gte: $since}}) {
+      created_at
+      id
+      price
+      token
+    }
+  }
+`);
+
 
