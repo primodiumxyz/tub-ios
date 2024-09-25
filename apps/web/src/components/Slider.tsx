@@ -19,18 +19,20 @@ const Slider: React.FC<SliderProps> = ({ onSlideComplete, text = "slide to unloc
     const handleMouseMove = (e: MouseEvent) => {
       if (!isDragging) return;
       const sliderRect = sliderRef.current?.getBoundingClientRect();
-      if (!sliderRect) return;
+      const thumbRect = thumbRef.current?.getBoundingClientRect();
+      if (!sliderRect || !thumbRect) return;
 
-      const newPosition = Math.max(0, Math.min(e.clientX - sliderRect.left, sliderRect.width - 50));
+      const thumbWidth = thumbRect.width;
+      const newPosition = Math.max(0, Math.min(e.clientX - sliderRect.left - thumbWidth / 2, sliderRect.width - thumbWidth));
       setSliderPosition(newPosition);
 
-      if (newPosition >= sliderRect.width - 60) {
+      if (newPosition >= sliderRect.width - thumbWidth ) {
         setIsDragging(false);
         setSlideComplete(true);
         // Add a short pause before calling onSlideComplete
         setTimeout(() => {
           onSlideComplete();
-        }, 500); // 300ms delay
+        }, 300); // 300ms delay
       }
     };
 
