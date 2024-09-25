@@ -152,6 +152,7 @@ export const CoinDisplay = ({
             currentPrice={currentPrice}
             balance={balance}
             coinBalance={coinBalance}
+            amountBought={amountBought ?? 0}
           />
         </div>
         <button onClick={gotoNext} className="mt-4 p-3">
@@ -169,6 +170,7 @@ const BuySellForm = ({
   handleBuy,
   handleSell,
   currentPrice,
+  amountBought,
   balance,
   coinBalance,
 }: {
@@ -178,6 +180,7 @@ const BuySellForm = ({
   handleBuy: () => void;
   handleSell: () => void;
   currentPrice: number;
+  amountBought: number;
   balance: number;
   coinBalance: number;
 }) => {
@@ -263,6 +266,9 @@ const BuySellForm = ({
                   ${(coinBalance * currentPrice).toFixed(2)}
                 </span>{" "}
                 ({coinBalance.toFixed(3)} {coinData?.symbol.toUpperCase()})
+              </p>
+              <p>
+                Earnings: ${(coinBalance * currentPrice - amountBought).toFixed(2)}
               </p>
               <button
                 onClick={handlePressSell}
