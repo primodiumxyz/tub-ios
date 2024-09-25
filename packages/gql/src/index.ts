@@ -1,8 +1,7 @@
 import { TadaDocumentNode } from "gql.tada";
 import * as mutations from "./lib/mutations";
 import * as queries from "./lib/queries";
-import { Client, OperationResult } from "@urql/core";
-import { createClient } from "./lib/init";
+import { cacheExchange, Client, fetchExchange, OperationResult } from "@urql/core";
 
 // Helper type to extract variables from a query or mutation
 type ExtractVariables<T> = T extends TadaDocumentNode<any, infer V, any> ? V : never;
@@ -36,29 +35,38 @@ type DbType = {
   ) => WrapperReturnType<K>;
 };
 
-//create client for db
-const client = createClient({url: process.env.GRAPHQL_URL!, hasuraAdminSecret: process.env.HASURA_ADMIN_SECRET!});
+const createClient = ({ url, hasuraAdminSecret }: { url: string; hasuraAdminSecret?: string }) => {
+  const fetchOptions = hasuraAdminSecret
+    ? {
+        headers: {
+          "x-hasura-admin-secret": hasuraAdminSecret,
+        },
+      }
+    : undefined;
+  const client = new Client({
+    url,
+    fetchOptions,
+    exchanges: [cacheExchange, fetchExchange],
+  });
+  // Create the db object dynamically
+  const _queries = Object.entries(queries).reduce((acc, [key, operation]) => {
+    // @ts-ignore
+    acc[key as keyof DbType] = createQueryWrapper(client, operation);
+    return acc;
+  }, {} as DbType);
 
-// Create the db object dynamically
-const _queries = Object.entries(queries).reduce((acc, [key, operation]) => {
-  // @ts-ignore
-  acc[key as keyof DbType] = createQueryWrapper(client, operation);
-  return acc;
-}, {} as DbType);
+  // Create the db object dynamically
+  const _mutations = Object.entries(mutations).reduce((acc, [key, operation]) => {
+    // @ts-ignore
+    acc[key as keyof DbType] = createMutationWrapper(client, operation);
+    return acc;
+  }, {} as DbType);
 
-
-// Create the db object dynamically
-const _mutations = Object.entries(mutations).reduce((acc, [key, operation]) => {
-  // @ts-ignore
-  acc[key as keyof DbType] = createMutationWrapper(client, operation);
-  return acc;
-}, {} as DbType);
-
-
-
-const db = {
-  ..._queries,
-  ..._mutations,
+  const db = {
+    ..._queries,
+    ..._mutations,
+  };
+  return { client, db, queries };
 };
 
-export { createClient, db, queries };
+export { createClient };

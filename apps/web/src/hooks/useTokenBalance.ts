@@ -1,7 +1,7 @@
 import { useQuery } from "urql";
-import { queries } from "@tub/gql";
 import { PublicKey } from "@solana/web3.js";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
+import { useGql } from "./useGql";
 
 export const useTokenBalance = ({
   publicKey,
@@ -10,14 +10,28 @@ export const useTokenBalance = ({
   publicKey: PublicKey;
   tokenId: string;
 }) => {
-  const [userDebit] = useQuery({
+
+  const { queries } = useGql();
+  const [userDebit, refetchDebit] = useQuery({
     query: queries.GetAccountTokenDebitQuery,
     variables: { tokenId, accountId: publicKey.toBase58() },
   });
-  const [userCredit] = useQuery({
+  const [userCredit, refetchCredit] = useQuery({
     query: queries.GetAccountTokenCreditQuery,
     variables: { tokenId, accountId: publicKey.toBase58() },
   });
+
+  useEffect(() => {
+    refetchDebit();
+    refetchCredit();
+
+    const interval = setInterval(() => {
+      refetchDebit();
+      refetchCredit();
+    }, 1000);
+    return () => clearInterval(interval);
+
+  }, [refetchDebit, refetchCredit]);
 
   const loading = useMemo(
     () => userDebit.fetching || userCredit.fetching,

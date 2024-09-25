@@ -1,32 +1,34 @@
 import { useCallback, useEffect, useState } from "react";
 import { CoinDisplay } from "../components/CoinDisplay";
 import { CoinData } from "../utils/generateMemecoin";
-import { queries } from "@tub/gql";
 import { useQuery } from "urql";
 import { PublicKey } from "@solana/web3.js";
+import { useGql } from "../hooks/useGql";
+
 
 export const Coins = ({ publicKey }: { publicKey: PublicKey }) => {
+  const { queries } = useGql();
   const [selectedCoin, setSelectedCoin] = useState<CoinData | null>(null);
 
-  const [result] = useQuery({ query: queries.GetAllTokensQuery });
+  const [tokensQueryResult] = useQuery({ query: queries.GetAllTokensQuery });
 
   const gotoNext = useCallback(() => {
-    if (!result.data) return;
-    const coins = result.data.token;
+    if (!tokensQueryResult.data) return;
+    const coins = tokensQueryResult.data.token;
     const randomIndex = Math.floor(Math.random() * coins.length);
     setSelectedCoin(coins[randomIndex]);
-  }, [result.data]);
+  }, [tokensQueryResult.data]);
 
   useEffect(() => {
-    if (!result.data) return;
+    if (!tokensQueryResult.data) return;
     gotoNext();
-  }, [gotoNext, result.data]);
+  }, [gotoNext, tokensQueryResult.data]);
 
-  if (result.fetching) return <div>Loading...</div>;
-  if (result.error) return <div>Error: {result.error.message}</div>;
+  if (tokensQueryResult.fetching) return <div>Loading...</div>;
+  if (tokensQueryResult.error) return <div>Error: {tokensQueryResult.error.message}</div>;
   if (!publicKey) return <div>Please connect your wallet</div>;
 
-  const coins = result.data?.token ?? [];
+  const coins = tokensQueryResult.data?.token ?? [];
 
   if (selectedCoin) {
     return (

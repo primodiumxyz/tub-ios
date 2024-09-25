@@ -1,10 +1,14 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { PriceGraph } from "../components/PriceGraph"; // Import the new component
 import { CoinData } from "../utils/generateMemecoin";
 import { useReward } from "react-rewards";
 import Slider from "./Slider";
 import { PublicKey } from "@solana/web3.js";
-
+import { useTokenBalance } from "../hooks/useTokenBalance";
+import { useSolBalance } from "../hooks/useSolBalance";
+import { useQuery } from "urql";
+import { useServer } from "../hooks/useServer";
+import { useGql } from "../hooks/useGql";
 
 type Price = {
   timestamp: number;
@@ -12,6 +16,7 @@ type Price = {
 };
 
 export const CoinDisplay = ({
+  publicKey,
   coinData,
   gotoNext,
 }: {
@@ -19,58 +24,73 @@ export const CoinDisplay = ({
   publicKey: PublicKey;
   gotoNext?: () => void;
 }) => {
+  const { queries }= useGql();
+  const { balance: solBalance } = useSolBalance({ publicKey });
+  const { balance: coinBalance } = useTokenBalance({
+    publicKey,
+    tokenId: coinData.id,
+  });
+  const server = useServer();
 
-  const [balance, setBalance] = useState(1000); // User's initial balance
-  const [coinBalance, setCoinBalance] = useState(0); // User's coin balance
-
-  //   const { balance } = useSolBalance({ publicKey });
-  //   const { balance: coinBalance } = useTokenBalance({ publicKey, tokenId: coinData.id });
-
-  const [buyAmountUSD, setBuyAmountUSD] = useState(Math.min(balance * 0.1, 10));
-  const [amountBought, setAmountBought] = useState<number | null>(null);
-  const generatePrice = useCallback((lastPrice: number, timestamp?: number) => {
-    const change = lastPrice * (Math.random() * 0.48 - 0.24); // 10% chance to generate a random change between -24% and 24%
-    return {
-      timestamp: timestamp || Date.now(),
-      price: Math.max(0, lastPrice + change), // Ensure price doesn't go below 0
-    };
-  }, []);
-
-  useEffect(() => {
-    setCoinBalance(0);
-    setPrices([]);
-  }, [coinData]);
   const [prices, setPrices] = useState<Price[]>([]);
 
+  const [priceHistory] = useQuery({
+    query: queries.GetTokenPriceHistorySinceQuery,
+    variables: { tokenId: coinData.id, since: new Date() },
+  });
+
+  const [fetchedInitialPrices, setFetchedInitialPrices] = useState(false);
+
   useEffect(() => {
-    if (prices.length == 0) {
-      generatePrice(50);
-    }
-    const intervalId = setInterval(() => {
-      const newPrice =
-        prices.length > 0
-          ? generatePrice(prices[prices.length - 1].price)
-          : generatePrice(50);
-      setPrices((prevPrices) => [...prevPrices, newPrice]);
-    }, 1000); // 1000 milliseconds = 1 second
-    return () => clearInterval(intervalId);
-  }, [generatePrice, prices]);
+    if (!priceHistory.data || fetchedInitialPrices) return;
+      const prices = priceHistory.data.token_price_history.map((price) => ({
+        timestamp: price.created_at.getTime() / 1000,
+        price: Number(price.price),
+      }));
+      setPrices(prices);
+      setFetchedInitialPrices(true);
+  }, [priceHistory.data, fetchedInitialPrices]);
+
+  const [price, refetchPrice] = useQuery({
+    query: queries.GetLatestTokenPriceQuery,
+    variables: { tokenId: coinData.id },
+  });
+
+  useEffect(() => {
+    if (!fetchedInitialPrices) return;
+    refetchPrice();
+    const interval = setInterval(() => {
+      refetchPrice();
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [refetchPrice, fetchedInitialPrices]);
+
+  useEffect(() => {
+    if (!fetchedInitialPrices) return;
+    const currPrice = price.data?.token_price_history[0].price;
+    if (currPrice === undefined) return;
+    setPrices(prevPrices => [
+      ...prevPrices,
+      { timestamp: Date.now() / 1000, price: Number(currPrice) },
+    ]);
+  }, [price, fetchedInitialPrices]);
+
+  const [buyAmountUSD, setBuyAmountUSD] = useState(
+    Math.min(solBalance * 0.1, 10)
+  );
+  const [amountBought, setAmountBought] = useState<number | null>(null);
 
   const { reward } = useReward("rewardId", "confetti");
 
   const handleBuy = () => {
-    const currentPrice = prices[prices.length - 1]?.price || 0;
-    const tokenAmount = buyAmountUSD / currentPrice;
     if (buyAmountUSD <= 0) {
       alert("Please enter a valid amount to buy");
       return;
     }
-    if (buyAmountUSD > balance) {
+    if (buyAmountUSD > solBalance) {
       alert("Insufficient balance to buy coins");
       return;
     }
-    setBalance(balance - buyAmountUSD);
-    setCoinBalance(coinBalance + tokenAmount);
     setBuyAmountUSD(0);
     setAmountBought(buyAmountUSD + (amountBought ?? 0));
   };
@@ -88,19 +108,24 @@ export const CoinDisplay = ({
     }
     reward();
 
-    setBalance(balance + sellAmountCoin * currentPrice);
-    setCoinBalance(coinBalance - sellAmountCoin);
     setAmountBought(10);
   };
 
   const currentPrice = prices[prices.length - 1]?.price || 0;
-  const netWorthChange = balance - 1000;
+  const netWorthChange = solBalance - 1000;
 
   return (
     <div className="relative text-white">
       <div className="mb-4">
         <p className="text-sm opacity-50">Your Net Worth</p>
-        <p className="text-3xl font-bold">${balance.toFixed(2)}</p>
+        <p className="text-3xl font-bold">${solBalance.toFixed(2)}</p>
+        <button onClick={() => {
+            server.server?.airdropNativeToUser.mutate({accountId: publicKey.toBase58(), amount: "1000000000"});
+            // server.server?.incrementCall.mutate();
+            // server.server?.sellToken.mutate({accountId: publicKey.toBase58(), tokenId: coinData.id, amount: "1000000000"});
+        }}>
+          Refetch Price History
+        </button>
         {netWorthChange !== 0 && (
           <p>
             {netWorthChange > 0
@@ -154,7 +179,7 @@ export const CoinDisplay = ({
             handleBuy={handleBuy}
             handleSell={handleSell}
             currentPrice={currentPrice}
-            balance={balance}
+            balance={solBalance}
             coinBalance={coinBalance}
             amountBought={amountBought ?? 0}
           />
