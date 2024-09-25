@@ -17,6 +17,7 @@ export const GetAllTokensQuery = graphql(`
       name
       symbol
       updated_at
+      supply
       uri
     }
   }
@@ -57,3 +58,16 @@ export const GetAccountTokenDebitQuery = graphql(`
     }
   }
 `);
+
+export const GetLatestTokenPriceQuery = graphql(`
+  query GetLatestTokenPrice($tokenId: uuid!) {
+    token_price_history(where: {token: {_eq: $tokenId}}, order_by: {created_at: desc}, limit: 1) {
+      created_at
+      id
+      price
+      token
+    }
+  }
+`);
+
+
