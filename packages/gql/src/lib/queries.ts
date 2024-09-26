@@ -23,6 +23,30 @@ export const GetAllTokensQuery = graphql(`
   }
 `);
 
+export const GetAccountBalanceCreditQuery = graphql(`
+  query GetAccountBalanceCredit($accountId: uuid!) {
+    account_transaction_aggregate(where: {account: {_eq: $accountId}, transaction_type: {_eq: "credit"}}) {
+    aggregate {
+      sum {
+        amount
+      }
+    }
+  }
+  }
+`);
+
+export const GetAccountBalanceDebitQuery = graphql(`
+  query GetAccountBalanceCredit($accountId: uuid!) {
+    account_transaction_aggregate(where: {account: {_eq: $accountId}, transaction_type: {_eq: "debit"}}) {
+    aggregate {
+      sum {
+        amount
+      }
+    }
+  }
+  }
+`);
+
 export const GetAccountTokenCreditQuery = graphql(`
   query GetAccountTokenTransactions($accountId: uuid!, $tokenId: uuid!) {
     token_transaction_aggregate(
