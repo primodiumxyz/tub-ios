@@ -3,11 +3,10 @@ import { CoinDisplay } from "../components/CoinDisplay";
 import { CoinData } from "../utils/generateMemecoin";
 import { useQuery } from "urql";
 import { PublicKey } from "@solana/web3.js";
-import { useGql } from "../hooks/useGql";
+import { queries } from "@tub/gql";
 
 
 export const Coins = ({ publicKey }: { publicKey: PublicKey }) => {
-  const { queries } = useGql();
   const [selectedCoin, setSelectedCoin] = useState<CoinData | null>(null);
 
   const [tokensQueryResult] = useQuery({ query: queries.GetAllTokensQuery });

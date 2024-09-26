@@ -8,7 +8,7 @@ import { useTokenBalance } from "../hooks/useTokenBalance";
 import { useSolBalance } from "../hooks/useSolBalance";
 import { useQuery } from "urql";
 import { useServer } from "../hooks/useServer";
-import { useGql } from "../hooks/useGql";
+import { queries } from "@tub/gql";
 
 type Price = {
   timestamp: number;
@@ -24,7 +24,6 @@ export const CoinDisplay = ({
   publicKey: PublicKey;
   gotoNext?: () => void;
 }) => {
-  const { queries }= useGql();
   const { balance: solBalance } = useSolBalance({ publicKey });
   const { balance: coinBalance } = useTokenBalance({
     publicKey,

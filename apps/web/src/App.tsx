@@ -11,9 +11,9 @@ import { useMemo } from "react";
 // Import wallet adapter CSS
 import "@solana/wallet-adapter-react-ui/styles.css";
 import { TubRoutes } from "./TubRoutes";
-import { ServerProvider } from "./contexts/serverContext";
-import { GqlProvider } from "./providers/GqlProvider";
 import { TubProvider } from "./providers/TubProvider";
+import { ServerProvider } from "./providers/ServerProvider";
+import { GqlProvider } from "./providers/GQLProvider";
 
 export default function App() {
   const network = WalletAdapterNetwork.Devnet;

@@ -1,7 +1,7 @@
 import { useQuery } from "urql";
 import { PublicKey } from "@solana/web3.js";
 import { useEffect, useMemo } from "react";
-import { useGql } from "./useGql";
+import { queries } from "@tub/gql";
 
 export const useTokenBalance = ({
   publicKey,
@@ -11,7 +11,6 @@ export const useTokenBalance = ({
   tokenId: string;
 }) => {
 
-  const { queries } = useGql();
   const [userDebit, refetchDebit] = useQuery({
     query: queries.GetAccountTokenDebitQuery,
     variables: { tokenId, accountId: publicKey.toBase58() },

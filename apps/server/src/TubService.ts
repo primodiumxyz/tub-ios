@@ -1,5 +1,5 @@
 import { Core, CounterData } from "@tub/core";
-import { GqlClient } from "@tub/gql";
+import { ServerClient } from "@tub/gql";
 
 type CounterUpdateCallback = (value: number) => void;
 
@@ -7,11 +7,11 @@ export class TubService {
   private core: Core;
   private counterSubscribers: Set<CounterUpdateCallback> = new Set();
   private counter: number = 0;
-  private client: GqlClient;
+  private gql: ServerClient;
 
-  constructor(core: Core, client: GqlClient) {
+  constructor(core: Core, gqlClient: ServerClient) {
     this.core = core;
-    this.client = client;
+    this.gql = gqlClient;
 
     this.initializeCounterSubscription();
   }
@@ -58,7 +58,7 @@ export class TubService {
   }
 
   async registerNewUser(username: string, airdropAmount: bigint) {
-    const result = await this.client.db.RegisterNewUserMutation({
+    const result = await this.gql.RegisterNewUserMutation({
       username: username,
       amount: airdropAmount.toString(),
     });
@@ -71,7 +71,7 @@ export class TubService {
   }
 
   async sellToken(accountId: string, tokenId: string, amount: bigint) {
-    const result = await this.client.db.SellTokenMutation({
+    const result = await this.gql.SellTokenMutation({
       account: accountId,
       token: tokenId,
       amount: amount.toString(),
@@ -85,7 +85,7 @@ export class TubService {
   }
 
   async buyToken(accountId: string, tokenId: string, amount: bigint) {
-    const result = await this.client.db.BuyTokenMutation({
+    const result = await this.gql.BuyTokenMutation({
       account: accountId,
       token: tokenId,
       amount: amount.toString(),
@@ -99,7 +99,7 @@ export class TubService {
   }
 
   async registerNewToken(name: string, symbol: string, supply: bigint = 100n, uri?: string) {
-    const result = await this.client.db.RegisterNewTokenMutation({
+    const result = await this.gql.RegisterNewTokenMutation({
       name: name,
       symbol: symbol,
       supply: supply.toString(),
@@ -114,7 +114,7 @@ export class TubService {
   }
 
   async airdropNativeToUser(accountId: string, amount: bigint) {
-    const result = await this.client.db.AirdropNativeToUserMutation({
+    const result = await this.gql.AirdropNativeToUserMutation({
       account: accountId,
       amount: amount.toString(),
     });

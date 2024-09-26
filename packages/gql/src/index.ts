@@ -29,19 +29,14 @@ type WrapperReturnType<T extends keyof AllOperations> =
   ReturnType<ReturnType<typeof createQueryWrapper<AllOperations[T]>>>;
 
 // Define the db object type with specific return types for each operation
-type DbType = {
+export type ServerClient = {
   [K in keyof AllOperations]: (
     ...args: OptionalArgs<ExtractVariables<AllOperations[K]>>
   ) => WrapperReturnType<K>;
 };
 
-export type GqlClient = {
-  client: Client;
-  db: DbType;
-  queries: typeof queries;
-};
 
-const createClient = ({ url, hasuraAdminSecret }: { url: string; hasuraAdminSecret?: string }): GqlClient => {
+const createClient = ({ url, hasuraAdminSecret }: { url: string; hasuraAdminSecret?: string }): Client => {
   const fetchOptions = hasuraAdminSecret
     ? {
         headers: {
@@ -54,25 +49,32 @@ const createClient = ({ url, hasuraAdminSecret }: { url: string; hasuraAdminSecr
     fetchOptions,
     exchanges: [cacheExchange, fetchExchange],
   });
+  
+
+  return client;
+};
+
+const createServerClient = ({ url, hasuraAdminSecret }: { url: string; hasuraAdminSecret?: string }): ServerClient => {
+  const client = createClient({ url, hasuraAdminSecret });
+
   // Create the db object dynamically
   const _queries = Object.entries(queries).reduce((acc, [key, operation]) => {
     // @ts-ignore
     acc[key as keyof DbType] = createQueryWrapper(client, operation);
     return acc;
-  }, {} as DbType);
+  }, {} as ServerClient);
 
   // Create the db object dynamically
   const _mutations = Object.entries(mutations).reduce((acc, [key, operation]) => {
     // @ts-ignore
     acc[key as keyof DbType] = createMutationWrapper(client, operation);
     return acc;
-  }, {} as DbType);
-
-  const db = {
+  }, {} as ServerClient);
+  
+  return {
     ..._queries,
     ..._mutations,
   };
-  return { client, db, queries };
 };
 
-export { createClient };
+export { createClient, createServerClient, queries, mutations };
