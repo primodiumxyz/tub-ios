@@ -11,7 +11,7 @@ export default function ServerStatus() {
         const status = await server?.getStatus.query();
         setStatus(status?.status ?? 404);
       } catch (e) {
-        console.log({ e });
+        console.error({ e });
         setStatus(404);
       }
     })();

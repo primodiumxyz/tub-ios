@@ -1,35 +1,40 @@
 import { useQuery } from "urql";
-import { PublicKey } from "@solana/web3.js";
 import { useEffect, useMemo } from "react";
 import { queries } from "@tub/gql";
 
 export const useTokenBalance = ({
-  publicKey,
+  userId,
   tokenId,
 }: {
-  publicKey: PublicKey;
+  userId: string;
   tokenId: string;
 }) => {
-
   const [userDebit, refetchDebit] = useQuery({
     query: queries.GetAccountTokenDebitQuery,
-    variables: { tokenId, accountId: publicKey.toBase58() },
+    variables: { tokenId, accountId: userId },
   });
   const [userCredit, refetchCredit] = useQuery({
     query: queries.GetAccountTokenCreditQuery,
-    variables: { tokenId, accountId: publicKey.toBase58() },
+    variables: { tokenId, accountId: userId },
   });
 
   useEffect(() => {
-    refetchDebit();
-    refetchCredit();
+    refetchDebit({
+      requestPolicy: "network-only",
+    });
+    refetchCredit({
+      requestPolicy: "network-only",
+    });
 
     const interval = setInterval(() => {
-      refetchDebit();
-      refetchCredit();
+      refetchDebit({
+        requestPolicy: "network-only",
+      });
+      refetchCredit({
+        requestPolicy: "network-only",
+      });
     }, 1000);
     return () => clearInterval(interval);
-
   }, [refetchDebit, refetchCredit]);
 
   const loading = useMemo(
@@ -41,8 +46,7 @@ export const useTokenBalance = ({
       userDebit.data?.token_transaction_aggregate?.aggregate?.sum?.amount;
     const credit =
       userCredit.data?.token_transaction_aggregate?.aggregate?.sum?.amount;
-    if (!debit || !credit) return 0;
     return Number(credit) - Number(debit);
-  }, [userDebit.data, userCredit.data]);
+  }, [userDebit, userCredit, refetchDebit, refetchCredit]);
   return { balance, loading };
 };

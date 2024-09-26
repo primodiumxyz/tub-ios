@@ -44,7 +44,7 @@ export const TubRoutes = () => {
           <NavBar />
           <div className="relative max-w-[400px] h-4/5 bg-black rounded-xl p-4 pt-10 overflow-hidden">
             <Routes>
-              <Route path="/" element={<Coins publicKey={publicKey} />} />
+              <Route path="/" element={<Coins userId={userId} />} />
               <Route path="/counter" element={<IncrementForm />} />
               <Route
                 path="*"

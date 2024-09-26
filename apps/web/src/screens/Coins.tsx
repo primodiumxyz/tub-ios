@@ -2,11 +2,10 @@ import { useCallback, useEffect, useState } from "react";
 import { CoinDisplay } from "../components/CoinDisplay";
 import { CoinData } from "../utils/generateMemecoin";
 import { useQuery } from "urql";
-import { PublicKey } from "@solana/web3.js";
 import { queries } from "@tub/gql";
 
 
-export const Coins = ({ publicKey }: { publicKey: PublicKey }) => {
+export const Coins = ({ userId }: { userId: string }) => {
   const [selectedCoin, setSelectedCoin] = useState<CoinData | null>(null);
 
   const [tokensQueryResult] = useQuery({ query: queries.GetAllTokensQuery });
@@ -25,7 +24,6 @@ export const Coins = ({ publicKey }: { publicKey: PublicKey }) => {
 
   if (tokensQueryResult.fetching) return <div>Loading...</div>;
   if (tokensQueryResult.error) return <div>Error: {tokensQueryResult.error.message}</div>;
-  if (!publicKey) return <div>Please connect your wallet</div>;
 
   const coins = tokensQueryResult.data?.token ?? [];
 
@@ -33,7 +31,7 @@ export const Coins = ({ publicKey }: { publicKey: PublicKey }) => {
     return (
       <CoinDisplay
         coinData={selectedCoin}
-        publicKey={publicKey}
+        userId={userId}
         gotoNext={gotoNext}
       />
     );
