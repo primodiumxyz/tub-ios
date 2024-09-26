@@ -19,12 +19,20 @@ export const useTokenBalance = ({
   });
 
   useEffect(() => {
-    refetchDebit();
-    refetchCredit();
+    refetchDebit({
+      requestPolicy: "network-only",
+    });
+    refetchCredit({
+      requestPolicy: "network-only",
+    });
 
     const interval = setInterval(() => {
-      refetchDebit();
-      refetchCredit();
+      refetchDebit({
+        requestPolicy: "network-only",
+      });
+      refetchCredit({
+        requestPolicy: "network-only",
+      });
     }, 1000);
     return () => clearInterval(interval);
   }, [refetchDebit, refetchCredit]);
@@ -38,7 +46,6 @@ export const useTokenBalance = ({
       userDebit.data?.token_transaction_aggregate?.aggregate?.sum?.amount;
     const credit =
       userCredit.data?.token_transaction_aggregate?.aggregate?.sum?.amount;
-    console.log({ debit, credit });
     return Number(credit) - Number(debit);
   }, [userDebit, userCredit, refetchDebit, refetchCredit]);
   return { balance, loading };

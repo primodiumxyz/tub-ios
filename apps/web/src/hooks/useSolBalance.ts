@@ -29,11 +29,9 @@ import { useEffect, useMemo, useState } from "react";
 //   return { balance, loading };
 // };
 
-
 export const useSolBalance = ({ userId }: { userId: string }) => {
-
   const [initialBalance, setInitialBalance] = useState(0);
-  const [initalSet, setInitalSet] = useState(false);
+  const [initialSet, setInitialSet] = useState(false);
   const [userDebit, refetchDebit] = useQuery({
     query: queries.GetAccountBalanceDebitQuery,
     variables: { accountId: userId },
@@ -46,8 +44,12 @@ export const useSolBalance = ({ userId }: { userId: string }) => {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      refetchDebit();
-      refetchCredit();
+      refetchDebit({
+        requestPolicy: "network-only",
+      });
+      refetchCredit({
+        requestPolicy: "network-only",
+      });
     }, 10000);
     return () => clearInterval(interval);
   }, [refetchDebit, refetchCredit]);
@@ -58,16 +60,15 @@ export const useSolBalance = ({ userId }: { userId: string }) => {
   );
   const balance = useMemo(() => {
     const debit =
-      userDebit.data?.account_transaction_aggregate?.aggregate?.sum?.amount;  
+      userDebit.data?.account_transaction_aggregate?.aggregate?.sum?.amount;
     const credit =
       userCredit.data?.account_transaction_aggregate?.aggregate?.sum?.amount;
-      const balance = Number(credit ?? 0) - Number(debit ?? 0);
-      console.log({ balance, credit, debit });
-    if (!initalSet) {
+    const balance = Number(credit ?? 0) - Number(debit ?? 0);
+    if (!initialSet && balance !== 0) {
       setInitialBalance(balance);
-      setInitalSet(true);
+      setInitialSet(true);
     }
-      return balance;
-  }, [userDebit, userCredit.data, initalSet]);
+    return balance;
+  }, [userDebit, userCredit.data, initialSet]);
   return { balance, initialBalance, loading };
-}
+};

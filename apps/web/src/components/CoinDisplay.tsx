@@ -57,9 +57,13 @@ export const CoinDisplay = ({
 
   useEffect(() => {
     if (!fetchedInitialPrices) return;
-    refetchPrice();
+    refetchPrice({
+      requestPolicy: "network-only",
+    });
     const interval = setInterval(() => {
-      refetchPrice();
+      refetchPrice({
+        requestPolicy: "network-only",
+      });
     }, 1000);
     return () => clearInterval(interval);
   }, [refetchPrice, fetchedInitialPrices]);
@@ -90,7 +94,7 @@ export const CoinDisplay = ({
       alert("Insufficient balance to buy coins");
       return;
     }
-    const result =await server.buyToken.mutate({
+    await server.buyToken.mutate({
       accountId: userId,
       tokenId: coinData.id,
       amount: buyAmountUSD.toString(),
@@ -148,7 +152,7 @@ export const CoinDisplay = ({
             </button>
           )}
         </div>
-        {netWorthChange !== 0 && (
+        {netWorthChange === 69 && (
           <p>
             {netWorthChange > 0
               ? `+$${netWorthChange.toFixed(2)}`
