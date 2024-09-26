@@ -120,9 +120,7 @@ export const CoinDisplay = ({
         <p className="text-sm opacity-50">Your Net Worth</p>
         <p className="text-3xl font-bold">${solBalance.toFixed(2)}</p>
         <button onClick={() => {
-            server.server?.airdropNativeToUser.mutate({accountId: publicKey.toBase58(), amount: "1000000000"});
-            // server.server?.incrementCall.mutate();
-            // server.server?.sellToken.mutate({accountId: publicKey.toBase58(), tokenId: coinData.id, amount: "1000000000"});
+            server.airdropNativeToUser.mutate({accountId: publicKey.toBase58(), amount: "1000000000"});
         }}>
           Refetch Price History
         </button>

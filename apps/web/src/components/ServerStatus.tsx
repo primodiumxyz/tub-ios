@@ -1,13 +1,11 @@
 import { useEffect, useState } from "react";
 import { useServer } from "../hooks/useServer";
 
-export default function IncrementForm() {
-  const { ready, server } = useServer();
+export default function ServerStatus() {
+  const server = useServer();
   const [status, setStatus] = useState<number | undefined>(undefined);
 
   useEffect(() => {
-    if (!ready) return;
-
     (async () => {
       try {
         const status = await server?.getStatus.query();
@@ -17,7 +15,7 @@ export default function IncrementForm() {
         setStatus(404);
       }
     })();
-  }, [server, ready]);
+  }, [server]);
 
   return (
     <div className="absolute top-2 left-2 shadow-md flex flex-row justify-center gap-10 items-center bg-slate-300 rounded-xl p-2">

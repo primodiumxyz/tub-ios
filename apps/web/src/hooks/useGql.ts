@@ -1,13 +1,13 @@
+import { GqlClient } from "@tub/gql";
 import { useContext } from "react";
-import { ClientContext } from "../providers/GQLProvider";
-import { createClient } from "@tub/gql";
+import { GqlClientContext } from "../providers/GqlProvider";
 
-export function useGql() : ReturnType<typeof createClient> {
-  const client = useContext(ClientContext);
+export function useGql(): GqlClient {
+  const gqlClient = useContext(GqlClientContext);
 
-  if (!client) {
+  if (!gqlClient) {
     throw new Error("useGQL must be used within a GQLProvider");
   }
 
-  return client;
+  return gqlClient;
 }

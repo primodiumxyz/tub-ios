@@ -10,9 +10,10 @@ import { useMemo } from "react";
 
 // Import wallet adapter CSS
 import "@solana/wallet-adapter-react-ui/styles.css";
+import { TubRoutes } from "./TubRoutes";
 import { ServerProvider } from "./contexts/serverContext";
-import { TubRoutes } from "./AppLoadingState";
-import { GqlProvider } from "./providers/GQLProvider";
+import { GqlProvider } from "./providers/GqlProvider";
+import { TubProvider } from "./providers/TubProvider";
 
 export default function App() {
   const network = WalletAdapterNetwork.Devnet;
@@ -21,16 +22,18 @@ export default function App() {
 
   return (
     // Solana Providers and Adapters
-    <GqlProvider>
-      <ServerProvider>
-        <ConnectionProvider endpoint={endpoint}>
-          <WalletProvider wallets={wallets} autoConnect>
-            <WalletModalProvider>
-              <TubRoutes />
-            </WalletModalProvider>
-          </WalletProvider>
-        </ConnectionProvider>
-      </ServerProvider>
-    </GqlProvider>
+    <ServerProvider>
+      <TubProvider>
+        <GqlProvider>
+          <ConnectionProvider endpoint={endpoint}>
+            <WalletProvider wallets={wallets} autoConnect>
+              <WalletModalProvider>
+                <TubRoutes />
+              </WalletModalProvider>
+            </WalletProvider>
+          </ConnectionProvider>
+        </GqlProvider>
+      </TubProvider>
+    </ServerProvider>
   );
 }

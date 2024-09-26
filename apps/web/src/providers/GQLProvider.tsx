@@ -1,10 +1,9 @@
 import { createContext, ReactNode, useMemo } from "react";
 import { Provider as UrqlProvider } from "urql";
 import { createClient } from "@tub/gql";
+import { GqlClient } from "@tub/gql";
 
-export const ClientContext = createContext<ReturnType<
-  typeof createClient
-> | null>(null);
+export const GqlClientContext = createContext<GqlClient | null>(null);
 
 type Props = {
   children: ReactNode;
@@ -26,8 +25,8 @@ export const GqlProvider = ({ children }: Props): JSX.Element => {
 
 
   return (
-    <ClientContext.Provider value={client}>
+    <GqlClientContext.Provider value={client}>
       <UrqlProvider value={client.client}>{children}</UrqlProvider>
-    </ClientContext.Provider>
+    </GqlClientContext.Provider>
   );
 };

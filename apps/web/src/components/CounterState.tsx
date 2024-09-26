@@ -3,11 +3,9 @@ import { useServer } from "../hooks/useServer";
 
 export default function CounterState() {
   const [counter, setCounter] = useState<number | null>(null);
-  const { server, ready } = useServer();
+  const server = useServer();
 
   useEffect(() => {
-    if (!server || !ready) return;
-
     const unsub = server.onCounterUpdate.subscribe(undefined, {
       onData: (data) => {
         setCounter(data);
@@ -17,7 +15,7 @@ export default function CounterState() {
     return () => {
       unsub.unsubscribe();
     };
-  }, [server, ready]);
+  }, [server]);
 
   return <p>Count: {counter}</p>;
 }

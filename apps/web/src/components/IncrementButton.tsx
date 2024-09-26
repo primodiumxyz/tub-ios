@@ -4,11 +4,11 @@ import { useState } from "react";
 
 export default function IncrementButton() {
   const { publicKey } = useWallet();
-  const { server, ready } = useServer();
+  const server = useServer();
   const [isLoading, setIsLoading] = useState(false);
 
   const onClick = async () => {
-    if (!server || !ready) return;
+    if (!server) return;
 
     setIsLoading(true);
     await server.incrementCall.mutate();
@@ -19,9 +19,9 @@ export default function IncrementButton() {
     <button
       className="btn-primary"
       onClick={onClick}
-      disabled={!publicKey || !ready || isLoading}
+      disabled={!publicKey || isLoading}
     >
-      {isLoading || !ready ? "Loading..." : "Increment"}
+      {isLoading ? "Loading..." : "Increment"}
     </button>
   );
 }
