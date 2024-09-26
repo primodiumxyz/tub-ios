@@ -46,7 +46,7 @@ export const useTokenBalance = ({
       userDebit.data?.token_transaction_aggregate?.aggregate?.sum?.amount;
     const credit =
       userCredit.data?.token_transaction_aggregate?.aggregate?.sum?.amount;
-    return Number(credit) - Number(debit);
-  }, [userDebit, userCredit, refetchDebit, refetchCredit]);
+    return BigInt(credit ?? 0) - BigInt(debit ?? 0);
+  }, [userDebit, userCredit]);
   return { balance, loading };
 };

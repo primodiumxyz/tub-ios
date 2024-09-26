@@ -3,7 +3,7 @@ import * as d3 from "d3";
 
 type Price = {
   timestamp: number;
-  price: number;
+  price: bigint;
 };
 
 type PriceGraphProps = {
@@ -28,14 +28,14 @@ export const PriceGraph = ({ prices }: PriceGraphProps) => {
 
     const y = d3
       .scaleLinear()
-      .domain([0, d3.max(prices, (d) => d.price) as number])
+      .domain([0, d3.max(prices, (d) => Number(d.price)) as number])
       .nice()
       .range([height - margin.bottom, margin.top]);
 
     const line = d3
       .line<Price>()
       .x((d) => x(new Date(d.timestamp)))
-      .y((d) => y(d.price))
+      .y((d) => y(Number(d.price)))
       .curve(d3.curveMonotoneX);
 
     svg.selectAll("*").remove();
@@ -54,8 +54,8 @@ export const PriceGraph = ({ prices }: PriceGraphProps) => {
     const lastPrice = prices.length > 1 ? prices[prices.length - 1] : prices[0];
     const secondLastPrice = prices.length > 2 ? prices[prices.length - 2] : prices[0];
     const lastX = x(new Date(lastPrice.timestamp));
-    const lastY = y(lastPrice.price);
-    const pctChange = ((lastPrice.price - secondLastPrice.price) / secondLastPrice.price) * 100;
+    const lastY = y(Number(lastPrice.price));
+    const pctChange = ((Number(lastPrice.price) - Number(secondLastPrice.price)) / Number(secondLastPrice.price)) * 100;
     const pctChangeColor = pctChange > 0 ? "lawngreen" : "#FF6666"; // Lighten the red color
   svg
     .append("line")
