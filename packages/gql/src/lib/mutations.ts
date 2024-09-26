@@ -45,4 +45,12 @@ export const AirdropNativeToUserMutation = graphql(`
     }
   }
 `);
+
+export const AddTokenPriceHistoryMutation = graphql(`
+  mutation AddTokenPriceHistory($token: uuid!, $price: numeric!) {
+    insert_token_price_history_one(object: { token: $token, price: $price }) {
+      id
+    }
+  }
+`);
   

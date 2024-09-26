@@ -9,7 +9,7 @@ const env = parseEnv();
 
 type PriceHistory = {
   index: number;
-  delay: number;
+  delayMs: number;
   priceChange: number;
 }
 
@@ -17,64 +17,57 @@ type RandomPriceHistory = {
   priceHistory: PriceHistory[];
 }
 
+const SPEED_FACTOR = 1;
+const USE_PRICE_HISTORY = false;
+const TARGET_TOKEN = "e9e2d8a1-0b57-4b9b-9949-a790de9b24ae";
+
 const price_history = (random_price_history as RandomPriceHistory).priceHistory;
+
+//https://stackoverflow.com/questions/8597731/are-there-known-techniques-to-generate-realistic-looking-fake-stock-data
+const getRandomPrice = (volatility: number) => {
+  const random = Math.random();
+  let changePercent = random * volatility * 2;
+
+  if(changePercent > volatility) {
+    changePercent -= (2*volatility);
+  }
+
+  const delay = Math.floor(Math.random() * 900) + 100;
+
+  return {
+    priceChange: 1 + changePercent,
+    delayMs: delay
+  };
+}
 
 export const start = async () => {
   try {
     const gql = createServerClient({ url: env.GRAPHQL_URL, hasuraAdminSecret: env.HASURA_ADMIN_SECRET });
 
-    const account = await gql.RegisterNewUserMutation({
-      username: `keeper-${Math.floor(Math.random() * 1001) }`,
-      amount: parseEther("420").toString()
+    const _tokenPrice = await gql.GetLatestTokenPriceQuery({
+      tokenId: TARGET_TOKEN
     });
 
-    const accountId = account.data?.insert_account_one?.id;
-
-    if (!accountId) {
-      throw new Error("Failed to create account");
-    }
-
-    // const _tokenPrice = await gql.GetLatestTokenPriceQuery({
-    //   tokenId: env.TARGET_TOKEN
-    // });
-
-    const tokenPrice = parseEther("1");
+    const tokenPrice = BigInt(_tokenPrice.data?.token_price_history[0]?.price ?? parseEther("1", "gwei"));
     let index =  Math.floor(Math.random() * price_history.length);
     let currentPrice = tokenPrice;
-    let tokenCount = 0;
     while (true) {
-      const price = price_history[index % price_history.length]!;
-
+      const price = USE_PRICE_HISTORY ? price_history[index % price_history.length]! : getRandomPrice(0.2);
+      
       const newPrice = currentPrice * BigInt(Math.floor(price.priceChange * 1000000000))/ 1000000000n;
 
-      console.log(price.priceChange);
-      
-      if(price.priceChange > 1) {
-        await gql.BuyTokenMutation({
-          amount: "1",
-          token: env.TARGET_TOKEN,
-          account: accountId,
-          override_token_price: newPrice.toString()
-        })
-        console.log("Bought token at", currentPrice);
-        tokenCount++;
-      }
-      else if(tokenCount > 0) {
-        await gql.SellTokenMutation({
-          amount: "1",
-          token: env.TARGET_TOKEN,
-          account: accountId,
-          override_token_price: newPrice.toString()
-        })
-        console.log("Sold token at", currentPrice);
-        tokenCount--;
-      }
+      await gql.AddTokenPriceHistoryMutation({
+        token: TARGET_TOKEN,
+        price: newPrice.toString()
+      })
 
-      index++;
+      console.log("New price", newPrice, "change", price.priceChange);
+
       currentPrice = newPrice;
+      index++;
 
       // wait for the delay
-      await new Promise(resolve => setTimeout(resolve, price.delay));
+      await new Promise(resolve => setTimeout(resolve, price.delayMs/SPEED_FACTOR));
     }
   } catch (err) {
     console.error(err);
