@@ -10,6 +10,7 @@ import { clusterApiUrl, Connection, Keypair } from "@solana/web3.js";
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import { applyWSSHandler } from "@trpc/server/adapters/ws";
 import fastify from "fastify";
+import { createClient as createGqlClient } from "@tub/gql";
 
 const env = parseEnv();
 
@@ -34,7 +35,11 @@ export const start = async () => {
 
     const wallet = new Wallet(Keypair.fromSecretKey(Buffer.from(env.PRIVATE_KEY, "hex")));
     const core = createCore(wallet, connection);
-    const tubService = new TubService(core);
+    if (!process.env.GRAPHQL_URL) {
+      throw new Error("GRAPHQL_URL is not set");
+    }   
+    const gqlClient = createGqlClient({url: process.env.GRAPHQL_URL});
+    const tubService = new TubService(core, gqlClient);
 
     // @see https://trpc.io/docs/server/adapters/fastify
     server.register(fastifyTRPCPlugin<AppRouter>, {

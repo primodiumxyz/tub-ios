@@ -5,7 +5,7 @@ import { TubService } from "../src/TubService";
 describe("TubService", () => {
   let tubService: TubService;
   let mockCore: any;
-
+  let mockGqlClient: any;
   beforeEach(() => {
     mockCore = {
       calls: {
@@ -27,7 +27,12 @@ describe("TubService", () => {
         counter: "mockCounterPDA",
       },
     };
-    tubService = new TubService(mockCore);
+    mockGqlClient = {
+      db: {
+        RegisterNewUserMutation: vi.fn(),
+      },
+    };
+    tubService = new TubService(mockCore, mockGqlClient);
   });
 
   it("should return status 200", () => {

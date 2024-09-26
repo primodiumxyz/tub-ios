@@ -35,7 +35,13 @@ type DbType = {
   ) => WrapperReturnType<K>;
 };
 
-const createClient = ({ url, hasuraAdminSecret }: { url: string; hasuraAdminSecret?: string }) => {
+export type GqlClient = {
+  client: Client;
+  db: DbType;
+  queries: typeof queries;
+};
+
+const createClient = ({ url, hasuraAdminSecret }: { url: string; hasuraAdminSecret?: string }): GqlClient => {
   const fetchOptions = hasuraAdminSecret
     ? {
         headers: {
