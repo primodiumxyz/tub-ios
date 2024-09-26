@@ -3,7 +3,6 @@ import { PriceGraph } from "../components/PriceGraph"; // Import the new compone
 import { CoinData } from "../utils/generateMemecoin";
 import { useReward } from "react-rewards";
 import Slider from "./Slider";
-import { PublicKey } from "@solana/web3.js";
 import { useTokenBalance } from "../hooks/useTokenBalance";
 import { useSolBalance } from "../hooks/useSolBalance";
 import { useQuery } from "urql";
@@ -16,17 +15,18 @@ type Price = {
 };
 
 export const CoinDisplay = ({
-  publicKey,
+  userId,
   coinData,
   gotoNext,
 }: {
   coinData: CoinData;
-  publicKey: PublicKey;
+  userId: string;
   gotoNext?: () => void;
 }) => {
-  const { balance: solBalance } = useSolBalance({ publicKey });
+
+  const { balance: solBalance, initialBalance } = useSolBalance({ userId });
   const { balance: coinBalance } = useTokenBalance({
-    publicKey,
+    userId,
     tokenId: coinData.id,
   });
   const server = useServer();
@@ -42,12 +42,12 @@ export const CoinDisplay = ({
 
   useEffect(() => {
     if (!priceHistory.data || fetchedInitialPrices) return;
-      const prices = priceHistory.data.token_price_history.map((price) => ({
-        timestamp: price.created_at.getTime() / 1000,
-        price: Number(price.price),
-      }));
-      setPrices(prices);
-      setFetchedInitialPrices(true);
+    const prices = priceHistory.data.token_price_history.map((price) => ({
+      timestamp: price.created_at.getTime() / 1000,
+      price: Number(price.price),
+    }));
+    setPrices(prices);
+    setFetchedInitialPrices(true);
   }, [priceHistory.data, fetchedInitialPrices]);
 
   const [price, refetchPrice] = useQuery({
@@ -68,20 +68,20 @@ export const CoinDisplay = ({
     if (!fetchedInitialPrices) return;
     const currPrice = price.data?.token_price_history[0].price;
     if (currPrice === undefined) return;
-    setPrices(prevPrices => [
+    setPrices((prevPrices) => [
       ...prevPrices,
       { timestamp: Date.now() / 1000, price: Number(currPrice) },
     ]);
   }, [price, fetchedInitialPrices]);
 
   const [buyAmountUSD, setBuyAmountUSD] = useState(
-    Math.min(solBalance * 0.1, 10)
+    Math.min(10)
   );
   const [amountBought, setAmountBought] = useState<number | null>(null);
 
   const { reward } = useReward("rewardId", "confetti");
 
-  const handleBuy = () => {
+  const handleBuy = async () => {
     if (buyAmountUSD <= 0) {
       alert("Please enter a valid amount to buy");
       return;
@@ -90,11 +90,16 @@ export const CoinDisplay = ({
       alert("Insufficient balance to buy coins");
       return;
     }
+    const result =await server.buyToken.mutate({
+      accountId: userId,
+      tokenId: coinData.id,
+      amount: buyAmountUSD.toString(),
+    });
     setBuyAmountUSD(0);
     setAmountBought(buyAmountUSD + (amountBought ?? 0));
   };
 
-  const handleSell = () => {
+  const handleSell = async () => {
     const sellAmountCoin = coinBalance;
 
     if (sellAmountCoin <= 0) {
@@ -105,24 +110,44 @@ export const CoinDisplay = ({
       alert("Insufficient coins to sell");
       return;
     }
+
+    await server.sellToken.mutate({
+      accountId: userId,
+      tokenId: coinData.id,
+      amount: sellAmountCoin.toString(),
+    });
     reward();
 
     setAmountBought(10);
   };
 
   const currentPrice = prices[prices.length - 1]?.price || 0;
-  const netWorthChange = solBalance - 1000;
+  const netWorthChange = solBalance - initialBalance;
 
   return (
     <div className="relative text-white">
       <div className="mb-4">
         <p className="text-sm opacity-50">Your Net Worth</p>
-        <p className="text-3xl font-bold">${solBalance.toFixed(2)}</p>
-        <button onClick={() => {
-            server.airdropNativeToUser.mutate({accountId: publicKey.toBase58(), amount: "1000000000"});
-        }}>
-          Refetch Price History
-        </button>
+        <div className="flex flex-row gap-2 items-center">
+          <p className="text-3xl font-bold">${solBalance.toFixed(2)}</p>
+          {solBalance < 10 && (
+            <button
+              onClick={() => {
+                if (!userId) {
+                  alert("Please register to receive airdrops");
+                  return;
+                }
+                server.airdropNativeToUser.mutate({
+                  accountId: userId,
+                  amount: "100",
+                });
+              }}
+              className="text-sm bg-white/50 text-black p-2 rounded-md"
+            >
+              Airdrop
+            </button>
+          )}
+        </div>
         {netWorthChange !== 0 && (
           <p>
             {netWorthChange > 0

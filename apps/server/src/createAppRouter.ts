@@ -36,7 +36,7 @@ export function createAppRouter() {
         }),
       )
       .mutation(async ({ ctx, input }) => {
-        return await ctx.tubService.registerNewUser(input.username, input.airdropAmount ? BigInt(input.airdropAmount) : BigInt("100000000"));
+        return await ctx.tubService.registerNewUser(input.username, input.airdropAmount ? BigInt(input.airdropAmount) : BigInt("100"));
       }), 
     buyToken: t.procedure
       .input(

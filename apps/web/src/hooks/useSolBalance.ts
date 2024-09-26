@@ -1,5 +1,6 @@
-import { PublicKey } from "@solana/web3.js";
-import { useTokenBalance } from "./useTokenBalance";
+import { queries } from "@tub/gql";
+import { useQuery } from "urql";
+import { useEffect, useMemo, useState } from "react";
 
 // export const useSolBalance = ({ publicKey }: { publicKey: PublicKey }) => {
 //   const { connection } = useConnection();
@@ -28,8 +29,45 @@ import { useTokenBalance } from "./useTokenBalance";
 //   return { balance, loading };
 // };
 
-export const SOL_ID = "e9e2d8a1-0b57-4b9b-9949-a790de9b24ae"
 
-export const useSolBalance = ({ publicKey }: { publicKey: PublicKey }) => {
-  return useTokenBalance({ publicKey, tokenId: SOL_ID });
+export const useSolBalance = ({ userId }: { userId: string }) => {
+
+  const [initialBalance, setInitialBalance] = useState(0);
+  const [initalSet, setInitalSet] = useState(false);
+  const [userDebit, refetchDebit] = useQuery({
+    query: queries.GetAccountBalanceDebitQuery,
+    variables: { accountId: userId },
+  });
+
+  const [userCredit, refetchCredit] = useQuery({
+    query: queries.GetAccountBalanceCreditQuery,
+    variables: { accountId: userId },
+  });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refetchDebit();
+      refetchCredit();
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [refetchDebit, refetchCredit]);
+
+  const loading = useMemo(
+    () => userDebit.fetching || userCredit.fetching,
+    [userDebit.fetching, userCredit.fetching]
+  );
+  const balance = useMemo(() => {
+    const debit =
+      userDebit.data?.account_transaction_aggregate?.aggregate?.sum?.amount;  
+    const credit =
+      userCredit.data?.account_transaction_aggregate?.aggregate?.sum?.amount;
+      const balance = Number(credit ?? 0) - Number(debit ?? 0);
+      console.log({ balance, credit, debit });
+    if (!initalSet) {
+      setInitialBalance(balance);
+      setInitalSet(true);
+    }
+      return balance;
+  }, [userDebit, userCredit.data, initalSet]);
+  return { balance, initialBalance, loading };
 }
