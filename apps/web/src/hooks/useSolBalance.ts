@@ -30,7 +30,7 @@ import { useEffect, useMemo, useState } from "react";
 // };
 
 export const useSolBalance = ({ userId }: { userId: string }) => {
-  const [initialBalance, setInitialBalance] = useState(0);
+  const [initialBalance, setInitialBalance] = useState(0n);
   const [initialSet, setInitialSet] = useState(false);
   const [userDebit, refetchDebit] = useQuery({
     query: queries.GetAccountBalanceDebitQuery,
@@ -63,8 +63,8 @@ export const useSolBalance = ({ userId }: { userId: string }) => {
       userDebit.data?.account_transaction_aggregate?.aggregate?.sum?.amount;
     const credit =
       userCredit.data?.account_transaction_aggregate?.aggregate?.sum?.amount;
-    const balance = Number(credit ?? 0) - Number(debit ?? 0);
-    if (!initialSet && balance !== 0) {
+    const balance = BigInt(credit ?? 0) - BigInt(debit ?? 0);
+    if (!initialSet && balance !== 0n ) {
       setInitialBalance(balance);
       setInitialSet(true);
     }
