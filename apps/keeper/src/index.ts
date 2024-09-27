@@ -48,7 +48,7 @@ const getPriceHistoryIterator = (startIndex?: number) => {
 
 export const start = async () => {
   try {
-    const gql = createServerClient({ url: env.GRAPHQL_URL, hasuraAdminSecret: env.HASURA_ADMIN_SECRET });
+    const gql = await createServerClient({ url: env.GRAPHQL_URL, hasuraAdminSecret: env.HASURA_ADMIN_SECRET });
     // Remember indexes for when the tokens array changes
     const currentPriceHistoryIndexes = new Map<string, number>();
 

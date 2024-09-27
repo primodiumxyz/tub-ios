@@ -53,4 +53,13 @@ export const AddTokenPriceHistoryMutation = graphql(`
     }
   }
 `);
-  
+
+export const AddManyTokenPriceHistoryMutation = graphql(`
+  mutation AddManyTokenPriceHistory($objects: [token_price_history_insert_input!]!) {
+    insert_token_price_history(objects: $objects) {
+      returning {
+        id
+      }
+    }
+  }
+`);
