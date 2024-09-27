@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		999F59562CA6F97100E7AE9F /* CoinModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999F59552CA6F96D00E7AE9F /* CoinModel.swift */; };
 		DB10A95D2CA5AA1B00B1E4F3 /* ExploreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB10A95C2CA5AA1B00B1E4F3 /* ExploreView.swift */; };
 		DB10A95F2CA5AA3900B1E4F3 /* CollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB10A95E2CA5AA3900B1E4F3 /* CollectionView.swift */; };
 		DB10A9612CA5AA4600B1E4F3 /* MessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB10A9602CA5AA4600B1E4F3 /* MessageView.swift */; };
@@ -38,6 +39,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		999F59552CA6F96D00E7AE9F /* CoinModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoinModel.swift; sourceTree = "<group>"; };
 		DB10A95C2CA5AA1B00B1E4F3 /* ExploreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreView.swift; sourceTree = "<group>"; };
 		DB10A95E2CA5AA3900B1E4F3 /* CollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionView.swift; sourceTree = "<group>"; };
 		DB10A9602CA5AA4600B1E4F3 /* MessageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageView.swift; sourceTree = "<group>"; };
@@ -80,6 +82,26 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		999F59522CA6F6A900E7AE9F /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				DB6D29062CA1C8F70099951A /* ContentView.swift */,
+				DB675A322CA2B73D006FC9B3 /* HomeTabsView.swift */,
+				DB10A95E2CA5AA3900B1E4F3 /* CollectionView.swift */,
+				DB10A9602CA5AA4600B1E4F3 /* MessageView.swift */,
+				DB10A95C2CA5AA1B00B1E4F3 /* ExploreView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		999F59532CA6F70C00E7AE9F /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				999F59552CA6F96D00E7AE9F /* CoinModel.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
 		DB6D28F82CA1C8F70099951A = {
 			isa = PBXGroup;
 			children = (
@@ -103,12 +125,9 @@
 		DB6D29032CA1C8F70099951A /* Tub */ = {
 			isa = PBXGroup;
 			children = (
+				999F59532CA6F70C00E7AE9F /* Models */,
+				999F59522CA6F6A900E7AE9F /* Views */,
 				DB6D29042CA1C8F70099951A /* TubApp.swift */,
-				DB6D29062CA1C8F70099951A /* ContentView.swift */,
-				DB675A322CA2B73D006FC9B3 /* HomeTabsView.swift */,
-				DB10A95E2CA5AA3900B1E4F3 /* CollectionView.swift */,
-				DB10A9602CA5AA4600B1E4F3 /* MessageView.swift */,
-				DB10A95C2CA5AA1B00B1E4F3 /* ExploreView.swift */,
 				DB6D29082CA1C8F80099951A /* Assets.xcassets */,
 				DB6D290A2CA1C8F80099951A /* Tub.entitlements */,
 				DB6D290B2CA1C8F80099951A /* Preview Content */,
@@ -277,6 +296,7 @@
 				DB6D29072CA1C8F70099951A /* ContentView.swift in Sources */,
 				DB10A95D2CA5AA1B00B1E4F3 /* ExploreView.swift in Sources */,
 				DB6D29052CA1C8F70099951A /* TubApp.swift in Sources */,
+				999F59562CA6F97100E7AE9F /* CoinModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
