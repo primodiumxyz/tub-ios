@@ -523,5 +523,5 @@ export const lamportsToSol = (lamports: bigint) => {
   if (raw < 0.001) {
     return raw;
   }
-  return raw.toFixed(2);
+  return Number(raw.toFixed(2));
 };
