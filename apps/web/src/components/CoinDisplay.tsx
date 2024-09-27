@@ -7,12 +7,13 @@ import { PriceGraph } from "../components/PriceGraph"; // Import the new compone
 import { useServer } from "../hooks/useServer";
 import { useSolBalance } from "../hooks/useSolBalance";
 import { useTokenBalance } from "../hooks/useTokenBalance";
-import { CoinData } from "../utils/generateMemecoin";
+import { CoinData, lamportsToSol, solToLamports } from "../utils/generateMemecoin";
+import { Price } from "./LamportDisplay";
 import Slider from "./Slider";
 
-type Price = {
+type PriceType = {
   timestamp: number;
-  price: number;
+  price: bigint;
 };
 
 export const CoinDisplay = ({
@@ -24,16 +25,16 @@ export const CoinDisplay = ({
   userId: string;
   gotoNext?: () => void;
 }) => {
-  const { balance: solBalance, initialBalance } = useSolBalance({ userId });
-  const { balance: coinBalance } = useTokenBalance({
+  const { balance: SOLBalance, initialBalance } = useSolBalance({ userId });
+  const { balance: tokenBalance } = useTokenBalance({
     userId,
     tokenId: tokenData.id,
   });
   const server = useServer();
 
-  const [prices, setPrices] = useState<Price[]>([]);
+  const [tokenPrices, setTokenPrices] = useState<PriceType[]>([]);
 
-  const [priceHistory] = useQuery({
+  const [tokenPriceHistory] = useQuery({
     query: queries.GetTokenPriceHistorySinceQuery,
     variables: { tokenId: tokenData.id, since: new Date() },
   });
@@ -41,14 +42,14 @@ export const CoinDisplay = ({
   const [fetchedInitialPrices, setFetchedInitialPrices] = useState(false);
 
   useEffect(() => {
-    if (!priceHistory.data || fetchedInitialPrices) return;
-    const prices = priceHistory.data.token_price_history.map((price) => ({
+    if (!tokenPriceHistory.data || fetchedInitialPrices) return;
+    const prices = tokenPriceHistory.data.token_price_history.map((price) => ({
       timestamp: price.created_at.getTime() / 1000,
-      price: Number(price.price),
+      price: BigInt(price.price),
     }));
-    setPrices(prices);
+    setTokenPrices(prices);
     setFetchedInitialPrices(true);
-  }, [priceHistory.data, fetchedInitialPrices]);
+  }, [tokenPriceHistory.data, fetchedInitialPrices]);
 
   const [price, refetchPrice] = useQuery({
     query: queries.GetLatestTokenPriceQuery,
@@ -69,43 +70,47 @@ export const CoinDisplay = ({
   }, [refetchPrice, fetchedInitialPrices]);
 
   useEffect(() => {
-    if (!fetchedInitialPrices) return;
+    if (!fetchedInitialPrices || !price.data || price.data.token_price_history.length === 0) return;
+
     const currPrice = price.data?.token_price_history[0]?.price;
     if (currPrice === undefined) return;
-    setPrices((prevPrices) => [...prevPrices, { timestamp: Date.now() / 1000, price: Number(currPrice) }]);
+    setTokenPrices((prevPrices) => [...prevPrices, { timestamp: Date.now() / 1000, price: BigInt(currPrice) }]);
   }, [price, fetchedInitialPrices]);
 
-  const [buyAmountUSD, setBuyAmountUSD] = useState(Math.min(10));
+  const [buyAmountSOL, setBuyAmountSOL] = useState(Math.min(10));
   const [amountBought, setAmountBought] = useState<number | null>(null);
 
   const { reward } = useReward("rewardId", "confetti");
 
   const handleBuy = async () => {
-    if (buyAmountUSD <= 0) {
+    if (buyAmountSOL <= 0) {
       alert("Please enter a valid amount to buy");
       return;
     }
-    if (buyAmountUSD > solBalance) {
+    if (buyAmountSOL > SOLBalance) {
       alert("Insufficient balance to buy coins");
       return;
     }
+
+    const amount = (1_000_000_000n * solToLamports(buyAmountSOL)) / (tokenPrices[tokenPrices.length - 1]?.price ?? 1n);
+
     await server.buyToken.mutate({
       accountId: userId,
       tokenId: tokenData.id,
-      amount: buyAmountUSD.toString(),
+      amount: amount.toString(),
     });
-    setBuyAmountUSD(0);
-    setAmountBought(buyAmountUSD + (amountBought ?? 0));
+    setBuyAmountSOL(0);
+    setAmountBought(buyAmountSOL + (amountBought ?? 0));
   };
 
   const handleSell = async () => {
-    const sellAmountCoin = coinBalance;
+    const sellAmountCoin = tokenBalance;
 
     if (sellAmountCoin <= 0) {
       alert("Please enter a valid amount to sell");
       return;
     }
-    if (sellAmountCoin > coinBalance) {
+    if (sellAmountCoin > tokenBalance) {
       alert("Insufficient coins to sell");
       return;
     }
@@ -120,16 +125,18 @@ export const CoinDisplay = ({
     setAmountBought(10);
   };
 
-  const currentPrice = prices[prices.length - 1]?.price || 0;
-  const netWorthChange = solBalance - initialBalance;
+  const currentPrice = tokenPrices[tokenPrices.length - 1]?.price || 0n;
+  const netWorthChange = SOLBalance - initialBalance;
 
   return (
     <div className="relative text-white">
       <div className="mb-4">
         <p className="text-sm opacity-50">Your Net Worth</p>
         <div className="flex flex-row gap-2 items-center">
-          <p className="text-3xl font-bold">${solBalance.toFixed(2)}</p>
-          {solBalance < 10 && (
+          <p className="text-3xl font-bold">
+            <Price lamports={SOLBalance} /> SOL
+          </p>
+          {SOLBalance < 10000000n && (
             <button
               onClick={() => {
                 if (!userId) {
@@ -138,7 +145,7 @@ export const CoinDisplay = ({
                 }
                 server.airdropNativeToUser.mutate({
                   accountId: userId,
-                  amount: "100",
+                  amount: solToLamports(100).toString(),
                 });
               }}
               className="text-sm bg-white/50 text-black p-2 rounded-md"
@@ -147,13 +154,12 @@ export const CoinDisplay = ({
             </button>
           )}
         </div>
-        {netWorthChange === 69 && (
+        {netWorthChange === 69n && (
           <p>
-            {netWorthChange > 0 ? `+$${netWorthChange.toFixed(2)}` : `-$${Math.abs(netWorthChange).toFixed(2)}`}
+            {netWorthChange > 0 ? `+` : `-`} <Price lamports={netWorthChange} />
             <span className={`inline-block ml-1 ${netWorthChange > 0 ? "text-green-500" : "text-red-500"}`}>
               {netWorthChange > 0 ? "▲" : "▼"}
             </span>
-            <span className="ml-1">{((Math.abs(netWorthChange) / 1000) * 100).toFixed(2)}%</span>
           </p>
         )}
       </div>
@@ -167,29 +173,40 @@ export const CoinDisplay = ({
             {tokenData.name} (${tokenData.symbol.toUpperCase()})
           </span>
         </p>
-        <p className="text-2xl font-bold">${prices[prices.length - 1]?.price.toFixed(3)}</p>
+        {tokenPrices.length > 0 && (
+          <p className="text-2xl font-bold">
+            <Price lamports={tokenPrices[tokenPrices.length - 1]?.price ?? 0} /> SOL
+          </p>
+        )}
       </div>
       <div className="flex flex-col">
-        <PriceGraph prices={prices} /> {/* Use the new component */}
+        <PriceGraph prices={tokenPrices} /> {/* Use the new component */}
         <div className="flex flex-col w-full">
           <div className="mt-6">
-            <p className="text-sm opacity-50">Your ${tokenData.symbol.toUpperCase()} Balance</p>
+            <p className="text-sm opacity-50">Your {tokenData?.symbol.toUpperCase()} Balance</p>
             <h2 className="text-xl font-semibold">
-              <span className="font-bold text-lg">
-                {coinBalance.toFixed(3)} ${tokenData.symbol.toUpperCase()}
-              </span>
+              <div className="font-bold text-lg flex flex-col">
+                <p>
+                  {" "}
+                  <Price lamports={tokenBalance} /> PEPE
+                </p>
+                <p className="text-sm opacity-50">
+                  {" "}
+                  <Price lamports={tokenBalance * currentPrice} /> SOL
+                </p>
+              </div>
             </h2>
           </div>
 
           <BuySellForm
             tokenData={tokenData}
-            buyAmountUSD={buyAmountUSD}
-            setBuyAmountUSD={setBuyAmountUSD}
+            buyAmountSOL={buyAmountSOL}
+            setBuyAmountSOL={setBuyAmountSOL}
             handleBuy={handleBuy}
             handleSell={handleSell}
             currentPrice={currentPrice}
-            balance={solBalance}
-            coinBalance={coinBalance}
+            balance={SOLBalance}
+            coinBalance={tokenBalance}
             amountBought={amountBought ?? 0}
           />
         </div>
@@ -203,8 +220,8 @@ export const CoinDisplay = ({
 
 const BuySellForm = ({
   tokenData,
-  buyAmountUSD,
-  setBuyAmountUSD,
+  buyAmountSOL,
+  setBuyAmountSOL,
   handleBuy,
   handleSell,
   currentPrice,
@@ -213,14 +230,14 @@ const BuySellForm = ({
   coinBalance,
 }: {
   tokenData: CoinData;
-  buyAmountUSD: number;
-  setBuyAmountUSD: (amount: number) => void;
+  buyAmountSOL: number;
+  setBuyAmountSOL: (amount: number) => void;
   handleBuy: () => void;
   handleSell: () => void;
-  currentPrice: number;
+  currentPrice: bigint;
   amountBought: number;
-  balance: number;
-  coinBalance: number;
+  balance: bigint;
+  coinBalance: bigint;
 }) => {
   const [activeTab, setActiveTab] = useState<"buy" | "sell">("buy");
 
@@ -234,7 +251,7 @@ const BuySellForm = ({
     setActiveTab("buy");
   };
 
-  const change = coinBalance * currentPrice - amountBought;
+  const change = coinBalance * currentPrice - solToLamports(amountBought);
   return (
     <div className="mt-6 relative">
       <span className="absolute top-1/2 right-1/2 transform -translate-y-1/2 -translate-x-1/2" id="rewardId" />
@@ -244,21 +261,19 @@ const BuySellForm = ({
             <input
               type="range"
               min="0"
-              max={balance}
+              max={lamportsToSol(balance)}
               step="1"
-              value={buyAmountUSD}
-              onChange={(e) => setBuyAmountUSD(Number(e.target.value))}
-              className="w-full mr-2"
+              value={buyAmountSOL}
+              onChange={(e) => setBuyAmountSOL(Number(e.target.value))}
+              className="w-1/2 mr-2"
             />
-            <div className="flex flex-col text-right w-fit">
-              <p className="font-bold text-2xl">${buyAmountUSD}</p>
-            </div>
+            <span className="font-bold text-2xl inline text-right">{buyAmountSOL} SOL</span>
           </div>
           <p className="text-xs opacity-50 w-full text-right mb-2 ">
-            ({(buyAmountUSD / currentPrice).toFixed(2)} {tokenData.symbol.toUpperCase()})
+            ({buyAmountSOL / Number(lamportsToSol(currentPrice))} {tokenData?.symbol.toUpperCase()})
           </p>
 
-          <Slider onSlideComplete={handlePressBuy} disabled={buyAmountUSD <= 0} text="> > > >" />
+          <Slider onSlideComplete={handlePressBuy} disabled={buyAmountSOL <= 0} text="> > > >" />
         </div>
       ) : (
         <div>
@@ -274,7 +289,7 @@ const BuySellForm = ({
               <span className={`inline-block ml-1 ${change > 0 ? "text-green-500" : "text-red-500"}`}>
                 {change > 0 ? "▲" : "▼"}
               </span>
-              <span className="ml-1">${Math.abs(change).toFixed(2)}</span>
+              <span className="ml-1">{lamportsToSol(change)} SOL</span>
             </div>
           </div>
         </div>
