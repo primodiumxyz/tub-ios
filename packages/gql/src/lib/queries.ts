@@ -10,9 +10,10 @@ export const GetAllAccountsQuery = graphql(`
   }
 `);
 
+// TODO: remove limit & order_by
 export const GetAllTokensQuery = graphql(`
   query GetAllTokens {
-    token {
+    token(limit: 10, order_by: { updated_at: desc }) {
       id
       name
       symbol

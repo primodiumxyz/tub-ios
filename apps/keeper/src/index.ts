@@ -3,7 +3,7 @@ import { createServerClient } from "@tub/gql";
 import { config } from "dotenv";
 import { parseEther } from "viem";
 import { parseEnv } from "../bin/parseEnv";
-import random_price_history from "./random_price_changes.json";
+import random_price_changes from "./random_price_changes.json";
 
 config({ path: "../../.env" });
 
@@ -15,62 +15,76 @@ type PriceHistory = {
   priceChange: number;
 };
 
-type RandomPriceHistory = {
-  priceHistory: PriceHistory[];
+type PumpTrendRange = {
+  start: number;
+  end: number;
 };
 
+type RandomPriceChanges = {
+  priceHistory: PriceHistory[];
+  pumpTrendRanges: PumpTrendRange[];
+};
+
+const { priceHistory: PRICE_HISTORY, pumpTrendRanges: PUMP_TREND_RANGES } = random_price_changes as RandomPriceChanges;
 const SPEED_FACTOR = 1;
-const USE_PRICE_HISTORY = false;
-const TARGET_TOKEN = "e9e2d8a1-0b57-4b9b-9949-a790de9b24ae";
+const PRECISION = 10 ** 18;
 
-const price_history = (random_price_history as RandomPriceHistory).priceHistory;
-
-//https://stackoverflow.com/questions/8597731/are-there-known-techniques-to-generate-realistic-looking-fake-stock-data
-const getRandomPrice = (volatility: number) => {
-  const random = Math.random();
-  let changePercent = random * volatility * 2;
-
-  if (changePercent > volatility) {
-    changePercent -= 2 * volatility;
+const getPriceHistoryIterator = (startIndex?: number) => {
+  let randomPriceHistoryIndex = 0;
+  if (startIndex === undefined) {
+    const randomPumpTrend = PUMP_TREND_RANGES[Math.floor(Math.random() * PUMP_TREND_RANGES.length)]!;
+    randomPriceHistoryIndex = Math.floor(Math.random() * (randomPumpTrend.end - randomPumpTrend.start));
+  } else {
+    randomPriceHistoryIndex = startIndex;
   }
 
-  const delay = Math.floor(Math.random() * 900) + 100;
-
-  return {
-    priceChange: 1 + changePercent,
-    delayMs: delay,
+  const next = () => {
+    randomPriceHistoryIndex = (randomPriceHistoryIndex + 1) % PRICE_HISTORY.length;
+    return PRICE_HISTORY[randomPriceHistoryIndex]!;
   };
+
+  return { next };
 };
 
 export const start = async () => {
   try {
     const gql = createServerClient({ url: env.GRAPHQL_URL, hasuraAdminSecret: env.HASURA_ADMIN_SECRET });
+    // Remember indexes for when the tokens array changes
+    const currentPriceHistoryIndexes = new Map<string, number>();
 
-    const _tokenPrice = await gql.GetLatestTokenPriceQuery({
-      tokenId: TARGET_TOKEN,
+    // TODO: listen to latest tokens
+    const _latestTokens = await gql.GetAllTokensQuery();
+    const latestTokens = _latestTokens.data?.token;
+
+    latestTokens?.forEach(async (token) => {
+      const tokenId = token.id;
+      // Either get a random entry from the price history, or start again at the current index if the token
+      // was already in the array
+      const lastIndex = currentPriceHistoryIndexes.get(tokenId);
+      const { next } = getPriceHistoryIterator(lastIndex);
+
+      const _tokenPrice = await gql.GetLatestTokenPriceQuery({ tokenId });
+      let tokenPrice = BigInt(_tokenPrice.data?.token_price_history[0]?.price ?? parseEther("1", "gwei"));
+
+      const update = async () => {
+        const historyData = next();
+
+        tokenPrice = (tokenPrice * BigInt(historyData.priceChange * PRECISION)) / BigInt(PRECISION);
+        await gql.AddTokenPriceHistoryMutation({ token: tokenId, price: tokenPrice.toString() });
+        console.log(
+          "Price updated for token",
+          token.name,
+          "change",
+          historyData.priceChange.toFixed(2),
+          "new price",
+          tokenPrice.toString(),
+        );
+
+        await new Promise((resolve) => setTimeout(resolve, historyData.delayMs / SPEED_FACTOR));
+      };
+
+      while (true) await update();
     });
-
-    const tokenPrice = BigInt(_tokenPrice.data?.token_price_history[0]?.price ?? parseEther("1", "gwei"));
-    let index = Math.floor(Math.random() * price_history.length);
-    let currentPrice = tokenPrice;
-    while (true) {
-      const price = USE_PRICE_HISTORY ? price_history[index % price_history.length]! : getRandomPrice(0.2);
-
-      const newPrice = (currentPrice * BigInt(Math.floor(price.priceChange * 1000000000))) / 1000000000n;
-
-      await gql.AddTokenPriceHistoryMutation({
-        token: TARGET_TOKEN,
-        price: newPrice.toString(),
-      });
-
-      console.log("New price", newPrice, "change", price.priceChange);
-
-      currentPrice = newPrice;
-      index++;
-
-      // wait for the delay
-      await new Promise((resolve) => setTimeout(resolve, price.delayMs / SPEED_FACTOR));
-    }
   } catch (err) {
     console.error(err);
     process.exit(1);

@@ -38,6 +38,7 @@ export const CoinDisplay = ({
     query: queries.GetTokenPriceHistorySinceQuery,
     variables: { tokenId: tokenData.id, since: new Date() },
   });
+  console.log({ tokenData, tokenPriceHistory });
 
   const [fetchedInitialPrices, setFetchedInitialPrices] = useState(false);
 
