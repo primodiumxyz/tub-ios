@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-import "dotenv/config";
 import { AppRouter, createAppRouter } from "@/createAppRouter";
 import { TubService } from "@/TubService";
 import { parseEnv } from "@bin/parseEnv";
@@ -9,8 +8,11 @@ import fastifyWebsocket from "@fastify/websocket";
 import { clusterApiUrl, Connection, Keypair } from "@solana/web3.js";
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import { applyWSSHandler } from "@trpc/server/adapters/ws";
-import fastify from "fastify";
 import { createServerClient } from "@tub/gql";
+import { config } from "dotenv";
+import fastify from "fastify";
+
+config({ path: "../../.env" });
 
 const env = parseEnv();
 
@@ -37,8 +39,8 @@ export const start = async () => {
     const core = createCore(wallet, connection);
     if (!process.env.GRAPHQL_URL) {
       throw new Error("GRAPHQL_URL is not set");
-    }   
-    const gqlClient = createServerClient({url: env.GRAPHQL_URL, hasuraAdminSecret: env.HASURA_ADMIN_SECRET});
+    }
+    const gqlClient = createServerClient({ url: env.GRAPHQL_URL, hasuraAdminSecret: env.HASURA_ADMIN_SECRET });
     const tubService = new TubService(core, gqlClient);
 
     // @see https://trpc.io/docs/server/adapters/fastify
@@ -64,4 +66,3 @@ export const start = async () => {
     process.exit(1);
   }
 };
-

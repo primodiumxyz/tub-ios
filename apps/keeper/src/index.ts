@@ -1,9 +1,11 @@
 #!/usr/bin/env node
-import "dotenv/config";
-import { parseEnv } from "../bin/parseEnv";
 import { createServerClient } from "@tub/gql";
-import { parseEther } from 'viem'
-import random_price_history from "./random_price_changes.json"
+import { config } from "dotenv";
+import { parseEther } from "viem";
+import { parseEnv } from "../bin/parseEnv";
+import random_price_history from "./random_price_changes.json";
+
+config({ path: "../../.env" });
 
 const env = parseEnv();
 
@@ -11,11 +13,11 @@ type PriceHistory = {
   index: number;
   delayMs: number;
   priceChange: number;
-}
+};
 
 type RandomPriceHistory = {
   priceHistory: PriceHistory[];
-}
+};
 
 const SPEED_FACTOR = 1;
 const USE_PRICE_HISTORY = false;
@@ -28,38 +30,38 @@ const getRandomPrice = (volatility: number) => {
   const random = Math.random();
   let changePercent = random * volatility * 2;
 
-  if(changePercent > volatility) {
-    changePercent -= (2*volatility);
+  if (changePercent > volatility) {
+    changePercent -= 2 * volatility;
   }
 
   const delay = Math.floor(Math.random() * 900) + 100;
 
   return {
     priceChange: 1 + changePercent,
-    delayMs: delay
+    delayMs: delay,
   };
-}
+};
 
 export const start = async () => {
   try {
     const gql = createServerClient({ url: env.GRAPHQL_URL, hasuraAdminSecret: env.HASURA_ADMIN_SECRET });
 
     const _tokenPrice = await gql.GetLatestTokenPriceQuery({
-      tokenId: TARGET_TOKEN
+      tokenId: TARGET_TOKEN,
     });
 
     const tokenPrice = BigInt(_tokenPrice.data?.token_price_history[0]?.price ?? parseEther("1", "gwei"));
-    let index =  Math.floor(Math.random() * price_history.length);
+    let index = Math.floor(Math.random() * price_history.length);
     let currentPrice = tokenPrice;
     while (true) {
       const price = USE_PRICE_HISTORY ? price_history[index % price_history.length]! : getRandomPrice(0.2);
-      
-      const newPrice = currentPrice * BigInt(Math.floor(price.priceChange * 1000000000))/ 1000000000n;
+
+      const newPrice = (currentPrice * BigInt(Math.floor(price.priceChange * 1000000000))) / 1000000000n;
 
       await gql.AddTokenPriceHistoryMutation({
         token: TARGET_TOKEN,
-        price: newPrice.toString()
-      })
+        price: newPrice.toString(),
+      });
 
       console.log("New price", newPrice, "change", price.priceChange);
 
@@ -67,11 +69,10 @@ export const start = async () => {
       index++;
 
       // wait for the delay
-      await new Promise(resolve => setTimeout(resolve, price.delayMs/SPEED_FACTOR));
+      await new Promise((resolve) => setTimeout(resolve, price.delayMs / SPEED_FACTOR));
     }
   } catch (err) {
     console.error(err);
     process.exit(1);
   }
 };
-
