@@ -1,13 +1,14 @@
-import { useEffect, useState } from "react";
-import { PriceGraph } from "../components/PriceGraph"; // Import the new component
-import { CoinData } from "../utils/generateMemecoin";
-import { useReward } from "react-rewards";
-import Slider from "./Slider";
-import { useTokenBalance } from "../hooks/useTokenBalance";
-import { useSolBalance } from "../hooks/useSolBalance";
-import { useQuery } from "urql";
-import { useServer } from "../hooks/useServer";
 import { queries } from "@tub/gql";
+import { useEffect, useState } from "react";
+import { useReward } from "react-rewards";
+import { useQuery } from "urql";
+import { PriceGraph } from "../components/PriceGraph"; // Import the new component
+
+import { useServer } from "../hooks/useServer";
+import { useSolBalance } from "../hooks/useSolBalance";
+import { useTokenBalance } from "../hooks/useTokenBalance";
+import { CoinData } from "../utils/generateMemecoin";
+import Slider from "./Slider";
 
 type Price = {
   timestamp: number;
@@ -15,19 +16,18 @@ type Price = {
 };
 
 export const CoinDisplay = ({
+  tokenData,
   userId,
-  coinData,
   gotoNext,
 }: {
-  coinData: CoinData;
+  tokenData: CoinData & { id: string };
   userId: string;
   gotoNext?: () => void;
 }) => {
-
   const { balance: solBalance, initialBalance } = useSolBalance({ userId });
   const { balance: coinBalance } = useTokenBalance({
     userId,
-    tokenId: coinData.id,
+    tokenId: tokenData.id,
   });
   const server = useServer();
 
@@ -35,7 +35,7 @@ export const CoinDisplay = ({
 
   const [priceHistory] = useQuery({
     query: queries.GetTokenPriceHistorySinceQuery,
-    variables: { tokenId: coinData.id, since: new Date() },
+    variables: { tokenId: tokenData.id, since: new Date() },
   });
 
   const [fetchedInitialPrices, setFetchedInitialPrices] = useState(false);
@@ -52,7 +52,7 @@ export const CoinDisplay = ({
 
   const [price, refetchPrice] = useQuery({
     query: queries.GetLatestTokenPriceQuery,
-    variables: { tokenId: coinData.id },
+    variables: { tokenId: tokenData.id },
   });
 
   useEffect(() => {
@@ -70,17 +70,12 @@ export const CoinDisplay = ({
 
   useEffect(() => {
     if (!fetchedInitialPrices) return;
-    const currPrice = price.data?.token_price_history[0].price;
+    const currPrice = price.data?.token_price_history[0]?.price;
     if (currPrice === undefined) return;
-    setPrices((prevPrices) => [
-      ...prevPrices,
-      { timestamp: Date.now() / 1000, price: Number(currPrice) },
-    ]);
+    setPrices((prevPrices) => [...prevPrices, { timestamp: Date.now() / 1000, price: Number(currPrice) }]);
   }, [price, fetchedInitialPrices]);
 
-  const [buyAmountUSD, setBuyAmountUSD] = useState(
-    Math.min(10)
-  );
+  const [buyAmountUSD, setBuyAmountUSD] = useState(Math.min(10));
   const [amountBought, setAmountBought] = useState<number | null>(null);
 
   const { reward } = useReward("rewardId", "confetti");
@@ -96,7 +91,7 @@ export const CoinDisplay = ({
     }
     await server.buyToken.mutate({
       accountId: userId,
-      tokenId: coinData.id,
+      tokenId: tokenData.id,
       amount: buyAmountUSD.toString(),
     });
     setBuyAmountUSD(0);
@@ -117,7 +112,7 @@ export const CoinDisplay = ({
 
     await server.sellToken.mutate({
       accountId: userId,
-      tokenId: coinData.id,
+      tokenId: tokenData.id,
       amount: sellAmountCoin.toString(),
     });
     reward();
@@ -154,19 +149,11 @@ export const CoinDisplay = ({
         </div>
         {netWorthChange === 69 && (
           <p>
-            {netWorthChange > 0
-              ? `+$${netWorthChange.toFixed(2)}`
-              : `-$${Math.abs(netWorthChange).toFixed(2)}`}
-            <span
-              className={`inline-block ml-1 ${
-                netWorthChange > 0 ? "text-green-500" : "text-red-500"
-              }`}
-            >
+            {netWorthChange > 0 ? `+$${netWorthChange.toFixed(2)}` : `-$${Math.abs(netWorthChange).toFixed(2)}`}
+            <span className={`inline-block ml-1 ${netWorthChange > 0 ? "text-green-500" : "text-red-500"}`}>
               {netWorthChange > 0 ? "▲" : "▼"}
             </span>
-            <span className="ml-1">
-              {((Math.abs(netWorthChange) / 1000) * 100).toFixed(2)}%
-            </span>
+            <span className="ml-1">{((Math.abs(netWorthChange) / 1000) * 100).toFixed(2)}%</span>
           </p>
         )}
       </div>
@@ -177,29 +164,25 @@ export const CoinDisplay = ({
             src="https://imgs.search.brave.com/K6CRsHMIBDDXbta9YUjY9_Ov9jCCiZVc55qze-tALN4/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93YWxs/cGFwZXJjYXZlLmNv/bS93cC93cDEwNDIw/MDQ1LmpwZw"
           />
           <span className="text-base inline">
-            {coinData?.name} (${coinData?.symbol.toUpperCase()})
+            {tokenData.name} (${tokenData.symbol.toUpperCase()})
           </span>
         </p>
-        <p className="text-2xl font-bold">
-          ${prices[prices.length - 1]?.price.toFixed(3)}
-        </p>
+        <p className="text-2xl font-bold">${prices[prices.length - 1]?.price.toFixed(3)}</p>
       </div>
       <div className="flex flex-col">
         <PriceGraph prices={prices} /> {/* Use the new component */}
         <div className="flex flex-col w-full">
           <div className="mt-6">
-            <p className="text-sm opacity-50">
-              Your ${coinData?.symbol.toUpperCase()} Balance
-            </p>
+            <p className="text-sm opacity-50">Your ${tokenData.symbol.toUpperCase()} Balance</p>
             <h2 className="text-xl font-semibold">
               <span className="font-bold text-lg">
-                {coinBalance.toFixed(3)} ${coinData?.symbol.toUpperCase()}
+                {coinBalance.toFixed(3)} ${tokenData.symbol.toUpperCase()}
               </span>
             </h2>
           </div>
 
           <BuySellForm
-            coinData={coinData}
+            tokenData={tokenData}
             buyAmountUSD={buyAmountUSD}
             setBuyAmountUSD={setBuyAmountUSD}
             handleBuy={handleBuy}
@@ -219,7 +202,7 @@ export const CoinDisplay = ({
 };
 
 const BuySellForm = ({
-  coinData,
+  tokenData,
   buyAmountUSD,
   setBuyAmountUSD,
   handleBuy,
@@ -229,7 +212,7 @@ const BuySellForm = ({
   balance,
   coinBalance,
 }: {
-  coinData: CoinData;
+  tokenData: CoinData;
   buyAmountUSD: number;
   setBuyAmountUSD: (amount: number) => void;
   handleBuy: () => void;
@@ -254,10 +237,7 @@ const BuySellForm = ({
   const change = coinBalance * currentPrice - amountBought;
   return (
     <div className="mt-6 relative">
-      <span
-        className="absolute top-1/2 right-1/2 transform -translate-y-1/2 -translate-x-1/2"
-        id="rewardId"
-      />
+      <span className="absolute top-1/2 right-1/2 transform -translate-y-1/2 -translate-x-1/2" id="rewardId" />
       {activeTab === "buy" ? (
         <div className="p-8 relative bg-white/50 rounded-3xl">
           <div className="flex justify-between items-center">
@@ -275,15 +255,10 @@ const BuySellForm = ({
             </div>
           </div>
           <p className="text-xs opacity-50 w-full text-right mb-2 ">
-            ({(buyAmountUSD / currentPrice).toFixed(2)}{" "}
-            {coinData?.symbol.toUpperCase()})
+            ({(buyAmountUSD / currentPrice).toFixed(2)} {tokenData.symbol.toUpperCase()})
           </p>
 
-          <Slider
-            onSlideComplete={handlePressBuy}
-            disabled={buyAmountUSD <= 0}
-            text="> > > >"
-          />
+          <Slider onSlideComplete={handlePressBuy} disabled={buyAmountUSD <= 0} text="> > > >" />
         </div>
       ) : (
         <div>
@@ -296,11 +271,7 @@ const BuySellForm = ({
               SELL
             </button>
             <div>
-              <span
-                className={`inline-block ml-1 ${
-                  change > 0 ? "text-green-500" : "text-red-500"
-                }`}
-              >
+              <span className={`inline-block ml-1 ${change > 0 ? "text-green-500" : "text-red-500"}`}>
                 {change > 0 ? "▲" : "▼"}
               </span>
               <span className="ml-1">${Math.abs(change).toFixed(2)}</span>
