@@ -40,7 +40,7 @@ export const start = async () => {
     if (!process.env.GRAPHQL_URL) {
       throw new Error("GRAPHQL_URL is not set");
     }
-    const gqlClient = createServerClient({ url: env.GRAPHQL_URL, hasuraAdminSecret: env.HASURA_ADMIN_SECRET });
+    const gqlClient = await createServerClient({ url: env.GRAPHQL_URL, hasuraAdminSecret: env.HASURA_ADMIN_SECRET });
     const tubService = new TubService(core, gqlClient);
 
     // @see https://trpc.io/docs/server/adapters/fastify
