@@ -21,7 +21,7 @@ type RandomPriceHistory = {
 
 const SPEED_FACTOR = 1;
 const USE_PRICE_HISTORY = false;
-const TARGET_TOKEN = "e9e2d8a1-0b57-4b9b-9949-a790de9b24ae";
+const TARGET_TOKEN = "215ec16f-4678-4d7a-9390-897b66ac8f7f";
 
 const price_history = (random_price_history as RandomPriceHistory).priceHistory;
 
@@ -44,7 +44,7 @@ const getRandomPrice = (volatility: number) => {
 
 export const start = async () => {
   try {
-    const gql = createServerClient({ url: env.GRAPHQL_URL, hasuraAdminSecret: env.HASURA_ADMIN_SECRET });
+    const gql = await createServerClient({ url: env.GRAPHQL_URL, hasuraAdminSecret: env.HASURA_ADMIN_SECRET });
 
     const _tokenPrice = await gql.GetLatestTokenPriceQuery({
       tokenId: TARGET_TOKEN,

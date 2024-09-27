@@ -22,6 +22,8 @@
     "@dotenvx/dotenvx": "^1.14.1",
     "@types/node": "^22.6.1",
     "@urql/core": "^5.0.6",
-    "gql.tada": "^1.8.9"
+    "gql.tada": "^1.8.9",
+    "graphql-ws": "^5.16.0",
+    "ws": "^8.18.0"
   }
 }
