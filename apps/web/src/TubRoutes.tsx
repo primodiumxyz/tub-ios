@@ -1,14 +1,14 @@
-import { useWallet } from "@solana/wallet-adapter-react";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { Balance } from "./components/Balance";
-import { NavBar } from "./components/NavBar";
-import ServerStatus from "./components/ServerStatus";
-import { Coins } from "./screens/Coins";
-import IncrementForm from "./screens/IncrementForm";
-import { TubProvider } from "./providers/TubProvider";
-import { useTub } from "./hooks/useTub";
-import { RegisterPane } from "./components/RegisterPane";
+import { useWallet } from '@solana/wallet-adapter-react';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { Balance } from './components/Balance';
+import { NavBar } from './components/NavBar';
+import ServerStatus from './components/ServerStatus';
+import { Coins } from './screens/Coins';
+import IncrementForm from './screens/IncrementForm';
+import { TubProvider } from './providers/TubProvider';
+import { useTub } from './hooks/useTub';
+import { RegisterPane } from './components/RegisterPane';
 
 export const TubRoutes = () => {
   const { publicKey, wallet } = useWallet();
@@ -28,12 +28,12 @@ export const TubRoutes = () => {
   }
   return (
     <TubProvider>
-      <div className="flex flex-col items-center justify-center w-screen h-screen">
-        <div className="absolute top-2 right-2">
+      <div className='flex flex-col items-center justify-center w-screen h-screen'>
+        <div className='absolute top-2 right-2'>
           <WalletMultiButton />
           {publicKey && (
-            <div className="flex gap-2 bg-slate-300 rounded-md p-2 text-sm">
-              Balance: <Balance publicKey={publicKey} />
+            <div className='flex gap-2 bg-slate-300 rounded-md p-2 text-sm'>
+              Balance: <Balance userId={userId} />
             </div>
           )}
         </div>
@@ -42,14 +42,14 @@ export const TubRoutes = () => {
 
         <BrowserRouter>
           <NavBar />
-          <div className="relative max-w-[400px] h-4/5 bg-black rounded-xl p-4 pt-10 overflow-hidden">
+          <div className='relative max-w-[400px] h-4/5 bg-black rounded-xl p-4 pt-10 overflow-hidden'>
             <Routes>
-              <Route path="/" element={<Coins userId={userId} />} />
-              <Route path="/counter" element={<IncrementForm />} />
+              <Route path='/' element={<Coins userId={userId} />} />
+              <Route path='/counter' element={<IncrementForm />} />
               <Route
-                path="*"
+                path='*'
                 element={
-                  <div className="text-white text-2xl">
+                  <div className='text-white text-2xl'>
                     404 - Page Not Found
                   </div>
                 }

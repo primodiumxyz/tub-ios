@@ -1,14 +1,13 @@
-import { PublicKey } from "@solana/web3.js";
-import { useSolBalance } from "../hooks/useSolBalance";
+import { useSolBalance } from '../hooks/useSolBalance';
 
 export const Balance = ({
-  publicKey,
+  userId,
   inline,
 }: {
-  publicKey: PublicKey;
+  userId: string;
   inline?: boolean;
 }) => {
-  const { balance, loading } = useSolBalance({ publicKey });
+  const { balance, loading } = useSolBalance({ userId });
   if (loading) return <div>...</div>;
-  return <div className={inline ? "inline" : ""}>{balance}</div>;
+  return <div className={inline ? 'inline' : ''}>{balance}</div>;
 };
