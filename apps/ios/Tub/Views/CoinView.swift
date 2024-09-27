@@ -18,6 +18,7 @@ struct Price: Identifiable {
     var timestamp: Date
     var price: Double
 }
+
 struct CoinView: View {
     @ObservedObject var coinModel: CoinDisplayViewModel = CoinDisplayViewModel(coinData:CoinData(name: "PEPE", symbol: "PEP"))
 
@@ -53,6 +54,8 @@ struct CoinView: View {
                    .font(.title2)
                    .fontWeight(.bold)
            }
+           
+           ChartView(prices: coinModel.prices)
            BuySellForm(viewModel: coinModel)
            Button(action: {
                          // Handle next token action

@@ -29,7 +29,7 @@ class CoinDisplayViewModel: ObservableObject {
     }
     
     func startPriceUpdates() {
-        Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+        Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
             self.updatePrice()
         }
     }
