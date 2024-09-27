@@ -75,7 +75,8 @@ export const CoinDisplay = ({
   }, [refetchPrice, fetchedInitialPrices]);
 
   useEffect(() => {
-    if (!fetchedInitialPrices) return;
+    if (!fetchedInitialPrices || !price.data || price.data.token_price_history.length === 0) return;
+
     const currPrice = price.data?.token_price_history[0].price;
     if (currPrice === undefined) return;
     setTokenPrices((prevPrices) => [
