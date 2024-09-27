@@ -18,20 +18,20 @@ struct Price: Identifiable {
     var timestamp: Date
     var price: Double
 }
-struct ExploreView: View {
-    var coinModel: CoinDisplayViewModel = CoinDisplayViewModel(coinData:CoinData(name: "PEPE", symbol: "PEP"))
+struct CoinView: View {
+    @ObservedObject var coinModel: CoinDisplayViewModel = CoinDisplayViewModel(coinData:CoinData(name: "PEPE", symbol: "PEP"))
 
    var body: some View {
        VStack {
            Text("Your Net Worth")
                .font(.subheadline)
                .opacity(0.5)
-           Text("$\(coinModel.balance, specifier: "%.2f")")
+           Text("\(coinModel.balance, specifier: "%.2f") SOL")
                .font(.largeTitle)
                .fontWeight(.bold)
    
            if coinModel.balance != 1000 {
-               Text(coinModel.balance > 1000 ? "+$\(coinModel.balance - 1000, specifier: "%.2f")" : "-$\(1000 - coinModel.balance, specifier: "%.2f")")
+               Text(coinModel.balance > 1000 ? "+\(coinModel.balance - 1000, specifier: "%.2f") SOL" : "-\(1000 - coinModel.balance, specifier: "%.2f") SOL")
                    .foregroundColor(coinModel.balance > 1000 ? .green : .red)
             }
             HStack {
@@ -41,7 +41,7 @@ struct ExploreView: View {
                 Text("\(coinModel.coinData.name) (\(coinModel.coinData.symbol.uppercased()))") // Update this line
                     .font(.headline)
             }
-           Text("$\(coinModel.prices.last?.price ?? 0, specifier: "%.3f")")
+           Text("\(coinModel.prices.last?.price ?? 0, specifier: "%.3f") SOL")
                .font(.title)
                .fontWeight(.bold)
            
@@ -53,6 +53,7 @@ struct ExploreView: View {
                    .font(.title2)
                    .fontWeight(.bold)
            }
+           BuySellForm(viewModel: coinModel)
            Button(action: {
                          // Handle next token action
                      }) {
@@ -62,10 +63,13 @@ struct ExploreView: View {
                      }
                      .padding()
        }
+       .frame(maxWidth: .infinity, maxHeight: .infinity) // Add this line
+       .background(.black)
+       .foregroundColor(.white)
     }
 }
 
 
 #Preview {
-    ExploreView()
+    CoinView()
 }
