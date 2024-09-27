@@ -11,14 +11,14 @@ struct HomeTabsView: View {
     var body: some View {
         TabView(selection: /*@START_MENU_TOKEN@*//*@PLACEHOLDER=Selection@*/.constant(1)/*@END_MENU_TOKEN@*/) {
             ExploreView().tabItem {
-                Label("Explore", systemImage: "list.dash")
+                Label("Explore", systemImage: "house")
             }.badge(2)
             CollectionView().tabItem {
-                Label("Collection", systemImage: "list.dash")
-            }.tag(2)
+                Label("Collection", systemImage: "heart")
+            }
             MessageView().tabItem {
-                Label("Message", systemImage: "list.dash")
-            }.tag(3)
+                Label("Message", systemImage: "message")
+            }
         }
     }
 }
