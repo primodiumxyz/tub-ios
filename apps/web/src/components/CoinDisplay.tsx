@@ -10,6 +10,16 @@ import { CoinData, lamportsToSol, solToLamports } from "../utils/generateMemecoi
 import { Price } from "./LamportDisplay";
 import Slider from "./Slider";
 
+// https://stackoverflow.com/questions/8597731/are-there-known-techniques-to-generate-realistic-looking-fake-stock-data
+const VOLATILITY = 0.2;
+const PRECISION = 1e9;
+const getRandomPriceChange = () => {
+  const random = Math.random();
+  let changePercent = random * VOLATILITY * 2;
+  if (changePercent > VOLATILITY) changePercent -= 2 * VOLATILITY;
+  return 1 + changePercent;
+};
+
 export const CoinDisplay = ({
   tokenData,
   userId,
@@ -37,15 +47,60 @@ export const CoinDisplay = ({
     const history = priceHistory.data?.token_price_history ?? [];
     return {
       fetched: history.length > 0,
-      current: BigInt(history[history.length - 1]?.price ?? 0),
+      current: BigInt(history[0]?.price ?? 0),
       history: history
         .map((data) => ({
           timestamp: new Date(data.created_at).getTime() / 1000,
           price: BigInt(data.price),
         }))
-        .reverse(),
+        .sort((a, b) => a.timestamp - b.timestamp),
     };
   }, [priceHistory]);
+
+  // Additional leading data to simulate an initially pumping token (this is why it was displayed)
+  const leadingTokenPricesHistory = useMemo(() => {
+    if (!tokenPrices.fetched) return [];
+    const firstData = tokenPrices.history[0];
+    // Get 5 random decreasing price changes (we're generating the data in reverse)
+    const priceChanges = Array.from({ length: 5 }, () => {
+      let change = getRandomPriceChange();
+      do {
+        change = getRandomPriceChange();
+      } while (change > 1);
+      return change;
+    });
+
+    return (
+      Object.values(
+        priceChanges.reduce(
+          (acc, priceChange, index) => {
+            // Return the next data (effectively the previous data point)
+            const price = (BigInt(acc[index]?.price) * BigInt(Math.floor(priceChange * PRECISION))) / BigInt(PRECISION);
+            acc = [
+              ...acc,
+              {
+                timestamp: Number(acc[index].timestamp) - 1,
+                price,
+              },
+            ];
+
+            return acc;
+          },
+          [
+            {
+              timestamp: firstData.timestamp,
+              price: firstData.price,
+            },
+          ],
+        ),
+      )
+        .sort((a, b) => a.timestamp - b.timestamp)
+        // Remove the last item (since it's a duplicate of the first real data point)
+        .slice(0, -1)
+    );
+  }, [tokenPrices]);
+
+  const history = [...leadingTokenPricesHistory, ...tokenPrices.history];
 
   /* ---------------------------------- Trade --------------------------------- */
   const [buyAmountSOL, setBuyAmountSOL] = useState(Math.min(10));
@@ -150,7 +205,7 @@ export const CoinDisplay = ({
         {!tokenPrices.fetched && <p className="text-2xl font-bold">Loading...</p>}
       </div>
       <div className="flex flex-col">
-        <PriceGraph prices={tokenPrices.history} /> {/* Use the new component */}
+        <PriceGraph prices={history} /> {/* Use the new component */}
         <div className="flex flex-col w-full">
           <div className="mt-6">
             <p className="text-sm opacity-50">Your {tokenData?.symbol.toUpperCase()} Balance</p>
