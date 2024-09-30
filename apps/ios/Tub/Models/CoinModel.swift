@@ -41,16 +41,18 @@ class CoinDisplayViewModel: ObservableObject {
         prices.append(newPrice)
     }
     
-    func handleBuy() {
-        guard let currentPrice = prices.last?.price else { return }
+    func handleBuy() -> Bool {
+        guard let currentPrice = prices.last?.price else { return false }
         let tokenAmount = buyAmountUSD / currentPrice
+        print("amount bought:", buyAmountUSD, tokenAmount)
         if buyAmountUSD <= 0 || buyAmountUSD > balance {
-            return
+            return false
         }
         balance -= buyAmountUSD
         coinBalance += tokenAmount
         amountBought += buyAmountUSD
         buyAmountUSD = 0
+        return true
     }
     
     func handleSell() {

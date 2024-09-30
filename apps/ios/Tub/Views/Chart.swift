@@ -18,6 +18,25 @@ struct ChartView: View {
                     x: .value("Date", price.timestamp),
                     y: .value("Price", price.price)
                 )
+                .foregroundStyle(.blue.opacity(0.8)) // Neon blue line
+                .lineStyle(StrokeStyle(lineWidth: 2))
+            }
+            
+            // Add circle for current price point
+            if let currentPrice = prices.last {
+                PointMark(
+                    x: .value("Date", currentPrice.timestamp),
+                    y: .value("Price", currentPrice.price)
+                )
+                .foregroundStyle(.blue) // Transparent fill
+                .symbolSize(100)
+            }
+            
+            // Add dashed vertical line for current price
+            if let currentPrice = prices.last {
+                RuleMark(x: .value("Date", currentPrice.timestamp))
+                    .foregroundStyle(.blue.opacity(0.8))
+                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
             }
         }
         .chartXAxis {
@@ -30,7 +49,7 @@ struct ChartView: View {
         .chartYAxis {
             AxisMarks(position: .leading)
         }
-        .frame(height: 300)
+        .frame(height: 200)
         .padding()
     }
 }
