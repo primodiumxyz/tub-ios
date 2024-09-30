@@ -26,52 +26,58 @@ struct BuySellForm: View {
     var body: some View {
         VStack {
             if activeTab == "buy" {
-                VStack (alignment: .leading){
-                    HStack(){
-                        Text("Amount")
-                    }
-                    VStack(alignment: .trailing){
-                        TextField("Enter amount", text: $buyAmountString)
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .multilineTextAlignment(.trailing)
-                            .onChange(of: buyAmountString) { newValue in
-                                if let amount = Double(newValue) {
-                                    viewModel.buyAmountUSD = amount
-                                }
-                            }
-                        
-                        
-                        // Add token conversion display
-                        if let currentPrice = viewModel.prices.last?.price, currentPrice > 0 {
-                            let tokenAmount = viewModel.buyAmountUSD / currentPrice
-                            Text("\(tokenAmount, specifier: "%.4f") \(viewModel.coinData.symbol)")
-                                .font(.subheadline)
-                                .opacity(0.5)
-                        }
-                    }
-                    SwipeToEnterView(text: "Slide to buy", onUnlock: handleBuy, disabled : viewModel.buyAmountUSD == 0)
-                    
-                 
-                }.padding(12)
-            } else {
                 VStack {
-                    Button(action: {
-                        viewModel.handleSell()
-                        activeTab = "buy"
-                    }) {
-                        Text("Sell")
-                            .font(.headline)
-                            .padding()
-                            .background(Color.red)
-                            .foregroundColor(.white)
-                            .cornerRadius(10)
+                    VStack (alignment: .leading){
+                        HStack(){
+                            Text("Amount")
+                        }
+                        VStack(alignment: .trailing){
+                            TextField("Enter amount", text: $buyAmountString)
+                                .font(.largeTitle)
+                                .fontWeight(.bold)
+                                .multilineTextAlignment(.trailing)
+                                .onChange(of: buyAmountString) { newValue in
+                                    if let amount = Double(newValue) {
+                                        viewModel.buyAmountUSD = amount
+                                    }
+                                }
+                            
+                            
+                            // Add token conversion display
+                            if let currentPrice = viewModel.prices.last?.price, currentPrice > 0 {
+                                let tokenAmount = viewModel.buyAmountUSD / currentPrice
+                                Text("\(tokenAmount, specifier: "%.4f") \(viewModel.coinData.symbol)")
+                                    .font(.subheadline)
+                                    .opacity(0.5)
+                            }
+                        }
+                        SwipeToEnterView(text: "Slide to buy", onUnlock: handleBuy, disabled : viewModel.buyAmountUSD == 0)
+                        
+                        
+                    }.padding(16)
+                }.background(Color.white.opacity(0.3)).cornerRadius(24)
+            } else {
+                HStack {
+                    Spacer()
+                    VStack {
+                        Button(action: {
+                            viewModel.handleSell()
+                            activeTab = "buy"
+                        }) {
+                            Text("Sell")
+                                .font(.title)
+                                .foregroundColor(.white)
+                                .frame(width: 100, height: 100)
+                                .background(Color.white.opacity(0.5))
+                                .clipShape(Circle())
+                        }
+                        Text("$\(viewModel.coinBalance * (viewModel.prices.last?.price ?? 0) - viewModel.amountBought, specifier: "%.2f")")
+                            .foregroundColor(viewModel.coinBalance * (viewModel.prices.last?.price ?? 0) - viewModel.amountBought > 0 ? .green : .red)
                     }
-                    Text("$\(viewModel.coinBalance * (viewModel.prices.last?.price ?? 0) - viewModel.amountBought, specifier: "%.2f")")
-                        .foregroundColor(viewModel.coinBalance * (viewModel.prices.last?.price ?? 0) - viewModel.amountBought > 0 ? .green : .red)
-                }
+                    Spacer()
+                }.padding(12)
             }
-        }.background(Color.white.opacity(0.3)).cornerRadius(24).padding(4).frame(height: 250)
+        }.frame(height: 250)
     }
 }
 

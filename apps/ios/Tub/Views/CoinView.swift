@@ -8,22 +8,12 @@
 import SwiftUI
 import Combine
 
-struct CoinData {
-    var name: String
-    var symbol: String
-}
-
-struct Price: Identifiable {
-    var id = UUID()
-    var timestamp: Date
-    var price: Double
-}
 
 struct CoinView: View {
     @ObservedObject var coinModel: CoinDisplayViewModel = CoinDisplayViewModel(coinData:CoinData(name: "PEPE", symbol: "PEP"))
 
    var body: some View {
-       VStack (alignment: .leading) {
+       VStack () {
         VStack (alignment: .leading) {
             VStack(alignment: .leading) {
                 Text("Your Net Worth")

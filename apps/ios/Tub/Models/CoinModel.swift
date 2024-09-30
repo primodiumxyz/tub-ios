@@ -8,6 +8,17 @@
 import SwiftUI
 import Combine
 
+struct CoinData {
+    var name: String
+    var symbol: String
+}
+
+struct Price: Identifiable {
+    var id = UUID()
+    var timestamp: Date
+    var price: Double
+}
+
 class CoinDisplayViewModel: ObservableObject {
     @Published var balance: Double = 1000
     @Published var coinBalance: Double = 0
