@@ -60,9 +60,10 @@ export const PriceGraph = ({ prices, refPrice, boughtPrice, timeUntilNextToken }
       .attr("y1", referencePriceY)
       .attr("x2", width - margin.right)
       .attr("y2", referencePriceY)
-      .attr("stroke", boughtPrice ? "#FFD700" : "#fff")
+      .attr("stroke", boughtPrice ? "#FFD700" : "#FFFFFF")
       .attr("stroke-width", 1)
-      .attr("stroke-dasharray", "5,5");
+      .attr("stroke-dasharray", "5,5")
+      .attr("opacity", 0.5);
 
     // Add a circle at the end of the line
     const lastData = prices.length > 1 ? prices[prices.length - 1] : prices[0];

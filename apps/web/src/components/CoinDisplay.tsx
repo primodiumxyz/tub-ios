@@ -1,7 +1,7 @@
-import { queries } from "@tub/gql";
+import { subscriptions } from "@tub/gql";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useReward } from "react-rewards";
-import { useQuery } from "urql";
+import { useSubscription } from "urql";
 import { PriceGraph } from "../components/PriceGraph"; // Import the new component
 import { useServer } from "../hooks/useServer";
 import { useSolBalance } from "../hooks/useSolBalance";
@@ -42,24 +42,23 @@ export const CoinDisplay = ({
 
   /* --------------------------------- History -------------------------------- */
   const variables = useMemo(() => ({ tokenId: tokenData.id, since: new Date() }), [tokenData.id]);
-  const [priceHistory, fetchPriceHistory] = useQuery({
-    query: queries.GetTokenPriceHistorySinceQuery,
+  const [priceHistory] = useSubscription({
+    query: subscriptions.GetTokenPriceHistorySinceSubscription,
     variables,
-    requestPolicy: "network-only",
   });
 
   const tokenPrices = useMemo(() => {
     const history = priceHistory.data?.token_price_history ?? [];
-    console.log(history);
+    const formattedHistory = history
+      .map((data) => ({
+        timestamp: new Date(data.created_at).getTime() / 1000,
+        price: BigInt(data.price),
+      }))
+      .sort((a, b) => a.timestamp - b.timestamp);
     return {
       loading: history.length === 0,
-      current: BigInt(history[history.length - 1]?.price ?? 0),
-      history: history
-        .map((data) => ({
-          timestamp: new Date(data.created_at).getTime() / 1000,
-          price: BigInt(data.price),
-        }))
-        .sort((a, b) => a.timestamp - b.timestamp),
+      current: BigInt(formattedHistory[history.length - 1]?.price ?? 0),
+      history: formattedHistory,
     };
   }, [priceHistory]);
 
@@ -117,7 +116,7 @@ export const CoinDisplay = ({
 
   useEffect(() => {
     const interval = setInterval(() => {
-      fetchPriceHistory();
+      // fetchPriceHistory();
     }, 1000);
     return () => clearInterval(interval);
   }, []);
