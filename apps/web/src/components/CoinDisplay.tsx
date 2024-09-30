@@ -1,5 +1,5 @@
 import { subscriptions } from "@tub/gql";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useReward } from "react-rewards";
 import { useSubscription } from "urql";
 import { PriceGraph } from "../components/PriceGraph"; // Import the new component
@@ -9,6 +9,8 @@ import { useTokenBalance } from "../hooks/useTokenBalance";
 import { CoinData, lamportsToSol, solToLamports } from "../utils/generateMemecoin";
 import { Price } from "./LamportDisplay";
 import Slider from "./Slider";
+
+const TIME_UNTIL_NEXT_TOKEN = 60;
 
 // https://stackoverflow.com/questions/8597731/are-there-known-techniques-to-generate-realistic-looking-fake-stock-data
 const VOLATILITY = 0.2;
@@ -35,6 +37,7 @@ export const CoinDisplay = ({
     tokenId: tokenData.id,
   });
   const server = useServer();
+  const [timeUntilNextToken, setTimeUntilNextToken] = useState(0);
 
   /* --------------------------------- History -------------------------------- */
   const variables = useMemo(() => ({ tokenId: tokenData.id, since: new Date() }), [tokenData.id]);
@@ -130,7 +133,7 @@ export const CoinDisplay = ({
     setBuyPrice(tokenPrices.current);
   };
 
-  const handleSell = async () => {
+  const handleSell = useCallback(async () => {
     const sellAmountCoin = tokenBalance;
 
     if (sellAmountCoin <= 0) {
@@ -150,13 +153,33 @@ export const CoinDisplay = ({
     reward();
 
     setAmountBought(10);
-  };
+    setTimeout(() => {
+      gotoNext?.();
+    }, 2000);
+  }, [userId, tokenData.id, tokenBalance, server, reward, gotoNext]);
 
   const netWorthChange = SOLBalance - initialBalance;
 
   useEffect(() => {
     setBuyPrice(undefined);
+    setTimeUntilNextToken(TIME_UNTIL_NEXT_TOKEN);
   }, [tokenData.id]);
+
+  // After some amount is bought, we can ride it for TIME_UNTIL_NEXT_TOKEN
+  useEffect(() => {
+    if (!amountBought) return;
+
+    const interval = setInterval(() => {
+      setTimeUntilNextToken((t) => t - 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [amountBought]);
+
+  useEffect(() => {
+    if (amountBought && timeUntilNextToken === 0) {
+      handleSell();
+    }
+  }, [amountBought, timeUntilNextToken, handleSell]);
 
   return (
     <div className="relative text-white">
@@ -211,7 +234,7 @@ export const CoinDisplay = ({
         {!tokenPrices.fetched && <p className="text-2xl font-bold">Loading...</p>}
       </div>
       <div className="flex flex-col">
-        <PriceGraph prices={history} buyPrice={buyPrice} />
+        <PriceGraph prices={history} buyPrice={buyPrice} timeUntilNextToken={timeUntilNextToken} />
         <div className="flex flex-col w-full">
           <div className="mt-6">
             <p className="text-sm opacity-50">Your {tokenData?.symbol.toUpperCase()} Balance</p>

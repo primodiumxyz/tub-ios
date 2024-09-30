@@ -9,9 +9,10 @@ type Price = {
 type PriceGraphProps = {
   prices: Price[];
   buyPrice: bigint | undefined;
+  timeUntilNextToken: number;
 };
 
-export const PriceGraph = ({ prices, buyPrice }: PriceGraphProps) => {
+export const PriceGraph = ({ prices, buyPrice, timeUntilNextToken }: PriceGraphProps) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const width = 300;
   const height = 200;
@@ -99,11 +100,16 @@ export const PriceGraph = ({ prices, buyPrice }: PriceGraphProps) => {
       .attr("fill", "black")
       .attr("font-size", "12px")
       .text(`${pctChange.toFixed(0)}%`);
-  }, [prices]);
+  }, [prices, buyPrice]);
 
   return (
-    <div className="shadow-lg rounded-lg p-5">
+    <div className="shadow-lg rounded-lg p-5 relative">
       <svg ref={svgRef} width={width} height={height}></svg>
+      {timeUntilNextToken <= 10 && (
+        <span className="text-6xl text-center font-bold opacity-50 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+          {Math.max(timeUntilNextToken, 0)}
+        </span>
+      )}
     </div>
   );
 };
