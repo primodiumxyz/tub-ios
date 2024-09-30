@@ -11,7 +11,7 @@ import SwiftUI
 struct TubApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView().font(.sfRounded())
         }
     }
 }

@@ -14,5 +14,9 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
+    ContentView().background(
+                Rectangle()
+                    .foregroundColor(.gray)
+            )
+
 }

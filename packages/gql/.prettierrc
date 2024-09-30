@@ -1,0 +1,29 @@
+{
+  "tabWidth": 2,
+  "proseWrap": "preserve",
+  "printWidth": 120,
+  "bracketSpacing": true,
+  "arrowParens": "always",
+  "htmlWhitespaceSensitivity": "css",
+  "semi": true,
+  "useTabs": false,
+  "quoteProps": "as-needed",
+  "requirePragma": false,
+  "importOrder": [
+    "^@latticexyz/(.*)$",
+    "<THIRD_PARTY_MODULES>",
+    "contracts/(.*)$",
+    "",
+    "^@primodiumxyz/(.*)$",
+    "^@core/(.*)$",
+    "",
+    "^[./]"
+  ],
+  "importOrderSeparation": false,
+  "importOrderSortSpecifiers": true,
+  "importOrderBuiltinModulesToTop": true,
+  "importOrderParserPlugins": ["typescript", "jsx", "decorators-legacy"],
+  "importOrderMergeDuplicateImports": true,
+  "importOrderCombineTypeAndValueImports": true,
+  "plugins": ["@ianvs/prettier-plugin-sort-imports"]
+}

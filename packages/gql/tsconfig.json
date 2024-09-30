@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "@core/*": ["./src/*"]
+    },
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "plugins": [ 
+      { 
+        "name": "gql.tada/ts-plugin", 
+        "tadaOutputLocation": "./src/lib/graphql-env.d.ts",
+		    "schema": "./src/lib/schema.graphql"
+      } 
+    ]
+  },
+  "extends": "../../.tsconfigs/bundler/dom/library-monorepo.json",
+  "exclude": ["node_modules", "dist"],
+  "include": ["./src/**/*"],
+  "skipLibCheck": true,
+  "target": "ESNext",
+  "allowJs": true,
+  "moduleDetection": "force",
+  "isolatedModules": true,
+  "verbatimModuleSyntax": false
+}

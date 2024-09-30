@@ -7,7 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		DB10A95D2CA5AA1B00B1E4F3 /* ExploreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB10A95C2CA5AA1B00B1E4F3 /* ExploreView.swift */; };
+		9910F1B62CAAE302005DEE6B /* SFRounded.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9910F1B52CAAE2FD005DEE6B /* SFRounded.swift */; };
+		9910F1BA2CAAEB80005DEE6B /* SwipeToEnterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9910F1B92CAAEB77005DEE6B /* SwipeToEnterView.swift */; };
+		999F59562CA6F97100E7AE9F /* CoinModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999F59552CA6F96D00E7AE9F /* CoinModel.swift */; };
+		999F59582CA7107C00E7AE9F /* BuySellForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999F59572CA7107A00E7AE9F /* BuySellForm.swift */; };
+		999F595B2CA754FB00E7AE9F /* Chart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999F595A2CA754F900E7AE9F /* Chart.swift */; };
+		DB10A95D2CA5AA1B00B1E4F3 /* CoinView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB10A95C2CA5AA1B00B1E4F3 /* CoinView.swift */; };
 		DB10A95F2CA5AA3900B1E4F3 /* CollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB10A95E2CA5AA3900B1E4F3 /* CollectionView.swift */; };
 		DB10A9612CA5AA4600B1E4F3 /* MessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB10A9602CA5AA4600B1E4F3 /* MessageView.swift */; };
 		DB675A332CA2B73D006FC9B3 /* HomeTabsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB675A322CA2B73D006FC9B3 /* HomeTabsView.swift */; };
@@ -38,7 +43,12 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		DB10A95C2CA5AA1B00B1E4F3 /* ExploreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreView.swift; sourceTree = "<group>"; };
+		9910F1B52CAAE2FD005DEE6B /* SFRounded.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SFRounded.swift; sourceTree = "<group>"; };
+		9910F1B92CAAEB77005DEE6B /* SwipeToEnterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwipeToEnterView.swift; sourceTree = "<group>"; };
+		999F59552CA6F96D00E7AE9F /* CoinModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoinModel.swift; sourceTree = "<group>"; };
+		999F59572CA7107A00E7AE9F /* BuySellForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuySellForm.swift; sourceTree = "<group>"; };
+		999F595A2CA754F900E7AE9F /* Chart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chart.swift; sourceTree = "<group>"; };
+		DB10A95C2CA5AA1B00B1E4F3 /* CoinView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoinView.swift; sourceTree = "<group>"; };
 		DB10A95E2CA5AA3900B1E4F3 /* CollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionView.swift; sourceTree = "<group>"; };
 		DB10A9602CA5AA4600B1E4F3 /* MessageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageView.swift; sourceTree = "<group>"; };
 		DB675A322CA2B73D006FC9B3 /* HomeTabsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeTabsView.swift; sourceTree = "<group>"; };
@@ -80,6 +90,37 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		9910F1B42CAAE2F0005DEE6B /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				9910F1B52CAAE2FD005DEE6B /* SFRounded.swift */,
+			);
+			path = Fonts;
+			sourceTree = "<group>";
+		};
+		999F59522CA6F6A900E7AE9F /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				9910F1B92CAAEB77005DEE6B /* SwipeToEnterView.swift */,
+				999F595A2CA754F900E7AE9F /* Chart.swift */,
+				999F59572CA7107A00E7AE9F /* BuySellForm.swift */,
+				DB6D29062CA1C8F70099951A /* ContentView.swift */,
+				DB675A322CA2B73D006FC9B3 /* HomeTabsView.swift */,
+				DB10A95E2CA5AA3900B1E4F3 /* CollectionView.swift */,
+				DB10A9602CA5AA4600B1E4F3 /* MessageView.swift */,
+				DB10A95C2CA5AA1B00B1E4F3 /* CoinView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		999F59532CA6F70C00E7AE9F /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				999F59552CA6F96D00E7AE9F /* CoinModel.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
 		DB6D28F82CA1C8F70099951A = {
 			isa = PBXGroup;
 			children = (
@@ -103,12 +144,10 @@
 		DB6D29032CA1C8F70099951A /* Tub */ = {
 			isa = PBXGroup;
 			children = (
+				9910F1B42CAAE2F0005DEE6B /* Fonts */,
+				999F59532CA6F70C00E7AE9F /* Models */,
+				999F59522CA6F6A900E7AE9F /* Views */,
 				DB6D29042CA1C8F70099951A /* TubApp.swift */,
-				DB6D29062CA1C8F70099951A /* ContentView.swift */,
-				DB675A322CA2B73D006FC9B3 /* HomeTabsView.swift */,
-				DB10A95E2CA5AA3900B1E4F3 /* CollectionView.swift */,
-				DB10A9602CA5AA4600B1E4F3 /* MessageView.swift */,
-				DB10A95C2CA5AA1B00B1E4F3 /* ExploreView.swift */,
 				DB6D29082CA1C8F80099951A /* Assets.xcassets */,
 				DB6D290A2CA1C8F80099951A /* Tub.entitlements */,
 				DB6D290B2CA1C8F80099951A /* Preview Content */,
@@ -229,6 +268,9 @@
 				Base,
 			);
 			mainGroup = DB6D28F82CA1C8F70099951A;
+			packageReferences = (
+				999F59592CA754CB00E7AE9F /* XCRemoteSwiftPackageReference "Charts" */,
+			);
 			productRefGroup = DB6D29022CA1C8F70099951A /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -271,12 +313,17 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9910F1B62CAAE302005DEE6B /* SFRounded.swift in Sources */,
+				999F59582CA7107C00E7AE9F /* BuySellForm.swift in Sources */,
 				DB10A9612CA5AA4600B1E4F3 /* MessageView.swift in Sources */,
 				DB675A332CA2B73D006FC9B3 /* HomeTabsView.swift in Sources */,
 				DB10A95F2CA5AA3900B1E4F3 /* CollectionView.swift in Sources */,
 				DB6D29072CA1C8F70099951A /* ContentView.swift in Sources */,
-				DB10A95D2CA5AA1B00B1E4F3 /* ExploreView.swift in Sources */,
+				999F595B2CA754FB00E7AE9F /* Chart.swift in Sources */,
+				DB10A95D2CA5AA1B00B1E4F3 /* CoinView.swift in Sources */,
+				9910F1BA2CAAEB80005DEE6B /* SwipeToEnterView.swift in Sources */,
 				DB6D29052CA1C8F70099951A /* TubApp.swift in Sources */,
+				999F59562CA6F97100E7AE9F /* CoinModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -625,6 +672,17 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		999F59592CA754CB00E7AE9F /* XCRemoteSwiftPackageReference "Charts" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/danielgindi/Charts.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.1.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
 	};
 	rootObject = DB6D28F92CA1C8F70099951A /* Project object */;
 }
