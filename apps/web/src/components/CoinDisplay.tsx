@@ -62,17 +62,21 @@ export const CoinDisplay = ({
   }, [priceHistory]);
 
   // Additional leading data to simulate an initially pumping token (this is why it was displayed)
+  const priceChanges = useMemo(
+    () =>
+      Array.from({ length: 5 }, () => {
+        // Get 5 random decreasing price changes (we're generating the data in reverse)
+        let change = getRandomPriceChange();
+        do {
+          change = getRandomPriceChange();
+        } while (change > 1);
+        return change;
+      }),
+    [],
+  );
   const leadingTokenPricesHistory = useMemo(() => {
     if (!tokenPrices.fetched) return [];
     const firstData = tokenPrices.history[0];
-    // Get 5 random decreasing price changes (we're generating the data in reverse)
-    const priceChanges = Array.from({ length: 5 }, () => {
-      let change = getRandomPriceChange();
-      do {
-        change = getRandomPriceChange();
-      } while (change > 1);
-      return change;
-    });
 
     return (
       Object.values(
@@ -102,9 +106,14 @@ export const CoinDisplay = ({
         // Remove the last item (since it's a duplicate of the first real data point)
         .slice(0, -1)
     );
-  }, [tokenPrices]);
+  }, [tokenPrices, priceChanges]);
 
-  const history = [...leadingTokenPricesHistory, ...tokenPrices.history];
+  const history = useMemo(
+    () => [...leadingTokenPricesHistory, ...tokenPrices.history],
+    [leadingTokenPricesHistory, tokenPrices.history],
+  );
+
+  console.log({ ref: history[0]?.price });
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -243,7 +252,7 @@ export const CoinDisplay = ({
       </div>
       <div className="flex flex-col">
         <PriceGraph
-          prices={history.slice(-10)}
+          prices={history.slice(-20)}
           refPrice={buyPrice ?? history[0]?.price}
           timeUntilNextToken={timeUntilNextToken}
         />
