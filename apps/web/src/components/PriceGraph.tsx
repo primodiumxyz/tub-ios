@@ -8,9 +8,10 @@ type Price = {
 
 type PriceGraphProps = {
   prices: Price[];
+  buyPrice: bigint | undefined;
 };
 
-export const PriceGraph = ({ prices }: PriceGraphProps) => {
+export const PriceGraph = ({ prices, buyPrice }: PriceGraphProps) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const width = 300;
   const height = 200;
@@ -49,11 +50,11 @@ export const PriceGraph = ({ prices }: PriceGraphProps) => {
       .attr("d", line);
 
     // Add a circle at the end of the line
-    const lastPrice = prices.length > 1 ? prices[prices.length - 1] : prices[0];
-    const secondLastPrice = prices.length > 2 ? prices[prices.length - 2] : prices[0];
-    const lastX = x(new Date(lastPrice.timestamp));
-    const lastY = y(Number(lastPrice.price));
-    const pctChange = ((Number(lastPrice.price) - Number(secondLastPrice.price)) / Number(secondLastPrice.price)) * 100;
+    const lastData = prices.length > 1 ? prices[prices.length - 1] : prices[0];
+    const refPrice = buyPrice ?? prices[0].price;
+    const lastX = x(new Date(lastData.timestamp));
+    const lastY = y(Number(lastData.price));
+    const pctChange = ((Number(lastData.price) - Number(refPrice)) / Number(refPrice)) * 100;
     const pctChangeColor = pctChange > 0 ? "lawngreen" : "#FF6666"; // Lighten the red color
     svg
       .append("line")

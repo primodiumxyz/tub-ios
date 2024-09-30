@@ -520,8 +520,6 @@ export const solToLamports = (sol: number) => {
 
 export const lamportsToSol = (lamports: bigint) => {
   const raw = Number(lamports) / 1_000_000_000;
-  if (raw < 0.001) {
-    return raw;
-  }
+  if (raw < 0.001) return raw;
   return Number(raw.toFixed(2));
 };
