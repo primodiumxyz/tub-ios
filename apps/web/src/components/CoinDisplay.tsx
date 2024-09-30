@@ -11,6 +11,7 @@ import { Price } from "./LamportDisplay";
 import Slider from "./Slider";
 
 const TIME_UNTIL_NEXT_TOKEN = 60;
+const LEADING_PRICES_LENGTH = 5;
 
 // https://stackoverflow.com/questions/8597731/are-there-known-techniques-to-generate-realistic-looking-fake-stock-data
 const VOLATILITY = 0.2;
@@ -49,9 +50,10 @@ export const CoinDisplay = ({
 
   const tokenPrices = useMemo(() => {
     const history = priceHistory.data?.token_price_history ?? [];
+    console.log(history);
     return {
-      fetched: history.length > 0,
-      current: BigInt(history[0]?.price ?? 0),
+      loading: history.length === 0,
+      current: BigInt(history[history.length - 1]?.price ?? 0),
       history: history
         .map((data) => ({
           timestamp: new Date(data.created_at).getTime() / 1000,
@@ -64,7 +66,7 @@ export const CoinDisplay = ({
   // Additional leading data to simulate an initially pumping token (this is why it was displayed)
   const priceChanges = useMemo(
     () =>
-      Array.from({ length: 5 }, () => {
+      Array.from({ length: LEADING_PRICES_LENGTH }, () => {
         // Get 5 random decreasing price changes (we're generating the data in reverse)
         let change = getRandomPriceChange();
         do {
@@ -75,7 +77,7 @@ export const CoinDisplay = ({
     [],
   );
   const leadingTokenPricesHistory = useMemo(() => {
-    if (!tokenPrices.fetched) return [];
+    if (tokenPrices.loading) return [];
     const firstData = tokenPrices.history[0];
 
     return (
@@ -123,6 +125,7 @@ export const CoinDisplay = ({
   /* ---------------------------------- Trade --------------------------------- */
   const [buyAmountSOL, setBuyAmountSOL] = useState(Math.min(10));
   const [amountBought, setAmountBought] = useState<number | null>(null);
+  const [boughtPrice, setBoughtPrice] = useState<bigint | null>(null);
   const { reward } = useReward("rewardId", "confetti");
 
   const handleBuy = async () => {
@@ -138,6 +141,7 @@ export const CoinDisplay = ({
     const tokenPrice = tokenPrices.current ?? 1n;
     const amount = (1_000_000_000n * solToLamports(buyAmountSOL)) / tokenPrice;
 
+    setBoughtPrice(tokenPrices.current);
     await server.buyToken.mutate({
       accountId: userId,
       tokenId: tokenData.id,
@@ -149,15 +153,7 @@ export const CoinDisplay = ({
 
   const handleSell = useCallback(async () => {
     const sellAmountCoin = tokenBalance;
-
-    if (sellAmountCoin <= 0) {
-      alert("Please enter a valid amount to sell");
-      return;
-    }
-    if (sellAmountCoin > tokenBalance) {
-      alert("Insufficient coins to sell");
-      return;
-    }
+    if (sellAmountCoin <= 0) return;
 
     await server.sellToken.mutate({
       accountId: userId,
@@ -176,6 +172,7 @@ export const CoinDisplay = ({
 
   useEffect(() => {
     setTimeUntilNextToken(TIME_UNTIL_NEXT_TOKEN);
+    setBoughtPrice(null);
   }, [tokenData.id]);
 
   // After some amount is bought, we can ride it for TIME_UNTIL_NEXT_TOKEN
@@ -239,15 +236,20 @@ export const CoinDisplay = ({
             {tokenData.name} (${tokenData.symbol.toUpperCase()})
           </span>
         </p>
-        {tokenPrices.fetched && (
+        {!tokenPrices.loading && (
           <p className="text-2xl font-bold">
             <Price lamports={tokenPrices.current} /> SOL
           </p>
         )}
-        {!tokenPrices.fetched && <p className="text-2xl font-bold">Loading...</p>}
+        {tokenPrices.loading && <p className="text-2xl font-bold">Loading...</p>}
       </div>
       <div className="flex flex-col">
-        <PriceGraph prices={history.slice(-20)} refPrice={history[0]?.price} timeUntilNextToken={timeUntilNextToken} />
+        <PriceGraph
+          prices={history.slice(-20)}
+          refPrice={history[LEADING_PRICES_LENGTH]?.price}
+          boughtPrice={boughtPrice}
+          timeUntilNextToken={timeUntilNextToken}
+        />
         <div className="flex flex-col w-full">
           <div className="mt-6">
             <p className="text-sm opacity-50">Your {tokenData?.symbol.toUpperCase()} Balance</p>
@@ -275,9 +277,20 @@ export const CoinDisplay = ({
             balance={SOLBalance}
             coinBalance={tokenBalance}
             amountBought={amountBought ?? 0}
+            loading={tokenPrices.loading}
           />
         </div>
-        <button onClick={gotoNext} className="mt-4 p-3">
+        <button
+          onClick={() => {
+            if (amountBought) {
+              handleSell();
+            } else {
+              gotoNext?.();
+            }
+          }}
+          className="mt-4 p-3 disabled:opacity-50"
+          disabled={tokenPrices.loading}
+        >
           <p className="text-sm font-bold text-yellow-300"> Next token</p>
         </button>
       </div>
@@ -295,6 +308,7 @@ const BuySellForm = ({
   amountBought,
   balance,
   coinBalance,
+  loading,
 }: {
   tokenData: CoinData;
   buyAmountSOL: number;
@@ -305,6 +319,7 @@ const BuySellForm = ({
   amountBought: number;
   balance: bigint;
   coinBalance: bigint;
+  loading: boolean;
 }) => {
   const [activeTab, setActiveTab] = useState<"buy" | "sell">("buy");
 
@@ -337,11 +352,14 @@ const BuySellForm = ({
             />
             <span className="font-bold text-2xl inline text-right">{buyAmountSOL} SOL</span>
           </div>
-          <p className="text-xs opacity-50 w-full text-right mb-2 ">
-            ({(buyAmountSOL / Number(lamportsToSol(currentPrice))).toFixed(4)} {tokenData?.symbol.toUpperCase()})
-          </p>
+          {!loading && (
+            <p className="text-xs opacity-50 w-full text-right mb-2 ">
+              ({(buyAmountSOL / Number(lamportsToSol(currentPrice))).toFixed(4)} {tokenData?.symbol.toUpperCase()})
+            </p>
+          )}
+          {loading && <p className="text-xs opacity-50 w-full text-right mb-2 ">...</p>}
 
-          <Slider onSlideComplete={handlePressBuy} disabled={buyAmountSOL <= 0} text="> > > >" />
+          <Slider onSlideComplete={handlePressBuy} disabled={buyAmountSOL <= 0 || loading} text="> > > >" />
         </div>
       ) : (
         <div>
@@ -357,6 +375,7 @@ const BuySellForm = ({
               <span className={`inline-block ml-1 ${change > 0 ? "text-green-500" : "text-red-500"}`}>
                 {change > 0 ? "▲" : "▼"}
               </span>
+              <Price className="ml-1" lamports={change} /> SOL
             </div>
           </div>
         </div>

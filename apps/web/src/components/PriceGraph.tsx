@@ -9,10 +9,11 @@ type Price = {
 type PriceGraphProps = {
   prices: Price[];
   refPrice: bigint;
+  boughtPrice: bigint | null;
   timeUntilNextToken: number;
 };
 
-export const PriceGraph = ({ prices, refPrice, timeUntilNextToken }: PriceGraphProps) => {
+export const PriceGraph = ({ prices, refPrice, boughtPrice, timeUntilNextToken }: PriceGraphProps) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const width = 300;
   const height = 200;
@@ -50,11 +51,25 @@ export const PriceGraph = ({ prices, refPrice, timeUntilNextToken }: PriceGraphP
       .attr("stroke-width", 1.5)
       .attr("d", line);
 
+    // Add horizontal bar for refPrice or boughtPrice
+    const referencePrice = boughtPrice ?? refPrice;
+    const referencePriceY = y(Number(referencePrice));
+    svg
+      .append("line")
+      .attr("x1", margin.left)
+      .attr("y1", referencePriceY)
+      .attr("x2", width - margin.right)
+      .attr("y2", referencePriceY)
+      .attr("stroke", boughtPrice ? "#FFD700" : "#fff")
+      .attr("stroke-width", 1)
+      .attr("stroke-dasharray", "5,5");
+
     // Add a circle at the end of the line
     const lastData = prices.length > 1 ? prices[prices.length - 1] : prices[0];
     const lastX = x(new Date(lastData.timestamp));
     const lastY = y(Number(lastData.price));
-    const pctChange = ((Number(lastData.price) - Number(refPrice)) / Number(refPrice)) * 100;
+    const pctChange =
+      ((Number(lastData.price) - Number(boughtPrice ?? refPrice)) / Number(boughtPrice ?? refPrice)) * 100;
     const pctChangeColor = pctChange > 0 ? "lawngreen" : "#FF6666"; // Lighten the red color
     svg
       .append("line")
@@ -99,7 +114,7 @@ export const PriceGraph = ({ prices, refPrice, timeUntilNextToken }: PriceGraphP
       .attr("fill", "black")
       .attr("font-size", "12px")
       .text(`${pctChange.toFixed(0)}%`);
-  }, [prices, refPrice]);
+  }, [prices, refPrice, boughtPrice]);
 
   return (
     <div className="shadow-lg rounded-lg p-5 relative">
