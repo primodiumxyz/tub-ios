@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
 import * as d3 from "d3";
+import { useEffect, useRef } from "react";
 
 type Price = {
   timestamp: number;
@@ -19,7 +19,7 @@ export const PriceGraph = ({ prices }: PriceGraphProps) => {
 
     const svg = d3.select(svgRef.current);
 
-    const margin = { top: 20, right: 30, bottom: 20, left: 10 }; // Adjusted margins for labels
+    const margin = { top: 25, right: 30, bottom: 20, left: 10 }; // Adjusted margins for labels
 
     const x = d3
       .scaleTime()
@@ -40,8 +40,6 @@ export const PriceGraph = ({ prices }: PriceGraphProps) => {
 
     svg.selectAll("*").remove();
 
-
-
     svg
       .append("path")
       .datum(prices)
@@ -57,15 +55,15 @@ export const PriceGraph = ({ prices }: PriceGraphProps) => {
     const lastY = y(Number(lastPrice.price));
     const pctChange = ((Number(lastPrice.price) - Number(secondLastPrice.price)) / Number(secondLastPrice.price)) * 100;
     const pctChangeColor = pctChange > 0 ? "lawngreen" : "#FF6666"; // Lighten the red color
-  svg
-    .append("line")
-    .attr("x1", lastX)
-    .attr("y1", margin.top)
-    .attr("x2", lastX)
-    .attr("y2", height - margin.bottom)
-    .attr("stroke", pctChangeColor)
-    .attr("stroke-width", 1)
-    .attr("stroke-dasharray", "3,3");
+    svg
+      .append("line")
+      .attr("x1", lastX)
+      .attr("y1", margin.top)
+      .attr("x2", lastX)
+      .attr("y2", height - margin.bottom)
+      .attr("stroke", pctChangeColor)
+      .attr("stroke-width", 1)
+      .attr("stroke-dasharray", "3,3");
     svg
       .append("circle")
       .attr("cx", lastX)
@@ -103,7 +101,7 @@ export const PriceGraph = ({ prices }: PriceGraphProps) => {
   }, [prices]);
 
   return (
-    <div className="shadow-lg rounded-lg p-4">
+    <div className="shadow-lg rounded-lg p-5">
       <svg ref={svgRef} width={width} height={height}></svg>
     </div>
   );

@@ -30,10 +30,8 @@ export const Coins = ({ userId }: { userId: string }) => {
 
   if (fetching) return <div className="text-white">Loading...</div>;
   if (error) return <div className="text-white">Error: failed to register new token</div>;
-
-  if (tokenData.current) {
+  if (tokenData.current)
     return <CoinDisplay tokenData={tokenData.current} userId={userId} gotoNext={() => requestToken()} />;
-  }
 
   return (
     <div className="flex flex-wrap justify-center">

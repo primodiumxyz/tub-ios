@@ -52,38 +52,36 @@ export const start = async () => {
     // Remember indexes for when the tokens array changes
     const currentPriceHistoryIndexes = new Map<string, number>();
 
-    // TODO: listen to latest tokens
-    const _latestTokens = await gql.GetAllTokensQuery();
-    const latestTokens = _latestTokens.data?.token;
+    gql.GetLatestTokensSubscription({ limit: 10 }).subscribe((data) => {
+      data.data?.token?.forEach(async (token) => {
+        const tokenId = token.id;
+        // Either get a random entry from the price history, or start again at the current index if the token
+        // was already in the array
+        const lastIndex = currentPriceHistoryIndexes.get(tokenId);
+        const { next } = getPriceHistoryIterator(lastIndex);
 
-    latestTokens?.forEach(async (token) => {
-      const tokenId = token.id;
-      // Either get a random entry from the price history, or start again at the current index if the token
-      // was already in the array
-      const lastIndex = currentPriceHistoryIndexes.get(tokenId);
-      const { next } = getPriceHistoryIterator(lastIndex);
+        const _tokenPrice = await gql.GetLatestTokenPriceQuery({ tokenId });
+        let tokenPrice = BigInt(_tokenPrice.data?.token_price_history[0]?.price ?? parseEther("1", "gwei"));
 
-      const _tokenPrice = await gql.GetLatestTokenPriceQuery({ tokenId });
-      let tokenPrice = BigInt(_tokenPrice.data?.token_price_history[0]?.price ?? parseEther("1", "gwei"));
+        const update = async () => {
+          const historyData = next();
 
-      const update = async () => {
-        const historyData = next();
+          tokenPrice = (tokenPrice * BigInt(historyData.priceChange * PRECISION)) / BigInt(PRECISION);
+          await gql.AddTokenPriceHistoryMutation({ token: tokenId, price: tokenPrice.toString() });
+          console.log(
+            "Price updated for",
+            token.symbol,
+            "change",
+            historyData.priceChange.toFixed(2),
+            "new price",
+            tokenPrice.toString(),
+          );
 
-        tokenPrice = (tokenPrice * BigInt(historyData.priceChange * PRECISION)) / BigInt(PRECISION);
-        await gql.AddTokenPriceHistoryMutation({ token: tokenId, price: tokenPrice.toString() });
-        console.log(
-          "Price updated for token",
-          token.name,
-          "change",
-          historyData.priceChange.toFixed(2),
-          "new price",
-          tokenPrice.toString(),
-        );
+          await new Promise((resolve) => setTimeout(resolve, historyData.delayMs / SPEED_FACTOR));
+        };
 
-        await new Promise((resolve) => setTimeout(resolve, historyData.delayMs / SPEED_FACTOR));
-      };
-
-      while (true) await update();
+        while (true) await update();
+      });
     });
   } catch (err) {
     console.error(err);

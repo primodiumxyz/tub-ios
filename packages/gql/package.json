@@ -25,5 +25,8 @@
     "gql.tada": "^1.8.9",
     "graphql-ws": "^5.16.0",
     "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3"
   }
 }

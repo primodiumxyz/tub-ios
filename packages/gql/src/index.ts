@@ -1,9 +1,17 @@
+import {
+  cacheExchange,
+  Client,
+  fetchExchange,
+  OperationResult,
+  OperationResultSource,
+  subscriptionExchange,
+} from "@urql/core";
 import { TadaDocumentNode } from "gql.tada";
+import { createClient as createWSClient } from "graphql-ws";
+
 import * as mutations from "./lib/mutations";
 import * as queries from "./lib/queries";
 import * as subscriptions from "./lib/subscriptions";
-import { cacheExchange, Client, fetchExchange, OperationResult, OperationResultSource, subscriptionExchange } from "@urql/core";
-import { createClient as createWSClient } from 'graphql-ws';
 
 // Helper type to extract variables from a query or mutation
 type ExtractVariables<T> = T extends TadaDocumentNode<any, infer V, any> ? V : never;
@@ -18,36 +26,39 @@ type OptionalArgs<T> = T extends Record<string, never> ? [] | [T] : [T];
 
 // Wrapper creator for both queries and mutations
 function createQueryWrapper<T extends TadaDocumentNode<any, any, any>>(client: Client, operation: T) {
-  return (args: ExtractVariables<T>): Promise<OperationResult<ExtractData<T>>> => 
+  return (args: ExtractVariables<T>): Promise<OperationResult<ExtractData<T>>> =>
     client.query(operation, args ?? {}).toPromise();
 }
 
 function createMutationWrapper<T extends TadaDocumentNode<any, any, any>>(client: Client, operation: T) {
-  return (args: ExtractVariables<T>): Promise<OperationResult<ExtractData<T>>> => 
+  return (args: ExtractVariables<T>): Promise<OperationResult<ExtractData<T>>> =>
     client.mutation(operation, args ?? {}).toPromise();
 }
 
 function createSubscriptionWrapper<T extends TadaDocumentNode<any, any, any>>(client: Client, operation: T) {
-  return (args: ExtractVariables<T>): OperationResultSource<OperationResult<ExtractData<T>>> => 
+  return (args: ExtractVariables<T>): OperationResultSource<OperationResult<ExtractData<T>>> =>
     client.subscription(operation, args ?? {});
 }
 
 //------------------------------------------------
 
-type QueryOperations = typeof queries
-type MutationOperations = typeof mutations
-type SubscriptionOperations = typeof subscriptions
+type QueryOperations = typeof queries;
+type MutationOperations = typeof mutations;
+type SubscriptionOperations = typeof subscriptions;
 
 //------------------------------------------------
 
-type QueryWrapperReturnType<T extends keyof QueryOperations> = 
-  ReturnType<ReturnType<typeof createQueryWrapper<QueryOperations[T]>>>
+type QueryWrapperReturnType<T extends keyof QueryOperations> = ReturnType<
+  ReturnType<typeof createQueryWrapper<QueryOperations[T]>>
+>;
 
-type MutationWrapperReturnType<T extends keyof MutationOperations> = 
-  ReturnType<ReturnType<typeof createMutationWrapper<MutationOperations[T]>>>
+type MutationWrapperReturnType<T extends keyof MutationOperations> = ReturnType<
+  ReturnType<typeof createMutationWrapper<MutationOperations[T]>>
+>;
 
-type SubscriptionWrapperReturnType<T extends keyof SubscriptionOperations> = 
-  ReturnType<ReturnType<typeof createSubscriptionWrapper<SubscriptionOperations[T]>>>
+type SubscriptionWrapperReturnType<T extends keyof SubscriptionOperations> = ReturnType<
+  ReturnType<typeof createSubscriptionWrapper<SubscriptionOperations[T]>>
+>;
 
 //------------------------------------------------
 
@@ -79,17 +90,23 @@ const createClient = ({ url, hasuraAdminSecret }: { url: string; hasuraAdminSecr
         },
       }
     : undefined;
- 
+
   const client = new Client({
     url,
     fetchOptions,
     exchanges: [cacheExchange, fetchExchange],
   });
-  
+
   return client;
 };
 
-const createServerClient = async ({ url, hasuraAdminSecret }: { url: string; hasuraAdminSecret?: string }): Promise<ServerClient> => {
+const createServerClient = async ({
+  url,
+  hasuraAdminSecret,
+}: {
+  url: string;
+  hasuraAdminSecret?: string;
+}): Promise<ServerClient> => {
   const fetchOptions = hasuraAdminSecret
     ? {
         headers: {
@@ -101,24 +118,27 @@ const createServerClient = async ({ url, hasuraAdminSecret }: { url: string; has
   const wsClient = createWSClient({
     url: url.replace("https", "wss"),
     // @ts-ignore
-    webSocketImpl: (await import('ws')).WebSocket,
+    webSocketImpl: (await import("ws")).WebSocket,
   });
 
-    
   const client = new Client({
     url,
     fetchOptions,
-    exchanges: [cacheExchange, fetchExchange, subscriptionExchange({
-      forwardSubscription(request) {
-        const input = { ...request, query: request.query || '' };
-        return {
-          subscribe(sink) {
-            const unsubscribe = wsClient.subscribe(input, sink);
-            return { unsubscribe };
-          },
-        };
-      },
-    }),],
+    exchanges: [
+      cacheExchange,
+      fetchExchange,
+      subscriptionExchange({
+        forwardSubscription(request) {
+          const input = { ...request, query: request.query || "" };
+          return {
+            subscribe(sink) {
+              const unsubscribe = wsClient.subscribe(input, sink);
+              return { unsubscribe };
+            },
+          };
+        },
+      }),
+    ],
   });
 
   // Create the db object dynamically
@@ -148,4 +168,4 @@ const createServerClient = async ({ url, hasuraAdminSecret }: { url: string; has
   };
 };
 
-export { createClient, createServerClient, queries, mutations };
+export { createClient, createServerClient, queries, mutations, subscriptions };

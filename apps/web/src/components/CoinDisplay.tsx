@@ -1,20 +1,14 @@
-import { queries } from "@tub/gql";
-import { useEffect, useState } from "react";
+import { subscriptions } from "@tub/gql";
+import { useMemo, useState } from "react";
 import { useReward } from "react-rewards";
-import { useQuery } from "urql";
+import { useSubscription } from "urql";
 import { PriceGraph } from "../components/PriceGraph"; // Import the new component
-
 import { useServer } from "../hooks/useServer";
 import { useSolBalance } from "../hooks/useSolBalance";
 import { useTokenBalance } from "../hooks/useTokenBalance";
 import { CoinData, lamportsToSol, solToLamports } from "../utils/generateMemecoin";
 import { Price } from "./LamportDisplay";
 import Slider from "./Slider";
-
-type PriceType = {
-  timestamp: number;
-  price: bigint;
-};
 
 export const CoinDisplay = ({
   tokenData,
@@ -32,55 +26,30 @@ export const CoinDisplay = ({
   });
   const server = useServer();
 
-  const [tokenPrices, setTokenPrices] = useState<PriceType[]>([]);
-
-  const [tokenPriceHistory] = useQuery({
-    query: queries.GetTokenPriceHistorySinceQuery,
-    variables: { tokenId: tokenData.id, since: new Date() },
-  });
-  console.log({ tokenData, tokenPriceHistory });
-
-  const [fetchedInitialPrices, setFetchedInitialPrices] = useState(false);
-
-  useEffect(() => {
-    if (!tokenPriceHistory.data || fetchedInitialPrices) return;
-    const prices = tokenPriceHistory.data.token_price_history.map((price) => ({
-      timestamp: price.created_at.getTime() / 1000,
-      price: BigInt(price.price),
-    }));
-    setTokenPrices(prices);
-    setFetchedInitialPrices(true);
-  }, [tokenPriceHistory.data, fetchedInitialPrices]);
-
-  const [price, refetchPrice] = useQuery({
-    query: queries.GetLatestTokenPriceQuery,
-    variables: { tokenId: tokenData.id },
+  /* --------------------------------- History -------------------------------- */
+  const variables = useMemo(() => ({ tokenId: tokenData.id, since: new Date() }), [tokenData.id]);
+  const [priceHistory] = useSubscription({
+    query: subscriptions.GetTokenPriceHistorySinceSubscription,
+    variables,
   });
 
-  useEffect(() => {
-    if (!fetchedInitialPrices) return;
-    refetchPrice({
-      requestPolicy: "network-only",
-    });
-    const interval = setInterval(() => {
-      refetchPrice({
-        requestPolicy: "network-only",
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [refetchPrice, fetchedInitialPrices]);
+  const tokenPrices = useMemo(() => {
+    const history = priceHistory.data?.token_price_history ?? [];
+    return {
+      fetched: history.length > 0,
+      current: BigInt(history[history.length - 1]?.price ?? 0),
+      history: history
+        .map((data) => ({
+          timestamp: new Date(data.created_at).getTime() / 1000,
+          price: BigInt(data.price),
+        }))
+        .reverse(),
+    };
+  }, [priceHistory]);
 
-  useEffect(() => {
-    if (!fetchedInitialPrices || !price.data || price.data.token_price_history.length === 0) return;
-
-    const currPrice = price.data?.token_price_history[0]?.price;
-    if (currPrice === undefined) return;
-    setTokenPrices((prevPrices) => [...prevPrices, { timestamp: Date.now() / 1000, price: BigInt(currPrice) }]);
-  }, [price, fetchedInitialPrices]);
-
+  /* ---------------------------------- Trade --------------------------------- */
   const [buyAmountSOL, setBuyAmountSOL] = useState(Math.min(10));
   const [amountBought, setAmountBought] = useState<number | null>(null);
-
   const { reward } = useReward("rewardId", "confetti");
 
   const handleBuy = async () => {
@@ -93,7 +62,7 @@ export const CoinDisplay = ({
       return;
     }
 
-    const amount = (1_000_000_000n * solToLamports(buyAmountSOL)) / (tokenPrices[tokenPrices.length - 1]?.price ?? 1n);
+    const amount = (1_000_000_000n * solToLamports(buyAmountSOL)) / (tokenPrices.current ?? 1n);
 
     await server.buyToken.mutate({
       accountId: userId,
@@ -126,7 +95,6 @@ export const CoinDisplay = ({
     setAmountBought(10);
   };
 
-  const currentPrice = tokenPrices[tokenPrices.length - 1]?.price || 0n;
   const netWorthChange = SOLBalance - initialBalance;
 
   return (
@@ -174,14 +142,15 @@ export const CoinDisplay = ({
             {tokenData.name} (${tokenData.symbol.toUpperCase()})
           </span>
         </p>
-        {tokenPrices.length > 0 && (
+        {tokenPrices.fetched && (
           <p className="text-2xl font-bold">
-            <Price lamports={tokenPrices[tokenPrices.length - 1]?.price ?? 0} /> SOL
+            <Price lamports={tokenPrices.current} /> SOL
           </p>
         )}
+        {!tokenPrices.fetched && <p className="text-2xl font-bold">Loading...</p>}
       </div>
       <div className="flex flex-col">
-        <PriceGraph prices={tokenPrices} /> {/* Use the new component */}
+        <PriceGraph prices={tokenPrices.history} /> {/* Use the new component */}
         <div className="flex flex-col w-full">
           <div className="mt-6">
             <p className="text-sm opacity-50">Your {tokenData?.symbol.toUpperCase()} Balance</p>
@@ -189,11 +158,11 @@ export const CoinDisplay = ({
               <div className="font-bold text-lg flex flex-col">
                 <p>
                   {" "}
-                  <Price lamports={tokenBalance} /> PEPE
+                  <Price lamports={tokenBalance} /> {tokenData?.symbol.toUpperCase()}
                 </p>
                 <p className="text-sm opacity-50">
                   {" "}
-                  <Price lamports={tokenBalance * currentPrice} /> SOL
+                  <Price lamports={tokenBalance * tokenPrices.current} /> SOL
                 </p>
               </div>
             </h2>
@@ -205,7 +174,7 @@ export const CoinDisplay = ({
             setBuyAmountSOL={setBuyAmountSOL}
             handleBuy={handleBuy}
             handleSell={handleSell}
-            currentPrice={currentPrice}
+            currentPrice={tokenPrices.current}
             balance={SOLBalance}
             coinBalance={tokenBalance}
             amountBought={amountBought ?? 0}
