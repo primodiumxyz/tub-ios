@@ -3,85 +3,60 @@ import { createServerClient } from "@tub/gql";
 import { config } from "dotenv";
 import { parseEther } from "viem";
 import { parseEnv } from "../bin/parseEnv";
-import random_price_changes from "./random_price_changes.json";
 
 config({ path: "../../.env" });
 
 const env = parseEnv();
 
-type PriceHistory = {
-  index: number;
-  delayMs: number;
-  priceChange: number;
-};
+const UPDATE_INTERVAL = 1_000;
+const VOLATILITY = 0.2;
+const PRECISION = 1e9;
 
-type PumpTrendRange = {
-  start: number;
-  end: number;
-};
-
-type RandomPriceChanges = {
-  priceHistory: PriceHistory[];
-  pumpTrendRanges: PumpTrendRange[];
-};
-
-const { priceHistory: PRICE_HISTORY, pumpTrendRanges: PUMP_TREND_RANGES } = random_price_changes as RandomPriceChanges;
-const SPEED_FACTOR = 1;
-const PRECISION = 10 ** 18;
-
-const getPriceHistoryIterator = (startIndex?: number) => {
-  let randomPriceHistoryIndex = 0;
-  if (startIndex === undefined) {
-    const randomPumpTrend = PUMP_TREND_RANGES[Math.floor(Math.random() * PUMP_TREND_RANGES.length)]!;
-    randomPriceHistoryIndex = Math.floor(Math.random() * (randomPumpTrend.end - randomPumpTrend.start));
-  } else {
-    randomPriceHistoryIndex = startIndex;
-  }
-
-  const next = () => {
-    randomPriceHistoryIndex = (randomPriceHistoryIndex + 1) % PRICE_HISTORY.length;
-    return PRICE_HISTORY[randomPriceHistoryIndex]!;
-  };
-
-  return { next };
+// https://stackoverflow.com/questions/8597731/are-there-known-techniques-to-generate-realistic-looking-fake-stock-data
+const getRandomPriceChange = () => {
+  const random = Math.random();
+  let changePercent = random * VOLATILITY * 2;
+  if (changePercent > VOLATILITY) changePercent -= 2 * VOLATILITY;
+  return 1 + changePercent;
 };
 
 export const start = async () => {
   try {
     const gql = await createServerClient({ url: env.GRAPHQL_URL, hasuraAdminSecret: env.HASURA_ADMIN_SECRET });
-    // Remember indexes for when the tokens array changes
-    const currentPriceHistoryIndexes = new Map<string, number>();
+    gql.GetLatestTokensSubscription({ limit: 10 }).subscribe(async (data) => {
+      const updatePrices = async () => {
+        const priceUpdates = data.data?.token?.map(async (token) => {
+          const tokenId = token.id;
+          const _tokenPrice = await gql.GetLatestTokenPriceQuery({ tokenId });
 
-    gql.GetLatestTokensSubscription({ limit: 10 }).subscribe((data) => {
-      data.data?.token?.forEach(async (token) => {
-        const tokenId = token.id;
-        // Either get a random entry from the price history, or start again at the current index if the token
-        // was already in the array
-        const lastIndex = currentPriceHistoryIndexes.get(tokenId);
-        const { next } = getPriceHistoryIterator(lastIndex);
+          const currentPrice = BigInt(_tokenPrice.data?.token_price_history[0]?.price ?? parseEther("1", "gwei"));
+          const priceChange = getRandomPriceChange();
+          const tokenPrice = (currentPrice * BigInt(Math.floor(priceChange * PRECISION))) / BigInt(PRECISION);
 
-        const _tokenPrice = await gql.GetLatestTokenPriceQuery({ tokenId });
-        let tokenPrice = BigInt(_tokenPrice.data?.token_price_history[0]?.price ?? parseEther("1", "gwei"));
+          return {
+            token: tokenId,
+            symbol: token.symbol,
+            price: tokenPrice.toString(),
+          };
+        });
 
-        const update = async () => {
-          const historyData = next();
+        const allPriceUpdates = await Promise.all(priceUpdates ?? []);
+        await gql.AddManyTokenPriceHistoryMutation({
+          objects: allPriceUpdates.map(({ token, price }) => ({
+            token,
+            price,
+          })),
+        });
 
-          tokenPrice = (tokenPrice * BigInt(historyData.priceChange * PRECISION)) / BigInt(PRECISION);
-          await gql.AddTokenPriceHistoryMutation({ token: tokenId, price: tokenPrice.toString() });
-          console.log(
-            "Price updated for",
-            token.symbol,
-            "change",
-            historyData.priceChange.toFixed(2),
-            "new price",
-            tokenPrice.toString(),
-          );
+        console.log(`Updated prices for ${allPriceUpdates.length} tokens`);
+        allPriceUpdates.forEach(({ symbol, price }) => {
+          console.log(`New price for ${symbol}: ${price}`);
+        });
 
-          await new Promise((resolve) => setTimeout(resolve, historyData.delayMs / SPEED_FACTOR));
-        };
+        await new Promise((resolve) => setTimeout(resolve, UPDATE_INTERVAL));
+      };
 
-        while (true) await update();
-      });
+      while (true) await updatePrices();
     });
   } catch (err) {
     console.error(err);
