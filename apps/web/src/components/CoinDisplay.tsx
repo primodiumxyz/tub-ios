@@ -113,8 +113,6 @@ export const CoinDisplay = ({
     [leadingTokenPricesHistory, tokenPrices.history],
   );
 
-  console.log({ ref: history[0]?.price });
-
   useEffect(() => {
     const interval = setInterval(() => {
       fetchPriceHistory();
@@ -125,7 +123,6 @@ export const CoinDisplay = ({
   /* ---------------------------------- Trade --------------------------------- */
   const [buyAmountSOL, setBuyAmountSOL] = useState(Math.min(10));
   const [amountBought, setAmountBought] = useState<number | null>(null);
-  const [buyPrice, setBuyPrice] = useState<bigint | undefined>(undefined);
   const { reward } = useReward("rewardId", "confetti");
 
   const handleBuy = async () => {
@@ -138,7 +135,8 @@ export const CoinDisplay = ({
       return;
     }
 
-    const amount = (1_000_000_000n * solToLamports(buyAmountSOL)) / (tokenPrices.current ?? 1n);
+    const tokenPrice = tokenPrices.current ?? 1n;
+    const amount = (1_000_000_000n * solToLamports(buyAmountSOL)) / tokenPrice;
 
     await server.buyToken.mutate({
       accountId: userId,
@@ -147,7 +145,6 @@ export const CoinDisplay = ({
     });
     setBuyAmountSOL(0);
     setAmountBought(buyAmountSOL + (amountBought ?? 0));
-    setBuyPrice(tokenPrices.current);
   };
 
   const handleSell = useCallback(async () => {
@@ -178,7 +175,6 @@ export const CoinDisplay = ({
   const netWorthChange = SOLBalance - initialBalance;
 
   useEffect(() => {
-    setBuyPrice(undefined);
     setTimeUntilNextToken(TIME_UNTIL_NEXT_TOKEN);
   }, [tokenData.id]);
 
@@ -251,11 +247,7 @@ export const CoinDisplay = ({
         {!tokenPrices.fetched && <p className="text-2xl font-bold">Loading...</p>}
       </div>
       <div className="flex flex-col">
-        <PriceGraph
-          prices={history.slice(-20)}
-          refPrice={buyPrice ?? history[0]?.price}
-          timeUntilNextToken={timeUntilNextToken}
-        />
+        <PriceGraph prices={history.slice(-20)} refPrice={history[0]?.price} timeUntilNextToken={timeUntilNextToken} />
         <div className="flex flex-col w-full">
           <div className="mt-6">
             <p className="text-sm opacity-50">Your {tokenData?.symbol.toUpperCase()} Balance</p>
@@ -327,6 +319,7 @@ const BuySellForm = ({
   };
 
   const change = (coinBalance * currentPrice) / 1_000_000_000n - solToLamports(amountBought);
+
   return (
     <div className="mt-6 relative">
       <span className="absolute top-1/2 right-1/2 transform -translate-y-1/2 -translate-x-1/2" id="rewardId" />
@@ -364,7 +357,6 @@ const BuySellForm = ({
               <span className={`inline-block ml-1 ${change > 0 ? "text-green-500" : "text-red-500"}`}>
                 {change > 0 ? "▲" : "▼"}
               </span>
-              <span className="ml-1">{lamportsToSol(change)} SOL</span>
             </div>
           </div>
         </div>
