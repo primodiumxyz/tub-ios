@@ -18,7 +18,6 @@
 		DB6D29172CA1C8F80099951A /* TubTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6D29162CA1C8F80099951A /* TubTests.swift */; };
 		DB6D29212CA1C8F80099951A /* TubUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6D29202CA1C8F80099951A /* TubUITests.swift */; };
 		DB6D29232CA1C8F80099951A /* TubUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6D29222CA1C8F80099951A /* TubUITestsLaunchTests.swift */; };
-		DBA6371D2CA7B5A6008DAFC1 /* Apollo in Frameworks */ = {isa = PBXBuildFile; productRef = DBA6371C2CA7B5A6008DAFC1 /* Apollo */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -61,7 +60,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DBA6371D2CA7B5A6008DAFC1 /* Apollo in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -89,7 +87,6 @@
 				DB6D29152CA1C8F80099951A /* TubTests */,
 				DB6D291F2CA1C8F80099951A /* TubUITests */,
 				DB6D29022CA1C8F70099951A /* Products */,
-				DBA6371B2CA7B59B008DAFC1 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -144,13 +141,6 @@
 			path = TubUITests;
 			sourceTree = "<group>";
 		};
-		DBA6371B2CA7B59B008DAFC1 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -167,9 +157,6 @@
 			dependencies = (
 			);
 			name = Tub;
-			packageProductDependencies = (
-				DBA6371C2CA7B5A6008DAFC1 /* Apollo */,
-			);
 			productName = Tub;
 			productReference = DB6D29012CA1C8F70099951A /* Tub.app */;
 			productType = "com.apple.product-type.application";
@@ -242,9 +229,6 @@
 				Base,
 			);
 			mainGroup = DB6D28F82CA1C8F70099951A;
-			packageReferences = (
-				DBA6371A2CA7B52A008DAFC1 /* XCRemoteSwiftPackageReference "apollo-ios" */,
-			);
 			productRefGroup = DB6D29022CA1C8F70099951A /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -641,25 +625,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		DBA6371A2CA7B52A008DAFC1 /* XCRemoteSwiftPackageReference "apollo-ios" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/primodiumxyz/apollo-ios";
-			requirement = {
-				branch = main;
-				kind = branch;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		DBA6371C2CA7B5A6008DAFC1 /* Apollo */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = DBA6371A2CA7B52A008DAFC1 /* XCRemoteSwiftPackageReference "apollo-ios" */;
-			productName = Apollo;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = DB6D28F92CA1C8F70099951A /* Project object */;
 }
