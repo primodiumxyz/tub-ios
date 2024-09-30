@@ -8,11 +8,11 @@ type Price = {
 
 type PriceGraphProps = {
   prices: Price[];
-  buyPrice: bigint | undefined;
+  refPrice: bigint;
   timeUntilNextToken: number;
 };
 
-export const PriceGraph = ({ prices, buyPrice, timeUntilNextToken }: PriceGraphProps) => {
+export const PriceGraph = ({ prices, refPrice, timeUntilNextToken }: PriceGraphProps) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const width = 300;
   const height = 200;
@@ -52,7 +52,6 @@ export const PriceGraph = ({ prices, buyPrice, timeUntilNextToken }: PriceGraphP
 
     // Add a circle at the end of the line
     const lastData = prices.length > 1 ? prices[prices.length - 1] : prices[0];
-    const refPrice = buyPrice ?? prices[0].price;
     const lastX = x(new Date(lastData.timestamp));
     const lastY = y(Number(lastData.price));
     const pctChange = ((Number(lastData.price) - Number(refPrice)) / Number(refPrice)) * 100;
@@ -100,7 +99,7 @@ export const PriceGraph = ({ prices, buyPrice, timeUntilNextToken }: PriceGraphP
       .attr("fill", "black")
       .attr("font-size", "12px")
       .text(`${pctChange.toFixed(0)}%`);
-  }, [prices, buyPrice]);
+  }, [prices, refPrice]);
 
   return (
     <div className="shadow-lg rounded-lg p-5 relative">

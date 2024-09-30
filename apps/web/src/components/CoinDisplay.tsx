@@ -1,7 +1,7 @@
-import { subscriptions } from "@tub/gql";
+import { queries } from "@tub/gql";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useReward } from "react-rewards";
-import { useSubscription } from "urql";
+import { useQuery } from "urql";
 import { PriceGraph } from "../components/PriceGraph"; // Import the new component
 import { useServer } from "../hooks/useServer";
 import { useSolBalance } from "../hooks/useSolBalance";
@@ -41,9 +41,10 @@ export const CoinDisplay = ({
 
   /* --------------------------------- History -------------------------------- */
   const variables = useMemo(() => ({ tokenId: tokenData.id, since: new Date() }), [tokenData.id]);
-  const [priceHistory] = useSubscription({
-    query: subscriptions.GetTokenPriceHistorySinceSubscription,
+  const [priceHistory, fetchPriceHistory] = useQuery({
+    query: queries.GetTokenPriceHistorySinceQuery,
     variables,
+    requestPolicy: "network-only",
   });
 
   const tokenPrices = useMemo(() => {
@@ -104,6 +105,13 @@ export const CoinDisplay = ({
   }, [tokenPrices]);
 
   const history = [...leadingTokenPricesHistory, ...tokenPrices.history];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchPriceHistory();
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   /* ---------------------------------- Trade --------------------------------- */
   const [buyAmountSOL, setBuyAmountSOL] = useState(Math.min(10));
@@ -234,7 +242,11 @@ export const CoinDisplay = ({
         {!tokenPrices.fetched && <p className="text-2xl font-bold">Loading...</p>}
       </div>
       <div className="flex flex-col">
-        <PriceGraph prices={history} buyPrice={buyPrice} timeUntilNextToken={timeUntilNextToken} />
+        <PriceGraph
+          prices={history.slice(-10)}
+          refPrice={buyPrice ?? history[0]?.price}
+          timeUntilNextToken={timeUntilNextToken}
+        />
         <div className="flex flex-col w-full">
           <div className="mt-6">
             <p className="text-sm opacity-50">Your {tokenData?.symbol.toUpperCase()} Balance</p>
