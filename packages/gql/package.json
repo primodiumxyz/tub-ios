@@ -13,7 +13,6 @@
   ],
   "scripts": {
     "generate": "dotenvx run -f .env --quiet -- sh -c 'gql-tada generate-schema --header \"x-hasura-admin-secret:$HASURA_ADMIN_SECRET\" $GRAPHQL_URL'",
-    "echo": "dotenvx run -f .env --quiet -- sh -c 'echo $HASURA_ADMIN_SECRET'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

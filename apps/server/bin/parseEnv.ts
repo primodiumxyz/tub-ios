@@ -4,6 +4,7 @@ const commonSchema = z.object({
   SERVER_HOST: z.string().default("0.0.0.0"),
   SERVER_PORT: z.coerce.number().positive().default(8080),
   HASURA_ADMIN_SECRET: z.string(),
+  GRAPHQL_URL: z.string().default("https://tub-graphql.primodium.ai/v1/graphql"),
   PRIVATE_KEY: z
     .string()
     .default(

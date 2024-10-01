@@ -1,12 +1,28 @@
 import { create } from 'zustand';
-import { Keypair } from '@solana/web3.js';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
-interface TokenStore {
-  tokenAccounts: Keypair[];
-  addTokenAccount: (account: Keypair) => void;
+interface UserStore {
+  username: string;
+  userId: string;
+  setUsername: (username: string) => void;
+  setUserId: (userId: string) => void;
+  resetUser: () => void;
 }
 
-export const useTokenStore = create<TokenStore>((set) => ({
-  tokenAccounts: [],
-  addTokenAccount: (account) => set((state) => ({ tokenAccounts: [...state.tokenAccounts, account] })),
-}));
+export const useUserStore = create(
+  persist<UserStore>(
+    (set) => ({
+      username: '',
+      userId: '',
+      setUsername: (username) => set({ username }),
+      setUserId: (userId) => set({ userId }),
+      resetUser: () => set({ username: '', userId: '' }),
+    }),
+    {
+      name: 'user-storage', // name of the item in localStorage
+      storage: createJSONStorage(() => localStorage),
+    }
+  )
+);
+
+// ... rest of the file ...

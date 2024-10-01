@@ -32,11 +32,11 @@ export function createAppRouter() {
       .input(
         z.object({
           username: z.string(),
-          airdropAmount: z.string(),
+          airdropAmount: z.string().optional(),
         }),
       )
       .mutation(async ({ ctx, input }) => {
-        return await ctx.tubService.registerNewUser(input.username, BigInt("100"));
+        return await ctx.tubService.registerNewUser(input.username, input.airdropAmount ? BigInt(input.airdropAmount) : BigInt("100"));
       }), 
     buyToken: t.procedure
       .input(

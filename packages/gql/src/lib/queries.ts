@@ -17,7 +17,32 @@ export const GetAllTokensQuery = graphql(`
       name
       symbol
       updated_at
+      supply
       uri
+    }
+  }
+`);
+
+export const GetAccountBalanceCreditQuery = graphql(`
+  query GetAccountBalanceCredit($accountId: uuid!) {
+    account_transaction_aggregate(where: { account: { _eq: $accountId }, transaction_type: { _eq: "credit" } }) {
+      aggregate {
+        sum {
+          amount
+        }
+      }
+    }
+  }
+`);
+
+export const GetAccountBalanceDebitQuery = graphql(`
+  query GetAccountBalanceCredit($accountId: uuid!) {
+    account_transaction_aggregate(where: { account: { _eq: $accountId }, transaction_type: { _eq: "debit" } }) {
+      aggregate {
+        sum {
+          amount
+        }
+      }
     }
   }
 `);
@@ -54,6 +79,28 @@ export const GetAccountTokenDebitQuery = graphql(`
           amount
         }
       }
+    }
+  }
+`);
+
+export const GetLatestTokenPriceQuery = graphql(`
+  query GetLatestTokenPrice($tokenId: uuid!) {
+    token_price_history(where: { token: { _eq: $tokenId } }, order_by: { created_at: desc }, limit: 1) {
+      created_at
+      id
+      price
+      token
+    }
+  }
+`);
+
+export const GetTokenPriceHistorySinceQuery = graphql(`
+  query GetTokenPriceHistorySince($tokenId: uuid!, $since: timestamp!) {
+    token_price_history(where: { token: { _eq: $tokenId }, created_at: { _gte: $since } }) {
+      created_at
+      id
+      price
+      token
     }
   }
 `);
