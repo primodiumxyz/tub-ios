@@ -1,5 +1,5 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -7,18 +7,20 @@ export default defineConfig({
   resolve: {
     alias: {
       'node-fetch': 'isomorphic-fetch',
-      'buffer': 'buffer'
-    }
+      buffer: 'buffer',
+    },
   },
   define: {
     process: {},
-    global: {}
+    global: {},
   },
   optimizeDeps: {
     esbuildOptions: {
       define: {
-        global: 'globalThis'
-      }
-    }
+        global: 'globalThis',
+      },
+    },
   },
-})
+  envPrefix: 'VITE_',
+  envDir: '../../',
+});

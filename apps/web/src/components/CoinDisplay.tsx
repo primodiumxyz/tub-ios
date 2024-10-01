@@ -1,93 +1,130 @@
-import { useEffect, useState } from "react";
-import { PriceGraph } from "../components/PriceGraph"; // Import the new component
-import {
-  CoinData,
-  lamportsToSol,
-  solToLamports,
-} from "../utils/generateMemecoin";
+import { subscriptions } from "@tub/gql";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useReward } from "react-rewards";
-import Slider from "./Slider";
-import { useTokenBalance } from "../hooks/useTokenBalance";
-import { useSolBalance } from "../hooks/useSolBalance";
-import { useQuery } from "urql";
+import { useSubscription } from "urql";
+import { PriceGraph } from "../components/PriceGraph"; // Import the new component
 import { useServer } from "../hooks/useServer";
-import { queries } from "@tub/gql";
+import { useSolBalance } from "../hooks/useSolBalance";
+import { useTokenBalance } from "../hooks/useTokenBalance";
+import { CoinData, lamportsToSol, solToLamports } from "../utils/generateMemecoin";
 import { Price } from "./LamportDisplay";
+import Slider from "./Slider";
 
-type Price = {
-  timestamp: number;
-  price: bigint;
+const TIME_UNTIL_NEXT_TOKEN = 60;
+const LEADING_PRICES_LENGTH = 5;
+
+// https://stackoverflow.com/questions/8597731/are-there-known-techniques-to-generate-realistic-looking-fake-stock-data
+const VOLATILITY = 0.2;
+const PRECISION = 1e9;
+const getRandomPriceChange = () => {
+  const random = Math.random();
+  let changePercent = random * VOLATILITY * 2;
+  if (changePercent > VOLATILITY) changePercent -= 2 * VOLATILITY;
+  return 1 + changePercent;
 };
 
 export const CoinDisplay = ({
+  tokenData,
   userId,
-  coinData,
   gotoNext,
 }: {
-  coinData: CoinData;
+  tokenData: CoinData & { id: string };
   userId: string;
   gotoNext?: () => void;
 }) => {
   const { balance: SOLBalance, initialBalance } = useSolBalance({ userId });
   const { balance: tokenBalance } = useTokenBalance({
     userId,
-    tokenId: coinData.id,
+    tokenId: tokenData.id,
   });
   const server = useServer();
+  const [timeUntilNextToken, setTimeUntilNextToken] = useState(0);
 
-  // const [tokenPrices, setTokenPrices] = useState<Price[]>([]);
-  const [tokenPrices, setTokenPrices] = useState<Price[]>([]);
-
-
-  const [tokenPriceHistory] = useQuery({
-    query: queries.GetTokenPriceHistorySinceQuery,
-    variables: { tokenId: coinData.id, since: new Date() },
+  /* --------------------------------- History -------------------------------- */
+  const variables = useMemo(() => ({ tokenId: tokenData.id, since: new Date() }), [tokenData.id]);
+  const [priceHistory] = useSubscription({
+    query: subscriptions.GetTokenPriceHistorySinceSubscription,
+    variables,
   });
 
-  const [fetchedInitialPrices, setFetchedInitialPrices] = useState(false);
+  const tokenPrices = useMemo(() => {
+    const history = priceHistory.data?.token_price_history ?? [];
+    const formattedHistory = history
+      .map((data) => ({
+        timestamp: new Date(data.created_at).getTime() / 1000,
+        price: BigInt(data.price),
+      }))
+      .sort((a, b) => a.timestamp - b.timestamp);
+    return {
+      loading: history.length === 0,
+      current: BigInt(formattedHistory[history.length - 1]?.price ?? 0),
+      history: formattedHistory,
+    };
+  }, [priceHistory]);
+
+  // Additional leading data to simulate an initially pumping token (this is why it was displayed)
+  const priceChanges = useMemo(
+    () =>
+      Array.from({ length: LEADING_PRICES_LENGTH }, () => {
+        // Get 5 random decreasing price changes (we're generating the data in reverse)
+        let change = getRandomPriceChange();
+        do {
+          change = getRandomPriceChange();
+        } while (change > 1);
+        return change;
+      }),
+    [],
+  );
+  const leadingTokenPricesHistory = useMemo(() => {
+    if (tokenPrices.loading) return [];
+    const firstData = tokenPrices.history[0];
+
+    return (
+      Object.values(
+        priceChanges.reduce(
+          (acc, priceChange, index) => {
+            // Return the next data (effectively the previous data point)
+            const price = (BigInt(acc[index]?.price) * BigInt(Math.floor(priceChange * PRECISION))) / BigInt(PRECISION);
+            acc = [
+              ...acc,
+              {
+                timestamp: Number(acc[index].timestamp) - 1,
+                price,
+              },
+            ];
+
+            return acc;
+          },
+          [
+            {
+              timestamp: firstData.timestamp,
+              price: firstData.price,
+            },
+          ],
+        ),
+      )
+        .sort((a, b) => a.timestamp - b.timestamp)
+        // Remove the last item (since it's a duplicate of the first real data point)
+        .slice(0, -1)
+    );
+  }, [tokenPrices, priceChanges]);
+
+  const history = useMemo(
+    () => [...leadingTokenPricesHistory, ...tokenPrices.history],
+    [leadingTokenPricesHistory, tokenPrices.history],
+  );
 
   useEffect(() => {
-    if (!tokenPriceHistory.data || fetchedInitialPrices) return;
-    const prices = tokenPriceHistory.data.token_price_history.map((price) => ({
-      timestamp: price.created_at.getTime() / 1000,
-      price: BigInt(price.price),
-    }));
-    setTokenPrices(prices);
-    setFetchedInitialPrices(true);
-  }, [tokenPriceHistory.data, fetchedInitialPrices]);
-
-  const [price, refetchPrice] = useQuery({
-    query: queries.GetLatestTokenPriceQuery,
-    variables: { tokenId: coinData.id },
-  });
-
-  useEffect(() => {
-    if (!fetchedInitialPrices) return;
-    refetchPrice({
-      requestPolicy: "network-only",
-    });
     const interval = setInterval(() => {
-      refetchPrice({
-        requestPolicy: "network-only",
-      });
+      // fetchPriceHistory();
     }, 1000);
     return () => clearInterval(interval);
-  }, [refetchPrice, fetchedInitialPrices]);
+  }, []);
 
-  useEffect(() => {
-    if (!fetchedInitialPrices || !price.data || price.data.token_price_history.length === 0) return;
-
-    const currPrice = price.data?.token_price_history[0].price;
-    if (currPrice === undefined) return;
-    setTokenPrices((prevPrices) => [
-      ...prevPrices,
-      { timestamp: Date.now() / 1000, price: BigInt(currPrice) },
-    ]);
-  }, [price, fetchedInitialPrices]);
-
+  /* ---------------------------------- Trade --------------------------------- */
   const [buyAmountSOL, setBuyAmountSOL] = useState(Math.min(10));
   const [amountBought, setAmountBought] = useState<number | null>(null);
-
+  const [boughtPrice, setBoughtPrice] = useState<bigint | null>(null);
   const { reward } = useReward("rewardId", "confetti");
 
   const handleBuy = async () => {
@@ -100,41 +137,58 @@ export const CoinDisplay = ({
       return;
     }
 
-    const amount = 1_000_000_000n * solToLamports(buyAmountSOL) / (tokenPrices[tokenPrices.length - 1]?.price ?? 1n);
+    const tokenPrice = tokenPrices.current ?? 1n;
+    const amount = (1_000_000_000n * solToLamports(buyAmountSOL)) / tokenPrice;
 
+    setBoughtPrice(tokenPrices.current);
     await server.buyToken.mutate({
       accountId: userId,
-      tokenId: coinData.id,
+      tokenId: tokenData.id,
       amount: amount.toString(),
     });
     setBuyAmountSOL(0);
     setAmountBought(buyAmountSOL + (amountBought ?? 0));
   };
 
-  const handleSell = async () => {
+  const handleSell = useCallback(async () => {
     const sellAmountCoin = tokenBalance;
-
-    if (sellAmountCoin <= 0) {
-      alert("Please enter a valid amount to sell");
-      return;
-    }
-    if (sellAmountCoin > tokenBalance) {
-      alert("Insufficient coins to sell");
-      return;
-    }
+    if (sellAmountCoin <= 0) return;
 
     await server.sellToken.mutate({
       accountId: userId,
-      tokenId: coinData.id,
+      tokenId: tokenData.id,
       amount: sellAmountCoin.toString(),
     });
     reward();
 
     setAmountBought(10);
-  };
+    setTimeout(() => {
+      gotoNext?.();
+    }, 2000);
+  }, [userId, tokenData.id, tokenBalance, server, reward, gotoNext]);
 
-  const currentPrice = tokenPrices[tokenPrices.length - 1]?.price || 0n;
   const netWorthChange = SOLBalance - initialBalance;
+
+  useEffect(() => {
+    setTimeUntilNextToken(TIME_UNTIL_NEXT_TOKEN);
+    setBoughtPrice(null);
+  }, [tokenData.id]);
+
+  // After some amount is bought, we can ride it for TIME_UNTIL_NEXT_TOKEN
+  useEffect(() => {
+    if (!amountBought) return;
+
+    const interval = setInterval(() => {
+      setTimeUntilNextToken((t) => t - 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [amountBought]);
+
+  useEffect(() => {
+    if (amountBought && timeUntilNextToken === 0) {
+      handleSell();
+    }
+  }, [amountBought, timeUntilNextToken, handleSell]);
 
   return (
     <div className="relative text-white">
@@ -165,11 +219,7 @@ export const CoinDisplay = ({
         {netWorthChange === 69n && (
           <p>
             {netWorthChange > 0 ? `+` : `-`} <Price lamports={netWorthChange} />
-            <span
-              className={`inline-block ml-1 ${
-                netWorthChange > 0 ? "text-green-500" : "text-red-500"
-              }`}
-            >
+            <span className={`inline-block ml-1 ${netWorthChange > 0 ? "text-green-500" : "text-red-500"}`}>
               {netWorthChange > 0 ? "▲" : "▼"}
             </span>
           </p>
@@ -182,43 +232,64 @@ export const CoinDisplay = ({
             src="https://imgs.search.brave.com/K6CRsHMIBDDXbta9YUjY9_Ov9jCCiZVc55qze-tALN4/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93YWxs/cGFwZXJjYXZlLmNv/bS93cC93cDEwNDIw/MDQ1LmpwZw"
           />
           <span className="text-base inline">
-            {coinData?.name} (${coinData?.symbol.toUpperCase()})
+            {tokenData.name} (${tokenData.symbol.toUpperCase()})
           </span>
         </p>
-        {tokenPrices.length > 0 && (
+        {!tokenPrices.loading && (
           <p className="text-2xl font-bold">
-            <Price lamports={tokenPrices[tokenPrices.length - 1]?.price ?? 0} /> SOL
+            <Price lamports={tokenPrices.current} /> SOL
           </p>
         )}
+        {tokenPrices.loading && <p className="text-2xl font-bold">Loading...</p>}
       </div>
       <div className="flex flex-col">
-        <PriceGraph prices={tokenPrices} /> {/* Use the new component */}
+        <PriceGraph
+          prices={history.slice(-20)}
+          refPrice={history[LEADING_PRICES_LENGTH]?.price}
+          boughtPrice={boughtPrice}
+          timeUntilNextToken={timeUntilNextToken}
+        />
         <div className="flex flex-col w-full">
           <div className="mt-6">
-            <p className="text-sm opacity-50">
-              Your {coinData?.symbol.toUpperCase()} Balance
-            </p>
+            <p className="text-sm opacity-50">Your {tokenData?.symbol.toUpperCase()} Balance</p>
             <h2 className="text-xl font-semibold">
               <div className="font-bold text-lg flex flex-col">
-                <p> <Price lamports={tokenBalance} /> PEPE</p>
-                <p className="text-sm opacity-50"> <Price lamports = {tokenBalance * currentPrice} /> SOL</p>
+                <p>
+                  {" "}
+                  <Price lamports={tokenBalance} /> {tokenData?.symbol.toUpperCase()}
+                </p>
+                <p className="text-sm opacity-50">
+                  {" "}
+                  <Price lamports={(tokenBalance * tokenPrices.current) / 1_000_000_000n} /> SOL
+                </p>
               </div>
             </h2>
           </div>
 
           <BuySellForm
-            coinData={coinData}
+            tokenData={tokenData}
             buyAmountSOL={buyAmountSOL}
             setBuyAmountSOL={setBuyAmountSOL}
             handleBuy={handleBuy}
             handleSell={handleSell}
-            currentPrice={currentPrice}
+            currentPrice={tokenPrices.current}
             balance={SOLBalance}
             coinBalance={tokenBalance}
             amountBought={amountBought ?? 0}
+            loading={tokenPrices.loading}
           />
         </div>
-        <button onClick={gotoNext} className="mt-4 p-3">
+        <button
+          onClick={() => {
+            if (amountBought) {
+              handleSell();
+            } else {
+              gotoNext?.();
+            }
+          }}
+          className="mt-4 p-3 disabled:opacity-50"
+          disabled={tokenPrices.loading}
+        >
           <p className="text-sm font-bold text-yellow-300"> Next token</p>
         </button>
       </div>
@@ -227,7 +298,7 @@ export const CoinDisplay = ({
 };
 
 const BuySellForm = ({
-  coinData,
+  tokenData,
   buyAmountSOL,
   setBuyAmountSOL,
   handleBuy,
@@ -236,8 +307,9 @@ const BuySellForm = ({
   amountBought,
   balance,
   coinBalance,
+  loading,
 }: {
-  coinData: CoinData;
+  tokenData: CoinData;
   buyAmountSOL: number;
   setBuyAmountSOL: (amount: number) => void;
   handleBuy: () => void;
@@ -246,6 +318,7 @@ const BuySellForm = ({
   amountBought: number;
   balance: bigint;
   coinBalance: bigint;
+  loading: boolean;
 }) => {
   const [activeTab, setActiveTab] = useState<"buy" | "sell">("buy");
 
@@ -259,13 +332,11 @@ const BuySellForm = ({
     setActiveTab("buy");
   };
 
-  const change = coinBalance * currentPrice - solToLamports(amountBought);
+  const change = (coinBalance * currentPrice) / 1_000_000_000n - solToLamports(amountBought);
+
   return (
     <div className="mt-6 relative">
-      <span
-        className="absolute top-1/2 right-1/2 transform -translate-y-1/2 -translate-x-1/2"
-        id="rewardId"
-      />
+      <span className="absolute top-1/2 right-1/2 transform -translate-y-1/2 -translate-x-1/2" id="rewardId" />
       {activeTab === "buy" ? (
         <div className="p-8 relative bg-white/50 rounded-3xl">
           <div className="flex justify-between items-center">
@@ -278,18 +349,16 @@ const BuySellForm = ({
               onChange={(e) => setBuyAmountSOL(Number(e.target.value))}
               className="w-1/2 mr-2"
             />
-              <span className="font-bold text-2xl inline text-right">{buyAmountSOL} SOL</span>
+            <span className="font-bold text-2xl inline text-right">{buyAmountSOL} SOL</span>
           </div>
-          <p className="text-xs opacity-50 w-full text-right mb-2 ">
-            ({buyAmountSOL / Number(lamportsToSol(currentPrice))}{" "}
-            {coinData?.symbol.toUpperCase()})
-          </p>
+          {!loading && (
+            <p className="text-xs opacity-50 w-full text-right mb-2 ">
+              ({(buyAmountSOL / Number(lamportsToSol(currentPrice))).toFixed(4)} {tokenData?.symbol.toUpperCase()})
+            </p>
+          )}
+          {loading && <p className="text-xs opacity-50 w-full text-right mb-2 ">...</p>}
 
-          <Slider
-            onSlideComplete={handlePressBuy}
-            disabled={buyAmountSOL <= 0}
-            text="> > > >"
-          />
+          <Slider onSlideComplete={handlePressBuy} disabled={buyAmountSOL <= 0 || loading} text="> > > >" />
         </div>
       ) : (
         <div>
@@ -302,14 +371,10 @@ const BuySellForm = ({
               SELL
             </button>
             <div>
-              <span
-                className={`inline-block ml-1 ${
-                  change > 0 ? "text-green-500" : "text-red-500"
-                }`}
-              >
+              <span className={`inline-block ml-1 ${change > 0 ? "text-green-500" : "text-red-500"}`}>
                 {change > 0 ? "▲" : "▼"}
               </span>
-              <span className="ml-1">{lamportsToSol(change)} SOL</span>
+              <Price className="ml-1" lamports={change} /> SOL
             </div>
           </div>
         </div>

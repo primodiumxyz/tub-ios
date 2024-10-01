@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
 import * as d3 from "d3";
+import { useEffect, useRef } from "react";
 
 type Price = {
   timestamp: number;
@@ -8,9 +8,12 @@ type Price = {
 
 type PriceGraphProps = {
   prices: Price[];
+  refPrice: bigint;
+  boughtPrice: bigint | null;
+  timeUntilNextToken: number;
 };
 
-export const PriceGraph = ({ prices }: PriceGraphProps) => {
+export const PriceGraph = ({ prices, refPrice, boughtPrice, timeUntilNextToken }: PriceGraphProps) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const width = 300;
   const height = 200;
@@ -19,7 +22,7 @@ export const PriceGraph = ({ prices }: PriceGraphProps) => {
 
     const svg = d3.select(svgRef.current);
 
-    const margin = { top: 20, right: 30, bottom: 20, left: 10 }; // Adjusted margins for labels
+    const margin = { top: 25, right: 30, bottom: 20, left: 10 }; // Adjusted margins for labels
 
     const x = d3
       .scaleTime()
@@ -40,8 +43,6 @@ export const PriceGraph = ({ prices }: PriceGraphProps) => {
 
     svg.selectAll("*").remove();
 
-
-
     svg
       .append("path")
       .datum(prices)
@@ -50,22 +51,36 @@ export const PriceGraph = ({ prices }: PriceGraphProps) => {
       .attr("stroke-width", 1.5)
       .attr("d", line);
 
+    // Add horizontal bar for refPrice or boughtPrice
+    const referencePrice = boughtPrice ?? refPrice;
+    const referencePriceY = y(Number(referencePrice));
+    svg
+      .append("line")
+      .attr("x1", margin.left)
+      .attr("y1", referencePriceY)
+      .attr("x2", width - margin.right)
+      .attr("y2", referencePriceY)
+      .attr("stroke", boughtPrice ? "#FFD700" : "#FFFFFF")
+      .attr("stroke-width", 1)
+      .attr("stroke-dasharray", "5,5")
+      .attr("opacity", 0.5);
+
     // Add a circle at the end of the line
-    const lastPrice = prices.length > 1 ? prices[prices.length - 1] : prices[0];
-    const secondLastPrice = prices.length > 2 ? prices[prices.length - 2] : prices[0];
-    const lastX = x(new Date(lastPrice.timestamp));
-    const lastY = y(Number(lastPrice.price));
-    const pctChange = ((Number(lastPrice.price) - Number(secondLastPrice.price)) / Number(secondLastPrice.price)) * 100;
+    const lastData = prices.length > 1 ? prices[prices.length - 1] : prices[0];
+    const lastX = x(new Date(lastData.timestamp));
+    const lastY = y(Number(lastData.price));
+    const pctChange =
+      ((Number(lastData.price) - Number(boughtPrice ?? refPrice)) / Number(boughtPrice ?? refPrice)) * 100;
     const pctChangeColor = pctChange > 0 ? "lawngreen" : "#FF6666"; // Lighten the red color
-  svg
-    .append("line")
-    .attr("x1", lastX)
-    .attr("y1", margin.top)
-    .attr("x2", lastX)
-    .attr("y2", height - margin.bottom)
-    .attr("stroke", pctChangeColor)
-    .attr("stroke-width", 1)
-    .attr("stroke-dasharray", "3,3");
+    svg
+      .append("line")
+      .attr("x1", lastX)
+      .attr("y1", margin.top)
+      .attr("x2", lastX)
+      .attr("y2", height - margin.bottom)
+      .attr("stroke", pctChangeColor)
+      .attr("stroke-width", 1)
+      .attr("stroke-dasharray", "3,3");
     svg
       .append("circle")
       .attr("cx", lastX)
@@ -100,11 +115,16 @@ export const PriceGraph = ({ prices }: PriceGraphProps) => {
       .attr("fill", "black")
       .attr("font-size", "12px")
       .text(`${pctChange.toFixed(0)}%`);
-  }, [prices]);
+  }, [prices, refPrice, boughtPrice]);
 
   return (
-    <div className="shadow-lg rounded-lg p-4">
+    <div className="shadow-lg rounded-lg p-5 relative">
       <svg ref={svgRef} width={width} height={height}></svg>
+      {timeUntilNextToken <= 10 && (
+        <span className="text-6xl text-center font-bold opacity-50 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+          {Math.max(timeUntilNextToken, 0)}
+        </span>
+      )}
     </div>
   );
 };
