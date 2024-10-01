@@ -276,6 +276,7 @@
 			packageReferences = (
 				999F59592CA754CB00E7AE9F /* XCRemoteSwiftPackageReference "Charts" */,
 				DFA4D64F2CAC500B00AEDC73 /* XCRemoteSwiftPackageReference "apollo-ios" */,
+				DFA4D6522CAC50FE00AEDC73 /* XCRemoteSwiftPackageReference "apollo-ios-codegen" */,
 			);
 			productRefGroup = DB6D29022CA1C8F70099951A /* Products */;
 			projectDirPath = "";
@@ -691,6 +692,14 @@
 		DFA4D64F2CAC500B00AEDC73 /* XCRemoteSwiftPackageReference "apollo-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/apollographql/apollo-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.15.1;
+			};
+		};
+		DFA4D6522CAC50FE00AEDC73 /* XCRemoteSwiftPackageReference "apollo-ios-codegen" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apollographql/apollo-ios-codegen";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 1.15.1;
