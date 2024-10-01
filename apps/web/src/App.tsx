@@ -4,11 +4,10 @@ import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { PhantomWalletAdapter } from "@solana/wallet-adapter-wallets";
 import { clusterApiUrl } from "@solana/web3.js";
 import { useMemo } from "react";
-import { cacheExchange, fetchExchange, subscriptionExchange, Provider as UrqlProvider } from "urql";
+import { Provider as UrqlProvider } from "urql";
 // Import wallet adapter CSS
 import "@solana/wallet-adapter-react-ui/styles.css";
-import { createClient as createWSClient } from "graphql-ws";
-import { createClient } from "urql";
+import { createClient as createGqlClient } from "@tub/gql";
 import { ServerProvider } from "./providers/ServerProvider";
 import { TubProvider } from "./providers/TubProvider";
 import { TubRoutes } from "./TubRoutes";
@@ -19,41 +18,10 @@ export default function App() {
   const network = WalletAdapterNetwork.Devnet;
   const endpoint = useMemo(() => clusterApiUrl(network), [network]);
   const wallets = useMemo(() => [new PhantomWalletAdapter()], []);
-
-  const wsClient = useMemo(
-    () =>
-      createWSClient({
-        url: gqlClientUrl.replace("https", "wss"),
-      }),
-    [],
-  );
-
-  const client = useMemo(
-    () =>
-      createClient({
-        url: gqlClientUrl,
-        exchanges: [
-          cacheExchange,
-          fetchExchange,
-          subscriptionExchange({
-            forwardSubscription(request) {
-              const input = { ...request, query: request.query || "" };
-              return {
-                subscribe(sink) {
-                  const unsubscribe = wsClient.subscribe(input, sink);
-                  return { unsubscribe };
-                },
-              };
-            },
-          }),
-        ],
-      }),
-    [wsClient],
-  );
+  const client = useMemo(() => createGqlClient<"web">({ url: gqlClientUrl }).instance, []);
 
   return (
     // Solana Providers and Adapters
-
     <UrqlProvider value={client}>
       <ServerProvider>
         <TubProvider>

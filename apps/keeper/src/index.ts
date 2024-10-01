@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { createServerClient } from "@tub/gql";
+import { createClient as createGqlClient } from "@tub/gql";
 import { config } from "dotenv";
 import { parseEther } from "viem";
 import { parseEnv } from "../bin/parseEnv";
@@ -22,7 +22,7 @@ const getRandomPriceChange = () => {
 
 export const start = async () => {
   try {
-    const gql = await createServerClient({ url: env.GRAPHQL_URL, hasuraAdminSecret: env.HASURA_ADMIN_SECRET });
+    const gql = (await createGqlClient({ url: env.GRAPHQL_URL, hasuraAdminSecret: env.HASURA_ADMIN_SECRET })).db;
     gql.GetLatestTokensSubscription({ limit: 10 }).subscribe(async (data) => {
       const updatePrices = async () => {
         const priceUpdates = data.data?.token?.map(async (token) => {

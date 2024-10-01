@@ -8,6 +8,7 @@ import {
 } from "@urql/core";
 import { TadaDocumentNode } from "gql.tada";
 import { createClient as createWSClient } from "graphql-ws";
+import { WebSocket } from "ws";
 
 import * as mutations from "./lib/mutations";
 import * as queries from "./lib/queries";
@@ -78,35 +79,21 @@ export type Subscriptions = {
   ) => SubscriptionWrapperReturnType<K>;
 };
 
-export type ServerClient = Queries & Mutations & Subscriptions;
+export type GqlClient = {
+  instance: Client;
+  db: Queries & Mutations & Subscriptions;
+};
 
 //------------------------------------------------
 
-const createClient = ({ url, hasuraAdminSecret }: { url: string; hasuraAdminSecret?: string }): Client => {
-  const fetchOptions = hasuraAdminSecret
-    ? {
-        headers: {
-          "x-hasura-admin-secret": hasuraAdminSecret,
-        },
-      }
-    : undefined;
-
-  const client = new Client({
-    url,
-    fetchOptions,
-    exchanges: [cacheExchange, fetchExchange],
-  });
-
-  return client;
-};
-
-const createServerClient = async ({
+type CreateClientReturn<T extends "web" | "node"> = T extends "web" ? GqlClient : Promise<GqlClient>;
+const createClient = <T extends "web" | "node" = "node">({
   url,
   hasuraAdminSecret,
 }: {
   url: string;
   hasuraAdminSecret?: string;
-}): Promise<ServerClient> => {
+}): CreateClientReturn<T> => {
   const fetchOptions = hasuraAdminSecret
     ? {
         headers: {
@@ -115,57 +102,64 @@ const createServerClient = async ({
       }
     : undefined;
 
-  const wsClient = createWSClient({
-    url: url.replace("https", "wss"),
-    // @ts-ignore
-    webSocketImpl: (await import("ws")).WebSocket,
-  });
+  const createClientInternal = (webSocketImpl?: typeof WebSocket): GqlClient => {
+    const wsClient = createWSClient({
+      url: url.replace("https", "wss"),
+      webSocketImpl,
+    });
 
-  const client = new Client({
-    url,
-    fetchOptions,
-    exchanges: [
-      cacheExchange,
-      fetchExchange,
-      subscriptionExchange({
-        forwardSubscription(request) {
-          const input = { ...request, query: request.query || "" };
-          return {
-            subscribe(sink) {
-              const unsubscribe = wsClient.subscribe(input, sink);
-              return { unsubscribe };
-            },
-          };
-        },
-      }),
-    ],
-  });
+    const client = new Client({
+      url,
+      fetchOptions,
+      exchanges: [
+        cacheExchange,
+        fetchExchange,
+        subscriptionExchange({
+          forwardSubscription(request) {
+            const input = { ...request, query: request.query || "" };
+            return {
+              subscribe(sink) {
+                const unsubscribe = wsClient.subscribe(input, sink);
+                return { unsubscribe };
+              },
+            };
+          },
+        }),
+      ],
+    });
 
-  // Create the db object dynamically
-  const _queries = Object.entries(queries).reduce((acc, [key, operation]) => {
-    // @ts-ignore
-    acc[key as keyof Queries] = createQueryWrapper(client, operation);
-    return acc;
-  }, {} as Queries);
+    // Create the db object dynamically
+    const _queries = Object.entries(queries).reduce((acc, [key, operation]) => {
+      // @ts-ignore
+      acc[key as keyof Queries] = createQueryWrapper(client, operation);
+      return acc;
+    }, {} as Queries);
 
-  // Create the db object dynamically
-  const _mutations = Object.entries(mutations).reduce((acc, [key, operation]) => {
-    // @ts-ignore
-    acc[key as keyof Mutations] = createMutationWrapper(client, operation);
-    return acc;
-  }, {} as Mutations);
+    // Create the db object dynamically
+    const _mutations = Object.entries(mutations).reduce((acc, [key, operation]) => {
+      // @ts-ignore
+      acc[key as keyof Mutations] = createMutationWrapper(client, operation);
+      return acc;
+    }, {} as Mutations);
 
-  const _subscriptions = Object.entries(subscriptions).reduce((acc, [key, operation]) => {
-    // @ts-ignore
-    acc[key as keyof Subscriptions] = createSubscriptionWrapper(client, operation);
-    return acc;
-  }, {} as Subscriptions);
+    const _subscriptions = Object.entries(subscriptions).reduce((acc, [key, operation]) => {
+      // @ts-ignore
+      acc[key as keyof Subscriptions] = createSubscriptionWrapper(client, operation);
+      return acc;
+    }, {} as Subscriptions);
 
-  return {
-    ..._queries,
-    ..._mutations,
-    ..._subscriptions,
+    return {
+      instance: client,
+      db: {
+        ..._queries,
+        ..._mutations,
+        ..._subscriptions,
+      },
+    };
   };
+
+  if (typeof window !== "undefined") return createClientInternal() as CreateClientReturn<T>;
+  return import("ws").then(({ WebSocket }) => createClientInternal(WebSocket)) as CreateClientReturn<T>;
 };
 
-export { createClient, createServerClient, queries, mutations, subscriptions };
+export { createClient, queries, mutations, subscriptions };

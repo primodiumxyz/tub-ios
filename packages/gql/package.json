@@ -27,6 +27,7 @@
     "ws": "^8.18.0"
   },
   "devDependencies": {
+    "@types/ws": "^8.5.12",
     "prettier": "^3.3.3"
   }
 }

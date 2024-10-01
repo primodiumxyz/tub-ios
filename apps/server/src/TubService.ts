@@ -1,5 +1,5 @@
 import { Core, CounterData } from "@tub/core";
-import { ServerClient } from "@tub/gql";
+import { GqlClient } from "@tub/gql";
 
 type CounterUpdateCallback = (value: number) => void;
 
@@ -7,9 +7,9 @@ export class TubService {
   private core: Core;
   private counterSubscribers: Set<CounterUpdateCallback> = new Set();
   private counter: number = 0;
-  private gql: ServerClient;
+  private gql: GqlClient["db"];
 
-  constructor(core: Core, gqlClient: ServerClient) {
+  constructor(core: Core, gqlClient: GqlClient["db"]) {
     this.core = core;
     this.gql = gqlClient;
 

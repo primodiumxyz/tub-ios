@@ -8,7 +8,7 @@ import fastifyWebsocket from "@fastify/websocket";
 import { clusterApiUrl, Connection, Keypair } from "@solana/web3.js";
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import { applyWSSHandler } from "@trpc/server/adapters/ws";
-import { createServerClient } from "@tub/gql";
+import { createClient as createGqlClient } from "@tub/gql";
 import { config } from "dotenv";
 import fastify from "fastify";
 
@@ -40,7 +40,7 @@ export const start = async () => {
     if (!process.env.GRAPHQL_URL) {
       throw new Error("GRAPHQL_URL is not set");
     }
-    const gqlClient = await createServerClient({ url: env.GRAPHQL_URL, hasuraAdminSecret: env.HASURA_ADMIN_SECRET });
+    const gqlClient = (await createGqlClient({ url: env.GRAPHQL_URL, hasuraAdminSecret: env.HASURA_ADMIN_SECRET })).db;
     const tubService = new TubService(core, gqlClient);
 
     // @see https://trpc.io/docs/server/adapters/fastify
