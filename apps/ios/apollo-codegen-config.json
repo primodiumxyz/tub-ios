@@ -1,5 +1,5 @@
 {
-  "schemaNamespace": "RocketReserverAPI",
+  "schemaNamespace": "TubAPI",
   "input": {
     "operationSearchPaths": ["**/*.graphql"],
     "schemaSearchPaths": ["**/*.graphqls"]
@@ -9,7 +9,7 @@
       "none": {}
     },
     "schemaTypes": {
-      "path": "./RocketReserverAPI",
+      "path": "./TubAPI",
       "moduleType": {
         "swiftPackageManager": {}
       }

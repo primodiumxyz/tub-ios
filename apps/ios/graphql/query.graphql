@@ -1,0 +1,7 @@
+query GetAllAccounts {
+  account {
+    id
+    username
+    created_at
+  }
+}
