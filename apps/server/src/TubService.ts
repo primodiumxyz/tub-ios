@@ -1,7 +1,14 @@
+import { parseEnv } from "@bin/parseEnv";
 import { Core, CounterData } from "@tub/core";
 import { GqlClient } from "@tub/gql";
+import { config } from "dotenv";
+import jwt from "jsonwebtoken";
+
+config({ path: "../../.env" });
 
 type CounterUpdateCallback = (value: number) => void;
+
+const env = parseEnv();
 
 export class TubService {
   private core: Core;
@@ -67,7 +74,15 @@ export class TubService {
       throw new Error(result.error.message);
     }
 
-    return result.data;
+    const uuid = result.data?.insert_account_one?.id;
+
+    if (!uuid) {
+      throw new Error("Failed to register new user");
+    }
+
+    const token = jwt.sign({ uuid }, env.PRIVATE_KEY, { expiresIn: "5y" });
+
+    return { uuid, token };
   }
 
   async sellToken(accountId: string, tokenId: string, amount: bigint) {
