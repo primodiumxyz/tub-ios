@@ -9,7 +9,7 @@ import SwiftUI
 struct BuySellForm: View {
     @ObservedObject var viewModel: CoinDisplayViewModel
     @State private var activeTab: String = "buy"
-    @State private var buyAmountString: String = "0"
+    @State private var buyAmountString: String = ""
     @State private var buyAmountUSD: Double = 0.0
     @State private var isValidInput: Bool = true
 
@@ -35,7 +35,8 @@ struct BuySellForm: View {
                                 TextField("Enter amount", text: $buyAmountString)
                                     .keyboardType(.decimalPad)
                                     .multilineTextAlignment(.trailing)
-                                    .onChange(of: buyAmountString) { newValue in
+                                    .onChange(of: buyAmountString) {
+                                        newValue in
                                         let filtered = newValue.filter { "0123456789.".contains($0) }
                                         if filtered != newValue {
                                             buyAmountString = filtered
@@ -68,9 +69,13 @@ struct BuySellForm: View {
                         
                         SliderWithPoints(value: $buyAmountUSD, in: 0...viewModel.balance, step: 1)
                             .onChange(of: buyAmountUSD) { newValue in
-                                buyAmountString = String(format: "%.2f", newValue)
+                                if newValue.truncatingRemainder(dividingBy: 1) == 0 {
+                                    buyAmountString = String(format: "%.0f", newValue)
+                                } else {
+                                    buyAmountString = String(newValue)
+                                }
                             }
-                        SwipeToEnterView(text: "Slide to buy", onUnlock: handleBuy, disabled: buyAmountUSD == 0 || buyAmountString == "0")
+                        SwipeToEnterView(text: "Slide to buy", onUnlock: handleBuy, disabled: buyAmountUSD == 0 || buyAmountString == "")
                         
                         
                     }.padding(.horizontal, 20).padding(.vertical, 20)

@@ -61,7 +61,6 @@ struct SwipeToEnterView: View {
                             .onEnded { _ in
                                 guard !disabled else { return }
                                 isDragging = false
-                                print("offset", offset, geometry.size.width - size)
                                 if offset > (geometry.size.width - size - 10) {
                                     withAnimation {
                                         offset = geometry.size.width - size

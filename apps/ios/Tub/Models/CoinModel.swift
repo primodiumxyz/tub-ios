@@ -54,7 +54,6 @@ class CoinDisplayViewModel: ObservableObject {
     func handleBuy(buyAmountUSD: CGFloat) -> Bool {
         guard let currentPrice = prices.last?.price else { return false }
         let tokenAmount = buyAmountUSD / currentPrice
-        print("amount bought:", buyAmountUSD, tokenAmount)
         if buyAmountUSD <= 0 || buyAmountUSD > balance {
             return false
         }
