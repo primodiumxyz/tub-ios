@@ -12,13 +12,14 @@ struct HomeTabsView: View {
     var body: some View {
         
         TabView() {
-            CoinView(coinModel: RemoteCoinModel(tokenId: "")).tabItem {
+            RemoteCoinsView().tabItem {
                 Label("Cloud", systemImage: "cloud.fill")
             }
             CoinView(coinModel: LocalCoinModel(tokenId: "")).tabItem {
                 Label("Local", systemImage: "testtube.2")
             }
         }
+        .background(.black)
         .foregroundColor(.white)
         .accentColor(color) // Set the accent color for selected items
         .onAppear {
