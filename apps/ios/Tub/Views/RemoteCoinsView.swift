@@ -11,6 +11,7 @@ import TubAPI
 
 struct RemoteCoinsView: View {
     @State private var coinIds: [String] = []
+    @State private var currIndex : Int = 0
     @State private var isLoading = true
     @State private var errorMessage: String?
 
@@ -23,9 +24,7 @@ struct RemoteCoinsView: View {
             } else if coinIds.isEmpty {
                 Text("No coins found").foregroundColor(.red)
             } else {
-                List(coinIds, id: \.self) { coinId in
-                    Text(coinId)
-                }
+                CoinView(coinModel: RemoteCoinModel(tokenId: coinIds[currIndex % coinIds.count]))
             }
         }
         .onAppear(perform: fetchCoinIds)
@@ -38,10 +37,7 @@ struct RemoteCoinsView: View {
                 switch result {
                 case .success(let graphQLResult):
                     if let tokens = graphQLResult.data?.token {
-                        self.coinIds = tokens.map { $0.id }
-                    } else {
-                        self.errorMessage = "No tokens data received"
-                    }
+                        self.coinIds = tokens.map { $0.id }                        }
                 case .failure(let error):
                     self.errorMessage = "Error: \(error.localizedDescription)"
                 }
