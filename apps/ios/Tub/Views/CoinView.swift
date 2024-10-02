@@ -10,9 +10,10 @@ import Combine
 
 
 struct CoinView: View {
-    @ObservedObject var coinModel: CoinDisplayViewModel = CoinDisplayViewModel(coinData:CoinData(name: "MONKAY", symbol: "MONK"))
-
-   var body: some View {
+    @ObservedObject var coinModel : BaseCoinModel
+    
+    
+    var body: some View {
        VStack () {
         VStack (alignment: .leading) {
             VStack(alignment: .leading) {
@@ -51,7 +52,7 @@ struct CoinView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 10)) // This will round the corners
 
                 VStack(alignment: .leading){
-                    Text("$\(coinModel.coinData.symbol) (\(coinModel.coinData.name))") // Update this line
+                    Text("$\(coinModel.coin.symbol) (\(coinModel.coin.name))") // Update this line
                         .font(.sfRounded(size: .base, weight: .bold))
                     Text("\(coinModel.prices.last?.price ?? 0, specifier: "%.3f") SOL")
                         .font(.sfRounded(size: .xl3, weight: .bold))
@@ -62,12 +63,12 @@ struct CoinView: View {
             
             ChartView(prices: coinModel.prices)
             VStack(alignment: .leading) {
-               Text("Your \(coinModel.coinData.symbol.uppercased()) Balance") // Update this line
+               Text("Your \(coinModel.coin.symbol.uppercased()) Balance") // Update this line
                 .font(.sfRounded(size: .sm, weight: .bold))
                     .opacity(0.7)
                     .kerning(-1)
                 
-               Text("\(coinModel.coinBalance, specifier: "%.3f") \(coinModel.coinData.symbol.uppercased())") // Update this line
+               Text("\(coinModel.coinBalance, specifier: "%.3f") \(coinModel.coin.symbol.uppercased())") // Update this line
                     .font(.sfRounded(size: .xl2, weight: .bold))
            }
            
@@ -84,5 +85,5 @@ struct CoinView: View {
 
 
 #Preview {
-    CoinView()
+    CoinView(coinModel: LocalCoinModel(tokenId: ""))
 }

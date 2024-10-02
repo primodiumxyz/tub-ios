@@ -8,29 +8,15 @@
 import SwiftUI
 import Combine
 
-struct CoinData {
-    var name: String
-    var symbol: String
-}
-
-struct Price: Identifiable {
-    var id = UUID()
-    var timestamp: Date
-    var price: Double
-}
-
-class CoinDisplayViewModel: ObservableObject {
-    @Published var balance: Double = 1000
-    @Published var coinBalance: Double = 0
-    @Published var amountBought: Double = 0
-    @Published var prices: [Price] = []
+class LocalCoinModel: BaseCoinModel {
     
-    var coinData: CoinData
-    
-    init(coinData: CoinData) {
-        self.coinData = coinData
+    required override init(tokenId: String) {
+        super.init(tokenId: tokenId)
+        coin = Coin(name: "MONKEY" ,symbol: "MONK")
+        balance = 1000
         generateInitialPrice()
         startPriceUpdates()
+        loading = false
     }
     
     func generateInitialPrice() {
@@ -51,7 +37,7 @@ class CoinDisplayViewModel: ObservableObject {
         prices.append(newPrice)
     }
     
-    func handleBuy(buyAmountUSD: CGFloat) -> Bool {
+    override func handleBuy(buyAmountUSD: CGFloat) -> Bool {
         guard let currentPrice = prices.last?.price else { return false }
         let tokenAmount = buyAmountUSD / currentPrice
         if buyAmountUSD <= 0 || buyAmountUSD > balance {
@@ -63,7 +49,7 @@ class CoinDisplayViewModel: ObservableObject {
         return true
     }
     
-    func handleSell() {
+    override func handleSell() {
         guard let currentPrice = prices.last?.price else { return }
         if coinBalance <= 0 {
             return

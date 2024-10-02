@@ -7,7 +7,7 @@
 import SwiftUI
 
 struct BuySellForm: View {
-    @ObservedObject var viewModel: CoinDisplayViewModel
+    @ObservedObject var viewModel: BaseCoinModel
     @State private var activeTab: String = "buy"
     @State private var buyAmountString: String = ""
     @State private var buyAmountUSD: Double = 0.0
@@ -60,14 +60,14 @@ struct BuySellForm: View {
                             // Add token conversion display
                             if let currentPrice = viewModel.prices.last?.price, currentPrice > 0 {
                                 let tokenAmount = buyAmountUSD / currentPrice
-                                Text("\(tokenAmount, specifier: "%.4f") \(viewModel.coinData.symbol)")
+                                Text("\(tokenAmount, specifier: "%.4f") \(viewModel.coin.symbol)")
                                 
                                     .font(.sfRounded(size: .base, weight: .bold))
                                     .opacity(0.8)
                             }
                         }
                         
-                        SliderWithPoints(value: $buyAmountUSD, in: 0...viewModel.balance, step: 1)
+                        if viewModel.balance > 0 {SliderWithPoints(value: $buyAmountUSD, in: 0...viewModel.balance, step: 1)
                             .onChange(of: buyAmountUSD) { newValue in
                                 if newValue.truncatingRemainder(dividingBy: 1) == 0 {
                                     buyAmountString = String(format: "%.0f", newValue)
@@ -75,6 +75,7 @@ struct BuySellForm: View {
                                     buyAmountString = String(newValue)
                                 }
                             }
+                        }
                         SwipeToEnterView(text: "Slide to buy", onUnlock: handleBuy, disabled: buyAmountUSD == 0 || buyAmountString == "")
                         
                         
@@ -118,8 +119,9 @@ struct BuySellForm: View {
 }
 
 #Preview {
-    @ObservedObject var coinModel: CoinDisplayViewModel = CoinDisplayViewModel(coinData:CoinData(name: "PEPE", symbol: "PEP"))
-    return VStack {BuySellForm(viewModel: coinModel)
+    @ObservedObject var coinModel: BaseCoinModel = LocalCoinModel(tokenId: "")
+    
+    VStack {BuySellForm(viewModel: coinModel)
     }.frame(maxWidth: .infinity, maxHeight: .infinity) .background(.black).foregroundColor(.white)
     }
     
