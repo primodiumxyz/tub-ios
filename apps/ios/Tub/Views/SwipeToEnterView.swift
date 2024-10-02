@@ -15,7 +15,7 @@ struct SwipeToEnterView: View {
     var onUnlock: () -> Void
     var text: String
     var disabled: Bool
-    var size : CGFloat = 100
+    var size : CGFloat = 80
     
     init(text: String = "slide to unlock", onUnlock: @escaping () -> Void, disabled: Bool = false) {
         self.text = text
@@ -28,15 +28,31 @@ struct SwipeToEnterView: View {
             ZStack(alignment: .leading) {
                 // Background
                 RoundedRectangle(cornerRadius: 50)
-                    .fill(Color.gray.opacity(0.5))
-                
+                    .fill(Color.black.opacity(0.3))
+                   // Centered text with chevrons
+                HStack {
+                    Spacer()
+                    Text(text)
+                        .font(.sfRounded(size: .xl, weight: .semibold))
+                        .foregroundColor(.white)
+                 
+                    Spacer()
+                .opacity(isDragging ? 0 : 1)
+                }
                 // Slider thumb
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: size - 20, height: size - 20)
-                    .offset(x: offset + 10)
-                    .gesture(
-                        DragGesture()
+                ZStack {
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: size - 20, height: size - 20)
+                    
+                    Image(systemName: "arrow.left.arrow.right")
+                        .foregroundColor(.black)
+                        .fontWeight(.bold)
+                        .font(.system(size: 20))  // Increase the size by 50%
+                }
+                .offset(x: offset + 10)
+                .gesture(
+                    DragGesture()
                             .onChanged { value in
                                 guard !disabled else { return }
                                 isDragging = true
@@ -45,7 +61,6 @@ struct SwipeToEnterView: View {
                             .onEnded { _ in
                                 guard !disabled else { return }
                                 isDragging = false
-                                print("offset", offset, geometry.size.width - size)
                                 if offset > (geometry.size.width - size - 10) {
                                     withAnimation {
                                         offset = geometry.size.width - size
@@ -57,17 +72,9 @@ struct SwipeToEnterView: View {
                                     }
                                 }
                             }
-                    )
+                )
                 
- // Centered chevrons
-                HStack(spacing: 5) {
-                    ForEach(0..<5) { _ in
-                        Image(systemName: "chevron.right")
-                            .foregroundColor(.white.opacity(0.8))
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                .opacity(isDragging ? 0 : 1)
+             
             }
             .frame(height: size)
             .clipShape(RoundedRectangle(cornerRadius: size / 2))
@@ -87,5 +94,4 @@ struct SwipeToEnterView: View {
     }
     .frame(height: 220)
     .padding()
-    .background(.black)
 }
