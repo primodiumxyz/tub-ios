@@ -26,10 +26,16 @@
     "@shyft-to/solana-transaction-parser": "^1.1.17",
     "@solana/buffer-layout": "^4.0.1",
     "@solana/buffer-layout-utils": "^0.2.0",
+    "@solana/codecs": "2.0.0-preview.2",
+    "@solana/codecs-data-structures": "2.0.0-preview.2",
+    "@solana/codecs-strings": "2.0.0-preview.2",
+    "@solana/spl-token": "^0.4.8",
+    "@solana/spl-type-length-value": "^0.1.0",
     "@solana/web3.js": "^1.95.2",
     "@tub/gql": "workspace:*",
-    "borsh": "^2.0.0",
+    "borsh": "^0.7.0",
     "dotenv": "^16.0.3",
+    "ws": "^8.18.0",
     "zod": "^3.21.4"
   },
   "devDependencies": {

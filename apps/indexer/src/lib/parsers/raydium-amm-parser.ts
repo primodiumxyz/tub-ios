@@ -1,10 +1,11 @@
+// Copied and fixed from https://blogs.shyft.to/how-to-stream-and-parse-raydium-transactions-with-shyfts-grpc-network-b16d5b3af249
 import { Idl, utils } from "@coral-xyz/anchor";
 import { ParsedInstruction } from "@shyft-to/solana-transaction-parser";
 import { struct, u8, u16 } from "@solana/buffer-layout";
 // @ts-expect-error buffer-layout-utils is not typed
 import { publicKey, u64 } from "@solana/buffer-layout-utils";
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
-import { deserialize } from "borsh";
+import { deserialize, Schema } from "borsh";
 
 type RaydiumInitializeArgs = {
   nonce: number;
@@ -614,7 +615,6 @@ export class RaydiumAmmParser {
   private parseSetParamsIx(instruction: TransactionInstruction) {
     const accounts = instruction.keys;
     const instructionData = instruction.data;
-    // @ts-expect-error type 'Map<any, any>' is not assignable to parameter of type 'Schema'
     const args = deserialize(SetParamsSchema, SetParamsArgs, instructionData) as SetParamsArgs;
     return {
       name: "setParams",
@@ -903,12 +903,7 @@ export class RaydiumAmmParser {
   private parseSimulateInfoIx(instruction: TransactionInstruction) {
     const accounts = instruction.keys;
     const instructionData = instruction.data;
-    const args = deserialize(
-      // @ts-expect-error type 'Map<any, any>' is not assignable to parameter of type 'Schema'
-      SimulateInfoSchema,
-      SimulateInfoArgs,
-      instructionData,
-    ) as SimulateInfoArgs;
+    const args = deserialize(SimulateInfoSchema, SimulateInfoArgs, instructionData) as SimulateInfoArgs;
     return {
       name: "simulateInfo",
       accounts: accounts.map((account, index) => {

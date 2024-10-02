@@ -1,10 +1,13 @@
-import { parseEnv } from "@bin/parseEnv";
-import { SolanaParser } from "@shyft-to/solana-transaction-parser";
 import { Connection } from "@solana/web3.js";
+import { config } from "dotenv";
 
+import { parseEnv } from "@bin/parseEnv";
 import { TransactionFormatter } from "@/lib/formatters/transaction-formatter";
 import { LogsParser } from "@/lib/parsers/logs-parser";
 import { RaydiumAmmParser } from "@/lib/parsers/raydium-amm-parser";
+import { SolanaParser } from "@/lib/parsers/solana-parser";
+
+config({ path: "../../.env" });
 
 const env = parseEnv();
 

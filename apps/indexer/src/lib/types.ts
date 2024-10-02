@@ -13,9 +13,9 @@ export type SwapAccounts = {
 export type ParsedAccountData = {
   parsed: {
     info: {
-      mint: string;
-      tokenAmount: {
-        uiAmount: number;
+      mint?: string;
+      tokenAmount?: {
+        uiAmount?: number;
       };
     };
   };

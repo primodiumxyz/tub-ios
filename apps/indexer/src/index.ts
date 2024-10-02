@@ -1,6 +1,7 @@
-#!/usr/bin/env node
-import { Logs } from "@solana/web3.js";
+// #!/usr/bin/env node
+import { Connection, Logs, PublicKey } from "@solana/web3.js";
 import { config } from "dotenv";
+import { WebSocket } from "ws";
 
 import { createClient as createGqlClient } from "@tub/gql";
 import { parseEnv } from "@bin/parseEnv";
@@ -9,6 +10,8 @@ import { decodeRaydiumTx } from "@/lib/raydium";
 import { connection, ixParser, txFormatter } from "@/lib/setup";
 import { PriceData } from "@/lib/types";
 import { filterLogs, getPoolTokenPrice } from "@/lib/utils";
+
+import { bnLayoutFormatter } from "./lib/formatters/bn-layout-formatter";
 
 config({ path: "../../.env" });
 
@@ -20,7 +23,6 @@ const env = parseEnv();
 /* ------------------------------ PROCESS LOGS ------------------------------ */
 const processLogs = async ({ err, signature }: Logs): Promise<PriceData | undefined> => {
   if (err) return;
-
   // Fetch and format the transaction
   const tx = await connection.getTransaction(signature, {
     commitment: "confirmed",
@@ -28,25 +30,49 @@ const processLogs = async ({ err, signature }: Logs): Promise<PriceData | undefi
   });
   if (!tx || tx.meta?.err) return;
   const formattedTx = txFormatter.formTransactionFromJson(tx, Date.now());
-
   // Parse the transaction and retrieve the swapped token accounts
   const parsedIxs = ixParser.parseTransactionWithInnerInstructions(tx);
 
   // Raydium
   const raydiumProgramIxs = parsedIxs.filter((ix) => ix.programId.equals(RAYDIUM_PUBLIC_KEY));
-
   const swapAccounts = raydiumProgramIxs.length ? decodeRaydiumTx(formattedTx, raydiumProgramIxs) : undefined;
   if (!swapAccounts) return;
 
   const tokenPrice = await getPoolTokenPrice(swapAccounts);
+  // if (tokenPrice?.buffer) {
+  console.log("---");
+  console.log("BUFFER:", tokenPrice?.buffer);
+  console.log(signature);
+  console.log(JSON.stringify(bnLayoutFormatter(swapAccounts.result)));
+  console.log("---");
+  // }
   return tokenPrice;
 };
 
 /* -------------------------------- WEBSOCKET ------------------------------- */
 export const start = async () => {
   try {
-    const gql = (await createGqlClient({ url: env.GRAPHQL_URL, hasuraAdminSecret: env.HASURA_ADMIN_SECRET })).db;
+    // const [first, second] = (
+    //   await connection.getMultipleParsedAccounts(
+    //     [
+    //       new PublicKey("7fiG6iRRDsJvzhEQaSEf6BTozwJXjjvdLydxMLjM2aeZ"),
+    //       new PublicKey("8YtQCMo4bNAPcUN8t2LH6aZdtprDVnBnvoBrt5ZFn1hP"),
+    //     ],
+    //     {
+    //       commitment: "finalized",
+    //     },
+    //   )
+    // ).value;
 
+    // const tokenBalance = await connection.getTokenAccountBalance(
+    //   new PublicKey("8YtQCMo4bNAPcUN8t2LH6aZdtprDVnBnvoBrt5ZFn1hP"),
+    // );
+
+    // console.log(first, second);
+    // console.log("tokenAmount", second?.data.parsed.info.tokenAmount);
+    // console.log("tokenBalance", tokenBalance);
+
+    const gql = (await createGqlClient({ url: env.GRAPHQL_URL, hasuraAdminSecret: env.HASURA_ADMIN_SECRET })).db;
     const ws = new WebSocket(env.HELIUS_WS_URL);
     setInterval(() => {
       if (ws.readyState === WebSocket.OPEN) {
@@ -54,10 +80,8 @@ export const start = async () => {
         console.log("Ping sent");
       }
     }, 30_000);
-
     ws.onclose = () => console.log("WebSocket connection closed");
     ws.onerror = (error) => console.log("WebSocket error:", error);
-
     ws.onopen = () => {
       console.log("WebSocket connection opened");
       ws.send(
@@ -88,20 +112,18 @@ export const start = async () => {
         ),
       );
     };
-
     ws.onmessage = (event) => {
       // Parse
-      const obj = JSON.parse(event.data);
+      const obj = JSON.parse(event.data.toString());
       const data = obj.params?.result.value as Logs | undefined;
       const logs = data?.logs;
       const filteredLogs = logs ? filterLogs(logs) : undefined;
-
       // Process
       if (data && filteredLogs) {
         processLogs(data).then((priceData) => {
           if (!priceData) return;
           // TODO: save to DB
-          console.log(priceData);
+          // console.log(priceData);
         });
       }
     };

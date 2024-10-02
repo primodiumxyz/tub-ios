@@ -1,24 +1,42 @@
 import { PublicKey } from "@solana/web3.js";
 
-type FormattableValue = PublicKey | bigint | Buffer | { [key: string]: FormattableValue } | FormattableValue[];
+type FormattableValue =
+  | PublicKey
+  | string
+  | bigint
+  | Buffer
+  | { [key: string]: FormattableValue }
+  | FormattableValue[]
+  | unknown;
+export type FormattedValue<T extends FormattableValue> = T extends PublicKey
+  ? string
+  : T extends bigint
+    ? number
+    : T extends Buffer
+      ? string
+      : T extends Array<infer U extends FormattableValue>
+        ? Array<FormattedValue<U>>
+        : T extends { [key: string]: FormattableValue }
+          ? { [K in keyof T]: FormattedValue<T[K]> }
+          : T;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function bnLayoutFormatter(obj: FormattableValue): any {
+export function bnLayoutFormatter<T extends FormattableValue>(obj: T): FormattedValue<T> {
   if (obj instanceof PublicKey) {
-    return obj.toBase58();
-  } else if (typeof obj === "bigint") {
-    return Number(obj.toString());
+    return obj.toBase58() as FormattedValue<T>;
+  } else if (typeof obj === "bigint" || (obj as any).constructor.name === "BN") {
+    return Number(obj) as FormattedValue<T>;
   } else if (obj instanceof Buffer) {
-    return obj.toString("base64");
+    return obj.toString("base64") as FormattedValue<T>;
   } else if (Array.isArray(obj)) {
-    return obj.map(bnLayoutFormatter);
+    return obj.map(bnLayoutFormatter) as FormattedValue<T>;
   } else if (typeof obj === "object" && obj !== null) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const result: { [key: string]: any } = {};
+    const result: { [key: string]: FormattedValue<any> } = {};
     for (const key in obj) {
-      result[key] = bnLayoutFormatter(obj[key] as FormattableValue);
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        result[key] = bnLayoutFormatter(obj[key] as FormattableValue);
+      }
     }
-    return result;
+    return result as FormattedValue<T>;
   }
-  return obj;
+  return obj as FormattedValue<T>;
 }

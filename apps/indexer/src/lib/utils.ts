@@ -22,18 +22,31 @@ export const getPoolTokenPrice = async ({
   poolCoin,
   poolPc,
 }: SwapAccounts): Promise<Omit<PriceData, "slot"> | undefined> => {
-  const poolCoinInfo = await connection.getParsedAccountInfo(poolCoin, {
-    commitment: "confirmed",
-  });
-  const poolPcInfo = await connection.getParsedAccountInfo(poolPc, {
-    commitment: "confirmed",
-  });
+  const [poolCoinRes, poolPcRes] = (
+    await connection.getMultipleParsedAccounts([poolCoin, poolPc], {
+      commitment: "confirmed",
+    })
+  ).value;
 
-  const poolCoinInfoParsed = (poolCoinInfo.value?.data as ParsedAccountData | undefined)?.parsed.info;
-  const poolPcInfoParsed = (poolPcInfo.value?.data as ParsedAccountData | undefined)?.parsed.info;
+  const poolCoinData = poolCoinRes?.data as ParsedAccountData | Buffer | undefined;
+  const poolPcData = poolPcRes?.data as ParsedAccountData | Buffer | undefined;
 
-  if (!(poolCoinInfoParsed?.mint === WRAPPED_SOL_MINT.toString()) || !poolPcInfoParsed) return;
+  if (poolCoinData instanceof Buffer || poolPcData instanceof Buffer) {
+    console.log("buffer");
+    return { buffer: true };
+  }
 
-  const tokenPrice = poolCoinInfoParsed.tokenAmount.uiAmount / poolPcInfoParsed.tokenAmount.uiAmount;
-  return { mint: poolPcInfoParsed.mint, price: tokenPrice };
+  const poolCoinParsedInfo = poolCoinData?.parsed.info;
+  const poolPcParsedInfo = poolPcData?.parsed.info;
+
+  if (
+    !(poolCoinParsedInfo?.mint === WRAPPED_SOL_MINT.toString()) ||
+    !poolPcParsedInfo?.mint ||
+    !poolCoinParsedInfo?.tokenAmount?.uiAmount ||
+    !poolPcParsedInfo?.tokenAmount?.uiAmount
+  )
+    return;
+
+  const tokenPrice = poolCoinParsedInfo.tokenAmount.uiAmount / poolPcParsedInfo.tokenAmount.uiAmount;
+  return { mint: poolPcParsedInfo.mint, price: tokenPrice };
 };

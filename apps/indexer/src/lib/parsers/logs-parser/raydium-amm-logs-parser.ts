@@ -1,3 +1,4 @@
+// Copied and fixed from https://blogs.shyft.to/how-to-stream-and-parse-raydium-transactions-with-shyfts-grpc-network-b16d5b3af249
 import { Idl } from "@coral-xyz/anchor";
 import { LogContext, ParsedInstruction } from "@shyft-to/solana-transaction-parser";
 import { struct, u8 } from "@solana/buffer-layout";
@@ -149,9 +150,7 @@ export type LogEvent =
 export class RaydiumAmmLogsParser {
   // @ts-expect-error: type difference @coral-xyz/anchor -> @project-serum/anchor
   parse(action: ParsedInstruction<Idl, string>, log: LogContext): LogEvent | undefined {
-    if (!log) {
-      return;
-    }
+    if (!log) return;
 
     const instructionLog = log.logMessages[0]?.split(" ").at(-1);
     const instruction =
@@ -177,7 +176,8 @@ export class RaydiumAmmLogsParser {
       case "swapBaseIn":
       case "swapBaseOut": {
         try {
-          const rayLog = log.logMessages.at(-1) as string;
+          const rayLog = log.logMessages.at(-1);
+          if (!rayLog) return;
           const base64Log = rayLog.replace("ray_log: ", "");
           const raydiumEventData = Buffer.from(base64Log, "base64");
 

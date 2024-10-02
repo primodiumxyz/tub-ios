@@ -1,6 +1,8 @@
+// Copied and fixed from https://blogs.shyft.to/how-to-stream-and-parse-raydium-transactions-with-shyfts-grpc-network-b16d5b3af249
 import { Idl } from "@coral-xyz/anchor";
-import { ParsedInstruction, parseLogs } from "@shyft-to/solana-transaction-parser";
+import { ParsedInstruction } from "@shyft-to/solana-transaction-parser";
 
+import { parseLogs } from "@/lib/parsers/logs-parser/helpers";
 import { LogEvent, RaydiumAmmLogsParser } from "@/lib/parsers/logs-parser/raydium-amm-logs-parser";
 import { RaydiumAmmParser } from "@/lib/parsers/raydium-amm-parser";
 
@@ -15,7 +17,6 @@ export class LogsParser {
     }
 
     const logs = parseLogs(logMessages);
-
     return actions
       .map((action, index) => {
         if ("info" in action) {
