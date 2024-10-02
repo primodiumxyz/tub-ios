@@ -73,8 +73,8 @@ export class TransactionFormatter {
               writableIndexes: number[];
               readonlyIndexes: number[];
             }) => ({
-              writableIndexes: writableIndexes || [],
-              readonlyIndexes: readonlyIndexes || [],
+              writableIndexes: writableIndexes ?? [],
+              readonlyIndexes: readonlyIndexes ?? [],
               accountKey,
             }),
           ) || [],
@@ -83,14 +83,22 @@ export class TransactionFormatter {
   }
 
   private formMeta(meta: ConfirmedTransactionMeta): ConfirmedTransactionMeta {
+    console.log(
+      "data",
+      meta.innerInstructions?.map((i) => i.instructions.map((instruction) => instruction.data)),
+      "formatted",
+      meta.innerInstructions?.map((i) =>
+        i.instructions.map((instruction) => utils.bytes.bs58.encode(Buffer.from(instruction.data || "", "base64"))),
+      ),
+    );
     return {
       err: meta.err,
       fee: meta.fee,
       preBalances: meta.preBalances,
       postBalances: meta.postBalances,
-      preTokenBalances: meta.preTokenBalances || [],
-      postTokenBalances: meta.postTokenBalances || [],
-      logMessages: meta.logMessages || [],
+      preTokenBalances: meta.preTokenBalances ?? [],
+      postTokenBalances: meta.postTokenBalances ?? [],
+      logMessages: meta.logMessages ?? [],
       loadedAddresses: meta.loadedAddresses ?? {
         writable: [],
         readonly: [],
@@ -101,7 +109,8 @@ export class TransactionFormatter {
           instructions: i.instructions.map((instruction) => ({
             programIdIndex: instruction.programIdIndex,
             accounts: instruction.accounts,
-            data: utils.bytes.bs58.encode(Buffer.from(instruction.data || "", "base64")),
+            // data: utils.bytes.bs58.encode(Buffer.from(instruction.data || "", "base64")),
+            data: instruction.data,
           })),
         })) || [],
     };

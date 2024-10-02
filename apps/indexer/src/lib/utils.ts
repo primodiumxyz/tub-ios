@@ -28,13 +28,8 @@ export const getPoolTokenPrice = async ({
     })
   ).value;
 
-  const poolCoinData = poolCoinRes?.data as ParsedAccountData | Buffer | undefined;
-  const poolPcData = poolPcRes?.data as ParsedAccountData | Buffer | undefined;
-
-  if (poolCoinData instanceof Buffer || poolPcData instanceof Buffer) {
-    console.log("buffer");
-    return { buffer: true };
-  }
+  const poolCoinData = poolCoinRes?.data as ParsedAccountData | undefined;
+  const poolPcData = poolPcRes?.data as ParsedAccountData | undefined;
 
   const poolCoinParsedInfo = poolCoinData?.parsed.info;
   const poolPcParsedInfo = poolPcData?.parsed.info;

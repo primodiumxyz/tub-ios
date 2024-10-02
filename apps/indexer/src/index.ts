@@ -29,49 +29,22 @@ const processLogs = async ({ err, signature }: Logs): Promise<PriceData | undefi
     maxSupportedTransactionVersion: 0,
   });
   if (!tx || tx.meta?.err) return;
-  const formattedTx = txFormatter.formTransactionFromJson(tx, Date.now());
+  // const formattedTx = txFormatter.formTransactionFromJson(tx, Date.now());
   // Parse the transaction and retrieve the swapped token accounts
   const parsedIxs = ixParser.parseTransactionWithInnerInstructions(tx);
 
   // Raydium
   const raydiumProgramIxs = parsedIxs.filter((ix) => ix.programId.equals(RAYDIUM_PUBLIC_KEY));
-  const swapAccounts = raydiumProgramIxs.length ? decodeRaydiumTx(formattedTx, raydiumProgramIxs) : undefined;
+  const swapAccounts = raydiumProgramIxs.length ? decodeRaydiumTx(tx, raydiumProgramIxs) : undefined;
   if (!swapAccounts) return;
 
   const tokenPrice = await getPoolTokenPrice(swapAccounts);
-  // if (tokenPrice?.buffer) {
-  console.log("---");
-  console.log("BUFFER:", tokenPrice?.buffer);
-  console.log(signature);
-  console.log(JSON.stringify(bnLayoutFormatter(swapAccounts.result)));
-  console.log("---");
-  // }
   return tokenPrice;
 };
 
 /* -------------------------------- WEBSOCKET ------------------------------- */
 export const start = async () => {
   try {
-    // const [first, second] = (
-    //   await connection.getMultipleParsedAccounts(
-    //     [
-    //       new PublicKey("7fiG6iRRDsJvzhEQaSEf6BTozwJXjjvdLydxMLjM2aeZ"),
-    //       new PublicKey("8YtQCMo4bNAPcUN8t2LH6aZdtprDVnBnvoBrt5ZFn1hP"),
-    //     ],
-    //     {
-    //       commitment: "finalized",
-    //     },
-    //   )
-    // ).value;
-
-    // const tokenBalance = await connection.getTokenAccountBalance(
-    //   new PublicKey("8YtQCMo4bNAPcUN8t2LH6aZdtprDVnBnvoBrt5ZFn1hP"),
-    // );
-
-    // console.log(first, second);
-    // console.log("tokenAmount", second?.data.parsed.info.tokenAmount);
-    // console.log("tokenBalance", tokenBalance);
-
     const gql = (await createGqlClient({ url: env.GRAPHQL_URL, hasuraAdminSecret: env.HASURA_ADMIN_SECRET })).db;
     const ws = new WebSocket(env.HELIUS_WS_URL);
     setInterval(() => {
@@ -123,7 +96,7 @@ export const start = async () => {
         processLogs(data).then((priceData) => {
           if (!priceData) return;
           // TODO: save to DB
-          // console.log(priceData);
+          console.log(priceData);
         });
       }
     };

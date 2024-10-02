@@ -4,7 +4,7 @@ import { ParsedInstruction } from "@shyft-to/solana-transaction-parser";
 import { struct, u8, u16 } from "@solana/buffer-layout";
 // @ts-expect-error buffer-layout-utils is not typed
 import { publicKey, u64 } from "@solana/buffer-layout-utils";
-import { PublicKey, TransactionInstruction } from "@solana/web3.js";
+import { AccountMeta, PublicKey, TransactionInstruction } from "@solana/web3.js";
 import { deserialize, Schema } from "borsh";
 
 type RaydiumInitializeArgs = {
@@ -246,6 +246,40 @@ type UpdateConfigAccountArgs = {
   owner: PublicKey;
 };
 const UpdateConfigAccountArgsLayout = struct<UpdateConfigAccountArgs>([u8("param"), publicKey("owner")]);
+
+const parseSwapAccounts = (accounts: AccountMeta[]): AccountMeta[] => {
+  // Transactions that go directly through Raydium include the 'ammTargetOrders' account
+  // Otherwise, if they were made through Jupited, the Raydium AMM Routing program, or various other routes,
+  // they won't include it.
+  // We can pretty safely infer that with the amount of accounts in the transaction (as of 2024-10-02)
+  // - if there are 18 accounts, it's a direct Raydium transaction
+  // - if there are 17 accounts, it's a Jupited transaction or routed through another program
+  const labels = [
+    "tokenProgram",
+    "amm",
+    "ammAuthority",
+    "ammOpenOrders",
+    accounts.length === 18 ? "ammTargetOrders" : undefined,
+    "poolCoinTokenAccount",
+    "poolPcTokenAccount",
+    "serumMarket",
+    "serumBids",
+    "serumAsks",
+    "serumCoinVaultAccount",
+    "serumPcVaultAccount",
+    "serumVaultSigner",
+    "serumReqQueue",
+    "serumEventQueue",
+    "userSourceTokenAccount",
+    "uerDestinationTokenAccount",
+    "userSourceOwner",
+  ].filter(Boolean);
+
+  return labels.map((label, index) => {
+    if (!accounts[index]) throw new Error(`Account ${label} not found`);
+    return { ...accounts[index], name: label };
+  });
+};
 
 export class RaydiumAmmParser {
   static PROGRAM_ID = new PublicKey("675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8");
@@ -763,44 +797,7 @@ export class RaydiumAmmParser {
     const args = SwapBaseInArgsLayout.decode(instructionData);
     return {
       name: "swapBaseIn",
-      accounts: accounts.map((account, index) => {
-        switch (index) {
-          case 1:
-            return { ...account, name: "amm" };
-          case 2:
-            return { ...account, name: "ammAuthority" };
-          case 3:
-            return { ...account, name: "ammOpenOrders" };
-          case 4:
-            return { ...account, name: "ammTargetOrders" };
-          case 5:
-            return { ...account, name: "poolCoinTokenAccount" };
-          case 6:
-            return { ...account, name: "poolPcTokenAccount" };
-          case 8:
-            return { ...account, name: "serumMarket" };
-          case 9:
-            return { ...account, name: "serumBids" };
-          case 10:
-            return { ...account, name: "serumAsks" };
-          case 11:
-            return { ...account, name: "serumEventQueue" };
-          case 12:
-            return { ...account, name: "serumCoinVaultAccount" };
-          case 13:
-            return { ...account, name: "serumPcVaultAccount" };
-          case 14:
-            return { ...account, name: "serumVaultSigner" };
-          case 15:
-            return { ...account, name: "uerSourceTokenAccount" };
-          case 16:
-            return { ...account, name: "uerDestinationTokenAccount" };
-          case 17:
-            return { ...account, name: "userSourceOwner" };
-          default:
-            return account;
-        }
-      }),
+      accounts: parseSwapAccounts(accounts),
       args: {
         amountIn: Number(args.amountIn),
         minimumAmountOut: Number(args.minimumAmountOut),
@@ -854,44 +851,7 @@ export class RaydiumAmmParser {
     const args = SwapBaseOutArgsLayout.decode(instructionData);
     return {
       name: "swapBaseOut",
-      accounts: accounts.map((account, index) => {
-        switch (index) {
-          case 1:
-            return { ...account, name: "amm" };
-          case 2:
-            return { ...account, name: "ammAuthority" };
-          case 3:
-            return { ...account, name: "ammOpenOrders" };
-          case 4:
-            return { ...account, name: "ammTargetOrders" };
-          case 5:
-            return { ...account, name: "poolCoinTokenAccount" };
-          case 6:
-            return { ...account, name: "poolPcTokenAccount" };
-          case 8:
-            return { ...account, name: "serumMarket" };
-          case 9:
-            return { ...account, name: "serumBids" };
-          case 10:
-            return { ...account, name: "serumAsks" };
-          case 11:
-            return { ...account, name: "serumEventQueue" };
-          case 12:
-            return { ...account, name: "serumCoinVaultAccount" };
-          case 13:
-            return { ...account, name: "serumPcVaultAccount" };
-          case 14:
-            return { ...account, name: "serumVaultSigner" };
-          case 15:
-            return { ...account, name: "uerSourceTokenAccount" };
-          case 16:
-            return { ...account, name: "uerDestinationTokenAccount" };
-          case 17:
-            return { ...account, name: "userSourceOwner" };
-          default:
-            return account;
-        }
-      }),
+      accounts: parseSwapAccounts(accounts),
       args: {
         maxAmountIn: Number(args.maxAmountIn),
         amountOut: Number(args.amountOut),
