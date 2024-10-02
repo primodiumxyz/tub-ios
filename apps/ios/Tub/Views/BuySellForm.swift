@@ -70,7 +70,7 @@ struct BuySellForm: View {
                             .onChange(of: buyAmountUSD) { newValue in
                                 buyAmountString = String(format: "%.2f", newValue)
                             }
-                        SwipeToEnterView(text: "Slide to buy", onUnlock: handleBuy, disabled: buyAmountString == "0")
+                        SwipeToEnterView(text: "Slide to buy", onUnlock: handleBuy, disabled: buyAmountUSD == 0 || buyAmountString == "0")
                         
                         
                     }.padding(.horizontal, 20).padding(.vertical, 20)
