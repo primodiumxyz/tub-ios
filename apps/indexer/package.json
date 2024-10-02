@@ -1,7 +1,7 @@
 {
-  "name": "@tub/keeper",
+  "name": "@tub/indexer",
   "version": "0.0.1",
-  "description": "Keeper API for Primodium games",
+  "description": "Indexer for DEX transactions",
   "license": "MIT",
   "type": "module",
   "exports": {
