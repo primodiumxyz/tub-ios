@@ -1,6 +1,24 @@
 {
-  "originHash" : "5eb0f656e06a40820fec6812eae8af4928b616690cc47c4dbf8e837c7590a821",
+  "originHash" : "3320fe8a234fe780dae7e324fb0002e78142294522ea5b20ddb903980a2c2f87",
   "pins" : [
+    {
+      "identity" : "apollo-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apollographql/apollo-ios",
+      "state" : {
+        "revision" : "e70850751f6b21acd1c7871dbcd2cee5d6103c7e",
+        "version" : "1.15.1"
+      }
+    },
+    {
+      "identity" : "apollo-ios-codegen",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apollographql/apollo-ios-codegen",
+      "state" : {
+        "revision" : "c6b4d9fde2ee6eddd495b8ce682bafee1360e92e",
+        "version" : "1.15.1"
+      }
+    },
     {
       "identity" : "charts",
       "kind" : "remoteSourceControl",
@@ -8,6 +26,42 @@
       "state" : {
         "revision" : "dd9c72e3d7e751e769971092a6bd72d39198ae63",
         "version" : "5.1.0"
+      }
+    },
+    {
+      "identity" : "inflectorkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mattt/InflectorKit",
+      "state" : {
+        "revision" : "d8cbcc04972690aaa5fc760a2b9ddb3e9f0decd7",
+        "version" : "1.0.0"
+      }
+    },
+    {
+      "identity" : "sqlite.swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/stephencelis/SQLite.swift.git",
+      "state" : {
+        "revision" : "a95fc6df17d108bd99210db5e8a9bac90fe984b8",
+        "version" : "0.15.3"
+      }
+    },
+    {
+      "identity" : "swift-argument-parser",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-argument-parser.git",
+      "state" : {
+        "revision" : "41982a3656a71c768319979febd796c6fd111d5c",
+        "version" : "1.5.0"
+      }
+    },
+    {
+      "identity" : "swift-collections",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-collections",
+      "state" : {
+        "revision" : "671108c96644956dddcd89dd59c203dcdb36cec7",
+        "version" : "1.1.4"
       }
     }
   ],

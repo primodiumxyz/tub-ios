@@ -9,9 +9,18 @@ import SwiftUI
 
 struct HomeTabsView: View {
     var body: some View {
+        
+        TabView() {
+            CollectionView().tabItem {
+                Label("Collection", systemImage: "list.dash")
+            }
+            MessageView().tabItem {
+                Label("Message", systemImage: "list.dash")
+            }
             CoinView().tabItem {
                 Label("Explore", systemImage: "house")
-            }.badge(2)
+            }
+        }
     }
 }
 

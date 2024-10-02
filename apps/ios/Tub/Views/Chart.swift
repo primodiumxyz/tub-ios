@@ -75,8 +75,6 @@ struct ChartView: View {
             AxisMarks(position: .leading)
         }
         .frame(height: 200)
-        .background(.black)
-        .padding()
     }
 }
 
