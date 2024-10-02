@@ -11,15 +11,15 @@ struct HomeTabsView: View {
     var body: some View {
         
         TabView(selection: /*@START_MENU_TOKEN@*//*@PLACEHOLDER=Selection@*/.constant(1)/*@END_MENU_TOKEN@*/) {
-            CoinView().tabItem {
-                Label("Explore", systemImage: "house")
-            }.tag(3)
             CollectionView().tabItem {
                 Label("Collection", systemImage: "list.dash")
             }.tag(1)
             MessageView().tabItem {
                 Label("Message", systemImage: "list.dash")
             }.tag(2)
+            CoinView().tabItem {
+                Label("Explore", systemImage: "house")
+            }.tag(3)
         }
     }
 }
