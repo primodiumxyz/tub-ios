@@ -1,24 +1,19 @@
 // #!/usr/bin/env node
-import { Connection, Logs, PublicKey } from "@solana/web3.js";
+import { Logs } from "@solana/web3.js";
 import { config } from "dotenv";
 import { WebSocket } from "ws";
 
-import { createClient as createGqlClient } from "@tub/gql";
+import { createClient as createGqlClient, GqlClient } from "@tub/gql";
 import { parseEnv } from "@bin/parseEnv";
-import { RAYDIUM_PUBLIC_KEY } from "@/lib/constants";
+import { PRICE_DATA_BATCH_SIZE, RAYDIUM_PUBLIC_KEY } from "@/lib/constants";
 import { decodeRaydiumTx } from "@/lib/raydium";
 import { connection, ixParser, txFormatter } from "@/lib/setup";
 import { PriceData } from "@/lib/types";
 import { filterLogs, getPoolTokenPrice } from "@/lib/utils";
 
-import { bnLayoutFormatter } from "./lib/formatters/bn-layout-formatter";
-
 config({ path: "../../.env" });
 
 const env = parseEnv();
-
-// TODO: fix "Parser does not matching the instruction args": what does this mean/why does this happen/is this an issue?
-// see https://github.com/Shyft-to/solana-tx-parser-public/blob/26a605855c1f7f17bdf61f4dcbc78df286be84ea/src/parsers.ts#L1548
 
 /* ------------------------------ PROCESS LOGS ------------------------------ */
 const processLogs = async ({ err, signature }: Logs): Promise<PriceData | undefined> => {
@@ -42,11 +37,33 @@ const processLogs = async ({ err, signature }: Logs): Promise<PriceData | undefi
   return tokenPrice;
 };
 
+/* ------------------------------- HANDLE DATA ------------------------------ */
+let priceDataBatch: PriceData[] = [];
+const handlePriceData = async (gql: GqlClient["db"], priceData: PriceData | undefined) => {
+  if (!priceData) return;
+  priceDataBatch.push(priceData);
+
+  if (priceDataBatch.length === PRICE_DATA_BATCH_SIZE) {
+    const data = priceDataBatch;
+    priceDataBatch = [];
+
+    await gql.AddManyTokenPriceHistoryMutation({
+      objects: data.map(({ mint, price }) => ({
+        token: mint,
+        price: price.toString(),
+      })),
+    });
+
+    console.log(`Saved ${data.length} price data points`);
+  }
+};
+
 /* -------------------------------- WEBSOCKET ------------------------------- */
 export const start = async () => {
   try {
     const gql = (await createGqlClient({ url: env.GRAPHQL_URL, hasuraAdminSecret: env.HASURA_ADMIN_SECRET })).db;
     const ws = new WebSocket(env.HELIUS_WS_URL);
+
     setInterval(() => {
       if (ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ method: "ping" }));
@@ -92,13 +109,7 @@ export const start = async () => {
       const logs = data?.logs;
       const filteredLogs = logs ? filterLogs(logs) : undefined;
       // Process
-      if (data && filteredLogs) {
-        processLogs(data).then((priceData) => {
-          if (!priceData) return;
-          // TODO: save to DB
-          console.log(priceData);
-        });
-      }
+      if (data && filteredLogs) processLogs(data).then((priceData) => handlePriceData(gql, priceData));
     };
   } catch (err) {
     console.error(err);
