@@ -22,7 +22,6 @@ struct Price: Identifiable {
 class CoinDisplayViewModel: ObservableObject {
     @Published var balance: Double = 1000
     @Published var coinBalance: Double = 0
-    @Published var buyAmountUSD: Double = 10
     @Published var amountBought: Double = 0
     @Published var prices: [Price] = []
     
@@ -52,7 +51,7 @@ class CoinDisplayViewModel: ObservableObject {
         prices.append(newPrice)
     }
     
-    func handleBuy() -> Bool {
+    func handleBuy(buyAmountUSD: CGFloat) -> Bool {
         guard let currentPrice = prices.last?.price else { return false }
         let tokenAmount = buyAmountUSD / currentPrice
         print("amount bought:", buyAmountUSD, tokenAmount)
@@ -62,7 +61,6 @@ class CoinDisplayViewModel: ObservableObject {
         balance -= buyAmountUSD
         coinBalance += tokenAmount
         amountBought += buyAmountUSD
-        buyAmountUSD = 0
         return true
     }
     

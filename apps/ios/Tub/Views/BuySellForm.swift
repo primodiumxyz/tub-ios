@@ -9,18 +9,16 @@ import SwiftUI
 struct BuySellForm: View {
     @ObservedObject var viewModel: CoinDisplayViewModel
     @State private var activeTab: String = "buy"
-    @State private var buyAmountString: String = ""
+    @State private var buyAmountString: String = "0"
+    @State private var buyAmountUSD: Double = 0.0
+    @State private var isValidInput: Bool = true
 
-    init(viewModel: CoinDisplayViewModel) {
-        self.viewModel = viewModel
-        // Initialize buyAmountString with the viewModel's buyAmountUSD
-        _buyAmountString = State(initialValue: String(format: "%.2f", viewModel.buyAmountUSD))
-    }
-    
     func handleBuy() {
-        let success = viewModel.handleBuy()
+        let success = viewModel.handleBuy(buyAmountUSD: buyAmountUSD)
         if(!success) {return}
         activeTab = "sell"
+        buyAmountString=""
+        buyAmountUSD=0
     }
     
     var body: some View {
@@ -29,33 +27,66 @@ struct BuySellForm: View {
                 VStack {
                     VStack (alignment: .leading){
                         HStack(){
-                            Text("Amount")
+                            Text("Buy")
+                                .font(.sfRounded(size: .xl2, weight: .semibold))
                         }
-                        VStack(alignment: .trailing){
-                            TextField("Enter amount", text: $buyAmountString)
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
-                                .multilineTextAlignment(.trailing)
-                                .onChange(of: buyAmountString) { newValue in
-                                    if let amount = Double(newValue) {
-                                        viewModel.buyAmountUSD = amount
+                        VStack(alignment: .trailing, spacing: 0){
+                            HStack {
+                                TextField("Enter amount", text: $buyAmountString)
+                                    .keyboardType(.decimalPad)
+                                    .multilineTextAlignment(.trailing)
+                                    .onChange(of: buyAmountString) { newValue in
+                                        let filtered = newValue.filter { "0123456789.".contains($0) }
+                                        if filtered != newValue {
+                                            buyAmountString = filtered
+                                        }
+                                        
+                                        if let amount = Double(filtered), amount >= 0 {
+                                            buyAmountUSD = amount
+                                            isValidInput = true
+                                        } else {
+                                            isValidInput = false
+                                        }
                                     }
+                                    .foregroundColor(isValidInput ? .white : .red)
+                                if buyAmountString != ""{
+                                    Text("SOL")
                                 }
-                            
+                            }.font(.sfRounded(size: .xl3, weight: .bold))
+                                
+
                             
                             // Add token conversion display
                             if let currentPrice = viewModel.prices.last?.price, currentPrice > 0 {
-                                let tokenAmount = viewModel.buyAmountUSD / currentPrice
+                                let tokenAmount = buyAmountUSD / currentPrice
                                 Text("\(tokenAmount, specifier: "%.4f") \(viewModel.coinData.symbol)")
-                                    .font(.subheadline)
-                                    .opacity(0.5)
+                                
+                                    .font(.sfRounded(size: .base, weight: .bold))
+                                    .opacity(0.8)
                             }
                         }
-                        SwipeToEnterView(text: "Slide to buy", onUnlock: handleBuy, disabled : viewModel.buyAmountUSD == 0)
+                        
+                        SliderWithPoints(value: $buyAmountUSD, in: 0...viewModel.balance, step: 1)
+                            .onChange(of: buyAmountUSD) { newValue in
+                                buyAmountString = String(format: "%.2f", newValue)
+                            }
+                        SwipeToEnterView(text: "Slide to buy", onUnlock: handleBuy, disabled: buyAmountString == "0")
                         
                         
-                    }.padding(16)
-                }.background(Color.white.opacity(0.3)).cornerRadius(24)
+                    }.padding(.horizontal, 20).padding(.vertical, 20)
+                }
+                .frame(height: 270)
+                .background(
+                LinearGradient(
+                stops: [
+                Gradient.Stop(color: Color(red: 0.7, green: 0.54, blue: 0.79).opacity(0.65), location: 0.00),
+                Gradient.Stop(color: Color(red: 0.31, green: 0.62, blue: 0.78).opacity(0.9), location: 1.00),
+                ],
+                startPoint: UnitPoint(x: 0, y: 0.5),
+                endPoint: UnitPoint(x: 1, y: 1)
+                )
+                )
+                .cornerRadius(30)
             } else {
                 HStack {
                     Spacer()
@@ -77,7 +108,7 @@ struct BuySellForm: View {
                     Spacer()
                 }.padding(12)
             }
-        }.frame(height: 250)
+        }.frame(width: .infinity, height: 300)
     }
 }
 
