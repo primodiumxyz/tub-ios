@@ -1,4 +1,4 @@
-import { createTRPCProxyClient, CreateTRPCProxyClient, httpBatchLink, HTTPBatchLinkOptions, HTTPHeaders, splitLink } from "@trpc/client";
+import { createTRPCProxyClient, CreateTRPCProxyClient, httpBatchLink, HTTPBatchLinkOptions, splitLink } from "@trpc/client";
 import { createWSClient, wsLink } from '@trpc/client/links/wsLink';
 
 import type { AppRouter } from "./createAppRouter";

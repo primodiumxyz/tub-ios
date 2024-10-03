@@ -1,4 +1,4 @@
-import { parseEnv } from "@bin/parseEnv";
+import { parseEnv } from "../bin/parseEnv";
 import { Core, CounterData } from "@tub/core";
 import { GqlClient } from "@tub/gql";
 import { config } from "dotenv";
