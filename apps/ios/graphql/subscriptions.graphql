@@ -1,0 +1,45 @@
+subscription GetLatestTokens($limit: Int = 10) {
+    token(order_by: { updated_at: desc }, limit: $limit) {
+        id
+        symbol
+        supply
+        name
+        updated_at
+    }
+}
+
+subscription GetTokenPriceHistorySince($tokenId: uuid!, $since: timestamp!) {
+    token_price_history(
+        where: { token: { _eq: $tokenId }, created_at: { _gte: $since } }
+        limit: 100
+        order_by: { created_at: desc }
+    ) {
+        created_at
+        id
+        price
+        token
+    }
+}
+
+subscription GetLatestTokenPrice($tokenId: uuid!) {
+  token_price_history(
+    where: {
+      token: { _eq: $tokenId },
+      token_by_token: {
+        _and: [
+          { symbol: { _is_null: false } },
+          { symbol: { _neq: "" } },
+          { name: { _is_null: false } },
+          { name: { _neq: "" } }
+        ]
+      }
+    },
+    order_by: { created_at: desc },
+    limit: 1
+  ) {
+    created_at
+    id
+    price
+    token
+  }
+}

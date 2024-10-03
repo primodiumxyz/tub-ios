@@ -11,7 +11,12 @@ import Combine
 
 struct CoinView: View {
     @ObservedObject var coinModel : BaseCoinModel
+    var initialBalance: Double = 0.0
     
+    init(_coinModel: BaseCoinModel) {
+        initialBalance = _coinModel.balance
+        coinModel  = _coinModel
+    }
     
     var body: some View {
        VStack () {
@@ -24,23 +29,21 @@ struct CoinView: View {
                 Text("\(coinModel.balance, specifier: "%.2f") SOL")
                     .font(.sfRounded(size: .xl4))
                     .fontWeight(.bold)
-//                if coinModel.balance != 1000 {
                     HStack(spacing:3) {
-                        Text(coinModel.balance > 1000 ? "+ \(coinModel.balance - 1000, specifier: "%.2f") SOL" : "- \(1000 - coinModel.balance, specifier: "%.2f") SOL")
+                        Text(coinModel.balance > initialBalance ? "+ \(coinModel.balance - initialBalance, specifier: "%.2f") SOL" : "- \(initialBalance - coinModel.balance, specifier: "%.2f") SOL")
                             .font(.sfRounded(size: .base, weight: .bold))
                         
                         HStack(spacing: 2) {
-                            Image(systemName: coinModel.balance > 1000 ? "arrow.up.right" : "arrow.down.right")
-                                .foregroundColor(coinModel.balance > 1000 ? .green : .red)
+                            Image(systemName: coinModel.balance > initialBalance ? "arrow.up.right" : "arrow.down.right")
+                                .foregroundColor(coinModel.balance > initialBalance ? .green : .red)
                                 .kerning(-1)
 
-                            Text("\(abs((coinModel.balance - 1000) / 1000 * 100), specifier: "%.2f")%")
-                                .foregroundColor(coinModel.balance > 1000 ? .green : .red)
+                            Text("\(abs((coinModel.balance - initialBalance) / 1000 * 100), specifier: "%.2f")%")
+                                .foregroundColor(coinModel.balance > initialBalance ? .green : .red)
                                 .font(.sfRounded(size: .base, weight: .bold))
                                 .kerning(-1)
                         }
                     }
-//                }
             }
             .padding(.bottom, 16)
             HStack {
@@ -85,5 +88,5 @@ struct CoinView: View {
 
 
 #Preview {
-    CoinView(coinModel: LocalCoinModel(tokenId: ""))
+    CoinView(_coinModel: LocalCoinModel(tokenId: ""))
 }

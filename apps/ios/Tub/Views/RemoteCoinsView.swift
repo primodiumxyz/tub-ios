@@ -10,34 +10,49 @@ import Apollo
 import TubAPI
 
 struct RemoteCoinsView: View {
-    @State private var coinIds: [String] = []
-    @State private var currIndex : Int = 0
+    @State private var coins: [Coin] = []
     @State private var isLoading = true
     @State private var errorMessage: String?
+    @State private var subscription: Cancellable?
 
     var body: some View {
-        VStack {
-            if isLoading {
-                ProgressView()
-            } else if let error = errorMessage {
-                Text(error).foregroundColor(.black)
-            } else if coinIds.isEmpty {
-                Text("No coins found").foregroundColor(.red)
-            } else {
-                CoinView(coinModel: RemoteCoinModel(tokenId: coinIds[currIndex % coinIds.count]))
-            }
+        NavigationView {
+            VStack {
+                if isLoading {
+                    ProgressView()
+                } else if let error = errorMessage {
+                    Text(error).foregroundColor(.red)
+                } else if coins.isEmpty {
+                    Text("No coins found").foregroundColor(.red)
+                } else {
+//                    CoinView(_coinModel: RemoteCoinModel(tokenId: coins[0].id))
+                    List(coins) { coin in
+                            HStack {
+                                Text(coin.symbol)
+                                    .font(.headline)
+                                    .foregroundColor(.blue)
+                                Spacer()
+                                Text(coin.name)
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                    }
+                }
+            .navigationTitle("Coins")
+            .onAppear(perform: fetchCoins)
         }
-        .onAppear(perform: fetchCoinIds)
     }
 
-    private func fetchCoinIds() {
-        Network.shared.apollo.fetch(query: GetAllTokensQuery()) { result in
+    private func fetchCoins() {
+        subscription = Network.shared.apollo.subscribe(subscription: GetLatestTokensSubscription()) { result in
             DispatchQueue.main.async {
                 self.isLoading = false
                 switch result {
                 case .success(let graphQLResult):
                     if let tokens = graphQLResult.data?.token {
-                        self.coinIds = tokens.map { $0.id }                        }
+                        self.coins = tokens.map { elem in Coin(id: elem.id, name: elem.name, symbol: elem.symbol) }
+                    }
                 case .failure(let error):
                     self.errorMessage = "Error: \(error.localizedDescription)"
                 }

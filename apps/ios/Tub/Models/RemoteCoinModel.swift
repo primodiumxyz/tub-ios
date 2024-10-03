@@ -8,6 +8,7 @@ class RemoteCoinModel: BaseCoinModel {
     private var cancellables = Set<AnyCancellable>()
     
     required override init(tokenId: String) {
+        print(tokenId)
         super.init(tokenId: tokenId)
         fetchInitialData()
     }
@@ -16,7 +17,7 @@ class RemoteCoinModel: BaseCoinModel {
         Task {
             do {
                 try await fetchTokenDetails()
-                try await fetchLatestPrice()
+//                try await fetchLatestPrice()
                 startPriceUpdates()
             } catch {
                 print("Error fetching initial data: \(error)")
@@ -37,12 +38,21 @@ class RemoteCoinModel: BaseCoinModel {
                 case .success(let response):
                     if let token = response.data?.token.first(where: { $0.id == self.tokenId }) {
                         DispatchQueue.main.async {
-                            self.coin = Coin(name: token.name, symbol: token.symbol)
+                            self.coin = Coin(id: token.id, name: token.name, symbol: token.symbol)
                             self.loading = false
                         }
                         continuation.resume()
                     } else {
-                        continuation.resume(throwing: NSError(domain: "RemoteCoinModel", code: 1, userInfo: [NSLocalizedDescriptionKey: "Token not found"]))
+                        continuation.resume(
+                            throwing:
+                                NSError(
+                                    domain: "RemoteCoinModel",
+                                    code: 1,
+                                    userInfo: [
+                                        NSLocalizedDescriptionKey: "Token not found"
+                                    ]
+                                )
+                        )
                     }
                 case .failure(let error):
                     continuation.resume(throwing: error)
@@ -51,31 +61,35 @@ class RemoteCoinModel: BaseCoinModel {
         }
     }
     
-    private func fetchLatestPrice() async throws {
-        let query = GetLatestTokenPriceQuery(tokenId: TubAPI.Uuid(self.tokenId))
-        Network.shared.apollo.fetch(query: query) { result in
-            switch result {
-            case .success(let response):
-                 if let latestPrice = response.data?.token_price_history.first {
-                     let time = Double(latestPrice.price)
-                     let date = Date(timeIntervalSince1970: TimeInterval(time))
-                     let price = Price(timestamp: date, price: Double(latestPrice.price))
-                     DispatchQueue.main.async {
-                         self.prices.append(price)
-                     }
-                 }
-            case .failure(let error):
-                print(error)
-          }
-        }
+    private func subscribeToLatestPrice() async throws {
+//        let query = GetLatestTokenPriceQuery(tokenId: TubAPI.Uuid(self.tokenId))
+//        Network.shared.apollo.fetch(query: query) { result in
+//            switch result {
+//            case .success(let response):
+//                 if let latestPrice = response.data?.token_price_history.last {
+//                     print({latestPrice})
+//                     let time = Double(latestPrice.created_at)
+//                     if time == nil { return }
+//                     let date = Date(timeIntervalSince1970: TimeInterval(time!))
+//                     let price = Price(timestamp: date, price: Double(latestPrice.price) / 1e9)
+//                     DispatchQueue.main.async {
+//                         print(price)
+//                         self.prices.append(price)
+//                     }
+//                 }
+//            case .failure(let error):
+//                print(error)
+//          }
+//        }
     }
     
     func startPriceUpdates() {
-        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            Task {
-                try await self?.fetchLatestPrice()
-            }
-        }
+//        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+//            Task {
+//                try await self?.fetchLatestPrice()
+//                nil
+//            }
+//        }
     }
     
     override func handleBuy(buyAmountUSD: CGFloat) -> Bool {

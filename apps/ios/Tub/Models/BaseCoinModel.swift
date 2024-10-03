@@ -2,7 +2,7 @@ import SwiftUI
 
 class BaseCoinModel: ObservableObject {
     var tokenId: String
-    var coin: Coin = Coin(name: "COIN", symbol: "SYMBOL")
+    var coin: Coin = Coin(id: "", name: "COIN", symbol: "SYMBOL")
     
     @Published var balance: Double = 0
     @Published var coinBalance: Double = 0

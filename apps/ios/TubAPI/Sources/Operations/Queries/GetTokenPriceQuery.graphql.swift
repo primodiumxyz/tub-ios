@@ -3,28 +3,20 @@
 
 @_exported import ApolloAPI
 
-public class GetTokenPriceHistorySinceQuery: GraphQLQuery {
-  public static let operationName: String = "GetTokenPriceHistorySince"
+public class GetTokenPriceQuery: GraphQLQuery {
+  public static let operationName: String = "GetTokenPrice"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetTokenPriceHistorySince($tokenId: uuid!, $since: timestamp!) { token_price_history( where: { token: { _eq: $tokenId }, created_at: { _gte: $since } } ) { __typename created_at id price token } }"#
+      #"query GetTokenPrice($tokenId: uuid!) { token_price_history( where: { token: { _eq: $tokenId } } order_by: { created_at: desc } limit: 1 ) { __typename created_at id price token } }"#
     ))
 
   public var tokenId: Uuid
-  public var since: Timestamp
 
-  public init(
-    tokenId: Uuid,
-    since: Timestamp
-  ) {
+  public init(tokenId: Uuid) {
     self.tokenId = tokenId
-    self.since = since
   }
 
-  public var __variables: Variables? { [
-    "tokenId": tokenId,
-    "since": since
-  ] }
+  public var __variables: Variables? { ["tokenId": tokenId] }
 
   public struct Data: TubAPI.SelectionSet {
     public let __data: DataDict
@@ -32,10 +24,11 @@ public class GetTokenPriceHistorySinceQuery: GraphQLQuery {
 
     public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Query_root }
     public static var __selections: [ApolloAPI.Selection] { [
-      .field("token_price_history", [Token_price_history].self, arguments: ["where": [
-        "token": ["_eq": .variable("tokenId")],
-        "created_at": ["_gte": .variable("since")]
-      ]]),
+      .field("token_price_history", [Token_price_history].self, arguments: [
+        "where": ["token": ["_eq": .variable("tokenId")]],
+        "order_by": ["created_at": "desc"],
+        "limit": 1
+      ]),
     ] }
 
     /// fetch data from the table: "token_price_history"

@@ -69,17 +69,8 @@ query GetAccountTokenDebit($accountId: uuid!, $tokenId: uuid!) {
   }
 }
 
-query GetLatestTokenPrice($tokenId: uuid!) {
+query GetTokenPrice($tokenId: uuid!) {
   token_price_history(where: { token: { _eq: $tokenId } }, order_by: { created_at: desc }, limit: 1) {
-    created_at
-    id
-    price
-    token
-  }
-}
-
-query GetTokenPriceHistorySince($tokenId: uuid!, $since: timestamp!) {
-  token_price_history(where: { token: { _eq: $tokenId }, created_at: { _gte: $since } }) {
     created_at
     id
     price

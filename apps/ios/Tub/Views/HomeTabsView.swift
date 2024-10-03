@@ -15,7 +15,7 @@ struct HomeTabsView: View {
             RemoteCoinsView().tabItem {
                 Label("Cloud", systemImage: "cloud.fill")
             }
-            CoinView(coinModel: LocalCoinModel(tokenId: "")).tabItem {
+            CoinView(_coinModel: LocalCoinModel(tokenId: "")).tabItem {
                 Label("Local", systemImage: "testtube.2")
             }
         }

@@ -12,7 +12,7 @@ class LocalCoinModel: BaseCoinModel {
     
     required override init(tokenId: String) {
         super.init(tokenId: tokenId)
-        coin = Coin(name: "MONKEY" ,symbol: "MONK")
+        coin = Coin(id: "", name: "MONKEY" ,symbol: "MONK")
         balance = 1000
         generateInitialPrice()
         startPriceUpdates()

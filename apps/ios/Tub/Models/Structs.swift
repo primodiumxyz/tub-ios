@@ -1,6 +1,7 @@
 import SwiftUI
 
-struct Coin {
+struct Coin: Identifiable {
+    let id: String
     var name: String
     var symbol: String
 }

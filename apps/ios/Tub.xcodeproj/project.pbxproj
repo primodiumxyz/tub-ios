@@ -13,10 +13,15 @@
 		9936FC572CADCA5200E21B8A /* LocalCoinModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9936FC552CADCA5200E21B8A /* LocalCoinModel.swift */; };
 		9936FC582CADCA5200E21B8A /* Structs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9936FC562CADCA5200E21B8A /* Structs.swift */; };
 		9936FC5A2CADCAB700E21B8A /* BaseCoinModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9936FC592CADCAB700E21B8A /* BaseCoinModel.swift */; };
+		993E5D902CAEE423000E23A9 /* ApolloWebSocket in Frameworks */ = {isa = PBXBuildFile; productRef = 993E5D8F2CAEE423000E23A9 /* ApolloWebSocket */; };
+		993E5D932CAEF33B000E23A9 /* subscriptions.graphql in Resources */ = {isa = PBXBuildFile; fileRef = 993E5D922CAEF33B000E23A9 /* subscriptions.graphql */; };
+		993E5D942CAEF33B000E23A9 /* queries.graphql in Resources */ = {isa = PBXBuildFile; fileRef = 993E5D912CAEF33B000E23A9 /* queries.graphql */; };
 		999F59562CA6F97100E7AE9F /* RemoteCoinModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999F59552CA6F96D00E7AE9F /* RemoteCoinModel.swift */; };
 		999F59582CA7107C00E7AE9F /* BuySellForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999F59572CA7107A00E7AE9F /* BuySellForm.swift */; };
 		999F595B2CA754FB00E7AE9F /* ChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999F595A2CA754F900E7AE9F /* ChartView.swift */; };
 		99AEE8302CAD9B8800C535C4 /* SliderWithPoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99AEE82F2CAD9B8600C535C4 /* SliderWithPoints.swift */; };
+		99C26C1C2CAEE263004807A2 /* ApolloAPI in Frameworks */ = {isa = PBXBuildFile; productRef = 99C26C1B2CAEE263004807A2 /* ApolloAPI */; };
+		99C26C1E2CAEE38B004807A2 /* ApolloWebSocket in Frameworks */ = {isa = PBXBuildFile; productRef = 99C26C1D2CAEE38B004807A2 /* ApolloWebSocket */; };
 		DB10A95D2CA5AA1B00B1E4F3 /* CoinView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB10A95C2CA5AA1B00B1E4F3 /* CoinView.swift */; };
 		DB10A95F2CA5AA3900B1E4F3 /* CollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB10A95E2CA5AA3900B1E4F3 /* CollectionView.swift */; };
 		DB10A9612CA5AA4600B1E4F3 /* MessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB10A9602CA5AA4600B1E4F3 /* MessageView.swift */; };
@@ -57,6 +62,8 @@
 		9936FC552CADCA5200E21B8A /* LocalCoinModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalCoinModel.swift; sourceTree = "<group>"; };
 		9936FC562CADCA5200E21B8A /* Structs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Structs.swift; sourceTree = "<group>"; };
 		9936FC592CADCAB700E21B8A /* BaseCoinModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseCoinModel.swift; sourceTree = "<group>"; };
+		993E5D912CAEF33B000E23A9 /* queries.graphql */ = {isa = PBXFileReference; lastKnownFileType = text; path = queries.graphql; sourceTree = "<group>"; };
+		993E5D922CAEF33B000E23A9 /* subscriptions.graphql */ = {isa = PBXFileReference; lastKnownFileType = text; path = subscriptions.graphql; sourceTree = "<group>"; };
 		999F59552CA6F96D00E7AE9F /* RemoteCoinModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteCoinModel.swift; sourceTree = "<group>"; };
 		999F59572CA7107A00E7AE9F /* BuySellForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuySellForm.swift; sourceTree = "<group>"; };
 		999F595A2CA754F900E7AE9F /* ChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartView.swift; sourceTree = "<group>"; };
@@ -65,7 +72,6 @@
 		DB10A95E2CA5AA3900B1E4F3 /* CollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionView.swift; sourceTree = "<group>"; };
 		DB10A9602CA5AA4600B1E4F3 /* MessageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageView.swift; sourceTree = "<group>"; };
 		DB458DAA2CAC7F0100C5EC18 /* schema.graphqls */ = {isa = PBXFileReference; lastKnownFileType = text; path = schema.graphqls; sourceTree = "<group>"; };
-		DB458DAD2CAC7F4D00C5EC18 /* query.graphql */ = {isa = PBXFileReference; lastKnownFileType = text; path = query.graphql; sourceTree = "<group>"; };
 		DB458DB32CAC827A00C5EC18 /* Network.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Network.swift; sourceTree = "<group>"; };
 		DB675A322CA2B73D006FC9B3 /* HomeTabsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeTabsView.swift; sourceTree = "<group>"; };
 		DB6D29012CA1C8F70099951A /* Tub.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tub.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -86,6 +92,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				99C26C1C2CAEE263004807A2 /* ApolloAPI in Frameworks */,
+				993E5D902CAEE423000E23A9 /* ApolloWebSocket in Frameworks */,
 				DFA4D6512CAC500B00AEDC73 /* Apollo in Frameworks */,
 				DB458DB12CAC824A00C5EC18 /* TubAPI in Frameworks */,
 			);
@@ -95,6 +103,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				99C26C1E2CAEE38B004807A2 /* ApolloWebSocket in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -147,7 +156,8 @@
 		DB458DAB2CAC7F0100C5EC18 /* graphql */ = {
 			isa = PBXGroup;
 			children = (
-				DB458DAD2CAC7F4D00C5EC18 /* query.graphql */,
+				993E5D912CAEF33B000E23A9 /* queries.graphql */,
+				993E5D922CAEF33B000E23A9 /* subscriptions.graphql */,
 				DB458DAA2CAC7F0100C5EC18 /* schema.graphqls */,
 			);
 			path = graphql;
@@ -241,6 +251,8 @@
 			packageProductDependencies = (
 				DFA4D6502CAC500B00AEDC73 /* Apollo */,
 				DB458DB02CAC824A00C5EC18 /* TubAPI */,
+				99C26C1B2CAEE263004807A2 /* ApolloAPI */,
+				993E5D8F2CAEE423000E23A9 /* ApolloWebSocket */,
 			);
 			productName = Tub;
 			productReference = DB6D29012CA1C8F70099951A /* Tub.app */;
@@ -338,6 +350,8 @@
 			files = (
 				DB6D290D2CA1C8F80099951A /* Preview Assets.xcassets in Resources */,
 				DB6D29092CA1C8F80099951A /* Assets.xcassets in Resources */,
+				993E5D932CAEF33B000E23A9 /* subscriptions.graphql in Resources */,
+				993E5D942CAEF33B000E23A9 /* queries.graphql in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -763,6 +777,20 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		993E5D8F2CAEE423000E23A9 /* ApolloWebSocket */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DFA4D64F2CAC500B00AEDC73 /* XCRemoteSwiftPackageReference "apollo-ios" */;
+			productName = ApolloWebSocket;
+		};
+		99C26C1B2CAEE263004807A2 /* ApolloAPI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ApolloAPI;
+		};
+		99C26C1D2CAEE38B004807A2 /* ApolloWebSocket */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DFA4D64F2CAC500B00AEDC73 /* XCRemoteSwiftPackageReference "apollo-ios" */;
+			productName = ApolloWebSocket;
+		};
 		DB458DB02CAC824A00C5EC18 /* TubAPI */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = DB458DAE2CAC821D00C5EC18 /* XCLocalSwiftPackageReference "TubAPI" */;
