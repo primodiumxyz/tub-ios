@@ -10,9 +10,9 @@ export const GetAllAccountsQuery = graphql(`
   }
 `);
 
-export const GetAllTokensQuery = graphql(`
+export const GetAllMockTokensQuery = graphql(`
   query GetAllTokens {
-    token {
+    token(where: { is_mock: { _eq: true } }) {
       id
       name
       symbol
