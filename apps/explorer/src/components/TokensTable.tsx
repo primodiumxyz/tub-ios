@@ -1,17 +1,20 @@
-import { FC, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { PRICE_PRECISION } from "@tub/indexer/constants";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Token } from "@/hooks/useTokens";
+import { Token, useTokens } from "@/hooks/useTokens";
 import { useTrackerParams } from "@/hooks/useTrackerParams";
 import { formatTime } from "@/lib/utils";
 
-export const TokensTable: FC<{ data: Token[] }> = ({ data }) => {
+export const TokensTable = () => {
+  const { tokens, fetching, error } = useTokens();
   const { timespan, increasePct, minTrades } = useTrackerParams();
+  const [data, setData] = useState<Token[]>([]);
   const [sortBy, setSortBy] = useState<"increase" | "price" | "trades">("increase");
 
-  const sortedData = useMemo(() => {
-    return data
+  const filterAndSortTokens = useCallback(() => {
+    return tokens
       .filter((token) => token.increasePct >= increasePct && token.trades >= minTrades)
       .sort((a, b) => {
         if (sortBy === "price") {
@@ -22,9 +25,14 @@ export const TokensTable: FC<{ data: Token[] }> = ({ data }) => {
           return b.increasePct - a.increasePct;
         }
       });
-  }, [data, sortBy]);
-  // const sortedData = data;
+  }, [tokens, increasePct, minTrades, sortBy]);
 
+  useEffect(() => {
+    setData(filterAndSortTokens());
+  }, [filterAndSortTokens]);
+
+  if (error) return <div>Error: {error}</div>;
+  if (fetching && tokens.length === 0) return <div>Loading...</div>;
   return (
     <div className="w-full h-fit overflow-y-auto">
       <Table className="w-full">
@@ -35,7 +43,29 @@ export const TokensTable: FC<{ data: Token[] }> = ({ data }) => {
         <TableHeader>
           <TableRow className="text-start font-bold">
             <TableCell colSpan={3}>Total coins</TableCell>
-            <TableCell className="text-right">{sortedData.length}</TableCell>
+            <TableCell className="text-right">{data.length}</TableCell>
+          </TableRow>
+        </TableHeader>
+        <TableHeader>
+          <TableRow className="text-end">
+            <TableCell colSpan={3} className="text-end">
+              Sort by
+            </TableCell>
+            <TableCell>
+              <Select
+                defaultValue="increase"
+                onValueChange={(value) => setSortBy(value as "increase" | "price" | "trades")}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="increase">Price increase</SelectItem>
+                  <SelectItem value="price">Current price</SelectItem>
+                  <SelectItem value="trades">Trades</SelectItem>
+                </SelectContent>
+              </Select>
+            </TableCell>
           </TableRow>
         </TableHeader>
         <TableHeader>
@@ -47,11 +77,11 @@ export const TokensTable: FC<{ data: Token[] }> = ({ data }) => {
           </TableRow>
         </TableHeader>
         <TableBody className="text-start">
-          {sortedData.map((token) => (
+          {data.map((token) => (
             <TableRow key={token.mint}>
               <TableCell className="font-medium">{token.mint}</TableCell>
               <TableCell>{token.trades}</TableCell>
-              <TableCell>{(token.latestPrice / PRICE_PRECISION).toLocaleString()}</TableCell>
+              <TableCell>{(token.latestPrice / PRICE_PRECISION).toFixed(9)}</TableCell>
               <TableCell className="text-right">{token.increasePct.toFixed(2)}</TableCell>
             </TableRow>
           ))}
