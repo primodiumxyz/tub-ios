@@ -5,9 +5,9 @@ import { WebSocket } from "ws";
 
 import { createClient as createGqlClient, GqlClient } from "@tub/gql";
 import { parseEnv } from "@bin/parseEnv";
-import { PRICE_DATA_BATCH_SIZE, RAYDIUM_PUBLIC_KEY } from "@/lib/constants";
+import { PRICE_DATA_BATCH_SIZE, PRICE_PRECISION, RAYDIUM_PUBLIC_KEY } from "@/lib/constants";
 import { decodeRaydiumTx } from "@/lib/raydium";
-import { connection, ixParser, txFormatter } from "@/lib/setup";
+import { connection, ixParser } from "@/lib/setup";
 import { PriceData } from "@/lib/types";
 import { filterLogs, getPoolTokenPrice } from "@/lib/utils";
 
@@ -44,17 +44,56 @@ const handlePriceData = async (gql: GqlClient["db"], priceData: PriceData | unde
   priceDataBatch.push(priceData);
 
   if (priceDataBatch.length === PRICE_DATA_BATCH_SIZE) {
-    const data = priceDataBatch;
+    const _priceDataBatch = priceDataBatch;
     priceDataBatch = [];
 
-    await gql.AddManyTokenPriceHistoryMutation({
-      objects: data.map(({ mint, price }) => ({
-        token: mint,
-        price: price.toString(),
-      })),
-    });
+    try {
+      // 1. Insert new tokens
+      const insertRes = await gql.RegisterManyNewTokensMutation({
+        objects: _priceDataBatch.map(({ mint }) => ({
+          mint,
+          name: "",
+          symbol: "",
+          supply: "0",
+        })),
+      });
 
-    console.log(`Saved ${data.length} price data points`);
+      if (insertRes.error) {
+        console.error("Error in RegisterManyNewTokensMutation:", insertRes.error.message);
+        return;
+      }
+      console.log(`Inserted ${insertRes.data?.insert_token?.affected_rows} new tokens`);
+
+      // 2. Fetch all tokens ids (both new and existing)
+      const mints = _priceDataBatch.map(({ mint }) => mint);
+      const fetchRes = await gql.GetTokensByMintsQuery({ mints });
+      if (fetchRes.error) {
+        console.error("Error in GetTokensByMintsQuery:", fetchRes.error.message);
+        return;
+      }
+
+      const tokenMap = new Map(fetchRes.data?.token.map((token) => [token.mint, token.id]));
+      const validPriceData = _priceDataBatch.filter(({ mint }) => tokenMap.has(mint));
+      if (validPriceData.length !== _priceDataBatch.length) {
+        console.warn(`${_priceDataBatch.length - validPriceData.length} tokens were not found`);
+      }
+
+      // 3. Add price history
+      const addPriceHistoryRes = await gql.AddManyTokenPriceHistoryMutation({
+        objects: validPriceData.map(({ mint, price }) => ({
+          token: tokenMap.get(mint)!,
+          price: (price * PRICE_PRECISION).toString(),
+        })),
+      });
+
+      if (addPriceHistoryRes.error) {
+        console.error("Error in AddManyTokenPriceHistoryMutation:", addPriceHistoryRes.error.message);
+      } else {
+        console.log(`Saved ${validPriceData.length} price data points`);
+      }
+    } catch (error) {
+      console.error("Unexpected error in handlePriceData:", error);
+    }
   }
 };
 

@@ -1,8 +1,8 @@
 import { graphql } from "./init";
 
 export const GetLatestMockTokensSubscription = graphql(`
-  subscription GetLatestTokens($limit: Int = 10) {
-    token(where: { is_mock: { _eq: true } }, order_by: { updated_at: desc }, limit: $limit) {
+  subscription GetLatestMockTokens($limit: Int = 10) {
+    token(where: { mint: { _is_null: true } }, order_by: { updated_at: desc }, limit: $limit) {
       id
       symbol
       supply
@@ -27,12 +27,13 @@ export const GetTokenPriceHistorySinceSubscription = graphql(`
 `);
 
 export const GetLatestOnchainTokensSubscription = graphql(`
-  subscription GetLatestTokens($limit: Int = 10) {
-    token(order_by: { updated_at: desc }, limit: $limit, where: { is_mock: { _eq: false } }) {
+  subscription GetLatestOnchainTokens($limit: Int = 10) {
+    token(where: { mint: { _is_null: false } }, order_by: { updated_at: desc }, limit: $limit) {
       id
       symbol
       supply
       updated_at
+      mint
     }
   }
 `);

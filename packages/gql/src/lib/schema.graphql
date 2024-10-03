@@ -14,21 +14,6 @@ directive @cached(
 ) on QUERY
 
 """
-Boolean expression to compare columns of type "Boolean". All fields are combined with logical 'AND'.
-"""
-input Boolean_comparison_exp {
-  _eq: Boolean
-  _gt: Boolean
-  _gte: Boolean
-  _in: [Boolean!]
-  _is_null: Boolean
-  _lt: Boolean
-  _lte: Boolean
-  _neq: Boolean
-  _nin: [Boolean!]
-}
-
-"""
 Boolean expression to compare columns of type "Int". All fields are combined with logical 'AND'.
 """
 input Int_comparison_exp {
@@ -1744,8 +1729,8 @@ columns and relationships of "token"
 type token {
   id: uuid!
 
-  """whether the token was generated (true) or a real onchain coin (false)"""
-  is_mock: Boolean!
+  """token mint address (only for real tokens)"""
+  mint: String
   name: String!
   supply: numeric!
   symbol: String!
@@ -1791,7 +1776,7 @@ input token_bool_exp {
   _not: token_bool_exp
   _or: [token_bool_exp!]
   id: uuid_comparison_exp
-  is_mock: Boolean_comparison_exp
+  mint: String_comparison_exp
   name: String_comparison_exp
   supply: numeric_comparison_exp
   symbol: String_comparison_exp
@@ -1803,6 +1788,11 @@ input token_bool_exp {
 unique or primary key constraints on table "token"
 """
 enum token_constraint {
+  """
+  unique or primary key constraint on columns "mint"
+  """
+  token_mint_key
+
   """
   unique or primary key constraint on columns "id"
   """
@@ -1822,8 +1812,8 @@ input type for inserting data into table "token"
 input token_insert_input {
   id: uuid
 
-  """whether the token was generated (true) or a real onchain coin (false)"""
-  is_mock: Boolean
+  """token mint address (only for real tokens)"""
+  mint: String
   name: String
   supply: numeric
   symbol: String
@@ -1834,6 +1824,9 @@ input token_insert_input {
 """aggregate max on columns"""
 type token_max_fields {
   id: uuid
+
+  """token mint address (only for real tokens)"""
+  mint: String
   name: String
   supply: numeric
   symbol: String
@@ -1844,6 +1837,9 @@ type token_max_fields {
 """aggregate min on columns"""
 type token_min_fields {
   id: uuid
+
+  """token mint address (only for real tokens)"""
+  mint: String
   name: String
   supply: numeric
   symbol: String
@@ -1884,7 +1880,7 @@ input token_on_conflict {
 """Ordering options when selecting data from "token"."""
 input token_order_by {
   id: order_by
-  is_mock: order_by
+  mint: order_by
   name: order_by
   supply: order_by
   symbol: order_by
@@ -2149,7 +2145,7 @@ enum token_select_column {
   id
 
   """column name"""
-  is_mock
+  mint
 
   """column name"""
   name
@@ -2173,8 +2169,8 @@ input type for updating data in table "token"
 input token_set_input {
   id: uuid
 
-  """whether the token was generated (true) or a real onchain coin (false)"""
-  is_mock: Boolean
+  """token mint address (only for real tokens)"""
+  mint: String
   name: String
   supply: numeric
   symbol: String
@@ -2212,8 +2208,8 @@ input token_stream_cursor_input {
 input token_stream_cursor_value_input {
   id: uuid
 
-  """whether the token was generated (true) or a real onchain coin (false)"""
-  is_mock: Boolean
+  """token mint address (only for real tokens)"""
+  mint: String
   name: String
   supply: numeric
   symbol: String
@@ -2614,7 +2610,7 @@ enum token_update_column {
   id
 
   """column name"""
-  is_mock
+  mint
 
   """column name"""
   name
