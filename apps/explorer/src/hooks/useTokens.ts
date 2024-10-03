@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSubscription } from "urql";
 
 import { subscriptions } from "@tub/gql";
@@ -22,9 +22,10 @@ export const useTokens = () => {
   const { timespan } = useTrackerParams();
   const [tokens, setTokens] = useState<Token[]>([]);
 
+  const since = useRef(new Date(new Date().getTime() - timespan * 1000));
   const [priceHistory] = useSubscription({
     query: subscriptions.GetAllOnchainTokensPriceHistorySinceSubscription,
-    variables: { since: new Date(new Date().getTime() - timespan * 1000) },
+    variables: { since: since.current },
   });
 
   const formatTokens = (data: PriceData[] | undefined) => {
@@ -55,9 +56,18 @@ export const useTokens = () => {
     setTokens(tokensWithData);
   };
 
+  const updateSince = () => {};
+
   useEffect(() => {
     formatTokens(priceHistory.data?.token_price_history as PriceData[]);
   }, [priceHistory.data]);
 
-  return useMemo(() => ({ tokens }), [tokens]);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      since.current = new Date(new Date().getTime() - timespan * 1000);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [timespan]);
+
+  return useMemo(() => ({ tokens, fetching: priceHistory.fetching, error: priceHistory.error?.message }), [tokens]);
 };
