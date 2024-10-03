@@ -33,7 +33,7 @@ server.get("/", (req, res) => res.code(200).send("hello world"));
 
 // Helper function to extract bearer token
 const getBearerToken = (req: any) => {
-  const authHeader = req.headers.authorization;
+  const authHeader = req.headers?.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
     return authHeader.substring(7);
   }
@@ -58,7 +58,7 @@ export const start = async () => {
       useWSS: true,
       trpcOptions: {
         router: createAppRouter(),
-        createContext: async (req) => ({ tubService, jwtToken: getBearerToken(req) }),
+        createContext: async (opt) => ({ tubService, jwtToken: getBearerToken(opt.req) }),
       },
     });
     await server.listen({ host: env.SERVER_HOST, port: env.SERVER_PORT });
@@ -68,7 +68,7 @@ export const start = async () => {
     applyWSSHandler({
       wss: server.websocketServer,
       router: createAppRouter(),
-      createContext: async (req) => ({ tubService, jwtToken: getBearerToken(req) }),
+      createContext: async (opt) => ({ tubService, jwtToken: getBearerToken(opt.req) }),
     });
   } catch (err) {
     server.log.error(err);

@@ -23,6 +23,15 @@ export class TubService {
     this.initializeCounterSubscription();
   }
 
+  private verifyJWT = (token: string) => {
+    try {
+      const payload = jwt.verify(token, env.PRIVATE_KEY) as jwt.JwtPayload;
+      return payload.uuid;
+    } catch (e: any) {
+      throw new Error(`Invalid JWT: ${e.message}`);
+    }
+  };
+
   getStatus(): { status: number } {
     return { status: 200 };
   }
@@ -85,7 +94,14 @@ export class TubService {
     return { uuid, token };
   }
 
-  async sellToken(accountId: string, tokenId: string, amount: bigint) {
+  async refreshToken(uuid: string) {
+    const token = jwt.sign({ uuid }, env.PRIVATE_KEY, { expiresIn: "5y" });
+    return token;
+  }
+
+  async sellToken(token: string, tokenId: string, amount: bigint) {
+    const accountId = this.verifyJWT(token);
+
     const result = await this.gql.SellTokenMutation({
       account: accountId,
       token: tokenId,
@@ -99,7 +115,9 @@ export class TubService {
     return result.data;
   }
 
-  async buyToken(accountId: string, tokenId: string, amount: bigint) {
+  async buyToken(token: string, tokenId: string, amount: bigint) {
+    const accountId = this.verifyJWT(token);
+
     const result = await this.gql.BuyTokenMutation({
       account: accountId,
       token: tokenId,
@@ -128,7 +146,9 @@ export class TubService {
     return result.data;
   }
 
-  async airdropNativeToUser(accountId: string, amount: bigint) {
+  async airdropNativeToUser(token: string, amount: bigint) {
+    const accountId = this.verifyJWT(token);
+
     const result = await this.gql.AirdropNativeToUserMutation({
       account: accountId,
       amount: amount.toString(),

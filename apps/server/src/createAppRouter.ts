@@ -2,25 +2,10 @@ import { initTRPC } from "@trpc/server";
 import { observable } from "@trpc/server/observable";
 import { z } from "zod";
 import { TubService } from "./TubService";
-import jwt from "jsonwebtoken";
-import { parseEnv } from "@bin/parseEnv";
-import { config } from "dotenv";
-config({ path: "../../.env" });
-
-const env = parseEnv();
 
 export type AppContext = {
   tubService: TubService;
   jwtToken: string;
-};
-
-const verifyJWT = (token: string) => {
-  try {
-    const payload = jwt.verify(token, env.PRIVATE_KEY) as jwt.JwtPayload;
-    return payload.uuid;
-  } catch (e: any) {
-    throw new Error(`Invalid JWT: ${e.message}`);
-  }
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -53,7 +38,10 @@ export function createAppRouter() {
       )
       .mutation(async ({ ctx, input }) => {
         return await ctx.tubService.registerNewUser(input.username, input.airdropAmount ? BigInt(input.airdropAmount) : BigInt("100"));
-      }), 
+      }),
+    refreshToken: t.procedure.input(z.object({ uuid: z.string() })).mutation(async ({ ctx, input }) => {
+      return await ctx.tubService.refreshToken(input.uuid);
+    }),
     buyToken: t.procedure
       .input(
         z.object({
@@ -62,8 +50,7 @@ export function createAppRouter() {
         }),
       )
       .mutation(async ({ ctx, input }) => {
-        const uuid = verifyJWT(ctx.jwtToken);
-        return await ctx.tubService.buyToken(uuid, input.tokenId, BigInt(input.amount));
+        return await ctx.tubService.buyToken(ctx.jwtToken, input.tokenId, BigInt(input.amount));
       }),
     sellToken: t.procedure
       .input(
@@ -73,8 +60,7 @@ export function createAppRouter() {
         }),
       )
       .mutation(async ({ ctx, input }) => {
-        const uuid = verifyJWT(ctx.jwtToken);
-        return await ctx.tubService.sellToken(uuid, input.tokenId, BigInt(input.amount));
+        return await ctx.tubService.sellToken(ctx.jwtToken, input.tokenId, BigInt(input.amount));
       }),
     registerNewToken: t.procedure
       .input(
@@ -95,8 +81,7 @@ export function createAppRouter() {
         }),
       )
       .mutation(async ({ ctx, input }) => {
-        const uuid = verifyJWT(ctx.jwtToken);
-        return await ctx.tubService.airdropNativeToUser(uuid, BigInt(input.amount));
+        return await ctx.tubService.airdropNativeToUser(ctx.jwtToken, BigInt(input.amount));
       }),
   });
 }
