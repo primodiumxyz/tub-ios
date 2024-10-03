@@ -20,6 +20,7 @@ interface DataTableProps<TData, TValue> {
   caption?: string | ReactNode;
   loading?: boolean;
   pagination?: boolean;
+  defaultSorting?: SortingState;
 }
 
 export function DataTable<TData, TValue>({
@@ -28,8 +29,9 @@ export function DataTable<TData, TValue>({
   caption,
   loading,
   pagination,
+  defaultSorting,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [sorting, setSorting] = useState<SortingState>(defaultSorting ?? []);
 
   const table = useReactTable({
     data,

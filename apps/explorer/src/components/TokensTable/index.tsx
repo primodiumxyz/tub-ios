@@ -25,6 +25,7 @@ export const TokensTable = () => {
         caption={`List of tokens pumping at least ${increasePct}% in the last ${formatTime(timespan)} with at least ${minTrades} trades`}
         loading={fetching && tokens.length === 0}
         pagination={true}
+        defaultSorting={[{ id: "increasePct", desc: true }]}
       />
     </div>
   );
