@@ -23,7 +23,7 @@ const getRandomPriceChange = () => {
 export const start = async () => {
   try {
     const gql = (await createGqlClient({ url: env.GRAPHQL_URL, hasuraAdminSecret: env.HASURA_ADMIN_SECRET })).db;
-    gql.GetLatestTokensSubscription({ limit: 10 }).subscribe(async (data) => {
+    gql.GetLatestMockTokensSubscription({ limit: 10 }).subscribe(async (data) => {
       const updatePrices = async () => {
         const priceUpdates = data.data?.token?.map(async (token) => {
           const tokenId = token.id;
