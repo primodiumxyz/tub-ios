@@ -25,8 +25,8 @@ struct RemoteCoinsView: View {
                 } else if coins.isEmpty {
                     Text("No coins found").foregroundColor(.red)
                 } else {
-//                    CoinView(_coinModel: RemoteCoinModel(tokenId: coins[0].id))
                     List(coins) { coin in
+                        NavigationLink(destination: CoinView(_coinModel: RemoteCoinModel(tokenId: coin.id))) {
                             HStack {
                                 Text(coin.symbol)
                                     .font(.headline)
@@ -39,6 +39,7 @@ struct RemoteCoinsView: View {
                         }
                     }
                 }
+            }
             .navigationTitle("Coins")
             .onAppear(perform: fetchCoins)
         }

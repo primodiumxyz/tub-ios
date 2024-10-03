@@ -10,8 +10,8 @@ import Combine
 
 class LocalCoinModel: BaseCoinModel {
     
-    required override init(tokenId: String) {
-        super.init(tokenId: tokenId)
+    required init() {
+        super.init(tokenId: "")
         coin = Coin(id: "", name: "MONKEY" ,symbol: "MONK")
         balance = 1000
         generateInitialPrice()

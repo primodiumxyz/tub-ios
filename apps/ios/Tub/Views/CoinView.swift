@@ -88,5 +88,5 @@ struct CoinView: View {
 
 
 #Preview {
-    CoinView(_coinModel: LocalCoinModel(tokenId: ""))
+    CoinView(_coinModel: LocalCoinModel())
 }

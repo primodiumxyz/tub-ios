@@ -11,6 +11,7 @@ subscription GetLatestTokens($limit: Int = 10) {
 subscription GetLatestMockTokens($limit: Int = 10) {
     token(where: { mint: { _is_null: true } }, order_by: { updated_at: desc }, limit: $limit) {
       id
+      name
       symbol
       supply
       updated_at

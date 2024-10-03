@@ -119,9 +119,8 @@ struct BuySellForm: View {
 }
 
 #Preview {
-    @ObservedObject var coinModel: BaseCoinModel = LocalCoinModel(tokenId: "")
-    
-    VStack {BuySellForm(viewModel: coinModel)
+    VStack {
+        BuySellForm(viewModel: LocalCoinModel())
     }.frame(maxWidth: .infinity, maxHeight: .infinity) .background(.black).foregroundColor(.white)
-    }
+}
     
