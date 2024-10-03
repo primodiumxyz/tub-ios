@@ -45,7 +45,7 @@ struct RemoteCoinsView: View {
     }
 
     private func fetchCoins() {
-        subscription = Network.shared.apollo.subscribe(subscription: GetLatestTokensSubscription()) { result in
+        subscription = Network.shared.apollo.subscribe(subscription: GetLatestMockTokensSubscription()) { result in
             DispatchQueue.main.async {
                 self.isLoading = false
                 switch result {

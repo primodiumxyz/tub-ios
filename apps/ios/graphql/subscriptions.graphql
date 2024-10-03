@@ -8,6 +8,15 @@ subscription GetLatestTokens($limit: Int = 10) {
     }
 }
 
+subscription GetLatestMockTokens($limit: Int = 10) {
+    token(where: { mint: { _is_null: true } }, order_by: { updated_at: desc }, limit: $limit) {
+      id
+      symbol
+      supply
+      updated_at
+    }
+  }
+
 subscription GetTokenPriceHistorySince($tokenId: uuid!, $since: timestamp!) {
     token_price_history(
         where: { token: { _eq: $tokenId }, created_at: { _gte: $since } }
@@ -22,24 +31,10 @@ subscription GetTokenPriceHistorySince($tokenId: uuid!, $since: timestamp!) {
 }
 
 subscription GetLatestTokenPrice($tokenId: uuid!) {
-  token_price_history(
-    where: {
-      token: { _eq: $tokenId },
-      token_by_token: {
-        _and: [
-          { symbol: { _is_null: false } },
-          { symbol: { _neq: "" } },
-          { name: { _is_null: false } },
-          { name: { _neq: "" } }
-        ]
-      }
-    },
-    order_by: { created_at: desc },
-    limit: 1
-  ) {
-    created_at
-    id
-    price
-    token
-  }
+    token_price_history(where: { token: { _eq: $tokenId } }, order_by: { created_at: desc }, limit: 1) {
+      created_at
+      id
+      price
+      token
+    }
 }
