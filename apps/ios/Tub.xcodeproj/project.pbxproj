@@ -27,6 +27,7 @@
 		DB6D29212CA1C8F80099951A /* TubUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6D29202CA1C8F80099951A /* TubUITests.swift */; };
 		DB6D29232CA1C8F80099951A /* TubUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6D29222CA1C8F80099951A /* TubUITestsLaunchTests.swift */; };
 		DF5A2FC32CAF165D00508A56 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5A2FC22CAF165D00508A56 /* HistoryView.swift */; };
+		DF5A2FC52CAF2DEF00508A56 /* HistoryDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5A2FC42CAF2DEF00508A56 /* HistoryDetailsView.swift */; };
 		DFA4D6512CAC500B00AEDC73 /* Apollo in Frameworks */ = {isa = PBXBuildFile; productRef = DFA4D6502CAC500B00AEDC73 /* Apollo */; };
 /* End PBXBuildFile section */
 
@@ -73,6 +74,7 @@
 		DB6D29202CA1C8F80099951A /* TubUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TubUITests.swift; sourceTree = "<group>"; };
 		DB6D29222CA1C8F80099951A /* TubUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TubUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		DF5A2FC22CAF165D00508A56 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
+		DF5A2FC42CAF2DEF00508A56 /* HistoryDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryDetailsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -120,6 +122,7 @@
 				DB6D29062CA1C8F70099951A /* ContentView.swift */,
 				DB675A322CA2B73D006FC9B3 /* HomeTabsView.swift */,
 				DF5A2FC22CAF165D00508A56 /* HistoryView.swift */,
+				DF5A2FC42CAF2DEF00508A56 /* HistoryDetailsView.swift */,
 				DB10A9602CA5AA4600B1E4F3 /* MessageView.swift */,
 				DB10A95C2CA5AA1B00B1E4F3 /* CoinView.swift */,
 			);
@@ -360,6 +363,7 @@
 				DB10A9612CA5AA4600B1E4F3 /* MessageView.swift in Sources */,
 				DB675A332CA2B73D006FC9B3 /* HomeTabsView.swift in Sources */,
 				DF5A2FC32CAF165D00508A56 /* HistoryView.swift in Sources */,
+				DF5A2FC52CAF2DEF00508A56 /* HistoryDetailsView.swift in Sources */,
 				99AEE8302CAD9B8800C535C4 /* SliderWithPoints.swift in Sources */,
 				DB6D29072CA1C8F70099951A /* ContentView.swift in Sources */,
 				999F595B2CA754FB00E7AE9F /* Chart.swift in Sources */,

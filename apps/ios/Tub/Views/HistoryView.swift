@@ -21,7 +21,7 @@ struct HistoryView: View {
                     Text("Completed")
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(.white)
-                        .padding(.leading, 20.0)
+                        .padding(.leading, 10.0)
                     Spacer()
                     
                     Button(action: {
@@ -61,33 +61,38 @@ struct HistoryView: View {
                             }
                         }
                     }
-                    .padding(.horizontal, 30.0)
+                    .padding(.horizontal, 20.0)
+                    .offset(y: -5)
                 }
                 
                 
                 // Transaction List
                 List {
                     ForEach(dummyData.indices, id: \.self) { index in
-                        VStack {
-                            TransactionRow(transaction: dummyData[index])
-                                .padding(.bottom, 2.0)
+                        NavigationLink(destination: HistoryDetailsView(transaction: dummyData[index])) {
                             
-                            if index != dummyData.count  {
-                                Divider()
-                                    .frame(width: 320.0, height: 1.0)
-                                    .background(Color(hue: 1.0, saturation: 0.0, brightness: 0.153))
+                            VStack {
+                                TransactionRow(transaction: dummyData[index])
+                                    .padding(.bottom, 2.0)
+                                    .padding(.leading, 10.0)
+                                
+                                if index != dummyData.count  {
+                                    Divider()
+                                        .frame(width: 340.0, height: 1.0)
+                                        .background(Color(hue: 1.0, saturation: 0.0, brightness: 0.153))
+                                }
                             }
                         }
+                        .listRowBackground(Color.black)
                     }
-                    .listRowBackground(Color.black)
                 }
                 .listStyle(PlainListStyle())
                 Spacer()
                     
-                    
             }
             .background(Color.black.edgesIgnoringSafeArea(.all))
         }
+        .navigationTitle("History")
     }
 }
     
@@ -129,6 +134,9 @@ struct TransactionRow: View {
                         .foregroundColor(.gray)
                 }
             }
+            Image(systemName: "chevron.right")
+                .foregroundColor(.gray)
+                .offset(x: 12)
         }
         .padding(.bottom, 10.0)
         .background(Color.black)
