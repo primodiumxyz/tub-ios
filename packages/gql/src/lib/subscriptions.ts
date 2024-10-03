@@ -26,14 +26,18 @@ export const GetTokenPriceHistorySinceSubscription = graphql(`
   }
 `);
 
-export const GetLatestOnchainTokensSubscription = graphql(`
-  subscription GetLatestOnchainTokens($limit: Int = 10) {
-    token(where: { mint: { _is_null: false } }, order_by: { updated_at: desc }, limit: $limit) {
+export const GetAllOnchainTokensPriceHistorySinceSubscription = graphql(`
+  subscription GetAllOnchainTokensPriceHistorySince($since: timestamp!) {
+    token_price_history(
+      where: { token_relationship: { mint: { _is_null: false } }, created_at: { _gte: $since } }
+      order_by: { created_at: desc }
+    ) {
+      created_at
       id
-      symbol
-      supply
-      updated_at
-      mint
+      price
+      token_relationship {
+        mint
+      }
     }
   }
 `);

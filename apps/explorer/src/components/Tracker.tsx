@@ -1,14 +1,14 @@
 import { TokensTable } from "@/components/TokensTable";
 import { TrackerParams } from "@/components/TrackerParams";
-import { usePumpingTokens } from "@/hooks/usePumpingTokens";
+import { useTokens } from "@/hooks/useTokens";
 
 export const Tracker = () => {
-  const { pumpingTokens } = usePumpingTokens();
+  const { tokens } = useTokens();
 
   return (
     <div className="flex flex-col items-start w-full max-h-fit">
       <TrackerParams />
-      <TokensTable data={pumpingTokens} />
+      <TokensTable data={tokens} />
     </div>
   );
 };

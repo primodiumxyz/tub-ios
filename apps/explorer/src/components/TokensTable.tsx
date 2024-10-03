@@ -1,25 +1,29 @@
 import { FC, useMemo, useState } from "react";
 
+import { PRICE_PRECISION } from "@tub/indexer/constants";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { PumpingToken } from "@/hooks/usePumpingTokens";
+import { Token } from "@/hooks/useTokens";
 import { useTrackerParams } from "@/hooks/useTrackerParams";
 import { formatTime } from "@/lib/utils";
 
-export const TokensTable: FC<{ data: PumpingToken[] }> = ({ data }) => {
+export const TokensTable: FC<{ data: Token[] }> = ({ data }) => {
   const { timespan, increasePct, minTrades } = useTrackerParams();
   const [sortBy, setSortBy] = useState<"increase" | "price" | "trades">("increase");
 
   const sortedData = useMemo(() => {
-    return data.sort((a, b) => {
-      if (sortBy === "price") {
-        return b.latestPrice - a.latestPrice;
-      } else if (sortBy === "trades") {
-        return b.trades - a.trades;
-      } else {
-        return b.increasePct - a.increasePct;
-      }
-    });
+    return data
+      .filter((token) => token.increasePct >= increasePct && token.trades >= minTrades)
+      .sort((a, b) => {
+        if (sortBy === "price") {
+          return b.latestPrice - a.latestPrice;
+        } else if (sortBy === "trades") {
+          return b.trades - a.trades;
+        } else {
+          return b.increasePct - a.increasePct;
+        }
+      });
   }, [data, sortBy]);
+  // const sortedData = data;
 
   return (
     <div className="w-full h-fit overflow-y-auto">
@@ -31,7 +35,7 @@ export const TokensTable: FC<{ data: PumpingToken[] }> = ({ data }) => {
         <TableHeader>
           <TableRow className="text-start font-bold">
             <TableCell colSpan={3}>Total coins</TableCell>
-            <TableCell className="text-right">{data.length}</TableCell>
+            <TableCell className="text-right">{sortedData.length}</TableCell>
           </TableRow>
         </TableHeader>
         <TableHeader>
@@ -47,7 +51,7 @@ export const TokensTable: FC<{ data: PumpingToken[] }> = ({ data }) => {
             <TableRow key={token.mint}>
               <TableCell className="font-medium">{token.mint}</TableCell>
               <TableCell>{token.trades}</TableCell>
-              <TableCell>{token.latestPrice.toLocaleString()}</TableCell>
+              <TableCell>{(token.latestPrice / PRICE_PRECISION).toLocaleString()}</TableCell>
               <TableCell className="text-right">{token.increasePct.toFixed(2)}</TableCell>
             </TableRow>
           ))}

@@ -1,33 +1,29 @@
-import { useState } from "react";
-
-import { DEFAULT_INCREASE_PCT, DEFAULT_MIN_TRADES, DEFAULT_TIMESPAN } from "@/lib/constants";
+import { useTrackerParamsContext } from "@/providers/TrackerParamsProvider";
 
 export const useTrackerParams = () => {
-  const [timespan, _setTimespan] = useState(DEFAULT_TIMESPAN);
-  const [increasePct, _setIncreasePct] = useState(DEFAULT_INCREASE_PCT);
-  const [minTrades, _setMinTrades] = useState(DEFAULT_MIN_TRADES);
-
-  const setTimespan = (value: string | number) => {
-    if (isNaN(Number(value))) return;
-    _setTimespan(Number(value));
-  };
-
-  const setIncreasePct = (value: string | number) => {
-    if (isNaN(Number(value))) return;
-    _setIncreasePct(Number(value));
-  };
-
-  const setMinTrades = (value: string | number) => {
-    if (isNaN(Number(value))) return;
-    _setMinTrades(Number(value));
-  };
+  const { params, setTimespan, setIncreasePct, setMinTrades } = useTrackerParamsContext();
 
   return {
-    timespan,
-    increasePct,
-    minTrades,
-    setTimespan,
-    setIncreasePct,
-    setMinTrades,
+    timespan: params.timespan,
+    increasePct: params.increasePct,
+    minTrades: params.minTrades,
+    setTimespan: (value: string | number) => {
+      const numValue = typeof value === "string" ? parseFloat(value) : value;
+      if (!isNaN(numValue)) {
+        setTimespan(numValue);
+      }
+    },
+    setIncreasePct: (value: string | number) => {
+      const numValue = typeof value === "string" ? parseFloat(value) : value;
+      if (!isNaN(numValue)) {
+        setIncreasePct(numValue);
+      }
+    },
+    setMinTrades: (value: string | number) => {
+      const numValue = typeof value === "string" ? parseFloat(value) : value;
+      if (!isNaN(numValue)) {
+        setMinTrades(numValue);
+      }
+    },
   };
 };
