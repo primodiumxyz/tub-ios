@@ -7,7 +7,7 @@ public class GetLatestTokensSubscription: GraphQLSubscription {
   public static let operationName: String = "GetLatestTokens"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"subscription GetLatestTokens($limit: Int = 10) { token(order_by: { updated_at: desc }, limit: $limit) { __typename id symbol supply name updated_at } }"#
+      #"subscription GetLatestTokens($limit: Int = 10) { token( where: { mint: { _is_null: false } } order_by: { updated_at: desc } limit: $limit ) { __typename id symbol supply name updated_at } }"#
     ))
 
   public var limit: GraphQLNullable<Int>
@@ -25,6 +25,7 @@ public class GetLatestTokensSubscription: GraphQLSubscription {
     public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Subscription_root }
     public static var __selections: [ApolloAPI.Selection] { [
       .field("token", [Token].self, arguments: [
+        "where": ["mint": ["_is_null": false]],
         "order_by": ["updated_at": "desc"],
         "limit": .variable("limit")
       ]),

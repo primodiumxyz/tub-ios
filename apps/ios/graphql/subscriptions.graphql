@@ -1,5 +1,5 @@
 subscription GetLatestTokens($limit: Int = 10) {
-    token(order_by: { updated_at: desc }, limit: $limit) {
+    token(where: { mint: { _is_null: false } },order_by: { updated_at: desc }, limit: $limit) {
         id
         symbol
         supply
