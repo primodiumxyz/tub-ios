@@ -11,16 +11,18 @@ struct HomeTabsView: View {
     var body: some View {
         
         TabView() {
-            CollectionView().tabItem {
-                Label("Collection", systemImage: "list.dash")
-            }
-            MessageView().tabItem {
-                Label("Message", systemImage: "list.dash")
-            }
             CoinView().tabItem {
                 Label("Explore", systemImage: "house")
             }
+            HistoryView().tabItem {
+                Label("History", systemImage: "clock")
+            }
+            MessageView().tabItem {
+                Label("Notifications", systemImage: "bell.fill")
+            }
+            
         }
+        .padding(0.0)
     }
 }
 

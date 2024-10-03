@@ -14,7 +14,6 @@
 		999F595B2CA754FB00E7AE9F /* Chart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999F595A2CA754F900E7AE9F /* Chart.swift */; };
 		99AEE8302CAD9B8800C535C4 /* SliderWithPoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99AEE82F2CAD9B8600C535C4 /* SliderWithPoints.swift */; };
 		DB10A95D2CA5AA1B00B1E4F3 /* CoinView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB10A95C2CA5AA1B00B1E4F3 /* CoinView.swift */; };
-		DB10A95F2CA5AA3900B1E4F3 /* CollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB10A95E2CA5AA3900B1E4F3 /* CollectionView.swift */; };
 		DB10A9612CA5AA4600B1E4F3 /* MessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB10A9602CA5AA4600B1E4F3 /* MessageView.swift */; };
 		DB458DB12CAC824A00C5EC18 /* TubAPI in Frameworks */ = {isa = PBXBuildFile; productRef = DB458DB02CAC824A00C5EC18 /* TubAPI */; };
 		DB458DB42CAC827A00C5EC18 /* Network.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB458DB32CAC827A00C5EC18 /* Network.swift */; };
@@ -27,6 +26,7 @@
 		DB6D29172CA1C8F80099951A /* TubTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6D29162CA1C8F80099951A /* TubTests.swift */; };
 		DB6D29212CA1C8F80099951A /* TubUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6D29202CA1C8F80099951A /* TubUITests.swift */; };
 		DB6D29232CA1C8F80099951A /* TubUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6D29222CA1C8F80099951A /* TubUITestsLaunchTests.swift */; };
+		DF5A2FC32CAF165D00508A56 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5A2FC22CAF165D00508A56 /* HistoryView.swift */; };
 		DFA4D6512CAC500B00AEDC73 /* Apollo in Frameworks */ = {isa = PBXBuildFile; productRef = DFA4D6502CAC500B00AEDC73 /* Apollo */; };
 /* End PBXBuildFile section */
 
@@ -55,7 +55,6 @@
 		999F595A2CA754F900E7AE9F /* Chart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chart.swift; sourceTree = "<group>"; };
 		99AEE82F2CAD9B8600C535C4 /* SliderWithPoints.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SliderWithPoints.swift; sourceTree = "<group>"; };
 		DB10A95C2CA5AA1B00B1E4F3 /* CoinView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoinView.swift; sourceTree = "<group>"; };
-		DB10A95E2CA5AA3900B1E4F3 /* CollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionView.swift; sourceTree = "<group>"; };
 		DB10A9602CA5AA4600B1E4F3 /* MessageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageView.swift; sourceTree = "<group>"; };
 		DB458DAA2CAC7F0100C5EC18 /* schema.graphqls */ = {isa = PBXFileReference; lastKnownFileType = text; path = schema.graphqls; sourceTree = "<group>"; };
 		DB458DAD2CAC7F4D00C5EC18 /* query.graphql */ = {isa = PBXFileReference; lastKnownFileType = text; path = query.graphql; sourceTree = "<group>"; };
@@ -73,6 +72,7 @@
 		DB6D291C2CA1C8F80099951A /* TubUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TubUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DB6D29202CA1C8F80099951A /* TubUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TubUITests.swift; sourceTree = "<group>"; };
 		DB6D29222CA1C8F80099951A /* TubUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TubUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		DF5A2FC22CAF165D00508A56 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -119,7 +119,7 @@
 				999F59572CA7107A00E7AE9F /* BuySellForm.swift */,
 				DB6D29062CA1C8F70099951A /* ContentView.swift */,
 				DB675A322CA2B73D006FC9B3 /* HomeTabsView.swift */,
-				DB10A95E2CA5AA3900B1E4F3 /* CollectionView.swift */,
+				DF5A2FC22CAF165D00508A56 /* HistoryView.swift */,
 				DB10A9602CA5AA4600B1E4F3 /* MessageView.swift */,
 				DB10A95C2CA5AA1B00B1E4F3 /* CoinView.swift */,
 			);
@@ -359,7 +359,7 @@
 				DB458DB42CAC827A00C5EC18 /* Network.swift in Sources */,
 				DB10A9612CA5AA4600B1E4F3 /* MessageView.swift in Sources */,
 				DB675A332CA2B73D006FC9B3 /* HomeTabsView.swift in Sources */,
-				DB10A95F2CA5AA3900B1E4F3 /* CollectionView.swift in Sources */,
+				DF5A2FC32CAF165D00508A56 /* HistoryView.swift in Sources */,
 				99AEE8302CAD9B8800C535C4 /* SliderWithPoints.swift in Sources */,
 				DB6D29072CA1C8F70099951A /* ContentView.swift in Sources */,
 				999F595B2CA754FB00E7AE9F /* Chart.swift in Sources */,
