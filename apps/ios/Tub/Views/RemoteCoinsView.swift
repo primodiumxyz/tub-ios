@@ -26,7 +26,7 @@ struct RemoteCoinsView: View {
                     Text("No coins found").foregroundColor(.red)
                 } else {
                     List(coins) { coin in
-                        NavigationLink(destination: CoinView(_coinModel: RemoteCoinModel(tokenId: coin.id))) {
+                        NavigationLink(destination: CoinView(coinModel: RemoteCoinModel(tokenId: coin.id))) {
                             HStack {
                                 Text(coin.symbol)
                                     .font(.headline)

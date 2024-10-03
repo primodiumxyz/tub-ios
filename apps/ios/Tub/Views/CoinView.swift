@@ -10,6 +10,32 @@ import Combine
 
 
 struct CoinView: View {
+    @ObservedObject var coinModel: BaseCoinModel
+    
+    var body: some View {
+        if coinModel.loading {
+            LoadingView()
+        } else {
+            CoinViewContent(_coinModel: coinModel)
+        }
+    }
+}
+
+struct LoadingView: View {
+    var body: some View {
+        VStack {
+            ProgressView()
+            Text("Loading...")
+                .font(.sfRounded(size: .base))
+                .padding(.top, 10)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.black)
+        .foregroundColor(.white)
+    }
+}
+
+struct CoinViewContent: View {
     @ObservedObject var coinModel : BaseCoinModel
     var initialBalance: Double = 0.0
     
@@ -88,5 +114,5 @@ struct CoinView: View {
 
 
 #Preview {
-    CoinView(_coinModel: LocalCoinModel())
+    CoinView(coinModel: LocalCoinModel())
 }
