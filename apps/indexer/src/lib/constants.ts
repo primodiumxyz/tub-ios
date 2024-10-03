@@ -1,6 +1,7 @@
 import { PublicKey } from "@solana/web3.js";
 
-import { RaydiumAmmParser } from "@/lib/parsers/raydium-amm-parser";
+// Relative import to not conflict with constants imports in other packages
+import { RaydiumAmmParser } from "./parsers/raydium-amm-parser";
 
 export const PRICE_DATA_BATCH_SIZE = 10;
 export const PRICE_PRECISION = 10 ** 18;
