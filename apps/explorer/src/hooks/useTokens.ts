@@ -56,8 +56,6 @@ export const useTokens = () => {
     setTokens(tokensWithData);
   };
 
-  const updateSince = () => {};
-
   useEffect(() => {
     formatTokens(priceHistory.data?.token_price_history as PriceData[]);
   }, [priceHistory.data]);

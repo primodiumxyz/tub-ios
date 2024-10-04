@@ -45,7 +45,6 @@ export const columns: ColumnDef<Token>[] = [
   {
     accessorKey: "latestPrice",
     header: ({ column }) => {
-      console.log(column.getIsSorted());
       return (
         <div className="flex items-center gap-2">
           Price (SOL)

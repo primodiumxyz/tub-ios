@@ -12,7 +12,7 @@ config({ path: "../../.env" });
 const env = parseEnv();
 
 const fetchWithRetry = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-  const timeout = 30000;
+  const timeout = 300_000; // 5min
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeout);
 
@@ -25,8 +25,8 @@ const fetchWithRetry = async (input: RequestInfo | URL, init?: RequestInit): Pro
     return response;
   } catch (error) {
     clearTimeout(id);
-    console.error(`Fetch error: ${String(error)}. Retrying in 3 seconds...`);
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    console.error(`Fetch error: ${String(error)}. Retrying in 5 seconds...`);
+    await new Promise((resolve) => setTimeout(resolve, 5000));
     return fetchWithRetry(input, init);
   }
 };
