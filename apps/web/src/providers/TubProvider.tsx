@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useCallback, useEffect, useState } from "react";
-import { useUserStore } from "../store/tokenStore";
+import { useUserStore } from "../store/userStore";
 import { useServer } from "../hooks/useServer";
 
 export type Tub = {
@@ -41,12 +41,15 @@ export const TubProvider = ({ children }: Props): JSX.Element => {
       setIsRegistering(true);
       userStore.setUsername(username);
       try {
-        const userId = (await server.registerNewUser.mutate({
+        const user = (await server.registerNewUser.mutate({
           username: userStore.username,
-      }))?.insert_account_one?.id;
-      if (userId) {
-        userStore.setUserId(userId);
+      }));
+
+      if (user.uuid && user.token) {
+        userStore.setUserId(user.uuid);
+        userStore.setJwtToken(user.token);
       }
+
     } catch (error) {
       console.error("Error registering user:", error);
     } finally {
