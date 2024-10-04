@@ -11,7 +11,7 @@ struct RegisterView: View {
         switch completion {
         case .success(let user):
             print("user", user)
-            userId = user.id
+            userId = user.uuid
             storedUsername = username
         case .failure(let error):
             print("Registration failed: \(error.localizedDescription)")
