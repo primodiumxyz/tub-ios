@@ -12,7 +12,7 @@ export const GetLatestMockTokensSubscription = graphql(`
 `);
 
 export const GetTokenPriceHistorySinceSubscription = graphql(`
-  subscription GetTokenPriceHistorySince($tokenId: uuid!, $since: timestamp!) {
+  subscription GetTokenPriceHistorySince($tokenId: uuid!, $since: timestamptz!) {
     token_price_history(
       where: { token: { _eq: $tokenId }, created_at: { _gte: $since } }
       limit: 100
@@ -27,7 +27,7 @@ export const GetTokenPriceHistorySinceSubscription = graphql(`
 `);
 
 export const GetAllOnchainTokensPriceHistorySinceSubscription = graphql(`
-  subscription GetAllOnchainTokensPriceHistorySince($since: timestamp!) {
+  subscription GetAllOnchainTokensPriceHistorySince($since: timestamptz!) {
     token_price_history(
       where: { token_relationship: { mint: { _is_null: false } }, created_at: { _gte: $since } }
       order_by: { created_at: desc }
