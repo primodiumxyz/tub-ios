@@ -24,7 +24,6 @@ const processLogs = async ({ err, signature }: Logs): Promise<(PriceData | undef
     maxSupportedTransactionVersion: 0,
   });
   if (!tx || tx.meta?.err) return [];
-  // const formattedTx = txFormatter.formTransactionFromJson(tx, Date.now());
   // Parse the transaction and retrieve the swapped token accounts
   const parsedIxs = ixParser.parseTransactionWithInnerInstructions(tx);
   const swapAccountsArray = decodeSwapAccounts(tx, parsedIxs);

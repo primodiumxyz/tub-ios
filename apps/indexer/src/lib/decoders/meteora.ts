@@ -1,11 +1,9 @@
 import { Idl } from "@coral-xyz/anchor";
 import { ParsedInstruction } from "@shyft-to/solana-transaction-parser";
-import { VersionedTransactionResponse } from "@solana/web3.js";
 
 import { SwapAccounts } from "@/lib/types";
 
 export const decodeMeteoraTx = (
-  tx: VersionedTransactionResponse,
   // @ts-expect-error: type difference @coral-xyz/anchor -> @project-serum/anchor
   parsedIxs: ParsedInstruction<Idl, string>[],
 ): SwapAccounts[] => {

@@ -30,7 +30,7 @@ export const decodeSwapAccounts = (
   return Object.entries(decoders)
     .map(([programId, decoder]) => {
       if (programIxs.some((ix) => ix.programId.toString() === programId)) {
-        return decoder(tx, programIxs);
+        return decoder(programIxs);
       }
       return [];
     })
