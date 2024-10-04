@@ -31,6 +31,15 @@ server.get("/healthz", (req, res) => res.code(200).send());
 server.get("/readyz", (req, res) => res.code(200).send());
 server.get("/", (req, res) => res.code(200).send("hello world"));
 
+// Helper function to extract bearer token
+const getBearerToken = (req: any) => {
+  const authHeader = req.headers?.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    return authHeader.substring(7);
+  }
+  return null;
+};
+
 export const start = async () => {
   try {
     const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
@@ -49,7 +58,7 @@ export const start = async () => {
       useWSS: true,
       trpcOptions: {
         router: createAppRouter(),
-        createContext: async () => ({ tubService }),
+        createContext: async (opt) => ({ tubService, jwtToken: getBearerToken(opt.req) }),
       },
     });
     await server.listen({ host: env.SERVER_HOST, port: env.SERVER_PORT });
@@ -59,7 +68,7 @@ export const start = async () => {
     applyWSSHandler({
       wss: server.websocketServer,
       router: createAppRouter(),
-      createContext: async () => ({ tubService }),
+      createContext: async (opt) => ({ tubService, jwtToken: getBearerToken(opt.req) }),
     });
   } catch (err) {
     server.log.error(err);
