@@ -696,26 +696,6 @@ type query_root {
     where: token_bool_exp
   ): [token!]!
 
-  """
-  fetch aggregated fields from the table: "token"
-  """
-  token_aggregate(
-    """distinct select on columns"""
-    distinct_on: [token_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [token_order_by!]
-
-    """filter the rows returned"""
-    where: token_bool_exp
-  ): token_aggregate!
-
   """fetch data from the table: "token" using primary key columns"""
   token_by_pk(id: uuid!): token
 
@@ -947,26 +927,6 @@ type subscription_root {
     where: token_bool_exp
   ): [token!]!
 
-  """
-  fetch aggregated fields from the table: "token"
-  """
-  token_aggregate(
-    """distinct select on columns"""
-    distinct_on: [token_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [token_order_by!]
-
-    """filter the rows returned"""
-    where: token_bool_exp
-  ): token_aggregate!
-
   """fetch data from the table: "token" using primary key columns"""
   token_by_pk(id: uuid!): token
 
@@ -1142,41 +1102,14 @@ columns and relationships of "token"
 """
 type token {
   id: uuid!
+
+  """token mint address (only for real tokens)"""
+  mint: String
   name: String!
   supply: numeric!
   symbol: String!
   updated_at: timestamp!
   uri: String
-}
-
-"""
-aggregated selection of "token"
-"""
-type token_aggregate {
-  aggregate: token_aggregate_fields
-  nodes: [token!]!
-}
-
-"""
-aggregate fields of "token"
-"""
-type token_aggregate_fields {
-  avg: token_avg_fields
-  count(columns: [token_select_column!], distinct: Boolean): Int!
-  max: token_max_fields
-  min: token_min_fields
-  stddev: token_stddev_fields
-  stddev_pop: token_stddev_pop_fields
-  stddev_samp: token_stddev_samp_fields
-  sum: token_sum_fields
-  var_pop: token_var_pop_fields
-  var_samp: token_var_samp_fields
-  variance: token_variance_fields
-}
-
-"""aggregate avg on columns"""
-type token_avg_fields {
-  supply: Float
 }
 
 """
@@ -1187,6 +1120,7 @@ input token_bool_exp {
   _not: token_bool_exp
   _or: [token_bool_exp!]
   id: uuid_comparison_exp
+  mint: String_comparison_exp
   name: String_comparison_exp
   supply: numeric_comparison_exp
   symbol: String_comparison_exp
@@ -1194,29 +1128,10 @@ input token_bool_exp {
   uri: String_comparison_exp
 }
 
-"""aggregate max on columns"""
-type token_max_fields {
-  id: uuid
-  name: String
-  supply: numeric
-  symbol: String
-  updated_at: timestamp
-  uri: String
-}
-
-"""aggregate min on columns"""
-type token_min_fields {
-  id: uuid
-  name: String
-  supply: numeric
-  symbol: String
-  updated_at: timestamp
-  uri: String
-}
-
 """Ordering options when selecting data from "token"."""
 input token_order_by {
   id: order_by
+  mint: order_by
   name: order_by
   supply: order_by
   symbol: order_by
@@ -1385,6 +1300,9 @@ enum token_select_column {
   id
 
   """column name"""
+  mint
+
+  """column name"""
   name
 
   """column name"""
@@ -1398,21 +1316,6 @@ enum token_select_column {
 
   """column name"""
   uri
-}
-
-"""aggregate stddev on columns"""
-type token_stddev_fields {
-  supply: Float
-}
-
-"""aggregate stddev_pop on columns"""
-type token_stddev_pop_fields {
-  supply: Float
-}
-
-"""aggregate stddev_samp on columns"""
-type token_stddev_samp_fields {
-  supply: Float
 }
 
 """
@@ -1429,16 +1332,14 @@ input token_stream_cursor_input {
 """Initial value of the column from where the streaming should start"""
 input token_stream_cursor_value_input {
   id: uuid
+
+  """token mint address (only for real tokens)"""
+  mint: String
   name: String
   supply: numeric
   symbol: String
   updated_at: timestamp
   uri: String
-}
-
-"""aggregate sum on columns"""
-type token_sum_fields {
-  supply: numeric
 }
 
 """
@@ -1712,21 +1613,6 @@ order by variance() on columns of table "token_transaction"
 """
 input token_transaction_variance_order_by {
   amount: order_by
-}
-
-"""aggregate var_pop on columns"""
-type token_var_pop_fields {
-  supply: Float
-}
-
-"""aggregate var_samp on columns"""
-type token_var_samp_fields {
-  supply: Float
-}
-
-"""aggregate variance on columns"""
-type token_variance_fields {
-  supply: Float
 }
 
 scalar transaction_type
