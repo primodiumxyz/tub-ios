@@ -1,0 +1,16 @@
+table:
+  name: token
+  schema: public
+select_permissions:
+  - role: public
+    permission:
+      columns:
+        - name
+        - symbol
+        - supply
+        - uri
+        - updated_at
+        - id
+        - mint
+      filter: {}
+    comment: ""
