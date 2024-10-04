@@ -12,16 +12,23 @@ import TubAPI
 struct RemoteCoinsView: View {
     @State private var coins: [Coin] = []
     @State private var isLoading = true
-    @State private var errorMessage: String?
     @State private var subscription: Cancellable?
+    @State private var errorMessage: String?
+    @State private var showRegisterView = false
+    
+    @AppStorage("userId") private var userId: String = ""
+    @AppStorage("username") private var username: String = ""
 
     var body: some View {
         NavigationView {
             VStack {
+                AccountView(_userId: userId, _handleLogout: {
+                    userId = ""
+                    username = ""
+                    showRegisterView = true
+                }).frame(height: 200)
                 if isLoading {
                     ProgressView()
-                } else if let error = errorMessage {
-                    Text(error).foregroundColor(.red)
                 } else if coins.isEmpty {
                     Text("No coins found").foregroundColor(.red)
                 } else {
@@ -42,6 +49,9 @@ struct RemoteCoinsView: View {
             }
             .navigationTitle("Coins")
             .onAppear(perform: fetchCoins)
+            .fullScreenCover(isPresented: $showRegisterView) {
+                RegisterView()
+            }
         }
     }
 

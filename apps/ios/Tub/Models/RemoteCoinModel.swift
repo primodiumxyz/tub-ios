@@ -112,6 +112,3 @@ class RemoteCoinModel: BaseCoinModel {
     }
 }
 
-extension RemoteCoinModel {
-   
-}

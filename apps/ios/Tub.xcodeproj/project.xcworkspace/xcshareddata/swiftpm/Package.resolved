@@ -1,5 +1,5 @@
 {
-  "originHash" : "ed1755624f63fbde7d4e521f89ea064189caa92397ec7b2855871ae4a2f06df9",
+  "originHash" : "e238ab89642d56505e6af84cf33b9078a23e66ec277c48df1c042b9c083e3dd5",
   "pins" : [
     {
       "identity" : "apollo-ios",
@@ -17,6 +17,15 @@
       "state" : {
         "revision" : "c6b4d9fde2ee6eddd495b8ce682bafee1360e92e",
         "version" : "1.15.1"
+      }
+    },
+    {
+      "identity" : "apollocombine",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/joel-perry/ApolloCombine.git",
+      "state" : {
+        "revision" : "2c254607c935b3c8c10cf053a425f2d36ca18759",
+        "version" : "0.8.0"
       }
     },
     {
