@@ -28,7 +28,7 @@ const processLogs = async ({ err, signature }: Logs): Promise<(PriceData | undef
   // Parse the transaction and retrieve the swapped token accounts
   const parsedIxs = ixParser.parseTransactionWithInnerInstructions(tx);
   const swapAccountsArray = decodeSwapAccounts(tx, parsedIxs);
-  if (!swapAccountsArray) return [];
+  if (swapAccountsArray.length === 0) return [];
 
   return await Promise.all(swapAccountsArray.map((swapAccounts) => getPoolTokenPrice(swapAccounts)));
 };

@@ -26,7 +26,6 @@ export const TokensTable = () => {
       ),
     ).sort((a, b) => b[1] - a[1]);
   }, [filteredTokens]);
-  console.log(tokensPerPlatform);
 
   if (error) return <div>Error: {error}</div>;
   return (

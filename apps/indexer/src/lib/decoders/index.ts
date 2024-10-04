@@ -2,20 +2,26 @@ import { Idl } from "@coral-xyz/anchor";
 import { ParsedInstruction } from "@shyft-to/solana-transaction-parser";
 import { VersionedTransactionResponse } from "@solana/web3.js";
 
-import { METEORA_PUBLIC_KEY, RAYDIUM_PUBLIC_KEY } from "@/lib/constants";
+import { METEORA_PUBLIC_KEY, ORCA_PUBLIC_KEY, RAYDIUM_PUBLIC_KEY } from "@/lib/constants";
 import { decodeMeteoraTx } from "@/lib/decoders/meteora";
+import { decodeOrcaWhirlpoolTx } from "@/lib/decoders/orca-whirlpool";
 import { decodeRaydiumTx } from "@/lib/decoders/raydium";
+import { SwapAccounts } from "@/lib/types";
 
 const decoders = {
-  [RAYDIUM_PUBLIC_KEY.toString()]: decodeRaydiumTx,
   [METEORA_PUBLIC_KEY.toString()]: decodeMeteoraTx,
+  [ORCA_PUBLIC_KEY.toString()]: decodeOrcaWhirlpoolTx,
+  [RAYDIUM_PUBLIC_KEY.toString()]: decodeRaydiumTx,
 };
 
-// @ts-expect-error: type difference @coral-xyz/anchor -> @project-serum/anchor
-export const decodeSwapAccounts = (tx: VersionedTransactionResponse, parsedIxs: ParsedInstruction<Idl, string>[]) => {
+export const decodeSwapAccounts = (
+  tx: VersionedTransactionResponse,
+  // @ts-expect-error: type difference @coral-xyz/anchor -> @project-serum/anchor
+  parsedIxs: ParsedInstruction<Idl, string>[],
+): SwapAccounts[] => {
   // Filter out the instructions that are not related to the exchanges
   const programIxs = parsedIxs.filter((ix) => ix.programId.toString() in decoders);
-  if (programIxs.length === 0) return;
+  if (programIxs.length === 0) return [];
 
   // For each available decoder, decode the swap accounts if there is a swap instruction for its exchange
   // We could very well have multiple swaps across different exchanges in a single transaction
@@ -26,6 +32,7 @@ export const decodeSwapAccounts = (tx: VersionedTransactionResponse, parsedIxs: 
       if (programIxs.some((ix) => ix.programId.toString() === programId)) {
         return decoder(tx, programIxs);
       }
+      return [];
     })
-    .filter((acc) => acc !== undefined);
+    .flat();
 };

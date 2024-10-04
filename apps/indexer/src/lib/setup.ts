@@ -3,7 +3,7 @@ import { config } from "dotenv";
 
 import { parseEnv } from "@bin/parseEnv";
 import { TransactionFormatter } from "@/lib/formatters/transaction-formatter";
-import { MeteoraDlmmParser, RaydiumAmmParser, SolanaParser } from "@/lib/parsers";
+import { MeteoraDlmmParser, OrcaWhirlpoolParser, RaydiumAmmParser, SolanaParser } from "@/lib/parsers";
 import { LogsParser } from "@/lib/parsers/logs-parser";
 
 config({ path: "../../.env" });
@@ -34,9 +34,11 @@ const fetchWithRetry = async (input: RequestInfo | URL, init?: RequestInit): Pro
 export const connection = new Connection(env.ALCHEMY_RPC_URL, { commitment: "confirmed", fetch: fetchWithRetry });
 
 export const txFormatter = new TransactionFormatter();
-export const raydiumParser = new RaydiumAmmParser();
 export const meteoraDlmmParser = new MeteoraDlmmParser();
+export const orcaWhirlpoolParser = new OrcaWhirlpoolParser();
+export const raydiumParser = new RaydiumAmmParser();
 export const ixParser = new SolanaParser([]);
-ixParser.addParser(RaydiumAmmParser.PROGRAM_ID, raydiumParser.parseInstruction.bind(raydiumParser));
 ixParser.addParser(MeteoraDlmmParser.PROGRAM_ID, meteoraDlmmParser.parseInstruction.bind(meteoraDlmmParser));
+ixParser.addParser(OrcaWhirlpoolParser.PROGRAM_ID, orcaWhirlpoolParser.parseInstruction.bind(orcaWhirlpoolParser));
+ixParser.addParser(RaydiumAmmParser.PROGRAM_ID, raydiumParser.parseInstruction.bind(raydiumParser));
 export const logsParser = new LogsParser();
