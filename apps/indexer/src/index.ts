@@ -5,8 +5,8 @@ import { WebSocket } from "ws";
 
 import { createClient as createGqlClient, GqlClient } from "@tub/gql";
 import { parseEnv } from "@bin/parseEnv";
-import { PRICE_DATA_BATCH_SIZE, PRICE_PRECISION, RAYDIUM_PUBLIC_KEY } from "@/lib/constants";
-import { decodeRaydiumTx } from "@/lib/raydium";
+import { PRICE_DATA_BATCH_SIZE, PRICE_PRECISION } from "@/lib/constants";
+import { decodeSwapAccounts } from "@/lib/decoders";
 import { connection, ixParser } from "@/lib/setup";
 import { PriceData } from "@/lib/types";
 import { filterLogs, getPoolTokenPrice } from "@/lib/utils";
@@ -16,43 +16,40 @@ config({ path: "../../.env" });
 const env = parseEnv();
 
 /* ------------------------------ PROCESS LOGS ------------------------------ */
-const processLogs = async ({ err, signature }: Logs): Promise<PriceData | undefined> => {
-  if (err) return;
+const processLogs = async ({ err, signature }: Logs): Promise<(PriceData | undefined)[]> => {
+  if (err) return [];
   // Fetch and format the transaction
   const tx = await connection.getTransaction(signature, {
     commitment: "confirmed",
     maxSupportedTransactionVersion: 0,
   });
-  if (!tx || tx.meta?.err) return;
+  if (!tx || tx.meta?.err) return [];
   // const formattedTx = txFormatter.formTransactionFromJson(tx, Date.now());
   // Parse the transaction and retrieve the swapped token accounts
   const parsedIxs = ixParser.parseTransactionWithInnerInstructions(tx);
+  const swapAccountsArray = decodeSwapAccounts(tx, parsedIxs);
+  if (!swapAccountsArray) return [];
 
-  // Raydium
-  const raydiumProgramIxs = parsedIxs.filter((ix) => ix.programId.equals(RAYDIUM_PUBLIC_KEY));
-  const swapAccounts = raydiumProgramIxs.length ? decodeRaydiumTx(tx, raydiumProgramIxs) : undefined;
-  if (!swapAccounts) return;
-
-  const tokenPrice = await getPoolTokenPrice(swapAccounts);
-  return tokenPrice;
+  return await Promise.all(swapAccountsArray.map((swapAccounts) => getPoolTokenPrice(swapAccounts)));
 };
 
 /* ------------------------------- HANDLE DATA ------------------------------ */
 let priceDataBatch: PriceData[] = [];
-const handlePriceData = async (gql: GqlClient["db"], priceData: PriceData | undefined) => {
-  if (!priceData) return;
-  priceDataBatch.push(priceData);
+const handlePriceData = async (gql: GqlClient["db"], priceData: (PriceData | undefined)[]) => {
+  const validPriceData = priceData.filter((data) => data !== undefined);
+  if (!validPriceData.length) return;
+  priceDataBatch.push(...validPriceData);
 
-  if (priceDataBatch.length === PRICE_DATA_BATCH_SIZE) {
+  if (priceDataBatch.length >= PRICE_DATA_BATCH_SIZE) {
     const _priceDataBatch = priceDataBatch;
     priceDataBatch = [];
 
     try {
       // 1. Insert new tokens
       const insertRes = await gql.RegisterManyNewTokensMutation({
-        objects: _priceDataBatch.map(({ mint }) => ({
+        objects: _priceDataBatch.map(({ mint, platform }) => ({
           mint,
-          name: "",
+          name: platform, // TODO: temporary
           symbol: "",
           supply: "0",
         })),
@@ -146,6 +143,7 @@ export const start = async () => {
       const obj = JSON.parse(event.data.toString());
       const data = obj.params?.result.value as Logs | undefined;
       const logs = data?.logs;
+      // later when we directly filter on the subscription, we can remove this
       const filteredLogs = logs ? filterLogs(logs) : undefined;
       // Process
       if (data && filteredLogs) processLogs(data).then((priceData) => handlePriceData(gql, priceData));

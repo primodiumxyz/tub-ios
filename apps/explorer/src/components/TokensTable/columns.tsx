@@ -18,6 +18,14 @@ export const columns: ColumnDef<Token>[] = [
     },
   },
   {
+    accessorKey: "platform",
+    header: "Platform",
+    cell: ({ row }) => {
+      if (row.original.platform === "") return <span className="opacity-50">N/A</span>;
+      return <div>{row.original.platform.charAt(0).toUpperCase() + row.original.platform.slice(1)}</div>;
+    },
+  },
+  {
     accessorKey: "trades",
     header: ({ column }) => {
       return (

@@ -18,30 +18,27 @@ export const getVersionedBlockConfig: GetVersionedBlockConfig = {
   transactionDetails: "full",
 };
 
-export const getPoolTokenPrice = async ({
-  poolCoin,
-  poolPc,
-}: SwapAccounts): Promise<Omit<PriceData, "slot"> | undefined> => {
-  const [poolCoinRes, poolPcRes] = (
-    await connection.getMultipleParsedAccounts([poolCoin, poolPc], {
+export const getPoolTokenPrice = async ({ tokenX, tokenY, platform }: SwapAccounts): Promise<PriceData | undefined> => {
+  const [tokenXRes, tokenYRes] = (
+    await connection.getMultipleParsedAccounts([tokenX, tokenY], {
       commitment: "confirmed",
     })
   ).value;
 
-  const poolCoinData = poolCoinRes?.data as ParsedAccountData | undefined;
-  const poolPcData = poolPcRes?.data as ParsedAccountData | undefined;
+  const tokenXData = tokenXRes?.data as ParsedAccountData | undefined;
+  const tokenYData = tokenYRes?.data as ParsedAccountData | undefined;
 
-  const poolCoinParsedInfo = poolCoinData?.parsed.info;
-  const poolPcParsedInfo = poolPcData?.parsed.info;
+  const tokenXParsedInfo = tokenXData?.parsed.info;
+  const tokenYParsedInfo = tokenYData?.parsed.info;
 
   if (
-    !(poolCoinParsedInfo?.mint === WRAPPED_SOL_MINT.toString()) ||
-    !poolPcParsedInfo?.mint ||
-    !poolCoinParsedInfo?.tokenAmount?.uiAmount ||
-    !poolPcParsedInfo?.tokenAmount?.uiAmount
+    !(tokenXParsedInfo?.mint === WRAPPED_SOL_MINT.toString()) ||
+    !tokenYParsedInfo?.mint ||
+    !tokenXParsedInfo?.tokenAmount?.uiAmount ||
+    !tokenYParsedInfo?.tokenAmount?.uiAmount
   )
     return;
 
-  const tokenPrice = poolCoinParsedInfo.tokenAmount.uiAmount / poolPcParsedInfo.tokenAmount.uiAmount;
-  return { mint: poolPcParsedInfo.mint, price: tokenPrice };
+  const tokenPrice = tokenXParsedInfo.tokenAmount.uiAmount / tokenYParsedInfo.tokenAmount.uiAmount;
+  return { mint: tokenYParsedInfo.mint, price: tokenPrice, platform };
 };

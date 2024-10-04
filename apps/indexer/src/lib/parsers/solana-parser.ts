@@ -1659,7 +1659,7 @@ export class SolanaParser {
         return parsed;
       } catch (error) {
         // eslint-disable-next-line no-console
-        console.error("Parser does not matching the instruction args", {
+        console.error("Parser does not match the instruction args", {
           programId: instruction.programId.toBase58(),
           instructionData: instruction.data.toString("hex"),
         });

@@ -37,6 +37,7 @@ export const GetAllOnchainTokensPriceHistorySinceSubscription = graphql(`
       price
       token_relationship {
         mint
+        name
       }
     }
   }

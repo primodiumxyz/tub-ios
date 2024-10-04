@@ -9,12 +9,14 @@ export type Token = {
   latestPrice: number;
   increasePct: number;
   trades: number;
+  platform: string;
 };
 
 type PriceData = {
   price: string;
   token_relationship: {
     mint: string;
+    name: string;
   };
 };
 
@@ -44,12 +46,14 @@ export const useTokens = () => {
       const minPrice = Math.min(...trades);
       const latestPrice = trades[trades.length - 1];
       const increasePct = ((latestPrice - minPrice) / minPrice) * 100;
+      const platform = data.find((d) => d.token_relationship.mint === mint)?.token_relationship.name;
 
       return {
         mint,
         latestPrice,
         increasePct,
         trades: trades.length,
+        platform: platform ?? "",
       };
     });
 

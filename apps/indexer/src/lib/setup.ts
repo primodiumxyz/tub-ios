@@ -3,9 +3,8 @@ import { config } from "dotenv";
 
 import { parseEnv } from "@bin/parseEnv";
 import { TransactionFormatter } from "@/lib/formatters/transaction-formatter";
+import { MeteoraDlmmParser, RaydiumAmmParser, SolanaParser } from "@/lib/parsers";
 import { LogsParser } from "@/lib/parsers/logs-parser";
-import { RaydiumAmmParser } from "@/lib/parsers/raydium-amm-parser";
-import { SolanaParser } from "@/lib/parsers/solana-parser";
 
 config({ path: "../../.env" });
 
@@ -36,6 +35,8 @@ export const connection = new Connection(env.ALCHEMY_RPC_URL, { commitment: "con
 
 export const txFormatter = new TransactionFormatter();
 export const raydiumParser = new RaydiumAmmParser();
+export const meteoraDlmmParser = new MeteoraDlmmParser();
 export const ixParser = new SolanaParser([]);
 ixParser.addParser(RaydiumAmmParser.PROGRAM_ID, raydiumParser.parseInstruction.bind(raydiumParser));
+ixParser.addParser(MeteoraDlmmParser.PROGRAM_ID, meteoraDlmmParser.parseInstruction.bind(meteoraDlmmParser));
 export const logsParser = new LogsParser();

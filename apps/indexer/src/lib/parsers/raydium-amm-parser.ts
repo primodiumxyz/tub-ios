@@ -5,7 +5,7 @@ import { struct, u8, u16 } from "@solana/buffer-layout";
 // @ts-expect-error buffer-layout-utils is not typed
 import { publicKey, u64 } from "@solana/buffer-layout-utils";
 import { AccountMeta, PublicKey, TransactionInstruction } from "@solana/web3.js";
-import { deserialize, Schema } from "borsh";
+import { deserialize } from "borsh";
 
 type RaydiumInitializeArgs = {
   nonce: number;
@@ -289,6 +289,7 @@ export class RaydiumAmmParser {
     const instructionData = instruction.data;
     const instructionType = u8().decode(instructionData);
 
+    // https://github.com/raydium-io/raydium-idl/blob/master/raydium_amm/src/program.ts
     switch (instructionType) {
       case 0: {
         return this.parseRaydiumInitializeIx(instruction);
