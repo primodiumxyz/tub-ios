@@ -101,7 +101,7 @@ struct CoinViewContent: View {
                     .font(.sfRounded(size: .xl2, weight: .bold))
            }
            
-           BuySellForm(viewModel: coinModel)
+           BuySellForm(coinModel: coinModel)
          
         }.padding(8)
        }

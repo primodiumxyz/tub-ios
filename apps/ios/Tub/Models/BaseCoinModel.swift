@@ -15,12 +15,11 @@ class BaseCoinModel: ObservableObject {
         self.tokenId = tokenId
     }
     
-    
-    func handleBuy(buyAmountUSD: CGFloat) -> Bool {
+    func buyTokens(buyAmount: Double) -> Bool {
         return false
     }
     
-    func handleSell() {
-        
+    func sellTokens() -> Bool {
+        return false
     }
 }

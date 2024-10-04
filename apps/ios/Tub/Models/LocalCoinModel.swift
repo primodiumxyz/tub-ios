@@ -37,25 +37,26 @@ class LocalCoinModel: BaseCoinModel {
         prices.append(newPrice)
     }
     
-    override func handleBuy(buyAmountUSD: CGFloat) -> Bool {
+    override func buyTokens(buyAmount: Double) -> Bool {
         guard let currentPrice = prices.last?.price else { return false }
-        let tokenAmount = buyAmountUSD / currentPrice
-        if buyAmountUSD <= 0 || buyAmountUSD > balance {
+        let tokenAmount = buyAmount / currentPrice
+        if buyAmount <= 0 || buyAmount > balance {
             return false
         }
-        balance -= buyAmountUSD
+        balance -= buyAmount
         coinBalance += tokenAmount
-        amountBought += buyAmountUSD
+        amountBought += buyAmount
         return true
     }
     
-    override func handleSell() {
-        guard let currentPrice = prices.last?.price else { return }
+    override func sellTokens() -> Bool {
+        guard let currentPrice = prices.last?.price else { return false }
         if coinBalance <= 0 {
-            return
+            return false
         }
-        balance += coinBalance * currentPrice
+        balance += amountBought * currentPrice
         coinBalance = 0
-        amountBought = 10
+        amountBought = 0
+        return true
     }
 }

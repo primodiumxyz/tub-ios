@@ -4,8 +4,12 @@ import TubAPI
 import Combine
 
 class RemoteCoinModel: BaseCoinModel {
-    override init(tokenId: String) {
+    var userId: String
+    
+    init(_userId: String, tokenId: String) {
+        self.userId = _userId
         super.init(tokenId: tokenId)
+        
         Task {
             await fetchInitialData()
             subscribeToLatestPrice()
@@ -102,13 +106,36 @@ class RemoteCoinModel: BaseCoinModel {
         return iso8601Formatter.date(from: datePart + "." + millisPart + "Z")
     }
 
-    override func handleBuy(buyAmountUSD: CGFloat) -> Bool {
-        // Implement buy logic
-        return false
+    override func buyTokens(buyAmount: Double) -> Bool {
+        print("in handleBuy")
+        let buyAmountLamps = String(Int(buyAmount * 1e9))
+        var success = false
+        
+        Network.shared.buyToken(accountId: self.userId, tokenId: self.tokenId, amount: buyAmountLamps, completion: { result in
+            switch result  {
+            case (.success):
+                print("success")
+            case(.failure(let error)):
+                print("failure", error.localizedDescription)
+                success = false
+            }
+        })
+        return success
     }
     
-    override func handleSell() {
-        // Implement sell logic
+    override func sellTokens() -> Bool {
+        let sellAmountLamps = String(Int(self.amountBought * 1e9))
+        var success = false
+        Network.shared.sellToken(accountId: self.userId, tokenId: self.tokenId,  amount: sellAmountLamps, completion: { result in
+            switch result  {
+            case (.success):
+                print("success")
+            case(.failure(let error)):
+                print("failure", error)
+                success = false
+            }
+        })
+        return success
     }
 }
 
