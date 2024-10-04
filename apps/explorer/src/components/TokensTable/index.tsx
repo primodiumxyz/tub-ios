@@ -15,10 +15,33 @@ export const TokensTable = () => {
     [tokens, increasePct, minTrades],
   );
 
+  const tokensPerPlatform = useMemo(() => {
+    return Object.entries(
+      filteredTokens.reduce(
+        (acc, token) => {
+          acc[token.platform || "N/A"] = (acc[token.platform || "N/A"] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>,
+      ),
+    ).sort((a, b) => b[1] - a[1]);
+  }, [filteredTokens]);
+  console.log(tokensPerPlatform);
+
   if (error) return <div>Error: {error}</div>;
   return (
     <div className="flex flex-col gap-2 mt-2 w-full">
       <div className="text-end font-bold">Total coins: {filteredTokens.length}</div>
+      {Object.entries(tokensPerPlatform).length > 0 && (
+        <div className="flex gap-4 flex-wrap justify-end">
+          <span>Platforms: </span>
+          {Object.entries(tokensPerPlatform).map(([, [platform, count]]) => (
+            <div key={platform} className="opacity-50">
+              {platform.charAt(0).toUpperCase() + platform.slice(1)}: {count}
+            </div>
+          ))}
+        </div>
+      )}
       <DataTable
         columns={columns}
         data={filteredTokens}
