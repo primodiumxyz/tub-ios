@@ -43,7 +43,14 @@ export const useTokens = () => {
     );
 
     const tokensWithData = Object.entries(tradesPerToken).map(([mint, trades]) => {
-      const minPrice = Math.min(...trades);
+      // TODO: we need to decide which algorithm to get the price increase:
+      // 1. (current and usual) we calculate the difference between the current (latest) price and the price at the start of the timespan
+      // (which would be consistent with candles)
+      // 2. we calculate the difference between the current (latest) price and the lowest price during the timespan
+      // which seems like it could make sense? because on a 30s timespan, if it goes down then up again, it could very well be pumping on that lower
+      // timespan, meaning that the timespan we choose is actually a maximum timespan?
+      // const minPrice = Math.min(...trades);
+      const minPrice = trades[0];
       const latestPrice = trades[trades.length - 1];
       const increasePct = ((latestPrice - minPrice) / minPrice) * 100;
       const platform = data.find((d) => d.token_relationship.mint === mint)?.token_relationship.name;

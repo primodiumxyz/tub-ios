@@ -8,13 +8,12 @@ export const cn = (...inputs: ClassValue[]) => {
 export const formatTime = (timespan: number) => {
   const hours = Math.floor(timespan / 3600);
   const minutes = Math.floor((timespan % 3600) / 60);
-  const seconds = timespan % 60;
+  const seconds = Math.floor(timespan % 60);
 
-  if (hours > 0) {
-    return `${hours}h ${minutes}m ${seconds}s`;
-  } else if (minutes > 0) {
-    return `${minutes}m ${seconds}s`;
-  } else {
-    return `${seconds}s`;
-  }
+  const parts = [];
+  if (hours > 0) parts.push(`${hours}h`);
+  if (minutes > 0) parts.push(`${minutes}m`);
+  if (seconds > 0 || parts.length === 0) parts.push(`${seconds}s`);
+
+  return parts.join(" ");
 };
