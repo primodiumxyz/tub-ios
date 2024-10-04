@@ -142,7 +142,6 @@ export const CoinDisplay = ({
 
     setBoughtPrice(tokenPrices.current);
     await server.buyToken.mutate({
-      accountId: userId,
       tokenId: tokenData.id,
       amount: amount.toString(),
     });
@@ -155,7 +154,6 @@ export const CoinDisplay = ({
     if (sellAmountCoin <= 0) return;
 
     await server.sellToken.mutate({
-      accountId: userId,
       tokenId: tokenData.id,
       amount: sellAmountCoin.toString(),
     });
@@ -206,7 +204,6 @@ export const CoinDisplay = ({
                   return;
                 }
                 server.airdropNativeToUser.mutate({
-                  accountId: userId,
                   amount: solToLamports(100).toString(),
                 });
               }}

@@ -5,6 +5,7 @@ import { TubService } from "./TubService";
 
 export type AppContext = {
   tubService: TubService;
+  jwtToken: string;
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -37,28 +38,29 @@ export function createAppRouter() {
       )
       .mutation(async ({ ctx, input }) => {
         return await ctx.tubService.registerNewUser(input.username, input.airdropAmount ? BigInt(input.airdropAmount) : BigInt("100"));
-      }), 
+      }),
+    refreshToken: t.procedure.input(z.object({ uuid: z.string() })).mutation(async ({ ctx, input }) => {
+      return await ctx.tubService.refreshToken(input.uuid);
+    }),
     buyToken: t.procedure
       .input(
         z.object({
-          accountId: z.string(),
           tokenId: z.string(),
           amount: z.string(),
         }),
       )
       .mutation(async ({ ctx, input }) => {
-        return await ctx.tubService.buyToken(input.accountId, input.tokenId, BigInt(input.amount));
+        return await ctx.tubService.buyToken(ctx.jwtToken, input.tokenId, BigInt(input.amount));
       }),
     sellToken: t.procedure
       .input(
         z.object({
-          accountId: z.string(),
           tokenId: z.string(),
           amount: z.string(),
         }),
       )
       .mutation(async ({ ctx, input }) => {
-        return await ctx.tubService.sellToken(input.accountId, input.tokenId, BigInt(input.amount));
+        return await ctx.tubService.sellToken(ctx.jwtToken, input.tokenId, BigInt(input.amount));
       }),
     registerNewToken: t.procedure
       .input(
@@ -75,12 +77,11 @@ export function createAppRouter() {
     airdropNativeToUser: t.procedure
       .input(
         z.object({
-          accountId: z.string(),
           amount: z.string(),
         }),
       )
       .mutation(async ({ ctx, input }) => {
-        return await ctx.tubService.airdropNativeToUser(input.accountId, BigInt(input.amount));
+        return await ctx.tubService.airdropNativeToUser(ctx.jwtToken, BigInt(input.amount));
       }),
   });
 }
