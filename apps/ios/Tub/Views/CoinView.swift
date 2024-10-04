@@ -10,9 +10,41 @@ import Combine
 
 
 struct CoinView: View {
-    @ObservedObject var coinModel: CoinDisplayViewModel = CoinDisplayViewModel(coinData:CoinData(name: "MONKAY", symbol: "MONK"))
+    @ObservedObject var coinModel: BaseCoinModel
+    
+    var body: some View {
+        if coinModel.loading {
+            LoadingView()
+        } else {
+            CoinViewContent(_coinModel: coinModel)
+        }
+    }
+}
 
-   var body: some View {
+struct LoadingView: View {
+    var body: some View {
+        VStack {
+            ProgressView()
+            Text("Loading...")
+                .font(.sfRounded(size: .base))
+                .padding(.top, 10)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.black)
+        .foregroundColor(.white)
+    }
+}
+
+struct CoinViewContent: View {
+    @ObservedObject var coinModel : BaseCoinModel
+    var initialBalance: Double = 0.0
+    
+    init(_coinModel: BaseCoinModel) {
+        initialBalance = _coinModel.balance
+        coinModel  = _coinModel
+    }
+    
+    var body: some View {
        VStack () {
         VStack (alignment: .leading) {
             VStack(alignment: .leading) {
@@ -23,23 +55,21 @@ struct CoinView: View {
                 Text("\(coinModel.balance, specifier: "%.2f") SOL")
                     .font(.sfRounded(size: .xl4))
                     .fontWeight(.bold)
-//                if coinModel.balance != 1000 {
                     HStack(spacing:3) {
-                        Text(coinModel.balance > 1000 ? "+ \(coinModel.balance - 1000, specifier: "%.2f") SOL" : "- \(1000 - coinModel.balance, specifier: "%.2f") SOL")
+                        Text(coinModel.balance > initialBalance ? "+ \(coinModel.balance - initialBalance, specifier: "%.2f") SOL" : "- \(initialBalance - coinModel.balance, specifier: "%.2f") SOL")
                             .font(.sfRounded(size: .base, weight: .bold))
                         
                         HStack(spacing: 2) {
-                            Image(systemName: coinModel.balance > 1000 ? "arrow.up.right" : "arrow.down.right")
-                                .foregroundColor(coinModel.balance > 1000 ? .green : .red)
+                            Image(systemName: coinModel.balance > initialBalance ? "arrow.up.right" : "arrow.down.right")
+                                .foregroundColor(coinModel.balance > initialBalance ? .green : .red)
                                 .kerning(-1)
 
-                            Text("\(abs((coinModel.balance - 1000) / 1000 * 100), specifier: "%.2f")%")
-                                .foregroundColor(coinModel.balance > 1000 ? .green : .red)
+                            Text("\(abs((coinModel.balance - initialBalance) / 1000 * 100), specifier: "%.2f")%")
+                                .foregroundColor(coinModel.balance > initialBalance ? .green : .red)
                                 .font(.sfRounded(size: .base, weight: .bold))
                                 .kerning(-1)
                         }
                     }
-//                }
             }
             .padding(.bottom, 16)
             HStack {
@@ -51,7 +81,7 @@ struct CoinView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 10)) // This will round the corners
 
                 VStack(alignment: .leading){
-                    Text("$\(coinModel.coinData.symbol) (\(coinModel.coinData.name))") // Update this line
+                    Text("$\(coinModel.coin.symbol) (\(coinModel.coin.name))") // Update this line
                         .font(.sfRounded(size: .base, weight: .bold))
                     Text("\(coinModel.prices.last?.price ?? 0, specifier: "%.3f") SOL")
                         .font(.sfRounded(size: .xl3, weight: .bold))
@@ -62,12 +92,12 @@ struct CoinView: View {
             
             ChartView(prices: coinModel.prices)
             VStack(alignment: .leading) {
-               Text("Your \(coinModel.coinData.symbol.uppercased()) Balance") // Update this line
+               Text("Your \(coinModel.coin.symbol.uppercased()) Balance") // Update this line
                 .font(.sfRounded(size: .sm, weight: .bold))
                     .opacity(0.7)
                     .kerning(-1)
                 
-               Text("\(coinModel.coinBalance, specifier: "%.3f") \(coinModel.coinData.symbol.uppercased())") // Update this line
+               Text("\(coinModel.coinBalance, specifier: "%.3f") \(coinModel.coin.symbol.uppercased())") // Update this line
                     .font(.sfRounded(size: .xl2, weight: .bold))
            }
            
@@ -84,5 +114,5 @@ struct CoinView: View {
 
 
 #Preview {
-    CoinView()
+    CoinView(coinModel: LocalCoinModel())
 }
