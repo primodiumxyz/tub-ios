@@ -10,6 +10,14 @@ import SwiftUI
 struct HistoryView: View {
     @State private var showFilters = true
     
+    // Filter state
+    @State private var selectedBuy: Bool = true
+    @State private var selectedSell: Bool = true
+    @State private var selectedPeriod: String = "All"
+    @State private var selectedAmountRange: String = "All"
+    @State private var selectedStatus: String = "All"
+    
+    
     var body: some View {
         NavigationView {
             VStack {
@@ -42,24 +50,84 @@ struct HistoryView: View {
                         Button(action: {}) {
                             Image(systemName: "magnifyingglass")
                                 .foregroundColor(.white)
+                                .frame(width: 40.0, height: 40.0)
                         }
-                        .frame(width: 40.0, height: 40.0)
-                        Spacer()
-                        ForEach(["Type", "Period", "Amount", "Status"], id: \.self) {
-                            filter in
-                            Button(action: {}) {
-                                Text(filter)
-                                    .font(.system(size: 14))
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal)
-                                    .padding(.vertical, 5)
-                                    .fixedSize(horizontal: true, vertical: false)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .stroke(Color.gray, lineWidth: 1)
-                                    )
+                        
+                        // Type Filter Dropdown (Buy/Sell Checkboxes)
+                        Menu {
+                            Toggle(isOn: $selectedBuy) {
+                                Text("Buy")
                             }
+                            Toggle(isOn: $selectedSell) {
+                                Text("Sell")
+                            }
+                        } label: {
+                            Text(typeFilterLabel())
+                                .font(.system(size: 14))
+                                .foregroundColor(.white)
+                                .padding(.horizontal)
+                                .padding(.vertical, 5)
+                                .fixedSize(horizontal: true, vertical: false)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(Color.gray, lineWidth: 1)
+                                )
                         }
+                        
+                        // Period Filter
+                        Menu {
+                            Button(action: { selectedPeriod = "All" }) {
+                                Text("All")
+                            }
+                            Button(action: { selectedPeriod = "Today" }) {
+                                Text("Today")
+                            }
+                            Button(action: { selectedPeriod = "This Week" }) {
+                                Text("This Week")
+                            }
+                            Button(action: { selectedPeriod = "This Month" }) {
+                                Text("This Month")
+                            }
+                            Button(action: { selectedPeriod = "This Year" }) {
+                                Text("This Year")
+                            }
+                        } label: {
+                            Text("Period: \(selectedPeriod)")
+                                .font(.system(size: 14))
+                                .foregroundColor(.white)
+                                .padding(.horizontal)
+                                .padding(.vertical, 5)
+                                .fixedSize(horizontal: true, vertical: false)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(Color.gray, lineWidth: 1)
+                                )
+                        }
+
+                        // Status Filter
+                        Menu {
+                            Button(action: { selectedStatus = "All" }) {
+                                Text("All")
+                            }
+                            Button(action: { selectedStatus = "Filled" }) {
+                                Text("Filled")
+                            }
+                            Button(action: { selectedStatus = "Unfilled" }) {
+                                Text("Unfilled")
+                            }
+                        } label: {
+                            Text("Status: \(selectedStatus)")
+                                .font(.system(size: 14))
+                                .foregroundColor(.white)
+                                .padding(.horizontal)
+                                .padding(.vertical, 5)
+                                .fixedSize(horizontal: true, vertical: false)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(Color.gray, lineWidth: 1)
+                                )
+                        }
+                        Spacer()
                     }
                     .padding(.horizontal, 20.0)
                     .offset(y: -5)
@@ -68,15 +136,15 @@ struct HistoryView: View {
                 
                 // Transaction List
                 List {
-                    ForEach(dummyData.indices, id: \.self) { index in
-                        NavigationLink(destination: HistoryDetailsView(transaction: dummyData[index])) {
+                    ForEach(filteredTransactions(), id: \.id) { transaction in
+                        NavigationLink(destination: HistoryDetailsView(transaction: transaction)) {
                             
                             VStack {
-                                TransactionRow(transaction: dummyData[index])
+                                TransactionRow(transaction: transaction)
                                     .padding(.bottom, 2.0)
                                     .padding(.leading, 10.0)
                                 
-                                if index != dummyData.count  {
+                                if transaction != dummyData.last  {
                                     Divider()
                                         .frame(width: 340.0, height: 1.0)
                                         .background(Color(hue: 1.0, saturation: 0.0, brightness: 0.153))
@@ -93,6 +161,60 @@ struct HistoryView: View {
             .background(Color.black.edgesIgnoringSafeArea(.all))
         }
         .navigationTitle("History")
+    }
+    
+    // For Type filter label
+    func typeFilterLabel() -> String {
+            if selectedBuy && selectedSell {
+                return "Type: All"
+            } else if selectedBuy {
+                return "Type: Buy"
+            } else if selectedSell {
+                return "Type: Sell"
+            } else {
+                return "Type: None"
+            }
+        }
+    
+    // Helper function to filter transactions
+    func filteredTransactions() -> [Transaction] {
+        var filteredData = dummyData
+        
+        // Filter by Type (Buy/Sell based on checkboxes)
+        if selectedBuy && !selectedSell {
+            filteredData = filteredData.filter { $0.isBuy }
+        } else if selectedSell && !selectedBuy {
+            filteredData = filteredData.filter { !$0.isBuy }
+        } else if !selectedBuy && !selectedSell {
+            filteredData = []
+        }
+        
+        // Filter by Period
+        if selectedPeriod != "All" {
+            switch selectedPeriod {
+            case "Today":
+                filteredData = filteredData.filter { Calendar.current.isDateInToday($0.date) }
+            case "This Week":
+                filteredData = filteredData.filter { Calendar.current.isDate($0.date, equalTo: Date(), toGranularity: .weekOfYear) }
+            case "This Month":
+                filteredData = filteredData.filter { Calendar.current.isDate($0.date, equalTo: Date(), toGranularity: .month) }
+            case "This Year":
+                filteredData = filteredData.filter { Calendar.current.isDate($0.date, equalTo: Date(), toGranularity: .year) }
+            default:
+                break
+            }
+        }
+        
+        // Filter by Status
+        if selectedStatus != "All" {
+            if selectedStatus == "Filled" {
+                filteredData = filteredData.filter { _ in true }
+            } else if selectedStatus == "Unfilled" {
+                filteredData = filteredData.filter { _ in false }
+            }
+        }
+        
+        return filteredData
     }
 }
     

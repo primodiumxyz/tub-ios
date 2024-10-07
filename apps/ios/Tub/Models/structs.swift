@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Transaction: Identifiable {
+struct Transaction: Identifiable, Equatable {
     let id = UUID()
     let coin: String
     let date: Date
