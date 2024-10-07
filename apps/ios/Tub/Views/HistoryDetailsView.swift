@@ -77,7 +77,7 @@ struct HistoryDetailsView: View {
                     Text("Filled")
                         .foregroundColor(.gray)
                         .font(.system(size: 14))
-                    Text("\(formatDate(transaction.date)) at \(formatTime(transaction.time))")
+                    Text("\(formatDate(transaction.date)) at \(formatTime(transaction.date))")
                         .foregroundColor(.white)
                 }
                 
@@ -102,22 +102,24 @@ struct HistoryDetailsView: View {
     }
     
     // Helper functions to format amount and date
-        func formatAmount(_ amount: Double) -> String {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .currency
-            return formatter.string(from: NSNumber(value: amount)) ?? "$0.00"
-        }
+    func formatAmount(_ amount: Double) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        return formatter.string(from: NSNumber(value: amount)) ?? "$0.00"
+    }
+    
+    func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        return formatter.string(from: date)
+    }
 
-        func formatDate(_ date: Date) -> String {
-            let formatter = DateFormatter()
-            formatter.dateStyle = .medium
-            return formatter.string(from: date)
-        }
-        func formatTime(_ time: Date) -> String {
-            let formatter = DateFormatter()
-            formatter.timeStyle = .short
-            return formatter.string(from: time)
-        }
+    func formatTime(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
+    }
+
 }
 
 struct HistoryDetailsView_Previews: PreviewProvider {

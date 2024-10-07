@@ -11,7 +11,6 @@ struct Transaction: Identifiable, Equatable {
     let id = UUID()
     let coin: String
     let date: Date
-    let time: Date
     let amount: Double
     let quantity: Double
     let isBuy: Bool

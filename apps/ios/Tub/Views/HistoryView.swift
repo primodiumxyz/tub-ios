@@ -11,11 +11,14 @@ struct HistoryView: View {
     @State private var showFilters = true
     
     // Filter state
+    @State private var searchText: String = ""
+    @State private var isSearching: Bool = false
     @State private var selectedBuy: Bool = true
     @State private var selectedSell: Bool = true
     @State private var selectedPeriod: String = "All"
     @State private var selectedAmountRange: String = "All"
-    @State private var selectedStatus: String = "All"
+    @State private var selectedFilled: Bool = true
+    @State private var selectedUnfilled: Bool = true
     
     
     var body: some View {
@@ -46,91 +49,108 @@ struct HistoryView: View {
                 .padding(.top, 10)
                 
                 if showFilters {
-                    HStack {
-                        Button(action: {}) {
-                            Image(systemName: "magnifyingglass")
-                                .foregroundColor(.white)
-                                .frame(width: 40.0, height: 40.0)
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack {
+                            Button(action: {
+                                withAnimation { isSearching.toggle()}
+                            }) {
+                                Image(systemName: isSearching ? "xmark.circle.fill" : "magnifyingglass")
+                                    .foregroundColor(.white)
+                                    .font(.system(size: 20))
+                            }
+                            
+                            if isSearching {
+                                ZStack {
+                                    if searchText.isEmpty {
+                                        Text("Search...")
+                                            .foregroundColor(.gray)
+                                            .offset(x:-14)
+                                    }
+                                    TextField("", text: $searchText)
+                                        .textFieldStyle(PlainTextFieldStyle())
+                                        .foregroundColor(.white)
+                                        .frame(width: 100, height: 44)
+                                        .cornerRadius(0)
+                                        .transition(.move(edge: .trailing))
+                                }
+                            }
+                            
+                            // Type Filter Dropdown (Buy/Sell Checkboxes)
+                            Menu {
+                                Toggle(isOn: $selectedBuy) { Text("Buy") }
+                                Toggle(isOn: $selectedSell) { Text("Sell") }
+                            } label: {
+                                Text(typeFilterLabel())
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal)
+                                    .padding(.vertical, 6.0)
+                                    .fixedSize(horizontal: true, vertical: false)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .stroke(Color.gray, lineWidth: 1)
+                                    )
+                            }
+                            
+                            // Period Filter
+                            Menu {
+                                Button(action: { selectedPeriod = "All" }) { Text("All") }
+                                Button(action: { selectedPeriod = "Today" }) { Text("Today") }
+                                Button(action: { selectedPeriod = "This Week" }) { Text("This Week") }
+                                Button(action: { selectedPeriod = "This Month" }) { Text("This Month") }
+                                Button(action: { selectedPeriod = "This Year" }) { Text("This Year") }
+                            } label: {
+                                Text("Period: \(selectedPeriod)")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal)
+                                    .padding(.vertical, 6)
+                                    .fixedSize(horizontal: true, vertical: false)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .stroke(Color.gray, lineWidth: 1)
+                                    )
+                            }
+                            
+                            // Status Filter
+                            Menu {
+                                Toggle(isOn: $selectedFilled) { Text("Filled") }
+                                Toggle(isOn: $selectedUnfilled) { Text("Unfilled") }
+                            } label: {
+                                Text(statusFilterLabel())
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal)
+                                    .padding(.vertical, 6)
+                                    .fixedSize(horizontal: true, vertical: false)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .stroke(Color.gray, lineWidth: 1)
+                                    )
+                            }
+                            
+                            // Amount Filter
+                            Menu {
+                                Button(action: { selectedAmountRange = "All" }) { Text("All") }
+                                Button(action: { selectedAmountRange = "< $100" }) { Text("< $100") }
+                                Button(action: { selectedAmountRange = "> $100" }) { Text("> $100") }
+                            } label: {
+                                Text("Amount: \(selectedAmountRange)")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal)
+                                    .padding(.vertical, 6)
+                                    .fixedSize(horizontal: true, vertical: false)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .stroke(Color.gray, lineWidth: 1)
+                                    )
+                            }
                         }
-                        
-                        // Type Filter Dropdown (Buy/Sell Checkboxes)
-                        Menu {
-                            Toggle(isOn: $selectedBuy) {
-                                Text("Buy")
-                            }
-                            Toggle(isOn: $selectedSell) {
-                                Text("Sell")
-                            }
-                        } label: {
-                            Text(typeFilterLabel())
-                                .font(.system(size: 14))
-                                .foregroundColor(.white)
-                                .padding(.horizontal)
-                                .padding(.vertical, 5)
-                                .fixedSize(horizontal: true, vertical: false)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .stroke(Color.gray, lineWidth: 1)
-                                )
-                        }
-                        
-                        // Period Filter
-                        Menu {
-                            Button(action: { selectedPeriod = "All" }) {
-                                Text("All")
-                            }
-                            Button(action: { selectedPeriod = "Today" }) {
-                                Text("Today")
-                            }
-                            Button(action: { selectedPeriod = "This Week" }) {
-                                Text("This Week")
-                            }
-                            Button(action: { selectedPeriod = "This Month" }) {
-                                Text("This Month")
-                            }
-                            Button(action: { selectedPeriod = "This Year" }) {
-                                Text("This Year")
-                            }
-                        } label: {
-                            Text("Period: \(selectedPeriod)")
-                                .font(.system(size: 14))
-                                .foregroundColor(.white)
-                                .padding(.horizontal)
-                                .padding(.vertical, 5)
-                                .fixedSize(horizontal: true, vertical: false)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .stroke(Color.gray, lineWidth: 1)
-                                )
-                        }
-
-                        // Status Filter
-                        Menu {
-                            Button(action: { selectedStatus = "All" }) {
-                                Text("All")
-                            }
-                            Button(action: { selectedStatus = "Filled" }) {
-                                Text("Filled")
-                            }
-                            Button(action: { selectedStatus = "Unfilled" }) {
-                                Text("Unfilled")
-                            }
-                        } label: {
-                            Text("Status: \(selectedStatus)")
-                                .font(.system(size: 14))
-                                .foregroundColor(.white)
-                                .padding(.horizontal)
-                                .padding(.vertical, 5)
-                                .fixedSize(horizontal: true, vertical: false)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .stroke(Color.gray, lineWidth: 1)
-                                )
-                        }
-                        Spacer()
+                        .padding(.horizontal, 20.0)
+                        .frame(height: 40.0)
+                        .offset(y: -5)
                     }
-                    .padding(.horizontal, 20.0)
-                    .offset(y: -5)
                 }
                 
                 
@@ -165,22 +185,44 @@ struct HistoryView: View {
     
     // For Type filter label
     func typeFilterLabel() -> String {
-            if selectedBuy && selectedSell {
-                return "Type: All"
-            } else if selectedBuy {
-                return "Type: Buy"
-            } else if selectedSell {
-                return "Type: Sell"
-            } else {
-                return "Type: None"
-            }
+        if selectedBuy && selectedSell {
+            return "Type: All"
+        } else if selectedBuy {
+            return "Type: Buy"
+        } else if selectedSell {
+            return "Type: Sell"
+        } else {
+            return "Type: None"
         }
+    }
+    
+    // For Status filter label
+    func statusFilterLabel() -> String {
+        if selectedFilled && selectedUnfilled {
+            return "Status: All"
+        } else if selectedFilled {
+            return "Status: Filled"
+        } else if selectedUnfilled {
+            return "Status: Unfilled"
+        } else {
+            return "Status: None"
+        }
+    }
     
     // Helper function to filter transactions
     func filteredTransactions() -> [Transaction] {
         var filteredData = dummyData
+                
+        // Filter by search text
+        if !searchText.isEmpty {
+            filteredData = filteredData.filter { transaction in
+                // Remove "$" from the coin name
+                let cleanedCoin = transaction.coin.replacingOccurrences(of: "$", with: "").lowercased()
+                return cleanedCoin.hasPrefix(searchText.lowercased())
+            }
+        }
         
-        // Filter by Type (Buy/Sell based on checkboxes)
+        // Filter by Type (checkboxes)
         if selectedBuy && !selectedSell {
             filteredData = filteredData.filter { $0.isBuy }
         } else if selectedSell && !selectedBuy {
@@ -204,13 +246,25 @@ struct HistoryView: View {
                 break
             }
         }
+
+        // Filter by Status (checkboxes)
+        if selectedFilled && !selectedUnfilled {
+            filteredData = filteredData.filter { _ in true }
+        } else if selectedUnfilled && !selectedFilled {
+            filteredData = filteredData.filter { _ in false }
+        } else if !selectedFilled && !selectedUnfilled {
+            filteredData = []
+        }
         
-        // Filter by Status
-        if selectedStatus != "All" {
-            if selectedStatus == "Filled" {
-                filteredData = filteredData.filter { _ in true }
-            } else if selectedStatus == "Unfilled" {
-                filteredData = filteredData.filter { _ in false }
+        // Filter by Amount
+        if selectedAmountRange != "All" {
+            switch selectedAmountRange {
+            case "< $100":
+                filteredData = filteredData.filter { abs($0.amount) < 100 }
+            case "> $100":
+                filteredData = filteredData.filter { abs($0.amount) > 100 }
+            default:
+                break
             }
         }
         
@@ -267,18 +321,19 @@ struct TransactionRow: View {
         .padding(.bottom, 10.0)
         .background(Color.black)
     }
+    
     // Helper functions to format amount and date
-        func formatAmount(_ amount: Double) -> String {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .currency
-            return formatter.string(from: NSNumber(value: amount)) ?? "$0.00"
-        }
+    func formatAmount(_ amount: Double) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        return formatter.string(from: NSNumber(value: amount)) ?? "$0.00"
+    }
 
-        func formatDate(_ date: Date) -> String {
-            let formatter = DateFormatter()
-            formatter.dateStyle = .medium
-            return formatter.string(from: date)
-        }
+    func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        return formatter.string(from: date)
+    }
 }
 
 
