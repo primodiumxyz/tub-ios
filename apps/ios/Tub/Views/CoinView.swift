@@ -47,6 +47,7 @@ struct LoadingView: View {
 struct CoinViewContent: View {
     @ObservedObject var coinModel: BaseCoinModel
     @StateObject var userModel: UserModel
+//    var initialBalance = 0.0
     
     init(coinModel: BaseCoinModel) {
         self.coinModel = coinModel
@@ -64,21 +65,21 @@ struct CoinViewContent: View {
                 Text("\(userModel.balance, specifier: "%.2f") SOL")
                     .font(.sfRounded(size: .xl4))
                     .fontWeight(.bold)
-                HStack(spacing:3) {
-//                    Text(userModel.balance > initialBalance ? "+ \(userModel.balance - initialBalance, specifier: "%.2f") SOL" : "- \(initialBalance - userModel.balance, specifier: "%.2f") SOL")
-//                        .font(.sfRounded(size: .base, weight: .bold))
-//                    
-//                    HStack(spacing: 2) {
-//                        Image(systemName: userModel.balance > initialBalance ? "arrow.up.right" : "arrow.down.right")
-//                            .foregroundColor(userModel.balance > initialBalance ? .green : .red)
-//                            .kerning(-1)
+//                HStack(spacing:3) {
+//                   Text(userModel.balance > initialBalance ? "+ \(userModel.balance - initialBalance, specifier: "%.2f") SOL" : "- \(initialBalance - userModel.balance, specifier: "%.2f") SOL")
+//                       .font(.sfRounded(size: .base, weight: .bold))
+//                   
+//                   HStack(spacing: 2) {
+//                       Image(systemName: userModel.balance > initialBalance ? "arrow.up.right" : "arrow.down.right")
+//                           .foregroundColor(userModel.balance > initialBalance ? .green : .red)
+//                           .kerning(-1)
 //
-//                        Text("\(abs((userModel.balance - initialBalance) / initialBalance * 100), specifier: "%.2f")%")
-//                            .foregroundColor(userModel.balance > initialBalance ? .green : .red)
-//                            .font(.sfRounded(size: .base, weight: .bold))
-//                            .kerning(-1)
-//                    }
-                }
+//                       Text("\(abs((userModel.balance - initialBalance) / initialBalance * 100), specifier: "%.2f")%")
+//                           .foregroundColor(userModel.balance > initialBalance ? .green : .red)
+//                           .font(.sfRounded(size: .base, weight: .bold))
+//                           .kerning(-1)
+//                   }
+//                }
             }
             .padding(.bottom, 16)
             HStack {
