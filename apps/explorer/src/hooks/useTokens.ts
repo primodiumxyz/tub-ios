@@ -30,9 +30,6 @@ export const useTokens = () => {
   const since = useRef(new Date(new Date().getTime() - timespan * 1000));
   const [pumpingTokensResult] = useSubscription({
     query: subscriptions.GetPumpingTokensWithFiltersSubscription,
-    // TODO(review): this works, but expected types are off
-    // - minIncreasePct is a scalar float8, which is declared but seemingly not inferred correctly
-    // - minTrades is a bigint, but we can't serialize it so a string is fine; this is what it should expect for bigint
     variables: { since: since.current, minIncreasePct: increasePct.toString(), minTrades: minTrades.toString() },
   });
 
