@@ -10,7 +10,16 @@ import Combine
 
 
 struct CoinView: View {
-    @ObservedObject var coinModel: BaseCoinModel
+    var localModel = false
+    
+    @StateObject var coinModel : BaseCoinModel
+    
+    init(userId: String, tokenId: String, local: Bool? = false) {
+        if local != nil {
+            self.localModel = local!
+        }
+        self._coinModel = StateObject(wrappedValue: (local ?? false) ? LocalCoinModel() : RemoteCoinModel(userId: userId, tokenId: tokenId))
+    }
     
     var body: some View {
         if coinModel.loading {
@@ -113,5 +122,5 @@ struct CoinViewContent: View {
 
 
 #Preview {
-    CoinView(coinModel: LocalCoinModel())
+    CoinView(userId: "", tokenId: "", local: true)
 }
