@@ -99,60 +99,56 @@ const handlePriceData = async (gql: GqlClient["db"], priceData: (PriceData | und
 };
 
 /* -------------------------------- WEBSOCKET ------------------------------- */
-const _start = async () => {
-  const gql = (await createGqlClient({ url: env.GRAPHQL_URL, hasuraAdminSecret: env.HASURA_ADMIN_SECRET })).db;
+const setup = (gql: GqlClient["db"]) => {
   const ws = new WebSocket(env.HELIUS_WS_URL);
 
-  const setupWebSocket = () => {
-    ws.onclose = () => {
-      console.log("WebSocket connection closed, attempting to reconnect...");
-      setTimeout(setupWebSocket, 5000);
-    };
-    ws.onerror = (error) => {
-      console.log("WebSocket error:", error);
-      ws.close(); // This will trigger onclose and attempt to reconnect
-    };
-    ws.onopen = () => {
-      console.log("WebSocket connection opened");
-      ws.send(
-        JSON.stringify({
-          jsonrpc: "2.0",
-          id: 1,
-          method: "logsSubscribe",
-          params: ["all"],
-        }),
-        // TODO: needs min. Helius business plan
-        // {
-        //     jsonrpc: "2.0",
-        //     id: 420,
-        //     method: "transactionSubscribe",
-        //     params: [
-        //         {   failed: false,
-        //             accountInclude: [RaydiumAmmParser.PROGRAM_ID.toString()]
-        //         },
-        //         {
-        //             commitment: "confirmed",
-        //             encoding: "jsonParsed",
-        //             transactionDetails: "full",
-        //             maxSupportedTransactionVersion: 0
-        //         }
-        //     ]
-        // }
-      );
-    };
-    ws.onmessage = (event) => {
-      // Parse
-      const obj = JSON.parse(event.data.toString());
-      const data = obj.params?.result.value as Logs | undefined;
-      const logs = data?.logs;
-      // later when we directly filter on the subscription, we can remove this
-      const filteredLogs = logs ? filterLogs(logs) : undefined;
-      // Process
-      if (data && filteredLogs) processLogs(data).then((priceData) => handlePriceData(gql, priceData));
-    };
+  ws.onclose = () => {
+    console.log("WebSocket connection closed, attempting to reconnect...");
+    setTimeout(() => setup(gql), 5000);
+  };
+  ws.onerror = (error) => {
+    console.log("WebSocket error:", error);
+    ws.close(); // This will trigger onclose and attempt to reconnect
+  };
+  ws.onopen = () => {
+    console.log("WebSocket connection opened");
+    ws.send(
+      JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "logsSubscribe",
+        params: ["all"],
+      }),
+      // TODO: needs min. Helius business plan
+      // {
+      //     jsonrpc: "2.0",
+      //     id: 420,
+      //     method: "transactionSubscribe",
+      //     params: [
+      //         {   failed: false,
+      //             accountInclude: [RaydiumAmmParser.PROGRAM_ID.toString()]
+      //         },
+      //         {
+      //             commitment: "confirmed",
+      //             encoding: "jsonParsed",
+      //             transactionDetails: "full",
+      //             maxSupportedTransactionVersion: 0
+      //         }
+      //     ]
+      // }
+    );
+  };
+  ws.onmessage = (event) => {
+    // Parse
+    const obj = JSON.parse(event.data.toString());
+    const data = obj.params?.result.value as Logs | undefined;
+    const logs = data?.logs;
+    // later when we directly filter on the subscription, we can remove this
+    const filteredLogs = logs ? filterLogs(logs) : undefined;
+    // Process
+    if (data && filteredLogs) processLogs(data).then((priceData) => handlePriceData(gql, priceData));
   };
 
-  setupWebSocket();
   setInterval(() => {
     if (ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ method: "ping" }));
@@ -163,7 +159,8 @@ const _start = async () => {
 
 export const start = async () => {
   try {
-    await _start();
+    const gql = (await createGqlClient({ url: env.GRAPHQL_URL, hasuraAdminSecret: env.HASURA_ADMIN_SECRET })).db;
+    setup(gql);
   } catch (err) {
     console.warn("Error in indexer, restarting in 5 seconds...");
     console.error(err);
