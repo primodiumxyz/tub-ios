@@ -18,18 +18,23 @@ const env = parseEnv();
 /* ------------------------------ PROCESS LOGS ------------------------------ */
 const processLogs = async ({ err, signature }: Logs): Promise<(PriceData | undefined)[]> => {
   if (err) return [];
-  // Fetch and format the transaction
-  const tx = await connection.getTransaction(signature, {
-    commitment: "confirmed",
-    maxSupportedTransactionVersion: 0,
-  });
-  if (!tx || tx.meta?.err) return [];
-  // Parse the transaction and retrieve the swapped token accounts
-  const parsedIxs = ixParser.parseTransactionWithInnerInstructions(tx);
-  const swapAccountsArray = decodeSwapAccounts(tx, parsedIxs);
-  if (swapAccountsArray.length === 0) return [];
+  try {
+    // Fetch and format the transaction
+    const tx = await connection.getTransaction(signature, {
+      commitment: "confirmed",
+      maxSupportedTransactionVersion: 0,
+    });
+    if (!tx || tx.meta?.err) return [];
+    // Parse the transaction and retrieve the swapped token accounts
+    const parsedIxs = ixParser.parseTransactionWithInnerInstructions(tx);
+    const swapAccountsArray = decodeSwapAccounts(tx, parsedIxs);
+    if (swapAccountsArray.length === 0) return [];
 
-  return await Promise.all(swapAccountsArray.map((swapAccounts) => getPoolTokenPrice(swapAccounts)));
+    return await Promise.all(swapAccountsArray.map((swapAccounts) => getPoolTokenPrice(swapAccounts)));
+  } catch (error) {
+    console.error("Unexpected error in processLogs:", error);
+    return [];
+  }
 };
 
 /* ------------------------------- HANDLE DATA ------------------------------ */
@@ -94,47 +99,45 @@ const handlePriceData = async (gql: GqlClient["db"], priceData: (PriceData | und
 };
 
 /* -------------------------------- WEBSOCKET ------------------------------- */
-export const start = async () => {
-  try {
-    const gql = (await createGqlClient({ url: env.GRAPHQL_URL, hasuraAdminSecret: env.HASURA_ADMIN_SECRET })).db;
-    const ws = new WebSocket(env.HELIUS_WS_URL);
+const _start = async () => {
+  const gql = (await createGqlClient({ url: env.GRAPHQL_URL, hasuraAdminSecret: env.HASURA_ADMIN_SECRET })).db;
+  const ws = new WebSocket(env.HELIUS_WS_URL);
 
-    setInterval(() => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ method: "ping" }));
-        console.log("Ping sent");
-      }
-    }, 30_000);
-    ws.onclose = () => console.log("WebSocket connection closed");
-    ws.onerror = (error) => console.log("WebSocket error:", error);
+  const setupWebSocket = () => {
+    ws.onclose = () => {
+      console.log("WebSocket connection closed, attempting to reconnect...");
+      setTimeout(setupWebSocket, 5000);
+    };
+    ws.onerror = (error) => {
+      console.log("WebSocket error:", error);
+      ws.close(); // This will trigger onclose and attempt to reconnect
+    };
     ws.onopen = () => {
       console.log("WebSocket connection opened");
       ws.send(
-        JSON.stringify(
-          {
-            jsonrpc: "2.0",
-            id: 1,
-            method: "logsSubscribe",
-            params: ["all"],
-          },
-          // TODO: needs min. Helius business plan
-          // {
-          //     jsonrpc: "2.0",
-          //     id: 420,
-          //     method: "transactionSubscribe",
-          //     params: [
-          //         {   failed: false,
-          //             accountInclude: [RaydiumAmmParser.PROGRAM_ID.toString()]
-          //         },
-          //         {
-          //             commitment: "confirmed",
-          //             encoding: "jsonParsed",
-          //             transactionDetails: "full",
-          //             maxSupportedTransactionVersion: 0
-          //         }
-          //     ]
-          // }
-        ),
+        JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "logsSubscribe",
+          params: ["all"],
+        }),
+        // TODO: needs min. Helius business plan
+        // {
+        //     jsonrpc: "2.0",
+        //     id: 420,
+        //     method: "transactionSubscribe",
+        //     params: [
+        //         {   failed: false,
+        //             accountInclude: [RaydiumAmmParser.PROGRAM_ID.toString()]
+        //         },
+        //         {
+        //             commitment: "confirmed",
+        //             encoding: "jsonParsed",
+        //             transactionDetails: "full",
+        //             maxSupportedTransactionVersion: 0
+        //         }
+        //     ]
+        // }
       );
     };
     ws.onmessage = (event) => {
@@ -147,8 +150,24 @@ export const start = async () => {
       // Process
       if (data && filteredLogs) processLogs(data).then((priceData) => handlePriceData(gql, priceData));
     };
+  };
+
+  setupWebSocket();
+  setInterval(() => {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ method: "ping" }));
+      console.log("Ping sent");
+    }
+  }, 30_000);
+};
+
+export const start = async () => {
+  try {
+    await _start();
   } catch (err) {
+    console.warn("Error in indexer, restarting in 5 seconds...");
     console.error(err);
-    process.exit(1);
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    start(); // recursive call to restart if there's an unhandled error
   }
 };
