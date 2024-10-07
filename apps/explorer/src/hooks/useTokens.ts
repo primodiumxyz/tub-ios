@@ -28,21 +28,21 @@ export const useTokens = () => {
   const { timespan, increasePct, minTrades } = useTrackerParams();
 
   const since = useRef(new Date(new Date().getTime() - timespan * 1000));
-  const [pumpingTokensResult] = useSubscription({
-    query: subscriptions.GetPumpingTokensWithFiltersSubscription,
+  const [filteredTokensResult] = useSubscription({
+    query: subscriptions.GetFilteredTokensSubscription,
     variables: { since: since.current, minIncreasePct: increasePct.toString(), minTrades: minTrades.toString() },
   });
 
   const tokens = useMemo(() => {
-    if (!pumpingTokensResult.data?.pumping_tokens) return [];
-    return (pumpingTokensResult.data.pumping_tokens as pumping_tokens_result).map((token) => ({
+    if (!filteredTokensResult.data?.filtered_tokens) return [];
+    return (filteredTokensResult.data.filtered_tokens as pumping_tokens_result).map((token) => ({
       mint: token.mint,
       latestPrice: token.latest_price,
       increasePct: token.increase_pct,
       trades: token.trades,
       platform: token.name,
     }));
-  }, [pumpingTokensResult.data]);
+  }, [filteredTokensResult.data]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -54,9 +54,9 @@ export const useTokens = () => {
   return useMemo(
     () => ({
       tokens,
-      fetching: pumpingTokensResult.fetching && pumpingTokensResult.data === undefined,
-      error: pumpingTokensResult.error?.message,
+      fetching: filteredTokensResult.fetching && filteredTokensResult.data === undefined,
+      error: filteredTokensResult.error?.message,
     }),
-    [tokens, pumpingTokensResult.fetching, pumpingTokensResult.data, pumpingTokensResult.error],
+    [tokens, filteredTokensResult.fetching, filteredTokensResult.data, filteredTokensResult.error],
   );
 };

@@ -753,6 +753,206 @@ enum cursor_ordering {
   DESC
 }
 
+"""
+columns and relationships of "filtered_tokens"
+"""
+type filtered_tokens {
+  created_at: timestamptz
+  increase_pct: float8
+  latest_price: numeric
+  mint: String
+  name: String
+  symbol: String
+  token_id: uuid
+  trades: bigint
+}
+
+"""
+aggregated selection of "filtered_tokens"
+"""
+type filtered_tokens_aggregate {
+  aggregate: filtered_tokens_aggregate_fields
+  nodes: [filtered_tokens!]!
+}
+
+"""
+aggregate fields of "filtered_tokens"
+"""
+type filtered_tokens_aggregate_fields {
+  avg: filtered_tokens_avg_fields
+  count(columns: [filtered_tokens_select_column!], distinct: Boolean): Int!
+  max: filtered_tokens_max_fields
+  min: filtered_tokens_min_fields
+  stddev: filtered_tokens_stddev_fields
+  stddev_pop: filtered_tokens_stddev_pop_fields
+  stddev_samp: filtered_tokens_stddev_samp_fields
+  sum: filtered_tokens_sum_fields
+  var_pop: filtered_tokens_var_pop_fields
+  var_samp: filtered_tokens_var_samp_fields
+  variance: filtered_tokens_variance_fields
+}
+
+"""aggregate avg on columns"""
+type filtered_tokens_avg_fields {
+  increase_pct: Float
+  latest_price: Float
+  trades: Float
+}
+
+"""
+Boolean expression to filter rows from the table "filtered_tokens". All fields are combined with a logical 'AND'.
+"""
+input filtered_tokens_bool_exp {
+  _and: [filtered_tokens_bool_exp!]
+  _not: filtered_tokens_bool_exp
+  _or: [filtered_tokens_bool_exp!]
+  created_at: timestamptz_comparison_exp
+  increase_pct: float8_comparison_exp
+  latest_price: numeric_comparison_exp
+  mint: String_comparison_exp
+  name: String_comparison_exp
+  symbol: String_comparison_exp
+  token_id: uuid_comparison_exp
+  trades: bigint_comparison_exp
+}
+
+"""aggregate max on columns"""
+type filtered_tokens_max_fields {
+  created_at: timestamptz
+  increase_pct: float8
+  latest_price: numeric
+  mint: String
+  name: String
+  symbol: String
+  token_id: uuid
+  trades: bigint
+}
+
+"""aggregate min on columns"""
+type filtered_tokens_min_fields {
+  created_at: timestamptz
+  increase_pct: float8
+  latest_price: numeric
+  mint: String
+  name: String
+  symbol: String
+  token_id: uuid
+  trades: bigint
+}
+
+"""Ordering options when selecting data from "filtered_tokens"."""
+input filtered_tokens_order_by {
+  created_at: order_by
+  increase_pct: order_by
+  latest_price: order_by
+  mint: order_by
+  name: order_by
+  symbol: order_by
+  token_id: order_by
+  trades: order_by
+}
+
+"""
+select columns of table "filtered_tokens"
+"""
+enum filtered_tokens_select_column {
+  """column name"""
+  created_at
+
+  """column name"""
+  increase_pct
+
+  """column name"""
+  latest_price
+
+  """column name"""
+  mint
+
+  """column name"""
+  name
+
+  """column name"""
+  symbol
+
+  """column name"""
+  token_id
+
+  """column name"""
+  trades
+}
+
+"""aggregate stddev on columns"""
+type filtered_tokens_stddev_fields {
+  increase_pct: Float
+  latest_price: Float
+  trades: Float
+}
+
+"""aggregate stddev_pop on columns"""
+type filtered_tokens_stddev_pop_fields {
+  increase_pct: Float
+  latest_price: Float
+  trades: Float
+}
+
+"""aggregate stddev_samp on columns"""
+type filtered_tokens_stddev_samp_fields {
+  increase_pct: Float
+  latest_price: Float
+  trades: Float
+}
+
+"""
+Streaming cursor of the table "filtered_tokens"
+"""
+input filtered_tokens_stream_cursor_input {
+  """Stream column input with initial value"""
+  initial_value: filtered_tokens_stream_cursor_value_input!
+
+  """cursor ordering"""
+  ordering: cursor_ordering
+}
+
+"""Initial value of the column from where the streaming should start"""
+input filtered_tokens_stream_cursor_value_input {
+  created_at: timestamptz
+  increase_pct: float8
+  latest_price: numeric
+  mint: String
+  name: String
+  symbol: String
+  token_id: uuid
+  trades: bigint
+}
+
+"""aggregate sum on columns"""
+type filtered_tokens_sum_fields {
+  increase_pct: float8
+  latest_price: numeric
+  trades: bigint
+}
+
+"""aggregate var_pop on columns"""
+type filtered_tokens_var_pop_fields {
+  increase_pct: Float
+  latest_price: Float
+  trades: Float
+}
+
+"""aggregate var_samp on columns"""
+type filtered_tokens_var_samp_fields {
+  increase_pct: Float
+  latest_price: Float
+  trades: Float
+}
+
+"""aggregate variance on columns"""
+type filtered_tokens_variance_fields {
+  increase_pct: Float
+  latest_price: Float
+  trades: Float
+}
+
 scalar float8
 
 """
@@ -1200,206 +1400,6 @@ enum order_by {
   desc_nulls_last
 }
 
-"""
-columns and relationships of "pumping_tokens"
-"""
-type pumping_tokens {
-  created_at: timestamptz
-  increase_pct: float8
-  latest_price: numeric
-  mint: String
-  name: String
-  symbol: String
-  token_id: uuid
-  trades: bigint
-}
-
-"""
-aggregated selection of "pumping_tokens"
-"""
-type pumping_tokens_aggregate {
-  aggregate: pumping_tokens_aggregate_fields
-  nodes: [pumping_tokens!]!
-}
-
-"""
-aggregate fields of "pumping_tokens"
-"""
-type pumping_tokens_aggregate_fields {
-  avg: pumping_tokens_avg_fields
-  count(columns: [pumping_tokens_select_column!], distinct: Boolean): Int!
-  max: pumping_tokens_max_fields
-  min: pumping_tokens_min_fields
-  stddev: pumping_tokens_stddev_fields
-  stddev_pop: pumping_tokens_stddev_pop_fields
-  stddev_samp: pumping_tokens_stddev_samp_fields
-  sum: pumping_tokens_sum_fields
-  var_pop: pumping_tokens_var_pop_fields
-  var_samp: pumping_tokens_var_samp_fields
-  variance: pumping_tokens_variance_fields
-}
-
-"""aggregate avg on columns"""
-type pumping_tokens_avg_fields {
-  increase_pct: Float
-  latest_price: Float
-  trades: Float
-}
-
-"""
-Boolean expression to filter rows from the table "pumping_tokens". All fields are combined with a logical 'AND'.
-"""
-input pumping_tokens_bool_exp {
-  _and: [pumping_tokens_bool_exp!]
-  _not: pumping_tokens_bool_exp
-  _or: [pumping_tokens_bool_exp!]
-  created_at: timestamptz_comparison_exp
-  increase_pct: float8_comparison_exp
-  latest_price: numeric_comparison_exp
-  mint: String_comparison_exp
-  name: String_comparison_exp
-  symbol: String_comparison_exp
-  token_id: uuid_comparison_exp
-  trades: bigint_comparison_exp
-}
-
-"""aggregate max on columns"""
-type pumping_tokens_max_fields {
-  created_at: timestamptz
-  increase_pct: float8
-  latest_price: numeric
-  mint: String
-  name: String
-  symbol: String
-  token_id: uuid
-  trades: bigint
-}
-
-"""aggregate min on columns"""
-type pumping_tokens_min_fields {
-  created_at: timestamptz
-  increase_pct: float8
-  latest_price: numeric
-  mint: String
-  name: String
-  symbol: String
-  token_id: uuid
-  trades: bigint
-}
-
-"""Ordering options when selecting data from "pumping_tokens"."""
-input pumping_tokens_order_by {
-  created_at: order_by
-  increase_pct: order_by
-  latest_price: order_by
-  mint: order_by
-  name: order_by
-  symbol: order_by
-  token_id: order_by
-  trades: order_by
-}
-
-"""
-select columns of table "pumping_tokens"
-"""
-enum pumping_tokens_select_column {
-  """column name"""
-  created_at
-
-  """column name"""
-  increase_pct
-
-  """column name"""
-  latest_price
-
-  """column name"""
-  mint
-
-  """column name"""
-  name
-
-  """column name"""
-  symbol
-
-  """column name"""
-  token_id
-
-  """column name"""
-  trades
-}
-
-"""aggregate stddev on columns"""
-type pumping_tokens_stddev_fields {
-  increase_pct: Float
-  latest_price: Float
-  trades: Float
-}
-
-"""aggregate stddev_pop on columns"""
-type pumping_tokens_stddev_pop_fields {
-  increase_pct: Float
-  latest_price: Float
-  trades: Float
-}
-
-"""aggregate stddev_samp on columns"""
-type pumping_tokens_stddev_samp_fields {
-  increase_pct: Float
-  latest_price: Float
-  trades: Float
-}
-
-"""
-Streaming cursor of the table "pumping_tokens"
-"""
-input pumping_tokens_stream_cursor_input {
-  """Stream column input with initial value"""
-  initial_value: pumping_tokens_stream_cursor_value_input!
-
-  """cursor ordering"""
-  ordering: cursor_ordering
-}
-
-"""Initial value of the column from where the streaming should start"""
-input pumping_tokens_stream_cursor_value_input {
-  created_at: timestamptz
-  increase_pct: float8
-  latest_price: numeric
-  mint: String
-  name: String
-  symbol: String
-  token_id: uuid
-  trades: bigint
-}
-
-"""aggregate sum on columns"""
-type pumping_tokens_sum_fields {
-  increase_pct: float8
-  latest_price: numeric
-  trades: bigint
-}
-
-"""aggregate var_pop on columns"""
-type pumping_tokens_var_pop_fields {
-  increase_pct: Float
-  latest_price: Float
-  trades: Float
-}
-
-"""aggregate var_samp on columns"""
-type pumping_tokens_var_samp_fields {
-  increase_pct: Float
-  latest_price: Float
-  trades: Float
-}
-
-"""aggregate variance on columns"""
-type pumping_tokens_variance_fields {
-  increase_pct: Float
-  latest_price: Float
-  trades: Float
-}
-
 type query_root {
   """
   fetch data from the table: "account"
@@ -1490,11 +1490,11 @@ type query_root {
   account_transaction_by_pk(id: uuid!): account_transaction
 
   """
-  fetch data from the table: "pumping_tokens"
+  fetch data from the table: "filtered_tokens"
   """
-  pumping_tokens(
+  filtered_tokens(
     """distinct select on columns"""
-    distinct_on: [pumping_tokens_select_column!]
+    distinct_on: [filtered_tokens_select_column!]
 
     """limit the number of rows returned"""
     limit: Int
@@ -1503,18 +1503,18 @@ type query_root {
     offset: Int
 
     """sort the rows by one or more columns"""
-    order_by: [pumping_tokens_order_by!]
+    order_by: [filtered_tokens_order_by!]
 
     """filter the rows returned"""
-    where: pumping_tokens_bool_exp
-  ): [pumping_tokens!]!
+    where: filtered_tokens_bool_exp
+  ): [filtered_tokens!]!
 
   """
-  fetch aggregated fields from the table: "pumping_tokens"
+  fetch aggregated fields from the table: "filtered_tokens"
   """
-  pumping_tokens_aggregate(
+  filtered_tokens_aggregate(
     """distinct select on columns"""
-    distinct_on: [pumping_tokens_select_column!]
+    distinct_on: [filtered_tokens_select_column!]
 
     """limit the number of rows returned"""
     limit: Int
@@ -1523,11 +1523,11 @@ type query_root {
     offset: Int
 
     """sort the rows by one or more columns"""
-    order_by: [pumping_tokens_order_by!]
+    order_by: [filtered_tokens_order_by!]
 
     """filter the rows returned"""
-    where: pumping_tokens_bool_exp
-  ): pumping_tokens_aggregate!
+    where: filtered_tokens_bool_exp
+  ): filtered_tokens_aggregate!
 
   """
   fetch data from the table: "token"
@@ -1788,11 +1788,11 @@ type subscription_root {
   ): [account_transaction!]!
 
   """
-  fetch data from the table: "pumping_tokens"
+  fetch data from the table: "filtered_tokens"
   """
-  pumping_tokens(
+  filtered_tokens(
     """distinct select on columns"""
-    distinct_on: [pumping_tokens_select_column!]
+    distinct_on: [filtered_tokens_select_column!]
 
     """limit the number of rows returned"""
     limit: Int
@@ -1801,18 +1801,18 @@ type subscription_root {
     offset: Int
 
     """sort the rows by one or more columns"""
-    order_by: [pumping_tokens_order_by!]
+    order_by: [filtered_tokens_order_by!]
 
     """filter the rows returned"""
-    where: pumping_tokens_bool_exp
-  ): [pumping_tokens!]!
+    where: filtered_tokens_bool_exp
+  ): [filtered_tokens!]!
 
   """
-  fetch aggregated fields from the table: "pumping_tokens"
+  fetch aggregated fields from the table: "filtered_tokens"
   """
-  pumping_tokens_aggregate(
+  filtered_tokens_aggregate(
     """distinct select on columns"""
-    distinct_on: [pumping_tokens_select_column!]
+    distinct_on: [filtered_tokens_select_column!]
 
     """limit the number of rows returned"""
     limit: Int
@@ -1821,25 +1821,25 @@ type subscription_root {
     offset: Int
 
     """sort the rows by one or more columns"""
-    order_by: [pumping_tokens_order_by!]
+    order_by: [filtered_tokens_order_by!]
 
     """filter the rows returned"""
-    where: pumping_tokens_bool_exp
-  ): pumping_tokens_aggregate!
+    where: filtered_tokens_bool_exp
+  ): filtered_tokens_aggregate!
 
   """
-  fetch data from the table in a streaming manner: "pumping_tokens"
+  fetch data from the table in a streaming manner: "filtered_tokens"
   """
-  pumping_tokens_stream(
+  filtered_tokens_stream(
     """maximum number of rows returned in a single batch"""
     batch_size: Int!
 
     """cursor to stream the results returned by the query"""
-    cursor: [pumping_tokens_stream_cursor_input]!
+    cursor: [filtered_tokens_stream_cursor_input]!
 
     """filter the rows returned"""
-    where: pumping_tokens_bool_exp
-  ): [pumping_tokens!]!
+    where: filtered_tokens_bool_exp
+  ): [filtered_tokens!]!
 
   """
   fetch data from the table: "token"
