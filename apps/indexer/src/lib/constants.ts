@@ -5,7 +5,7 @@ import { MeteoraDlmmParser } from "./parsers/meteora-dlmm-parser";
 import { OrcaWhirlpoolParser } from "./parsers/orca-whirlpool-amm-parser";
 import { RaydiumAmmParser } from "./parsers/raydium-amm-parser";
 
-export const PRICE_DATA_BATCH_SIZE = 300;
+export const PRICE_DATA_BATCH_SIZE = 10;
 export const PRICE_PRECISION = 10 ** 18;
 
 export const PLATFORMS = ["meteora", "orca", "raydium"] as const;
