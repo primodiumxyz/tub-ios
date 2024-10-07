@@ -59,7 +59,7 @@ struct HistoryDetailsView: View {
                     Text("Quantity")
                         .foregroundColor(.gray)
                         .font(.system(size: 14))
-                    Text("\(transaction.quantity) \(transaction.coin)")
+                    Text("\(transaction.quantity, specifier: "%.0f") \(transaction.coin)")
                         .foregroundColor(.white)
                 }
                 
@@ -68,7 +68,7 @@ struct HistoryDetailsView: View {
                     Text("Price")
                         .foregroundColor(.gray)
                         .font(.system(size: 14))
-                    Text(transaction.amount)
+                    Text(formatAmount(transaction.amount))
                         .foregroundColor(.white)
                 }
                 
@@ -77,7 +77,7 @@ struct HistoryDetailsView: View {
                     Text("Filled")
                         .foregroundColor(.gray)
                         .font(.system(size: 14))
-                    Text("Oct 1, 2024 at 9:12am")
+                    Text("\(formatDate(transaction.date)) at \(formatTime(transaction.time))")
                         .foregroundColor(.white)
                 }
                 
@@ -100,10 +100,28 @@ struct HistoryDetailsView: View {
         .navigationTitle("History")
         .foregroundColor(.white)
     }
+    
+    // Helper functions to format amount and date
+        func formatAmount(_ amount: Double) -> String {
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .currency
+            return formatter.string(from: NSNumber(value: amount)) ?? "$0.00"
+        }
+
+        func formatDate(_ date: Date) -> String {
+            let formatter = DateFormatter()
+            formatter.dateStyle = .medium
+            return formatter.string(from: date)
+        }
+        func formatTime(_ time: Date) -> String {
+            let formatter = DateFormatter()
+            formatter.timeStyle = .short
+            return formatter.string(from: time)
+        }
 }
 
 struct HistoryDetailsView_Previews: PreviewProvider {
     static var previews: some View {
-        HistoryDetailsView(transaction: Transaction(coin: "$MONKAY", date: "Oct 1, 2024", amount: "- $320.00", quantity: "2,332,100", isBuy: true))
-    }
+            HistoryDetailsView(transaction: dummyData[0])
+        }
 }

@@ -98,14 +98,14 @@ struct HistoryView: View {
     
 struct TransactionRow: View {
     let transaction: Transaction
-        
+    
     var body: some View {
         HStack {
             Image(transaction.coin)
                 .resizable()
                 .frame(width: 40, height: 40)
                 .cornerRadius(8)
-                
+            
             VStack(alignment: .leading) {
                 HStack {
                     Text(transaction.isBuy ? "Buy" : "Sell")
@@ -115,20 +115,24 @@ struct TransactionRow: View {
                         .font(.system(size: 16, weight: .bold))
                         .foregroundColor(Color(red: 1.0, green: 0.9254901960784314, blue: 0.5254901960784314))
                 }
-                Text(transaction.date)
+                
+                Text(formatDate(transaction.date))
                     .font(.system(size: 12))
                     .foregroundColor(.gray)
-                    
+                
             }
             Spacer()
             VStack(alignment: .trailing) {
-                Text(transaction.amount)
+                Text(formatAmount(transaction.amount))
                     .font(.system(size: 16, weight: .bold))
                     .foregroundColor(transaction.isBuy ? .red : .green)
+                
                 HStack {
-                    Text(transaction.quantity)
+                    Text("\(transaction.quantity, specifier: "%.0f")")
                         .font(.system(size: 12))
                         .foregroundColor(.gray)
+                        .offset(x:4)
+                    
                     Text(transaction.coin)
                         .font(.system(size: 12))
                         .foregroundColor(.gray)
@@ -141,25 +145,20 @@ struct TransactionRow: View {
         .padding(.bottom, 10.0)
         .background(Color.black)
     }
+    // Helper functions to format amount and date
+        func formatAmount(_ amount: Double) -> String {
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .currency
+            return formatter.string(from: NSNumber(value: amount)) ?? "$0.00"
+        }
+
+        func formatDate(_ date: Date) -> String {
+            let formatter = DateFormatter()
+            formatter.dateStyle = .medium
+            return formatter.string(from: date)
+        }
 }
-    
-struct Transaction: Identifiable {
-    let id = UUID()
-    let coin: String
-    let date: String
-    let amount: String
-    let quantity: String
-    let isBuy: Bool
-}
-    
-// Dummy Data
-let dummyData = [
-    Transaction(coin: "$MONKAY", date: "Oct 1, 2024", amount: "- $320.00", quantity: "2,332,100", isBuy: true),
-    Transaction(coin: "$MONKAY", date: "Oct 1, 2024", amount: "+ $233.22", quantity: "1,222,100", isBuy: false),
-    Transaction(coin: "$MONKAY", date: "Oct 1, 2024", amount: "- $120.00", quantity: "1,222,100", isBuy: true),
-    Transaction(coin: "$PEPEGG", date: "Oct 1, 2024", amount: "+ $142.12", quantity: "22,100", isBuy: false),
-    Transaction(coin: "$PEPEGG", date: "Oct 1, 2024", amount: "- $120.00", quantity: "22,100", isBuy: true)
-]
+
 
 struct HistoryView_Previews: PreviewProvider {
     static var previews: some View {
