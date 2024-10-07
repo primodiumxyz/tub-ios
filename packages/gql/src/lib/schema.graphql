@@ -120,7 +120,7 @@ type account {
     """filter the rows returned"""
     where: account_transaction_bool_exp
   ): account_transaction_aggregate!
-  created_at: timestamp!
+  created_at: timestamptz!
   id: uuid!
   username: String!
 }
@@ -151,7 +151,7 @@ input account_bool_exp {
   _or: [account_bool_exp!]
   account_transactions: account_transaction_bool_exp
   account_transactions_aggregate: account_transaction_aggregate_bool_exp
-  created_at: timestamp_comparison_exp
+  created_at: timestamptz_comparison_exp
   id: uuid_comparison_exp
   username: String_comparison_exp
 }
@@ -171,21 +171,21 @@ input type for inserting data into table "account"
 """
 input account_insert_input {
   account_transactions: account_transaction_arr_rel_insert_input
-  created_at: timestamp
+  created_at: timestamptz
   id: uuid
   username: String
 }
 
 """aggregate max on columns"""
 type account_max_fields {
-  created_at: timestamp
+  created_at: timestamptz
   id: uuid
   username: String
 }
 
 """aggregate min on columns"""
 type account_min_fields {
-  created_at: timestamp
+  created_at: timestamptz
   id: uuid
   username: String
 }
@@ -251,7 +251,7 @@ enum account_select_column {
 input type for updating data in table "account"
 """
 input account_set_input {
-  created_at: timestamp
+  created_at: timestamptz
   id: uuid
   username: String
 }
@@ -269,7 +269,7 @@ input account_stream_cursor_input {
 
 """Initial value of the column from where the streaming should start"""
 input account_stream_cursor_value_input {
-  created_at: timestamp
+  created_at: timestamptz
   id: uuid
   username: String
 }
@@ -720,6 +720,23 @@ input account_updates {
   where: account_bool_exp!
 }
 
+scalar bigint
+
+"""
+Boolean expression to compare columns of type "bigint". All fields are combined with logical 'AND'.
+"""
+input bigint_comparison_exp {
+  _eq: bigint
+  _gt: bigint
+  _gte: bigint
+  _in: [bigint!]
+  _is_null: Boolean
+  _lt: bigint
+  _lte: bigint
+  _neq: bigint
+  _nin: [bigint!]
+}
+
 input buy_token_args {
   account_id: uuid
   amount_to_buy: numeric
@@ -734,6 +751,23 @@ enum cursor_ordering {
 
   """descending ordering of the cursor"""
   DESC
+}
+
+scalar float8
+
+"""
+Boolean expression to compare columns of type "float8". All fields are combined with logical 'AND'.
+"""
+input float8_comparison_exp {
+  _eq: float8
+  _gt: float8
+  _gte: float8
+  _in: [float8!]
+  _is_null: Boolean
+  _lt: float8
+  _lte: float8
+  _neq: float8
+  _nin: [float8!]
 }
 
 """mutation root"""
@@ -1166,6 +1200,206 @@ enum order_by {
   desc_nulls_last
 }
 
+"""
+columns and relationships of "pumping_tokens"
+"""
+type pumping_tokens {
+  created_at: timestamptz
+  increase_pct: float8
+  latest_price: numeric
+  mint: String
+  name: String
+  symbol: String
+  token_id: uuid
+  trades: bigint
+}
+
+"""
+aggregated selection of "pumping_tokens"
+"""
+type pumping_tokens_aggregate {
+  aggregate: pumping_tokens_aggregate_fields
+  nodes: [pumping_tokens!]!
+}
+
+"""
+aggregate fields of "pumping_tokens"
+"""
+type pumping_tokens_aggregate_fields {
+  avg: pumping_tokens_avg_fields
+  count(columns: [pumping_tokens_select_column!], distinct: Boolean): Int!
+  max: pumping_tokens_max_fields
+  min: pumping_tokens_min_fields
+  stddev: pumping_tokens_stddev_fields
+  stddev_pop: pumping_tokens_stddev_pop_fields
+  stddev_samp: pumping_tokens_stddev_samp_fields
+  sum: pumping_tokens_sum_fields
+  var_pop: pumping_tokens_var_pop_fields
+  var_samp: pumping_tokens_var_samp_fields
+  variance: pumping_tokens_variance_fields
+}
+
+"""aggregate avg on columns"""
+type pumping_tokens_avg_fields {
+  increase_pct: Float
+  latest_price: Float
+  trades: Float
+}
+
+"""
+Boolean expression to filter rows from the table "pumping_tokens". All fields are combined with a logical 'AND'.
+"""
+input pumping_tokens_bool_exp {
+  _and: [pumping_tokens_bool_exp!]
+  _not: pumping_tokens_bool_exp
+  _or: [pumping_tokens_bool_exp!]
+  created_at: timestamptz_comparison_exp
+  increase_pct: float8_comparison_exp
+  latest_price: numeric_comparison_exp
+  mint: String_comparison_exp
+  name: String_comparison_exp
+  symbol: String_comparison_exp
+  token_id: uuid_comparison_exp
+  trades: bigint_comparison_exp
+}
+
+"""aggregate max on columns"""
+type pumping_tokens_max_fields {
+  created_at: timestamptz
+  increase_pct: float8
+  latest_price: numeric
+  mint: String
+  name: String
+  symbol: String
+  token_id: uuid
+  trades: bigint
+}
+
+"""aggregate min on columns"""
+type pumping_tokens_min_fields {
+  created_at: timestamptz
+  increase_pct: float8
+  latest_price: numeric
+  mint: String
+  name: String
+  symbol: String
+  token_id: uuid
+  trades: bigint
+}
+
+"""Ordering options when selecting data from "pumping_tokens"."""
+input pumping_tokens_order_by {
+  created_at: order_by
+  increase_pct: order_by
+  latest_price: order_by
+  mint: order_by
+  name: order_by
+  symbol: order_by
+  token_id: order_by
+  trades: order_by
+}
+
+"""
+select columns of table "pumping_tokens"
+"""
+enum pumping_tokens_select_column {
+  """column name"""
+  created_at
+
+  """column name"""
+  increase_pct
+
+  """column name"""
+  latest_price
+
+  """column name"""
+  mint
+
+  """column name"""
+  name
+
+  """column name"""
+  symbol
+
+  """column name"""
+  token_id
+
+  """column name"""
+  trades
+}
+
+"""aggregate stddev on columns"""
+type pumping_tokens_stddev_fields {
+  increase_pct: Float
+  latest_price: Float
+  trades: Float
+}
+
+"""aggregate stddev_pop on columns"""
+type pumping_tokens_stddev_pop_fields {
+  increase_pct: Float
+  latest_price: Float
+  trades: Float
+}
+
+"""aggregate stddev_samp on columns"""
+type pumping_tokens_stddev_samp_fields {
+  increase_pct: Float
+  latest_price: Float
+  trades: Float
+}
+
+"""
+Streaming cursor of the table "pumping_tokens"
+"""
+input pumping_tokens_stream_cursor_input {
+  """Stream column input with initial value"""
+  initial_value: pumping_tokens_stream_cursor_value_input!
+
+  """cursor ordering"""
+  ordering: cursor_ordering
+}
+
+"""Initial value of the column from where the streaming should start"""
+input pumping_tokens_stream_cursor_value_input {
+  created_at: timestamptz
+  increase_pct: float8
+  latest_price: numeric
+  mint: String
+  name: String
+  symbol: String
+  token_id: uuid
+  trades: bigint
+}
+
+"""aggregate sum on columns"""
+type pumping_tokens_sum_fields {
+  increase_pct: float8
+  latest_price: numeric
+  trades: bigint
+}
+
+"""aggregate var_pop on columns"""
+type pumping_tokens_var_pop_fields {
+  increase_pct: Float
+  latest_price: Float
+  trades: Float
+}
+
+"""aggregate var_samp on columns"""
+type pumping_tokens_var_samp_fields {
+  increase_pct: Float
+  latest_price: Float
+  trades: Float
+}
+
+"""aggregate variance on columns"""
+type pumping_tokens_variance_fields {
+  increase_pct: Float
+  latest_price: Float
+  trades: Float
+}
+
 type query_root {
   """
   fetch data from the table: "account"
@@ -1254,6 +1488,46 @@ type query_root {
   fetch data from the table: "account_transaction" using primary key columns
   """
   account_transaction_by_pk(id: uuid!): account_transaction
+
+  """
+  fetch data from the table: "pumping_tokens"
+  """
+  pumping_tokens(
+    """distinct select on columns"""
+    distinct_on: [pumping_tokens_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [pumping_tokens_order_by!]
+
+    """filter the rows returned"""
+    where: pumping_tokens_bool_exp
+  ): [pumping_tokens!]!
+
+  """
+  fetch aggregated fields from the table: "pumping_tokens"
+  """
+  pumping_tokens_aggregate(
+    """distinct select on columns"""
+    distinct_on: [pumping_tokens_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [pumping_tokens_order_by!]
+
+    """filter the rows returned"""
+    where: pumping_tokens_bool_exp
+  ): pumping_tokens_aggregate!
 
   """
   fetch data from the table: "token"
@@ -1514,6 +1788,60 @@ type subscription_root {
   ): [account_transaction!]!
 
   """
+  fetch data from the table: "pumping_tokens"
+  """
+  pumping_tokens(
+    """distinct select on columns"""
+    distinct_on: [pumping_tokens_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [pumping_tokens_order_by!]
+
+    """filter the rows returned"""
+    where: pumping_tokens_bool_exp
+  ): [pumping_tokens!]!
+
+  """
+  fetch aggregated fields from the table: "pumping_tokens"
+  """
+  pumping_tokens_aggregate(
+    """distinct select on columns"""
+    distinct_on: [pumping_tokens_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [pumping_tokens_order_by!]
+
+    """filter the rows returned"""
+    where: pumping_tokens_bool_exp
+  ): pumping_tokens_aggregate!
+
+  """
+  fetch data from the table in a streaming manner: "pumping_tokens"
+  """
+  pumping_tokens_stream(
+    """maximum number of rows returned in a single batch"""
+    batch_size: Int!
+
+    """cursor to stream the results returned by the query"""
+    cursor: [pumping_tokens_stream_cursor_input]!
+
+    """filter the rows returned"""
+    where: pumping_tokens_bool_exp
+  ): [pumping_tokens!]!
+
+  """
   fetch data from the table: "token"
   """
   token(
@@ -1689,23 +2017,6 @@ type subscription_root {
   ): [token_transaction!]!
 }
 
-scalar timestamp
-
-"""
-Boolean expression to compare columns of type "timestamp". All fields are combined with logical 'AND'.
-"""
-input timestamp_comparison_exp {
-  _eq: timestamp
-  _gt: timestamp
-  _gte: timestamp
-  _in: [timestamp!]
-  _is_null: Boolean
-  _lt: timestamp
-  _lte: timestamp
-  _neq: timestamp
-  _nin: [timestamp!]
-}
-
 scalar timestamptz
 
 """
@@ -1734,7 +2045,7 @@ type token {
   name: String!
   supply: numeric!
   symbol: String!
-  updated_at: timestamp!
+  updated_at: timestamptz!
   uri: String
 }
 
@@ -1780,7 +2091,7 @@ input token_bool_exp {
   name: String_comparison_exp
   supply: numeric_comparison_exp
   symbol: String_comparison_exp
-  updated_at: timestamp_comparison_exp
+  updated_at: timestamptz_comparison_exp
   uri: String_comparison_exp
 }
 
@@ -1817,7 +2128,7 @@ input token_insert_input {
   name: String
   supply: numeric
   symbol: String
-  updated_at: timestamp
+  updated_at: timestamptz
   uri: String
 }
 
@@ -1830,7 +2141,7 @@ type token_max_fields {
   name: String
   supply: numeric
   symbol: String
-  updated_at: timestamp
+  updated_at: timestamptz
   uri: String
 }
 
@@ -1843,7 +2154,7 @@ type token_min_fields {
   name: String
   supply: numeric
   symbol: String
-  updated_at: timestamp
+  updated_at: timestamptz
   uri: String
 }
 
@@ -1897,7 +2208,7 @@ input token_pk_columns_input {
 columns and relationships of "token_price_history"
 """
 type token_price_history {
-  created_at: timestamp!
+  created_at: timestamptz!
   id: uuid!
   price: numeric!
   token: uuid!
@@ -1943,7 +2254,7 @@ input token_price_history_bool_exp {
   _and: [token_price_history_bool_exp!]
   _not: token_price_history_bool_exp
   _or: [token_price_history_bool_exp!]
-  created_at: timestamp_comparison_exp
+  created_at: timestamptz_comparison_exp
   id: uuid_comparison_exp
   price: numeric_comparison_exp
   token: uuid_comparison_exp
@@ -1971,7 +2282,7 @@ input token_price_history_inc_input {
 input type for inserting data into table "token_price_history"
 """
 input token_price_history_insert_input {
-  created_at: timestamp
+  created_at: timestamptz
   id: uuid
   price: numeric
   token: uuid
@@ -1980,7 +2291,7 @@ input token_price_history_insert_input {
 
 """aggregate max on columns"""
 type token_price_history_max_fields {
-  created_at: timestamp
+  created_at: timestamptz
   id: uuid
   price: numeric
   token: uuid
@@ -1988,7 +2299,7 @@ type token_price_history_max_fields {
 
 """aggregate min on columns"""
 type token_price_history_min_fields {
-  created_at: timestamp
+  created_at: timestamptz
   id: uuid
   price: numeric
   token: uuid
@@ -2049,7 +2360,7 @@ enum token_price_history_select_column {
 input type for updating data in table "token_price_history"
 """
 input token_price_history_set_input {
-  created_at: timestamp
+  created_at: timestamptz
   id: uuid
   price: numeric
   token: uuid
@@ -2083,7 +2394,7 @@ input token_price_history_stream_cursor_input {
 
 """Initial value of the column from where the streaming should start"""
 input token_price_history_stream_cursor_value_input {
-  created_at: timestamp
+  created_at: timestamptz
   id: uuid
   price: numeric
   token: uuid
@@ -2174,7 +2485,7 @@ input token_set_input {
   name: String
   supply: numeric
   symbol: String
-  updated_at: timestamp
+  updated_at: timestamptz
   uri: String
 }
 
@@ -2213,7 +2524,7 @@ input token_stream_cursor_value_input {
   name: String
   supply: numeric
   symbol: String
-  updated_at: timestamp
+  updated_at: timestamptz
   uri: String
 }
 

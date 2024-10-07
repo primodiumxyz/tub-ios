@@ -42,3 +42,25 @@ export const GetAllOnchainTokensPriceHistorySinceSubscription = graphql(`
     }
   }
 `);
+
+export const GetPumpingTokensWithFiltersSubscription = graphql(`
+  subscription GetPumpingTokensWithFiltersSubscription(
+    $since: timestamptz!
+    $minTrades: bigint!
+    $minIncreasePct: float8!
+  ) {
+    pumping_tokens(
+      where: { created_at: { _gte: $since }, trades: { _gte: $minTrades }, increase_pct: { _gte: $minIncreasePct } }
+      order_by: { increase_pct: desc }
+    ) {
+      token_id
+      mint
+      name
+      symbol
+      latest_price
+      increase_pct
+      trades
+      created_at
+    }
+  }
+`);

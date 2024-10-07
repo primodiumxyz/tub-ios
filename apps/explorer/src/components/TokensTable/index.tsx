@@ -10,14 +10,9 @@ export const TokensTable = () => {
   const { tokens, fetching, error } = useTokens();
   const { timespan, increasePct, minTrades } = useTrackerParams();
 
-  const filteredTokens = useMemo(
-    () => tokens.filter((token) => token.increasePct >= increasePct && token.trades >= minTrades),
-    [tokens, increasePct, minTrades],
-  );
-
   const tokensPerPlatform = useMemo(() => {
     return Object.entries(
-      filteredTokens.reduce(
+      tokens.reduce(
         (acc, token) => {
           acc[token.platform || "N/A"] = (acc[token.platform || "N/A"] || 0) + 1;
           return acc;
@@ -25,12 +20,12 @@ export const TokensTable = () => {
         {} as Record<string, number>,
       ),
     ).sort((a, b) => b[1] - a[1]);
-  }, [filteredTokens]);
+  }, [tokens]);
 
   if (error) return <div>Error: {error}</div>;
   return (
     <div className="flex flex-col gap-2 mt-2 w-full">
-      <div className="text-end font-bold">Total coins: {filteredTokens.length}</div>
+      <div className="text-end font-bold">Total coins: {tokens.length}</div>
       {Object.entries(tokensPerPlatform).length > 0 && (
         <div className="flex gap-4 flex-wrap justify-end">
           <span>Platforms: </span>
@@ -43,9 +38,9 @@ export const TokensTable = () => {
       )}
       <DataTable
         columns={columns}
-        data={filteredTokens}
+        data={tokens}
         caption={`List of tokens pumping at least ${increasePct}% in the last ${formatTime(timespan)} with at least ${minTrades} trades`}
-        loading={fetching && tokens.length === 0}
+        loading={fetching}
         pagination={true}
         defaultSorting={[{ id: "increasePct", desc: true }]}
       />
