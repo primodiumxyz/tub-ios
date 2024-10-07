@@ -49,15 +49,15 @@ struct BuyForm: View {
                                 }
                                 .foregroundColor(isValidInput ? .white : .red)
                             if buyAmountString != "" {
-                                Text("SOL")
+                                Text(coinModel.coin.symbol)
                             }
                         }
                         .font(.sfRounded(size: .xl3, weight: .bold))
                         
                         // Add token conversion display
                         if let currentPrice = coinModel.prices.last?.price, currentPrice > 0 {
-                            let tokenAmount = buyAmountSol / currentPrice
-                            Text("\(tokenAmount, specifier: "%.4f") \(coinModel.coin.symbol)")
+                            let tokenAmount = buyAmountSol * currentPrice
+                            Text("\(tokenAmount, specifier: "%.4f") SOL")
                                 .font(.sfRounded(size: .base, weight: .bold))
                                 .opacity(0.8)
                         }

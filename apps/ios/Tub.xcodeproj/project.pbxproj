@@ -32,7 +32,6 @@
 		DB458DB42CAC827A00C5EC18 /* Network.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB458DB32CAC827A00C5EC18 /* Network.swift */; };
 		DB675A332CA2B73D006FC9B3 /* HomeTabsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB675A322CA2B73D006FC9B3 /* HomeTabsView.swift */; };
 		DB6D29052CA1C8F70099951A /* TubApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6D29042CA1C8F70099951A /* TubApp.swift */; };
-		DB6D29072CA1C8F70099951A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6D29062CA1C8F70099951A /* ContentView.swift */; };
 		DB6D29092CA1C8F80099951A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DB6D29082CA1C8F80099951A /* Assets.xcassets */; };
 		DB6D290D2CA1C8F80099951A /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DB6D290C2CA1C8F80099951A /* Preview Assets.xcassets */; };
 		DB6D29172CA1C8F80099951A /* TubTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6D29162CA1C8F80099951A /* TubTests.swift */; };
@@ -81,7 +80,6 @@
 		DB675A322CA2B73D006FC9B3 /* HomeTabsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeTabsView.swift; sourceTree = "<group>"; };
 		DB6D29012CA1C8F70099951A /* Tub.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tub.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DB6D29042CA1C8F70099951A /* TubApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TubApp.swift; sourceTree = "<group>"; };
-		DB6D29062CA1C8F70099951A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		DB6D29082CA1C8F80099951A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DB6D290A2CA1C8F80099951A /* Tub.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Tub.entitlements; sourceTree = "<group>"; };
 		DB6D290C2CA1C8F80099951A /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
@@ -145,7 +143,6 @@
 				99AEE82F2CAD9B8600C535C4 /* SliderWithPoints.swift */,
 				9910F1B92CAAEB77005DEE6B /* SwipeToEnterView.swift */,
 				999F595A2CA754F900E7AE9F /* ChartView.swift */,
-				DB6D29062CA1C8F70099951A /* ContentView.swift */,
 				DB675A322CA2B73D006FC9B3 /* HomeTabsView.swift */,
 				DB10A95E2CA5AA3900B1E4F3 /* CollectionView.swift */,
 				DB10A9602CA5AA4600B1E4F3 /* MessageView.swift */,
@@ -405,7 +402,6 @@
 				99DED2532CAF2C6D0055FC60 /* RegisterView.swift in Sources */,
 				DB10A95F2CA5AA3900B1E4F3 /* CollectionView.swift in Sources */,
 				99AEE8302CAD9B8800C535C4 /* SliderWithPoints.swift in Sources */,
-				DB6D29072CA1C8F70099951A /* ContentView.swift in Sources */,
 				999F595B2CA754FB00E7AE9F /* ChartView.swift in Sources */,
 				99DED24E2CAF28C10055FC60 /* UserModel.swift in Sources */,
 				DB10A95D2CA5AA1B00B1E4F3 /* CoinView.swift in Sources */,

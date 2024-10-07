@@ -4,15 +4,16 @@ import TubAPI
 import Combine
 
 class RemoteCoinModel: BaseCoinModel {
-    var userId: String
     
-    init(_userId: String, tokenId: String) {
-        self.userId = _userId
-        super.init(tokenId: tokenId)
+    private var cancellables: Set<AnyCancellable> = []
+    
+    override init(userId: String, tokenId: String) {
+        super.init(userId: userId, tokenId: tokenId)
         
         Task {
             await fetchInitialData()
             subscribeToLatestPrice()
+            startCoinBalancePolling()
         }
     }
     
@@ -87,6 +88,43 @@ class RemoteCoinModel: BaseCoinModel {
                 }
             }
         }
+    }
+    
+    private func startCoinBalancePolling() {
+        Timer.publish(every: 1, on: .main, in: .common)
+            .autoconnect()
+            .sink { [weak self] _ in
+                self?.fetchCoinBalance()
+            }
+            .store(in: &cancellables)
+    }
+    
+    private func fetchCoinBalance() {
+        let creditQuery = GetAccountTokenCreditQuery(accountId: Uuid(userId), tokenId: self.tokenId)
+        let debitQuery = GetAccountTokenDebitQuery(accountId: Uuid(userId), tokenId: self.tokenId)
+        
+        let creditPublisher = Network.shared.apollo.watchPublisher(query: creditQuery)
+        let debitPublisher = Network.shared.apollo.watchPublisher(query: debitQuery)
+        
+        Publishers.CombineLatest(creditPublisher, debitPublisher)
+            .sink { completion in
+                if case let .failure(error) = completion {
+                    print("Error fetching balance: \(error)")
+                }
+            } receiveValue: { [weak self] creditResult, debitResult in
+                switch (creditResult, debitResult) {
+                case (.success(let creditData), .success(let debitData)):
+                    let creditAmount = creditData.data?.token_transaction_aggregate.aggregate?.sum?.amount ?? 0
+                    let debitAmount = debitData.data?.token_transaction_aggregate.aggregate?.sum?.amount ?? 0
+                    let balance = Double(creditAmount - debitAmount) / 1e9
+                    DispatchQueue.main.async {
+                        self?.coinBalance = balance
+                    }
+                case (.failure(let error), _), (_, .failure(let error)):
+                    print("Error fetching balance: \(error)")
+                }
+            }
+            .store(in: &cancellables)
     }
     
     private func formatDate(_ dateString: String) -> Date? {

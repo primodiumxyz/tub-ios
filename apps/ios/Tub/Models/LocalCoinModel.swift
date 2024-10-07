@@ -11,7 +11,7 @@ import Combine
 class LocalCoinModel: BaseCoinModel {
     
     required init() {
-        super.init(tokenId: "")
+        super.init(userId: "", tokenId: "")
         coin = Coin(id: "", name: "MONKEY" ,symbol: "MONK")
         balance = 1000
         generateInitialPrice()

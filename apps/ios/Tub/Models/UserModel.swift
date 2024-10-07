@@ -48,6 +48,7 @@ class UserModel: ObservableObject {
                     let debitAmount = debitData.data?.account_transaction_aggregate.aggregate?.sum?.amount ?? 0
                     let balance = Double(creditAmount - debitAmount) / 1e9
                     DispatchQueue.main.async {
+                        // print("balance", balance)
                         self?.balance = balance
                     }
                 case (.failure(let error), _), (_, .failure(let error)):

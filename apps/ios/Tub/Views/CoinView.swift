@@ -16,7 +16,7 @@ struct CoinView: View {
         if coinModel.loading {
             LoadingView()
         } else {
-            CoinViewContent(_coinModel: coinModel)
+            CoinViewContent(coinModel: coinModel)
         }
     }
 }
@@ -36,12 +36,12 @@ struct LoadingView: View {
 }
 
 struct CoinViewContent: View {
-    @ObservedObject var coinModel : BaseCoinModel
-    var initialBalance: Double = 0.0
+    @ObservedObject var coinModel: BaseCoinModel
+    @StateObject var userModel: UserModel
     
-    init(_coinModel: BaseCoinModel) {
-        initialBalance = _coinModel.balance
-        coinModel  = _coinModel
+    init(coinModel: BaseCoinModel) {
+        self.coinModel = coinModel
+        self._userModel = StateObject(wrappedValue: UserModel(userId: coinModel.userId))
     }
     
     var body: some View {
@@ -52,24 +52,24 @@ struct CoinViewContent: View {
                     .font(.sfRounded(size: .sm, weight: .bold))
                     .opacity(0.7)
                     .kerning(-1)
-                Text("\(coinModel.balance, specifier: "%.2f") SOL")
+                Text("\(userModel.balance, specifier: "%.2f") SOL")
                     .font(.sfRounded(size: .xl4))
                     .fontWeight(.bold)
-                    HStack(spacing:3) {
-                        Text(coinModel.balance > initialBalance ? "+ \(coinModel.balance - initialBalance, specifier: "%.2f") SOL" : "- \(initialBalance - coinModel.balance, specifier: "%.2f") SOL")
-                            .font(.sfRounded(size: .base, weight: .bold))
-                        
-                        HStack(spacing: 2) {
-                            Image(systemName: coinModel.balance > initialBalance ? "arrow.up.right" : "arrow.down.right")
-                                .foregroundColor(coinModel.balance > initialBalance ? .green : .red)
-                                .kerning(-1)
-
-                            Text("\(abs((coinModel.balance - initialBalance) / 1000 * 100), specifier: "%.2f")%")
-                                .foregroundColor(coinModel.balance > initialBalance ? .green : .red)
-                                .font(.sfRounded(size: .base, weight: .bold))
-                                .kerning(-1)
-                        }
-                    }
+                HStack(spacing:3) {
+//                    Text(userModel.balance > initialBalance ? "+ \(userModel.balance - initialBalance, specifier: "%.2f") SOL" : "- \(initialBalance - userModel.balance, specifier: "%.2f") SOL")
+//                        .font(.sfRounded(size: .base, weight: .bold))
+//                    
+//                    HStack(spacing: 2) {
+//                        Image(systemName: userModel.balance > initialBalance ? "arrow.up.right" : "arrow.down.right")
+//                            .foregroundColor(userModel.balance > initialBalance ? .green : .red)
+//                            .kerning(-1)
+//
+//                        Text("\(abs((userModel.balance - initialBalance) / initialBalance * 100), specifier: "%.2f")%")
+//                            .foregroundColor(userModel.balance > initialBalance ? .green : .red)
+//                            .font(.sfRounded(size: .base, weight: .bold))
+//                            .kerning(-1)
+//                    }
+                }
             }
             .padding(.bottom, 16)
             HStack {
@@ -108,7 +108,6 @@ struct CoinViewContent: View {
        .frame(maxWidth: .infinity) // Add this line
        .background(.black)
        .foregroundColor(.white)
-       
     }
 }
 
