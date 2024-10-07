@@ -151,7 +151,7 @@ const setup = (gql: GqlClient["db"]) => {
 
   setInterval(() => {
     if (ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ method: "ping" }));
+      ws.ping();
       console.log("Ping sent");
     }
   }, 30_000);
