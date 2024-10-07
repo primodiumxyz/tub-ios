@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "generate-schema": "dotenvx run -f .env --quiet -- sh -c 'gql-tada generate-schema --header \"x-hasura-admin-secret:$HASURA_ADMIN_SECRET\" $GRAPHQL_URL'",
-    "hasura-up": "dotenvx run -f .env --quiet -- sh -c 'docker compose up'",
+    "hasura-up": "dotenvx run -f .env --quiet -- sh -c 'docker compose up -d'",
     "hasura-down": "dotenvx run -f .env --quiet -- sh -c 'docker compose down --volumes --remove-orphans'",
     "hasura-console": "dotenvx run -f .env --quiet -- sh -c 'hasura console'",
     "hasura-seed-apply": "dotenvx run -f .env --quiet -- sh -c 'hasura seed apply --disable-interactive --database-name default'",
@@ -23,7 +23,9 @@
     "hasura-remove-create-token-seed": "dotenvx run -f .env --quiet -- sh -c 'hasura seed create tokens_seed --from-table token --endpoint \"$GRAPHQL_URL\" --admin-secret \"$HASURA_ADMIN_SECRET\"'",
     "hasura-remote-apply-migrations": "dotenvx run -f .env --quiet -- sh -c 'hasura migrate apply --endpoint \"$GRAPHQL_URL\" --admin-secret \"$HASURA_ADMIN_SECRET\"'",
     "hasura-remote-apply-metadata": "dotenvx run -f .env --quiet -- sh -c 'hasura metadata apply --endpoint \"$GRAPHQL_URL\" --admin-secret \"$HASURA_ADMIN_SECRET\"'",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "keywords": [],
   "author": "",
@@ -39,6 +41,10 @@
     "@types/node": "^22.6.1",
     "@types/ws": "^8.5.12",
     "hasura-cli": "2.36.1",
-    "prettier": "^3.3.3"
+    "prettier": "^3.3.3",
+    "@vitest/coverage-v8": "^0.34.0",
+    "@vitest/utils": "^2.1.1",
+    "vite-tsconfig-paths": "^4.2.0",
+    "vitest": "0.31.4"
   }
 }
