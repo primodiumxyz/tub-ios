@@ -15,11 +15,7 @@ class BaseCoinModel: ObservableObject {
         self.tokenId = tokenId
     }
     
-    func buyTokens(buyAmount: Double) -> Bool {
-        return false
-    }
+    func buyTokens(buyAmount: Double, completion: ((Bool) -> Void)?) {}
     
-    func sellTokens() -> Bool {
-        return false
-    }
+    func sellTokens(completion: ((Bool) -> Void)?) {}
 }

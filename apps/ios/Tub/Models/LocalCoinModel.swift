@@ -37,26 +37,34 @@ class LocalCoinModel: BaseCoinModel {
         prices.append(newPrice)
     }
     
-    override func buyTokens(buyAmount: Double) -> Bool {
-        guard let currentPrice = prices.last?.price else { return false }
+    override func buyTokens(buyAmount: Double, completion: ( (Bool) -> Void)? ) {
+        guard let currentPrice = prices.last?.price else {
+            completion?(false)
+            return
+        }
+        
         let tokenAmount = buyAmount / currentPrice
         if buyAmount <= 0 || buyAmount > balance {
-            return false
+            completion?(false)
         }
         balance -= buyAmount
         coinBalance += tokenAmount
         amountBought += buyAmount
-        return true
+        completion?(true)
     }
     
-    override func sellTokens() -> Bool {
-        guard let currentPrice = prices.last?.price else { return false }
+    override func sellTokens(completion: ((Bool) -> Void)?) {
+        guard let currentPrice = prices.last?.price else {
+            completion?(false)
+            return
+        }
+        
         if coinBalance <= 0 {
-            return false
+            completion?(false)
         }
         balance += amountBought * currentPrice
         coinBalance = 0
         amountBought = 0
-        return true
+        completion?(true)
     }
 }

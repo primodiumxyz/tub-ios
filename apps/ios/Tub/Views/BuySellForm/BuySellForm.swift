@@ -11,20 +11,22 @@ struct BuySellForm: View {
     @State private var activeTab: String = "buy"
     @State private var sellAmount: Double = 0.0
 
-    func handleBuy(amount: Double) -> Bool {
-        let success = coinModel.buyTokens(buyAmount: amount)
-        if success {
-            activeTab = "sell"
-        }
-        return success
+    func handleBuy(amount: Double, completion: ((Bool) -> Void)?) {
+        coinModel.buyTokens(buyAmount: amount, completion: {success in
+            if success {
+                activeTab = "sell"
+            }
+            completion?(success)
+        })
     }
     
-    func handleSell() -> Bool {
-        let success = coinModel.sellTokens()
-        if success {
-            activeTab = "buy"
-        }
-        return success
+    func handleSell(completion: ((Bool) -> Void)?) {
+        coinModel.sellTokens(completion: {success in
+            if success {
+                activeTab = "buy"
+            }
+            completion?(success)
+        })
     }
     
     var body: some View {

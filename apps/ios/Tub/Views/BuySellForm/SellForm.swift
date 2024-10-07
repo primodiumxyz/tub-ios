@@ -9,10 +9,10 @@ import SwiftUI
 
 struct SellForm: View {
     @ObservedObject var coinModel: BaseCoinModel
-    var onSell : () -> Bool
+    var onSell : (((Bool) -> Void)?) -> ()
 
     private func handleSell() {
-        let _ = onSell()
+        let _ = onSell(nil)
     }
     var body: some View {
         VStack {
@@ -38,7 +38,7 @@ struct SellForm: View {
 
 #Preview {
     VStack {
-        SellForm(coinModel: LocalCoinModel(), onSell: { true })
+        SellForm(coinModel: LocalCoinModel(), onSell: { _ in ()})
     }.frame(maxWidth: .infinity, maxHeight: .infinity) .background(.black).foregroundColor(.white)
 }
     

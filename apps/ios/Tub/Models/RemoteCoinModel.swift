@@ -106,36 +106,35 @@ class RemoteCoinModel: BaseCoinModel {
         return iso8601Formatter.date(from: datePart + "." + millisPart + "Z")
     }
 
-    override func buyTokens(buyAmount: Double) -> Bool {
+    override func buyTokens(buyAmount: Double, completion: ((Bool) -> Void)?) {
         print("in handleBuy")
         let buyAmountLamps = String(Int(buyAmount * 1e9))
-        var success = false
         
-        Network.shared.buyToken(accountId: self.userId, tokenId: self.tokenId, amount: buyAmountLamps, completion: { result in
-            switch result  {
-            case (.success):
+        Network.shared.buyToken(accountId: self.userId, tokenId: self.tokenId, amount: buyAmountLamps) { result in
+            switch result {
+            case .success:
                 print("success")
-            case(.failure(let error)):
+                completion?(true)
+            case .failure(let error):
                 print("failure", error.localizedDescription)
-                success = false
+                completion?(false)
             }
-        })
-        return success
+        }
     }
     
-    override func sellTokens() -> Bool {
+    override func sellTokens(completion: ((Bool) -> Void)?) {
         let sellAmountLamps = String(Int(self.amountBought * 1e9))
-        var success = false
-        Network.shared.sellToken(accountId: self.userId, tokenId: self.tokenId,  amount: sellAmountLamps, completion: { result in
-            switch result  {
-            case (.success):
+        
+        Network.shared.sellToken(accountId: self.userId, tokenId: self.tokenId, amount: sellAmountLamps) { result in
+            switch result {
+            case .success:
                 print("success")
-            case(.failure(let error)):
+                completion?(true)
+            case .failure(let error):
                 print("failure", error)
-                success = false
+                completion?(false)
             }
-        })
-        return success
+        }
     }
 }
 

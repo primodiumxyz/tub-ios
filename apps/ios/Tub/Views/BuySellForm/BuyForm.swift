@@ -9,15 +9,16 @@ import SwiftUI
 
 struct BuyForm: View {
     @ObservedObject var coinModel: BaseCoinModel
-    var onBuy: (Double) -> Bool
+    var onBuy: (Double, ((Bool) -> Void)?) -> ()
     @State private var buyAmountString: String = ""
     @State private var buyAmountSol: Double = 0.0
     @State private var isValidInput: Bool = true
 
     func handleBuy() {
-        let _ = onBuy(buyAmountSol)
-        buyAmountString = ""
-        buyAmountSol = 0
+        let _ = onBuy(buyAmountSol, {_ in
+            buyAmountString = ""
+            buyAmountSol = 0   
+        })
     }
 
     var body: some View {
@@ -96,7 +97,7 @@ struct BuyForm: View {
 
 #Preview {
     VStack {
-        BuyForm(coinModel: LocalCoinModel(), onBuy: {_ in true})
+        BuyForm(coinModel: LocalCoinModel(), onBuy: { _, _ in })
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .background(.black)
