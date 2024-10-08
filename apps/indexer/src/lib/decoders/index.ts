@@ -2,16 +2,23 @@ import { Idl } from "@coral-xyz/anchor";
 import { ParsedInstruction } from "@shyft-to/solana-transaction-parser";
 import { VersionedTransactionResponse } from "@solana/web3.js";
 
-import { METEORA_DLMM_PUBLIC_KEY, ORCA_WHIRLPOOL_PUBLIC_KEY, RAYDIUM_AMM_PUBLIC_KEY } from "@/lib/constants";
+import {
+  METEORA_DLMM_PUBLIC_KEY,
+  ORCA_WHIRLPOOL_PUBLIC_KEY,
+  RAYDIUM_AMM_PUBLIC_KEY,
+  RAYDIUM_CLAMM_PUBLIC_KEY,
+} from "@/lib/constants";
 import { decodeMeteoraDLMMTx } from "@/lib/decoders/meteora-dlmm";
 import { decodeOrcaWhirlpoolTx } from "@/lib/decoders/orca-whirlpool";
 import { decodeRaydiumAMMTx } from "@/lib/decoders/raydium-amm";
+import { decodeRaydiumCLAMMTx } from "@/lib/decoders/raydium-clamm";
 import { SwapAccounts } from "@/lib/types";
 
 const decoders = {
   [METEORA_DLMM_PUBLIC_KEY.toString()]: decodeMeteoraDLMMTx,
   [ORCA_WHIRLPOOL_PUBLIC_KEY.toString()]: decodeOrcaWhirlpoolTx,
   [RAYDIUM_AMM_PUBLIC_KEY.toString()]: decodeRaydiumAMMTx,
+  [RAYDIUM_CLAMM_PUBLIC_KEY.toString()]: decodeRaydiumCLAMMTx,
 };
 
 export const decodeSwapAccounts = (
