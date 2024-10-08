@@ -9,9 +9,6 @@ COMPOSE_PID=$!
 # Define the health check endpoint
 HEALTH_CHECK_URL="http://localhost:8080/healthz?strict=true"
 
-# Define the desired command to run after successful health check
-SUCCESS_COMMAND="pnpm db:local:seed-apply"
-
 # Define the number of retries and delay between checks
 RETRIES=100
 DELAY=5
@@ -31,8 +28,8 @@ echo "Waiting for the service to be healthy..."
 for ((i=1; i<=$RETRIES; i++)); do
   if check_health; then
     echo "Service is healthy!"
-    # Run the desired command on successful health check
-    $SUCCESS_COMMAND
+    pnpm db:local:seed-apply
+    pnpm db:local:console
     break
   else
     echo "Health check failed. Retrying in $DELAY seconds..."

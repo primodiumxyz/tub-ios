@@ -69,6 +69,8 @@ subscription.subscribe({
 
 ## Development
 
+> **NOTE:** You must have Docker installed to run the local Hasura instance.
+
 ### Setup
 
 1. Install dependencies:
@@ -78,12 +80,7 @@ subscription.subscribe({
 
 2. Set up the Hasura backend:
    ```bash
-   pnpm run hasura-up
-   ```
-
-3. Generate the GraphQL schema:
-   ```bash
-   pnpm run generate-schema
+   pnpm run dev
    ```
 
 ### Testing
