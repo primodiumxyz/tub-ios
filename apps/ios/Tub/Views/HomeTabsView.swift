@@ -31,7 +31,12 @@ struct HomeTabsView: View {
             }
             
         }
-        .padding(0.0)
+        .background(.black)
+        .foregroundColor(.white)
+        .accentColor(color) // Set the accent color for selected items
+        .onAppear {
+            UITabBar.appearance().unselectedItemTintColor = UIColor.white.withAlphaComponent(0.5)
+        }
     }
 }
 
