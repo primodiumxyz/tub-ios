@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, Mocked, vi } from "vitest";
 import { createClient, GqlClient } from "../src/index"
 
 
-describe("createAppRouter", () => {
+describe("query tests", () => {
   let gql: GqlClient;
 
   beforeEach(async () => {

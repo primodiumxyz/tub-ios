@@ -3,7 +3,7 @@ import { createClient, GqlClient } from "../src/index"
 
 const token_id = "722e8490-e852-4298-a250-7b0a399fec57";
 
-describe("createAppRouter", () => {
+describe("mutation tests", () => {
   let gql: GqlClient;
 
   beforeEach(async () => {
