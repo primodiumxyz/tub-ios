@@ -12,6 +12,7 @@ import SwiftUI
 struct SwipeToEnterView: View {
     @State private var offset: CGFloat = 0
     @State private var isDragging = false
+    @State private var isSuccess = false
     var onUnlock: () -> Void
     var text: String
     var disabled: Bool
@@ -65,7 +66,14 @@ struct SwipeToEnterView: View {
                                     withAnimation {
                                         offset = geometry.size.width - size
                                     }
+                                    isSuccess = true
                                     onUnlock()
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                                        withAnimation {
+                                            offset = 0
+                                            isSuccess = false
+                                        }
+                                    }
                                 } else {
                                     withAnimation {
                                         offset = 0

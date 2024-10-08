@@ -7,8 +7,7 @@ struct RegisterView: View {
     
     func handleRegistration(completion: Result<UserResponse, Error>) {
         switch completion {
-    case .success(let user):
-            print("user", user)
+        case .success(let user):
             userId = user.uuid
             isRegistered = true
         case .failure(let error):
