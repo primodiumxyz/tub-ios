@@ -163,7 +163,6 @@
 				DB6D29062CA1C8F70099951A /* ContentView.swift */,
 				DB675A322CA2B73D006FC9B3 /* HomeTabsView.swift */,
 				DF5A2FC22CAF165D00508A56 /* HistoryView.swift */,
-				DFA36D552CB4278C00F63D2D /* DummyData.swift */,
 				DF5A2FC42CAF2DEF00508A56 /* HistoryDetailsView.swift */,
 				DB10A9602CA5AA4600B1E4F3 /* MessageView.swift */,
 				DB10A95C2CA5AA1B00B1E4F3 /* CoinView.swift */,
@@ -174,10 +173,10 @@
 		999F59532CA6F70C00E7AE9F /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				DFA36D552CB4278C00F63D2D /* DummyData.swift */,
 				99DED24D2CAF28BD0055FC60 /* UserModel.swift */,
 				9936FC552CADCA5200E21B8A /* LocalCoinModel.swift */,
 				9936FC592CADCAB700E21B8A /* BaseCoinModel.swift */,
-				9936FC562CADCA5200E21B8A /* Structs.swift */,
 				999F59552CA6F96D00E7AE9F /* RemoteCoinModel.swift */,
 			);
 			path = Models;
@@ -226,6 +225,7 @@
 			isa = PBXGroup;
 			children = (
 				DB458DB32CAC827A00C5EC18 /* Network.swift */,
+				9936FC562CADCA5200E21B8A /* Structs.swift */,
 				9910F1B42CAAE2F0005DEE6B /* Fonts */,
 				999F59532CA6F70C00E7AE9F /* Models */,
 				999F59522CA6F6A900E7AE9F /* Views */,

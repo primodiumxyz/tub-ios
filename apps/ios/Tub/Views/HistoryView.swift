@@ -13,15 +13,18 @@ struct HistoryView : View {
     
     @State private var txs: [Transaction] 
     @State private var loading : Bool
+    @State private var error: Error? // Add this line
     
-    init(userId: String, txs: [Transaction]?) {
+    init(userId: String, txs: [Transaction]? = []) {
         self.userId = userId
-        self._txs = State(initialValue: txs ?? [])
+        self._txs = State(initialValue: txs!.isEmpty ? [] : txs!)
         self._loading = State(initialValue: txs == nil)
+        self._error = State(initialValue: nil) // Add this line
     }
     
     func fetchUserTxs(_ userId: String) {
         loading = true
+        error = nil // Reset error state
         let query = GetAccountTransactionsQuery(accountId: userId)
         
         Network.shared.apollo.fetch(query: query) { result in
@@ -37,33 +40,41 @@ struct HistoryView : View {
                                 return
                             }
                             
-                            let amount = Double(transaction.amount)
+                            let quantity = Double(transaction.amount) / 1e9
                             let isBuy = transaction.transaction_type == "credit"
                             let symbol = transaction.token_relationship.symbol
+                            let name = transaction.token_relationship.name
+                            let imageUri = transaction.token_relationship.uri ?? ""
                             
                             let newTransaction = Transaction(
-                                coin: symbol,
+                                name: name,
+                                symbol: symbol,
+                                imageUri: imageUri,
                                 date: date,
-                                amount: amount,
-                                quantity: Int(abs(amount)),
+                                value: quantity,
+                                quantity: quantity,
                                 isBuy: isBuy
                             )
                             
                             result.append(newTransaction)
                         }
+                    } else {
+                        self.error = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "No transaction data found"])
                     }
                 case .failure(let error):
                     print("Error fetching transactions: \(error)")
-                    // You might want to set an error state here to display to the user
+                    self.error = error
                 }
             }
         }
     }
     
     var body: some View {
-        Group{
+        Group {
             if loading == true {
                 LoadingView()
+            } else if let error = error {
+                ErrorView(error: error, retryAction: { fetchUserTxs(userId) })
             } else {
                 HistoryViewContent(txs: txs)
             }
@@ -72,6 +83,41 @@ struct HistoryView : View {
                 fetchUserTxs(userId)
             }
         }
+    }
+}
+
+// Add this new view
+struct ErrorView: View {
+    let error: Error
+    let retryAction: () -> Void
+    
+    var body: some View {
+        VStack {
+            Image(systemName: "exclamationmark.triangle")
+                .font(.system(size: 50))
+                .foregroundColor(.yellow)
+                .padding()
+            
+            Text("Oops! Something went wrong")
+                .font(.title)
+                .multilineTextAlignment(.center)
+            
+            Text(error.localizedDescription)
+                .font(.body)
+                .multilineTextAlignment(.center)
+                .padding()
+            
+            Button(action: retryAction) {
+                Text("Try Again")
+                    .foregroundColor(.white)
+                    .padding()
+                    .background(Color.blue)
+                    .cornerRadius(10)
+            }
+        }
+        .padding()
+        .background(Color.black)
+        .foregroundColor(.white)
     }
 }
 
@@ -286,7 +332,7 @@ struct HistoryViewContent: View {
         if !searchText.isEmpty {
             filteredData = filteredData.filter { transaction in
                 // Remove "$" from the coin name
-                let cleanedCoin = transaction.coin.replacingOccurrences(of: "$", with: "").lowercased()
+                let cleanedCoin = transaction.symbol.lowercased()
                 return cleanedCoin.hasPrefix(searchText.lowercased())
             }
         }
@@ -329,9 +375,9 @@ struct HistoryViewContent: View {
         if selectedAmountRange != "All" {
             switch selectedAmountRange {
             case "< $100":
-                filteredData = filteredData.filter { abs($0.amount) < 100 }
+                filteredData = filteredData.filter { abs($0.value) < 100 }
             case "> $100":
-                filteredData = filteredData.filter { abs($0.amount) > 100 }
+                filteredData = filteredData.filter { abs($0.value) > 100 }
             default:
                 break
             }
@@ -346,19 +392,19 @@ struct TransactionRow: View {
     
     var body: some View {
         HStack {
-//            Image(transaction.coinUri)
-//                .resizable()
-//                .frame(width: 40, height: 40)
-//                .cornerRadius(8)
+            Image(transaction.imageUri)
+                .resizable()
+                .frame(width: 40, height: 40)
+                .cornerRadius(8)
             
             VStack(alignment: .leading) {
                 HStack {
                     Text(transaction.isBuy ? "Buy" : "Sell")
                         .font(.system(size: 16, weight: .bold))
                         .foregroundColor(.white)
-//                    Text(transaction.coinUri)
-//                        .font(.system(size: 16, weight: .bold))
-//                        .foregroundColor(Color(red: 1.0, green: 0.9254901960784314, blue: 0.5254901960784314))
+                    Text(transaction.name)
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(Color(red: 1.0, green: 0.9254901960784314, blue: 0.5254901960784314))
                 }
                 
                 Text(formatDate(transaction.date))
@@ -368,7 +414,7 @@ struct TransactionRow: View {
             }
             Spacer()
             VStack(alignment: .trailing) {
-                Text(formatAmount(transaction.amount))
+                Text(formatAmount(transaction.value))
                     .font(.system(size: 16, weight: .bold))
                     .foregroundColor(transaction.isBuy ? .red : .green)
                 
@@ -378,9 +424,9 @@ struct TransactionRow: View {
                         .foregroundColor(.gray)
                         .offset(x:4)
                     
-//                    Text(transaction.coin)
-//                        .font(.system(size: 12))
-//                        .foregroundColor(.gray)
+                    Text(transaction.symbol)
+                        .font(.system(size: 12))
+                        .foregroundColor(.gray)
                 }
             }
             Image(systemName: "chevron.right")
