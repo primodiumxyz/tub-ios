@@ -94,6 +94,16 @@ export const GetLatestTokenPriceQuery = graphql(`
   }
 `);
 
+export const GetTokenPriceAtTransactionQuery = graphql(`
+  query GetTokenPriceAtTransaction($tokenId: uuid!, $transactionId: uuid!) {
+    token_price_history(where: { token: { _eq: $tokenId }, internal_token_transaction_ref: { _eq: $transactionId } }) {
+      price
+      created_at
+      token
+    }
+  }
+`);
+
 export const GetTokenPriceHistorySinceQuery = graphql(`
   query GetTokenPriceHistorySince($tokenId: uuid!, $since: timestamptz!) {
     token_price_history(where: { token: { _eq: $tokenId }, created_at: { _gte: $since } }) {
