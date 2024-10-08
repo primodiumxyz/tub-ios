@@ -16,5 +16,5 @@ export const decodeMeteoraTx = (
   const tokenYMint = swapIx.accounts.find((account) => account.name === "tokenYMint")?.pubkey;
 
   if (!tokenXMint || !tokenYMint) return [];
-  return [{ tokenX: tokenXMint, tokenY: tokenYMint, platform: "meteora" }];
+  return [{ tokenX: tokenXMint, tokenY: tokenYMint, platform: "meteora-dlmm" }];
 };

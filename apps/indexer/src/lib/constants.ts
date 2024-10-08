@@ -8,7 +8,7 @@ import { RaydiumAmmParser } from "./parsers/raydium-amm-parser";
 export const PRICE_DATA_BATCH_SIZE = 300;
 export const PRICE_PRECISION = 10 ** 18;
 
-export const PLATFORMS = ["meteora", "orca", "raydium"] as const;
+export const PLATFORMS = ["meteora-dlmm", "orca-whirlpool", "raydium-lp-v4"] as const;
 export const METEORA_PUBLIC_KEY = MeteoraDlmmParser.PROGRAM_ID;
 export const ORCA_PUBLIC_KEY = OrcaWhirlpoolParser.PROGRAM_ID;
 export const RAYDIUM_PUBLIC_KEY = RaydiumAmmParser.PROGRAM_ID;

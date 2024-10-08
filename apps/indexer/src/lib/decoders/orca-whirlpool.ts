@@ -23,8 +23,8 @@ export const decodeOrcaWhirlpoolTx = (
 
     if (!tokenXMintA || !tokenYMintA || !tokenXMintB || !tokenYMintB) return [];
     return [
-      { tokenX: tokenXMintA, tokenY: tokenYMintA, platform: "orca" },
-      { tokenX: tokenXMintB, tokenY: tokenYMintB, platform: "orca" },
+      { tokenX: tokenXMintA, tokenY: tokenYMintA, platform: "orca-whirlpool" },
+      { tokenX: tokenXMintB, tokenY: tokenYMintB, platform: "orca-whirlpool" },
     ];
   }
 
@@ -33,5 +33,5 @@ export const decodeOrcaWhirlpoolTx = (
   const tokenYMint = swapIx.accounts.find((account) => account.name === "tokenVaultB")?.pubkey;
 
   if (!tokenXMint || !tokenYMint) return [];
-  return [{ tokenX: tokenXMint, tokenY: tokenYMint, platform: "orca" }];
+  return [{ tokenX: tokenXMint, tokenY: tokenYMint, platform: "orca-whirlpool" }];
 };

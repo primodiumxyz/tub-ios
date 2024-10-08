@@ -17,5 +17,5 @@ export const decodeRaydiumTx = (
   const poolPc = swapIx.accounts.find((account) => account.name === "poolPcTokenAccount")?.pubkey;
 
   if (!poolCoin || !poolPc) return [];
-  return [{ tokenX: poolCoin, tokenY: poolPc, platform: "raydium" }];
+  return [{ tokenX: poolCoin, tokenY: poolPc, platform: "raydium-lp-v4" }];
 };

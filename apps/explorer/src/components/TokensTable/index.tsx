@@ -36,7 +36,7 @@ export const TokensTable = () => {
           <span>Platforms: </span>
           {Object.entries(tokensPerPlatform).map(([, [platform, count]]) => (
             <div key={platform} className="opacity-50">
-              {platform.charAt(0).toUpperCase() + platform.slice(1)}: {count}
+              {platform}: {count}
             </div>
           ))}
         </div>
