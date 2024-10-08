@@ -62,7 +62,7 @@ export class MeteoraDlmmParser {
     const instructionData = instruction.data;
     const instructionType = u8().decode(instructionData);
 
-    // https://github.com/MeteoraAg/dlmm-sdk/blob/b0813754a2749e403f8d5230e068f57b619f34ca/ts-client/src/dlmm/idl.ts#L6530C9-L6535C11
+    //github.com/MeteoraAg/dlmm-sdk/blob/b0813754a2749e403f8d5230e068f57b619f34ca/ts-client/src/dlmm/idl.ts#L6530C9-L6535C11
     // Instructions:
     // 0: initializeLbPair
     // 2: initializePermissionLbPair
@@ -109,7 +109,7 @@ export class MeteoraDlmmParser {
     // 43: setPreActivationDuration
     // 44: setPreActivationSwapAddress
 
-    switch (instructionType) {
+    https: switch (instructionType) {
       case 15: {
         return this.parseSwapIx(instruction);
       }
