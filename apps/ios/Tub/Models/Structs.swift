@@ -12,3 +12,11 @@ struct Price: Identifiable {
     var price: Double
 }
 
+struct Transaction: Identifiable, Equatable {
+    let id = UUID()
+    let coin: String
+    let date: Date
+    let amount: Double
+    let quantity: Int
+    let isBuy: Bool
+}

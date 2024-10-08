@@ -87,6 +87,13 @@ query GetAccountTransactions($accountId: uuid!) {
     amount
     id
     token
+     token_relationship {
+        id
+        name
+        supply
+        symbol
+        uri
+      }
     transaction_type
     account_transaction_relationship {
       created_at

@@ -13,18 +13,23 @@ struct HomeTabsView: View {
         
         TabView() {
             RemoteCoinsView().tabItem {
-                Label("Cloud", systemImage: "cloud.fill")
+                Label("Explore", systemImage: "house")
             }
+
             CoinView(coinModel: LocalCoinModel()).tabItem {
-                Label("Local", systemImage: "testtube.2")
+                Label("Test", systemImage: "house")
             }
+
+            HistoryView(txs: dummyData).tabItem {
+                Label("History", systemImage: "clock")
+            }
+
+            MessageView().tabItem {
+                Label("Notifications", systemImage: "bell.fill")
+            }
+            
         }
-        .background(.black)
-        .foregroundColor(.white)
-        .accentColor(color) // Set the accent color for selected items
-        .onAppear {
-            UITabBar.appearance().unselectedItemTintColor = UIColor.white.withAlphaComponent(0.5)
-        }
+        .padding(0.0)
     }
 }
 
