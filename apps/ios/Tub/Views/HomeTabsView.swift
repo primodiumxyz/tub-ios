@@ -18,6 +18,13 @@ struct HomeTabsView: View {
             CoinView(coinModel: LocalCoinModel()).tabItem {
                 Label("Local", systemImage: "testtube.2")
             }
+            HistoryView().tabItem {
+                Label("History", systemImage: "clock")
+            }
+            MessageView().tabItem {
+                Label("Notifications", systemImage: "bell.fill")
+            }
+            
         }
         .background(.black)
         .foregroundColor(.white)
