@@ -8,20 +8,15 @@
 import SwiftUI
 
 struct AccountView: View {
-    @AppStorage("username") private var username: String = ""
-    private var userId: String
-    private var handleLogout: (() -> Void)?
-    
     @ObservedObject private var userModel: UserModel
     @State private var isNavigatingToRegister = false
     @State private var isAirdropping = false
     @State private var airdropResult: String?
     @State private var errorMessage: String?
+    @Environment(\.presentationMode) var presentationMode
 
-    init(_userId: String, _handleLogout: (() -> Void)? = nil) {
-        userId = _userId
-        userModel = UserModel(userId: _userId)
-        handleLogout = _handleLogout
+    init(userId: String) {
+        userModel = UserModel(userId: userId)
     }
     
     var body: some View {
@@ -40,7 +35,7 @@ struct AccountView: View {
                 if isAirdropping {
                     ProgressView()
                 }
-                else {
+                else if userModel.balance < 1 {
                     Button(action: performAirdrop) {
                         Text("Request Airdrop")
                             .padding()
@@ -51,35 +46,30 @@ struct AccountView: View {
                     .disabled(isAirdropping)
                 }
                 
-                if let logout = handleLogout {
-                    Button(action: logout) {
-                        Text("Logout")
-                            .font(.sfRounded(size: .lg, weight: .semibold))
-                            .foregroundColor(.black)
-                            .padding()
-                            .background(Color(red: 0.43, green: 0.97, blue: 0.98))
-                            .cornerRadius(10)
-                    }
+                Button(action: logout) {
+                    Text("Logout")
+                        .padding()
+                        .background(Color.red)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
                 }
             }
             .foregroundColor(.white)
             .padding()
             .background(Color.gray.opacity(0.2))
             .cornerRadius(10)
-            
-           
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.black)
         .navigationTitle("Account")
-        .background(
-            NavigationLink(destination: RegisterView(), isActive: $isNavigatingToRegister) {
-                EmptyView()
+        .onChange(of: userId) { newValue in
+            if newValue.isEmpty {
+                presentationMode.wrappedValue.dismiss()
             }
-        )
+        }
     }
     
-     private func performAirdrop() {
+    private func performAirdrop() {
         isAirdropping = true
         airdropResult = nil
         
@@ -96,10 +86,15 @@ struct AccountView: View {
             }
         }
     }
+    
+    private func logout() {
+        userId = ""
+        username = ""
+    }
 }
 
 #Preview {
     @Previewable @AppStorage("userId") var userId: String = ""
-    AccountView(_userId: userId)
+    AccountView(userId: userId)
 }
 

@@ -24,6 +24,9 @@ struct HomeTabsView: View {
             MessageView().tabItem {
                 Label("Notifications", systemImage: "bell.fill")
             }
+            AccountView(userId: "").tabItem {
+                Label("Account", systemImage: "person")
+            }
             
         }
         .background(.black)

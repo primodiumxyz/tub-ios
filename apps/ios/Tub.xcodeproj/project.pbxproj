@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		990B90F22CB5B41000B5B073 /* AccountSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990B90F12CB5B40C00B5B073 /* AccountSetupView.swift */; };
 		9910F1B62CAAE302005DEE6B /* SFRounded.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9910F1B52CAAE2FD005DEE6B /* SFRounded.swift */; };
 		9910F1BA2CAAEB80005DEE6B /* SwipeToEnterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9910F1B92CAAEB77005DEE6B /* SwipeToEnterView.swift */; };
 		991361A12CADE3B300E5D656 /* RemoteCoinsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991361A02CADE3AA00E5D656 /* RemoteCoinsView.swift */; };
@@ -62,6 +63,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		990B90F12CB5B40C00B5B073 /* AccountSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountSetupView.swift; sourceTree = "<group>"; };
 		9910F1B52CAAE2FD005DEE6B /* SFRounded.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SFRounded.swift; sourceTree = "<group>"; };
 		9910F1B92CAAEB77005DEE6B /* SwipeToEnterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwipeToEnterView.swift; sourceTree = "<group>"; };
 		991361A02CADE3AA00E5D656 /* RemoteCoinsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteCoinsView.swift; sourceTree = "<group>"; };
@@ -140,6 +142,7 @@
 		999F59522CA6F6A900E7AE9F /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				990B90F12CB5B40C00B5B073 /* AccountSetupView.swift */,
 				99DDF62C2CB0280D000234DA /* AccountView.swift */,
 				99DED2522CAF2C6D0055FC60 /* RegisterView.swift */,
 				991361A02CADE3AA00E5D656 /* RemoteCoinsView.swift */,
@@ -397,6 +400,7 @@
 			files = (
 				991361A12CADE3B300E5D656 /* RemoteCoinsView.swift in Sources */,
 				9910F1B62CAAE302005DEE6B /* SFRounded.swift in Sources */,
+				990B90F22CB5B41000B5B073 /* AccountSetupView.swift in Sources */,
 				999F59582CA7107C00E7AE9F /* BuySellForm.swift in Sources */,
 				9936FC572CADCA5200E21B8A /* LocalCoinModel.swift in Sources */,
 				99DDF62D2CB02816000234DA /* AccountView.swift in Sources */,

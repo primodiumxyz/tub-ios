@@ -9,9 +9,25 @@ import SwiftUI
 
 @main
 struct TubApp: App {
+    @AppStorage("userId") private var userId = ""
+    
     var body: some Scene {
         WindowGroup {
-            RegisterView().font(.sfRounded())
+            if userId.isEmpty {
+                AccountSetupView().font(.sfRounded())
+            } else {
+                ContentView().font(.sfRounded())
+            }
         }
     }
+}
+
+#Preview {
+    ContentView()
+        .font(.sfRounded())
+}
+
+#Preview("Account Setup") {
+    AccountSetupView()
+        .font(.sfRounded())
 }

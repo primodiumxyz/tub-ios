@@ -12,12 +12,59 @@ import ApolloCombine
 
 class UserModel: ObservableObject {
     @Published var balance: Double = 0
+    @Published var isLoading: Bool = true
     private var cancellables: Set<AnyCancellable> = []
-    private let userId: String
+    
+    let userId: String
+    var username: String = ""
+    var loading: Bool = true
+    
+    
     
     init(userId: String) {
         self.userId = userId
-        startBalancePolling()
+        Task {
+            await fetchInitialData()
+            startBalancePolling()
+        }
+    }
+    
+    private func fetchInitialData() async {
+        do {
+            try await fetchBalance()
+            self.isLoading = false
+        } catch {
+            print("Error fetching initial data: \(error)")
+        }
+    }
+
+    private func fetchAccountData() async throws {
+        let query = GetAccountDataQuery(accountId: Uuid(userId))
+        return try await withCheckedThrowingContinuation { continuation in
+            Network.shared.apollo.fetch(query: query) { [weak self] result in
+                guard let self = self else {
+                    continuation.resume(throwing: NSError(domain: "UserModel", code: 0, userInfo: [NSLocalizedDescriptionKey: "Self is nil"]))
+                    return
+                }
+                
+                switch result {
+                case .success(let response):
+                    if let account = response.data?.account.first {
+                        DispatchQueue.main.async {
+                            self.username = account.username
+                            self.loading = false
+                            // Add any other properties you want to set from the account data
+                        }
+                        continuation.resume()
+                    } else {
+                        continuation.resume(throwing: NSError(domain: "UserModel", code: 1, userInfo: [NSLocalizedDescriptionKey: "Account not found"]))
+                    }
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                    self.loading = false
+                }
+            }
+        }
     }
     
     private func startBalancePolling() {
