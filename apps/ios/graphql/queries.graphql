@@ -17,6 +17,14 @@ query GetAllTokens {
   }
 }
 
+query GetAccountData($accountId: uuid!) {
+  account(where: {id: {_eq: $accountId}}) {
+    username
+    id
+    created_at
+  }
+}
+
 query GetAccountBalanceCredit($accountId: uuid!) {
   account_transaction_aggregate(where: { account: { _eq: $accountId }, transaction_type: { _eq: "credit" } }) {
     aggregate {
