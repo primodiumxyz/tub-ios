@@ -1,11 +1,11 @@
-import { beforeEach, describe, expect, it, Mocked, vi } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { createClient, GqlClient } from "../src/index"
 
 
 describe("query tests", () => {
   let gql: GqlClient;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     gql = await createClient({ url: "http://localhost:8080/v1/graphql", hasuraAdminSecret: "password" });
   });
 

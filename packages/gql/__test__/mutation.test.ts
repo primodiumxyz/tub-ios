@@ -1,12 +1,12 @@
-import { beforeEach, describe, expect, it, Mocked, vi } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { createClient, GqlClient } from "../src/index"
 
 const token_id = "722e8490-e852-4298-a250-7b0a399fec57";
 
 describe("mutation tests", () => {
   let gql: GqlClient;
-
-  beforeEach(async () => {
+  
+  beforeAll(async () => {
     gql = await createClient({ url: "http://localhost:8080/v1/graphql", hasuraAdminSecret: "password" });
   });
 

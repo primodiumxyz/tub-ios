@@ -11,7 +11,12 @@
       {
         "name": "gql.tada/ts-plugin",
         "tadaOutputLocation": "./src/lib/graphql-env.d.ts",
-        "schema": "./src/lib/schema.graphql"
+        "schema": {
+          "url": "http://localhost:8080/v1/graphql",
+          "headers": {
+            "x-hasura-admin-secret": "password"
+          }
+        },
       }
     ]
   },
