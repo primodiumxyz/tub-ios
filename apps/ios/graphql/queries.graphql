@@ -77,3 +77,19 @@ query GetTokenPrice($tokenId: uuid!) {
     token
   }
 }
+
+query GetAccountTransactions($accountId: uuid!) {
+  token_transaction(
+    order_by: { account_transaction_relationship: { created_at: desc } }
+    where: { account_transaction_relationship: { account_relationship: { id: { _eq: $accountId } } } }
+  ) {
+    account_transaction
+    amount
+    id
+    token
+    transaction_type
+    account_transaction_relationship {
+      created_at
+    }
+  }
+ }
