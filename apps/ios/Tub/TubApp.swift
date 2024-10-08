@@ -16,14 +16,14 @@ struct TubApp: App {
             if userId.isEmpty {
                 AccountSetupView().font(.sfRounded())
             } else {
-                ContentView().font(.sfRounded())
+                HomeTabsView().font(.sfRounded())
             }
         }
     }
 }
 
 #Preview {
-    ContentView()
+    HomeTabsView()
         .font(.sfRounded())
 }
 

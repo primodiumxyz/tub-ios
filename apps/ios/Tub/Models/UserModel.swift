@@ -13,13 +13,13 @@ import ApolloCombine
 class UserModel: ObservableObject {
     @Published var balance: Double = 0
     @Published var isLoading: Bool = true
+    @Published var userId: String
+    @Published var username: String = ""
+    
+    @AppStorage("userId") private var storedUserId: String?
+    @AppStorage("username") private var storedUsername: String?
+    
     private var cancellables: Set<AnyCancellable> = []
-    
-    let userId: String
-    var username: String = ""
-    var loading: Bool = true
-    
-    
     
     init(userId: String) {
         self.userId = userId
@@ -31,10 +31,21 @@ class UserModel: ObservableObject {
     
     private func fetchInitialData() async {
         do {
-            try await fetchBalance()
-            self.isLoading = false
+            // Validate userId is a valid UUID
+            guard UUID(uuidString: userId) != nil else {
+                throw NSError(domain: "UserModel", code: 2, userInfo: [NSLocalizedDescriptionKey: "Invalid userId: Not a valid UUID"])
+            }
+            
+            try await fetchAccountData()
+            print("data fetched successfully")
+            DispatchQueue.main.async {
+                self.isLoading = false  // Use isLoading instead of loading
+            }
         } catch {
             print("Error fetching initial data: \(error)")
+            DispatchQueue.main.async {
+                self.isLoading = false  // Set isLoading to false even on error
+            }
         }
     }
 
@@ -52,7 +63,6 @@ class UserModel: ObservableObject {
                     if let account = response.data?.account.first {
                         DispatchQueue.main.async {
                             self.username = account.username
-                            self.loading = false
                             // Add any other properties you want to set from the account data
                         }
                         continuation.resume()
@@ -61,7 +71,6 @@ class UserModel: ObservableObject {
                     }
                 case .failure(let error):
                     continuation.resume(throwing: error)
-                    self.loading = false
                 }
             }
         }
@@ -102,5 +111,24 @@ class UserModel: ObservableObject {
                 }
             }
             .store(in: &cancellables)
+    }
+    
+    func logout() {
+        // Clear the stored values
+        storedUserId = nil
+        storedUsername = nil
+        
+        // Reset the published properties
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.userId = ""
+            self.username = ""
+            self.balance = 0
+            self.isLoading = true
+        }
+        
+        // Cancel any ongoing network requests or timers
+        cancellables.forEach { $0.cancel() }
+        cancellables.removeAll()
     }
 }

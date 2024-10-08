@@ -10,7 +10,6 @@ struct RegisterView: View {
     case .success(let user):
             print("user", user)
             userId = user.uuid
-            storedUsername = username
             isRegistered = true
         case .failure(let error):
             print("Registration failed: \(error.localizedDescription)")
