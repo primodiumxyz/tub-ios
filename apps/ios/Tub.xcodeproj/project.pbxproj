@@ -16,6 +16,8 @@
 		993E5D902CAEE423000E23A9 /* ApolloWebSocket in Frameworks */ = {isa = PBXBuildFile; productRef = 993E5D8F2CAEE423000E23A9 /* ApolloWebSocket */; };
 		993E5D932CAEF33B000E23A9 /* subscriptions.graphql in Resources */ = {isa = PBXBuildFile; fileRef = 993E5D922CAEF33B000E23A9 /* subscriptions.graphql */; };
 		993E5D942CAEF33B000E23A9 /* queries.graphql in Resources */ = {isa = PBXBuildFile; fileRef = 993E5D912CAEF33B000E23A9 /* queries.graphql */; };
+		9979D2EF2CB579CE0040DF41 /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9979D2EE2CB579CB0040DF41 /* LoadingView.swift */; };
+		9979D2F22CB57B9C0040DF41 /* FormatDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9979D2F12CB57B960040DF41 /* FormatDate.swift */; };
 		999F59562CA6F97100E7AE9F /* RemoteCoinModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999F59552CA6F96D00E7AE9F /* RemoteCoinModel.swift */; };
 		999F59582CA7107C00E7AE9F /* BuySellForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999F59572CA7107A00E7AE9F /* BuySellForm.swift */; };
 		999F595B2CA754FB00E7AE9F /* ChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999F595A2CA754F900E7AE9F /* ChartView.swift */; };
@@ -70,6 +72,8 @@
 		9936FC592CADCAB700E21B8A /* BaseCoinModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseCoinModel.swift; sourceTree = "<group>"; };
 		993E5D912CAEF33B000E23A9 /* queries.graphql */ = {isa = PBXFileReference; lastKnownFileType = text; path = queries.graphql; sourceTree = "<group>"; };
 		993E5D922CAEF33B000E23A9 /* subscriptions.graphql */ = {isa = PBXFileReference; lastKnownFileType = text; path = subscriptions.graphql; sourceTree = "<group>"; };
+		9979D2EE2CB579CB0040DF41 /* LoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingView.swift; sourceTree = "<group>"; };
+		9979D2F12CB57B960040DF41 /* FormatDate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatDate.swift; sourceTree = "<group>"; };
 		999F59552CA6F96D00E7AE9F /* RemoteCoinModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteCoinModel.swift; sourceTree = "<group>"; };
 		999F59572CA7107A00E7AE9F /* BuySellForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuySellForm.swift; sourceTree = "<group>"; };
 		999F595A2CA754F900E7AE9F /* ChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartView.swift; sourceTree = "<group>"; };
@@ -137,9 +141,18 @@
 			path = Fonts;
 			sourceTree = "<group>";
 		};
+		9979D2F02CB57B840040DF41 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				9979D2F12CB57B960040DF41 /* FormatDate.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
 		999F59522CA6F6A900E7AE9F /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				9979D2EE2CB579CB0040DF41 /* LoadingView.swift */,
 				99DDF62C2CB0280D000234DA /* AccountView.swift */,
 				99DED2522CAF2C6D0055FC60 /* RegisterView.swift */,
 				991361A02CADE3AA00E5D656 /* RemoteCoinsView.swift */,
@@ -220,6 +233,7 @@
 				DB6D29082CA1C8F80099951A /* Assets.xcassets */,
 				DB6D290A2CA1C8F80099951A /* Tub.entitlements */,
 				DB6D290B2CA1C8F80099951A /* Preview Content */,
+				9979D2F02CB57B840040DF41 /* Utils */,
 			);
 			path = Tub;
 			sourceTree = "<group>";
@@ -400,10 +414,12 @@
 				999F59582CA7107C00E7AE9F /* BuySellForm.swift in Sources */,
 				9936FC572CADCA5200E21B8A /* LocalCoinModel.swift in Sources */,
 				99DDF62D2CB02816000234DA /* AccountView.swift in Sources */,
+				9979D2EF2CB579CE0040DF41 /* LoadingView.swift in Sources */,
 				9936FC582CADCA5200E21B8A /* Structs.swift in Sources */,
 				DB458DB42CAC827A00C5EC18 /* Network.swift in Sources */,
 				DB10A9612CA5AA4600B1E4F3 /* MessageView.swift in Sources */,
 				DB675A332CA2B73D006FC9B3 /* HomeTabsView.swift in Sources */,
+				9979D2F22CB57B9C0040DF41 /* FormatDate.swift in Sources */,
 				99DED2532CAF2C6D0055FC60 /* RegisterView.swift in Sources */,
 				DF5A2FC32CAF165D00508A56 /* HistoryView.swift in Sources */,
 				DF5A2FC52CAF2DEF00508A56 /* HistoryDetailsView.swift in Sources */,

@@ -6,8 +6,76 @@
 //
 
 import SwiftUI
+import TubAPI
 
-struct HistoryView: View {
+struct HistoryView : View {
+    var userId: String
+    
+    @State private var txs: [Transaction] 
+    @State private var loading : Bool
+    
+    init(userId: String, txs: [Transaction]?) {
+        self.userId = userId
+        self._txs = State(initialValue: txs ?? [])
+        self._loading = State(initialValue: txs == nil)
+    }
+    
+    func fetchUserTxs(_ userId: String) {
+        loading = true
+        let query = GetAccountTransactionsQuery(accountId: userId)
+        
+        Network.shared.apollo.fetch(query: query) { result in
+            DispatchQueue.main.async {
+                self.loading = false
+                
+                switch result {
+                case .success(let graphQLResult):
+                    if let tokenTransactions = graphQLResult.data?.token_transaction {
+                        self.txs = tokenTransactions.reduce(into: []) { result, transaction in
+                            guard let date = formatDate(transaction.account_transaction_relationship.created_at) else {
+                                print("Date format failed, skipping ", transaction.account_transaction_relationship.created_at)
+                                return
+                            }
+                            
+                            let amount = Double(transaction.amount)
+                            let isBuy = transaction.transaction_type == "credit"
+                            let symbol = transaction.token_relationship.symbol
+                            
+                            let newTransaction = Transaction(
+                                coin: symbol,
+                                date: date,
+                                amount: amount,
+                                quantity: Int(abs(amount)),
+                                isBuy: isBuy
+                            )
+                            
+                            result.append(newTransaction)
+                        }
+                    }
+                case .failure(let error):
+                    print("Error fetching transactions: \(error)")
+                    // You might want to set an error state here to display to the user
+                }
+            }
+        }
+    }
+    
+    var body: some View {
+        Group{
+            if loading == true {
+                LoadingView()
+            } else {
+                HistoryViewContent(txs: txs)
+            }
+        }.onAppear {
+            if txs.isEmpty {
+                fetchUserTxs(userId)
+            }
+        }
+    }
+}
+
+struct HistoryViewContent: View {
     var txs: [Transaction]
     @State private var showFilters = true
     
@@ -340,7 +408,7 @@ struct TransactionRow: View {
 
 struct HistoryView_Previews: PreviewProvider {
     static var previews: some View {
-        HistoryView(txs: dummyData)
+        HistoryView(userId: "", txs: dummyData)
     }
 }
 
