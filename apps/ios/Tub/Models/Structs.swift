@@ -1,4 +1,4 @@
-import SwiftUI
+import Foundation
 
 struct Coin: Identifiable {
     let id: String
@@ -17,6 +17,6 @@ struct Transaction: Identifiable, Equatable {
     let coin: String
     let date: Date
     let amount: Double
-    let quantity: Int
+    let quantity: Double
     let isBuy: Bool
 }
