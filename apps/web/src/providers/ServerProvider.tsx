@@ -1,5 +1,6 @@
 import React, { createContext, useMemo } from "react";
 import { createClient as createServerClient } from "@tub/server";
+import { useUserStore } from "../store/userStore";
 
 export type ServerContextType = ReturnType<typeof createServerClient>;
 
@@ -12,6 +13,12 @@ export const ServerProvider: React.FC<{ children: React.ReactNode }> = ({
     return createServerClient({
       httpUrl: "http://localhost:8888/trpc",
       wsUrl: "ws://localhost:8888/trpc",
+      httpHeaders: () => {
+        const jwtToken = useUserStore.getState().jwtToken;
+        return {
+          Authorization: `Bearer ${jwtToken}`,
+        }
+      }
     });
   }, []);
 

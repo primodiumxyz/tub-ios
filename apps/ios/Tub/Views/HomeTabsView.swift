@@ -8,18 +8,29 @@
 import SwiftUI
 
 struct HomeTabsView: View {
+    var color = Color(red: 0.43, green: 0.97, blue: 0.98)
     var body: some View {
         
         TabView() {
-            CollectionView().tabItem {
-                Label("Collection", systemImage: "list.dash")
+            RemoteCoinsView().tabItem {
+                Label("Cloud", systemImage: "cloud.fill")
+            }
+            CoinView(coinModel: LocalCoinModel()).tabItem {
+                Label("Local", systemImage: "testtube.2")
+            }
+            HistoryView().tabItem {
+                Label("History", systemImage: "clock")
             }
             MessageView().tabItem {
-                Label("Message", systemImage: "list.dash")
+                Label("Notifications", systemImage: "bell.fill")
             }
-            CoinView().tabItem {
-                Label("Explore", systemImage: "house")
-            }
+            
+        }
+        .background(.black)
+        .foregroundColor(.white)
+        .accentColor(color) // Set the accent color for selected items
+        .onAppear {
+            UITabBar.appearance().unselectedItemTintColor = UIColor.white.withAlphaComponent(0.5)
         }
     }
 }
