@@ -12,7 +12,9 @@
     "src"
   ],
   "scripts": {
-    "generate": "dotenvx run -f ../../.env --quiet -- sh -c 'gql-tada generate-schema --header \"x-hasura-admin-secret:$HASURA_ADMIN_SECRET\" $GRAPHQL_URL'",
+    "generate": "pnpm generate:schema && pnpm generate:types",
+    "generate:schema": "dotenvx run -f ../../.env --quiet -- sh -c 'gql-tada generate-schema --header \"x-hasura-admin-secret:$HASURA_ADMIN_SECRET\" $GRAPHQL_URL'",
+    "generate:types": "pnpm gql-tada generate-output",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

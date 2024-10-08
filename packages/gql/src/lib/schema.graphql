@@ -13,6 +13,84 @@ directive @cached(
   refresh: Boolean! = false
 ) on QUERY
 
+type GetFilteredTokensResult {
+  created_at: timestamptz!
+  increase_pct: float8!
+  latest_price: numeric!
+  mint: String!
+  name: String!
+  symbol: String!
+  token_id: uuid!
+  trades: bigint!
+}
+
+"""
+Boolean expression to filter rows from the logical model for "GetFilteredTokensResult". All fields are combined with a logical 'AND'.
+"""
+input GetFilteredTokensResult_bool_exp_bool_exp {
+  _and: [GetFilteredTokensResult_bool_exp_bool_exp!]
+  _not: GetFilteredTokensResult_bool_exp_bool_exp
+  _or: [GetFilteredTokensResult_bool_exp_bool_exp!]
+  created_at: timestamptz_comparison_exp
+  increase_pct: float8_comparison_exp
+  latest_price: numeric_comparison_exp
+  mint: String_comparison_exp
+  name: String_comparison_exp
+  symbol: String_comparison_exp
+  token_id: uuid_comparison_exp
+  trades: bigint_comparison_exp
+}
+
+enum GetFilteredTokensResult_enum_name {
+  """column name"""
+  created_at
+
+  """column name"""
+  increase_pct
+
+  """column name"""
+  latest_price
+
+  """column name"""
+  mint
+
+  """column name"""
+  name
+
+  """column name"""
+  symbol
+
+  """column name"""
+  token_id
+
+  """column name"""
+  trades
+}
+
+"""Ordering options when selecting data from "GetFilteredTokensResult"."""
+input GetFilteredTokensResult_order_by {
+  created_at: order_by
+  increase_pct: order_by
+  latest_price: order_by
+  mint: order_by
+  name: order_by
+  symbol: order_by
+  token_id: order_by
+  trades: order_by
+}
+
+"""GetFilteredTokensNative Query Arguments"""
+input GetFilteredTokens_arguments {
+  """"""
+  min_increase_pct: float8!
+
+  """"""
+  min_trades: bigint!
+
+  """"""
+  since: timestamptz!
+}
+
 """
 Boolean expression to compare columns of type "Int". All fields are combined with logical 'AND'.
 """
@@ -1401,6 +1479,26 @@ enum order_by {
 }
 
 type query_root {
+  GetFilteredTokens(
+    """GetFilteredTokensNative Query Arguments"""
+    args: GetFilteredTokens_arguments!
+
+    """distinct select on columns"""
+    distinct_on: [GetFilteredTokensResult_enum_name!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [GetFilteredTokensResult_order_by!]
+
+    """filter the rows returned"""
+    where: GetFilteredTokensResult_bool_exp_bool_exp
+  ): [GetFilteredTokensResult!]!
+
   """
   fetch data from the table: "account"
   """
@@ -1671,6 +1769,26 @@ input sell_token_args {
 }
 
 type subscription_root {
+  GetFilteredTokens(
+    """GetFilteredTokensNative Query Arguments"""
+    args: GetFilteredTokens_arguments!
+
+    """distinct select on columns"""
+    distinct_on: [GetFilteredTokensResult_enum_name!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [GetFilteredTokensResult_order_by!]
+
+    """filter the rows returned"""
+    where: GetFilteredTokensResult_bool_exp_bool_exp
+  ): [GetFilteredTokensResult!]!
+
   """
   fetch data from the table: "account"
   """
