@@ -11,7 +11,7 @@ import Combine
 class LocalCoinModel: BaseCoinModel {
     
     required init() {
-        super.init(tokenId: "")
+        super.init(userId: "", tokenId: "")
         coin = Coin(id: "", name: "MONKEY" ,symbol: "MONK")
         balance = 1000
         generateInitialPrice()
@@ -37,25 +37,34 @@ class LocalCoinModel: BaseCoinModel {
         prices.append(newPrice)
     }
     
-    override func handleBuy(buyAmountUSD: CGFloat) -> Bool {
-        guard let currentPrice = prices.last?.price else { return false }
-        let tokenAmount = buyAmountUSD / currentPrice
-        if buyAmountUSD <= 0 || buyAmountUSD > balance {
-            return false
-        }
-        balance -= buyAmountUSD
-        coinBalance += tokenAmount
-        amountBought += buyAmountUSD
-        return true
-    }
-    
-    override func handleSell() {
-        guard let currentPrice = prices.last?.price else { return }
-        if coinBalance <= 0 {
+    override func buyTokens(buyAmount: Double, completion: ( (Bool) -> Void)? ) {
+        guard let currentPrice = prices.last?.price else {
+            completion?(false)
             return
         }
-        balance += coinBalance * currentPrice
+        
+        let tokenAmount = buyAmount / currentPrice
+        if buyAmount <= 0 || buyAmount > balance {
+            completion?(false)
+        }
+        balance -= buyAmount
+        coinBalance += tokenAmount
+        amountBought += buyAmount
+        completion?(true)
+    }
+    
+    override func sellTokens(completion: ((Bool) -> Void)?) {
+        guard let currentPrice = prices.last?.price else {
+            completion?(false)
+            return
+        }
+        
+        if coinBalance <= 0 {
+            completion?(false)
+        }
+        balance += amountBought * currentPrice
         coinBalance = 0
-        amountBought = 10
+        amountBought = 0
+        completion?(true)
     }
 }
