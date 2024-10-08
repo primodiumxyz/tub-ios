@@ -1,0 +1,79 @@
+query GetAllAccounts {
+  account {
+    id
+    username
+    created_at
+  }
+}
+
+query GetAllTokens {
+  token {
+    id
+    name
+    symbol
+    updated_at
+    supply
+    uri
+  }
+}
+
+query GetAccountBalanceCredit($accountId: uuid!) {
+  account_transaction_aggregate(where: { account: { _eq: $accountId }, transaction_type: { _eq: "credit" } }) {
+    aggregate {
+      sum {
+        amount
+      }
+    }
+  }
+}
+
+query GetAccountBalanceDebit($accountId: uuid!) {
+  account_transaction_aggregate(where: { account: { _eq: $accountId }, transaction_type: { _eq: "debit" } }) {
+    aggregate {
+      sum {
+        amount
+      }
+    }
+  }
+}
+
+query GetAccountTokenCredit($accountId: uuid!, $tokenId: uuid!) {
+  token_transaction_aggregate(
+    where: {
+      account_transaction_relationship: { account: { _eq: $accountId } }
+      token: { _eq: $tokenId }
+      transaction_type: { _eq: "credit" }
+    }
+  ) {
+    aggregate {
+      sum {
+        amount
+      }
+    }
+  }
+}
+
+query GetAccountTokenDebit($accountId: uuid!, $tokenId: uuid!) {
+  token_transaction_aggregate(
+    where: {
+      account_transaction_relationship: { account: { _eq: $accountId } }
+      token: { _eq: $tokenId }
+      transaction_type: { _eq: "debit" }
+    }
+  ) {
+    aggregate {
+      sum {
+        amount
+      }
+    }
+  }
+}
+
+query GetTokenPrice($tokenId: uuid!) {
+  token_price_history(where: { token: { _eq: $tokenId } }, order_by: { created_at: desc }, limit: 1) {
+    created_at
+    id
+    price
+    token
+  }
+}
