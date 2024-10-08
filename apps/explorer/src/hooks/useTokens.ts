@@ -12,18 +12,6 @@ export type Token = {
   platform: string;
 };
 
-// TODO(review): why is it not inferring the type?
-type pumping_tokens_result = {
-  created_at: string;
-  increase_pct: number;
-  latest_price: number;
-  mint: string;
-  name: string;
-  symbol: string;
-  token_id: string;
-  trades: number;
-}[];
-
 export const useTokens = () => {
   const { timespan, increasePct, minTrades } = useTrackerParams();
 
@@ -34,8 +22,8 @@ export const useTokens = () => {
   });
 
   const tokens = useMemo(() => {
-    if (!filteredTokensResult.data?.filtered_tokens) return [];
-    return (filteredTokensResult.data.filtered_tokens as pumping_tokens_result).map((token) => ({
+    if (!filteredTokensResult.data?.GetFilteredTokens) return [];
+    return filteredTokensResult.data.GetFilteredTokens.map((token) => ({
       mint: token.mint,
       latestPrice: token.latest_price,
       increasePct: token.increase_pct,
