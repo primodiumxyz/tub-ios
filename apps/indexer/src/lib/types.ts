@@ -19,8 +19,8 @@ export type PriceData = {
 };
 
 export type SwapAccounts = {
-  tokenX: PublicKey;
-  tokenY: PublicKey;
+  vaultA: PublicKey;
+  vaultB: PublicKey;
   platform: (typeof PLATFORMS)[number];
 };
 

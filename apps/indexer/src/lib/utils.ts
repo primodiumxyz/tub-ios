@@ -45,11 +45,11 @@ export const decodeSwapAccounts = (
       if (!program || swapAccountLabels.length === 0) return [];
 
       // For each label pair (it might be a two hop swap, so two pairs of accounts), find the corresponding token accounts
-      return swapAccountLabels.map(([tokenXLabel, tokenYLabel]) => {
-        const tokenX = ix.accounts.find((account) => account.name === tokenXLabel)?.pubkey;
-        const tokenY = ix.accounts.find((account) => account.name === tokenYLabel)?.pubkey;
-        if (!tokenX || !tokenY) return [];
-        return { tokenX, tokenY, platform: program.id };
+      return swapAccountLabels.map(([vaultALabel, vaultBLabel]) => {
+        const vaultA = ix.accounts.find((account) => account.name === vaultALabel)?.pubkey;
+        const vaultB = ix.accounts.find((account) => account.name === vaultBLabel)?.pubkey;
+        if (!vaultA || !vaultB) return [];
+        return { vaultA, vaultB, platform: program.id };
       });
     })
     .flat() as SwapAccounts[];
@@ -58,28 +58,28 @@ export const decodeSwapAccounts = (
 /* ---------------------------------- PRICE --------------------------------- */
 export const getPoolTokenPrice = async (
   connection: Connection,
-  { tokenX, tokenY, platform }: SwapAccounts,
+  { vaultA, vaultB, platform }: SwapAccounts,
 ): Promise<PriceData | undefined> => {
-  const [tokenXRes, tokenYRes] = (
-    await connection.getMultipleParsedAccounts([tokenX, tokenY], {
+  const [vaultARes, vaultBRes] = (
+    await connection.getMultipleParsedAccounts([vaultA, vaultB], {
       commitment: "confirmed",
     })
   ).value;
 
-  const tokenXData = tokenXRes?.data as ParsedAccountData | undefined;
-  const tokenYData = tokenYRes?.data as ParsedAccountData | undefined;
+  const vaultAData = vaultARes?.data as ParsedAccountData | undefined;
+  const vaultBData = vaultBRes?.data as ParsedAccountData | undefined;
 
-  const tokenXParsedInfo = tokenXData?.parsed.info;
-  const tokenYParsedInfo = tokenYData?.parsed.info;
+  const vaultAParsedInfo = vaultAData?.parsed.info;
+  const vaultBParsedInfo = vaultBData?.parsed.info;
 
   if (
-    !(tokenXParsedInfo?.mint === WRAPPED_SOL_MINT.toString()) ||
-    !tokenYParsedInfo?.mint ||
-    !tokenXParsedInfo?.tokenAmount?.uiAmount ||
-    !tokenYParsedInfo?.tokenAmount?.uiAmount
+    !(vaultAParsedInfo?.mint === WRAPPED_SOL_MINT.toString()) ||
+    !vaultBParsedInfo?.mint ||
+    !vaultAParsedInfo?.tokenAmount?.uiAmount ||
+    !vaultBParsedInfo?.tokenAmount?.uiAmount
   )
     return;
 
-  const tokenPrice = tokenXParsedInfo.tokenAmount.uiAmount / tokenYParsedInfo.tokenAmount.uiAmount;
-  return { mint: tokenYParsedInfo.mint, price: tokenPrice, platform };
+  const tokenPrice = vaultAParsedInfo.tokenAmount.uiAmount / vaultBParsedInfo.tokenAmount.uiAmount;
+  return { mint: vaultBParsedInfo.mint, price: tokenPrice, platform };
 };

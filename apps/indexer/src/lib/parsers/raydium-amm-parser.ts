@@ -24,7 +24,8 @@ const parseSwapAccounts = (accounts: AccountMeta[]): AccountMeta[] => {
   // they won't include it.
   // We can pretty safely infer that with the amount of accounts in the transaction (as of 2024-10-02)
   // - if there are 18 accounts, it's a direct Raydium transaction
-  // - if there are 17 accounts, it's a Jupited transaction or routed through another program
+  // - if there are 17 accounts, it's a Jupiter transaction or routed through another program
+  // a similar workaround is done here: https://github.com/Topledger/solana-programs/blob/main/dex-trades/src/dapps/dapp_675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8.rs
   const labels = [
     "tokenProgram",
     "amm",
