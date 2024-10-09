@@ -38,7 +38,7 @@ The server can be configured with the following environment variables (in root .
 
 # References
 
-DISCRIMINATORS HERE: https://github.com/Topledger/solana-programs/tree/main/dex-trades/src/dapps
+DISCRIMINATORS AND ACCOUNTS HERE: https://github.com/Topledger/solana-programs/tree/main/dex-trades/src/dapps
 
 1. Helius (min $499/month)
 
