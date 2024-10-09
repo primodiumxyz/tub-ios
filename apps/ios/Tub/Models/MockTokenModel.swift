@@ -25,7 +25,7 @@ class MockTokenModel: BaseTokenModel {
     }
     
     func startPriceUpdates() {
-        Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
+        Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { _ in
             self.updatePrice()
         }
     }
@@ -43,14 +43,13 @@ class MockTokenModel: BaseTokenModel {
             return
         }
         
-        let tokenAmount = buyAmountSol * currentPrice
+        let tokenAmount = buyAmountSol / currentPrice
         if buyAmountSol <= 0 || buyAmountSol > solBalance {
             completion?(false)
         }
         solBalance -= buyAmountSol
         tokenBalance += tokenAmount
-        tokensBought += tokensBought
-        print("amount bought: \(tokensBought)")
+        amountBoughtSol += buyAmountSol
         completion?(true)
     }
     
@@ -63,9 +62,10 @@ class MockTokenModel: BaseTokenModel {
         if tokenBalance <= 0 {
             completion?(false)
         }
-        solBalance += tokensBought * currentPrice
+        
+        solBalance = netWorth
         tokenBalance = 0
-        tokensBought = 0
+        amountBoughtSol = 0
         completion?(true)
     }
 }

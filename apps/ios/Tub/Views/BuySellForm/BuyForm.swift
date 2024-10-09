@@ -56,7 +56,7 @@ struct BuyForm: View {
                         
                         // Add token conversion display
                         if let currentPrice = tokenModel.prices.last?.price, currentPrice > 0 {
-                            let tokenAmount = buyAmountSol * currentPrice
+                            let tokenAmount = buyAmountSol / currentPrice
                             Text("\(tokenAmount) \(tokenModel.token.symbol)")
                                 .font(.sfRounded(size: .base, weight: .bold))
                                 .opacity(0.8)

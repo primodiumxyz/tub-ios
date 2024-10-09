@@ -8,7 +8,7 @@ class BaseTokenModel: ObservableObject {
     @Published var netWorth: Double = 0
     @Published var solBalance: Double = 0
     @Published var tokenBalance: Double = 0
-    @Published var tokensBought: Double = 0
+    @Published var amountBoughtSol: Double = 0
     @Published var prices: [Price] = [] {
         didSet {
             recalculateNetWorth()
@@ -23,6 +23,7 @@ class BaseTokenModel: ObservableObject {
     
     private func recalculateNetWorth() {
         guard let currentPrice = prices.last?.price else { return }
+        print("currentPrice: \(currentPrice), tokenBalance: \(tokenBalance), solBalance: \(solBalance)")
         netWorth = solBalance + (tokenBalance * currentPrice)
     }
 }
