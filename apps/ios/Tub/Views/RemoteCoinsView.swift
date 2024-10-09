@@ -61,7 +61,6 @@ struct RemoteCoinsView: View {
                 self.isLoading = false
                 switch result {
                 case .success(let graphQLResult):
-                    print(graphQLResult)
                     if let tokens = graphQLResult.data?.token {
                         print(tokens)
                         self.coins = tokens.map { elem in Coin(id: elem.id, name: elem.name, symbol: elem.symbol) }
