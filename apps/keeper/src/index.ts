@@ -68,7 +68,7 @@ export const _start = async () => {
 };
 
 export const start = async () => {
-  const maxAttempts = 10;
+  const maxAttempts = 20;
   const retryInterval = 5000; // 1 second
   const timeout = 5000; // 5 seconds
 
