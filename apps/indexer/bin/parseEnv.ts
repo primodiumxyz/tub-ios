@@ -1,8 +1,9 @@
 import { z, ZodError, ZodIntersection, ZodTypeAny } from "zod";
 
 const commonSchema = z.object({
+  NODE_ENV: z.enum(["local", "dev", "test", "prod"]).default("local"),
   SERVER_HOST: z.string().default("0.0.0.0"),
-  SERVER_PORT: z.coerce.number().positive().default(8080),
+  SERVER_PORT: z.coerce.number().positive().default(8888),
   HASURA_ADMIN_SECRET: z.string(),
   GRAPHQL_URL: z.string().default("https://tub-graphql.primodium.ai/v1/graphql"),
   ALCHEMY_RPC_URL: z.string().default("https://solana-mainnet.g.alchemy.com/v2/"),
