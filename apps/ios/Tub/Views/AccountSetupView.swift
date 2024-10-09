@@ -17,8 +17,8 @@ struct AccountSetupView: View {
             if userId.isEmpty {
                 RegisterView(isRegistered: $isRegistered)
             } else {
-                Text("Welcome, \(username)!")
-                // Add more account information here
+                Text("Your user id: \(userId)")
+                    .multilineTextAlignment(.center) // {{ edit_1 }}
             }
         }
         .onChange(of: isRegistered) { newValue in
@@ -28,4 +28,8 @@ struct AccountSetupView: View {
             }
         }
     }
+}
+
+#Preview {
+    AccountSetupView()
 }

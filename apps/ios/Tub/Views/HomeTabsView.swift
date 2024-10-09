@@ -25,14 +25,17 @@ struct HomeTabsView: View {
                     CoinListView().tabItem {
                         Label("Cloud", systemImage: "cloud.fill")
                     }
-                    CoinView(coinModel: LocalCoinModel()).tabItem {
-                        Label("Local", systemImage: "testtube.2")
-                    }
+
                     HistoryView().tabItem {
                         Label("History", systemImage: "clock")
                     }
+                    
                     AccountView().tabItem {
                         Label("Account", systemImage: "person")
+                    }
+                    
+                    CoinView(coinModel: LocalCoinModel()).tabItem {
+                        Label("Local", systemImage: "testtube.2")
                     }
                 }
                 .background(.black)
