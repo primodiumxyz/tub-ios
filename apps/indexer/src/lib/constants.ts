@@ -2,6 +2,7 @@ import { PublicKey } from "@solana/web3.js";
 
 // Relative imports to not conflict with constants imports in other packages
 import { MeteoraDlmmParser } from "./parsers/meteora-dlmm-parser";
+import { RaydiumCpmmMinimalParser } from "./parsers/minimal/raydium-cpmm-minimal-parser";
 import { OrcaWhirlpoolParser } from "./parsers/orca-whirlpool-parser";
 import { RaydiumAmmParser } from "./parsers/raydium-amm-parser";
 import { RaydiumClmmParser } from "./parsers/raydium-clmm-parser";
@@ -91,6 +92,21 @@ export const PROGRAMS = [
       {
         name: "swapRouterBaseIn",
         accounts: [],
+      },
+    ],
+  },
+  {
+    id: "raydium-cpmm",
+    publicKey: RaydiumCpmmMinimalParser.PROGRAM_ID,
+    parser: RaydiumCpmmMinimalParser,
+    swaps: [
+      {
+        name: "swapBaseInput",
+        accounts: [["vaultA", "vaultB"]],
+      },
+      {
+        name: "swapBaseOutput",
+        accounts: [["vaultA", "vaultB"]],
       },
     ],
   },

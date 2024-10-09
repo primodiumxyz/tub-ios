@@ -10,6 +10,7 @@ export type Program = {
     name: string;
     accounts: string[][];
   }[];
+  minimal?: boolean;
 };
 
 export type PriceData = {
