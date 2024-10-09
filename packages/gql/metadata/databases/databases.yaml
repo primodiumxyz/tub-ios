@@ -42,41 +42,11 @@
           type:
             nullable: false
             scalar: timestamptz
-      name: GetFilteredTokensResult
-      select_permissions:
-        - permission:
-            columns:
-              - token_id
-              - mint
-              - name
-              - symbol
-              - latest_price
-              - increase_pct
-              - trades
-              - created_at
-            filter: {}
-          role: public
+      name: GetFormattedTokensResult
   native_queries:
-    - arguments:
-        min_increase_pct:
-          description: ""
-          nullable: false
-          type: float8
-        min_trades:
-          description: ""
-          nullable: false
-          type: bigint
-        since:
-          description: ""
-          nullable: false
-          type: timestamptz
-      code: |-
-        SELECT *
-        FROM formatted_tokens
-        WHERE created_at >= {{since}}
-          AND increase_pct >= {{min_increase_pct}}
-          AND trades >= {{min_trades}}
-      returns: GetFilteredTokensResult
-      root_field_name: GetFilteredTokens
+    - arguments: {}
+      code: SELECT * FROM formatted_tokens
+      returns: GetFormattedTokensResult
+      root_field_name: GetFormattedTokens
   tables: "!include default/tables/tables.yaml"
   functions: "!include default/functions/functions.yaml"
