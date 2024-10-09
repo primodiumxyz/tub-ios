@@ -21,8 +21,15 @@ class UserModel: ObservableObject {
     
     private var cancellables: Set<AnyCancellable> = []
     
-    init(userId: String) {
+    init(userId: String, mock: Bool? = false) {
         self.userId = userId
+        
+        if(mock == true) {
+            self.balance = 1000
+            isLoading = false
+            return
+        }
+        
         Task {
             await fetchInitialData()
             startBalancePolling()

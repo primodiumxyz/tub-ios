@@ -1,7 +1,7 @@
 import SwiftUI
 import Foundation
 
-struct Coin: Identifiable {
+struct Token: Identifiable {
     var id: String
     var name: String
     var symbol: String
@@ -15,7 +15,7 @@ struct Price: Identifiable {
 
 struct Transaction: Identifiable, Equatable {
     let id = UUID()
-    let coin: String
+    let symbol: String
     let date: Date
     let amount: Double
     let quantity: Double

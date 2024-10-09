@@ -49,8 +49,8 @@ class MockTokenModel: BaseTokenModel {
         }
         solBalance -= buyAmountSol
         tokenBalance += tokenAmount
-        tokensBought += buyAmountSol
-        print("amount bought: \(amountBought)")
+        tokensBought += tokensBought
+        print("amount bought: \(tokensBought)")
         completion?(true)
     }
     
@@ -63,9 +63,9 @@ class MockTokenModel: BaseTokenModel {
         if tokenBalance <= 0 {
             completion?(false)
         }
-        solBalance += amountBought * currentPrice
+        solBalance += tokensBought * currentPrice
         tokenBalance = 0
-        amountBought = 0
+        tokensBought = 0
         completion?(true)
     }
 }

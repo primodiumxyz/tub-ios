@@ -22,7 +22,7 @@ struct HomeTabsView: View {
                 LoadingView()
             } else {
                 TabView() {
-                    CoinListView().tabItem {
+                    TokenListView().tabItem {
                         Label("Cloud", systemImage: "cloud.fill")
                     }
 
@@ -34,8 +34,8 @@ struct HomeTabsView: View {
                         Label("Account", systemImage: "person")
                     }
                     
-                    CoinView(coinModel: LocalCoinModel()).tabItem {
-                        Label("Local", systemImage: "testtube.2")
+                    MockTokenView().tabItem {
+                        Label("Mock", systemImage: "testtube.2")
                     }
                 }
                 .background(.black)

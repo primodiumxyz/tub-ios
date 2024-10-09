@@ -7,12 +7,12 @@
 import SwiftUI
 
 struct BuySellForm: View {
-    @ObservedObject var coinModel: BaseCoinModel
+    @ObservedObject var tokenModel: BaseTokenModel
     @State private var activeTab: String = "buy"
     @State private var sellAmount: Double = 0.0
 
     func handleBuy(amount: Double, completion: ((Bool) -> Void)?) {
-        coinModel.buyTokens(buyAmount: amount, completion: {success in
+        tokenModel.buyTokens(buyAmountSol: amount, completion: {success in
             if success {
                 activeTab = "sell"
             }
@@ -21,7 +21,7 @@ struct BuySellForm: View {
     }
     
     func handleSell(completion: ((Bool) -> Void)?) {
-        coinModel.sellTokens(completion: {success in
+        tokenModel.sellTokens(completion: {success in
             if success {
                 activeTab = "buy"
             }
@@ -32,9 +32,9 @@ struct BuySellForm: View {
     var body: some View {
         VStack {
             if activeTab == "buy" {
-                BuyForm(coinModel: coinModel, onBuy: handleBuy)
+                BuyForm(tokenModel: tokenModel, onBuy: handleBuy)
             } else {
-                SellForm(coinModel: coinModel, onSell: handleSell)
+                SellForm(tokenModel: tokenModel, onSell: handleSell)
             }
         }.frame(width: .infinity, height: 300)
     }
@@ -42,7 +42,7 @@ struct BuySellForm: View {
 
 #Preview {
     VStack {
-        BuySellForm(coinModel: LocalCoinModel())
+        BuySellForm(tokenModel: MockTokenModel())
     }.frame(maxWidth: .infinity, maxHeight: .infinity) .background(.black).foregroundColor(.white)
 }
 

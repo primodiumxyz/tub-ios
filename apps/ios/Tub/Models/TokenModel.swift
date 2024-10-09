@@ -142,7 +142,7 @@ class TokenModel: BaseTokenModel {
     }
     
     override func sellTokens(completion: ((Bool) -> Void)?) {
-        let sellAmountLamps = String(Int(self.amountBought * 1e9))
+        let sellAmountLamps = String(Int(self.tokensBought * 1e9))
         
         Network.shared.sellToken(accountId: self.userId, tokenId: self.tokenId, amount: sellAmountLamps) { result in
             switch result {

@@ -12,7 +12,6 @@ struct RegisterView: View {
             isRegistered = true
         case .failure(let error):
             print("Registration failed: \(error.localizedDescription)")
-            // Handle the error appropriately (e.g., show an alert to the user)
         }
     }
     

@@ -216,9 +216,8 @@ struct HistoryView: View {
         // Filter by search text
         if !searchText.isEmpty {
             filteredData = filteredData.filter { transaction in
-                // Remove "$" from the coin name
-                let cleanedCoin = transaction.coin.replacingOccurrences(of: "$", with: "").lowercased()
-                return cleanedCoin.hasPrefix(searchText.lowercased())
+                let cleanedSymbol = transaction.symbol.replacingOccurrences(of: "$", with: "").lowercased()
+                return cleanedSymbol.hasPrefix(searchText.lowercased())
             }
         }
         
@@ -277,7 +276,7 @@ struct TransactionRow: View {
     
     var body: some View {
         HStack {
-            Image(transaction.coin)
+            Image(transaction.symbol)
                 .resizable()
                 .frame(width: 40, height: 40)
                 .cornerRadius(8)
@@ -287,7 +286,7 @@ struct TransactionRow: View {
                     Text(transaction.isBuy ? "Buy" : "Sell")
                         .font(.system(size: 16, weight: .bold))
                         .foregroundColor(.white)
-                    Text(transaction.coin)
+                    Text(transaction.symbol)
                         .font(.system(size: 16, weight: .bold))
                         .foregroundColor(Color(red: 1.0, green: 0.9254901960784314, blue: 0.5254901960784314))
                 }
@@ -309,7 +308,7 @@ struct TransactionRow: View {
                         .foregroundColor(.gray)
                         .offset(x:4)
                     
-                    Text(transaction.coin)
+                    Text(transaction.symbol)
                         .font(.system(size: 12))
                         .foregroundColor(.gray)
                 }

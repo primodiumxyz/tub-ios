@@ -8,7 +8,7 @@ class BaseTokenModel: ObservableObject {
     @Published var netWorth: Double = 0
     @Published var solBalance: Double = 0
     @Published var tokenBalance: Double = 0
-    @Published var amountBought: Double = 0
+    @Published var tokensBought: Double = 0
     @Published var prices: [Price] = [] {
         didSet {
             recalculateNetWorth()
