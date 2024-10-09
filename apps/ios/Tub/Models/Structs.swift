@@ -1,4 +1,5 @@
 import SwiftUI
+import Foundation
 
 struct Coin: Identifiable {
     let id: String
@@ -12,3 +13,11 @@ struct Price: Identifiable {
     var price: Double
 }
 
+struct Transaction: Identifiable, Equatable {
+    let id = UUID()
+    let coin: String
+    let date: Date
+    let amount: Double
+    let quantity: Double
+    let isBuy: Bool
+}

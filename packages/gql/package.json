@@ -5,29 +5,44 @@
   "main": "index.js",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./react": "./src/react/index.ts"
+    ".": "./src/index.ts"
   },
   "files": [
     "src"
   ],
   "scripts": {
-    "generate": "dotenvx run -f ../../.env --quiet -- sh -c 'gql-tada generate-schema --header \"x-hasura-admin-secret:$HASURA_ADMIN_SECRET\" $GRAPHQL_URL'",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "./bin/start-hasura.sh",
+    "db:local:console": "dotenvx run -f .env --quiet -- sh -c 'hasura console'",
+    "db:local:seed-apply": "dotenvx run -f .env --quiet -- sh -c 'hasura seed apply --disable-interactive --database-name default'",
+    "db:remote:upgrade-v3": "dotenvx run -f .env --quiet -- sh -c 'hasura scripts update-project-v3 --endpoint \"$GRAPHQL_URL\" --admin-secret \"$HASURA_ADMIN_SECRET\"'",
+    "db:remote:migrate-init": "dotenvx run -f .env --quiet -- sh -c 'hasura migrate create init --from-server --endpoint \"$GRAPHQL_URL\" --admin-secret \"$HASURA_ADMIN_SECRET\"'",
+    "db:remote:migrate-status": "dotenvx run -f .env --quiet -- sh -c 'hasura migrate status --endpoint \"$GRAPHQL_URL\" --admin-secret \"$HASURA_ADMIN_SECRET\"'",
+    "db:remote:migrate-reset": "dotenvx run -f .env --quiet -- sh -c 'hasura migrate delete --all --endpoint \"$GRAPHQL_URL\" --admin-secret \"$HASURA_ADMIN_SECRET\"'",
+    "db:remote:remove-create-token-seed": "dotenvx run -f .env --quiet -- sh -c 'hasura seed create tokens_seed --from-table token --endpoint \"$GRAPHQL_URL\" --admin-secret \"$HASURA_ADMIN_SECRET\"'",
+    "db:remote:apply-migrations": "dotenvx run -f .env --quiet -- sh -c 'hasura migrate apply --endpoint \"$GRAPHQL_URL\" --admin-secret \"$HASURA_ADMIN_SECRET\"'",
+    "db:remote:apply-metadata": "dotenvx run -f .env --quiet -- sh -c 'hasura metadata apply --endpoint \"$GRAPHQL_URL\" --admin-secret \"$HASURA_ADMIN_SECRET\"'",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@dotenvx/dotenvx": "^1.14.1",
-    "@types/node": "^22.6.1",
     "@urql/core": "^5.0.6",
     "gql.tada": "^1.8.9",
     "graphql-ws": "^5.16.0",
     "ws": "^8.18.0"
   },
   "devDependencies": {
+    "@dotenvx/dotenvx": "^1.14.1",
+    "@types/node": "^22.7.0",
     "@types/ws": "^8.5.12",
-    "prettier": "^3.3.3"
+    "@vitest/coverage-v8": "^0.34.0",
+    "@vitest/utils": "^2.1.1",
+    "hasura-cli": "2.36.1",
+    "prettier": "^3.3.3",
+    "vite-tsconfig-paths": "^4.2.0",
+    "vitest": "0.31.4"
   }
 }

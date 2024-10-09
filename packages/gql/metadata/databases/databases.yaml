@@ -1,0 +1,82 @@
+- name: default
+  kind: postgres
+  configuration:
+    connection_info:
+      database_url:
+        from_env: PG_DATABASE_URL
+      isolation_level: read-committed
+      use_prepared_statements: false
+  customization:
+    naming_convention: hasura-default
+  logical_models:
+    - fields:
+        - name: token_id
+          type:
+            nullable: false
+            scalar: uuid
+        - name: mint
+          type:
+            nullable: false
+            scalar: text
+        - name: name
+          type:
+            nullable: false
+            scalar: varchar
+        - name: symbol
+          type:
+            nullable: false
+            scalar: varchar
+        - name: latest_price
+          type:
+            nullable: false
+            scalar: numeric
+        - name: increase_pct
+          type:
+            nullable: false
+            scalar: float8
+        - name: trades
+          type:
+            nullable: false
+            scalar: bigint
+        - name: created_at
+          type:
+            nullable: false
+            scalar: timestamptz
+      name: GetFilteredTokensResult
+      select_permissions:
+        - permission:
+            columns:
+              - token_id
+              - mint
+              - name
+              - symbol
+              - latest_price
+              - increase_pct
+              - trades
+              - created_at
+            filter: {}
+          role: public
+  native_queries:
+    - arguments:
+        min_increase_pct:
+          description: ""
+          nullable: false
+          type: float8
+        min_trades:
+          description: ""
+          nullable: false
+          type: bigint
+        since:
+          description: ""
+          nullable: false
+          type: timestamptz
+      code: |-
+        SELECT *
+        FROM formatted_tokens
+        WHERE created_at >= {{since}}
+          AND increase_pct >= {{min_increase_pct}}
+          AND trades >= {{min_trades}}
+      returns: GetFilteredTokensResult
+      root_field_name: GetFilteredTokens
+  tables: "!include default/tables/tables.yaml"
+  functions: "!include default/functions/functions.yaml"

@@ -4,11 +4,16 @@ import TubAPI
 import Combine
 
 class RemoteCoinModel: BaseCoinModel {
-    override init(tokenId: String) {
-        super.init(tokenId: tokenId)
+    
+    private var cancellables: Set<AnyCancellable> = []
+    
+    override init(userId: String, tokenId: String) {
+        super.init(userId: userId, tokenId: tokenId)
+        
         Task {
             await fetchInitialData()
             subscribeToLatestPrice()
+            startCoinBalancePolling()
         }
     }
     
@@ -85,6 +90,43 @@ class RemoteCoinModel: BaseCoinModel {
         }
     }
     
+    private func startCoinBalancePolling() {
+        Timer.publish(every: 1, on: .main, in: .common)
+            .autoconnect()
+            .sink { [weak self] _ in
+                self?.fetchCoinBalance()
+            }
+            .store(in: &cancellables)
+    }
+    
+    private func fetchCoinBalance() {
+        let creditQuery = GetAccountTokenCreditQuery(accountId: Uuid(userId), tokenId: self.tokenId)
+        let debitQuery = GetAccountTokenDebitQuery(accountId: Uuid(userId), tokenId: self.tokenId)
+        
+        let creditPublisher = Network.shared.apollo.watchPublisher(query: creditQuery)
+        let debitPublisher = Network.shared.apollo.watchPublisher(query: debitQuery)
+        
+        Publishers.CombineLatest(creditPublisher, debitPublisher)
+            .sink { completion in
+                if case let .failure(error) = completion {
+                    print("Error fetching balance: \(error)")
+                }
+            } receiveValue: { [weak self] creditResult, debitResult in
+                switch (creditResult, debitResult) {
+                case (.success(let creditData), .success(let debitData)):
+                    let creditAmount = creditData.data?.token_transaction_aggregate.aggregate?.sum?.amount ?? 0
+                    let debitAmount = debitData.data?.token_transaction_aggregate.aggregate?.sum?.amount ?? 0
+                    let balance = Double(creditAmount - debitAmount) / 1e9
+                    DispatchQueue.main.async {
+                        self?.coinBalance = balance
+                    }
+                case (.failure(let error), _), (_, .failure(let error)):
+                    print("Error fetching balance: \(error)")
+                }
+            }
+            .store(in: &cancellables)
+    }
+    
     private func formatDate(_ dateString: String) -> Date? {
         let pattern = #"(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})\.(\d{6})"#
         
@@ -102,16 +144,35 @@ class RemoteCoinModel: BaseCoinModel {
         return iso8601Formatter.date(from: datePart + "." + millisPart + "Z")
     }
 
-    override func handleBuy(buyAmountUSD: CGFloat) -> Bool {
-        // Implement buy logic
-        return false
+    override func buyTokens(buyAmount: Double, completion: ((Bool) -> Void)?) {
+        print("in handleBuy")
+        let buyAmountLamps = String(Int(buyAmount * 1e9))
+        
+        Network.shared.buyToken(accountId: self.userId, tokenId: self.tokenId, amount: buyAmountLamps) { result in
+            switch result {
+            case .success:
+                print("success")
+                completion?(true)
+            case .failure(let error):
+                print("failure", error.localizedDescription)
+                completion?(false)
+            }
+        }
     }
     
-    override func handleSell() {
-        // Implement sell logic
+    override func sellTokens(completion: ((Bool) -> Void)?) {
+        let sellAmountLamps = String(Int(self.amountBought * 1e9))
+        
+        Network.shared.sellToken(accountId: self.userId, tokenId: self.tokenId, amount: sellAmountLamps) { result in
+            switch result {
+            case .success:
+                print("success")
+                completion?(true)
+            case .failure(let error):
+                print("failure", error)
+                completion?(false)
+            }
+        }
     }
 }
 
-extension RemoteCoinModel {
-   
-}

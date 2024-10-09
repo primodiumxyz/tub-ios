@@ -49,7 +49,7 @@ export const start = async () => {
     if (!process.env.GRAPHQL_URL) {
       throw new Error("GRAPHQL_URL is not set");
     }
-    const gqlClient = (await createGqlClient({ url: env.GRAPHQL_URL, hasuraAdminSecret: env.HASURA_ADMIN_SECRET })).db;
+    const gqlClient = (await createGqlClient({ url: env.NODE_ENV !== "prod" ? "http://localhost:8080/v1/graphql" : env.GRAPHQL_URL, hasuraAdminSecret: env.NODE_ENV !== "prod" ? "password" : env.HASURA_ADMIN_SECRET })).db;
     const tubService = new TubService(core, gqlClient);
 
     // @see https://trpc.io/docs/server/adapters/fastify
