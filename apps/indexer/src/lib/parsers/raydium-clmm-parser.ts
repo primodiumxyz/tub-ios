@@ -1,4 +1,5 @@
 import { Idl, utils } from "@coral-xyz/anchor";
+import { hash } from "@coral-xyz/anchor/dist/cjs/utils/sha256";
 import { ParsedInstruction } from "@shyft-to/solana-transaction-parser";
 import { struct, u8 } from "@solana/buffer-layout";
 // @ts-expect-error buffer-layout-utils is not typed
@@ -27,12 +28,14 @@ type SwapRouterBaseInArgs = {
 };
 const SwapRouterBaseInArgsLayout = struct<SwapRouterBaseInArgs>([u64("amountIn"), u64("amountOutMinimum")]);
 
-export class RaydiumClammParser {
+export class RaydiumClmmParser {
   static PROGRAM_ID = new PublicKey("CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK");
 
   // @ts-expect-error: type difference @coral-xyz/anchor -> @project-serum/anchor
   parseInstruction(instruction: TransactionInstruction): ParsedInstruction<Idl, string> {
     const instructionData = instruction.data;
+    // TODO: This doesn't make sense as the decoded type is not the index in the IDL; seems like the discriminator is encoded a different way;
+    // how can we get from instruction name -> discriminator in this case? (or the opposite)
     const instructionType = u8().decode(instructionData);
 
     // 0: createAmmConfig
@@ -40,32 +43,34 @@ export class RaydiumClammParser {
     // 2: createPool
     // 3: updatePoolStatus
     // 4: createOperationAccount
-    // 5: transferRewardOwner
-    // 6: initializeReward
-    // 7: collectRemainingRewards
-    // 8: updateRewardInfos
-    // 9: setRewardsParams
-    // 10: collectProtocolFee
-    // 11: collectFundFee
-    // 12: openPosition
-    // 13: openPositionV2
-    // 14: closePosition
-    // 15: increaseLiquidity
-    // 16: increaseLiquidityV2
-    // 17: decreaseLiquidity
-    // 18: decreaseLiquidityV2
-    // 19: swap
-    // 20: swapV2
-    // 21: swapRouterBaseIn
+    // 5: updateOperationAccount
+    // 6: transferRewardOwner
+    // 7: initializeReward
+    // 8: collectRemainingRewards
+    // 9: updateRewardInfos
+    // 10: setRewardsParams
+    // 11: collectProtocolFee
+    // 12: collectFundFee
+    // 13: openPosition
+    // 14: openPositionV2
+    // 15: closePosition
+    // 16: increaseLiquidity
+    // 17: increaseLiquidityV2
+    // 18: decreaseLiquidity
+    // 19: decreaseLiquidityV2
+    // 20: swap (=> 248)
+    // 21: swapV2 (=> 43)
+    // 22: swapRouterBaseIn
 
     switch (instructionType) {
-      case 19: {
+      case 248: {
         return this.parseSwapIx(instruction);
       }
-      case 20: {
+      case 43: {
         return this.parseSwapV2Ix(instruction);
       }
-      case 21: {
+      // TODO: find out which number this one is
+      case 22: {
         return this.parseSwapRouterBaseInIx(instruction);
       }
       // we're not interested in any other instructions

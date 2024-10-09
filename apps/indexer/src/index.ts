@@ -6,10 +6,9 @@ import { WebSocket } from "ws";
 import { createClient as createGqlClient, GqlClient } from "@tub/gql";
 import { parseEnv } from "@bin/parseEnv";
 import { PRICE_DATA_BATCH_SIZE, PRICE_PRECISION } from "@/lib/constants";
-import { decodeSwapAccounts } from "@/lib/decoders";
 import { connection, ixParser } from "@/lib/setup";
 import { PriceData } from "@/lib/types";
-import { filterLogs, getPoolTokenPrice } from "@/lib/utils";
+import { decodeSwapAccounts, filterLogs, getPoolTokenPrice } from "@/lib/utils";
 
 config({ path: "../../.env" });
 
@@ -26,7 +25,7 @@ const processLogs = async ({ err, signature }: Logs): Promise<(PriceData | undef
   if (!tx || tx.meta?.err) return [];
   // Parse the transaction and retrieve the swapped token accounts
   const parsedIxs = ixParser.parseTransactionWithInnerInstructions(tx);
-  const swapAccountsArray = decodeSwapAccounts(tx, parsedIxs);
+  const swapAccountsArray = decodeSwapAccounts(parsedIxs);
   if (swapAccountsArray.length === 0) return [];
 
   return await Promise.all(swapAccountsArray.map((swapAccounts) => getPoolTokenPrice(swapAccounts)));

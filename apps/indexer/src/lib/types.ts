@@ -2,6 +2,16 @@ import { PublicKey } from "@solana/web3.js";
 
 import { PLATFORMS } from "@/lib/constants";
 
+export type Program = {
+  id: string;
+  publicKey: PublicKey;
+  parser: any;
+  swaps: {
+    name: string;
+    accounts: string[][];
+  }[];
+};
+
 export type PriceData = {
   mint: string;
   price: number;

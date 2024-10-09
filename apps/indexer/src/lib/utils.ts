@@ -1,6 +1,8 @@
+import { Idl } from "@coral-xyz/anchor";
+import { ParsedInstruction } from "@shyft-to/solana-transaction-parser";
 import { GetVersionedBlockConfig } from "@solana/web3.js";
 
-import { LOG_FILTERS, WRAPPED_SOL_MINT } from "@/lib/constants";
+import { LOG_FILTERS, PROGRAMS, WRAPPED_SOL_MINT } from "@/lib/constants";
 import { connection } from "@/lib/setup";
 import { ParsedAccountData, PriceData, SwapAccounts } from "@/lib/types";
 
@@ -18,6 +20,43 @@ export const getVersionedBlockConfig: GetVersionedBlockConfig = {
   transactionDetails: "full",
 };
 
+/* --------------------------------- DECODER -------------------------------- */
+export const decodeSwapAccounts = (
+  // @ts-expect-error: type difference @coral-xyz/anchor -> @project-serum/anchor
+  parsedIxs: ParsedInstruction<Idl, string>[],
+): SwapAccounts[] => {
+  // Filter out the instructions that are not related to the exchanges
+  const programIxs = parsedIxs.filter((ix) =>
+    PROGRAMS.some(
+      (program) => program.publicKey.toString() === ix.programId.toString(),
+      // program.swaps.some((swap) => swap.name.toLowerCase() === ix.name.toLowerCase()),
+    ),
+  );
+  if (programIxs.length === 0) return [];
+  // console.log(programIxs.map((ix) => ix.name));
+
+  // For each instruction
+  return programIxs
+    .map((ix) => {
+      // find the program object
+      const program = PROGRAMS.find((program) => program.publicKey.toString() === ix.programId.toString());
+      // find the label pairs of the swapped tokens accounts
+      const swapAccountLabels =
+        program?.swaps.find((swap) => swap.name.toLowerCase() === ix.name.toLowerCase())?.accounts ?? [];
+      if (!program || swapAccountLabels.length === 0) return [];
+
+      // For each label pair (it might be a two hop swap, so two pairs of accounts), find the corresponding token accounts
+      return swapAccountLabels.map(([tokenXLabel, tokenYLabel]) => {
+        const tokenX = ix.accounts.find((account) => account.name === tokenXLabel)?.pubkey;
+        const tokenY = ix.accounts.find((account) => account.name === tokenYLabel)?.pubkey;
+        if (!tokenX || !tokenY) return [];
+        return { tokenX, tokenY, platform: program.id };
+      });
+    })
+    .flat() as SwapAccounts[];
+};
+
+/* ---------------------------------- PRICE --------------------------------- */
 export const getPoolTokenPrice = async ({ tokenX, tokenY, platform }: SwapAccounts): Promise<PriceData | undefined> => {
   const [tokenXRes, tokenYRes] = (
     await connection.getMultipleParsedAccounts([tokenX, tokenY], {
