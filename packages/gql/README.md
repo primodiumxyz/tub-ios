@@ -81,6 +81,8 @@ subscription.subscribe({
 2. Set up the Hasura backend:
    ```bash
    pnpm run dev
+   # or from the root of the monorepo
+   pnpm run dev:gql
    ```
 
 ### Making Changes
