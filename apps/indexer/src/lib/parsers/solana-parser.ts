@@ -1655,10 +1655,8 @@ export class SolanaParser {
         const decoder = this.instructionDecoders.get(instruction.programId.toBase58()) as BorshInstructionCoder;
 
         // @ts-expect-error: type difference @coral-xyz/anchor -> @project-serum/anchor
-        const parsed = parser(instruction, decoder);
-        return parsed;
+        return parser(instruction, decoder);
       } catch (error) {
-        // eslint-disable-next-line no-console
         console.error("Parser does not match the instruction args", {
           programId: instruction.programId.toBase58(),
           instructionData: instruction.data.toString("hex"),

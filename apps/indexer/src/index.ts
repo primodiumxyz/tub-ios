@@ -28,7 +28,7 @@ const processLogs = async ({ err, signature }: Logs): Promise<(PriceData | undef
   const swapAccountsArray = decodeSwapAccounts(parsedIxs);
   if (swapAccountsArray.length === 0) return [];
 
-  return await Promise.all(swapAccountsArray.map((swapAccounts) => getPoolTokenPrice(swapAccounts)));
+  return await Promise.all(swapAccountsArray.map((swapAccounts) => getPoolTokenPrice(connection, swapAccounts)));
 };
 
 /* ------------------------------- HANDLE DATA ------------------------------ */

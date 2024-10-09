@@ -1,5 +1,3 @@
-import * as gqlTada from "gql.tada";
-
 /* eslint-disable */
 /* prettier-ignore */
 
@@ -235,14 +233,16 @@ export type introspection_types = {
  */
 export type introspection = {
   name: never;
-  query: "query_root";
-  mutation: "mutation_root";
-  subscription: "subscription_root";
+  query: 'query_root';
+  mutation: 'mutation_root';
+  subscription: 'subscription_root';
   types: introspection_types;
 };
 
-declare module "gql.tada" {
+import * as gqlTada from 'gql.tada';
+
+declare module 'gql.tada' {
   interface setupSchema {
-    introspection: introspection;
+    introspection: introspection
   }
 }

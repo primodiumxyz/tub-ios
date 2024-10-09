@@ -1,9 +1,8 @@
 import { Idl } from "@coral-xyz/anchor";
 import { ParsedInstruction } from "@shyft-to/solana-transaction-parser";
-import { GetVersionedBlockConfig } from "@solana/web3.js";
+import { Connection, GetVersionedBlockConfig } from "@solana/web3.js";
 
 import { LOG_FILTERS, PROGRAMS, WRAPPED_SOL_MINT } from "@/lib/constants";
-import { connection } from "@/lib/setup";
 import { ParsedAccountData, PriceData, SwapAccounts } from "@/lib/types";
 
 export const filterLogs = (logs: string[]) => {
@@ -28,12 +27,12 @@ export const decodeSwapAccounts = (
   // Filter out the instructions that are not related to the exchanges
   const programIxs = parsedIxs.filter((ix) =>
     PROGRAMS.some(
-      (program) => program.publicKey.toString() === ix.programId.toString(),
-      // program.swaps.some((swap) => swap.name.toLowerCase() === ix.name.toLowerCase()),
+      (program) =>
+        program.publicKey.toString() === ix.programId.toString() &&
+        program.swaps.some((swap) => swap.name.toLowerCase() === ix.name.toLowerCase()),
     ),
   );
   if (programIxs.length === 0) return [];
-  // console.log(programIxs.map((ix) => ix.name));
 
   // For each instruction
   return programIxs
@@ -57,7 +56,10 @@ export const decodeSwapAccounts = (
 };
 
 /* ---------------------------------- PRICE --------------------------------- */
-export const getPoolTokenPrice = async ({ tokenX, tokenY, platform }: SwapAccounts): Promise<PriceData | undefined> => {
+export const getPoolTokenPrice = async (
+  connection: Connection,
+  { tokenX, tokenY, platform }: SwapAccounts,
+): Promise<PriceData | undefined> => {
   const [tokenXRes, tokenYRes] = (
     await connection.getMultipleParsedAccounts([tokenX, tokenY], {
       commitment: "confirmed",

@@ -52,28 +52,28 @@ export const PROGRAMS = [
         name: "swapV2",
         accounts: [["tokenVaultA", "tokenVaultB"]],
       },
-      // TODO: add twoHopSwapV2
+      // TODO: add twoHopSwapV2 if there are some accounts we can use
       {
         name: "twoHopSwapV2",
         accounts: [],
       },
     ],
   },
-  // {
-  //   id: "raydium-lp-v4",
-  //   publicKey: RaydiumAmmParser.PROGRAM_ID,
-  //   parser: RaydiumAmmParser,
-  //   swaps: [
-  //     {
-  //       name: "swapBaseIn",
-  //       accounts: [["poolCoinTokenAccount", "poolPcTokenAccount"]],
-  //     },
-  //     {
-  //       name: "swapBaseOut",
-  //       accounts: [["poolCoinTokenAccount", "poolPcTokenAccount"]],
-  //     },
-  //   ],
-  // },
+  {
+    id: "raydium-lp-v4",
+    publicKey: RaydiumAmmParser.PROGRAM_ID,
+    parser: RaydiumAmmParser,
+    swaps: [
+      {
+        name: "swapBaseIn",
+        accounts: [["poolCoinTokenAccount", "poolPcTokenAccount"]],
+      },
+      {
+        name: "swapBaseOut",
+        accounts: [["poolCoinTokenAccount", "poolPcTokenAccount"]],
+      },
+    ],
+  },
   {
     id: "raydium-clmm",
     publicKey: RaydiumClmmParser.PROGRAM_ID,

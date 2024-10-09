@@ -28,50 +28,25 @@ type SwapRouterBaseInArgs = {
 };
 const SwapRouterBaseInArgsLayout = struct<SwapRouterBaseInArgs>([u64("amountIn"), u64("amountOutMinimum")]);
 
+// TODO(discriminator): swapRouterBaseIn
 export class RaydiumClmmParser {
   static PROGRAM_ID = new PublicKey("CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK");
+  static DISCRIMINATORS = {
+    swap: 248,
+    swapV2: 43,
+  };
 
   // @ts-expect-error: type difference @coral-xyz/anchor -> @project-serum/anchor
   parseInstruction(instruction: TransactionInstruction): ParsedInstruction<Idl, string> {
     const instructionData = instruction.data;
-    // TODO: This doesn't make sense as the decoded type is not the index in the IDL; seems like the discriminator is encoded a different way;
-    // how can we get from instruction name -> discriminator in this case? (or the opposite)
-    const instructionType = u8().decode(instructionData);
+    const discriminator = u8().decode(instructionData);
 
-    // 0: createAmmConfig
-    // 1: updateAmmConfig
-    // 2: createPool
-    // 3: updatePoolStatus
-    // 4: createOperationAccount
-    // 5: updateOperationAccount
-    // 6: transferRewardOwner
-    // 7: initializeReward
-    // 8: collectRemainingRewards
-    // 9: updateRewardInfos
-    // 10: setRewardsParams
-    // 11: collectProtocolFee
-    // 12: collectFundFee
-    // 13: openPosition
-    // 14: openPositionV2
-    // 15: closePosition
-    // 16: increaseLiquidity
-    // 17: increaseLiquidityV2
-    // 18: decreaseLiquidity
-    // 19: decreaseLiquidityV2
-    // 20: swap (=> 248)
-    // 21: swapV2 (=> 43)
-    // 22: swapRouterBaseIn
-
-    switch (instructionType) {
-      case 248: {
+    switch (discriminator) {
+      case RaydiumClmmParser.DISCRIMINATORS.swap: {
         return this.parseSwapIx(instruction);
       }
-      case 43: {
+      case RaydiumClmmParser.DISCRIMINATORS.swapV2: {
         return this.parseSwapV2Ix(instruction);
-      }
-      // TODO: find out which number this one is
-      case 22: {
-        return this.parseSwapRouterBaseInIx(instruction);
       }
       // we're not interested in any other instructions
       default:
