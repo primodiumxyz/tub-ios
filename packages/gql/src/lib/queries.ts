@@ -10,15 +10,24 @@ export const GetAllAccountsQuery = graphql(`
   }
 `);
 
-export const GetAllTokensQuery = graphql(`
+export const GetAllMockTokensQuery = graphql(`
   query GetAllTokens {
-    token {
+    token(where: { mint: { _is_null: true } }) {
       id
       name
       symbol
       updated_at
       supply
       uri
+    }
+  }
+`);
+
+export const GetTokensByMintsQuery = graphql(`
+  query GetTokensByMints($mints: [String!]!) {
+    token(where: { mint: { _in: $mints } }) {
+      id
+      mint
     }
   }
 `);
