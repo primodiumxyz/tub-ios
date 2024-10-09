@@ -36,12 +36,12 @@ public class GetAllAccountsQuery: GraphQLQuery {
         .field("__typename", String.self),
         .field("id", TubAPI.Uuid.self),
         .field("username", String.self),
-        .field("created_at", TubAPI.Timestamp.self),
+        .field("created_at", TubAPI.Timestamptz.self),
       ] }
 
       public var id: TubAPI.Uuid { __data["id"] }
       public var username: String { __data["username"] }
-      public var created_at: TubAPI.Timestamp { __data["created_at"] }
+      public var created_at: TubAPI.Timestamptz { __data["created_at"] }
     }
   }
 }

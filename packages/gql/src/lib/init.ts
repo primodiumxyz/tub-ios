@@ -9,6 +9,7 @@ export const graphql = initGraphQLTada<{
     bigint: bigint;
     numeric: string;
     timestamp: Date;
+    timestamptz: Date;
   };
 }>();
 

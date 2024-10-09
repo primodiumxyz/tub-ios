@@ -67,7 +67,7 @@ class TokenModel: BaseTokenModel {
                 case .success(let graphQLResult):
                     if let history = graphQLResult.data?.token_price_history.first {
 
-                        if let date = self.formatDate(history.created_at) {
+                        if let date = formatDate(history.created_at) {
                             let newPrice = Price(timestamp: date, price: Double(history.price) / 1e9)
                             self.prices.append(newPrice)
                         } else {
@@ -118,18 +118,8 @@ class TokenModel: BaseTokenModel {
             .store(in: &cancellables)
     }
     
-    private lazy var iso8601Formatter: ISO8601DateFormatter = {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return formatter
-    }()
-    
-    private func formatDate(_ dateString: String) -> Date? {
-        return iso8601Formatter.date(from: dateString)
-    }
-
-    override func buyTokens(buyAmountSol: Double, completion: ((Bool) -> Void)?) {
-        let buyAmountLamps = String(Int(buyAmountSol * 1e9))
+    override func buyTokens(buyAmount: Double, completion: ((Bool) -> Void)?) {
+        let buyAmountLamps = String(Int(buyAmount * 1e9))
         
         Network.shared.buyToken(accountId: self.userId, tokenId: self.tokenId, amount: buyAmountLamps) { result in
             switch result {

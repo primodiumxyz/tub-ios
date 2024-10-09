@@ -1,4 +1,3 @@
-import SwiftUI
 import Foundation
 
 struct Token: Identifiable {
@@ -15,9 +14,11 @@ struct Price: Identifiable {
 
 struct Transaction: Identifiable, Equatable {
     let id = UUID()
+    let name: String
     let symbol: String
+    let imageUri: String
     let date: Date
-    let amount: Double
+    let value: Double
     let quantity: Double
     let isBuy: Bool
 }

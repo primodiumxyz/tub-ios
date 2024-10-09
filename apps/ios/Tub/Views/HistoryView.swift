@@ -6,8 +6,125 @@
 //
 
 import SwiftUI
+import TubAPI
 
-struct HistoryView: View {
+struct HistoryView : View {
+    var userId: String
+    
+    @State private var txs: [Transaction] 
+    @State private var loading : Bool
+    @State private var error: Error? // Add this line
+    
+    init(userId: String, txs: [Transaction]? = []) {
+        self.userId = userId
+        self._txs = State(initialValue: txs!.isEmpty ? [] : txs!)
+        self._loading = State(initialValue: txs == nil)
+        self._error = State(initialValue: nil) // Add this line
+    }
+    
+    func fetchUserTxs(_ userId: String) {
+        loading = true
+        error = nil // Reset error state
+        let query = GetAccountTransactionsQuery(accountId: userId)
+        
+        Network.shared.apollo.fetch(query: query) { result in
+            DispatchQueue.main.async {
+                self.loading = false
+                
+                switch result {
+                case .success(let graphQLResult):
+                    if let tokenTransactions = graphQLResult.data?.token_transaction {
+                        self.txs = tokenTransactions.reduce(into: []) { result, transaction in
+                            guard let date = formatDate(transaction.account_transaction_data.created_at) else {
+                                print("Date format failed, skipping ", transaction.account_transaction_data.created_at)
+                                return
+                            }
+                            
+                            let quantity = Double(transaction.amount) / 1e9
+                            let isBuy = transaction.transaction_type == "credit"
+                            let symbol = transaction.token_data.symbol
+                            let name = transaction.token_data.name
+                            let imageUri = transaction.token_data.uri ?? ""
+                            let price = transaction.token_price?.price ?? 0
+                            let value = Double(price * transaction.amount) / 1e9
+                            
+                            let newTransaction = Transaction(
+                                name: name,
+                                symbol: symbol,
+                                imageUri: imageUri,
+                                date: date,
+                                value: value,
+                                quantity: quantity,
+                                isBuy: isBuy
+                            )
+                            
+                            result.append(newTransaction)
+                        }
+                    } else {
+                        self.error = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "No transaction data found"])
+                    }
+                case .failure(let error):
+                    print("Error fetching transactions: \(error)")
+                    self.error = error
+                }
+            }
+        }
+    }
+    
+    var body: some View {
+        Group {
+            if loading == true {
+                LoadingView()
+            } else if let error = error {
+                ErrorView(error: error, retryAction: { fetchUserTxs(userId) })
+            } else {
+                HistoryViewContent(txs: txs)
+            }
+        }.onAppear {
+            if txs.isEmpty {
+                fetchUserTxs(userId)
+            }
+        }
+    }
+}
+
+// Add this new view
+struct ErrorView: View {
+    let error: Error
+    let retryAction: () -> Void
+    
+    var body: some View {
+        VStack {
+            Image(systemName: "exclamationmark.triangle")
+                .font(.system(size: 50))
+                .foregroundColor(.yellow)
+                .padding()
+            
+            Text("Oops! Something went wrong")
+                .font(.title)
+                .multilineTextAlignment(.center)
+            
+            Text(error.localizedDescription)
+                .font(.body)
+                .multilineTextAlignment(.center)
+                .padding()
+            
+            Button(action: retryAction) {
+                Text("Try Again")
+                    .foregroundColor(.white)
+                    .padding()
+                    .background(Color.blue)
+                    .cornerRadius(10)
+            }
+        }
+        .padding()
+        .background(Color.black)
+        .foregroundColor(.white)
+    }
+}
+
+struct HistoryViewContent: View {
+    var txs: [Transaction]
     @State private var showFilters = true
     
     // Filter state
@@ -164,7 +281,7 @@ struct HistoryView: View {
                                     .padding(.bottom, 2.0)
                                     .padding(.leading, 10.0)
                                 
-                                if transaction != dummyData.last  {
+                                if transaction != txs.last  {
                                     Divider()
                                         .frame(width: 340.0, height: 1.0)
                                         .background(Color(hue: 1.0, saturation: 0.0, brightness: 0.153))
@@ -211,7 +328,7 @@ struct HistoryView: View {
     
     // Helper function to filter transactions
     func filteredTransactions() -> [Transaction] {
-        var filteredData = dummyData
+        var filteredData = txs
                 
         // Filter by search text
         if !searchText.isEmpty {
@@ -259,9 +376,9 @@ struct HistoryView: View {
         if selectedAmountRange != "All" {
             switch selectedAmountRange {
             case "< $100":
-                filteredData = filteredData.filter { abs($0.amount) < 100 }
+                filteredData = filteredData.filter { abs($0.value) < 100 }
             case "> $100":
-                filteredData = filteredData.filter { abs($0.amount) > 100 }
+                filteredData = filteredData.filter { abs($0.value) > 100 }
             default:
                 break
             }
@@ -276,7 +393,7 @@ struct TransactionRow: View {
     
     var body: some View {
         HStack {
-            Image(transaction.symbol)
+            Image(transaction.imageUri)
                 .resizable()
                 .frame(width: 40, height: 40)
                 .cornerRadius(8)
@@ -286,7 +403,7 @@ struct TransactionRow: View {
                     Text(transaction.isBuy ? "Buy" : "Sell")
                         .font(.system(size: 16, weight: .bold))
                         .foregroundColor(.white)
-                    Text(transaction.symbol)
+                    Text(transaction.name)
                         .font(.system(size: 16, weight: .bold))
                         .foregroundColor(Color(red: 1.0, green: 0.9254901960784314, blue: 0.5254901960784314))
                 }
@@ -298,7 +415,7 @@ struct TransactionRow: View {
             }
             Spacer()
             VStack(alignment: .trailing) {
-                Text(formatAmount(transaction.amount))
+                Text(formatAmount(transaction.value))
                     .font(.system(size: 16, weight: .bold))
                     .foregroundColor(transaction.isBuy ? .red : .green)
                 
@@ -338,7 +455,7 @@ struct TransactionRow: View {
 
 struct HistoryView_Previews: PreviewProvider {
     static var previews: some View {
-        HistoryView()
+        HistoryView(userId: "", txs: dummyData)
     }
 }
 

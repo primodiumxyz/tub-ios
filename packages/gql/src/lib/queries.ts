@@ -10,15 +10,24 @@ export const GetAllAccountsQuery = graphql(`
   }
 `);
 
-export const GetAllTokensQuery = graphql(`
+export const GetAllMockTokensQuery = graphql(`
   query GetAllTokens {
-    token {
+    token(where: { mint: { _is_null: true } }) {
       id
       name
       symbol
       updated_at
       supply
       uri
+    }
+  }
+`);
+
+export const GetTokensByMintsQuery = graphql(`
+  query GetTokensByMints($mints: [String!]!) {
+    token(where: { mint: { _in: $mints } }) {
+      id
+      mint
     }
   }
 `);
@@ -51,7 +60,7 @@ export const GetAccountTokenCreditQuery = graphql(`
   query GetAccountTokenTransactions($accountId: uuid!, $tokenId: uuid!) {
     token_transaction_aggregate(
       where: {
-        account_transaction_relationship: { account: { _eq: $accountId } }
+        account_transaction_data: { account: { _eq: $accountId } }
         token: { _eq: $tokenId }
         transaction_type: { _eq: "credit" }
       }
@@ -69,7 +78,7 @@ export const GetAccountTokenDebitQuery = graphql(`
   query GetAccountTokenTransactions($accountId: uuid!, $tokenId: uuid!) {
     token_transaction_aggregate(
       where: {
-        account_transaction_relationship: { account: { _eq: $accountId } }
+        account_transaction_data: { account: { _eq: $accountId } }
         token: { _eq: $tokenId }
         transaction_type: { _eq: "debit" }
       }
@@ -94,8 +103,34 @@ export const GetLatestTokenPriceQuery = graphql(`
   }
 `);
 
+export const GetAccountTransactionsQuery = graphql(`
+  query GetAccountTransactions($accountId: uuid!) {
+    token_transaction(order_by: {account_transaction_data: {created_at: desc}}, where: {account_transaction_data: {account_data: {id: {_eq: $accountId}}}}) {
+      account_transaction
+      amount
+      id
+      token
+      token_data {
+        id
+        name
+        supply
+        symbol
+        uri
+      }
+      transaction_type
+      account_transaction_data {
+        created_at
+      }
+      token_price {
+        price
+        created_at
+      }
+    }
+  }
+`);
+
 export const GetTokenPriceHistorySinceQuery = graphql(`
-  query GetTokenPriceHistorySince($tokenId: uuid!, $since: timestamp!) {
+  query GetTokenPriceHistorySince($tokenId: uuid!, $since: timestamptz!) {
     token_price_history(where: { token: { _eq: $tokenId }, created_at: { _gte: $since } }) {
       created_at
       id

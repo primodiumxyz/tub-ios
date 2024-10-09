@@ -139,10 +139,19 @@
 			path = Fonts;
 			sourceTree = "<group>";
 		};
+		9979D2F02CB57B840040DF41 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				9979D2F12CB57B960040DF41 /* FormatDate.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
 		999F59522CA6F6A900E7AE9F /* Views */ = {
 			isa = PBXGroup;
 			children = (
 				990B90F12CB5B40C00B5B073 /* AccountSetupView.swift */,
+				9979D2EE2CB579CB0040DF41 /* LoadingView.swift */,
 				99DDF62E2CB0333D000234DA /* BuySellForm */,
 				99DDF62C2CB0280D000234DA /* AccountView.swift */,
 				99DED2522CAF2C6D0055FC60 /* RegisterView.swift */,
@@ -163,6 +172,7 @@
 		999F59532CA6F70C00E7AE9F /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				DFA36D552CB4278C00F63D2D /* DummyData.swift */,
 				99DED24D2CAF28BD0055FC60 /* UserModel.swift */,
 				999F59552CA6F96D00E7AE9F /* TokenModel.swift */,
 				9936FC552CADCA5200E21B8A /* MockTokenModel.swift */,
@@ -215,6 +225,7 @@
 			isa = PBXGroup;
 			children = (
 				DB458DB32CAC827A00C5EC18 /* Network.swift */,
+				9936FC562CADCA5200E21B8A /* Structs.swift */,
 				9910F1B42CAAE2F0005DEE6B /* Fonts */,
 				999F59532CA6F70C00E7AE9F /* Models */,
 				999F59522CA6F6A900E7AE9F /* Views */,
@@ -222,6 +233,7 @@
 				DB6D29082CA1C8F80099951A /* Assets.xcassets */,
 				DB6D290A2CA1C8F80099951A /* Tub.entitlements */,
 				DB6D290B2CA1C8F80099951A /* Preview Content */,
+				9979D2F02CB57B840040DF41 /* Utils */,
 			);
 			path = Tub;
 			sourceTree = "<group>";
@@ -405,12 +417,14 @@
 				990B90F22CB5B41000B5B073 /* AccountSetupView.swift in Sources */,
 				9936FC572CADCA5200E21B8A /* MockTokenModel.swift in Sources */,
 				99DDF62D2CB02816000234DA /* AccountView.swift in Sources */,
+				9979D2EF2CB579CE0040DF41 /* LoadingView.swift in Sources */,
 				9936FC582CADCA5200E21B8A /* Structs.swift in Sources */,
 				DB458DB42CAC827A00C5EC18 /* Network.swift in Sources */,
 				DB675A332CA2B73D006FC9B3 /* HomeTabsView.swift in Sources */,
+				9979D2F22CB57B9C0040DF41 /* FormatDate.swift in Sources */,
+				99DED2532CAF2C6D0055FC60 /* RegisterView.swift in Sources */,
 				DF5A2FC32CAF165D00508A56 /* HistoryView.swift in Sources */,
 				DF5A2FC52CAF2DEF00508A56 /* HistoryDetailsView.swift in Sources */,
-				99DED2532CAF2C6D0055FC60 /* RegisterView.swift in Sources */,
 				99AEE8302CAD9B8800C535C4 /* SliderWithPoints.swift in Sources */,
 				999F595B2CA754FB00E7AE9F /* ChartView.swift in Sources */,
 				99DED24E2CAF28C10055FC60 /* UserModel.swift in Sources */,

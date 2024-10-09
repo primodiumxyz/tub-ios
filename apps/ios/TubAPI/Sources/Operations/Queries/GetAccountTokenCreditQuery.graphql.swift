@@ -7,7 +7,7 @@ public class GetAccountTokenCreditQuery: GraphQLQuery {
   public static let operationName: String = "GetAccountTokenCredit"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetAccountTokenCredit($accountId: uuid!, $tokenId: uuid!) { token_transaction_aggregate( where: { account_transaction_relationship: { account: { _eq: $accountId } } token: { _eq: $tokenId } transaction_type: { _eq: "credit" } } ) { __typename aggregate { __typename sum { __typename amount } } } }"#
+      #"query GetAccountTokenCredit($accountId: uuid!, $tokenId: uuid!) { token_transaction_aggregate( where: { account_transaction_data: { account: { _eq: $accountId } } token: { _eq: $tokenId } transaction_type: { _eq: "credit" } } ) { __typename aggregate { __typename sum { __typename amount } } } }"#
     ))
 
   public var accountId: Uuid
@@ -33,7 +33,7 @@ public class GetAccountTokenCreditQuery: GraphQLQuery {
     public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Query_root }
     public static var __selections: [ApolloAPI.Selection] { [
       .field("token_transaction_aggregate", Token_transaction_aggregate.self, arguments: ["where": [
-        "account_transaction_relationship": ["account": ["_eq": .variable("accountId")]],
+        "account_transaction_data": ["account": ["_eq": .variable("accountId")]],
         "token": ["_eq": .variable("tokenId")],
         "transaction_type": ["_eq": "credit"]
       ]]),
