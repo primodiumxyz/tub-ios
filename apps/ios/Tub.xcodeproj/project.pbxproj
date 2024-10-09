@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 60;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -17,7 +17,6 @@
 		993E5D932CAEF33B000E23A9 /* subscriptions.graphql in Resources */ = {isa = PBXBuildFile; fileRef = 993E5D922CAEF33B000E23A9 /* subscriptions.graphql */; };
 		993E5D942CAEF33B000E23A9 /* queries.graphql in Resources */ = {isa = PBXBuildFile; fileRef = 993E5D912CAEF33B000E23A9 /* queries.graphql */; };
 		999F59562CA6F97100E7AE9F /* RemoteCoinModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999F59552CA6F96D00E7AE9F /* RemoteCoinModel.swift */; };
-		999F59582CA7107C00E7AE9F /* BuySellForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999F59572CA7107A00E7AE9F /* BuySellForm.swift */; };
 		999F595B2CA754FB00E7AE9F /* ChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999F595A2CA754F900E7AE9F /* ChartView.swift */; };
 		99AEE8302CAD9B8800C535C4 /* SliderWithPoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99AEE82F2CAD9B8600C535C4 /* SliderWithPoints.swift */; };
 		99C26C1C2CAEE263004807A2 /* ApolloAPI in Frameworks */ = {isa = PBXBuildFile; productRef = 99C26C1B2CAEE263004807A2 /* ApolloAPI */; };
@@ -32,7 +31,6 @@
 		DB458DB42CAC827A00C5EC18 /* Network.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB458DB32CAC827A00C5EC18 /* Network.swift */; };
 		DB675A332CA2B73D006FC9B3 /* HomeTabsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB675A322CA2B73D006FC9B3 /* HomeTabsView.swift */; };
 		DB6D29052CA1C8F70099951A /* TubApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6D29042CA1C8F70099951A /* TubApp.swift */; };
-		DB6D29072CA1C8F70099951A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6D29062CA1C8F70099951A /* ContentView.swift */; };
 		DB6D29092CA1C8F80099951A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DB6D29082CA1C8F80099951A /* Assets.xcassets */; };
 		DB6D290D2CA1C8F80099951A /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DB6D290C2CA1C8F80099951A /* Preview Assets.xcassets */; };
 		DB6D29172CA1C8F80099951A /* TubTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6D29162CA1C8F80099951A /* TubTests.swift */; };
@@ -71,7 +69,6 @@
 		993E5D912CAEF33B000E23A9 /* queries.graphql */ = {isa = PBXFileReference; lastKnownFileType = text; path = queries.graphql; sourceTree = "<group>"; };
 		993E5D922CAEF33B000E23A9 /* subscriptions.graphql */ = {isa = PBXFileReference; lastKnownFileType = text; path = subscriptions.graphql; sourceTree = "<group>"; };
 		999F59552CA6F96D00E7AE9F /* RemoteCoinModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteCoinModel.swift; sourceTree = "<group>"; };
-		999F59572CA7107A00E7AE9F /* BuySellForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuySellForm.swift; sourceTree = "<group>"; };
 		999F595A2CA754F900E7AE9F /* ChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartView.swift; sourceTree = "<group>"; };
 		99AEE82F2CAD9B8600C535C4 /* SliderWithPoints.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SliderWithPoints.swift; sourceTree = "<group>"; };
 		99DDF62C2CB0280D000234DA /* AccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountView.swift; sourceTree = "<group>"; };
@@ -84,7 +81,6 @@
 		DB675A322CA2B73D006FC9B3 /* HomeTabsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeTabsView.swift; sourceTree = "<group>"; };
 		DB6D29012CA1C8F70099951A /* Tub.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tub.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DB6D29042CA1C8F70099951A /* TubApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TubApp.swift; sourceTree = "<group>"; };
-		DB6D29062CA1C8F70099951A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		DB6D29082CA1C8F80099951A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DB6D290A2CA1C8F80099951A /* Tub.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Tub.entitlements; sourceTree = "<group>"; };
 		DB6D290C2CA1C8F80099951A /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
@@ -97,6 +93,10 @@
 		DF5A2FC42CAF2DEF00508A56 /* HistoryDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryDetailsView.swift; sourceTree = "<group>"; };
 		DFA36D552CB4278C00F63D2D /* DummyData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DummyData.swift; path = Tub/Models/DummyData.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		99DDF62E2CB0333D000234DA /* BuySellForm */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = BuySellForm; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		DB6D28FE2CA1C8F70099951A /* Frameworks */ = {
@@ -140,14 +140,13 @@
 		999F59522CA6F6A900E7AE9F /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				99DDF62E2CB0333D000234DA /* BuySellForm */,
 				99DDF62C2CB0280D000234DA /* AccountView.swift */,
 				99DED2522CAF2C6D0055FC60 /* RegisterView.swift */,
 				991361A02CADE3AA00E5D656 /* RemoteCoinsView.swift */,
 				99AEE82F2CAD9B8600C535C4 /* SliderWithPoints.swift */,
 				9910F1B92CAAEB77005DEE6B /* SwipeToEnterView.swift */,
 				999F595A2CA754F900E7AE9F /* ChartView.swift */,
-				999F59572CA7107A00E7AE9F /* BuySellForm.swift */,
-				DB6D29062CA1C8F70099951A /* ContentView.swift */,
 				DB675A322CA2B73D006FC9B3 /* HomeTabsView.swift */,
 				DF5A2FC22CAF165D00508A56 /* HistoryView.swift */,
 				DFA36D552CB4278C00F63D2D /* DummyData.swift */,
@@ -263,6 +262,9 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				99DDF62E2CB0333D000234DA /* BuySellForm */,
 			);
 			name = Tub;
 			packageProductDependencies = (
@@ -397,7 +399,6 @@
 			files = (
 				991361A12CADE3B300E5D656 /* RemoteCoinsView.swift in Sources */,
 				9910F1B62CAAE302005DEE6B /* SFRounded.swift in Sources */,
-				999F59582CA7107C00E7AE9F /* BuySellForm.swift in Sources */,
 				9936FC572CADCA5200E21B8A /* LocalCoinModel.swift in Sources */,
 				99DDF62D2CB02816000234DA /* AccountView.swift in Sources */,
 				9936FC582CADCA5200E21B8A /* Structs.swift in Sources */,
@@ -408,7 +409,6 @@
 				DF5A2FC52CAF2DEF00508A56 /* HistoryDetailsView.swift in Sources */,
 				99DED2532CAF2C6D0055FC60 /* RegisterView.swift in Sources */,
 				99AEE8302CAD9B8800C535C4 /* SliderWithPoints.swift in Sources */,
-				DB6D29072CA1C8F70099951A /* ContentView.swift in Sources */,
 				999F595B2CA754FB00E7AE9F /* ChartView.swift in Sources */,
 				99DED24E2CAF28C10055FC60 /* UserModel.swift in Sources */,
 				DB10A95D2CA5AA1B00B1E4F3 /* CoinView.swift in Sources */,

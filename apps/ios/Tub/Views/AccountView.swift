@@ -18,10 +18,10 @@ struct AccountView: View {
     @State private var airdropResult: String?
     @State private var errorMessage: String?
 
-    init(_userId: String, _handleLogout: (() -> Void)? = nil) {
-        userId = _userId
-        userModel = UserModel(userId: _userId)
-        handleLogout = _handleLogout
+    init(userId: String, handleLogout: (() -> Void)? = nil) {
+        self.userId = userId
+        userModel = UserModel(userId: userId)
+        self.handleLogout = handleLogout
     }
     
     var body: some View {
@@ -100,6 +100,6 @@ struct AccountView: View {
 
 #Preview {
     @Previewable @AppStorage("userId") var userId: String = ""
-    AccountView(_userId: userId)
+    AccountView(userId: userId)
 }
 

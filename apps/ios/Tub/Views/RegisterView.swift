@@ -10,7 +10,6 @@ struct RegisterView: View {
     func handleRegistration(completion: Result<UserResponse, Error>) {
         switch completion {
         case .success(let user):
-            print("user", user)
             userId = user.uuid
             storedUsername = username
         case .failure(let error):
@@ -45,7 +44,7 @@ struct RegisterView: View {
                     }
                 }
                 else {
-                    ContentView()
+                    HomeTabsView()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)

@@ -83,7 +83,6 @@ class Network {
             
             // Print the response as a string
             if let responseString = String(data: data, encoding: .utf8) {
-                print("Response for \(procedure):")
                 print(responseString)
             } else {
                 print("Unable to convert response data to string for \(procedure)")
