@@ -11,8 +11,8 @@ export const ServerProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const server = useMemo(() => {
     return createServerClient({
-      httpUrl: "http://localhost:8080/trpc",
-      wsUrl: "ws://localhost:8080/trpc",
+      httpUrl: "http://localhost:8888/trpc",
+      wsUrl: "ws://localhost:8888/trpc",
       httpHeaders: () => {
         const jwtToken = useUserStore.getState().jwtToken;
         return {

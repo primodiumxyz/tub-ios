@@ -34,19 +34,19 @@ class Network {
     
     init() {
         // setup graphql
-        let httpURL = URL(string: "https://tub-graphql.primodium.ai/v1/graphql")!
+        let httpURL = URL(string: "http://localhost:8080/v1/graphql")!
         let store = ApolloStore()
         httpTransport = RequestChainNetworkTransport(
             interceptorProvider: DefaultInterceptorProvider(store: store),
             endpointURL: httpURL
         )
 
-        let webSocketURL = URL(string: "wss://tub-graphql.primodium.ai/v1/graphql")!
+        let webSocketURL = URL(string: "ws://localhost:8080/v1/graphql")!
         let websocket = WebSocket(url: webSocketURL, protocol: .graphql_ws)
         webSocketTransport = WebSocketTransport(websocket: websocket)
         
         // setup tRPC
-        baseURL = URL(string: "http://localhost:8080/trpc")!
+        baseURL = URL(string: "http://localhost:8888/trpc")!
         session = URLSession(configuration: .default)
     }
 
@@ -83,7 +83,6 @@ class Network {
             
             // Print the response as a string
             if let responseString = String(data: data, encoding: .utf8) {
-                print("Response for \(procedure):")
                 print(responseString)
             } else {
                 print("Unable to convert response data to string for \(procedure)")

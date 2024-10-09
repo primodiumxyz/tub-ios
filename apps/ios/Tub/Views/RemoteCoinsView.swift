@@ -22,7 +22,7 @@ struct RemoteCoinsView: View {
     var body: some View {
         NavigationView {
             VStack {
-                AccountView(_userId: userId, _handleLogout: {
+                AccountView(userId: userId, handleLogout: {
                     userId = ""
                     username = ""
                     showRegisterView = true
@@ -33,7 +33,7 @@ struct RemoteCoinsView: View {
                     Text("No coins found").foregroundColor(.red)
                 } else {
                     List(coins) { coin in
-                        NavigationLink(destination: CoinView(coinModel: RemoteCoinModel(tokenId: coin.id))) {
+                        NavigationLink(destination: CoinView(userId: userId, tokenId: coin.id)) {
                             HStack {
                                 Text(coin.symbol)
                                     .font(.headline)
@@ -61,15 +61,19 @@ struct RemoteCoinsView: View {
                 self.isLoading = false
                 switch result {
                 case .success(let graphQLResult):
+                    print(graphQLResult)
                     if let tokens = graphQLResult.data?.token {
+                        print(tokens)
                         self.coins = tokens.map { elem in Coin(id: elem.id, name: elem.name, symbol: elem.symbol) }
                     }
                 case .failure(let error):
+                    print(error)
                     self.errorMessage = "Error: \(error.localizedDescription)"
                 }
             }
         }
     }
+
 }
 
 #Preview {
