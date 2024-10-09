@@ -1,4 +1,6 @@
 
+alter table "public"."token_price_history" drop constraint "token_price_history_internal_token_transaction_ref_key";
+
 CREATE OR REPLACE FUNCTION public.sell_token(account_id uuid, token_id uuid, amount_to_sell numeric, token_cost numeric DEFAULT NULL::numeric)
  RETURNS token_transaction
  LANGUAGE plpgsql
@@ -136,7 +138,5 @@ $function$;
 
 alter table "public"."token_price_history" drop constraint "token_price_history_internal_token_transaction_ref_fkey";
 
--- Could not auto-generate a down migration.
--- Please write an appropriate down migration for the SQL below:
--- alter table "public"."token_price_history" add column "internal_token_transaction_ref" uuid
---  null;
+-- Drop the column
+ALTER TABLE "public"."token_price_history" DROP COLUMN IF EXISTS "internal_token_transaction_ref";

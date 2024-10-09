@@ -1,4 +1,5 @@
 
+
 alter table "public"."token_price_history" add column "internal_token_transaction_ref" uuid
  null;
 
@@ -142,3 +143,5 @@ BEGIN
     RETURN token_txn;
 END;
 $function$;
+
+alter table "public"."token_price_history" add constraint "token_price_history_internal_token_transaction_ref_key" unique ("internal_token_transaction_ref");
