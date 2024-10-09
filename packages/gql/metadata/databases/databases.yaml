@@ -43,6 +43,19 @@
             nullable: false
             scalar: timestamptz
       name: GetFilteredTokensResult
+      select_permissions:
+        - permission:
+            columns:
+              - token_id
+              - mint
+              - name
+              - symbol
+              - latest_price
+              - increase_pct
+              - trades
+              - created_at
+            filter: {}
+          role: public
   native_queries:
     - arguments:
         min_increase_pct:
