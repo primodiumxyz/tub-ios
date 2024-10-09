@@ -2,8 +2,7 @@ import { PublicKey } from "@solana/web3.js";
 
 // Relative imports to not conflict with constants imports in other packages
 import { MeteoraDlmmParser } from "./parsers/meteora-dlmm-parser";
-import { MeteoraPoolsMinimalParser } from "./parsers/minimal/meteora-pools-minimal-parser";
-import { RaydiumCpmmMinimalParser } from "./parsers/minimal/raydium-cpmm-minimal-parser";
+import { MinimalParser } from "./parsers/minimal-parser";
 import { OrcaWhirlpoolParser } from "./parsers/orca-whirlpool-parser";
 import { RaydiumAmmParser } from "./parsers/raydium-amm-parser";
 import { RaydiumClmmParser } from "./parsers/raydium-clmm-parser";
@@ -18,7 +17,7 @@ export const PROGRAMS = [
   {
     id: "meteora-dlmm",
     publicKey: MeteoraDlmmParser.PROGRAM_ID,
-    parser: MeteoraDlmmParser,
+    parser: new MeteoraDlmmParser(),
     swaps: [
       {
         name: "swap",
@@ -37,7 +36,7 @@ export const PROGRAMS = [
   {
     id: "orca-whirlpool",
     publicKey: OrcaWhirlpoolParser.PROGRAM_ID,
-    parser: OrcaWhirlpoolParser,
+    parser: new OrcaWhirlpoolParser(),
     swaps: [
       {
         name: "swap",
@@ -64,7 +63,7 @@ export const PROGRAMS = [
   {
     id: "raydium-lp-v4",
     publicKey: RaydiumAmmParser.PROGRAM_ID,
-    parser: RaydiumAmmParser,
+    parser: new RaydiumAmmParser(),
     swaps: [
       {
         name: "swapBaseIn",
@@ -79,7 +78,7 @@ export const PROGRAMS = [
   {
     id: "raydium-clmm",
     publicKey: RaydiumClmmParser.PROGRAM_ID,
-    parser: RaydiumClmmParser,
+    parser: new RaydiumClmmParser(),
     swaps: [
       {
         name: "swap",
@@ -98,29 +97,30 @@ export const PROGRAMS = [
   },
   {
     id: "raydium-cpmm",
-    publicKey: RaydiumCpmmMinimalParser.PROGRAM_ID,
-    parser: RaydiumCpmmMinimalParser,
-    swaps: [
+    publicKey: new PublicKey("CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C"),
+    parser: new MinimalParser(new PublicKey("CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C"), [
       {
         name: "swapBaseInput",
-        accounts: [["vaultA", "vaultB"]],
+        discriminator: 143,
+        accountIndexes: [6, 7],
       },
       {
         name: "swapBaseOutput",
-        accounts: [["vaultA", "vaultB"]],
+        discriminator: 55,
+        accountIndexes: [6, 7],
       },
-    ],
+    ]),
   },
   {
     id: "meteora-pools",
-    publicKey: MeteoraPoolsMinimalParser.PROGRAM_ID,
-    parser: MeteoraPoolsMinimalParser,
-    swaps: [
+    publicKey: new PublicKey("Eo7WjKq67rjJQSZxS6z3YkapzY3eMj6Xy8X5EQVn5UaB"),
+    parser: new MinimalParser(new PublicKey("Eo7WjKq67rjJQSZxS6z3YkapzY3eMj6Xy8X5EQVn5UaB"), [
       {
         name: "swap",
-        accounts: [["vaultA", "vaultB"]],
+        discriminator: 248,
+        accountIndexes: [5, 6],
       },
-    ],
+    ]),
   },
 ] as const satisfies Program[];
 

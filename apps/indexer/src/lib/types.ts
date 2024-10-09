@@ -1,16 +1,21 @@
 import { PublicKey } from "@solana/web3.js";
 
 import { PLATFORMS } from "@/lib/constants";
+import { MinimalParser } from "@/lib/parsers/minimal-parser";
 
 export type Program = {
   id: string;
   publicKey: PublicKey;
-  parser: any;
-  swaps: {
+  parser: MinimalParser | Omit<MinimalParser, "programId" | "swapInstructions" | "getSwapInstructionNames">;
+  swaps?: {
     name: string;
     accounts: string[][];
   }[];
-  minimal?: boolean;
+};
+export type SwapInstructionDetails = {
+  name: string;
+  discriminator: number | bigint;
+  accountIndexes: [number, number];
 };
 
 export type PriceData = {

@@ -29,7 +29,9 @@ export const decodeSwapAccounts = (
     PROGRAMS.some(
       (program) =>
         program.publicKey.toString() === ix.programId.toString() &&
-        program.swaps.some((swap) => swap.name.toLowerCase() === ix.name.toLowerCase()),
+        ("swaps" in program
+          ? program.swaps.some((swap) => swap.name.toLowerCase() === ix.name.toLowerCase())
+          : program.parser.getSwapInstructionNames().includes(ix.name.toLowerCase())),
     ),
   );
   if (programIxs.length === 0) return [];
@@ -38,11 +40,19 @@ export const decodeSwapAccounts = (
   return programIxs
     .map((ix) => {
       // find the program object
-      const program = PROGRAMS.find((program) => program.publicKey.toString() === ix.programId.toString());
+      const program = PROGRAMS.find((program) => program.publicKey.toString() === ix.programId.toString())!;
+
       // find the label pairs of the swapped tokens accounts
+      if (!("swaps" in program)) {
+        // this is a minimal parser
+        const [vaultA, vaultB] = ix.accounts;
+        if (!vaultA || !vaultB) return [];
+        return { vaultA: vaultA.pubkey, vaultB: vaultB.pubkey, platform: program.id };
+      }
+
       const swapAccountLabels =
-        program?.swaps.find((swap) => swap.name.toLowerCase() === ix.name.toLowerCase())?.accounts ?? [];
-      if (!program || swapAccountLabels.length === 0) return [];
+        program.swaps.find((swap) => swap.name.toLowerCase() === ix.name.toLowerCase())?.accounts ?? [];
+      if (swapAccountLabels.length === 0) return [];
 
       // For each label pair (it might be a two hop swap, so two pairs of accounts), find the corresponding token accounts
       return swapAccountLabels.map(([vaultALabel, vaultBLabel]) => {

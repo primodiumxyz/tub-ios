@@ -4,42 +4,38 @@ import { ParsedAccount, ParsedInstruction } from "@shyft-to/solana-transaction-p
 import { u8 } from "@solana/buffer-layout";
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 
-export class RaydiumCpmmMinimalParser {
-  static PROGRAM_ID = new PublicKey("CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C");
-  static DISCRIMINATORS = {
-    swapBaseInput: 143,
-    swapBaseOutput: 55,
-  };
+import { SwapInstructionDetails } from "@/lib/types";
+
+/**
+ * A universal parser that doesn't bother parsing args and labeled accounts, but only extracts the two involved vaults.
+ */
+export class MinimalParser {
+  programId: PublicKey;
+  swapInstructions: SwapInstructionDetails[];
+
+  constructor(programId: PublicKey, swapInstructions: SwapInstructionDetails[]) {
+    this.programId = programId;
+    this.swapInstructions = swapInstructions;
+  }
 
   // @ts-expect-error: type difference @coral-xyz/anchor -> @project-serum/anchor
   parseInstruction(instruction: TransactionInstruction): ParsedInstruction<Idl, string> {
     const instructionData = instruction.data;
     const discriminator = u8().decode(instructionData);
 
-    switch (discriminator) {
-      case RaydiumCpmmMinimalParser.DISCRIMINATORS.swapBaseInput: {
-        return this.parseSwapBaseInputIx(instruction);
-      }
-      case RaydiumCpmmMinimalParser.DISCRIMINATORS.swapBaseOutput: {
-        return this.parseSwapBaseOutputIx(instruction);
-      }
-      // we're not interested in other instructions
-      default:
-        return this.parseUnknownInstruction(instruction);
-    }
-  }
+    const swapInstruction = this.swapInstructions.find((i) => i.discriminator === discriminator);
+    if (!swapInstruction) return this.parseUnknownInstruction(instruction);
 
-  private parseSwapBaseInputIx(instruction: TransactionInstruction) {
     const accounts = instruction.keys;
     return {
-      name: "swapBaseInput",
+      name: swapInstruction.name,
       accounts: [
         {
-          ...accounts[6],
+          ...accounts[swapInstruction.accountIndexes[0]],
           name: "vaultA",
         },
         {
-          ...accounts[7],
+          ...accounts[swapInstruction.accountIndexes[1]],
           name: "vaultB",
         },
       ] as ParsedAccount[],
@@ -48,23 +44,8 @@ export class RaydiumCpmmMinimalParser {
     };
   }
 
-  private parseSwapBaseOutputIx(instruction: TransactionInstruction) {
-    const accounts = instruction.keys;
-    return {
-      name: "swapBaseOutput",
-      accounts: [
-        {
-          ...accounts[6],
-          name: "vaultA",
-        },
-        {
-          ...accounts[7],
-          name: "vaultB",
-        },
-      ] as ParsedAccount[],
-      args: {},
-      programId: instruction.programId,
-    };
+  public getSwapInstructionNames(): string[] {
+    return this.swapInstructions.map((i) => i.name);
   }
 
   // @ts-expect-error: type difference @coral-xyz/anchor -> @project-serum/anchor
