@@ -22,8 +22,8 @@ export const useTokens = () => {
   });
 
   const tokens = useMemo(() => {
-    if (!filteredTokensResult.data?.GetFilteredTokens) return [];
-    return filteredTokensResult.data.GetFilteredTokens.map((token) => ({
+    if (!filteredTokensResult.data?.GetFormattedTokens) return [];
+    return filteredTokensResult.data.GetFormattedTokens.map((token) => ({
       mint: token.mint,
       latestPrice: token.latest_price,
       increasePct: token.increase_pct,

@@ -45,7 +45,9 @@ export const GetAllOnchainTokensPriceHistorySinceSubscription = graphql(`
 
 export const GetFilteredTokensSubscription = graphql(`
   subscription GetFilteredTokensSubscription($since: timestamptz!, $minTrades: bigint!, $minIncreasePct: float8!) {
-    GetFilteredTokens(args: { since: $since, min_trades: $minTrades, min_increase_pct: $minIncreasePct }, limit: 10) {
+    GetFormattedTokens(
+      where: { created_at: { _gte: $since }, trades: { _gte: $minTrades }, increase_pct: { _gte: $minIncreasePct } }
+    ) {
       token_id
       mint
       name
