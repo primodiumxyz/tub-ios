@@ -2,6 +2,7 @@ import { PublicKey } from "@solana/web3.js";
 
 // Relative imports to not conflict with constants imports in other packages
 import { MeteoraDlmmParser } from "./parsers/meteora-dlmm-parser";
+import { MeteoraPoolsMinimalParser } from "./parsers/minimal/meteora-pools-minimal-parser";
 import { RaydiumCpmmMinimalParser } from "./parsers/minimal/raydium-cpmm-minimal-parser";
 import { OrcaWhirlpoolParser } from "./parsers/orca-whirlpool-parser";
 import { RaydiumAmmParser } from "./parsers/raydium-amm-parser";
@@ -106,6 +107,17 @@ export const PROGRAMS = [
       },
       {
         name: "swapBaseOutput",
+        accounts: [["vaultA", "vaultB"]],
+      },
+    ],
+  },
+  {
+    id: "meteora-pools",
+    publicKey: MeteoraPoolsMinimalParser.PROGRAM_ID,
+    parser: MeteoraPoolsMinimalParser,
+    swaps: [
+      {
+        name: "swap",
         accounts: [["vaultA", "vaultB"]],
       },
     ],
