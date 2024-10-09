@@ -31,6 +31,8 @@ public enum SchemaMetadata: ApolloAPI.SchemaMetadata {
     case "token_transaction_aggregate": return TubAPI.Objects.Token_transaction_aggregate
     case "token_transaction_aggregate_fields": return TubAPI.Objects.Token_transaction_aggregate_fields
     case "token_transaction_sum_fields": return TubAPI.Objects.Token_transaction_sum_fields
+    case "token_transaction": return TubAPI.Objects.Token_transaction
+    case "account_transaction": return TubAPI.Objects.Account_transaction
     default: return nil
     }
   }

@@ -48,14 +48,14 @@ public class GetLatestTokensSubscription: GraphQLSubscription {
         .field("symbol", String.self),
         .field("supply", TubAPI.Numeric.self),
         .field("name", String.self),
-        .field("updated_at", TubAPI.Timestamp.self),
+        .field("updated_at", TubAPI.Timestamptz.self),
       ] }
 
       public var id: TubAPI.Uuid { __data["id"] }
       public var symbol: String { __data["symbol"] }
       public var supply: TubAPI.Numeric { __data["supply"] }
       public var name: String { __data["name"] }
-      public var updated_at: TubAPI.Timestamp { __data["updated_at"] }
+      public var updated_at: TubAPI.Timestamptz { __data["updated_at"] }
     }
   }
 }
