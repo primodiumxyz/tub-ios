@@ -7,6 +7,7 @@ export const TIMESPAN_OPTIONS = [
   600, // 10 minutes
   1800, // 30 minutes
   3600, // 1 hour
+  86400, // 1 day
 ];
 export const DEFAULT_TIMESPAN = TIMESPAN_OPTIONS[1];
 export const DEFAULT_INCREASE_PCT = 5;
