@@ -35,23 +35,25 @@ struct HistoryView : View {
                 case .success(let graphQLResult):
                     if let tokenTransactions = graphQLResult.data?.token_transaction {
                         self.txs = tokenTransactions.reduce(into: []) { result, transaction in
-                            guard let date = formatDate(transaction.account_transaction_relationship.created_at) else {
-                                print("Date format failed, skipping ", transaction.account_transaction_relationship.created_at)
+                            guard let date = formatDate(transaction.account_transaction_data.created_at) else {
+                                print("Date format failed, skipping ", transaction.account_transaction_data.created_at)
                                 return
                             }
                             
                             let quantity = Double(transaction.amount) / 1e9
                             let isBuy = transaction.transaction_type == "credit"
-                            let symbol = transaction.token_relationship.symbol
-                            let name = transaction.token_relationship.name
-                            let imageUri = transaction.token_relationship.uri ?? ""
+                            let symbol = transaction.token_data.symbol
+                            let name = transaction.token_data.name
+                            let imageUri = transaction.token_data.uri ?? ""
+                            let price = transaction.token_price?.price ?? 0
+                            let value = Double(price * transaction.amount) / 1e9
                             
                             let newTransaction = Transaction(
                                 name: name,
                                 symbol: symbol,
                                 imageUri: imageUri,
                                 date: date,
-                                value: quantity,
+                                value: value,
                                 quantity: quantity,
                                 isBuy: isBuy
                             )
