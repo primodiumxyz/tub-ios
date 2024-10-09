@@ -19,13 +19,13 @@ struct HomeTabsView: View {
     var body: some View {
         Group {
             if userModel.isLoading {
-//                LoadingView()
+                LoadingView()
             } else {
                 TabView() {
-                    RemoteCoinsView().tabItem {
+                    CoinListView().tabItem {
                         Label("Cloud", systemImage: "cloud.fill")
                     }
-                    CoinView(userId: userId, tokenId: "", local: true).tabItem {
+                    CoinView(coinModel: LocalCoinModel()).tabItem {
                         Label("Local", systemImage: "testtube.2")
                     }
                     HistoryView().tabItem {

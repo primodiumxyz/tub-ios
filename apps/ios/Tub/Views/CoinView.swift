@@ -9,26 +9,7 @@ import SwiftUI
 import Combine
 
 
-struct CoinView: View {
-    var localModel = false
-    
-    @StateObject var coinModel : BaseCoinModel
-    
-    init(userId: String, tokenId: String, local: Bool? = false) {
-        if local != nil {
-            self.localModel = local!
-        }
-        self._coinModel = StateObject(wrappedValue: (local ?? false) ? LocalCoinModel() : RemoteCoinModel(userId: userId, tokenId: tokenId))
-    }
-    
-    var body: some View {
-        if coinModel.loading {
-            LoadingView()
-        } else {
-            CoinViewContent(coinModel: coinModel)
-        }
-    }
-}
+
 
 struct LoadingView: View {
     var body: some View {
@@ -44,44 +25,16 @@ struct LoadingView: View {
     }
 }
 
-struct CoinViewContent: View {
+struct CoinView : View {
     @ObservedObject var coinModel: BaseCoinModel
-    @StateObject var userModel: UserModel
-//    var initialBalance = 0.0
-    
+    @EnvironmentObject private var userModel: UserModel
     init(coinModel: BaseCoinModel) {
         self.coinModel = coinModel
-        self._userModel = StateObject(wrappedValue: UserModel(userId: coinModel.userId))
     }
     
     var body: some View {
        VStack () {
         VStack (alignment: .leading) {
-            VStack(alignment: .leading) {
-                Text("Your Net Worth")
-                    .font(.sfRounded(size: .sm, weight: .bold))
-                    .opacity(0.7)
-                    .kerning(-1)
-                Text("\(userModel.balance, specifier: "%.2f") SOL")
-                    .font(.sfRounded(size: .xl4))
-                    .fontWeight(.bold)
-//                HStack(spacing:3) {
-//                   Text(userModel.balance > initialBalance ? "+ \(userModel.balance - initialBalance, specifier: "%.2f") SOL" : "- \(initialBalance - userModel.balance, specifier: "%.2f") SOL")
-//                       .font(.sfRounded(size: .base, weight: .bold))
-//                   
-//                   HStack(spacing: 2) {
-//                       Image(systemName: userModel.balance > initialBalance ? "arrow.up.right" : "arrow.down.right")
-//                           .foregroundColor(userModel.balance > initialBalance ? .green : .red)
-//                           .kerning(-1)
-//
-//                       Text("\(abs((userModel.balance - initialBalance) / initialBalance * 100), specifier: "%.2f")%")
-//                           .foregroundColor(userModel.balance > initialBalance ? .green : .red)
-//                           .font(.sfRounded(size: .base, weight: .bold))
-//                           .kerning(-1)
-//                   }
-//                }
-            }
-            .padding(.bottom, 16)
             HStack {
                 Image(systemName: "bitcoinsign.circle")
                     .resizable()
@@ -123,5 +76,5 @@ struct CoinViewContent: View {
 
 
 #Preview {
-    CoinView(userId: "", tokenId: "", local: true)
+    CoinView(coinModel: LocalCoinModel())
 }

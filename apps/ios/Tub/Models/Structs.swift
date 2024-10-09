@@ -2,7 +2,7 @@ import SwiftUI
 import Foundation
 
 struct Coin: Identifiable {
-    let id: String
+    var id: String
     var name: String
     var symbol: String
 }

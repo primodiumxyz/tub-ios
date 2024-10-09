@@ -37,7 +37,6 @@ class UserModel: ObservableObject {
             }
             
             try await fetchAccountData()
-            print("data fetched successfully")
             DispatchQueue.main.async {
                 self.isLoading = false  // Use isLoading instead of loading
             }

@@ -7,21 +7,12 @@ class RemoteCoinModel: BaseCoinModel {
     
     private var cancellables: Set<AnyCancellable> = []
     
-    override init(userId: String, tokenId: String) {
-        super.init(userId: userId, tokenId: tokenId)
-        
-        Task {
-            await fetchInitialData()
-            subscribeToLatestPrice()
-            startCoinBalancePolling()
-        }
+    init(userId: String) {
+        super.init()
+        self.userId = userId
     }
     
-    private lazy var iso8601Formatter: ISO8601DateFormatter = {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return formatter
-    }()
+
 
     private func fetchInitialData() async {
         do {
@@ -127,21 +118,14 @@ class RemoteCoinModel: BaseCoinModel {
             .store(in: &cancellables)
     }
     
+    private lazy var iso8601Formatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
+    
     private func formatDate(_ dateString: String) -> Date? {
-        let pattern = #"(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})\.(\d{6})"#
-        
-        guard let regex = try? NSRegularExpression(pattern: pattern, options: []),
-              let match = regex.firstMatch(in: dateString, options: [], range: NSRange(dateString.startIndex..., in: dateString)) else {
-            return nil
-        }
-        
-        let dateRange = Range(match.range(at: 1), in: dateString)!
-        let millisRange = Range(match.range(at: 2), in: dateString)!
-        
-        let datePart = String(dateString[dateRange])
-        let millisPart = String(dateString[millisRange].prefix(3))
-        
-        return iso8601Formatter.date(from: datePart + "." + millisPart + "Z")
+        return iso8601Formatter.date(from: dateString)
     }
 
     override func buyTokens(buyAmount: Double, completion: ((Bool) -> Void)?) {
@@ -172,6 +156,24 @@ class RemoteCoinModel: BaseCoinModel {
                 print("failure", error)
                 completion?(false)
             }
+        }
+    }
+    
+    func initialize(with newTokenId: String) {
+        // Cancel all existing cancellables
+        cancellables.forEach { $0.cancel() }
+        cancellables.removeAll()
+        
+        // Reset properties if necessary
+        self.tokenId = newTokenId
+        self.loading = true // Reset loading state if needed
+        self.prices = []
+        
+        // Re-run the initialization logic
+        Task {
+            await fetchInitialData()
+            subscribeToLatestPrice()
+            startCoinBalancePolling()
         }
     }
 }
