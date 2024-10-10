@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct SellForm: View {
-    @ObservedObject var tokenModel: BaseTokenModel
+    @ObservedObject var tokenModel: TokenModel
     var onSell : (((Bool) -> Void)?) -> ()
 
     private func handleSell() {
@@ -36,9 +36,3 @@ struct SellForm: View {
     }
 }
 
-#Preview {
-    VStack {
-        SellForm(tokenModel: MockTokenModel(), onSell: { _ in ()})
-    }.frame(maxWidth: .infinity, maxHeight: .infinity) .background(.black).foregroundColor(.white)
-}
-    

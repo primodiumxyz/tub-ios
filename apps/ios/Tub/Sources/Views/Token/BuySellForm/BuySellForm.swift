@@ -8,7 +8,7 @@ import SwiftUI
 
 struct BuySellForm: View {
     @EnvironmentObject var userModel: UserModel
-    @ObservedObject var tokenModel: BaseTokenModel
+    @ObservedObject var tokenModel: TokenModel
     @State private var activeTab: String = "buy"
     @State private var sellAmount: Double = 0.0
 
@@ -51,7 +51,7 @@ struct BuySellForm: View {
     
     @Previewable @AppStorage("userId") var userId: String = ""
     VStack {
-        BuySellForm(tokenModel: MockTokenModel())
+        BuySellForm(tokenModel: TokenModel(userId: userId, tokenId: mockTokenId))
             .environmentObject(UserModel(userId: userId))
     }.frame(maxWidth: .infinity, maxHeight: .infinity) .background(.black).foregroundColor(.white)
 }

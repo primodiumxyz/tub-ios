@@ -26,9 +26,9 @@ struct LoadingView: View {
 }
 
 struct TokenView : View {
-    @ObservedObject var tokenModel: BaseTokenModel
+    @ObservedObject var tokenModel: TokenModel
     @EnvironmentObject private var userModel: UserModel
-    init(tokenModel: BaseTokenModel) {
+    init(tokenModel: TokenModel) {
         self.tokenModel = tokenModel
     }
     
@@ -76,5 +76,7 @@ struct TokenView : View {
 
 
 #Preview {
-    TokenView(tokenModel: MockTokenModel())
+    @Previewable @AppStorage("userId") var userId: String = ""
+    TokenView(tokenModel: TokenModel(userId: userId, tokenId: mockTokenId))
+        .environmentObject(UserModel(userId: userId))
 }

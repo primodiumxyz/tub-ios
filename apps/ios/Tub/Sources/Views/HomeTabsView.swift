@@ -35,17 +35,9 @@ struct HomeTabsView: View {
                         }
                         .tag(1) // Assign a tag for the tab
                     
-                    AccountView()
-                        .tabItem {
-                            Label("Account", systemImage: "person")
-                        }
-                        .tag(2) // Assign a tag for the tab
-                    
-                    MockTokenView()
-                        .tabItem {
-                            Label("Mock", systemImage: "testtube.2")
-                        }
-                        .tag(3) // Assign a tag for the tab
+                    AccountView().tabItem {
+                        Label("Account", systemImage: "person")
+                    }
                 }
                 .background(.black)
                 .foregroundColor(.white)

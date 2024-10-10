@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct BuyForm: View {
-    @ObservedObject var tokenModel: BaseTokenModel
+    @EnvironmentObject private var userModel: UserModel
+    @ObservedObject var tokenModel: TokenModel
     var onBuy: (Double, ((Bool) -> Void)?) -> ()
     @State private var buyAmountString: String = ""
     @State private var buyAmountSol: Double = 0.0
@@ -32,8 +33,8 @@ struct BuyForm: View {
                     VStack(alignment: .trailing, spacing: 0) {
                         HStack {
                             TextField("Enter amount", text: $buyAmountString)
-                                .keyboardType(.decimalPad)
-                                .multilineTextAlignment(.trailing)
+//                                .keyboardType(.decimalPad)
+//                                .multilineTextAlignment(.trailing)
                                 .onChange(of: buyAmountString) { newValue in
                                     let filtered = newValue.filter { "0123456789.".contains($0) }
                                     if filtered != newValue {
@@ -62,9 +63,8 @@ struct BuyForm: View {
                                 .opacity(0.8)
                         }
                     }
-                    
-                    if tokenModel.solBalance > 0 {
-                        SliderWithPoints(value: $buyAmountSol, in: 0...tokenModel.solBalance, step: 1)
+                    if userModel.balance > 0.1 {
+                        SliderWithPoints(value: $buyAmountSol, in: 0...userModel.balance, step: 1)
                             .onChange(of: buyAmountSol) { newValue in
                                 if newValue.truncatingRemainder(dividingBy: 1) == 0 {
                                     buyAmountString = String(format: "%.0f", newValue)
@@ -93,14 +93,5 @@ struct BuyForm: View {
         }
         .frame(width: .infinity, height: 300)
     }
-}
-
-#Preview {
-    VStack {
-        BuyForm(tokenModel: MockTokenModel(), onBuy: { _, _ in })
-    }
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .background(.black)
-    .foregroundColor(.white)
 }
 
