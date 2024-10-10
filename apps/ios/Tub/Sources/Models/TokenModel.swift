@@ -10,8 +10,9 @@ class TokenModel: ObservableObject {
     @Published var token: Token = Token(id: "", name: "COIN", symbol: "SYMBOL")
     @Published var loading = true
     @Published var tokenBalance: Double = 0
+    
     @Published var amountBoughtSol: Double = 0
-    @Published var prices: [Price] = [] 
+    @Published var prices: [Price] = []  
     
     private var cancellables: Set<AnyCancellable> = []
     
@@ -167,6 +168,7 @@ class TokenModel: ObservableObject {
     }
     
     func initialize(with newTokenId: String) {
+        print("initializing \(newTokenId)")
         // Cancel all existing cancellables
         cancellables.forEach { $0.cancel() }
         cancellables.removeAll()
