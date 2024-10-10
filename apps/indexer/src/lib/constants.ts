@@ -13,7 +13,9 @@ export const PRICE_PRECISION = 1e9;
 
 export const WRAPPED_SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
 
+// Updated on 2024-10-10
 export const PROGRAMS = [
+  /* --------------------- PROGRAMS WITH DEDICATED PARSER --------------------- */
   {
     id: "meteora-dlmm",
     publicKey: MeteoraDlmmParser.PROGRAM_ID,
@@ -95,6 +97,7 @@ export const PROGRAMS = [
       },
     ],
   },
+  /* ---------------------- PROGRAMS WITH MINIMAL PARSER ---------------------- */
   {
     id: "raydium-cpmm",
     publicKey: new PublicKey("CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C"),
@@ -119,6 +122,270 @@ export const PROGRAMS = [
         name: "swap",
         discriminator: 248,
         accountIndexes: [5, 6],
+      },
+    ]),
+  },
+  {
+    id: "invariant-swap",
+    publicKey: new PublicKey("HyaB3W9q6XdA5xwpU4XnSZV94htfmbmqJXZcEbRaJutt"),
+    parser: new MinimalParser(new PublicKey("HyaB3W9q6XdA5xwpU4XnSZV94htfmbmqJXZcEbRaJutt"), [
+      {
+        name: "swap",
+        discriminator: 248,
+        accountIndexes: [5, 6],
+      },
+    ]),
+  },
+  {
+    id: "lifinity-swap-v2",
+    publicKey: new PublicKey("2wT8Yq49kHgDzXuPxZSaeLaH1qbmGXtEyPy64bL7aD3c"),
+    parser: new MinimalParser(new PublicKey("2wT8Yq49kHgDzXuPxZSaeLaH1qbmGXtEyPy64bL7aD3c"), [
+      {
+        name: "swap",
+        discriminator: 248,
+        accountIndexes: [5, 6],
+      },
+    ]),
+  },
+  {
+    id: "openbook-v2",
+    publicKey: new PublicKey("opnb2LAfJYbRMAHHvqjCwQxanZn7ReEHp1k81EohpZb"),
+    parser: new MinimalParser(new PublicKey("opnb2LAfJYbRMAHHvqjCwQxanZn7ReEHp1k81EohpZb"), [
+      {
+        name: "placeTakeOrder",
+        discriminator: 3,
+        accountIndexes: [11, 12],
+      },
+    ]),
+  },
+  {
+    id: "phoenix",
+    publicKey: new PublicKey("PhoeNiXZ8ByJGLkxNfZRnkUfjvmuYqLR89jjFHGqdXY"),
+    parser: new MinimalParser(new PublicKey("PhoeNiXZ8ByJGLkxNfZRnkUfjvmuYqLR89jjFHGqdXY"), [
+      {
+        name: "swap",
+        discriminator: 0,
+        accountIndexes: [6, 7],
+      },
+    ]),
+  },
+  {
+    id: "saber-stable-swap",
+    publicKey: new PublicKey("SSwpkEEcbUqx4vtoEByFjSkhKdCT862DNVb52nZg1UZ"),
+    parser: new MinimalParser(new PublicKey("SSwpkEEcbUqx4vtoEByFjSkhKdCT862DNVb52nZg1UZ"), [
+      {
+        name: "swap",
+        discriminator: 1,
+        accountIndexes: [4, 5],
+      },
+    ]),
+  },
+  {
+    id: "orca-swap-v2",
+    publicKey: new PublicKey("9W959DqEETiGZocYWCQPaJ6sBmUzgfxXfqGeTEdp3aQP"),
+    parser: new MinimalParser(new PublicKey("9W959DqEETiGZocYWCQPaJ6sBmUzgfxXfqGeTEdp3aQP"), [
+      {
+        name: "swap",
+        discriminator: 1,
+        accountIndexes: [4, 5],
+      },
+    ]),
+  },
+  {
+    id: "symmetry",
+    publicKey: new PublicKey("2KehYt3KsEQR53jYcxjbQp2d2kCp4AkuQW68atufRwSr"),
+    parser: new MinimalParser(new PublicKey("2KehYt3KsEQR53jYcxjbQp2d2kCp4AkuQW68atufRwSr"), [
+      {
+        name: "swapFundTokens",
+        discriminator: 112,
+        accountIndexes: [3, 5],
+      },
+    ]),
+  },
+  {
+    id: "bonk-swap",
+    publicKey: new PublicKey("BSwp6bEBihVLdqJRKGgzjcGLHkcTuzmSo1TQkHepzH8p"),
+    parser: new MinimalParser(new PublicKey("BSwp6bEBihVLdqJRKGgzjcGLHkcTuzmSo1TQkHepzH8p"), [
+      {
+        name: "swap",
+        discriminator: 248,
+        accountIndexes: [4, 5],
+      },
+    ]),
+  },
+  {
+    id: "stepn-dooar",
+    publicKey: new PublicKey("Dooar9JkhdZ7J3LHN3A7YCuoGRUggXhQaG4kijfLGU2j"),
+    parser: new MinimalParser(new PublicKey("Dooar9JkhdZ7J3LHN3A7YCuoGRUggXhQaG4kijfLGU2j"), [
+      {
+        name: "swap",
+        discriminator: 1,
+        accountIndexes: [4, 5],
+      },
+    ]),
+  },
+  {
+    id: "fluxbeam",
+    publicKey: new PublicKey("FLUXubRmkEi2q6K3Y9kBPg9248ggaZVsoSFhtJHSrm1X"),
+    parser: new MinimalParser(new PublicKey("FLUXubRmkEi2q6K3Y9kBPg9248ggaZVsoSFhtJHSrm1X"), [
+      {
+        name: "swap",
+        discriminator: 1,
+        accountIndexes: [4, 5],
+      },
+    ]),
+  },
+  {
+    id: "saros-amm",
+    publicKey: new PublicKey("SSwapUtytfBdBn1b9NUGG6foMVPtcWgpRU32HToDUZr"),
+    parser: new MinimalParser(new PublicKey("SSwapUtytfBdBn1b9NUGG6foMVPtcWgpRU32HToDUZr"), [
+      {
+        name: "swap",
+        discriminator: 1,
+        accountIndexes: [4, 5],
+      },
+    ]),
+  },
+  {
+    id: "oasis",
+    publicKey: new PublicKey("9tKE7Mbmj4mxDjWatikzGAtkoWosiiZX9y6J4Hfm2R8H"),
+    parser: new MinimalParser(new PublicKey("9tKE7Mbmj4mxDjWatikzGAtkoWosiiZX9y6J4Hfm2R8H"), [
+      {
+        name: "swap",
+        discriminator: 248,
+        accountIndexes: [4, 5],
+      },
+    ]),
+  },
+  {
+    id: "crema-finance",
+    publicKey: new PublicKey("CLMM9tUoggJu2wagPkkqs9eFG4BWhVBZWkP1qv3Sp7tR"),
+    parser: new MinimalParser(new PublicKey("CLMM9tUoggJu2wagPkkqs9eFG4BWhVBZWkP1qv3Sp7tR"), [
+      {
+        name: "swapWithPartner",
+        discriminator: 133,
+        accountIndexes: [6, 7],
+      },
+    ]),
+  },
+  {
+    id: "serum-dex-v3",
+    publicKey: new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"),
+    parser: new MinimalParser(new PublicKey("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin"), [
+      {
+        name: "settleFunds",
+        discriminator: 5,
+        accountIndexes: [3, 4],
+      },
+    ]),
+  },
+  {
+    id: "aldrin-amm",
+    publicKey: new PublicKey("AMM55ShdkoGRB5jVYPjWziwk8m5MpwyDgsMWHaMSQWH6"),
+    parser: new MinimalParser(new PublicKey("AMM55ShdkoGRB5jVYPjWziwk8m5MpwyDgsMWHaMSQWH6"), [
+      {
+        name: "swap",
+        discriminator: 248,
+        accountIndexes: [3, 4],
+      },
+    ]),
+  },
+  {
+    id: "openbook",
+    publicKey: new PublicKey("srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX"),
+    parser: new MinimalParser(new PublicKey("srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX"), [
+      {
+        name: "serum3PlaceOrder",
+        discriminator: 10,
+        accountIndexes: [8, 9],
+      },
+    ]),
+  },
+  {
+    id: "orca-swap",
+    publicKey: new PublicKey("DjVE6JNiYqPL2QXyCUUh8rNjHrbz9hXHNYt99MQ59qw1"),
+    parser: new MinimalParser(new PublicKey("DjVE6JNiYqPL2QXyCUUh8rNjHrbz9hXHNYt99MQ59qw1"), [
+      {
+        name: "swap",
+        discriminator: 1,
+        accountIndexes: [4, 5],
+      },
+    ]),
+  },
+  {
+    id: "cropper-finance",
+    publicKey: new PublicKey("CTMAxxk34HjKWxQ3QLZK1HpaLXmBveao3ESePXbiyfzh"),
+    parser: new MinimalParser(new PublicKey("CTMAxxk34HjKWxQ3QLZK1HpaLXmBveao3ESePXbiyfzh"), [
+      {
+        name: "swap",
+        discriminator: 1,
+        accountIndexes: [5, 6],
+      },
+    ]),
+  },
+  {
+    id: "aldrin-amm-v2",
+    publicKey: new PublicKey("CURVGoZn8zycx6FXwwevgBTB2gVvdbGTEpvMJDbgs2t4"),
+    parser: new MinimalParser(new PublicKey("CURVGoZn8zycx6FXwwevgBTB2gVvdbGTEpvMJDbgs2t4"), [
+      {
+        name: "swap",
+        discriminator: 248,
+        accountIndexes: [3, 4],
+      },
+    ]),
+  },
+  {
+    id: "balansol",
+    publicKey: new PublicKey("D3BBjqUdCYuP18fNvvMbPAZ8DpcRi4io2EsYHQawJDag"),
+    parser: new MinimalParser(new PublicKey("D3BBjqUdCYuP18fNvvMbPAZ8DpcRi4io2EsYHQawJDag"), [
+      {
+        name: "swap",
+        discriminator: 248,
+        accountIndexes: [5, 8],
+      },
+    ]),
+  },
+  {
+    id: "lifinity-swap",
+    publicKey: new PublicKey("EewxydAPCCVuNEyrVN68PuSYdQ7wKn27V9Gjeoi8dy3S"),
+    parser: new MinimalParser(new PublicKey("EewxydAPCCVuNEyrVN68PuSYdQ7wKn27V9Gjeoi8dy3S"), [
+      {
+        name: "swap",
+        discriminator: 248,
+        accountIndexes: [5, 6],
+      },
+    ]),
+  },
+  {
+    id: "penguin-finance",
+    publicKey: new PublicKey("PSwapMdSai8tjrEXcxFeQth87xC4rRsa4VA5mhGhXkP"),
+    parser: new MinimalParser(new PublicKey("PSwapMdSai8tjrEXcxFeQth87xC4rRsa4VA5mhGhXkP"), [
+      {
+        name: "swap",
+        discriminator: 1,
+        accountIndexes: [4, 5],
+      },
+    ]),
+  },
+  {
+    id: "sencha",
+    publicKey: new PublicKey("SCHAtsf8mbjyjiv4LkhLKutTf6JnZAbdJKFkXQNMFHZ"),
+    parser: new MinimalParser(new PublicKey("SCHAtsf8mbjyjiv4LkhLKutTf6JnZAbdJKFkXQNMFHZ"), [
+      {
+        name: "swap",
+        discriminator: 248,
+        accountIndexes: [4, 7],
+      },
+    ]),
+  },
+  {
+    id: "step-finance-swap",
+    publicKey: new PublicKey("SSwpMgqNDsyV7mAgN9ady4bDVu5ySjmmXejXvy2vLt1"),
+    parser: new MinimalParser(new PublicKey("SSwpMgqNDsyV7mAgN9ady4bDVu5ySjmmXejXvy2vLt1"), [
+      {
+        name: "swap",
+        discriminator: 1,
+        accountIndexes: [4, 5],
       },
     ]),
   },

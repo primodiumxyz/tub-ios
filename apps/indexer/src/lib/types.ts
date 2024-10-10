@@ -14,7 +14,7 @@ export type Program = {
 };
 export type SwapInstructionDetails = {
   name: string;
-  discriminator: number | bigint;
+  discriminator: number;
   accountIndexes: [number, number];
 };
 
