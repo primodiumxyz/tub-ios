@@ -1,6 +1,6 @@
 import { Idl } from "@coral-xyz/anchor";
 import { ParsedInstruction } from "@shyft-to/solana-transaction-parser";
-import { Connection, GetVersionedBlockConfig } from "@solana/web3.js";
+import { Connection } from "@solana/web3.js";
 
 import { LOG_FILTERS, PROGRAMS, WRAPPED_SOL_MINT } from "@/lib/constants";
 import { ParsedAccountData, PriceData, SwapAccounts } from "@/lib/types";
@@ -10,13 +10,6 @@ export const filterLogs = (logs: string[]) => {
     LOG_FILTERS.some((filter) => log.toLowerCase().includes(filter.toLowerCase())),
   );
   return filtered && filtered.length > 0 ? filtered : undefined;
-};
-
-export const getVersionedBlockConfig: GetVersionedBlockConfig = {
-  commitment: "finalized",
-  maxSupportedTransactionVersion: 0,
-  rewards: false,
-  transactionDetails: "full",
 };
 
 /* --------------------------------- DECODER -------------------------------- */
