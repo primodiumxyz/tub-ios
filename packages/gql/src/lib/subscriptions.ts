@@ -1,6 +1,6 @@
 import { graphql } from "./init";
 
-export const LatestMockTokensSubscription = graphql(`
+export const GetLatestMockTokensSubscription = graphql(`
   subscription SubLatestMockTokens($limit: Int = 10) {
     token(where: { mint: { _is_null: true } }, order_by: { updated_at: desc }, limit: $limit) {
       id
