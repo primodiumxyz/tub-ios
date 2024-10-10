@@ -3,13 +3,23 @@ import Apollo
 import TubAPI
 import Combine
 
-class TokenModel: BaseTokenModel {
+class TokenModel: ObservableObject {
+    var tokenId: String = ""
+    var userId: String = ""
+    
+    @Published var token: Token = Token(id: "", name: "COIN", symbol: "SYMBOL")
+    @Published var loading = true
+    @Published var tokenBalance: Double = 0
+    @Published var amountBoughtSol: Double = 0
+    @Published var prices: [Price] = [] 
     
     private var cancellables: Set<AnyCancellable> = []
     
-    init(userId: String) {
-        super.init()
+    init(userId: String, tokenId: String? = nil) {
         self.userId = userId
+        if(tokenId != nil){
+            self.initialize(with: tokenId!)
+        }
     }
     
 
@@ -128,7 +138,7 @@ class TokenModel: BaseTokenModel {
         return iso8601Formatter.date(from: dateString)
     }
 
-    override func buyTokens(buyAmountSol: Double, completion: ((Bool) -> Void)?) {
+    func buyTokens(buyAmountSol: Double, completion: ((Bool) -> Void)?) {
         let buyAmountLamps = String(Int(buyAmountSol * 1e9))
         
         Network.shared.buyToken(accountId: self.userId, tokenId: self.tokenId, amount: buyAmountLamps) { result in
@@ -143,7 +153,7 @@ class TokenModel: BaseTokenModel {
         }
     }
     
-    override func sellTokens(completion: ((Bool) -> Void)?) {
+    func sellTokens(completion: ((Bool) -> Void)?) {
         let sellAmountLamps = String(Int(self.amountBoughtSol * 1e9))
         
         Network.shared.sellToken(accountId: self.userId, tokenId: self.tokenId, amount: sellAmountLamps) { result in
