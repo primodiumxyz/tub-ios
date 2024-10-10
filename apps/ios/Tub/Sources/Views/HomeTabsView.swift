@@ -33,10 +33,6 @@ struct HomeTabsView: View {
                     AccountView().tabItem {
                         Label("Account", systemImage: "person")
                     }
-                    
-                    MockTokenView().tabItem {
-                        Label("Mock", systemImage: "testtube.2")
-                    }
                 }
                 .background(.black)
                 .foregroundColor(.white)

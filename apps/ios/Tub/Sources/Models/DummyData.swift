@@ -22,3 +22,5 @@ let dummyData = [
     Transaction(name: "Pepe", symbol: "$PEPEGG", imageUri: "pepe_icon", date: dateFromString("2024-09-30 11:00")!, value: 142.12, quantity: 22100, isBuy: false),
     Transaction(name: "Pepe", symbol: "$PEPEGG", imageUri: "pepe_icon", date: dateFromString("2024-09-28 18:25")!, value: -120.00, quantity: 22100, isBuy: true)
 ]
+
+let mockTokenId = "722e8490-e852-4298-a250-7b0a399fec57"

@@ -11,11 +11,8 @@
 		9910F1B62CAAE302005DEE6B /* SFRounded.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9910F1B52CAAE2FD005DEE6B /* SFRounded.swift */; };
 		9910F1BA2CAAEB80005DEE6B /* SwipeToEnterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9910F1B92CAAEB77005DEE6B /* SwipeToEnterView.swift */; };
 		991361A12CADE3B300E5D656 /* TokenListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 991361A02CADE3AA00E5D656 /* TokenListView.swift */; };
-		9918B8952CB6E0A60018D7C8 /* MockTokenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9918B8942CB6E0A20018D7C8 /* MockTokenView.swift */; };
 		99290EC02CB7110C003E740A /* FormatDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99290EBF2CB7110C003E740A /* FormatDate.swift */; };
-		9936FC572CADCA5200E21B8A /* MockTokenModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9936FC552CADCA5200E21B8A /* MockTokenModel.swift */; };
 		9936FC582CADCA5200E21B8A /* Structs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9936FC562CADCA5200E21B8A /* Structs.swift */; };
-		9936FC5A2CADCAB700E21B8A /* BaseTokenModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9936FC592CADCAB700E21B8A /* BaseTokenModel.swift */; };
 		993E5D902CAEE423000E23A9 /* ApolloWebSocket in Frameworks */ = {isa = PBXBuildFile; productRef = 993E5D8F2CAEE423000E23A9 /* ApolloWebSocket */; };
 		993E5D932CAEF33B000E23A9 /* subscriptions.graphql in Resources */ = {isa = PBXBuildFile; fileRef = 993E5D922CAEF33B000E23A9 /* subscriptions.graphql */; };
 		993E5D942CAEF33B000E23A9 /* queries.graphql in Resources */ = {isa = PBXBuildFile; fileRef = 993E5D912CAEF33B000E23A9 /* queries.graphql */; };
@@ -66,11 +63,8 @@
 		9910F1B52CAAE2FD005DEE6B /* SFRounded.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SFRounded.swift; sourceTree = "<group>"; };
 		9910F1B92CAAEB77005DEE6B /* SwipeToEnterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwipeToEnterView.swift; sourceTree = "<group>"; };
 		991361A02CADE3AA00E5D656 /* TokenListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenListView.swift; sourceTree = "<group>"; };
-		9918B8942CB6E0A20018D7C8 /* MockTokenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockTokenView.swift; sourceTree = "<group>"; };
 		99290EBF2CB7110C003E740A /* FormatDate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatDate.swift; sourceTree = "<group>"; };
-		9936FC552CADCA5200E21B8A /* MockTokenModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockTokenModel.swift; sourceTree = "<group>"; };
 		9936FC562CADCA5200E21B8A /* Structs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Structs.swift; sourceTree = "<group>"; };
-		9936FC592CADCAB700E21B8A /* BaseTokenModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseTokenModel.swift; sourceTree = "<group>"; };
 		993E5D912CAEF33B000E23A9 /* queries.graphql */ = {isa = PBXFileReference; lastKnownFileType = text; path = queries.graphql; sourceTree = "<group>"; };
 		993E5D922CAEF33B000E23A9 /* subscriptions.graphql */ = {isa = PBXFileReference; lastKnownFileType = text; path = subscriptions.graphql; sourceTree = "<group>"; };
 		999F59552CA6F96D00E7AE9F /* TokenModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenModel.swift; sourceTree = "<group>"; };
@@ -167,8 +161,6 @@
 				99DED24D2CAF28BD0055FC60 /* UserModel.swift */,
 				999F59552CA6F96D00E7AE9F /* TokenModel.swift */,
 				DFA36D552CB4278C00F63D2D /* DummyData.swift */,
-				9936FC552CADCA5200E21B8A /* MockTokenModel.swift */,
-				9936FC592CADCAB700E21B8A /* BaseTokenModel.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -209,7 +201,6 @@
 			children = (
 				991361A02CADE3AA00E5D656 /* TokenListView.swift */,
 				DB10A95C2CA5AA1B00B1E4F3 /* TokenView.swift */,
-				9918B8942CB6E0A20018D7C8 /* MockTokenView.swift */,
 				99DDF62E2CB0333D000234DA /* BuySellForm */,
 			);
 			path = Token;
@@ -454,7 +445,6 @@
 				991361A12CADE3B300E5D656 /* TokenListView.swift in Sources */,
 				9910F1B62CAAE302005DEE6B /* SFRounded.swift in Sources */,
 				990B90F22CB5B41000B5B073 /* AccountSetupView.swift in Sources */,
-				9936FC572CADCA5200E21B8A /* MockTokenModel.swift in Sources */,
 				99DDF62D2CB02816000234DA /* AccountView.swift in Sources */,
 				9936FC582CADCA5200E21B8A /* Structs.swift in Sources */,
 				DB458DB42CAC827A00C5EC18 /* Network.swift in Sources */,
@@ -471,9 +461,7 @@
 				DB6D29052CA1C8F70099951A /* TubApp.swift in Sources */,
 				999F59562CA6F97100E7AE9F /* TokenModel.swift in Sources */,
 				DFA36D562CB4278C00F63D2D /* DummyData.swift in Sources */,
-				9936FC5A2CADCAB700E21B8A /* BaseTokenModel.swift in Sources */,
 				999F59562CA6F97100E7AE9F /* TokenModel.swift in Sources */,
-				9918B8952CB6E0A60018D7C8 /* MockTokenView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
