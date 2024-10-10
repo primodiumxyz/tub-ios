@@ -11,8 +11,6 @@ class TokenModel: BaseTokenModel {
         super.init()
         self.userId = userId
     }
-    
-
 
     private func fetchInitialData() async {
         do {

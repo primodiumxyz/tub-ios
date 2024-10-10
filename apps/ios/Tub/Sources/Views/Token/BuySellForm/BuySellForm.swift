@@ -7,6 +7,7 @@
 import SwiftUI
 
 struct BuySellForm: View {
+    @EnvironmentObject var userModel: UserModel
     @ObservedObject var tokenModel: BaseTokenModel
     @State private var activeTab: String = "buy"
     @State private var sellAmount: Double = 0.0
@@ -31,7 +32,13 @@ struct BuySellForm: View {
     
     var body: some View {
         VStack {
-            if activeTab == "buy" {
+            if userModel.userId == "" {
+                Text("Register to trade")
+                    .font(.title)
+                    .foregroundColor(.yellow)
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .center)
+            } else if activeTab == "buy" {
                 BuyForm(tokenModel: tokenModel, onBuy: handleBuy)
             } else {
                 SellForm(tokenModel: tokenModel, onSell: handleSell)
@@ -41,8 +48,11 @@ struct BuySellForm: View {
 }
 
 #Preview {
+    
+    @Previewable @AppStorage("userId") var userId: String = ""
     VStack {
         BuySellForm(tokenModel: MockTokenModel())
+            .environmentObject(UserModel(userId: userId))
     }.frame(maxWidth: .infinity, maxHeight: .infinity) .background(.black).foregroundColor(.white)
 }
 

@@ -50,7 +50,6 @@ class MockTokenModel: BaseTokenModel {
         solBalance -= buyAmountSol
         tokenBalance += tokenAmount
         amountBoughtSol += buyAmountSol
-        print("amount bought: \(amountBoughtSol)")
         completion?(true)
     }
     

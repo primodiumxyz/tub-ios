@@ -23,7 +23,7 @@ struct HomeTabsView: View {
             } else {
                 TabView() {
                     TokenListView().tabItem {
-                        Label("Cloud", systemImage: "cloud.fill")
+                        Label("Explore", systemImage: "safari")
                     }
 
                     HistoryView().tabItem {

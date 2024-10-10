@@ -82,7 +82,7 @@ struct AccountView: View {
             DispatchQueue.main.async {
                 isAirdropping = false
                 switch result {
-                case .success(let transaction):
+                case .success(_):
                     airdropResult = "Airdrop successful!"
                     errorMessage = nil
                 case .failure(let error):

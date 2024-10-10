@@ -23,7 +23,6 @@ class BaseTokenModel: ObservableObject {
     
     private func recalculateNetWorth() {
         guard let currentPrice = prices.last?.price else { return }
-        print("currentPrice: \(currentPrice), tokenBalance: \(tokenBalance), solBalance: \(solBalance)")
         netWorth = solBalance + (tokenBalance * currentPrice)
     }
 }

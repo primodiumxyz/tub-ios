@@ -9,14 +9,13 @@ import SwiftUI
 import TubAPI
 
 struct HistoryView : View {
-    var userId: String
     
-    @State private var txs: [Transaction] 
+    @EnvironmentObject private var userModel: UserModel
+    @State private var txs: [Transaction]
     @State private var loading : Bool
     @State private var error: Error? // Add this line
     
-    init(userId: String, txs: [Transaction]? = []) {
-        self.userId = userId
+    init(txs: [Transaction]? = []) {
         self._txs = State(initialValue: txs!.isEmpty ? [] : txs!)
         self._loading = State(initialValue: txs == nil)
         self._error = State(initialValue: nil) // Add this line
@@ -36,7 +35,6 @@ struct HistoryView : View {
                     if let tokenTransactions = graphQLResult.data?.token_transaction {
                         self.txs = tokenTransactions.reduce(into: []) { result, transaction in
                             guard let date = formatDate(transaction.account_transaction_data.created_at) else {
-                                print("Date format failed, skipping ", transaction.account_transaction_data.created_at)
                                 return
                             }
                             
@@ -76,13 +74,13 @@ struct HistoryView : View {
             if loading == true {
                 LoadingView()
             } else if let error = error {
-                ErrorView(error: error, retryAction: { fetchUserTxs(userId) })
+                ErrorView(error: error, retryAction: { fetchUserTxs(userModel.userId) })
             } else {
                 HistoryViewContent(txs: txs)
             }
         }.onAppear {
             if txs.isEmpty {
-                fetchUserTxs(userId)
+                fetchUserTxs(userModel.userId)
             }
         }
     }
@@ -455,7 +453,7 @@ struct TransactionRow: View {
 
 struct HistoryView_Previews: PreviewProvider {
     static var previews: some View {
-        HistoryView(userId: "", txs: dummyData)
+        HistoryView(txs: dummyData)
     }
 }
 

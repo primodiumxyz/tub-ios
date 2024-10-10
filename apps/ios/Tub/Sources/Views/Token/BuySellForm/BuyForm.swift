@@ -32,8 +32,8 @@ struct BuyForm: View {
                     VStack(alignment: .trailing, spacing: 0) {
                         HStack {
                             TextField("Enter amount", text: $buyAmountString)
-//                                .keyboardType(.decimalPad)
-//                                .multilineTextAlignment(.trailing)
+                                .keyboardType(.decimalPad)
+                                .multilineTextAlignment(.trailing)
                                 .onChange(of: buyAmountString) { newValue in
                                     let filtered = newValue.filter { "0123456789.".contains($0) }
                                     if filtered != newValue {

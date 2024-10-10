@@ -27,9 +27,8 @@ struct SellForm: View {
                             .background(Color.white.opacity(0.5))
                             .clipShape(Circle())
                     }
-                    Text("tokens: \(tokenModel.tokenBalance), price: \(tokenModel.prices.last?.price ?? 0), amount bought: \(tokenModel.amountBoughtSol)")
                     Text("\(tokenModel.tokenBalance * (tokenModel.prices.last?.price ?? 0) - tokenModel.amountBoughtSol, specifier: "%.2f") SOL")
-                        .foregroundColor(tokenModel.tokenBalance * (tokenModel.prices.last?.price ?? 0) - tokenModel.amountBoughtSol > 0 ? .green : .red)
+                        .foregroundColor(tokenModel.tokenBalance * (tokenModel.prices.last?.price ?? 0) - tokenModel.amountBoughtSol > 0 ? .green : .red).font(.title2)
                 }
                 Spacer()
             }.padding(12)

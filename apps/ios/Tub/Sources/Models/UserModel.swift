@@ -49,6 +49,8 @@ class UserModel: ObservableObject {
             }
         } catch {
             print("Error fetching initial data: \(error)")
+            storedUserId = ""
+            storedUsername = ""
             DispatchQueue.main.async {
                 self.isLoading = false  // Set isLoading to false even on error
             }

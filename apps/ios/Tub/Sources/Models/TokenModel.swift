@@ -134,8 +134,10 @@ class TokenModel: BaseTokenModel {
         Network.shared.buyToken(accountId: self.userId, tokenId: self.tokenId, amount: buyAmountLamps) { result in
             switch result {
             case .success:
+                print("buy successful")
                 completion?(true)
             case .failure(let error):
+                print(error)
                 completion?(false)
             }
         }
