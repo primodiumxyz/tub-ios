@@ -23,9 +23,11 @@ struct TokenListView: View {
     init() {
         self._tokenModel = StateObject(wrappedValue: TokenModel(userId: UserDefaults.standard.string(forKey: "userId") ?? ""))
     }
-    
+
     private func updateTokenModel(tokenId: String) {
-        tokenModel.initialize(with: tokenId)
+        DispatchQueue.main.async {
+            tokenModel.initialize(with: tokenId)
+        }
     }
     
     var body: some View {
@@ -93,21 +95,23 @@ struct TokenListView: View {
         .onAppear(perform: fetchTokens)
         .foregroundColor(.white)
         .padding()
-        .background(Color.black) // Corrected syntax
+        .background(Color.black) 
     }
 
     private func fetchTokens() {
         subscription = Network.shared.apollo.subscribe(subscription: GetLatestMockTokensSubscription()) { result in
-            DispatchQueue.main.async {
-                self.isLoading = false
-                switch result {
-                case .success(let graphQLResult):
-                    if let tokens = graphQLResult.data?.token {
-                        self.tokens = tokens.map { elem in Token(id: elem.id, name: elem.name, symbol: elem.symbol) }
-                        updateTokenModel(tokenId: tokens[0].id)
+            DispatchQueue.global(qos: .background).async {
+                DispatchQueue.main.async {
+                    self.isLoading = false
+                    switch result {
+                    case .success(let graphQLResult):
+                        if let tokens = graphQLResult.data?.token {
+                            self.tokens = tokens.map { elem in Token(id: elem.id, name: elem.name, symbol: elem.symbol) }
+                            updateTokenModel(tokenId: tokens[0].id)
+                        }
+                    case .failure(let error):
+                        self.errorMessage = "Error: \(error.localizedDescription)"
                     }
-                case .failure(let error):
-                    self.errorMessage = "Error: \(error.localizedDescription)"
                 }
             }
         }
