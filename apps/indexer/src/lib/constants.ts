@@ -13,7 +13,9 @@ export const PRICE_PRECISION = 1e9;
 
 export const WRAPPED_SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
 
-// Updated on 2024-10-10
+// Discriminator and account indexes for minimal parsers come from this database:
+// https://github.com/Topledger/solana-programs/tree/main/dex-trades/src/dapps
+// Up to date with commit dbc8eab (2024-09-26)
 export const PROGRAMS = [
   /* --------------------- PROGRAMS WITH DEDICATED PARSER --------------------- */
   {
