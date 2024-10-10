@@ -143,7 +143,7 @@ type account {
     """filter the rows returned"""
     where: account_transaction_bool_exp
   ): account_transaction_aggregate!
-  created_at: timestamp!
+  created_at: timestamptz!
   id: uuid!
   username: String!
 }
@@ -174,21 +174,21 @@ input account_bool_exp {
   _or: [account_bool_exp!]
   account_transactions: account_transaction_bool_exp
   account_transactions_aggregate: account_transaction_aggregate_bool_exp
-  created_at: timestamp_comparison_exp
+  created_at: timestamptz_comparison_exp
   id: uuid_comparison_exp
   username: String_comparison_exp
 }
 
 """aggregate max on columns"""
 type account_max_fields {
-  created_at: timestamp
+  created_at: timestamptz
   id: uuid
   username: String
 }
 
 """aggregate min on columns"""
 type account_min_fields {
-  created_at: timestamp
+  created_at: timestamptz
   id: uuid
   username: String
 }
@@ -228,7 +228,7 @@ input account_stream_cursor_input {
 
 """Initial value of the column from where the streaming should start"""
 input account_stream_cursor_value_input {
-  created_at: timestamp
+  created_at: timestamptz
   id: uuid
   username: String
 }
@@ -240,7 +240,7 @@ type account_transaction {
   account: uuid!
 
   """An object relationship"""
-  account_relationship: account!
+  account_data: account!
   amount: numeric!
   created_at: timestamptz!
   id: uuid!
@@ -356,7 +356,7 @@ input account_transaction_bool_exp {
   _not: account_transaction_bool_exp
   _or: [account_transaction_bool_exp!]
   account: uuid_comparison_exp
-  account_relationship: account_bool_exp
+  account_data: account_bool_exp
   amount: numeric_comparison_exp
   created_at: timestamptz_comparison_exp
   id: uuid_comparison_exp
@@ -408,7 +408,7 @@ input account_transaction_min_order_by {
 """Ordering options when selecting data from "account_transaction"."""
 input account_transaction_order_by {
   account: order_by
-  account_relationship: account_order_by
+  account_data: account_order_by
   amount: order_by
   created_at: order_by
   id: order_by
@@ -1063,23 +1063,6 @@ type subscription_root {
   ): [token_transaction!]!
 }
 
-scalar timestamp
-
-"""
-Boolean expression to compare columns of type "timestamp". All fields are combined with logical 'AND'.
-"""
-input timestamp_comparison_exp {
-  _eq: timestamp
-  _gt: timestamp
-  _gte: timestamp
-  _in: [timestamp!]
-  _is_null: Boolean
-  _lt: timestamp
-  _lte: timestamp
-  _neq: timestamp
-  _nin: [timestamp!]
-}
-
 scalar timestamptz
 
 """
@@ -1108,7 +1091,79 @@ type token {
   name: String!
   supply: numeric!
   symbol: String!
-  updated_at: timestamp!
+
+  """An array relationship"""
+  token_price_histories(
+    """distinct select on columns"""
+    distinct_on: [token_price_history_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_price_history_order_by!]
+
+    """filter the rows returned"""
+    where: token_price_history_bool_exp
+  ): [token_price_history!]!
+
+  """An aggregate relationship"""
+  token_price_histories_aggregate(
+    """distinct select on columns"""
+    distinct_on: [token_price_history_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_price_history_order_by!]
+
+    """filter the rows returned"""
+    where: token_price_history_bool_exp
+  ): token_price_history_aggregate!
+
+  """An array relationship"""
+  token_transactions(
+    """distinct select on columns"""
+    distinct_on: [token_transaction_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_transaction_order_by!]
+
+    """filter the rows returned"""
+    where: token_transaction_bool_exp
+  ): [token_transaction!]!
+
+  """An aggregate relationship"""
+  token_transactions_aggregate(
+    """distinct select on columns"""
+    distinct_on: [token_transaction_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_transaction_order_by!]
+
+    """filter the rows returned"""
+    where: token_transaction_bool_exp
+  ): token_transaction_aggregate!
+  updated_at: timestamptz!
   uri: String
 }
 
@@ -1124,7 +1179,11 @@ input token_bool_exp {
   name: String_comparison_exp
   supply: numeric_comparison_exp
   symbol: String_comparison_exp
-  updated_at: timestamp_comparison_exp
+  token_price_histories: token_price_history_bool_exp
+  token_price_histories_aggregate: token_price_history_aggregate_bool_exp
+  token_transactions: token_transaction_bool_exp
+  token_transactions_aggregate: token_transaction_aggregate_bool_exp
+  updated_at: timestamptz_comparison_exp
   uri: String_comparison_exp
 }
 
@@ -1135,6 +1194,8 @@ input token_order_by {
   name: order_by
   supply: order_by
   symbol: order_by
+  token_price_histories_aggregate: token_price_history_aggregate_order_by
+  token_transactions_aggregate: token_transaction_aggregate_order_by
   updated_at: order_by
   uri: order_by
 }
@@ -1143,13 +1204,17 @@ input token_order_by {
 columns and relationships of "token_price_history"
 """
 type token_price_history {
-  created_at: timestamp!
+  created_at: timestamptz!
   id: uuid!
+  internal_token_transaction_ref: uuid
   price: numeric!
   token: uuid!
 
   """An object relationship"""
   token_relationship: token!
+
+  """An object relationship"""
+  token_transaction: token_transaction
 }
 
 """
@@ -1158,6 +1223,17 @@ aggregated selection of "token_price_history"
 type token_price_history_aggregate {
   aggregate: token_price_history_aggregate_fields
   nodes: [token_price_history!]!
+}
+
+input token_price_history_aggregate_bool_exp {
+  count: token_price_history_aggregate_bool_exp_count
+}
+
+input token_price_history_aggregate_bool_exp_count {
+  arguments: [token_price_history_select_column!]
+  distinct: Boolean
+  filter: token_price_history_bool_exp
+  predicate: Int_comparison_exp!
 }
 
 """
@@ -1177,9 +1253,33 @@ type token_price_history_aggregate_fields {
   variance: token_price_history_variance_fields
 }
 
+"""
+order by aggregate values of table "token_price_history"
+"""
+input token_price_history_aggregate_order_by {
+  avg: token_price_history_avg_order_by
+  count: order_by
+  max: token_price_history_max_order_by
+  min: token_price_history_min_order_by
+  stddev: token_price_history_stddev_order_by
+  stddev_pop: token_price_history_stddev_pop_order_by
+  stddev_samp: token_price_history_stddev_samp_order_by
+  sum: token_price_history_sum_order_by
+  var_pop: token_price_history_var_pop_order_by
+  var_samp: token_price_history_var_samp_order_by
+  variance: token_price_history_variance_order_by
+}
+
 """aggregate avg on columns"""
 type token_price_history_avg_fields {
   price: Float
+}
+
+"""
+order by avg() on columns of table "token_price_history"
+"""
+input token_price_history_avg_order_by {
+  price: order_by
 }
 
 """
@@ -1189,36 +1289,64 @@ input token_price_history_bool_exp {
   _and: [token_price_history_bool_exp!]
   _not: token_price_history_bool_exp
   _or: [token_price_history_bool_exp!]
-  created_at: timestamp_comparison_exp
+  created_at: timestamptz_comparison_exp
   id: uuid_comparison_exp
+  internal_token_transaction_ref: uuid_comparison_exp
   price: numeric_comparison_exp
   token: uuid_comparison_exp
   token_relationship: token_bool_exp
+  token_transaction: token_transaction_bool_exp
 }
 
 """aggregate max on columns"""
 type token_price_history_max_fields {
-  created_at: timestamp
+  created_at: timestamptz
   id: uuid
+  internal_token_transaction_ref: uuid
   price: numeric
   token: uuid
 }
 
+"""
+order by max() on columns of table "token_price_history"
+"""
+input token_price_history_max_order_by {
+  created_at: order_by
+  id: order_by
+  internal_token_transaction_ref: order_by
+  price: order_by
+  token: order_by
+}
+
 """aggregate min on columns"""
 type token_price_history_min_fields {
-  created_at: timestamp
+  created_at: timestamptz
   id: uuid
+  internal_token_transaction_ref: uuid
   price: numeric
   token: uuid
+}
+
+"""
+order by min() on columns of table "token_price_history"
+"""
+input token_price_history_min_order_by {
+  created_at: order_by
+  id: order_by
+  internal_token_transaction_ref: order_by
+  price: order_by
+  token: order_by
 }
 
 """Ordering options when selecting data from "token_price_history"."""
 input token_price_history_order_by {
   created_at: order_by
   id: order_by
+  internal_token_transaction_ref: order_by
   price: order_by
   token: order_by
   token_relationship: token_order_by
+  token_transaction: token_transaction_order_by
 }
 
 """
@@ -1232,6 +1360,9 @@ enum token_price_history_select_column {
   id
 
   """column name"""
+  internal_token_transaction_ref
+
+  """column name"""
   price
 
   """column name"""
@@ -1243,14 +1374,35 @@ type token_price_history_stddev_fields {
   price: Float
 }
 
+"""
+order by stddev() on columns of table "token_price_history"
+"""
+input token_price_history_stddev_order_by {
+  price: order_by
+}
+
 """aggregate stddev_pop on columns"""
 type token_price_history_stddev_pop_fields {
   price: Float
 }
 
+"""
+order by stddev_pop() on columns of table "token_price_history"
+"""
+input token_price_history_stddev_pop_order_by {
+  price: order_by
+}
+
 """aggregate stddev_samp on columns"""
 type token_price_history_stddev_samp_fields {
   price: Float
+}
+
+"""
+order by stddev_samp() on columns of table "token_price_history"
+"""
+input token_price_history_stddev_samp_order_by {
+  price: order_by
 }
 
 """
@@ -1266,8 +1418,9 @@ input token_price_history_stream_cursor_input {
 
 """Initial value of the column from where the streaming should start"""
 input token_price_history_stream_cursor_value_input {
-  created_at: timestamp
+  created_at: timestamptz
   id: uuid
+  internal_token_transaction_ref: uuid
   price: numeric
   token: uuid
 }
@@ -1277,9 +1430,23 @@ type token_price_history_sum_fields {
   price: numeric
 }
 
+"""
+order by sum() on columns of table "token_price_history"
+"""
+input token_price_history_sum_order_by {
+  price: order_by
+}
+
 """aggregate var_pop on columns"""
 type token_price_history_var_pop_fields {
   price: Float
+}
+
+"""
+order by var_pop() on columns of table "token_price_history"
+"""
+input token_price_history_var_pop_order_by {
+  price: order_by
 }
 
 """aggregate var_samp on columns"""
@@ -1287,9 +1454,23 @@ type token_price_history_var_samp_fields {
   price: Float
 }
 
+"""
+order by var_samp() on columns of table "token_price_history"
+"""
+input token_price_history_var_samp_order_by {
+  price: order_by
+}
+
 """aggregate variance on columns"""
 type token_price_history_variance_fields {
   price: Float
+}
+
+"""
+order by variance() on columns of table "token_price_history"
+"""
+input token_price_history_variance_order_by {
+  price: order_by
 }
 
 """
@@ -1338,7 +1519,7 @@ input token_stream_cursor_value_input {
   name: String
   supply: numeric
   symbol: String
-  updated_at: timestamp
+  updated_at: timestamptz
   uri: String
 }
 
@@ -1349,13 +1530,16 @@ type token_transaction {
   account_transaction: uuid!
 
   """An object relationship"""
-  account_transaction_relationship: account_transaction!
+  account_transaction_data: account_transaction!
   amount: numeric!
   id: uuid!
   token: uuid!
 
   """An object relationship"""
-  token_relationship: token!
+  token_data: token!
+
+  """An object relationship"""
+  token_price: token_price_history
   transaction_type: transaction_type!
 }
 
@@ -1432,11 +1616,12 @@ input token_transaction_bool_exp {
   _not: token_transaction_bool_exp
   _or: [token_transaction_bool_exp!]
   account_transaction: uuid_comparison_exp
-  account_transaction_relationship: account_transaction_bool_exp
+  account_transaction_data: account_transaction_bool_exp
   amount: numeric_comparison_exp
   id: uuid_comparison_exp
   token: uuid_comparison_exp
-  token_relationship: token_bool_exp
+  token_data: token_bool_exp
+  token_price: token_price_history_bool_exp
   transaction_type: transaction_type_comparison_exp
 }
 
@@ -1483,11 +1668,12 @@ input token_transaction_min_order_by {
 """Ordering options when selecting data from "token_transaction"."""
 input token_transaction_order_by {
   account_transaction: order_by
-  account_transaction_relationship: account_transaction_order_by
+  account_transaction_data: account_transaction_order_by
   amount: order_by
   id: order_by
   token: order_by
-  token_relationship: token_order_by
+  token_data: token_order_by
+  token_price: token_price_history_order_by
   transaction_type: order_by
 }
 

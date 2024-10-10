@@ -76,7 +76,7 @@ class RemoteCoinModel: BaseCoinModel {
                 case .success(let graphQLResult):
                     if let history = graphQLResult.data?.token_price_history.first {
 
-                        if let date = self.formatDate(history.created_at) {
+                        if let date = formatDate(history.created_at) {
                             let newPrice = Price(timestamp: date, price: Double(history.price) / 1e9)
                             self.prices.append(newPrice)
                         } else {
@@ -127,23 +127,6 @@ class RemoteCoinModel: BaseCoinModel {
             .store(in: &cancellables)
     }
     
-    private func formatDate(_ dateString: String) -> Date? {
-        let pattern = #"(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})\.(\d{6})"#
-        
-        guard let regex = try? NSRegularExpression(pattern: pattern, options: []),
-              let match = regex.firstMatch(in: dateString, options: [], range: NSRange(dateString.startIndex..., in: dateString)) else {
-            return nil
-        }
-        
-        let dateRange = Range(match.range(at: 1), in: dateString)!
-        let millisRange = Range(match.range(at: 2), in: dateString)!
-        
-        let datePart = String(dateString[dateRange])
-        let millisPart = String(dateString[millisRange].prefix(3))
-        
-        return iso8601Formatter.date(from: datePart + "." + millisPart + "Z")
-    }
-
     override func buyTokens(buyAmount: Double, completion: ((Bool) -> Void)?) {
         print("in handleBuy")
         let buyAmountLamps = String(Int(buyAmount * 1e9))

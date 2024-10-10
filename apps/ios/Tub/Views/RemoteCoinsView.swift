@@ -62,9 +62,11 @@ struct RemoteCoinsView: View {
                 switch result {
                 case .success(let graphQLResult):
                     if let tokens = graphQLResult.data?.token {
+                        print(tokens)
                         self.coins = tokens.map { elem in Coin(id: elem.id, name: elem.name, symbol: elem.symbol) }
                     }
                 case .failure(let error):
+                    print(error)
                     self.errorMessage = "Error: \(error.localizedDescription)"
                 }
             }

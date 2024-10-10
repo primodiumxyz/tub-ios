@@ -2,7 +2,7 @@ table:
   name: account_transaction
   schema: public
 object_relationships:
-  - name: account_relationship
+  - name: account_data
     using:
       foreign_key_constraint_on: account
 array_relationships:
