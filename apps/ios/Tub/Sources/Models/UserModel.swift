@@ -7,11 +7,12 @@
 
 import SwiftUI
 import Combine
+import Apollo
 import TubAPI
 import ApolloCombine
 
 class UserModel: ObservableObject {
-    @Published var balance: Double = 0
+    @Published var balance: (credit: Numeric, debit: Numeric, total: Double) = (0, 0, 0)
     @Published var isLoading: Bool = true
     @Published var userId: String
     @Published var username: String = ""
@@ -20,19 +21,22 @@ class UserModel: ObservableObject {
     @AppStorage("username") private var storedUsername: String?
     
     private var cancellables: Set<AnyCancellable> = []
+    private var accountBalanceSubscription:
+        (credit: Apollo.Cancellable?, debit: Apollo.Cancellable?)  // Track the token balance subscription
+
     
     init(userId: String, mock: Bool? = false) {
         self.userId = userId
         
         if(mock == true) {
-            self.balance = 1000
+            self.balance.total = 1000
             isLoading = false
             return
         }
         
         Task {
             await fetchInitialData()
-            startBalancePolling()
+            subscribeToAccountBalance()
         }
     }
     
@@ -84,42 +88,45 @@ class UserModel: ObservableObject {
         }
     }
     
-    private func startBalancePolling() {
-        Timer.publish(every: 1, on: .main, in: .common)
-            .autoconnect()
-            .sink { [weak self] _ in
-                self?.fetchBalance()
-            }
-            .store(in: &cancellables)
-    }
-    
-    private func fetchBalance() {
-        let creditQuery = GetAccountBalanceCreditQuery(accountId: Uuid(userId))
-        let debitQuery = GetAccountBalanceDebitQuery(accountId: Uuid(userId))
+    private func subscribeToAccountBalance() {
+        accountBalanceSubscription.credit?.cancel()
+        accountBalanceSubscription.debit?.cancel()
         
-        let creditPublisher = Network.shared.apollo.watchPublisher(query: creditQuery)
-        let debitPublisher = Network.shared.apollo.watchPublisher(query: debitQuery)
-        
-        Publishers.CombineLatest(creditPublisher, debitPublisher)
-            .sink { completion in
-                if case let .failure(error) = completion {
-                    print("Error fetching balance: \(error)")
-                }
-            } receiveValue: { [weak self] creditResult, debitResult in
-                switch (creditResult, debitResult) {
-                case (.success(let creditData), .success(let debitData)):
-                    let creditAmount = creditData.data?.account_transaction_aggregate.aggregate?.sum?.amount ?? 0
-                    let debitAmount = debitData.data?.account_transaction_aggregate.aggregate?.sum?.amount ?? 0
-                    let balance = Double(creditAmount - debitAmount) / 1e9
-                    DispatchQueue.main.async {
-                        self?.balance = balance
-                    }
-                case (.failure(let error), _), (_, .failure(let error)):
-                    print("Error fetching balance: \(error)")
+        accountBalanceSubscription.credit = Network.shared.apollo.subscribe(
+            subscription: SubAccountBalanceCreditSubscription(
+                accountId: Uuid(self.userId))
+        ) { [weak self] result in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let graphQLResult):
+                    self.balance.credit =
+                    graphQLResult.data?.account_transaction_aggregate.aggregate?.sum?.amount ?? 0
+                    self.balance.total = Double(self.balance.credit - self.balance.debit)/1e9
+                case .failure(let error):
+                    print("Error: \(error.localizedDescription)")
                 }
             }
-            .store(in: &cancellables)
+        }
+
+        accountBalanceSubscription.debit = Network.shared.apollo.subscribe(
+            subscription: SubAccountBalanceDebitSubscription(
+                accountId: Uuid(self.userId))
+        ) { [weak self] result in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let graphQLResult):
+                    self.balance.debit =
+                    graphQLResult.data?.account_transaction_aggregate.aggregate?.sum?.amount ?? 0
+                    self.balance.total = Double(self.balance.credit - self.balance.debit)/1e9
+                case .failure(let error):
+                    print("Error: \(error.localizedDescription)")
+                }
+            }
+        }
     }
+
     
     func logout() {
         // Clear the stored values
@@ -131,12 +138,13 @@ class UserModel: ObservableObject {
             guard let self = self else { return }
             self.userId = ""
             self.username = ""
-            self.balance = 0
+            self.balance = (0, 0, 0)
             self.isLoading = true
         }
         
         // Cancel any ongoing network requests or timers
         cancellables.forEach { $0.cancel() }
         cancellables.removeAll()
+        
     }
 }

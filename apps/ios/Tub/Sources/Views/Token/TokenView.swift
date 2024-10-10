@@ -60,7 +60,7 @@ struct TokenView : View {
                     .opacity(0.7)
                     .kerning(-1)
                 
-               Text("\(tokenModel.tokenBalance, specifier: "%.3f") \(tokenModel.token.symbol.uppercased())") // Update this line
+                Text("\(tokenModel.tokenBalance.total, specifier: "%.3f") \(tokenModel.token.symbol.uppercased())") // Update this line
                     .font(.sfRounded(size: .xl2, weight: .bold))
            }
            

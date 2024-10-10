@@ -3,11 +3,11 @@
 
 @_exported import ApolloAPI
 
-public class GetLatestMockTokensSubscription: GraphQLSubscription {
-  public static let operationName: String = "GetLatestMockTokens"
+public class SubLatestMockTokensSubscription: GraphQLSubscription {
+  public static let operationName: String = "SubLatestMockTokens"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"subscription GetLatestMockTokens($limit: Int = 10) { token( where: { mint: { _is_null: true } } order_by: { updated_at: desc } limit: $limit ) { __typename id name symbol supply updated_at } }"#
+      #"subscription SubLatestMockTokens($limit: Int = 10) { token( where: { mint: { _is_null: true } } order_by: { updated_at: desc } limit: $limit ) { __typename id symbol supply name updated_at } }"#
     ))
 
   public var limit: GraphQLNullable<Int>
@@ -45,16 +45,16 @@ public class GetLatestMockTokensSubscription: GraphQLSubscription {
       public static var __selections: [ApolloAPI.Selection] { [
         .field("__typename", String.self),
         .field("id", TubAPI.Uuid.self),
-        .field("name", String.self),
         .field("symbol", String.self),
         .field("supply", TubAPI.Numeric.self),
+        .field("name", String.self),
         .field("updated_at", TubAPI.Timestamptz.self),
       ] }
 
       public var id: TubAPI.Uuid { __data["id"] }
-      public var name: String { __data["name"] }
       public var symbol: String { __data["symbol"] }
       public var supply: TubAPI.Numeric { __data["supply"] }
+      public var name: String { __data["name"] }
       public var updated_at: TubAPI.Timestamptz { __data["updated_at"] }
     }
   }

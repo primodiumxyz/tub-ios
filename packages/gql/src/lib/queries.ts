@@ -10,6 +10,16 @@ export const GetAllAccountsQuery = graphql(`
   }
 `);
 
+export const GetAccountDataQuery = graphql(`
+  query GetAccountData($accountId: uuid!) {
+    account(where: { id: { _eq: $accountId } }) {
+    username
+    id
+    created_at
+    }
+  }
+`);
+
 export const GetAllMockTokensQuery = graphql(`
   query GetAllTokens {
     token(where: { mint: { _is_null: true } }) {
@@ -56,8 +66,8 @@ export const GetAccountBalanceDebitQuery = graphql(`
   }
 `);
 
-export const GetAccountTokenCreditQuery = graphql(`
-  query GetAccountTokenCredit($accountId: uuid!, $tokenId: uuid!) {
+export const GetAccountTokenBalanceCreditQuery = graphql(`
+  query GetAccountTokenBalanceCredit($accountId: uuid!, $tokenId: uuid!) {
     token_transaction_aggregate(
       where: {
         account_transaction_data: { account: { _eq: $accountId } }
@@ -74,8 +84,8 @@ export const GetAccountTokenCreditQuery = graphql(`
   }
 `);
 
-export const GetAccountTokenDebitQuery = graphql(`
-  query GetAccountTokenDebit($accountId: uuid!, $tokenId: uuid!) {
+export const GetAccountTokenBalanceDebitQuery = graphql(`
+  query GetAccountTokenBalanceDebit($accountId: uuid!, $tokenId: uuid!) {
     token_transaction_aggregate(
       where: {
         account_transaction_data: { account: { _eq: $accountId } }
@@ -91,6 +101,39 @@ export const GetAccountTokenDebitQuery = graphql(`
     }
   }
 `);
+
+export const GetAccountTokenBalanceQuery = graphql(`
+  query GetAccountTokenBalance($accountId: uuid!, $tokenId: uuid!) {
+    credit: token_transaction_aggregate(
+      where: {
+        account_transaction_data: { account: { _eq: $accountId } }
+        token: { _eq: $tokenId }
+        transaction_type: { _eq: "credit" }
+      }
+    ) {
+      aggregate {
+        sum {
+          amount
+        }
+      }
+    }
+
+    debit: token_transaction_aggregate(
+      where: {
+        account_transaction_data: { account: { _eq: $accountId } }
+        token: { _eq: $tokenId }
+        transaction_type: { _eq: "debit" }
+      }
+    ) {
+      aggregate {
+        sum {
+          amount
+        }
+      }
+    }
+  }
+`);
+
 
 export const GetLatestTokenPriceQuery = graphql(`
   query GetLatestTokenPrice($tokenId: uuid!) {

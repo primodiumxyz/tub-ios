@@ -3,6 +3,7 @@ subscription SubLatestMockTokens($limit: Int = 10) {
     id
     symbol
     supply
+    name
     updated_at
   }
 }
@@ -17,6 +18,13 @@ subscription SubTokenPriceHistorySince($tokenId: uuid!, $since: timestamptz!) {
     id
     price
     token
+  }
+}
+
+subscription SubLatestTokenPrice($tokenId: uuid!) {
+  token_price_history(where: { token: { _eq: $tokenId } }, limit: 1, order_by: { created_at: desc }) {
+    created_at
+    price
   }
 }
 
@@ -70,7 +78,7 @@ subscription SubAccountBalanceDebit($accountId: uuid!) {
   }
 }
 
-subscription SubAccountTokenCredit($accountId: uuid!, $tokenId: uuid!) {
+subscription SubAccountTokenBalanceCredit($accountId: uuid!, $tokenId: uuid!) {
   token_transaction_aggregate(
     where: {
       account_transaction_data: { account: { _eq: $accountId } }
@@ -86,7 +94,7 @@ subscription SubAccountTokenCredit($accountId: uuid!, $tokenId: uuid!) {
   }
 }
 
-subscription SubAccountTokenDebit($accountId: uuid!, $tokenId: uuid!) {
+subscription SubAccountTokenBalanceDebit($accountId: uuid!, $tokenId: uuid!) {
   token_transaction_aggregate(
     where: {
       account_transaction_data: { account: { _eq: $accountId } }

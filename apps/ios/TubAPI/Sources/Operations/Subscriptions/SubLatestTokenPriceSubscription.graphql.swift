@@ -3,11 +3,11 @@
 
 @_exported import ApolloAPI
 
-public class GetTokenPriceQuery: GraphQLQuery {
-  public static let operationName: String = "GetTokenPrice"
+public class SubLatestTokenPriceSubscription: GraphQLSubscription {
+  public static let operationName: String = "SubLatestTokenPrice"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetTokenPrice($tokenId: uuid!) { token_price_history( where: { token: { _eq: $tokenId } } order_by: { created_at: desc } limit: 1 ) { __typename created_at id price token } }"#
+      #"subscription SubLatestTokenPrice($tokenId: uuid!) { token_price_history( where: { token: { _eq: $tokenId } } limit: 1 order_by: { created_at: desc } ) { __typename created_at price } }"#
     ))
 
   public var tokenId: Uuid
@@ -22,12 +22,12 @@ public class GetTokenPriceQuery: GraphQLQuery {
     public let __data: DataDict
     public init(_dataDict: DataDict) { __data = _dataDict }
 
-    public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Query_root }
+    public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Subscription_root }
     public static var __selections: [ApolloAPI.Selection] { [
       .field("token_price_history", [Token_price_history].self, arguments: [
         "where": ["token": ["_eq": .variable("tokenId")]],
-        "order_by": ["created_at": "desc"],
-        "limit": 1
+        "limit": 1,
+        "order_by": ["created_at": "desc"]
       ]),
     ] }
 
@@ -45,15 +45,11 @@ public class GetTokenPriceQuery: GraphQLQuery {
       public static var __selections: [ApolloAPI.Selection] { [
         .field("__typename", String.self),
         .field("created_at", TubAPI.Timestamptz.self),
-        .field("id", TubAPI.Uuid.self),
         .field("price", TubAPI.Numeric.self),
-        .field("token", TubAPI.Uuid.self),
       ] }
 
       public var created_at: TubAPI.Timestamptz { __data["created_at"] }
-      public var id: TubAPI.Uuid { __data["id"] }
       public var price: TubAPI.Numeric { __data["price"] }
-      public var token: TubAPI.Uuid { __data["token"] }
     }
   }
 }

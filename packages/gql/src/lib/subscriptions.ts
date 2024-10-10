@@ -6,6 +6,7 @@ export const GetLatestMockTokensSubscription = graphql(`
       id
       symbol
       supply
+      name
       updated_at
     }
   }
@@ -22,6 +23,15 @@ export const GetTokenPriceHistorySinceSubscription = graphql(`
       id
       price
       token
+    }
+  }
+`);
+
+export const GetLatestTokenPriceSubscription = graphql(`
+  subscription SubLatestTokenPrice($tokenId: uuid!) {
+    token_price_history(where: { token: { _eq: $tokenId } }, limit: 1, order_by: { created_at: desc }) {
+      created_at
+      price
     }
   }
 `);
@@ -84,8 +94,8 @@ export const GetAccountBalanceDebitSubscription = graphql(`
   }
 `);
 
-export const GetAccountTokenCreditSubscription = graphql(`
-  subscription SubAccountTokenCredit($accountId: uuid!, $tokenId: uuid!) {
+export const GetAccountTokenBalanceCreditSubscription = graphql(`
+  subscription SubAccountTokenBalanceCredit($accountId: uuid!, $tokenId: uuid!) {
     token_transaction_aggregate(
       where: {
         account_transaction_data: { account: { _eq: $accountId } }
@@ -102,8 +112,8 @@ export const GetAccountTokenCreditSubscription = graphql(`
   }
 `);
 
-export const GetAccountTokenDebitSubscription = graphql(`
-  subscription SubAccountTokenDebit($accountId: uuid!, $tokenId: uuid!) {
+export const GetAccountTokenBalanceDebitSubscription = graphql(`
+  subscription SubAccountTokenBalanceDebit($accountId: uuid!, $tokenId: uuid!) {
     token_transaction_aggregate(
       where: {
         account_transaction_data: { account: { _eq: $accountId } }

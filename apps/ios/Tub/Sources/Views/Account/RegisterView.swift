@@ -27,7 +27,7 @@ struct RegisterView: View {
                 .padding(.horizontal)
             
             Button(action: {
-                Network.shared.registerNewUser(username: username, completion: handleRegistration)
+                Network.shared.registerNewUser(username: username, airdropAmount: "100000000000", completion: handleRegistration)
             }) {
                 Text("Register")
                     .font(.sfRounded(size: .lg, weight: .semibold))
