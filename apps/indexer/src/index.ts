@@ -46,6 +46,7 @@ const handlePriceData = async (gql: GqlClient["db"], priceData: (PriceData | und
   if (priceDataBatch.length >= PRICE_DATA_BATCH_SIZE) {
     const _priceDataBatch = priceDataBatch;
     priceDataBatch = [];
+
     try {
       // 1. Insert new tokens
       const insertRes = await gql.RegisterManyNewTokensMutation({
