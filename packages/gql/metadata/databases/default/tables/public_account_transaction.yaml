@@ -1,0 +1,27 @@
+table:
+  name: account_transaction
+  schema: public
+object_relationships:
+  - name: account_data
+    using:
+      foreign_key_constraint_on: account
+array_relationships:
+  - name: token_transactions
+    using:
+      foreign_key_constraint_on:
+        column: account_transaction
+        table:
+          name: token_transaction
+          schema: public
+select_permissions:
+  - role: public
+    permission:
+      columns:
+        - account
+        - amount
+        - created_at
+        - id
+        - transaction_type
+      filter: {}
+      allow_aggregations: true
+    comment: ""

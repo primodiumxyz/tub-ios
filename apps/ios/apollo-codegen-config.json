@@ -21,7 +21,7 @@
   "schemaDownloadConfiguration": {
     "downloadMethod": {
       "introspection": {
-        "endpointURL": "https://tub-graphql.primodium.ai/v1/graphql",
+        "endpointURL": "http://localhost:8080/v1/graphql",
         "httpMethod": {
           "POST": {}
         },

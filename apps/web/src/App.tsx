@@ -12,7 +12,7 @@ import { ServerProvider } from "./providers/ServerProvider";
 import { TubProvider } from "./providers/TubProvider";
 import { TubRoutes } from "./TubRoutes";
 
-const gqlClientUrl = import.meta.env.VITE_GRAPHQL_URL! as string;
+const gqlClientUrl = import.meta.env.PROD ? import.meta.env.VITE_GRAPHQL_URL! as string : "http://localhost:8080/v1/graphql";
 
 export default function App() {
   const network = WalletAdapterNetwork.Devnet;

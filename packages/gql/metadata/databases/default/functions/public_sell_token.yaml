@@ -1,0 +1,3 @@
+function:
+  name: sell_token
+  schema: public

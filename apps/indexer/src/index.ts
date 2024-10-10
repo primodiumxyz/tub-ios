@@ -159,7 +159,12 @@ const setup = (gql: GqlClient["db"]) => {
 
 export const start = async () => {
   try {
-    const gql = (await createGqlClient({ url: env.GRAPHQL_URL, hasuraAdminSecret: env.HASURA_ADMIN_SECRET })).db;
+    const gql = (
+      await createGqlClient({
+        url: env.NODE_ENV !== "prod" ? "http://localhost:8080/v1/graphql" : env.GRAPHQL_URL,
+        hasuraAdminSecret: env.NODE_ENV !== "prod" ? "password" : env.HASURA_ADMIN_SECRET,
+      })
+    ).db;
     setup(gql);
   } catch (err) {
     console.warn("Error in indexer, restarting in 5 seconds...");

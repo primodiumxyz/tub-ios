@@ -12,21 +12,28 @@ import TubAPI
 struct RemoteCoinsView: View {
     @State private var coins: [Coin] = []
     @State private var isLoading = true
-    @State private var errorMessage: String?
     @State private var subscription: Cancellable?
+    @State private var errorMessage: String?
+    @State private var showRegisterView = false
+    
+    @AppStorage("userId") private var userId: String = ""
+    @AppStorage("username") private var username: String = ""
 
     var body: some View {
         NavigationView {
             VStack {
+                AccountView(userId: userId, handleLogout: {
+                    userId = ""
+                    username = ""
+                    showRegisterView = true
+                }).frame(height: 200)
                 if isLoading {
                     ProgressView()
-                } else if let error = errorMessage {
-                    Text(error).foregroundColor(.red)
                 } else if coins.isEmpty {
                     Text("No coins found").foregroundColor(.red)
                 } else {
                     List(coins) { coin in
-                        NavigationLink(destination: CoinView(coinModel: RemoteCoinModel(tokenId: coin.id))) {
+                        NavigationLink(destination: CoinView(userId: userId, tokenId: coin.id)) {
                             HStack {
                                 Text(coin.symbol)
                                     .font(.headline)
@@ -42,6 +49,9 @@ struct RemoteCoinsView: View {
             }
             .navigationTitle("Coins")
             .onAppear(perform: fetchCoins)
+            .fullScreenCover(isPresented: $showRegisterView) {
+                RegisterView()
+            }
         }
     }
 
@@ -52,14 +62,17 @@ struct RemoteCoinsView: View {
                 switch result {
                 case .success(let graphQLResult):
                     if let tokens = graphQLResult.data?.token {
+                        print(tokens)
                         self.coins = tokens.map { elem in Coin(id: elem.id, name: elem.name, symbol: elem.symbol) }
                     }
                 case .failure(let error):
+                    print(error)
                     self.errorMessage = "Error: \(error.localizedDescription)"
                 }
             }
         }
     }
+
 }
 
 #Preview {

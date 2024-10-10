@@ -37,7 +37,7 @@ public class GetAllTokensQuery: GraphQLQuery {
         .field("id", TubAPI.Uuid.self),
         .field("name", String.self),
         .field("symbol", String.self),
-        .field("updated_at", TubAPI.Timestamp.self),
+        .field("updated_at", TubAPI.Timestamptz.self),
         .field("supply", TubAPI.Numeric.self),
         .field("uri", String?.self),
       ] }
@@ -45,7 +45,7 @@ public class GetAllTokensQuery: GraphQLQuery {
       public var id: TubAPI.Uuid { __data["id"] }
       public var name: String { __data["name"] }
       public var symbol: String { __data["symbol"] }
-      public var updated_at: TubAPI.Timestamp { __data["updated_at"] }
+      public var updated_at: TubAPI.Timestamptz { __data["updated_at"] }
       public var supply: TubAPI.Numeric { __data["supply"] }
       public var uri: String? { __data["uri"] }
     }

@@ -2,6 +2,7 @@ import SwiftUI
 
 class BaseCoinModel: ObservableObject {
     var tokenId: String
+    var userId: String
     var coin: Coin = Coin(id: "", name: "COIN", symbol: "SYMBOL")
     
     @Published var balance: Double = 0
@@ -11,16 +12,12 @@ class BaseCoinModel: ObservableObject {
 
     @Published var loading = true
     
-    init(tokenId: String) {
+    init(userId: String, tokenId: String) {
+        self.userId = userId
         self.tokenId = tokenId
     }
     
+    func buyTokens(buyAmount: Double, completion: ((Bool) -> Void)?) {}
     
-    func handleBuy(buyAmountUSD: CGFloat) -> Bool {
-        return false
-    }
-    
-    func handleSell() {
-        
-    }
+    func sellTokens(completion: ((Bool) -> Void)?) {}
 }
