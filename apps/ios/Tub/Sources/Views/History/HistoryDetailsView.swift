@@ -19,9 +19,9 @@ struct HistoryDetailsView: View {
                 .padding(.leading, 10.0)
             
             VStack (alignment: .leading, spacing: 20) {
-                // Coin details
+                // Token details
                 VStack(alignment: .leading) {
-                    Text("Coin")
+                    Text("Token")
                         .foregroundColor(.gray)
                         .font(.system(size: 14))
                     HStack {

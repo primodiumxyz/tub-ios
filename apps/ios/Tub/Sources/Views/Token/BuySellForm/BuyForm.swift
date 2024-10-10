@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct BuyForm: View {
-    @ObservedObject var coinModel: BaseCoinModel
+    @EnvironmentObject private var userModel: UserModel
+    @ObservedObject var tokenModel: TokenModel
     var onBuy: (Double, ((Bool) -> Void)?) -> ()
     @State private var buyAmountString: String = ""
     @State private var buyAmountSol: Double = 0.0
@@ -17,7 +18,7 @@ struct BuyForm: View {
     func handleBuy() {
         let _ = onBuy(buyAmountSol, {_ in
             buyAmountString = ""
-            buyAmountSol = 0   
+            buyAmountSol = 0
         })
     }
 
@@ -32,8 +33,8 @@ struct BuyForm: View {
                     VStack(alignment: .trailing, spacing: 0) {
                         HStack {
                             TextField("Enter amount", text: $buyAmountString)
-                                .keyboardType(.decimalPad)
-                                .multilineTextAlignment(.trailing)
+//                                .keyboardType(.decimalPad)
+//                                .multilineTextAlignment(.trailing)
                                 .onChange(of: buyAmountString) { newValue in
                                     let filtered = newValue.filter { "0123456789.".contains($0) }
                                     if filtered != newValue {
@@ -49,22 +50,21 @@ struct BuyForm: View {
                                 }
                                 .foregroundColor(isValidInput ? .white : .red)
                             if buyAmountString != "" {
-                                Text(coinModel.coin.symbol)
+                                Text("SOL")
                             }
                         }
                         .font(.sfRounded(size: .xl3, weight: .bold))
                         
                         // Add token conversion display
-                        if let currentPrice = coinModel.prices.last?.price, currentPrice > 0 {
-                            let tokenAmount = buyAmountSol * currentPrice
-                            Text("\(tokenAmount, specifier: "%.4f") SOL")
+                        if let currentPrice = tokenModel.prices.last?.price, currentPrice > 0 {
+                            let tokenAmount = buyAmountSol / currentPrice
+                            Text("\(tokenAmount) \(tokenModel.token.symbol)")
                                 .font(.sfRounded(size: .base, weight: .bold))
                                 .opacity(0.8)
                         }
                     }
-                    
-                    if coinModel.balance > 0 {
-                        SliderWithPoints(value: $buyAmountSol, in: 0...coinModel.balance, step: 1)
+                    if userModel.balance > 0.1 {
+                        SliderWithPoints(value: $buyAmountSol, in: 0...userModel.balance, step: 1)
                             .onChange(of: buyAmountSol) { newValue in
                                 if newValue.truncatingRemainder(dividingBy: 1) == 0 {
                                     buyAmountString = String(format: "%.0f", newValue)
@@ -93,14 +93,5 @@ struct BuyForm: View {
         }
         .frame(width: .infinity, height: 300)
     }
-}
-
-#Preview {
-    VStack {
-        BuyForm(coinModel: LocalCoinModel(), onBuy: { _, _ in })
-    }
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .background(.black)
-    .foregroundColor(.white)
 }
 

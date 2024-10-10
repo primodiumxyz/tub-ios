@@ -3,25 +3,28 @@ import Apollo
 import TubAPI
 import Combine
 
-class RemoteCoinModel: BaseCoinModel {
+class TokenModel: ObservableObject {
+    var tokenId: String = ""
+    var userId: String = ""
     
-    private var cancellables: Set<AnyCancellable> = []
+    @Published var token: Token = Token(id: "", name: "COIN", symbol: "SYMBOL")
+    @Published var loading = true
+    @Published var tokenBalance: Double = 0
     
-    override init(userId: String, tokenId: String) {
-        super.init(userId: userId, tokenId: tokenId)
-        
-        Task {
-            await fetchInitialData()
-            subscribeToLatestPrice()
-            startCoinBalancePolling()
+    @Published var amountBoughtSol: Double = 0
+    @Published var prices: [Price] = []  
+    
+    private var latestPriceSubscription: Apollo.Cancellable? // Track the latest price subscription
+    private var tokenBalanceSubscription: AnyCancellable? // Track the token balance subscription
+    
+    init(userId: String, tokenId: String? = nil) {
+        self.userId = userId
+        if(tokenId != nil){
+            self.initialize(with: tokenId!)
         }
     }
     
-    private lazy var iso8601Formatter: ISO8601DateFormatter = {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return formatter
-    }()
+
 
     private func fetchInitialData() async {
         do {
@@ -37,7 +40,7 @@ class RemoteCoinModel: BaseCoinModel {
         return try await withCheckedThrowingContinuation { continuation in
             Network.shared.apollo.fetch(query: query) { [weak self] result in
                 guard let self = self else {
-                    continuation.resume(throwing: NSError(domain: "RemoteCoinModel", code: 0, userInfo: [NSLocalizedDescriptionKey: "Self is nil"]))
+                    continuation.resume(throwing: NSError(domain: "TokenModel", code: 0, userInfo: [NSLocalizedDescriptionKey: "Self is nil"]))
                     return
                 }
                 
@@ -45,7 +48,7 @@ class RemoteCoinModel: BaseCoinModel {
                 case .success(let response):
                     if let token = response.data?.token.first(where: { $0.id == self.tokenId }) {
                         DispatchQueue.main.async {
-                            self.coin = Coin(id: token.id, name: token.name, symbol: token.symbol)
+                            self.token = Token(id: token.id, name: token.name, symbol: token.symbol)
                             self.loading = false
                         }
                         continuation.resume()
@@ -53,7 +56,7 @@ class RemoteCoinModel: BaseCoinModel {
                         continuation.resume(
                             throwing:
                                 NSError(
-                                    domain: "RemoteCoinModel",
+                                    domain: "TokenModel",
                                     code: 1,
                                     userInfo: [
                                         NSLocalizedDescriptionKey: "Token not found"
@@ -69,14 +72,17 @@ class RemoteCoinModel: BaseCoinModel {
     }
     
     private func subscribeToLatestPrice() {
-        let _ = Network.shared.apollo.subscribe(subscription: GetLatestTokenPriceSubscription(tokenId: self.tokenId)) { [weak self] result in
+        // Cancel any existing subscription before creating a new one
+        latestPriceSubscription?.cancel()
+        
+        // Change the type of 'sub' to AnyCancellable
+        let sub = Network.shared.apollo.subscribe(subscription: GetLatestTokenPriceSubscription(tokenId: self.tokenId)) { [weak self] result in
             guard let self = self else { return }
             DispatchQueue.main.async {
                 switch result {
                 case .success(let graphQLResult):
                     if let history = graphQLResult.data?.token_price_history.first {
-
-                        if let date = formatDate(history.created_at) {
+                        if let date = self.formatDate(history.created_at) {
                             let newPrice = Price(timestamp: date, price: Double(history.price) / 1e9)
                             self.prices.append(newPrice)
                         } else {
@@ -88,18 +94,23 @@ class RemoteCoinModel: BaseCoinModel {
                 }
             }
         }
+        latestPriceSubscription = sub
     }
     
-    private func startCoinBalancePolling() {
-        Timer.publish(every: 1, on: .main, in: .common)
+    private func startTokenBalancePolling() {
+        // Cancel any existing subscription before creating a new one
+        tokenBalanceSubscription?.cancel()
+        
+        tokenBalanceSubscription = Timer.publish(every: 1, on: .main, in: .common)
             .autoconnect()
             .sink { [weak self] _ in
-                self?.fetchCoinBalance()
+                self?.fetchTokenBalance()
             }
-            .store(in: &cancellables)
     }
     
-    private func fetchCoinBalance() {
+    private func fetchTokenBalance() {
+        tokenBalanceSubscription?.cancel()
+        
         let creditQuery = GetAccountTokenCreditQuery(accountId: Uuid(userId), tokenId: self.tokenId)
         let debitQuery = GetAccountTokenDebitQuery(accountId: Uuid(userId), tokenId: self.tokenId)
         
@@ -118,43 +129,67 @@ class RemoteCoinModel: BaseCoinModel {
                     let debitAmount = debitData.data?.token_transaction_aggregate.aggregate?.sum?.amount ?? 0
                     let balance = Double(creditAmount - debitAmount) / 1e9
                     DispatchQueue.main.async {
-                        self?.coinBalance = balance
+                        self?.tokenBalance = balance
                     }
                 case (.failure(let error), _), (_, .failure(let error)):
                     print("Error fetching balance: \(error)")
                 }
             }
-            .store(in: &cancellables)
     }
     
-    override func buyTokens(buyAmount: Double, completion: ((Bool) -> Void)?) {
-        print("in handleBuy")
-        let buyAmountLamps = String(Int(buyAmount * 1e9))
+    private lazy var iso8601Formatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
+    
+    private func formatDate(_ dateString: String) -> Date? {
+        return iso8601Formatter.date(from: dateString)
+    }
+
+    func buyTokens(buyAmountSol: Double, completion: ((Bool) -> Void)?) {
+        let buyAmountLamps = String(Int(buyAmountSol * 1e9))
         
         Network.shared.buyToken(accountId: self.userId, tokenId: self.tokenId, amount: buyAmountLamps) { result in
             switch result {
             case .success:
-                print("success")
+                print("buy successful")
                 completion?(true)
             case .failure(let error):
-                print("failure", error.localizedDescription)
+                print(error)
                 completion?(false)
             }
         }
     }
     
-    override func sellTokens(completion: ((Bool) -> Void)?) {
-        let sellAmountLamps = String(Int(self.amountBought * 1e9))
+    func sellTokens(completion: ((Bool) -> Void)?) {
+        let sellAmountLamps = String(Int(self.amountBoughtSol * 1e9))
         
         Network.shared.sellToken(accountId: self.userId, tokenId: self.tokenId, amount: sellAmountLamps) { result in
             switch result {
             case .success:
-                print("success")
                 completion?(true)
             case .failure(let error):
-                print("failure", error)
                 completion?(false)
             }
+        }
+    }
+    
+    func initialize(with newTokenId: String) {
+        // Cancel all existing subscriptions
+        latestPriceSubscription?.cancel()
+        tokenBalanceSubscription?.cancel()
+
+        // Reset properties if necessary
+        self.tokenId = newTokenId
+        self.loading = true // Reset loading state if needed
+        self.prices = []
+        
+        // Re-run the initialization logic
+        Task {
+            await fetchInitialData()
+            subscribeToLatestPrice()
+            startTokenBalancePolling()
         }
     }
 }

@@ -1,7 +1,7 @@
 import Foundation
 
-struct Coin: Identifiable {
-    let id: String
+struct Token: Identifiable {
+    var id: String
     var name: String
     var symbol: String
 }

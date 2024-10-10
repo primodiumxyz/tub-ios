@@ -81,13 +81,6 @@ class Network {
                 return
             }
             
-            // Print the response as a string
-            if let responseString = String(data: data, encoding: .utf8) {
-                print(responseString)
-            } else {
-                print("Unable to convert response data to string for \(procedure)")
-            }
-            
             do {
                 let decodedResponse = try JSONDecoder().decode(ResponseWrapper<T>.self, from: data)
                 completion(.success(decodedResponse.result.data))
@@ -109,7 +102,6 @@ class Network {
         callProcedure("registerNewUser", input: input) { (result: Result<UserResponse, Error>) in
             switch result {
             case .success(let userResponse):
-                print(userResponse)
                 self.storeToken(userResponse.token)
                 completion(.success(userResponse))
             case .failure(let error):
@@ -150,7 +142,6 @@ class Network {
     
     func airdropNativeToUser(accountId: String, amount: Double, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
         let scaledAmount = String(Int(amount * 1e9))
-        print(accountId, amount)
         let input = ["accountId": accountId, "amount": scaledAmount]
         callProcedure("airdropNativeToUser", input: input, completion: completion)
     }
@@ -196,7 +187,6 @@ extension Network {
             return nil
         }
         
-        print(token)
         return token
     }
 

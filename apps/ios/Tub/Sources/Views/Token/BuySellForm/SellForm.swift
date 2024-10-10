@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct SellForm: View {
-    @ObservedObject var coinModel: BaseCoinModel
+    @ObservedObject var tokenModel: TokenModel
     var onSell : (((Bool) -> Void)?) -> ()
 
     private func handleSell() {
@@ -27,8 +27,8 @@ struct SellForm: View {
                             .background(Color.white.opacity(0.5))
                             .clipShape(Circle())
                     }
-                    Text("$\(coinModel.coinBalance * (coinModel.prices.last?.price ?? 0) - coinModel.amountBought, specifier: "%.2f")")
-                        .foregroundColor(coinModel.coinBalance * (coinModel.prices.last?.price ?? 0) - coinModel.amountBought > 0 ? .green : .red)
+                    Text("\(tokenModel.tokenBalance * (tokenModel.prices.last?.price ?? 0) - tokenModel.amountBoughtSol, specifier: "%.2f") SOL")
+                        .foregroundColor(tokenModel.tokenBalance * (tokenModel.prices.last?.price ?? 0) - tokenModel.amountBoughtSol > 0 ? .green : .red).font(.title2)
                 }
                 Spacer()
             }.padding(12)
@@ -36,9 +36,3 @@ struct SellForm: View {
     }
 }
 
-#Preview {
-    VStack {
-        SellForm(coinModel: LocalCoinModel(), onSell: { _ in ()})
-    }.frame(maxWidth: .infinity, maxHeight: .infinity) .background(.black).foregroundColor(.white)
-}
-    
