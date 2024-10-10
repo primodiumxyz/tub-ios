@@ -1699,10 +1699,8 @@ export class SolanaParser {
     altLoadedAddresses: T extends VersionedMessage ? LoadedAddresses | undefined : undefined = undefined,
     // @ts-expect-error: type difference @coral-xyz/anchor -> @project-serum/anchor
   ): ParsedInstruction<Idl, string>[] {
-    // TODO: check shyft function
     const parsedAccounts = parseTransactionAccounts(txMessage, altLoadedAddresses);
 
-    // TODO: check shyft function
     return txMessage.compiledInstructions.map((instruction) =>
       this.parseInstruction(compiledInstructionToInstruction(instruction, parsedAccounts)),
     );
@@ -1722,7 +1720,6 @@ export class SolanaParser {
     }));
 
     return txParsedMessage.instructions.map((parsedIx) =>
-      // TODO: check shyft function
       this.parseInstruction(parsedInstructionToInstruction(parsedIx as PartiallyDecodedInstruction, parsedAccounts)),
     );
   }
@@ -1734,7 +1731,6 @@ export class SolanaParser {
    */
   // @ts-expect-error: type difference @coral-xyz/anchor -> @project-serum/anchor
   parseParsedTransactionWithInnerInstructions(txn: ParsedTransactionWithMeta): ParsedInstruction<Idl, string>[] {
-    // TODO: check shyft function
     const allInstructions = flattenParsedTransaction(txn);
     const parsedAccounts = txn.transaction.message.accountKeys.map((metaLike) => ({
       isSigner: metaLike.signer,
@@ -1801,7 +1797,6 @@ export class SolanaParser {
     });
     if (!transaction) return null;
     if (flatten) {
-      // TODO: check shyft function
       const flattened = flattenTransactionResponse(transaction);
 
       return flattened.map((ix) => this.parseInstruction(ix));
