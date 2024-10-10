@@ -11,6 +11,7 @@ struct HomeTabsView: View {
     var color = Color(red: 0.43, green: 0.97, blue: 0.98)
     @StateObject private var userModel: UserModel
     @AppStorage("userId") private var userId: String = ""
+    @State private var selectedTab: Int = 0 // Track the selected tab
 
     init() {
         _userModel = StateObject(wrappedValue: UserModel(userId: UserDefaults.standard.string(forKey: "userId") ?? ""))
@@ -21,22 +22,30 @@ struct HomeTabsView: View {
             if userModel.isLoading {
                 LoadingView()
             } else {
-                TabView() {
-                    TokenListView().tabItem {
-                        Label("Explore", systemImage: "safari")
-                    }
+                TabView(selection: $selectedTab) { // Bind the selected tab
+                    TokenListView()
+                        .tabItem {
+                            Label("Explore", systemImage: "safari")
+                        }
+                        .tag(0) // Assign a tag for the tab
 
-                    HistoryView().tabItem {
-                        Label("History", systemImage: "clock")
-                    }
+                    HistoryView()
+                        .tabItem {
+                            Label("History", systemImage: "clock")
+                        }
+                        .tag(1) // Assign a tag for the tab
                     
-                    AccountView().tabItem {
-                        Label("Account", systemImage: "person")
-                    }
+                    AccountView()
+                        .tabItem {
+                            Label("Account", systemImage: "person")
+                        }
+                        .tag(2) // Assign a tag for the tab
                     
-                    MockTokenView().tabItem {
-                        Label("Mock", systemImage: "testtube.2")
-                    }
+                    MockTokenView()
+                        .tabItem {
+                            Label("Mock", systemImage: "testtube.2")
+                        }
+                        .tag(3) // Assign a tag for the tab
                 }
                 .background(.black)
                 .foregroundColor(.white)

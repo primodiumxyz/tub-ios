@@ -5,7 +5,8 @@ import Combine
 
 class TokenModel: BaseTokenModel {
     
-    private var cancellables: Set<AnyCancellable> = []
+    private var latestPriceSubscription: Apollo.Cancellable? // Track the latest price subscription
+    private var tokenBalanceSubscription: AnyCancellable? // Track the token balance subscription
     
     init(userId: String) {
         super.init()
@@ -60,13 +61,16 @@ class TokenModel: BaseTokenModel {
     }
     
     private func subscribeToLatestPrice() {
-        let _ = Network.shared.apollo.subscribe(subscription: GetLatestTokenPriceSubscription(tokenId: self.tokenId)) { [weak self] result in
+        // Cancel any existing subscription before creating a new one
+        latestPriceSubscription?.cancel()
+        
+        // Change the type of 'sub' to AnyCancellable
+        let sub = Network.shared.apollo.subscribe(subscription: GetLatestTokenPriceSubscription(tokenId: self.tokenId)) { [weak self] result in
             guard let self = self else { return }
             DispatchQueue.main.async {
                 switch result {
                 case .success(let graphQLResult):
                     if let history = graphQLResult.data?.token_price_history.first {
-
                         if let date = self.formatDate(history.created_at) {
                             let newPrice = Price(timestamp: date, price: Double(history.price) / 1e9)
                             self.prices.append(newPrice)
@@ -79,18 +83,23 @@ class TokenModel: BaseTokenModel {
                 }
             }
         }
+        latestPriceSubscription = sub
     }
     
     private func startTokenBalancePolling() {
-        Timer.publish(every: 1, on: .main, in: .common)
+        // Cancel any existing subscription before creating a new one
+        tokenBalanceSubscription?.cancel()
+        
+        tokenBalanceSubscription = Timer.publish(every: 1, on: .main, in: .common)
             .autoconnect()
             .sink { [weak self] _ in
                 self?.fetchTokenBalance()
             }
-            .store(in: &cancellables)
     }
     
     private func fetchTokenBalance() {
+        tokenBalanceSubscription?.cancel()
+        
         let creditQuery = GetAccountTokenCreditQuery(accountId: Uuid(userId), tokenId: self.tokenId)
         let debitQuery = GetAccountTokenDebitQuery(accountId: Uuid(userId), tokenId: self.tokenId)
         
@@ -115,7 +124,6 @@ class TokenModel: BaseTokenModel {
                     print("Error fetching balance: \(error)")
                 }
             }
-            .store(in: &cancellables)
     }
     
     private lazy var iso8601Formatter: ISO8601DateFormatter = {
@@ -157,10 +165,10 @@ class TokenModel: BaseTokenModel {
     }
     
     func initialize(with newTokenId: String) {
-        // Cancel all existing cancellables
-        cancellables.forEach { $0.cancel() }
-        cancellables.removeAll()
-        
+        // Cancel all existing subscriptions
+        latestPriceSubscription?.cancel()
+        tokenBalanceSubscription?.cancel()
+
         // Reset properties if necessary
         self.tokenId = newTokenId
         self.loading = true // Reset loading state if needed
