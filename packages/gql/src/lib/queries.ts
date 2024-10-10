@@ -45,7 +45,7 @@ export const GetAccountBalanceCreditQuery = graphql(`
 `);
 
 export const GetAccountBalanceDebitQuery = graphql(`
-  query GetAccountBalanceCredit($accountId: uuid!) {
+  query GetAccountBalanceDebit($accountId: uuid!) {
     account_transaction_aggregate(where: { account: { _eq: $accountId }, transaction_type: { _eq: "debit" } }) {
       aggregate {
         sum {
@@ -57,7 +57,7 @@ export const GetAccountBalanceDebitQuery = graphql(`
 `);
 
 export const GetAccountTokenCreditQuery = graphql(`
-  query GetAccountTokenTransactions($accountId: uuid!, $tokenId: uuid!) {
+  query GetAccountTokenCredit($accountId: uuid!, $tokenId: uuid!) {
     token_transaction_aggregate(
       where: {
         account_transaction_data: { account: { _eq: $accountId } }
@@ -75,7 +75,7 @@ export const GetAccountTokenCreditQuery = graphql(`
 `);
 
 export const GetAccountTokenDebitQuery = graphql(`
-  query GetAccountTokenTransactions($accountId: uuid!, $tokenId: uuid!) {
+  query GetAccountTokenDebit($accountId: uuid!, $tokenId: uuid!) {
     token_transaction_aggregate(
       where: {
         account_transaction_data: { account: { _eq: $accountId } }
