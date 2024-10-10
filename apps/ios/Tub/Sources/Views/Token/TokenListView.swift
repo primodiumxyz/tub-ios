@@ -51,6 +51,27 @@ struct TokenListView: View {
                 TokenView(tokenModel: tokenModel) // Pass as Binding
                     .listRowInsets(.init(top: 10, leading: 0, bottom: 10, trailing: 10))
                     .transition(.move(edge: .top))
+                    .gesture(
+                        DragGesture()
+                            .onEnded { value in
+                                let verticalAmount = value.translation.height
+                                if verticalAmount < -50 {
+                                    // Swipe up (next token)
+                                    withAnimation {
+                                        let newIndex = (currentTokenIndex + 1) % tokens.count
+                                        currentTokenIndex = newIndex
+                                        updateTokenModel(tokenId: tokens[newIndex].id)
+                                    }
+                                } else if verticalAmount > 50 {
+                                    // Swipe down (previous token)
+                                    withAnimation {
+                                        let newIndex = (currentTokenIndex - 1 + tokens.count) % tokens.count
+                                        currentTokenIndex = newIndex
+                                        updateTokenModel(tokenId: tokens[newIndex].id)
+                                    }
+                                }
+                            }
+                    )
                 Spacer()
                 
                 VStack(alignment: .center) {
