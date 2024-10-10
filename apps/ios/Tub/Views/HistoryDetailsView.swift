@@ -25,12 +25,12 @@ struct HistoryDetailsView: View {
                         .foregroundColor(.gray)
                         .font(.system(size: 14))
                     HStack {
-                        Image(transaction.coin)
+                        Image(transaction.imageUri)
                             .resizable()
                             .frame(width: 40, height: 40)
                             .cornerRadius(8)
                         
-                        Text(transaction.coin)
+                        Text(transaction.name)
                             .font(.system(size: 18, weight: .bold))
                             .foregroundColor(Color(red: 1.0, green: 0.9254901960784314, blue: 0.5254901960784314))
                     }
@@ -59,7 +59,7 @@ struct HistoryDetailsView: View {
                     Text("Quantity")
                         .foregroundColor(.gray)
                         .font(.system(size: 14))
-                    Text("\(transaction.quantity, specifier: "%.0f") \(transaction.coin)")
+                    Text("\(transaction.quantity, specifier: "%.0f") \(transaction.symbol)")
                         .foregroundColor(.white)
                 }
                 
@@ -68,7 +68,7 @@ struct HistoryDetailsView: View {
                     Text("Price")
                         .foregroundColor(.gray)
                         .font(.system(size: 14))
-                    Text(formatAmount(transaction.amount))
+                    Text(formatAmount(transaction.value))
                         .foregroundColor(.white)
                 }
                 

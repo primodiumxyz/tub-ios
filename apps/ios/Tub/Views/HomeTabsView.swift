@@ -9,6 +9,8 @@ import SwiftUI
 
 struct HomeTabsView: View {
     var color = Color(red: 0.43, green: 0.97, blue: 0.98)
+    @AppStorage("userId") private var userId: String = ""
+
     var body: some View {
         
         TabView() {
@@ -18,13 +20,9 @@ struct HomeTabsView: View {
             CoinView(userId: "", tokenId: "", local: true).tabItem {
                 Label("Local", systemImage: "testtube.2")
             }
-            HistoryView().tabItem {
+            HistoryView(userId: userId).tabItem {
                 Label("History", systemImage: "clock")
             }
-            MessageView().tabItem {
-                Label("Notifications", systemImage: "bell.fill")
-            }
-            
         }
         .background(.black)
         .foregroundColor(.white)

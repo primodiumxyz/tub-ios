@@ -2,12 +2,19 @@ table:
   name: token_transaction
   schema: public
 object_relationships:
-  - name: account_transaction_relationship
+  - name: account_transaction_data
     using:
       foreign_key_constraint_on: account_transaction
-  - name: token_relationship
+  - name: token_data
     using:
       foreign_key_constraint_on: token
+  - name: token_price
+    using:
+      foreign_key_constraint_on:
+        column: internal_token_transaction_ref
+        table:
+          name: token_price_history
+          schema: public
 select_permissions:
   - role: public
     permission:

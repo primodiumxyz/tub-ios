@@ -41,7 +41,7 @@ class Network {
             endpointURL: httpURL
         )
 
-        let webSocketURL = URL(string: "wss://localhost:8080/v1/graphql")!
+        let webSocketURL = URL(string: "ws://localhost:8080/v1/graphql")!
         let websocket = WebSocket(url: webSocketURL, protocol: .graphql_ws)
         webSocketTransport = WebSocketTransport(websocket: websocket)
         
