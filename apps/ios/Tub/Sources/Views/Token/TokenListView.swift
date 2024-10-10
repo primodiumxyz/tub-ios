@@ -8,6 +8,7 @@
 import SwiftUI
 import Apollo
 import TubAPI
+import UIKit
 
 struct TokenListView: View {
     @EnvironmentObject private var userModel: UserModel
@@ -20,8 +21,15 @@ struct TokenListView: View {
     @State private var currentTokenIndex: Int = 0
     @StateObject private var tokenModel: TokenModel
     
+    // chevron animation
     @State private var chevronOffset: CGFloat = 0.0
     @State private var isMovingUp: Bool = true
+    
+    //swipe animation
+    @State private var dragOffset: CGFloat = 0.0
+    @State private var swipeDirection: CGFloat = 0.0 // Track swipe direction
+    @State private var animatingSwipe: Bool = false
+
     
     init() {
         self._tokenModel = StateObject(wrappedValue: TokenModel(userId: UserDefaults.standard.string(forKey: "userId") ?? ""))
@@ -56,41 +64,56 @@ struct TokenListView: View {
                 TokenView(tokenModel: tokenModel) // Pass as Binding
                     .listRowInsets(.init(top: 10, leading: 0, bottom: 10, trailing: 10))
                     .transition(.move(edge: .top))
+                    .offset(y: dragOffset)
                     .gesture(
                         DragGesture()
-                            .onEnded { value in
-                                let verticalAmount = value.translation.height
-                                if verticalAmount < -50 {
-                                    // Swipe up (next token)
-                                    withAnimation {
-                                        let newIndex = (currentTokenIndex + 1) % tokens.count
-                                        currentTokenIndex = newIndex
-                                        updateTokenModel(tokenId: tokens[newIndex].id)
-                                    }
-                                } else if verticalAmount > 50 {
-                                    // Swipe down (previous token)
-                                    withAnimation {
-                                        let newIndex = (currentTokenIndex - 1 + tokens.count) % tokens.count
-                                        currentTokenIndex = newIndex
-                                        updateTokenModel(tokenId: tokens[newIndex].id)
-                                    }
+                        .onChanged { value in
+                            // Update offset as the user drags
+                            dragOffset = value.translation.height
+                        }
+                        .onEnded { value in
+                            let threshold: CGFloat = 100
+                            let verticalAmount = value.translation.height
+                            
+                            if verticalAmount < -threshold && !animatingSwipe {
+                                
+                                // Swipe Up (Next token)
+                                withAnimation(.easeInOut(duration: 0.4)) {
+                                    dragOffset = -UIScreen.main.bounds.height
+                                    swipeDirection = -1
+                                }
+                                animatingSwipe = true
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                                    loadNextToken()
+                                    resetDragOffset()
+                                }
+                            } else if verticalAmount > threshold && !animatingSwipe {
+                                
+                                // Swipe Down (Previous token)
+                                withAnimation(.easeInOut(duration: 0.4)) {
+                                    dragOffset = UIScreen.main.bounds.height
+                                    swipeDirection = 1
+                                }
+                                animatingSwipe = true
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                                    loadPreviousToken()
+                                    resetDragOffset()
+                                }
+                            } else {
+                                withAnimation {
+                                    dragOffset = 0 // Reset if not enough swipe
                                 }
                             }
+                        }
+                        
+                        
                     )
                 
                 VStack(alignment: .center) {
-                    Button(action: {
-                        withAnimation {
-                            let newIndex = (currentTokenIndex + 1) % tokens.count
-                            currentTokenIndex = newIndex
-                            updateTokenModel(tokenId: tokens[newIndex].id)
-                        }
-                    }) {
-                        Image(systemName: "chevron.down")
-                            .font(.title2)
-                            .foregroundColor(.gray)
-                            .offset(y: chevronOffset)
-                    }
+                    Image(systemName: "chevron.down")
+                        .font(.title2)
+                        .foregroundColor(.gray)
+                        .offset(y: chevronOffset)
                 }
                 .frame(maxWidth: .infinity, alignment: .center) // Center the button
                 .padding(.bottom)
@@ -112,6 +135,31 @@ struct TokenListView: View {
                 chevronOffset = isMovingUp ? 12 : -12
             }
             isMovingUp.toggle() 
+        }
+    }
+    
+    private func loadNextToken() {
+        let newIndex = (currentTokenIndex + 1) % tokens.count
+        currentTokenIndex = newIndex
+        updateTokenModel(tokenId: tokens[newIndex].id)
+    }
+
+    private func loadPreviousToken() {
+        let newIndex = (currentTokenIndex - 1 + tokens.count) % tokens.count
+        currentTokenIndex = newIndex
+        updateTokenModel(tokenId: tokens[newIndex].id)
+    }
+
+    // Reset the drag offset
+    private func resetDragOffset() {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            dragOffset = swipeDirection == -1 ? UIScreen.main.bounds.height : -UIScreen.main.bounds.height
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            withAnimation {
+                dragOffset = 0
+                animatingSwipe = false
+            }
         }
     }
 
