@@ -46,7 +46,6 @@ const handlePriceData = async (gql: GqlClient["db"], priceData: (PriceData | und
   if (priceDataBatch.length >= PRICE_DATA_BATCH_SIZE) {
     const _priceDataBatch = priceDataBatch;
     priceDataBatch = [];
-
     try {
       // 1. Insert new tokens
       const insertRes = await gql.RegisterManyNewTokensMutation({
@@ -60,6 +59,7 @@ const handlePriceData = async (gql: GqlClient["db"], priceData: (PriceData | und
 
       if (insertRes.error) {
         console.error("Error in RegisterManyNewTokensMutation:", insertRes.error.message);
+        priceDataBatch.push(..._priceDataBatch);
         return;
       }
       console.log(`Inserted ${insertRes.data?.insert_token?.affected_rows} new tokens`);
@@ -69,13 +69,16 @@ const handlePriceData = async (gql: GqlClient["db"], priceData: (PriceData | und
       const fetchRes = await gql.GetTokensByMintsQuery({ mints });
       if (fetchRes.error) {
         console.error("Error in GetTokensByMintsQuery:", fetchRes.error.message);
+        priceDataBatch.push(..._priceDataBatch);
         return;
       }
 
       const tokenMap = new Map(fetchRes.data?.token.map((token) => [token.mint, token.id]));
       const validPriceData = _priceDataBatch.filter(({ mint }) => tokenMap.has(mint));
       if (validPriceData.length !== _priceDataBatch.length) {
-        console.warn(`${_priceDataBatch.length - validPriceData.length} tokens were not found`);
+        console.error(`${_priceDataBatch.length - validPriceData.length} tokens were not found`);
+        priceDataBatch.push(..._priceDataBatch);
+        return;
       }
 
       // 3. Add price history
@@ -88,9 +91,11 @@ const handlePriceData = async (gql: GqlClient["db"], priceData: (PriceData | und
 
       if (addPriceHistoryRes.error) {
         console.error("Error in AddManyTokenPriceHistoryMutation:", addPriceHistoryRes.error.message);
-      } else {
-        console.log(`Saved ${validPriceData.length} price data points`);
+        priceDataBatch.push(..._priceDataBatch);
+        return;
       }
+
+      console.log(`Saved ${validPriceData.length} price data points`);
     } catch (error) {
       console.error("Unexpected error in handlePriceData:", error);
     }
