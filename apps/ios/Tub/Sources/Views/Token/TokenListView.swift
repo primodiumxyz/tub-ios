@@ -20,6 +20,9 @@ struct TokenListView: View {
     @State private var currentTokenIndex: Int = 0
     @StateObject private var tokenModel: TokenModel
     
+    @State private var chevronOffset: CGFloat = 0.0
+    @State private var isMovingUp: Bool = true
+    
     init() {
         self._tokenModel = StateObject(wrappedValue: TokenModel(userId: UserDefaults.standard.string(forKey: "userId") ?? ""))
     }
@@ -74,7 +77,6 @@ struct TokenListView: View {
                                 }
                             }
                     )
-                Spacer()
                 
                 VStack(alignment: .center) {
                     Button(action: {
@@ -86,16 +88,31 @@ struct TokenListView: View {
                     }) {
                         Image(systemName: "chevron.down")
                             .font(.title2)
+                            .foregroundColor(.gray)
+                            .offset(y: chevronOffset)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .center) // Center the button
                 .padding(.bottom)
             }
         }
-        .onAppear(perform: fetchTokens)
+        .onAppear{
+            startChevronAnimation()
+            fetchTokens()
+        }
         .foregroundColor(.white)
         .padding()
         .background(Color.black) 
+    }
+    
+    // Chevron Animation
+    private func startChevronAnimation() {
+        Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
+            withAnimation(.easeInOut(duration: 1.5)) {
+                chevronOffset = isMovingUp ? 12 : -12
+            }
+            isMovingUp.toggle() 
+        }
     }
 
     private func fetchTokens() {
