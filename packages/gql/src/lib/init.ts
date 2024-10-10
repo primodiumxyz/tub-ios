@@ -6,10 +6,10 @@ export const graphql = initGraphQLTada<{
   introspection: introspection;
   scalars: {
     uuid: string;
-    bigint: bigint;
+    bigint: string;
     numeric: string;
     timestamp: Date;
     timestamptz: Date;
+    float8: string;
   };
 }>();
-
