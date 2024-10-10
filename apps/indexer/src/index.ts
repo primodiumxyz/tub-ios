@@ -45,7 +45,6 @@ const handlePriceData = async (gql: GqlClient["db"], priceData: (PriceData | und
 
   if (priceDataBatch.length >= PRICE_DATA_BATCH_SIZE) {
     const _priceDataBatch = priceDataBatch;
-    priceDataBatch = [];
 
     try {
       // 1. Insert new tokens
@@ -75,7 +74,8 @@ const handlePriceData = async (gql: GqlClient["db"], priceData: (PriceData | und
       const tokenMap = new Map(fetchRes.data?.token.map((token) => [token.mint, token.id]));
       const validPriceData = _priceDataBatch.filter(({ mint }) => tokenMap.has(mint));
       if (validPriceData.length !== _priceDataBatch.length) {
-        console.warn(`${_priceDataBatch.length - validPriceData.length} tokens were not found`);
+        console.error(`${_priceDataBatch.length - validPriceData.length} tokens were not found`);
+        return;
       }
 
       // 3. Add price history
@@ -88,9 +88,11 @@ const handlePriceData = async (gql: GqlClient["db"], priceData: (PriceData | und
 
       if (addPriceHistoryRes.error) {
         console.error("Error in AddManyTokenPriceHistoryMutation:", addPriceHistoryRes.error.message);
-      } else {
-        console.log(`Saved ${validPriceData.length} price data points`);
+        return;
       }
+
+      console.log(`Saved ${validPriceData.length} price data points`);
+      priceDataBatch = [];
     } catch (error) {
       console.error("Unexpected error in handlePriceData:", error);
     }
