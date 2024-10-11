@@ -6,10 +6,9 @@ import { WebSocket } from "ws";
 import { createClient as createGqlClient, GqlClient } from "@tub/gql";
 import { parseEnv } from "@bin/parseEnv";
 import { PRICE_DATA_BATCH_SIZE, PRICE_PRECISION } from "@/lib/constants";
-import { decodeSwapAccounts } from "@/lib/decoders";
 import { connection, ixParser } from "@/lib/setup";
 import { PriceData } from "@/lib/types";
-import { filterLogs, getPoolTokenPrice } from "@/lib/utils";
+import { decodeSwapAccounts, filterLogs, getPoolTokenPrice } from "@/lib/utils";
 
 config({ path: "../../.env" });
 
@@ -27,10 +26,10 @@ const processLogs = async ({ err, signature }: Logs): Promise<(PriceData | undef
     if (!tx || tx.meta?.err) return [];
     // Parse the transaction and retrieve the swapped token accounts
     const parsedIxs = ixParser.parseTransactionWithInnerInstructions(tx);
-    const swapAccountsArray = decodeSwapAccounts(tx, parsedIxs);
+    const swapAccountsArray = decodeSwapAccounts(parsedIxs);
     if (swapAccountsArray.length === 0) return [];
 
-    return await Promise.all(swapAccountsArray.map((swapAccounts) => getPoolTokenPrice(swapAccounts)));
+    return await Promise.all(swapAccountsArray.map((swapAccounts) => getPoolTokenPrice(connection, swapAccounts)));
   } catch (error) {
     console.error("Unexpected error in processLogs:", error);
     return [];
@@ -61,6 +60,7 @@ const handlePriceData = async (gql: GqlClient["db"], priceData: (PriceData | und
 
       if (insertRes.error) {
         console.error("Error in RegisterManyNewTokensMutation:", insertRes.error.message);
+        priceDataBatch.push(..._priceDataBatch);
         return;
       }
       console.log(`Inserted ${insertRes.data?.insert_token?.affected_rows} new tokens`);
@@ -70,13 +70,16 @@ const handlePriceData = async (gql: GqlClient["db"], priceData: (PriceData | und
       const fetchRes = await gql.GetTokensByMintsQuery({ mints });
       if (fetchRes.error) {
         console.error("Error in GetTokensByMintsQuery:", fetchRes.error.message);
+        priceDataBatch.push(..._priceDataBatch);
         return;
       }
 
       const tokenMap = new Map(fetchRes.data?.token.map((token) => [token.mint, token.id]));
       const validPriceData = _priceDataBatch.filter(({ mint }) => tokenMap.has(mint));
       if (validPriceData.length !== _priceDataBatch.length) {
-        console.warn(`${_priceDataBatch.length - validPriceData.length} tokens were not found`);
+        console.error(`${_priceDataBatch.length - validPriceData.length} tokens were not found`);
+        priceDataBatch.push(..._priceDataBatch);
+        return;
       }
 
       // 3. Add price history
@@ -89,9 +92,11 @@ const handlePriceData = async (gql: GqlClient["db"], priceData: (PriceData | und
 
       if (addPriceHistoryRes.error) {
         console.error("Error in AddManyTokenPriceHistoryMutation:", addPriceHistoryRes.error.message);
-      } else {
-        console.log(`Saved ${validPriceData.length} price data points`);
+        priceDataBatch.push(..._priceDataBatch);
+        return;
       }
+
+      console.log(`Saved ${validPriceData.length} price data points`);
     } catch (error) {
       console.error("Unexpected error in handlePriceData:", error);
     }

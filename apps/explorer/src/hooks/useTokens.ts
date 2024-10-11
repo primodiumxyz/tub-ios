@@ -12,7 +12,11 @@ export type Token = {
   platform: string;
 };
 
-export const useTokens = () => {
+export const useTokens = (): {
+  tokens: Token[];
+  fetching: boolean;
+  error: string | undefined;
+} => {
   const { timespan, increasePct, minTrades } = useTrackerParams();
 
   const since = useRef(new Date(new Date().getTime() - timespan * 1000));
@@ -25,9 +29,9 @@ export const useTokens = () => {
     if (!filteredTokensResult.data?.GetFormattedTokens) return [];
     return filteredTokensResult.data.GetFormattedTokens.map((token) => ({
       mint: token.mint,
-      latestPrice: token.latest_price,
-      increasePct: token.increase_pct,
-      trades: token.trades,
+      latestPrice: Number(token.latest_price),
+      increasePct: Number(token.increase_pct),
+      trades: Number(token.trades),
       platform: token.name,
     }));
   }, [filteredTokensResult.data]);
