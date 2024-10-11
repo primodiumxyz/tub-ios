@@ -44,7 +44,9 @@ struct HistoryView : View {
                             let name = transaction.token_data.name
                             let imageUri = transaction.token_data.uri ?? ""
                             let price = transaction.token_price?.price ?? 0
-                            let value = Double(price * transaction.amount) / 1e9
+                            let value = (Double(price)/1e9) * (quantity)
+                            
+                            print(transaction.amount.dividedReportingOverflow(by: 10000000000))
                             
                             let newTransaction = Transaction(
                                 name: name,
