@@ -19,9 +19,6 @@ const processLogs = (result: TransactionSubscriptionResult): SwapAccounts[] => {
     // Parse the transaction and retrieve the swapped token accounts
     const timestamp = Date.now();
     const tx = txFormatter.formTransactionFromJson(result, timestamp);
-    // We will process parsed data, if it comes from known programs (e.g. system, spl-token, spl-memo)
-    // In such cases, it won't include the fields "data" or "accounts", and we're not interested anyway
-    if (!tx) return [];
 
     const parsedIxs = ixParser.parseParsedTransactionWithInnerInstructions(tx);
     return decodeSwapAccounts(parsedIxs, timestamp);
