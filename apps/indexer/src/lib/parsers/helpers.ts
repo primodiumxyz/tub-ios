@@ -25,12 +25,6 @@ type LogContext = {
   invokeResult?: string;
 };
 
-export function hexToBuffer(data: string) {
-  const rawHex = data.startsWith("0x") ? data.slice(2) : data;
-
-  return Buffer.from(rawHex);
-}
-
 /**
  * Parse transaction message and extract account metas
  * @param message transaction message
