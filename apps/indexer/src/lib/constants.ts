@@ -16,6 +16,7 @@ import { Program } from "./types";
 // vvv (if we only use getPoolTokenPrice.getMultipleParsedAccounts with the Helius RPC)
 // -> so we can handle ~380 swaps/s to stay withing usage limits with this current plan and batch size of 10
 // (just need to increase to 20 or 30 to be super safe if TPS/trading increases)
+// (if we consider the monthly limit and the max batch size of 50, we can handle up to ~1,900 swaps/s with this plan)
 export const FETCH_PRICE_BATCH_SIZE = 10; // max. 50
 export const WRITE_GQL_BATCH_SIZE = 300;
 export const PRICE_PRECISION = 1e9;
