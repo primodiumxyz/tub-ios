@@ -41,116 +41,67 @@ const TwoHopSwapArgsLayout = struct<TwoHopSwapArgs>([
   u128("sqrtPriceLimitTwo"),
 ]);
 
-type SwapV2Args = {
-  amount: bigint;
-  otherAmountThreshold: bigint;
-  amountSpecifiedIsInput: boolean;
-  aToB: boolean;
-  // TODO: remainingAccountsInfo
-  // https://solscan.io/account/whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc#anchorProgramIdl
-  remainingAccountsInfo: number;
-};
+// TODO: remainingAccountsInfo
+// https://solscan.io/account/whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc#anchorProgramIdl
+// type SwapV2Args = {
+//   amount: bigint;
+//   otherAmountThreshold: bigint;
+//   amountSpecifiedIsInput: boolean;
+//   aToB: boolean;
+//   remainingAccountsInfo: number;
+// };
 
-const SwapV2ArgsLayout = struct<SwapV2Args>([
-  u64("amount"),
-  u64("otherAmountThreshold"),
-  u8("amountSpecifiedIsInput"),
-  u8("aToB"),
-  union(u8(), null, "remainingAccountsInfo"),
-]);
+// const SwapV2ArgsLayout = struct<SwapV2Args>([
+//   u64("amount"),
+//   u64("otherAmountThreshold"),
+//   u8("amountSpecifiedIsInput"),
+//   u8("aToB"),
+//   union(u8(), null, "remainingAccountsInfo"),
+// ]);
 
-type TwoHopSwapV2Args = {
-  amount: bigint;
-  otherAmountThreshold: bigint;
-  amountSpecifiedIsInput: boolean;
-  aToBOne: boolean;
-  aToBTwo: boolean;
-  sqrtPriceLimitOne: bigint;
-  sqrtPriceLimitTwo: bigint;
-  // TODO: remainingAccountsInfo
-  // https://solscan.io/account/whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc#anchorProgramIdl
-  remainingAccountsInfo: number;
-};
+// TODO: remainingAccountsInfo
+// https://solscan.io/account/whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc#anchorProgramIdl
+// type TwoHopSwapV2Args = {
+//   amount: bigint;
+//   otherAmountThreshold: bigint;
+//   amountSpecifiedIsInput: boolean;
+//   aToBOne: boolean;
+//   aToBTwo: boolean;
+//   sqrtPriceLimitOne: bigint;
+//   sqrtPriceLimitTwo: bigint;
+//   remainingAccountsInfo: number;
+// };
 
-const TwoHopSwapV2ArgsLayout = struct<TwoHopSwapV2Args>([
-  u64("amount"),
-  u64("otherAmountThreshold"),
-  u8("amountSpecifiedIsInput"),
-  u8("aToBOne"),
-  u8("aToBTwo"),
-  u128("sqrtPriceLimitOne"),
-  u128("sqrtPriceLimitTwo"),
-  union(u8(), null, "remainingAccountsInfo"),
-]);
+// const TwoHopSwapV2ArgsLayout = struct<TwoHopSwapV2Args>([
+//   u64("amount"),
+//   u64("otherAmountThreshold"),
+//   u8("amountSpecifiedIsInput"),
+//   u8("aToBOne"),
+//   u8("aToBTwo"),
+//   u128("sqrtPriceLimitOne"),
+//   u128("sqrtPriceLimitTwo"),
+//   union(u8(), null, "remainingAccountsInfo"),
+// ]);
 
+// TODO(discriminator): twoHopSwap, twoHopSwapV2
 export class OrcaWhirlpoolParser {
   static PROGRAM_ID = new PublicKey("whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc");
+  static DISCRIMINATORS = {
+    swap: 14449647541112719096n,
+    swapV2: 7070309578724672555n,
+  };
 
   // @ts-expect-error: type difference @coral-xyz/anchor -> @project-serum/anchor
   parseInstruction(instruction: TransactionInstruction): ParsedInstruction<Idl, string> {
     const instructionData = instruction.data;
-    const instructionType = u8().decode(instructionData);
+    const discriminator = u64().decode(instructionData);
 
-    // Instructions:
-    // 0: initializeConfig
-    // 1: initializePool
-    // 2: initializeTickArray
-    // 3: initializeFeeTier
-    // 4: initializeReward
-    // 5: setRewardEmissions
-    // 6: openPosition
-    // 7: openPositionWithMetadata
-    // 8: increaseLiquidity
-    // 9: decreaseLiquidity
-    // 10: updateFeesAndRewards
-    // 11: collectFees
-    // 12: collectReward
-    // 13: collectProtocolFees
-    // 14: swap
-    // 15: closePosition
-    // 16: setDefaultFeeRate
-    // 17: setDefaultProtocolFeeRate
-    // 18: setFeeRate
-    // 19: setProtocolFeeRate
-    // 20: setFeeAuthority
-    // 21: setCollectProtocolFeesAuthority
-    // 22: setRewardAuthority
-    // 23: setRewardAuthorityBySuperAuthority
-    // 24: setRewardEmissionsSuperAuthority
-    // 25: twoHopSwap
-    // 26: initializePositionBundle
-    // 27: initializePositionBundleWithMetadata
-    // 28: deletePositionBundle
-    // 29: openBundledPosition
-    // 30: closeBundledPosition
-    // 31: collectFeesV2
-    // 32: collectProtocolFeesV2
-    // 33: collectRewardV2
-    // 34: decreaseLiquidityV2
-    // 35: increaseLiquidityV2
-    // 36: initializePoolV2
-    // 37: initializeRewardV2
-    // 38: setRewardEmissionsV2
-    // 39: swapV2
-    // 40: twoHopSwapV2
-    // 41: initializeConfigExtension
-    // 42: setConfigExtensionAuthority
-    // 43: setTokenBadgeAuthority
-    // 44: initializeTokenBadge
-    // 45: deleteTokenBadge
-
-    switch (instructionType) {
-      case 14: {
+    switch (discriminator) {
+      case OrcaWhirlpoolParser.DISCRIMINATORS.swap: {
         return this.parseSwapIx(instruction);
       }
-      case 25: {
-        return this.parseTwoHopSwapIx(instruction);
-      }
-      case 39: {
+      case OrcaWhirlpoolParser.DISCRIMINATORS.swapV2: {
         return this.parseSwapV2Ix(instruction);
-      }
-      case 40: {
-        return this.parseTwoHopSwapV2Ix(instruction);
       }
       // we're not interested in any other instructions
       default:
@@ -309,21 +260,10 @@ export class OrcaWhirlpoolParser {
     };
   }
 
-  // @ts-expect-error: type difference @coral-xyz/anchor -> @project-serum/anchor
-  private parseUnknownInstruction(instruction: TransactionInstruction): ParsedInstruction<Idl, string> {
-    const accounts = instruction.keys;
-    return {
-      name: "Unknown",
-      accounts,
-      args: { unknown: utils.bytes.bs58.encode(instruction.data) },
-      programId: instruction.programId,
-    };
-  }
-
   private parseSwapV2Ix(instruction: TransactionInstruction) {
     const accounts = instruction.keys;
     const instructionData = instruction.data;
-    const args = SwapV2ArgsLayout.decode(instructionData);
+    // const args = SwapV2ArgsLayout.decode(instructionData);
 
     const parsedAccounts = accounts.map((account, index) => {
       let name: string;
@@ -383,11 +323,11 @@ export class OrcaWhirlpoolParser {
       name: "swapV2",
       accounts: parsedAccounts,
       args: {
-        amount: Number(args.amount),
-        otherAmountThreshold: Number(args.otherAmountThreshold),
-        amountSpecifiedIsInput: args.amountSpecifiedIsInput,
-        aToB: args.aToB,
-        remainingAccountsInfo: args.remainingAccountsInfo,
+        // amount: Number(args.amount),
+        // otherAmountThreshold: Number(args.otherAmountThreshold),
+        // amountSpecifiedIsInput: args.amountSpecifiedIsInput,
+        // aToB: args.aToB,
+        // remainingAccountsInfo: args.remainingAccountsInfo,
       },
       programId: instruction.programId,
     };
@@ -396,7 +336,7 @@ export class OrcaWhirlpoolParser {
   private parseTwoHopSwapV2Ix(instruction: TransactionInstruction) {
     const accounts = instruction.keys;
     const instructionData = instruction.data;
-    const args = TwoHopSwapV2ArgsLayout.decode(instructionData);
+    // const args = TwoHopSwapV2ArgsLayout.decode(instructionData);
 
     const parsedAccounts = accounts.map((account, index) => {
       let name: string;
@@ -483,15 +423,26 @@ export class OrcaWhirlpoolParser {
       name: "twoHopSwapV2",
       accounts: parsedAccounts,
       args: {
-        amount: Number(args.amount),
-        otherAmountThreshold: Number(args.otherAmountThreshold),
-        amountSpecifiedIsInput: args.amountSpecifiedIsInput,
-        aToBOne: args.aToBOne,
-        aToBTwo: args.aToBTwo,
-        sqrtPriceLimitOne: Number(args.sqrtPriceLimitOne),
-        sqrtPriceLimitTwo: Number(args.sqrtPriceLimitTwo),
-        remainingAccountsInfo: args.remainingAccountsInfo,
+        // amount: Number(args.amount),
+        // otherAmountThreshold: Number(args.otherAmountThreshold),
+        // amountSpecifiedIsInput: args.amountSpecifiedIsInput,
+        // aToBOne: args.aToBOne,
+        // aToBTwo: args.aToBTwo,
+        // sqrtPriceLimitOne: Number(args.sqrtPriceLimitOne),
+        // sqrtPriceLimitTwo: Number(args.sqrtPriceLimitTwo),
+        // remainingAccountsInfo: args.remainingAccountsInfo,
       },
+      programId: instruction.programId,
+    };
+  }
+
+  // @ts-expect-error: type difference @coral-xyz/anchor -> @project-serum/anchor
+  private parseUnknownInstruction(instruction: TransactionInstruction): ParsedInstruction<Idl, string> {
+    const accounts = instruction.keys;
+    return {
+      name: "Unknown",
+      accounts,
+      args: { unknown: utils.bytes.bs58.encode(instruction.data) },
       programId: instruction.programId,
     };
   }

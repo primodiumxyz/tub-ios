@@ -42,3 +42,20 @@ export const GetAllOnchainTokensPriceHistorySinceSubscription = graphql(`
     }
   }
 `);
+
+export const GetFilteredTokensSubscription = graphql(`
+  subscription GetFilteredTokensSubscription($since: timestamptz!, $minTrades: bigint!, $minIncreasePct: float8!) {
+    GetFormattedTokens(
+      where: { created_at: { _gte: $since }, trades: { _gte: $minTrades }, increase_pct: { _gte: $minIncreasePct } }
+    ) {
+      token_id
+      mint
+      name
+      symbol
+      latest_price
+      increase_pct
+      trades
+      created_at
+    }
+  }
+`);

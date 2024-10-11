@@ -8,5 +8,58 @@
       use_prepared_statements: false
   customization:
     naming_convention: hasura-default
+  logical_models:
+    - fields:
+        - name: token_id
+          type:
+            nullable: false
+            scalar: uuid
+        - name: mint
+          type:
+            nullable: false
+            scalar: text
+        - name: name
+          type:
+            nullable: false
+            scalar: varchar
+        - name: symbol
+          type:
+            nullable: false
+            scalar: varchar
+        - name: latest_price
+          type:
+            nullable: false
+            scalar: numeric
+        - name: increase_pct
+          type:
+            nullable: false
+            scalar: float8
+        - name: trades
+          type:
+            nullable: false
+            scalar: bigint
+        - name: created_at
+          type:
+            nullable: false
+            scalar: timestamptz
+      name: GetFormattedTokensResult
+      select_permissions:
+        - permission:
+            columns:
+              - token_id
+              - mint
+              - name
+              - symbol
+              - latest_price
+              - increase_pct
+              - trades
+              - created_at
+            filter: {}
+          role: public
+  native_queries:
+    - arguments: {}
+      code: SELECT * FROM formatted_tokens
+      returns: GetFormattedTokensResult
+      root_field_name: GetFormattedTokens
   tables: "!include default/tables/tables.yaml"
   functions: "!include default/functions/functions.yaml"

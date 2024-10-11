@@ -8,7 +8,8 @@ import { TrackerParamsProvider } from "@/providers/TrackerParamsProvider";
 
 import "@/App.css";
 
-const gqlClientUrl = import.meta.env.VITE_GRAPHQL_URL! as string;
+const dev = (import.meta.env.VITE_NODE_ENV ?? "local") === "local";
+const gqlClientUrl = dev ? "http://localhost:8080/v1/graphql" : (import.meta.env.VITE_GRAPHQL_URL! as string);
 
 function App() {
   const client = useMemo(() => createGqlClient<"web">({ url: gqlClientUrl }).instance, []);
