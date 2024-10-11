@@ -25,16 +25,11 @@ struct BuyForm: View {
     var body: some View {
         VStack {
             VStack {
-                VStack(alignment: .leading) {
-                    HStack {
-                        Text("Buy")
-                            .font(.sfRounded(size: .xl2, weight: .semibold))
-                    }
-                    VStack(alignment: .trailing, spacing: 0) {
+                    VStack(spacing: 0) {
                         HStack {
                             TextField("Enter amount", text: $buyAmountString)
-//                                .keyboardType(.decimalPad)
-//                                .multilineTextAlignment(.trailing)
+                                .keyboardType(.decimalPad)
+                                .multilineTextAlignment(.center)
                                 .onChange(of: buyAmountString) { newValue in
                                     let filtered = newValue.filter { "0123456789.".contains($0) }
                                     if filtered != newValue {
@@ -48,11 +43,14 @@ struct BuyForm: View {
                                         isValidInput = false
                                     }
                                 }
+                                .font(.sfRounded(size: .xl4, weight: .medium))
                                 .foregroundColor(isValidInput ? .white : .red)
+                                
                             if buyAmountString != "" {
                                 Text("SOL")
                             }
                         }
+.frame(maxWidth: .infinity, alignment: .center)
                         .font(.sfRounded(size: .xl3, weight: .bold))
                         
                         // Add token conversion display
@@ -63,34 +61,29 @@ struct BuyForm: View {
                                 .opacity(0.8)
                         }
                     }
-                    if userModel.balance.total > 0.1 {
-                        SliderWithPoints(value: $buyAmountSol, in: 0...userModel.balance.total, step: 1)
-                            .onChange(of: buyAmountSol) { newValue in
-                                if newValue.truncatingRemainder(dividingBy: 1) == 0 {
-                                    buyAmountString = String(format: "%.0f", newValue)
-                                } else {
-                                    buyAmountString = String(newValue)
-                                }
-                            }
-                    }
+                  
                     SwipeToEnterView(text: "Slide to buy", onUnlock: handleBuy, disabled: buyAmountSol == 0 || buyAmountString == "")
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 20)
             }
-            .frame(height: 270)
+            .frame(height: 267)
             .background(
                 LinearGradient(
-                    stops: [
-                        Gradient.Stop(color: Color(red: 0.7, green: 0.54, blue: 0.79).opacity(0.65), location: 0.00),
-                        Gradient.Stop(color: Color(red: 0.31, green: 0.62, blue: 0.78).opacity(0.9), location: 1.00),
-                    ],
-                    startPoint: UnitPoint(x: 0, y: 0.5),
-                    endPoint: UnitPoint(x: 1, y: 1)
+                stops: [
+                Gradient.Stop(color: Color(red: 0.18, green: 0.08, blue: 0.37), location: 0.00),
+                Gradient.Stop(color: Color(red: 0.1, green: 0.1, blue: 0.2), location: 0.71),
+                ],
+                startPoint: UnitPoint(x: 0.5, y: 0),
+                endPoint: UnitPoint(x: 0.5, y: 1)
                 )
-                .cornerRadius(30)
             )
-        }
+                .cornerRadius(26)
+                .overlay(
+                RoundedRectangle(cornerRadius: 26)
+                    .inset(by: 0.5)
+                    .stroke(.white.opacity(0.1), lineWidth: 1)
+                )
         .frame(width: .infinity, height: 300)
     }
 }
