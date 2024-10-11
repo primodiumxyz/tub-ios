@@ -20,15 +20,15 @@ pnpm dev:pumping-tokens # this will also run an explorer
 
 The server can be configured with the following environment variables (in root .env file):
 
-| Variable              | Description                     | Default                                       |
-| --------------------- | ------------------------------- | --------------------------------------------- |
-| `NODE_ENV`            | Environment                     | `local`                                       |
-| `SERVER_HOST`         | Host that the server listens on | `0.0.0.0`                                     |
-| `SERVER_PORT`         | Port that the server listens on | `8888`                                        |
-| `HASURA_ADMIN_SECRET` | Hasura admin secret             | `password`                                    |
-| `GRAPHQL_URL`         | GraphQL URL                     | `https://tub-graphql.primodium.ai/v1/graphql` |
-| `ALCHEMY_RPC_URL`     | Alchemy RPC URL                 | `https://solana-mainnet.g.alchemy.com/v2/`    |
-| `HELIUS_WS_URL`       | Helius WS URL                   | `wss://mainnet.helius-rpc.com/?api-key=`      |
+| Variable               | Description                     | Default                                        |
+| ---------------------- | ------------------------------- | ---------------------------------------------- |
+| `NODE_ENV`             | Environment                     | `local`                                        |
+| `SERVER_HOST`          | Host that the server listens on | `0.0.0.0`                                      |
+| `SERVER_PORT`          | Port that the server listens on | `8888`                                         |
+| `HASURA_ADMIN_SECRET`  | Hasura admin secret             | `password`                                     |
+| `GRAPHQL_URL`          | GraphQL URL                     | `https://tub-graphql.primodium.ai/v1/graphql`  |
+| `HELIUS_RPC_URL`       | Alchemy RPC URL                 | `https://mainnet.helius-rpc.com/?api-key=`     |
+| `HELIUS_GEYSER_WS_URL` | Helius WS URL                   | `wss://atlas-mainnet.helius-rpc.com/?api-key=` |
 
 ## Adding a parser
 

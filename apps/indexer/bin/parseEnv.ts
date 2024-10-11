@@ -6,8 +6,8 @@ const commonSchema = z.object({
   SERVER_PORT: z.coerce.number().positive().default(8888),
   HASURA_ADMIN_SECRET: z.string(),
   GRAPHQL_URL: z.string().default("https://tub-graphql.primodium.ai/v1/graphql"),
-  ALCHEMY_RPC_URL: z.string().default("https://solana-mainnet.g.alchemy.com/v2/"),
-  HELIUS_WS_URL: z.string().default("wss://mainnet.helius-rpc.com/?api-key=)"),
+  HELIUS_RPC_URL: z.string().default("https://mainnet.helius-rpc.com/?api-key="),
+  HELIUS_GEYSER_WS_URL: z.string().default("wss://atlas-mainnet.helius-rpc.com/?api-key="),
 });
 
 export function parseEnv<TSchema extends ZodTypeAny | undefined = undefined>(
