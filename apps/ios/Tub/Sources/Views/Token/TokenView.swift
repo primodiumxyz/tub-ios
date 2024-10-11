@@ -55,7 +55,7 @@ struct TokenView : View {
                             
                         }.foregroundColor(Color(red: 1, green: 0.92, blue: 0.52))
                     }.onTapGesture {
-                        // Toggle the info card visibility with animation
+                        // Toggle the info card
                         withAnimation(.easeInOut) {
                             showInfoCard.toggle()
                         }
@@ -76,15 +76,25 @@ struct TokenView : View {
                     
                 }.padding(8)
             }
-            .frame(maxWidth: .infinity) // Add this line
+            .frame(maxWidth: .infinity)
             .background(.black)
             .foregroundColor(.white)
             
             // Info Card View (slide-up effect)
             if showInfoCard {
+                // Fullscreen tap dismiss
+                Color.black.opacity(0.4) // Semi-transparent background
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        withAnimation(.easeInOut) {
+                            showInfoCard = false // Close the card
+                        }
+                    }
+                
                 TokenInfoCardView(tokenModel: tokenModel, isVisible: $showInfoCard)
                     .transition(.move(edge: .bottom))
                     .zIndex(1) // Ensure it stays on top
+                    
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity) // Full screen layout for ZStack

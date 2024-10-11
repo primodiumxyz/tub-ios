@@ -10,14 +10,23 @@ struct TokenInfoCardView: View {
     var tokenModel: TokenModel
     @Binding var isVisible: Bool
     
+    @State private var dragOffset: CGFloat = 0.0
+    @State private var animatingSwipe: Bool = false
+    
     var body: some View {
         VStack() {
             //Coin
+            Capsule()
+                .fill(Color.white.opacity(0.3))
+                .frame(width: 60, height: 6)
+                .offset(y:-5)
+            
             HStack {
                 Text("$\(tokenModel.token.name)")
                     .font(.sfRounded(size: .xl2, weight: .semibold))
                     .foregroundColor(.white)
             }
+            .offset(y:-2)
             
             //Info
             VStack(alignment: .leading) {
@@ -31,13 +40,14 @@ struct TokenInfoCardView: View {
                                 
                                 Text("$544M")
                                     .font(.sfRounded(size: .xl2, weight: .semibold))
-                            }.padding(5.0)
+                            }.padding(.vertical, 5.0)
                             
                             VStack(alignment: .leading){
                                 Text("Holders")
                                     .font(.sfRounded(size: .sm, weight: .medium))
                                 Text("23.3 K")
-                                .font(.sfRounded(size: .xl2, weight: .semibold))                        }.padding(5.0)
+                                    .font(.sfRounded(size: .xl2, weight: .semibold))
+                            }.padding(.vertical, 5.0)
                         }
                         
                         Spacer()
@@ -47,14 +57,17 @@ struct TokenInfoCardView: View {
                                 Text("Volume (24h)")
                                     .font(.sfRounded(size: .sm, weight: .medium))
                                 Text("$29.0M")
-                                .font(.sfRounded(size: .xl2, weight: .semibold))                        }.padding(5.0)
+                                    .font(.sfRounded(size: .xl2, weight: .semibold))
+                            }.padding(.vertical, 5.0)
                             
                             VStack(alignment: .leading){
                                 Text("Circulating Supply")
                                     .font(.sfRounded(size: .sm, weight: .medium))
                                 Text("900M")
-                                .font(.sfRounded(size: .xl2, weight: .semibold))                        }.padding(5.0)
+                                    .font(.sfRounded(size: .xl2, weight: .semibold))
+                            }.padding(.vertical, 5.0)
                         }
+                        .offset(x:-10)
                     }
                     
                     HStack(alignment: .bottom) {
@@ -83,14 +96,16 @@ struct TokenInfoCardView: View {
                         .font(.sfRounded(size: .xl2, weight: .bold))
                     
                     Text("This is what the coin is about. Norem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.")
-                        .font(.sfRounded(size: .base, weight: .medium))
+                        .font(.sfRounded(size: .sm, weight: .medium))
                 }
                 .foregroundColor(.white)
                 .padding(.vertical, 10.0)
                 
                 //Twitter Link
                 HStack(alignment: .center){
-                    Image(systemName:"network")
+                    Image("X-logo-white")
+                        .resizable()
+                        .frame(width: 20, height: 20)
                     Text("@ MONKAY")
                         .font(.sfRounded(size: .lg, weight: .semibold))
                 }
@@ -112,7 +127,39 @@ struct TokenInfoCardView: View {
             )
         )
         .cornerRadius(20)
-        .padding(.horizontal, 0) 
+        .offset(y: dragOffset)  // Offset based on drag
+        .gesture(
+            DragGesture()
+                .onChanged { value in
+                    // Update drag offset as the user drags
+                    dragOffset = value.translation.height
+                }
+                .onEnded { value in
+                    let threshold: CGFloat = 100
+                    let verticalAmount = value.translation.height
+                    
+                    if verticalAmount > threshold && !animatingSwipe {
+                        // Dismiss the card when swiping down
+                        withAnimation(.easeInOut(duration: 0.4)) {
+                            dragOffset = UIScreen.main.bounds.height
+                        }
+                        animatingSwipe = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                            withAnimation {
+                                isVisible = false // Close the card
+                                animatingSwipe = false
+                                dragOffset = 0
+                            }
+                        }
+                    } else {
+                        // Reset if not enough swipe
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            dragOffset = 0
+                        }
+                    }
+                }
+        )
+        .transition(.move(edge: .bottom))  // Move from the bottom
     }
 }
 
