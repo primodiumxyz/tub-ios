@@ -1,6 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { columns } from "@/components/TokensTable/columns";
+import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { useTokens } from "@/hooks/useTokens";
 import { useTrackerParams } from "@/hooks/useTrackerParams";
@@ -9,6 +10,7 @@ import { formatTime } from "@/lib/utils";
 export const TokensTable = () => {
   const { tokens, fetching, error } = useTokens();
   const { timespan, increasePct, minTrades } = useTrackerParams();
+  const [platformFilter, setPlatformFilter] = useState<string>("");
 
   const tokensPerPlatform = useMemo(() => {
     return Object.entries(
@@ -22,23 +24,35 @@ export const TokensTable = () => {
     ).sort((a, b) => b[1] - a[1]);
   }, [tokens]);
 
+  const filteredTokens = useMemo(() => {
+    if (platformFilter === "") return tokens;
+    return tokens.filter((token) => token.platform === platformFilter);
+  }, [tokens, platformFilter]);
+
   if (error) return <div>Error: {error}</div>;
   return (
     <div className="flex flex-col gap-2 mt-2 w-full">
-      <div className="text-end font-bold">Total coins: {tokens.length}</div>
-      {Object.entries(tokensPerPlatform).length > 0 && (
-        <div className="flex gap-4 flex-wrap justify-end">
-          <span>Platforms: </span>
-          {Object.entries(tokensPerPlatform).map(([, [platform, count]]) => (
-            <div key={platform} className="opacity-50">
-              {platform.charAt(0).toUpperCase() + platform.slice(1)}: {count}
-            </div>
-          ))}
-        </div>
-      )}
+      <div className="flex gap-2 flex-wrap justify-end">
+        {Object.entries(tokensPerPlatform).length > 0 && (
+          <>
+            {Object.entries(tokensPerPlatform).map(([, [platform, count]]) => (
+              <Button
+                key={platform}
+                variant={platformFilter === platform ? "secondary" : "ghost"}
+                onClick={() => setPlatformFilter(platform)}
+              >
+                {platform}: {count}
+              </Button>
+            ))}
+          </>
+        )}
+        <Button variant={platformFilter === "" ? "secondary" : "ghost"} onClick={() => setPlatformFilter("")}>
+          All ({tokens.length})
+        </Button>
+      </div>
       <DataTable
         columns={columns}
-        data={tokens}
+        data={filteredTokens}
         caption={`List of tokens pumping at least ${increasePct}% in the last ${formatTime(timespan)} with at least ${minTrades} trades`}
         loading={fetching}
         pagination={true}

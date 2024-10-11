@@ -25,7 +25,12 @@ const secret = env.NODE_ENV === "prod" ? env.HASURA_ADMIN_SECRET : "password";
 
 export const _start = async () => {
   try {
-    const gql = (await createGqlClient({ url, hasuraAdminSecret: secret })).db;
+    const gql = (
+      await createGqlClient({
+        url: env.NODE_ENV === "prod" ? env.GRAPHQL_URL : "http://localhost:8080/v1/graphql",
+        hasuraAdminSecret: env.NODE_ENV === "prod" ? env.HASURA_ADMIN_SECRET : "password",
+      })
+    ).db;
     gql.GetLatestMockTokensSubscription({ limit: 10 }).subscribe(async (data) => {
       const updatePrices = async () => {
         const priceUpdates = data.data?.token?.map(async (token) => {
@@ -78,16 +83,16 @@ export const start = async () => {
       const timeoutId = setTimeout(() => controller.abort(), timeout);
 
       const response = await fetch(url, {
-        signal: controller.signal
+        signal: controller.signal,
       });
 
       clearTimeout(timeoutId);
 
       if (response.ok) {
-        console.log('Hasura service is healthy');
+        console.log("Hasura service is healthy");
         // wait for 5 seconds for seeding to complete if retry count is more than 1
         if (i > 0) {
-          await new Promise(resolve => setTimeout(resolve, 5000));
+          await new Promise((resolve) => setTimeout(resolve, 5000));
         }
         return _start();
       }
@@ -96,9 +101,9 @@ export const start = async () => {
     }
 
     if (i < maxAttempts - 1) {
-      await new Promise(resolve => setTimeout(resolve, retryInterval));
+      await new Promise((resolve) => setTimeout(resolve, retryInterval));
     }
   }
 
-  throw new Error('Hasura service is not available. Please ensure it\'s running with `pnpm hasura-up` and try again.');
-}
+  throw new Error("Hasura service is not available. Please ensure it's running with `pnpm hasura-up` and try again.");
+};
