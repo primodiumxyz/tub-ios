@@ -394,4 +394,3 @@ export const PROGRAMS = [
 ] as const satisfies Program[];
 
 export const PLATFORMS = PROGRAMS.map((program) => program.id);
-export const LOG_FILTERS = PROGRAMS.map((program) => program.publicKey.toString());

@@ -2,15 +2,8 @@ import { Idl } from "@coral-xyz/anchor";
 import { ParsedInstruction } from "@shyft-to/solana-transaction-parser";
 import { Connection } from "@solana/web3.js";
 
-import { LOG_FILTERS, PROGRAMS, WRAPPED_SOL_MINT } from "@/lib/constants";
+import { PROGRAMS, WRAPPED_SOL_MINT } from "@/lib/constants";
 import { ParsedAccountData, PriceData, SwapAccounts } from "@/lib/types";
-
-export const filterLogs = (logs: string[]) => {
-  const filtered = logs?.filter((log) =>
-    LOG_FILTERS.some((filter) => log.toLowerCase().includes(filter.toLowerCase())),
-  );
-  return filtered && filtered.length > 0 ? filtered : undefined;
-};
 
 /* --------------------------------- DECODER -------------------------------- */
 export const decodeSwapAccounts = (
@@ -59,10 +52,26 @@ export const decodeSwapAccounts = (
 };
 
 /* ---------------------------------- PRICE --------------------------------- */
+const fetches = {};
+let timeElapsed = 0;
+setInterval(() => {
+  console.log("Time elapsed", `${timeElapsed}s`);
+  console.log(
+    "Total swaps",
+    Object.values(fetches).reduce((a: number, b: number) => a + b, 0),
+  );
+  console.log(
+    "Per platform",
+    Object.entries(fetches).sort((a, b) => b[1] - a[1]),
+  );
+  timeElapsed++;
+}, 1000);
 export const getPoolTokenPrice = async (
   connection: Connection,
   { vaultA, vaultB, platform }: SwapAccounts,
 ): Promise<PriceData | undefined> => {
+  fetches[platform] = (fetches[platform] ?? 0) + 1;
+  return;
   const [vaultARes, vaultBRes] = (
     await connection.getMultipleParsedAccounts([vaultA, vaultB], {
       commitment: "confirmed",

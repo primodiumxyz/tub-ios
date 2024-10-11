@@ -1,31 +1,28 @@
 // #!/usr/bin/env node
-import { Logs } from "@solana/web3.js";
 import { config } from "dotenv";
 import { WebSocket } from "ws";
 
 import { createClient as createGqlClient, GqlClient } from "@tub/gql";
 import { parseEnv } from "@bin/parseEnv";
-import { PRICE_DATA_BATCH_SIZE, PRICE_PRECISION } from "@/lib/constants";
-import { connection, ixParser } from "@/lib/setup";
-import { PriceData } from "@/lib/types";
-import { decodeSwapAccounts, filterLogs, getPoolTokenPrice } from "@/lib/utils";
+import { PRICE_DATA_BATCH_SIZE, PRICE_PRECISION, PROGRAMS } from "@/lib/constants";
+import { connection, ixParser, txFormatter } from "@/lib/setup";
+import { PriceData, TransactionSubscriptionResult } from "@/lib/types";
+import { decodeSwapAccounts, getPoolTokenPrice } from "@/lib/utils";
 
 config({ path: "../../.env" });
 
 const env = parseEnv();
 
 /* ------------------------------ PROCESS LOGS ------------------------------ */
-const processLogs = async ({ err, signature }: Logs): Promise<(PriceData | undefined)[]> => {
-  if (err) return [];
+const processLogs = async (result: TransactionSubscriptionResult): Promise<(PriceData | undefined)[]> => {
   try {
-    // Fetch and format the transaction
-    const tx = await connection.getTransaction(signature, {
-      commitment: "confirmed",
-      maxSupportedTransactionVersion: 0,
-    });
-    if (!tx || tx.meta?.err) return [];
     // Parse the transaction and retrieve the swapped token accounts
-    const parsedIxs = ixParser.parseTransactionWithInnerInstructions(tx);
+    const tx = txFormatter.formTransactionFromJson(result, Date.now());
+    // We will process parsed data, if it comes from known programs (e.g. system, spl-token, spl-memo)
+    // In such cases, it won't include the fields "data" or "accounts", and we're not interested anyway
+    if (!tx) return [];
+
+    const parsedIxs = ixParser.parseParsedTransactionWithInnerInstructions(tx);
     const swapAccountsArray = decodeSwapAccounts(parsedIxs);
     if (swapAccountsArray.length === 0) return [];
 
@@ -99,7 +96,7 @@ const handlePriceData = async (gql: GqlClient["db"], priceData: (PriceData | und
 
 /* -------------------------------- WEBSOCKET ------------------------------- */
 const setup = (gql: GqlClient["db"]) => {
-  const ws = new WebSocket(env.HELIUS_WS_URL);
+  const ws = new WebSocket(env.HELIUS_GEYSER_WS_URL);
 
   ws.onclose = () => {
     console.log("WebSocket connection closed, attempting to reconnect...");
@@ -114,38 +111,25 @@ const setup = (gql: GqlClient["db"]) => {
     ws.send(
       JSON.stringify({
         jsonrpc: "2.0",
-        id: 1,
-        method: "logsSubscribe",
-        params: ["all"],
+        id: 420,
+        method: "transactionSubscribe",
+        params: [
+          { failed: false, accountInclude: Object.values(PROGRAMS).map((p) => p.publicKey.toString()) },
+          {
+            commitment: "confirmed",
+            encoding: "jsonParsed",
+            transactionDetails: "full",
+            maxSupportedTransactionVersion: 0,
+          },
+        ],
       }),
-      // TODO: needs min. Helius business plan
-      // {
-      //     jsonrpc: "2.0",
-      //     id: 420,
-      //     method: "transactionSubscribe",
-      //     params: [
-      //         {   failed: false,
-      //             accountInclude: [RaydiumAmmParser.PROGRAM_ID.toString()]
-      //         },
-      //         {
-      //             commitment: "confirmed",
-      //             encoding: "jsonParsed",
-      //             transactionDetails: "full",
-      //             maxSupportedTransactionVersion: 0
-      //         }
-      //     ]
-      // }
     );
   };
   ws.onmessage = (event) => {
     // Parse
     const obj = JSON.parse(event.data.toString());
-    const data = obj.params?.result.value as Logs | undefined;
-    const logs = data?.logs;
-    // later when we directly filter on the subscription, we can remove this
-    const filteredLogs = logs ? filterLogs(logs) : undefined;
-    // Process
-    if (data && filteredLogs) processLogs(data).then((priceData) => handlePriceData(gql, priceData));
+    const result = obj.params?.result as TransactionSubscriptionResult | undefined;
+    if (result) processLogs(result).then((priceData) => handlePriceData(gql, priceData));
   };
 
   setInterval(() => {
@@ -153,7 +137,7 @@ const setup = (gql: GqlClient["db"]) => {
       ws.ping();
       console.log("Ping sent");
     }
-  }, 30_000);
+  }, 60_000);
 };
 
 export const start = async () => {
