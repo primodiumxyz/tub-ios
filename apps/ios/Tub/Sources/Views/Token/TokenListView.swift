@@ -36,7 +36,7 @@ struct TokenListView: View {
                     .opacity(0.7)
                     .kerning(-1)
                 
-                Text("\(userModel.balance + tokenModel.tokenBalance * (tokenModel.prices.last?.price ?? 0), specifier: "%.2f") SOL")
+                Text("\(userModel.balance.total + tokenModel.tokenBalance.total * (tokenModel.prices.last?.price ?? 0), specifier: "%.2f") SOL")
                     .font(.sfRounded(size: .xl4))
                     .fontWeight(.bold)
             }
@@ -76,7 +76,7 @@ struct TokenListView: View {
     }
 
     private func fetchTokens() {
-        subscription = Network.shared.apollo.subscribe(subscription: GetLatestMockTokensSubscription()) { result in
+        subscription = Network.shared.apollo.subscribe(subscription: SubLatestMockTokensSubscription()) { result in
             DispatchQueue.main.async {
                 self.isLoading = false
                 switch result {

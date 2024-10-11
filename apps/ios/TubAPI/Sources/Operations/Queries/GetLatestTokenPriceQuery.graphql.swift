@@ -3,11 +3,11 @@
 
 @_exported import ApolloAPI
 
-public class GetLatestTokenPriceSubscription: GraphQLSubscription {
+public class GetLatestTokenPriceQuery: GraphQLQuery {
   public static let operationName: String = "GetLatestTokenPrice"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"subscription GetLatestTokenPrice($tokenId: uuid!) { token_price_history( where: { token: { _eq: $tokenId } } order_by: { created_at: desc } limit: 1 ) { __typename created_at id price token } }"#
+      #"query GetLatestTokenPrice($tokenId: uuid!) { token_price_history( where: { token: { _eq: $tokenId } } order_by: { created_at: desc } limit: 1 ) { __typename created_at id price token } }"#
     ))
 
   public var tokenId: Uuid
@@ -22,7 +22,7 @@ public class GetLatestTokenPriceSubscription: GraphQLSubscription {
     public let __data: DataDict
     public init(_dataDict: DataDict) { __data = _dataDict }
 
-    public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Subscription_root }
+    public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Query_root }
     public static var __selections: [ApolloAPI.Selection] { [
       .field("token_price_history", [Token_price_history].self, arguments: [
         "where": ["token": ["_eq": .variable("tokenId")]],

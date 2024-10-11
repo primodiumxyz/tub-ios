@@ -63,8 +63,8 @@ struct BuyForm: View {
                                 .opacity(0.8)
                         }
                     }
-                    if userModel.balance > 0.1 {
-                        SliderWithPoints(value: $buyAmountSol, in: 0...userModel.balance, step: 1)
+                    if userModel.balance.total > 0.1 {
+                        SliderWithPoints(value: $buyAmountSol, in: 0...userModel.balance.total, step: 1)
                             .onChange(of: buyAmountSol) { newValue in
                                 if newValue.truncatingRemainder(dividingBy: 1) == 0 {
                                     buyAmountString = String(format: "%.0f", newValue)

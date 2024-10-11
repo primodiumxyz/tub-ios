@@ -26,18 +26,19 @@ struct HomeTabsView: View {
                     TokenListView()
                         .tabItem {
                             Label("Explore", systemImage: "safari")
-                        }
-                        .tag(0) // Assign a tag for the tab
+                    }
+                    .tag(0) 
 
                     HistoryView()
                         .tabItem {
                             Label("History", systemImage: "clock")
-                        }
-                        .tag(1) // Assign a tag for the tab
+                    }
+                    .tag(1) 
                     
                     AccountView().tabItem {
                         Label("Account", systemImage: "person")
                     }
+                    .tag(2) 
                 }
                 .background(.black)
                 .foregroundColor(.white)

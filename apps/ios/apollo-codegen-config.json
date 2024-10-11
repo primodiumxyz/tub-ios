@@ -30,7 +30,9 @@
       }
     },
     "downloadTimeout": 60,
-    "headers": [],
+    "headers": {
+      "x-hasura-admin-secret": "password"
+    },
     "outputPath": "./graphql/schema.graphqls"
   }
 }

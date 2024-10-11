@@ -13,6 +13,9 @@
   "scripts": {
     "prepare": "pnpm hasura update-cli",
     "dev": "./bin/start-hasura.sh",
+    "extract-mutations": "tsx ./bin/extractGql.ts ./src/lib/mutations.ts",
+    "extract-queries": "tsx ./bin/extractGql.ts ./src/lib/queries.ts",
+    "extract-subscriptions": "tsx ./bin/extractGql.ts ./src/lib/subscriptions.ts",
     "db:local:console": "dotenvx run -f ./../../.env --quiet -- sh -c 'hasura console'",
     "db:local:seed-apply": "dotenvx run -f ./../../.env --quiet -- sh -c 'hasura seed apply --disable-interactive --database-name default'",
     "db:remote:upgrade-v3": "dotenvx run -f ./../../.env --quiet -- sh -c 'hasura scripts update-project-v3 --endpoint \"$HASURA_URL\" --admin-secret \"$HASURA_ADMIN_SECRET\"'",
