@@ -119,8 +119,3 @@ type StringifiedAccountKey = {
   signer: boolean;
   source: "transaction";
 };
-
-/* --------------------------------- PARSER --------------------------------- */
-export type FlattenedTransactionInstructionData = Omit<TransactionInstructionData, "stackHeight"> & {
-  parentProgramId?: PublicKey;
-};
