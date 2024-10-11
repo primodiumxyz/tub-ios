@@ -10,11 +10,11 @@ export const useTokenBalance = ({
   tokenId: string;
 }) => {
   const [userDebit, refetchDebit] = useQuery({
-    query: queries.GetAccountTokenDebitQuery,
+    query: queries.GetAccountTokenBalanceDebitQuery,
     variables: { tokenId, accountId: userId },
   });
   const [userCredit, refetchCredit] = useQuery({
-    query: queries.GetAccountTokenCreditQuery,
+    query: queries.GetAccountTokenBalanceCreditQuery,
     variables: { tokenId, accountId: userId },
   });
 
