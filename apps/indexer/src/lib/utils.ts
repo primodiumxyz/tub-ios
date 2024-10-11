@@ -2,7 +2,7 @@ import { Idl } from "@coral-xyz/anchor";
 import { ParsedInstruction } from "@shyft-to/solana-transaction-parser";
 import { AccountInfo, Connection, ParsedAccountData } from "@solana/web3.js";
 
-import { PROGRAMS, WRAPPED_SOL_MINT } from "@/lib/constants";
+import { PRICE_PRECISION, PROGRAMS, WRAPPED_SOL_MINT } from "@/lib/constants";
 import { ParsedTokenBalanceInfo, Platform, PriceData, SwapAccounts } from "@/lib/types";
 
 /* --------------------------------- DECODER -------------------------------- */
@@ -76,10 +76,12 @@ export const getPoolTokenPriceMultiple = async (
       const { wrappedSolVaultBalance, tokenVaultBalance, platform, timestamp } = formattedData;
 
       const tokenPrice = Number(
-        BigInt(wrappedSolVaultBalance.tokenAmount.amount) /
-          BigInt(wrappedSolVaultBalance.tokenAmount.decimals) /
-          (BigInt(tokenVaultBalance.tokenAmount.amount) / BigInt(tokenVaultBalance.tokenAmount.decimals)),
+        (BigInt(wrappedSolVaultBalance.tokenAmount.amount) *
+          BigInt(PRICE_PRECISION) *
+          BigInt(10 ** tokenVaultBalance.tokenAmount.decimals)) /
+          (BigInt(tokenVaultBalance.tokenAmount.amount) * BigInt(10 ** wrappedSolVaultBalance.tokenAmount.decimals)),
       );
+
       const priceData = { mint: tokenVaultBalance.mint, price: tokenPrice, platform, timestamp };
       acc.push(priceData);
     }

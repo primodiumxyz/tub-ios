@@ -4,7 +4,7 @@ import { WebSocket } from "ws";
 
 import { createClient as createGqlClient, GqlClient } from "@tub/gql";
 import { parseEnv } from "@bin/parseEnv";
-import { FETCH_PRICE_BATCH_SIZE, PRICE_PRECISION, PROGRAMS, WRITE_GQL_BATCH_SIZE } from "@/lib/constants";
+import { FETCH_PRICE_BATCH_SIZE, PROGRAMS, WRITE_GQL_BATCH_SIZE } from "@/lib/constants";
 import { connection, ixParser, txFormatter } from "@/lib/setup";
 import { PriceData, SwapAccounts, TransactionSubscriptionResult } from "@/lib/types";
 import { decodeSwapAccounts, getPoolTokenPriceMultiple } from "@/lib/utils";
@@ -91,7 +91,7 @@ const handleSwapData = async (gql: GqlClient["db"], swapAccountsArray: SwapAccou
     const addPriceHistoryRes = await gql.AddManyTokenPriceHistoryMutation({
       objects: validPriceData.map(({ mint, price }) => ({
         token: tokenMap.get(mint)!,
-        price: (price * PRICE_PRECISION).toString(),
+        price: price.toString(),
       })),
     });
 

@@ -103,7 +103,7 @@ export const columns: ColumnDef<Token>[] = [
       );
     },
     cell: ({ row }) => {
-      return <div>{row.original.increasePct.toFixed(2)}</div>;
+      return <div>{Number(row.original.increasePct.toFixed(2))}</div>;
     },
   },
 ];
