@@ -26,7 +26,8 @@
     "dist"
   ],
   "include": [
-    "./src/**/*"
+    "./src/**/*",
+    "./bin/**/*"
   ],
   "skipLibCheck": true,
   "target": "ESNext",

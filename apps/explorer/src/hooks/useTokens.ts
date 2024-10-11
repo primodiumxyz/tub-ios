@@ -12,7 +12,11 @@ export type Token = {
   platform: string;
 };
 
-export const useTokens = () => {
+export const useTokens = (): {
+  tokens: Token[];
+  fetching: boolean;
+  error: string | undefined;
+} => {
   const { timespan, increasePct, minTrades } = useTrackerParams();
 
   const since = useRef(new Date(new Date().getTime() - timespan * 1000));
