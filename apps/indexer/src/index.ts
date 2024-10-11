@@ -65,8 +65,8 @@ const handleSwapData = async (gql: GqlClient["db"], swapAccountsArray: SwapAccou
       objects: _priceDataBatch.map(({ mint, platform, timestamp }) => ({
         mint,
         name: platform, // TODO: temporary
-        symbol: timestamp.toString(), // TODO: temporary
-        supply: "0",
+        symbol: "",
+        supply: timestamp.toString(), // TODO: temporary
       })),
     });
 
@@ -110,7 +110,7 @@ const handleSwapData = async (gql: GqlClient["db"], swapAccountsArray: SwapAccou
 
 /* -------------------------------- WEBSOCKET ------------------------------- */
 const setup = (gql: GqlClient["db"]) => {
-  const ws = new WebSocket(env.HELIUS_GEYSER_WS_URL);
+  const ws = new WebSocket(`wss://atlas-mainnet.helius-rpc.com/?api-key=${env.HELIUS_API_KEY}`);
 
   ws.onclose = () => {
     console.log("WebSocket connection closed, attempting to reconnect...");

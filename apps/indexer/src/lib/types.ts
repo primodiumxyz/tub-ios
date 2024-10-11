@@ -37,6 +37,20 @@ export type PriceData = {
   timestamp: number;
 };
 
+/* ----------------------------------- RPC ---------------------------------- */
+export type ParsedTokenBalanceInfo = {
+  isNative: boolean;
+  mint: string;
+  owner: string;
+  state: string;
+  tokenAmount: {
+    amount: string;
+    decimals: number;
+    uiAmount?: number;
+    uiAmountString?: string;
+  };
+};
+
 /* -------------------------------- WEBSOCKET ------------------------------- */
 // Data of a non-failed and confirmed token transaction received from the Geyser websocket subscription
 export type TransactionSubscriptionResult = {

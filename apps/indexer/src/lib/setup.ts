@@ -30,8 +30,11 @@ const fetchWithRetry = async (input: RequestInfo | URL, init?: RequestInit): Pro
   }
 };
 
-// @ts-expect-error Property 'referrer' is missing in type 'import("undici-types/fetch").Request'
-export const connection = new Connection(env.HELIUS_RPC_URL, { commitment: "confirmed", fetch: fetchWithRetry });
+export const connection = new Connection(`https://mainnet.helius-rpc.com/?api-key=${env.HELIUS_API_KEY}`, {
+  commitment: "confirmed",
+  // @ts-expect-error Property 'referrer' is missing in type 'import("undici-types/fetch").Request'
+  fetch: fetchWithRetry,
+});
 
 export const txFormatter = new TransactionFormatter();
 export const ixParser = new SolanaParser();

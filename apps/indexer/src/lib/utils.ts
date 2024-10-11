@@ -1,9 +1,9 @@
 import { Idl } from "@coral-xyz/anchor";
 import { ParsedInstruction } from "@shyft-to/solana-transaction-parser";
-import { AccountInfo, Connection, ParsedAccountData, TokenBalance } from "@solana/web3.js";
+import { AccountInfo, Connection, ParsedAccountData } from "@solana/web3.js";
 
 import { PROGRAMS, WRAPPED_SOL_MINT } from "@/lib/constants";
-import { Platform, PriceData, SwapAccounts } from "@/lib/types";
+import { ParsedTokenBalanceInfo, Platform, PriceData, SwapAccounts } from "@/lib/types";
 
 /* --------------------------------- DECODER -------------------------------- */
 export const decodeSwapAccounts = (
@@ -76,9 +76,9 @@ export const getPoolTokenPriceMultiple = async (
       const { wrappedSolVaultBalance, tokenVaultBalance, platform, timestamp } = formattedData;
 
       const tokenPrice = Number(
-        BigInt(wrappedSolVaultBalance.uiTokenAmount.amount) /
-          BigInt(wrappedSolVaultBalance.uiTokenAmount.decimals) /
-          (BigInt(tokenVaultBalance.uiTokenAmount.amount) / BigInt(tokenVaultBalance.uiTokenAmount.decimals)),
+        BigInt(wrappedSolVaultBalance.tokenAmount.amount) /
+          BigInt(wrappedSolVaultBalance.tokenAmount.decimals) /
+          (BigInt(tokenVaultBalance.tokenAmount.amount) / BigInt(tokenVaultBalance.tokenAmount.decimals)),
       );
       const priceData = { mint: tokenVaultBalance.mint, price: tokenPrice, platform, timestamp };
       acc.push(priceData);
@@ -92,11 +92,20 @@ const formatTokenBalanceResponse = (
   resB: AccountInfo<Buffer | ParsedAccountData> | null | undefined,
   swapAccounts: SwapAccounts | undefined,
 ):
-  | { wrappedSolVaultBalance: TokenBalance; tokenVaultBalance: TokenBalance; platform: Platform; timestamp: number }
+  | {
+      wrappedSolVaultBalance: ParsedTokenBalanceInfo;
+      tokenVaultBalance: ParsedTokenBalanceInfo;
+      platform: Platform;
+      timestamp: number;
+    }
   | undefined => {
   // Retrieve parsed info
-  const vaultABalance = (resA?.data as ParsedAccountData | undefined)?.parsed.info as TokenBalance | undefined;
-  const vaultBBalance = (resB?.data as ParsedAccountData | undefined)?.parsed.info as TokenBalance | undefined;
+  const vaultABalance = (resA?.data as ParsedAccountData | undefined)?.parsed.info as
+    | ParsedTokenBalanceInfo
+    | undefined;
+  const vaultBBalance = (resB?.data as ParsedAccountData | undefined)?.parsed.info as
+    | ParsedTokenBalanceInfo
+    | undefined;
   if (!vaultABalance || !vaultBBalance) return;
 
   // Separate Wrapped SOL (if it's present) and token swapped against WSOL
