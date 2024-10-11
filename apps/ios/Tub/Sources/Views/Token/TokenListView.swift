@@ -114,9 +114,10 @@ struct TokenListView: View {
                         .font(.title2)
                         .foregroundColor(.gray)
                         .offset(y: chevronOffset)
+                    
                 }
                 .frame(maxWidth: .infinity, alignment: .center) // Center the button
-                .padding(.bottom)
+                .padding(.bottom, 40.0)
             }
         }
         .onAppear{
