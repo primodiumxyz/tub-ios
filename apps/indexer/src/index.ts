@@ -39,10 +39,10 @@ const handleSwapData = async (gql: GqlClient["db"], swapAccountsArray: SwapAccou
   if (swapAccountsBatch.length < FETCH_PRICE_BATCH_SIZE) return;
 
   // Fetch price data out of swap accounts, add it and continue only if the second batch is filled enough
-  const _swapAccountsBatch = swapAccountsBatch;
+  const _swapAccountsBatch = swapAccountsBatch.slice(0, FETCH_PRICE_BATCH_SIZE);
   try {
     // clear the batch before the async call so it isn't included in the next batch
-    swapAccountsBatch = [];
+    swapAccountsBatch = swapAccountsBatch.slice(FETCH_PRICE_BATCH_SIZE);
     const priceData = await getPoolTokenPriceMultiple(connection, _swapAccountsBatch);
     priceDataBatch.push(...priceData);
   } catch (err) {

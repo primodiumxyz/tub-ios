@@ -11,13 +11,11 @@ import { Program } from "./types";
 // Helius Business plan has a limit of 200 req/s
 // Solana has <3,500 TPS as of 2024-10-11 (of which ~1/10 are swaps)
 // and we can include up to 100 accounts per RPC request (50 swaps)
-// -> a batch size of 10 can accomodate up to 2,000 swaps/s (and we can scale up to 10,000 swaps/s)
-// BUT 100M credits/month means ~38 credits/s
+// -> a batch size of 50 can accomodate up to 10,000 swaps/s
+// AND 100M credits/month means ~38 credits/s
 // vvv (if we only use getPoolTokenPrice.getMultipleParsedAccounts with the Helius RPC)
-// -> so we can handle ~380 swaps/s to stay withing usage limits with this current plan and batch size of 10
-// (just need to increase to 20 or 30 to be super safe if TPS/trading increases)
-// (if we consider the monthly limit and the max batch size of 50, we can handle up to ~1,900 swaps/s with this plan)
-export const FETCH_PRICE_BATCH_SIZE = 10; // max. 50
+// -> so we can actually handle ~1,900 swaps/s to stay withing usage limits with this current plan
+export const FETCH_PRICE_BATCH_SIZE = 50; // this is the max batch size (50 * 2 accounts)
 export const WRITE_GQL_BATCH_SIZE = 300;
 export const PRICE_PRECISION = 1e9;
 
