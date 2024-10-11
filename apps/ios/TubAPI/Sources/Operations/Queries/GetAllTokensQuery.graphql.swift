@@ -7,7 +7,7 @@ public class GetAllTokensQuery: GraphQLQuery {
   public static let operationName: String = "GetAllTokens"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetAllTokens { token { __typename id name symbol updated_at supply uri } }"#
+      #"query GetAllTokens { token(where: { mint: { _is_null: true } }) { __typename id name symbol updated_at supply uri } }"#
     ))
 
   public init() {}
@@ -18,7 +18,7 @@ public class GetAllTokensQuery: GraphQLQuery {
 
     public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Query_root }
     public static var __selections: [ApolloAPI.Selection] { [
-      .field("token", [Token].self),
+      .field("token", [Token].self, arguments: ["where": ["mint": ["_is_null": true]]]),
     ] }
 
     /// fetch data from the table: "token"

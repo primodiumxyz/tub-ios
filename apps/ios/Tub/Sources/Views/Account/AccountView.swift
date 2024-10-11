@@ -28,7 +28,7 @@ struct AccountView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Username: \(userModel.username)")
                         .font(.sfRounded(size: .xl, weight: .medium))
-                    Text("Balance: \(userModel.balance, specifier: "%.2f") SOL")
+                    Text("Balance: \(userModel.balance.total, specifier: "%.2f") SOL")
                         .font(.sfRounded(size: .xl, weight: .medium))
                     if let error = errorMessage {
                         Text(error).foregroundColor(.red)
@@ -39,7 +39,7 @@ struct AccountView: View {
                     if isAirdropping {
                         ProgressView()
                     }
-                    else if userModel.balance < 1 {
+                    else if userModel.balance.total < 1 {
                         Button(action: performAirdrop) {
                             Text("Request Airdrop")
                                 .padding()

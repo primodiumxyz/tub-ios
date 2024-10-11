@@ -2,7 +2,8 @@ import { Connection } from "@solana/web3.js";
 import { config } from "dotenv";
 
 import { parseEnv } from "@bin/parseEnv";
-import { MeteoraDlmmParser, OrcaWhirlpoolParser, RaydiumAmmParser, SolanaParser } from "@/lib/parsers";
+import { PROGRAMS } from "@/lib/constants";
+import { SolanaParser } from "@/lib/parsers/solana-parser";
 
 config({ path: "../../.env" });
 
@@ -31,10 +32,7 @@ const fetchWithRetry = async (input: RequestInfo | URL, init?: RequestInit): Pro
 // @ts-expect-error Property 'referrer' is missing in type 'import("undici-types/fetch").Request'
 export const connection = new Connection(env.ALCHEMY_RPC_URL, { commitment: "confirmed", fetch: fetchWithRetry });
 
-export const meteoraDlmmParser = new MeteoraDlmmParser();
-export const orcaWhirlpoolParser = new OrcaWhirlpoolParser();
-export const raydiumParser = new RaydiumAmmParser();
 export const ixParser = new SolanaParser([]);
-ixParser.addParser(MeteoraDlmmParser.PROGRAM_ID, meteoraDlmmParser.parseInstruction.bind(meteoraDlmmParser));
-ixParser.addParser(OrcaWhirlpoolParser.PROGRAM_ID, orcaWhirlpoolParser.parseInstruction.bind(orcaWhirlpoolParser));
-ixParser.addParser(RaydiumAmmParser.PROGRAM_ID, raydiumParser.parseInstruction.bind(raydiumParser));
+PROGRAMS.forEach((program) =>
+  ixParser.addParser(program.publicKey, program.parser.parseInstruction.bind(program.parser)),
+);

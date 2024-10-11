@@ -1,29 +1,29 @@
-import SwiftUI
 import Apollo
-import TubAPI
 import Combine
+import SwiftUI
+import TubAPI
 
 class TokenModel: ObservableObject {
     var tokenId: String = ""
     var userId: String = ""
-    
+
     @Published var token: Token = Token(id: "", name: "COIN", symbol: "SYMBOL")
     @Published var loading = true
-    @Published var tokenBalance: Double = 0
-    
+    @Published var tokenBalance: (credit: Numeric, debit: Numeric, total: Double) = (0, 0, 0)
+
     @Published var amountBoughtSol: Double = 0
-    @Published var prices: [Price] = []  
-    
-    private var cancellables: Set<AnyCancellable> = []
-    
+    @Published var prices: [Price] = []
+
+    private var latestPriceSubscription: Apollo.Cancellable?  // Track the latest price subscription
+    private var tokenBalanceSubscription:
+        (credit: Apollo.Cancellable?, debit: Apollo.Cancellable?)  // Track the token balance subscription
+
     init(userId: String, tokenId: String? = nil) {
         self.userId = userId
-        if(tokenId != nil){
+        if tokenId != nil {
             self.initialize(with: tokenId!)
         }
     }
-    
-
 
     private func fetchInitialData() async {
         do {
@@ -33,16 +33,19 @@ class TokenModel: ObservableObject {
             print("Error fetching initial data: \(error)")
         }
     }
-    
+
     private func fetchTokenDetails() async throws {
         let query = GetAllTokensQuery()
         return try await withCheckedThrowingContinuation { continuation in
             Network.shared.apollo.fetch(query: query) { [weak self] result in
                 guard let self = self else {
-                    continuation.resume(throwing: NSError(domain: "TokenModel", code: 0, userInfo: [NSLocalizedDescriptionKey: "Self is nil"]))
+                    continuation.resume(
+                        throwing: NSError(
+                            domain: "TokenModel", code: 0,
+                            userInfo: [NSLocalizedDescriptionKey: "Self is nil"]))
                     return
                 }
-                
+
                 switch result {
                 case .success(let response):
                     if let token = response.data?.token.first(where: { $0.id == self.tokenId }) {
@@ -69,17 +72,23 @@ class TokenModel: ObservableObject {
             }
         }
     }
-    
+
     private func subscribeToLatestPrice() {
-        let _ = Network.shared.apollo.subscribe(subscription: GetLatestTokenPriceSubscription(tokenId: self.tokenId)) { [weak self] result in
+        // Cancel any existing subscription before creating a new one
+        latestPriceSubscription?.cancel()
+
+        // Change the type of 'sub' to AnyCancellable
+        let sub = Network.shared.apollo.subscribe(
+            subscription: SubLatestTokenPriceSubscription(tokenId: self.tokenId)
+        ) { [weak self] result in
             guard let self = self else { return }
             DispatchQueue.main.async {
                 switch result {
                 case .success(let graphQLResult):
                     if let history = graphQLResult.data?.token_price_history.first {
-
                         if let date = self.formatDate(history.created_at) {
-                            let newPrice = Price(timestamp: date, price: Double(history.price) / 1e9)
+                            let newPrice = Price(
+                                timestamp: date, price: Double(history.price) / 1e9)
                             self.prices.append(newPrice)
                         } else {
                             print("Failed to parse date: \(history.created_at)")
@@ -90,62 +99,68 @@ class TokenModel: ObservableObject {
                 }
             }
         }
+        latestPriceSubscription = sub
     }
-    
-    private func startTokenBalancePolling() {
-        Timer.publish(every: 1, on: .main, in: .common)
-            .autoconnect()
-            .sink { [weak self] _ in
-                self?.fetchTokenBalance()
-            }
-            .store(in: &cancellables)
-    }
-    
-    private func fetchTokenBalance() {
-        let creditQuery = GetAccountTokenCreditQuery(accountId: Uuid(userId), tokenId: self.tokenId)
-        let debitQuery = GetAccountTokenDebitQuery(accountId: Uuid(userId), tokenId: self.tokenId)
-        
-        let creditPublisher = Network.shared.apollo.watchPublisher(query: creditQuery)
-        let debitPublisher = Network.shared.apollo.watchPublisher(query: debitQuery)
-        
-        Publishers.CombineLatest(creditPublisher, debitPublisher)
-            .sink { completion in
-                if case let .failure(error) = completion {
-                    print("Error fetching balance: \(error)")
-                }
-            } receiveValue: { [weak self] creditResult, debitResult in
-                switch (creditResult, debitResult) {
-                case (.success(let creditData), .success(let debitData)):
-                    let creditAmount = creditData.data?.token_transaction_aggregate.aggregate?.sum?.amount ?? 0
-                    let debitAmount = debitData.data?.token_transaction_aggregate.aggregate?.sum?.amount ?? 0
-                    let balance = Double(creditAmount - debitAmount) / 1e9
-                    DispatchQueue.main.async {
-                        self?.tokenBalance = balance
-                    }
-                case (.failure(let error), _), (_, .failure(let error)):
-                    print("Error fetching balance: \(error)")
+
+    private func subscribeToTokenBalance() {
+        tokenBalanceSubscription.credit?.cancel()
+        tokenBalanceSubscription.debit?.cancel()
+
+        tokenBalanceSubscription.credit = Network.shared.apollo.subscribe(
+            subscription: SubAccountTokenBalanceCreditSubscription(
+                accountId: Uuid(self.userId), tokenId: self.tokenId)
+        ) { [weak self] result in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let graphQLResult):
+                    self.tokenBalance.credit =
+                        graphQLResult.data?.token_transaction_aggregate.aggregate?.sum?.amount ?? 0
+                    self.tokenBalance.total = Double(self.tokenBalance.credit - self.tokenBalance.debit)/1e9
+                case .failure(let error):
+                    print("Error: \(error.localizedDescription)")
                 }
             }
-            .store(in: &cancellables)
+        }
+
+        tokenBalanceSubscription.debit = Network.shared.apollo.subscribe(
+            subscription: SubAccountTokenBalanceDebitSubscription(
+                accountId: Uuid(self.userId), tokenId: self.tokenId)
+        ) { [weak self] result in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let graphQLResult):
+                    self.tokenBalance.debit =
+                        graphQLResult.data?.token_transaction_aggregate.aggregate?.sum?.amount ?? 0
+                    self.tokenBalance.total = Double(self.tokenBalance.credit - self.tokenBalance.debit)/1e9
+                case .failure(let error):
+                    print("Error: \(error.localizedDescription)")
+                }
+            }
+        }
     }
-    
+
     private lazy var iso8601Formatter: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         return formatter
     }()
-    
+
     private func formatDate(_ dateString: String) -> Date? {
         return iso8601Formatter.date(from: dateString)
     }
 
     func buyTokens(buyAmountSol: Double, completion: ((Bool) -> Void)?) {
         let buyAmountLamps = String(Int(buyAmountSol * 1e9))
-        
-        Network.shared.buyToken(accountId: self.userId, tokenId: self.tokenId, amount: buyAmountLamps) { result in
+
+        Network.shared.buyToken(
+            accountId: self.userId, tokenId: self.tokenId, amount: buyAmountLamps
+        ) { result in
             switch result {
             case .success:
                 print("buy successful")
+                self.amountBoughtSol = buyAmountSol
                 completion?(true)
             case .failure(let error):
                 print(error)
@@ -153,37 +168,38 @@ class TokenModel: ObservableObject {
             }
         }
     }
-    
+
     func sellTokens(completion: ((Bool) -> Void)?) {
         let sellAmountLamps = String(Int(self.amountBoughtSol * 1e9))
-        
-        Network.shared.sellToken(accountId: self.userId, tokenId: self.tokenId, amount: sellAmountLamps) { result in
+
+        Network.shared.sellToken(
+            accountId: self.userId, tokenId: self.tokenId, amount: sellAmountLamps
+        ) { result in
             switch result {
             case .success:
                 completion?(true)
-            case .failure(let error):
+            case .failure(_):
                 completion?(false)
             }
         }
     }
-    
+
     func initialize(with newTokenId: String) {
-        print("initializing \(newTokenId)")
-        // Cancel all existing cancellables
-        cancellables.forEach { $0.cancel() }
-        cancellables.removeAll()
-        
+        // Cancel all existing subscriptions
+        latestPriceSubscription?.cancel()
+        tokenBalanceSubscription.credit?.cancel()
+        tokenBalanceSubscription.debit?.cancel()
+
         // Reset properties if necessary
         self.tokenId = newTokenId
-        self.loading = true // Reset loading state if needed
+        self.loading = true  // Reset loading state if needed
         self.prices = []
-        
+
         // Re-run the initialization logic
         Task {
             await fetchInitialData()
             subscribeToLatestPrice()
-            startTokenBalancePolling()
+            subscribeToTokenBalance()
         }
     }
 }
-
