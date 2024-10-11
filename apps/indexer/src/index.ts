@@ -4,17 +4,17 @@ import { WebSocket } from "ws";
 
 import { createClient as createGqlClient, GqlClient } from "@tub/gql";
 import { parseEnv } from "@bin/parseEnv";
-import { PRICE_DATA_BATCH_SIZE, PRICE_PRECISION, PROGRAMS } from "@/lib/constants";
+import { FETCH_PRICE_BATCH_SIZE, PRICE_PRECISION, PROGRAMS, WRITE_GQL_BATCH_SIZE } from "@/lib/constants";
 import { connection, ixParser, txFormatter } from "@/lib/setup";
-import { PriceData, TransactionSubscriptionResult } from "@/lib/types";
-import { decodeSwapAccounts, getPoolTokenPrice } from "@/lib/utils";
+import { PriceData, SwapAccounts, TransactionSubscriptionResult } from "@/lib/types";
+import { decodeSwapAccounts, getPoolTokenPriceMultiple } from "@/lib/utils";
 
 config({ path: "../../.env" });
 
 const env = parseEnv();
 
 /* ------------------------------ PROCESS LOGS ------------------------------ */
-const processLogs = async (result: TransactionSubscriptionResult): Promise<(PriceData | undefined)[]> => {
+const processLogs = (result: TransactionSubscriptionResult): SwapAccounts[] => {
   try {
     // Parse the transaction and retrieve the swapped token accounts
     const tx = txFormatter.formTransactionFromJson(result, Date.now());
@@ -23,10 +23,7 @@ const processLogs = async (result: TransactionSubscriptionResult): Promise<(Pric
     if (!tx) return [];
 
     const parsedIxs = ixParser.parseParsedTransactionWithInnerInstructions(tx);
-    const swapAccountsArray = decodeSwapAccounts(parsedIxs);
-    if (swapAccountsArray.length === 0) return [];
-
-    return await Promise.all(swapAccountsArray.map((swapAccounts) => getPoolTokenPrice(connection, swapAccounts)));
+    return decodeSwapAccounts(parsedIxs);
   } catch (error) {
     console.error("Unexpected error in processLogs:", error);
     return [];
@@ -34,63 +31,79 @@ const processLogs = async (result: TransactionSubscriptionResult): Promise<(Pric
 };
 
 /* ------------------------------- HANDLE DATA ------------------------------ */
+let swapAccountsBatch: SwapAccounts[] = [];
 let priceDataBatch: PriceData[] = [];
-const handlePriceData = async (gql: GqlClient["db"], priceData: (PriceData | undefined)[]) => {
-  const validPriceData = priceData.filter((data) => data !== undefined);
-  if (!validPriceData.length) return;
-  priceDataBatch.push(...validPriceData);
 
-  if (priceDataBatch.length >= PRICE_DATA_BATCH_SIZE) {
-    const _priceDataBatch = priceDataBatch;
-    priceDataBatch = [];
+const handleSwapData = async (gql: GqlClient["db"], swapAccountsArray: SwapAccounts[]) => {
+  // Add swap data to batch and continue only if the batch is filled enough
+  if (swapAccountsArray.length === 0) return;
+  swapAccountsBatch.push(...swapAccountsArray);
+  if (swapAccountsBatch.length < FETCH_PRICE_BATCH_SIZE) return;
 
-    try {
-      // 1. Insert new tokens
-      const insertRes = await gql.RegisterManyNewTokensMutation({
-        objects: _priceDataBatch.map(({ mint, platform }) => ({
-          mint,
-          name: platform, // TODO: temporary
-          symbol: "",
-          supply: "0",
-        })),
-      });
+  // Fetch price data out of swap accounts, add it and continue only if the second batch is filled enough
+  const _swapAccountsBatch = swapAccountsBatch;
+  try {
+    // clear the batch before the async call so it isn't included in the next batch
+    swapAccountsBatch = [];
+    const priceData = await getPoolTokenPriceMultiple(connection, _swapAccountsBatch);
+    priceDataBatch.push(...priceData);
+  } catch (err) {
+    console.error("Unexpected error in getPoolTokenPriceMultiple:", err);
+    // readd the failed batch so it can be retried in the next iteration
+    swapAccountsBatch.push(..._swapAccountsBatch);
+  }
 
-      if (insertRes.error) {
-        console.error("Error in RegisterManyNewTokensMutation:", insertRes.error.message);
-        return;
-      }
-      console.log(`Inserted ${insertRes.data?.insert_token?.affected_rows} new tokens`);
+  if (priceDataBatch.length < WRITE_GQL_BATCH_SIZE) return;
+  const _priceDataBatch = priceDataBatch;
+  // clear the batch before all async calls for the same reason as above
+  priceDataBatch = [];
 
-      // 2. Fetch all tokens ids (both new and existing)
-      const mints = _priceDataBatch.map(({ mint }) => mint);
-      const fetchRes = await gql.GetTokensByMintsQuery({ mints });
-      if (fetchRes.error) {
-        console.error("Error in GetTokensByMintsQuery:", fetchRes.error.message);
-        return;
-      }
+  try {
+    // 1. Insert new tokens
+    const insertRes = await gql.RegisterManyNewTokensMutation({
+      objects: _priceDataBatch.map(({ mint, platform }) => ({
+        mint,
+        name: platform, // TODO: temporary
+        symbol: "",
+        supply: "0",
+      })),
+    });
 
-      const tokenMap = new Map(fetchRes.data?.token.map((token) => [token.mint, token.id]));
-      const validPriceData = _priceDataBatch.filter(({ mint }) => tokenMap.has(mint));
-      if (validPriceData.length !== _priceDataBatch.length) {
-        console.warn(`${_priceDataBatch.length - validPriceData.length} tokens were not found`);
-      }
-
-      // 3. Add price history
-      const addPriceHistoryRes = await gql.AddManyTokenPriceHistoryMutation({
-        objects: validPriceData.map(({ mint, price }) => ({
-          token: tokenMap.get(mint)!,
-          price: (price * PRICE_PRECISION).toString(),
-        })),
-      });
-
-      if (addPriceHistoryRes.error) {
-        console.error("Error in AddManyTokenPriceHistoryMutation:", addPriceHistoryRes.error.message);
-      } else {
-        console.log(`Saved ${validPriceData.length} price data points`);
-      }
-    } catch (error) {
-      console.error("Unexpected error in handlePriceData:", error);
+    if (insertRes.error) {
+      console.error("Error in RegisterManyNewTokensMutation:", insertRes.error.message);
+      return;
     }
+    console.log(`Inserted ${insertRes.data?.insert_token?.affected_rows} new tokens`);
+
+    // 2. Fetch all tokens ids (both new and existing)
+    const mints = _priceDataBatch.map(({ mint }) => mint);
+    const fetchRes = await gql.GetTokensByMintsQuery({ mints });
+    if (fetchRes.error) {
+      console.error("Error in GetTokensByMintsQuery:", fetchRes.error.message);
+      return;
+    }
+
+    const tokenMap = new Map(fetchRes.data?.token.map((token) => [token.mint, token.id]));
+    const validPriceData = _priceDataBatch.filter(({ mint }) => tokenMap.has(mint));
+    if (validPriceData.length !== _priceDataBatch.length) {
+      console.warn(`${_priceDataBatch.length - validPriceData.length} tokens were not found`);
+    }
+
+    // 3. Add price history
+    const addPriceHistoryRes = await gql.AddManyTokenPriceHistoryMutation({
+      objects: validPriceData.map(({ mint, price }) => ({
+        token: tokenMap.get(mint)!,
+        price: (price * PRICE_PRECISION).toString(),
+      })),
+    });
+
+    if (addPriceHistoryRes.error) {
+      console.error("Error in AddManyTokenPriceHistoryMutation:", addPriceHistoryRes.error.message);
+    } else {
+      console.log(`Saved ${validPriceData.length} price data points`);
+    }
+  } catch (err) {
+    console.error("Unexpected error in handleSwapData:", err);
   }
 };
 
@@ -129,7 +142,10 @@ const setup = (gql: GqlClient["db"]) => {
     // Parse
     const obj = JSON.parse(event.data.toString());
     const result = obj.params?.result as TransactionSubscriptionResult | undefined;
-    if (result) processLogs(result).then((priceData) => handlePriceData(gql, priceData));
+    if (result) {
+      const swapAccounts = processLogs(result);
+      handleSwapData(gql, swapAccounts);
+    }
   };
 
   setInterval(() => {

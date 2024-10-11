@@ -1,4 +1,4 @@
-import { PublicKey } from "@solana/web3.js";
+import { PublicKey, TokenBalance } from "@solana/web3.js";
 
 import { PLATFORMS } from "@/lib/constants";
 import { MinimalParser } from "@/lib/parsers/minimal-parser";
@@ -21,27 +21,18 @@ export type SwapInstructionDetails = {
 };
 
 /* ------------------------------- PARSED DATA ------------------------------ */
+export type Platform = (typeof PLATFORMS)[number] | "n/a";
+
 export type PriceData = {
   mint: string;
   price: number;
-  platform: (typeof PLATFORMS)[number];
+  platform: Platform;
 };
 
 export type SwapAccounts = {
   vaultA: PublicKey;
   vaultB: PublicKey;
-  platform: (typeof PLATFORMS)[number];
-};
-
-export type ParsedAccountData = {
-  parsed: {
-    info: {
-      mint?: string;
-      tokenAmount?: {
-        uiAmount?: number;
-      };
-    };
-  };
+  platform: Platform;
 };
 
 /* -------------------------------- WEBSOCKET ------------------------------- */
@@ -116,17 +107,8 @@ type TransactionInnerInstructionData = {
   instructions: Array<TransactionInstructionData>;
 };
 
-type TransactionTokenBalanceData = {
-  accountIndex: number;
-  mint: string;
-  owner: string;
+type TransactionTokenBalanceData = TokenBalance & {
   programId: string;
-  uiTokenAmount: {
-    uiAmount: number;
-    decimals: number;
-    amount: string;
-    uiAmountString: string;
-  };
 };
 
 type StringifiedAccountKey = {

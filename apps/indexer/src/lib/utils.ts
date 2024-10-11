@@ -1,9 +1,9 @@
 import { Idl } from "@coral-xyz/anchor";
 import { ParsedInstruction } from "@shyft-to/solana-transaction-parser";
-import { Connection } from "@solana/web3.js";
+import { AccountInfo, Connection, ParsedAccountData, TokenBalance } from "@solana/web3.js";
 
 import { PROGRAMS, WRAPPED_SOL_MINT } from "@/lib/constants";
-import { ParsedAccountData, PriceData, SwapAccounts } from "@/lib/types";
+import { Platform, PriceData, SwapAccounts } from "@/lib/types";
 
 /* --------------------------------- DECODER -------------------------------- */
 export const decodeSwapAccounts = (
@@ -52,46 +52,60 @@ export const decodeSwapAccounts = (
 };
 
 /* ---------------------------------- PRICE --------------------------------- */
-const fetches = {};
-let timeElapsed = 0;
-setInterval(() => {
-  console.log("Time elapsed", `${timeElapsed}s`);
-  console.log(
-    "Total swaps",
-    Object.values(fetches).reduce((a: number, b: number) => a + b, 0),
-  );
-  console.log(
-    "Per platform",
-    Object.entries(fetches).sort((a, b) => b[1] - a[1]),
-  );
-  timeElapsed++;
-}, 1000);
-export const getPoolTokenPrice = async (
+export const getPoolTokenPriceMultiple = async (
   connection: Connection,
-  { vaultA, vaultB, platform }: SwapAccounts,
-): Promise<PriceData | undefined> => {
-  fetches[platform] = (fetches[platform] ?? 0) + 1;
-  return;
-  const [vaultARes, vaultBRes] = (
-    await connection.getMultipleParsedAccounts([vaultA, vaultB], {
+  swapAccounts: SwapAccounts[],
+): Promise<PriceData[]> => {
+  if (swapAccounts.length === 0) return [];
+  // Limit is 100 accounts per request
+  if (swapAccounts.length >= 100) throw new Error("Attempting to pass too many accounts to getMultipleParsedAccounts");
+
+  const res = await connection.getMultipleParsedAccounts(
+    swapAccounts.map(({ vaultA, vaultB }) => [vaultA, vaultB]).flat(),
+    {
       commitment: "confirmed",
-    })
-  ).value;
+    },
+  );
 
-  const vaultAData = vaultARes?.data as ParsedAccountData | undefined;
-  const vaultBData = vaultBRes?.data as ParsedAccountData | undefined;
+  // For each pair of vaults, parse the data and calculate the price of the token swapped against WSOL
+  return res.value.reduce((acc, _, index, array) => {
+    if (index % 2 === 0) {
+      const formattedData = formatTokenBalanceResponse(array[index], array[index + 1], swapAccounts[index / 2]);
+      if (!formattedData) return acc;
+      const { wrappedSolVaultBalance, tokenVaultBalance, platform } = formattedData;
 
-  const vaultAParsedInfo = vaultAData?.parsed.info;
-  const vaultBParsedInfo = vaultBData?.parsed.info;
+      const tokenPrice = Number(
+        BigInt(wrappedSolVaultBalance.uiTokenAmount.amount) /
+          BigInt(wrappedSolVaultBalance.uiTokenAmount.decimals) /
+          (BigInt(tokenVaultBalance.uiTokenAmount.amount) / BigInt(tokenVaultBalance.uiTokenAmount.decimals)),
+      );
+      const priceData = { mint: tokenVaultBalance.mint, price: tokenPrice, platform };
+      acc.push(priceData);
+    }
+    return acc;
+  }, [] as PriceData[]);
+};
 
-  if (
-    !(vaultAParsedInfo?.mint === WRAPPED_SOL_MINT.toString()) ||
-    !vaultBParsedInfo?.mint ||
-    !vaultAParsedInfo?.tokenAmount?.uiAmount ||
-    !vaultBParsedInfo?.tokenAmount?.uiAmount
-  )
-    return;
+const formatTokenBalanceResponse = (
+  resA: AccountInfo<Buffer | ParsedAccountData> | null | undefined,
+  resB: AccountInfo<Buffer | ParsedAccountData> | null | undefined,
+  swapAccounts: SwapAccounts | undefined,
+): { wrappedSolVaultBalance: TokenBalance; tokenVaultBalance: TokenBalance; platform: Platform } | undefined => {
+  // Retrieve parsed info
+  const vaultABalance = (resA?.data as ParsedAccountData | undefined)?.parsed.info as TokenBalance | undefined;
+  const vaultBBalance = (resB?.data as ParsedAccountData | undefined)?.parsed.info as TokenBalance | undefined;
+  if (!vaultABalance || !vaultBBalance) return;
 
-  const tokenPrice = vaultAParsedInfo.tokenAmount.uiAmount / vaultBParsedInfo.tokenAmount.uiAmount;
-  return { mint: vaultBParsedInfo.mint, price: tokenPrice, platform };
+  // Separate Wrapped SOL (if it's present) and token swapped against WSOL
+  const wrappedSolBalance =
+    vaultABalance.mint === WRAPPED_SOL_MINT.toString()
+      ? vaultABalance
+      : vaultBBalance.mint === WRAPPED_SOL_MINT.toString()
+        ? vaultBBalance
+        : undefined;
+  if (!wrappedSolBalance) return;
+  const tokenBalance = wrappedSolBalance === vaultABalance ? vaultBBalance : vaultABalance;
+  const platform = swapAccounts?.platform;
+
+  return { wrappedSolVaultBalance: wrappedSolBalance, tokenVaultBalance: tokenBalance, platform: platform ?? "n/a" };
 };
