@@ -9,6 +9,7 @@ import { Platform, PriceData, SwapAccounts } from "@/lib/types";
 export const decodeSwapAccounts = (
   // @ts-expect-error: type difference @coral-xyz/anchor -> @project-serum/anchor
   parsedIxs: ParsedInstruction<Idl, string>[],
+  timestamp: number,
 ): SwapAccounts[] => {
   // Filter out the instructions that are not related to the exchanges
   const programIxs = parsedIxs.filter((ix) =>
@@ -33,7 +34,7 @@ export const decodeSwapAccounts = (
         // this is a minimal parser
         const [vaultA, vaultB] = ix.accounts;
         if (!vaultA || !vaultB) return [];
-        return { vaultA: vaultA.pubkey, vaultB: vaultB.pubkey, platform: program.id };
+        return { vaultA: vaultA.pubkey, vaultB: vaultB.pubkey, platform: program.id, timestamp };
       }
 
       const swapAccountLabels =
@@ -45,7 +46,7 @@ export const decodeSwapAccounts = (
         const vaultA = ix.accounts.find((account) => account.name === vaultALabel)?.pubkey;
         const vaultB = ix.accounts.find((account) => account.name === vaultBLabel)?.pubkey;
         if (!vaultA || !vaultB) return [];
-        return { vaultA, vaultB, platform: program.id };
+        return { vaultA, vaultB, platform: program.id, timestamp };
       });
     })
     .flat() as SwapAccounts[];
@@ -72,14 +73,14 @@ export const getPoolTokenPriceMultiple = async (
     if (index % 2 === 0) {
       const formattedData = formatTokenBalanceResponse(array[index], array[index + 1], swapAccounts[index / 2]);
       if (!formattedData) return acc;
-      const { wrappedSolVaultBalance, tokenVaultBalance, platform } = formattedData;
+      const { wrappedSolVaultBalance, tokenVaultBalance, platform, timestamp } = formattedData;
 
       const tokenPrice = Number(
         BigInt(wrappedSolVaultBalance.uiTokenAmount.amount) /
           BigInt(wrappedSolVaultBalance.uiTokenAmount.decimals) /
           (BigInt(tokenVaultBalance.uiTokenAmount.amount) / BigInt(tokenVaultBalance.uiTokenAmount.decimals)),
       );
-      const priceData = { mint: tokenVaultBalance.mint, price: tokenPrice, platform };
+      const priceData = { mint: tokenVaultBalance.mint, price: tokenPrice, platform, timestamp };
       acc.push(priceData);
     }
     return acc;
@@ -90,7 +91,9 @@ const formatTokenBalanceResponse = (
   resA: AccountInfo<Buffer | ParsedAccountData> | null | undefined,
   resB: AccountInfo<Buffer | ParsedAccountData> | null | undefined,
   swapAccounts: SwapAccounts | undefined,
-): { wrappedSolVaultBalance: TokenBalance; tokenVaultBalance: TokenBalance; platform: Platform } | undefined => {
+):
+  | { wrappedSolVaultBalance: TokenBalance; tokenVaultBalance: TokenBalance; platform: Platform; timestamp: number }
+  | undefined => {
   // Retrieve parsed info
   const vaultABalance = (resA?.data as ParsedAccountData | undefined)?.parsed.info as TokenBalance | undefined;
   const vaultBBalance = (resB?.data as ParsedAccountData | undefined)?.parsed.info as TokenBalance | undefined;
@@ -105,7 +108,11 @@ const formatTokenBalanceResponse = (
         : undefined;
   if (!wrappedSolBalance) return;
   const tokenBalance = wrappedSolBalance === vaultABalance ? vaultBBalance : vaultABalance;
-  const platform = swapAccounts?.platform;
 
-  return { wrappedSolVaultBalance: wrappedSolBalance, tokenVaultBalance: tokenBalance, platform: platform ?? "n/a" };
+  return {
+    wrappedSolVaultBalance: wrappedSolBalance,
+    tokenVaultBalance: tokenBalance,
+    platform: swapAccounts?.platform ?? "n/a",
+    timestamp: swapAccounts?.timestamp ?? Date.now(),
+  };
 };

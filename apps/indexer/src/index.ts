@@ -17,13 +17,14 @@ const env = parseEnv();
 const processLogs = (result: TransactionSubscriptionResult): SwapAccounts[] => {
   try {
     // Parse the transaction and retrieve the swapped token accounts
-    const tx = txFormatter.formTransactionFromJson(result, Date.now());
+    const timestamp = Date.now();
+    const tx = txFormatter.formTransactionFromJson(result, timestamp);
     // We will process parsed data, if it comes from known programs (e.g. system, spl-token, spl-memo)
     // In such cases, it won't include the fields "data" or "accounts", and we're not interested anyway
     if (!tx) return [];
 
     const parsedIxs = ixParser.parseParsedTransactionWithInnerInstructions(tx);
-    return decodeSwapAccounts(parsedIxs);
+    return decodeSwapAccounts(parsedIxs, timestamp);
   } catch (error) {
     console.error("Unexpected error in processLogs:", error);
     return [];
@@ -61,10 +62,10 @@ const handleSwapData = async (gql: GqlClient["db"], swapAccountsArray: SwapAccou
   try {
     // 1. Insert new tokens
     const insertRes = await gql.RegisterManyNewTokensMutation({
-      objects: _priceDataBatch.map(({ mint, platform }) => ({
+      objects: _priceDataBatch.map(({ mint, platform, timestamp }) => ({
         mint,
         name: platform, // TODO: temporary
-        symbol: "",
+        symbol: timestamp.toString(), // TODO: temporary
         supply: "0",
       })),
     });

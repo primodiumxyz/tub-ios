@@ -23,16 +23,18 @@ export type SwapInstructionDetails = {
 /* ------------------------------- PARSED DATA ------------------------------ */
 export type Platform = (typeof PLATFORMS)[number] | "n/a";
 
-export type PriceData = {
-  mint: string;
-  price: number;
-  platform: Platform;
-};
-
 export type SwapAccounts = {
   vaultA: PublicKey;
   vaultB: PublicKey;
   platform: Platform;
+  timestamp: number;
+};
+
+export type PriceData = {
+  mint: string;
+  price: number;
+  platform: Platform;
+  timestamp: number;
 };
 
 /* -------------------------------- WEBSOCKET ------------------------------- */
