@@ -165,7 +165,7 @@ struct TokenListView: View {
     }
 
     private func fetchTokens() {
-        subscription = Network.shared.apollo.subscribe(subscription: GetLatestMockTokensSubscription()) { result in
+        subscription = Network.shared.apollo.subscribe(subscription: SubLatestMockTokensSubscription()) { result in
             DispatchQueue.global(qos: .background).async {
                 DispatchQueue.main.async {
                     self.isLoading = false
