@@ -28,49 +28,91 @@ struct LoadingView: View {
 struct TokenView : View {
     @ObservedObject var tokenModel: TokenModel
     @EnvironmentObject private var userModel: UserModel
+    @State private var selectedTimespan: Timespan = .live
+    
+    enum Timespan: String {
+        case live = "LIVE"
+        case thirtyMin = "30M"
+        
+        var seconds: Double {
+            switch self {
+            case .live: return 30
+            case .thirtyMin: return 1800 // 30 minutes in seconds
+            }
+        }
+    }
+    
     init(tokenModel: TokenModel) {
         self.tokenModel = tokenModel
     }
     
     var body: some View {
-       VStack () {
-        VStack (alignment: .leading) {
-            HStack {
-                Image(systemName: "bittokensign.circle")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 50, height: 50)
-                    .foregroundColor(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 10)) // This will round the corners
-
-                VStack(alignment: .leading){
-                    Text("$\(tokenModel.token.symbol) (\(tokenModel.token.name))") // Update this line
-                        .font(.sfRounded(size: .base, weight: .bold))
-                    Text("\(tokenModel.prices.last?.price ?? 0, specifier: "%.3f") SOL")
-                        .font(.sfRounded(size: .xl3, weight: .bold))
-
-
-                }.foregroundColor(Color(red: 1, green: 0.92, blue: 0.52))
-            }
-            
-            ChartView(prices: tokenModel.prices)
-            VStack(alignment: .leading) {
-               Text("Your \(tokenModel.token.symbol.uppercased()) Balance") // Update this line
-                .font(.sfRounded(size: .sm, weight: .bold))
-                    .opacity(0.7)
-                    .kerning(-1)
+        VStack () {
+            VStack (alignment: .leading) {
+                HStack {
+                    Image(systemName: "bittokensign.circle")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 50, height: 50)
+                        .foregroundColor(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 10)) // This will round the corners
+                    
+                    VStack(alignment: .leading){
+                        Text("$\(tokenModel.token.symbol) (\(tokenModel.token.name))") // Update this line
+                            .font(.sfRounded(size: .base, weight: .bold))
+                        Text("\(tokenModel.prices.last?.price ?? 0, specifier: "%.3f") SOL")
+                            .font(.sfRounded(size: .xl3, weight: .bold))
+                        
+                        
+                    }.foregroundColor(Color(red: 1, green: 0.92, blue: 0.52))
+                }
                 
-                Text("\(tokenModel.tokenBalance.total, specifier: "%.3f") \(tokenModel.token.symbol.uppercased())") // Update this line
-                    .font(.sfRounded(size: .xl2, weight: .bold))
-           }
-           
-           BuySellForm(tokenModel: tokenModel)
-         
-        }.padding(8)
-       }
-       .frame(maxWidth: .infinity) // Add this line
-       .background(.black)
-       .foregroundColor(.white)
+                ChartView(prices: tokenModel.prices)
+                
+                HStack {
+                    Spacer()
+                    ForEach([Timespan.live, Timespan.thirtyMin], id: \.self) { timespan in
+                        Button(action: {
+                            selectedTimespan = timespan
+                            tokenModel.updateHistoryTimespan(timespan: timespan.seconds)
+                        }) {
+                            HStack {
+                                if timespan == Timespan.live {
+                                    Circle()
+                                        .fill(Color.red)
+                                        .frame(width: 10, height: 10)
+                                }
+                                Text(timespan.rawValue)
+                                    .font(.sfRounded(size: .base, weight: .semibold))
+                            }
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 6)
+                            .background(selectedTimespan == timespan ? neonBlue : Color.clear)
+                            .foregroundColor(selectedTimespan == timespan ? Color.black : Color.white)
+                            .cornerRadius(6)
+                        }
+                    }
+                    Spacer()
+                }
+                .padding(.vertical, 8)
+                
+                VStack(alignment: .leading) {
+                    Text("Your \(tokenModel.token.symbol.uppercased()) Balance") // Update this line
+                        .font(.sfRounded(size: .sm, weight: .bold))
+                        .opacity(0.7)
+                        .kerning(-1)
+                    
+                    Text("\(tokenModel.tokenBalance.total, specifier: "%.3f") \(tokenModel.token.symbol.uppercased())") // Update this line
+                        .font(.sfRounded(size: .xl2, weight: .bold))
+                }
+                
+                BuySellForm(tokenModel: tokenModel)
+                
+            }.padding(8)
+        }
+        .frame(maxWidth: .infinity) // Add this line
+        .background(.black)
+        .foregroundColor(.white)
     }
 }
 

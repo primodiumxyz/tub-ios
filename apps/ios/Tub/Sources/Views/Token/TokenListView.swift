@@ -54,7 +54,7 @@ struct TokenListView: View {
                     .fontWeight(.bold)
             }
             
-            if isLoading || tokenModel.loading {
+            if isLoading {
                 VStack {
                     LoadingView()
                 }
