@@ -33,6 +33,19 @@ export const GetAllMockTokensQuery = graphql(`
   }
 `);
 
+export const GetTokenDataQuery = graphql(`
+  query GetTokenData($tokenId: uuid!) {
+    token(where: {id: {_eq: $tokenId}}) {
+      id
+    name
+    symbol
+    updated_at
+    supply
+    uri
+    }
+  }
+`);
+
 export const GetTokensByMintsQuery = graphql(`
   query GetTokensByMints($mints: [String!]!) {
     token(where: { mint: { _in: $mints } }) {
@@ -174,7 +187,10 @@ export const GetAccountTransactionsQuery = graphql(`
 
 export const GetTokenPriceHistorySinceQuery = graphql(`
   query GetTokenPriceHistorySince($tokenId: uuid!, $since: timestamptz!) {
-    token_price_history(where: { token: { _eq: $tokenId }, created_at: { _gte: $since } }) {
+    token_price_history(
+      where: { token: { _eq: $tokenId }, created_at: { _gte: $since } }
+      order_by: { created_at: asc }
+    ) {
       created_at
       id
       price
