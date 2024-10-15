@@ -84,13 +84,13 @@ struct ChartView: View {
                 .annotation(position: .bottom, spacing: 0) {
                     VStack(spacing: -3) {
                         Triangle()
-                            .fill(pink)
+                            .fill(semipink)
                             .frame(width: 20, height: 10)
                             .rotationEffect(Angle(degrees: 180))
 //                            .offset(y: -1) // Slight offset to connect with the circle
                         ZStack {
                             Circle()
-                                .fill(pink)
+                                .fill(semipink)
                                 .frame(width: 50, height: 50)
                             Text("\(purchasePrice.price, specifier: "%.2f")")
                                 .foregroundColor(.white)
