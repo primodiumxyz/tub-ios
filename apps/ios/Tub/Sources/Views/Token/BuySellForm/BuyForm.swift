@@ -34,9 +34,13 @@ struct BuyForm: View {
             VStack {
                 VStack(spacing: 8) {
                     HStack {
+                        Spacer()
+                        Spacer()
+                        Spacer()
+                        Spacer()
                         TextField("", text: $buyAmountString, prompt: Text("0", comment: "placeholder").foregroundColor(.white.opacity(0.3)))
                             .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
+                            .multilineTextAlignment(.center)
                             .onChange(of: buyAmountString) { newValue in
                                 let filtered = newValue.filter { "0123456789.".contains($0) }
                                 
@@ -66,8 +70,7 @@ struct BuyForm: View {
                         Text("SOL")
                             .font(.sfRounded(size: .xl2, weight: .bold))
                             .padding(8)
-//                            .background(Color.black.opacity(0.4))
-//                            .cornerRadius(10)
+                        
                         Spacer()
                     }
                     
