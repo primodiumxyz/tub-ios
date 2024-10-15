@@ -66,7 +66,7 @@ struct TokenView : View {
                                 .font(.sfRounded(size: .xl3, weight: .bold))
                             
                             
-                        }.foregroundColor(Color(red: 1, green: 0.92, blue: 0.52))
+                        }.foregroundColor(Color(red: 1, green: 0.93, blue: 0.52))
                     }.onTapGesture {
                         // Toggle the info card
                         withAnimation(.easeInOut) {
