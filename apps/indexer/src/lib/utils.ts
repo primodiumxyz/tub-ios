@@ -1,21 +1,15 @@
 import { Idl } from "@coral-xyz/anchor";
 import { ParsedInstruction } from "@shyft-to/solana-transaction-parser";
-import { Connection } from "@solana/web3.js";
+import { AccountInfo, Connection, ParsedAccountData } from "@solana/web3.js";
 
-import { LOG_FILTERS, PROGRAMS, WRAPPED_SOL_MINT } from "@/lib/constants";
-import { ParsedAccountData, PriceData, SwapAccounts } from "@/lib/types";
-
-export const filterLogs = (logs: string[]) => {
-  const filtered = logs?.filter((log) =>
-    LOG_FILTERS.some((filter) => log.toLowerCase().includes(filter.toLowerCase())),
-  );
-  return filtered && filtered.length > 0 ? filtered : undefined;
-};
+import { PRICE_PRECISION, PROGRAMS, WRAPPED_SOL_MINT } from "@/lib/constants";
+import { ParsedTokenBalanceInfo, Platform, PriceData, SwapAccounts } from "@/lib/types";
 
 /* --------------------------------- DECODER -------------------------------- */
 export const decodeSwapAccounts = (
   // @ts-expect-error: type difference @coral-xyz/anchor -> @project-serum/anchor
   parsedIxs: ParsedInstruction<Idl, string>[],
+  timestamp: number,
 ): SwapAccounts[] => {
   // Filter out the instructions that are not related to the exchanges
   const programIxs = parsedIxs.filter((ix) =>
@@ -40,7 +34,7 @@ export const decodeSwapAccounts = (
         // this is a minimal parser
         const [vaultA, vaultB] = ix.accounts;
         if (!vaultA || !vaultB) return [];
-        return { vaultA: vaultA.pubkey, vaultB: vaultB.pubkey, platform: program.id };
+        return { vaultA: vaultA.pubkey, vaultB: vaultB.pubkey, platform: program.id, timestamp };
       }
 
       const swapAccountLabels =
@@ -52,37 +46,84 @@ export const decodeSwapAccounts = (
         const vaultA = ix.accounts.find((account) => account.name === vaultALabel)?.pubkey;
         const vaultB = ix.accounts.find((account) => account.name === vaultBLabel)?.pubkey;
         if (!vaultA || !vaultB) return [];
-        return { vaultA, vaultB, platform: program.id };
+        return { vaultA, vaultB, platform: program.id, timestamp };
       });
     })
     .flat() as SwapAccounts[];
 };
 
 /* ---------------------------------- PRICE --------------------------------- */
-export const getPoolTokenPrice = async (
+export const getPoolTokenPriceMultiple = async (
   connection: Connection,
-  { vaultA, vaultB, platform }: SwapAccounts,
-): Promise<PriceData | undefined> => {
-  const [vaultARes, vaultBRes] = (
-    await connection.getMultipleParsedAccounts([vaultA, vaultB], {
+  swapAccounts: SwapAccounts[],
+): Promise<PriceData[]> => {
+  if (swapAccounts.length === 0) return [];
+  // Limit is 100 accounts per request
+  if (swapAccounts.length >= 100) throw new Error("Attempting to pass too many accounts to getMultipleParsedAccounts");
+
+  const res = await connection.getMultipleParsedAccounts(
+    swapAccounts.map(({ vaultA, vaultB }) => [vaultA, vaultB]).flat(),
+    {
       commitment: "confirmed",
-    })
-  ).value;
+    },
+  );
 
-  const vaultAData = vaultARes?.data as ParsedAccountData | undefined;
-  const vaultBData = vaultBRes?.data as ParsedAccountData | undefined;
+  // For each pair of vaults, parse the data and calculate the price of the token swapped against WSOL
+  return res.value.reduce((acc, _, index, array) => {
+    if (index % 2 === 0) {
+      const formattedData = formatTokenBalanceResponse(array[index], array[index + 1], swapAccounts[index / 2]);
+      if (!formattedData) return acc;
+      const { wrappedSolVaultBalance, tokenVaultBalance, platform, timestamp } = formattedData;
 
-  const vaultAParsedInfo = vaultAData?.parsed.info;
-  const vaultBParsedInfo = vaultBData?.parsed.info;
+      const tokenPrice = Number(
+        (BigInt(wrappedSolVaultBalance.tokenAmount.amount) *
+          BigInt(PRICE_PRECISION) *
+          BigInt(10 ** tokenVaultBalance.tokenAmount.decimals)) /
+          (BigInt(tokenVaultBalance.tokenAmount.amount) * BigInt(10 ** wrappedSolVaultBalance.tokenAmount.decimals)),
+      );
 
-  if (
-    !(vaultAParsedInfo?.mint === WRAPPED_SOL_MINT.toString()) ||
-    !vaultBParsedInfo?.mint ||
-    !vaultAParsedInfo?.tokenAmount?.uiAmount ||
-    !vaultBParsedInfo?.tokenAmount?.uiAmount
-  )
-    return;
+      const priceData = { mint: tokenVaultBalance.mint, price: tokenPrice, platform, timestamp };
+      acc.push(priceData);
+    }
+    return acc;
+  }, [] as PriceData[]);
+};
 
-  const tokenPrice = vaultAParsedInfo.tokenAmount.uiAmount / vaultBParsedInfo.tokenAmount.uiAmount;
-  return { mint: vaultBParsedInfo.mint, price: tokenPrice, platform };
+const formatTokenBalanceResponse = (
+  resA: AccountInfo<Buffer | ParsedAccountData> | null | undefined,
+  resB: AccountInfo<Buffer | ParsedAccountData> | null | undefined,
+  swapAccounts: SwapAccounts | undefined,
+):
+  | {
+      wrappedSolVaultBalance: ParsedTokenBalanceInfo;
+      tokenVaultBalance: ParsedTokenBalanceInfo;
+      platform: Platform;
+      timestamp: number;
+    }
+  | undefined => {
+  // Retrieve parsed info
+  const vaultABalance = (resA?.data as ParsedAccountData | undefined)?.parsed.info as
+    | ParsedTokenBalanceInfo
+    | undefined;
+  const vaultBBalance = (resB?.data as ParsedAccountData | undefined)?.parsed.info as
+    | ParsedTokenBalanceInfo
+    | undefined;
+  if (!vaultABalance || !vaultBBalance) return;
+
+  // Separate Wrapped SOL (if it's present) and token swapped against WSOL
+  const wrappedSolBalance =
+    vaultABalance.mint === WRAPPED_SOL_MINT.toString()
+      ? vaultABalance
+      : vaultBBalance.mint === WRAPPED_SOL_MINT.toString()
+        ? vaultBBalance
+        : undefined;
+  if (!wrappedSolBalance) return;
+  const tokenBalance = wrappedSolBalance === vaultABalance ? vaultBBalance : vaultABalance;
+
+  return {
+    wrappedSolVaultBalance: wrappedSolBalance,
+    tokenVaultBalance: tokenBalance,
+    platform: swapAccounts?.platform ?? "n/a",
+    timestamp: swapAccounts?.timestamp ?? Date.now(),
+  };
 };
