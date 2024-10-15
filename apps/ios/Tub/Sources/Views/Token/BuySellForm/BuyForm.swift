@@ -34,9 +34,9 @@ struct BuyForm: View {
             VStack {
                 VStack(spacing: 8) {
                     HStack {
-                        TextField("", text: $buyAmountString, prompt: Text("0", comment: "placeholder"))
+                        TextField("", text: $buyAmountString, prompt: Text("0", comment: "placeholder").foregroundColor(.white.opacity(0.3)))
                             .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.center)
+                            .multilineTextAlignment(.trailing)
                             .onChange(of: buyAmountString) { newValue in
                                 let filtered = newValue.filter { "0123456789.".contains($0) }
                                 
@@ -59,19 +59,22 @@ struct BuyForm: View {
                             }
                             .font(.sfRounded(size: .xl4, weight: .bold))
                             .foregroundColor(isValidInput ? .white : .red)
+                            .frame(width: 150, alignment: .trailing)
+                            
                            
                         
                         Text("SOL")
                             .font(.sfRounded(size: .xl2, weight: .bold))
                             .padding(8)
-                            .background(Color.black.opacity(0.4))
-                            .cornerRadius(10)
+//                            .background(Color.black.opacity(0.4))
+//                            .cornerRadius(10)
+                        Spacer()
                     }
                     
                     // Add token conversion display
                     if let currentPrice = tokenModel.prices.last?.price, currentPrice > 0 {
                         let tokenAmount = buyAmountSol / currentPrice
-                        Text("\(tokenAmount) \(tokenModel.token.symbol)")
+                        Text("\(tokenAmount, specifier: "%.3f") \(tokenModel.token.symbol)")
                             .font(.sfRounded(size: .base, weight: .bold))
                             .opacity(0.8)
                     }
