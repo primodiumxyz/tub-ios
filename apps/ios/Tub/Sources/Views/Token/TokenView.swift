@@ -53,7 +53,7 @@ struct TokenView : View {
                 }.foregroundColor(Color(red: 1, green: 0.92, blue: 0.52))
             }
             
-            ChartView(prices: tokenModel.prices)
+            ChartView(prices: tokenModel.prices, purchaseTime: tokenModel.purchaseTime)
             VStack(alignment: .leading) {
                Text("Your \(tokenModel.token.symbol.uppercased()) Balance") // Update this line
                 .font(.sfRounded(size: .sm, weight: .bold))

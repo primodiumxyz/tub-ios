@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 struct Token: Identifiable {
     var id: String
@@ -22,3 +23,5 @@ struct Transaction: Identifiable, Equatable {
     let quantity: Double
     let isBuy: Bool
 }
+
+var pink = Color(red: 0.82, green: 0.31, blue: 0.6)

@@ -10,6 +10,8 @@ import Charts
 
 struct ChartView: View {
     let prices: [Price]
+    let purchaseTime: Date? 
+    
     var color = Color(red: 0.43, green: 0.97, blue: 0.98)
     
     private var dashedLineColor: Color {
@@ -27,6 +29,11 @@ struct ChartView: View {
         let currentPrice = prices.last!.price
         let previousPrice = prices[prices.count - 2].price
         return (currentPrice - previousPrice) / previousPrice * 100
+    }
+
+    private var closestPurchasePrice: Price? {
+        guard let purchaseTime = purchaseTime else { return nil }
+        return prices.min(by: { abs($0.timestamp.timeIntervalSince(purchaseTime)) < abs($1.timestamp.timeIntervalSince(purchaseTime)) })
     }
 
     var body: some View {
@@ -63,6 +70,36 @@ struct ChartView: View {
                     PillView(percentage: percentageChange, color: dashedLineColor)
                 }
             }
+
+            if let purchasePrice = closestPurchasePrice {
+                PointMark(
+                    x: .value("Date", purchasePrice.timestamp),
+                    y: .value("Price", purchasePrice.price)
+                )
+                .foregroundStyle(pink)
+                .symbolSize(100)
+                .symbol(.circle)
+                
+                // Add speech bubble
+                .annotation(position: .bottom, spacing: 0) {
+                    VStack(spacing: -3) {
+                        Triangle()
+                            .fill(pink)
+                            .frame(width: 20, height: 10)
+                            .rotationEffect(Angle(degrees: 180))
+//                            .offset(y: -1) // Slight offset to connect with the circle
+                        ZStack {
+                            Circle()
+                                .fill(pink)
+                                .frame(width: 50, height: 50)
+                            Text("\(purchasePrice.price, specifier: "%.2f")")
+                                .foregroundColor(.white)
+                                .font(.sfRounded(size: .xs, weight: .bold))
+                        }
+                        
+                    }
+                }
+            }
         }
         .chartXAxis {
             AxisMarks(values: .stride(by: .day)) { value in
@@ -89,7 +126,7 @@ struct ChartView_Previews: PreviewProvider {
                 Price(timestamp: Date().addingTimeInterval(345600), price: 114.0),
                 Price(timestamp: Date().addingTimeInterval(432000), price: 109.0),
                 Price(timestamp: Date().addingTimeInterval(518400), price: 109)
-            ]
+            ], purchaseTime: Date().addingTimeInterval(172800)
         )
     }
 }
@@ -108,5 +145,16 @@ struct PillView: View {
             .font(.sfRounded(size: .lg))
             .fontWeight(.bold)
             .clipShape(Capsule())
+    }
+}
+
+struct Triangle: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.midX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+        path.closeSubpath()
+        return path
     }
 }
