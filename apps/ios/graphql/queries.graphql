@@ -25,6 +25,17 @@ query GetAllTokens {
   }
 }
 
+query GetTokenData($tokenId: uuid!) {
+  token(where: {id: {_eq: $tokenId}}) {
+    id
+    name
+    symbol
+    updated_at
+    supply
+    uri
+  }
+}
+
 query GetTokensByMints($mints: [String!]!) {
   token(where: { mint: { _in: $mints } }) {
     id
@@ -148,7 +159,10 @@ query GetAccountTransactions($accountId: uuid!) {
 }
 
 query GetTokenPriceHistorySince($tokenId: uuid!, $since: timestamptz!) {
-  token_price_history(where: { token: { _eq: $tokenId }, created_at: { _gte: $since } }) {
+  token_price_history(
+    where: { token: { _eq: $tokenId }, created_at: { _gte: $since } }
+    order_by: { created_at: asc }
+  ) {
     created_at
     id
     price

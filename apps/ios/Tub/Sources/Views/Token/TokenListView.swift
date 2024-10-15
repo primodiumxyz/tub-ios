@@ -25,10 +25,13 @@ struct TokenListView: View {
     @State private var chevronOffset: CGFloat = 0.0
     @State private var isMovingUp: Bool = true
     
-    //swipe animation
+    // swipe animation
     @State private var dragOffset: CGFloat = 0.0
     @State private var swipeDirection: CGFloat = 0.0 // Track swipe direction
     @State private var animatingSwipe: Bool = false
+    
+    // show info card
+    @State private var showInfoCard = false
 
     
     init() {
@@ -54,7 +57,7 @@ struct TokenListView: View {
                     .fontWeight(.bold)
             }
             
-            if isLoading || tokenModel.loading {
+            if isLoading {
                 VStack {
                     LoadingView()
                 }
@@ -105,8 +108,6 @@ struct TokenListView: View {
                                 }
                             }
                         }
-                        
-                        
                     )
                 
                 VStack(alignment: .center) {
@@ -118,6 +119,11 @@ struct TokenListView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .center) // Center the button
                 .padding(.bottom, 40.0)
+                
+                if showInfoCard {
+                    TokenInfoCardView(tokenModel: tokenModel, isVisible: $showInfoCard)
+                        .transition(.move(edge: .bottom))
+                }
             }
         }
         .onAppear{

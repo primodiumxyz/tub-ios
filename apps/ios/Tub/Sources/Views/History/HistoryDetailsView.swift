@@ -14,7 +14,7 @@ struct HistoryDetailsView: View {
         VStack(alignment: .leading, spacing: 20) {
             
             Text(transaction.isBuy ? "Buy Details" : "Sell Details")
-                .font(.system(size: 24, weight: .bold))
+                .font(.sfRounded(size: .xl2, weight: .bold))
                 .foregroundColor(.white)
                 .padding(.leading, 10.0)
             
@@ -23,7 +23,7 @@ struct HistoryDetailsView: View {
                 VStack(alignment: .leading) {
                     Text("Token")
                         .foregroundColor(.gray)
-                        .font(.system(size: 14))
+                        .font(.sfRounded(size: .sm, weight: .medium))
                     HStack {
                         Image(transaction.imageUri)
                             .resizable()
@@ -31,7 +31,7 @@ struct HistoryDetailsView: View {
                             .cornerRadius(8)
                         
                         Text(transaction.name)
-                            .font(.system(size: 18, weight: .bold))
+                            .font(.sfRounded(size: .xl, weight: .bold))
                             .foregroundColor(Color(red: 1.0, green: 0.9254901960784314, blue: 0.5254901960784314))
                     }
                 }
@@ -40,54 +40,62 @@ struct HistoryDetailsView: View {
                 VStack(alignment: .leading) {
                     Text("Transaction number")
                         .foregroundColor(.gray)
-                        .font(.system(size: 14))
+                        .font(.sfRounded(size: .sm, weight: .medium))
                     Text("#8612373299412")
                         .foregroundColor(.white)
+                        .font(.sfRounded(size: .lg, weight: .regular))
                 }
                 
                 // Order status
                 VStack(alignment: .leading) {
                     Text("Order status")
                         .foregroundColor(.gray)
-                        .font(.system(size: 14))
+                        .font(.sfRounded(size: .sm, weight: .medium))
                     Text("Filled")
                         .foregroundColor(.white)
+                        .font(.sfRounded(size: .lg, weight: .regular))
+
                 }
                 
                 // Quantity
                 VStack(alignment: .leading) {
                     Text("Quantity")
                         .foregroundColor(.gray)
-                        .font(.system(size: 14))
+                        .font(.sfRounded(size: .sm, weight: .medium))
                     Text("\(transaction.quantity, specifier: "%.0f") \(transaction.symbol)")
                         .foregroundColor(.white)
+                        .font(.sfRounded(size: .lg, weight: .regular))
                 }
                 
                 // Price
                 VStack(alignment: .leading) {
                     Text("Price")
                         .foregroundColor(.gray)
-                        .font(.system(size: 14))
+                        .font(.sfRounded(size: .sm, weight: .medium))
                     Text(formatAmount(transaction.value))
                         .foregroundColor(.white)
+                        .font(.sfRounded(size: .lg, weight: .regular))
                 }
                 
                 // Date and time of the transaction
                 VStack(alignment: .leading) {
                     Text("Filled")
                         .foregroundColor(.gray)
-                        .font(.system(size: 14))
+                        .font(.sfRounded(size: .sm, weight: .medium))
                     Text("\(formatDate(transaction.date)) at \(formatTime(transaction.date))")
                         .foregroundColor(.white)
+                        .font(.sfRounded(size: .lg, weight: .regular))
                 }
                 
                 // Note section
                 VStack(alignment: .leading) {
                     Text("Note")
                         .foregroundColor(.gray)
-                        .font(.system(size: 14))
+                        .font(.sfRounded(size: .sm, weight: .medium))
                     Text("-")
                         .foregroundColor(.white)
+                        .font(.sfRounded(size: .lg, weight: .regular))
+
                 }
             }
             .padding(.leading, 10.0)

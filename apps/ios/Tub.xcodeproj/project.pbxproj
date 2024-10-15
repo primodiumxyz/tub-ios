@@ -39,6 +39,7 @@
 		DF5A2FC52CAF2DEF00508A56 /* HistoryDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5A2FC42CAF2DEF00508A56 /* HistoryDetailsView.swift */; };
 		DFA36D562CB4278C00F63D2D /* DummyData.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFA36D552CB4278C00F63D2D /* DummyData.swift */; };
 		DFA4D6512CAC500B00AEDC73 /* Apollo in Frameworks */ = {isa = PBXBuildFile; productRef = DFA4D6502CAC500B00AEDC73 /* Apollo */; };
+		DFC723E32CB9A86C003A915C /* TokenInfoCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFC723E22CB9A86C003A915C /* TokenInfoCardView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -90,6 +91,7 @@
 		DF5A2FC22CAF165D00508A56 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		DF5A2FC42CAF2DEF00508A56 /* HistoryDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryDetailsView.swift; sourceTree = "<group>"; };
 		DFA36D552CB4278C00F63D2D /* DummyData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DummyData.swift; path = Tub/Sources/Models/DummyData.swift; sourceTree = SOURCE_ROOT; };
+		DFC723E22CB9A86C003A915C /* TokenInfoCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenInfoCardView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -201,6 +203,7 @@
 			children = (
 				991361A02CADE3AA00E5D656 /* TokenListView.swift */,
 				DB10A95C2CA5AA1B00B1E4F3 /* TokenView.swift */,
+				DFC723E22CB9A86C003A915C /* TokenInfoCardView.swift */,
 				99DDF62E2CB0333D000234DA /* BuySellForm */,
 			);
 			path = Token;
@@ -443,6 +446,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				991361A12CADE3B300E5D656 /* TokenListView.swift in Sources */,
+				DFC723E32CB9A86C003A915C /* TokenInfoCardView.swift in Sources */,
 				9910F1B62CAAE302005DEE6B /* SFRounded.swift in Sources */,
 				990B90F22CB5B41000B5B073 /* AccountSetupView.swift in Sources */,
 				99DDF62D2CB02816000234DA /* AccountView.swift in Sources */,
@@ -622,7 +626,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Tub/Preview Content\"";
-				DEVELOPMENT_TEAM = YQ22J47VA8;
+				DEVELOPMENT_TEAM = 7SY3D5W84Q;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
@@ -661,7 +665,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Tub/Preview Content\"";
-				DEVELOPMENT_TEAM = YQ22J47VA8;
+				DEVELOPMENT_TEAM = 7SY3D5W84Q;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
