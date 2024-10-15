@@ -150,7 +150,6 @@ struct TokenInfoCardView: View {
                             withAnimation {
                                 isVisible = false // Close the card
                                 animatingSwipe = false
-                                dragOffset = 0
                             }
                         }
                     } else {
