@@ -25,4 +25,4 @@ struct Transaction: Identifiable, Equatable {
 }
 
 var pink = Color(red: 0.82, green: 0.31, blue: 0.6)
-var semipink = Color(red: 0.82, green: 0.31, blue: 0.6, opacity: 0.7)
+var semipink = Color(red: 0.82, green: 0.31, blue: 0.6, opacity: 0.8)
