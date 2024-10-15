@@ -24,7 +24,7 @@ struct TokenInfoCardView: View {
             HStack {
                 Text("$\(tokenModel.token.name)")
                     .font(.sfRounded(size: .xl2, weight: .semibold))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color(red: 1, green: 0.92, blue: 0.52))
             }
             .offset(y:-2)
             
