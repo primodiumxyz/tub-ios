@@ -94,9 +94,10 @@ const handleSwapData = async (gql: GqlClient["db"], swapAccountsArray: SwapAccou
 
     // 3. Add price history
     const addPriceHistoryRes = await gql.AddManyTokenPriceHistoryMutation({
-      objects: validPriceData.map(({ mint, price }) => ({
+      objects: validPriceData.map(({ mint, price, timestamp }) => ({
         token: tokenMap.get(mint)!,
         price: price.toString(),
+        created_at: new Date(timestamp),
       })),
     });
 
