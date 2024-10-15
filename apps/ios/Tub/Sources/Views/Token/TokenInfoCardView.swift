@@ -45,7 +45,7 @@ struct TokenInfoCardView: View {
                             VStack(alignment: .leading){
                                 Text("Holders")
                                     .font(.sfRounded(size: .sm, weight: .medium))
-                                Text("23.3 K")
+                                Text("23.3K")
                                     .font(.sfRounded(size: .xl2, weight: .semibold))
                             }.padding(.vertical, 5.0)
                         }
@@ -67,23 +67,25 @@ struct TokenInfoCardView: View {
                                     .font(.sfRounded(size: .xl2, weight: .semibold))
                             }.padding(.vertical, 5.0)
                         }
-                        .offset(x:-10)
+                        .offset(x:-15)
                     }
                     
                     HStack(alignment: .bottom) {
                         Text("Created")
-                            .font(.sfRounded(size: .base, weight: .medium))
+                            .font(.sfRounded(size: .sm, weight: .regular))
                         Text("28d 20h")
-                            .font(.sfRounded(size: .base, weight: .semibold))
+                            .font(.sfRounded(size: .sm, weight: .semibold))
+                            .offset(x:-3)
                         Text("ago")
-                            .font(.sfRounded(size: .base, weight: .medium))
-                            .offset(x:-5)
+                            .font(.sfRounded(size: .sm, weight: .regular))
+                            .offset(x:-8)
                     }
                 }
                 .padding([.leading, .bottom, .trailing], 24.0)
                 .padding(.top, 20.0)
                 .foregroundColor(.white)
                 .cornerRadius(10)
+                .background(Color(red: 0.07, green: 0.07, blue: 0.16))
                 .overlay(
                     RoundedRectangle(cornerRadius: 10)
                         .inset(by: 0.5)
@@ -106,7 +108,7 @@ struct TokenInfoCardView: View {
                     Image("X-logo-white")
                         .resizable()
                         .frame(width: 20, height: 20)
-                    Text("@ MONKAY")
+                    Text(" @ MONKAY")
                         .font(.sfRounded(size: .lg, weight: .semibold))
                 }
                 .padding(.vertical, 10.0)
