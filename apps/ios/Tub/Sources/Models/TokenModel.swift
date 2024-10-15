@@ -12,6 +12,8 @@ class TokenModel: ObservableObject {
     @Published var tokenBalance: (credit: Numeric, debit: Numeric, total: Double) = (0, 0, 0)
 
     @Published var amountBoughtSol: Double = 0
+    @Published var purchaseTime : Date? = nil
+    
     @Published var prices: [Price] = []
 
     private var latestPriceSubscription: Apollo.Cancellable?  // Track the latest price subscription
@@ -185,6 +187,7 @@ class TokenModel: ObservableObject {
             case .success:
                 print("buy successful")
                 self.amountBoughtSol = buyAmountSol
+                self.purchaseTime = Date()
                 completion?(true)
             case .failure(let error):
                 print(error)
@@ -201,6 +204,7 @@ class TokenModel: ObservableObject {
         ) { result in
             switch result {
             case .success:
+                self.purchaseTime = nil
                 completion?(true)
             case .failure(_):
                 completion?(false)
