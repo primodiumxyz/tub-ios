@@ -4,6 +4,7 @@ import { WebSocket } from "ws";
 
 import { createClient as createGqlClient, GqlClient } from "@tub/gql";
 import { parseEnv } from "@bin/parseEnv";
+import { getRandomTokenMetadata } from "@/lib/_random";
 import { FETCH_PRICE_BATCH_SIZE, PROGRAMS, WRITE_GQL_BATCH_SIZE } from "@/lib/constants";
 import { connection, ixParser, txFormatter } from "@/lib/setup";
 import { PriceData, SwapAccounts, TransactionSubscriptionResult } from "@/lib/types";
@@ -60,10 +61,10 @@ const handleSwapData = async (gql: GqlClient["db"], swapAccountsArray: SwapAccou
     // 1. Insert new tokens
     const insertRes = await gql.RegisterManyNewTokensMutation({
       objects: _priceDataBatch.map(({ mint, platform, timestamp }) => ({
+        // TODO: temporary until we know when to fetch & write actual token metadata
+        ...getRandomTokenMetadata(),
         mint,
-        name: platform, // TODO: temporary
-        symbol: "",
-        supply: timestamp.toString(), // TODO: temporary
+        platform: platform,
       })),
     });
 
