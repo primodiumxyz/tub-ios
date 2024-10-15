@@ -10,7 +10,6 @@ import Charts
 
 struct ChartView: View {
     let prices: [Price]
-    var color = Color(red: 0.43, green: 0.97, blue: 0.98)
     
     private var dashedLineColor: Color {
         guard prices.count >= 2 else { return .white }
@@ -36,8 +35,8 @@ struct ChartView: View {
                     x: .value("Date", price.timestamp),
                     y: .value("Price", price.price)
                 )
-                .foregroundStyle(color.opacity(0.8)) // Neon blue line
-                .shadow(color: color, radius: 3, x: 2, y: 2)
+                .foregroundStyle(neonBlue.opacity(0.8)) // Neon blue line
+                .shadow(color: neonBlue, radius: 3, x: 2, y: 2)
                 .lineStyle(StrokeStyle(lineWidth: 3))
             }
             

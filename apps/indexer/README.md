@@ -27,8 +27,7 @@ The server can be configured with the following environment variables (in root .
 | `SERVER_PORT`         | Port that the server listens on | `8888`                                        |
 | `HASURA_ADMIN_SECRET` | Hasura admin secret             | `password`                                    |
 | `GRAPHQL_URL`         | GraphQL URL                     | `https://tub-graphql.primodium.ai/v1/graphql` |
-| `ALCHEMY_RPC_URL`     | Alchemy RPC URL                 | `https://solana-mainnet.g.alchemy.com/v2/`    |
-| `HELIUS_WS_URL`       | Helius WS URL                   | `wss://mainnet.helius-rpc.com/?api-key=`      |
+| `HELIUS_API_KEY`      | Helius API key                  |                                               |
 
 ## Adding a parser
 

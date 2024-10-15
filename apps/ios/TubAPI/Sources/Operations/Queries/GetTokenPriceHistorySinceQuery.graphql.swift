@@ -7,7 +7,7 @@ public class GetTokenPriceHistorySinceQuery: GraphQLQuery {
   public static let operationName: String = "GetTokenPriceHistorySince"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetTokenPriceHistorySince($tokenId: uuid!, $since: timestamptz!) { token_price_history( where: { token: { _eq: $tokenId }, created_at: { _gte: $since } } ) { __typename created_at id price token } }"#
+      #"query GetTokenPriceHistorySince($tokenId: uuid!, $since: timestamptz!) { token_price_history( where: { token: { _eq: $tokenId }, created_at: { _gte: $since } } order_by: { created_at: asc } ) { __typename created_at id price token } }"#
     ))
 
   public var tokenId: Uuid
@@ -32,10 +32,13 @@ public class GetTokenPriceHistorySinceQuery: GraphQLQuery {
 
     public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Query_root }
     public static var __selections: [ApolloAPI.Selection] { [
-      .field("token_price_history", [Token_price_history].self, arguments: ["where": [
-        "token": ["_eq": .variable("tokenId")],
-        "created_at": ["_gte": .variable("since")]
-      ]]),
+      .field("token_price_history", [Token_price_history].self, arguments: [
+        "where": [
+          "token": ["_eq": .variable("tokenId")],
+          "created_at": ["_gte": .variable("since")]
+        ],
+        "order_by": ["created_at": "asc"]
+      ]),
     ] }
 
     /// fetch data from the table: "token_price_history"

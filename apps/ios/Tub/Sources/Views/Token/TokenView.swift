@@ -29,6 +29,19 @@ struct TokenView : View {
     @ObservedObject var tokenModel: TokenModel
     @EnvironmentObject private var userModel: UserModel
     @State private var showInfoCard = false
+    @State private var selectedTimespan: Timespan = .live
+    
+    enum Timespan: String {
+        case live = "LIVE"
+        case thirtyMin = "30M"
+        
+        var seconds: Double {
+            switch self {
+            case .live: return 30
+            case .thirtyMin: return 1800 // 30 minutes in seconds
+            }
+        }
+    }
     
     init(tokenModel: TokenModel) {
         self.tokenModel = tokenModel
@@ -62,6 +75,33 @@ struct TokenView : View {
                     }
                     
                     ChartView(prices: tokenModel.prices)
+                    HStack {
+                        Spacer()
+                        ForEach([Timespan.live, Timespan.thirtyMin], id: \.self) { timespan in
+                            Button(action: {
+                                selectedTimespan = timespan
+                                tokenModel.updateHistoryTimespan(timespan: timespan.seconds)
+                            }) {
+                                HStack {
+                                    if timespan == Timespan.live {
+                                        Circle()
+                                            .fill(Color.red)
+                                            .frame(width: 10, height: 10)
+                                    }
+                                    Text(timespan.rawValue)
+                                        .font(.sfRounded(size: .base, weight: .semibold))
+                                }
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 6)
+                                .background(selectedTimespan == timespan ? neonBlue : Color.clear)
+                                .foregroundColor(selectedTimespan == timespan ? Color.black : Color.white)
+                                .cornerRadius(6)
+                            }
+                        }
+                        Spacer()
+                    }
+                    .padding(.vertical, 8)
+                    
                     VStack(alignment: .leading) {
                         Text("Your \(tokenModel.token.symbol.uppercased()) Balance") // Update this line
                             .font(.sfRounded(size: .sm, weight: .bold))
