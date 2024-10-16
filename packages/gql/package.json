@@ -11,7 +11,6 @@
     "src"
   ],
   "scripts": {
-    "prepare": "pnpm hasura update-cli",
     "dev": "./bin/start-hasura.sh",
     "extract-mutations": "tsx ./bin/extractGql.ts ./src/lib/mutations.ts",
     "extract-queries": "tsx ./bin/extractGql.ts ./src/lib/queries.ts",
