@@ -73,8 +73,8 @@ struct TokenView : View {
                             showInfoCard.toggle()
                         }
                     }
-                    
-                    ChartView(prices: tokenModel.prices)
+
+                    ChartView(prices: tokenModel.prices, purchaseTime: tokenModel.purchaseTime, purchaseAmount: tokenModel.tokenBalance.total)
                     HStack {
                         Spacer()
                         ForEach([Timespan.live, Timespan.thirtyMin], id: \.self) { timespan in
