@@ -43,7 +43,7 @@ struct BuySellForm: View {
                         .padding(12)
                         .background(AppColors.primaryPurple)
                         .cornerRadius(26)
-                }
+                }.offset(y:10)
             } else {
                 SellForm(tokenModel: tokenModel, onSell: handleSell)
             }
