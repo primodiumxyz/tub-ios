@@ -19,74 +19,72 @@ struct AccountView: View {
         NavigationStack {
             VStack() {
                 if userModel.username.isEmpty {
-                    Text("Please log in to view your account details.")
+                    Text("Please register to view your account details.")
                         .font(.sfRounded(size: .lg, weight: .medium))
                         .foregroundColor(.yellow)
                         .multilineTextAlignment(.center)
-                    NavigationLink(isActive: $isNavigatingToRegister) {
-                        RegisterView(isRegistered: $isNavigatingToRegister)
-                        } label: {
-                            Text("Register Now")
-                                .font(.sfRounded(size: .lg, weight: .semibold))
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding(12)
-                                .background(.purple)
-                                .cornerRadius(26)
-                        }
+                        .padding()
+                    NavigationLink(destination: RegisterView(isRegistered: .constant(false))) {
+                        Text("Register Now")
+                            .font(.sfRounded(size: .base, weight: .semibold))
+                            .foregroundColor(AppColors.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(12)
+                            .background(AppColors.primaryPurple)
+                            .cornerRadius(26)
+                    }
                 } else {
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Account Information")
                             .font(.sfRounded(size: .xl2, weight: .medium))
-                            .foregroundColor(.white)
+                            .foregroundColor(AppColors.white)
                             .padding(.vertical)
                         Text("Username: \(userModel.username)")
-                            .font(.sfRounded(size: .xl, weight: .medium))
+                            .font(.sfRounded(size: .lg, weight: .medium))
                         Text("Balance: \(userModel.balance.total, specifier: "%.2f") SOL")
-                            .font(.sfRounded(size: .xl, weight: .medium))
+                            .font(.sfRounded(size: .lg, weight: .medium))
                             .padding(.bottom)
                         if let error = errorMessage {
-                            Text(error).foregroundColor(.red)
+                            Text(error).foregroundColor(AppColors.red)
                         }
                         if let result = airdropResult {
-                            Text(result).foregroundColor(.green).padding()
+                            Text(result).foregroundColor(AppColors.green).padding()
                         }
                         if isAirdropping {
                             ProgressView()
                         }
-                        else if userModel.balance.total < 1 {
+                        else if userModel.balance.total > 1 {
                             Button(action: performAirdrop) {
                                 Text("Request Airdrop")
-                                    .font(.sfRounded(size: .lg, weight: .semibold))
-                                    .foregroundColor(.white)
+                                    .font(.sfRounded(size: .base, weight: .semibold))
+                                    .foregroundColor(AppColors.white)
                                     .frame(maxWidth: .infinity)
                                     .padding(12)
-                                    .background(.blue)
+                                    .background(AppColors.primaryPurple)
                                     .cornerRadius(26)
                             }
                             .disabled(isAirdropping)
+                            .padding(.bottom, 5.0)
                         }
                         
                         Button(action: userModel.logout) {
                             Text("Logout")
-                                .font(.sfRounded(size: .lg, weight: .semibold))
-                                .foregroundColor(.white)
+                                .font(.sfRounded(size: .base, weight: .semibold))
+                                .foregroundColor(AppColors.white)
                                 .frame(maxWidth: .infinity)
                                 .padding(12)
-                                .background(.red)
+                                .background(AppColors.red)
                                 .cornerRadius(26)
                         }
                     }
-                    .foregroundColor(.white)
+                    .foregroundColor(AppColors.white)
                     .padding(20.0)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(.black)
                     .cornerRadius(10)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color.black)
-            .navigationTitle("Account")
+            .background(AppColors.black)
             .onChange(of: userModel.userId) { newValue in
                 if newValue.isEmpty {
                     presentationMode.wrappedValue.dismiss()

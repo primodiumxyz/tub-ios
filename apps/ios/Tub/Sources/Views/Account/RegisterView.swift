@@ -16,11 +16,11 @@ struct RegisterView: View {
     }
     
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 10) {
             Text("Welcome to Tub")
                 .font(.sfRounded(size: .xl3, weight: .bold))
                 .foregroundColor(AppColors.white)
-                .padding(5)
+                .padding(.bottom, 15)
             
             ZStack(alignment: .leading) {
                 if username.isEmpty {
@@ -43,7 +43,7 @@ struct RegisterView: View {
                 Network.shared.registerNewUser(username: username, airdropAmount: "100000000000", completion: handleRegistration)
             }) {
                 Text("Register")
-                    .font(.sfRounded(size: .lg, weight: .semibold))
+                    .font(.sfRounded(size: .base, weight: .semibold))
                     .foregroundColor(AppColors.white)
                     .frame(maxWidth: .infinity)
                     .padding(12)
