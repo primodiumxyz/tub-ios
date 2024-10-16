@@ -16,60 +16,81 @@ struct AccountView: View {
     @Environment(\.presentationMode) var presentationMode
 
     var body: some View {
-        VStack(spacing: 20) {
-            if userModel.username.isEmpty {
-                Text("Please log in (go to register) to view your account details")
-                    .font(.sfRounded(size: .lg, weight: .medium))
-                    .foregroundColor(.yellow)
-                    .padding()
-                    .background(Color.black.opacity(0.6))
-                    .cornerRadius(10)
-            } else {
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Username: \(userModel.username)")
-                        .font(.sfRounded(size: .xl, weight: .medium))
-                    Text("Balance: \(userModel.balance.total, specifier: "%.2f") SOL")
-                        .font(.sfRounded(size: .xl, weight: .medium))
-                    if let error = errorMessage {
-                        Text(error).foregroundColor(.red)
-                    }
-                    if let result = airdropResult {
-                        Text(result).foregroundColor(.green).padding()
-                    }
-                    if isAirdropping {
-                        ProgressView()
-                    }
-                    else if userModel.balance.total < 1 {
-                        Button(action: performAirdrop) {
-                            Text("Request Airdrop")
-                                .padding()
-                                .background(Color.blue)
+        NavigationStack {
+            VStack() {
+                if userModel.username.isEmpty {
+                    Text("Please log in to view your account details.")
+                        .font(.sfRounded(size: .lg, weight: .medium))
+                        .foregroundColor(.yellow)
+                        .multilineTextAlignment(.center)
+                    NavigationLink(isActive: $isNavigatingToRegister) {
+                        RegisterView(isRegistered: $isNavigatingToRegister)
+                        } label: {
+                            Text("Register Now")
+                                .font(.sfRounded(size: .lg, weight: .semibold))
                                 .foregroundColor(.white)
-                                .cornerRadius(8)
+                                .frame(maxWidth: .infinity)
+                                .padding(12)
+                                .background(.purple)
+                                .cornerRadius(26)
                         }
-                        .disabled(isAirdropping)
-                    }
-                    
-                    Button(action: userModel.logout) {
-                        Text("Logout")
-                            .padding()
-                            .background(Color.red)
+                } else {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Account Information")
+                            .font(.sfRounded(size: .xl2, weight: .medium))
                             .foregroundColor(.white)
-                            .cornerRadius(8)
+                            .padding(.vertical)
+                        Text("Username: \(userModel.username)")
+                            .font(.sfRounded(size: .xl, weight: .medium))
+                        Text("Balance: \(userModel.balance.total, specifier: "%.2f") SOL")
+                            .font(.sfRounded(size: .xl, weight: .medium))
+                            .padding(.bottom)
+                        if let error = errorMessage {
+                            Text(error).foregroundColor(.red)
+                        }
+                        if let result = airdropResult {
+                            Text(result).foregroundColor(.green).padding()
+                        }
+                        if isAirdropping {
+                            ProgressView()
+                        }
+                        else if userModel.balance.total < 1 {
+                            Button(action: performAirdrop) {
+                                Text("Request Airdrop")
+                                    .font(.sfRounded(size: .lg, weight: .semibold))
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(12)
+                                    .background(.blue)
+                                    .cornerRadius(26)
+                            }
+                            .disabled(isAirdropping)
+                        }
+                        
+                        Button(action: userModel.logout) {
+                            Text("Logout")
+                                .font(.sfRounded(size: .lg, weight: .semibold))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(12)
+                                .background(.red)
+                                .cornerRadius(26)
+                        }
                     }
+                    .foregroundColor(.white)
+                    .padding(20.0)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(.black)
+                    .cornerRadius(10)
                 }
-                .foregroundColor(.white)
-                .padding()
-                .background(Color.gray.opacity(0.2))
-                .cornerRadius(10)
             }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.black)
-        .navigationTitle("Account")
-        .onChange(of: userModel.userId) { newValue in
-            if newValue.isEmpty {
-                presentationMode.wrappedValue.dismiss()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color.black)
+            .navigationTitle("Account")
+            .onChange(of: userModel.userId) { newValue in
+                if newValue.isEmpty {
+                    presentationMode.wrappedValue.dismiss()
+                }
             }
         }
     }
@@ -95,7 +116,7 @@ struct AccountView: View {
 
 #Preview {
     @Previewable @AppStorage("userId") var userId: String = ""
+    @State @Previewable var isRegistered = false
     AccountView()
         .environmentObject(UserModel(userId: userId))
 }
-
