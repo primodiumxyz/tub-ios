@@ -17,11 +17,7 @@ struct BuyForm: View {
     @State private var buyAmountSol: Double = 0.0
     @State private var isValidInput: Bool = true
     
-    @State private var dragOffset: CGFloat = 0.0 {
-        didSet {
-            print(dragOffset)
-        }
-    }
+    @State private var dragOffset: CGFloat = 0.0 
     @State private var slideOffset: CGFloat = UIScreen.main.bounds.height
     @State private var animatingSwipe: Bool = false
     @State private var isClosing: Bool = false
@@ -41,7 +37,6 @@ struct BuyForm: View {
     }
     
     func resetForm() {
-        print("resetForm")
         buyAmountString = ""
         buyAmountSol = 0.0
         isValidInput = true

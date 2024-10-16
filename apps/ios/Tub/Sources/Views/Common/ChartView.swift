@@ -118,6 +118,7 @@ struct ChartView: View {
                     .foregroundStyle(.white.opacity(0.5))
             }
         }
+        .chartYScale(domain: .automatic)
         .frame(height: 350)
     }
 }

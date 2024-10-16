@@ -13,15 +13,7 @@ struct BuySellForm: View {
     @Binding var activeTab: String
     @Binding var showBuySheet: Bool
     
-    func handleBuy(amount: Double, completion: ((Bool) -> Void)?) {
-        tokenModel.buyTokens(buyAmountSol: amount, completion: {success in
-            if success {
-                activeTab = "sell"
-            }
-            completion?(success)
-        })
-    }
-    
+
     func handleSell(completion: ((Bool) -> Void)?) {
         tokenModel.sellTokens(completion: {success in
             if success {
@@ -33,6 +25,7 @@ struct BuySellForm: View {
     
     var body: some View {
         VStack {
+            Spacer()
             if userModel.userId == "" {
                 Text("Register to trade")
                     .font(.title)
@@ -54,7 +47,7 @@ struct BuySellForm: View {
             } else {
                 SellForm(tokenModel: tokenModel, onSell: handleSell)
             }
-        }
+        }.frame(height:100)
     }
 }
 

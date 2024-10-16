@@ -32,7 +32,7 @@ struct TokenListView: View {
     
     // show info card
     @State private var showInfoCard = false
-    @State private var activeTab: String = "buy"
+    @State var activeTab: String = "buy" 
     
     
     init() {

@@ -38,6 +38,18 @@ struct TokenView : View {
         self._activeTab = activeTab
     }
     
+    func handleBuy(amount: Double, completion: ((Bool) -> Void)?) {
+        tokenModel.buyTokens(buyAmountSol: amount, completion: {success in
+            print("success", success)
+            if success {
+                print("setting to sell")
+                showBuySheet = false
+                activeTab = "sell"
+            }
+            completion?(success)
+        })
+    }
+    
     var body: some View {
         ZStack {
             // Main content
@@ -102,6 +114,7 @@ struct TokenView : View {
                     }
                     .padding(.vertical, 8)
                     
+                    Spacer()
                     BuySellForm(tokenModel: tokenModel, activeTab: $activeTab, showBuySheet: $showBuySheet)
                     
                 }.padding(8)
@@ -136,7 +149,7 @@ struct TokenView : View {
                         }
                     }
 
-                BuyForm(isVisible: $showBuySheet, tokenModel: tokenModel, onBuy: tokenModel.buyTokens)
+                BuyForm(isVisible: $showBuySheet, tokenModel: tokenModel, onBuy: handleBuy)
                     .transition(.move(edge: .bottom))
                     .zIndex(2) // Ensure it stays on top of everything
             }

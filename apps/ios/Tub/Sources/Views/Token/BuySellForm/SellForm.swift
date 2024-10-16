@@ -17,6 +17,7 @@ struct SellForm: View {
     var body: some View {
         GeometryReader { geometry in
             VStack {
+                Spacer()
                 HStack(alignment: .top) {
                     VStack(alignment: .leading) {
                         Text("You Own")
@@ -27,7 +28,6 @@ struct SellForm: View {
                             .foregroundColor(.white)
                     }
                     
-                    Spacer()
                     
                     VStack(alignment: .leading) {
                         Text("Profit")
@@ -54,7 +54,7 @@ struct SellForm: View {
                     }
                     .frame(width: geometry.size.width * 0.6, alignment: .leading)
                 }
-                .padding()
+                .padding(.horizontal)
                 
                 Button(action: handleSell) {
                     Text("Sell")
@@ -68,7 +68,7 @@ struct SellForm: View {
                 
                 Spacer()
             }
-        }
+        }.frame(height:100)
     }
 }
 
