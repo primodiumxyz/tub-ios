@@ -8,9 +8,9 @@ query GetAllAccounts {
 
 query GetAccountData($accountId: uuid!) {
   account(where: { id: { _eq: $accountId } }) {
-  username
-  id
-  created_at
+    username
+    id
+    created_at
   }
 }
 
@@ -33,7 +33,9 @@ query GetTokensByMints($mints: [String!]!) {
 }
 
 query GetAccountBalanceCredit($accountId: uuid!) {
-  account_transaction_aggregate(where: { account: { _eq: $accountId }, transaction_type: { _eq: "credit" } }) {
+  account_transaction_aggregate(
+    where: { account: { _eq: $accountId }, transaction_type: { _eq: "credit" } }
+  ) {
     aggregate {
       sum {
         amount
@@ -43,7 +45,9 @@ query GetAccountBalanceCredit($accountId: uuid!) {
 }
 
 query GetAccountBalanceDebit($accountId: uuid!) {
-  account_transaction_aggregate(where: { account: { _eq: $accountId }, transaction_type: { _eq: "debit" } }) {
+  account_transaction_aggregate(
+    where: { account: { _eq: $accountId }, transaction_type: { _eq: "debit" } }
+  ) {
     aggregate {
       sum {
         amount
@@ -115,7 +119,11 @@ query GetAccountTokenBalance($accountId: uuid!, $tokenId: uuid!) {
 }
 
 query GetLatestTokenPrice($tokenId: uuid!) {
-  token_price_history(where: { token: { _eq: $tokenId } }, order_by: { created_at: desc }, limit: 1) {
+  token_price_history(
+    where: { token: { _eq: $tokenId } }
+    order_by: { created_at: desc }
+    limit: 1
+  ) {
     created_at
     id
     price
@@ -124,7 +132,12 @@ query GetLatestTokenPrice($tokenId: uuid!) {
 }
 
 query GetAccountTransactions($accountId: uuid!) {
-  token_transaction(order_by: {account_transaction_data: {created_at: desc}}, where: {account_transaction_data: {account_data: {id: {_eq: $accountId}}}}) {
+  token_transaction(
+    order_by: { account_transaction_data: { created_at: desc } }
+    where: {
+      account_transaction_data: { account_data: { id: { _eq: $accountId } } }
+    }
+  ) {
     account_transaction
     amount
     id
@@ -148,10 +161,35 @@ query GetAccountTransactions($accountId: uuid!) {
 }
 
 query GetTokenPriceHistorySince($tokenId: uuid!, $since: timestamptz!) {
-  token_price_history(where: { token: { _eq: $tokenId }, created_at: { _gte: $since } }) {
+  token_price_history(
+    where: { token: { _eq: $tokenId }, created_at: { _gte: $since } }
+  ) {
     created_at
     id
     price
     token
+  }
+}
+
+query GetFilteredTokens(
+  $since: timestamptz!
+  $minTrades: bigint!
+  $minIncreasePct: float8!
+) {
+  GetFormattedTokens(
+    where: {
+      created_at: { _gte: $since }
+      trades: { _gte: $minTrades }
+      increase_pct: { _gte: $minIncreasePct }
+    }
+  ) {
+    token_id
+    mint
+    name
+    symbol
+    latest_price
+    increase_pct
+    trades
+    created_at
   }
 }

@@ -34,41 +34,63 @@ class TokenModel: ObservableObject {
         }
     }
 
+    // This will attempt to fetch filtered tokens (tokens marked as pumping from the indexer);
+    // If there is none, it will fallback to the mock tokens used in the keeper
     private func fetchTokenDetails() async throws {
-        let query = GetAllTokensQuery()
+        let since = ISO8601DateFormatter().string(from: Date().addingTimeInterval(-30)) // in the last 30 seconds
+        let filteredQuery = GetFilteredTokensQuery(since: since, minTrades: "10", minIncreasePct: "5")
+        
         return try await withCheckedThrowingContinuation { continuation in
-            Network.shared.apollo.fetch(query: query) { [weak self] result in
+            Network.shared.apollo.fetch(query: filteredQuery) { [weak self] result in
                 guard let self = self else {
-                    continuation.resume(
-                        throwing: NSError(
-                            domain: "TokenModel", code: 0,
-                            userInfo: [NSLocalizedDescriptionKey: "Self is nil"]))
+                    continuation.resume(throwing: NSError(domain: "TokenModel", code: 0, userInfo: [NSLocalizedDescriptionKey: "Self is nil"]))
                     return
                 }
-
+                
                 switch result {
                 case .success(let response):
-                    if let token = response.data?.token.first(where: { $0.id == self.tokenId }) {
-                        DispatchQueue.main.async {
-                            self.token = Token(id: token.id, name: token.name, symbol: token.symbol)
-                            self.loading = false
+                    print(response)
+                    if let filteredTokens = response.data?.getFormattedTokens, !filteredTokens.isEmpty {
+                        if let token = filteredTokens.first(where: { $0.token_id == self.tokenId }) {
+                            DispatchQueue.main.async {
+                                self.token = Token(id: token.token_id, name: token.name, symbol: token.symbol)
+                                self.loading = false
+                            }
+                            continuation.resume()
+                        } else {
+                            self.fetchAllTokens(continuation: continuation)
                         }
-                        continuation.resume()
                     } else {
-                        continuation.resume(
-                            throwing:
-                                NSError(
-                                    domain: "TokenModel",
-                                    code: 1,
-                                    userInfo: [
-                                        NSLocalizedDescriptionKey: "Token not found"
-                                    ]
-                                )
-                        )
+                        self.fetchAllTokens(continuation: continuation)
                     }
-                case .failure(let error):
-                    continuation.resume(throwing: error)
+                case .failure(_):
+                    self.fetchAllTokens(continuation: continuation)
                 }
+            }
+        }
+    }
+
+    private func fetchAllTokens(continuation: CheckedContinuation<Void, Error>) {
+        let query = GetAllTokensQuery()
+        Network.shared.apollo.fetch(query: query) { [weak self] result in
+            guard let self = self else {
+                continuation.resume(throwing: NSError(domain: "TokenModel", code: 0, userInfo: [NSLocalizedDescriptionKey: "Self is nil"]))
+                return
+            }
+            
+            switch result {
+            case .success(let response):
+                if let token = response.data?.token.first(where: { $0.id == self.tokenId }) {
+                    DispatchQueue.main.async {
+                        self.token = Token(id: token.id, name: token.name, symbol: token.symbol)
+                        self.loading = false
+                    }
+                    continuation.resume()
+                } else {
+                    continuation.resume(throwing: NSError(domain: "TokenModel", code: 1, userInfo: [NSLocalizedDescriptionKey: "Token not found"]))
+                }
+            case .failure(let error):
+                continuation.resume(throwing: error)
             }
         }
     }
@@ -83,6 +105,7 @@ class TokenModel: ObservableObject {
         ) { [weak self] result in
             guard let self = self else { return }
             DispatchQueue.main.async {
+                print(self.tokenId)
                 switch result {
                 case .success(let graphQLResult):
                     if let history = graphQLResult.data?.token_price_history.first {
@@ -90,6 +113,7 @@ class TokenModel: ObservableObject {
                             let newPrice = Price(
                                 timestamp: date, price: Double(history.price) / 1e9)
                             self.prices.append(newPrice)
+                            print("New price received for token \(self.token.symbol): \(newPrice.price) at \(date)")
                         } else {
                             print("Failed to parse date: \(history.created_at)")
                         }
