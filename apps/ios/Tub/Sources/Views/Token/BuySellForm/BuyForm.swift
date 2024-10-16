@@ -38,7 +38,7 @@ struct BuyForm: View {
                         Spacer()
                         Spacer()
                         Spacer()
-                        TextField("", text: $buyAmountString, prompt: Text("0", comment: "placeholder").foregroundColor(.white.opacity(0.3)))
+                        TextField("", text: $buyAmountString, prompt: Text("0", comment: "placeholder").foregroundColor(AppColors.white.opacity(0.3)))
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.center)
                             .onChange(of: buyAmountString) { newValue in
@@ -62,7 +62,7 @@ struct BuyForm: View {
                                 }
                             }
                             .font(.sfRounded(size: .xl4, weight: .bold))
-                            .foregroundColor(isValidInput ? .white : .red)
+                            .foregroundColor(isValidInput ? AppColors.white : AppColors.red)
                             .frame(width: 150, alignment: .trailing)
                             
                            
@@ -91,10 +91,10 @@ struct BuyForm: View {
                                 }) {
                                     Text(amount == 100 ? "MAX" : "\(Int(amount))%")
                                         .font(.sfRounded(size: .base, weight: .bold))
-                                        .foregroundColor(.white)
+                                        .foregroundColor(AppColors.white)
                                         .padding(.horizontal, 12)
                                         .padding(.vertical, 6)
-                                        .background(Color.white.opacity(0.2))
+                                        .background(AppColors.white.opacity(0.2))
                                         .clipShape(Capsule())
                             }
                         }
@@ -108,16 +108,7 @@ struct BuyForm: View {
                 .padding(.vertical, 20)
             }
             .frame(height: 267)
-            .background(
-                LinearGradient(
-                    stops: [
-                        Gradient.Stop(color: Color(red: 0.18, green: 0.08, blue: 0.37), location: 0.00),
-                        Gradient.Stop(color: Color(red: 0.1, green: 0.1, blue: 0.2), location: 0.71),
-                    ],
-                    startPoint: UnitPoint(x: 0.5, y: 0),
-                    endPoint: UnitPoint(x: 0.5, y: 1)
-                )
-            )
+            .background(AppColors.darkBlueGradient)
             .cornerRadius(26)
             .overlay(
                 RoundedRectangle(cornerRadius: 26)

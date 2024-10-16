@@ -20,8 +20,8 @@ struct LoadingView: View {
                 .padding(.top, 10)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.black)
-        .foregroundColor(.white)
+        .background(AppColors.black)
+        .foregroundColor(AppColors.white)
     }
 }
 
@@ -56,7 +56,7 @@ struct TokenView : View {
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .frame(width: 50, height: 50)
-                            .foregroundColor(.white)
+                            .foregroundColor(AppColors.white)
                             .clipShape(RoundedRectangle(cornerRadius: 10)) // This will round the corners
                         
                         VStack(alignment: .leading){
@@ -66,7 +66,7 @@ struct TokenView : View {
                                 .font(.sfRounded(size: .xl3, weight: .bold))
                             
                             
-                        }.foregroundColor(Color(red: 1, green: 0.92, blue: 0.52))
+                        }.foregroundColor(AppColors.lightYellow)
                     }.onTapGesture {
                         // Toggle the info card
                         withAnimation(.easeInOut) {
@@ -85,7 +85,7 @@ struct TokenView : View {
                                 HStack {
                                     if timespan == Timespan.live {
                                         Circle()
-                                            .fill(Color.red)
+                                            .fill(AppColors.red)
                                             .frame(width: 10, height: 10)
                                     }
                                     Text(timespan.rawValue)
@@ -93,8 +93,8 @@ struct TokenView : View {
                                 }
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 6)
-                                .background(selectedTimespan == timespan ? neonBlue : Color.clear)
-                                .foregroundColor(selectedTimespan == timespan ? Color.black : Color.white)
+                                .background(selectedTimespan == timespan ? AppColors.aquaBlue : Color.clear)
+                                .foregroundColor(selectedTimespan == timespan ? AppColors.black : AppColors.white)
                                 .cornerRadius(6)
                             }
                         }
@@ -117,13 +117,13 @@ struct TokenView : View {
                 }.padding(8)
             }
             .frame(maxWidth: .infinity)
-            .background(.black)
-            .foregroundColor(.white)
+            .background(AppColors.black)
+            .foregroundColor(AppColors.white)
             
             // Info Card View (slide-up effect)
             if showInfoCard {
                 // Fullscreen tap dismiss
-                Color.black.opacity(0.4) // Semi-transparent background
+                AppColors.black.opacity(0.4) // Semi-transparent background
                     .ignoresSafeArea()
                     .onTapGesture {
                         withAnimation(.easeInOut) {
@@ -138,7 +138,7 @@ struct TokenView : View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity) // Full screen layout for ZStack
-        .background(Color.black.ignoresSafeArea())
+        .background(AppColors.black.ignoresSafeArea())
     }
 }
 
