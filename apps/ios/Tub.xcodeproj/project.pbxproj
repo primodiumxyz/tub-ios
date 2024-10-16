@@ -165,7 +165,6 @@
 				99DED24D2CAF28BD0055FC60 /* UserModel.swift */,
 				999F59552CA6F96D00E7AE9F /* TokenModel.swift */,
 				DFA36D552CB4278C00F63D2D /* DummyData.swift */,
-				DFF5292A2CC0121B007DC43F /* AppColors.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -176,6 +175,7 @@
 				999F59532CA6F70C00E7AE9F /* Models */,
 				999F59522CA6F6A900E7AE9F /* Views */,
 				9936FC562CADCA5200E21B8A /* Structs.swift */,
+				DFF5292A2CC0121B007DC43F /* AppColors.swift */,
 				DB458DB32CAC827A00C5EC18 /* Network.swift */,
 				DB6D29042CA1C8F70099951A /* TubApp.swift */,
 			);
