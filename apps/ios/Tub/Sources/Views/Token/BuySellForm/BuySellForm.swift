@@ -41,7 +41,7 @@ struct BuySellForm: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding(12)
-                        .background(purple)
+                        .background(AppColors.primaryPurple)
                         .cornerRadius(26)
                 }
             } else {
@@ -60,5 +60,5 @@ struct BuySellForm: View {
     VStack {
         BuySellForm(tokenModel: TokenModel(userId: userId, tokenId: mockTokenId), activeTab: $activeTab, showBuySheet: $showSheet)
             .environmentObject(UserModel(userId: userId))
-    }.frame(maxWidth: .infinity, maxHeight: .infinity) .background(.black).foregroundColor(.white)
+    }.frame(maxWidth: .infinity, maxHeight: .infinity) .background(.black).foregroundColor(AppColors.white)
 }

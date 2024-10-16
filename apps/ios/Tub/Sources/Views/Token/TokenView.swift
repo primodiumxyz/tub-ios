@@ -12,7 +12,6 @@ import Combine
 
 
 
-
 struct TokenView : View {
     @ObservedObject var tokenModel: TokenModel
     @EnvironmentObject private var userModel: UserModel
@@ -61,7 +60,7 @@ struct TokenView : View {
                                 Image(systemName: "pencil")
                                     .resizable()
                                     .frame(width: 20, height: 20)
-                                    .foregroundColor(.white)
+                                    .foregroundColor(AppColors.white)
                                 
                                 Text("$\(tokenModel.token.symbol) (\(tokenModel.token.name))")
                                     .font(.sfRounded(size: .lg, weight: .semibold))
@@ -75,7 +74,7 @@ struct TokenView : View {
                         Image(systemName: "chevron.down")
                             .resizable()
                             .frame(width: 20, height: 10)
-                            .foregroundColor(.white)
+                            .foregroundColor(AppColors.white)
                             .rotationEffect(Angle(degrees: showInfoCard ? 180 : 0)) // Add this line
                     }
                     .onTapGesture {
@@ -97,7 +96,7 @@ struct TokenView : View {
                                 HStack {
                                     if timespan == Timespan.live {
                                         Circle()
-                                            .fill(Color.red)
+                                            .fill(AppColors.red)
                                             .frame(width: 10, height: 10)
                                     }
                                     Text(timespan.rawValue)
@@ -105,8 +104,8 @@ struct TokenView : View {
                                 }
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 6)
-                                .background(selectedTimespan == timespan ? neonBlue : Color.clear)
-                                .foregroundColor(selectedTimespan == timespan ? Color.black : Color.white)
+                                .background(selectedTimespan == timespan ? AppColors.aquaBlue : Color.clear)
+                                .foregroundColor(selectedTimespan == timespan ? AppColors.black : AppColors.white)
                                 .cornerRadius(6)
                             }
                         }
@@ -119,13 +118,14 @@ struct TokenView : View {
                     
                 }.padding(8)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color.clear) // Keep this clear
-
+            .frame(maxWidth: .infinity)
+            .background(AppColors.black)
+            .foregroundColor(AppColors.white)
+            
             // Info Card View (slide-up effect)
             if showInfoCard {
                 // Fullscreen tap dismiss
-                Color.black.opacity(0.4) // Semi-transparent background
+                AppColors.black.opacity(0.4) // Semi-transparent background
                     .ignoresSafeArea()
                     .onTapGesture {
                         withAnimation(.easeInOut) {
@@ -154,6 +154,8 @@ struct TokenView : View {
                     .zIndex(2) // Ensure it stays on top of everything
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity) // Full screen layout for ZStack
+        .background(AppColors.black.ignoresSafeArea())
     }
 }
 

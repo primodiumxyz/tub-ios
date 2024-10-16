@@ -22,33 +22,33 @@ struct SellForm: View {
                     VStack(alignment: .leading) {
                         Text("You Own")
                             .font(.sfRounded(size: .xs, weight: .semibold))
-                            .foregroundColor(.gray)
+                            .foregroundColor(AppColors.gray)
                         Text("\(tokenModel.tokenBalance.total, specifier: "%.2f") \(tokenModel.token.symbol)")
                             .font(.sfRounded(size: .xl, weight: .semibold))
-                            .foregroundColor(.white)
+                            .foregroundColor(AppColors.white)
                     }
                     
                     
                     VStack(alignment: .leading) {
                         Text("Profit")
                             .font(.sfRounded(size: .xs, weight: .semibold))
-                            .foregroundColor(.gray)
+                            .foregroundColor(AppColors.gray)
                         
                         let gains = tokenModel.tokenBalance.total * (tokenModel.prices.last?.price ?? 0) - tokenModel.amountBoughtSol
                         let percentageGain = gains / tokenModel.amountBoughtSol * 100
                         
                         HStack(){
                             Image(systemName: gains > 0 ? "arrow.up" : "arrow.down")
-                                .foregroundColor(gains > 0 ? .green : .red)
+                                .foregroundColor(gains > 0 ? AppColors.green : AppColors.red)
                                 .font(.system(size: 16, weight: .bold))
                             
                             Text(String(format: "$%.2f", gains))
                                 .font(.sfRounded(size: .xl, weight: .semibold))
-                                .foregroundColor(gains > 0 ? .green : .red)
+                                .foregroundColor(gains > 0 ? AppColors.green : AppColors.red)
                                 .offset(x:-5)
                             Text(String(format: "(%.2f%%)", percentageGain))
                                 .font(.sfRounded(size: .base, weight: .semibold))
-                                .foregroundColor(gains > 0 ? .green : .red)
+                                .foregroundColor(gains > 0 ? AppColors.green : AppColors.red)
                                 .offset(x:-8)
                         }
                     }
@@ -59,10 +59,10 @@ struct SellForm: View {
                 Button(action: handleSell) {
                     Text("Sell")
                         .font(.sfRounded(size: .xl, weight: .semibold))
-                        .foregroundColor(.white)
+                        .foregroundColor(AppColors.white)
                         .frame(maxWidth: .infinity)
                         .padding(12)
-                        .background(Color(red: 0.82, green: 0.31, blue: 0.6))
+                        .background(AppColors.primaryPink)
                         .cornerRadius(26)
                 }
                 

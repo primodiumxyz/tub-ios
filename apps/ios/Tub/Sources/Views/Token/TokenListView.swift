@@ -71,7 +71,7 @@ struct TokenListView: View {
                 // Add this SafeAreaInset
                 Spacer()
                     .frame(height: 20)
-                    .background(Color.clear)
+                    .background(.clear)
                 
                 VStack(alignment: .leading) {
                     Text("Account Balance")
