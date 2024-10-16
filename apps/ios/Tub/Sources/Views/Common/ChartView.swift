@@ -46,7 +46,7 @@ struct ChartView: View {
                     x: .value("Date", price.timestamp),
                     y: .value("Price", price.price)
                 )
-                .foregroundStyle(neonBlue.opacity(0.8)) // Neon blue line
+                .foregroundStyle(AppColors.aquaBlue.opacity(0.8)) // Neon blue line
                 .shadow(color: AppColors.aquaBlue, radius: 3, x: 2, y: 2)
                 .lineStyle(StrokeStyle(lineWidth: 3))
             }
