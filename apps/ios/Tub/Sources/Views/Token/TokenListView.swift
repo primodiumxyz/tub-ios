@@ -62,7 +62,7 @@ struct TokenListView: View {
                     LoadingView()
                 }
             } else if tokens.isEmpty {
-                Text("No tokens found").foregroundColor(.red)
+                Text("No tokens found").foregroundColor(AppColors.red)
             } else {
                 TokenView(tokenModel: tokenModel) // Pass as Binding
                     .listRowInsets(.init(top: 10, leading: 0, bottom: 10, trailing: 10))
@@ -113,7 +113,7 @@ struct TokenListView: View {
                 VStack(alignment: .center) {
                     Image(systemName: "chevron.down")
                         .font(.title2)
-                        .foregroundColor(.gray)
+                        .foregroundColor(AppColors.gray)
                         .offset(y: chevronOffset)
                     
                 }
@@ -130,9 +130,9 @@ struct TokenListView: View {
             startChevronAnimation()
             fetchTokens()
         }
-        .foregroundColor(.white)
+        .foregroundColor(AppColors.white)
         .padding()
-        .background(Color.black) 
+        .background(AppColors.black)
     }
     
     // Chevron Animation

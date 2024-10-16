@@ -53,6 +53,6 @@ struct BuySellForm: View {
     VStack {
         BuySellForm(tokenModel: TokenModel(userId: userId, tokenId: mockTokenId))
             .environmentObject(UserModel(userId: userId))
-    }.frame(maxWidth: .infinity, maxHeight: .infinity) .background(.black).foregroundColor(.white)
+    }.frame(maxWidth: .infinity, maxHeight: .infinity) .background(.black).foregroundColor(AppColors.white)
 }
 

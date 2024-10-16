@@ -21,11 +21,11 @@ struct ChartView: View {
     
     private var dashedLineColor: Color {
         guard let purchasePrice = closestPurchasePrice?.price,
-              let currentPrice = prices.last?.price else { return .white }
+              let currentPrice = prices.last?.price else { return AppColors.white }
         if currentPrice == purchasePrice {
-            return .white
+            return AppColors.white
         }
-        return currentPrice < purchasePrice ? .red : .green
+        return currentPrice < purchasePrice ? AppColors.lightRed : AppColors.lightGreen
     }
     
     private var change: Double? {
@@ -47,7 +47,7 @@ struct ChartView: View {
                     y: .value("Price", price.price)
                 )
                 .foregroundStyle(neonBlue.opacity(0.8)) // Neon blue line
-                .shadow(color: neonBlue, radius: 3, x: 2, y: 2)
+                .shadow(color: AppColors.aquaBlue, radius: 3, x: 2, y: 2)
                 .lineStyle(StrokeStyle(lineWidth: 3))
             }
             
@@ -71,10 +71,10 @@ struct ChartView: View {
                         PillView(value:
                                     "\(String(format: "%.2f%", abs(change! * purchaseAmount))) SOL",
                                  color: dashedLineColor,
-                                 foregroundColor: .black)
+                                 foregroundColor: AppColors.black)
                     } else {
-                        PillView(value: "\(String(format: "%.2f%", currentPrice.price)) SOL", color: .white,
-                                 foregroundColor: .black)
+                        PillView(value: "\(String(format: "%.2f%", currentPrice.price)) SOL", color: AppColors.white,
+                                 foregroundColor: AppColors.black)
                     }
                 }
             }
@@ -82,21 +82,21 @@ struct ChartView: View {
             if let purchasePrice = closestPurchasePrice {
                 // Add horizontal dashed line
                 RuleMark(y: .value("Purchase Price", purchasePrice.price))
-                    .foregroundStyle(pink)
+                    .foregroundStyle(AppColors.primaryPink.opacity(0.8))
                     .lineStyle(StrokeStyle(lineWidth: 2, dash: [5, 5]))
                 
                 PointMark(
                     x: .value("Date", purchasePrice.timestamp),
                     y: .value("Price", purchasePrice.price)
                 )
-                .foregroundStyle(pink)
+                .foregroundStyle(AppColors.primaryPink)
                 .symbolSize(100)
                 .symbol(.circle)
                 
                 .annotation(position: .bottom, spacing: 0) {
                     PillView(
                         value: "\(String(format: "%.2f%", purchasePrice.price)) SOL",
-                        color: semipink, foregroundColor: .white)
+                        color: AppColors.primaryPink.opacity(0.8), foregroundColor: AppColors.white)
                 }
             }
         }
