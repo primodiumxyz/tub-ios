@@ -9,8 +9,8 @@ import SwiftUI
 struct BuySellForm: View {
     @EnvironmentObject var userModel: UserModel
     @ObservedObject var tokenModel: TokenModel
-    @State private var activeTab: String = "buy"
     @State private var sellAmount: Double = 0.0
+    @Binding var activeTab: String
 
     func handleBuy(amount: Double, completion: ((Bool) -> Void)?) {
         tokenModel.buyTokens(buyAmountSol: amount, completion: {success in
@@ -50,8 +50,10 @@ struct BuySellForm: View {
 #Preview {
     
     @Previewable @AppStorage("userId") var userId: String = ""
+    @Previewable @State var activeTab: String = "buy"
+    
     VStack {
-        BuySellForm(tokenModel: TokenModel(userId: userId, tokenId: mockTokenId))
+        BuySellForm(tokenModel: TokenModel(userId: userId, tokenId: mockTokenId), activeTab: $activeTab)
             .environmentObject(UserModel(userId: userId))
     }.frame(maxWidth: .infinity, maxHeight: .infinity) .background(.black).foregroundColor(.white)
 }

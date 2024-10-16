@@ -11,26 +11,15 @@ import Combine
 
 
 
-struct LoadingView: View {
-    var body: some View {
-        VStack {
-            ProgressView()
-            Text("Loading...")
-                .font(.sfRounded(size: .base))
-                .padding(.top, 10)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.black)
-        .foregroundColor(.white)
-    }
-}
+
 
 struct TokenView : View {
     @ObservedObject var tokenModel: TokenModel
     @EnvironmentObject private var userModel: UserModel
     @State private var showInfoCard = false
     @State private var selectedTimespan: Timespan = .live
-    
+    @Binding var activeTab: String
+
     enum Timespan: String {
         case live = "LIVE"
         case thirtyMin = "30M"
@@ -43,31 +32,42 @@ struct TokenView : View {
         }
     }
     
-    init(tokenModel: TokenModel) {
+    init(tokenModel: TokenModel, activeTab: Binding<String>) {
         self.tokenModel = tokenModel
+        self._activeTab = activeTab
     }
     
     var body: some View {
         ZStack(alignment: .bottom) {
+
+
             VStack () {
                 VStack (alignment: .leading) {
                     HStack {
-                        Image(systemName: "bittokensign.circle")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 50, height: 50)
-                            .foregroundColor(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 10)) // This will round the corners
-                        
-                        VStack(alignment: .leading){
-                            Text("$\(tokenModel.token.symbol) (\(tokenModel.token.name))") // Update this line
-                                .font(.sfRounded(size: .base, weight: .bold))
+                        VStack(alignment: .leading, spacing: -2) {
+                            HStack {
+                                Image(systemName: "pencil")
+                                    .resizable()
+                                    .frame(width: 20, height: 20)
+                                    .foregroundColor(.white)
+                                
+                                Text("$\(tokenModel.token.symbol) (\(tokenModel.token.name))")
+                                    .font(.sfRounded(size: .base, weight: .bold))
+                            }
                             Text("\(tokenModel.prices.last?.price ?? 0, specifier: "%.3f") SOL")
-                                .font(.sfRounded(size: .xl3, weight: .bold))
-                            
-                            
-                        }.foregroundColor(Color(red: 1, green: 0.93, blue: 0.52))
-                    }.onTapGesture {
+                                .font(.sfRounded(size: .xl4, weight: .bold))
+                        }
+                        
+                        Spacer() // Add this to push the chevron to the right
+                        
+                        Image(systemName: "chevron.down")
+                            .resizable()
+                            .frame(width: 30, height: 15)
+                            .foregroundColor(.white)
+                            .rotationEffect(Angle(degrees: showInfoCard ? 180 : 0)) // Add this line
+                    }
+                    .onTapGesture {
+                        
                         // Toggle the info card
                         withAnimation(.easeInOut) {
                             showInfoCard.toggle()
@@ -102,24 +102,13 @@ struct TokenView : View {
                     }
                     .padding(.vertical, 8)
                     
-                    VStack(alignment: .leading) {
-                        Text("Your \(tokenModel.token.symbol.uppercased()) Balance") // Update this line
-                            .font(.sfRounded(size: .sm, weight: .bold))
-                            .opacity(0.7)
-                            .kerning(-1)
-                        
-                        Text("\(tokenModel.tokenBalance.total, specifier: "%.3f") \(tokenModel.token.symbol.uppercased())") // Update this line
-                            .font(.sfRounded(size: .xl2, weight: .bold))
-                    }
-                    
-                    BuySellForm(tokenModel: tokenModel)
+                    BuySellForm(tokenModel: tokenModel, activeTab: $activeTab)
                     
                 }.padding(8)
             }
-            .frame(maxWidth: .infinity)
-            .background(.black)
-            .foregroundColor(.white)
-            
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color.clear) // Keep this clear
+
             // Info Card View (slide-up effect)
             if showInfoCard {
                 // Fullscreen tap dismiss
@@ -134,17 +123,16 @@ struct TokenView : View {
                 TokenInfoCardView(tokenModel: tokenModel, isVisible: $showInfoCard)
                     .transition(.move(edge: .bottom))
                     .zIndex(1) // Ensure it stays on top
-                    
+                
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity) // Full screen layout for ZStack
-        .background(Color.black.ignoresSafeArea())
     }
 }
 
 
 #Preview {
     @Previewable @AppStorage("userId") var userId: String = ""
-    TokenView(tokenModel: TokenModel(userId: userId, tokenId: mockTokenId))
+    @Previewable @State var activeTab: String = "buy"
+    TokenView(tokenModel: TokenModel(userId: userId, tokenId: mockTokenId), activeTab: $activeTab)
         .environmentObject(UserModel(userId: userId))
 }
