@@ -19,6 +19,7 @@ struct TokenView : View {
     @State private var showInfoCard = false
     @State private var selectedTimespan: Timespan = .live
     @Binding var activeTab: String
+    @State private var showBuySheet: Bool = false
 
     enum Timespan: String {
         case live = "LIVE"
@@ -38,13 +39,12 @@ struct TokenView : View {
     }
     
     var body: some View {
-        ZStack(alignment: .bottom) {
-
-
-            VStack () {
+        ZStack {
+            // Main content
+            VStack {
                 VStack (alignment: .leading) {
                     HStack {
-                        VStack(alignment: .leading, spacing: -2) {
+                        VStack(alignment: .leading, spacing: 1) {
                             HStack {
                                 Image(systemName: "pencil")
                                     .resizable()
@@ -52,7 +52,7 @@ struct TokenView : View {
                                     .foregroundColor(.white)
                                 
                                 Text("$\(tokenModel.token.symbol) (\(tokenModel.token.name))")
-                                    .font(.sfRounded(size: .base, weight: .bold))
+                                    .font(.sfRounded(size: .lg, weight: .semibold))
                             }
                             Text("\(tokenModel.prices.last?.price ?? 0, specifier: "%.3f") SOL")
                                 .font(.sfRounded(size: .xl4, weight: .bold))
@@ -62,7 +62,7 @@ struct TokenView : View {
                         
                         Image(systemName: "chevron.down")
                             .resizable()
-                            .frame(width: 30, height: 15)
+                            .frame(width: 20, height: 10)
                             .foregroundColor(.white)
                             .rotationEffect(Angle(degrees: showInfoCard ? 180 : 0)) // Add this line
                     }
@@ -102,7 +102,7 @@ struct TokenView : View {
                     }
                     .padding(.vertical, 8)
                     
-                    BuySellForm(tokenModel: tokenModel, activeTab: $activeTab)
+                    BuySellForm(tokenModel: tokenModel, activeTab: $activeTab, showBuySheet: $showBuySheet)
                     
                 }.padding(8)
             }
@@ -124,6 +124,21 @@ struct TokenView : View {
                     .transition(.move(edge: .bottom))
                     .zIndex(1) // Ensure it stays on top
                 
+            }
+
+            // Buy Sheet View
+            if showBuySheet {
+                Color.black.opacity(0.4)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            showBuySheet = false
+                        }
+                    }
+
+                BuyForm(isVisible: $showBuySheet, tokenModel: tokenModel, onBuy: tokenModel.buyTokens)
+                    .transition(.move(edge: .bottom))
+                    .zIndex(2) // Ensure it stays on top of everything
             }
         }
     }

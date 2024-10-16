@@ -118,7 +118,7 @@ struct ChartView: View {
                     .foregroundStyle(.white.opacity(0.5))
             }
         }
-        .frame(height: 250)
+        .frame(height: 350)
     }
 }
 

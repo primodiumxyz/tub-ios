@@ -49,6 +49,7 @@ struct TokenListView: View {
         Gradient.Stop(color: Color(red: 0.77, green: 0.38, blue: 0.6).opacity(0.4), location: 0.00),
         Gradient.Stop(color: .black.opacity(0), location: 0.37),
     ]
+    
     var purpleStops = [
         Gradient.Stop(color: Color(red: 0.43, green: 0, blue: 1).opacity(0.4), location: 0.0),
         Gradient.Stop(color: .black, location: 0.37),
@@ -60,8 +61,8 @@ struct TokenListView: View {
             // Background gradient
             LinearGradient(
                 stops: activeTab == "buy" ? purpleStops : pinkStops,
-                startPoint: UnitPoint(x: 0.5, y: 0),
-                endPoint: UnitPoint(x: 0.5, y: 1)
+                startPoint: UnitPoint(x: 0.5, y: activeTab == "buy" ? 1 : 0),
+                endPoint: UnitPoint(x: 0.5, y: activeTab == "buy" ? 0 : 1)
             )
             .ignoresSafeArea()
             
@@ -79,9 +80,11 @@ struct TokenListView: View {
                         .kerning(-1)
                     
                     Text("\(userModel.balance.total + tokenModel.tokenBalance.total * (tokenModel.prices.last?.price ?? 0), specifier: "%.2f") SOL")
-                        .font(.sfRounded(size: .xl2))
+                        .font(.sfRounded(size: .xl3))
                         .fontWeight(.bold)
-                }
+                }.padding(.bottom)
+                
+                // todo: add gains
                 
                 if isLoading {
                     LoadingView()

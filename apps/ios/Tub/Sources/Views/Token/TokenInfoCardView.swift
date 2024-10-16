@@ -12,6 +12,7 @@ struct TokenInfoCardView: View {
     
     @State private var dragOffset: CGFloat = 0.0
     @State private var animatingSwipe: Bool = false
+    @State private var isClosing: Bool = false
     
     var body: some View {
         VStack() {
@@ -116,7 +117,7 @@ struct TokenInfoCardView: View {
             }
             .padding(.horizontal, 30.0)
         }
-        .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.53) // Adjust height for the card
+        .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.53)
         .transition(.move(edge: .bottom))
         .background(
             LinearGradient(
@@ -129,11 +130,10 @@ struct TokenInfoCardView: View {
             )
         )
         .cornerRadius(20)
-        .offset(y: dragOffset)  // Offset based on drag
+        .offset(y: dragOffset)
         .gesture(
             DragGesture()
                 .onChanged { value in
-                    // Update drag offset as the user drags
                     dragOffset = value.translation.height
                 }
                 .onEnded { value in
@@ -141,26 +141,35 @@ struct TokenInfoCardView: View {
                     let verticalAmount = value.translation.height
                     
                     if verticalAmount > threshold && !animatingSwipe {
-                        // Dismiss the card when swiping down
                         withAnimation(.easeInOut(duration: 0.4)) {
                             dragOffset = UIScreen.main.bounds.height
                         }
                         animatingSwipe = true
+                        isClosing = true
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                            withAnimation {
-                                isVisible = false // Close the card
-                                animatingSwipe = false
-                            }
+                            isVisible = false // Close the card
                         }
                     } else {
-                        // Reset if not enough swipe
                         withAnimation(.easeInOut(duration: 0.3)) {
                             dragOffset = 0
                         }
                     }
                 }
         )
-        .transition(.move(edge: .bottom))  // Move from the bottom
+        .onChange(of: isVisible) { newValue in
+            if newValue {
+                // Reset when becoming visible
+                isClosing = false
+                dragOffset = 0
+                animatingSwipe = false
+            } else if !isClosing {
+                // Only animate closing if not already closing from gesture
+                withAnimation(.easeInOut(duration: 0.4)) {
+                    dragOffset = UIScreen.main.bounds.height
+                }
+            }
+        }
+        .transition(.move(edge: .bottom))
     }
 }
 
