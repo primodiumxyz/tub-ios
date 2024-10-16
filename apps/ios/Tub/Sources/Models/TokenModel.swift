@@ -185,7 +185,6 @@ class TokenModel: ObservableObject {
         ) { result in
             switch result {
             case .success:
-                print("buy successful")
                 self.amountBoughtSol = buyAmountSol
                 self.purchaseTime = Date()
                 completion?(true)

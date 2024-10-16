@@ -32,116 +32,122 @@ struct TokenListView: View {
     
     // show info card
     @State private var showInfoCard = false
-
+    @State var activeTab: String = "buy" 
+    
     
     init() {
         self._tokenModel = StateObject(wrappedValue: TokenModel(userId: UserDefaults.standard.string(forKey: "userId") ?? ""))
     }
-
+    
     private func updateTokenModel(tokenId: String) {
         DispatchQueue.main.async {
             tokenModel.initialize(with: tokenId)
         }
     }
     
-    var body: some View {
-        VStack(alignment: .leading) {
-            VStack(alignment: .leading) {
-                Text("Your Net Worth")
-                    .font(.sfRounded(size: .sm, weight: .bold))
-                    .opacity(0.7)
-                    .kerning(-1)
-                
-                Text("\(userModel.balance.total + tokenModel.tokenBalance.total * (tokenModel.prices.last?.price ?? 0), specifier: "%.2f") SOL")
-                    .font(.sfRounded(size: .xl4))
-                    .fontWeight(.bold)
-            }
-            
-            if isLoading {
-                VStack {
-                    LoadingView()
-                }
-            } else if tokens.isEmpty {
-                Text("No tokens found").foregroundColor(AppColors.red)
-            } else {
-                TokenView(tokenModel: tokenModel) // Pass as Binding
-                    .listRowInsets(.init(top: 10, leading: 0, bottom: 10, trailing: 10))
-                    .transition(.move(edge: .top))
-                    .offset(y: dragOffset)
-                    .gesture(
-                        DragGesture()
-                        .onChanged { value in
-                            // Update offset as the user drags
-                            dragOffset = value.translation.height
-                        }
-                        .onEnded { value in
-                            let threshold: CGFloat = 100
-                            let verticalAmount = value.translation.height
-                            
-                            if verticalAmount < -threshold && !animatingSwipe {
-                                
-                                // Swipe Up (Next token)
-                                withAnimation(.easeInOut(duration: 0.4)) {
-                                    dragOffset = -UIScreen.main.bounds.height
-                                    swipeDirection = -1
-                                }
-                                animatingSwipe = true
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                                    loadNextToken()
-                                    resetDragOffset()
-                                }
-                            } else if verticalAmount > threshold && !animatingSwipe {
-                                
-                                // Swipe Down (Previous token)
-                                withAnimation(.easeInOut(duration: 0.4)) {
-                                    dragOffset = UIScreen.main.bounds.height
-                                    swipeDirection = 1
-                                }
-                                animatingSwipe = true
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                                    loadPreviousToken()
-                                    resetDragOffset()
-                                }
-                            } else {
-                                withAnimation {
-                                    dragOffset = 0 // Reset if not enough swipe
-                                }
-                            }
-                        }
-                    )
-                
-                VStack(alignment: .center) {
-                    Image(systemName: "chevron.down")
-                        .font(.title2)
-                        .foregroundColor(AppColors.gray)
-                        .offset(y: chevronOffset)
-                    
-                }
-                .frame(maxWidth: .infinity, alignment: .center) // Center the button
-                .padding(.bottom, 40.0)
-                
-                if showInfoCard {
-                    TokenInfoCardView(tokenModel: tokenModel, isVisible: $showInfoCard)
-                        .transition(.move(edge: .bottom))
-                }
-            }
-        }
-        .onAppear{
-            startChevronAnimation()
-            fetchTokens()
-        }
-        .foregroundColor(AppColors.white)
-        .padding()
-        .background(AppColors.black)
-    }
+    var pinkStops = [
+        Gradient.Stop(color: Color(red: 0.77, green: 0.38, blue: 0.6).opacity(0.4), location: 0.00),
+        Gradient.Stop(color: .black.opacity(0), location: 0.37),
+    ]
     
-    // Chevron Animation
-    private func startChevronAnimation() {
-        Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
-            withAnimation(.easeInOut(duration: 1.5)) {
-                chevronOffset = isMovingUp ? 12 : -12
+    var purpleStops = [
+        Gradient.Stop(color: Color(red: 0.43, green: 0, blue: 1).opacity(0.4), location: 0.0),
+        Gradient.Stop(color: .black, location: 0.37),
+    ]
+    
+    
+    var body: some View {
+        ZStack {
+            // Background gradient
+            LinearGradient(
+                stops: activeTab == "buy" ? purpleStops : pinkStops,
+                startPoint: UnitPoint(x: 0.5, y: activeTab == "buy" ? 1 : 0),
+                endPoint: UnitPoint(x: 0.5, y: activeTab == "buy" ? 0 : 1)
+            )
+            .ignoresSafeArea()
+            
+            // Content
+            VStack(alignment: .leading, spacing: 0) {
+                // Add this SafeAreaInset
+                Spacer()
+                    .frame(height: 20)
+                    .background(.clear)
+                
+                VStack(alignment: .leading) {
+                    Text("Account Balance")
+                        .font(.sfRounded(size: .sm, weight: .bold))
+                        .opacity(0.7)
+                        .kerning(-1)
+                    
+                    Text("\(userModel.balance.total + tokenModel.tokenBalance.total * (tokenModel.prices.last?.price ?? 0), specifier: "%.2f") SOL")
+                        .font(.sfRounded(size: .xl3))
+                        .fontWeight(.bold)
+                }.padding(.bottom)
+                
+                // todo: add gains
+                
+                if isLoading {
+                    LoadingView()
+                } else if tokens.isEmpty {
+                    Text("No tokens found").foregroundColor(.red)
+                } else {
+                    TokenView(tokenModel: tokenModel, activeTab: $activeTab)
+                        .listRowInsets(.init(top: 10, leading: 0, bottom: 10, trailing: 10))
+                        .transition(.move(edge: .top))
+                        .offset(y: dragOffset)
+                        .gesture(
+                            DragGesture()
+                                .onChanged { value in
+                                    // Update offset as the user drags
+                                    dragOffset = value.translation.height
+                                }
+                                .onEnded { value in
+                                    let threshold: CGFloat = 100
+                                    let verticalAmount = value.translation.height
+                                    
+                                    if verticalAmount < -threshold && !animatingSwipe {
+                                        
+                                        // Swipe Up (Next token)
+                                        withAnimation(.easeInOut(duration: 0.4)) {
+                                            dragOffset = -UIScreen.main.bounds.height
+                                            swipeDirection = -1
+                                        }
+                                        animatingSwipe = true
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                                            loadNextToken()
+                                            resetDragOffset()
+                                        }
+                                    } else if verticalAmount > threshold && !animatingSwipe {
+                                        
+                                        // Swipe Down (Previous token)
+                                        withAnimation(.easeInOut(duration: 0.4)) {
+                                            dragOffset = UIScreen.main.bounds.height
+                                            swipeDirection = 1
+                                        }
+                                        animatingSwipe = true
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                                            loadPreviousToken()
+                                            resetDragOffset()
+                                        }
+                                    } else {
+                                        withAnimation {
+                                            dragOffset = 0 // Reset if not enough swipe
+                                        }
+                                    }
+                                }
+                        )
+                    if showInfoCard {
+                        TokenInfoCardView(tokenModel: tokenModel, isVisible: $showInfoCard)
+                            .transition(.move(edge: .bottom))
+                    }
+                }
             }
-            isMovingUp.toggle() 
+            .padding()
+        }
+        .foregroundColor(.white)
+        .background(Color.black)
+        .onAppear {
+            fetchTokens()
         }
     }
     
@@ -150,13 +156,13 @@ struct TokenListView: View {
         currentTokenIndex = newIndex
         updateTokenModel(tokenId: tokens[newIndex].id)
     }
-
+    
     private func loadPreviousToken() {
         let newIndex = (currentTokenIndex - 1 + tokens.count) % tokens.count
         currentTokenIndex = newIndex
         updateTokenModel(tokenId: tokens[newIndex].id)
     }
-
+    
     // Reset the drag offset
     private func resetDragOffset() {
         withAnimation(.easeInOut(duration: 0.3)) {
@@ -169,7 +175,7 @@ struct TokenListView: View {
             }
         }
     }
-
+    
     private func fetchTokens() {
         subscription = Network.shared.apollo.subscribe(subscription: SubLatestMockTokensSubscription()) { result in
             DispatchQueue.global(qos: .background).async {
@@ -195,6 +201,3 @@ struct TokenListView: View {
     TokenListView()
         .environmentObject(UserModel(userId: userId))
 }
-
-
-

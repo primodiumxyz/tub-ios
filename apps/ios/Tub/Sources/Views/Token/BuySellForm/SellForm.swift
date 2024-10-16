@@ -17,20 +17,20 @@ struct SellForm: View {
     var body: some View {
         GeometryReader { geometry in
             VStack {
+                Spacer()
                 HStack(alignment: .top) {
                     VStack(alignment: .leading) {
-                        Text("You Owned")
+                        Text("You Own")
                             .font(.sfRounded(size: .xs, weight: .semibold))
                             .foregroundColor(AppColors.gray)
-                        Text("\(tokenModel.tokenBalance.total, specifier: "%.2f") ")
+                        Text("\(tokenModel.tokenBalance.total, specifier: "%.2f") \(tokenModel.token.symbol)")
                             .font(.sfRounded(size: .xl, weight: .semibold))
                             .foregroundColor(AppColors.white)
                     }
                     
-                    Spacer()
                     
                     VStack(alignment: .leading) {
-                        Text("All time gains")
+                        Text("Profit")
                             .font(.sfRounded(size: .xs, weight: .semibold))
                             .foregroundColor(AppColors.gray)
                         
@@ -54,7 +54,7 @@ struct SellForm: View {
                     }
                     .frame(width: geometry.size.width * 0.6, alignment: .leading)
                 }
-                .padding()
+                .padding(.horizontal)
                 
                 Button(action: handleSell) {
                     Text("Sell")
@@ -68,7 +68,7 @@ struct SellForm: View {
                 
                 Spacer()
             }
-        }
+        }.frame(height:100)
     }
 }
 
