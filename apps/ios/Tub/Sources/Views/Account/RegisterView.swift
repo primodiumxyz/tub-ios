@@ -19,22 +19,22 @@ struct RegisterView: View {
         VStack(spacing: 20) {
             Text("Welcome to Tub")
                 .font(.sfRounded(size: .xl3, weight: .bold))
-                .foregroundColor(.white)
+                .foregroundColor(AppColors.white)
                 .padding(5)
             
             ZStack(alignment: .leading) {
                 if username.isEmpty {
                     Text("Username")
-                        .foregroundColor(Color.white.opacity(0.6))
+                        .foregroundColor(AppColors.white.opacity(0.6))
                         .padding(.leading, 30.0)
                 }
                 TextField("", text: $username)
-                    .padding()
+                    .padding(15.0)
                     .font(.sfRounded(size: .lg))
-                    .foregroundColor(.white)
+                    .foregroundColor(AppColors.white)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 26)
-                            .stroke(Color.white.opacity(0.7), lineWidth: 1)  // Custom border
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(AppColors.lightGray.opacity(0.7), lineWidth: 1)
                     )
                     .padding(.horizontal)
             }
@@ -44,15 +44,15 @@ struct RegisterView: View {
             }) {
                 Text("Register")
                     .font(.sfRounded(size: .lg, weight: .semibold))
-                    .foregroundColor(.white)
+                    .foregroundColor(AppColors.white)
                     .frame(maxWidth: .infinity)
                     .padding(12)
-                    .background(.blue)
+                    .background(AppColors.primaryPurple)
                     .cornerRadius(26)
             }.padding([.top, .leading, .trailing])
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.black)
+        .background(AppColors.darkBlueGradient)
     }
 }
 
