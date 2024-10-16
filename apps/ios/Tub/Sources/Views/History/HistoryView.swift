@@ -206,7 +206,7 @@ struct HistoryViewContent: View {
                                     .fixedSize(horizontal: true, vertical: false)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 10)
-                                            .stroke(Color.gray, lineWidth: 1)
+                                            .stroke(AppColors.lightGray, lineWidth: 1)
                                     )
                             }
                             
@@ -226,7 +226,7 @@ struct HistoryViewContent: View {
                                     .fixedSize(horizontal: true, vertical: false)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 10)
-                                            .stroke(Color.gray, lineWidth: 1)
+                                            .stroke(AppColors.lightGray, lineWidth: 1)
                                     )
                             }
                             
@@ -243,7 +243,7 @@ struct HistoryViewContent: View {
                                     .fixedSize(horizontal: true, vertical: false)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 10)
-                                            .stroke(Color.gray, lineWidth: 1)
+                                            .stroke(AppColors.lightGray, lineWidth: 1)
                                     )
                             }
                             
@@ -261,7 +261,7 @@ struct HistoryViewContent: View {
                                     .fixedSize(horizontal: true, vertical: false)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 10)
-                                            .stroke(AppColors.gray, lineWidth: 1)
+                                            .stroke(AppColors.lightGray, lineWidth: 1)
                                     )
                             }
                         }
