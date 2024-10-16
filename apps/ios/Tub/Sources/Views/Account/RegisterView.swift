@@ -20,22 +20,36 @@ struct RegisterView: View {
             Text("Welcome to Tub")
                 .font(.sfRounded(size: .xl3, weight: .bold))
                 .foregroundColor(.white)
+                .padding(5)
             
-            TextField("Username", text: $username)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .foregroundColor(.black)
-                .padding(.horizontal)
+            ZStack(alignment: .leading) {
+                if username.isEmpty {
+                    Text("Username")
+                        .foregroundColor(Color.white.opacity(0.6))
+                        .padding(.leading, 30.0)
+                }
+                TextField("", text: $username)
+                    .padding()
+                    .font(.sfRounded(size: .lg))
+                    .foregroundColor(.white)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 26)
+                            .stroke(Color.white.opacity(0.7), lineWidth: 1)  // Custom border
+                    )
+                    .padding(.horizontal)
+            }
             
             Button(action: {
                 Network.shared.registerNewUser(username: username, airdropAmount: "100000000000", completion: handleRegistration)
             }) {
                 Text("Register")
                     .font(.sfRounded(size: .lg, weight: .semibold))
-                    .foregroundColor(.black)
-                    .padding()
-                    .background(Color(red: 0.43, green: 0.97, blue: 0.98))
-                    .cornerRadius(10)
-            }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(12)
+                    .background(.blue)
+                    .cornerRadius(26)
+            }.padding([.top, .leading, .trailing])
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.black)
