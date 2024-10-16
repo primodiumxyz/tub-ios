@@ -151,6 +151,7 @@ struct TokenView : View {
                 BuyForm(isVisible: $showBuySheet, tokenModel: tokenModel, onBuy: handleBuy)
                     .transition(.move(edge: .bottom))
                     .zIndex(2) // Ensure it stays on top of everything
+                    .offset(y: 20)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity) // Full screen layout for ZStack

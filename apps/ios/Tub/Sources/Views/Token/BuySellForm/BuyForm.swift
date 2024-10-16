@@ -49,7 +49,7 @@ struct BuyForm: View {
                 Capsule()
                     .fill(Color.white.opacity(0.3))
                     .frame(width: 60, height: 4)
-                    .offset(y: -10)
+                    .offset(y: -15)
                 
                 HStack {
                     Spacer()
@@ -124,34 +124,15 @@ struct BuyForm: View {
                 
                 SwipeToEnterView(text: "Swipe to buy", onUnlock: handleBuy, disabled: buyAmountSol == 0 || buyAmountString == "")
                     .padding(.top, 10)
-            }.background(
-                LinearGradient(
-                    stops: [
-                        Gradient.Stop(color: Color(red: 0.18, green: 0.08, blue: 0.37), location: 0.00),
-                        Gradient.Stop(color: Color(red: 0.1, green: 0.1, blue: 0.2), location: 0.71),
-                    ],
-                    startPoint: UnitPoint(x: 0.5, y: 0),
-                    endPoint: UnitPoint(x: 0.5, y: 1)
-                )
-            )
+            }.background(AppColors.darkBlueGradient)
             .padding()
             .cornerRadius(20)
             .frame(height: 250)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 20)
-        .background(
-            LinearGradient(
-                stops: [
-                    Gradient.Stop(color: Color(red: 0.18, green: 0.08, blue: 0.37), location: 0.00),
-                    Gradient.Stop(color: Color(red: 0.1, green: 0.1, blue: 0.2), location: 0.71),
-                ],
-                startPoint: UnitPoint(x: 0.5, y: 0),
-                endPoint: UnitPoint(x: 0.5, y: 1)
-            )
-        )
+        .background(AppColors.darkBlueGradient)
         .cornerRadius(26)
-        
         .frame(height: 250)
         .offset(y: max(dragOffset, slideOffset))
         .gesture(
