@@ -18,15 +18,15 @@ struct TokenInfoCardView: View {
             //Coin
             Capsule()
                 .fill(Color.white.opacity(0.3))
-                .frame(width: 60, height: 6)
-                .offset(y:-5)
+                .frame(width: 60, height: 4)
+                .offset(y:-15)
             
             HStack {
                 Text("$\(tokenModel.token.name)")
-                    .font(.sfRounded(size: .xl2, weight: .semibold))
+                    .font(.sfRounded(size: .xl, weight: .semibold))
                     .foregroundColor(Color(red: 1, green: 0.92, blue: 0.52))
             }
-            .offset(y:-2)
+            .offset(y:-8)
             
             //Info
             VStack(alignment: .leading) {
