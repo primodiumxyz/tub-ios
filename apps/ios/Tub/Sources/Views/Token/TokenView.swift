@@ -111,7 +111,7 @@ struct TokenView : View {
                         }
                         Spacer()
                     }
-                    .padding(.vertical, 8)
+                    .padding(.bottom, 8)
                     
                     Spacer()
                     BuySellForm(tokenModel: tokenModel, activeTab: $activeTab, showBuySheet: $showBuySheet)
@@ -155,7 +155,6 @@ struct TokenView : View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity) // Full screen layout for ZStack
-//        .background(AppColors.black.ignoresSafeArea())
     }
 }
 
