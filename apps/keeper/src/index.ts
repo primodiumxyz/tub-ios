@@ -9,15 +9,42 @@ config({ path: "../../.env" });
 const env = parseEnv();
 
 const UPDATE_INTERVAL = 1_000;
-const VOLATILITY = 0.2;
+const VOLATILITY = 0.1;
 const PRECISION = 1e9;
 
-// https://stackoverflow.com/questions/8597731/are-there-known-techniques-to-generate-realistic-looking-fake-stock-data
-const getRandomPriceChange = () => {
-  const random = Math.random();
-  let changePercent = random * VOLATILITY * 2;
-  if (changePercent > VOLATILITY) changePercent -= 2 * VOLATILITY;
-  return 1 + changePercent;
+
+const tokenState = new Map<string, { direction: number; duration: number }>(); // Store direction and duration for each token
+
+const getRandomPriceChange = (tokenId: string) => {
+  if (!tokenState.has(tokenId)) {
+    tokenState.set(tokenId, {
+      direction: Math.random() < 0.5 ? 1 : -1,
+      duration: Math.floor(Math.random() * 7) + 1,
+    });
+  }
+
+  const tokenInfo = tokenState.get(tokenId)!;
+
+  if (tokenInfo.duration <= 0) {
+    tokenInfo.direction = Math.random() < 0.5 ? 1 : -1;
+    tokenInfo.duration = Math.floor(Math.random() * 7) + 1; // New random duration
+  }
+
+  // Macro price change based on direction
+  let macroChange = Math.random() * VOLATILITY;
+  macroChange *= tokenInfo.direction;
+
+  // Add small random noise that can go either up or down
+  const noise = (Math.random() - 0.5) * VOLATILITY * 0.5;
+
+  // Combine macro direction change with noise
+  const totalChange = macroChange + noise;
+
+  tokenInfo.duration--;
+
+  tokenState.set(tokenId, tokenInfo);
+
+  return 1 + totalChange;
 };
 
 const url = env.NODE_ENV === "prod" ? env.GRAPHQL_URL : "http://localhost:8080/v1/graphql";
@@ -38,7 +65,7 @@ export const _start = async () => {
           const _tokenPrice = await gql.GetLatestTokenPriceQuery({ tokenId });
 
           const currentPrice = BigInt(_tokenPrice.data?.token_price_history[0]?.price ?? parseEther("1", "gwei"));
-          const priceChange = getRandomPriceChange();
+          const priceChange = getRandomPriceChange(tokenId);
           const tokenPrice = (currentPrice * BigInt(Math.floor(priceChange * PRECISION))) / BigInt(PRECISION);
 
           return {
