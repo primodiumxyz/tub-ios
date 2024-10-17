@@ -69,6 +69,7 @@ struct CandleChartView: View {
             lastCandleAnnotation
         }
         .chartYAxis(content: yAxisConfig)
+        .chartXAxis(.hidden) // Hide the x-axis
         .chartYScale(domain: .automatic)
         .frame(width: .infinity, height: 350)
         .onAppear(perform: updateCandles)
