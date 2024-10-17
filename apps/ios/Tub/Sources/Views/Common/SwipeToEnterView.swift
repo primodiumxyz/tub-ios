@@ -29,25 +29,38 @@ struct SwipeToEnterView: View {
             ZStack(alignment: .leading) {
                 // Background
                 RoundedRectangle(cornerRadius: 50)
-                    .fill(Color.black.opacity(0.3))
-                   // Centered text with chevrons
+                    .fill(AppColors.black.opacity(0.3))
+                // Centered text with chevrons
                 HStack {
+                    Spacer()
+                    Spacer()
+                    Spacer()
                     Spacer()
                     Text(text)
                         .font(.sfRounded(size: .xl, weight: .semibold))
-                        .foregroundColor(.white)
-                 
+                        .foregroundColor(AppColors.white)
                     Spacer()
-                .opacity(isDragging ? 0 : 1)
+                    // Add three right-facing chevrons
+                    HStack(spacing: 2) {
+                        ForEach(0..<3) { i in
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(AppColors.white)
+                                .font(.system(size: 14, weight: .bold))
+                                .opacity(Double(i) * 0.15 + 0.5)
+                        }
+                    }
+                    .padding(.trailing, 20)
+                    Spacer()
                 }
+                
                 // Slider thumb
                 ZStack {
                     Circle()
-                        .fill(Color.white)
+                        .fill(AppColors.primaryPurple)
                         .frame(width: size - 20, height: size - 20)
                     
                     Image(systemName: "arrow.left.arrow.right")
-                        .foregroundColor(.black)
+                        .foregroundColor(AppColors.white)
                         .fontWeight(.bold)
                         .font(.system(size: 20))  // Increase the size by 50%
                 }

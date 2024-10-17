@@ -16,29 +16,43 @@ struct RegisterView: View {
     }
     
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 10) {
             Text("Welcome to Tub")
                 .font(.sfRounded(size: .xl3, weight: .bold))
-                .foregroundColor(.white)
+                .foregroundColor(AppColors.white)
+                .padding(.bottom, 15)
             
-            TextField("Username", text: $username)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .foregroundColor(.black)
-                .padding(.horizontal)
+            ZStack(alignment: .leading) {
+                if username.isEmpty {
+                    Text("Username")
+                        .foregroundColor(AppColors.white.opacity(0.6))
+                        .padding(.leading, 30.0)
+                }
+                TextField("", text: $username)
+                    .padding(15.0)
+                    .font(.sfRounded(size: .lg))
+                    .foregroundColor(AppColors.white)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(AppColors.lightGray.opacity(0.7), lineWidth: 1)
+                    )
+                    .padding(.horizontal)
+            }
             
             Button(action: {
                 Network.shared.registerNewUser(username: username, airdropAmount: "100000000000", completion: handleRegistration)
             }) {
                 Text("Register")
-                    .font(.sfRounded(size: .lg, weight: .semibold))
-                    .foregroundColor(.black)
-                    .padding()
-                    .background(Color(red: 0.43, green: 0.97, blue: 0.98))
-                    .cornerRadius(10)
-            }
+                    .font(.sfRounded(size: .base, weight: .semibold))
+                    .foregroundColor(AppColors.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(12)
+                    .background(AppColors.primaryPurple)
+                    .cornerRadius(26)
+            }.padding([.top, .leading, .trailing])
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.black)
+        .background(AppColors.darkBlueGradient)
     }
 }
 

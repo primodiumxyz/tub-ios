@@ -3,32 +3,28 @@
 
 @_exported import ApolloAPI
 
-public class SubLatestMockTokensSubscription: GraphQLSubscription {
-  public static let operationName: String = "SubLatestMockTokens"
+public class GetTokenDataQuery: GraphQLQuery {
+  public static let operationName: String = "GetTokenData"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"subscription SubLatestMockTokens($limit: Int = 10) { token( where: { mint: { _is_null: true } } order_by: { updated_at: desc } limit: $limit ) { __typename id symbol supply name uri updated_at } }"#
+      #"query GetTokenData($tokenId: uuid!) { token(where: { id: { _eq: $tokenId } }) { __typename id name symbol updated_at supply uri } }"#
     ))
 
-  public var limit: GraphQLNullable<Int>
+  public var tokenId: Uuid
 
-  public init(limit: GraphQLNullable<Int> = 10) {
-    self.limit = limit
+  public init(tokenId: Uuid) {
+    self.tokenId = tokenId
   }
 
-  public var __variables: Variables? { ["limit": limit] }
+  public var __variables: Variables? { ["tokenId": tokenId] }
 
   public struct Data: TubAPI.SelectionSet {
     public let __data: DataDict
     public init(_dataDict: DataDict) { __data = _dataDict }
 
-    public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Subscription_root }
+    public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Query_root }
     public static var __selections: [ApolloAPI.Selection] { [
-      .field("token", [Token].self, arguments: [
-        "where": ["mint": ["_is_null": true]],
-        "order_by": ["updated_at": "desc"],
-        "limit": .variable("limit")
-      ]),
+      .field("token", [Token].self, arguments: ["where": ["id": ["_eq": .variable("tokenId")]]]),
     ] }
 
     /// fetch data from the table: "token"
@@ -45,19 +41,19 @@ public class SubLatestMockTokensSubscription: GraphQLSubscription {
       public static var __selections: [ApolloAPI.Selection] { [
         .field("__typename", String.self),
         .field("id", TubAPI.Uuid.self),
-        .field("symbol", String.self),
-        .field("supply", TubAPI.Numeric.self),
         .field("name", String.self),
-        .field("uri", String?.self),
+        .field("symbol", String.self),
         .field("updated_at", TubAPI.Timestamptz.self),
+        .field("supply", TubAPI.Numeric.self),
+        .field("uri", String?.self),
       ] }
 
       public var id: TubAPI.Uuid { __data["id"] }
-      public var symbol: String { __data["symbol"] }
-      public var supply: TubAPI.Numeric { __data["supply"] }
       public var name: String { __data["name"] }
-      public var uri: String? { __data["uri"] }
+      public var symbol: String { __data["symbol"] }
       public var updated_at: TubAPI.Timestamptz { __data["updated_at"] }
+      public var supply: TubAPI.Numeric { __data["supply"] }
+      public var uri: String? { __data["uri"] }
     }
   }
 }

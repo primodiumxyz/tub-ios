@@ -7,11 +7,13 @@ class TokenModel: ObservableObject {
     var tokenId: String = ""
     var userId: String = ""
 
-    @Published var token: Token = Token(id: "", name: "COIN", symbol: "SYMBOL")
+    @Published var token: Token = Token(id: "", name: "COIN", symbol: "SYMBOL", imageUri: "")
     @Published var loading = true
     @Published var tokenBalance: (credit: Numeric, debit: Numeric, total: Double) = (0, 0, 0)
 
     @Published var amountBoughtSol: Double = 0
+    @Published var purchaseTime : Date? = nil
+    
     @Published var prices: [Price] = []
 
     private var latestPriceSubscription: Apollo.Cancellable?  // Track the latest price subscription
@@ -28,102 +30,102 @@ class TokenModel: ObservableObject {
     private func fetchInitialData() async {
         do {
             try await fetchTokenDetails()
-            self.loading = false
+//            self.loading = false
         } catch {
             print("Error fetching initial data: \(error)")
         }
     }
 
-    // This will attempt to fetch filtered tokens (tokens marked as pumping from the indexer);
-    // If there is none, it will fallback to the mock tokens used in the keeper
+    
     private func fetchTokenDetails() async throws {
-        let since = ISO8601DateFormatter().string(from: Date().addingTimeInterval(-30)) // in the last 30 seconds
-        let filteredQuery = GetFilteredTokensQuery(since: since, minTrades: "10", minIncreasePct: "5")
-        
+        let query = GetTokenDataQuery(tokenId: tokenId)
         return try await withCheckedThrowingContinuation { continuation in
-            Network.shared.apollo.fetch(query: filteredQuery) { [weak self] result in
+            Network.shared.apollo.fetch(query: query) { [weak self] result in
                 guard let self = self else {
-                    continuation.resume(throwing: NSError(domain: "TokenModel", code: 0, userInfo: [NSLocalizedDescriptionKey: "Self is nil"]))
+                    continuation.resume(
+                        throwing: NSError(
+                            domain: "TokenModel", code: 0,
+                            userInfo: [NSLocalizedDescriptionKey: "Self is nil"]))
                     return
                 }
-                
+
                 switch result {
                 case .success(let response):
-                    print(response)
-                    if let filteredTokens = response.data?.getFormattedTokens, !filteredTokens.isEmpty {
-                        if let token = filteredTokens.first(where: { $0.token_id == self.tokenId }) {
-                            DispatchQueue.main.async {
-                                self.token = Token(id: token.token_id, name: token.name, symbol: token.symbol)
-                                self.loading = false
-                            }
-                            continuation.resume()
-                        } else {
-                            self.fetchAllTokens(continuation: continuation)
+                    if let token = response.data?.token.first(where: { $0.id == self.tokenId }) {
+                        DispatchQueue.main.async {
+                            self.token = Token(id: token.id, name: token.name, symbol: token.symbol, imageUri: token.uri)
+//                            self.loading = false
                         }
+                        continuation.resume()
                     } else {
-                        self.fetchAllTokens(continuation: continuation)
+                        continuation.resume(
+                            throwing:
+                                NSError(
+                                    domain: "TokenModel",
+                                    code: 1,
+                                    userInfo: [
+                                        NSLocalizedDescriptionKey: "Token not found"
+                                    ]
+                                )
+                        )
                     }
-                case .failure(_):
-                    self.fetchAllTokens(continuation: continuation)
+                case .failure(let error):
+                    continuation.resume(throwing: error)
                 }
             }
         }
     }
 
-    private func fetchAllTokens(continuation: CheckedContinuation<Void, Error>) {
-        let query = GetAllTokensQuery()
-        Network.shared.apollo.fetch(query: query) { [weak self] result in
-            guard let self = self else {
-                continuation.resume(throwing: NSError(domain: "TokenModel", code: 0, userInfo: [NSLocalizedDescriptionKey: "Self is nil"]))
-                return
-            }
-            
-            switch result {
-            case .success(let response):
-                if let token = response.data?.token.first(where: { $0.id == self.tokenId }) {
-                    DispatchQueue.main.async {
-                        self.token = Token(id: token.id, name: token.name, symbol: token.symbol)
-                        self.loading = false
-                    }
-                    continuation.resume()
-                } else {
-                    continuation.resume(throwing: NSError(domain: "TokenModel", code: 1, userInfo: [NSLocalizedDescriptionKey: "Token not found"]))
-                }
-            case .failure(let error):
-                continuation.resume(throwing: error)
-            }
-        }
-    }
-
-    private func subscribeToLatestPrice() {
+    private func subscribeToLatestPrice(_ since: Timestamptz) {
         // Cancel any existing subscription before creating a new one
         latestPriceSubscription?.cancel()
 
-        // Change the type of 'sub' to AnyCancellable
-        let sub = Network.shared.apollo.subscribe(
-            subscription: SubLatestTokenPriceSubscription(tokenId: self.tokenId)
-        ) { [weak self] result in
+        // First, query the past token history
+        let query = GetTokenPriceHistorySinceQuery(tokenId: self.tokenId, since: since)
+        Network.shared.apollo.fetch(query: query) { [weak self] result in
             guard let self = self else { return }
-            DispatchQueue.main.async {
-                print(self.tokenId)
-                switch result {
-                case .success(let graphQLResult):
-                    if let history = graphQLResult.data?.token_price_history.first {
+            
+            switch result {
+            case .success(let response):
+                DispatchQueue.main.async {
+                    self.prices = response.data?.token_price_history.compactMap { history in
                         if let date = self.formatDate(history.created_at) {
-                            let newPrice = Price(
-                                timestamp: date, price: Double(history.price) / 1e9)
-                            self.prices.append(newPrice)
-                            print("New price received for token \(self.token.symbol): \(newPrice.price) at \(date)")
-                        } else {
-                            print("Failed to parse date: \(history.created_at)")
+                            return Price(timestamp: date, price: Double(history.price) / 1e9)
                         }
-                    }
-                case .failure(let error):
-                    print("Error: \(error.localizedDescription)")
+                        return nil
+                    } ?? []
                 }
+                
+                // After fetching past history, subscribe to latest price updates
+                self.subscribeToLatestPriceUpdates()
+                self.loading = false
+                
+            case .failure(let error):
+                print("Error fetching token price history: \(error)")
             }
         }
-        latestPriceSubscription = sub
+    }
+
+    private func subscribeToLatestPriceUpdates() {
+        let subscription = SubLatestTokenPriceSubscription(tokenId: self.tokenId)
+        
+        latestPriceSubscription = Network.shared.apollo.subscribe(subscription: subscription) { [weak self] result in
+            guard let self = self else { return }
+            
+            switch result {
+            case .success(let graphQLResult):
+                if let latestPrice = graphQLResult.data?.token_price_history.first {
+                    DispatchQueue.main.async {
+                        if let date = self.formatDate(latestPrice.created_at) {
+                            let newPrice = Price(timestamp: date, price: Double(latestPrice.price) / 1e9)
+                            self.prices.append(newPrice)
+                        }
+                    }
+                }
+            case .failure(let error):
+                print("Error in latest price subscription: \(error)")
+            }
+        }
     }
 
     private func subscribeToTokenBalance() {
@@ -183,8 +185,8 @@ class TokenModel: ObservableObject {
         ) { result in
             switch result {
             case .success:
-                print("buy successful")
                 self.amountBoughtSol = buyAmountSol
+                self.purchaseTime = Date()
                 completion?(true)
             case .failure(let error):
                 print(error)
@@ -201,6 +203,7 @@ class TokenModel: ObservableObject {
         ) { result in
             switch result {
             case .success:
+                self.purchaseTime = nil
                 completion?(true)
             case .failure(_):
                 completion?(false)
@@ -222,8 +225,18 @@ class TokenModel: ObservableObject {
         // Re-run the initialization logic
         Task {
             await fetchInitialData()
-            subscribeToLatestPrice()
+            
+            let thirtySecondsAgo = Date().addingTimeInterval(-30).ISO8601Format()
+            subscribeToLatestPrice(thirtySecondsAgo)
             subscribeToTokenBalance()
         }
+    }
+    
+    func updateHistoryTimespan(timespan: Double) {
+        latestPriceSubscription?.cancel()
+        self.prices = []
+        self.loading = true
+        let timespanAgo = Date().addingTimeInterval(-timespan).ISO8601Format()
+        subscribeToLatestPrice(timespanAgo)
     }
 }

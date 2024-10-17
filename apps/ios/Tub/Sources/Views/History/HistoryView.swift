@@ -140,13 +140,13 @@ struct HistoryViewContent: View {
         NavigationView {
             VStack {
                 Text("History")
-                    .font(.system(size: 24, weight: .bold))
-                    .foregroundColor(.white)
+                    .font(.sfRounded(size: .xl2, weight: .bold))
+                    .foregroundColor(AppColors.white)
                 
                 HStack {
                     Text("Completed")
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(.white)
+                        .font(.sfRounded(size: .xl2, weight: .bold))
+                        .foregroundColor(AppColors.white)
                         .padding(.leading, 10.0)
                     Spacer()
                     
@@ -156,7 +156,7 @@ struct HistoryViewContent: View {
                         }
                     }) {
                         Image(systemName: "line.horizontal.3.decrease.circle")
-                            .foregroundColor(.white)
+                            .foregroundColor(AppColors.white)
                             .font(.system(size: 24))
                     }
                 }
@@ -170,23 +170,26 @@ struct HistoryViewContent: View {
                                 withAnimation { isSearching.toggle()}
                             }) {
                                 Image(systemName: isSearching ? "xmark.circle.fill" : "magnifyingglass")
-                                    .foregroundColor(.white)
-                                    .font(.system(size: 20))
+                                    .foregroundColor(AppColors.white)
+                                    .font(.sfRounded(size: .lg, weight: .semibold))
+
                             }
                             
                             if isSearching {
                                 ZStack {
                                     if searchText.isEmpty {
                                         Text("Search...")
-                                            .foregroundColor(.gray)
+                                            .foregroundColor(AppColors.gray)
+                                            .font(.sfRounded(size: .base, weight: .regular))
                                             .offset(x:-14)
                                     }
                                     TextField("", text: $searchText)
                                         .textFieldStyle(PlainTextFieldStyle())
-                                        .foregroundColor(.white)
+                                        .foregroundColor(AppColors.white)
                                         .frame(width: 100, height: 44)
                                         .cornerRadius(0)
                                         .transition(.move(edge: .trailing))
+                                        .font(.sfRounded(size: .base, weight: .regular))
                                 }
                             }
                             
@@ -196,14 +199,14 @@ struct HistoryViewContent: View {
                                 Toggle(isOn: $selectedSell) { Text("Sell") }
                             } label: {
                                 Text(typeFilterLabel())
-                                    .font(.system(size: 14))
-                                    .foregroundColor(.white)
+                                    .font(.sfRounded(size: .sm, weight: .regular))
+                                    .foregroundColor(AppColors.white)
                                     .padding(.horizontal)
                                     .padding(.vertical, 6.0)
                                     .fixedSize(horizontal: true, vertical: false)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 10)
-                                            .stroke(Color.gray, lineWidth: 1)
+                                            .stroke(AppColors.lightGray, lineWidth: 1)
                                     )
                             }
                             
@@ -216,14 +219,14 @@ struct HistoryViewContent: View {
                                 Button(action: { selectedPeriod = "This Year" }) { Text("This Year") }
                             } label: {
                                 Text("Period: \(selectedPeriod)")
-                                    .font(.system(size: 14))
-                                    .foregroundColor(.white)
+                                    .font(.sfRounded(size: .sm, weight: .regular))
+                                    .foregroundColor(AppColors.white)
                                     .padding(.horizontal)
                                     .padding(.vertical, 6)
                                     .fixedSize(horizontal: true, vertical: false)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 10)
-                                            .stroke(Color.gray, lineWidth: 1)
+                                            .stroke(AppColors.lightGray, lineWidth: 1)
                                     )
                             }
                             
@@ -233,14 +236,14 @@ struct HistoryViewContent: View {
                                 Toggle(isOn: $selectedUnfilled) { Text("Unfilled") }
                             } label: {
                                 Text(statusFilterLabel())
-                                    .font(.system(size: 14))
-                                    .foregroundColor(.white)
+                                    .font(.sfRounded(size: .sm, weight: .regular))
+                                    .foregroundColor(AppColors.white)
                                     .padding(.horizontal)
                                     .padding(.vertical, 6)
                                     .fixedSize(horizontal: true, vertical: false)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 10)
-                                            .stroke(Color.gray, lineWidth: 1)
+                                            .stroke(AppColors.lightGray, lineWidth: 1)
                                     )
                             }
                             
@@ -251,14 +254,14 @@ struct HistoryViewContent: View {
                                 Button(action: { selectedAmountRange = "> $100" }) { Text("> $100") }
                             } label: {
                                 Text("Amount: \(selectedAmountRange)")
-                                    .font(.system(size: 14))
-                                    .foregroundColor(.white)
+                                    .font(.sfRounded(size: .sm, weight: .regular))
+                                    .foregroundColor(AppColors.white)
                                     .padding(.horizontal)
                                     .padding(.vertical, 6)
                                     .fixedSize(horizontal: true, vertical: false)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 10)
-                                            .stroke(Color.gray, lineWidth: 1)
+                                            .stroke(AppColors.lightGray, lineWidth: 1)
                                     )
                             }
                         }
@@ -282,7 +285,7 @@ struct HistoryViewContent: View {
                                 if transaction != txs.last  {
                                     Divider()
                                         .frame(width: 340.0, height: 1.0)
-                                        .background(Color(hue: 1.0, saturation: 0.0, brightness: 0.153))
+                                        .background(Color(hue: 1.0, saturation: 0.0, brightness: 0.2))
                                 }
                             }
                         }
@@ -391,45 +394,46 @@ struct TransactionRow: View {
     
     var body: some View {
         HStack {
-            Image(transaction.imageUri)
-                .resizable()
-                .frame(width: 40, height: 40)
+            ImageView(imageUri: transaction.imageUri, size: 40)
                 .cornerRadius(8)
             
             VStack(alignment: .leading) {
                 HStack {
                     Text(transaction.isBuy ? "Buy" : "Sell")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(.white)
+                        .font(.sfRounded(size: .base, weight: .bold))
+                        .foregroundColor(AppColors.white)
                     Text(transaction.name)
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(Color(red: 1.0, green: 0.9254901960784314, blue: 0.5254901960784314))
+                        .font(.sfRounded(size: .base, weight: .bold))
+                        .foregroundColor(AppColors.lightYellow)
+                        .offset(x:-2)
                 }
                 
                 Text(formatDate(transaction.date))
-                    .font(.system(size: 12))
-                    .foregroundColor(.gray)
+                    .font(.sfRounded(size: .xs, weight: .regular))
+                    .foregroundColor(AppColors.gray)
+                    .offset(y:2)
                 
             }
             Spacer()
             VStack(alignment: .trailing) {
                 Text(formatAmount(transaction.value))
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(transaction.isBuy ? .red : .green)
+                    .font(.sfRounded(size: .base, weight: .bold))
+                    .foregroundColor(transaction.isBuy ? AppColors.red: AppColors.green)
                 
                 HStack {
                     Text("\(transaction.quantity, specifier: "%.0f")")
-                        .font(.system(size: 12))
-                        .foregroundColor(.gray)
-                        .offset(x:4)
+                        .font(.sfRounded(size: .xs, weight: .regular))
+                        .foregroundColor(AppColors.gray)
+                        .offset(x:4, y:2)
                     
                     Text(transaction.symbol)
-                        .font(.system(size: 12))
-                        .foregroundColor(.gray)
+                        .font(.sfRounded(size: .xs, weight: .regular))
+                        .foregroundColor(AppColors.gray)
+                        .offset(y:2)
                 }
             }
             Image(systemName: "chevron.right")
-                .foregroundColor(.gray)
+                .foregroundColor(AppColors.gray)
                 .offset(x: 12)
         }
         .padding(.bottom, 10.0)

@@ -15,24 +15,60 @@ struct SellForm: View {
         let _ = onSell(nil)
     }
     var body: some View {
-        VStack {
-            HStack {
+        GeometryReader { geometry in
+            VStack {
                 Spacer()
-                VStack {
-                    Button(action: handleSell) {
-                        Text("Sell")
-                            .font(.title)
-                            .foregroundColor(.white)
-                            .frame(width: 100, height: 100)
-                            .background(Color.white.opacity(0.5))
-                            .clipShape(Circle())
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading) {
+                        Text("You Own")
+                            .font(.sfRounded(size: .xs, weight: .semibold))
+                            .foregroundColor(AppColors.gray)
+                        Text("\(tokenModel.tokenBalance.total, specifier: "%.2f") \(tokenModel.token.symbol)")
+                            .font(.sfRounded(size: .xl, weight: .semibold))
+                            .foregroundColor(AppColors.white)
                     }
-                    Text("\(tokenModel.tokenBalance.total * (tokenModel.prices.last?.price ?? 0) - tokenModel.amountBoughtSol, specifier: "%.2f") SOL")
-                        .foregroundColor(tokenModel.tokenBalance.total * (tokenModel.prices.last?.price ?? 0) - tokenModel.amountBoughtSol > 0 ? .green : .red).font(.title2)
+                    
+                    
+                    VStack(alignment: .leading) {
+                        Text("Profit")
+                            .font(.sfRounded(size: .xs, weight: .semibold))
+                            .foregroundColor(AppColors.gray)
+                        
+                        let gains = tokenModel.tokenBalance.total * (tokenModel.prices.last?.price ?? 0) - tokenModel.amountBoughtSol
+                        let percentageGain = gains / tokenModel.amountBoughtSol * 100
+                        
+                        HStack(){
+                            Image(systemName: gains > 0 ? "arrow.up" : "arrow.down")
+                                .foregroundColor(gains > 0 ? AppColors.green : AppColors.red)
+                                .font(.system(size: 16, weight: .bold))
+                            
+                            Text(String(format: "$%.2f", gains))
+                                .font(.sfRounded(size: .xl, weight: .semibold))
+                                .foregroundColor(gains > 0 ? AppColors.green : AppColors.red)
+                                .offset(x:-5)
+                            Text(String(format: "(%.2f%%)", percentageGain))
+                                .font(.sfRounded(size: .base, weight: .semibold))
+                                .foregroundColor(gains > 0 ? AppColors.green : AppColors.red)
+                                .offset(x:-8)
+                        }
+                    }
+                    .frame(width: geometry.size.width * 0.6, alignment: .leading)
                 }
+                .padding(.horizontal)
+                
+                Button(action: handleSell) {
+                    Text("Sell")
+                        .font(.sfRounded(size: .xl, weight: .semibold))
+                        .foregroundColor(AppColors.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(12)
+                        .background(AppColors.primaryPink)
+                        .cornerRadius(26)
+                }
+                
                 Spacer()
-            }.padding(12)
-        }.frame(width: .infinity, height: 300)
+            }
+        }.frame(height:100)
     }
 }
 
