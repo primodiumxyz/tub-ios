@@ -10,6 +10,9 @@ RUN apt update \
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 
+# Set a default port (can be overridden at runtime)
+ENV SERVER_PORT=8080
+
 # Build dependencies
 RUN corepack enable
 WORKDIR /app
@@ -31,7 +34,7 @@ RUN pnpm install --frozen-lockfile
 # Set working directory to the server app
 WORKDIR /app/apps/server
 
-EXPOSE 8888
+EXPOSE $SERVER_PORT
 
 # Command to run the server
 CMD ["pnpm", "start"]
