@@ -70,7 +70,7 @@ struct TokenView : View {
                             
                             HStack {
                                 Text(tokenModel.priceChange.amount >= 0 ? "+" : "-")
-                                Text("\(abs(tokenModel.priceChange.amount), specifier: "%.8f") SOL")
+                                Text("\(abs(tokenModel.priceChange.amount), specifier: "%.3f") SOL")
                                 Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
                             }
                             .font(.sfRounded(size: .sm, weight: .semibold))
