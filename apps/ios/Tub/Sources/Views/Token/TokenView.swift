@@ -83,7 +83,14 @@ struct TokenView : View {
                         }
                     }
 
-                    ChartView(prices: tokenModel.prices, purchaseTime: tokenModel.purchaseTime, purchaseAmount: tokenModel.tokenBalance.total)
+                    // Replace the existing ChartView with this conditional rendering
+                    if selectedTimespan == .live {
+                        ChartView(prices: tokenModel.prices, purchaseTime: tokenModel.purchaseTime, purchaseAmount: tokenModel.tokenBalance.total, timeframeSecs: 30)
+                    } else {
+                        CandleChartView(prices: tokenModel.prices, intervalSecs: 45, timeframeMins: 30)
+                            .id(tokenModel.prices.count)
+                    }
+
                     HStack {
                         Spacer()
                         ForEach([Timespan.live, Timespan.thirtyMin], id: \.self) { timespan in
@@ -160,6 +167,6 @@ struct TokenView : View {
 #Preview {
     @Previewable @AppStorage("userId") var userId: String = ""
     @Previewable @State var activeTab: String = "buy"
-    TokenView(tokenModel: TokenModel(userId: userId, tokenId: mockTokenId), activeTab: $activeTab)
+    TokenView(tokenModel: TokenModel(userId: userId, tokenId: mockTokenId), activeTab: $activeTab).background(.black)
         .environmentObject(UserModel(userId: userId))
 }
