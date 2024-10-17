@@ -18,14 +18,14 @@ struct TokenInfoCardView: View {
         VStack() {
             //Coin
             Capsule()
-                .fill(Color.white.opacity(0.3))
+                .fill(AppColors.white.opacity(0.3))
                 .frame(width: 60, height: 4)
                 .offset(y:-15)
             
             HStack {
                 Text("$\(tokenModel.token.name)")
                     .font(.sfRounded(size: .xl, weight: .semibold))
-                    .foregroundColor(Color(red: 1, green: 0.92, blue: 0.52))
+                    .foregroundColor(AppColors.lightYellow)
             }
             .offset(y:-8)
             
@@ -84,13 +84,13 @@ struct TokenInfoCardView: View {
                 }
                 .padding([.leading, .bottom, .trailing], 24.0)
                 .padding(.top, 20.0)
-                .foregroundColor(.white)
+                .foregroundColor(AppColors.white)
                 .cornerRadius(10)
-                .background(Color(red: 0.07, green: 0.07, blue: 0.16))
+                .background(AppColors.darkBlue)
                 .overlay(
                     RoundedRectangle(cornerRadius: 10)
                         .inset(by: 0.5)
-                        .strokeBorder(.white)
+                        .strokeBorder(AppColors.white)
                 )
                 
                 //About
@@ -101,7 +101,7 @@ struct TokenInfoCardView: View {
                     Text("This is what the coin is about. Norem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.")
                         .font(.sfRounded(size: .sm, weight: .medium))
                 }
-                .foregroundColor(.white)
+                .foregroundColor(AppColors.white)
                 .padding(.vertical, 10.0)
                 
                 //Twitter Link
@@ -113,22 +113,13 @@ struct TokenInfoCardView: View {
                         .font(.sfRounded(size: .lg, weight: .semibold))
                 }
                 .padding(.vertical, 10.0)
-                .foregroundColor(.white)
+                .foregroundColor(AppColors.white)
             }
             .padding(.horizontal, 30.0)
         }
         .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.53)
         .transition(.move(edge: .bottom))
-        .background(
-            LinearGradient(
-                stops: [
-                    Gradient.Stop(color: Color(red: 0.18, green: 0.08, blue: 0.37), location: 0.00),
-                    Gradient.Stop(color: Color(red: 0.1, green: 0.1, blue: 0.2), location: 0.52),
-                ],
-                startPoint: UnitPoint(x: 0.5, y: 0),
-                endPoint: UnitPoint(x: 0.5, y: 1)
-            )
-        )
+        .background(AppColors.darkBlueGradient)
         .cornerRadius(20)
         .offset(y: dragOffset)
         .gesture(
@@ -175,6 +166,6 @@ struct TokenInfoCardView: View {
 
 #Preview {
     @Previewable @AppStorage("userId") var userId: String = ""
-    @State var isVisible = true
+    @Previewable @State var isVisible = true
     TokenInfoCardView(tokenModel: TokenModel(userId: userId, tokenId: mockTokenId), isVisible: $isVisible)
 }
