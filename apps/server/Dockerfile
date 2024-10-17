@@ -1,16 +1,6 @@
-FROM node:21.4.0-bookworm-slim
-ENV NODE_ENV=production
-
-# install build dependencies for bigint-buffer (https://solana.stackexchange.com/questions/4077/bigint-failed-to-load-bindings-pure-js-will-be-used-try-npm-run-rebuild-whe)
-RUN apt update \
-  && apt install --assume-yes --no-install-recommends \
-  build-essential \
-  python3
-
+FROM node:20-slim AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-
-# Build dependencies
 RUN corepack enable
 WORKDIR /app
 
@@ -25,13 +15,14 @@ COPY apps/server ./apps/server
 # Copy any shared packages
 COPY packages ./packages
 
-# Install dependencies without dev dependencies and skip prepare scripts
-RUN pnpm install --frozen-lockfile
+# Install dependencies
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 # Set working directory to the server app
 WORKDIR /app/apps/server
 
-EXPOSE 8888
+# Expose the port the app runs on
+EXPOSE 3002
 
-# Command to run the server
+# Command to run the keeper server
 CMD ["pnpm", "start"]
