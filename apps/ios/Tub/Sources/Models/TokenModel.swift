@@ -20,6 +20,9 @@ class TokenModel: ObservableObject {
     private var tokenBalanceSubscription:
         (credit: Apollo.Cancellable?, debit: Apollo.Cancellable?)  // Track the token balance subscription
 
+    @Published var priceChange: (amount: Double, percentage: Double) = (0, 0)
+    @Published var initialPrice: Double?
+
     init(userId: String, tokenId: String? = nil) {
         self.userId = userId
         if tokenId != nil {
@@ -94,11 +97,16 @@ class TokenModel: ObservableObject {
                         }
                         return nil
                     } ?? []
+                    
+                    if self.initialPrice == nil {
+                        self.initialPrice = self.prices.first?.price
+                    }
+                    
+                    // After fetching past history, subscribe to latest price updates
+                    self.subscribeToLatestPriceUpdates()
+                    self.loading = false
+                    self.calculatePriceChange()
                 }
-                
-                // After fetching past history, subscribe to latest price updates
-                self.subscribeToLatestPriceUpdates()
-                self.loading = false
                 
             case .failure(let error):
                 print("Error fetching token price history: \(error)")
@@ -119,6 +127,7 @@ class TokenModel: ObservableObject {
                         if let date = self.formatDate(latestPrice.created_at) {
                             let newPrice = Price(timestamp: date, price: Double(latestPrice.price) / 1e9)
                             self.prices.append(newPrice)
+                            self.calculatePriceChange()
                         }
                     }
                 }
@@ -182,11 +191,11 @@ class TokenModel: ObservableObject {
 
         Network.shared.buyToken(
             accountId: self.userId, tokenId: self.tokenId, amount: buyAmountLamps
-        ) { result in
+        ) { [weak self] result in
             switch result {
             case .success:
-                self.amountBoughtSol = buyAmountSol
-                self.purchaseTime = Date()
+                self?.amountBoughtSol = buyAmountSol
+                self?.purchaseTime = Date()
                 completion?(true)
             case .failure(let error):
                 print(error)
@@ -238,5 +247,17 @@ class TokenModel: ObservableObject {
         self.loading = true
         let timespanAgo = Date().addingTimeInterval(-timespan).ISO8601Format()
         subscribeToLatestPrice(timespanAgo)
+    }
+
+    private func calculatePriceChange() {
+        guard let currentPrice = prices.last?.price,
+              let initialPrice = initialPrice else { return }
+        
+        let priceChangeAmount = currentPrice - initialPrice
+        let priceChangePercentage = (priceChangeAmount / initialPrice) * 100
+        
+        DispatchQueue.main.async {
+            self.priceChange = (priceChangeAmount, priceChangePercentage)
+        }
     }
 }

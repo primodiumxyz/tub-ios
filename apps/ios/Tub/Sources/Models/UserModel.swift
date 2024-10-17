@@ -12,10 +12,19 @@ import TubAPI
 import ApolloCombine
 
 class UserModel: ObservableObject {
+    private lazy var iso8601Formatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
+
     @Published var balance: (credit: Numeric, debit: Numeric, total: Double) = (0, 0, 0)
     @Published var isLoading: Bool = true
     @Published var userId: String
     @Published var username: String = ""
+    @Published var balanceChange: (amount: Double, percentage: Double) = (0, 0)
+    @Published var lastHourBalance: Double = 0
+    private var timer: Timer?
     
     @AppStorage("userId") private var storedUserId: String?
     @AppStorage("username") private var storedUsername: String?
@@ -146,5 +155,50 @@ class UserModel: ObservableObject {
         cancellables.forEach { $0.cancel() }
         cancellables.removeAll()
         
+        // Invalidate the timer
+        timer?.invalidate()
+        timer = nil
+    }
+
+    private func fetchAndUpdateBalance() {
+        let oneHourAgo = Date().addingTimeInterval(-3600)
+        let formattedDate = iso8601Formatter.string(from: oneHourAgo)
+        let query = GetAccountBalanceQuery(accountId: Uuid(userId), at: .init(stringLiteral: formattedDate))
+        
+        Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success(let response):
+                let credit = response.data?.credit.aggregate?.sum?.amount ?? 0
+                let debit = response.data?.debit.aggregate?.sum?.amount ?? 0
+                let balance = Double(credit - debit) / 1e9
+                
+                DispatchQueue.main.async {
+                    if self.lastHourBalance == 0 {
+                        self.lastHourBalance = balance
+                    }
+                    
+                    let currentBalance = self.balance.total
+                    let changeAmount = currentBalance - self.lastHourBalance
+                    let changePercentage = self.lastHourBalance != 0 ? (changeAmount / self.lastHourBalance) * 100 : 0
+                    
+                    self.balanceChange = (changeAmount, changePercentage)
+                }
+            case .failure(let error):
+                print("Error fetching balance: \(error)")
+            }
+        }
+    }
+
+    func startBalanceUpdates() {
+        fetchAndUpdateBalance() // Initial fetch
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            self?.fetchAndUpdateBalance()
+        }
+    }
+
+    func stopBalanceUpdates() {
+        timer?.invalidate()
+        timer = nil
     }
 }

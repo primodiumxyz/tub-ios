@@ -79,9 +79,23 @@ struct TokenListView: View {
                         .opacity(0.7)
                         .kerning(-1)
                     
-                    Text("\(userModel.balance.total + tokenModel.tokenBalance.total * (tokenModel.prices.last?.price ?? 0), specifier: "%.2f") SOL")
+                    let totalBalance = userModel.balance.total + tokenModel.tokenBalance.total * (tokenModel.prices.last?.price ?? 0)
+                    Text("\(totalBalance, specifier: "%.2f") SOL")
                         .font(.sfRounded(size: .xl3))
                         .fontWeight(.bold)
+                    
+                    let changeAmount = totalBalance - userModel.lastHourBalance
+                    let changePercentage = userModel.lastHourBalance != 0 ? (changeAmount / userModel.lastHourBalance) * 100 : 0
+                    HStack {
+                        
+                        Text(changeAmount >= 0 ? "+" : "-")
+                        Text("\(abs(changeAmount), specifier: "%.2f") SOL")
+                        Text("(\(changePercentage, specifier: "%.1f")%)")
+                        Text("last hour")
+                            .foregroundColor(.gray)
+                    }
+                    .font(.sfRounded(size: .sm, weight: .semibold))
+                    .foregroundColor(changeAmount >= 0 ? .green : .red)
                 }.padding(.bottom)
                 
                 // todo: add gains
@@ -148,6 +162,10 @@ struct TokenListView: View {
         .background(Color.black)
         .onAppear {
             fetchTokens()
+            userModel.startBalanceUpdates()
+        }
+        .onDisappear {
+            userModel.stopBalanceUpdates()
         }
     }
     
