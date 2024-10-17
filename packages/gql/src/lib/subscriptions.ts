@@ -7,6 +7,7 @@ export const GetLatestMockTokensSubscription = graphql(`
       symbol
       supply
       name
+      uri
       updated_at
     }
   }

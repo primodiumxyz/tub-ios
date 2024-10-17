@@ -7,7 +7,7 @@ public class SubLatestMockTokensSubscription: GraphQLSubscription {
   public static let operationName: String = "SubLatestMockTokens"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"subscription SubLatestMockTokens($limit: Int = 10) { token( where: { mint: { _is_null: true } } order_by: { updated_at: desc } limit: $limit ) { __typename id symbol supply name updated_at } }"#
+      #"subscription SubLatestMockTokens($limit: Int = 10) { token( where: { mint: { _is_null: true } } order_by: { updated_at: desc } limit: $limit ) { __typename id symbol supply name uri updated_at } }"#
     ))
 
   public var limit: GraphQLNullable<Int>
@@ -48,6 +48,7 @@ public class SubLatestMockTokensSubscription: GraphQLSubscription {
         .field("symbol", String.self),
         .field("supply", TubAPI.Numeric.self),
         .field("name", String.self),
+        .field("uri", String?.self),
         .field("updated_at", TubAPI.Timestamptz.self),
       ] }
 
@@ -55,6 +56,7 @@ public class SubLatestMockTokensSubscription: GraphQLSubscription {
       public var symbol: String { __data["symbol"] }
       public var supply: TubAPI.Numeric { __data["supply"] }
       public var name: String { __data["name"] }
+      public var uri: String? { __data["uri"] }
       public var updated_at: TubAPI.Timestamptz { __data["updated_at"] }
     }
   }

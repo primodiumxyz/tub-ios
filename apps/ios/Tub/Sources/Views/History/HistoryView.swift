@@ -394,9 +394,7 @@ struct TransactionRow: View {
     
     var body: some View {
         HStack {
-            Image(transaction.imageUri)
-                .resizable()
-                .frame(width: 40, height: 40)
+            ImageView(imageUri: transaction.imageUri, size: 40)
                 .cornerRadius(8)
             
             VStack(alignment: .leading) {

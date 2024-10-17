@@ -57,12 +57,10 @@ struct TokenView : View {
                     HStack {
                         VStack(alignment: .leading, spacing: 1) {
                             HStack {
-                                Image(systemName: "pencil")
-                                    .resizable()
-                                    .frame(width: 20, height: 20)
-                                    .foregroundColor(AppColors.white)
-                                
-                                Text("$\(tokenModel.token.symbol) (\(tokenModel.token.name))")
+                                if tokenModel.token.imageUri != nil {
+                                    ImageView(imageUri: tokenModel.token.imageUri!, size: 20)
+                                }
+                                Text("$\(tokenModel.token.symbol)")
                                     .font(.sfRounded(size: .lg, weight: .semibold))
                             }
                             Text("\(tokenModel.prices.last?.price ?? 0, specifier: "%.3f") SOL")
