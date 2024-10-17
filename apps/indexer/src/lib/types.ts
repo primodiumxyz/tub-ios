@@ -27,6 +27,7 @@ export type SwapAccounts = {
   vaultA: PublicKey;
   vaultB: PublicKey;
   platform: Platform;
+  signature: string;
   timestamp: number;
 };
 

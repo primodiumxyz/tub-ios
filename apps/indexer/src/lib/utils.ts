@@ -75,6 +75,18 @@ export const getPoolTokenPriceMultiple = async (
       if (!formattedData) return acc;
       const { wrappedSolVaultBalance, tokenVaultBalance, platform, timestamp } = formattedData;
 
+      if (
+        BigInt(tokenVaultBalance.tokenAmount.amount) * BigInt(10 ** wrappedSolVaultBalance.tokenAmount.decimals) ===
+        BigInt(0)
+      ) {
+        console.log("DIVISION BY ZERO");
+        console.log({
+          wrappedSolVaultBalance,
+          tokenVaultBalance,
+          txSignature: swapAccounts[index / 2]?.signature,
+        });
+      }
+
       const tokenPrice = Number(
         (BigInt(wrappedSolVaultBalance.tokenAmount.amount) *
           BigInt(PRICE_PRECISION) *
