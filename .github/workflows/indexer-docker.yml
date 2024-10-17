@@ -3,7 +3,7 @@ name: Build Indexer Docker Image
 on:
   push:
     branches:
-      - main
+      - 0xpolarzero/pri-1162-gql-refactor-schema-for-indexer
   pull_request:
   workflow_call:
 
@@ -23,7 +23,7 @@ jobs:
       packages: write
       attestations: write
       id-token: write
-      # 
+      #
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
