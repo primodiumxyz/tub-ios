@@ -17,13 +17,13 @@ jobs:
         run: pnpm install --frozen-lockfile
         
       - name: Apply migrations
-        run: pnpm run hasura migrate apply --endpoint ${{ secrets.HASURA_ENDPOINT }} --admin-secret ${{ secrets.HASURA_ADMIN_SECRET }}
+        run: pnpm run hasura migrate apply --endpoint ${{ secrets.HASURA_ENDPOINT }} --admin-secret ${{ secrets.HASURA_ADMIN_SECRET }} --disable-interactive --database-name default
         env:
           HASURA_ENDPOINT: ${{ secrets.HASURA_ENDPOINT }}
           HASURA_ADMIN_SECRET: ${{ secrets.HASURA_ADMIN_SECRET }}
 
       - name: Apply metadata
-        run: pnpm run hasura metadata apply --endpoint ${{ secrets.HASURA_ENDPOINT }} --admin-secret ${{ secrets.HASURA_ADMIN_SECRET }}
+        run: pnpm run hasura metadata apply --endpoint ${{ secrets.HASURA_ENDPOINT }} --admin-secret ${{ secrets.HASURA_ADMIN_SECRET }} --disable-interactive --database-name default
         env:
           HASURA_ENDPOINT: ${{ secrets.HASURA_ENDPOINT }}
           HASURA_ADMIN_SECRET: ${{ secrets.HASURA_ADMIN_SECRET }}
