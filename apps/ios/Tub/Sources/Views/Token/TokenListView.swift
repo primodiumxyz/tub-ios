@@ -76,25 +76,26 @@ struct TokenListView: View {
                         .opacity(0.7)
                         .kerning(-1)
                     
-                    let totalBalance = userModel.balance.total + tokenModel.tokenBalance.total * (tokenModel.prices.last?.price ?? 0)
+                    let tokenValue = tokenModel.tokenBalance.total * (tokenModel.prices.last?.price ?? 0)
+                    let totalBalance = userModel.balance.total + tokenValue
                     Text("\(totalBalance, specifier: "%.2f") SOL")
                         .font(.sfRounded(size: .xl3))
                         .fontWeight(.bold)
                     
-                    let changeAmount = totalBalance - userModel.lastHourBalance
-                    let changePercentage = userModel.lastHourBalance != 0 ? (changeAmount / userModel.lastHourBalance) * 100 : 0
+                    let adjustedChange = userModel.balanceChange + tokenValue
                     HStack {
+                        Text(adjustedChange >= 0 ? "+" : "-")
+                        Text("\(abs(adjustedChange), specifier: "%.2f") SOL")
                         
-                        Text(changeAmount >= 0 ? "+" : "-")
-                        Text("\(abs(changeAmount), specifier: "%.2f") SOL")
-                        Text("(\(changePercentage, specifier: "%.1f")%)")
-                        Text("last hour")
+                        let adjustedPercentage = (adjustedChange / userModel.initialBalance) * 100
+                        Text("(\(abs(adjustedPercentage), specifier: "%.1f")%)")
+                        
+                        // Format time elapsed
+                        Text("(\(formatTimeElapsed(userModel.timeElapsed)))")
                             .foregroundColor(.gray)
                     }
                     .font(.sfRounded(size: .sm, weight: .semibold))
-                    .foregroundColor(changeAmount >= 0 ? .green : .red)
-                
-                // todo: add gains
+                    .foregroundColor(adjustedChange >= 0 ? .green : .red)
                 }
                 .padding()
                 .padding(.top, 35)
@@ -168,11 +169,8 @@ struct TokenListView: View {
         .background(Color.black)
         .onAppear {
             fetchTokens()
-            userModel.startBalanceUpdates()
         }
-        .onDisappear {
-            userModel.stopBalanceUpdates()
-        }
+        // Remove onDisappear as we no longer need to stop balance updates
     }
     
     private func getPreviousTokenModel() -> TokenModel {
@@ -223,6 +221,21 @@ struct TokenListView: View {
                     }
                 }
             }
+        }
+    }
+    
+    private func formatTimeElapsed(_ timeInterval: TimeInterval) -> String {
+        let hours = Int(timeInterval) / 3600
+        let minutes = (Int(timeInterval) % 3600) / 60
+
+        if hours > 1 {
+            return "past \(hours) hours"
+        } else if hours > 0 {
+            return "past hour"
+        } else if minutes > 1 {
+            return "past \(minutes) minutes"
+        } else  {
+            return "past minute"
         }
     }
 }
