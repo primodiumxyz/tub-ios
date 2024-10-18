@@ -25,9 +25,7 @@ struct HistoryDetailsView: View {
                         .foregroundColor(AppColors.gray)
                         .font(.sfRounded(size: .sm, weight: .medium))
                     HStack {
-                        Image(transaction.imageUri)
-                            .resizable()
-                            .frame(width: 40, height: 40)
+                        ImageView(imageUri: transaction.imageUri, size: 40)
                             .cornerRadius(8)
                         
                         Text(transaction.name)

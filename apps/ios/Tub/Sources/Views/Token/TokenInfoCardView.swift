@@ -23,7 +23,10 @@ struct TokenInfoCardView: View {
                 .offset(y:-15)
             
             HStack {
-                Text("$\(tokenModel.token.name)")
+                if tokenModel.token.imageUri != nil {
+                    ImageView(imageUri: tokenModel.token.imageUri!, size: 20)
+                }
+                Text("\(tokenModel.token.name)")
                     .font(.sfRounded(size: .xl, weight: .semibold))
                     .foregroundColor(AppColors.lightYellow)
             }

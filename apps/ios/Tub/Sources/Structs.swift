@@ -5,10 +5,13 @@ struct Token: Identifiable {
     var id: String
     var name: String
     var symbol: String
-//    var image: Image
+    var imageUri: String?
 }
 
-struct Price: Identifiable {
+struct Price: Identifiable, Equatable {
+    static func == (lhs: Price, rhs: Price) -> Bool {
+        return lhs.timestamp == rhs.timestamp && lhs.price == rhs.price
+    }
     var id = UUID()
     var timestamp: Date
     var price: Double
