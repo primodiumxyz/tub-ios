@@ -2,6 +2,7 @@ import {
   cacheExchange,
   Client,
   fetchExchange,
+  OperationContext,
   OperationResult,
   OperationResultSource,
   subscriptionExchange,
@@ -27,18 +28,18 @@ type OptionalArgs<T> = T extends Record<string, never> ? [] | [T] : [T];
 
 // Wrapper creator for both queries and mutations
 function createQueryWrapper<T extends TadaDocumentNode<any, any, any>>(client: Client, operation: T) {
-  return (args: ExtractVariables<T>): Promise<OperationResult<ExtractData<T>>> =>
-    client.query(operation, args ?? {}).toPromise();
+  return (args: ExtractVariables<T>, options: Partial<OperationContext>): Promise<OperationResult<ExtractData<T>>> =>
+    client.query(operation, args ?? {}, options).toPromise();
 }
 
 function createMutationWrapper<T extends TadaDocumentNode<any, any, any>>(client: Client, operation: T) {
-  return (args: ExtractVariables<T>): Promise<OperationResult<ExtractData<T>>> =>
-    client.mutation(operation, args ?? {}).toPromise();
+  return (args: ExtractVariables<T>, options: Partial<OperationContext>): Promise<OperationResult<ExtractData<T>>> =>
+    client.mutation(operation, args ?? {}, options).toPromise();
 }
 
 function createSubscriptionWrapper<T extends TadaDocumentNode<any, any, any>>(client: Client, operation: T) {
-  return (args: ExtractVariables<T>): OperationResultSource<OperationResult<ExtractData<T>>> =>
-    client.subscription(operation, args ?? {});
+  return (args: ExtractVariables<T>, options: Partial<OperationContext>): OperationResultSource<OperationResult<ExtractData<T>>> =>
+    client.subscription(operation, args ?? {}, options);
 }
 
 //------------------------------------------------
@@ -65,17 +66,17 @@ type SubscriptionWrapperReturnType<T extends keyof SubscriptionOperations> = Ret
 
 export type Queries = {
   [K in keyof QueryOperations]: (
-    ...args: OptionalArgs<ExtractVariables<QueryOperations[K]>>
+    ...args: [...OptionalArgs<ExtractVariables<QueryOperations[K]>>, Partial<OperationContext>?]
   ) => QueryWrapperReturnType<K>;
 };
 export type Mutations = {
   [K in keyof MutationOperations]: (
-    ...args: OptionalArgs<ExtractVariables<MutationOperations[K]>>
+    ...args: [...OptionalArgs<ExtractVariables<MutationOperations[K]>>, Partial<OperationContext>?]
   ) => MutationWrapperReturnType<K>;
 };
 export type Subscriptions = {
   [K in keyof SubscriptionOperations]: (
-    ...args: OptionalArgs<ExtractVariables<SubscriptionOperations[K]>>
+    ...args: [...OptionalArgs<ExtractVariables<SubscriptionOperations[K]>>, Partial<OperationContext>?]
   ) => SubscriptionWrapperReturnType<K>;
 };
 

@@ -10,17 +10,23 @@ const env = parseEnv();
 
 const PRECISION = 1e9;
 const VOLATILITY = 0.075;
-const PUMP_CHANCE = 0.05;
-const DUMP_CHANCE = 0.05;
+const BASE_PUMP_CHANCE = 0.05;
+const BASE_DUMP_CHANCE = 0.05;
+const MIN_PRICE_THRESHOLD = parseEther("0.1", "gwei"); // 0.5 GWEI
+const MAX_PRICE_THRESHOLD = parseEther("2.5", "gwei");   // 2 GWEI
 
 // Generates a random price change with potential for pumps and dumps
-function getRandomPriceChange(): number {
+function getRandomPriceChange(currentPrice: bigint): number {
   const rand = Math.random();
   let changeFactor = 0;
 
-  if (rand < PUMP_CHANCE) {
+  // Calculate adjusted pump and dump chances based on current price
+  const pumpChance = BASE_PUMP_CHANCE * (currentPrice < MIN_PRICE_THRESHOLD ? 3 : 1);
+  const dumpChance = BASE_DUMP_CHANCE * (currentPrice > MAX_PRICE_THRESHOLD ? 3 : 1);
+
+  if (rand < pumpChance) {
     changeFactor = Math.random() * 0.2 + 0.10;
-  } else if (rand < PUMP_CHANCE + DUMP_CHANCE) {
+  } else if (rand < pumpChance + dumpChance) {
     changeFactor = -(Math.random() * 0.2 + 0.10);
   } else {
     changeFactor = (Math.random() - 0.5) * 2 * VOLATILITY;
@@ -40,15 +46,20 @@ export const _start = async () => {
         hasuraAdminSecret: secret,
       })
     ).db;
+
     gql.GetLatestMockTokensSubscription({ limit: 10 }).subscribe(async (data) => {
       const updatePrices = async () => {
         const priceUpdates = data.data?.token?.map(async (token) => {
           const tokenId = token.id;
-          const _tokenPrice = await gql.GetLatestTokenPriceQuery({ tokenId });
+          const _tokenPrice = await gql.GetLatestTokenPriceQuery({
+            tokenId
+          }, {
+            requestPolicy: "network-only",
+          });
 
           const currentPrice = BigInt(_tokenPrice.data?.token_price_history[0]?.price ?? parseEther("1", "gwei"));
           console.log("Current price:", currentPrice);
-          const priceChange = getRandomPriceChange();
+          const priceChange = getRandomPriceChange(currentPrice);
           const tokenPrice = (currentPrice * BigInt(Math.floor(priceChange * PRECISION))) / BigInt(PRECISION);
 
           return {
