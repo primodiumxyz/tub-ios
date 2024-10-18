@@ -18,8 +18,8 @@ const tokenState = new Map<string, { direction: number; duration: number }>(); /
 const getRandomPriceChange = (tokenId: string) => {
   if (!tokenState.has(tokenId)) {
     tokenState.set(tokenId, {
-      direction: Math.random() < 0.5 ? 1 : -1,
-      duration: Math.floor(Math.random() * 7) + 1,
+      direction: 1,
+      duration: Math.floor(Math.random() * 10) + 1,
     });
   }
 
@@ -27,7 +27,7 @@ const getRandomPriceChange = (tokenId: string) => {
 
   if (tokenInfo.duration <= 0) {
     tokenInfo.direction = Math.random() < 0.5 ? 1 : -1;
-    tokenInfo.duration = Math.floor(Math.random() * 7) + 1; // New random duration
+    tokenInfo.duration = Math.floor(Math.random() * 10) + 1; // New random duration
   }
 
   // Macro price change based on direction
