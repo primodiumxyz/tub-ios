@@ -71,30 +71,6 @@ export const GetFilteredTokensSubscription = graphql(`
 `);
 
 //TODO: REMOVE
-// export const GetAccountBalanceCreditSubscription = graphql(`
-//   subscription SubAccountBalanceCredit($accountId: uuid!) {
-//     account_transaction_aggregate(where: { account: { _eq: $accountId }, transaction_type: { _eq: "credit" } }) {
-//       aggregate {
-//         sum {
-//           amount
-//         }
-//       }
-//     }
-//   }
-// `);
-
-// export const GetAccountBalanceDebitSubscription = graphql(`
-//   subscription SubAccountBalanceDebit($accountId: uuid!) {
-//     account_transaction_aggregate(where: { account: { _eq: $accountId }, transaction_type: { _eq: "debit" } }) {
-//       aggregate {
-//         sum {
-//           amount
-//         }
-//       }
-//     }
-//   }
-// `);
-
 // export const GetAccountTokenBalanceCreditSubscription = graphql(`
 //   subscription SubAccountTokenBalanceCredit($accountId: uuid!, $tokenId: uuid!) {
 //     token_transaction_aggregate(
@@ -130,6 +106,23 @@ export const GetFilteredTokensSubscription = graphql(`
 //     }
 //   }
 // `);
+
+
+export const GetAccountBalanceSubscription = graphql(`
+  subscription SubAccountBalanceIgnoreInterval($account: uuid!, $start: timestamptz = "now()") {
+      balance: account_balance_ignore_interval(args: {account: $account, interval: "0", start: $start}) {
+      value: balance
+    }
+  }
+`);
+
+export const GetAccountBalanceIgnoreIntervalSubscription = graphql(`
+  subscription SubAccountBalanceIgnoreInterval($account: uuid!, $start: timestamptz = "now()", $interval: interval = "0") {
+      balance: account_balance_ignore_interval(args: {account: $account, interval: $interval, start: $start}) {
+      value: balance
+    }
+  }
+`);
 
 export const GetTokenPriceHistoryIntervalSubscription = graphql(`
   subscription SubTokenPriceHistoryInterval($token: uuid, $start: timestamptz = "now()", $interval: interval = "30m") {

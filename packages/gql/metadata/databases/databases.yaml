@@ -81,12 +81,8 @@
     - fields:
         - name: balance
           type:
-            nullable: true
+            nullable: false
             scalar: numeric
-        - name: created_at_offset
-          type:
-            nullable: true
-            scalar: timestamptz
       name: balance_offset_model
     - fields:
         - name: id
@@ -129,6 +125,25 @@
       code: SELECT * FROM formatted_tokens
       returns: GetFormattedTokensResult
       root_field_name: GetFormattedTokens
+    - arguments:
+        account:
+          description: ""
+          nullable: false
+          type: uuid
+        interval:
+          description: ""
+          nullable: false
+          type: interval
+        start:
+          description: ""
+          nullable: false
+          type: timestamptz
+      code: |-
+        SELECT COALESCE(SUM(account_transaction_offset.amount), 0) as balance
+        from  (SELECT *, created_at + {{interval}} as created_at_offset from account_transaction) as account_transaction_offset
+        where account_transaction_offset.account = {{account}} and account_transaction_offset.created_at_offset <= {{start}}
+      returns: balance_offset_model
+      root_field_name: account_balance_ignore_interval
     - arguments:
         offset:
           description: ""
