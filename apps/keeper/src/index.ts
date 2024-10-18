@@ -9,11 +9,11 @@ config({ path: "../../.env" });
 const env = parseEnv();
 
 const PRECISION = 1e9;
-const VOLATILITY = 0.075;
-const BASE_PUMP_CHANCE = 0.05;
-const BASE_DUMP_CHANCE = 0.05;
-const MIN_PRICE_THRESHOLD = parseEther("0.1", "gwei"); // 0.5 GWEI
-const MAX_PRICE_THRESHOLD = parseEther("2.5", "gwei");   // 2 GWEI
+const VOLATILITY = 0.1;
+const BASE_PUMP_CHANCE = 0.075;
+const BASE_DUMP_CHANCE = 0.075;
+const MIN_PRICE_THRESHOLD = parseEther("0.1", "gwei");
+const MAX_PRICE_THRESHOLD = parseEther("2.5", "gwei");
 
 // Generates a random price change with potential for pumps and dumps
 function getRandomPriceChange(currentPrice: bigint): number {
@@ -35,8 +35,8 @@ function getRandomPriceChange(currentPrice: bigint): number {
   return 1 + changeFactor;
 }
 
-const url = env.NODE_ENV === "prod" ? env.GRAPHQL_URL : "http://localhost:8080/v1/graphql";
-const secret = env.NODE_ENV === "prod" ? env.HASURA_ADMIN_SECRET : "password";
+const url = env.NODE_ENV === "production" ? env.GRAPHQL_URL : "http://localhost:8080/v1/graphql";
+const secret = env.NODE_ENV === "production" ? env.HASURA_ADMIN_SECRET : "password";
 
 export const _start = async () => {
   try {
