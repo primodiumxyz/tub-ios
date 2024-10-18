@@ -15,7 +15,7 @@ const PRECISION = 1e9;
 
 const tokenState = new Map<string, { direction: number; duration: number }>(); // Store direction and duration for each token
 
-const getRandomPriceChange = (tokenId: string) => {
+const getRandomPriceChange = (tokenId: string, currentPrice: bigint) => {
   if (!tokenState.has(tokenId)) {
     tokenState.set(tokenId, {
       direction: 1,
@@ -38,7 +38,12 @@ const getRandomPriceChange = (tokenId: string) => {
   const noise = (Math.random() - 0.5) * VOLATILITY * 0.5;
 
   // Combine macro direction change with noise
-  const totalChange = macroChange + noise;
+  let totalChange = macroChange + noise;
+
+  // Check if the current price is less than 0.5 and give it a 50% chance of doubling
+  if (currentPrice < parseEther("0.25", "gwei") && Math.random() < 0.5) {
+    totalChange = 2;
+  }
 
   tokenInfo.duration--;
 
@@ -65,7 +70,7 @@ export const _start = async () => {
           const _tokenPrice = await gql.GetLatestTokenPriceQuery({ tokenId });
 
           const currentPrice = BigInt(_tokenPrice.data?.token_price_history[0]?.price ?? parseEther("1", "gwei"));
-          const priceChange = getRandomPriceChange(tokenId);
+          const priceChange = getRandomPriceChange(tokenId, currentPrice);
           const tokenPrice = (currentPrice * BigInt(Math.floor(priceChange * PRECISION))) / BigInt(PRECISION);
 
           return {
@@ -85,7 +90,7 @@ export const _start = async () => {
 
         console.log(`Updated prices for ${allPriceUpdates.length} tokens`);
         allPriceUpdates.forEach(({ symbol, price }) => {
-          console.log(`New price for ${symbol}: ${price}`);
+          console.log(`Old price : New price for ${symbol}: ${price}`);
         });
 
         await new Promise((resolve) => setTimeout(resolve, UPDATE_INTERVAL));
