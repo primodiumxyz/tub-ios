@@ -9,7 +9,7 @@ config({ path: "../../.env" });
 const env = parseEnv();
 
 const UPDATE_INTERVAL = 1_000;
-const VOLATILITY = 0.1;
+const VOLATILITY = 0.075;
 const PRECISION = 1e9;
 
 
