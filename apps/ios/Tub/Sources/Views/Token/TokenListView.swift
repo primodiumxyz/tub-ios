@@ -91,7 +91,7 @@ struct TokenListView: View {
                         Text("(\(abs(adjustedPercentage), specifier: "%.1f")%)")
                         
                         // Format time elapsed
-                        Text("(\(formatTimeElapsed(userModel.timeElapsed)))")
+                        Text("\(formatTimeElapsed(userModel.timeElapsed))")
                             .foregroundColor(.gray)
                     }
                     .font(.sfRounded(size: .sm, weight: .semibold))
