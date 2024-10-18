@@ -96,10 +96,10 @@ const createClient = <T extends "web" | "node" = "node">({
 }): CreateClientReturn<T> => {
   const fetchOptions = hasuraAdminSecret
     ? {
-        headers: {
-          "x-hasura-admin-secret": hasuraAdminSecret,
-        },
-      }
+      headers: {
+        "x-hasura-admin-secret": hasuraAdminSecret,
+      },
+    }
     : undefined;
 
   const createClientInternal = (webSocketImpl?: typeof WebSocket): GqlClient => {

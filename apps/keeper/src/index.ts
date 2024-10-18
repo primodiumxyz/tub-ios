@@ -8,49 +8,26 @@ config({ path: "../../.env" });
 
 const env = parseEnv();
 
-const UPDATE_INTERVAL = 1_000;
-const VOLATILITY = 0.075;
 const PRECISION = 1e9;
+const VOLATILITY = 0.075;
+const PUMP_CHANCE = 0.05;
+const DUMP_CHANCE = 0.05;
 
+// Generates a random price change with potential for pumps and dumps
+function getRandomPriceChange(): number {
+  const rand = Math.random();
+  let changeFactor = 0;
 
-const tokenState = new Map<string, { direction: number; duration: number }>(); // Store direction and duration for each token
-
-const getRandomPriceChange = (tokenId: string, currentPrice: bigint) => {
-  if (!tokenState.has(tokenId)) {
-    tokenState.set(tokenId, {
-      direction: 1,
-      duration: Math.floor(Math.random() * 10) + 1,
-    });
+  if (rand < PUMP_CHANCE) {
+    changeFactor = Math.random() * 0.2 + 0.10;
+  } else if (rand < PUMP_CHANCE + DUMP_CHANCE) {
+    changeFactor = -(Math.random() * 0.2 + 0.10);
+  } else {
+    changeFactor = (Math.random() - 0.5) * 2 * VOLATILITY;
   }
 
-  const tokenInfo = tokenState.get(tokenId)!;
-
-  if (tokenInfo.duration <= 0) {
-    tokenInfo.direction = Math.random() < 0.5 ? 1 : -1;
-    tokenInfo.duration = Math.floor(Math.random() * 10) + 1; // New random duration
-  }
-
-  // Macro price change based on direction
-  let macroChange = Math.random() * VOLATILITY;
-  macroChange *= tokenInfo.direction;
-
-  // Add small random noise that can go either up or down
-  const noise = (Math.random() - 0.5) * VOLATILITY * 0.5;
-
-  // Combine macro direction change with noise
-  let totalChange = macroChange + noise;
-
-  // Check if the current price is less than 0.5 and give it a 50% chance of doubling
-  if (currentPrice < parseEther("0.25", "gwei") && Math.random() < 0.5) {
-    totalChange = 2;
-  }
-
-  tokenInfo.duration--;
-
-  tokenState.set(tokenId, tokenInfo);
-
-  return 1 + totalChange;
-};
+  return 1 + changeFactor;
+}
 
 const url = env.NODE_ENV === "prod" ? env.GRAPHQL_URL : "http://localhost:8080/v1/graphql";
 const secret = env.NODE_ENV === "prod" ? env.HASURA_ADMIN_SECRET : "password";
@@ -59,8 +36,8 @@ export const _start = async () => {
   try {
     const gql = (
       await createGqlClient({
-        url: env.NODE_ENV === "prod" ? env.GRAPHQL_URL : "http://localhost:8080/v1/graphql",
-        hasuraAdminSecret: env.NODE_ENV === "prod" ? env.HASURA_ADMIN_SECRET : "password",
+        url,
+        hasuraAdminSecret: secret,
       })
     ).db;
     gql.GetLatestMockTokensSubscription({ limit: 10 }).subscribe(async (data) => {
@@ -70,7 +47,8 @@ export const _start = async () => {
           const _tokenPrice = await gql.GetLatestTokenPriceQuery({ tokenId });
 
           const currentPrice = BigInt(_tokenPrice.data?.token_price_history[0]?.price ?? parseEther("1", "gwei"));
-          const priceChange = getRandomPriceChange(tokenId, currentPrice);
+          console.log("Current price:", currentPrice);
+          const priceChange = getRandomPriceChange();
           const tokenPrice = (currentPrice * BigInt(Math.floor(priceChange * PRECISION))) / BigInt(PRECISION);
 
           return {
@@ -93,7 +71,7 @@ export const _start = async () => {
           console.log(`Old price : New price for ${symbol}: ${price}`);
         });
 
-        await new Promise((resolve) => setTimeout(resolve, UPDATE_INTERVAL));
+        await new Promise((resolve) => setTimeout(resolve, Math.random() * 1000 + 250));
       };
 
       while (true) await updatePrices();
@@ -114,7 +92,7 @@ export const start = async () => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-      const response = await fetch(url, {
+      const response = await fetch(url.split("/v1")[0] + "/healthz?strict=true", {
         signal: controller.signal,
       });
 
@@ -124,7 +102,7 @@ export const start = async () => {
         console.log("Hasura service is healthy");
         // wait for 5 seconds for seeding to complete if retry count is more than 1
         if (i > 0) {
-          await new Promise((resolve) => setTimeout(resolve, 5000));
+          await new Promise((resolve) => setTimeout(resolve, 10_000));
         }
         return _start();
       }
