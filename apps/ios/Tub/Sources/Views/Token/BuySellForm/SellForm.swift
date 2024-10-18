@@ -23,7 +23,7 @@ struct SellForm: View {
                         Text("You Own")
                             .font(.sfRounded(size: .xs, weight: .semibold))
                             .foregroundColor(AppColors.gray)
-                        Text("\(tokenModel.tokenBalance.total, specifier: "%.2f") \(tokenModel.token.symbol)")
+                        Text("\(PriceFormatter.formatPrice(tokenModel.tokenBalance.total)) \(tokenModel.token.symbol)")
                             .font(.sfRounded(size: .xl, weight: .semibold))
                             .foregroundColor(AppColors.white)
                     }

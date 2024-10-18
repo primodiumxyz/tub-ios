@@ -63,7 +63,7 @@ struct TokenView : View {
                                 Text("$\(tokenModel.token.symbol)")
                                     .font(.sfRounded(size: .lg, weight: .semibold))
                             }
-                            Text("\(tokenModel.prices.last?.price ?? 0, specifier: "%.3f") SOL")
+                            Text(PriceFormatter.formatPrice(tokenModel.prices.last?.price ?? 0) + " SOL")
                                 .font(.sfRounded(size: .xl4, weight: .bold))
                         }
                         

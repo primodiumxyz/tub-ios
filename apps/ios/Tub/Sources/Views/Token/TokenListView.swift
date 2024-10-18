@@ -75,7 +75,7 @@ struct TokenListView: View {
                         .opacity(0.7)
                         .kerning(-1)
                     
-                    Text("\(userModel.balance.total + tokenModel.tokenBalance.total * (tokenModel.prices.last?.price ?? 0), specifier: "%.2f") SOL")
+                    Text("\(PriceFormatter.formatPrice(userModel.balance.total + tokenModel.tokenBalance.total * (tokenModel.prices.last?.price ?? 0))) SOL")
                         .font(.sfRounded(size: .xl3))
                         .fontWeight(.bold)
                 }

@@ -9,10 +9,8 @@ import SwiftUI
 
 struct HistoryDetailsView: View {
     let transaction: Transaction
-
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            
             Text(transaction.isBuy ? "Buy Details" : "Sell Details")
                 .font(.sfRounded(size: .xl2, weight: .bold))
                 .foregroundColor(AppColors.white)

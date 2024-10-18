@@ -73,7 +73,7 @@ struct ChartView: View {
                                  color: dashedLineColor,
                                  foregroundColor: AppColors.black)
                     } else {
-                        PillView(value: "\(String(format: "%.2f%", currentPrice.price)) SOL", color: AppColors.white,
+                        PillView(value: "\(PriceFormatter.formatPrice(currentPrice.price)) SOL", color: AppColors.white,
                                  foregroundColor: AppColors.black)
                     }
                 }
@@ -95,7 +95,7 @@ struct ChartView: View {
                 
                 .annotation(position: .bottom, spacing: 0) {
                     PillView(
-                        value: "\(String(format: "%.2f%", purchasePrice.price)) SOL",
+                        value: "\(PriceFormatter.formatPrice(purchasePrice.price)) SOL",
                         color: AppColors.primaryPink.opacity(0.8), foregroundColor: AppColors.white)
                 }
             }
@@ -115,7 +115,14 @@ struct ChartView: View {
                 AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
                     .foregroundStyle(.white.opacity(0.2))
                 AxisValueLabel()
-                    .foregroundStyle(.white.opacity(0.5))
+                AxisValueLabel {
+                    if let doubleValue = value.as(Double.self) {
+                        Text(PriceFormatter.formatPrice(doubleValue))
+                            .foregroundStyle(.white)
+                            .font(.sfRounded(size: .xs, weight: .regular))
+                    }
+                }
+                .foregroundStyle(.white.opacity(0.5))
             }
         }
         .chartYScale(domain: .automatic)
