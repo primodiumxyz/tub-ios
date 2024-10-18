@@ -1,4 +1,4 @@
-name: Build Indexer Docker Image
+name: Build Keeper Docker Image
 
 on:
   push:
