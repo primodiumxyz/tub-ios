@@ -88,7 +88,7 @@ export const GetAccountTokenBalanceIgnoreIntervalSubscription = graphql(`
 
 
 export const GetAccountBalanceSubscription = graphql(`
-  subscription SubAccountBalanceIgnoreInterval($account: uuid!, $start: timestamptz = "now()") {
+  subscription SubAccountBalance($account: uuid!, $start: timestamptz = "now()") {
     balance: account_balance_ignore_interval(args: {account: $account, interval: "0", start: $start}) {
       value: balance
     }

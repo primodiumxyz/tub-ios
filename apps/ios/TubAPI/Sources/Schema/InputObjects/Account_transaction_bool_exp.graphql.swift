@@ -21,8 +21,7 @@ public struct Account_transaction_bool_exp: InputObject {
     createdAt: GraphQLNullable<Timestamptz_comparison_exp> = nil,
     id: GraphQLNullable<Uuid_comparison_exp> = nil,
     tokenTransactions: GraphQLNullable<Token_transaction_bool_exp> = nil,
-    tokenTransactionsAggregate: GraphQLNullable<Token_transaction_aggregate_bool_exp> = nil,
-    transactionType: GraphQLNullable<Transaction_type_comparison_exp> = nil
+    tokenTransactionsAggregate: GraphQLNullable<Token_transaction_aggregate_bool_exp> = nil
   ) {
     __data = InputDict([
       "_and": _and,
@@ -34,8 +33,7 @@ public struct Account_transaction_bool_exp: InputObject {
       "created_at": createdAt,
       "id": id,
       "token_transactions": tokenTransactions,
-      "token_transactions_aggregate": tokenTransactionsAggregate,
-      "transaction_type": transactionType
+      "token_transactions_aggregate": tokenTransactionsAggregate
     ])
   }
 
@@ -87,10 +85,5 @@ public struct Account_transaction_bool_exp: InputObject {
   public var tokenTransactionsAggregate: GraphQLNullable<Token_transaction_aggregate_bool_exp> {
     get { __data["token_transactions_aggregate"] }
     set { __data["token_transactions_aggregate"] = newValue }
-  }
-
-  public var transactionType: GraphQLNullable<Transaction_type_comparison_exp> {
-    get { __data["transaction_type"] }
-    set { __data["transaction_type"] = newValue }
   }
 }

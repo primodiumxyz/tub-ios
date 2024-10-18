@@ -24,12 +24,8 @@ public enum SchemaMetadata: ApolloAPI.SchemaMetadata {
     case "token": return TubAPI.Objects.Token
     case "token_price_history": return TubAPI.Objects.Token_price_history
     case "GetFormattedTokensResult": return TubAPI.Objects.GetFormattedTokensResult
-    case "account_transaction_aggregate": return TubAPI.Objects.Account_transaction_aggregate
-    case "account_transaction_aggregate_fields": return TubAPI.Objects.Account_transaction_aggregate_fields
-    case "account_transaction_sum_fields": return TubAPI.Objects.Account_transaction_sum_fields
-    case "token_transaction_aggregate": return TubAPI.Objects.Token_transaction_aggregate
-    case "token_transaction_aggregate_fields": return TubAPI.Objects.Token_transaction_aggregate_fields
-    case "token_transaction_sum_fields": return TubAPI.Objects.Token_transaction_sum_fields
+    case "balance_offset_model": return TubAPI.Objects.Balance_offset_model
+    case "token_price_history_offset": return TubAPI.Objects.Token_price_history_offset
     case "query_root": return TubAPI.Objects.Query_root
     case "account": return TubAPI.Objects.Account
     case "token_transaction": return TubAPI.Objects.Token_transaction

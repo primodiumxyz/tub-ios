@@ -4,9 +4,8 @@
 import ApolloAPI
 
 public extension Objects {
-  /// aggregated selection of "token_transaction"
-  static let Token_transaction_aggregate = ApolloAPI.Object(
-    typename: "token_transaction_aggregate",
+  static let Token_price_history_offset = ApolloAPI.Object(
+    typename: "token_price_history_offset",
     implementedInterfaces: []
   )
 }

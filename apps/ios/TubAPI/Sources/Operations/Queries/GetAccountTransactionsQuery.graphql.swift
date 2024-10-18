@@ -7,7 +7,7 @@ public class GetAccountTransactionsQuery: GraphQLQuery {
   public static let operationName: String = "GetAccountTransactions"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetAccountTransactions($accountId: uuid!) { token_transaction( order_by: { account_transaction_data: { created_at: desc } } where: { account_transaction_data: { account_data: { id: { _eq: $accountId } } } } ) { __typename account_transaction amount id token token_data { __typename id name supply symbol uri } transaction_type account_transaction_data { __typename created_at } token_price { __typename price created_at } } }"#
+      #"query GetAccountTransactions($accountId: uuid!) { token_transaction( order_by: { account_transaction_data: { created_at: desc } } where: { account_transaction_data: { account_data: { id: { _eq: $accountId } } } } ) { __typename account_transaction amount id token token_data { __typename id name supply symbol uri } account_transaction_data { __typename created_at } token_price { __typename price created_at } } }"#
     ))
 
   public var accountId: Uuid
@@ -48,7 +48,6 @@ public class GetAccountTransactionsQuery: GraphQLQuery {
         .field("id", TubAPI.Uuid.self),
         .field("token", TubAPI.Uuid.self),
         .field("token_data", Token_data.self),
-        .field("transaction_type", TubAPI.Transaction_type.self),
         .field("account_transaction_data", Account_transaction_data.self),
         .field("token_price", Token_price?.self),
       ] }
@@ -59,7 +58,6 @@ public class GetAccountTransactionsQuery: GraphQLQuery {
       public var token: TubAPI.Uuid { __data["token"] }
       /// An object relationship
       public var token_data: Token_data { __data["token_data"] }
-      public var transaction_type: TubAPI.Transaction_type { __data["transaction_type"] }
       /// An object relationship
       public var account_transaction_data: Account_transaction_data { __data["account_transaction_data"] }
       /// An object relationship
