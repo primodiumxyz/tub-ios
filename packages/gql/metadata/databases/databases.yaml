@@ -61,6 +61,38 @@
           type:
             nullable: true
             scalar: uuid
+        - name: account
+          type:
+            nullable: true
+            scalar: uuid
+        - name: amount
+          type:
+            nullable: true
+            scalar: numeric
+        - name: created_at
+          type:
+            nullable: true
+            scalar: timestamptz
+        - name: created_at_offset
+          type:
+            nullable: true
+            scalar: timestamptz
+      name: account_transaction_offset_model
+    - fields:
+        - name: balance
+          type:
+            nullable: true
+            scalar: numeric
+        - name: created_at_offset
+          type:
+            nullable: true
+            scalar: timestamptz
+      name: balance_offset_model
+    - fields:
+        - name: id
+          type:
+            nullable: true
+            scalar: uuid
         - name: token
           type:
             nullable: true
@@ -82,11 +114,29 @@
             nullable: true
             scalar: timestamptz
       name: token_price_history_offset
+      select_permissions:
+        - permission:
+            columns:
+              - id
+              - token
+              - price
+              - created_at
+              - internal_token_transaction_ref
+            filter: {}
+          role: public
   native_queries:
     - arguments: {}
       code: SELECT * FROM formatted_tokens
       returns: GetFormattedTokensResult
       root_field_name: GetFormattedTokens
+    - arguments:
+        offset:
+          description: ""
+          nullable: false
+          type: interval
+      code: select *, created_at + {{offset}} as created_at_offset from account_transaction
+      returns: account_transaction_offset_model
+      root_field_name: account_transaction_offset
     - arguments:
         offset:
           description: ""
