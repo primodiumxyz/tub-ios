@@ -47,6 +47,20 @@
             nullable: true
             scalar: text
       name: GetFormattedTokensResult
+      select_permissions:
+        - permission:
+            columns:
+              - token_id
+              - mint
+              - name
+              - symbol
+              - latest_price
+              - increase_pct
+              - trades
+              - created_at
+              - platform
+            filter: {}
+          role: public
   native_queries:
     - arguments: {}
       code: SELECT * FROM formatted_tokens

@@ -5,14 +5,15 @@ select_permissions:
   - role: public
     permission:
       columns:
-        - trades
-        - name
-        - symbol
+        - created_at
         - increase_pct
         - latest_price
         - mint
-        - created_at
+        - name
+        - platform
+        - symbol
         - token_id
+        - trades
       filter: {}
       allow_aggregations: true
     comment: ""
