@@ -55,78 +55,27 @@ export const GetTokensByMintsQuery = graphql(`
   }
 `);
 
-//TODO: Remove
-// export const GetAccountTokenBalanceCreditQuery = graphql(`
-//   query GetAccountTokenBalanceCredit($accountId: uuid!, $tokenId: uuid!) {
-//     token_transaction_aggregate(
-//       where: {
-//         account_transaction_data: { account: { _eq: $accountId } }
-//         token: { _eq: $tokenId }
-//         transaction_type: { _eq: "credit" }
-//       }
-//     ) {
-//       aggregate {
-//         sum {
-//           amount
-//         }
-//       }
-//     }
-//   }
-// `);
 
-// export const GetAccountTokenBalanceDebitQuery = graphql(`
-//   query GetAccountTokenBalanceDebit($accountId: uuid!, $tokenId: uuid!) {
-//     token_transaction_aggregate(
-//       where: {
-//         account_transaction_data: { account: { _eq: $accountId } }
-//         token: { _eq: $tokenId }
-//         transaction_type: { _eq: "debit" }
-//       }
-//     ) {
-//       aggregate {
-//         sum {
-//           amount
-//         }
-//       }
-//     }
-//   }
-// `);
+export const GetAccountTokenBalanceQuery = graphql(`
+  query GetAccountTokenBalance($account: uuid!, $token: uuid!, $start: timestamptz = "now()") {
+    balance: account_token_balance_ignore_interval(args: {account: $account, interval: "0", start: $start, token: $token}) {
+      value: balance
+    }
+  }
+`);
 
-// export const GetAccountTokenBalanceQuery = graphql(`
-//   query GetAccountTokenBalance($accountId: uuid!, $tokenId: uuid!) {
-//     credit: token_transaction_aggregate(
-//       where: {
-//         account_transaction_data: { account: { _eq: $accountId } }
-//         token: { _eq: $tokenId }
-//         transaction_type: { _eq: "credit" }
-//       }
-//     ) {
-//       aggregate {
-//         sum {
-//           amount
-//         }
-//       }
-//     }
+export const GetAccountTokenBalanceIgnoreIntervalQuery = graphql(`
+  query GetAccountTokenBalanceIgnoreInterval($account: uuid!, $start: timestamptz = "now()", $interval: interval = "0", $token: uuid!) {
+    balance: account_token_balance_ignore_interval(args: {account: $account, interval: $interval, start: $start, token: $token}) {
+      value: balance
+    }
+  }
+`);
 
-//     debit: token_transaction_aggregate(
-//       where: {
-//         account_transaction_data: { account: { _eq: $accountId } }
-//         token: { _eq: $tokenId }
-//         transaction_type: { _eq: "debit" }
-//       }
-//     ) {
-//       aggregate {
-//         sum {
-//           amount
-//         }
-//       }
-//     }
-//   }
-// `);
 
 export const GetAccountBalanceQuery = graphql(`
   query GetAccountBalanceIgnoreInterval($account: uuid!, $start: timestamptz = "now()") {
-      balance: account_balance_ignore_interval(args: {account: $account, interval: "0", start: $start}) {
+    balance: account_balance_ignore_interval(args: {account: $account, interval: "0", start: $start}) {
       value: balance
     }
   }
@@ -134,7 +83,7 @@ export const GetAccountBalanceQuery = graphql(`
 
 export const GetAccountBalanceIgnoreIntervalQuery = graphql(`
   query GetAccountBalanceIgnoreInterval($account: uuid!, $start: timestamptz = "now()", $interval: interval = "0") {
-      balance: account_balance_ignore_interval(args: {account: $account, interval: $interval, start: $start}) {
+    balance: account_balance_ignore_interval(args: {account: $account, interval: $interval, start: $start}) {
       value: balance
     }
   }

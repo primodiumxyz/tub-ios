@@ -120,6 +120,32 @@
               - internal_token_transaction_ref
             filter: {}
           role: public
+    - fields:
+        - name: id
+          type:
+            nullable: true
+            scalar: uuid
+        - name: token
+          type:
+            nullable: true
+            scalar: uuid
+        - name: amount
+          type:
+            nullable: true
+            scalar: numeric
+        - name: account
+          type:
+            nullable: true
+            scalar: uuid
+        - name: created_at
+          type:
+            nullable: true
+            scalar: timestamptz
+        - name: created_at_offset
+          type:
+            nullable: true
+            scalar: timestamptz
+      name: token_transaction_offset_model
   native_queries:
     - arguments: {}
       code: SELECT * FROM formatted_tokens
@@ -145,6 +171,26 @@
       returns: balance_offset_model
       root_field_name: account_balance_ignore_interval
     - arguments:
+        account:
+          description: ""
+          nullable: false
+          type: uuid
+        interval:
+          description: ""
+          nullable: false
+          type: interval
+        start:
+          description: ""
+          nullable: false
+          type: timestamptz
+        token:
+          description: ""
+          nullable: false
+          type: uuid
+      code: "SELECT \n    COALESCE(SUM(token_transaction_offset.amount), 0) AS balance\nFROM (\n    SELECT  \n        token_transaction.id,  \n        token_transaction.token,  \n        token_transaction.amount, \n        account_transaction.account, \n        account_transaction.created_at, \n        account_transaction.created_at + {{interval}} AS created_at_offset\n    FROM \n        token_transaction\n    INNER JOIN \n        account_transaction \n    ON \n        token_transaction.account_transaction = account_transaction.id\n) AS token_transaction_offset\nWHERE \n    token_transaction_offset.account = {{account}} \n    AND token_transaction_offset.token = {{token}} \n    AND token_transaction_offset.created_at_offset <= {{start}};"
+      returns: balance_offset_model
+      root_field_name: account_token_balance_ignore_interval
+    - arguments:
         offset:
           description: ""
           nullable: false
@@ -160,5 +206,13 @@
       code: SELECT *, created_at + {{offset}} as created_at_offset from token_price_history
       returns: token_price_history_offset
       root_field_name: token_price_history_offset
+    - arguments:
+        offset:
+          description: ""
+          nullable: false
+          type: interval
+      code: SELECT  token_transaction.id,  token_transaction.token,  token_transaction.amount, account, created_at, created_at + {{offset}} as created_at_offset from token_transaction inner JOIN account_transaction on token_transaction.account_transaction = account_transaction.id
+      returns: token_transaction_offset_model
+      root_field_name: token_transaction_offset
   tables: "!include default/tables/tables.yaml"
   functions: "!include default/functions/functions.yaml"
