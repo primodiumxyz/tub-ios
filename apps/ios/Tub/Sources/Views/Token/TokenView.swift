@@ -53,7 +53,7 @@ struct TokenView : View {
         ZStack {
             // Main content
             VStack {
-                VStack (alignment: .leading) {
+                VStack(alignment: .leading) {
                     HStack {
                         VStack(alignment: .leading, spacing: 1) {
                             HStack {
@@ -65,6 +65,14 @@ struct TokenView : View {
                             }
                             Text("\(tokenModel.prices.last?.price ?? 0, specifier: "%.3f") SOL")
                                 .font(.sfRounded(size: .xl4, weight: .bold))
+                            
+                            HStack {
+                                Text(tokenModel.priceChange.amount >= 0 ? "+" : "-")
+                                Text("\(abs(tokenModel.priceChange.amount), specifier: "%.3f") SOL")
+                                Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
+                            }
+                            .font(.sfRounded(size: .sm, weight: .semibold))
+                            .foregroundColor(tokenModel.priceChange.amount >= 0 ? .green : .red)
                         }
                         
                         Spacer() // Add this to push the chevron to the right

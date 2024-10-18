@@ -13,9 +13,9 @@ export const GetAllAccountsQuery = graphql(`
 export const GetAccountDataQuery = graphql(`
   query GetAccountData($accountId: uuid!) {
     account(where: { id: { _eq: $accountId } }) {
-    username
-    id
-    created_at
+      username
+      id
+      created_at
     }
   }
 `);
@@ -35,13 +35,13 @@ export const GetAllMockTokensQuery = graphql(`
 
 export const GetTokenDataQuery = graphql(`
   query GetTokenData($tokenId: uuid!) {
-    token(where: {id: {_eq: $tokenId}}) {
+    token(where: { id: { _eq: $tokenId } }) {
       id
-    name
-    symbol
-    updated_at
-    supply
-    uri
+      name
+      symbol
+      updated_at
+      supply
+      uri
     }
   }
 `);
@@ -115,6 +115,30 @@ export const GetAccountTokenBalanceDebitQuery = graphql(`
   }
 `);
 
+export const GetAccountBalanceQuery = graphql(`
+  query GetAccountBalance($accountId: uuid!, $at: timestamptz!) {
+    credit: account_transaction_aggregate(
+      where: { account: { _eq: $accountId }, created_at: { _lte: $at }, transaction_type: { _eq: "credit" } }
+    ) {
+      aggregate {
+        sum {
+          amount
+        }
+      }
+    }
+
+    debit: account_transaction_aggregate(
+      where: { account: { _eq: $accountId }, created_at: { _lte: $at }, transaction_type: { _eq: "debit" } }
+    ) {
+      aggregate {
+        sum {
+          amount
+        }
+      }
+    }
+  }
+`);
+
 export const GetAccountTokenBalanceQuery = graphql(`
   query GetAccountTokenBalance($accountId: uuid!, $tokenId: uuid!) {
     credit: token_transaction_aggregate(
@@ -147,7 +171,6 @@ export const GetAccountTokenBalanceQuery = graphql(`
   }
 `);
 
-
 export const GetLatestTokenPriceQuery = graphql(`
   query GetLatestTokenPrice($tokenId: uuid!) {
     token_price_history(where: { token: { _eq: $tokenId } }, order_by: { created_at: desc }, limit: 1) {
@@ -161,7 +184,10 @@ export const GetLatestTokenPriceQuery = graphql(`
 
 export const GetAccountTransactionsQuery = graphql(`
   query GetAccountTransactions($accountId: uuid!) {
-    token_transaction(order_by: {account_transaction_data: {created_at: desc}}, where: {account_transaction_data: {account_data: {id: {_eq: $accountId}}}}) {
+    token_transaction(
+      order_by: { account_transaction_data: { created_at: desc } }
+      where: { account_transaction_data: { account_data: { id: { _eq: $accountId } } } }
+    ) {
       account_transaction
       amount
       id
