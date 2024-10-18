@@ -22,10 +22,7 @@ const processLogs = (result: TransactionSubscriptionResult): SwapAccounts[] => {
     const tx = txFormatter.formTransactionFromJson(result, timestamp);
 
     const parsedIxs = ixParser.parseParsedTransactionWithInnerInstructions(tx);
-    return decodeSwapAccounts(parsedIxs, timestamp).map((swapAccount) => ({
-      ...swapAccount,
-      signature: tx.transaction.signatures[0] ?? "no signature",
-    }));
+    return decodeSwapAccounts(parsedIxs, timestamp);
   } catch (error) {
     console.error("Unexpected error in processLogs:", error);
     return [];
@@ -67,7 +64,8 @@ const handleSwapData = async (gql: GqlClient["db"], swapAccountsArray: SwapAccou
         // TODO: temporary until we know when to fetch & write actual token metadata
         ...getRandomTokenMetadata(),
         mint,
-        // platform: platform,
+        platform,
+        updated_at: new Date(timestamp),
       })),
     });
 

@@ -3,7 +3,7 @@ name: Build Indexer Docker Image
 on:
   push:
     branches:
-      - 0xpolarzero/pri-1162-gql-refactor-schema-for-indexer
+      - main
   pull_request:
   workflow_call:
 
