@@ -11,24 +11,25 @@ import Charts
 struct CandleChartView: View {
     let prices: [Price]
     let intervalSecs: Double
-    let timeframeMins: Int?
+    var timeframeMins: Double = 30
 
     @State private var candles: [CandleData] = []
+    @State private var transparentCandle: CandleData?
 
-    init(prices: [Price], intervalSecs: Double, timeframeMins: Int? = nil) {
+    init(prices: [Price], intervalSecs: Double, timeframeMins: Double? = 30, maxCandleWidth: CGFloat = 10) {
         self.prices = prices
         self.intervalSecs = intervalSecs
-        self.timeframeMins = timeframeMins
+        self.timeframeMins = timeframeMins ?? 30
     }
 
     private func updateCandles() {
         if prices.isEmpty { return }
         let startTime = prices.first!.timestamp
         let groupedPrices = Dictionary(grouping: prices) { price in
-            floor((price.timestamp.timeIntervalSince1970 - startTime.timeIntervalSince1970) / intervalSecs) * intervalSecs
+            floor(price.timestamp.timeIntervalSince1970 / intervalSecs) * intervalSecs
         }
 
-        let cutoffTime = Date().addingTimeInterval(-Double(timeframeMins ?? 30) * 60)
+        let cutoffTime = Date().addingTimeInterval(-timeframeMins * 60)
         let filteredGroupedPrices = groupedPrices.filter { key, values in
             values.first!.timestamp >= cutoffTime
         }
@@ -46,7 +47,6 @@ struct CandleChartView: View {
                 let nextValues = filteredGroupedPrices[nextKey]!
                 let nextOpen = nextValues.sorted(by: { $0.timestamp < $1.timestamp }).first?.price ?? 0
                 
-                print(nextKey)
                 return CandleData(
                     start: Date(timeIntervalSince1970: key),
                     end: Date(timeIntervalSince1970: nextKey),
@@ -60,27 +60,57 @@ struct CandleChartView: View {
                 return nil
             }
         }
+
+        // Add transparent candle if needed
+        let timeframeStart = Date().addingTimeInterval(-Double(timeframeMins) * 60)
+        if let firstCandle = candles.first, firstCandle.start > timeframeStart {
+            transparentCandle = CandleData(
+                start: timeframeStart,
+                end: firstCandle.start,
+                open: firstCandle.open,
+                close: firstCandle.open,
+                high: firstCandle.open,
+                low: firstCandle.open
+            )
+        } else {
+            transparentCandle = nil
+        }
     }
 
     var body: some View {
         Chart {
+            transparentCandleMark
             candleMarks
             highLowLines
             lastCandleAnnotation
         }
         .chartYAxis(content: yAxisConfig)
-        .chartXAxis(.hidden) // Hide the x-axis
+        .chartXAxis(content: xAxisConfig)
         .chartYScale(domain: .automatic)
-        .frame(width: .infinity, height: 350)
+        .frame(height: 350)
         .onAppear(perform: updateCandles)
         .onChange(of: prices) { _ in updateCandles() }
     }
 
-    private var candleMarks: some ChartContent {
+    private var transparentCandleMark: (some ChartContent)? {
+        if let transparentCandle = transparentCandle {
+            RectangleMark(
+                xStart: .value("Start", transparentCandle.start),
+                xEnd: .value("End", transparentCandle.end),
+                yStart: .value("Open", transparentCandle.open),
+                yEnd: .value("Close", transparentCandle.close)
+            )
+            .foregroundStyle(Color.gray.opacity(0.3))
+        } else {
+            nil
+        }
+    }
+
+    private var candleMarks: (some ChartContent)? {
         ForEach(candles, id: \.start) { candle in
             RectangleMark(
-                xStart: .value("Start", candle.start),
-                xEnd: .value("End", candle.end),
+                xStart: .value("Start", candle.start + 10),
+                xEnd: .value("End", candle.end - 10),
                 yStart: .value("Open", candle.open),
                 yEnd: .value("Close", candle.close)
             )
@@ -100,8 +130,7 @@ struct CandleChartView: View {
         }
     }
 
-//    @ViewBuilder
-    private var lastCandleAnnotation: (some ChartContent)?? {
+    private var lastCandleAnnotation: (some ChartContent)? {
         if let lastCandle = candles.last {
             PointMark(
                 x: .value("Middle", lastCandle.start.addingTimeInterval(intervalSecs / 2)),
@@ -109,7 +138,7 @@ struct CandleChartView: View {
             )
             .symbolSize(10)
             .foregroundStyle(AppColors.white.opacity(0.7))
-            .annotation(position: .top, spacing: 4) {
+            .annotation(position: lastCandle.close >= lastCandle.open ? .top : .bottom, spacing: 4) {
                 PillView(
                     value: String(format: "%.2f SOL", lastCandle.close),
                     color: AppColors.white.opacity(0.7),
@@ -129,6 +158,13 @@ struct CandleChartView: View {
                 .foregroundStyle(.white.opacity(0.5))
         }
     }
+
+    private func xAxisConfig() -> some AxisContent {
+        AxisMarks(values: .stride(by: .minute, count: Int(floor(timeframeMins / 4)))) { value in
+            AxisValueLabel(format: .dateTime.hour().minute())
+                .foregroundStyle(.white.opacity(0.5))
+        }
+    }
 }
 
 struct CandleData {
@@ -144,16 +180,16 @@ struct CandleChartView_Previews: PreviewProvider {
     static var previews: some View {
         CandleChartView(
             prices: [
-                Price(timestamp: Date(), price: 100.0),
-                Price(timestamp: Date().addingTimeInterval(86400), price: 105.0),
-                Price(timestamp: Date().addingTimeInterval(172800), price: 102.0),
-                Price(timestamp: Date().addingTimeInterval(259200), price: 110.0),
-                Price(timestamp: Date().addingTimeInterval(345600), price: 114.0),
-                Price(timestamp: Date().addingTimeInterval(432000), price: 109.0),
-                Price(timestamp: Date().addingTimeInterval(518400), price: 109)
+                 Price(timestamp: Date().addingTimeInterval(-1800), price: 106.0),
+                Price(timestamp: Date().addingTimeInterval(-1500), price: 107.5),
+                Price(timestamp: Date().addingTimeInterval(-1200), price: 108.0),
+                Price(timestamp: Date().addingTimeInterval(-900), price: 109.0),
+                Price(timestamp: Date().addingTimeInterval(-600), price: 110.5),
+                Price(timestamp: Date().addingTimeInterval(-300), price: 112.0),
+                Price(timestamp: Date().addingTimeInterval(-120), price: 114.0)
             ],
-            intervalSecs: 86400, // 1 day interval
-            timeframeMins: 60 * 24 * 7 // 7 days timeframe
+            intervalSecs: 300, // 5-minute interval
+            timeframeMins: 60 
         ).background(.black)
     }
 }
