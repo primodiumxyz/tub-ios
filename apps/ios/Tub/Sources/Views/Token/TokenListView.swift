@@ -83,7 +83,7 @@ struct TokenListView: View {
                 .padding()
                 .padding(.top, 35)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(AppColors.black)
+                .background(dragging ? AppColors.black : nil)
                 .ignoresSafeArea()
                 .zIndex(2)
                 
