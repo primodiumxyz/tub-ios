@@ -56,10 +56,44 @@
               - created_at
             filter: {}
           role: public
+    - fields:
+        - name: id
+          type:
+            nullable: true
+            scalar: uuid
+        - name: token
+          type:
+            nullable: true
+            scalar: uuid
+        - name: price
+          type:
+            nullable: true
+            scalar: numeric
+        - name: created_at
+          type:
+            nullable: true
+            scalar: timestamptz
+        - name: internal_token_transaction_ref
+          type:
+            nullable: true
+            scalar: uuid
+        - name: created_at_offset
+          type:
+            nullable: true
+            scalar: timestamptz
+      name: token_price_history_offset
   native_queries:
     - arguments: {}
       code: SELECT * FROM formatted_tokens
       returns: GetFormattedTokensResult
       root_field_name: GetFormattedTokens
+    - arguments:
+        offset:
+          description: ""
+          nullable: false
+          type: interval
+      code: SELECT *, created_at + {{offset}} as created_at_offset from token_price_history
+      returns: token_price_history_offset
+      root_field_name: token_price_history_offset
   tables: "!include default/tables/tables.yaml"
   functions: "!include default/functions/functions.yaml"

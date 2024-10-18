@@ -11,5 +11,6 @@ export const graphql = initGraphQLTada<{
     timestamp: Date;
     timestamptz: Date;
     float8: string;
+    interval: string;
   };
 }>();
