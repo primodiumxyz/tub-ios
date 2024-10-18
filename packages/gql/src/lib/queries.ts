@@ -89,6 +89,24 @@ export const GetAccountBalanceIgnoreIntervalQuery = graphql(`
   }
 `);
 
+export const GetTokenPriceHistoryIntervalQuery = graphql(`
+  query GetTokenPriceHistoryInterval($token: uuid, $start: timestamptz = "now()", $interval: interval!) {
+    token_price_history_offset(args: {offset: $interval}, where: {created_at_offset: {_gte: $start}, token: {_eq: $token}}, order_by: {created_at: desc}) {
+      created_at
+      price
+    }
+  }
+`);
+
+export const GetTokenPriceHistoryIgnoreIntervalQuery = graphql(`
+  query GetTokenPriceHistoryIgnoreInterval($token: uuid, $start: timestamptz = "now()", $interval: interval!) {
+    token_price_history_offset(args: {offset: $interval}, where: {created_at_offset: {_lte: $start}, token: {_eq: $token}}, order_by: {created_at: desc}) {
+      created_at
+      price
+    }
+  }
+`);
+
 export const GetLatestTokenPriceQuery = graphql(`
   query GetLatestTokenPrice($tokenId: uuid!) {
     token_price_history(where: { token: { _eq: $tokenId } }, order_by: { created_at: desc }, limit: 1) {
