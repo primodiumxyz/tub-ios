@@ -67,7 +67,7 @@ const handleSwapData = async (gql: GqlClient["db"], swapAccountsArray: SwapAccou
         // TODO: temporary until we know when to fetch & write actual token metadata
         ...getRandomTokenMetadata(),
         mint,
-        platform: platform,
+        // platform: platform,
       })),
     });
 
