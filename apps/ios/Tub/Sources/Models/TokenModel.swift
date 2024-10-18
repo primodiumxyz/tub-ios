@@ -77,10 +77,11 @@ class TokenModel: ObservableObject {
     }
 
     private func subscribeToLatestPrice(_ since: Timestamptz) {
-        // Cancel any existing subscription before creating a new one
         latestPriceSubscription?.cancel()
 
-        // First, query the past token history
+        print("Fetching price history since: \(since)")
+        print("Token id: \(self.tokenId)")
+
         let query = GetTokenPriceHistorySinceQuery(tokenId: self.tokenId, since: since)
         Network.shared.apollo.fetch(query: query) { [weak self] result in
             guard let self = self else { return }
@@ -94,11 +95,13 @@ class TokenModel: ObservableObject {
                         }
                         return nil
                     } ?? []
+                    
+                    print("Final self.prices count: \(self.prices.count)")
+                    print("Final self.prices: \(self.prices.map { "(\(self.iso8601Formatter.string(from: $0.timestamp)), \($0.price))" }.joined(separator: ", "))")
+                    
+                    self.subscribeToLatestPriceUpdates()
+                    self.loading = false
                 }
-                
-                // After fetching past history, subscribe to latest price updates
-                self.subscribeToLatestPriceUpdates()
-                self.loading = false
                 
             case .failure(let error):
                 print("Error fetching token price history: \(error)")

@@ -27,13 +27,13 @@ export type SwapAccounts = {
   vaultA: PublicKey;
   vaultB: PublicKey;
   platform: Platform;
-  signature: string;
   timestamp: number;
 };
 
 export type PriceData = {
   mint: string;
   price: number;
+  decimals: number;
   platform: Platform;
   timestamp: number;
 };
