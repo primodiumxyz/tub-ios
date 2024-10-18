@@ -102,7 +102,7 @@ struct TokenListView: View {
                                 .frame(height: geometry.size.height)
                             TokenView(tokenModel: nextTokenModel ?? getNextTokenModel(), activeTab: Binding.constant("buy"))
                                 .frame(height: geometry.size.height)
-                                .opacity(dragging ? 1 : 0.2)
+                                .opacity(dragging ? 0.2 : 0)
                         }
                         .padding(.horizontal)
                         .zIndex(1)
