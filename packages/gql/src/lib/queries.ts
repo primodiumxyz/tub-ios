@@ -65,7 +65,7 @@ export const GetAccountTokenBalanceQuery = graphql(`
 `);
 
 export const GetAccountTokenBalanceIgnoreIntervalQuery = graphql(`
-  query GetAccountTokenBalanceIgnoreInterval($account: uuid!, $start: timestamptz = "now()", $interval: interval = "0", $token: uuid!) {
+  query GetAccountTokenBalanceIgnoreInterval($account: uuid!, $start: timestamptz = "now()", $interval: interval!, $token: uuid!) {
     balance: account_token_balance_ignore_interval(args: {account: $account, interval: $interval, start: $start, token: $token}) {
       value: balance
     }
@@ -82,7 +82,7 @@ export const GetAccountBalanceQuery = graphql(`
 `);
 
 export const GetAccountBalanceIgnoreIntervalQuery = graphql(`
-  query GetAccountBalanceIgnoreInterval($account: uuid!, $start: timestamptz = "now()", $interval: interval = "0") {
+  query GetAccountBalanceIgnoreInterval($account: uuid!, $start: timestamptz = "now()", $interval: interval!) {
     balance: account_balance_ignore_interval(args: {account: $account, interval: $interval, start: $start}) {
       value: balance
     }
