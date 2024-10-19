@@ -8,37 +8,58 @@ config({ path: "../../.env" });
 
 const env = parseEnv();
 
-const UPDATE_INTERVAL = 1_000;
-const VOLATILITY = 0.2;
 const PRECISION = 1e9;
+const VOLATILITY = 0.1;
+const BASE_PUMP_CHANCE = 0.075;
+const BASE_DUMP_CHANCE = 0.075;
+const MIN_PRICE_THRESHOLD = parseEther("0.1", "gwei");
+const MAX_PRICE_THRESHOLD = parseEther("2.5", "gwei");
 
-// https://stackoverflow.com/questions/8597731/are-there-known-techniques-to-generate-realistic-looking-fake-stock-data
-const getRandomPriceChange = () => {
-  const random = Math.random();
-  let changePercent = random * VOLATILITY * 2;
-  if (changePercent > VOLATILITY) changePercent -= 2 * VOLATILITY;
-  return 1 + changePercent;
-};
+// Generates a random price change with potential for pumps and dumps
+function getRandomPriceChange(currentPrice: bigint): number {
+  const rand = Math.random();
+  let changeFactor = 0;
 
-const url = env.NODE_ENV === "prod" ? env.GRAPHQL_URL : "http://localhost:8080/v1/graphql";
-const secret = env.NODE_ENV === "prod" ? env.HASURA_ADMIN_SECRET : "password";
+  // Calculate adjusted pump and dump chances based on current price
+  const pumpChance = BASE_PUMP_CHANCE * (currentPrice < MIN_PRICE_THRESHOLD ? 3 : 1);
+  const dumpChance = BASE_DUMP_CHANCE * (currentPrice > MAX_PRICE_THRESHOLD ? 3 : 1);
+
+  if (rand < pumpChance) {
+    changeFactor = Math.random() * 0.2 + 0.10;
+  } else if (rand < pumpChance + dumpChance) {
+    changeFactor = -(Math.random() * 0.2 + 0.10);
+  } else {
+    changeFactor = (Math.random() - 0.5) * 2 * VOLATILITY;
+  }
+
+  return 1 + changeFactor;
+}
+
+const url = env.NODE_ENV === "production" ? env.GRAPHQL_URL : "http://localhost:8080/v1/graphql";
+const secret = env.NODE_ENV === "production" ? env.HASURA_ADMIN_SECRET : "password";
 
 export const _start = async () => {
   try {
     const gql = (
       await createGqlClient({
-        url: env.NODE_ENV === "prod" ? env.GRAPHQL_URL : "http://localhost:8080/v1/graphql",
-        hasuraAdminSecret: env.NODE_ENV === "prod" ? env.HASURA_ADMIN_SECRET : "password",
+        url,
+        hasuraAdminSecret: secret,
       })
     ).db;
+
     gql.GetLatestMockTokensSubscription({ limit: 10 }).subscribe(async (data) => {
       const updatePrices = async () => {
         const priceUpdates = data.data?.token?.map(async (token) => {
           const tokenId = token.id;
-          const _tokenPrice = await gql.GetLatestTokenPriceQuery({ tokenId });
+          const _tokenPrice = await gql.GetLatestTokenPriceQuery({
+            tokenId
+          }, {
+            requestPolicy: "network-only",
+          });
 
           const currentPrice = BigInt(_tokenPrice.data?.token_price_history[0]?.price ?? parseEther("1", "gwei"));
-          const priceChange = getRandomPriceChange();
+          console.log("Current price:", currentPrice);
+          const priceChange = getRandomPriceChange(currentPrice);
           const tokenPrice = (currentPrice * BigInt(Math.floor(priceChange * PRECISION))) / BigInt(PRECISION);
 
           return {
@@ -58,10 +79,10 @@ export const _start = async () => {
 
         console.log(`Updated prices for ${allPriceUpdates.length} tokens`);
         allPriceUpdates.forEach(({ symbol, price }) => {
-          console.log(`New price for ${symbol}: ${price}`);
+          console.log(`Old price : New price for ${symbol}: ${price}`);
         });
 
-        await new Promise((resolve) => setTimeout(resolve, UPDATE_INTERVAL));
+        await new Promise((resolve) => setTimeout(resolve, Math.random() * 1000 + 250));
       };
 
       while (true) await updatePrices();
@@ -82,7 +103,7 @@ export const start = async () => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-      const response = await fetch(url, {
+      const response = await fetch(url.split("/v1")[0] + "/healthz?strict=true", {
         signal: controller.signal,
       });
 
@@ -92,7 +113,7 @@ export const start = async () => {
         console.log("Hasura service is healthy");
         // wait for 5 seconds for seeding to complete if retry count is more than 1
         if (i > 0) {
-          await new Promise((resolve) => setTimeout(resolve, 5000));
+          await new Promise((resolve) => setTimeout(resolve, 10_000));
         }
         return _start();
       }
