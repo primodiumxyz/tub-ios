@@ -35,13 +35,13 @@ export const GetAllMockTokensQuery = graphql(`
 
 export const GetTokenDataQuery = graphql(`
   query GetTokenData($tokenId: uuid!) {
-    token(where: {id: {_eq: $tokenId}}) {
+    token(where: { id: { _eq: $tokenId } }) {
       id
-    name
-    symbol
-    updated_at
-    supply
-    uri
+      name
+      symbol
+      updated_at
+      supply
+      uri
     }
   }
 `);
@@ -105,6 +105,30 @@ export const GetAccountTokenBalanceDebitQuery = graphql(`
         token: { _eq: $tokenId }
         transaction_type: { _eq: "debit" }
       }
+    ) {
+      aggregate {
+        sum {
+          amount
+        }
+      }
+    }
+  }
+`);
+
+export const GetAccountBalanceQuery = graphql(`
+  query GetAccountBalance($accountId: uuid!, $at: timestamptz!) {
+    credit: account_transaction_aggregate(
+      where: { account: { _eq: $accountId }, created_at: { _lte: $at }, transaction_type: { _eq: "credit" } }
+    ) {
+      aggregate {
+        sum {
+          amount
+        }
+      }
+    }
+
+    debit: account_transaction_aggregate(
+      where: { account: { _eq: $accountId }, created_at: { _lte: $at }, transaction_type: { _eq: "debit" } }
     ) {
       aggregate {
         sum {

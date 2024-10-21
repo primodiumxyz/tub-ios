@@ -75,14 +75,30 @@ struct TokenListView: View {
                         .opacity(0.7)
                         .kerning(-1)
                     
-                    Text("\(PriceFormatter.formatPrice(userModel.balance.total + tokenModel.tokenBalance.total * (tokenModel.prices.last?.price ?? 0))) SOL")
+                    let tokenValue = tokenModel.tokenBalance.total * (tokenModel.prices.last?.price ?? 0)
+                    Text("\(PriceFormatter.formatPrice(userModel.balance.total + tokenValue)) SOL")
                         .font(.sfRounded(size: .xl3))
                         .fontWeight(.bold)
+                    
+                    let adjustedChange = userModel.balanceChange + tokenValue
+                    HStack {
+                        Text(adjustedChange >= 0 ? "+" : "-")
+                        Text("\(abs(adjustedChange), specifier: "%.2f") SOL")
+                        
+                        let adjustedPercentage = (adjustedChange / userModel.initialBalance) * 100
+                        Text("(\(abs(adjustedPercentage), specifier: "%.1f")%)")
+                        
+                        // Format time elapsed
+                        Text("\(formatTimeElapsed(userModel.timeElapsed))")
+                            .foregroundColor(.gray)
+                    }
+                    .font(.sfRounded(size: .sm, weight: .semibold))
+                    .foregroundColor(adjustedChange >= 0 ? .green : .red)
                 }
                 .padding()
                 .padding(.top, 35)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(AppColors.black)
+                .background(dragging ? AppColors.black : nil)
                 .ignoresSafeArea()
                 .zIndex(2)
                 
@@ -102,7 +118,7 @@ struct TokenListView: View {
                                 .frame(height: geometry.size.height)
                             TokenView(tokenModel: getNextTokenModel(), activeTab: Binding.constant("buy"))
                                 .frame(height: geometry.size.height)
-                                .opacity(dragging ? 1 : 0.2)
+                                .opacity(dragging ? 0.2 : 0)
                         }
                         .padding(.horizontal)
                         .zIndex(1)
@@ -148,6 +164,7 @@ struct TokenListView: View {
         .onAppear {
             fetchTokens()
         }
+        // Remove onDisappear as we no longer need to stop balance updates
     }
     
     private func getRandomToken(excluding currentId: String? = nil) -> Token? {
@@ -213,6 +230,21 @@ struct TokenListView: View {
             let randomIndex = Int.random(in: 0..<availableTokens.count)
             currentToken = availableTokens[randomIndex]
             updateTokenModel(tokenId: currentToken!.id)
+        }
+    }
+    
+    private func formatTimeElapsed(_ timeInterval: TimeInterval) -> String {
+        let hours = Int(timeInterval) / 3600
+        let minutes = (Int(timeInterval) % 3600) / 60
+
+        if hours > 1 {
+            return "past \(hours) hours"
+        } else if hours > 0 {
+            return "past hour"
+        } else if minutes > 1 {
+            return "past \(minutes) minutes"
+        } else  {
+            return "past minute"
         }
     }
 }

@@ -53,7 +53,7 @@ struct TokenView : View {
         ZStack {
             // Main content
             VStack {
-                VStack (alignment: .leading) {
+                VStack(alignment: .leading) {
                     HStack {
                         VStack(alignment: .leading, spacing: 1) {
                             HStack {
@@ -65,6 +65,14 @@ struct TokenView : View {
                             }
                             Text(PriceFormatter.formatPrice(tokenModel.prices.last?.price ?? 0) + " SOL")
                                 .font(.sfRounded(size: .xl4, weight: .bold))
+                            
+                            HStack {
+                                Text(tokenModel.priceChange.amount >= 0 ? "+" : "-")
+                                Text("\(abs(tokenModel.priceChange.amount), specifier: "%.3f") SOL")
+                                Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
+                            }
+                            .font(.sfRounded(size: .sm, weight: .semibold))
+                            .foregroundColor(tokenModel.priceChange.amount >= 0 ? .green : .red)
                         }
                         
                         Spacer() // Add this to push the chevron to the right
@@ -83,7 +91,14 @@ struct TokenView : View {
                         }
                     }
 
-                    ChartView(prices: tokenModel.prices, purchaseTime: tokenModel.purchaseTime, purchaseAmount: tokenModel.tokenBalance.total)
+                    // Replace the existing ChartView with this conditional rendering
+                    if selectedTimespan == .live {
+                        ChartView(prices: tokenModel.prices, purchaseTime: tokenModel.purchaseTime, purchaseAmount: tokenModel.tokenBalance.total, timeframeSecs: 30)
+                    } else {
+                        CandleChartView(prices: tokenModel.prices, intervalSecs: 90, timeframeMins: 30)
+                            .id(tokenModel.prices.count)
+                    }
+
                     HStack {
                         Spacer()
                         ForEach([Timespan.live, Timespan.thirtyMin], id: \.self) { timespan in
@@ -160,6 +175,6 @@ struct TokenView : View {
 #Preview {
     @Previewable @AppStorage("userId") var userId: String = ""
     @Previewable @State var activeTab: String = "buy"
-    TokenView(tokenModel: TokenModel(userId: userId, tokenId: mockTokenId), activeTab: $activeTab)
+    TokenView(tokenModel: TokenModel(userId: userId, tokenId: mockTokenId), activeTab: $activeTab).background(.black)
         .environmentObject(UserModel(userId: userId))
 }

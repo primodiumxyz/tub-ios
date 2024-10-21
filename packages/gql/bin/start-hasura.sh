@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# Start the docker-compose up process in detached mode
-docker-compose down --volumes --remove-orphans
 docker-compose up &
 
 # Store the process ID of the background docker-compose up command

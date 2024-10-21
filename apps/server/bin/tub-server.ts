@@ -46,10 +46,10 @@ export const start = async () => {
 
     const wallet = new Wallet(Keypair.fromSecretKey(Buffer.from(env.PRIVATE_KEY, "hex")));
     const core = createCore(wallet, connection);
-    if (!process.env.GRAPHQL_URL && env.NODE_ENV === "prod") {
+    if (!process.env.GRAPHQL_URL && env.NODE_ENV === "production") {
       throw new Error("GRAPHQL_URL is not set");
     }
-    const gqlClient = (await createGqlClient({ url: env.NODE_ENV !== "prod" ? "http://localhost:8080/v1/graphql" : env.GRAPHQL_URL, hasuraAdminSecret: env.NODE_ENV !== "prod" ? "password" : env.HASURA_ADMIN_SECRET })).db;
+    const gqlClient = (await createGqlClient({ url: env.NODE_ENV !== "production" ? "http://localhost:8080/v1/graphql" : env.GRAPHQL_URL, hasuraAdminSecret: env.NODE_ENV !== "production" ? "password" : env.HASURA_ADMIN_SECRET })).db;
     const tubService = new TubService(core, gqlClient);
 
     // @see https://trpc.io/docs/server/adapters/fastify

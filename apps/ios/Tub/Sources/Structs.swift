@@ -8,7 +8,10 @@ struct Token: Identifiable {
     var imageUri: String?
 }
 
-struct Price: Identifiable {
+struct Price: Identifiable, Equatable {
+    static func == (lhs: Price, rhs: Price) -> Bool {
+        return lhs.timestamp == rhs.timestamp && lhs.price == rhs.price
+    }
     var id = UUID()
     var timestamp: Date
     var price: Double

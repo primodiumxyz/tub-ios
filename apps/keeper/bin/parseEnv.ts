@@ -1,7 +1,7 @@
 import { z, ZodError, ZodIntersection, ZodTypeAny } from "zod";
 
 const commonSchema = z.object({
-  NODE_ENV: z.enum(["dev", "prod", "test"]).default("dev"),
+  NODE_ENV: z.enum(["dev", "production", "test"]).default("dev"),
   SERVER_HOST: z.string().default("0.0.0.0"),
   SERVER_PORT: z.coerce.number().positive().default(9999),
   HASURA_ADMIN_SECRET: z.string().default("password"),
