@@ -68,7 +68,7 @@ struct TokenView : View {
                             
                             HStack {
                                 Text(tokenModel.priceChange.amount >= 0 ? "+" : "-")
-                                Text("\(abs(tokenModel.priceChange.amount), specifier: "%.3f") SOL")
+                                Text(PriceFormatter.formatPrice(tokenModel.priceChange.amount, showSign: false) + " SOL")
                                 Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
                                 
                                 Text("30s").foregroundColor(.gray)

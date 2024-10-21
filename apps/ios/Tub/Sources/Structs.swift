@@ -38,7 +38,7 @@ struct PriceFormatter {
     // - remove trailing zeros after decimal point
     // The logic is super convoluted because it's super tricky to get it right, but it works like that;
     // we just lose the locale formatting.
-    static func formatPrice(_ price: Double, maxDecimals: Int = 9) -> String {
+    static func formatPrice(_ price: Double, showSign: Bool = true, maxDecimals: Int = 9) -> String {
         // Handle special cases
         if price.isNaN || price.isInfinite || price == 0 {
             return "0"
@@ -102,6 +102,10 @@ struct PriceFormatter {
                 let subscriptNumber = String(leadingZeros).map { subscriptDigits[Int(String($0))!] }.joined()
                 result = "0.0\(subscriptNumber)" + result.dropFirst(2 + leadingZeros)
             }
+        }
+        
+        if !showSign && result.hasPrefix("-") {
+            result = result.replacingOccurrences(of: "-", with: "")
         }
         
         return result
