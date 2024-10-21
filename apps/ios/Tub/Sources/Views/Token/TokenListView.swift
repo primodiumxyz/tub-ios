@@ -198,8 +198,8 @@ struct TokenListView: View {
     private func fetchTokens() {
         subscription = Network.shared.apollo.subscribe(subscription: SubFilteredTokensSubscription(
             since: Date().addingTimeInterval(-30).ISO8601Format(),
-            minTrades: "100",
-            minIncreasePct: "10"
+            minTrades: "10",
+            minIncreasePct: "5"
         )) { result in
             DispatchQueue.main.async {
                 self.isLoading = false
@@ -229,7 +229,6 @@ struct TokenListView: View {
         let randomIndex = Int.random(in: 0..<availableTokens.count)
         currentToken = availableTokens[randomIndex]
         updateTokenModel(tokenId: currentToken!.id)
-        print(currentToken)
     }
     
     private func formatTimeElapsed(_ timeInterval: TimeInterval) -> String {
