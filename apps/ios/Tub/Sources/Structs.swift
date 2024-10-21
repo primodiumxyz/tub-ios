@@ -5,6 +5,7 @@ struct Token: Identifiable {
     var id: String
     var name: String
     var symbol: String
+    var mint: String?
     var imageUri: String?
 }
 

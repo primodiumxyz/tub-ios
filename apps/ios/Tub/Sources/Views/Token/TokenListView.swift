@@ -110,7 +110,7 @@ struct TokenListView: View {
                 } else {
                     GeometryReader { geometry in
                         VStack(spacing: 10) {
-                              // TODO: remove the previous token but keep a good layout
+                              // TODO: keep an array of previous tokens so we can swipe up (disable when we reached the first token)
                               TokenView(tokenModel: tokenModel, activeTab: $activeTab)
                                 .frame(height: geometry.size.height)
                                 .opacity(dragging ? 1 : 0)
@@ -164,11 +164,11 @@ struct TokenListView: View {
         .onAppear {
             fetchTokens()
         }
-        // Remove onDisappear as we no longer need to stop balance updates
     }
     
     private func getRandomToken(excluding currentId: String? = nil) -> Token? {
         guard !availableTokens.isEmpty else { return nil }
+        guard availableTokens.count > 1 else { return availableTokens[0] }
         var newToken: Token
         repeat {
             let randomIndex = Int.random(in: 0..<availableTokens.count)
@@ -198,19 +198,19 @@ struct TokenListView: View {
     private func fetchTokens() {
         subscription = Network.shared.apollo.subscribe(subscription: SubFilteredTokensSubscription(
             since: Date().addingTimeInterval(-30).ISO8601Format(),
-            minTrades: "10",
-            minIncreasePct: "5"
+            minTrades: "100",
+            minIncreasePct: "50"
         )) { result in
             DispatchQueue.main.async {
                 self.isLoading = false
                 switch result {
                 case .success(let graphQLResult):
-                    if let errorr = graphQLResult.errors {
-                        self.errorMessage = "Error: \(errorr)"
+                    if let error = graphQLResult.errors {
+                        self.errorMessage = "Error: \(error)"
                     }
                     if let tokens = graphQLResult.data?.getFormattedTokens {
                         let newTokens = tokens.map { elem in 
-                            Token(id: elem.token_id, name: elem.name, symbol: elem.symbol, imageUri: nil)
+                            Token(id: elem.token_id, name: elem.name, symbol: elem.symbol, mint: elem.mint, imageUri: nil)
                         }
                         self.availableTokens = newTokens
                         if self.currentToken == nil {
@@ -226,11 +226,10 @@ struct TokenListView: View {
     
     private func initRandomToken() {
         guard !availableTokens.isEmpty else { return }
-        if currentToken == nil {
-            let randomIndex = Int.random(in: 0..<availableTokens.count)
-            currentToken = availableTokens[randomIndex]
-            updateTokenModel(tokenId: currentToken!.id)
-        }
+        let randomIndex = Int.random(in: 0..<availableTokens.count)
+        currentToken = availableTokens[randomIndex]
+        updateTokenModel(tokenId: currentToken!.id)
+        print(currentToken)
     }
     
     private func formatTimeElapsed(_ timeInterval: TimeInterval) -> String {

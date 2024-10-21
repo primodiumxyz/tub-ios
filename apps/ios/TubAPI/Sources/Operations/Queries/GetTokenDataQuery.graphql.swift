@@ -7,7 +7,7 @@ public class GetTokenDataQuery: GraphQLQuery {
   public static let operationName: String = "GetTokenData"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetTokenData($tokenId: uuid!) { token(where: { id: { _eq: $tokenId } }) { __typename id name symbol updated_at supply uri } }"#
+      #"query GetTokenData($tokenId: uuid!) { token(where: { id: { _eq: $tokenId } }) { __typename id name symbol mint updated_at supply uri } }"#
     ))
 
   public var tokenId: Uuid
@@ -43,6 +43,7 @@ public class GetTokenDataQuery: GraphQLQuery {
         .field("id", TubAPI.Uuid.self),
         .field("name", String.self),
         .field("symbol", String.self),
+        .field("mint", String?.self),
         .field("updated_at", TubAPI.Timestamptz.self),
         .field("supply", TubAPI.Numeric.self),
         .field("uri", String?.self),
@@ -51,6 +52,8 @@ public class GetTokenDataQuery: GraphQLQuery {
       public var id: TubAPI.Uuid { __data["id"] }
       public var name: String { __data["name"] }
       public var symbol: String { __data["symbol"] }
+      /// token mint address (only for real tokens)
+      public var mint: String? { __data["mint"] }
       public var updated_at: TubAPI.Timestamptz { __data["updated_at"] }
       public var supply: TubAPI.Numeric { __data["supply"] }
       public var uri: String? { __data["uri"] }

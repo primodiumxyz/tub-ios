@@ -30,6 +30,7 @@ query GetTokenData($tokenId: uuid!) {
     id
     name
     symbol
+    mint
     updated_at
     supply
     uri

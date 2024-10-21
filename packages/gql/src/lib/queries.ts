@@ -39,6 +39,7 @@ export const GetTokenDataQuery = graphql(`
       id
       name
       symbol
+      mint
       updated_at
       supply
       uri

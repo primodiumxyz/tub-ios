@@ -175,6 +175,7 @@ struct TokenView : View {
 #Preview {
     @Previewable @AppStorage("userId") var userId: String = ""
     @Previewable @State var activeTab: String = "buy"
-    TokenView(tokenModel: TokenModel(userId: userId, tokenId: mockTokenId), activeTab: $activeTab).background(.black)
+    @Previewable @State var tokenId: String = "exampleTokenId"
+    TokenView(tokenModel: TokenModel(userId: userId, tokenId: tokenId), activeTab: $activeTab).background(.black)
         .environmentObject(UserModel(userId: userId))
 }

@@ -7,7 +7,7 @@ class TokenModel: ObservableObject {
     var tokenId: String = ""
     var userId: String = ""
 
-    @Published var token: Token = Token(id: "", name: "COIN", symbol: "SYMBOL", imageUri: "")
+    @Published var token: Token = Token(id: "", name: "COIN", symbol: "SYMBOL", mint: "", imageUri: "")
     @Published var loading = true
     @Published var tokenBalance: (credit: Numeric, debit: Numeric, total: Double) = (0, 0, 0)
 
@@ -56,7 +56,7 @@ class TokenModel: ObservableObject {
                 case .success(let response):
                     if let token = response.data?.token.first(where: { $0.id == self.tokenId }) {
                         DispatchQueue.main.async {
-                            self.token = Token(id: token.id, name: token.name, symbol: token.symbol, imageUri: token.uri)
+                            self.token = Token(id: token.id, name: token.name, symbol: token.symbol, mint: token.mint, imageUri: token.uri)
 //                            self.loading = false
                         }
                         continuation.resume()
@@ -82,9 +82,6 @@ class TokenModel: ObservableObject {
     private func subscribeToLatestPrice(_ since: Timestamptz) {
         latestPriceSubscription?.cancel()
 
-        print("Fetching price history since: \(since)")
-        print("Token id: \(self.tokenId)")
-
         let query = GetTokenPriceHistorySinceQuery(tokenId: self.tokenId, since: since)
         Network.shared.apollo.fetch(query: query) { [weak self] result in
             guard let self = self else { return }
@@ -107,7 +104,6 @@ class TokenModel: ObservableObject {
                     self.subscribeToLatestPriceUpdates()
                     self.loading = false
                     self.calculatePriceChange()
-                    print("Final self.prices: \(self.prices.map { "(\(self.iso8601Formatter.string(from: $0.timestamp)), \($0.price))" }.joined(separator: ", "))")
                 }
                 
             case .failure(let error):
