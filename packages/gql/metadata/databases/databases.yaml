@@ -62,8 +62,12 @@
             filter: {}
           role: public
   native_queries:
-    - arguments: {}
-      code: SELECT * FROM formatted_tokens
+    - arguments:
+        since:
+          description: ""
+          nullable: false
+          type: timestamptz
+      code: SELECT * FROM get_formatted_tokens({{since}});
       returns: GetFormattedTokensResult
       root_field_name: GetFormattedTokens
   tables: "!include default/tables/tables.yaml"

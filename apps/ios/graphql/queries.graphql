@@ -220,8 +220,8 @@ query GetFilteredTokens(
   $minIncreasePct: float8!
 ) {
   GetFormattedTokens(
+    args: { since: $since }
     where: {
-      created_at: { _gte: $since }
       trades: { _gte: $minTrades }
       increase_pct: { _gte: $minIncreasePct }
     }

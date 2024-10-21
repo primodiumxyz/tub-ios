@@ -42,8 +42,9 @@ type GetFormattedTokensResult {
   increase_pct: float8!
   latest_price: numeric!
   mint: String!
-  name: String!
-  symbol: String!
+  name: String
+  platform: String
+  symbol: String
   token_id: uuid!
   trades: bigint!
 }
@@ -60,6 +61,7 @@ input GetFormattedTokensResult_bool_exp_bool_exp {
   latest_price: numeric_comparison_exp
   mint: String_comparison_exp
   name: String_comparison_exp
+  platform: String_comparison_exp
   symbol: String_comparison_exp
   token_id: uuid_comparison_exp
   trades: bigint_comparison_exp
@@ -82,6 +84,9 @@ enum GetFormattedTokensResult_enum_name {
   name
 
   """column name"""
+  platform
+
+  """column name"""
   symbol
 
   """column name"""
@@ -98,9 +103,16 @@ input GetFormattedTokensResult_order_by {
   latest_price: order_by
   mint: order_by
   name: order_by
+  platform: order_by
   symbol: order_by
   token_id: order_by
   trades: order_by
+}
+
+"""GetFormattedTokensNative Query Arguments"""
+input GetFormattedTokens_arguments {
+  """"""
+  since: timestamptz!
 }
 
 """
@@ -869,6 +881,7 @@ type formatted_tokens {
   latest_price: numeric
   mint: String
   name: String
+  platform: String
   symbol: String
   token_id: uuid
   trades: bigint
@@ -918,6 +931,7 @@ input formatted_tokens_bool_exp {
   latest_price: numeric_comparison_exp
   mint: String_comparison_exp
   name: String_comparison_exp
+  platform: String_comparison_exp
   symbol: String_comparison_exp
   token_id: uuid_comparison_exp
   trades: bigint_comparison_exp
@@ -930,6 +944,7 @@ type formatted_tokens_max_fields {
   latest_price: numeric
   mint: String
   name: String
+  platform: String
   symbol: String
   token_id: uuid
   trades: bigint
@@ -942,6 +957,7 @@ type formatted_tokens_min_fields {
   latest_price: numeric
   mint: String
   name: String
+  platform: String
   symbol: String
   token_id: uuid
   trades: bigint
@@ -954,6 +970,7 @@ input formatted_tokens_order_by {
   latest_price: order_by
   mint: order_by
   name: order_by
+  platform: order_by
   symbol: order_by
   token_id: order_by
   trades: order_by
@@ -977,6 +994,9 @@ enum formatted_tokens_select_column {
 
   """column name"""
   name
+
+  """column name"""
+  platform
 
   """column name"""
   symbol
@@ -1027,6 +1047,7 @@ input formatted_tokens_stream_cursor_value_input {
   latest_price: numeric
   mint: String
   name: String
+  platform: String
   symbol: String
   token_id: uuid
   trades: bigint
@@ -1058,6 +1079,10 @@ type formatted_tokens_variance_fields {
   increase_pct: Float
   latest_price: Float
   trades: Float
+}
+
+input get_formatted_tokens_args {
+  p_since: timestamptz
 }
 
 """mutation root"""
@@ -1151,6 +1176,31 @@ type mutation_root {
   delete single row from the table: "token_transaction"
   """
   delete_token_transaction_by_pk(id: uuid!): token_transaction
+
+  """
+  execute VOLATILE function "get_formatted_tokens" which returns "formatted_tokens"
+  """
+  get_formatted_tokens(
+    """
+    input parameters for function "get_formatted_tokens"
+    """
+    args: get_formatted_tokens_args!
+
+    """distinct select on columns"""
+    distinct_on: [formatted_tokens_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [formatted_tokens_order_by!]
+
+    """filter the rows returned"""
+    where: formatted_tokens_bool_exp
+  ): [formatted_tokens!]!
 
   """
   insert data into the table: "account"
@@ -1492,6 +1542,9 @@ enum order_by {
 
 type query_root {
   GetFormattedTokens(
+    """GetFormattedTokensNative Query Arguments"""
+    args: GetFormattedTokens_arguments!
+
     """distinct select on columns"""
     distinct_on: [GetFormattedTokensResult_enum_name!]
 
@@ -1779,6 +1832,9 @@ input sell_token_args {
 
 type subscription_root {
   GetFormattedTokens(
+    """GetFormattedTokensNative Query Arguments"""
+    args: GetFormattedTokens_arguments!
+
     """distinct select on columns"""
     distinct_on: [GetFormattedTokensResult_enum_name!]
 
@@ -2167,6 +2223,7 @@ type token {
   """token mint address (only for real tokens)"""
   mint: String
   name: String!
+  platform: String
   supply: numeric!
   symbol: String!
 
@@ -2285,6 +2342,7 @@ input token_bool_exp {
   id: uuid_comparison_exp
   mint: String_comparison_exp
   name: String_comparison_exp
+  platform: String_comparison_exp
   supply: numeric_comparison_exp
   symbol: String_comparison_exp
   token_price_histories: token_price_history_bool_exp
@@ -2326,6 +2384,7 @@ input token_insert_input {
   """token mint address (only for real tokens)"""
   mint: String
   name: String
+  platform: String
   supply: numeric
   symbol: String
   token_price_histories: token_price_history_arr_rel_insert_input
@@ -2341,6 +2400,7 @@ type token_max_fields {
   """token mint address (only for real tokens)"""
   mint: String
   name: String
+  platform: String
   supply: numeric
   symbol: String
   updated_at: timestamptz
@@ -2354,6 +2414,7 @@ type token_min_fields {
   """token mint address (only for real tokens)"""
   mint: String
   name: String
+  platform: String
   supply: numeric
   symbol: String
   updated_at: timestamptz
@@ -2395,6 +2456,7 @@ input token_order_by {
   id: order_by
   mint: order_by
   name: order_by
+  platform: order_by
   supply: order_by
   symbol: order_by
   token_price_histories_aggregate: token_price_history_aggregate_order_by
@@ -2817,6 +2879,9 @@ enum token_select_column {
   name
 
   """column name"""
+  platform
+
+  """column name"""
   supply
 
   """column name"""
@@ -2838,6 +2903,7 @@ input token_set_input {
   """token mint address (only for real tokens)"""
   mint: String
   name: String
+  platform: String
   supply: numeric
   symbol: String
   updated_at: timestamptz
@@ -2877,6 +2943,7 @@ input token_stream_cursor_value_input {
   """token mint address (only for real tokens)"""
   mint: String
   name: String
+  platform: String
   supply: numeric
   symbol: String
   updated_at: timestamptz
@@ -3296,6 +3363,9 @@ enum token_update_column {
 
   """column name"""
   name
+
+  """column name"""
+  platform
 
   """column name"""
   supply

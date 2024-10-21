@@ -15,6 +15,7 @@ public struct Token_insert_input: InputObject {
     id: GraphQLNullable<Uuid> = nil,
     mint: GraphQLNullable<String> = nil,
     name: GraphQLNullable<String> = nil,
+    platform: GraphQLNullable<String> = nil,
     supply: GraphQLNullable<Numeric> = nil,
     symbol: GraphQLNullable<String> = nil,
     tokenPriceHistories: GraphQLNullable<Token_price_history_arr_rel_insert_input> = nil,
@@ -26,6 +27,7 @@ public struct Token_insert_input: InputObject {
       "id": id,
       "mint": mint,
       "name": name,
+      "platform": platform,
       "supply": supply,
       "symbol": symbol,
       "token_price_histories": tokenPriceHistories,
@@ -49,6 +51,11 @@ public struct Token_insert_input: InputObject {
   public var name: GraphQLNullable<String> {
     get { __data["name"] }
     set { __data["name"] = newValue }
+  }
+
+  public var platform: GraphQLNullable<String> {
+    get { __data["platform"] }
+    set { __data["platform"] = newValue }
   }
 
   public var supply: GraphQLNullable<Numeric> {
