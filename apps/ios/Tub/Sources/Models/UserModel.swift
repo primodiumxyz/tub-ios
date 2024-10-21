@@ -22,9 +22,11 @@ class UserModel: ObservableObject {
     @Published var isLoading: Bool = true
     @Published var userId: String
     @Published var username: String = ""
-    @Published var balanceChange: (amount: Double, percentage: Double) = (0, 0)
-    @Published var lastHourBalance: Double = 0
-    private var timer: Timer?
+    @Published var balanceChange: Double = 0
+    @Published var timeElapsed: TimeInterval = 0
+    @Published var initialBalance: Double = 0
+    @Published var initialTime: Date = Date()
+    @Published var currentTime: Date = Date()
     
     @AppStorage("userId") private var storedUserId: String?
     @AppStorage("username") private var storedUsername: String?
@@ -32,8 +34,8 @@ class UserModel: ObservableObject {
     private var cancellables: Set<AnyCancellable> = []
     private var accountBalanceSubscription:
         (credit: Apollo.Cancellable?, debit: Apollo.Cancellable?)  // Track the token balance subscription
+    private var timerCancellable: AnyCancellable?
 
-    
     init(userId: String, mock: Bool? = false) {
         self.userId = userId
         
@@ -46,9 +48,10 @@ class UserModel: ObservableObject {
         Task {
             await fetchInitialData()
             subscribeToAccountBalance()
+            startTimeElapsedTimer()
         }
     }
-    
+
     private func fetchInitialData() async {
         do {
             // Validate userId is a valid UUID
@@ -57,15 +60,44 @@ class UserModel: ObservableObject {
             }
             
             try await fetchAccountData()
+            try await fetchInitialBalance()
             DispatchQueue.main.async {
-                self.isLoading = false  // Use isLoading instead of loading
+                self.initialTime = Date()
+                self.isLoading = false
             }
         } catch {
             print("Error fetching initial data: \(error)")
             storedUserId = ""
             storedUsername = ""
             DispatchQueue.main.async {
-                self.isLoading = false  // Set isLoading to false even on error
+                self.isLoading = false
+            }
+        }
+    }
+
+    private func fetchInitialBalance() async throws {
+        let query = GetAccountBalanceQuery(accountId: Uuid(userId), at: .init(stringLiteral: iso8601Formatter.string(from: Date())))
+        
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { [weak self] result in
+                guard let self = self else {
+                    continuation.resume(throwing: NSError(domain: "UserModel", code: 0, userInfo: [NSLocalizedDescriptionKey: "Self is nil"]))
+                    return
+                }
+                
+                switch result {
+                case .success(let response):
+                    let credit = response.data?.credit.aggregate?.sum?.amount ?? 0
+                    let debit = response.data?.debit.aggregate?.sum?.amount ?? 0
+                    let balance = Double(credit - debit) / 1e9
+                    DispatchQueue.main.async {
+                        self.initialBalance = balance
+                    }
+                    continuation.resume()
+                case .failure(let error):
+                    print("Error fetching initial balance: \(error)")
+                    continuation.resume(throwing: error)
+                }
             }
         }
     }
@@ -111,7 +143,7 @@ class UserModel: ObservableObject {
                 case .success(let graphQLResult):
                     self.balance.credit =
                     graphQLResult.data?.account_transaction_aggregate.aggregate?.sum?.amount ?? 0
-                    self.balance.total = Double(self.balance.credit - self.balance.debit)/1e9
+                    self.updateBalanceAndChange()
                 case .failure(let error):
                     print("Error: \(error.localizedDescription)")
                 }
@@ -128,7 +160,7 @@ class UserModel: ObservableObject {
                 case .success(let graphQLResult):
                     self.balance.debit =
                     graphQLResult.data?.account_transaction_aggregate.aggregate?.sum?.amount ?? 0
-                    self.balance.total = Double(self.balance.credit - self.balance.debit)/1e9
+                    self.updateBalanceAndChange()
                 case .failure(let error):
                     print("Error: \(error.localizedDescription)")
                 }
@@ -136,7 +168,22 @@ class UserModel: ObservableObject {
         }
     }
 
-    
+    private func updateBalanceAndChange() {
+        self.balance.total = Double(self.balance.credit - self.balance.debit) / 1e9
+        self.balanceChange = self.balance.total - self.initialBalance
+    }
+
+    private func startTimeElapsedTimer() {
+        timerCancellable?.cancel()
+        timerCancellable = Timer.publish(every: 1.0, on: .main, in: .common)
+            .autoconnect()
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                self.currentTime = Date()
+                self.timeElapsed = self.currentTime.timeIntervalSince(self.initialTime)
+            }
+    }
+
     func logout() {
         // Clear the stored values
         storedUserId = nil
@@ -154,51 +201,6 @@ class UserModel: ObservableObject {
         // Cancel any ongoing network requests or timers
         cancellables.forEach { $0.cancel() }
         cancellables.removeAll()
-        
-        // Invalidate the timer
-        timer?.invalidate()
-        timer = nil
-    }
-
-    private func fetchAndUpdateBalance() {
-        let oneHourAgo = Date().addingTimeInterval(-3600)
-        let formattedDate = iso8601Formatter.string(from: oneHourAgo)
-        let query = GetAccountBalanceQuery(accountId: Uuid(userId), at: .init(stringLiteral: formattedDate))
-        
-        Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { [weak self] result in
-            guard let self = self else { return }
-            switch result {
-            case .success(let response):
-                let credit = response.data?.credit.aggregate?.sum?.amount ?? 0
-                let debit = response.data?.debit.aggregate?.sum?.amount ?? 0
-                let balance = Double(credit - debit) / 1e9
-                
-                DispatchQueue.main.async {
-                    if self.lastHourBalance == 0 {
-                        self.lastHourBalance = balance
-                    }
-                    
-                    let currentBalance = self.balance.total
-                    let changeAmount = currentBalance - self.lastHourBalance
-                    let changePercentage = self.lastHourBalance != 0 ? (changeAmount / self.lastHourBalance) * 100 : 0
-                    
-                    self.balanceChange = (changeAmount, changePercentage)
-                }
-            case .failure(let error):
-                print("Error fetching balance: \(error)")
-            }
-        }
-    }
-
-    func startBalanceUpdates() {
-        fetchAndUpdateBalance() // Initial fetch
-        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            self?.fetchAndUpdateBalance()
-        }
-    }
-
-    func stopBalanceUpdates() {
-        timer?.invalidate()
-        timer = nil
+        timerCancellable?.cancel()
     }
 }

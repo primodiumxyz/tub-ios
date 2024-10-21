@@ -40,8 +40,8 @@ struct HomeTabsView: View {
                     }
                     .tag(2) 
                 }
-                .background(.black)
-                .foregroundColor(.white)
+                .background(AppColors.black)
+                .foregroundColor(AppColors.white)
                 .accentColor(color)
                 .onAppear {
                     UITabBar.appearance().unselectedItemTintColor = UIColor.white.withAlphaComponent(0.5)

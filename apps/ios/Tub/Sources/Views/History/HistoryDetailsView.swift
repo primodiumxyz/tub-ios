@@ -15,44 +15,42 @@ struct HistoryDetailsView: View {
             
             Text(transaction.isBuy ? "Buy Details" : "Sell Details")
                 .font(.sfRounded(size: .xl2, weight: .bold))
-                .foregroundColor(.white)
+                .foregroundColor(AppColors.white)
                 .padding(.leading, 10.0)
             
             VStack (alignment: .leading, spacing: 20) {
                 // Token details
                 VStack(alignment: .leading) {
                     Text("Token")
-                        .foregroundColor(.gray)
+                        .foregroundColor(AppColors.gray)
                         .font(.sfRounded(size: .sm, weight: .medium))
                     HStack {
-                        Image(transaction.imageUri)
-                            .resizable()
-                            .frame(width: 40, height: 40)
+                        ImageView(imageUri: transaction.imageUri, size: 40)
                             .cornerRadius(8)
                         
                         Text(transaction.name)
                             .font(.sfRounded(size: .xl, weight: .bold))
-                            .foregroundColor(Color(red: 1.0, green: 0.9254901960784314, blue: 0.5254901960784314))
+                            .foregroundColor(AppColors.lightYellow)
                     }
                 }
 
                 // Transaction number
                 VStack(alignment: .leading) {
                     Text("Transaction number")
-                        .foregroundColor(.gray)
+                        .foregroundColor(AppColors.gray)
                         .font(.sfRounded(size: .sm, weight: .medium))
                     Text("#8612373299412")
-                        .foregroundColor(.white)
+                        .foregroundColor(AppColors.white)
                         .font(.sfRounded(size: .lg, weight: .regular))
                 }
                 
                 // Order status
                 VStack(alignment: .leading) {
                     Text("Order status")
-                        .foregroundColor(.gray)
+                        .foregroundColor(AppColors.gray)
                         .font(.sfRounded(size: .sm, weight: .medium))
                     Text("Filled")
-                        .foregroundColor(.white)
+                        .foregroundColor(AppColors.white)
                         .font(.sfRounded(size: .lg, weight: .regular))
 
                 }
@@ -60,40 +58,40 @@ struct HistoryDetailsView: View {
                 // Quantity
                 VStack(alignment: .leading) {
                     Text("Quantity")
-                        .foregroundColor(.gray)
+                        .foregroundColor(AppColors.gray)
                         .font(.sfRounded(size: .sm, weight: .medium))
                     Text("\(transaction.quantity, specifier: "%.0f") \(transaction.symbol)")
-                        .foregroundColor(.white)
+                        .foregroundColor(AppColors.white)
                         .font(.sfRounded(size: .lg, weight: .regular))
                 }
                 
                 // Price
                 VStack(alignment: .leading) {
                     Text("Price")
-                        .foregroundColor(.gray)
+                        .foregroundColor(AppColors.gray)
                         .font(.sfRounded(size: .sm, weight: .medium))
                     Text(formatAmount(transaction.value))
-                        .foregroundColor(.white)
+                        .foregroundColor(AppColors.white)
                         .font(.sfRounded(size: .lg, weight: .regular))
                 }
                 
                 // Date and time of the transaction
                 VStack(alignment: .leading) {
                     Text("Filled")
-                        .foregroundColor(.gray)
+                        .foregroundColor(AppColors.gray)
                         .font(.sfRounded(size: .sm, weight: .medium))
                     Text("\(formatDate(transaction.date)) at \(formatTime(transaction.date))")
-                        .foregroundColor(.white)
+                        .foregroundColor(AppColors.white)
                         .font(.sfRounded(size: .lg, weight: .regular))
                 }
                 
                 // Note section
                 VStack(alignment: .leading) {
                     Text("Note")
-                        .foregroundColor(.gray)
+                        .foregroundColor(AppColors.gray)
                         .font(.sfRounded(size: .sm, weight: .medium))
                     Text("-")
-                        .foregroundColor(.white)
+                        .foregroundColor(AppColors.white)
                         .font(.sfRounded(size: .lg, weight: .regular))
 
                 }
@@ -106,7 +104,7 @@ struct HistoryDetailsView: View {
         .padding()
         .background(Color.black.edgesIgnoringSafeArea(.all))
         .navigationTitle("History")
-        .foregroundColor(.white)
+        .foregroundColor(AppColors.white)
     }
     
     // Helper functions to format amount and date

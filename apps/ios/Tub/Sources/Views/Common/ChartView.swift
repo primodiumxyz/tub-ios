@@ -12,20 +12,27 @@ struct ChartView: View {
     let prices: [Price]
     let purchaseTime: Date?
     let purchaseAmount: Double
+    let timeframeSecs: Double?
+
+    private var filteredPrices: [Price] {
+        let cutoffTime = Date().addingTimeInterval(-(timeframeSecs ?? 30))
+        return prices.filter { $0.timestamp >= cutoffTime }
+    }
     
-    init (prices: [Price], purchaseTime: Date? = nil, purchaseAmount: Double? = nil){
+    init(prices: [Price], purchaseTime: Date? = nil, purchaseAmount: Double? = nil, timeframeSecs: Double? = 30) {
         self.prices = prices
         self.purchaseTime = purchaseTime
         self.purchaseAmount = purchaseAmount ?? 0.0
+        self.timeframeSecs = timeframeSecs
     }
     
     private var dashedLineColor: Color {
         guard let purchasePrice = closestPurchasePrice?.price,
-              let currentPrice = prices.last?.price else { return .white }
+              let currentPrice = prices.last?.price else { return AppColors.white }
         if currentPrice == purchasePrice {
-            return .white
+            return AppColors.white
         }
-        return currentPrice < purchasePrice ? .red : .green
+        return currentPrice < purchasePrice ? AppColors.lightRed : AppColors.lightGreen
     }
     
     private var change: Double? {
@@ -41,13 +48,13 @@ struct ChartView: View {
     
     var body: some View {
         Chart {
-            ForEach(prices) { price in
+            ForEach(filteredPrices) { price in
                 LineMark(
                     x: .value("Date", price.timestamp),
                     y: .value("Price", price.price)
                 )
-                .foregroundStyle(neonBlue.opacity(0.8)) // Neon blue line
-                .shadow(color: neonBlue, radius: 3, x: 2, y: 2)
+                .foregroundStyle(AppColors.aquaBlue.opacity(0.8)) // Neon blue line
+                .shadow(color: AppColors.aquaBlue, radius: 3, x: 2, y: 2)
                 .lineStyle(StrokeStyle(lineWidth: 3))
             }
             
@@ -71,10 +78,10 @@ struct ChartView: View {
                         PillView(value:
                                     "\(String(format: "%.2f%", abs(change! * purchaseAmount))) SOL",
                                  color: dashedLineColor,
-                                 foregroundColor: .black)
+                                 foregroundColor: AppColors.black)
                     } else {
-                        PillView(value: "\(String(format: "%.2f%", currentPrice.price)) SOL", color: .white,
-                                 foregroundColor: .black)
+                        PillView(value: "\(String(format: "%.2f%", currentPrice.price)) SOL", color: AppColors.white,
+                                 foregroundColor: AppColors.black)
                     }
                 }
             }
@@ -82,21 +89,21 @@ struct ChartView: View {
             if let purchasePrice = closestPurchasePrice {
                 // Add horizontal dashed line
                 RuleMark(y: .value("Purchase Price", purchasePrice.price))
-                    .foregroundStyle(pink)
+                    .foregroundStyle(AppColors.primaryPink.opacity(0.8))
                     .lineStyle(StrokeStyle(lineWidth: 2, dash: [5, 5]))
                 
                 PointMark(
                     x: .value("Date", purchasePrice.timestamp),
                     y: .value("Price", purchasePrice.price)
                 )
-                .foregroundStyle(pink)
+                .foregroundStyle(AppColors.primaryPink)
                 .symbolSize(100)
                 .symbol(.circle)
                 
                 .annotation(position: .bottom, spacing: 0) {
                     PillView(
                         value: "\(String(format: "%.2f%", purchasePrice.price)) SOL",
-                        color: semipink, foregroundColor: .white)
+                        color: AppColors.primaryPink.opacity(0.8), foregroundColor: AppColors.white)
                 }
             }
         }
@@ -134,7 +141,9 @@ struct ChartView_Previews: PreviewProvider {
                 Price(timestamp: Date().addingTimeInterval(345600), price: 114.0),
                 Price(timestamp: Date().addingTimeInterval(432000), price: 109.0),
                 Price(timestamp: Date().addingTimeInterval(518400), price: 109)
-            ], purchaseTime: Date().addingTimeInterval(172800)
+            ],
+            purchaseTime: Date().addingTimeInterval(172800),
+            timeframeSecs: 600000 // Example: Show data for the last 7 days
         )
     }
 }

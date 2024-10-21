@@ -56,7 +56,8 @@ The server can be configured with the following environment variables:
 | `SERVER_PORT`        | Port that the server listens on   | `8888`                                 |
 | `HASURA_ADMIN_SECRET`| Admin secret for Hasura GraphQL   | `password`                             |
 | `GRAPHQL_URL`        | URL of the GraphQL endpoint       | `http://localhost:8080/v1/graphql`     |
-| `PRIVATE_KEY`        | Private key for JWT signing       | (a default key is provided)            |
+| `PRIVATE_KEY`        | Private key for solana wallet     | (a default key is provided)            |
+| `JWT_SECRET`         | Secret for JWT signing            | `secret`                               |
 
 ## Development
 
