@@ -78,12 +78,28 @@
             nullable: true
             scalar: timestamptz
       name: account_transaction_offset_model
+      select_permissions:
+        - permission:
+            columns:
+              - id
+              - account
+              - amount
+              - created_at
+              - created_at_offset
+            filter: {}
+          role: public
     - fields:
         - name: balance
           type:
             nullable: false
             scalar: numeric
       name: balance_offset_model
+      select_permissions:
+        - permission:
+            columns:
+              - balance
+            filter: {}
+          role: public
     - fields:
         - name: id
           type:
@@ -118,6 +134,7 @@
               - price
               - created_at
               - internal_token_transaction_ref
+              - created_at_offset
             filter: {}
           role: public
     - fields:
@@ -146,6 +163,17 @@
             nullable: true
             scalar: timestamptz
       name: token_transaction_offset_model
+      select_permissions:
+        - permission:
+            columns:
+              - id
+              - token
+              - amount
+              - account
+              - created_at
+              - created_at_offset
+            filter: {}
+          role: public
   native_queries:
     - arguments: {}
       code: SELECT * FROM formatted_tokens
