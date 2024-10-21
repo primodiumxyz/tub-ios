@@ -236,6 +236,7 @@ export const GetFilteredTokensQuery = graphql(`
       mint
       name
       symbol
+      platform
       latest_price
       increase_pct
       trades

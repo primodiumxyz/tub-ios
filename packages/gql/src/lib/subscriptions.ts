@@ -63,6 +63,7 @@ export const GetFilteredTokensSubscription = graphql(`
       token_id
       mint
       name
+      platform
       symbol
       latest_price
       increase_pct
