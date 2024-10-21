@@ -70,6 +70,8 @@ struct TokenView : View {
                                 Text(tokenModel.priceChange.amount >= 0 ? "+" : "-")
                                 Text("\(abs(tokenModel.priceChange.amount), specifier: "%.3f") SOL")
                                 Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
+                                
+                                Text("30s").foregroundColor(.gray)
                             }
                             .font(.sfRounded(size: .sm, weight: .semibold))
                             .foregroundColor(tokenModel.priceChange.amount >= 0 ? .green : .red)

@@ -199,7 +199,7 @@ struct TokenListView: View {
         subscription = Network.shared.apollo.subscribe(subscription: SubFilteredTokensSubscription(
             since: Date().addingTimeInterval(-30).ISO8601Format(),
             minTrades: "100",
-            minIncreasePct: "50"
+            minIncreasePct: "10"
         )) { result in
             DispatchQueue.main.async {
                 self.isLoading = false
@@ -210,7 +210,7 @@ struct TokenListView: View {
                     }
                     if let tokens = graphQLResult.data?.getFormattedTokens {
                         let newTokens = tokens.map { elem in 
-                            Token(id: elem.token_id, name: elem.name, symbol: elem.symbol, mint: elem.mint, imageUri: nil)
+                            Token(id: elem.token_id, name: elem.name ?? "", symbol: elem.symbol ?? "", mint: elem.mint, imageUri: nil)
                         }
                         self.availableTokens = newTokens
                         if self.currentToken == nil {
