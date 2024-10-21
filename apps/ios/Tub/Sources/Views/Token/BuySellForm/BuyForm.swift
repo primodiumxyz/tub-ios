@@ -108,7 +108,7 @@ struct BuyForm: View {
                     ForEach([10.0, 25.0, 50.0, 100], id: \.self) { amount in
                         Button(action: {
                             
-                            updateBuyAmount(amount * userModel.balance.total / 100)
+                            updateBuyAmount(amount * userModel.balance / 100)
                         }) {
                             Text(amount == 100 ? "MAX" : "\(Int(amount))%")
                                 .font(.sfRounded(size: .base, weight: .bold))

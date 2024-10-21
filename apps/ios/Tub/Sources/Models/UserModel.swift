@@ -18,13 +18,13 @@ class UserModel: ObservableObject {
         return formatter
     }()
 
-    @Published var balance: Numeric = 0
+    @Published var balance: Double = 0
     @Published var isLoading: Bool = true
     @Published var userId: String
     @Published var username: String = ""
-    @Published var balanceChange: Numeric = 0
+    @Published var balanceChange: Double = 0
     @Published var timeElapsed: TimeInterval = 0
-    @Published var initialBalance: Numeric = 0
+    @Published var initialBalance: Double = 0
     @Published var initialTime: Date = Date()
     @Published var currentTime: Date = Date()
     
@@ -114,7 +114,7 @@ class UserModel: ObservableObject {
                 switch result {
                 case .success(let response):
                     DispatchQueue.main.async {
-                        self.initialBalance = response.data?.balance.first?.value ?? 0
+                        self.initialBalance = Double(response.data?.balance.first?.value ?? 0) / 1e9
                     }
                     continuation.resume()
                 case .failure(let error):
@@ -137,7 +137,7 @@ class UserModel: ObservableObject {
                 switch result {
                 case .success(let graphQLResult):
                     self.balance =
-                    graphQLResult.data?.balance.first?.value ?? 0
+                    Double(graphQLResult.data?.balance.first?.value ?? 0) / 1e9
                     self.balanceChange = self.balance - self.initialBalance
                 case .failure(let error):
                     print("Error: \(error.localizedDescription)")

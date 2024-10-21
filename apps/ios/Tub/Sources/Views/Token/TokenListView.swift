@@ -76,8 +76,8 @@ struct TokenListView: View {
                         .opacity(0.7)
                         .kerning(-1)
                     
-                    let tokenValue = tokenModel.tokenBalance.total * (tokenModel.prices.last?.price ?? 0)
-                    let totalBalance = userModel.balance.total + tokenValue
+                    let tokenValue = tokenModel.tokenBalance * (tokenModel.prices.last?.price ?? 0)
+                    let totalBalance = userModel.balance + tokenValue
                     Text("\(totalBalance, specifier: "%.2f") SOL")
                         .font(.sfRounded(size: .xl3))
                         .fontWeight(.bold)
@@ -87,7 +87,7 @@ struct TokenListView: View {
                         Text(adjustedChange >= 0 ? "+" : "-")
                         Text("\(abs(adjustedChange), specifier: "%.2f") SOL")
                         
-                        let adjustedPercentage = (adjustedChange / userModel.initialBalance) * 100
+                        let adjustedPercentage = (adjustedChange / Double(userModel.initialBalance)) * 100
                         Text("(\(abs(adjustedPercentage), specifier: "%.1f")%)")
                         
                         // Format time elapsed

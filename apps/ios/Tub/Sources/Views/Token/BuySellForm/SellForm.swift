@@ -23,7 +23,7 @@ struct SellForm: View {
                         Text("You Own")
                             .font(.sfRounded(size: .xs, weight: .semibold))
                             .foregroundColor(AppColors.gray)
-                        Text("\(tokenModel.tokenBalance.total, specifier: "%.2f") \(tokenModel.token.symbol)")
+                        Text("\(tokenModel.tokenBalance, specifier: "%.2f") \(tokenModel.token.symbol)")
                             .font(.sfRounded(size: .xl, weight: .semibold))
                             .foregroundColor(AppColors.white)
                     }
@@ -34,7 +34,7 @@ struct SellForm: View {
                             .font(.sfRounded(size: .xs, weight: .semibold))
                             .foregroundColor(AppColors.gray)
                         
-                        let gains = tokenModel.tokenBalance.total * (tokenModel.prices.last?.price ?? 0) - tokenModel.amountBoughtSol
+                        let gains = tokenModel.tokenBalance * (tokenModel.prices.last?.price ?? 0) - tokenModel.amountBoughtSol
                         let percentageGain = gains / tokenModel.amountBoughtSol * 100
                         
                         HStack(){
