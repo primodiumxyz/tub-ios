@@ -12,6 +12,8 @@ public enum Token_update_column: String, EnumType {
   /// column name
   case name = "name"
   /// column name
+  case platform = "platform"
+  /// column name
   case supply = "supply"
   /// column name
   case symbol = "symbol"

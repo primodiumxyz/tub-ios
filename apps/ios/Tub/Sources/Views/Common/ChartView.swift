@@ -12,18 +12,11 @@ struct ChartView: View {
     let prices: [Price]
     let purchaseTime: Date?
     let purchaseAmount: Double
-    let timeframeSecs: Double?
-
-    private var filteredPrices: [Price] {
-        let cutoffTime = Date().addingTimeInterval(-(timeframeSecs ?? 30))
-        return prices.filter { $0.timestamp >= cutoffTime }
-    }
     
-    init(prices: [Price], purchaseTime: Date? = nil, purchaseAmount: Double? = nil, timeframeSecs: Double? = 30) {
+    init(prices: [Price], purchaseTime: Date? = nil, purchaseAmount: Double? = nil) {
         self.prices = prices
         self.purchaseTime = purchaseTime
         self.purchaseAmount = purchaseAmount ?? 0.0
-        self.timeframeSecs = timeframeSecs
     }
     
     private var dashedLineColor: Color {
@@ -48,7 +41,7 @@ struct ChartView: View {
     
     var body: some View {
         Chart {
-            ForEach(filteredPrices) { price in
+            ForEach(prices) { price in
                 LineMark(
                     x: .value("Date", price.timestamp),
                     y: .value("Price", price.price)
@@ -80,7 +73,7 @@ struct ChartView: View {
                                  color: dashedLineColor,
                                  foregroundColor: AppColors.black)
                     } else {
-                        PillView(value: "\(String(format: "%.2f%", currentPrice.price)) SOL", color: AppColors.white,
+                        PillView(value: "\(PriceFormatter.formatPrice(currentPrice.price)) SOL", color: AppColors.white,
                                  foregroundColor: AppColors.black)
                     }
                 }
@@ -102,7 +95,7 @@ struct ChartView: View {
                 
                 .annotation(position: .bottom, spacing: 0) {
                     PillView(
-                        value: "\(String(format: "%.2f%", purchasePrice.price)) SOL",
+                        value: "\(PriceFormatter.formatPrice(purchasePrice.price)) SOL",
                         color: AppColors.primaryPink.opacity(0.8), foregroundColor: AppColors.white)
                 }
             }
@@ -122,29 +115,18 @@ struct ChartView: View {
                 AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
                     .foregroundStyle(.white.opacity(0.2))
                 AxisValueLabel()
-                    .foregroundStyle(.white.opacity(0.5))
+                AxisValueLabel {
+                    if let doubleValue = value.as(Double.self) {
+                        Text(PriceFormatter.formatPrice(doubleValue))
+                            .foregroundStyle(.white)
+                            .font(.sfRounded(size: .xs, weight: .regular))
+                    }
+                }
+                .foregroundStyle(.white.opacity(0.5))
             }
         }
         .chartYScale(domain: .automatic)
         .frame(height: 350)
-    }
-}
-
-struct ChartView_Previews: PreviewProvider {
-    static var previews: some View {
-        ChartView(
-            prices: [
-                Price(timestamp: Date(), price: 100.0),
-                Price(timestamp: Date().addingTimeInterval(86400), price: 105.0),
-                Price(timestamp: Date().addingTimeInterval(172800), price: 102.0),
-                Price(timestamp: Date().addingTimeInterval(259200), price: 110.0),
-                Price(timestamp: Date().addingTimeInterval(345600), price: 114.0),
-                Price(timestamp: Date().addingTimeInterval(432000), price: 109.0),
-                Price(timestamp: Date().addingTimeInterval(518400), price: 109)
-            ],
-            purchaseTime: Date().addingTimeInterval(172800),
-            timeframeSecs: 600000 // Example: Show data for the last 7 days
-        )
     }
 }
 

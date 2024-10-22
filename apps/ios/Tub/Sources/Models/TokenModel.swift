@@ -7,7 +7,7 @@ class TokenModel: ObservableObject {
     var tokenId: String = ""
     var userId: String = ""
 
-    @Published var token: Token = Token(id: "", name: "COIN", symbol: "SYMBOL", imageUri: "")
+    @Published var token: Token = Token(id: "", name: "COIN", symbol: "SYMBOL", mint: "", imageUri: "")
     @Published var loading = true
     @Published var tokenBalance: Double = 0
 
@@ -20,7 +20,6 @@ class TokenModel: ObservableObject {
     private var tokenBalanceSubscription: Apollo.Cancellable?
 
     @Published var priceChange: (amount: Double, percentage: Double) = (0, 0)
-    @Published var initialPrice: Double?
 
     init(userId: String, tokenId: String? = nil) {
         self.userId = userId
@@ -55,7 +54,7 @@ class TokenModel: ObservableObject {
                 case .success(let response):
                     if let token = response.data?.token.first(where: { $0.id == self.tokenId }) {
                         DispatchQueue.main.async {
-                            self.token = Token(id: token.id, name: token.name, symbol: token.symbol, imageUri: token.uri)
+                            self.token = Token(id: token.id, name: token.name, symbol: token.symbol, mint: token.mint ?? "", imageUri: token.uri)
 //                            self.loading = false
                         }
                         continuation.resume()
@@ -79,10 +78,8 @@ class TokenModel: ObservableObject {
     }
 
     private func subscribeToLatestPrice(_ since: Timestamptz) {
-        // Cancel any existing subscription before creating a new one
         latestPriceSubscription?.cancel()
 
-        // First, query the past token history
         let query = GetTokenPriceHistorySinceQuery(tokenId: self.tokenId, since: since)
         Network.shared.apollo.fetch(query: query) { [weak self] result in
             guard let self = self else { return }
@@ -96,10 +93,6 @@ class TokenModel: ObservableObject {
                         }
                         return nil
                     } ?? []
-                    
-                    if self.initialPrice == nil {
-                        self.initialPrice = self.prices.first?.price
-                    }
                     
                     // After fetching past history, subscribe to latest price updates
                     self.subscribeToLatestPriceUpdates()
@@ -210,6 +203,7 @@ class TokenModel: ObservableObject {
         self.tokenId = newTokenId
         self.loading = true  // Reset loading state if needed
         self.prices = []
+        self.priceChange = (0, 0)
         self.tokenBalance = 0
 
         // Re-run the initialization logic
@@ -231,8 +225,8 @@ class TokenModel: ObservableObject {
     }
 
     private func calculatePriceChange() {
-        guard let currentPrice = prices.last?.price,
-              let initialPrice = initialPrice else { return }
+        let currentPrice = prices.last?.price ?? 0
+        let initialPrice = prices.first?.price ?? 0
         
         let priceChangeAmount = currentPrice - initialPrice
         let priceChangePercentage = (priceChangeAmount / initialPrice) * 100

@@ -1,5 +1,9 @@
 subscription SubLatestMockTokens($limit: Int = 10) {
-  token(where: { mint: { _is_null: true } }, order_by: { updated_at: desc }, limit: $limit) {
+  token(
+    where: { mint: { _is_null: true } }
+    order_by: { updated_at: desc }
+    limit: $limit
+  ) {
     id
     symbol
     supply
@@ -23,7 +27,11 @@ subscription SubTokenPriceHistorySince($tokenId: uuid!, $since: timestamptz!) {
 }
 
 subscription SubLatestTokenPrice($tokenId: uuid!) {
-  token_price_history(where: { token: { _eq: $tokenId } }, limit: 1, order_by: { created_at: desc }) {
+  token_price_history(
+    where: { token: { _eq: $tokenId } }
+    limit: 1
+    order_by: { created_at: desc }
+  ) {
     created_at
     price
   }
@@ -31,7 +39,10 @@ subscription SubLatestTokenPrice($tokenId: uuid!) {
 
 subscription SubAllOnchainTokensPriceHistorySince($since: timestamptz!) {
   token_price_history(
-    where: { token_relationship: { mint: { _is_null: false } }, created_at: { _gte: $since } }
+    where: {
+      token_relationship: { mint: { _is_null: false } }
+      created_at: { _gte: $since }
+    }
     order_by: { created_at: desc }
   ) {
     created_at
@@ -44,14 +55,23 @@ subscription SubAllOnchainTokensPriceHistorySince($since: timestamptz!) {
   }
 }
 
-subscription SubFilteredTokens($since: timestamptz!, $minTrades: bigint!, $minIncreasePct: float8!) {
+subscription SubFilteredTokens(
+  $since: timestamptz!
+  $minTrades: bigint!
+  $minIncreasePct: float8!
+) {
   GetFormattedTokens(
-    where: { created_at: { _gte: $since }, trades: { _gte: $minTrades }, increase_pct: { _gte: $minIncreasePct } }
+    args: { since: $since }
+    where: {
+      trades: { _gte: $minTrades }
+      increase_pct: { _gte: $minIncreasePct }
+    }
   ) {
     token_id
     mint
     name
     symbol
+    platform
     latest_price
     increase_pct
     trades
@@ -59,39 +79,81 @@ subscription SubFilteredTokens($since: timestamptz!, $minTrades: bigint!, $minIn
   }
 }
 
-subscription SubAccountTokenBalance($account: uuid!, $token: uuid!, $start: timestamptz = "now()") {
-  balance: account_token_balance_ignore_interval(args: {account: $account, interval: "0", start: $start, token: $token}) {
+subscription SubAccountTokenBalance(
+  $account: uuid!
+  $token: uuid!
+  $start: timestamptz = "now()"
+) {
+  balance: account_token_balance_ignore_interval(
+    args: { account: $account, interval: "0", start: $start, token: $token }
+  ) {
     value: balance
   }
 }
 
-subscription SubAccountTokenBalanceIgnoreInterval($account: uuid!, $start: timestamptz = "now()", $interval: interval = "0", $token: uuid!) {
-  balance: account_token_balance_ignore_interval(args: {account: $account, interval: $interval, start: $start, token: $token}) {
+subscription SubAccountTokenBalanceIgnoreInterval(
+  $account: uuid!
+  $start: timestamptz = "now()"
+  $interval: interval = "0"
+  $token: uuid!
+) {
+  balance: account_token_balance_ignore_interval(
+    args: {
+      account: $account
+      interval: $interval
+      start: $start
+      token: $token
+    }
+  ) {
     value: balance
   }
 }
 
 subscription SubAccountBalance($account: uuid!, $start: timestamptz = "now()") {
-  balance: account_balance_ignore_interval(args: {account: $account, interval: "0", start: $start}) {
+  balance: account_balance_ignore_interval(
+    args: { account: $account, interval: "0", start: $start }
+  ) {
     value: balance
   }
 }
 
-subscription SubAccountBalanceIgnoreInterval($account: uuid!, $start: timestamptz = "now()", $interval: interval = "0") {
-  balance: account_balance_ignore_interval(args: {account: $account, interval: $interval, start: $start}) {
+subscription SubAccountBalanceIgnoreInterval(
+  $account: uuid!
+  $start: timestamptz = "now()"
+  $interval: interval = "0"
+) {
+  balance: account_balance_ignore_interval(
+    args: { account: $account, interval: $interval, start: $start }
+  ) {
     value: balance
   }
 }
 
-subscription SubTokenPriceHistoryInterval($token: uuid, $start: timestamptz = "now()", $interval: interval = "30m") {
-  token_price_history_offset(args: {offset: $interval}, where: {created_at_offset: {_gte: $start}, token: {_eq: $token}}, order_by: {created_at: desc}) {
+subscription SubTokenPriceHistoryInterval(
+  $token: uuid
+  $start: timestamptz = "now()"
+  $interval: interval = "30m"
+) {
+  token_price_history_offset(
+    args: { offset: $interval }
+    where: { created_at_offset: { _gte: $start }, token: { _eq: $token } }
+    order_by: { created_at: desc }
+  ) {
     created_at
     price
   }
 }
 
-subscription SubTokenPriceHistoryIgnoreInterval($token: uuid, $start: timestamptz = "now()", $interval: interval = "30m") {
-  token_price_history_offset(args: {offset: $interval}, where: {created_at_offset: {_lte: $start}, token: {_eq: $token}}, order_by: {created_at: desc}) {
+subscription SubTokenPriceHistoryIgnoreInterval(
+  $token: uuid
+  $start: timestamptz = "now()"
+  $interval: interval = "30m"
+) {
+  token_price_history_offset(
+    args: { offset: $interval }
+    where: { created_at_offset: { _lte: $start }, token: { _eq: $token } }
+    order_by: { created_at: desc }
+  ) {
     created_at
     price
   }

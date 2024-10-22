@@ -32,7 +32,7 @@ export const useTokens = (): {
       latestPrice: Number(token.latest_price),
       increasePct: Number(token.increase_pct),
       trades: Number(token.trades),
-      platform: token.name,
+      platform: token.platform ?? "",
     }));
   }, [filteredTokensResult.data]);
 

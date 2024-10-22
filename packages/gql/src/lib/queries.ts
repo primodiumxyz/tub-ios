@@ -39,6 +39,7 @@ export const GetTokenDataQuery = graphql(`
       id
       name
       symbol
+      mint
       updated_at
       supply
       uri
@@ -156,6 +157,25 @@ export const GetTokenPriceHistorySinceQuery = graphql(`
       id
       price
       token
+    }
+  }
+`);
+
+export const GetFilteredTokensQuery = graphql(`
+  query GetFilteredTokens($since: timestamptz!, $minTrades: bigint!, $minIncreasePct: float8!) {
+    GetFormattedTokens(
+      args: { since: $since }
+      where: { trades: { _gte: $minTrades }, increase_pct: { _gte: $minIncreasePct } }
+    ) {
+      token_id
+      mint
+      name
+      symbol
+      platform
+      latest_price
+      increase_pct
+      trades
+      created_at
     }
   }
 `);
