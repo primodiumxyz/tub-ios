@@ -25,7 +25,7 @@ export class TubService {
 
   private verifyJWT = (token: string) => {
     try {
-      const payload = jwt.verify(token, env.PRIVATE_KEY) as jwt.JwtPayload;
+      const payload = jwt.verify(token, env.JWT_SECRET) as jwt.JwtPayload;
       return payload.uuid;
     } catch (e: any) {
       throw new Error(`Invalid JWT: ${e.message}`);
@@ -89,13 +89,13 @@ export class TubService {
       throw new Error("Failed to register new user");
     }
 
-    const token = jwt.sign({ uuid }, env.PRIVATE_KEY, { expiresIn: "5y" });
+    const token = jwt.sign({ uuid }, env.JWT_SECRET, { expiresIn: "5y" });
 
     return { uuid, token };
   }
 
   async refreshToken(uuid: string) {
-    const token = jwt.sign({ uuid }, env.PRIVATE_KEY, { expiresIn: "5y" });
+    const token = jwt.sign({ uuid }, env.JWT_SECRET, { expiresIn: "5y" });
     return token;
   }
 

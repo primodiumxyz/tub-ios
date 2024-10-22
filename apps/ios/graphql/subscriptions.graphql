@@ -4,6 +4,7 @@ subscription SubLatestMockTokens($limit: Int = 10) {
     symbol
     supply
     name
+    uri
     updated_at
   }
 }

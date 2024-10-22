@@ -7,7 +7,7 @@ class TokenModel: ObservableObject {
     var tokenId: String = ""
     var userId: String = ""
 
-    @Published var token: Token = Token(id: "", name: "COIN", symbol: "SYMBOL")
+    @Published var token: Token = Token(id: "", name: "COIN", symbol: "SYMBOL", imageUri: "")
     @Published var loading = true
     @Published var tokenBalance: (credit: Numeric, debit: Numeric, total: Double) = (0, 0, 0)
 
@@ -56,7 +56,7 @@ class TokenModel: ObservableObject {
                 case .success(let response):
                     if let token = response.data?.token.first(where: { $0.id == self.tokenId }) {
                         DispatchQueue.main.async {
-                            self.token = Token(id: token.id, name: token.name, symbol: token.symbol)
+                            self.token = Token(id: token.id, name: token.name, symbol: token.symbol, imageUri: token.uri)
 //                            self.loading = false
                         }
                         continuation.resume()

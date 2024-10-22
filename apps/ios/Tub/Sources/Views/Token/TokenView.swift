@@ -12,7 +12,6 @@ import Combine
 
 
 
-
 struct TokenView : View {
     @ObservedObject var tokenModel: TokenModel
     @EnvironmentObject private var userModel: UserModel
@@ -58,12 +57,10 @@ struct TokenView : View {
                     HStack {
                         VStack(alignment: .leading, spacing: 1) {
                             HStack {
-                                Image(systemName: "pencil")
-                                    .resizable()
-                                    .frame(width: 20, height: 20)
-                                    .foregroundColor(.white)
-                                
-                                Text("$\(tokenModel.token.symbol) (\(tokenModel.token.name))")
+                                if tokenModel.token.imageUri != nil {
+                                    ImageView(imageUri: tokenModel.token.imageUri!, size: 20)
+                                }
+                                Text("$\(tokenModel.token.symbol)")
                                     .font(.sfRounded(size: .lg, weight: .semibold))
                             }
                             Text("\(tokenModel.prices.last?.price ?? 0, specifier: "%.3f") SOL")
@@ -71,7 +68,7 @@ struct TokenView : View {
                             
                             HStack {
                                 Text(tokenModel.priceChange.amount >= 0 ? "+" : "-")
-                                Text("\(abs(tokenModel.priceChange.amount), specifier: "%.8f") SOL")
+                                Text("\(abs(tokenModel.priceChange.amount), specifier: "%.3f") SOL")
                                 Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
                             }
                             .font(.sfRounded(size: .sm, weight: .semibold))
@@ -83,7 +80,7 @@ struct TokenView : View {
                         Image(systemName: "chevron.down")
                             .resizable()
                             .frame(width: 20, height: 10)
-                            .foregroundColor(.white)
+                            .foregroundColor(AppColors.white)
                             .rotationEffect(Angle(degrees: showInfoCard ? 180 : 0)) // Add this line
                     }
                     .onTapGesture {
@@ -94,7 +91,14 @@ struct TokenView : View {
                         }
                     }
 
-                    ChartView(prices: tokenModel.prices, purchaseTime: tokenModel.purchaseTime, purchaseAmount: tokenModel.tokenBalance.total)
+                    // Replace the existing ChartView with this conditional rendering
+                    if selectedTimespan == .live {
+                        ChartView(prices: tokenModel.prices, purchaseTime: tokenModel.purchaseTime, purchaseAmount: tokenModel.tokenBalance.total, timeframeSecs: 30)
+                    } else {
+                        CandleChartView(prices: tokenModel.prices, intervalSecs: 90, timeframeMins: 30)
+                            .id(tokenModel.prices.count)
+                    }
+
                     HStack {
                         Spacer()
                         ForEach([Timespan.live, Timespan.thirtyMin], id: \.self) { timespan in
@@ -105,7 +109,7 @@ struct TokenView : View {
                                 HStack {
                                     if timespan == Timespan.live {
                                         Circle()
-                                            .fill(Color.red)
+                                            .fill(AppColors.red)
                                             .frame(width: 10, height: 10)
                                     }
                                     Text(timespan.rawValue)
@@ -113,27 +117,27 @@ struct TokenView : View {
                                 }
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 6)
-                                .background(selectedTimespan == timespan ? neonBlue : Color.clear)
-                                .foregroundColor(selectedTimespan == timespan ? Color.black : Color.white)
+                                .background(selectedTimespan == timespan ? AppColors.aquaBlue : Color.clear)
+                                .foregroundColor(selectedTimespan == timespan ? AppColors.black : AppColors.white)
                                 .cornerRadius(6)
                             }
                         }
                         Spacer()
                     }
-                    .padding(.vertical, 8)
+                    .padding(.bottom, 8)
                     
                     Spacer()
                     BuySellForm(tokenModel: tokenModel, activeTab: $activeTab, showBuySheet: $showBuySheet)
                     
                 }.padding(8)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color.clear) // Keep this clear
-
+            .frame(maxWidth: .infinity)
+            .foregroundColor(AppColors.white)
+            
             // Info Card View (slide-up effect)
             if showInfoCard {
                 // Fullscreen tap dismiss
-                Color.black.opacity(0.4) // Semi-transparent background
+                AppColors.black.opacity(0.4) // Semi-transparent background
                     .ignoresSafeArea()
                     .onTapGesture {
                         withAnimation(.easeInOut) {
@@ -160,8 +164,10 @@ struct TokenView : View {
                 BuyForm(isVisible: $showBuySheet, tokenModel: tokenModel, onBuy: handleBuy)
                     .transition(.move(edge: .bottom))
                     .zIndex(2) // Ensure it stays on top of everything
+                    .offset(y: 20)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity) // Full screen layout for ZStack
     }
 }
 
@@ -169,6 +175,6 @@ struct TokenView : View {
 #Preview {
     @Previewable @AppStorage("userId") var userId: String = ""
     @Previewable @State var activeTab: String = "buy"
-    TokenView(tokenModel: TokenModel(userId: userId, tokenId: mockTokenId), activeTab: $activeTab)
+    TokenView(tokenModel: TokenModel(userId: userId, tokenId: mockTokenId), activeTab: $activeTab).background(.black)
         .environmentObject(UserModel(userId: userId))
 }

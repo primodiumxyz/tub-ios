@@ -26,14 +26,16 @@ struct TokenListView: View {
     @State private var isMovingUp: Bool = true
     
     // swipe animation
-    @State private var dragOffset: CGFloat = 0.0
-    @State private var swipeDirection: CGFloat = 0.0 // Track swipe direction
-    @State private var animatingSwipe: Bool = false
+    @State private var offset: CGFloat = 0
+    @State private var activeOffset: CGFloat = 0
+    @State private var dragging = false
     
     // show info card
     @State private var showInfoCard = false
-    @State var activeTab: String = "buy" 
+    @State var activeTab: String = "buy"
     
+    @State private var previousTokenModel: TokenModel?
+    @State private var nextTokenModel: TokenModel?
     
     init() {
         self._tokenModel = StateObject(wrappedValue: TokenModel(userId: UserDefaults.standard.string(forKey: "userId") ?? ""))
@@ -66,131 +68,138 @@ struct TokenListView: View {
             )
             .ignoresSafeArea()
             
-            // Content
-            VStack(alignment: .leading, spacing: 0) {
-                // Add this SafeAreaInset
-                Spacer()
-                    .frame(height: 20)
-                    .background(Color.clear)
-                
+            VStack(spacing: 0) {
+                // Account balance view
                 VStack(alignment: .leading) {
                     Text("Account Balance")
                         .font(.sfRounded(size: .sm, weight: .bold))
                         .opacity(0.7)
                         .kerning(-1)
                     
-                    let totalBalance = userModel.balance.total + tokenModel.tokenBalance.total * (tokenModel.prices.last?.price ?? 0)
+                    let tokenValue = tokenModel.tokenBalance.total * (tokenModel.prices.last?.price ?? 0)
+                    let totalBalance = userModel.balance.total + tokenValue
                     Text("\(totalBalance, specifier: "%.2f") SOL")
                         .font(.sfRounded(size: .xl3))
                         .fontWeight(.bold)
                     
-                    let changeAmount = totalBalance - userModel.lastHourBalance
-                    let changePercentage = userModel.lastHourBalance != 0 ? (changeAmount / userModel.lastHourBalance) * 100 : 0
+                    let adjustedChange = userModel.balanceChange + tokenValue
                     HStack {
+                        Text(adjustedChange >= 0 ? "+" : "-")
+                        Text("\(abs(adjustedChange), specifier: "%.2f") SOL")
                         
-                        Text(changeAmount >= 0 ? "+" : "-")
-                        Text("\(abs(changeAmount), specifier: "%.2f") SOL")
-                        Text("(\(changePercentage, specifier: "%.1f")%)")
-                        Text("last hour")
+                        let adjustedPercentage = (adjustedChange / userModel.initialBalance) * 100
+                        Text("(\(abs(adjustedPercentage), specifier: "%.1f")%)")
+                        
+                        // Format time elapsed
+                        Text("\(formatTimeElapsed(userModel.timeElapsed))")
                             .foregroundColor(.gray)
                     }
                     .font(.sfRounded(size: .sm, weight: .semibold))
-                    .foregroundColor(changeAmount >= 0 ? .green : .red)
-                }.padding(.bottom)
+                    .foregroundColor(adjustedChange >= 0 ? .green : .red)
+                }
+                .padding()
+                .padding(.top, 35)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(dragging ? AppColors.black : nil)
+                .ignoresSafeArea()
+                .zIndex(2)
                 
-                // todo: add gains
-                
+                // Rest of the content
                 if isLoading {
                     LoadingView()
                 } else if tokens.isEmpty {
                     Text("No tokens found").foregroundColor(.red)
                 } else {
-                    TokenView(tokenModel: tokenModel, activeTab: $activeTab)
-                        .listRowInsets(.init(top: 10, leading: 0, bottom: 10, trailing: 10))
-                        .transition(.move(edge: .top))
-                        .offset(y: dragOffset)
+                    GeometryReader { geometry in
+                        VStack(spacing: 10) {
+                            TokenView(tokenModel: previousTokenModel ?? getPreviousTokenModel(), activeTab: $activeTab)
+                                .frame(height: geometry.size.height)
+                                .opacity(dragging ? 1 : 0)
+                            TokenView(tokenModel: tokenModel, activeTab: $activeTab)
+                                .frame(height: geometry.size.height)
+                            TokenView(tokenModel: nextTokenModel ?? getNextTokenModel(), activeTab: Binding.constant("buy"))
+                                .frame(height: geometry.size.height)
+                                .opacity(dragging ? 0.2 : 0)
+                        }
+                        .padding(.horizontal)
+                        .zIndex(1)
+                        .offset(y: -geometry.size.height - 40 + offset + activeOffset)
                         .gesture(
                             DragGesture()
                                 .onChanged { value in
-                                    // Update offset as the user drags
-                                    dragOffset = value.translation.height
+                                    if activeTab != "sell" {
+                                        dragging = true
+                                        offset = value.translation.height
+                                    }
                                 }
                                 .onEnded { value in
-                                    let threshold: CGFloat = 100
-                                    let verticalAmount = value.translation.height
-                                    
-                                    if verticalAmount < -threshold && !animatingSwipe {
-                                        
-                                        // Swipe Up (Next token)
-                                        withAnimation(.easeInOut(duration: 0.4)) {
-                                            dragOffset = -UIScreen.main.bounds.height
-                                            swipeDirection = -1
-                                        }
-                                        animatingSwipe = true
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                                            loadNextToken()
-                                            resetDragOffset()
-                                        }
-                                    } else if verticalAmount > threshold && !animatingSwipe {
-                                        
-                                        // Swipe Down (Previous token)
-                                        withAnimation(.easeInOut(duration: 0.4)) {
-                                            dragOffset = UIScreen.main.bounds.height
-                                            swipeDirection = 1
-                                        }
-                                        animatingSwipe = true
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                                    if activeTab != "sell" {
+                                        let threshold: CGFloat = 50
+                                        if value.translation.height > threshold {
                                             loadPreviousToken()
-                                            resetDragOffset()
+                                            withAnimation {
+                                                activeOffset += geometry.size.height
+                                            }
+                                        } else if value.translation.height < -threshold {
+                                            loadNextToken()
+                                            withAnimation {
+                                                activeOffset -= geometry.size.height
+                                            }
                                         }
-                                    } else {
                                         withAnimation {
-                                            dragOffset = 0 // Reset if not enough swipe
+                                            offset = 0
+                                        }
+                                        // Delay setting dragging to false to allow for smooth animation
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                            dragging = false
                                         }
                                     }
                                 }
-                        )
-                    if showInfoCard {
-                        TokenInfoCardView(tokenModel: tokenModel, isVisible: $showInfoCard)
-                            .transition(.move(edge: .bottom))
+                        ).zIndex(1) 
                     }
                 }
+                
+                if showInfoCard {
+                    TokenInfoCardView(tokenModel: tokenModel, isVisible: $showInfoCard)
+                        .transition(.move(edge: .bottom))
+                }
             }
-            .padding()
         }
         .foregroundColor(.white)
         .background(Color.black)
         .onAppear {
             fetchTokens()
-            userModel.startBalanceUpdates()
         }
-        .onDisappear {
-            userModel.stopBalanceUpdates()
-        }
+        // Remove onDisappear as we no longer need to stop balance updates
+    }
+    
+    private func getPreviousTokenModel() -> TokenModel {
+        let previousIndex = (currentTokenIndex - 1 + tokens.count) % tokens.count
+        return TokenModel(userId: UserDefaults.standard.string(forKey: "userId") ?? "", tokenId: tokens[previousIndex].id)
+    }
+    
+    private func getNextTokenModel() -> TokenModel {
+        let nextIndex = (currentTokenIndex + 1) % tokens.count
+        return TokenModel(userId: UserDefaults.standard.string(forKey: "userId") ?? "", tokenId: tokens[nextIndex].id)
     }
     
     private func loadNextToken() {
-        let newIndex = (currentTokenIndex + 1) % tokens.count
-        currentTokenIndex = newIndex
-        updateTokenModel(tokenId: tokens[newIndex].id)
+        currentTokenIndex = (currentTokenIndex + 1) % tokens.count
+        previousTokenModel = tokenModel
+        updateTokenModel(tokenId: tokens[currentTokenIndex].id)
+        nextTokenModel = getNextTokenModel()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            activeOffset = 0
+        }
     }
     
     private func loadPreviousToken() {
-        let newIndex = (currentTokenIndex - 1 + tokens.count) % tokens.count
-        currentTokenIndex = newIndex
-        updateTokenModel(tokenId: tokens[newIndex].id)
-    }
-    
-    // Reset the drag offset
-    private func resetDragOffset() {
-        withAnimation(.easeInOut(duration: 0.3)) {
-            dragOffset = swipeDirection == -1 ? UIScreen.main.bounds.height : -UIScreen.main.bounds.height
-        }
+        currentTokenIndex = (currentTokenIndex - 1 + tokens.count) % tokens.count
+        nextTokenModel = tokenModel
+        updateTokenModel(tokenId: tokens[currentTokenIndex].id)
+        previousTokenModel = getPreviousTokenModel()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            withAnimation {
-                dragOffset = 0
-                animatingSwipe = false
-            }
+            activeOffset = 0
         }
     }
     
@@ -202,14 +211,31 @@ struct TokenListView: View {
                     switch result {
                     case .success(let graphQLResult):
                         if let tokens = graphQLResult.data?.token {
-                            self.tokens = tokens.map { elem in Token(id: elem.id, name: elem.name, symbol: elem.symbol) }
+                            self.tokens = tokens.map { elem in Token(id: elem.id, name: elem.name, symbol: elem.symbol, imageUri: elem.uri) }
                             updateTokenModel(tokenId: tokens[0].id)
+                            previousTokenModel = getPreviousTokenModel()
+                            nextTokenModel = getNextTokenModel()
                         }
                     case .failure(let error):
                         self.errorMessage = "Error: \(error.localizedDescription)"
                     }
                 }
             }
+        }
+    }
+    
+    private func formatTimeElapsed(_ timeInterval: TimeInterval) -> String {
+        let hours = Int(timeInterval) / 3600
+        let minutes = (Int(timeInterval) % 3600) / 60
+
+        if hours > 1 {
+            return "past \(hours) hours"
+        } else if hours > 0 {
+            return "past hour"
+        } else if minutes > 1 {
+            return "past \(minutes) minutes"
+        } else  {
+            return "past minute"
         }
     }
 }
