@@ -20,11 +20,11 @@
             scalar: text
         - name: name
           type:
-            nullable: true
+            nullable: false
             scalar: varchar
         - name: symbol
           type:
-            nullable: true
+            nullable: false
             scalar: varchar
         - name: latest_price
           type:
@@ -44,23 +44,13 @@
             scalar: timestamptz
         - name: platform
           type:
-            nullable: true
+            nullable: false
             scalar: text
+        - name: decimals
+          type:
+            nullable: false
+            scalar: integer
       name: GetFormattedTokensResult
-      select_permissions:
-        - permission:
-            columns:
-              - token_id
-              - mint
-              - name
-              - symbol
-              - latest_price
-              - increase_pct
-              - trades
-              - created_at
-              - platform
-            filter: {}
-          role: public
     - fields:
         - name: id
           type:
@@ -181,14 +171,6 @@
           role: public
   native_queries:
     - arguments:
-        since:
-          description: ""
-          nullable: false
-          type: timestamptz
-      code: SELECT * FROM get_formatted_tokens({{since}});
-      returns: GetFormattedTokensResult
-      root_field_name: GetFormattedTokens
-    - arguments:
         account:
           description: ""
           nullable: false
@@ -235,6 +217,14 @@
       code: select *, created_at + {{offset}} as created_at_offset from account_transaction
       returns: account_transaction_offset_model
       root_field_name: account_transaction_offset
+    - arguments:
+        since:
+          description: ""
+          nullable: false
+          type: timestamptz
+      code: SELECT * FROM get_formatted_tokens({{since}});
+      returns: GetFormattedTokensResult
+      root_field_name: get_formatted_tokens_since
     - arguments:
         offset:
           description: ""

@@ -60,11 +60,12 @@ const handleSwapData = async (gql: GqlClient["db"], swapAccountsArray: SwapAccou
   try {
     // 1. Insert new tokens
     const insertRes = await gql.RegisterManyNewTokensMutation({
-      objects: _priceDataBatch.map(({ mint, platform, timestamp }) => ({
+      objects: _priceDataBatch.map(({ mint, decimals, platform, timestamp }) => ({
         // TODO: temporary until we know when to fetch & write actual token metadata
         ...getRandomTokenMetadata(),
         mint,
         platform,
+        decimals,
         updated_at: new Date(timestamp),
       })),
     });

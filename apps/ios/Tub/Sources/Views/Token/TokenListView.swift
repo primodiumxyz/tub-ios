@@ -208,9 +208,9 @@ struct TokenListView: View {
                     if let error = graphQLResult.errors {
                         self.errorMessage = "Error: \(error)"
                     }
-                    if let tokens = graphQLResult.data?.getFormattedTokens {
+                    if let tokens = graphQLResult.data?.get_formatted_tokens_since {
                         let newTokens = tokens.map { elem in 
-                            Token(id: elem.token_id, name: elem.name ?? "", symbol: elem.symbol ?? "", mint: elem.mint, imageUri: nil)
+                            Token(id: elem.token_id, name: elem.name, symbol: elem.symbol, mint: elem.mint, decimals: elem.decimals, imageUri: nil)
                         }
                         self.availableTokens = newTokens
                         if self.currentToken == nil {
