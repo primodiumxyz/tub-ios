@@ -3,26 +3,30 @@
 
 @_exported import ApolloAPI
 
-public class GetAccountBalanceQuery: GraphQLQuery {
-  public static let operationName: String = "GetAccountBalance"
+public class SubAccountTokenBalanceSubscription: GraphQLSubscription {
+  public static let operationName: String = "SubAccountTokenBalance"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetAccountBalance($account: uuid!, $start: timestamptz = "now()") { balance: account_balance_ignore_interval( args: { account: $account, interval: "0", start: $start } ) { __typename value: balance } }"#
+      #"subscription SubAccountTokenBalance($account: uuid!, $token: uuid!, $start: timestamptz = "now()") { balance: account_token_balance_ignore_interval( args: { account: $account, interval: "0", start: $start, token: $token } ) { __typename value: balance } }"#
     ))
 
   public var account: Uuid
+  public var token: Uuid
   public var start: GraphQLNullable<Timestamptz>
 
   public init(
     account: Uuid,
+    token: Uuid,
     start: GraphQLNullable<Timestamptz> = "now()"
   ) {
     self.account = account
+    self.token = token
     self.start = start
   }
 
   public var __variables: Variables? { [
     "account": account,
+    "token": token,
     "start": start
   ] }
 
@@ -30,12 +34,13 @@ public class GetAccountBalanceQuery: GraphQLQuery {
     public let __data: DataDict
     public init(_dataDict: DataDict) { __data = _dataDict }
 
-    public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Query_root }
+    public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Subscription_root }
     public static var __selections: [ApolloAPI.Selection] { [
-      .field("account_balance_ignore_interval", alias: "balance", [Balance].self, arguments: ["args": [
+      .field("account_token_balance_ignore_interval", alias: "balance", [Balance].self, arguments: ["args": [
         "account": .variable("account"),
         "interval": "0",
-        "start": .variable("start")
+        "start": .variable("start"),
+        "token": .variable("token")
       ]]),
     ] }
 

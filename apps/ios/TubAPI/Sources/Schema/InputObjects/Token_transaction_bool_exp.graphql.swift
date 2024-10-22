@@ -21,8 +21,7 @@ public struct Token_transaction_bool_exp: InputObject {
     id: GraphQLNullable<Uuid_comparison_exp> = nil,
     token: GraphQLNullable<Uuid_comparison_exp> = nil,
     tokenData: GraphQLNullable<Token_bool_exp> = nil,
-    tokenPrice: GraphQLNullable<Token_price_history_bool_exp> = nil,
-    transactionType: GraphQLNullable<Transaction_type_comparison_exp> = nil
+    tokenPrice: GraphQLNullable<Token_price_history_bool_exp> = nil
   ) {
     __data = InputDict([
       "_and": _and,
@@ -34,8 +33,7 @@ public struct Token_transaction_bool_exp: InputObject {
       "id": id,
       "token": token,
       "token_data": tokenData,
-      "token_price": tokenPrice,
-      "transaction_type": transactionType
+      "token_price": tokenPrice
     ])
   }
 
@@ -87,10 +85,5 @@ public struct Token_transaction_bool_exp: InputObject {
   public var tokenPrice: GraphQLNullable<Token_price_history_bool_exp> {
     get { __data["token_price"] }
     set { __data["token_price"] = newValue }
-  }
-
-  public var transactionType: GraphQLNullable<Transaction_type_comparison_exp> {
-    get { __data["transaction_type"] }
-    set { __data["transaction_type"] = newValue }
   }
 }

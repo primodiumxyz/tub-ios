@@ -18,8 +18,7 @@ public struct Token_transaction_insert_input: InputObject {
     id: GraphQLNullable<Uuid> = nil,
     token: GraphQLNullable<Uuid> = nil,
     tokenData: GraphQLNullable<Token_obj_rel_insert_input> = nil,
-    tokenPrice: GraphQLNullable<Token_price_history_obj_rel_insert_input> = nil,
-    transactionType: GraphQLNullable<Transaction_type> = nil
+    tokenPrice: GraphQLNullable<Token_price_history_obj_rel_insert_input> = nil
   ) {
     __data = InputDict([
       "account_transaction": accountTransaction,
@@ -28,8 +27,7 @@ public struct Token_transaction_insert_input: InputObject {
       "id": id,
       "token": token,
       "token_data": tokenData,
-      "token_price": tokenPrice,
-      "transaction_type": transactionType
+      "token_price": tokenPrice
     ])
   }
 
@@ -66,10 +64,5 @@ public struct Token_transaction_insert_input: InputObject {
   public var tokenPrice: GraphQLNullable<Token_price_history_obj_rel_insert_input> {
     get { __data["token_price"] }
     set { __data["token_price"] = newValue }
-  }
-
-  public var transactionType: GraphQLNullable<Transaction_type> {
-    get { __data["transaction_type"] }
-    set { __data["transaction_type"] = newValue }
   }
 }

@@ -23,7 +23,6 @@ select_permissions:
         - amount
         - id
         - token
-        - transaction_type
       filter: {}
       allow_aggregations: true
     comment: ""

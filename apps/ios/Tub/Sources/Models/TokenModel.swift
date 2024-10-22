@@ -9,16 +9,15 @@ class TokenModel: ObservableObject {
 
     @Published var token: Token = Token(id: "", name: "COIN", symbol: "SYMBOL", mint: "", imageUri: "")
     @Published var loading = true
-    @Published var tokenBalance: (credit: Numeric, debit: Numeric, total: Double) = (0, 0, 0)
+    @Published var tokenBalance: Double = 0
 
     @Published var amountBoughtSol: Double = 0
     @Published var purchaseTime : Date? = nil
     
     @Published var prices: [Price] = []
 
-    private var latestPriceSubscription: Apollo.Cancellable?  // Track the latest price subscription
-    private var tokenBalanceSubscription:
-        (credit: Apollo.Cancellable?, debit: Apollo.Cancellable?)  // Track the token balance subscription
+    private var latestPriceSubscription: Apollo.Cancellable?
+    private var tokenBalanceSubscription: Apollo.Cancellable?
 
     @Published var priceChange: (amount: Double, percentage: Double) = (0, 0)
 
@@ -131,37 +130,18 @@ class TokenModel: ObservableObject {
     }
 
     private func subscribeToTokenBalance() {
-        tokenBalanceSubscription.credit?.cancel()
-        tokenBalanceSubscription.debit?.cancel()
+        tokenBalanceSubscription?.cancel()
 
-        tokenBalanceSubscription.credit = Network.shared.apollo.subscribe(
-            subscription: SubAccountTokenBalanceCreditSubscription(
-                accountId: Uuid(self.userId), tokenId: self.tokenId)
+        tokenBalanceSubscription = Network.shared.apollo.subscribe(
+            subscription: SubAccountTokenBalanceSubscription(
+                account: Uuid(self.userId), token: self.tokenId)
         ) { [weak self] result in
             guard let self = self else { return }
             DispatchQueue.main.async {
                 switch result {
                 case .success(let graphQLResult):
-                    self.tokenBalance.credit =
-                        graphQLResult.data?.token_transaction_aggregate.aggregate?.sum?.amount ?? 0
-                    self.tokenBalance.total = Double(self.tokenBalance.credit - self.tokenBalance.debit)/1e9
-                case .failure(let error):
-                    print("Error: \(error.localizedDescription)")
-                }
-            }
-        }
-
-        tokenBalanceSubscription.debit = Network.shared.apollo.subscribe(
-            subscription: SubAccountTokenBalanceDebitSubscription(
-                accountId: Uuid(self.userId), tokenId: self.tokenId)
-        ) { [weak self] result in
-            guard let self = self else { return }
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let graphQLResult):
-                    self.tokenBalance.debit =
-                        graphQLResult.data?.token_transaction_aggregate.aggregate?.sum?.amount ?? 0
-                    self.tokenBalance.total = Double(self.tokenBalance.credit - self.tokenBalance.debit)/1e9
+                    self.tokenBalance =
+                    Double(graphQLResult.data?.balance.first?.value ?? 0) / 1e9
                 case .failure(let error):
                     print("Error: \(error.localizedDescription)")
                 }
@@ -184,14 +164,14 @@ class TokenModel: ObservableObject {
 
         Network.shared.buyToken(
             accountId: self.userId, tokenId: self.tokenId, amount: buyAmountLamps
-        ) { [weak self] result in
+        ) { result in
             switch result {
             case .success:
-                self?.amountBoughtSol = buyAmountSol
-                self?.purchaseTime = Date()
+                self.amountBoughtSol = buyAmountSol
+                self.purchaseTime = Date()
                 completion?(true)
             case .failure(let error):
-                print(error)
+                print("Error buying tokens: \(error)")
                 completion?(false)
             }
         }
@@ -207,7 +187,8 @@ class TokenModel: ObservableObject {
             case .success:
                 self.purchaseTime = nil
                 completion?(true)
-            case .failure(_):
+            case .failure(let error):
+                print("Error selling tokens: \(error)")
                 completion?(false)
             }
         }
@@ -216,14 +197,14 @@ class TokenModel: ObservableObject {
     func initialize(with newTokenId: String) {
         // Cancel all existing subscriptions
         latestPriceSubscription?.cancel()
-        tokenBalanceSubscription.credit?.cancel()
-        tokenBalanceSubscription.debit?.cancel()
+        tokenBalanceSubscription?.cancel()
 
         // Reset properties if necessary
         self.tokenId = newTokenId
         self.loading = true  // Reset loading state if needed
         self.prices = []
         self.priceChange = (0, 0)
+        self.tokenBalance = 0
 
         // Re-run the initialization logic
         Task {

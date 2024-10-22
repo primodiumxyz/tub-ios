@@ -13,6 +13,4 @@ public enum Account_transaction_select_column: String, EnumType {
   case createdAt = "created_at"
   /// column name
   case id = "id"
-  /// column name
-  case transactionType = "transaction_type"
 }

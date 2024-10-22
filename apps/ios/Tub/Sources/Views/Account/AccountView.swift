@@ -53,7 +53,7 @@ struct AccountView: View {
                         if isAirdropping {
                             ProgressView()
                         }
-                        else if userModel.balance.total > 1 {
+                        else if userModel.balance > 1 {
                             Button(action: performAirdrop) {
                                 Text("Request Airdrop")
                                     .font(.sfRounded(size: .base, weight: .semibold))

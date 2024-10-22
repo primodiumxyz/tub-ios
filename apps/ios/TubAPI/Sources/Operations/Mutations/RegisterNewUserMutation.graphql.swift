@@ -7,7 +7,7 @@ public class RegisterNewUserMutation: GraphQLMutation {
   public static let operationName: String = "RegisterNewUser"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"mutation RegisterNewUser($username: String!, $amount: numeric!) { insert_account_one( object: { account_transactions: { data: { amount: $amount, transaction_type: "credit" } } username: $username } ) { __typename id } }"#
+      #"mutation RegisterNewUser($username: String!, $amount: numeric!) { insert_account_one( object: { account_transactions: { data: { amount: $amount } }, username: $username } ) { __typename id } }"#
     ))
 
   public var username: String
@@ -33,10 +33,7 @@ public class RegisterNewUserMutation: GraphQLMutation {
     public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Mutation_root }
     public static var __selections: [ApolloAPI.Selection] { [
       .field("insert_account_one", Insert_account_one?.self, arguments: ["object": [
-        "account_transactions": ["data": [
-          "amount": .variable("amount"),
-          "transaction_type": "credit"
-        ]],
+        "account_transactions": ["data": ["amount": .variable("amount")]],
         "username": .variable("username")
       ]]),
     ] }
