@@ -171,14 +171,14 @@ class TokenModel: ObservableObject {
 
         Network.shared.buyToken(
             accountId: self.userId, tokenId: self.tokenId, amount: buyAmountLamps
-        ) { [weak self] result in
+        ) { result in
             switch result {
             case .success:
-                self?.amountBoughtSol = buyAmountSol
-                self?.purchaseTime = Date()
+                self.amountBoughtSol = buyAmountSol
+                self.purchaseTime = Date()
                 completion?(true)
             case .failure(let error):
-                print(error)
+                print("Error buying tokens: \(error)")
                 completion?(false)
             }
         }
@@ -194,7 +194,8 @@ class TokenModel: ObservableObject {
             case .success:
                 self.purchaseTime = nil
                 completion?(true)
-            case .failure(_):
+            case .failure(let error):
+                print("Error selling tokens: \(error)")
                 completion?(false)
             }
         }
