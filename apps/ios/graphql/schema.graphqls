@@ -624,11 +624,11 @@ input account_transaction_offset_arguments {
 }
 
 type account_transaction_offset_model {
-  account: uuid
-  amount: numeric
-  created_at: timestamptz
-  created_at_offset: timestamptz
-  id: uuid
+  account: uuid!
+  amount: numeric!
+  created_at: timestamptz!
+  created_at_offset: timestamptz!
+  id: uuid!
 }
 
 """
@@ -2896,12 +2896,12 @@ input token_price_history_obj_rel_insert_input {
 }
 
 type token_price_history_offset {
-  created_at: timestamptz
-  created_at_offset: timestamptz
-  id: uuid
+  created_at: timestamptz!
+  created_at_offset: timestamptz!
+  id: uuid!
   internal_token_transaction_ref: uuid
-  price: numeric
-  token: uuid
+  price: numeric!
+  token: uuid!
 }
 
 """token_price_history_offsetNative Query Arguments"""
@@ -3437,12 +3437,12 @@ input token_transaction_offset_arguments {
 }
 
 type token_transaction_offset_model {
-  account: uuid
-  amount: numeric
-  created_at: timestamptz
-  created_at_offset: timestamptz
-  id: uuid
-  token: uuid
+  account: uuid!
+  amount: numeric!
+  created_at: timestamptz!
+  created_at_offset: timestamptz!
+  id: uuid!
+  token: uuid!
 }
 
 """
