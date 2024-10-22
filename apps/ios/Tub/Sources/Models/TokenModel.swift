@@ -20,7 +20,6 @@ class TokenModel: ObservableObject {
     private var tokenBalanceSubscription: Apollo.Cancellable?
 
     @Published var priceChange: (amount: Double, percentage: Double) = (0, 0)
-    @Published var initialPrice: Double?
 
     init(userId: String, tokenId: String? = nil) {
         self.userId = userId
@@ -78,56 +77,27 @@ class TokenModel: ObservableObject {
         }
     }
 
-    private func subscribeToLatestPrice(_ since: Timestamptz) {
-        // Cancel any existing subscription before creating a new one
+    private func subscribeToLatestPrice(_ interval: Interval) {
         latestPriceSubscription?.cancel()
-
-        // First, query the past token history
-        let query = GetTokenPriceHistorySinceQuery(tokenId: self.tokenId, since: since)
-        Network.shared.apollo.fetch(query: query) { [weak self] result in
-            guard let self = self else { return }
-            
-            switch result {
-            case .success(let response):
-                DispatchQueue.main.async {
-                    self.prices = response.data?.token_price_history.compactMap { history in
-                        if let date = self.formatDate(history.created_at) {
-                            return Price(timestamp: date, price: Double(history.price) / 1e9)
-                        }
-                        return nil
-                    } ?? []
-                    
-                    if self.initialPrice == nil {
-                        self.initialPrice = self.prices.first?.price
-                    }
-                    
-                    // After fetching past history, subscribe to latest price updates
-                    self.subscribeToLatestPriceUpdates()
-                    self.loading = false
-                    self.calculatePriceChange()
-                }
-                
-            case .failure(let error):
-                print("Error fetching token price history: \(error)")
-            }
-        }
-    }
-
-    private func subscribeToLatestPriceUpdates() {
-        let subscription = SubLatestTokenPriceSubscription(tokenId: self.tokenId)
+        // TODO: Fix these types
+        let subscription = SubTokenPriceHistoryIntervalSubscription(token: self.tokenId, interval: interval as! GraphQLNullable<Interval>)
         
         latestPriceSubscription = Network.shared.apollo.subscribe(subscription: subscription) { [weak self] result in
             guard let self = self else { return }
             
             switch result {
             case .success(let graphQLResult):
-                if let latestPrice = graphQLResult.data?.token_price_history.first {
+                if let priceHistory = graphQLResult.data?.token_price_history_offset {
                     DispatchQueue.main.async {
-                        if let date = self.formatDate(latestPrice.created_at) {
-                            let newPrice = Price(timestamp: date, price: Double(latestPrice.price) / 1e9)
-                            self.prices.append(newPrice)
-                            self.calculatePriceChange()
+                        print(priceHistory)
+                        self.prices = priceHistory.compactMap { history in
+                            if let date = self.formatDate(history.created_at ?? "") {
+                                return Price(timestamp: date, price: Double(history.price ?? 0) / 1e9)
+                            }
+                            return nil
                         }
+                        self.loading = false
+                        self.calculatePriceChange()
                     }
                 }
             case .failure(let error):
@@ -232,7 +202,7 @@ class TokenModel: ObservableObject {
 
     private func calculatePriceChange() {
         guard let currentPrice = prices.last?.price,
-              let initialPrice = initialPrice else { return }
+              let initialPrice = prices.first?.price else { return }
         
         let priceChangeAmount = currentPrice - initialPrice
         let priceChangePercentage = (priceChangeAmount / initialPrice) * 100
