@@ -12,18 +12,11 @@ struct ChartView: View {
     let prices: [Price]
     let purchaseTime: Date?
     let purchaseAmount: Double
-    let timeframeSecs: Double?
-
-    private var filteredPrices: [Price] {
-        let cutoffTime = Date().addingTimeInterval(-(timeframeSecs ?? 30))
-        return prices.filter { $0.timestamp >= cutoffTime }
-    }
     
-    init(prices: [Price], purchaseTime: Date? = nil, purchaseAmount: Double? = nil, timeframeSecs: Double? = 30) {
+    init(prices: [Price], purchaseTime: Date? = nil, purchaseAmount: Double? = nil) {
         self.prices = prices
         self.purchaseTime = purchaseTime
         self.purchaseAmount = purchaseAmount ?? 0.0
-        self.timeframeSecs = timeframeSecs
     }
     
     private var dashedLineColor: Color {
@@ -48,7 +41,7 @@ struct ChartView: View {
     
     var body: some View {
         Chart {
-            ForEach(filteredPrices) { price in
+            ForEach(prices) { price in
                 LineMark(
                     x: .value("Date", price.timestamp),
                     y: .value("Price", price.price)
@@ -134,24 +127,6 @@ struct ChartView: View {
         }
         .chartYScale(domain: .automatic)
         .frame(height: 350)
-    }
-}
-
-struct ChartView_Previews: PreviewProvider {
-    static var previews: some View {
-        ChartView(
-            prices: [
-                Price(timestamp: Date(), price: 100.0),
-                Price(timestamp: Date().addingTimeInterval(86400), price: 105.0),
-                Price(timestamp: Date().addingTimeInterval(172800), price: 102.0),
-                Price(timestamp: Date().addingTimeInterval(259200), price: 110.0),
-                Price(timestamp: Date().addingTimeInterval(345600), price: 114.0),
-                Price(timestamp: Date().addingTimeInterval(432000), price: 109.0),
-                Price(timestamp: Date().addingTimeInterval(518400), price: 109)
-            ],
-            purchaseTime: Date().addingTimeInterval(172800),
-            timeframeSecs: 600000 // Example: Show data for the last 7 days
-        )
     }
 }
 
