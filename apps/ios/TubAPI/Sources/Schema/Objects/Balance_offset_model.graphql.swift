@@ -4,9 +4,8 @@
 import ApolloAPI
 
 public extension Objects {
-  /// aggregated selection of "account_transaction"
-  static let Account_transaction_aggregate = ApolloAPI.Object(
-    typename: "account_transaction_aggregate",
+  static let Balance_offset_model = ApolloAPI.Object(
+    typename: "balance_offset_model",
     implementedInterfaces: []
   )
 }

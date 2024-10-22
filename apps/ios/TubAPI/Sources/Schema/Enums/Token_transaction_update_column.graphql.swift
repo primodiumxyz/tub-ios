@@ -13,6 +13,4 @@ public enum Token_transaction_update_column: String, EnumType {
   case id = "id"
   /// column name
   case token = "token"
-  /// column name
-  case transactionType = "transaction_type"
 }

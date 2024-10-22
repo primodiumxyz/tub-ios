@@ -55,118 +55,54 @@ export const GetTokensByMintsQuery = graphql(`
   }
 `);
 
-export const GetAccountBalanceCreditQuery = graphql(`
-  query GetAccountBalanceCredit($accountId: uuid!) {
-    account_transaction_aggregate(where: { account: { _eq: $accountId }, transaction_type: { _eq: "credit" } }) {
-      aggregate {
-        sum {
-          amount
-        }
-      }
-    }
-  }
-`);
-
-export const GetAccountBalanceDebitQuery = graphql(`
-  query GetAccountBalanceDebit($accountId: uuid!) {
-    account_transaction_aggregate(where: { account: { _eq: $accountId }, transaction_type: { _eq: "debit" } }) {
-      aggregate {
-        sum {
-          amount
-        }
-      }
-    }
-  }
-`);
-
-export const GetAccountTokenBalanceCreditQuery = graphql(`
-  query GetAccountTokenBalanceCredit($accountId: uuid!, $tokenId: uuid!) {
-    token_transaction_aggregate(
-      where: {
-        account_transaction_data: { account: { _eq: $accountId } }
-        token: { _eq: $tokenId }
-        transaction_type: { _eq: "credit" }
-      }
-    ) {
-      aggregate {
-        sum {
-          amount
-        }
-      }
-    }
-  }
-`);
-
-export const GetAccountTokenBalanceDebitQuery = graphql(`
-  query GetAccountTokenBalanceDebit($accountId: uuid!, $tokenId: uuid!) {
-    token_transaction_aggregate(
-      where: {
-        account_transaction_data: { account: { _eq: $accountId } }
-        token: { _eq: $tokenId }
-        transaction_type: { _eq: "debit" }
-      }
-    ) {
-      aggregate {
-        sum {
-          amount
-        }
-      }
-    }
-  }
-`);
-
-export const GetAccountBalanceQuery = graphql(`
-  query GetAccountBalance($accountId: uuid!, $at: timestamptz!) {
-    credit: account_transaction_aggregate(
-      where: { account: { _eq: $accountId }, created_at: { _lte: $at }, transaction_type: { _eq: "credit" } }
-    ) {
-      aggregate {
-        sum {
-          amount
-        }
-      }
-    }
-
-    debit: account_transaction_aggregate(
-      where: { account: { _eq: $accountId }, created_at: { _lte: $at }, transaction_type: { _eq: "debit" } }
-    ) {
-      aggregate {
-        sum {
-          amount
-        }
-      }
-    }
-  }
-`);
 
 export const GetAccountTokenBalanceQuery = graphql(`
-  query GetAccountTokenBalance($accountId: uuid!, $tokenId: uuid!) {
-    credit: token_transaction_aggregate(
-      where: {
-        account_transaction_data: { account: { _eq: $accountId } }
-        token: { _eq: $tokenId }
-        transaction_type: { _eq: "credit" }
-      }
-    ) {
-      aggregate {
-        sum {
-          amount
-        }
-      }
+  query GetAccountTokenBalance($account: uuid!, $token: uuid!, $start: timestamptz = "now()") {
+    balance: account_token_balance_ignore_interval(args: {account: $account, interval: "0", start: $start, token: $token}) {
+      value: balance
     }
+  }
+`);
 
-    debit: token_transaction_aggregate(
-      where: {
-        account_transaction_data: { account: { _eq: $accountId } }
-        token: { _eq: $tokenId }
-        transaction_type: { _eq: "debit" }
-      }
-    ) {
-      aggregate {
-        sum {
-          amount
-        }
-      }
+export const GetAccountTokenBalanceIgnoreIntervalQuery = graphql(`
+  query GetAccountTokenBalanceIgnoreInterval($account: uuid!, $start: timestamptz = "now()", $interval: interval!, $token: uuid!) {
+    balance: account_token_balance_ignore_interval(args: {account: $account, interval: $interval, start: $start, token: $token}) {
+      value: balance
+    }
+  }
+`);
+
+
+export const GetAccountBalanceQuery = graphql(`
+  query GetAccountBalance($account: uuid!, $start: timestamptz = "now()") {
+    balance: account_balance_ignore_interval(args: {account: $account, interval: "0", start: $start}) {
+      value: balance
+    }
+  }
+`);
+
+export const GetAccountBalanceIgnoreIntervalQuery = graphql(`
+  query GetAccountBalanceIgnoreInterval($account: uuid!, $start: timestamptz = "now()", $interval: interval!) {
+    balance: account_balance_ignore_interval(args: {account: $account, interval: $interval, start: $start}) {
+      value: balance
+    }
+  }
+`);
+
+export const GetTokenPriceHistoryIntervalQuery = graphql(`
+  query GetTokenPriceHistoryInterval($token: uuid, $start: timestamptz = "now()", $interval: interval!) {
+    token_price_history_offset(args: {offset: $interval}, where: {created_at_offset: {_gte: $start}, token: {_eq: $token}}, order_by: {created_at: desc}) {
+      created_at
+      price
+    }
+  }
+`);
+
+export const GetTokenPriceHistoryIgnoreIntervalQuery = graphql(`
+  query GetTokenPriceHistoryIgnoreInterval($token: uuid, $start: timestamptz = "now()", $interval: interval!) {
+    token_price_history_offset(args: {offset: $interval}, where: {created_at_offset: {_lte: $start}, token: {_eq: $token}}, order_by: {created_at: desc}) {
+      created_at
+      price
     }
   }
 `);
@@ -199,7 +135,6 @@ export const GetAccountTransactionsQuery = graphql(`
         symbol
         uri
       }
-      transaction_type
       account_transaction_data {
         created_at
       }

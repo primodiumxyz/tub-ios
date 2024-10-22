@@ -71,62 +71,53 @@ export const GetFilteredTokensSubscription = graphql(`
   }
 `);
 
-export const GetAccountBalanceCreditSubscription = graphql(`
-  subscription SubAccountBalanceCredit($accountId: uuid!) {
-    account_transaction_aggregate(where: { account: { _eq: $accountId }, transaction_type: { _eq: "credit" } }) {
-      aggregate {
-        sum {
-          amount
-        }
-      }
+export const GetAccountTokenBalanceSubscription = graphql(`
+  subscription SubAccountTokenBalance($account: uuid!, $token: uuid!, $start: timestamptz = "now()") {
+    balance: account_token_balance_ignore_interval(args: {account: $account, interval: "0", start: $start, token: $token}) {
+      value: balance
     }
   }
 `);
 
-export const GetAccountBalanceDebitSubscription = graphql(`
-  subscription SubAccountBalanceDebit($accountId: uuid!) {
-    account_transaction_aggregate(where: { account: { _eq: $accountId }, transaction_type: { _eq: "debit" } }) {
-      aggregate {
-        sum {
-          amount
-        }
-      }
+export const GetAccountTokenBalanceIgnoreIntervalSubscription = graphql(`
+  subscription SubAccountTokenBalanceIgnoreInterval($account: uuid!, $start: timestamptz = "now()", $interval: interval = "0", $token: uuid!) {
+    balance: account_token_balance_ignore_interval(args: {account: $account, interval: $interval, start: $start, token: $token}) {
+      value: balance
     }
   }
 `);
 
-export const GetAccountTokenBalanceCreditSubscription = graphql(`
-  subscription SubAccountTokenBalanceCredit($accountId: uuid!, $tokenId: uuid!) {
-    token_transaction_aggregate(
-      where: {
-        account_transaction_data: { account: { _eq: $accountId } }
-        token: { _eq: $tokenId }
-        transaction_type: { _eq: "credit" }
-      }
-    ) {
-      aggregate {
-        sum {
-          amount
-        }
-      }
+
+export const GetAccountBalanceSubscription = graphql(`
+  subscription SubAccountBalance($account: uuid!, $start: timestamptz = "now()") {
+    balance: account_balance_ignore_interval(args: {account: $account, interval: "0", start: $start}) {
+      value: balance
     }
   }
 `);
 
-export const GetAccountTokenBalanceDebitSubscription = graphql(`
-  subscription SubAccountTokenBalanceDebit($accountId: uuid!, $tokenId: uuid!) {
-    token_transaction_aggregate(
-      where: {
-        account_transaction_data: { account: { _eq: $accountId } }
-        token: { _eq: $tokenId }
-        transaction_type: { _eq: "debit" }
-      }
-    ) {
-      aggregate {
-        sum {
-          amount
-        }
-      }
+export const GetAccountBalanceIgnoreIntervalSubscription = graphql(`
+  subscription SubAccountBalanceIgnoreInterval($account: uuid!, $start: timestamptz = "now()", $interval: interval = "0") {
+    balance: account_balance_ignore_interval(args: {account: $account, interval: $interval, start: $start}) {
+      value: balance
+    }
+  }
+`);
+
+export const GetTokenPriceHistoryIntervalSubscription = graphql(`
+  subscription SubTokenPriceHistoryInterval($token: uuid, $start: timestamptz = "now()", $interval: interval = "30m") {
+    token_price_history_offset(args: {offset: $interval}, where: {created_at_offset: {_gte: $start}, token: {_eq: $token}}, order_by: {created_at: desc}) {
+      created_at
+      price
+    }
+  }
+`);
+
+export const GetTokenPriceHistoryIgnoreIntervalSubscription = graphql(`
+  subscription SubTokenPriceHistoryIgnoreInterval($token: uuid, $start: timestamptz = "now()", $interval: interval = "30m") {
+    token_price_history_offset(args: {offset: $interval}, where: {created_at_offset: {_lte: $start}, token: {_eq: $token}}, order_by: {created_at: desc}) {
+      created_at
+      price
     }
   }
 `);

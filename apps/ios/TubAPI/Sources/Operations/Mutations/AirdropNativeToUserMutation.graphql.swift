@@ -7,7 +7,7 @@ public class AirdropNativeToUserMutation: GraphQLMutation {
   public static let operationName: String = "AirdropNativeToUser"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"mutation AirdropNativeToUser($account: uuid!, $amount: numeric!) { insert_account_transaction_one( object: { account: $account, amount: $amount, transaction_type: "credit" } ) { __typename id } }"#
+      #"mutation AirdropNativeToUser($account: uuid!, $amount: numeric!) { insert_account_transaction_one(object: { account: $account, amount: $amount }) { __typename id } }"#
     ))
 
   public var account: Uuid
@@ -34,8 +34,7 @@ public class AirdropNativeToUserMutation: GraphQLMutation {
     public static var __selections: [ApolloAPI.Selection] { [
       .field("insert_account_transaction_one", Insert_account_transaction_one?.self, arguments: ["object": [
         "account": .variable("account"),
-        "amount": .variable("amount"),
-        "transaction_type": "credit"
+        "amount": .variable("amount")
       ]]),
     ] }
 

@@ -3,11 +3,11 @@
 
 @_exported import ApolloAPI
 
-public class GetAccountBalanceQuery: GraphQLQuery {
-  public static let operationName: String = "GetAccountBalance"
+public class SubAccountBalanceSubscription: GraphQLSubscription {
+  public static let operationName: String = "SubAccountBalance"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetAccountBalance($account: uuid!, $start: timestamptz = "now()") { balance: account_balance_ignore_interval( args: { account: $account, interval: "0", start: $start } ) { __typename value: balance } }"#
+      #"subscription SubAccountBalance($account: uuid!, $start: timestamptz = "now()") { balance: account_balance_ignore_interval( args: { account: $account, interval: "0", start: $start } ) { __typename value: balance } }"#
     ))
 
   public var account: Uuid
@@ -30,7 +30,7 @@ public class GetAccountBalanceQuery: GraphQLQuery {
     public let __data: DataDict
     public init(_dataDict: DataDict) { __data = _dataDict }
 
-    public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Query_root }
+    public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Subscription_root }
     public static var __selections: [ApolloAPI.Selection] { [
       .field("account_balance_ignore_interval", alias: "balance", [Balance].self, arguments: ["args": [
         "account": .variable("account"),

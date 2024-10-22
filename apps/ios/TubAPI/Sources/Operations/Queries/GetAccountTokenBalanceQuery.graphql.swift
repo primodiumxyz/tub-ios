@@ -7,23 +7,27 @@ public class GetAccountTokenBalanceQuery: GraphQLQuery {
   public static let operationName: String = "GetAccountTokenBalance"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetAccountTokenBalance($accountId: uuid!, $tokenId: uuid!) { credit: token_transaction_aggregate( where: { account_transaction_data: { account: { _eq: $accountId } } token: { _eq: $tokenId } transaction_type: { _eq: "credit" } } ) { __typename aggregate { __typename sum { __typename amount } } } debit: token_transaction_aggregate( where: { account_transaction_data: { account: { _eq: $accountId } } token: { _eq: $tokenId } transaction_type: { _eq: "debit" } } ) { __typename aggregate { __typename sum { __typename amount } } } }"#
+      #"query GetAccountTokenBalance($account: uuid!, $token: uuid!, $start: timestamptz = "now()") { balance: account_token_balance_ignore_interval( args: { account: $account, interval: "0", start: $start, token: $token } ) { __typename value: balance } }"#
     ))
 
-  public var accountId: Uuid
-  public var tokenId: Uuid
+  public var account: Uuid
+  public var token: Uuid
+  public var start: GraphQLNullable<Timestamptz>
 
   public init(
-    accountId: Uuid,
-    tokenId: Uuid
+    account: Uuid,
+    token: Uuid,
+    start: GraphQLNullable<Timestamptz> = "now()"
   ) {
-    self.accountId = accountId
-    self.tokenId = tokenId
+    self.account = account
+    self.token = token
+    self.start = start
   }
 
   public var __variables: Variables? { [
-    "accountId": accountId,
-    "tokenId": tokenId
+    "account": account,
+    "token": token,
+    "start": start
   ] }
 
   public struct Data: TubAPI.SelectionSet {
@@ -32,117 +36,30 @@ public class GetAccountTokenBalanceQuery: GraphQLQuery {
 
     public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Query_root }
     public static var __selections: [ApolloAPI.Selection] { [
-      .field("token_transaction_aggregate", alias: "credit", Credit.self, arguments: ["where": [
-        "account_transaction_data": ["account": ["_eq": .variable("accountId")]],
-        "token": ["_eq": .variable("tokenId")],
-        "transaction_type": ["_eq": "credit"]
-      ]]),
-      .field("token_transaction_aggregate", alias: "debit", Debit.self, arguments: ["where": [
-        "account_transaction_data": ["account": ["_eq": .variable("accountId")]],
-        "token": ["_eq": .variable("tokenId")],
-        "transaction_type": ["_eq": "debit"]
+      .field("account_token_balance_ignore_interval", alias: "balance", [Balance].self, arguments: ["args": [
+        "account": .variable("account"),
+        "interval": "0",
+        "start": .variable("start"),
+        "token": .variable("token")
       ]]),
     ] }
 
-    /// fetch aggregated fields from the table: "token_transaction"
-    public var credit: Credit { __data["credit"] }
-    /// fetch aggregated fields from the table: "token_transaction"
-    public var debit: Debit { __data["debit"] }
+    public var balance: [Balance] { __data["balance"] }
 
-    /// Credit
+    /// Balance
     ///
-    /// Parent Type: `Token_transaction_aggregate`
-    public struct Credit: TubAPI.SelectionSet {
+    /// Parent Type: `Balance_offset_model`
+    public struct Balance: TubAPI.SelectionSet {
       public let __data: DataDict
       public init(_dataDict: DataDict) { __data = _dataDict }
 
-      public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Token_transaction_aggregate }
+      public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Balance_offset_model }
       public static var __selections: [ApolloAPI.Selection] { [
         .field("__typename", String.self),
-        .field("aggregate", Aggregate?.self),
+        .field("balance", alias: "value", TubAPI.Numeric.self),
       ] }
 
-      public var aggregate: Aggregate? { __data["aggregate"] }
-
-      /// Credit.Aggregate
-      ///
-      /// Parent Type: `Token_transaction_aggregate_fields`
-      public struct Aggregate: TubAPI.SelectionSet {
-        public let __data: DataDict
-        public init(_dataDict: DataDict) { __data = _dataDict }
-
-        public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Token_transaction_aggregate_fields }
-        public static var __selections: [ApolloAPI.Selection] { [
-          .field("__typename", String.self),
-          .field("sum", Sum?.self),
-        ] }
-
-        public var sum: Sum? { __data["sum"] }
-
-        /// Credit.Aggregate.Sum
-        ///
-        /// Parent Type: `Token_transaction_sum_fields`
-        public struct Sum: TubAPI.SelectionSet {
-          public let __data: DataDict
-          public init(_dataDict: DataDict) { __data = _dataDict }
-
-          public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Token_transaction_sum_fields }
-          public static var __selections: [ApolloAPI.Selection] { [
-            .field("__typename", String.self),
-            .field("amount", TubAPI.Numeric?.self),
-          ] }
-
-          public var amount: TubAPI.Numeric? { __data["amount"] }
-        }
-      }
-    }
-
-    /// Debit
-    ///
-    /// Parent Type: `Token_transaction_aggregate`
-    public struct Debit: TubAPI.SelectionSet {
-      public let __data: DataDict
-      public init(_dataDict: DataDict) { __data = _dataDict }
-
-      public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Token_transaction_aggregate }
-      public static var __selections: [ApolloAPI.Selection] { [
-        .field("__typename", String.self),
-        .field("aggregate", Aggregate?.self),
-      ] }
-
-      public var aggregate: Aggregate? { __data["aggregate"] }
-
-      /// Debit.Aggregate
-      ///
-      /// Parent Type: `Token_transaction_aggregate_fields`
-      public struct Aggregate: TubAPI.SelectionSet {
-        public let __data: DataDict
-        public init(_dataDict: DataDict) { __data = _dataDict }
-
-        public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Token_transaction_aggregate_fields }
-        public static var __selections: [ApolloAPI.Selection] { [
-          .field("__typename", String.self),
-          .field("sum", Sum?.self),
-        ] }
-
-        public var sum: Sum? { __data["sum"] }
-
-        /// Debit.Aggregate.Sum
-        ///
-        /// Parent Type: `Token_transaction_sum_fields`
-        public struct Sum: TubAPI.SelectionSet {
-          public let __data: DataDict
-          public init(_dataDict: DataDict) { __data = _dataDict }
-
-          public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Token_transaction_sum_fields }
-          public static var __selections: [ApolloAPI.Selection] { [
-            .field("__typename", String.self),
-            .field("amount", TubAPI.Numeric?.self),
-          ] }
-
-          public var amount: TubAPI.Numeric? { __data["amount"] }
-        }
-      }
+      public var value: TubAPI.Numeric { __data["value"] }
     }
   }
 }
