@@ -211,6 +211,8 @@ struct TokenListView: View {
                     switch result {
                     case .success(let graphQLResult):
                         if let tokens = graphQLResult.data?.token {
+                            print(tokens)
+                            // TODO: this crashes the app
                             self.tokens = tokens.map { elem in Token(id: elem.id, name: elem.name, symbol: elem.symbol, imageUri: elem.uri) }
                             updateTokenModel(tokenId: tokens[0].id)
                             previousTokenModel = getPreviousTokenModel()
