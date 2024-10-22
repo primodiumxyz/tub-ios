@@ -51,6 +51,21 @@
             nullable: false
             scalar: integer
       name: GetFormattedTokensResult
+      select_permissions:
+        - permission:
+            columns:
+              - token_id
+              - mint
+              - name
+              - symbol
+              - latest_price
+              - increase_pct
+              - trades
+              - created_at
+              - platform
+              - decimals
+            filter: {}
+          role: public
     - fields:
         - name: id
           type:
