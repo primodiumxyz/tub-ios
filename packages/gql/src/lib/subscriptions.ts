@@ -73,40 +73,56 @@ export const GetFilteredTokensSubscription = graphql(`
 
 export const GetAccountTokenBalanceSubscription = graphql(`
   subscription SubAccountTokenBalance($account: uuid!, $token: uuid!, $start: timestamptz = "now()") {
-    balance: account_token_balance_ignore_interval(args: {account: $account, interval: "0", start: $start, token: $token}) {
+    balance: account_token_balance_ignore_interval(
+      args: { account: $account, interval: "0", start: $start, token: $token }
+    ) {
       value: balance
     }
   }
 `);
 
 export const GetAccountTokenBalanceIgnoreIntervalSubscription = graphql(`
-  subscription SubAccountTokenBalanceIgnoreInterval($account: uuid!, $start: timestamptz = "now()", $interval: interval = "0", $token: uuid!) {
-    balance: account_token_balance_ignore_interval(args: {account: $account, interval: $interval, start: $start, token: $token}) {
+  subscription SubAccountTokenBalanceIgnoreInterval(
+    $account: uuid!
+    $start: timestamptz = "now()"
+    $interval: interval = "0"
+    $token: uuid!
+  ) {
+    balance: account_token_balance_ignore_interval(
+      args: { account: $account, interval: $interval, start: $start, token: $token }
+    ) {
       value: balance
     }
   }
 `);
 
-
 export const GetAccountBalanceSubscription = graphql(`
   subscription SubAccountBalance($account: uuid!, $start: timestamptz = "now()") {
-    balance: account_balance_ignore_interval(args: {account: $account, interval: "0", start: $start}) {
+    balance: account_balance_ignore_interval(args: { account: $account, interval: "0", start: $start }) {
       value: balance
     }
   }
 `);
 
 export const GetAccountBalanceIgnoreIntervalSubscription = graphql(`
-  subscription SubAccountBalanceIgnoreInterval($account: uuid!, $start: timestamptz = "now()", $interval: interval = "0") {
-    balance: account_balance_ignore_interval(args: {account: $account, interval: $interval, start: $start}) {
+  subscription SubAccountBalanceIgnoreInterval(
+    $account: uuid!
+    $start: timestamptz = "now()"
+    $interval: interval = "0"
+  ) {
+    balance: account_balance_ignore_interval(args: { account: $account, interval: $interval, start: $start }) {
       value: balance
     }
   }
 `);
 
 export const GetTokenPriceHistoryIntervalSubscription = graphql(`
-  subscription SubTokenPriceHistoryInterval($token: uuid, $start: timestamptz = "now()", $interval: interval = "30m") {
-    token_price_history_offset(args: {offset: $interval}, where: {created_at_offset: {_gte: $start}, token: {_eq: $token}}, order_by: {created_at: desc}) {
+  subscription SubTokenPriceHistoryInterval($token: uuid!, $start: timestamptz = "now()", $interval: interval = "30m") {
+    token_price_history_offset(
+      args: { offset: $interval }
+      where: { created_at_offset: { _gte: $start }, token: { _eq: $token } }
+      order_by: { created_at: desc }
+    ) {
       created_at
       price
     }
@@ -114,8 +130,16 @@ export const GetTokenPriceHistoryIntervalSubscription = graphql(`
 `);
 
 export const GetTokenPriceHistoryIgnoreIntervalSubscription = graphql(`
-  subscription SubTokenPriceHistoryIgnoreInterval($token: uuid, $start: timestamptz = "now()", $interval: interval = "30m") {
-    token_price_history_offset(args: {offset: $interval}, where: {created_at_offset: {_lte: $start}, token: {_eq: $token}}, order_by: {created_at: desc}) {
+  subscription SubTokenPriceHistoryIgnoreInterval(
+    $token: uuid!
+    $start: timestamptz = "now()"
+    $interval: interval = "30m"
+  ) {
+    token_price_history_offset(
+      args: { offset: $interval }
+      where: { created_at_offset: { _lte: $start }, token: { _eq: $token } }
+      order_by: { created_at: desc }
+    ) {
       created_at
       price
     }
