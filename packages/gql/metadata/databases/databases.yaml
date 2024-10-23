@@ -59,35 +59,25 @@
     - fields:
         - name: id
           type:
-            nullable: true
+            nullable: false
             scalar: uuid
         - name: account
           type:
-            nullable: true
+            nullable: false
             scalar: uuid
         - name: amount
           type:
-            nullable: true
+            nullable: false
             scalar: numeric
         - name: created_at
           type:
-            nullable: true
+            nullable: false
             scalar: timestamptz
         - name: created_at_offset
           type:
-            nullable: true
+            nullable: false
             scalar: timestamptz
       name: account_transaction_offset_model
-      select_permissions:
-        - permission:
-            columns:
-              - id
-              - account
-              - amount
-              - created_at
-              - created_at_offset
-            filter: {}
-          role: public
     - fields:
         - name: balance
           type:
@@ -103,19 +93,19 @@
     - fields:
         - name: id
           type:
-            nullable: true
+            nullable: false
             scalar: uuid
         - name: token
           type:
-            nullable: true
+            nullable: false
             scalar: uuid
         - name: price
           type:
-            nullable: true
+            nullable: false
             scalar: numeric
         - name: created_at
           type:
-            nullable: true
+            nullable: false
             scalar: timestamptz
         - name: internal_token_transaction_ref
           type:
@@ -123,7 +113,7 @@
             scalar: uuid
         - name: created_at_offset
           type:
-            nullable: true
+            nullable: false
             scalar: timestamptz
       name: token_price_history_offset
       select_permissions:
@@ -140,40 +130,29 @@
     - fields:
         - name: id
           type:
-            nullable: true
+            nullable: false
             scalar: uuid
         - name: token
           type:
-            nullable: true
+            nullable: false
             scalar: uuid
         - name: amount
           type:
-            nullable: true
+            nullable: false
             scalar: numeric
         - name: account
           type:
-            nullable: true
+            nullable: false
             scalar: uuid
         - name: created_at
           type:
-            nullable: true
+            nullable: false
             scalar: timestamptz
         - name: created_at_offset
           type:
-            nullable: true
+            nullable: false
             scalar: timestamptz
       name: token_transaction_offset_model
-      select_permissions:
-        - permission:
-            columns:
-              - id
-              - token
-              - amount
-              - account
-              - created_at
-              - created_at_offset
-            filter: {}
-          role: public
   native_queries:
     - arguments: {}
       code: SELECT * FROM formatted_tokens
