@@ -13,8 +13,8 @@ struct BuyForm: View {
     var onBuy: (Int, ((Bool) -> Void)?) -> ()
     
     @EnvironmentObject private var userModel: UserModel
-    @State private var buyAmountString: String = ""
-    @State private var buyAmountLamps: Int = 0
+    @State private var buyAmountUSDString: String = ""
+    @State private var buyAmountUSD : Double = 0
     @State private var isValidInput: Bool = true
     
     @State private var dragOffset: CGFloat = 0.0
@@ -23,28 +23,27 @@ struct BuyForm: View {
     @State private var isClosing: Bool = false
     
     func handleBuy() {
-        let _ = onBuy(buyAmountLamps, { success in
+        let _ = onBuy(PriceFormatter.usdToLamports(usd: buyAmountUSD), { success in
             if success {
                 resetForm()
             }
         })
     }
     
-    func updateBuyAmount(_ amountLamps: Int) {
-        if amountLamps == 0 {
+    func updateBuyAmount(_ amountUSD: Double) {
+        if amountUSD == 0 {
             isValidInput = false
             return
         }
         
-        let amountSol = Double(amountLamps) / 1e9
-        buyAmountString = PriceFormatter.formatPrice(sol: amountSol)
-        buyAmountLamps = Int(amountLamps)
+        buyAmountUSDString = PriceFormatter.formatPrice(usd: amountUSD)
+        buyAmountUSD = amountUSD
         isValidInput = true
     }
     
     func resetForm() {
-        buyAmountString = ""
-        buyAmountLamps = 0
+        buyAmountUSDString = ""
+        buyAmountUSD = 0
         isValidInput = true
         animatingSwipe = false
     }
@@ -72,7 +71,7 @@ struct BuyForm: View {
             numberInput
             tokenConversionDisplay
             amountButtons
-            SwipeToEnterView(text: "Swipe to buy", onUnlock: handleBuy, disabled: buyAmountLamps == 0 || buyAmountString == "")
+            SwipeToEnterView(text: "Swipe to buy", onUnlock: handleBuy, disabled: buyAmountUSD == 0)
                 .padding(.top, 10)
         }
         .background(AppColors.darkBlueGradient)
@@ -84,14 +83,16 @@ struct BuyForm: View {
     private var numberInput: some View {
         HStack {
             Spacer()
-            Spacer()
-            Spacer()
-            Spacer()
-            Spacer()
-            TextField("", text: $buyAmountString, prompt: Text("0", comment: "placeholder").foregroundColor(.white.opacity(0.3)))
+            Text("$")
+                .font(.sfRounded(size: .xl2, weight: .bold))
+                .padding(8)
+            
+
+            
+            TextField("", text: $buyAmountUSDString, prompt: Text("0", comment: "placeholder").foregroundColor(.white.opacity(0.3)))
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.center)
-                .onChange(of: buyAmountString) { newValue in
+                .onChange(of: buyAmountUSDString) { newValue in
                     let filtered = newValue.filter { "0123456789.".contains($0) }
                     
                     // Limit to two decimal places
@@ -99,15 +100,16 @@ struct BuyForm: View {
                     if components.count > 1 {
                         let wholeNumber = components[0]
                         let decimal = String(components[1].prefix(2))
-                        buyAmountString = "\(wholeNumber).\(decimal)"
+                        buyAmountUSDString = "\(wholeNumber).\(decimal)"
                     } else {
-                        buyAmountString = filtered
+                        buyAmountUSDString = filtered
                     }
                     
-                    if let amount = Double(buyAmountString) {
-                        buyAmountLamps = Int(amount * 100) * Int(1e7)
+                    if let amount = Double(buyAmountUSDString) {
+                        buyAmountUSD = amount
                         isValidInput = true
                     } else {
+                        buyAmountUSD = 0
                         isValidInput = false
                     }
                 }
@@ -115,12 +117,8 @@ struct BuyForm: View {
                 .foregroundColor(isValidInput ? .white : .red)
                 .frame(width: 150, alignment: .trailing)
             
-            
-            
-            Text("SOL")
-                .font(.sfRounded(size: .xl2, weight: .bold))
-                .padding(8)
-            
+            Spacer()
+            Spacer()
             Spacer()
         }
     }
@@ -133,9 +131,12 @@ struct BuyForm: View {
     
     private var tokenConversionDisplay: some View {
         Group {
-            if let currentPrice = tokenModel.prices.last?.price, currentPrice > 0 {
-                let tokenAmount = buyAmountLamps / currentPrice
-                Text("\(PriceFormatter.formatPrice(lamports: tokenAmount)) \(tokenModel.token.symbol)")
+            if let currentPrice = tokenModel.prices.last?.price {
+                let buyAmountLamps = PriceFormatter.usdToLamports(usd: buyAmountUSD)
+                let tokenAmount = Int(Double(buyAmountLamps) / Double(currentPrice) * 1e9)
+                let _ = print("lamps:", buyAmountLamps, currentPrice, tokenAmount)
+
+                Text("\(PriceFormatter.formatPrice(lamports: tokenAmount, showUnit: false)) \(tokenModel.token.symbol)")
                     .font(.sfRounded(size: .base, weight: .bold))
                     .opacity(0.8)
             }
@@ -151,11 +152,11 @@ struct BuyForm: View {
         .padding(.top, 10)
     }
     
-    private func amountButton(for amount: Int ) -> some View {
+    private func amountButton(for amount: Double ) -> some View {
         Button(action: {
-            updateBuyAmount(amount * userModel.balanceLamps / 100)
+            updateBuyAmount(amount)
         }) {
-            Text(amount == 100 ? "MAX" : "\(amount)%")
+            Text(amount == 100 ? "MAX" : "\(amount, specifier: "%.0f")%")
                 .font(.sfRounded(size: .base, weight: .bold))
                 .foregroundColor(.white)
                 .padding(.horizontal, 12)

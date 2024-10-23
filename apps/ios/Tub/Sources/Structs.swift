@@ -119,4 +119,12 @@ struct PriceFormatter {
         let solPrice = Double(lamports) / 1e9
         return self.formatPrice(sol: solPrice, showSign: showSign, showUnit: showUnit, maxDecimals: maxDecimals)
     }
+    
+    static func formatPrice(usd: Double, showSign: Bool = false, showUnit: Bool = true, maxDecimals: Int = 9) -> String {
+        return self.formatPrice(sol: usd / solPriceModel.currentPrice, showSign: showSign, showUnit: showUnit, maxDecimals: maxDecimals)
+    }
+
+    static func usdToLamports(usd: Double) -> Int {
+        return Int(usd * 1e9 / solPriceModel.currentPrice)
+    }
 }
