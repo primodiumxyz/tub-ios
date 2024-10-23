@@ -15,13 +15,14 @@ struct TokenListView: View {
     
     @State private var availableTokens: [Token] = []
     @State private var currentToken: Token?
+    @State private var nextToken: Token?
 
     @State private var isLoading = true
     @State private var subscription: Cancellable?
     @State private var errorMessage: String?
     
-    @State private var currentTokenIndex: Int = 0
-    @StateObject private var tokenModel: TokenModel
+    @StateObject private var currentTokenModel: TokenModel
+    @StateObject private var nextTokenModel: TokenModel
     
     // chevron animation
     @State private var chevronOffset: CGFloat = 0.0
@@ -37,12 +38,57 @@ struct TokenListView: View {
     @State var activeTab: String = "buy"
     
     init() {
-        self._tokenModel = StateObject(wrappedValue: TokenModel(userId: UserDefaults.standard.string(forKey: "userId") ?? ""))
+        self._currentTokenModel = StateObject(wrappedValue: TokenModel(userId: UserDefaults.standard.string(forKey: "userId") ?? ""))
+        self._nextTokenModel = StateObject(wrappedValue: TokenModel(userId: UserDefaults.standard.string(forKey: "userId") ?? ""))
     }
     
-    private func updateTokenModel(tokenId: String) {
+    private func updateTokenModel(tokenId: String, isCurrentToken: Bool) {
         DispatchQueue.main.async {
-            tokenModel.initialize(with: tokenId)
+            if isCurrentToken {
+                currentTokenModel.initialize(with: tokenId)
+            } else {
+                nextTokenModel.initialize(with: tokenId)
+            }
+        }
+    }
+    
+    private func getRandomToken(excluding currentId: String? = nil) -> Token? {
+        guard !availableTokens.isEmpty else { return nil }
+        guard availableTokens.count > 1 else { return availableTokens[0] }
+        var newToken: Token
+        repeat {
+            let randomIndex = Int.random(in: 0..<availableTokens.count)
+            newToken = availableTokens[randomIndex]
+        } while newToken.id == currentId
+
+        return newToken
+    }
+    
+    private func loadNextToken() {
+        currentToken = nextToken
+        updateTokenModel(tokenId: nextToken?.id ?? "", isCurrentToken: true)
+        
+        if let newNextToken = getRandomToken(excluding: currentToken?.id) {
+            nextToken = newNextToken
+            updateTokenModel(tokenId: newNextToken.id, isCurrentToken: false)
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            self.activeOffset = 0
+        }
+    }
+    
+    private func initializeTokens() {
+        guard !availableTokens.isEmpty else { return }
+        
+        if currentToken == nil {
+            currentToken = getRandomToken()
+            updateTokenModel(tokenId: currentToken?.id ?? "", isCurrentToken: true)
+        }
+        
+        if nextToken == nil {
+            nextToken = getRandomToken(excluding: currentToken?.id)
+            updateTokenModel(tokenId: nextToken?.id ?? "", isCurrentToken: false)
         }
     }
     
@@ -75,7 +121,7 @@ struct TokenListView: View {
                         .opacity(0.7)
                         .kerning(-1)
                     
-                    let tokenValue = tokenModel.tokenBalance * (tokenModel.prices.last?.price ?? 0)
+                    let tokenValue = currentTokenModel.tokenBalance * (currentTokenModel.prices.last?.price ?? 0)
                     Text("\(PriceFormatter.formatPrice(userModel.balance + tokenValue)) SOL")
                         .font(.sfRounded(size: .xl3))
                         .fontWeight(.bold)
@@ -111,12 +157,12 @@ struct TokenListView: View {
                     GeometryReader { geometry in
                         VStack(spacing: 10) {
                               // TODO: keep an array of previous tokens so we can swipe up (disable when we reached the first token)
-                              TokenView(tokenModel: tokenModel, activeTab: $activeTab)
+                              TokenView(tokenModel: currentTokenModel, activeTab: $activeTab)
                                 .frame(height: geometry.size.height)
                                 .opacity(dragging ? 1 : 0)
-                            TokenView(tokenModel: tokenModel, activeTab: $activeTab)
+                            TokenView(tokenModel: currentTokenModel, activeTab: $activeTab)
                                 .frame(height: geometry.size.height)
-                            TokenView(tokenModel: getNextTokenModel(), activeTab: Binding.constant("buy"))
+                            TokenView(tokenModel: nextTokenModel, activeTab: Binding.constant("buy"))
                                 .frame(height: geometry.size.height)
                                 .opacity(dragging ? 0.2 : 0)
                         }
@@ -154,7 +200,7 @@ struct TokenListView: View {
                 }
                 
                 if showInfoCard {
-                    TokenInfoCardView(tokenModel: tokenModel, isVisible: $showInfoCard)
+                    TokenInfoCardView(tokenModel: currentTokenModel, isVisible: $showInfoCard)
                         .transition(.move(edge: .bottom))
                 }
             }
@@ -164,35 +210,6 @@ struct TokenListView: View {
         .onAppear {
             fetchTokens()
         }
-    }
-    
-    private func getRandomToken(excluding currentId: String? = nil) -> Token? {
-        guard !availableTokens.isEmpty else { return nil }
-        guard availableTokens.count > 1 else { return availableTokens[0] }
-        var newToken: Token
-        repeat {
-            let randomIndex = Int.random(in: 0..<availableTokens.count)
-            newToken = availableTokens[randomIndex]
-        } while newToken.id == currentId
-
-        return newToken
-    }
-    
-    private func loadNextToken() {
-        if let newToken = getRandomToken(excluding: currentToken?.id) {
-            currentToken = newToken
-            updateTokenModel(tokenId: newToken.id)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                self.activeOffset = 0
-            }
-        }
-    }
-    
-    private func getNextTokenModel() -> TokenModel {
-        if let nextToken = getRandomToken(excluding: currentToken?.id) {
-            return TokenModel(userId: UserDefaults.standard.string(forKey: "userId") ?? "", tokenId: nextToken.id)
-        }
-        return tokenModel // Return current model if no new token is available
     }
     
     private func fetchTokens() {
@@ -209,26 +226,17 @@ struct TokenListView: View {
                         self.errorMessage = "Error: \(error)"
                     }
                     if let tokens = graphQLResult.data?.get_formatted_tokens_since {
-                        let newTokens = tokens.map { elem in 
+                        self.availableTokens = tokens.map { elem in
                             Token(id: elem.token_id, name: elem.name, symbol: elem.symbol, mint: elem.mint, decimals: elem.decimals, imageUri: nil)
                         }
-                        self.availableTokens = newTokens
-                        if self.currentToken == nil {
-                            self.initRandomToken()
-                        }
+                        
+                        self.initializeTokens()
                     }
                 case .failure(let error):
                     self.errorMessage = "Error: \(error.localizedDescription)"
                 }
             }
         }
-    }
-    
-    private func initRandomToken() {
-        guard !availableTokens.isEmpty else { return }
-        let randomIndex = Int.random(in: 0..<availableTokens.count)
-        currentToken = availableTokens[randomIndex]
-        updateTokenModel(tokenId: currentToken!.id)
     }
     
     private func formatTimeElapsed(_ timeInterval: TimeInterval) -> String {
