@@ -48,8 +48,9 @@
             scalar: text
         - name: decimals
           type:
-            nullable: false
+            nullable: true
             scalar: integer
+          default: 6
       name: GetFormattedTokensResult
       select_permissions:
         - permission:

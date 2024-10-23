@@ -1,2 +1,1 @@
-alter table "public"."token" add column "decimals" integer
- not null;
+alter table "public"."token" add column "decimals" integer default 6;
