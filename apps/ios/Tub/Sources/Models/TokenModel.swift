@@ -9,11 +9,8 @@ class TokenModel: ObservableObject {
     
     @Published var token: Token = Token(id: "", name: "COIN", symbol: "SYMBOL", mint: "", decimals: 6, imageUri: "")
     @Published var loading = true
-    @Published var balanceLamps: Int = 0 {
-        didSet {
-            print("balanceLamps", balanceLamps)
-        }
-    }
+    @Published var balanceLamps: Int = 0 
+    
     
     @Published var amountBoughtLamps: Int = 0
     @Published var purchaseTime : Date? = nil
@@ -140,15 +137,12 @@ class TokenModel: ObservableObject {
         if let price = self.prices.last?.price, price > 0 {
             let buyAmountToken = buyAmountLamps * Int(1e9) / price
             
-            print("price: \(price), buyAmountLamps: \(buyAmountLamps), buyAmountToken: \(buyAmountToken)")
-            
             Network.shared.buyToken(
                 accountId: self.userId, tokenId: self.tokenId, amount: String(buyAmountToken)
             ) { result in
                 switch result {
                 case .success:
                     self.amountBoughtLamps = buyAmountLamps
-                    print("amount bought", buyAmountToken, self.amountBoughtLamps)
                     self.purchaseTime = Date()
                     completion?(true)
                 case .failure(let error):

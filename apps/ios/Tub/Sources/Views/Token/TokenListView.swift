@@ -83,7 +83,6 @@ struct TokenListView: View {
         
         if currentToken == nil {
             currentToken = getRandomToken()
-            print(currentToken)
             updateTokenModel(tokenId: currentToken?.id ?? "", isCurrentToken: true)
         }
         
