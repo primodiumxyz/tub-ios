@@ -19,14 +19,14 @@ struct AccountBalanceView: View {
                 .kerning(-1)
             
             let tokenValue = currentTokenModel.balanceLamps * (currentTokenModel.prices.last?.price ?? 0)
-            Text("\(PriceFormatter.formatPrice(lamports: userModel.balanceLamps + tokenValue)) SOL")
+            Text("\(PriceFormatter.formatPrice(lamports: userModel.balanceLamps + tokenValue)) ")
                 .font(.sfRounded(size: .xl3))
                 .fontWeight(.bold)
             
             let adjustedChange = userModel.balanceChangeLamps + tokenValue
+
             HStack {
-                Text(adjustedChange >= 0 ? "+" : "-")
-                Text("\(abs(adjustedChange), specifier: "%.2f") SOL")
+                Text("\(PriceFormatter.formatPrice(lamports: adjustedChange, showSign: true))")
                 
                 let adjustedPercentage = userModel.initialBalanceLamps > 0 ? (adjustedChange / userModel.initialBalanceLamps) * 100 : 100;
                 Text("(\(abs(adjustedPercentage), specifier: "%.1f")%)")

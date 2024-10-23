@@ -140,7 +140,7 @@ struct CandleChartView: View {
             .foregroundStyle(AppColors.white.opacity(0.7))
             .annotation(position: lastCandle.close >= lastCandle.open ? .top : .bottom, spacing: 4) {
                 PillView(
-                    value: String(format: "%.2f SOL", lastCandle.close),
+                    value: PriceFormatter.formatPrice(lamports: lastCandle.close),
                     color: AppColors.white.opacity(0.7),
                     foregroundColor: AppColors.black
                 )

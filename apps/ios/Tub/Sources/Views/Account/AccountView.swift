@@ -41,7 +41,7 @@ struct AccountView: View {
                             .padding(.vertical)
                         Text("Username: \(userModel.username)")
                             .font(.sfRounded(size: .lg, weight: .medium))
-                        Text("Balance: \(PriceFormatter.formatPrice(lamports: userModel.balanceLamps)) SOL")
+                        Text("Balance: \(PriceFormatter.formatPrice(lamports: userModel.balanceLamps))")
                             .font(.sfRounded(size: .lg, weight: .medium))
                             .padding(.bottom)
                         if let error = errorMessage {

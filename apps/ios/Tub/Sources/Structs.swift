@@ -48,6 +48,8 @@ struct PriceFormatter {
         return formatter
     }()
     
+    private static let solPriceModel = SolPriceModel()
+    
     private static func getFormattingParameters(for value: Double) -> (minimumFractionDigits: Int, maximumFractionDigits: Int) {
         let absValue = abs(value)
         if absValue >= 1 {
@@ -57,16 +59,16 @@ struct PriceFormatter {
             let digits = -exponent + 2
             return (digits, digits)
         } else {
-            return (0, 5)
+            return (0, 9)
         }
     }
-
+    
     private static func formatInitial(_ value: Double, minimumFractionDigits: Int, maximumFractionDigits: Int) -> String {
         formatter.minimumFractionDigits = minimumFractionDigits
         formatter.maximumFractionDigits = maximumFractionDigits
         return formatter.string(from: NSNumber(value: value)) ?? String(format: "%.9f", value)
     }
-
+    
     private static func cleanupFormattedString(_ str: String) -> String {
         var result = str
         if result.starts(with: ".") {
@@ -83,27 +85,38 @@ struct PriceFormatter {
         }
         return result
     }
-
-    static func formatPrice(sol: Double, showSign: Bool = true, maxDecimals: Int = 9) -> String {
+    
+    static func formatPrice(sol: Double, showSign: Bool = false, showUnit: Bool = true, maxDecimals: Int = 9) -> String {
         if sol.isNaN || sol.isInfinite || sol == 0 {
-            return "0"
+            if(showUnit) {
+                return "$0.00"
+            } else {
+                return "0.00"
+            }
         }
-
-        let (minFractionDigits, maxFractionDigits) = getFormattingParameters(for: sol)
-        var result = formatInitial(sol, minimumFractionDigits: minFractionDigits, maximumFractionDigits: min(maxFractionDigits, maxDecimals))
+        
+        let usdPrice = sol * solPriceModel.currentPrice
+        let (minFractionDigits, maxFractionDigits) = getFormattingParameters(for: usdPrice)
+        var result = formatInitial(usdPrice, minimumFractionDigits: minFractionDigits, maximumFractionDigits: min(maxFractionDigits, maxDecimals))
         
         result = cleanupFormattedString(result)
-
-        if !showSign && result.hasPrefix("-") {
-            result = result.replacingOccurrences(of: "-", with: "")
+        
+        let isNegative = result.hasPrefix("-")
+        result = result.replacingOccurrences(of: "-", with: "")
+        
+        var prefix = ""
+        if showSign {
+            prefix += isNegative ? "-" : "+"
         }
-
-        return result
+        if showUnit {
+            prefix += "$"
+        }
+        
+        return prefix + result
     }
     
-    static func formatPrice(lamports: Int, showSign: Bool = true, maxDecimals: Int = 9) ->
-    String {
+    static func formatPrice(lamports: Int, showSign: Bool = false, showUnit: Bool = true, maxDecimals: Int = 9) -> String {
         let solPrice = Double(lamports) / 1e9
-        return self.formatPrice(sol: solPrice, showSign: showSign, maxDecimals: maxDecimals)
+        return self.formatPrice(sol: solPrice, showSign: showSign, showUnit: showUnit, maxDecimals: maxDecimals)
     }
 }

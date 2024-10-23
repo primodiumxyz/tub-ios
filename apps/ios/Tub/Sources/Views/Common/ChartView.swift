@@ -69,11 +69,11 @@ struct ChartView: View {
                     }
                     else if change != nil {
                         PillView(value:
-                                    "\(String(format: "%.2f%", abs(change! * purchaseAmount))) SOL",
+                                    "\(PriceFormatter.formatPrice(lamports: abs(change! * purchaseAmount)))",
                                  color: dashedLineColor,
                                  foregroundColor: AppColors.black)
                     } else {
-                        PillView(value: "\(PriceFormatter.formatPrice(lamports: currentPrice.price)) SOL", color: AppColors.white,
+                        PillView(value: "\(PriceFormatter.formatPrice(lamports: currentPrice.price))", color: AppColors.white,
                                  foregroundColor: AppColors.black)
                     }
                 }
@@ -95,7 +95,7 @@ struct ChartView: View {
                 
                 .annotation(position: .bottom, spacing: 0) {
                     PillView(
-                        value: "\(PriceFormatter.formatPrice(lamports: purchasePrice.price)) SOL",
+                        value: "\(PriceFormatter.formatPrice(lamports: purchasePrice.price))",
                         color: AppColors.primaryPink.opacity(0.8), foregroundColor: AppColors.white)
                 }
             }

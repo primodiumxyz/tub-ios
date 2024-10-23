@@ -62,12 +62,12 @@ struct TokenView : View {
                                 Text("$\(tokenModel.token.symbol)")
                                     .font(.sfRounded(size: .lg, weight: .semibold))
                             }
-                            Text(PriceFormatter.formatPrice(lamports: tokenModel.prices.last?.price ?? 0) + " SOL")
+                            let _ = print("tokenModel.prices.last?.price", tokenModel.prices.last?.price)
+                            Text(PriceFormatter.formatPrice(lamports: tokenModel.prices.last?.price ?? 0))
                                 .font(.sfRounded(size: .xl4, weight: .bold))
                             
                             HStack {
-                                Text(tokenModel.priceChange.amountLamps >= 0 ? "+" : "-")
-                                Text(PriceFormatter.formatPrice(lamports: tokenModel.priceChange.amountLamps) + " SOL")
+                                Text(PriceFormatter.formatPrice(lamports: tokenModel.priceChange.amountLamps, showSign: true))
                                 Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
                                 
                                 Text("30s").foregroundColor(.gray)
