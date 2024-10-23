@@ -10,12 +10,16 @@ import Apollo
 import TubAPI
 import UIKit
 
+// Logic for keeping an array of tokens and enabling swiping up (to previously visited tokens) and down (new pumping tokens)
+// - The current index in the tokens array is always "last - 1", so we can update "last" to a new random token anytime the subscription is triggered (`updateTokens`)
+// - On init, add two random tokens to the array (see `updateTokens`)
+// - When swiping down, increase the current index, and push a new random token to the tokens array (that becomes the one that keeps being updated as the sub goes)
+// - When swiping up, get back to the previously visited token, pop the last item in the tokens array, so we're again at "last - 1" and "last" gets constantly updated
 struct TokenListView: View {
     @EnvironmentObject private var userModel: UserModel
     
     @State private var availableTokens: [Token] = []
     @State private var tokens: [Token] = []
-    @State private var currentTokenIndex: Int = 0
     @State private var previousTokenModel: TokenModel?
     @State private var nextTokenModel: TokenModel?
     @StateObject private var currentTokenModel: TokenModel
@@ -41,6 +45,10 @@ struct TokenListView: View {
         self._currentTokenModel = StateObject(wrappedValue: TokenModel(userId: UserDefaults.standard.string(forKey: "userId") ?? ""))
     }
     
+    private var currentTokenIndex: Int {
+        return tokens.count - 2 // last - 1
+    }
+    
     private func updateTokenModel(tokenId: String) {
         DispatchQueue.main.async {
             currentTokenModel.initialize(with: tokenId)
@@ -48,12 +56,12 @@ struct TokenListView: View {
     }
 
     private func getPreviousTokenModel() -> TokenModel {
-        let previousIndex = (currentTokenIndex - 1 + tokens.count) % tokens.count
+        let previousIndex = currentTokenIndex - 1 < 0 ? currentTokenIndex : currentTokenIndex - 1
         return TokenModel(userId: UserDefaults.standard.string(forKey: "userId") ?? "", tokenId: tokens[previousIndex].id)
     }
     
     private func getNextTokenModel() -> TokenModel {
-        let nextIndex = (currentTokenIndex + 1) % tokens.count
+        let nextIndex = currentTokenIndex + 1 > tokens.count - 1 ? currentTokenIndex : currentTokenIndex + 1
         return TokenModel(userId: UserDefaults.standard.string(forKey: "userId") ?? "", tokenId: tokens[nextIndex].id)
     }
     
@@ -73,30 +81,30 @@ struct TokenListView: View {
     // - Update the current token model
     // - Push a new random token to the array for the next swipe
     private func loadNextToken() {
-        currentTokenIndex = (currentTokenIndex + 1) % tokens.count
         previousTokenModel = currentTokenModel
         nextTokenModel = getNextTokenModel()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             activeOffset = 0
         }
 
-        updateTokenModel(tokenId: tokens[currentTokenIndex].id)
         tokens.append(getRandomToken(excluding: tokens[currentTokenIndex].id)!)
+        updateTokenModel(tokenId: tokens[currentTokenIndex].id)
     }
 
     // - Set the current token to the previously visited one
     // - Update the current token model
     // - Pop the last token in the array (swiping down should always be a fresh pumping token)
     private func loadPreviousToken() {
-        currentTokenIndex = (currentTokenIndex - 1 + tokens.count) % tokens.count
+        // TODO: lock swiping up if there is no previous token
+        if currentTokenIndex == 0 { return }
         nextTokenModel = currentTokenModel
         previousTokenModel = getPreviousTokenModel()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             activeOffset = 0
         }
 
-        updateTokenModel(tokenId: tokens[currentTokenIndex].id)
         tokens.removeLast()
+        updateTokenModel(tokenId: tokens[currentTokenIndex].id)
     }
     
     // - Update the last token in the array to a random pumping token (keep it fresh for the next swipe)
