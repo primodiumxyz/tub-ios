@@ -18,7 +18,8 @@ struct AccountBalanceView: View {
                 .opacity(0.7)
                 .kerning(-1)
             
-            let tokenValue = currentTokenModel.balanceLamps * (currentTokenModel.prices.last?.price ?? 0)
+        //    let tokenValue = currentTokenModel.balanceLamps * (currentTokenModel.prices.last?.price ?? 0) / Int(1e9)
+            let tokenValue = 0
             Text("\(PriceFormatter.formatPrice(lamports: userModel.balanceLamps + tokenValue)) ")
                 .font(.sfRounded(size: .xl3))
                 .fontWeight(.bold)
@@ -28,7 +29,7 @@ struct AccountBalanceView: View {
             HStack {
                 Text("\(PriceFormatter.formatPrice(lamports: adjustedChange, showSign: true))")
                 
-                let adjustedPercentage = userModel.initialBalanceLamps > 0 ? (adjustedChange / userModel.initialBalanceLamps) * 100 : 100;
+                let adjustedPercentage = userModel.initialBalanceLamps != 0  ? 100 - (Double(userModel.balanceLamps) / Double(userModel.initialBalanceLamps)) * 100 : 100;
                 Text("(\(abs(adjustedPercentage), specifier: "%.1f")%)")
                 
                 // Format time elapsed

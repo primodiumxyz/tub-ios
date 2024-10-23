@@ -37,8 +37,8 @@ struct TokenView : View {
         self._activeTab = activeTab
     }
     
-    func handleBuy(amount: Int, completion: ((Bool) -> Void)?) {
-        tokenModel.buyTokens(buyAmountLamps: amount, completion: {success in
+    func handleBuy(buyAmountLamps: Int, completion: ((Bool) -> Void)?) {
+        tokenModel.buyTokens(buyAmountLamps: buyAmountLamps, completion: {success in
             print("success", success)
             if success {
                 showBuySheet = false
@@ -62,7 +62,6 @@ struct TokenView : View {
                                 Text("$\(tokenModel.token.symbol)")
                                     .font(.sfRounded(size: .lg, weight: .semibold))
                             }
-                            let _ = print("tokenModel.prices.last?.price", tokenModel.prices.last?.price)
                             Text(PriceFormatter.formatPrice(lamports: tokenModel.prices.last?.price ?? 0))
                                 .font(.sfRounded(size: .xl4, weight: .bold))
                             
@@ -176,7 +175,7 @@ struct TokenView : View {
 #Preview {
     @Previewable @AppStorage("userId") var userId: String = ""
     @Previewable @State var activeTab: String = "buy"
-    @Previewable @State var tokenId: String = "exampleTokenId"
+    @Previewable @State var tokenId: String = "e88e72dd-d711-446d-9b6d-3e32a9f652b6"
     TokenView(tokenModel: TokenModel(userId: userId, tokenId: tokenId), activeTab: $activeTab).background(.black)
         .environmentObject(UserModel(userId: userId))
 }

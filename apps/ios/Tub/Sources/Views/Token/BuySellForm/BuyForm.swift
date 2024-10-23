@@ -23,7 +23,8 @@ struct BuyForm: View {
     @State private var isClosing: Bool = false
     
     func handleBuy() {
-        let _ = onBuy(PriceFormatter.usdToLamports(usd: buyAmountUSD), { success in
+        let buyAmountLamps = PriceFormatter.usdToLamports(usd: buyAmountUSD)
+        let _ = onBuy(buyAmountLamps, { success in
             if success {
                 resetForm()
             }
@@ -134,7 +135,6 @@ struct BuyForm: View {
             if let currentPrice = tokenModel.prices.last?.price {
                 let buyAmountLamps = PriceFormatter.usdToLamports(usd: buyAmountUSD)
                 let tokenAmount = Int(Double(buyAmountLamps) / Double(currentPrice) * 1e9)
-                let _ = print("lamps:", buyAmountLamps, currentPrice, tokenAmount)
 
                 Text("\(PriceFormatter.formatPrice(lamports: tokenAmount, showUnit: false)) \(tokenModel.token.symbol)")
                     .font(.sfRounded(size: .base, weight: .bold))

@@ -50,7 +50,7 @@ struct PriceFormatter {
     
     private static let solPriceModel = SolPriceModel()
     
-    private static func getFormattingParameters(for value: Double) -> (minimumFractionDigits: Int, maximumFractionDigits: Int) {
+    private static func getFormattingParameters(for value: Double) -> (minFractionDigits: Int, maxFractionDigits: Int) {
         let absValue = abs(value)
         if absValue >= 1 {
             return (0, 3)
@@ -63,9 +63,9 @@ struct PriceFormatter {
         }
     }
     
-    private static func formatInitial(_ value: Double, minimumFractionDigits: Int, maximumFractionDigits: Int) -> String {
-        formatter.minimumFractionDigits = minimumFractionDigits
-        formatter.maximumFractionDigits = maximumFractionDigits
+    private static func formatInitial(_ value: Double, minFractionDigits: Int, maxFractionDigits: Int) -> String {
+        formatter.minimumFractionDigits = minFractionDigits
+        formatter.maximumFractionDigits = maxFractionDigits
         return formatter.string(from: NSNumber(value: value)) ?? String(format: "%.9f", value)
     }
     
@@ -97,7 +97,7 @@ struct PriceFormatter {
         
         let usdPrice = sol * solPriceModel.currentPrice
         let (minFractionDigits, maxFractionDigits) = getFormattingParameters(for: usdPrice)
-        var result = formatInitial(usdPrice, minimumFractionDigits: minFractionDigits, maximumFractionDigits: min(maxFractionDigits, maxDecimals))
+        var result = formatInitial(usdPrice, minFractionDigits: minFractionDigits, maxFractionDigits: min(maxFractionDigits, maxDecimals))
         
         result = cleanupFormattedString(result)
         
@@ -126,5 +126,9 @@ struct PriceFormatter {
 
     static func usdToLamports(usd: Double) -> Int {
         return Int(usd * 1e9 / solPriceModel.currentPrice)
+    }
+
+    static func lamportsToUsd(lamports: Int) -> Double {
+        return Double(lamports) * solPriceModel.currentPrice / 1e9
     }
 }

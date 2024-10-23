@@ -9,7 +9,11 @@ class TokenModel: ObservableObject {
 
     @Published var token: Token = Token(id: "", name: "COIN", symbol: "SYMBOL", mint: "", decimals: 6, imageUri: "")
     @Published var loading = true
-    @Published var balanceLamps: Int = 0
+    @Published var balanceLamps: Int = 0 {
+        didSet {
+            print("balanceLamps", balanceLamps)
+        }
+    }
 
     @Published var amountBoughtLamps: Int = 0
     @Published var purchaseTime : Date? = nil
@@ -55,7 +59,6 @@ class TokenModel: ObservableObject {
                     if let token = response.data?.token.first(where: { $0.id == self.tokenId }) {
                         DispatchQueue.main.async {
                             self.token = Token(id: token.id, name: token.name, symbol: token.symbol, mint: token.mint ?? "", decimals: token.decimals, imageUri: token.uri)
-//                            self.loading = false
                         }
                         continuation.resume()
                     } else {
@@ -133,19 +136,25 @@ class TokenModel: ObservableObject {
     private func formatDate(_ dateString: String) -> Date? {
         return iso8601Formatter.date(from: dateString)
     }
-
     func buyTokens(buyAmountLamps: Int, completion: ((Bool) -> Void)?) {
-        Network.shared.buyToken(
-            accountId: self.userId, tokenId: self.tokenId, amount: String(buyAmountLamps)
-        ) { result in
-            switch result {
-            case .success:
-                self.amountBoughtLamps = buyAmountLamps
-                self.purchaseTime = Date()
-                completion?(true)
-            case .failure(let error):
-                print("Error buying tokens: \(error)")
-                completion?(false)
+        if let price = self.prices.last?.price, price > 0 {
+            let buyAmountToken = buyAmountLamps * Int(1e9) / price
+            
+            print("price: \(price), buyAmountLamps: \(buyAmountLamps), buyAmountToken: \(buyAmountToken)")
+            
+            Network.shared.buyToken(
+                accountId: self.userId, tokenId: self.tokenId, amount: String(buyAmountToken)
+            ) { result in
+                switch result {
+                case .success:
+                    self.amountBoughtLamps = buyAmountLamps
+                    print("amount bought", buyAmountToken, self.amountBoughtLamps)
+                    self.purchaseTime = Date()
+                    completion?(true)
+                case .failure(let error):
+                    print("Error buying tokens: \(error)")
+                    completion?(false)
+                }
             }
         }
     }
