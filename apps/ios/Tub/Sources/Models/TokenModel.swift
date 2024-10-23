@@ -202,7 +202,7 @@ class TokenModel: ObservableObject {
         }
         
         let priceChangeAmount = currentPrice - initialPrice
-        let priceChangePercentage = Double(priceChangeAmount / initialPrice) * 100
+        let priceChangePercentage = Double(priceChangeAmount) / Double(initialPrice) * 100
         
         DispatchQueue.main.async {
             self.priceChange = (priceChangeAmount, priceChangePercentage)
