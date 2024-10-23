@@ -9,19 +9,17 @@ class TokenModel: ObservableObject {
 
     @Published var token: Token = Token(id: "", name: "COIN", symbol: "SYMBOL", imageUri: "")
     @Published var loading = true
-    @Published var tokenBalance: (credit: Numeric, debit: Numeric, total: Double) = (0, 0, 0)
+    @Published var tokenBalance: Double = 0
 
     @Published var amountBoughtSol: Double = 0
     @Published var purchaseTime : Date? = nil
     
     @Published var prices: [Price] = []
 
-    private var latestPriceSubscription: Apollo.Cancellable?  // Track the latest price subscription
-    private var tokenBalanceSubscription:
-        (credit: Apollo.Cancellable?, debit: Apollo.Cancellable?)  // Track the token balance subscription
+    private var latestPriceSubscription: Apollo.Cancellable?
+    private var tokenBalanceSubscription: Apollo.Cancellable?
 
     @Published var priceChange: (amount: Double, percentage: Double) = (0, 0)
-    @Published var initialPrice: Double?
 
     init(userId: String, tokenId: String? = nil) {
         self.userId = userId
@@ -79,56 +77,25 @@ class TokenModel: ObservableObject {
         }
     }
 
-    private func subscribeToLatestPrice(_ since: Timestamptz) {
-        // Cancel any existing subscription before creating a new one
+    private func subscribeToLatestPrice(_ interval: Interval) {
         latestPriceSubscription?.cancel()
-
-        // First, query the past token history
-        let query = GetTokenPriceHistorySinceQuery(tokenId: self.tokenId, since: since)
-        Network.shared.apollo.fetch(query: query) { [weak self] result in
-            guard let self = self else { return }
-            
-            switch result {
-            case .success(let response):
-                DispatchQueue.main.async {
-                    self.prices = response.data?.token_price_history.compactMap { history in
-                        if let date = self.formatDate(history.created_at) {
-                            return Price(timestamp: date, price: Double(history.price) / 1e9)
-                        }
-                        return nil
-                    } ?? []
-                    
-                    if self.initialPrice == nil {
-                        self.initialPrice = self.prices.first?.price
-                    }
-                    
-                    // After fetching past history, subscribe to latest price updates
-                    self.subscribeToLatestPriceUpdates()
-                    self.loading = false
-                    self.calculatePriceChange()
-                }
-                
-            case .failure(let error):
-                print("Error fetching token price history: \(error)")
-            }
-        }
-    }
-
-    private func subscribeToLatestPriceUpdates() {
-        let subscription = SubLatestTokenPriceSubscription(tokenId: self.tokenId)
+        let subscription = SubTokenPriceHistoryIntervalSubscription(token: self.tokenId, interval: .some(interval))
         
         latestPriceSubscription = Network.shared.apollo.subscribe(subscription: subscription) { [weak self] result in
             guard let self = self else { return }
             
             switch result {
             case .success(let graphQLResult):
-                if let latestPrice = graphQLResult.data?.token_price_history.first {
+                if let priceHistory = graphQLResult.data?.token_price_history_offset {
                     DispatchQueue.main.async {
-                        if let date = self.formatDate(latestPrice.created_at) {
-                            let newPrice = Price(timestamp: date, price: Double(latestPrice.price) / 1e9)
-                            self.prices.append(newPrice)
-                            self.calculatePriceChange()
+                        self.prices = priceHistory.compactMap { history in
+                            if let date = self.formatDate(history.created_at) {
+                                return Price(timestamp: date, price: Double(history.price) / 1e9)
+                            }
+                            return nil
                         }
+                        self.loading = false
+                        self.calculatePriceChange()
                     }
                 }
             case .failure(let error):
@@ -138,37 +105,18 @@ class TokenModel: ObservableObject {
     }
 
     private func subscribeToTokenBalance() {
-        tokenBalanceSubscription.credit?.cancel()
-        tokenBalanceSubscription.debit?.cancel()
+        tokenBalanceSubscription?.cancel()
 
-        tokenBalanceSubscription.credit = Network.shared.apollo.subscribe(
-            subscription: SubAccountTokenBalanceCreditSubscription(
-                accountId: Uuid(self.userId), tokenId: self.tokenId)
+        tokenBalanceSubscription = Network.shared.apollo.subscribe(
+            subscription: SubAccountTokenBalanceSubscription(
+                account: Uuid(self.userId), token: self.tokenId)
         ) { [weak self] result in
             guard let self = self else { return }
             DispatchQueue.main.async {
                 switch result {
                 case .success(let graphQLResult):
-                    self.tokenBalance.credit =
-                        graphQLResult.data?.token_transaction_aggregate.aggregate?.sum?.amount ?? 0
-                    self.tokenBalance.total = Double(self.tokenBalance.credit - self.tokenBalance.debit)/1e9
-                case .failure(let error):
-                    print("Error: \(error.localizedDescription)")
-                }
-            }
-        }
-
-        tokenBalanceSubscription.debit = Network.shared.apollo.subscribe(
-            subscription: SubAccountTokenBalanceDebitSubscription(
-                accountId: Uuid(self.userId), tokenId: self.tokenId)
-        ) { [weak self] result in
-            guard let self = self else { return }
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let graphQLResult):
-                    self.tokenBalance.debit =
-                        graphQLResult.data?.token_transaction_aggregate.aggregate?.sum?.amount ?? 0
-                    self.tokenBalance.total = Double(self.tokenBalance.credit - self.tokenBalance.debit)/1e9
+                    self.tokenBalance =
+                    Double(graphQLResult.data?.balance.first?.value ?? 0) / 1e9
                 case .failure(let error):
                     print("Error: \(error.localizedDescription)")
                 }
@@ -191,14 +139,14 @@ class TokenModel: ObservableObject {
 
         Network.shared.buyToken(
             accountId: self.userId, tokenId: self.tokenId, amount: buyAmountLamps
-        ) { [weak self] result in
+        ) { result in
             switch result {
             case .success:
-                self?.amountBoughtSol = buyAmountSol
-                self?.purchaseTime = Date()
+                self.amountBoughtSol = buyAmountSol
+                self.purchaseTime = Date()
                 completion?(true)
             case .failure(let error):
-                print(error)
+                print("Error buying tokens: \(error)")
                 completion?(false)
             }
         }
@@ -214,7 +162,8 @@ class TokenModel: ObservableObject {
             case .success:
                 self.purchaseTime = nil
                 completion?(true)
-            case .failure(_):
+            case .failure(let error):
+                print("Error selling tokens: \(error)")
                 completion?(false)
             }
         }
@@ -223,35 +172,33 @@ class TokenModel: ObservableObject {
     func initialize(with newTokenId: String) {
         // Cancel all existing subscriptions
         latestPriceSubscription?.cancel()
-        tokenBalanceSubscription.credit?.cancel()
-        tokenBalanceSubscription.debit?.cancel()
+        tokenBalanceSubscription?.cancel()
 
         // Reset properties if necessary
         self.tokenId = newTokenId
         self.loading = true  // Reset loading state if needed
         self.prices = []
+        self.tokenBalance = 0
 
         // Re-run the initialization logic
         Task {
             await fetchInitialData()
             
-            let thirtySecondsAgo = Date().addingTimeInterval(-30).ISO8601Format()
-            subscribeToLatestPrice(thirtySecondsAgo)
+            subscribeToLatestPrice("30s")
             subscribeToTokenBalance()
         }
     }
     
-    func updateHistoryTimespan(timespan: Double) {
+    func updateHistoryInterval(interval: Interval) {
         latestPriceSubscription?.cancel()
         self.prices = []
         self.loading = true
-        let timespanAgo = Date().addingTimeInterval(-timespan).ISO8601Format()
-        subscribeToLatestPrice(timespanAgo)
+        subscribeToLatestPrice(interval)
     }
 
     private func calculatePriceChange() {
         guard let currentPrice = prices.last?.price,
-              let initialPrice = initialPrice else { return }
+              let initialPrice = prices.first?.price else { return }
         
         let priceChangeAmount = currentPrice - initialPrice
         let priceChangePercentage = (priceChangeAmount / initialPrice) * 100

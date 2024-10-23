@@ -27,6 +27,23 @@ class Network {
         return ApolloClient(networkTransport: splitNetworkTransport, store: store)
         
     }()
+    
+    private struct ErrorResponse: Codable {
+        let error: ErrorDetails
+        
+        struct ErrorDetails: Codable {
+            let message: String
+            let code: Int?
+            let data: ErrorData?
+        }
+        
+        struct ErrorData: Codable {
+            let code: String?
+            let httpStatus: Int?
+            let stack: String?
+            let path: String?
+        }
+    }
 
     // tRPC
     private let baseURL : URL 
@@ -82,6 +99,14 @@ class Network {
             }
             
             do {
+                // First, try to decode as an error response
+                if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
+                    let errorMessage = errorResponse.error.message
+                    completion(.failure(NSError(domain: "ServerError", code: errorResponse.error.code ?? -1, userInfo: [NSLocalizedDescriptionKey: errorMessage])))
+                    return
+                }
+                
+                // If it's not an error, proceed with normal decoding
                 let decodedResponse = try JSONDecoder().decode(ResponseWrapper<T>.self, from: data)
                 completion(.success(decodedResponse.result.data))
             } catch {

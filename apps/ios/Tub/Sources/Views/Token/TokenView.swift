@@ -24,10 +24,10 @@ struct TokenView : View {
         case live = "LIVE"
         case thirtyMin = "30M"
         
-        var seconds: Double {
+        var interval: String {
             switch self {
-            case .live: return 30
-            case .thirtyMin: return 1800 // 30 minutes in seconds
+            case .live: return "30s"
+            case .thirtyMin: return "30m"
             }
         }
     }
@@ -93,7 +93,7 @@ struct TokenView : View {
 
                     // Replace the existing ChartView with this conditional rendering
                     if selectedTimespan == .live {
-                        ChartView(prices: tokenModel.prices, purchaseTime: tokenModel.purchaseTime, purchaseAmount: tokenModel.tokenBalance.total, timeframeSecs: 30)
+                        ChartView(prices: tokenModel.prices, purchaseTime: tokenModel.purchaseTime, purchaseAmount: tokenModel.tokenBalance, timeframeSecs: 30)
                     } else {
                         CandleChartView(prices: tokenModel.prices, intervalSecs: 90, timeframeMins: 30)
                             .id(tokenModel.prices.count)
@@ -104,7 +104,7 @@ struct TokenView : View {
                         ForEach([Timespan.live, Timespan.thirtyMin], id: \.self) { timespan in
                             Button(action: {
                                 selectedTimespan = timespan
-                                tokenModel.updateHistoryTimespan(timespan: timespan.seconds)
+                                tokenModel.updateHistoryInterval(interval: timespan.interval)
                             }) {
                                 HStack {
                                     if timespan == Timespan.live {

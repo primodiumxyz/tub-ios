@@ -39,7 +39,7 @@ struct HistoryView : View {
                             }
                             
                             let quantity = Double(transaction.amount) / 1e9
-                            let isBuy = transaction.transaction_type == "credit"
+                            let isBuy = transaction.amount >= 0
                             let symbol = transaction.token_data.symbol
                             let name = transaction.token_data.name
                             let imageUri = transaction.token_data.uri ?? ""

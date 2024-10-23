@@ -58,12 +58,12 @@ public class GetTokenPriceHistoryIgnoreIntervalQuery: GraphQLQuery {
       public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Token_price_history_offset }
       public static var __selections: [ApolloAPI.Selection] { [
         .field("__typename", String.self),
-        .field("created_at", TubAPI.Timestamptz?.self),
-        .field("price", TubAPI.Numeric?.self),
+        .field("created_at", TubAPI.Timestamptz.self),
+        .field("price", TubAPI.Numeric.self),
       ] }
 
-      public var created_at: TubAPI.Timestamptz? { __data["created_at"] }
-      public var price: TubAPI.Numeric? { __data["price"] }
+      public var created_at: TubAPI.Timestamptz { __data["created_at"] }
+      public var price: TubAPI.Numeric { __data["price"] }
     }
   }
 }

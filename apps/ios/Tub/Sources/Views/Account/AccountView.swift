@@ -41,7 +41,7 @@ struct AccountView: View {
                             .padding(.vertical)
                         Text("Username: \(userModel.username)")
                             .font(.sfRounded(size: .lg, weight: .medium))
-                        Text("Balance: \(userModel.balance.total, specifier: "%.2f") SOL")
+                        Text("Balance: \(userModel.balance, specifier: "%.2f") SOL")
                             .font(.sfRounded(size: .lg, weight: .medium))
                             .padding(.bottom)
                         if let error = errorMessage {
@@ -53,7 +53,7 @@ struct AccountView: View {
                         if isAirdropping {
                             ProgressView()
                         }
-                        else if userModel.balance.total > 1 {
+                        else if userModel.balance > 1 {
                             Button(action: performAirdrop) {
                                 Text("Request Airdrop")
                                     .font(.sfRounded(size: .base, weight: .semibold))
