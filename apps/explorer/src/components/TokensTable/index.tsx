@@ -34,7 +34,8 @@ export const TokensTable = () => {
         (platformFilter === "" || token.platform === platformFilter) &&
         (token.name.toLowerCase().includes(globalFilter.toLowerCase()) ||
           token.symbol.toLowerCase().includes(globalFilter.toLowerCase()) ||
-          token.mint.toLowerCase().includes(globalFilter.toLowerCase())),
+          token.mint.toLowerCase().includes(globalFilter.toLowerCase()) ||
+          token.id.toLowerCase().includes(globalFilter.toLowerCase())),
     );
   }, [tokens, platformFilter, globalFilter]);
 

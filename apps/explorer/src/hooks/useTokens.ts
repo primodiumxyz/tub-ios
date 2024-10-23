@@ -12,6 +12,7 @@ export type Token = {
   platform: string;
   name: string;
   symbol: string;
+  id: string;
 };
 
 export const useTokens = (): {
@@ -37,6 +38,7 @@ export const useTokens = (): {
       platform: token.platform ?? "",
       name: token.name ?? "",
       symbol: token.symbol ?? "",
+      id: token.token_id,
     }));
   }, [filteredTokensResult.data]);
 
