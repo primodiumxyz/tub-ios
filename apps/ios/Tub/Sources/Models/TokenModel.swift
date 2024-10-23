@@ -31,7 +31,7 @@ class TokenModel: ObservableObject {
     private func fetchInitialData() async {
         do {
             try await fetchTokenDetails()
-//            self.loading = false
+            // self.loading = false
         } catch {
             print("Error fetching initial data: \(error)")
         }
