@@ -1,19 +1,6 @@
-# Tub
+# Tub Solana Programs
 
-The project is structured as a `pnpm` monorepo with the following packages:
-
-```yaml
-- packages
-    - contracts # Solana Rust programs implemented in anchor
-    - core # TypeScript core logic and types for interacting with the Solana programs
-    - gql # GraphQL API for the web client
-- apps
-    - keeper # TypeScript service for updating the database with random token data
-    - web # TypeScript client for web
-    - server # Node.js server for fetching state with various clients
-    - indexer # Node.js server for listening to DEX trades and writing new tokens prices to the database
-    - explorer # Temporary React app for browsing pumping tokens and playing with filters
-```
+This repository contains the Solana programs for Tub.
 
 ### Links
 
@@ -23,15 +10,9 @@ The project is structured as a `pnpm` monorepo with the following packages:
 
 ## Installation
 
-### pnpm
+### Requirements
 
-This monorepo uses `pnpm` as its package manager. First, install `npm`, then install `pnpm`.
-
-```
-npm install -g pnpm
-```
-
-This repository is tested with `node` version `18.18.0`, `npm` version `9.8.1`, and `pnpm` version `8.10.5`.
+Refer to the main [README.md](/README.md#Requirements) for global requirements.
 
 ### Solana
 
@@ -329,8 +310,10 @@ new_program_name = "new address here" # new address here
 >
 > `transfer_sol` is therefore used to reference the program library in `/packages/contracts/Anchor.toml`.
 
-## Running a full stack client
+## Running the client
+
+Running the following in `/apps/web` will launch the TypeScript reference client in developer mode.
 
 ```bash
-pnpm dev # this will spin up the keeper, server, and web app
+pnpm dev
 ```

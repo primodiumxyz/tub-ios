@@ -1,6 +1,12 @@
 # Tub iOS Client
 
-The `apps/ios` directory contains the Tub iOS client, written in Swift and managed as an Xcode project. To get started, open this directory in Xcode 16 or above.
+The `/apps/ios` repository contains the Tub iOS client, written in Swift and managed as an Xcode project. To get started, open this directory in Xcode 16 or above.
+
+## Development
+
+Open this directory (`/apps/ios`) in Xcode with `File > Open`.
+
+Then, run the application with `Product > Run`. If you don't have a set destination for the iOS app, set a build destination with `Product > Destination` to either a tethered iOS device or an iOS simulator.
 
 ## GraphQL
 
@@ -59,3 +65,15 @@ Generate GraphQL Swift types with the following:
 ```
 
 See `Tub/Models` for examples of GraphQL query and subscription fetching.
+
+## Distribution
+
+First, create an archive in Xcode with `Product > Archive`. The following window will pop up.
+
+<img width="1136" alt="image" src="https://github.com/user-attachments/assets/1344da75-85ae-444a-86b5-a15c6d9a9098">
+
+Select a build and click on `Distribute App`.
+
+<img width="1136" alt="image" src="https://github.com/user-attachments/assets/60b448c3-9057-4aac-83e7-85d9b10030cf">
+
+For _App Store_ or _External Testflight_, select `App Store Connect`. For _TestFlight Internal Testing_, select `TestFlight Internal Only`. Click on `Distribute` to upload the build to App Store Connect.
