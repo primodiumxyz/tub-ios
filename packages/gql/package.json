@@ -11,7 +11,7 @@
     "src"
   ],
   "scripts": {
-    "prepare": "[ \"$NODE_ENV\" = production ] && exit 0; pnpm hasura update-cli",
+    "prepare": "[ \"$NODE_ENV\" = production ] && exit 0; pnpm hasura update-cli --version v2.43.0",
     "dev": "./bin/start-hasura.sh",
     "teardown": "docker compose down --remove-orphans --volumes",
     "extract-mutations": "tsx ./bin/extractGql.ts ./src/lib/mutations.ts",
