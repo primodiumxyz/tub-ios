@@ -57,12 +57,12 @@ struct TokenListView: View {
 
     private func getPreviousTokenModel() -> TokenModel {
         let previousIndex = currentTokenIndex - 1 < 0 ? currentTokenIndex : currentTokenIndex - 1
-        return TokenModel(userId: UserDefaults.standard.string(forKey: "userId") ?? "", tokenId: tokens[previousIndex].id)
+        return TokenModel(userId: UserDefaults.standard.string(forKey: "userId") ?? "")
     }
     
     private func getNextTokenModel() -> TokenModel {
         let nextIndex = currentTokenIndex + 1 > tokens.count - 1 ? currentTokenIndex : currentTokenIndex + 1
-        return TokenModel(userId: UserDefaults.standard.string(forKey: "userId") ?? "", tokenId: tokens[nextIndex].id)
+        return TokenModel(userId: UserDefaults.standard.string(forKey: "userId") ?? "")
     }
     
     private func getRandomToken(excluding currentId: String? = nil) -> Token? {
