@@ -9,9 +9,9 @@ class TokenModel: ObservableObject {
 
     @Published var token: Token = Token(id: "", name: "COIN", symbol: "SYMBOL", mint: "", decimals: 6, imageUri: "")
     @Published var loading = true
-    @Published var tokenBalance: Numeric = 0
+    @Published var balanceLamps: Int = 0
 
-    @Published var amountBoughtLamps: Numeric = 0
+    @Published var amountBoughtLamps: Int = 0
     @Published var purchaseTime : Date? = nil
     
     @Published var prices: [Price] = []
@@ -19,7 +19,7 @@ class TokenModel: ObservableObject {
     private var latestPriceSubscription: Apollo.Cancellable?
     private var tokenBalanceSubscription: Apollo.Cancellable?
 
-    @Published var priceChange: (amount: Numeric, percentage: Double) = (0, 0)
+    @Published var priceChange: (amountLamps: Int, percentage: Double) = (0, 0)
 
     init(userId: String, tokenId: String? = nil) {
         self.userId = userId
@@ -115,7 +115,7 @@ class TokenModel: ObservableObject {
             DispatchQueue.main.async {
                 switch result {
                 case .success(let graphQLResult):
-                    self.tokenBalance =
+                    self.balanceLamps =
                     graphQLResult.data?.balance.first?.value ?? 0
                 case .failure(let error):
                     print("Error: \(error.localizedDescription)")
@@ -134,7 +134,7 @@ class TokenModel: ObservableObject {
         return iso8601Formatter.date(from: dateString)
     }
 
-    func buyTokens(buyAmountLamps: Numeric, completion: ((Bool) -> Void)?) {
+    func buyTokens(buyAmountLamps: Int, completion: ((Bool) -> Void)?) {
         Network.shared.buyToken(
             accountId: self.userId, tokenId: self.tokenId, amount: String(buyAmountLamps)
         ) { result in
@@ -175,7 +175,7 @@ class TokenModel: ObservableObject {
         self.loading = true  // Reset loading state if needed
         self.prices = []
         self.priceChange = (0, 0)
-        self.tokenBalance = 0
+        self.balanceLamps = 0
 
         // Re-run the initialization logic
         Task {
