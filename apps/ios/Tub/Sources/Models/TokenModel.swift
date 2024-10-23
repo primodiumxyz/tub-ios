@@ -77,50 +77,25 @@ class TokenModel: ObservableObject {
         }
     }
 
-    private func subscribeToLatestPrice(_ since: Timestamptz) {
+    private func subscribeToLatestPrice(_ interval: Interval) {
         latestPriceSubscription?.cancel()
-
-        let query = GetTokenPriceHistorySinceQuery(tokenId: self.tokenId, since: since)
-        Network.shared.apollo.fetch(query: query) { [weak self] result in
-            guard let self = self else { return }
-            
-            switch result {
-            case .success(let response):
-                DispatchQueue.main.async {
-                    self.prices = response.data?.token_price_history.compactMap { history in
-                        if let date = self.formatDate(history.created_at) {
-                            return Price(timestamp: date, price: Double(history.price) / 1e9)
-                        }
-                        return nil
-                    } ?? []
-                    
-                    // After fetching past history, subscribe to latest price updates
-                    self.subscribeToLatestPriceUpdates()
-                    self.loading = false
-                    self.calculatePriceChange()
-                }
-                
-            case .failure(let error):
-                print("Error fetching token price history: \(error)")
-            }
-        }
-    }
-
-    private func subscribeToLatestPriceUpdates() {
-        let subscription = SubLatestTokenPriceSubscription(tokenId: self.tokenId)
+        let subscription = SubTokenPriceHistoryIntervalSubscription(token: self.tokenId, interval: .some(interval))
         
         latestPriceSubscription = Network.shared.apollo.subscribe(subscription: subscription) { [weak self] result in
             guard let self = self else { return }
             
             switch result {
             case .success(let graphQLResult):
-                if let latestPrice = graphQLResult.data?.token_price_history.first {
+                if let priceHistory = graphQLResult.data?.token_price_history_offset {
                     DispatchQueue.main.async {
-                        if let date = self.formatDate(latestPrice.created_at) {
-                            let newPrice = Price(timestamp: date, price: Double(latestPrice.price) / 1e9)
-                            self.prices.append(newPrice)
-                            self.calculatePriceChange()
+                        self.prices = priceHistory.compactMap { history in
+                            if let date = self.formatDate(history.created_at) {
+                                return Price(timestamp: date, price: Double(history.price) / 1e9)
+                            }
+                            return nil
                         }
+                        self.loading = false
+                        self.calculatePriceChange()
                     }
                 }
             case .failure(let error):
@@ -210,18 +185,16 @@ class TokenModel: ObservableObject {
         Task {
             await fetchInitialData()
             
-            let thirtySecondsAgo = Date().addingTimeInterval(-30).ISO8601Format()
-            subscribeToLatestPrice(thirtySecondsAgo)
+            subscribeToLatestPrice("30s")
             subscribeToTokenBalance()
         }
     }
     
-    func updateHistoryTimespan(timespan: Double) {
+    func updateHistoryInterval(interval: Interval) {
         latestPriceSubscription?.cancel()
         self.prices = []
         self.loading = true
-        let timespanAgo = Date().addingTimeInterval(-timespan).ISO8601Format()
-        subscribeToLatestPrice(timespanAgo)
+        subscribeToLatestPrice(interval)
     }
 
     private func calculatePriceChange() {

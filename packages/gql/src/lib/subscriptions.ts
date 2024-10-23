@@ -120,11 +120,11 @@ export const GetAccountBalanceIgnoreIntervalSubscription = graphql(`
 `);
 
 export const GetTokenPriceHistoryIntervalSubscription = graphql(`
-  subscription SubTokenPriceHistoryInterval($token: uuid, $start: timestamptz = "now()", $interval: interval = "30m") {
+  subscription SubTokenPriceHistoryInterval($token: uuid!, $start: timestamptz = "now()", $interval: interval = "30m") {
     token_price_history_offset(
       args: { offset: $interval }
       where: { created_at_offset: { _gte: $start }, token: { _eq: $token } }
-      order_by: { created_at: desc }
+      order_by: { created_at: asc }
     ) {
       created_at
       price
@@ -134,14 +134,14 @@ export const GetTokenPriceHistoryIntervalSubscription = graphql(`
 
 export const GetTokenPriceHistoryIgnoreIntervalSubscription = graphql(`
   subscription SubTokenPriceHistoryIgnoreInterval(
-    $token: uuid
+    $token: uuid!
     $start: timestamptz = "now()"
-    $interval: interval = "30m"
+    $interval: interval = "30s"
   ) {
     token_price_history_offset(
       args: { offset: $interval }
       where: { created_at_offset: { _lte: $start }, token: { _eq: $token } }
-      order_by: { created_at: desc }
+      order_by: { created_at: asc }
     ) {
       created_at
       price
