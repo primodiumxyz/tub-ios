@@ -3,9 +3,9 @@ CREATE OR REPLACE FUNCTION public.sell_token(account_id uuid, token_id uuid, amo
  LANGUAGE plpgsql
 AS $function$
 DECLARE
-    latest_price NUMERIC(21,0);
-    total_proceeds NUMERIC(21,0);
-    token_balance NUMERIC(21,0);
+    latest_price NUMERIC;
+    total_proceeds NUMERIC;
+    token_balance NUMERIC;
     account_transaction_id UUID;
     token_txn token_transaction%ROWTYPE;
 BEGIN
