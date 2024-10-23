@@ -41,7 +41,6 @@ struct TokenView : View {
         tokenModel.buyTokens(buyAmountLamps: amount, completion: {success in
             print("success", success)
             if success {
-                print("setting to sell")
                 showBuySheet = false
                 activeTab = "sell"
             }
@@ -63,18 +62,18 @@ struct TokenView : View {
                                 Text("$\(tokenModel.token.symbol)")
                                     .font(.sfRounded(size: .lg, weight: .semibold))
                             }
-                            Text(PriceFormatter.formatPrice(tokenModel.prices.last?.price ?? 0) + " SOL")
+                            Text(PriceFormatter.formatPrice(lamports: tokenModel.prices.last?.price ?? 0) + " SOL")
                                 .font(.sfRounded(size: .xl4, weight: .bold))
                             
                             HStack {
-                                Text(tokenModel.priceChange.amount >= 0 ? "+" : "-")
-                                Text(PriceFormatter.formatPrice(tokenModel.priceChange.amount, showSign: false) + " SOL")
+                                Text(tokenModel.priceChange.amountLamps >= 0 ? "+" : "-")
+                                Text(PriceFormatter.formatPrice(lamports: tokenModel.priceChange.amountLamps) + " SOL")
                                 Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
                                 
                                 Text("30s").foregroundColor(.gray)
                             }
                             .font(.sfRounded(size: .sm, weight: .semibold))
-                            .foregroundColor(tokenModel.priceChange.amount >= 0 ? .green : .red)
+                            .foregroundColor(tokenModel.priceChange.amountLamps >= 0 ? .green : .red)
                         }
                         
                         Spacer() // Add this to push the chevron to the right
@@ -95,7 +94,7 @@ struct TokenView : View {
 
                     // Replace the existing ChartView with this conditional rendering
                     if selectedTimespan == .live {
-                        ChartView(prices: tokenModel.prices, purchaseTime: tokenModel.purchaseTime, purchaseAmount: tokenModel.tokenBalance)
+                        ChartView(prices: tokenModel.prices, purchaseTime: tokenModel.purchaseTime, purchaseAmount: tokenModel.balanceLamps)
                     } else {
                         CandleChartView(prices: tokenModel.prices, intervalSecs: 90, timeframeMins: 30)
                             .id(tokenModel.prices.count)

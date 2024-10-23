@@ -73,7 +73,7 @@ struct ChartView: View {
                                  color: dashedLineColor,
                                  foregroundColor: AppColors.black)
                     } else {
-                        PillView(value: "\(PriceFormatter.formatPrice(currentPrice.price)) SOL", color: AppColors.white,
+                        PillView(value: "\(PriceFormatter.formatPrice(lamports: currentPrice.price)) SOL", color: AppColors.white,
                                  foregroundColor: AppColors.black)
                     }
                 }
@@ -95,7 +95,7 @@ struct ChartView: View {
                 
                 .annotation(position: .bottom, spacing: 0) {
                     PillView(
-                        value: "\(PriceFormatter.formatPrice(purchasePrice.price)) SOL",
+                        value: "\(PriceFormatter.formatPrice(lamports: purchasePrice.price)) SOL",
                         color: AppColors.primaryPink.opacity(0.8), foregroundColor: AppColors.white)
                 }
             }
@@ -117,7 +117,7 @@ struct ChartView: View {
                 AxisValueLabel()
                 AxisValueLabel {
                     if let intValue = value.as(Int.self) {
-                        Text(PriceFormatter.formatPrice(intValue))
+                        Text(PriceFormatter.formatPrice(lamports: intValue))
                             .foregroundStyle(.white)
                             .font(.sfRounded(size: .xs, weight: .regular))
                     }

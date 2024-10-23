@@ -115,33 +115,10 @@ struct TokenListView: View {
             
             VStack(spacing: 0) {
                 // Account balance view
-                VStack(alignment: .leading) {
-                    Text("Account Balance")
-                        .font(.sfRounded(size: .sm, weight: .bold))
-                        .opacity(0.7)
-                        .kerning(-1)
-                    
-                    let tokenValue = currentTokenModel.tokenBalance * (currentTokenModel.prices.last?.price ?? 0)
-                    Text("\(PriceFormatter.formatPrice(userModel.balance + tokenValue)) SOL")
-                        .font(.sfRounded(size: .xl3))
-                        .fontWeight(.bold)
-                    
-                    let adjustedChange = userModel.balanceChange + tokenValue
-                    HStack {
-                        Text(adjustedChange >= 0 ? "+" : "-")
-                        Text("\(abs(adjustedChange), specifier: "%.2f") SOL")
-                        
-                        let adjustedPercentage = userModel.initialBalance > 0 ? (adjustedChange / userModel.initialBalance) * 100 : 100;
-                        Text("(\(abs(adjustedPercentage), specifier: "%.1f")%)")
-                        
-                        // Format time elapsed
-                        Text("\(formatTimeElapsed(userModel.timeElapsed))")
-                            .foregroundColor(.gray)
-                    }
-                    .font(.sfRounded(size: .sm, weight: .semibold))
-                    .foregroundColor(adjustedChange >= 0 ? .green : .red)
-                }
-                .padding()
+                AccountBalanceView(
+                    userModel: userModel,
+                    currentTokenModel: currentTokenModel
+                )
                 .padding(.top, 35)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(dragging ? AppColors.black : nil)
