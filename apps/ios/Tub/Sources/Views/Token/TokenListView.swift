@@ -49,9 +49,9 @@ struct TokenListView: View {
         return tokens.count - 2 // last - 1
     }
     
-    private func updateTokenModel(tokenId: String) {
+    private func initTokenModel() {
         DispatchQueue.main.async {
-            currentTokenModel.initialize(with: tokenId)
+            currentTokenModel.initialize(with: tokens[currentTokenIndex].id)
         }
     }
 
@@ -88,7 +88,7 @@ struct TokenListView: View {
         }
 
         tokens.append(getRandomToken(excluding: tokens[currentTokenIndex].id)!)
-        updateTokenModel(tokenId: tokens[currentTokenIndex].id)
+        initTokenModel()
     }
 
     // - Set the current token to the previously visited one
@@ -104,7 +104,7 @@ struct TokenListView: View {
         }
 
         tokens.removeLast()
-        updateTokenModel(tokenId: tokens[currentTokenIndex].id)
+        initTokenModel()
     }
     
     // - Update the last token in the array to a random pumping token (keep it fresh for the next swipe)
@@ -114,7 +114,7 @@ struct TokenListView: View {
         if tokens.count == 0 {
             tokens.append(getRandomToken()!)
             tokens.append(getRandomToken(excluding: tokens[0].id)!)
-            updateTokenModel(tokenId: tokens[0].id)
+            initTokenModel()
         } else {
             tokens[tokens.count - 1] = getRandomToken(excluding: tokens[currentTokenIndex].id)!
         }
