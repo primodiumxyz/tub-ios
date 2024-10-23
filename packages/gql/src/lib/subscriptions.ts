@@ -121,7 +121,7 @@ export const GetTokenPriceHistoryIntervalSubscription = graphql(`
     token_price_history_offset(
       args: { offset: $interval }
       where: { created_at_offset: { _gte: $start }, token: { _eq: $token } }
-      order_by: { created_at: desc }
+      order_by: { created_at: asc }
     ) {
       created_at
       price
@@ -133,12 +133,12 @@ export const GetTokenPriceHistoryIgnoreIntervalSubscription = graphql(`
   subscription SubTokenPriceHistoryIgnoreInterval(
     $token: uuid!
     $start: timestamptz = "now()"
-    $interval: interval = "30m"
+    $interval: interval = "30s"
   ) {
     token_price_history_offset(
       args: { offset: $interval }
       where: { created_at_offset: { _lte: $start }, token: { _eq: $token } }
-      order_by: { created_at: desc }
+      order_by: { created_at: asc }
     ) {
       created_at
       price

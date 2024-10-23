@@ -7,7 +7,7 @@ public class SubTokenPriceHistoryIntervalSubscription: GraphQLSubscription {
   public static let operationName: String = "SubTokenPriceHistoryInterval"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"subscription SubTokenPriceHistoryInterval($token: uuid!, $start: timestamptz = "now()", $interval: interval = "30m") { token_price_history_offset( args: { offset: $interval } where: { created_at_offset: { _gte: $start }, token: { _eq: $token } } order_by: { created_at: desc } ) { __typename created_at price } }"#
+      #"subscription SubTokenPriceHistoryInterval($token: uuid!, $start: timestamptz = "now()", $interval: interval = "30m") { token_price_history_offset( args: { offset: $interval } where: { created_at_offset: { _gte: $start }, token: { _eq: $token } } order_by: { created_at: asc } ) { __typename created_at price } }"#
     ))
 
   public var token: Uuid
@@ -42,7 +42,7 @@ public class SubTokenPriceHistoryIntervalSubscription: GraphQLSubscription {
           "created_at_offset": ["_gte": .variable("start")],
           "token": ["_eq": .variable("token")]
         ],
-        "order_by": ["created_at": "desc"]
+        "order_by": ["created_at": "asc"]
       ]),
     ] }
 

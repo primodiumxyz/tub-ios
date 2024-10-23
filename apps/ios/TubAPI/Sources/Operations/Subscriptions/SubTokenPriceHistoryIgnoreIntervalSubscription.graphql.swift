@@ -7,7 +7,7 @@ public class SubTokenPriceHistoryIgnoreIntervalSubscription: GraphQLSubscription
   public static let operationName: String = "SubTokenPriceHistoryIgnoreInterval"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"subscription SubTokenPriceHistoryIgnoreInterval($token: uuid!, $start: timestamptz = "now()", $interval: interval = "30m") { token_price_history_offset( args: { offset: $interval } where: { created_at_offset: { _lte: $start }, token: { _eq: $token } } order_by: { created_at: desc } ) { __typename created_at price } }"#
+      #"subscription SubTokenPriceHistoryIgnoreInterval($token: uuid!, $start: timestamptz = "now()", $interval: interval = "30s") { token_price_history_offset( args: { offset: $interval } where: { created_at_offset: { _lte: $start }, token: { _eq: $token } } order_by: { created_at: asc } ) { __typename created_at price } }"#
     ))
 
   public var token: Uuid
@@ -17,7 +17,7 @@ public class SubTokenPriceHistoryIgnoreIntervalSubscription: GraphQLSubscription
   public init(
     token: Uuid,
     start: GraphQLNullable<Timestamptz> = "now()",
-    interval: GraphQLNullable<Interval> = "30m"
+    interval: GraphQLNullable<Interval> = "30s"
   ) {
     self.token = token
     self.start = start
@@ -42,7 +42,7 @@ public class SubTokenPriceHistoryIgnoreIntervalSubscription: GraphQLSubscription
           "created_at_offset": ["_lte": .variable("start")],
           "token": ["_eq": .variable("token")]
         ],
-        "order_by": ["created_at": "desc"]
+        "order_by": ["created_at": "asc"]
       ]),
     ] }
 

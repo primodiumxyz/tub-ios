@@ -79,8 +79,7 @@ class TokenModel: ObservableObject {
 
     private func subscribeToLatestPrice(_ interval: Interval) {
         latestPriceSubscription?.cancel()
-        // TODO: Fix these types
-        let subscription = SubTokenPriceHistoryIntervalSubscription(token: self.tokenId, interval: interval as! GraphQLNullable<Interval>)
+        let subscription = SubTokenPriceHistoryIntervalSubscription(token: self.tokenId, interval: .some(interval))
         
         latestPriceSubscription = Network.shared.apollo.subscribe(subscription: subscription) { [weak self] result in
             guard let self = self else { return }
@@ -89,10 +88,9 @@ class TokenModel: ObservableObject {
             case .success(let graphQLResult):
                 if let priceHistory = graphQLResult.data?.token_price_history_offset {
                     DispatchQueue.main.async {
-                        print(priceHistory)
                         self.prices = priceHistory.compactMap { history in
-                            if let date = self.formatDate(history.created_at ?? "") {
-                                return Price(timestamp: date, price: Double(history.price ?? 0) / 1e9)
+                            if let date = self.formatDate(history.created_at) {
+                                return Price(timestamp: date, price: Double(history.price) / 1e9)
                             }
                             return nil
                         }
@@ -186,18 +184,16 @@ class TokenModel: ObservableObject {
         Task {
             await fetchInitialData()
             
-            let thirtySecondsAgo = Date().addingTimeInterval(-30).ISO8601Format()
-            subscribeToLatestPrice(thirtySecondsAgo)
+            subscribeToLatestPrice("30s")
             subscribeToTokenBalance()
         }
     }
     
-    func updateHistoryTimespan(timespan: Double) {
+    func updateHistoryInterval(interval: Interval) {
         latestPriceSubscription?.cancel()
         self.prices = []
         self.loading = true
-        let timespanAgo = Date().addingTimeInterval(-timespan).ISO8601Format()
-        subscribeToLatestPrice(timespanAgo)
+        subscribeToLatestPrice(interval)
     }
 
     private func calculatePriceChange() {
