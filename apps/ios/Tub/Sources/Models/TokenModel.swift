@@ -7,7 +7,7 @@ class TokenModel: ObservableObject {
     var tokenId: String = ""
     var userId: String = ""
 
-    @Published var token: Token = Token(id: "", name: "COIN", symbol: "SYMBOL", imageUri: "")
+    @Published var token: Token = Token(id: "", name: "COIN", symbol: "SYMBOL", mint: "", imageUri: "")
     @Published var loading = true
     @Published var tokenBalance: Double = 0
 
@@ -54,7 +54,7 @@ class TokenModel: ObservableObject {
                 case .success(let response):
                     if let token = response.data?.token.first(where: { $0.id == self.tokenId }) {
                         DispatchQueue.main.async {
-                            self.token = Token(id: token.id, name: token.name, symbol: token.symbol, imageUri: token.uri)
+                            self.token = Token(id: token.id, name: token.name, symbol: token.symbol, mint: token.mint ?? "", imageUri: token.uri)
 //                            self.loading = false
                         }
                         continuation.resume()
@@ -178,6 +178,7 @@ class TokenModel: ObservableObject {
         self.tokenId = newTokenId
         self.loading = true  // Reset loading state if needed
         self.prices = []
+        self.priceChange = (0, 0)
         self.tokenBalance = 0
 
         // Re-run the initialization logic
@@ -197,8 +198,8 @@ class TokenModel: ObservableObject {
     }
 
     private func calculatePriceChange() {
-        guard let currentPrice = prices.last?.price,
-              let initialPrice = prices.first?.price else { return }
+        let currentPrice = prices.last?.price ?? 0
+        let initialPrice = prices.first?.price ?? 0
         
         let priceChangeAmount = currentPrice - initialPrice
         let priceChangePercentage = (priceChangeAmount / initialPrice) * 100

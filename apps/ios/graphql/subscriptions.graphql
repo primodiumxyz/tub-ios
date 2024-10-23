@@ -61,8 +61,8 @@ subscription SubFilteredTokens(
   $minIncreasePct: float8!
 ) {
   GetFormattedTokens(
+    args: { since: $since }
     where: {
-      created_at: { _gte: $since }
       trades: { _gte: $minTrades }
       increase_pct: { _gte: $minIncreasePct }
     }
@@ -71,6 +71,7 @@ subscription SubFilteredTokens(
     mint
     name
     symbol
+    platform
     latest_price
     increase_pct
     trades

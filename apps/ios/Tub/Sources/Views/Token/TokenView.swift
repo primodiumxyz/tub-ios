@@ -63,13 +63,15 @@ struct TokenView : View {
                                 Text("$\(tokenModel.token.symbol)")
                                     .font(.sfRounded(size: .lg, weight: .semibold))
                             }
-                            Text("\(tokenModel.prices.last?.price ?? 0, specifier: "%.3f") SOL")
+                            Text(PriceFormatter.formatPrice(tokenModel.prices.last?.price ?? 0) + " SOL")
                                 .font(.sfRounded(size: .xl4, weight: .bold))
                             
                             HStack {
                                 Text(tokenModel.priceChange.amount >= 0 ? "+" : "-")
-                                Text("\(abs(tokenModel.priceChange.amount), specifier: "%.3f") SOL")
+                                Text(PriceFormatter.formatPrice(tokenModel.priceChange.amount, showSign: false) + " SOL")
                                 Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
+                                
+                                Text("30s").foregroundColor(.gray)
                             }
                             .font(.sfRounded(size: .sm, weight: .semibold))
                             .foregroundColor(tokenModel.priceChange.amount >= 0 ? .green : .red)
@@ -93,7 +95,7 @@ struct TokenView : View {
 
                     // Replace the existing ChartView with this conditional rendering
                     if selectedTimespan == .live {
-                        ChartView(prices: tokenModel.prices, purchaseTime: tokenModel.purchaseTime, purchaseAmount: tokenModel.tokenBalance, timeframeSecs: 30)
+                        ChartView(prices: tokenModel.prices, purchaseTime: tokenModel.purchaseTime, purchaseAmount: tokenModel.tokenBalance)
                     } else {
                         CandleChartView(prices: tokenModel.prices, intervalSecs: 90, timeframeMins: 30)
                             .id(tokenModel.prices.count)
@@ -175,6 +177,7 @@ struct TokenView : View {
 #Preview {
     @Previewable @AppStorage("userId") var userId: String = ""
     @Previewable @State var activeTab: String = "buy"
-    TokenView(tokenModel: TokenModel(userId: userId, tokenId: mockTokenId), activeTab: $activeTab).background(.black)
+    @Previewable @State var tokenId: String = "exampleTokenId"
+    TokenView(tokenModel: TokenModel(userId: userId, tokenId: tokenId), activeTab: $activeTab).background(.black)
         .environmentObject(UserModel(userId: userId))
 }

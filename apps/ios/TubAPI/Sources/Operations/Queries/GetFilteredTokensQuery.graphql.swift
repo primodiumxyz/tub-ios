@@ -3,11 +3,11 @@
 
 @_exported import ApolloAPI
 
-public class SubFilteredTokensSubscription: GraphQLSubscription {
-  public static let operationName: String = "SubFilteredTokens"
+public class GetFilteredTokensQuery: GraphQLQuery {
+  public static let operationName: String = "GetFilteredTokens"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"subscription SubFilteredTokens($since: timestamptz!, $minTrades: bigint!, $minIncreasePct: float8!) { GetFormattedTokens( args: { since: $since } where: { trades: { _gte: $minTrades }, increase_pct: { _gte: $minIncreasePct } } ) { __typename token_id mint name symbol latest_price increase_pct trades created_at } }"#
+      #"query GetFilteredTokens($since: timestamptz!, $minTrades: bigint!, $minIncreasePct: float8!) { GetFormattedTokens( args: { since: $since } where: { trades: { _gte: $minTrades }, increase_pct: { _gte: $minIncreasePct } } ) { __typename token_id mint name symbol latest_price increase_pct trades created_at } }"#
     ))
 
   public var since: Timestamptz
@@ -34,7 +34,7 @@ public class SubFilteredTokensSubscription: GraphQLSubscription {
     public let __data: DataDict
     public init(_dataDict: DataDict) { __data = _dataDict }
 
-    public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Subscription_root }
+    public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Query_root }
     public static var __selections: [ApolloAPI.Selection] { [
       .field("GetFormattedTokens", [GetFormattedToken].self, arguments: [
         "args": ["since": .variable("since")],
