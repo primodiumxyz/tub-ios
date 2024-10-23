@@ -4,7 +4,7 @@ The `/apps/ios` repository contains the Tub iOS client, written in Swift and man
 
 ## Development
 
-Open this directory (`/apps/ios`) in Xcode with `File > Open`.
+Open the `/apps/ios` directory in Xcode with `File > Open`. The main Xcode project file is `Tub.xcodeproj`.
 
 Then, run the application with `Product > Run`. If you don't have a set destination for the iOS app, set a build destination with `Product > Destination` to either a tethered iOS device or an iOS simulator.
 
