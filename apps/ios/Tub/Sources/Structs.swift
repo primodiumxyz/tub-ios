@@ -53,13 +53,13 @@ struct PriceFormatter {
     private static func getFormattingParameters(for value: Double) -> (minFractionDigits: Int, maxFractionDigits: Int) {
         let absValue = abs(value)
         if absValue >= 1 {
-            return (0, 3)
+            return (2, 3)
         } else if absValue < 0.001 {
             let exponent = Int(floor(log10(absValue)))
             let digits = -exponent + 2
-            return (digits, digits)
+            return (2, digits)
         } else {
-            return (0, 9)
+            return (2, 9)
         }
     }
     

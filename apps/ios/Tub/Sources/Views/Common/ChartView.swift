@@ -65,16 +65,12 @@ struct ChartView: View {
                 )
                 .annotation(position: .top, spacing: 4) {
                     if closestPurchasePrice?.timestamp == currentPrice.timestamp {
-                        
-                    }
-                    else if change != nil {
-                        PillView(value:
-                                    "\(PriceFormatter.formatPrice(lamports: abs(change! * purchaseAmount)))",
-                                 color: dashedLineColor,
-                                 foregroundColor: AppColors.black)
+                        EmptyView()
                     } else {
-                        PillView(value: "\(PriceFormatter.formatPrice(lamports: currentPrice.price))", color: AppColors.white,
-                                 foregroundColor: AppColors.black)
+                    PillView(value:
+                                "\(PriceFormatter.formatPrice(lamports: abs(currentPrice.price)))",
+                             color: dashedLineColor,
+                             foregroundColor: AppColors.black)
                     }
                 }
             }

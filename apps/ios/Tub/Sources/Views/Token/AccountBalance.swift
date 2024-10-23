@@ -27,7 +27,7 @@ struct AccountBalanceView: View {
             let adjustedChange = userModel.balanceChangeLamps + tokenValue
 
             HStack {
-                Text("\(PriceFormatter.formatPrice(lamports: adjustedChange, showSign: true))")
+                Text("\(PriceFormatter.formatPrice(lamports: adjustedChange, showSign: true, maxDecimals: 2))")
                 
                 let adjustedPercentage = userModel.initialBalanceLamps != 0  ? 100 - (Double(userModel.balanceLamps) / Double(userModel.initialBalanceLamps)) * 100 : 100;
                 Text("(\(abs(adjustedPercentage), specifier: "%.1f")%)")

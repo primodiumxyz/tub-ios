@@ -6,7 +6,7 @@ import TubAPI
 class TokenModel: ObservableObject {
     var tokenId: String = ""
     var userId: String = ""
-
+    
     @Published var token: Token = Token(id: "", name: "COIN", symbol: "SYMBOL", mint: "", decimals: 6, imageUri: "")
     @Published var loading = true
     @Published var balanceLamps: Int = 0 {
@@ -14,33 +14,33 @@ class TokenModel: ObservableObject {
             print("balanceLamps", balanceLamps)
         }
     }
-
+    
     @Published var amountBoughtLamps: Int = 0
     @Published var purchaseTime : Date? = nil
     
     @Published var prices: [Price] = []
-
+    
     private var latestPriceSubscription: Apollo.Cancellable?
     private var tokenBalanceSubscription: Apollo.Cancellable?
-
+    
     @Published var priceChange: (amountLamps: Int, percentage: Double) = (0, 0)
-
+    
     init(userId: String, tokenId: String? = nil) {
         self.userId = userId
         if tokenId != nil {
             self.initialize(with: tokenId!)
         }
     }
-
+    
     private func fetchInitialData() async {
         do {
             try await fetchTokenDetails()
-//            self.loading = false
+            //            self.loading = false
         } catch {
             print("Error fetching initial data: \(error)")
         }
     }
-
+    
     
     private func fetchTokenDetails() async throws {
         let query = GetTokenDataQuery(tokenId: tokenId)
@@ -53,7 +53,7 @@ class TokenModel: ObservableObject {
                             userInfo: [NSLocalizedDescriptionKey: "Self is nil"]))
                     return
                 }
-
+                
                 switch result {
                 case .success(let response):
                     if let token = response.data?.token.first(where: { $0.id == self.tokenId }) {
@@ -79,7 +79,7 @@ class TokenModel: ObservableObject {
             }
         }
     }
-
+    
     private func subscribeToLatestPrice(_ interval: Interval) {
         latestPriceSubscription?.cancel()
         let subscription = SubTokenPriceHistoryIntervalSubscription(token: self.tokenId, interval: .some(interval))
@@ -106,10 +106,10 @@ class TokenModel: ObservableObject {
             }
         }
     }
-
+    
     private func subscribeToTokenBalance() {
         tokenBalanceSubscription?.cancel()
-
+        
         tokenBalanceSubscription = Network.shared.apollo.subscribe(
             subscription: SubAccountTokenBalanceSubscription(
                 account: Uuid(self.userId), token: self.tokenId)
@@ -126,13 +126,13 @@ class TokenModel: ObservableObject {
             }
         }
     }
-
+    
     private lazy var iso8601Formatter: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         return formatter
     }()
-
+    
     private func formatDate(_ dateString: String) -> Date? {
         return iso8601Formatter.date(from: dateString)
     }
@@ -158,7 +158,7 @@ class TokenModel: ObservableObject {
             }
         }
     }
-
+    
     func sellTokens(completion: ((Bool) -> Void)?) {
         Network.shared.sellToken(
             accountId: self.userId, tokenId: self.tokenId, amount: String(amountBoughtLamps)
@@ -173,19 +173,19 @@ class TokenModel: ObservableObject {
             }
         }
     }
-
+    
     func initialize(with newTokenId: String) {
         // Cancel all existing subscriptions
         latestPriceSubscription?.cancel()
         tokenBalanceSubscription?.cancel()
-
+        
         // Reset properties if necessary
         self.tokenId = newTokenId
         self.loading = true  // Reset loading state if needed
         self.prices = []
         self.priceChange = (0, 0)
         self.balanceLamps = 0
-
+        
         // Re-run the initialization logic
         Task {
             await fetchInitialData()
@@ -201,7 +201,7 @@ class TokenModel: ObservableObject {
         self.loading = true
         subscribeToLatestPrice(interval)
     }
-
+    
     private func calculatePriceChange() {
         let currentPrice = prices.last?.price ?? 0
         let initialPrice = prices.first?.price ?? 0
@@ -211,7 +211,7 @@ class TokenModel: ObservableObject {
         }
         
         let priceChangeAmount = currentPrice - initialPrice
-        let priceChangePercentage = Double(priceChangeAmount / initialPrice) * 100
+        let priceChangePercentage = Double(priceChangeAmount) / Double(initialPrice) * 100
         
         DispatchQueue.main.async {
             self.priceChange = (priceChangeAmount, priceChangePercentage)
