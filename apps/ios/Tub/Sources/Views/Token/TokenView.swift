@@ -37,8 +37,8 @@ struct TokenView : View {
         self._activeTab = activeTab
     }
     
-    func handleBuy(amount: Double, completion: ((Bool) -> Void)?) {
-        tokenModel.buyTokens(buyAmountSol: amount, completion: {success in
+    func handleBuy(amount: Int, completion: ((Bool) -> Void)?) {
+        tokenModel.buyTokens(buyAmountLamps: amount, completion: {success in
             print("success", success)
             if success {
                 print("setting to sell")

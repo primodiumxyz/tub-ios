@@ -85,7 +85,7 @@ struct TokenListView: View {
                         Text(adjustedChange >= 0 ? "+" : "-")
                         Text("\(abs(adjustedChange), specifier: "%.2f") SOL")
                         
-                        let adjustedPercentage = (adjustedChange / userModel.initialBalance) * 100
+                        let adjustedPercentage = userModel.initialBalance > 0 ? (adjustedChange / userModel.initialBalance) * 100 : 100;
                         Text("(\(abs(adjustedPercentage), specifier: "%.1f")%)")
                         
                         // Format time elapsed

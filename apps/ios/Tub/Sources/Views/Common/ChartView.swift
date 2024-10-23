@@ -11,12 +11,12 @@ import Charts
 struct ChartView: View {
     let prices: [Price]
     let purchaseTime: Date?
-    let purchaseAmount: Double
+    let purchaseAmount: Int
     
-    init(prices: [Price], purchaseTime: Date? = nil, purchaseAmount: Double? = nil) {
+    init(prices: [Price], purchaseTime: Date? = nil, purchaseAmount: Int? = nil) {
         self.prices = prices
         self.purchaseTime = purchaseTime
-        self.purchaseAmount = purchaseAmount ?? 0.0
+        self.purchaseAmount = purchaseAmount ?? 0
     }
     
     private var dashedLineColor: Color {
@@ -28,7 +28,7 @@ struct ChartView: View {
         return currentPrice < purchasePrice ? AppColors.lightRed : AppColors.lightGreen
     }
     
-    private var change: Double? {
+    private var change: Int? {
         guard let purchasePrice = closestPurchasePrice?.price,
               let currentPrice = prices.last?.price else { return nil }
         return (currentPrice - purchasePrice)
@@ -116,8 +116,8 @@ struct ChartView: View {
                     .foregroundStyle(.white.opacity(0.2))
                 AxisValueLabel()
                 AxisValueLabel {
-                    if let doubleValue = value.as(Double.self) {
-                        Text(PriceFormatter.formatPrice(doubleValue))
+                    if let intValue = value.as(Int.self) {
+                        Text(PriceFormatter.formatPrice(intValue))
                             .foregroundStyle(.white)
                             .font(.sfRounded(size: .xs, weight: .regular))
                     }

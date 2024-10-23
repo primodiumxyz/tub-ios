@@ -9,18 +9,8 @@ import SwiftUI
 struct BuySellForm: View {
     @EnvironmentObject var userModel: UserModel
     @ObservedObject var tokenModel: TokenModel
-    @State private var sellAmount: Double = 0.0
     @Binding var activeTab: String
-    @Binding var showBuySheet: Bool 
-
-    func handleBuy(amount: Double, completion: ((Bool) -> Void)?) {
-        tokenModel.buyTokens(buyAmountSol: amount, completion: {success in
-            if success {
-                activeTab = "sell"
-            }
-            completion?(success)
-        })
-    }
+    @Binding var showBuySheet: Bool
     
     func handleSell(completion: ((Bool) -> Void)?) {
         tokenModel.sellTokens(completion: {success in

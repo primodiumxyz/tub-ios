@@ -10,11 +10,11 @@ import SwiftUI
 struct BuyForm: View {
     @Binding var isVisible: Bool
     @ObservedObject var tokenModel: TokenModel
-    var onBuy: (Double, ((Bool) -> Void)?) -> ()
+    var onBuy: (Int, ((Bool) -> Void)?) -> ()
     
     @EnvironmentObject private var userModel: UserModel
     @State private var buyAmountString: String = ""
-    @State private var buyAmountSol: Double = 0.0
+    @State private var buyAmountLamps: Int = 0
     @State private var isValidInput: Bool = true
     
     @State private var dragOffset: CGFloat = 0.0 
@@ -23,22 +23,22 @@ struct BuyForm: View {
     @State private var isClosing: Bool = false
     
     func handleBuy() {
-        let _ = onBuy(buyAmountSol, { success in
+        let _ = onBuy(buyAmountLamps, { success in
             if success {
                 resetForm()
             }
         })
     }
     
-    func updateBuyAmount(_ amount: Double) {
-        buyAmountString = String(format: "%.2f", amount)
-        buyAmountSol = amount
+    func updateBuyAmount(_ amount: Int) {
+        buyAmountString = PriceFormatter.formatPrice(amount)
+        buyAmountLamps = amount
         isValidInput = true
     }
     
     func resetForm() {
         buyAmountString = ""
-        buyAmountSol = 0.0
+        buyAmountLamps = 0
         isValidInput = true
         animatingSwipe = false
     }
@@ -63,20 +63,8 @@ struct BuyForm: View {
                         .keyboardType(.decimalPad)
                         .multilineTextAlignment(.center)
                         .onChange(of: buyAmountString) { newValue in
-                            let filtered = newValue.filter { "0123456789.".contains($0) }
-                            
-                            // Limit to two decimal places
-                            let components = filtered.components(separatedBy: ".")
-                            if components.count > 1 {
-                                let wholeNumber = components[0]
-                                let decimal = String(components[1].prefix(2))
-                                buyAmountString = "\(wholeNumber).\(decimal)"
-                            } else {
-                                buyAmountString = filtered
-                            }
-                            
-                            if let amount = Double(buyAmountString), amount >= 0 {
-                                buyAmountSol = amount
+                            if let amount = Int(buyAmountString), amount >= 0 {
+                                buyAmountLamps = amount * Int(1e9)
                                 isValidInput = true
                             } else {
                                 isValidInput = false
@@ -97,7 +85,7 @@ struct BuyForm: View {
                 
                 // Add token conversion display
                 if let currentPrice = tokenModel.prices.last?.price, currentPrice > 0 {
-                    let tokenAmount = buyAmountSol / currentPrice
+                    let tokenAmount = buyAmountLamps * Int(1e9) / currentPrice // scale up to keep an additional 1e9 precision
                     Text("\(PriceFormatter.formatPrice(tokenAmount)) \(tokenModel.token.symbol)")
                         .font(.sfRounded(size: .base, weight: .bold))
                         .opacity(0.8)
@@ -105,12 +93,12 @@ struct BuyForm: View {
                 
                 // Add pill-shaped buttons
                 HStack(spacing: 8) {
-                    ForEach([10.0, 25.0, 50.0, 100], id: \.self) { amount in
+                    ForEach([10, 25, 50, 100], id: \.self) { amount in
                         Button(action: {
                             
                             updateBuyAmount(amount * userModel.balance / 100)
                         }) {
-                            Text(amount == 100 ? "MAX" : "\(Int(amount))%")
+                            Text(amount == 100 ? "MAX" : "\(amount)%")
                                 .font(.sfRounded(size: .base, weight: .bold))
                                 .foregroundColor(.white)
                                 .padding(.horizontal, 12)
@@ -122,7 +110,7 @@ struct BuyForm: View {
                 }
                 .padding(.top, 10)
                 
-                SwipeToEnterView(text: "Swipe to buy", onUnlock: handleBuy, disabled: buyAmountSol == 0 || buyAmountString == "")
+                SwipeToEnterView(text: "Swipe to buy", onUnlock: handleBuy, disabled: buyAmountLamps == 0 || buyAmountString == "")
                     .padding(.top, 10)
             }.background(AppColors.darkBlueGradient)
             .padding()

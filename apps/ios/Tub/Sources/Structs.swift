@@ -6,6 +6,7 @@ struct Token: Identifiable {
     var name: String
     var symbol: String
     var mint: String
+    var decimals: Int
     var imageUri: String?
 }
 
@@ -15,7 +16,7 @@ struct Price: Identifiable, Equatable {
     }
     var id = UUID()
     var timestamp: Date
-    var price: Double
+    var price: Int
 }
 
 struct Transaction: Identifiable, Equatable {
@@ -38,13 +39,16 @@ struct PriceFormatter {
     // - remove trailing zeros after decimal point
     // The logic is super convoluted because it's super tricky to get it right, but it works like that;
     // we just lose the locale formatting.
-    static func formatPrice(_ price: Double, showSign: Bool = true, maxDecimals: Int = 9) -> String {
+    static func formatPrice(_ price: Int, showSign: Bool = true, maxDecimals: Int = 9) ->
+    String {
+        let solPrice = Double(price) / 1e9
+        
         // Handle special cases
-        if price.isNaN || price.isInfinite || price == 0 {
+        if solPrice.isNaN || solPrice.isInfinite || solPrice == 0 {
             return "0"
         }
         
-        let absPrice = abs(price)
+        let absPrice = abs(solPrice)
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
         formatter.maximumFractionDigits = maxDecimals
@@ -66,7 +70,7 @@ struct PriceFormatter {
             formatter.minimumFractionDigits = 0
         }
         
-        var result = formatter.string(from: NSNumber(value: price)) ?? String(format: "%.9f", price)
+        var result = formatter.string(from: NSNumber(value: solPrice)) ?? String(format: "%.9f", solPrice)
         
         // Ensure there's always a leading zero for decimal numbers
         if result.starts(with: ".") {

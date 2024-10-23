@@ -165,9 +165,8 @@ class Network {
         callProcedure("registerNewToken", input: input, completion: completion)
     }
     
-    func airdropNativeToUser(accountId: String, amount: Double, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
-        let scaledAmount = String(Int(amount * 1e9))
-        let input = ["accountId": accountId, "amount": scaledAmount]
+    func airdropNativeToUser(accountId: String, amount: Int, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
+        let input = ["accountId": accountId, "amount": String(amount)]
         callProcedure("airdropNativeToUser", input: input, completion: completion)
     }
 }

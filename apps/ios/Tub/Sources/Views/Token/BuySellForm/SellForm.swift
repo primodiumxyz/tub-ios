@@ -34,8 +34,8 @@ struct SellForm: View {
                             .font(.sfRounded(size: .xs, weight: .semibold))
                             .foregroundColor(AppColors.gray)
                         
-                        let gains = tokenModel.tokenBalance * (tokenModel.prices.last?.price ?? 0) - tokenModel.amountBoughtSol
-                        let percentageGain = gains / tokenModel.amountBoughtSol * 100
+                        let gains = tokenModel.tokenBalance * (tokenModel.prices.last?.price ?? 0) - tokenModel.amountBoughtLamps
+                        let percentageGain = tokenModel.amountBoughtLamps > 0 ? gains / tokenModel.amountBoughtLamps * 100 : 0
                         
                         HStack(){
                             Image(systemName: gains > 0 ? "arrow.up" : "arrow.down")
