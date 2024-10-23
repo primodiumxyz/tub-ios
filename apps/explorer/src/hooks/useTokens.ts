@@ -10,6 +10,8 @@ export type Token = {
   increasePct: number;
   trades: number;
   platform: string;
+  name: string;
+  symbol: string;
 };
 
 export const useTokens = (): {
@@ -33,6 +35,8 @@ export const useTokens = (): {
       increasePct: Number(token.increase_pct),
       trades: Number(token.trades),
       platform: token.platform ?? "",
+      name: token.name ?? "",
+      symbol: token.symbol ?? "",
     }));
   }, [filteredTokensResult.data]);
 
