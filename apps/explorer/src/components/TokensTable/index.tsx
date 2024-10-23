@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { columns } from "@/components/TokensTable/columns";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
+import { Input } from "@/components/ui/input";
 import { useTokens } from "@/hooks/useTokens";
 import { useTrackerParams } from "@/hooks/useTrackerParams";
 import { formatTime } from "@/lib/utils";
@@ -11,6 +12,7 @@ export const TokensTable = () => {
   const { tokens, fetching, error } = useTokens();
   const { timespan, increasePct, minTrades } = useTrackerParams();
   const [platformFilter, setPlatformFilter] = useState<string>("");
+  const [globalFilter, setGlobalFilter] = useState<string>("");
 
   const tokensPerPlatform = useMemo(() => {
     return Object.entries(
@@ -25,13 +27,27 @@ export const TokensTable = () => {
   }, [tokens]);
 
   const filteredTokens = useMemo(() => {
-    if (platformFilter === "") return tokens;
-    return tokens.filter((token) => token.platform === platformFilter);
-  }, [tokens, platformFilter]);
+    if (platformFilter === "" && globalFilter === "") return tokens;
+    if (globalFilter === "") return tokens.filter((token) => token.platform === platformFilter);
+    return tokens.filter(
+      (token) =>
+        (platformFilter === "" || token.platform === platformFilter) &&
+        (token.name.toLowerCase().includes(globalFilter.toLowerCase()) ||
+          token.symbol.toLowerCase().includes(globalFilter.toLowerCase()) ||
+          token.mint.toLowerCase().includes(globalFilter.toLowerCase()) ||
+          token.id.toLowerCase().includes(globalFilter.toLowerCase())),
+    );
+  }, [tokens, platformFilter, globalFilter]);
 
   if (error) return <div>Error: {error}</div>;
   return (
     <div className="flex flex-col gap-2 mt-2 w-full">
+      <Input
+        placeholder="Search"
+        value={globalFilter}
+        onChange={(e) => setGlobalFilter(e.target.value)}
+        className="self-end w-[400px]"
+      />
       <div className="flex gap-2 flex-wrap justify-end">
         {Object.entries(tokensPerPlatform).length > 0 && (
           <>

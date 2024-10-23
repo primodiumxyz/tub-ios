@@ -11,12 +11,12 @@ import Charts
 struct ChartView: View {
     let prices: [Price]
     let purchaseTime: Date?
-    let purchaseAmount: Double
+    let purchaseAmount: Int
     
-    init(prices: [Price], purchaseTime: Date? = nil, purchaseAmount: Double? = nil) {
+    init(prices: [Price], purchaseTime: Date? = nil, purchaseAmount: Int? = nil) {
         self.prices = prices
         self.purchaseTime = purchaseTime
-        self.purchaseAmount = purchaseAmount ?? 0.0
+        self.purchaseAmount = purchaseAmount ?? 0
     }
     
     private var dashedLineColor: Color {
@@ -28,7 +28,7 @@ struct ChartView: View {
         return currentPrice < purchasePrice ? AppColors.lightRed : AppColors.lightGreen
     }
     
-    private var change: Double? {
+    private var change: Int? {
         guard let purchasePrice = closestPurchasePrice?.price,
               let currentPrice = prices.last?.price else { return nil }
         return (currentPrice - purchasePrice)
@@ -73,7 +73,7 @@ struct ChartView: View {
                                  color: dashedLineColor,
                                  foregroundColor: AppColors.black)
                     } else {
-                        PillView(value: "\(PriceFormatter.formatPrice(currentPrice.price)) SOL", color: AppColors.white,
+                        PillView(value: "\(PriceFormatter.formatPrice(lamports: currentPrice.price)) SOL", color: AppColors.white,
                                  foregroundColor: AppColors.black)
                     }
                 }
@@ -95,7 +95,7 @@ struct ChartView: View {
                 
                 .annotation(position: .bottom, spacing: 0) {
                     PillView(
-                        value: "\(PriceFormatter.formatPrice(purchasePrice.price)) SOL",
+                        value: "\(PriceFormatter.formatPrice(lamports: purchasePrice.price)) SOL",
                         color: AppColors.primaryPink.opacity(0.8), foregroundColor: AppColors.white)
                 }
             }
@@ -116,8 +116,8 @@ struct ChartView: View {
                     .foregroundStyle(.white.opacity(0.2))
                 AxisValueLabel()
                 AxisValueLabel {
-                    if let doubleValue = value.as(Double.self) {
-                        Text(PriceFormatter.formatPrice(doubleValue))
+                    if let intValue = value.as(Int.self) {
+                        Text(PriceFormatter.formatPrice(lamports: intValue))
                             .foregroundStyle(.white)
                             .font(.sfRounded(size: .xs, weight: .regular))
                     }

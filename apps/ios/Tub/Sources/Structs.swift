@@ -6,6 +6,7 @@ struct Token: Identifiable {
     var name: String
     var symbol: String
     var mint: String
+    var decimals: Int
     var imageUri: String?
 }
 
@@ -15,7 +16,7 @@ struct Price: Identifiable, Equatable {
     }
     var id = UUID()
     var timestamp: Date
-    var price: Double
+    var price: Int
 }
 
 struct Transaction: Identifiable, Equatable {
@@ -38,76 +39,71 @@ struct PriceFormatter {
     // - remove trailing zeros after decimal point
     // The logic is super convoluted because it's super tricky to get it right, but it works like that;
     // we just lose the locale formatting.
-    static func formatPrice(_ price: Double, showSign: Bool = true, maxDecimals: Int = 9) -> String {
-        // Handle special cases
-        if price.isNaN || price.isInfinite || price == 0 {
-            return "0"
-        }
-        
-        let absPrice = abs(price)
+    
+    private static let formatter: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = maxDecimals
         formatter.decimalSeparator = "."  // Use period for internal formatting
         formatter.groupingSeparator = ""  // Remove thousand separators
-        
-        if absPrice >= 1 {
-            // For numbers 1 and above, use 3 decimal places maximum
-            formatter.maximumFractionDigits = 3
-            formatter.minimumFractionDigits = 0
-        } else if absPrice < 0.001 {
-            // For small numbers, ensure we show 3 significant digits
-            let exponent = Int(floor(log10(absPrice)))
-            
-            formatter.minimumFractionDigits = -exponent + 2
-            formatter.maximumFractionDigits = formatter.minimumFractionDigits
+        return formatter
+    }()
+    
+    private static func getFormattingParameters(for value: Double) -> (minimumFractionDigits: Int, maximumFractionDigits: Int) {
+        let absValue = abs(value)
+        if absValue >= 1 {
+            return (0, 3)
+        } else if absValue < 0.001 {
+            let exponent = Int(floor(log10(absValue)))
+            let digits = -exponent + 2
+            return (digits, digits)
         } else {
-            // For numbers between 0.001 and 1, use standard formatting
-            formatter.minimumFractionDigits = 0
+            return (0, 5)
         }
-        
-        var result = formatter.string(from: NSNumber(value: price)) ?? String(format: "%.9f", price)
-        
-        // Ensure there's always a leading zero for decimal numbers
+    }
+
+    private static func formatInitial(_ value: Double, minimumFractionDigits: Int, maximumFractionDigits: Int) -> String {
+        formatter.minimumFractionDigits = minimumFractionDigits
+        formatter.maximumFractionDigits = maximumFractionDigits
+        return formatter.string(from: NSNumber(value: value)) ?? String(format: "%.9f", value)
+    }
+
+    private static func cleanupFormattedString(_ str: String) -> String {
+        var result = str
         if result.starts(with: ".") {
             result = "0" + result
         }
-        
-        // Remove trailing zeros after decimal point
         if result.contains(".") {
             result = result.trimmingCharacters(in: CharacterSet(charactersIn: "0"))
             if result.hasSuffix(".") {
                 result = String(result.dropLast())
             }
         }
-        
-        // Ensure there's always a leading zero for decimal numbers (again, after trimming)
         if result.starts(with: ".") {
             result = "0" + result
         }
-        
-        // Add subscript for small numbers
-        if absPrice < 0.0001 && result.starts(with: "0.") {
-            let parts = result.dropFirst(2).split(separator: "")
-            var leadingZeros = 0
-            for char in parts {
-                if char == "0" {
-                    leadingZeros += 1
-                } else {
-                    break
-                }
-            }
-            if leadingZeros > 0 {
-                let subscriptDigits = ["₀", "₁", "₂", "₃", "₄", "₅", "₆", "₇", "₈", "₉"]
-                let subscriptNumber = String(leadingZeros).map { subscriptDigits[Int(String($0))!] }.joined()
-                result = "0.0\(subscriptNumber)" + result.dropFirst(2 + leadingZeros)
-            }
+        return result
+    }
+
+    static func formatPrice(sol: Double, showSign: Bool = true, maxDecimals: Int = 9) -> String {
+        if sol.isNaN || sol.isInfinite || sol == 0 {
+            return "0"
         }
+
+        let (minFractionDigits, maxFractionDigits) = getFormattingParameters(for: sol)
+        var result = formatInitial(sol, minimumFractionDigits: minFractionDigits, maximumFractionDigits: min(maxFractionDigits, maxDecimals))
         
+        result = cleanupFormattedString(result)
+
         if !showSign && result.hasPrefix("-") {
             result = result.replacingOccurrences(of: "-", with: "")
         }
-        
+
         return result
+    }
+    
+    static func formatPrice(lamports: Int, showSign: Bool = true, maxDecimals: Int = 9) ->
+    String {
+        let solPrice = Double(lamports) / 1e9
+        return self.formatPrice(sol: solPrice, showSign: showSign, maxDecimals: maxDecimals)
     }
 }

@@ -56,12 +56,13 @@ export const GetAllOnchainTokensPriceHistorySinceSubscription = graphql(`
 
 export const GetFilteredTokensSubscription = graphql(`
   subscription SubFilteredTokens($since: timestamptz!, $minTrades: bigint!, $minIncreasePct: float8!) {
-    GetFormattedTokens(
+    get_formatted_tokens_since(
       args: { since: $since }
       where: { trades: { _gte: $minTrades }, increase_pct: { _gte: $minIncreasePct } }
     ) {
       token_id
       mint
+      decimals
       name
       platform
       symbol

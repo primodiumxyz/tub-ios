@@ -40,6 +40,7 @@ export const GetTokenDataQuery = graphql(`
       name
       symbol
       mint
+      decimals
       updated_at
       supply
       uri
@@ -56,27 +57,34 @@ export const GetTokensByMintsQuery = graphql(`
   }
 `);
 
-
 export const GetAccountTokenBalanceQuery = graphql(`
   query GetAccountTokenBalance($account: uuid!, $token: uuid!, $start: timestamptz = "now()") {
-    balance: account_token_balance_ignore_interval(args: {account: $account, interval: "0", start: $start, token: $token}) {
+    balance: account_token_balance_ignore_interval(
+      args: { account: $account, interval: "0", start: $start, token: $token }
+    ) {
       value: balance
     }
   }
 `);
 
 export const GetAccountTokenBalanceIgnoreIntervalQuery = graphql(`
-  query GetAccountTokenBalanceIgnoreInterval($account: uuid!, $start: timestamptz = "now()", $interval: interval!, $token: uuid!) {
-    balance: account_token_balance_ignore_interval(args: {account: $account, interval: $interval, start: $start, token: $token}) {
+  query GetAccountTokenBalanceIgnoreInterval(
+    $account: uuid!
+    $start: timestamptz = "now()"
+    $interval: interval!
+    $token: uuid!
+  ) {
+    balance: account_token_balance_ignore_interval(
+      args: { account: $account, interval: $interval, start: $start, token: $token }
+    ) {
       value: balance
     }
   }
 `);
 
-
 export const GetAccountBalanceQuery = graphql(`
   query GetAccountBalance($account: uuid!, $start: timestamptz = "now()") {
-    balance: account_balance_ignore_interval(args: {account: $account, interval: "0", start: $start}) {
+    balance: account_balance_ignore_interval(args: { account: $account, interval: "0", start: $start }) {
       value: balance
     }
   }
@@ -84,7 +92,7 @@ export const GetAccountBalanceQuery = graphql(`
 
 export const GetAccountBalanceIgnoreIntervalQuery = graphql(`
   query GetAccountBalanceIgnoreInterval($account: uuid!, $start: timestamptz = "now()", $interval: interval!) {
-    balance: account_balance_ignore_interval(args: {account: $account, interval: $interval, start: $start}) {
+    balance: account_balance_ignore_interval(args: { account: $account, interval: $interval, start: $start }) {
       value: balance
     }
   }
@@ -92,7 +100,11 @@ export const GetAccountBalanceIgnoreIntervalQuery = graphql(`
 
 export const GetTokenPriceHistoryIntervalQuery = graphql(`
   query GetTokenPriceHistoryInterval($token: uuid, $start: timestamptz = "now()", $interval: interval!) {
-    token_price_history_offset(args: {offset: $interval}, where: {created_at_offset: {_gte: $start}, token: {_eq: $token}}, order_by: {created_at: desc}) {
+    token_price_history_offset(
+      args: { offset: $interval }
+      where: { created_at_offset: { _gte: $start }, token: { _eq: $token } }
+      order_by: { created_at: desc }
+    ) {
       created_at
       price
     }
@@ -101,7 +113,11 @@ export const GetTokenPriceHistoryIntervalQuery = graphql(`
 
 export const GetTokenPriceHistoryIgnoreIntervalQuery = graphql(`
   query GetTokenPriceHistoryIgnoreInterval($token: uuid, $start: timestamptz = "now()", $interval: interval!) {
-    token_price_history_offset(args: {offset: $interval}, where: {created_at_offset: {_lte: $start}, token: {_eq: $token}}, order_by: {created_at: desc}) {
+    token_price_history_offset(
+      args: { offset: $interval }
+      where: { created_at_offset: { _lte: $start }, token: { _eq: $token } }
+      order_by: { created_at: desc }
+    ) {
       created_at
       price
     }
@@ -163,12 +179,13 @@ export const GetTokenPriceHistorySinceQuery = graphql(`
 
 export const GetFilteredTokensQuery = graphql(`
   query GetFilteredTokens($since: timestamptz!, $minTrades: bigint!, $minIncreasePct: float8!) {
-    GetFormattedTokens(
+    get_formatted_tokens_since(
       args: { since: $since }
       where: { trades: { _gte: $minTrades }, increase_pct: { _gte: $minIncreasePct } }
     ) {
       token_id
       mint
+      decimals
       name
       symbol
       platform

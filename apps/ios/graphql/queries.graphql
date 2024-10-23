@@ -31,6 +31,7 @@ query GetTokenData($tokenId: uuid!) {
     name
     symbol
     mint
+    decimals
     updated_at
     supply
     uri
@@ -182,7 +183,7 @@ query GetFilteredTokens(
   $minTrades: bigint!
   $minIncreasePct: float8!
 ) {
-  GetFormattedTokens(
+  get_formatted_tokens_since(
     args: { since: $since }
     where: {
       trades: { _gte: $minTrades }
@@ -191,6 +192,7 @@ query GetFilteredTokens(
   ) {
     token_id
     mint
+    decimals
     name
     symbol
     platform
