@@ -135,7 +135,7 @@ struct BuyForm: View {
         Group {
             if let currentPrice = tokenModel.prices.last?.price, currentPrice > 0 {
                 let tokenAmount = buyAmountLamps / currentPrice
-                Text("\(PriceFormatter.formatPrice(lamports: tokenAmount)) \(tokenModel.token.symbol)")
+                Text("\(PriceFormatter.formatPrice(lamports: tokenAmount * Int(1e9))) \(tokenModel.token.symbol)")
                     .font(.sfRounded(size: .base, weight: .bold))
                     .opacity(0.8)
             }
