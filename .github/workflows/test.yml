@@ -23,3 +23,6 @@ jobs:
 
       - name: Run GQL Tests
         run: pnpm --filter gql test
+
+      - name: Teardown
+        run: pnpm dev:teardown
