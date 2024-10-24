@@ -25,10 +25,10 @@ struct SellForm: View {
                             .font(.sfRounded(size: .xs, weight: .semibold))
                             .foregroundColor(AppColors.gray)
                         
-                        Text("$\(PriceFormatter.formatPrice(lamports: (tokenModel.balanceLamps * (tokenModel.prices.last?.price ?? 0) / Int(1e9)), showUnit: false, maxDecimals: 2))")
+                        Text("$\(PriceFormatter.formatPrice(lamports: (tokenModel.balance * (tokenModel.prices.last?.price ?? 0) / Int(1e9)), showUnit: false, maxDecimals: 2))")
                             .font(.sfRounded(size: .xl, weight: .semibold))
                             .foregroundColor(AppColors.white)
-                        Text("\(PriceFormatter.formatPrice(lamports: tokenModel.balanceLamps, showUnit: false)) \(tokenModel.token.symbol)")
+                        Text("\(PriceFormatter.formatPrice(lamports: tokenModel.balance, showUnit: false)) \(tokenModel.token.symbol)")
                             .font(.sfRounded(size: .sm, weight: .medium))
                             .foregroundColor(AppColors.white.opacity(0.5))
                     }
@@ -41,7 +41,7 @@ struct SellForm: View {
                                 .foregroundColor(AppColors.gray)
                             
                             let initialValueUsd = PriceFormatter.lamportsToUsd(lamports: tokenModel.amountBoughtLamps)
-                            let currentValueUsd = PriceFormatter.lamportsToUsd(lamports: tokenModel.balanceLamps * (tokenModel.prices.last?.price ?? 0) / Int(1e9))
+                            let currentValueUsd = PriceFormatter.lamportsToUsd(lamports: tokenModel.balance * (tokenModel.prices.last?.price ?? 0) / Int(1e9))
 
                             let gains = currentValueUsd - initialValueUsd
                             

@@ -9,7 +9,7 @@ class TokenModel: ObservableObject {
     
     @Published var token: Token = Token(id: "", name: "COIN", symbol: "SYMBOL", mint: "", decimals: 6, imageUri: "")
     @Published var loading = true
-    @Published var balanceLamps: Int = 0 
+    @Published var balance: Int = 0
     
     
     @Published var amountBoughtLamps: Int = 0
@@ -115,7 +115,7 @@ class TokenModel: ObservableObject {
             DispatchQueue.main.async {
                 switch result {
                 case .success(let graphQLResult):
-                    self.balanceLamps =
+                    self.balance =
                     graphQLResult.data?.balance.first?.value ?? 0
                 case .failure(let error):
                     print("Error: \(error.localizedDescription)")
@@ -155,7 +155,7 @@ class TokenModel: ObservableObject {
     
     func sellTokens(completion: ((Bool) -> Void)?) {
         Network.shared.sellToken(
-            accountId: self.userId, tokenId: self.tokenId, amount: String(amountBoughtLamps)
+            accountId: self.userId, tokenId: self.tokenId, amount: String(self.balance)
         ) { result in
             switch result {
             case .success:
@@ -178,7 +178,7 @@ class TokenModel: ObservableObject {
         self.loading = true  // Reset loading state if needed
         self.prices = []
         self.priceChange = (0, 0)
-        self.balanceLamps = 0
+        self.balance = 0
         
         // Re-run the initialization logic
         Task {
