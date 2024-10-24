@@ -9,10 +9,10 @@ describe("query tests", () => {
     gql = await createClient({ url: "http://localhost:8080/v1/graphql", hasuraAdminSecret: "password" });
   });
 
-  it("should have get all tokens query", async () => {
-    const result = await gql.db.GetAllTokensQuery();
+  it("should be able to get all accounts", async () => {
+    const result = await gql.db.GetAllAccountsQuery();
 
-    expect(result.data?.token).toBeInstanceOf(Array);
-    expect(result.data?.token.length).toBeGreaterThan(0);
+    expect(result.data?.account).toBeInstanceOf(Array);
+    expect(result.data?.account.length).toBeGreaterThan(0);
   });
 });

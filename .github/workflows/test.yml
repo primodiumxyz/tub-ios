@@ -1,0 +1,22 @@
+name: Run Tests
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup
+        uses: ./.github/actions/setup
+    
+      - name: pnpm install
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Hasura DB
+        run: pnpm dev:db
+
+      - name: Run GQL Tests
+        run: pnpm --filter gql test
