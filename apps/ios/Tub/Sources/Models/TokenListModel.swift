@@ -26,6 +26,11 @@ class TokenListModel: ObservableObject {
     
     private var subscription: Cancellable?
     private var userModel: UserModel
+
+    // Constants for token filtering
+    private let START_INTERVAL: Interval = "30s"
+    private let MIN_TRADES: Int = 10
+    private let MIN_INCREASE_PCT: Double = 5.0
     
     init(userModel: UserModel) {
         self.userModel = userModel
@@ -37,6 +42,7 @@ class TokenListModel: ObservableObject {
     }
 
     private func initTokenModel() {
+        print(self.tokens[self.currentTokenIndex].mint)
         DispatchQueue.main.async {
             self.currentTokenModel.initialize(with: self.tokens[self.currentTokenIndex].id)
         }
@@ -98,8 +104,8 @@ class TokenListModel: ObservableObject {
     func fetchTokens() {
         subscription = Network.shared.apollo.subscribe(subscription: SubFilteredTokensSubscription(
             since: Date().addingTimeInterval(-30).ISO8601Format(),
-            minTrades: "10",
-            minIncreasePct: "5"
+            minTrades: String(MIN_TRADES),
+            minIncreasePct: String(MIN_INCREASE_PCT)
         )) { result in
             DispatchQueue.main.async {
                 self.isLoading = false
@@ -114,6 +120,14 @@ class TokenListModel: ObservableObject {
                         }
                         
                         self.updateTokens()
+                        
+                        tokens.map { elem in
+                            if elem.mint == self.tokens[self.currentTokenIndex].mint {
+                                // round increase_pct to 2 decimals after converting to double
+                                let roundedIncreasePct = String(format: "%.2f", Double(elem.increase_pct) ?? 0)
+                                print("Trades", elem.trades, "| Increase pct", roundedIncreasePct)
+                            }
+                        }
                     }
                 case .failure(let error):
                     self.errorMessage = "Error: \(error.localizedDescription)"
