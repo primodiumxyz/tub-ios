@@ -9,8 +9,7 @@ import Foundation
 let formatter: NumberFormatter = {
     let formatter = NumberFormatter()
     formatter.numberStyle = .decimal
-    formatter.decimalSeparator = "."
-    formatter.groupingSeparator = ""
+    formatter.locale = Locale.current // Set the locale to the current locale
     return formatter
 }()
 
