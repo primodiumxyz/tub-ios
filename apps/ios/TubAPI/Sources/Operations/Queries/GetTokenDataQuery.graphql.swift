@@ -44,7 +44,7 @@ public class GetTokenDataQuery: GraphQLQuery {
         .field("name", String.self),
         .field("symbol", String.self),
         .field("mint", String?.self),
-        .field("decimals", Int.self),
+        .field("decimals", Int?.self),
         .field("updated_at", TubAPI.Timestamptz.self),
         .field("supply", TubAPI.Numeric.self),
         .field("uri", String?.self),
@@ -55,7 +55,7 @@ public class GetTokenDataQuery: GraphQLQuery {
       public var symbol: String { __data["symbol"] }
       /// token mint address (only for real tokens)
       public var mint: String? { __data["mint"] }
-      public var decimals: Int { __data["decimals"] }
+      public var decimals: Int? { __data["decimals"] }
       public var updated_at: TubAPI.Timestamptz { __data["updated_at"] }
       public var supply: TubAPI.Numeric { __data["supply"] }
       public var uri: String? { __data["uri"] }

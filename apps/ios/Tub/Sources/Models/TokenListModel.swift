@@ -26,6 +26,11 @@ class TokenListModel: ObservableObject {
     
     private var subscription: Cancellable?
     private var userModel: UserModel
+
+    // Constants for token filtering
+    private let INTERVAL: Interval = "30s"
+    private let MIN_TRADES: Int = 10
+    private let MIN_INCREASE_PCT: Double = 5.0
     
     init(userModel: UserModel) {
         self.userModel = userModel
@@ -37,6 +42,7 @@ class TokenListModel: ObservableObject {
     }
 
     private func initTokenModel() {
+        print(self.tokens[self.currentTokenIndex].mint)
         DispatchQueue.main.async {
             self.currentTokenModel.initialize(with: self.tokens[self.currentTokenIndex].id)
         }
@@ -96,10 +102,10 @@ class TokenListModel: ObservableObject {
     }
 
     func fetchTokens() {
-        subscription = Network.shared.apollo.subscribe(subscription: SubFilteredTokensSubscription(
-            since: Date().addingTimeInterval(-30).ISO8601Format(),
-            minTrades: "10",
-            minIncreasePct: "5"
+        subscription = Network.shared.apollo.subscribe(subscription: SubFilteredTokensIntervalSubscription(
+            interval: .some(INTERVAL),
+            minTrades: String(MIN_TRADES),
+            minIncreasePct: String(MIN_INCREASE_PCT)
         )) { result in
             DispatchQueue.main.async {
                 self.isLoading = false
@@ -109,12 +115,20 @@ class TokenListModel: ObservableObject {
                         print(error)
                         self.errorMessage = "Error: \(error)"
                     }
-                    if let tokens = graphQLResult.data?.get_formatted_tokens_since {
+                    if let tokens = graphQLResult.data?.get_formatted_tokens_interval {
                         self.availableTokens = tokens.map { elem in
-                            Token(id: elem.token_id, name: elem.name, symbol: elem.symbol, mint: elem.mint, decimals: elem.decimals, imageUri: nil)
+                            Token(id: elem.token_id, name: elem.name, symbol: elem.symbol, mint: elem.mint, decimals: elem.decimals ?? 6, imageUri: nil)
                         }
                         
                         self.updateTokens()
+                        
+                        tokens.map { elem in
+                            if elem.mint == self.tokens[self.currentTokenIndex].mint {
+                                // round increase_pct to 2 decimals after converting to double
+                                let roundedIncreasePct = String(format: "%.2f", Double(elem.increase_pct) ?? 0)
+                                print("Trades", elem.trades, "| Increase pct", roundedIncreasePct)
+                            }
+                        }
                     }
                 case .failure(let error):
                     print(error.localizedDescription)

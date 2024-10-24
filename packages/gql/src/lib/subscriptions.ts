@@ -74,6 +74,26 @@ export const GetFilteredTokensSubscription = graphql(`
   }
 `);
 
+export const GetFilteredTokensIntervalSubscription = graphql(`
+  subscription SubFilteredTokensInterval($interval: interval = "30s", $minTrades: bigint!, $minIncreasePct: float8!) {
+    get_formatted_tokens_interval(
+      args: { interval: $interval }
+      where: { trades: { _gte: $minTrades }, increase_pct: { _gte: $minIncreasePct } }
+    ) {
+      token_id
+      mint
+      decimals
+      name
+      platform
+      symbol
+      latest_price
+      increase_pct
+      trades
+      created_at
+    }
+  }
+`);
+
 export const GetAccountTokenBalanceSubscription = graphql(`
   subscription SubAccountTokenBalance($account: uuid!, $token: uuid!, $start: timestamptz = "now()") {
     balance: account_token_balance_ignore_interval(

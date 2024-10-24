@@ -6,7 +6,6 @@ import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import { useTokens } from "@/hooks/useTokens";
 import { useTrackerParams } from "@/hooks/useTrackerParams";
-import { formatTime } from "@/lib/utils";
 
 export const TokensTable = () => {
   const { tokens, fetching, error } = useTokens();
@@ -69,7 +68,7 @@ export const TokensTable = () => {
       <DataTable
         columns={columns}
         data={filteredTokens}
-        caption={`List of tokens pumping at least ${increasePct}% in the last ${formatTime(timespan)} with at least ${minTrades} trades`}
+        caption={`List of tokens pumping at least ${increasePct}% in the last ${timespan} with at least ${minTrades} trades`}
         loading={fetching}
         pagination={true}
         defaultSorting={[{ id: "increasePct", desc: true }]}
