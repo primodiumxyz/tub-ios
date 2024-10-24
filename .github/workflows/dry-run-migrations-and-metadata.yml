@@ -1,8 +1,10 @@
 name: Dry Run Migrations and Metadata to Hasura Dev Instance
 
 on:
-  pull_request:
-  workflow_call:
+  push:
+    branches:
+      - main
+      - release/*
 
 jobs:
   dry-run-migrations-and-metadata:
