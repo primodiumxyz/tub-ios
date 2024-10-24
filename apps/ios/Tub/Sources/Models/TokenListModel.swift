@@ -106,6 +106,7 @@ class TokenListModel: ObservableObject {
                 switch result {
                 case .success(let graphQLResult):
                     if let error = graphQLResult.errors {
+                        print(error)
                         self.errorMessage = "Error: \(error)"
                     }
                     if let tokens = graphQLResult.data?.get_formatted_tokens_since {
@@ -116,6 +117,7 @@ class TokenListModel: ObservableObject {
                         self.updateTokens()
                     }
                 case .failure(let error):
+                    print(error.localizedDescription)
                     self.errorMessage = "Error: \(error.localizedDescription)"
                 }
             }

@@ -25,8 +25,8 @@ struct Transaction: Identifiable, Equatable {
     let symbol: String
     let imageUri: String
     let date: Date
-    let value: Double
-    let quantity: Double
+    let valueUsd: Double
+    let quantityTokens: Int
     let isBuy: Bool
 }
 

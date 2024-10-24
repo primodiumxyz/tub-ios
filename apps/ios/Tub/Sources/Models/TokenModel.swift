@@ -11,7 +11,6 @@ class TokenModel: ObservableObject {
     @Published var loading = true
     @Published var balance: Int = 0
     
-    
     @Published var amountBoughtLamps: Int = 0
     @Published var purchaseTime : Date? = nil
     
@@ -88,7 +87,7 @@ class TokenModel: ObservableObject {
                 if let priceHistory = graphQLResult.data?.token_price_history_offset {
                     DispatchQueue.main.async {
                         self.prices = priceHistory.compactMap { history in
-                            if let date = self.formatDate(history.created_at) {
+                            if let date = formatDateString(history.created_at) {
                                 return Price(timestamp: date, price: history.price)
                             }
                             return nil
@@ -122,16 +121,7 @@ class TokenModel: ObservableObject {
             }
         }
     }
-    
-    private lazy var iso8601Formatter: ISO8601DateFormatter = {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return formatter
-    }()
-    
-    private func formatDate(_ dateString: String) -> Date? {
-        return iso8601Formatter.date(from: dateString)
-    }
+
     func buyTokens(buyAmountLamps: Int, completion: ((Bool) -> Void)?) {
         if let price = self.prices.last?.price, price > 0 {
             let buyAmountToken = buyAmountLamps * Int(1e9) / price
