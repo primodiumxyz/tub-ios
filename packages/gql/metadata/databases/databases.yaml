@@ -50,7 +50,6 @@
           type:
             nullable: true
             scalar: integer
-          default: 6
       name: GetFormattedTokensResult
       select_permissions:
         - permission:
@@ -212,6 +211,14 @@
       code: select *, created_at + {{offset}} as created_at_offset from account_transaction
       returns: account_transaction_offset_model
       root_field_name: account_transaction_offset
+    - arguments:
+        interval:
+          description: ""
+          nullable: false
+          type: interval
+      code: SELECT * FROM get_formatted_tokens_interval({{interval}});
+      returns: GetFormattedTokensResult
+      root_field_name: get_formatted_tokens_interval
     - arguments:
         since:
           description: ""

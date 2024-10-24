@@ -39,7 +39,7 @@ directive @defer(
 
 type GetFormattedTokensResult {
   created_at: timestamptz!
-  decimals: Int!
+  decimals: Int
   increase_pct: float8!
   latest_price: numeric!
   mint: String!
@@ -1193,6 +1193,12 @@ input get_formatted_tokens_args {
   p_since: timestamptz
 }
 
+"""get_formatted_tokens_intervalNative Query Arguments"""
+input get_formatted_tokens_interval_arguments {
+  """"""
+  interval: interval!
+}
+
 """get_formatted_tokens_sinceNative Query Arguments"""
 input get_formatted_tokens_since_arguments {
   """"""
@@ -1841,6 +1847,25 @@ type query_root {
     """filter the rows returned"""
     where: formatted_tokens_bool_exp
   ): formatted_tokens_aggregate!
+  get_formatted_tokens_interval(
+    """get_formatted_tokens_intervalNative Query Arguments"""
+    args: get_formatted_tokens_interval_arguments!
+
+    """distinct select on columns"""
+    distinct_on: [GetFormattedTokensResult_enum_name!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [GetFormattedTokensResult_order_by!]
+
+    """filter the rows returned"""
+    where: GetFormattedTokensResult_bool_exp_bool_exp
+  ): [GetFormattedTokensResult!]!
   get_formatted_tokens_since(
     """get_formatted_tokens_sinceNative Query Arguments"""
     args: get_formatted_tokens_since_arguments!
@@ -2267,6 +2292,25 @@ type subscription_root {
     """filter the rows returned"""
     where: formatted_tokens_bool_exp
   ): [formatted_tokens!]!
+  get_formatted_tokens_interval(
+    """get_formatted_tokens_intervalNative Query Arguments"""
+    args: get_formatted_tokens_interval_arguments!
+
+    """distinct select on columns"""
+    distinct_on: [GetFormattedTokensResult_enum_name!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [GetFormattedTokensResult_order_by!]
+
+    """filter the rows returned"""
+    where: GetFormattedTokensResult_bool_exp_bool_exp
+  ): [GetFormattedTokensResult!]!
   get_formatted_tokens_since(
     """get_formatted_tokens_sinceNative Query Arguments"""
     args: get_formatted_tokens_since_arguments!
@@ -2522,7 +2566,7 @@ input timestamptz_comparison_exp {
 columns and relationships of "token"
 """
 type token {
-  decimals: Int!
+  decimals: Int
   id: uuid!
 
   """token mint address (only for real tokens)"""

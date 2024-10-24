@@ -7,11 +7,8 @@ export const useTrackerParams = () => {
     timespan: params.timespan,
     increasePct: params.increasePct,
     minTrades: params.minTrades,
-    setTimespan: (value: string | number) => {
-      const numValue = typeof value === "string" ? parseFloat(value) : value;
-      if (!isNaN(numValue)) {
-        setTimespan(numValue);
-      }
+    setTimespan: (value: string) => {
+      setTimespan(value);
     },
     setIncreasePct: (value: string | number) => {
       const numValue = typeof value === "string" ? parseFloat(value) : value;

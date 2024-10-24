@@ -28,7 +28,7 @@ class TokenListModel: ObservableObject {
     private var userModel: UserModel
 
     // Constants for token filtering
-    private let START_INTERVAL: Interval = "30s"
+    private let INTERVAL: Interval = "30s"
     private let MIN_TRADES: Int = 10
     private let MIN_INCREASE_PCT: Double = 5.0
     
@@ -102,8 +102,8 @@ class TokenListModel: ObservableObject {
     }
 
     func fetchTokens() {
-        subscription = Network.shared.apollo.subscribe(subscription: SubFilteredTokensSubscription(
-            since: Date().addingTimeInterval(-30).ISO8601Format(),
+        subscription = Network.shared.apollo.subscribe(subscription: SubFilteredTokensIntervalSubscription(
+            interval: .some(INTERVAL),
             minTrades: String(MIN_TRADES),
             minIncreasePct: String(MIN_INCREASE_PCT)
         )) { result in
@@ -114,9 +114,9 @@ class TokenListModel: ObservableObject {
                     if let error = graphQLResult.errors {
                         self.errorMessage = "Error: \(error)"
                     }
-                    if let tokens = graphQLResult.data?.get_formatted_tokens_since {
+                    if let tokens = graphQLResult.data?.get_formatted_tokens_interval {
                         self.availableTokens = tokens.map { elem in
-                            Token(id: elem.token_id, name: elem.name, symbol: elem.symbol, mint: elem.mint, decimals: elem.decimals, imageUri: nil)
+                            Token(id: elem.token_id, name: elem.name, symbol: elem.symbol, mint: elem.mint, decimals: elem.decimals ?? 6, imageUri: nil)
                         }
                         
                         self.updateTokens()

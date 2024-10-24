@@ -59,7 +59,7 @@ public class SubFilteredTokensSubscription: GraphQLSubscription {
         .field("__typename", String.self),
         .field("token_id", TubAPI.Uuid.self),
         .field("mint", String.self),
-        .field("decimals", Int.self),
+        .field("decimals", Int?.self),
         .field("name", String.self),
         .field("symbol", String.self),
         .field("platform", String.self),
@@ -71,7 +71,7 @@ public class SubFilteredTokensSubscription: GraphQLSubscription {
 
       public var token_id: TubAPI.Uuid { __data["token_id"] }
       public var mint: String { __data["mint"] }
-      public var decimals: Int { __data["decimals"] }
+      public var decimals: Int? { __data["decimals"] }
       public var name: String { __data["name"] }
       public var symbol: String { __data["symbol"] }
       public var platform: String { __data["platform"] }

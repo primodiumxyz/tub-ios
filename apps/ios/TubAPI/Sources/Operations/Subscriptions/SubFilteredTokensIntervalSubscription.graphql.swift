@@ -3,29 +3,29 @@
 
 @_exported import ApolloAPI
 
-public class GetFilteredTokensQuery: GraphQLQuery {
-  public static let operationName: String = "GetFilteredTokens"
+public class SubFilteredTokensIntervalSubscription: GraphQLSubscription {
+  public static let operationName: String = "SubFilteredTokensInterval"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetFilteredTokens($since: timestamptz!, $minTrades: bigint!, $minIncreasePct: float8!) { get_formatted_tokens_since( args: { since: $since } where: { trades: { _gte: $minTrades }, increase_pct: { _gte: $minIncreasePct } } ) { __typename token_id mint decimals name symbol platform latest_price increase_pct trades created_at } }"#
+      #"subscription SubFilteredTokensInterval($interval: interval = "30s", $minTrades: bigint!, $minIncreasePct: float8!) { get_formatted_tokens_interval( args: { interval: $interval } where: { trades: { _gte: $minTrades }, increase_pct: { _gte: $minIncreasePct } } ) { __typename token_id mint decimals name symbol platform latest_price increase_pct trades created_at } }"#
     ))
 
-  public var since: Timestamptz
+  public var interval: GraphQLNullable<Interval>
   public var minTrades: Bigint
   public var minIncreasePct: Float8
 
   public init(
-    since: Timestamptz,
+    interval: GraphQLNullable<Interval> = "30s",
     minTrades: Bigint,
     minIncreasePct: Float8
   ) {
-    self.since = since
+    self.interval = interval
     self.minTrades = minTrades
     self.minIncreasePct = minIncreasePct
   }
 
   public var __variables: Variables? { [
-    "since": since,
+    "interval": interval,
     "minTrades": minTrades,
     "minIncreasePct": minIncreasePct
   ] }
@@ -34,10 +34,10 @@ public class GetFilteredTokensQuery: GraphQLQuery {
     public let __data: DataDict
     public init(_dataDict: DataDict) { __data = _dataDict }
 
-    public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Query_root }
+    public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Subscription_root }
     public static var __selections: [ApolloAPI.Selection] { [
-      .field("get_formatted_tokens_since", [Get_formatted_tokens_since].self, arguments: [
-        "args": ["since": .variable("since")],
+      .field("get_formatted_tokens_interval", [Get_formatted_tokens_interval].self, arguments: [
+        "args": ["interval": .variable("interval")],
         "where": [
           "trades": ["_gte": .variable("minTrades")],
           "increase_pct": ["_gte": .variable("minIncreasePct")]
@@ -45,12 +45,12 @@ public class GetFilteredTokensQuery: GraphQLQuery {
       ]),
     ] }
 
-    public var get_formatted_tokens_since: [Get_formatted_tokens_since] { __data["get_formatted_tokens_since"] }
+    public var get_formatted_tokens_interval: [Get_formatted_tokens_interval] { __data["get_formatted_tokens_interval"] }
 
-    /// Get_formatted_tokens_since
+    /// Get_formatted_tokens_interval
     ///
     /// Parent Type: `GetFormattedTokensResult`
-    public struct Get_formatted_tokens_since: TubAPI.SelectionSet {
+    public struct Get_formatted_tokens_interval: TubAPI.SelectionSet {
       public let __data: DataDict
       public init(_dataDict: DataDict) { __data = _dataDict }
 
