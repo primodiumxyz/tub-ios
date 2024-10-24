@@ -31,7 +31,7 @@ class TokenModel: ObservableObject {
     private func fetchInitialData() async {
         do {
             try await fetchTokenDetails()
-//            self.loading = false
+            // self.loading = false
         } catch {
             print("Error fetching initial data: \(error)")
         }
@@ -202,7 +202,7 @@ class TokenModel: ObservableObject {
         }
         
         let priceChangeAmount = currentPrice - initialPrice
-        let priceChangePercentage = Double(priceChangeAmount / initialPrice) * 100
+        let priceChangePercentage = Double(priceChangeAmount) / Double(initialPrice) * 100
         
         DispatchQueue.main.async {
             self.priceChange = (priceChangeAmount, priceChangePercentage)
