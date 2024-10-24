@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct SellForm: View {
+    @EnvironmentObject var priceModel: SolPriceModel
     @ObservedObject var tokenModel: TokenModel
     var onSell : (((Bool) -> Void)?) -> ()
 
@@ -25,10 +26,10 @@ struct SellForm: View {
                             .font(.sfRounded(size: .xs, weight: .semibold))
                             .foregroundColor(AppColors.gray)
                         
-                        Text("$\(PriceFormatter.formatPrice(lamports: (tokenModel.balance * (tokenModel.prices.last?.price ?? 0) / Int(1e9)), showUnit: false, maxDecimals: 2))")
+                        Text("$\(priceModel.formatPrice(lamports: (tokenModel.balance * (tokenModel.prices.last?.price ?? 0) / Int(1e9)), showUnit: false, maxDecimals: 2))")
                             .font(.sfRounded(size: .xl, weight: .semibold))
                             .foregroundColor(AppColors.white)
-                        Text("\(PriceFormatter.formatPrice(lamports: tokenModel.balance, showUnit: false)) \(tokenModel.token.symbol)")
+                        Text("\(priceModel.formatPrice(lamports: tokenModel.balance, showUnit: false)) \(tokenModel.token.symbol)")
                             .font(.sfRounded(size: .sm, weight: .medium))
                             .foregroundColor(AppColors.white.opacity(0.5))
                     }
@@ -40,14 +41,14 @@ struct SellForm: View {
                                 .font(.sfRounded(size: .xs, weight: .semibold))
                                 .foregroundColor(AppColors.gray)
                             
-                            let initialValueUsd = PriceFormatter.lamportsToUsd(lamports: tokenModel.amountBoughtLamps)
-                            let currentValueUsd = PriceFormatter.lamportsToUsd(lamports: tokenModel.balance * (tokenModel.prices.last?.price ?? 0) / Int(1e9))
+                            let initialValueUsd = priceModel.lamportsToUsd(lamports: tokenModel.amountBoughtLamps)
+                            let currentValueUsd = priceModel.lamportsToUsd(lamports: tokenModel.balance * (tokenModel.prices.last?.price ?? 0) / Int(1e9))
 
                             let gains = currentValueUsd - initialValueUsd
                             
                             let percentageGain = tokenModel.amountBoughtLamps > 0 ? gains / initialValueUsd * 100 : 0
                             
-                            Text(PriceFormatter.formatPrice(usd: gains, maxDecimals: 3))
+                            Text(priceModel.formatPrice(usd: gains, maxDecimals: 3))
                                 .font(.sfRounded(size: .xl, weight: .semibold))
                                 .foregroundColor(gains > 0 ? AppColors.green : AppColors.red)
                             

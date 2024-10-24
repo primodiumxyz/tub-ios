@@ -9,6 +9,7 @@ import SwiftUI
 
 struct BuyForm: View {
     @Binding var isVisible: Bool
+    @EnvironmentObject var priceModel: SolPriceModel
     @ObservedObject var tokenModel: TokenModel
     var onBuy: (Int, ((Bool) -> Void)?) -> ()
     
@@ -23,7 +24,7 @@ struct BuyForm: View {
     @State private var isClosing: Bool = false
     
     func handleBuy() {
-        let buyAmountLamps = PriceFormatter.usdToLamports(usd: buyAmountUSD)
+        let buyAmountLamps = priceModel.usdToLamports(usd: buyAmountUSD)
         let _ = onBuy(buyAmountLamps, { success in
             if success {
                 resetForm()
@@ -37,7 +38,7 @@ struct BuyForm: View {
             return
         }
         
-        buyAmountUSDString = PriceFormatter.formatPrice(usd: amountUSD)
+        buyAmountUSDString = priceModel.formatPrice(usd: amountUSD)
         buyAmountUSD = amountUSD
         isValidInput = true
     }
@@ -133,10 +134,10 @@ struct BuyForm: View {
     private var tokenConversionDisplay: some View {
         Group {
             if let currentPrice = tokenModel.prices.last?.price {
-                let buyAmountLamps = PriceFormatter.usdToLamports(usd: buyAmountUSD)
+                let buyAmountLamps = priceModel.usdToLamports(usd: buyAmountUSD)
                 let tokenAmount = Int(Double(buyAmountLamps) / Double(currentPrice) * 1e9)
 
-                Text("\(PriceFormatter.formatPrice(lamports: tokenAmount, showUnit: false)) \(tokenModel.token.symbol)")
+                Text("\(priceModel.formatPrice(lamports: tokenAmount, showUnit: false)) \(tokenModel.token.symbol)")
                     .font(.sfRounded(size: .base, weight: .bold))
                     .opacity(0.8)
             }

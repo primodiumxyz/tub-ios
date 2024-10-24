@@ -10,16 +10,19 @@ import SwiftUI
 struct HomeTabsView: View {
     var color = Color(red: 0.43, green: 0.97, blue: 0.98)
     @StateObject private var userModel: UserModel
+    @StateObject private var priceModel : SolPriceModel
     @AppStorage("userId") private var userId: String = ""
     @State private var selectedTab: Int = 0 // Track the selected tab
 
     init() {
         _userModel = StateObject(wrappedValue: UserModel(userId: UserDefaults.standard.string(forKey: "userId") ?? ""))
+        _priceModel = StateObject(wrappedValue: SolPriceModel())
+        
     }
 
     var body: some View {
         Group {
-            if userModel.isLoading {
+            if userModel.isLoading || priceModel.isLoading {
                 LoadingView()
             } else {
                 TabView(selection: $selectedTab) { // Bind the selected tab
@@ -49,6 +52,7 @@ struct HomeTabsView: View {
             }
         }
         .environmentObject(userModel)
+        .environmentObject(priceModel)
     }
 }
 

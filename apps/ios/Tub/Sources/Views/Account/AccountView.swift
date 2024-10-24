@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct AccountView: View {
+    @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject private var userModel: UserModel
     @State private var isNavigatingToRegister = false
     @State private var isAirdropping = false
@@ -41,7 +42,7 @@ struct AccountView: View {
                             .padding(.vertical)
                         Text("Username: \(userModel.username)")
                             .font(.sfRounded(size: .lg, weight: .medium))
-                        Text("Balance: \(PriceFormatter.formatPrice(lamports: userModel.balanceLamps))")
+                        Text("Balance: \(priceModel.formatPrice(lamports: userModel.balanceLamps))")
                             .font(.sfRounded(size: .lg, weight: .medium))
                             .padding(.bottom)
                         if let error = errorMessage {
@@ -114,7 +115,13 @@ struct AccountView: View {
 
 #Preview {
     @Previewable @AppStorage("userId") var userId: String = ""
+    @Previewable @StateObject var priceModel = SolPriceModel()
     @State @Previewable var isRegistered = false
-    AccountView()
-        .environmentObject(UserModel(userId: userId))
+    if priceModel.isLoading {
+        LoadingView()
+    } else {
+        AccountView()
+            .environmentObject(UserModel(userId: userId))
+            .environmentObject(priceModel)
+    }
 }

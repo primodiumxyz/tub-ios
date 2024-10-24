@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct AccountBalanceView: View {
+    @EnvironmentObject var priceModel: SolPriceModel
     @ObservedObject var userModel: UserModel
     @ObservedObject var currentTokenModel: TokenModel
     
@@ -20,14 +21,14 @@ struct AccountBalanceView: View {
             
         //    let tokenValue = currentTokenModel.balanceLamps * (currentTokenModel.prices.last?.price ?? 0) / Int(1e9)
             let tokenValue = 0
-            Text("\(PriceFormatter.formatPrice(lamports: userModel.balanceLamps + tokenValue)) ")
+            Text("\(priceModel.formatPrice(lamports: userModel.balanceLamps + tokenValue)) ")
                 .font(.sfRounded(size: .xl3))
                 .fontWeight(.bold)
             
             let adjustedChange = userModel.balanceChangeLamps + tokenValue
 
             HStack {
-                Text("\(PriceFormatter.formatPrice(lamports: adjustedChange, showSign: true, maxDecimals: 2))")
+                Text("\(priceModel.formatPrice(lamports: adjustedChange, showSign: true, maxDecimals: 2))")
                 
                 let adjustedPercentage = userModel.initialBalanceLamps != 0  ? 100 - (Double(userModel.balanceLamps) / Double(userModel.initialBalanceLamps)) * 100 : 100;
                 Text("(\(abs(adjustedPercentage), specifier: "%.1f")%)")

@@ -234,6 +234,12 @@ struct TokenListView: View {
 
 #Preview {
     @Previewable @AppStorage("userId") var userId: String = ""
-    TokenListView()
-        .environmentObject(UserModel(userId: userId))
+    @Previewable @StateObject var priceModel = SolPriceModel()
+    if priceModel.isLoading {
+        LoadingView()
+    } else {
+        TokenListView()
+            .environmentObject(UserModel(userId: userId))
+            .environmentObject(priceModel)
+    }
 }
