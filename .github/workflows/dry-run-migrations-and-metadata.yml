@@ -5,7 +5,7 @@ on:
   workflow_call:
 
 jobs:
-  apply-migrations-and-metadata:
+  dry-run-migrations-and-metadata:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -18,13 +18,13 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Apply migrations
-        run: cd packages/gql && pnpm hasura migrate apply --endpoint ${{ secrets.HASURA_ENDPOINT }} --admin-secret ${{ secrets.HASURA_ADMIN_SECRET }} --disable-interactive --database-name default --dry-run
+        run: cd packages/gql && pnpm hasura migrate apply --endpoint "$HASURA_ENDPOINT" --admin-secret "$HASURA_ADMIN_SECRET" --disable-interactive --database-name default --dry-run
         env:
           HASURA_ENDPOINT: ${{ secrets.HASURA_ENDPOINT }}
           HASURA_ADMIN_SECRET: ${{ secrets.HASURA_ADMIN_SECRET }}
 
       - name: Apply metadata
-        run: cd packages/gql && pnpm hasura metadata apply --endpoint ${{ secrets.HASURA_ENDPOINT }} --admin-secret ${{ secrets.HASURA_ADMIN_SECRET }} --disable-interactive --database-name default --dry-run --disallow-inconsistent-metadata
+        run: cd packages/gql && pnpm hasura metadata apply --endpoint "$HASURA_ENDPOINT" --admin-secret "$HASURA_ADMIN_SECRET" --disable-interactive --database-name default --dry-run --disallow-inconsistent-metadata
         env:
           HASURA_ENDPOINT: ${{ secrets.HASURA_ENDPOINT }}
           HASURA_ADMIN_SECRET: ${{ secrets.HASURA_ADMIN_SECRET }}
