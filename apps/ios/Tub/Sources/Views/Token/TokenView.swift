@@ -52,7 +52,7 @@ struct TokenView : View {
     var body: some View {
         ZStack {
             // Main content
-            VStack {
+            VStack(alignment: .leading) {
                 tokenInfoView
                 chartView
                 timespanButtons
@@ -78,7 +78,7 @@ struct TokenView : View {
                 Text("$\(tokenModel.token.symbol)")
                     .font(.sfRounded(size: .lg, weight: .semibold))
             }
-            Text(priceModel.formatPrice(lamports: tokenModel.prices.last?.price ?? 0))
+            Text(priceModel.formatPrice(lamports: tokenModel.prices.last?.price ?? 0, maxDecimals: 9))
                 .font(.sfRounded(size: .xl4, weight: .bold))
             
             HStack {
@@ -105,27 +105,31 @@ struct TokenView : View {
 
     private var timespanButtons: some View {
         HStack {
-            ForEach([Timespan.live, Timespan.thirtyMin], id: \.self) { timespan in
-                Button(action: {
-                    selectedTimespan = timespan
-                    tokenModel.updateHistoryInterval(interval: timespan.interval)
-                }) {
-                    HStack {
-                        if timespan == Timespan.live {
-                            Circle()
-                                .fill(AppColors.red)
-                                .frame(width: 10, height: 10)
+            Spacer()
+            HStack {
+                ForEach([Timespan.live, Timespan.thirtyMin], id: \.self) { timespan in
+                    Button(action: {
+                        selectedTimespan = timespan
+                        tokenModel.updateHistoryInterval(interval: timespan.interval)
+                    }) {
+                        HStack {
+                            if timespan == Timespan.live {
+                                Circle()
+                                    .fill(AppColors.red)
+                                    .frame(width: 10, height: 10)
+                            }
+                            Text(timespan.rawValue)
+                                .font(.sfRounded(size: .base, weight: .semibold))
                         }
-                        Text(timespan.rawValue)
-                            .font(.sfRounded(size: .base, weight: .semibold))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 6)
+                        .background(selectedTimespan == timespan ? AppColors.aquaBlue : Color.clear)
+                        .foregroundColor(selectedTimespan == timespan ? AppColors.black : AppColors.white)
+                        .cornerRadius(6)
                     }
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 6)
-                    .background(selectedTimespan == timespan ? AppColors.aquaBlue : Color.clear)
-                    .foregroundColor(selectedTimespan == timespan ? AppColors.black : AppColors.white)
-                    .cornerRadius(6)
                 }
             }
+            Spacer()
         }
         .padding(.bottom, 8)
     }
