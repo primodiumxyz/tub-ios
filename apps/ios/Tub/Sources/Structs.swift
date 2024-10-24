@@ -83,6 +83,15 @@ struct PriceFormatter {
         if result.starts(with: ".") {
             result = "0" + result
         }
+        // Ensure at least two decimal places
+        if !result.contains(".") {
+            result += ".00"
+        } else {
+            let decimalPart = result.split(separator: ".").last ?? ""
+            if decimalPart.count < 2 {
+                result += String(repeating: "0", count: 2 - decimalPart.count)
+            }
+        }
         return result
     }
     
