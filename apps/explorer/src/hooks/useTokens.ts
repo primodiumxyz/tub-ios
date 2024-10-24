@@ -35,9 +35,9 @@ export const useTokens = (): {
       latestPrice: Number(token.latest_price),
       increasePct: Number(token.increase_pct),
       trades: Number(token.trades),
-      platform: token.platform ?? "",
-      name: token.name ?? "",
-      symbol: token.symbol ?? "",
+      platform: token.platform,
+      name: token.name,
+      symbol: token.symbol,
       id: token.token_id,
     }));
   }, [filteredTokensResult.data]);
