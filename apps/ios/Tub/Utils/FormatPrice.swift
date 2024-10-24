@@ -21,7 +21,6 @@ func getFormattingParameters(for value: Double) -> (minFractionDigits: Int, maxF
     } else {
         let exponent = Int(floor(log10(absValue)))
         let digits = -exponent + 2
-        print("digits: \(exponent), \(digits)")
         return (0, digits)
     } 
 }

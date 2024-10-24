@@ -148,7 +148,6 @@ struct TokenListView: View {
     if !priceModel.isReady {
         LoadingView()
     } else {
-        let _ = print(priceModel.currentPrice)
         TokenListView()
             .environmentObject(UserModel(userId: userId))
             .environmentObject(priceModel)
