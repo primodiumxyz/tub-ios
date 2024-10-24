@@ -154,8 +154,12 @@ struct CandleChartView: View {
         AxisMarks(position: .leading) { value in
             AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
                 .foregroundStyle(.white.opacity(0.2))
-            AxisValueLabel()
-                .foregroundStyle(.white.opacity(0.5))
+            AxisValueLabel {
+                if let intValue = value.as(Int.self) {
+                    Text(PriceFormatter.formatPrice(lamports: intValue))
+                        .foregroundStyle(.white.opacity(0.5))
+                }
+            }
         }
     }
 
