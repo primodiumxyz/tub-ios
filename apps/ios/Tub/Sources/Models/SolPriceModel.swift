@@ -41,15 +41,15 @@ class SolPriceModel: ObservableObject {
         }
     }
     
-    func formatPrice(sol: Double, showSign: Bool = false, showUnit: Bool = true, maxDecimals: Int = 9) -> String {
+    func formatPrice(sol: Double, showSign: Bool = false, showUnit: Bool = true, maxDecimals: Int = 9, minDecimals: Int = 0) -> String {
         if let price = currentPrice, price > 0 {
             if sol.isNaN || sol.isInfinite || sol == 0 {
                 return showUnit ? "$0.00" : "0.00"
             }
-           2
+            
             let usdPrice = sol * price
             let (minFractionDigits, maxFractionDigits) = getFormattingParameters(for: usdPrice)
-            var result = formatInitial(usdPrice, minFractionDigits: minFractionDigits, maxFractionDigits: min(maxFractionDigits, maxDecimals))
+            var result = formatInitial(usdPrice, minFractionDigits: max(minFractionDigits, minDecimals), maxFractionDigits: min(maxFractionDigits, maxDecimals))
             
             result = cleanupFormattedString(result)
             
@@ -70,14 +70,14 @@ class SolPriceModel: ObservableObject {
         }
     }
     
-    func formatPrice(lamports: Int, showSign: Bool = false, showUnit: Bool = true, maxDecimals: Int = 9) -> String {
+    func formatPrice(lamports: Int, showSign: Bool = false, showUnit: Bool = true, maxDecimals: Int = 9, minDecimals: Int = 0) -> String {
         let solPrice = Double(lamports) / 1e9
-        return formatPrice(sol: solPrice, showSign: showSign, showUnit: showUnit, maxDecimals: maxDecimals)
+        return formatPrice(sol: solPrice, showSign: showSign, showUnit: showUnit, maxDecimals: maxDecimals, minDecimals: minDecimals)
     }
     
-    func formatPrice(usd: Double, showSign: Bool = false, showUnit: Bool = true, maxDecimals: Int = 2) -> String {
+    func formatPrice(usd: Double, showSign: Bool = false, showUnit: Bool = true, maxDecimals: Int = 2, minDecimals: Int = 0) -> String {
         if let price = currentPrice, price > 0 {
-            return formatPrice(sol: usd / price, showSign: showSign, showUnit: showUnit, maxDecimals: maxDecimals)
+            return formatPrice(sol: usd / price, showSign: showSign, showUnit: showUnit, maxDecimals: maxDecimals, minDecimals: minDecimals)
         } else {
             return "0.00"
         }

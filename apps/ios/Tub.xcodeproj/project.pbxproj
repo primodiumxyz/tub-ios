@@ -203,6 +203,7 @@
 		99DD65FE2CB80D0300B56450 /* Account */ = {
 			isa = PBXGroup;
 			children = (
+				990337042CC9416B002D3A25 /* AccountBalance.swift */,
 				990B90F12CB5B40C00B5B073 /* AccountSetupView.swift */,
 				99DDF62C2CB0280D000234DA /* AccountView.swift */,
 				99DED2522CAF2C6D0055FC60 /* RegisterView.swift */,
@@ -223,7 +224,6 @@
 			isa = PBXGroup;
 			children = (
 				99FBEEA72CCA882300BC6392 /* Charts */,
-				990337042CC9416B002D3A25 /* AccountBalance.swift */,
 				991361A02CADE3AA00E5D656 /* TokenListView.swift */,
 				DB10A95C2CA5AA1B00B1E4F3 /* TokenView.swift */,
 				DFC723E22CB9A86C003A915C /* TokenInfoCardView.swift */,

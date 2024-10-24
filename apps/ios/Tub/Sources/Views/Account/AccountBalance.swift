@@ -21,7 +21,7 @@ struct AccountBalanceView: View {
             
         //    let tokenValue = currentTokenModel.balanceLamps * (currentTokenModel.prices.last?.price ?? 0) / Int(1e9)
             let tokenValue = 0
-            Text("\(priceModel.formatPrice(lamports: userModel.balanceLamps + tokenValue, maxDecimals: 2)) ")
+            Text("\(priceModel.formatPrice(lamports: userModel.balanceLamps + tokenValue, maxDecimals: 2, minDecimals: 2))")
                 .font(.sfRounded(size: .xl3))
                 .fontWeight(.bold)
             

@@ -42,7 +42,6 @@ class TokenListModel: ObservableObject {
     }
 
     private func initTokenModel() {
-        print(self.tokens[self.currentTokenIndex].mint)
         DispatchQueue.main.async {
             self.currentTokenModel.initialize(with: self.tokens[self.currentTokenIndex].id)
         }
