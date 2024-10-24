@@ -32,9 +32,11 @@ struct TokenListView: View {
 
     private func loadToken(_ geometry: GeometryProxy, _ direction: String) {
         if direction == "previous" {
-            viewModel.loadPreviousToken()
-            withAnimation {
-                activeOffset += geometry.size.height
+            if viewModel.currentTokenIndex > 0 {
+                viewModel.loadPreviousToken()
+                withAnimation {
+                    activeOffset += geometry.size.height
+                }
             }
         } else {
             viewModel.loadNextToken()
@@ -104,14 +106,19 @@ struct TokenListView: View {
                             DragGesture()
                                 .onChanged { value in
                                     if activeTab != "sell" {
-                                        dragging = true
-                                        offset = value.translation.height
+                                        if viewModel.currentTokenIndex == 0 && value.translation.height > 0 {
+                                            // Bounce effect for the first token
+                                            offset = min(value.translation.height / 3, 20)
+                                        } else {
+                                            dragging = true
+                                            offset = value.translation.height
+                                        }
                                     }
                                 }
                                 .onEnded { value in
                                     if activeTab != "sell" {
                                         let threshold: CGFloat = 50
-                                        if value.translation.height > threshold {
+                                        if value.translation.height > threshold && viewModel.currentTokenIndex > 0 {
                                             loadToken(geometry, "previous")
                                         } else if value.translation.height < -threshold {
                                             loadToken(geometry, "next")

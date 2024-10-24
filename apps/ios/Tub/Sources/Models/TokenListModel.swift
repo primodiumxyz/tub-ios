@@ -41,6 +41,10 @@ class TokenListModel: ObservableObject {
         return tokens.count - 2 // last - 1
     }
 
+    var isFirstToken: Bool {
+        return currentTokenIndex == 0
+    }
+
     private func initTokenModel() {
         print(self.tokens[self.currentTokenIndex].mint)
         DispatchQueue.main.async {
