@@ -18,7 +18,10 @@ jobs:
     
       - name: pnpm install
         run: pnpm install --frozen-lockfile
-        
+
+      - name: Move into gql package
+        run: cd packages/gql
+
       - name: Apply migrations
         run: pnpm hasura migrate apply --endpoint ${{ secrets.HASURA_ENDPOINT }} --admin-secret ${{ secrets.HASURA_ADMIN_SECRET }} --disable-interactive --database-name default
         env:
