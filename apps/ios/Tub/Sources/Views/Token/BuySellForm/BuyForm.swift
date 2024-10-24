@@ -22,6 +22,8 @@ struct BuyForm: View {
     @State private var animatingSwipe: Bool = false
     @State private var isClosing: Bool = false
     
+    @State private var isKeyboardActive: Bool = false
+    
     func handleBuy() {
         let _ = onBuy(buyAmountSol, { success in
             if success {
@@ -85,6 +87,10 @@ struct BuyForm: View {
                         .font(.sfRounded(size: .xl4, weight: .bold))
                         .foregroundColor(isValidInput ? .white : .red)
                         .frame(width: 150, alignment: .trailing)
+                        .onTapGesture {
+                            isKeyboardActive = true
+                            print("Keyboard Activated")
+                        }
                     
                     
                     
@@ -103,24 +109,37 @@ struct BuyForm: View {
                         .opacity(0.8)
                 }
                 
-                // Add pill-shaped buttons
-                HStack(spacing: 8) {
-                    ForEach([10.0, 25.0, 50.0, 100], id: \.self) { amount in
-                        Button(action: {
-                            
-                            updateBuyAmount(amount * userModel.balance / 100)
-                        }) {
-                            Text(amount == 100 ? "MAX" : "\(Int(amount))%")
-                                .font(.sfRounded(size: .base, weight: .bold))
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(Color.white.opacity(0.2))
-                                .clipShape(Capsule())
+                if isKeyboardActive {
+                    Button(action: handleBuy) {
+                        Text("Buy")
+                            .font(.sfRounded(size: .base, weight: .bold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 10)
+                            .frame(maxWidth: .infinity)
+                            .background(Color.green.opacity(0.8))
+                            .cornerRadius(10)
+                    }
+                    .padding(.top, 10)
+                } else {
+                    // Add pill-shaped buttons
+                    HStack(spacing: 8) {
+                        ForEach([10.0, 25.0, 50.0, 100], id: \.self) { amount in
+                            Button(action: {
+                                updateBuyAmount(amount * userModel.balance / 100)
+                            }) {
+                                Text(amount == 100 ? "MAX" : "\(Int(amount))%")
+                                    .font(.sfRounded(size: .base, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .background(Color.white.opacity(0.2))
+                                    .clipShape(Capsule())
+                            }
                         }
                     }
+                    .padding(.top, 10)
                 }
-                .padding(.top, 10)
                 
                 SwipeToEnterView(text: "Swipe to buy", onUnlock: handleBuy, disabled: buyAmountSol == 0 || buyAmountString == "")
                     .padding(.top, 10)
@@ -178,6 +197,9 @@ struct BuyForm: View {
                     dragOffset = UIScreen.main.bounds.height
                 }
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
+            isKeyboardActive = false
         }
     }
 }
