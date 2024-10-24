@@ -7,6 +7,7 @@ on:
 jobs:
   dry-run-migrations-and-metadata:
     runs-on: ubuntu-latest
+    environment: DEV
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
