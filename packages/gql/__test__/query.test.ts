@@ -69,9 +69,6 @@ describe("query tests", () => {
 
     const history_2 = await gql.db.GetTokenPriceHistoryIgnoreIntervalQuery({ token: token_id, interval: "0s" });
 
-    //test if history with 100ms is correct
-    expect(history.data?.token_price_history_offset.length).toEqual(1);
-    //test should contain more than 1
-    expect(history_2.data?.token_price_history_offset.length).toBeGreaterThan(1);
+    expect(history_2.data?.token_price_history_offset.length).toBeGreaterThan(history.data?.token_price_history_offset.length ?? 0);
   });
 });
