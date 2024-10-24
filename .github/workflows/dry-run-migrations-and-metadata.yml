@@ -21,9 +21,7 @@ jobs:
         run: |
           cd packages/gql
           echo "Running migration command with:"
-          echo "Endpoint: $HASURA_ENDPOINT"
-        env:
-          HASURA_ENDPOINT: ${{ secrets.HASURA_ENDPOINT }}
+          echo "Endpoint: ${{ secrets.HASURA_ENDPOINT }}"
 
       - name: Apply migrations
         run: cd packages/gql && pnpm hasura migrate apply --endpoint "$HASURA_ENDPOINT" --admin-secret "$HASURA_ADMIN_SECRET" --disable-interactive --database-name default --dry-run
