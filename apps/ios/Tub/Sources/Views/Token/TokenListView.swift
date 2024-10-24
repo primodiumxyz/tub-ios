@@ -30,14 +30,14 @@ struct TokenListView: View {
         self._viewModel = StateObject(wrappedValue: TokenListModel(userModel: UserModel(userId: UserDefaults.standard.string(forKey: "userId") ?? "")))
     }
 
-    private func loadPreviousToken(_ geometry: GeometryProxy) {
+    private func loadPreviousToken() {
         viewModel.loadPreviousToken()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             activeOffset = 0
         }
     }
 
-    private func loadNextToken(_ geometry: GeometryProxy) {
+    private func loadNextToken() {
         viewModel.loadNextToken()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             activeOffset = 0
@@ -109,9 +109,9 @@ struct TokenListView: View {
                                     if activeTab != "sell" {
                                         let threshold: CGFloat = 50
                                         if value.translation.height > threshold {
-                                            loadPreviousToken(geometry)
+                                            loadPreviousToken()
                                         } else if value.translation.height < -threshold {
-                                            loadNextToken(geometry)
+                                            loadNextToken()
                                             withAnimation {
                                                 activeOffset -= geometry.size.height
                                             }
