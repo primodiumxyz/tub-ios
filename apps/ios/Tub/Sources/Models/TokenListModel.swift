@@ -126,7 +126,6 @@ class TokenListModel: ObservableObject {
                             if elem.mint == self.tokens[self.currentTokenIndex].mint {
                                 // round increase_pct to 2 decimals after converting to double
                                 let roundedIncreasePct = String(format: "%.2f", Double(elem.increase_pct) ?? 0)
-                                print("Trades", elem.trades, "| Increase pct", roundedIncreasePct)
                             }
                         }
                     }
