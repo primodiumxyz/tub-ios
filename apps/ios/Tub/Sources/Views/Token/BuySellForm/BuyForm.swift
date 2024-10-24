@@ -22,6 +22,11 @@ struct BuyForm: View {
     @State private var animatingSwipe: Bool = false
     @State private var isClosing: Bool = false
     
+    @State private var isKeyboardActive: Bool = false
+    @State private var keyboardHeight: CGFloat = 0.0
+    private let keyboardAdjustment: CGFloat = 220
+
+    
     func handleBuy() {
         let _ = onBuy(buyAmountSol, { success in
             if success {
@@ -85,6 +90,10 @@ struct BuyForm: View {
                         .font(.sfRounded(size: .xl4, weight: .bold))
                         .foregroundColor(isValidInput ? .white : .red)
                         .frame(width: 150, alignment: .trailing)
+                        .onTapGesture {
+                            isKeyboardActive = true
+                            print("Keyboard Activated")
+                        }
                     
                     
                     
@@ -103,11 +112,10 @@ struct BuyForm: View {
                         .opacity(0.8)
                 }
                 
-                // Add pill-shaped buttons
+                // pill-shaped buttons
                 HStack(spacing: 8) {
                     ForEach([10.0, 25.0, 50.0, 100], id: \.self) { amount in
                         Button(action: {
-                            
                             updateBuyAmount(amount * userModel.balance / 100)
                         }) {
                             Text(amount == 100 ? "MAX" : "\(Int(amount))%")
@@ -134,7 +142,7 @@ struct BuyForm: View {
         .background(AppColors.darkBlueGradient)
         .cornerRadius(26)
         .frame(height: 250)
-        .offset(y: max(dragOffset, slideOffset))
+        .offset(y: max(dragOffset, slideOffset - keyboardHeight + (isKeyboardActive ? keyboardAdjustment : 0)))
         .gesture(
             DragGesture()
                 .onChanged { value in
@@ -164,6 +172,22 @@ struct BuyForm: View {
             withAnimation(.spring(response: 0.5, dampingFraction: 0.8, blendDuration: 0)) {
                 slideOffset = 150
             }
+            NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { notification in
+                if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
+                    keyboardHeight = keyboardFrame.height
+                }
+                isKeyboardActive = true
+                print("Keyboard Activated")
+            }
+            NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { _ in
+                keyboardHeight = 0 // Reset keyboard height
+                isKeyboardActive = false
+                print("Keyboard Deactivated")
+            }
+        }
+        .onDisappear {
+            NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
+            NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
         }
         .onChange(of: isVisible) { newValue in
             if newValue {
@@ -178,6 +202,9 @@ struct BuyForm: View {
                     dragOffset = UIScreen.main.bounds.height
                 }
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
+            isKeyboardActive = false
         }
     }
 }
