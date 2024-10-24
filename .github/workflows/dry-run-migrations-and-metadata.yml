@@ -24,7 +24,7 @@ jobs:
           HASURA_ADMIN_SECRET: ${{ secrets.HASURA_ADMIN_SECRET }}
 
       - name: Apply metadata
-        run: cd packages/gql && pnpm hasura metadata apply --endpoint "$HASURA_ENDPOINT" --admin-secret "$HASURA_ADMIN_SECRET" --disable-interactive --database-name default --dry-run --disallow-inconsistent-metadata
+        run: cd packages/gql && pnpm hasura metadata apply --endpoint "$HASURA_ENDPOINT" --admin-secret "$HASURA_ADMIN_SECRET" --dry-run --disallow-inconsistent-metadata
         env:
           HASURA_ENDPOINT: ${{ secrets.HASURA_ENDPOINT }}
           HASURA_ADMIN_SECRET: ${{ secrets.HASURA_ADMIN_SECRET }}
