@@ -1,9 +1,7 @@
-name: Apply Migrations and Metadata to Hasura Dev Instance
+name: Dry Run Migrations and Metadata to Hasura Dev Instance
 
 on:
-  push:
-    branches:
-      - main
+  pull_request:
   workflow_call:
 
 jobs:
@@ -19,17 +17,14 @@ jobs:
       - name: pnpm install
         run: pnpm install --frozen-lockfile
 
-      - name: Move into gql package
-        run: cd packages/gql
-
       - name: Apply migrations
-        run: pnpm hasura migrate apply --endpoint ${{ secrets.HASURA_ENDPOINT }} --admin-secret ${{ secrets.HASURA_ADMIN_SECRET }} --disable-interactive --database-name default
+        run: cd packages/gql && pnpm hasura migrate apply --endpoint ${{ secrets.HASURA_ENDPOINT }} --admin-secret ${{ secrets.HASURA_ADMIN_SECRET }} --disable-interactive --database-name default --dry-run
         env:
           HASURA_ENDPOINT: ${{ secrets.HASURA_ENDPOINT }}
           HASURA_ADMIN_SECRET: ${{ secrets.HASURA_ADMIN_SECRET }}
 
       - name: Apply metadata
-        run: pnpm hasura metadata apply --endpoint ${{ secrets.HASURA_ENDPOINT }} --admin-secret ${{ secrets.HASURA_ADMIN_SECRET }} --disable-interactive --database-name default
+        run: cd packages/gql && pnpm hasura metadata apply --endpoint ${{ secrets.HASURA_ENDPOINT }} --admin-secret ${{ secrets.HASURA_ADMIN_SECRET }} --disable-interactive --database-name default --dry-run --disallow-inconsistent-metadata
         env:
           HASURA_ENDPOINT: ${{ secrets.HASURA_ENDPOINT }}
           HASURA_ADMIN_SECRET: ${{ secrets.HASURA_ADMIN_SECRET }}
