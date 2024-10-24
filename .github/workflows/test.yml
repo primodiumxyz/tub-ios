@@ -19,7 +19,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install docker-compose
 
       - name: Run Hasura DB
-        run: pnpm dev:db
+        run: pnpm dev:db:ci
 
       - name: Run GQL Tests
         run: pnpm --filter gql test
