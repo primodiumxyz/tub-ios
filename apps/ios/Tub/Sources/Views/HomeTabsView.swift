@@ -22,7 +22,7 @@ struct HomeTabsView: View {
 
     var body: some View {
         Group {
-            if userModel.isLoading || priceModel.isLoading {
+            if userModel.isLoading || !priceModel.isReady {
                 LoadingView()
             } else {
                 TabView(selection: $selectedTab) { // Bind the selected tab

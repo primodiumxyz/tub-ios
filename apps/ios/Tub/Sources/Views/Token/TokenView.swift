@@ -58,6 +58,7 @@ struct TokenView : View {
                 timespanButtons
                 Spacer()
                 BuySellForm(tokenModel: tokenModel, activeTab: $activeTab, showBuySheet: $showBuySheet)
+                    .equatable() // Add this modifier
             }
             .frame(maxWidth: .infinity)
             .foregroundColor(AppColors.white)
@@ -172,12 +173,12 @@ struct TokenView : View {
 #Preview {
     @Previewable @AppStorage("userId") var userId: String = ""
     @Previewable @State var activeTab: String = "buy"
-    @Previewable @State var tokenId: String = "e88e72dd-d711-446d-9b6d-3e32a9f652b6"
-    @Previewable @StateObject var priceModel = SolPriceModel()
-    if priceModel.isLoading {
+    @Previewable @State var tokenId: String = "55dcf2e6-c89b-4722-8152-11ed7f38e527"
+    @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
+    if !priceModel.isReady {
         LoadingView()
     } else {
-        TokenView(tokenModel: TokenModel(userId: userId, tokenId: tokenId), activeTab: $activeTab)
+        TokenView(tokenModel: TokenModel(userId: userId, tokenId: tokenId), activeTab: $activeTab).background(.black)
             .environmentObject(UserModel(userId: userId))
             .environmentObject(priceModel)
     }

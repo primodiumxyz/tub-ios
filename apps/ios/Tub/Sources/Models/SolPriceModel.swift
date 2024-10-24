@@ -9,7 +9,7 @@ import Foundation
 
 class SolPriceModel: ObservableObject {
     @Published var currentPrice: Double? = nil
-    @Published var isLoading: Bool = false
+    @Published var isReady: Bool = false
     @Published var error: String?
     
     private let formatter: NumberFormatter = {
@@ -22,23 +22,22 @@ class SolPriceModel: ObservableObject {
     
     private var timer: Timer?
     
-    init() {
-        fetchCurrentPrice()
-        startPeriodicFetching()
+    init(mock: Bool = false) {
+        if mock {
+            self.currentPrice = 175
+            isReady = true
+        } else {
+            fetchCurrentPrice()
+        }
     }
     
-    deinit {
-        stopPeriodicFetching()
-    }
-    
+ 
     func fetchCurrentPrice() {
-        isLoading = true
+        isReady = false
         error = nil
         
         Network.shared.fetchSolPrice { [weak self] result in
             DispatchQueue.main.async {
-                self?.isLoading = false
-                
                 switch result {
                 case .success(let price):
                     self?.currentPrice = price
@@ -47,19 +46,9 @@ class SolPriceModel: ObservableObject {
                     self?.error = fetchError.localizedDescription
                     print("Error fetching SOL price: \(fetchError.localizedDescription)")
                 }
+                self?.isReady = true
             }
         }
-    }
-    
-    private func startPeriodicFetching() {
-        timer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { [weak self] _ in
-            self?.fetchCurrentPrice()
-        }
-    }
-    
-    private func stopPeriodicFetching() {
-        timer?.invalidate()
-        timer = nil
     }
     
     private func getFormattingParameters(for value: Double) -> (minFractionDigits: Int, maxFractionDigits: Int) {
@@ -107,7 +96,7 @@ class SolPriceModel: ObservableObject {
     }
     
     func formatPrice(sol: Double, showSign: Bool = false, showUnit: Bool = true, maxDecimals: Int = 9) -> String {
-        if let price = currentPrice {
+        if let price = currentPrice, price > 0 {
             if sol.isNaN || sol.isInfinite || sol == 0 {
                 return showUnit ? "$0.00" : "0.00"
             }
@@ -141,7 +130,7 @@ class SolPriceModel: ObservableObject {
     }
     
     func formatPrice(usd: Double, showSign: Bool = false, showUnit: Bool = true, maxDecimals: Int = 9) -> String {
-        if let price = currentPrice {
+        if let price = currentPrice, price > 0 {
             return formatPrice(sol: usd / price, showSign: showSign, showUnit: showUnit, maxDecimals: maxDecimals)
         } else {
             return "0.00"

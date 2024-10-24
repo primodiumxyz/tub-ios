@@ -114,7 +114,6 @@ struct TokenListView: View {
             .ignoresSafeArea()
             
             VStack(spacing: 0) {
-                // Account balance view
                 AccountBalanceView(
                     userModel: userModel,
                     currentTokenModel: currentTokenModel
@@ -234,10 +233,11 @@ struct TokenListView: View {
 
 #Preview {
     @Previewable @AppStorage("userId") var userId: String = ""
-    @Previewable @StateObject var priceModel = SolPriceModel()
-    if priceModel.isLoading {
+    @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
+    if !priceModel.isReady {
         LoadingView()
     } else {
+        let _ = print(priceModel.currentPrice)
         TokenListView()
             .environmentObject(UserModel(userId: userId))
             .environmentObject(priceModel)

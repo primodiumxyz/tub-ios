@@ -115,9 +115,9 @@ struct AccountView: View {
 
 #Preview {
     @Previewable @AppStorage("userId") var userId: String = ""
-    @Previewable @StateObject var priceModel = SolPriceModel()
+    @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
     @State @Previewable var isRegistered = false
-    if priceModel.isLoading {
+    if !priceModel.isReady {
         LoadingView()
     } else {
         AccountView()
