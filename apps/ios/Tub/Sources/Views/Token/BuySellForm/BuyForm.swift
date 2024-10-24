@@ -109,20 +109,8 @@ struct BuyForm: View {
                         .opacity(0.8)
                 }
                 
-                if isKeyboardActive {
-                    Button(action: handleBuy) {
-                        Text("Buy")
-                            .font(.sfRounded(size: .base, weight: .bold))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 10)
-                            .frame(maxWidth: .infinity)
-                            .background(Color.green.opacity(0.8))
-                            .cornerRadius(10)
-                    }
-                    .padding(.top, 10)
-                } else {
-                    // Add pill-shaped buttons
+                // Hide pill-shaped buttons when keyboard is active
+                if !isKeyboardActive {
                     HStack(spacing: 8) {
                         ForEach([10.0, 25.0, 50.0, 100], id: \.self) { amount in
                             Button(action: {
@@ -181,8 +169,20 @@ struct BuyForm: View {
         )
         .onAppear {
             withAnimation(.spring(response: 0.5, dampingFraction: 0.8, blendDuration: 0)) {
-                slideOffset = 150
+                           slideOffset = 150
+                      }
+            NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { _ in
+                isKeyboardActive = true
+                print("Keyboard Activated")
             }
+            NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { _ in
+                isKeyboardActive = false
+                print("Keyboard Deactivated")
+            }
+        }
+        .onDisappear {
+            NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
+            NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
         }
         .onChange(of: isVisible) { newValue in
             if newValue {
