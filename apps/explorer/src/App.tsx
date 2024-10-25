@@ -2,7 +2,9 @@ import { useMemo } from "react";
 import { Provider as UrqlProvider } from "urql";
 
 import { createClient as createGqlClient } from "@tub/gql";
+import { AppSidebar } from "@/components/AppSidebar";
 import { Tracker } from "@/components/Tracker";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { ServerProvider } from "@/providers/ServerProvider";
 import { TrackerParamsProvider } from "@/providers/TrackerParamsProvider";
 
@@ -18,9 +20,12 @@ function App() {
     <UrqlProvider value={client}>
       <ServerProvider>
         <TrackerParamsProvider>
-          <div className="flex flex-col items-center">
-            <Tracker />
-          </div>
+          <SidebarProvider>
+            <AppSidebar />
+            <div className="flex flex-col items-center">
+              <Tracker />
+            </div>
+          </SidebarProvider>
         </TrackerParamsProvider>
       </ServerProvider>
     </UrqlProvider>
