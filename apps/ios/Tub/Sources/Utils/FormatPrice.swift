@@ -9,7 +9,7 @@ import Foundation
 let formatter: NumberFormatter = {
     let formatter = NumberFormatter()
     formatter.numberStyle = .decimal
-    formatter.locale = Locale.current // Set the locale to the current locale
+    formatter.locale = Locale(identifier: "en_US") // Set the locale to US
     return formatter
 }()
 
@@ -36,6 +36,8 @@ func cleanupFormattedString(_ str: String) -> String {
     if result.starts(with: ".") {
         result = "0" + result
     }
+    
+
     // Add subscript for small numbers
     let absPrice = abs(Double(str) ?? 0.0)
     if absPrice < 0.0001 && str.starts(with: "0.") {
@@ -54,5 +56,12 @@ func cleanupFormattedString(_ str: String) -> String {
             result = "0.0\(subscriptNumber)" + str.dropFirst(2 + leadingZeros)
         }
     }
+        // Flip periods and commas if the current locale uses periods as decimal separators
+    if Locale.current.decimalSeparator == "," {
+        result = result.replacingOccurrences(of: ",", with: "⍼")
+            .replacingOccurrences(of: ".", with: ",")
+            .replacingOccurrences(of: "⍼", with: ".")
+    }
+    
     return result
 }

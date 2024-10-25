@@ -78,7 +78,7 @@ struct TokenView : View {
                 Text("$\(tokenModel.token.symbol)")
                     .font(.sfRounded(size: .lg, weight: .semibold))
             }
-            Text(priceModel.formatPrice(lamports: tokenModel.prices.last?.price ?? 0, maxDecimals: 9))
+            Text(priceModel.formatPrice(lamports: tokenModel.prices.last?.price ?? 0, maxDecimals: 9, minDecimals: 2))
                 .font(.sfRounded(size: .xl4, weight: .bold))
             
             HStack {
