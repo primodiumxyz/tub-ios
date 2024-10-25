@@ -25,6 +25,10 @@ struct TokenListView: View {
     // show info card
     @State private var showInfoCard = false
     @State var activeTab: String = "buy"
+
+    private func canSwipe(value: DragGesture.Value) -> Bool {
+        return activeTab != "sell" && !(value.translation.height > 0 && viewModel.currentTokenIndex == 0)
+    }
     
     init() {
         self._viewModel = StateObject(wrappedValue: TokenListModel(userModel: UserModel(userId: UserDefaults.standard.string(forKey: "userId") ?? "")))
@@ -32,11 +36,9 @@ struct TokenListView: View {
 
     private func loadToken(_ geometry: GeometryProxy, _ direction: String) {
         if direction == "previous" {
-            if viewModel.currentTokenIndex > 0 {
-                viewModel.loadPreviousToken()
-                withAnimation {
-                    activeOffset += geometry.size.height
-                }
+            viewModel.loadPreviousToken()
+            withAnimation {
+                activeOffset += geometry.size.height
             }
         } else {
             viewModel.loadNextToken()
@@ -44,6 +46,7 @@ struct TokenListView: View {
                 activeOffset -= geometry.size.height
             }
         }
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             activeOffset = 0
         }
@@ -105,20 +108,15 @@ struct TokenListView: View {
                         .gesture(
                             DragGesture()
                                 .onChanged { value in
-                                    if activeTab != "sell" {
-                                        if viewModel.currentTokenIndex == 0 && value.translation.height > 0 {
-                                            // Bounce effect for the first token
-                                            offset = min(value.translation.height / 3, 20)
-                                        } else {
-                                            dragging = true
-                                            offset = value.translation.height
-                                        }
+                                    if canSwipe(value: value) {
+                                        dragging = true
+                                        offset = value.translation.height
                                     }
                                 }
                                 .onEnded { value in
-                                    if activeTab != "sell" {
+                                    if canSwipe(value: value) {
                                         let threshold: CGFloat = 50
-                                        if value.translation.height > threshold && viewModel.currentTokenIndex > 0 {
+                                        if value.translation.height > threshold {
                                             loadToken(geometry, "previous")
                                         } else if value.translation.height < -threshold {
                                             loadToken(geometry, "next")
