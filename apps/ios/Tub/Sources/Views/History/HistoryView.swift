@@ -44,7 +44,7 @@ struct HistoryView : View {
                             let name = transaction.token_data.name
                             let imageUri = transaction.token_data.uri ?? ""
                             let price = transaction.token_price?.price ?? 0
-                            let value = (Double(price)/1e9) * (quantity)
+                            let value = (Double(price) / 1e9) * (quantity)
                             
                             let newTransaction = Transaction(
                                 name: name,

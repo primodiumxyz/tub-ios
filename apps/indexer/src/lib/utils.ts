@@ -82,7 +82,13 @@ export const getPoolTokenPriceMultiple = async (
           (BigInt(tokenVaultBalance.tokenAmount.amount) * BigInt(10 ** wrappedSolVaultBalance.tokenAmount.decimals)),
       );
 
-      const priceData = { mint: tokenVaultBalance.mint, price: tokenPrice, platform, timestamp };
+      const priceData = {
+        mint: tokenVaultBalance.mint,
+        price: tokenPrice,
+        decimals: tokenVaultBalance.tokenAmount.decimals,
+        platform,
+        timestamp,
+      };
       acc.push(priceData);
     }
     return acc;

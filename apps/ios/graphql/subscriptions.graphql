@@ -60,17 +60,44 @@ subscription SubFilteredTokens(
   $minTrades: bigint!
   $minIncreasePct: float8!
 ) {
-  GetFormattedTokens(
+  get_formatted_tokens_since(
+    args: { since: $since }
     where: {
-      created_at: { _gte: $since }
       trades: { _gte: $minTrades }
       increase_pct: { _gte: $minIncreasePct }
     }
   ) {
     token_id
     mint
+    decimals
     name
     symbol
+    platform
+    latest_price
+    increase_pct
+    trades
+    created_at
+  }
+}
+
+subscription SubFilteredTokensInterval(
+  $interval: interval = "30s"
+  $minTrades: bigint!
+  $minIncreasePct: float8!
+) {
+  get_formatted_tokens_interval(
+    args: { interval: $interval }
+    where: {
+      trades: { _gte: $minTrades }
+      increase_pct: { _gte: $minIncreasePct }
+    }
+  ) {
+    token_id
+    mint
+    decimals
+    name
+    symbol
+    platform
     latest_price
     increase_pct
     trades

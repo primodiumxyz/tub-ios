@@ -18,7 +18,7 @@ struct CandleChartView: View {
 
     init(prices: [Price], intervalSecs: Double, timeframeMins: Double? = 30, maxCandleWidth: CGFloat = 10) {
         self.prices = prices
-        self.intervalSecs = intervalSecs
+        self.intervalSecs = intervalSecs > 0 ? intervalSecs : 1;
         self.timeframeMins = timeframeMins ?? 30
     }
 
@@ -170,26 +170,8 @@ struct CandleChartView: View {
 struct CandleData {
     let start: Date
     let end: Date
-    let open: Double
-    let close: Double
-    let high: Double
-    let low: Double
-}
-
-struct CandleChartView_Previews: PreviewProvider {
-    static var previews: some View {
-        CandleChartView(
-            prices: [
-                 Price(timestamp: Date().addingTimeInterval(-1800), price: 106.0),
-                Price(timestamp: Date().addingTimeInterval(-1500), price: 107.5),
-                Price(timestamp: Date().addingTimeInterval(-1200), price: 108.0),
-                Price(timestamp: Date().addingTimeInterval(-900), price: 109.0),
-                Price(timestamp: Date().addingTimeInterval(-600), price: 110.5),
-                Price(timestamp: Date().addingTimeInterval(-300), price: 112.0),
-                Price(timestamp: Date().addingTimeInterval(-120), price: 114.0)
-            ],
-            intervalSecs: 300, // 5-minute interval
-            timeframeMins: 60 
-        ).background(.black)
-    }
+    let open: Int
+    let close: Int
+    let high: Int
+    let low: Int
 }
