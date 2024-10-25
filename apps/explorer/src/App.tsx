@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import { Provider as UrqlProvider } from "urql";
 
 import { createClient as createGqlClient } from "@tub/gql";
@@ -21,10 +22,16 @@ function App() {
       <ServerProvider>
         <TrackerParamsProvider>
           <SidebarProvider>
-            <AppSidebar />
-            <div className="flex flex-col items-center">
-              <Tracker />
-            </div>
+            <Router>
+              <AppSidebar />
+              <div className="flex flex-col items-center">
+                <Routes>
+                  <Route path="/" element={<Tracker />} />
+                  <Route path="/analytics" element={<></>} />
+                  <Route path="/data-analysis" element={<></>} />
+                </Routes>
+              </div>
+            </Router>
           </SidebarProvider>
         </TrackerParamsProvider>
       </ServerProvider>

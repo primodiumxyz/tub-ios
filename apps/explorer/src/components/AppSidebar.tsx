@@ -1,4 +1,5 @@
 import { ChartCandlestick, ChevronRight, Frame, LucideIcon, PieChart } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 
 import {
   Sidebar,
@@ -30,12 +31,12 @@ const nav = {
   analytics: [
     {
       name: "Global",
-      url: "#",
+      url: "/analytics",
       icon: Frame,
     },
     {
       name: "Data analysis",
-      url: "#",
+      url: "/data-analysis",
       icon: PieChart,
     },
   ],
@@ -66,15 +67,17 @@ export const AppSidebar = () => {
 };
 
 const NavItem = (item: NavItemType) => {
+  const navigate = useNavigate();
+
   return (
     <SidebarMenuItem key={item.name} className={cn(window.location.pathname.includes(item.url) && "bg-sidebar-accent")}>
       <SidebarMenuButton asChild>
-        <a href={item.url} className="text-sidebar-foreground">
+        <Link to={item.url} className="text-sidebar-foreground">
           <item.icon />
           <span>{item.name}</span>
-        </a>
+        </Link>
       </SidebarMenuButton>
-      <SidebarMenuAction asChild showOnHover onClick={() => (window.location.href = item.url)}>
+      <SidebarMenuAction asChild showOnHover onClick={() => navigate(item.url)}>
         <ChevronRight className="size-4" />
       </SidebarMenuAction>
     </SidebarMenuItem>
