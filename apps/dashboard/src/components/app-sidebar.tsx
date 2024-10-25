@@ -1,5 +1,5 @@
 import { ChartCandlestick, ChevronRight, Frame, LucideIcon, PieChart } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import {
   Sidebar,
@@ -68,9 +68,10 @@ export const AppSidebar = () => {
 
 const NavItem = (item: NavItemType) => {
   const navigate = useNavigate();
+  const pathname = useLocation().pathname;
 
   return (
-    <SidebarMenuItem key={item.name} className={cn(window.location.pathname.includes(item.url) && "bg-sidebar-accent")}>
+    <SidebarMenuItem key={item.name} className={cn(pathname === item.url && "bg-sidebar-accent")}>
       <SidebarMenuButton asChild>
         <Link to={item.url} className="text-sidebar-foreground">
           <item.icon />

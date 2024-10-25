@@ -17,6 +17,7 @@ type TrackerParamsContextType = {
 
 const TrackerParamsContext = createContext<TrackerParamsContextType | undefined>(undefined);
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export const TrackerParamsProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
   const [params, setParams] = useState<TrackerParams>({
     timespan: DEFAULT_TIMESPAN,

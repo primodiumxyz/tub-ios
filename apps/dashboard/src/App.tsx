@@ -8,6 +8,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { DataAnalysis } from "@/components/data-analysis";
 import { Tracker } from "@/components/tracker";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { AnalyticsParamsProvider } from "@/providers/analytics-params-provider";
 import { ServerProvider } from "@/providers/server-provider";
 import { TrackerParamsProvider } from "@/providers/tracker-params-provider";
 
@@ -23,18 +24,20 @@ function App() {
     <UrqlProvider value={client}>
       <ServerProvider>
         <TrackerParamsProvider>
-          <SidebarProvider>
-            <Router>
-              <AppSidebar />
-              <div className="flex flex-col items-center">
-                <Routes>
-                  <Route path="/" element={<Tracker />} />
-                  <Route path="/analytics" element={<Analytics />} />
-                  <Route path="/data-analysis" element={<DataAnalysis />} />
-                </Routes>
-              </div>
-            </Router>
-          </SidebarProvider>
+          <AnalyticsParamsProvider>
+            <SidebarProvider>
+              <Router>
+                <AppSidebar />
+                <div className="flex flex-col items-center w-full">
+                  <Routes>
+                    <Route path="/" element={<Tracker />} />
+                    <Route path="/analytics" element={<Analytics />} />
+                    <Route path="/data-analysis" element={<DataAnalysis />} />
+                  </Routes>
+                </div>
+              </Router>
+            </SidebarProvider>
+          </AnalyticsParamsProvider>
         </TrackerParamsProvider>
       </ServerProvider>
     </UrqlProvider>
