@@ -15,6 +15,7 @@ struct AccountView: View {
     @State private var airdropResult: String?
     @State private var errorMessage: String?
     @Environment(\.presentationMode) var presentationMode
+    
 
     var body: some View {
         NavigationStack {
@@ -42,7 +43,8 @@ struct AccountView: View {
                             .padding(.vertical)
                         Text("Username: \(userModel.username)")
                             .font(.sfRounded(size: .lg, weight: .medium))
-                        Text("Balance: \(priceModel.formatPrice(lamports: userModel.balanceLamps))")
+                        let _ = print("val", userModel.balanceLamps)
+                        Text("Balance: \(priceModel.formatPrice(lamports: userModel.balanceLamps, minDecimals: 2))")
                             .font(.sfRounded(size: .lg, weight: .medium))
                             .padding(.bottom)
                         if let error = errorMessage {

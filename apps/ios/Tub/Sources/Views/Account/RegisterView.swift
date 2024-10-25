@@ -40,7 +40,7 @@ struct RegisterView: View {
             }
             
             Button(action: {
-                Network.shared.registerNewUser(username: username, airdropAmount: "100000000000", completion: handleRegistration)
+                Network.shared.registerNewUser(username: username, airdropAmount: String(Int(1.0 * 1e9)), completion: handleRegistration)
             }) {
                 Text("Register")
                     .font(.sfRounded(size: .base, weight: .semibold))
