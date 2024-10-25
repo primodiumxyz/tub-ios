@@ -37,11 +37,10 @@ struct TokenView : View {
         self._activeTab = activeTab
     }
     
-    func handleBuy(amount: Double, completion: ((Bool) -> Void)?) {
-        tokenModel.buyTokens(buyAmountSol: amount, completion: {success in
+    func handleBuy(amount: Int, completion: ((Bool) -> Void)?) {
+        tokenModel.buyTokens(buyAmountLamps: amount, completion: {success in
             print("success", success)
             if success {
-                print("setting to sell")
                 showBuySheet = false
                 activeTab = "sell"
             }
@@ -63,16 +62,18 @@ struct TokenView : View {
                                 Text("$\(tokenModel.token.symbol)")
                                     .font(.sfRounded(size: .lg, weight: .semibold))
                             }
-                            Text("\(tokenModel.prices.last?.price ?? 0, specifier: "%.3f") SOL")
+                            Text(PriceFormatter.formatPrice(lamports: tokenModel.prices.last?.price ?? 0) + " SOL")
                                 .font(.sfRounded(size: .xl4, weight: .bold))
                             
                             HStack {
-                                Text(tokenModel.priceChange.amount >= 0 ? "+" : "-")
-                                Text("\(abs(tokenModel.priceChange.amount), specifier: "%.3f") SOL")
+                                Text(tokenModel.priceChange.amountLamps >= 0 ? "+" : "-")
+                                Text(PriceFormatter.formatPrice(lamports: tokenModel.priceChange.amountLamps, showSign: false) + " SOL")
                                 Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
+                                
+                                Text("30s").foregroundColor(.gray)
                             }
                             .font(.sfRounded(size: .sm, weight: .semibold))
-                            .foregroundColor(tokenModel.priceChange.amount >= 0 ? .green : .red)
+                            .foregroundColor(tokenModel.priceChange.amountLamps >= 0 ? .green : .red)
                         }
                         
                         Spacer() // Add this to push the chevron to the right
@@ -93,7 +94,7 @@ struct TokenView : View {
 
                     // Replace the existing ChartView with this conditional rendering
                     if selectedTimespan == .live {
-                        ChartView(prices: tokenModel.prices, purchaseTime: tokenModel.purchaseTime, purchaseAmount: tokenModel.tokenBalance, timeframeSecs: 30)
+                        ChartView(prices: tokenModel.prices, purchaseTime: tokenModel.purchaseTime, purchaseAmount: tokenModel.balanceLamps)
                     } else {
                         CandleChartView(prices: tokenModel.prices, intervalSecs: 90, timeframeMins: 30)
                             .id(tokenModel.prices.count)
@@ -175,6 +176,7 @@ struct TokenView : View {
 #Preview {
     @Previewable @AppStorage("userId") var userId: String = ""
     @Previewable @State var activeTab: String = "buy"
-    TokenView(tokenModel: TokenModel(userId: userId, tokenId: mockTokenId), activeTab: $activeTab).background(.black)
+    @Previewable @State var tokenId: String = "exampleTokenId"
+    TokenView(tokenModel: TokenModel(userId: userId, tokenId: tokenId), activeTab: $activeTab).background(.black)
         .environmentObject(UserModel(userId: userId))
 }

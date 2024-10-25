@@ -18,6 +18,17 @@ export const columns: ColumnDef<Token>[] = [
     },
   },
   {
+    accessorKey: "name",
+    header: "Name",
+    cell: ({ row }) => {
+      return (
+        <div>
+          {row.original.name} ({row.original.symbol})
+        </div>
+      );
+    },
+  },
+  {
     accessorKey: "platform",
     header: "Platform",
     cell: ({ row }) => {

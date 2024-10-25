@@ -17,29 +17,32 @@ class UserModel: ObservableObject {
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         return formatter
     }()
-
-    @Published var balance: Double = 0
-    @Published var isLoading: Bool = true
+    
     @Published var userId: String
     @Published var username: String = ""
-    @Published var balanceChange: Double = 0
-    @Published var timeElapsed: TimeInterval = 0
-    @Published var initialBalance: Double = 0
-    @Published var initialTime: Date = Date()
-    @Published var currentTime: Date = Date()
-    
     @AppStorage("userId") private var storedUserId: String?
     @AppStorage("username") private var storedUsername: String?
+
+    @Published var initialBalanceLamps: Int = 0
+    @Published var balanceLamps: Int = 0
+    @Published var balanceChangeLamps: Int = 0
     
+    
+    @Published var initialTime: Date = Date()
+    @Published var currentTime: Date = Date()
+    @Published var timeElapsed: TimeInterval = 0
+
     private var cancellables: Set<AnyCancellable> = []
     private var accountBalanceSubscription: Apollo.Cancellable?
     private var timerCancellable: AnyCancellable?
+    
+    @Published var isLoading: Bool = true
 
     init(userId: String, mock: Bool? = false) {
         self.userId = userId
         
         if(mock == true) {
-            self.balance = 1000
+            self.balanceLamps = 1000
             isLoading = false
             return
         }
@@ -114,7 +117,7 @@ class UserModel: ObservableObject {
                 switch result {
                 case .success(let response):
                     DispatchQueue.main.async {
-                        self.initialBalance = Double(response.data?.balance.first?.value ?? 0) / 1e9
+                        self.initialBalanceLamps = response.data?.balance.first?.value ?? 0
                     }
                     continuation.resume()
                 case .failure(let error):
@@ -136,9 +139,9 @@ class UserModel: ObservableObject {
             DispatchQueue.main.async {
                 switch result {
                 case .success(let graphQLResult):
-                    self.balance =
-                    Double(graphQLResult.data?.balance.first?.value ?? 0) / 1e9
-                    self.balanceChange = self.balance - self.initialBalance
+                    self.balanceLamps =
+                    graphQLResult.data?.balance.first?.value ?? 0
+                    self.balanceChangeLamps = self.balanceLamps - self.initialBalanceLamps
                 case .failure(let error):
                     print("Error: \(error.localizedDescription)")
                 }
@@ -167,8 +170,8 @@ class UserModel: ObservableObject {
             guard let self = self else { return }
             self.userId = ""
             self.username = ""
-            self.balance = 0
-            self.balanceChange = 0
+            self.balanceLamps = 0
+            self.balanceChangeLamps = 0
             self.isLoading = true
         }
         
