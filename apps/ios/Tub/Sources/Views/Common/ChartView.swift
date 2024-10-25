@@ -100,9 +100,10 @@ struct ChartView: View {
                     x: .value("Date", price.timestamp),
                     y: .value("Price", price.price)
                 )
-                .foregroundStyle(AppColors.aquaBlue.opacity(0.8)) // Neon blue line
+                .foregroundStyle(AppColors.aquaBlue.opacity(0.8))
                 .shadow(color: AppColors.aquaBlue, radius: 3, x: 2, y: 2)
                 .lineStyle(StrokeStyle(lineWidth: 3))
+                .interpolationMethod(.catmullRom) 
             }
             
             if let currentPrice = filteredPrices.last, filteredPrices.count >= 2 {
