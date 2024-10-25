@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
 
-import { columns } from "@/components/TokensTable/columns";
+import { columns } from "@/components/tracker/tokens-table/columns";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
-import { useTokens } from "@/hooks/useTokens";
-import { useTrackerParams } from "@/hooks/useTrackerParams";
+import { useTokens } from "@/hooks/use-tokens";
+import { useTrackerParams } from "@/hooks/use-tracker-params";
 
 export const TokensTable = () => {
   const { tokens, fetching, error } = useTokens();

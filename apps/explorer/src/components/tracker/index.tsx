@@ -1,5 +1,5 @@
-import { TokensTable } from "@/components/TokensTable";
-import { TrackerParams } from "@/components/TrackerParams";
+import { TokensTable } from "@/components/tracker/tokens-table";
+import { TrackerParams } from "@/components/tracker/tracker-params";
 
 export const Tracker = () => {
   return (

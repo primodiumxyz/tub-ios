@@ -3,11 +3,13 @@ import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import { Provider as UrqlProvider } from "urql";
 
 import { createClient as createGqlClient } from "@tub/gql";
-import { AppSidebar } from "@/components/AppSidebar";
-import { Tracker } from "@/components/Tracker";
+import { Analytics } from "@/components/analytics";
+import { AppSidebar } from "@/components/app-sidebar";
+import { DataAnalysis } from "@/components/data-analysis";
+import { Tracker } from "@/components/tracker";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { ServerProvider } from "@/providers/ServerProvider";
-import { TrackerParamsProvider } from "@/providers/TrackerParamsProvider";
+import { ServerProvider } from "@/providers/server-provider";
+import { TrackerParamsProvider } from "@/providers/tracker-params-provider";
 
 import "@/App.css";
 
@@ -27,8 +29,8 @@ function App() {
               <div className="flex flex-col items-center">
                 <Routes>
                   <Route path="/" element={<Tracker />} />
-                  <Route path="/analytics" element={<></>} />
-                  <Route path="/data-analysis" element={<></>} />
+                  <Route path="/analytics" element={<Analytics />} />
+                  <Route path="/data-analysis" element={<DataAnalysis />} />
                 </Routes>
               </div>
             </Router>

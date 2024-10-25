@@ -1,7 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useTrackerParams } from "@/hooks/useTrackerParams";
+import { useTrackerParams } from "@/hooks/use-tracker-params";
 import { TIMESPAN_OPTIONS } from "@/lib/constants";
 
 export const TrackerParams = () => {

@@ -1,4 +1,4 @@
-import { useTrackerParamsContext } from "@/providers/TrackerParamsProvider";
+import { useTrackerParamsContext } from "@/providers/tracker-params-provider";
 
 export const useTrackerParams = () => {
   const { params, setTimespan, setIncreasePct, setMinTrades } = useTrackerParamsContext();

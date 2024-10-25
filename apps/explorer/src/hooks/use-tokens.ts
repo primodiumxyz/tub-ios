@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useSubscription } from "urql";
 
 import { subscriptions } from "@tub/gql";
-import { useTrackerParams } from "@/hooks/useTrackerParams";
+import { useTrackerParams } from "@/hooks/use-tracker-params";
 
 export type Token = {
   mint: string;

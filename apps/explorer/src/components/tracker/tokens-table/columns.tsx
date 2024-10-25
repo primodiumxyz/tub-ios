@@ -3,7 +3,7 @@ import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 
 import { PRICE_PRECISION } from "@tub/indexer/constants";
 import { Button } from "@/components/ui/button";
-import { Token } from "@/hooks/useTokens";
+import { Token } from "@/hooks/use-tokens";
 
 export const columns: ColumnDef<Token>[] = [
   {
