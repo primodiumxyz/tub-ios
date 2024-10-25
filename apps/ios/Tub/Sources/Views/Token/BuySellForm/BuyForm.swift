@@ -14,8 +14,8 @@ struct BuyForm: View {
     var onBuy: (Int, ((Bool) -> Void)?) -> ()
     
     @EnvironmentObject private var userModel: UserModel
-    @State private var buyAmountUSDString: String = ""
-    @State private var buyAmountUSD : Double = 0
+    @State private var buyAmountUsdString: String = ""
+    @State private var buyAmountUsd : Double = 0
     @State private var isValidInput: Bool = true
     
     @State private var dragOffset: CGFloat = 0.0
@@ -24,7 +24,7 @@ struct BuyForm: View {
     @State private var isClosing: Bool = false
     
     func handleBuy() {
-        let buyAmountLamps = priceModel.usdToLamports(usd: buyAmountUSD)
+        let buyAmountLamps = priceModel.usdToLamports(usd: buyAmountUsd)
         let _ = onBuy(buyAmountLamps, { success in
             if success {
                 resetForm()
@@ -32,20 +32,20 @@ struct BuyForm: View {
         })
     }
     
-    func updateBuyAmount(_ amountUSD: Double) {
-        if amountUSD == 0 {
+    func updateBuyAmount(_ amountLamps: Int) {
+        if amountLamps == 0 {
             isValidInput = false
             return
         }
         
-        buyAmountUSDString = priceModel.formatPrice(usd: amountUSD)
-        buyAmountUSD = amountUSD
+        buyAmountUsdString = priceModel.formatPrice(lamports: amountLamps)
+        buyAmountUsd = priceModel.lamportsToUsd(lamports: amountLamps)
         isValidInput = true
     }
     
     func resetForm() {
-        buyAmountUSDString = ""
-        buyAmountUSD = 0
+        buyAmountUsdString = ""
+        buyAmountUsd = 0
         isValidInput = true
         animatingSwipe = false
     }
@@ -73,7 +73,7 @@ struct BuyForm: View {
             numberInput
             tokenConversionDisplay
             amountButtons
-            SwipeToEnterView(text: "Swipe to buy", onUnlock: handleBuy, disabled: buyAmountUSD == 0)
+            SwipeToEnterView(text: "Swipe to buy", onUnlock: handleBuy, disabled: buyAmountUsd == 0)
                 .padding(.top, 10)
         }
         .background(AppColors.darkBlueGradient)
@@ -91,10 +91,10 @@ struct BuyForm: View {
             
 
             
-            TextField("", text: $buyAmountUSDString, prompt: Text("0", comment: "placeholder").foregroundColor(.white.opacity(0.3)))
+            TextField("", text: $buyAmountUsdString, prompt: Text("0", comment: "placeholder").foregroundColor(.white.opacity(0.3)))
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.center)
-                .onChange(of: buyAmountUSDString) { newValue in
+                .onChange(of: buyAmountUsdString) { newValue in
                     let filtered = newValue.filter { "0123456789.".contains($0) }
                     
                     // Limit to two decimal places
@@ -102,16 +102,16 @@ struct BuyForm: View {
                     if components.count > 1 {
                         let wholeNumber = components[0]
                         let decimal = String(components[1].prefix(2))
-                        buyAmountUSDString = "\(wholeNumber).\(decimal)"
+                        buyAmountUsdString = "\(wholeNumber).\(decimal)"
                     } else {
-                        buyAmountUSDString = filtered
+                        buyAmountUsdString = filtered
                     }
                     
-                    if let amount = Double(buyAmountUSDString) {
-                        buyAmountUSD = amount
+                    if let amount = Double(buyAmountUsdString) {
+                        buyAmountUsd = amount
                         isValidInput = true
                     } else {
-                        buyAmountUSD = 0
+                        buyAmountUsd = 0
                         isValidInput = false
                     }
                 }
@@ -134,7 +134,7 @@ struct BuyForm: View {
     private var tokenConversionDisplay: some View {
         Group {
             if let currentPrice = tokenModel.prices.last?.price {
-                let buyAmountLamps = priceModel.usdToLamports(usd: buyAmountUSD)
+                let buyAmountLamps = priceModel.usdToLamports(usd: buyAmountUsd)
                 let tokenAmount = Int(Double(buyAmountLamps) / Double(currentPrice) * 1e9)
 
                 Text("\(priceModel.formatPrice(lamports: tokenAmount, showUnit: false)) \(tokenModel.token.symbol)")
@@ -153,11 +153,11 @@ struct BuyForm: View {
         .padding(.top, 10)
     }
     
-    private func amountButton(for amount: Double ) -> some View {
+    private func amountButton(for pct: Int) -> some View {
         Button(action: {
-            updateBuyAmount(amount)
+            updateBuyAmount(userModel.balanceLamps * pct / 100)
         }) {
-            Text(amount == 100 ? "MAX" : "\(amount, specifier: "%.0f")%")
+            Text(pct == 100 ? "MAX" : "\(pct)%")
                 .font(.sfRounded(size: .base, weight: .bold))
                 .foregroundColor(.white)
                 .padding(.horizontal, 12)

@@ -40,6 +40,8 @@ struct TokenView : View {
     }
     
     func handleBuy(buyAmountLamps: Int, completion: ((Bool) -> Void)?) {
+        print("buy amount lamps", buyAmountLamps)
+        return
         tokenModel.buyTokens(buyAmountLamps: buyAmountLamps, completion: {success in
             if success {
                 showBuySheet = false

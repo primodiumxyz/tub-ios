@@ -124,10 +124,11 @@ class TokenModel: ObservableObject {
 
     func buyTokens(buyAmountLamps: Int, completion: ((Bool) -> Void)?) {
         if let price = self.prices.last?.price, price > 0 {
-            let buyAmountToken = buyAmountLamps * Int(1e9) / price
+            let tokenAmount = Int(Double(buyAmountLamps) / Double(price) * 1e9)
+            print("token amount:", tokenAmount)
             
             Network.shared.buyToken(
-                accountId: self.userId, tokenId: self.tokenId, amount: String(buyAmountToken)
+                accountId: self.userId, tokenId: self.tokenId, amount: String(tokenAmount)
             ) { result in
                 switch result {
                 case .success:

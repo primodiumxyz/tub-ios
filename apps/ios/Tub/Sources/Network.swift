@@ -232,7 +232,7 @@ extension Network {
     }
 
     func fetchSolPrice(completion: @escaping (Result<Double, Error>) -> Void) {
-        let url = URL(string: "https://min-api.cryptocompare.com/data/price?fsym=SOL&tsyms=USD")!
+        let url = URL(string: "https://min-api.cryptocompare.com/data/price?fsym=SOL&tsyms=Usd")!
         let task = session.dataTask(with: url) { data, response, error in
             if let error = error {
                 completion(.failure(error))
@@ -246,7 +246,7 @@ extension Network {
             
             do {
                 if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Double],
-                   let price = json["USD"] {
+                   let price = json["Usd"] {
                     completion(.success(price))
                 } else {
                     completion(.failure(NSError(domain: "ParsingError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to parse JSON response"])))
