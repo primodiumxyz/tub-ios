@@ -18,13 +18,14 @@ type FilteredTokensChartProps = {
 };
 
 const getColor = (value: number, max: number) => {
-  const lightBlue = [173, 216, 230];
-  const darkBlue = [0, 0, 139];
+  // Very light purple to dark purple gradient
+  const lightPurple = [199, 146, 255];
+  const darkPurple = [88, 28, 135];
   const ratio = value / max;
 
-  const r = Math.round(lightBlue[0] + ratio * (darkBlue[0] - lightBlue[0]));
-  const g = Math.round(lightBlue[1] + ratio * (darkBlue[1] - lightBlue[1]));
-  const b = Math.round(lightBlue[2] + ratio * (darkBlue[2] - lightBlue[2]));
+  const r = Math.round(lightPurple[0] + ratio * (darkPurple[0] - lightPurple[0]));
+  const g = Math.round(lightPurple[1] + ratio * (darkPurple[1] - lightPurple[1]));
+  const b = Math.round(lightPurple[2] + ratio * (darkPurple[2] - lightPurple[2]));
 
   return `rgb(${r},${g},${b})`;
 };

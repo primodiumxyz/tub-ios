@@ -16,10 +16,10 @@ export const BasePeriodDataTable = () => {
         <TableRow>
           <TableHead className="w-[100px]">Category</TableHead>
           <TableHead>Total</TableHead>
-          {swaps?.map((swap) => (
-            <TableHead className="h-full">
+          {swaps?.map((swap, i) => (
+            <TableHead key={i} className="h-full">
               <div className="flex flex-col">
-                {swaps.indexOf(swap) === 0 ||
+                {i === 0 ||
                 new Date(swap.hour ?? "").getDay() !== new Date(swaps[swaps.indexOf(swap) - 1].hour ?? "").getDay() ? (
                   <span>{new Date(swap.hour ?? "").toLocaleDateString()}</span>
                 ) : (
