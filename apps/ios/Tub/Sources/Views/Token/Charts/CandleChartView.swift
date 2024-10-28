@@ -9,6 +9,7 @@ import SwiftUI
 import Charts
 
 struct CandleChartView: View {
+    @EnvironmentObject var priceModel: SolPriceModel
     let prices: [Price]
     let intervalSecs: Double
     var timeframeMins: Double = 30
@@ -155,7 +156,7 @@ struct CandleChartView: View {
             .foregroundStyle(AppColors.white.opacity(0.7))
             .annotation(position: lastCandle.close >= lastCandle.open ? .top : .bottom, spacing: 4) {
                 PillView(
-                    value: String(format: "%.2f SOL", lastCandle.close),
+                    value: priceModel.formatPrice(lamports: lastCandle.close),
                     color: AppColors.white.opacity(0.7),
                     foregroundColor: AppColors.black
                 )
@@ -169,8 +170,12 @@ struct CandleChartView: View {
         AxisMarks(position: .leading) { value in
             AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
                 .foregroundStyle(.white.opacity(0.2))
-            AxisValueLabel()
-                .foregroundStyle(.white.opacity(0.5))
+            AxisValueLabel {
+                if let intValue = value.as(Int.self) {
+                    Text(priceModel.formatPrice(lamports: intValue))
+                        .foregroundStyle(.white.opacity(0.5))
+                }
+            }
         }
     }
 

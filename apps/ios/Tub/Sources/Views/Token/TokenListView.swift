@@ -33,7 +33,7 @@ struct TokenListView: View {
     init() {
         self._viewModel = StateObject(wrappedValue: TokenListModel(userModel: UserModel(userId: UserDefaults.standard.string(forKey: "userId") ?? "")))
     }
-
+    
     private func loadToken(_ geometry: GeometryProxy, _ direction: String) {
         if direction == "previous" {
             viewModel.loadPreviousToken()
@@ -64,85 +64,88 @@ struct TokenListView: View {
     
     
     var body: some View {
-        ZStack {
-            // Background gradient
-            LinearGradient(
-                stops: activeTab == "buy" ? purpleStops : pinkStops,
-                startPoint: UnitPoint(x: 0.5, y: activeTab == "buy" ? 1 : 0),
-                endPoint: UnitPoint(x: 0.5, y: activeTab == "buy" ? 0 : 1)
-            )
-            .ignoresSafeArea()
-            
-            VStack(spacing: 0) {
-                // Account balance view
-                AccountBalanceView(
-                    userModel: userModel,
-                    currentTokenModel: viewModel.currentTokenModel
-                )
-                .padding(.top, 35)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(dragging ? AppColors.black : nil)
-                .ignoresSafeArea()
-                .zIndex(2)
-                
-                // Rest of the content
-                if viewModel.isLoading {
-                    LoadingView()
-                } else if viewModel.availableTokens.count == 0 {
-                    Text("No tokens found").foregroundColor(.red)
-                } else {
-                    GeometryReader { geometry in
-                        VStack(spacing: 10) {
-                            TokenView(tokenModel: viewModel.previousTokenModel ?? viewModel.createTokenModel(), activeTab: $activeTab)
-                                .frame(height: geometry.size.height)
-                                .opacity(dragging ? 0.2 : 0)
-                            TokenView(tokenModel: viewModel.currentTokenModel, activeTab: $activeTab)
-                                .frame(height: geometry.size.height)
-                            TokenView(tokenModel: viewModel.nextTokenModel ?? viewModel.createTokenModel(), activeTab: Binding.constant("buy"))
-                                .frame(height: geometry.size.height)
-                                .opacity(dragging ? 0.2 : 0)
+        Group {
+            if viewModel.isLoading {
+                LoadingView()
+            } else {
+                ZStack {
+                    // Background gradient
+                    LinearGradient(
+                        stops: activeTab == "buy" ? purpleStops : pinkStops,
+                        startPoint: UnitPoint(x: 0.5, y: activeTab == "buy" ? 1 : 0),
+                        endPoint: UnitPoint(x: 0.5, y: activeTab == "buy" ? 0 : 1)
+                    )
+                    .ignoresSafeArea()
+                    
+                    VStack(spacing: 0) {
+                        AccountBalanceView(
+                            userModel: userModel,
+                            currentTokenModel: viewModel.currentTokenModel
+                        )
+                        .padding(.top, 35)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(dragging ? AppColors.black : nil)
+                        .ignoresSafeArea()
+                        .zIndex(2)
+                        
+                        // Rest of the content
+                        if viewModel.availableTokens.count == 0 {
+                            Text("No tokens found").foregroundColor(.red)
+                        } else {
+                            GeometryReader { geometry in
+                                VStack(spacing: 10) {
+                                    TokenView(tokenModel: viewModel.previousTokenModel ?? viewModel.createTokenModel(), activeTab: $activeTab)
+                                        .frame(height: geometry.size.height)
+                                        .opacity(dragging ? 0.2 : 0)
+                                    TokenView(tokenModel: viewModel.currentTokenModel, activeTab: $activeTab)
+                                        .frame(height: geometry.size.height)
+                                    TokenView(tokenModel: viewModel.nextTokenModel ?? viewModel.createTokenModel(), activeTab: Binding.constant("buy"))
+                                        .frame(height: geometry.size.height)
+                                        .opacity(dragging ? 0.2 : 0)
+                                }
+                                .padding(.horizontal)
+                                .zIndex(1)
+                                .offset(y: -geometry.size.height - 40 + offset + activeOffset)
+                                .gesture(
+                                    DragGesture()
+                                        .onChanged { value in
+                                            if canSwipe(value: value) {
+                                                dragging = true
+                                                offset = value.translation.height
+                                            }
+                                        }
+                                        .onEnded { value in
+                                            if canSwipe(value: value) {
+                                                let threshold: CGFloat = 50
+                                                if value.translation.height > threshold {
+                                                    loadToken(geometry, "previous")
+                                                } else if value.translation.height < -threshold {
+                                                    loadToken(geometry, "next")
+                                                }
+                                                withAnimation {
+                                                    offset = 0
+                                                }
+                                                // Delay setting dragging to false to allow for smooth animation
+                                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                                    dragging = false
+                                                }
+                                            }
+                                        }
+                                ).zIndex(1)
+                            }
                         }
-                        .padding(.horizontal)
-                        .zIndex(1)
-                        .offset(y: -geometry.size.height - 40 + offset + activeOffset)
-                        .gesture(
-                            DragGesture()
-                                .onChanged { value in
-                                    if canSwipe(value: value) {
-                                        dragging = true
-                                        offset = value.translation.height
-                                    }
-                                }
-                                .onEnded { value in
-                                    if canSwipe(value: value) {
-                                        let threshold: CGFloat = 50
-                                        if value.translation.height > threshold {
-                                            loadToken(geometry, "previous")
-                                        } else if value.translation.height < -threshold {
-                                            loadToken(geometry, "next")
-                                        }
-                                        withAnimation {
-                                            offset = 0
-                                        }
-                                        // Delay setting dragging to false to allow for smooth animation
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                            dragging = false
-                                        }
-                                    }
-                                }
-                        ).zIndex(1)
+                        
+                        if showInfoCard {
+                            TokenInfoCardView(tokenModel: viewModel.currentTokenModel, isVisible: $showInfoCard)
+                                .transition(.move(edge: .bottom))
+                        }
                     }
                 }
+                .foregroundColor(.white)
+                .background(Color.black)
                 
-                if showInfoCard {
-                    TokenInfoCardView(tokenModel: viewModel.currentTokenModel, isVisible: $showInfoCard)
-                        .transition(.move(edge: .bottom))
-                }
             }
-        }
-        .foregroundColor(.white)
-        .background(Color.black)
-        .onAppear {
+        } .onAppear {
             viewModel.fetchTokens()
         }
     }
@@ -150,6 +153,12 @@ struct TokenListView: View {
 
 #Preview {
     @Previewable @AppStorage("userId") var userId: String = ""
-    TokenListView()
-        .environmentObject(UserModel(userId: userId))
+    @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
+    if !priceModel.isReady {
+        LoadingView()
+    } else {
+        TokenListView()
+            .environmentObject(UserModel(userId: userId))
+            .environmentObject(priceModel)
+    }
 }

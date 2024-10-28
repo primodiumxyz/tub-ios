@@ -9,6 +9,7 @@ import SwiftUI
 import Charts
 
 struct ChartView: View {
+    @EnvironmentObject var priceModel: SolPriceModel
     let prices: [Price]
     let timeframeSecs: Double
     let purchaseTime: Date?
@@ -120,16 +121,12 @@ struct ChartView: View {
                 )
                 .annotation(position: .top, spacing: 4) {
                     if closestPurchasePrice?.timestamp == currentPrice.timestamp {
-                        
-                    }
-                    else if change != nil {
-                        PillView(value:
-                                    "\(String(format: "%.2f%", abs(change! * purchaseAmount))) SOL",
-                                 color: dashedLineColor,
-                                 foregroundColor: AppColors.black)
+                        EmptyView()
                     } else {
-                        PillView(value: "\(PriceFormatter.formatPrice(lamports: currentPrice.price)) SOL", color: AppColors.white,
-                                 foregroundColor: AppColors.black)
+                    PillView(value:
+                                "\(priceModel.formatPrice(lamports: abs(currentPrice.price)))",
+                             color: dashedLineColor,
+                             foregroundColor: AppColors.black)
                     }
                 }
             }
@@ -150,7 +147,7 @@ struct ChartView: View {
                 
                 .annotation(position: .bottom, spacing: 0) {
                     PillView(
-                        value: "\(PriceFormatter.formatPrice(lamports: purchasePrice.price)) SOL",
+                        value: "\(priceModel.formatPrice(lamports: purchasePrice.price))",
                         color: AppColors.primaryPink.opacity(0.8), foregroundColor: AppColors.white)
                 }
             }
@@ -168,7 +165,7 @@ struct ChartView: View {
                 AxisValueLabel()
                 AxisValueLabel {
                     if let intValue = value.as(Int.self) {
-                        Text(PriceFormatter.formatPrice(lamports: intValue))
+                        Text(priceModel.formatPrice(lamports: intValue))
                             .foregroundStyle(.white)
                             .font(.sfRounded(size: .xs, weight: .regular))
                     }

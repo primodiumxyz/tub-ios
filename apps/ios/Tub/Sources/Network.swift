@@ -63,7 +63,7 @@ class Network {
         webSocketTransport = WebSocketTransport(websocket: websocket)
         
         // setup tRPC
-        baseURL = URL(string: "https://localhost:8088/trpc")!
+        baseURL = URL(string: "http://localhost:8888/trpc")!
         session = URLSession(configuration: .default)
     }
 
@@ -230,5 +230,32 @@ extension Network {
             }
         }
     }
-}
 
+    func fetchSolPrice(completion: @escaping (Result<Double, Error>) -> Void) {
+        let url = URL(string: "https://min-api.cryptocompare.com/data/price?fsym=SOL&tsyms=Usd")!
+        let task = session.dataTask(with: url) { data, response, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            
+            guard let data = data else {
+                completion(.failure(NSError(domain: "NetworkError", code: 0, userInfo: [NSLocalizedDescriptionKey: "No data received"])))
+                return
+            }
+            
+            do {
+                if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Double],
+                   let price = json["USD"] {
+                    completion(.success(price))
+                } else {
+                    completion(.failure(NSError(domain: "ParsingError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to parse JSON response"])))
+                }
+            } catch {
+                completion(.failure(error))
+            }
+        }
+        
+        task.resume()
+    }
+}
