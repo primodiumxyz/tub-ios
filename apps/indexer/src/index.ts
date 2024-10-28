@@ -116,19 +116,50 @@ const handleSwapData = async (gql: GqlClient["db"], swapAccountsArray: SwapAccou
 };
 
 /* -------------------------------- WEBSOCKET ------------------------------- */
+// 1. Start the websocket subscription
+// 2. Restart the whole process on global error
+// 3. Restart the websocket connection on close
+// 4. Terminate the connection (which will trigger a reconnect) if:
+//   a. No pong received within 30s (we ping every 10s)
+//   b. No messages received within 30s
 const setup = (gql: GqlClient["db"]) => {
   const ws = new WebSocket(`wss://atlas-mainnet.helius-rpc.com/?api-key=${env.HELIUS_API_KEY}`);
 
-  ws.onclose = () => {
-    console.log("WebSocket connection closed, attempting to reconnect...");
-    setTimeout(() => setup(gql), 5000);
+  let lastMessageTime = Date.now();
+  let pingTimeout: NodeJS.Timeout;
+  let heartbeatInterval: NodeJS.Timeout;
+
+  // Terminate connection if no pong received within 30s
+  const heartbeat = () => {
+    clearTimeout(pingTimeout);
+
+    pingTimeout = setTimeout(() => {
+      console.log("Ping timeout - terminating connection");
+      ws.terminate();
+    }, 30_000);
   };
-  ws.onerror = (error) => {
-    console.log("WebSocket error:", error);
-    ws.close(); // This will trigger onclose and attempt to reconnect
+
+  // Terminate connection if no data received for 30 seconds
+  const checkDataFlow = () => {
+    const timeSinceLastMessage = Date.now() - lastMessageTime;
+    if (timeSinceLastMessage > 30_000) {
+      console.log("No data received for 30 seconds - reconnecting");
+      ws.terminate();
+    }
   };
+
+  ws.on("pong", () => {
+    heartbeat();
+    console.log("Pong received");
+  });
+
   ws.onopen = () => {
     console.log("WebSocket connection opened");
+    heartbeat();
+
+    // Start heartbeat check every 10 seconds
+    heartbeatInterval = setInterval(checkDataFlow, 10_000);
+
     ws.send(
       JSON.stringify({
         jsonrpc: "2.0",
@@ -146,8 +177,9 @@ const setup = (gql: GqlClient["db"]) => {
       }),
     );
   };
+
   ws.onmessage = (event) => {
-    // Parse
+    lastMessageTime = Date.now();
     const obj = JSON.parse(event.data.toString());
     const result = obj.params?.result as TransactionSubscriptionResult | undefined;
     if (result) {
@@ -156,18 +188,25 @@ const setup = (gql: GqlClient["db"]) => {
     }
   };
 
+  ws.onclose = () => {
+    console.log("WebSocket connection closed, attempting to reconnect...");
+    clearInterval(heartbeatInterval);
+    clearTimeout(pingTimeout);
+    setTimeout(() => setup(gql), 5000);
+  };
+
+  ws.onerror = (error) => {
+    console.log("WebSocket error:", error);
+    ws.terminate();
+  };
+
+  // Send ping every 10s
   setInterval(() => {
     if (ws.readyState === WebSocket.OPEN) {
-      ws.ping(null, false, (err) => {
-        if (err) {
-          console.error("Error in ping:", err);
-          ws.close(); // close the connection if ping fails, which will restart the connection
-        } else {
-          console.log("Ping sent");
-        }
-      });
+      ws.ping();
+      console.log("Ping sent");
     }
-  }, 60_000);
+  }, 10_000);
 };
 
 export const start = async () => {
