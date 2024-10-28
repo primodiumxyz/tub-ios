@@ -75,21 +75,25 @@ export const getPoolTokenPriceMultiple = async (
       if (!formattedData) return acc;
       const { wrappedSolVaultBalance, tokenVaultBalance, platform, timestamp } = formattedData;
 
-      const tokenPrice = Number(
-        (BigInt(wrappedSolVaultBalance.tokenAmount.amount) *
-          BigInt(PRICE_PRECISION) *
-          BigInt(10 ** tokenVaultBalance.tokenAmount.decimals)) /
-          (BigInt(tokenVaultBalance.tokenAmount.amount) * BigInt(10 ** wrappedSolVaultBalance.tokenAmount.decimals)),
-      );
+      const tokenPrice =
+        // If there is no token in the pool, we can consider the price to be 0
+        tokenVaultBalance.tokenAmount.amount === "0"
+          ? 0
+          : Number(
+              (BigInt(wrappedSolVaultBalance.tokenAmount.amount) *
+                BigInt(PRICE_PRECISION) *
+                BigInt(10 ** tokenVaultBalance.tokenAmount.decimals)) /
+                (BigInt(tokenVaultBalance.tokenAmount.amount) *
+                  BigInt(10 ** wrappedSolVaultBalance.tokenAmount.decimals)),
+            );
 
-      const priceData = {
+      acc.push({
         mint: tokenVaultBalance.mint,
         price: tokenPrice,
         decimals: tokenVaultBalance.tokenAmount.decimals,
         platform,
         timestamp,
-      };
-      acc.push(priceData);
+      });
     }
     return acc;
   }, [] as PriceData[]);
