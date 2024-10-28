@@ -1,7 +1,5 @@
 
 
-ALTER TABLE "public"."account_transaction" ALTER COLUMN "amount" TYPE Numeric(21,0);
-
 alter table "public"."account_transaction" drop column "transaction_type" cascade;
 
 alter table "public"."token_transaction" drop column "transaction_type" cascade;
@@ -11,9 +9,9 @@ CREATE OR REPLACE FUNCTION public.buy_token(account_id uuid, token_id uuid, amou
  LANGUAGE plpgsql
 AS $function$
 DECLARE
-    latest_price NUMERIC(21,0);
-    total_cost NUMERIC(21,0);
-    account_balance NUMERIC(21,0);
+    latest_price NUMERIC;
+    total_cost NUMERIC;
+    account_balance NUMERIC;
     account_transaction_id UUID;
     token_txn token_transaction%ROWTYPE;
 BEGIN
@@ -64,9 +62,9 @@ CREATE OR REPLACE FUNCTION public.sell_token(account_id uuid, token_id uuid, amo
  LANGUAGE plpgsql
 AS $function$
 DECLARE
-    latest_price NUMERIC(21,0);
-    total_proceeds NUMERIC(21,0);
-    token_balance NUMERIC(21,0);
+    latest_price NUMERIC;
+    total_proceeds NUMERIC;
+    token_balance NUMERIC;
     account_transaction_id UUID;
     token_txn token_transaction%ROWTYPE;
 BEGIN
@@ -118,12 +116,8 @@ $function$;
 
 alter table "public"."account_transaction" drop constraint "amount_contraint";
 
-ALTER TABLE "public"."token" ALTER COLUMN "supply" TYPE Numeric(21, 0);
-
 delete from "public"."token" where name = '';
 alter table "public"."token" add constraint "name_constraint" check (name != '');
 
 delete from "public"."token" where symbol = '';
 alter table "public"."token" add constraint "symbol_constraint" check (symbol != '');
-
-ALTER TABLE "public"."token_transaction" ALTER COLUMN "amount" TYPE Numeric(21, 0);

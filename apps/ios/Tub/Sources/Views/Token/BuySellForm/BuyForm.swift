@@ -9,12 +9,13 @@ import SwiftUI
 
 struct BuyForm: View {
     @Binding var isVisible: Bool
+    @EnvironmentObject var priceModel: SolPriceModel
     @ObservedObject var tokenModel: TokenModel
     var onBuy: (Int, ((Bool) -> Void)?) -> ()
     
     @EnvironmentObject private var userModel: UserModel
-    @State private var buyAmountString: String = ""
-    @State private var buyAmountLamps: Int = 0
+    @State private var buyAmountUsdString: String = ""
+    @State private var buyAmountUsd : Double = 0
     @State private var isValidInput: Bool = true
     
     @State private var dragOffset: CGFloat = 0.0
@@ -22,7 +23,13 @@ struct BuyForm: View {
     @State private var animatingSwipe: Bool = false
     @State private var isClosing: Bool = false
     
+    @State private var isKeyboardActive: Bool = false
+    @State private var keyboardHeight: CGFloat = 0.0
+    private let keyboardAdjustment: CGFloat = 220
+    
+    
     func handleBuy() {
+        let buyAmountLamps = priceModel.usdToLamports(usd: buyAmountUsd)
         let _ = onBuy(buyAmountLamps, { success in
             if success {
                 resetForm()
@@ -36,15 +43,14 @@ struct BuyForm: View {
             return
         }
         
-        let amountSol = Double(amountLamps) / 1e9
-        buyAmountString = PriceFormatter.formatPrice(sol: amountSol)
-        buyAmountLamps = Int(amountLamps)
+        buyAmountUsdString = priceModel.formatPrice(lamports: amountLamps)
+        buyAmountUsd = priceModel.lamportsToUsd(lamports: amountLamps)
         isValidInput = true
     }
     
     func resetForm() {
-        buyAmountString = ""
-        buyAmountLamps = 0
+        buyAmountUsdString = ""
+        buyAmountUsd = 0
         isValidInput = true
         animatingSwipe = false
     }
@@ -60,10 +66,13 @@ struct BuyForm: View {
         .background(AppColors.darkBlueGradient)
         .cornerRadius(26)
         .frame(height: 250)
-        .offset(y: max(dragOffset, slideOffset))
+        .offset(y: max(dragOffset, slideOffset - keyboardHeight + (isKeyboardActive ? keyboardAdjustment : 0)))
         .gesture(dragGesture)
         .onAppear(perform: animateAppearance)
         .onChange(of: isVisible, perform: handleVisibilityChange)
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
+            isKeyboardActive = false
+        }
     }
     
     private var formContent: some View {
@@ -72,7 +81,7 @@ struct BuyForm: View {
             numberInput
             tokenConversionDisplay
             amountButtons
-            SwipeToEnterView(text: "Swipe to buy", onUnlock: handleBuy, disabled: buyAmountLamps == 0 || buyAmountString == "")
+            SwipeToEnterView(text: "Swipe to buy", onUnlock: handleBuy, disabled: buyAmountUsd == 0)
                 .padding(.top, 10)
         }
         .background(AppColors.darkBlueGradient)
@@ -84,14 +93,16 @@ struct BuyForm: View {
     private var numberInput: some View {
         HStack {
             Spacer()
-            Spacer()
-            Spacer()
-            Spacer()
-            Spacer()
-            TextField("", text: $buyAmountString, prompt: Text("0", comment: "placeholder").foregroundColor(.white.opacity(0.3)))
+            Text("$")
+                .font(.sfRounded(size: .xl2, weight: .bold))
+                .padding(8)
+            
+
+            
+            TextField("", text: $buyAmountUsdString, prompt: Text("0", comment: "placeholder").foregroundColor(.white.opacity(0.3)))
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.center)
-                .onChange(of: buyAmountString) { newValue in
+                .onChange(of: buyAmountUsdString) { newValue in
                     let filtered = newValue.filter { "0123456789.".contains($0) }
                     
                     // Limit to two decimal places
@@ -99,28 +110,29 @@ struct BuyForm: View {
                     if components.count > 1 {
                         let wholeNumber = components[0]
                         let decimal = String(components[1].prefix(2))
-                        buyAmountString = "\(wholeNumber).\(decimal)"
+                        buyAmountUsdString = "\(wholeNumber).\(decimal)"
                     } else {
-                        buyAmountString = filtered
+                        buyAmountUsdString = filtered
                     }
                     
-                    if let amount = Double(buyAmountString) {
-                        buyAmountLamps = Int(amount * 100) * Int(1e7)
+                    if let amount = Double(buyAmountUsdString) {
+                        buyAmountUsd = amount
                         isValidInput = true
                     } else {
+                        buyAmountUsd = 0
                         isValidInput = false
                     }
                 }
                 .font(.sfRounded(size: .xl4, weight: .bold))
                 .foregroundColor(isValidInput ? .white : .red)
                 .frame(width: 150, alignment: .trailing)
+                .onTapGesture {
+                    isKeyboardActive = true
+                    print("Keyboard Activated")
+                }
             
-            
-            
-            Text("SOL")
-                .font(.sfRounded(size: .xl2, weight: .bold))
-                .padding(8)
-            
+            Spacer()
+            Spacer()
             Spacer()
         }
     }
@@ -133,12 +145,33 @@ struct BuyForm: View {
     
     private var tokenConversionDisplay: some View {
         Group {
-            if let currentPrice = tokenModel.prices.last?.price, currentPrice > 0 {
-                let tokenAmount = buyAmountLamps / currentPrice
-                Text("\(PriceFormatter.formatPrice(lamports: tokenAmount * Int(1e9))) \(tokenModel.token.symbol)")
+            if let currentPrice = tokenModel.prices.last?.price {
+                let buyAmountLamps = priceModel.usdToLamports(usd: buyAmountUsd)
+                let tokenAmount = Int(Double(buyAmountLamps) / Double(currentPrice) * 1e9)
+
+                Text("\(priceModel.formatPrice(lamports: tokenAmount, showUnit: false)) \(tokenModel.token.symbol)")
                     .font(.sfRounded(size: .base, weight: .bold))
                     .opacity(0.8)
             }
+        }
+        .onAppear{
+            NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { notification in
+                if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
+                    keyboardHeight = keyboardFrame.height
+                }
+                isKeyboardActive = true
+                print("Keyboard Activated")
+            }
+            NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { _ in
+                keyboardHeight = 0 // Reset keyboard height
+                isKeyboardActive = false
+                print("Keyboard Deactivated")
+            }
+        }
+        
+        .onDisappear {
+            NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
+            NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
         }
     }
     
@@ -151,11 +184,11 @@ struct BuyForm: View {
         .padding(.top, 10)
     }
     
-    private func amountButton(for amount: Int ) -> some View {
+    private func amountButton(for pct: Int) -> some View {
         Button(action: {
-            updateBuyAmount(amount * userModel.balanceLamps / 100)
+            updateBuyAmount(userModel.balanceLamps * pct / 100)
         }) {
-            Text(amount == 100 ? "MAX" : "\(amount)%")
+            Text(pct == 100 ? "MAX" : "\(pct)%")
                 .font(.sfRounded(size: .base, weight: .bold))
                 .foregroundColor(.white)
                 .padding(.horizontal, 12)
