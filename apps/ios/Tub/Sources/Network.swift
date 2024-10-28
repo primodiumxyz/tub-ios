@@ -246,7 +246,7 @@ extension Network {
             
             do {
                 if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Double],
-                   let price = json["Usd"] {
+                   let price = json["USD"] {
                     completion(.success(price))
                 } else {
                     completion(.failure(NSError(domain: "ParsingError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to parse JSON response"])))
