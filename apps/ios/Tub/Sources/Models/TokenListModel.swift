@@ -41,6 +41,10 @@ class TokenListModel: ObservableObject {
         return tokens.count - 2 // last - 1
     }
 
+    var isFirstToken: Bool {
+        return currentTokenIndex == 0
+    }
+
     private func initTokenModel() {
         DispatchQueue.main.async {
             self.currentTokenModel.initialize(with: self.tokens[self.currentTokenIndex].id)
@@ -120,13 +124,6 @@ class TokenListModel: ObservableObject {
                         }
                         
                         self.updateTokens()
-                        
-                        tokens.map { elem in
-                            if elem.mint == self.tokens[self.currentTokenIndex].mint {
-                                // round increase_pct to 2 decimals after converting to double
-                                let roundedIncreasePct = String(format: "%.2f", Double(elem.increase_pct) ?? 0)
-                            }
-                        }
                     }
                 case .failure(let error):
                     print(error.localizedDescription)

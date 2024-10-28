@@ -23,6 +23,11 @@ struct BuyForm: View {
     @State private var animatingSwipe: Bool = false
     @State private var isClosing: Bool = false
     
+    @State private var isKeyboardActive: Bool = false
+    @State private var keyboardHeight: CGFloat = 0.0
+    private let keyboardAdjustment: CGFloat = 220
+    
+    
     func handleBuy() {
         let buyAmountLamps = priceModel.usdToLamports(usd: buyAmountUsd)
         let _ = onBuy(buyAmountLamps, { success in
@@ -61,10 +66,13 @@ struct BuyForm: View {
         .background(AppColors.darkBlueGradient)
         .cornerRadius(26)
         .frame(height: 250)
-        .offset(y: max(dragOffset, slideOffset))
+        .offset(y: max(dragOffset, slideOffset - keyboardHeight + (isKeyboardActive ? keyboardAdjustment : 0)))
         .gesture(dragGesture)
         .onAppear(perform: animateAppearance)
         .onChange(of: isVisible, perform: handleVisibilityChange)
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
+            isKeyboardActive = false
+        }
     }
     
     private var formContent: some View {
@@ -118,6 +126,10 @@ struct BuyForm: View {
                 .font(.sfRounded(size: .xl4, weight: .bold))
                 .foregroundColor(isValidInput ? .white : .red)
                 .frame(width: 150, alignment: .trailing)
+                .onTapGesture {
+                    isKeyboardActive = true
+                    print("Keyboard Activated")
+                }
             
             Spacer()
             Spacer()
@@ -141,6 +153,25 @@ struct BuyForm: View {
                     .font(.sfRounded(size: .base, weight: .bold))
                     .opacity(0.8)
             }
+        }
+        .onAppear{
+            NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { notification in
+                if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
+                    keyboardHeight = keyboardFrame.height
+                }
+                isKeyboardActive = true
+                print("Keyboard Activated")
+            }
+            NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { _ in
+                keyboardHeight = 0 // Reset keyboard height
+                isKeyboardActive = false
+                print("Keyboard Deactivated")
+            }
+        }
+        
+        .onDisappear {
+            NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
+            NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
         }
     }
     
