@@ -40,7 +40,7 @@ export const Analytics = () => {
       <Separator className="my-4" />
       <TrackerParams />
       {!!filteredTokensPerInterval.data && !filteredTokensPerInterval.error && (
-        <div className="w-full flex flex-col gap-4 overflow-x-scroll items-center max-w-[calc(100vw-var(--sidebar-width)-8rem)]">
+        <div className="w-full flex flex-col gap-4 overflow-x-scroll items-center pt-8 max-w-[calc(100vw-var(--sidebar-width)-8rem)]">
           {chartGroups.map((group, index) => (
             <div key={index} className="w-full flex flex-col items-center">
               <FilteredTokensChart data={group} width={1200} height={400} />
