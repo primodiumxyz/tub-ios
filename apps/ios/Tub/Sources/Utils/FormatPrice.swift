@@ -60,7 +60,7 @@ func cleanupFormattedString(_ str: String) -> String {
     if Locale.current.decimalSeparator == "," {
         result = result.replacingOccurrences(of: ",", with: "⍼")
             .replacingOccurrences(of: ".", with: ",")
-            .replacingOccurrences(of: "⍼", with: ".")
+            .replacingOccurrences(of: "⍼", with: " ")
     }
     
     return result
