@@ -9,7 +9,7 @@ class TokenModel: ObservableObject {
     
     @Published var token: Token = Token(id: "", name: "COIN", symbol: "SYMBOL", mint: "", decimals: 6, imageUri: "")
     @Published var loading = true
-    @Published var balance: Int = 0
+    @Published var balanceLamps: Int = 0
     
     @Published var amountBoughtLamps: Int = 0
     @Published var purchaseTime : Date? = nil
@@ -115,7 +115,7 @@ class TokenModel: ObservableObject {
                 case .success(let response):
                     DispatchQueue.main.async {
                         self.prices = response.data?.token_price_history.compactMap { history in
-                            if let date = self.formatDate(history.created_at) {
+                            if let date = formatDateString(history.created_at) {
                                 return Price(timestamp: date, price: Int(history.price) ?? 0)
                             }
                             return nil
@@ -142,7 +142,7 @@ class TokenModel: ObservableObject {
             switch result {
             case .success(let graphQLResult):
                 if let priceHistory = graphQLResult.data?.token_price_history.first,
-                   let date = self.formatDate(priceHistory.created_at) {
+                   let date = formatDateString(priceHistory.created_at) {
                     DispatchQueue.main.async {
                         let newPrice = Price(timestamp: date, price: Int(priceHistory.price) ?? 0)
                         
@@ -170,7 +170,7 @@ class TokenModel: ObservableObject {
             DispatchQueue.main.async {
                 switch result {
                 case .success(let graphQLResult):
-                    self.balance =
+                    self.balanceLamps =
                     graphQLResult.data?.balance.first?.value ?? 0
                 case .failure(let error):
                     print("Error: \(error.localizedDescription)")
@@ -202,7 +202,7 @@ class TokenModel: ObservableObject {
     
     func sellTokens(completion: ((Bool) -> Void)?) {
         Network.shared.sellToken(
-            accountId: self.userId, tokenId: self.tokenId, amount: String(self.balance)
+            accountId: self.userId, tokenId: self.tokenId, amount: String(self.balanceLamps)
         ) { result in
             switch result {
             case .success:

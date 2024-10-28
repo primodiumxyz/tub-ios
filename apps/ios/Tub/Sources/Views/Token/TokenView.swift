@@ -95,7 +95,7 @@ struct TokenView : View {
     private var chartView: some View {
         Group {
             if selectedTimespan == .live {
-                ChartView(prices: tokenModel.prices, purchaseTime: tokenModel.purchaseTime, purchaseAmount: tokenModel.balance)
+                ChartView(prices: tokenModel.prices, timeframeSecs: 90.0, purchaseTime: tokenModel.purchaseTime, purchaseAmount: tokenModel.balanceLamps)
             } else {
                 CandleChartView(prices: tokenModel.prices, intervalSecs: 90, timeframeMins: 30)
                     .id(tokenModel.prices.count)
@@ -110,7 +110,7 @@ struct TokenView : View {
                 ForEach([Timespan.live, Timespan.thirtyMin], id: \.self) { timespan in
                     Button(action: {
                         selectedTimespan = timespan
-                        tokenModel.updateHistoryInterval(interval: timespan.interval)
+                        tokenModel.updateHistoryTimeframe(timespan.interval)
                     }) {
                         HStack {
                             if timespan == Timespan.live {
