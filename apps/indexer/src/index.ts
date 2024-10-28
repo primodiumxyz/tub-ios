@@ -126,6 +126,7 @@ const setup = (gql: GqlClient["db"]) => {
   const ws = new WebSocket(`wss://atlas-mainnet.helius-rpc.com/?api-key=${env.HELIUS_API_KEY}`);
 
   let lastMessageTime = Date.now();
+  let lastPongTime = Date.now();
   let pingTimeout: NodeJS.Timeout;
   let heartbeatInterval: NodeJS.Timeout;
 
@@ -134,7 +135,8 @@ const setup = (gql: GqlClient["db"]) => {
     clearTimeout(pingTimeout);
 
     pingTimeout = setTimeout(() => {
-      console.log("Ping timeout - terminating connection");
+      const timeSinceLastPong = Date.now() - lastPongTime;
+      console.log(`Ping timeout - terminating connection. Time since last pong: ${timeSinceLastPong}ms`);
       ws.terminate();
     }, 30_000);
   };
@@ -142,19 +144,25 @@ const setup = (gql: GqlClient["db"]) => {
   // Terminate connection if no data received for 30 seconds
   const checkDataFlow = () => {
     const timeSinceLastMessage = Date.now() - lastMessageTime;
+    console.log(`Health check - Time since last message: ${timeSinceLastMessage}ms, WebSocket state: ${ws.readyState}`);
+
     if (timeSinceLastMessage > 30_000) {
-      console.log("No data received for 30 seconds - reconnecting");
+      console.log(
+        `No data received for 30 seconds - reconnecting. Last message was at ${new Date(lastMessageTime).toISOString()}`,
+      );
       ws.terminate();
     }
   };
 
   ws.on("pong", () => {
+    lastPongTime = Date.now();
+    const timeSinceLastMessage = Date.now() - lastMessageTime;
+    console.log(`Pong received. Time since last message: ${timeSinceLastMessage}ms`);
     heartbeat();
-    console.log("Pong received");
   });
 
   ws.onopen = () => {
-    console.log("WebSocket connection opened");
+    console.log(`WebSocket connection opened at ${new Date().toISOString()}`);
     heartbeat();
 
     // Start heartbeat check every 10 seconds
@@ -179,24 +187,33 @@ const setup = (gql: GqlClient["db"]) => {
   };
 
   ws.onmessage = (event) => {
+    const timeSinceLastMessage = Date.now() - lastMessageTime;
     lastMessageTime = Date.now();
+
     const obj = JSON.parse(event.data.toString());
     const result = obj.params?.result as TransactionSubscriptionResult | undefined;
+
     if (result) {
+      console.log(`Received swap data. Time since last message: ${timeSinceLastMessage}ms`);
       const swapAccounts = processLogs(result);
       handleSwapData(gql, swapAccounts);
+    } else {
+      // Log other types of messages (like subscription confirmations)
+      console.log(`Received non-swap message: ${JSON.stringify(obj).slice(0, 200)}...`);
     }
   };
 
-  ws.onclose = () => {
-    console.log("WebSocket connection closed, attempting to reconnect...");
+  ws.onclose = (event) => {
+    console.log(
+      `WebSocket connection closed at ${new Date().toISOString()}. Code: ${event.code}, Reason: ${event.reason}`,
+    );
     clearInterval(heartbeatInterval);
     clearTimeout(pingTimeout);
     setTimeout(() => setup(gql), 5000);
   };
 
   ws.onerror = (error) => {
-    console.log("WebSocket error:", error);
+    console.log(`WebSocket error at ${new Date().toISOString()}:`, error);
     ws.terminate();
   };
 
@@ -204,7 +221,11 @@ const setup = (gql: GqlClient["db"]) => {
   setInterval(() => {
     if (ws.readyState === WebSocket.OPEN) {
       ws.ping();
-      console.log("Ping sent");
+      console.log(
+        `Ping sent at ${new Date().toISOString()}. Time since last message: ${Date.now() - lastMessageTime}ms`,
+      );
+    } else {
+      console.log(`Cannot send ping - WebSocket state: ${ws.readyState}`);
     }
   }, 10_000);
 };
