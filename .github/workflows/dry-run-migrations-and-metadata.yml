@@ -16,7 +16,7 @@ jobs:
 
       - name: Setup
         uses: ./.github/actions/setup
-    
+
       - name: pnpm install
         run: pnpm install --frozen-lockfile
 

@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct AccountBalanceView: View {
+    @EnvironmentObject var priceModel: SolPriceModel
     @ObservedObject var userModel: UserModel
     @ObservedObject var currentTokenModel: TokenModel
     
@@ -18,17 +19,18 @@ struct AccountBalanceView: View {
                 .opacity(0.7)
                 .kerning(-1)
             
-            let tokenValue = currentTokenModel.balanceLamps * (currentTokenModel.prices.last?.price ?? 0)
-            Text("\(PriceFormatter.formatPrice(lamports: userModel.balanceLamps + tokenValue)) SOL")
+        //    let tokenValue = currentTokenModel.balanceLamps * (currentTokenModel.prices.last?.price ?? 0) / Int(1e9)
+            let tokenValue = 0
+            Text("\(priceModel.formatPrice(lamports: userModel.balanceLamps + tokenValue, maxDecimals: 2, minDecimals: 2))")
                 .font(.sfRounded(size: .xl3))
                 .fontWeight(.bold)
             
             let adjustedChange = userModel.balanceChangeLamps + tokenValue
+
             HStack {
-                Text(adjustedChange >= 0 ? "+" : "-")
-                Text("\(abs(adjustedChange), specifier: "%.2f") SOL")
+                Text("\(priceModel.formatPrice(lamports: adjustedChange, showSign: true, maxDecimals: 2))")
                 
-                let adjustedPercentage = userModel.initialBalanceLamps > 0 ? (adjustedChange / userModel.initialBalanceLamps) * 100 : 100;
+                let adjustedPercentage = userModel.initialBalanceLamps != 0  ? 100 - (Double(userModel.balanceLamps) / Double(userModel.initialBalanceLamps)) * 100 : 100;
                 Text("(\(abs(adjustedPercentage), specifier: "%.1f")%)")
                 
                 // Format time elapsed
@@ -57,3 +59,16 @@ struct AccountBalanceView: View {
     }
 }
 
+#Preview {
+    @Previewable @AppStorage("userId") var userId: String = ""
+    @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
+    if !priceModel.isReady {
+        LoadingView()
+    } else {
+        AccountBalanceView(
+            userModel: UserModel(userId: userId), 
+            currentTokenModel: TokenModel(userId: userId) 
+        )
+        .environmentObject(SolPriceModel(mock: true))
+    }
+}
