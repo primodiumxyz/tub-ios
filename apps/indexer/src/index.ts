@@ -158,8 +158,14 @@ const setup = (gql: GqlClient["db"]) => {
 
   setInterval(() => {
     if (ws.readyState === WebSocket.OPEN) {
-      ws.ping();
-      console.log("Ping sent");
+      ws.ping(null, false, (err) => {
+        if (err) {
+          console.error("Error in ping:", err);
+          ws.close(); // close the connection if ping fails, which will restart the connection
+        } else {
+          console.log("Ping sent");
+        }
+      });
     }
   }, 60_000);
 };
