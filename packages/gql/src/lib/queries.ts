@@ -198,7 +198,7 @@ export const GetFilteredTokensQuery = graphql(`
 `);
 
 // Dashboard
-export const GetSwapsInPeriodQuery = graphql(`
+export const GetSwapsInPeriodCountQuery = graphql(`
   query GetSwapsInPeriod($from: timestamptz!, $to: timestamptz!) {
     swaps_total: token_price_history_aggregate(where: { created_at: { _gte: $from, _lte: $to } }) {
       aggregate {
@@ -212,7 +212,7 @@ export const GetSwapsInPeriodQuery = graphql(`
   }
 `);
 
-export const GetNewTokensInPeriodQuery = graphql(`
+export const GetNewTokensInPeriodCountQuery = graphql(`
   query GetNewTokensInPeriod($from: timestamptz!, $to: timestamptz!) {
     new_tokens_total: token_aggregate(where: { created_at: { _gte: $from, _lte: $to } }) {
       aggregate {
@@ -222,6 +222,50 @@ export const GetNewTokensInPeriodQuery = graphql(`
     new_tokens_hourly: hourly_new_tokens(where: { hour: { _gte: $from, _lte: $to } }) {
       hour
       count
+    }
+  }
+`);
+
+export const GetFilteredTokensForIntervalsWithinPeriodQuery = graphql(`
+  query GetFilteredTokensForIntervalsWithinPeriod(
+    $from: timestamptz!
+    $to: timestamptz!
+    $interval: interval!
+    $increasePct: float8!
+    $minTrades: bigint!
+  ) {
+    get_formatted_tokens_intervals_within_period(
+      args: { start: $from, end: $to, interval: $interval }
+      where: { trades: { _gte: $minTrades }, increase_pct: { _gte: $increasePct } }
+    ) {
+      token_id
+      mint
+      decimals
+      name
+      symbol
+      platform
+      latest_price
+      increase_pct
+      trades
+      created_at
+      interval_start
+    }
+  }
+`);
+
+export const GetFilteredTokensCountForIntervalsWithinPeriodQuery = graphql(`
+  query GetFilteredTokensCountByInterval(
+    $from: timestamptz!
+    $to: timestamptz!
+    $interval: interval!
+    $increasePct: float8!
+    $minTrades: bigint!
+  ) {
+    get_formatted_tokens_intervals_within_period_aggregate(
+      args: { start: $from, end: $to, interval: $interval, trades: $minTrades, increase_pct: $increasePct }
+    ) {
+      interval_start
+      token_count
     }
   }
 `);
