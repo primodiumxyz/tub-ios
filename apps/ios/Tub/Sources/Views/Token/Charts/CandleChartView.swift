@@ -23,6 +23,21 @@ struct CandleChartView: View {
         self.timeframeMins = timeframeMins ?? 30
     }
 
+    private var filteredPrices: [Price] {
+        let filteredPrices = filterPrices(prices: prices, timeframeSecs: timeframeMins * 60)
+        return filteredPrices
+    }
+    
+    private func filterPrices(prices: [Price], timeframeSecs: Double) -> [Price] {
+        let cutoffDate = Date().addingTimeInterval(-timeframeSecs)
+        let filteredPrices = prices.filter { $0.timestamp >= cutoffDate }
+        
+        if filteredPrices.count < 2 {
+            return Array(prices.suffix(2))
+        }
+        
+        return filteredPrices
+    }
     private func updateCandles() {
         if prices.isEmpty { return }
         let startTime = prices.first!.timestamp

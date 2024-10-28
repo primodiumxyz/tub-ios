@@ -21,15 +21,15 @@ struct TokenView : View {
     @State private var showInfoCard = false
     @State private var selectedTimespan: Timespan = .live
     @State private var showBuySheet: Bool = false
-
+    
     enum Timespan: String {
         case live = "LIVE"
         case thirtyMin = "30M"
         
-        var interval: String {
+        var interval: Double {
             switch self {
-            case .live: return "30s"
-            case .thirtyMin: return "30m"
+            case .live: return 120.0
+            case .thirtyMin: return 30.0 * 60.0
             }
         }
     }
@@ -39,10 +39,8 @@ struct TokenView : View {
         self._activeTab = activeTab
     }
     
-    func handleBuy(buyAmountLamps: Int, completion: ((Bool) -> Void)?) {
-        print("buy amount lamps", buyAmountLamps)
-        return
-        tokenModel.buyTokens(buyAmountLamps: buyAmountLamps, completion: {success in
+    func handleBuy(amount: Int, completion: ((Bool) -> Void)?) {
+        tokenModel.buyTokens(buyAmountLamps: amount, completion: {success in
             if success {
                 showBuySheet = false
                 activeTab = "sell"
@@ -97,7 +95,7 @@ struct TokenView : View {
     private var chartView: some View {
         Group {
             if selectedTimespan == .live {
-                ChartView(prices: tokenModel.prices, purchaseTime: tokenModel.purchaseTime, purchaseAmount: tokenModel.balance)
+                ChartView(prices: tokenModel.prices, timeframeSecs: 90.0, purchaseTime: tokenModel.purchaseTime, purchaseAmount: tokenModel.balanceLamps)
             } else {
                 CandleChartView(prices: tokenModel.prices, intervalSecs: 90, timeframeMins: 30)
                     .id(tokenModel.prices.count)
@@ -112,7 +110,7 @@ struct TokenView : View {
                 ForEach([Timespan.live, Timespan.thirtyMin], id: \.self) { timespan in
                     Button(action: {
                         selectedTimespan = timespan
-                        tokenModel.updateHistoryInterval(interval: timespan.interval)
+                        tokenModel.updateHistoryTimeframe(timespan.interval)
                     }) {
                         HStack {
                             if timespan == Timespan.live {
@@ -166,7 +164,7 @@ struct TokenView : View {
                             showBuySheet = false
                         }
                     }
-
+                
                 BuyForm(isVisible: $showBuySheet, tokenModel: tokenModel, onBuy: handleBuy)
                     .transition(.move(edge: .bottom))
                     .zIndex(2) // Ensure it stays on top of everything
