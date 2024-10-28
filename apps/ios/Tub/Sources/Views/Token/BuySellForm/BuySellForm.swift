@@ -75,3 +75,13 @@ struct BuySellForm: View {
             }
     }.frame(maxWidth: .infinity, maxHeight: .infinity) .background(.black).foregroundColor(.white)
 }
+
+// MARK: - Equatable Implementation
+
+/// This extension adds custom equality comparison to BuySellForm.
+/// It's used to optimize SwiftUI's view updates by preventing unnecessary redraws.
+extension BuySellForm: Equatable {
+    static func == (lhs: BuySellForm, rhs: BuySellForm) -> Bool {
+        lhs.tokenModel.tokenId == rhs.tokenModel.tokenId
+    }
+}

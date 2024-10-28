@@ -41,7 +41,8 @@ struct RegisterView: View {
             }
             
             Button(action: {
-                Network.shared.registerNewUser(username: username, airdropAmount: "100000000000") { result in
+
+                Network.shared.registerNewUser(username: username, airdropAmount: String(Int(1.0 * 1e9))) { result in
                         handleRegistration(completion: result)
                     }
             }) {
