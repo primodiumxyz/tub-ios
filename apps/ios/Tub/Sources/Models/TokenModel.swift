@@ -234,7 +234,11 @@ class TokenModel: ObservableObject {
     
     private func calculatePriceChange() {
         let currentPrice = prices.last?.price ?? 0
-        let initialPrice = prices.first?.price ?? 0
+        
+        // Find price closest to 30 seconds ago
+        let thirtySecondsAgo = Date().addingTimeInterval(-30)
+        let initialPrice = prices.min(by: { abs($0.timestamp.timeIntervalSince(thirtySecondsAgo)) < abs($1.timestamp.timeIntervalSince(thirtySecondsAgo)) })?.price ?? currentPrice
+        
         if currentPrice == 0 || initialPrice == 0 {
             print("Error: Cannot calculate price change. Prices are not available.")
             return
