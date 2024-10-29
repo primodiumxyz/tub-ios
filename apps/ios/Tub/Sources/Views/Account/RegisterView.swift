@@ -9,6 +9,7 @@ struct RegisterView: View {
         switch completion {
         case .success(let user):
             userId = user.uuid
+            UserDefaults.standard.set(user.uuid, forKey: "userId")
             isRegistered = true
         case .failure(let error):
             print("Registration failed: \(error.localizedDescription)")
@@ -40,7 +41,10 @@ struct RegisterView: View {
             }
             
             Button(action: {
-                Network.shared.registerNewUser(username: username, airdropAmount: String(Int(1.0 * 1e9)), completion: handleRegistration)
+
+                Network.shared.registerNewUser(username: username, airdropAmount: String(Int(1.0 * 1e9))) { result in
+                        handleRegistration(completion: result)
+                    }
             }) {
                 Text("Register")
                     .font(.sfRounded(size: .base, weight: .semibold))
