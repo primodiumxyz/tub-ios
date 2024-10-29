@@ -10,7 +10,6 @@ import Foundation
 // If on a physical device, check if ngrok environment variable exists and use if it does. Otherwise, default to the remote resources.
 // If on a simulator, use the localhost urls.
 
-
 // GraphQL URLs
 
 private let graphqlUrlHost: String = {
@@ -23,7 +22,7 @@ private let graphqlUrlHost: String = {
 
 public let graphqlHttpUrl: String = {
     #if targetEnvironment(simulator)
-        return "http://localhost:8080"
+        return "http://localhost:8080/v1/graphql"
     #else
         return "https://\(graphqlUrlHost)/v1/graphql"
     #endif
@@ -31,7 +30,7 @@ public let graphqlHttpUrl: String = {
 
 public let graphqlWsUrl: String = {
     #if targetEnvironment(simulator)
-        return "ws://localhost:8080"
+        return "ws://localhost:8080/v1/graphql"
     #else
         return "wss://\(graphqlUrlHost)/v1/graphql"
     #endif
@@ -47,14 +46,10 @@ private let serverUrlHost: String = {
     }
 }()
 
-public let serverUrl: String = {
+public let serverBaseUrl: String = {
     #if targetEnvironment(simulator)
         return "http://localhost:8888/trpc"
     #else
         return "https://\(serverUrlHost)/trpc"
     #endif
 }()
-
-
-
-

@@ -49,21 +49,21 @@ class Network {
     private let baseURL : URL 
     private let session : URLSession
     
-    init() {
+    init() {        
         // setup graphql
-        let httpURL = URL(string: "https://tub-graphql.primodium.ai/v1/graphql")!
+        let httpURL = URL(string: graphqlHttpUrl)!
         let store = ApolloStore()
         httpTransport = RequestChainNetworkTransport(
             interceptorProvider: DefaultInterceptorProvider(store: store),
             endpointURL: httpURL
         )
 
-        let webSocketURL = URL(string: "wss://tub-graphql.primodium.ai/v1/graphql")!
+        let webSocketURL = URL(string: graphqlWsUrl)!
         let websocket = WebSocket(url: webSocketURL, protocol: .graphql_ws)
         webSocketTransport = WebSocketTransport(websocket: websocket)
         
         // setup tRPC
-        baseURL = URL(string: "https://tub-server.primodium.ai/trpc")!
+        baseURL = URL(string: serverBaseUrl)!
         session = URLSession(configuration: .default)
     }
 
