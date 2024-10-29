@@ -148,12 +148,12 @@ const setup = (gql: GqlClient["db"]) => {
     }, 30_000);
   };
 
-  // Terminate connection if no data received for 30 seconds
+  // Terminate connection if no data received for 5 seconds
   const checkDataFlow = () => {
     const timeSinceLastMessage = Date.now() - lastMessageTime;
-    if (timeSinceLastMessage > 30_000) {
+    if (timeSinceLastMessage > 5_000) {
       console.log(
-        `No data received for 30 seconds - reconnecting. Last message was at ${new Date(lastMessageTime).toISOString()}`,
+        `No data received for 5 seconds - reconnecting. Last message was at ${new Date(lastMessageTime).toISOString()}`,
       );
       ws.close(CLOSE_CODES.NO_DATA, "No data received");
     }
