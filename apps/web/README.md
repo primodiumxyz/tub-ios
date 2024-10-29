@@ -1,50 +1,13 @@
-# React + TypeScript + Vite
+# Tub Web Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The `/apps/web` repository contains the TypeScript reference web client for Tub. It is used for developing the Solana programs located in `/packages/contracts`.
 
-Currently, two official plugins are available:
+The web client was used for developing the Tub server, located in `/apps/server`, before the Swift iOS client was ready for GraphQL calls and deployment. Refer to the Swift iOS client at `/apps/ios` for the latest features and server integrations.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Development
 
-## Expanding the ESLint configuration
+The web client is dependent on the Solana programs to run properly. Refer to the `Deploy` section of [`/packages/contracts/README.md`](/packages/contracts/README.md#Deploy) to deploy the Solana programs locally first, then run the following to run the web client.
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
-
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
-
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
-
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+```bash
+pnpm run dev # Run the web client
 ```
