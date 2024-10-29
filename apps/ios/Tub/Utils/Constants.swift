@@ -8,10 +8,11 @@
 import Foundation
 
 // If on a physical device, check if ngrok environment variable exists and use if it does. Otherwise, default to the remote resources.
-// If on a simulator, use the localhost urls.
+// If on a simulator, use the localhost URLs.
 
 // GraphQL URLs
-
+// Accessing environment variables happens at runtime, so cannot use a compiler directive conditional for graphqlUrlHost
+// (See the next conditional, graphqlHttpUrl, for a compiler directive example.)
 private let graphqlUrlHost: String = {
     if let ngrokUrl = ProcessInfo.processInfo.environment["NGROK_GRAPHQL_URL_HOST"] {
         return ngrokUrl
@@ -20,6 +21,7 @@ private let graphqlUrlHost: String = {
     }
 }()
 
+// We use a compiler directive so the condition is only run once, during compilation, instead of on every import
 public let graphqlHttpUrl: String = {
     #if targetEnvironment(simulator)
         return "http://localhost:8080/v1/graphql"
@@ -37,7 +39,6 @@ public let graphqlWsUrl: String = {
 }()
 
 // Server URLs
-
 private let serverUrlHost: String = {
     if let ngrokUrl = ProcessInfo.processInfo.environment["NGROK_SERVER_URL_HOST"] {
         return ngrokUrl
