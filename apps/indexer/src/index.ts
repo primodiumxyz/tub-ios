@@ -151,8 +151,6 @@ const setup = (gql: GqlClient["db"]) => {
   // Terminate connection if no data received for 30 seconds
   const checkDataFlow = () => {
     const timeSinceLastMessage = Date.now() - lastMessageTime;
-    console.log(`Health check - Time since last message: ${timeSinceLastMessage}ms, WebSocket state: ${ws.readyState}`);
-
     if (timeSinceLastMessage > 30_000) {
       console.log(
         `No data received for 30 seconds - reconnecting. Last message was at ${new Date(lastMessageTime).toISOString()}`,

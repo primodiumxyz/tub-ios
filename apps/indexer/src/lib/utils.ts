@@ -77,6 +77,8 @@ export const getPoolTokenPriceMultiple = async (
 
       const tokenPrice =
         // If there is no token in the pool, we can consider the price to be 0
+        // This happens with tokens with no or close to 0 liquidity, or super botted,
+        // e.g. ECMYTGjvXWR3mb5RFEh3F1mAqFBe5EEe53A2n1F1sbpg or 5Jng6jkLKU1o8BNrCzTEMXMFvPjNJZTpdWR3Hq4RHJb6 (for reference)
         tokenVaultBalance.tokenAmount.amount === "0"
           ? 0
           : Number(
