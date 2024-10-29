@@ -49,7 +49,7 @@ class Network {
     private let baseURL : URL 
     private let session : URLSession
     
-    init() {        
+    init() {
         // setup graphql
         let httpURL = URL(string: graphqlHttpUrl)!
         let store = ApolloStore()
