@@ -43,7 +43,7 @@ struct BuyForm: View {
             return
         }
         
-        buyAmountUsdString = priceModel.formatPrice(lamports: amountLamps)
+        buyAmountUsdString = priceModel.formatPrice(lamports: amountLamps, showSign: false, showUnit: false)
         buyAmountUsd = priceModel.lamportsToUsd(lamports: amountLamps)
         isValidInput = true
     }
@@ -103,20 +103,10 @@ struct BuyForm: View {
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.center)
                 .onChange(of: buyAmountUsdString) { newValue in
-                    let filtered = newValue.filter { "0123456789.".contains($0) }
-                    
-                    // Limit to two decimal places
-                    let components = filtered.components(separatedBy: ".")
-                    if components.count > 1 {
-                        let wholeNumber = components[0]
-                        let decimal = String(components[1].prefix(2))
-                        buyAmountUsdString = "\(wholeNumber).\(decimal)"
-                    } else {
-                        buyAmountUsdString = filtered
-                    }
-                    
-                    if let amount = Double(buyAmountUsdString) {
+                    if let amount = formatter.number(from:buyAmountUsdString)?.doubleValue {
+                        print("amount: \(amount)")
                         buyAmountUsd = amount
+                        buyAmountUsdString = priceModel.formatPrice(usd: amount, showSign: false, showUnit: false)
                         isValidInput = true
                     } else {
                         buyAmountUsd = 0
