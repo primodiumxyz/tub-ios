@@ -33,6 +33,7 @@ export type SwapAccounts = {
 export type PriceData = {
   mint: string;
   price: number;
+  decimals: number;
   platform: Platform;
   timestamp: number;
 };

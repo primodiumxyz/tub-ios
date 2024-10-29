@@ -1,13 +1,7 @@
 
-ALTER TABLE "public"."token_transaction" ALTER COLUMN "amount" TYPE numeric;
-
-
 alter table "public"."token" drop constraint "symbol_constraint";
 
 alter table "public"."token" drop constraint "name_constraint";
-
-
-ALTER TABLE "public"."token" ALTER COLUMN "supply" TYPE numeric;
 
 alter table "public"."account_transaction" add constraint "amount_contraint" check (CHECK (amount::numeric >= 0::numeric));
 
@@ -16,15 +10,15 @@ CREATE OR REPLACE FUNCTION public.sell_token(account_id uuid, token_id uuid, amo
  LANGUAGE plpgsql
 AS $function$
 DECLARE
-    latest_price NUMERIC(78,0);
-    total_proceeds NUMERIC(78,0);
+    latest_price NUMERIC;
+    total_proceeds NUMERIC;
     balance_multiplier NUMERIC := 1;  -- Adjust as needed
-    credits NUMERIC(78,0);
-    debits NUMERIC(78,0);
-    account_balance NUMERIC(78,0);
-    token_credits NUMERIC(78,0);
-    token_debits NUMERIC(78,0);
-    token_balance NUMERIC(78,0);
+    credits NUMERIC;
+    debits NUMERIC;
+    account_balance NUMERIC;
+    token_credits NUMERIC;
+    token_debits NUMERIC;
+    token_balance NUMERIC;
     account_transaction_id UUID;
     token_txn token_transaction%ROWTYPE;
 BEGIN
@@ -87,11 +81,11 @@ CREATE OR REPLACE FUNCTION public.buy_token(account_id uuid, token_id uuid, amou
  LANGUAGE plpgsql
 AS $function$
 DECLARE
-    latest_price NUMERIC(78,0);
-    total_cost NUMERIC(78,0);
-    credits NUMERIC(78,0);
-    debits NUMERIC(78,0);
-    account_balance NUMERIC(78,0);
+    latest_price NUMERIC;
+    total_cost NUMERIC;
+    credits NUMERIC;
+    debits NUMERIC;
+    account_balance NUMERIC;
     balance_multiplier NUMERIC := 1;  -- Adjust as needed
     account_transaction_id UUID;
     token_txn token_transaction%ROWTYPE;
@@ -151,5 +145,3 @@ alter table "public"."token_transaction" add column "transaction_type" transacti
 
 alter table "public"."account_transaction" alter column "transaction_type" drop not null;
 alter table "public"."account_transaction" add column "transaction_type" transaction_type;
-
-ALTER TABLE "public"."account_transaction" ALTER COLUMN "amount" TYPE numeric;

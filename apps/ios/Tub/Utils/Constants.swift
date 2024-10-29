@@ -32,7 +32,6 @@ private var installationSource: InstallationSource {
     }
 }
 
-
 // If on a physical device, check if ngrok environment variable exists and use if it does. Otherwise, default to the remote resources.
 // If on a simulator, use the localhost URLs.
 

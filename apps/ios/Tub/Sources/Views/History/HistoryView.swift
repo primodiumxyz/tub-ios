@@ -11,6 +11,9 @@ import TubAPI
 struct HistoryView : View {
     
     @EnvironmentObject private var userModel: UserModel
+    @EnvironmentObject private var priceModel: SolPriceModel
+
+    
     @State private var txs: [Transaction]
     @State private var loading : Bool
     @State private var error: Error? // Add this line
@@ -34,25 +37,24 @@ struct HistoryView : View {
                 case .success(let graphQLResult):
                     if let tokenTransactions = graphQLResult.data?.token_transaction {
                         self.txs = tokenTransactions.reduce(into: []) { result, transaction in
-                            guard let date = formatDate(transaction.account_transaction_data.created_at) else {
+                            guard let date = formatDateString(transaction.account_transaction_data.created_at) else {
                                 return
                             }
                             
-                            let quantity = Double(transaction.amount) / 1e9
                             let isBuy = transaction.amount >= 0
                             let symbol = transaction.token_data.symbol
                             let name = transaction.token_data.name
                             let imageUri = transaction.token_data.uri ?? ""
                             let price = transaction.token_price?.price ?? 0
-                            let value = (Double(price)/1e9) * (quantity)
+                            let valueLamps = price * transaction.amount / Int(1e9)
                             
                             let newTransaction = Transaction(
                                 name: name,
                                 symbol: symbol,
                                 imageUri: imageUri,
                                 date: date,
-                                value: value,
-                                quantity: quantity,
+                                valueUsd: priceModel.lamportsToUsd(lamports: -valueLamps),
+                                quantityTokens: transaction.amount,
                                 isBuy: isBuy
                             )
                             
@@ -86,40 +88,7 @@ struct HistoryView : View {
     }
 }
 
-// Add this new view
-struct ErrorView: View {
-    let error: Error
-    let retryAction: () -> Void
-    
-    var body: some View {
-        VStack {
-            Image(systemName: "exclamationmark.triangle")
-                .font(.system(size: 50))
-                .foregroundColor(.yellow)
-                .padding()
-            
-            Text("Oops! Something went wrong")
-                .font(.title)
-                .multilineTextAlignment(.center)
-            
-            Text(error.localizedDescription)
-                .font(.body)
-                .multilineTextAlignment(.center)
-                .padding()
-            
-            Button(action: retryAction) {
-                Text("Try Again")
-                    .foregroundColor(.white)
-                    .padding()
-                    .background(Color.blue)
-                    .cornerRadius(10)
-            }
-        }
-        .padding()
-        .background(Color.black)
-        .foregroundColor(.white)
-    }
-}
+
 
 struct HistoryViewContent: View {
     var txs: [Transaction]
@@ -377,9 +346,9 @@ struct HistoryViewContent: View {
         if selectedAmountRange != "All" {
             switch selectedAmountRange {
             case "< $100":
-                filteredData = filteredData.filter { abs($0.value) < 100 }
+                filteredData = filteredData.filter { abs($0.valueUsd) < 100 }
             case "> $100":
-                filteredData = filteredData.filter { abs($0.value) > 100 }
+                filteredData = filteredData.filter { abs($0.valueUsd) > 100 }
             default:
                 break
             }
@@ -391,7 +360,8 @@ struct HistoryViewContent: View {
     
 struct TransactionRow: View {
     let transaction: Transaction
-    
+    @EnvironmentObject private var priceModel: SolPriceModel
+
     var body: some View {
         HStack {
             ImageView(imageUri: transaction.imageUri, size: 40)
@@ -416,12 +386,12 @@ struct TransactionRow: View {
             }
             Spacer()
             VStack(alignment: .trailing) {
-                Text(formatAmount(transaction.value))
+                Text(priceModel.formatPrice(usd: transaction.valueUsd, showSign: true))
                     .font(.sfRounded(size: .base, weight: .bold))
                     .foregroundColor(transaction.isBuy ? AppColors.red: AppColors.green)
                 
                 HStack {
-                    Text("\(transaction.quantity, specifier: "%.0f")")
+                    Text(priceModel.formatPrice(lamports: transaction.quantityTokens, showUnit: false))
                         .font(.sfRounded(size: .xs, weight: .regular))
                         .foregroundColor(AppColors.gray)
                         .offset(x:4, y:2)
@@ -440,13 +410,6 @@ struct TransactionRow: View {
         .background(Color.black)
     }
     
-    // Helper functions to format amount and date
-    func formatAmount(_ amount: Double) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        return formatter.string(from: NSNumber(value: amount)) ?? "$0.00"
-    }
-
     func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
@@ -455,9 +418,12 @@ struct TransactionRow: View {
 }
 
 
-struct HistoryView_Previews: PreviewProvider {
-    static var previews: some View {
-        HistoryView(txs: dummyData)
+#Preview {
+    @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
+    if !priceModel.isReady {
+        LoadingView()
+    } else {
+        HistoryView(txs: dummyData).environmentObject(priceModel)
     }
 }
 

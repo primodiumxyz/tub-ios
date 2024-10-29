@@ -22,10 +22,13 @@ select_permissions:
       columns:
         - name
         - symbol
+        - decimals
         - supply
+        - platform
         - uri
         - updated_at
         - id
         - mint
       filter: {}
+      allow_aggregations: true
     comment: ""

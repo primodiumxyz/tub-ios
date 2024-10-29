@@ -6,11 +6,15 @@ import ApolloAPI
 /// update columns of table "token"
 public enum Token_update_column: String, EnumType {
   /// column name
+  case decimals = "decimals"
+  /// column name
   case id = "id"
   /// column name
   case mint = "mint"
   /// column name
   case name = "name"
+  /// column name
+  case platform = "platform"
   /// column name
   case supply = "supply"
   /// column name

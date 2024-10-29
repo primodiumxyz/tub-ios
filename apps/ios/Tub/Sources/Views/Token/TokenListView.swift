@@ -6,20 +6,12 @@
 //
 
 import SwiftUI
-import Apollo
 import TubAPI
 import UIKit
 
 struct TokenListView: View {
+    @StateObject private var viewModel: TokenListModel
     @EnvironmentObject private var userModel: UserModel
-    
-    @State private var tokens: [Token] = []
-    @State private var isLoading = true
-    @State private var subscription: Cancellable?
-    @State private var errorMessage: String?
-    
-    @State private var currentTokenIndex: Int = 0
-    @StateObject private var tokenModel: TokenModel
     
     // chevron animation
     @State private var chevronOffset: CGFloat = 0.0
@@ -33,17 +25,30 @@ struct TokenListView: View {
     // show info card
     @State private var showInfoCard = false
     @State var activeTab: String = "buy"
-    
-    @State private var previousTokenModel: TokenModel?
-    @State private var nextTokenModel: TokenModel?
-    
-    init() {
-        self._tokenModel = StateObject(wrappedValue: TokenModel(userId: UserDefaults.standard.string(forKey: "userId") ?? ""))
+
+    private func canSwipe(value: DragGesture.Value) -> Bool {
+        return activeTab != "sell" && !(value.translation.height > 0 && viewModel.currentTokenIndex == 0)
     }
     
-    private func updateTokenModel(tokenId: String) {
-        DispatchQueue.main.async {
-            tokenModel.initialize(with: tokenId)
+    init() {
+        self._viewModel = StateObject(wrappedValue: TokenListModel(userModel: UserModel(userId: UserDefaults.standard.string(forKey: "userId") ?? "")))
+    }
+    
+    private func loadToken(_ geometry: GeometryProxy, _ direction: String) {
+        if direction == "previous" {
+            viewModel.loadPreviousToken()
+            withAnimation {
+                activeOffset += geometry.size.height
+            }
+        } else {
+            viewModel.loadNextToken()
+            withAnimation {
+                activeOffset -= geometry.size.height
+            }
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            activeOffset = 0
         }
     }
     
@@ -59,189 +64,101 @@ struct TokenListView: View {
     
     
     var body: some View {
-        ZStack {
-            // Background gradient
-            LinearGradient(
-                stops: activeTab == "buy" ? purpleStops : pinkStops,
-                startPoint: UnitPoint(x: 0.5, y: activeTab == "buy" ? 1 : 0),
-                endPoint: UnitPoint(x: 0.5, y: activeTab == "buy" ? 0 : 1)
-            )
-            .ignoresSafeArea()
-            
-            VStack(spacing: 0) {
-                // Account balance view
-                VStack(alignment: .leading) {
-                    Text("Account Balance")
-                        .font(.sfRounded(size: .sm, weight: .bold))
-                        .opacity(0.7)
-                        .kerning(-1)
+        Group {
+            if viewModel.isLoading {
+                LoadingView()
+            } else {
+                ZStack {
+                    // Background gradient
+                    LinearGradient(
+                        stops: activeTab == "buy" ? purpleStops : pinkStops,
+                        startPoint: UnitPoint(x: 0.5, y: activeTab == "buy" ? 1 : 0),
+                        endPoint: UnitPoint(x: 0.5, y: activeTab == "buy" ? 0 : 1)
+                    )
+                    .ignoresSafeArea()
                     
-                    let tokenValue = tokenModel.tokenBalance * (tokenModel.prices.last?.price ?? 0)
-                    let totalBalance = userModel.balance + tokenValue
-                    Text("\(totalBalance, specifier: "%.2f") SOL")
-                        .font(.sfRounded(size: .xl3))
-                        .fontWeight(.bold)
-                    
-                    let adjustedChange = userModel.balanceChange + tokenValue
-                    HStack {
-                        Text(adjustedChange >= 0 ? "+" : "-")
-                        Text("\(abs(adjustedChange), specifier: "%.2f") SOL")
+                    VStack(spacing: 0) {
+                        AccountBalanceView(
+                            userModel: userModel,
+                            currentTokenModel: viewModel.currentTokenModel
+                        )
+                        .padding(.top, 35)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(dragging ? AppColors.black : nil)
+                        .ignoresSafeArea()
+                        .zIndex(2)
                         
-                        let adjustedPercentage = (adjustedChange / userModel.initialBalance) * 100
-                        Text("(\(abs(adjustedPercentage), specifier: "%.1f")%)")
-                        
-                        // Format time elapsed
-                        Text("\(formatTimeElapsed(userModel.timeElapsed))")
-                            .foregroundColor(.gray)
-                    }
-                    .font(.sfRounded(size: .sm, weight: .semibold))
-                    .foregroundColor(adjustedChange >= 0 ? .green : .red)
-                }
-                .padding()
-                .padding(.top, 35)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(dragging ? AppColors.black : nil)
-                .ignoresSafeArea()
-                .zIndex(2)
-                
-                // Rest of the content
-                if isLoading {
-                    LoadingView()
-                } else if tokens.isEmpty {
-                    Text("No tokens found").foregroundColor(.red)
-                } else {
-                    GeometryReader { geometry in
-                        VStack(spacing: 10) {
-                            TokenView(tokenModel: previousTokenModel ?? getPreviousTokenModel(), activeTab: $activeTab)
-                                .frame(height: geometry.size.height)
-                                .opacity(dragging ? 1 : 0)
-                            TokenView(tokenModel: tokenModel, activeTab: $activeTab)
-                                .frame(height: geometry.size.height)
-                            TokenView(tokenModel: nextTokenModel ?? getNextTokenModel(), activeTab: Binding.constant("buy"))
-                                .frame(height: geometry.size.height)
-                                .opacity(dragging ? 0.2 : 0)
-                        }
-                        .padding(.horizontal)
-                        .zIndex(1)
-                        .offset(y: -geometry.size.height - 40 + offset + activeOffset)
-                        .gesture(
-                            DragGesture()
-                                .onChanged { value in
-                                    if activeTab != "sell" {
-                                        dragging = true
-                                        offset = value.translation.height
-                                    }
+                        // Rest of the content
+                        if viewModel.availableTokens.count == 0 {
+                            Text("No tokens found").foregroundColor(.red)
+                        } else {
+                            GeometryReader { geometry in
+                                VStack(spacing: 10) {
+                                    TokenView(tokenModel: viewModel.previousTokenModel ?? viewModel.createTokenModel(), activeTab: $activeTab)
+                                        .frame(height: geometry.size.height)
+                                        .opacity(dragging ? 0.2 : 0)
+                                    TokenView(tokenModel: viewModel.currentTokenModel, activeTab: $activeTab)
+                                        .frame(height: geometry.size.height)
+                                    TokenView(tokenModel: viewModel.nextTokenModel ?? viewModel.createTokenModel(), activeTab: Binding.constant("buy"))
+                                        .frame(height: geometry.size.height)
+                                        .opacity(dragging ? 0.2 : 0)
                                 }
-                                .onEnded { value in
-                                    if activeTab != "sell" {
-                                        let threshold: CGFloat = 50
-                                        if value.translation.height > threshold {
-                                            loadPreviousToken()
-                                            withAnimation {
-                                                activeOffset += geometry.size.height
-                                            }
-                                        } else if value.translation.height < -threshold {
-                                            loadNextToken()
-                                            withAnimation {
-                                                activeOffset -= geometry.size.height
+                                .padding(.horizontal)
+                                .zIndex(1)
+                                .offset(y: -geometry.size.height - 40 + offset + activeOffset)
+                                .gesture(
+                                    DragGesture()
+                                        .onChanged { value in
+                                            if canSwipe(value: value) {
+                                                dragging = true
+                                                offset = value.translation.height
                                             }
                                         }
-                                        withAnimation {
-                                            offset = 0
+                                        .onEnded { value in
+                                            if canSwipe(value: value) {
+                                                let threshold: CGFloat = 50
+                                                if value.translation.height > threshold {
+                                                    loadToken(geometry, "previous")
+                                                } else if value.translation.height < -threshold {
+                                                    loadToken(geometry, "next")
+                                                }
+                                                withAnimation {
+                                                    offset = 0
+                                                }
+                                                // Delay setting dragging to false to allow for smooth animation
+                                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                                    dragging = false
+                                                }
+                                            }
                                         }
-                                        // Delay setting dragging to false to allow for smooth animation
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                            dragging = false
-                                        }
-                                    }
-                                }
-                        ).zIndex(1) 
-                    }
-                }
-                
-                if showInfoCard {
-                    TokenInfoCardView(tokenModel: tokenModel, isVisible: $showInfoCard)
-                        .transition(.move(edge: .bottom))
-                }
-            }
-        }
-        .foregroundColor(.white)
-        .background(Color.black)
-        .onAppear {
-            fetchTokens()
-        }
-        // Remove onDisappear as we no longer need to stop balance updates
-    }
-    
-    private func getPreviousTokenModel() -> TokenModel {
-        let previousIndex = (currentTokenIndex - 1 + tokens.count) % tokens.count
-        return TokenModel(userId: UserDefaults.standard.string(forKey: "userId") ?? "", tokenId: tokens[previousIndex].id)
-    }
-    
-    private func getNextTokenModel() -> TokenModel {
-        let nextIndex = (currentTokenIndex + 1) % tokens.count
-        return TokenModel(userId: UserDefaults.standard.string(forKey: "userId") ?? "", tokenId: tokens[nextIndex].id)
-    }
-    
-    private func loadNextToken() {
-        currentTokenIndex = (currentTokenIndex + 1) % tokens.count
-        previousTokenModel = tokenModel
-        updateTokenModel(tokenId: tokens[currentTokenIndex].id)
-        nextTokenModel = getNextTokenModel()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            activeOffset = 0
-        }
-    }
-    
-    private func loadPreviousToken() {
-        currentTokenIndex = (currentTokenIndex - 1 + tokens.count) % tokens.count
-        nextTokenModel = tokenModel
-        updateTokenModel(tokenId: tokens[currentTokenIndex].id)
-        previousTokenModel = getPreviousTokenModel()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            activeOffset = 0
-        }
-    }
-    
-    private func fetchTokens() {
-        subscription = Network.shared.apollo.subscribe(subscription: SubLatestMockTokensSubscription()) { result in
-            DispatchQueue.global(qos: .background).async {
-                DispatchQueue.main.async {
-                    self.isLoading = false
-                    switch result {
-                    case .success(let graphQLResult):
-                        if let tokens = graphQLResult.data?.token {
-                            self.tokens = tokens.map { elem in Token(id: elem.id, name: elem.name, symbol: elem.symbol, imageUri: elem.uri) }
-                            updateTokenModel(tokenId: tokens[0].id)
-                            previousTokenModel = getPreviousTokenModel()
-                            nextTokenModel = getNextTokenModel()
+                                ).zIndex(1)
+                            }
                         }
-                    case .failure(let error):
-                        self.errorMessage = "Error: \(error.localizedDescription)"
+                        
+                        if showInfoCard {
+                            TokenInfoCardView(tokenModel: viewModel.currentTokenModel, isVisible: $showInfoCard)
+                                .transition(.move(edge: .bottom))
+                        }
                     }
                 }
+                .foregroundColor(.white)
+                .background(Color.black)
+                
             }
-        }
-    }
-    
-    private func formatTimeElapsed(_ timeInterval: TimeInterval) -> String {
-        let hours = Int(timeInterval) / 3600
-        let minutes = (Int(timeInterval) % 3600) / 60
-
-        if hours > 1 {
-            return "past \(hours) hours"
-        } else if hours > 0 {
-            return "past hour"
-        } else if minutes > 1 {
-            return "past \(minutes) minutes"
-        } else  {
-            return "past minute"
+        } .onAppear {
+            viewModel.fetchTokens()
         }
     }
 }
 
 #Preview {
     @Previewable @AppStorage("userId") var userId: String = ""
-    TokenListView()
-        .environmentObject(UserModel(userId: userId))
+    @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
+    if !priceModel.isReady {
+        LoadingView()
+    } else {
+        TokenListView()
+            .environmentObject(UserModel(userId: userId))
+            .environmentObject(priceModel)
+    }
 }

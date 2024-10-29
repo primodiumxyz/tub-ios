@@ -9,8 +9,10 @@ select_permissions:
         - name
         - symbol
         - increase_pct
+        - decimals
         - latest_price
         - mint
+        - platform
         - created_at
         - token_id
       filter: {}
