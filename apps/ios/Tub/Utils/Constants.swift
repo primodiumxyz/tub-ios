@@ -7,6 +7,32 @@
 
 import Foundation
 
+//Check the source of the app
+
+enum InstallationSource {
+    case testFlight
+    case appStore
+    case xcode
+    case invalid
+}
+
+private var installationSource: InstallationSource {
+    if let receiptUrl = Bundle.main.appStoreReceiptURL {
+        let path = receiptUrl.path
+        
+        if path.contains("sandboxReceipt") {
+            return .testFlight
+        } else if path.contains("StoreKit") {
+            return .appStore
+        } else {
+            return .xcode
+        }
+    } else {
+        return .invalid
+    }
+}
+
+
 // If on a physical device, check if ngrok environment variable exists and use if it does. Otherwise, default to the remote resources.
 // If on a simulator, use the localhost URLs.
 
@@ -14,9 +40,12 @@ import Foundation
 // Accessing environment variables happens at runtime, so cannot use a compiler directive conditional for graphqlUrlHost
 // (See the next conditional, graphqlHttpUrl, for a compiler directive example.)
 private let graphqlUrlHost: String = {
-    if let ngrokUrl = ProcessInfo.processInfo.environment["NGROK_GRAPHQL_URL_HOST"] {
+    if installationSource == .appStore || installationSource == .testFlight {
+        return "tub-graphql.primodium.ai"
+    } else if let ngrokUrl = ProcessInfo.processInfo.environment["NGROK_GRAPHQL_URL_HOST"] {
         return ngrokUrl
     } else {
+        // Use remote for testing
         return "tub-graphql.primodium.ai"
     }
 }()
@@ -40,7 +69,9 @@ public let graphqlWsUrl: String = {
 
 // Server URLs
 private let serverUrlHost: String = {
-    if let ngrokUrl = ProcessInfo.processInfo.environment["NGROK_SERVER_URL_HOST"] {
+    if installationSource == .appStore || installationSource == .testFlight {
+        return "tub-server.primodium.ai"
+    } else if let ngrokUrl = ProcessInfo.processInfo.environment["NGROK_SERVER_URL_HOST"] {
         return ngrokUrl
     } else {
         return "tub-server.primodium.ai"
