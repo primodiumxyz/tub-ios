@@ -125,6 +125,13 @@ const handleSwapData = async (gql: GqlClient["db"], swapAccountsArray: SwapAccou
 const setup = (gql: GqlClient["db"]) => {
   const ws = new WebSocket(`wss://atlas-mainnet.helius-rpc.com/?api-key=${env.HELIUS_API_KEY}`);
 
+  // Expected close codes (restart straight away)
+  const CLOSE_CODES = {
+    MANUAL_RESTART: 3000,
+    PING_TIMEOUT: 3001,
+    NO_DATA: 3002,
+  };
+
   let lastMessageTime = Date.now();
   let lastPongTime = Date.now();
   let pingTimeout: NodeJS.Timeout;
@@ -137,7 +144,7 @@ const setup = (gql: GqlClient["db"]) => {
     pingTimeout = setTimeout(() => {
       const timeSinceLastPong = Date.now() - lastPongTime;
       console.log(`Ping timeout - terminating connection. Time since last pong: ${timeSinceLastPong}ms`);
-      ws.terminate();
+      ws.close(CLOSE_CODES.PING_TIMEOUT, "Ping timeout");
     }, 30_000);
   };
 
@@ -150,7 +157,7 @@ const setup = (gql: GqlClient["db"]) => {
       console.log(
         `No data received for 30 seconds - reconnecting. Last message was at ${new Date(lastMessageTime).toISOString()}`,
       );
-      ws.terminate();
+      ws.close(CLOSE_CODES.NO_DATA, "No data received");
     }
   };
 
@@ -209,12 +216,16 @@ const setup = (gql: GqlClient["db"]) => {
     );
     clearInterval(heartbeatInterval);
     clearTimeout(pingTimeout);
-    setTimeout(() => setup(gql), 5000);
+
+    // If it's our manual close, reconnect immediately
+    const delay = Object.values(CLOSE_CODES).includes(event.code) ? 0 : 5000;
+    console.log(`Reconnecting in ${delay}ms...`);
+    setTimeout(() => setup(gql), delay);
   };
 
   ws.onerror = (error) => {
     console.log(`WebSocket error at ${new Date().toISOString()}:`, error);
-    ws.terminate();
+    ws.close(CLOSE_CODES.MANUAL_RESTART, "Error occurred");
   };
 
   // Send ping every 10s
@@ -225,7 +236,8 @@ const setup = (gql: GqlClient["db"]) => {
         `Ping sent at ${new Date().toISOString()}. Time since last message: ${Date.now() - lastMessageTime}ms`,
       );
     } else {
-      console.log(`Cannot send ping - WebSocket state: ${ws.readyState}`);
+      console.log(`Cannot send ping - WebSocket state: ${ws.readyState}. Forcing restart...`);
+      ws.close(CLOSE_CODES.MANUAL_RESTART, "Invalid websocket state");
     }
   }, 10_000);
 };
