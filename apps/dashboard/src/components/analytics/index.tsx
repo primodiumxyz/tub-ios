@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 
 import { BasePeriodDataTable } from "@/components/analytics/base-period-data";
 import { DatePresetsPicker, DateRangePicker } from "@/components/analytics/date-picker";
@@ -7,12 +7,20 @@ import { TrackerParams } from "@/components/tracker/tracker-params";
 import { Separator } from "@/components/ui/separator";
 import { useAnalyticsData } from "@/hooks/use-analytics";
 import { useTrackerParams } from "@/hooks/use-tracker-params";
+import { useWindowDimensions } from "@/hooks/use-window-dimensions";
 
 const MAX_POINTS_PER_CHART = 360;
 
 export const Analytics = () => {
   const { filteredTokensPerInterval } = useAnalyticsData();
   const { timespan, increasePct, minTrades } = useTrackerParams();
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { width } = useWindowDimensions();
+  const chartWidth = useMemo(
+    () => (containerRef.current?.clientWidth ?? 0) - 18,
+    [containerRef.current?.clientWidth, width],
+  );
 
   const chartGroups = useMemo(() => {
     if (!filteredTokensPerInterval.data) return [];
@@ -28,7 +36,7 @@ export const Analytics = () => {
   }, [filteredTokensPerInterval.data]);
 
   return (
-    <div className="flex flex-col items-start w-full gap-4">
+    <div ref={containerRef} className="flex flex-col items-start w-full gap-4">
       <div className="flex justify-between gap-4 w-full">
         <h3 className="text-lg font-semibold">Analytics</h3>
         <div className="flex gap-2">
@@ -40,10 +48,10 @@ export const Analytics = () => {
       <Separator className="my-4" />
       <TrackerParams />
       {!!filteredTokensPerInterval.data && !filteredTokensPerInterval.error && (
-        <div className="w-full flex flex-col gap-4 overflow-x-scroll items-center pt-8 max-w-[calc(100vw-var(--sidebar-width)-8rem)]">
+        <div className="w-full flex flex-col gap-4 items-center pt-8" style={{ width: chartWidth }}>
           {chartGroups.map((group, index) => (
             <div key={index} className="w-full flex flex-col items-center">
-              <FilteredTokensChart data={group} width={1200} height={400} />
+              <FilteredTokensChart data={group} width={chartWidth} height={400} />
               {index === chartGroups.length - 1 && (
                 <span className="block text-center text-sm text-muted-foreground mt-2">
                   Tokens pumping at least {increasePct}% with minimum {minTrades} trades, for each {timespan} intervals
