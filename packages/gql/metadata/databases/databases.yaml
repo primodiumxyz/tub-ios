@@ -72,6 +72,60 @@
             filter: {}
           role: public
     - fields:
+        - name: token_id
+          type:
+            nullable: false
+            scalar: uuid
+        - name: mint
+          type:
+            nullable: false
+            scalar: text
+        - name: name
+          type:
+            nullable: false
+            scalar: varchar
+        - name: symbol
+          type:
+            nullable: false
+            scalar: varchar
+        - name: latest_price
+          type:
+            nullable: false
+            scalar: numeric
+        - name: increase_pct
+          type:
+            nullable: false
+            scalar: float8
+        - name: trades
+          type:
+            nullable: false
+            scalar: bigint
+        - name: created_at
+          type:
+            nullable: false
+            scalar: timestamptz
+        - name: platform
+          type:
+            nullable: false
+            scalar: text
+        - name: decimals
+          type:
+            nullable: true
+            scalar: integer
+        - name: interval_start
+          type:
+            nullable: false
+            scalar: timestamptz
+        - name: increase_pct_after
+          type:
+            nullable: false
+            scalar: text
+        - name: trades_after
+          type:
+            nullable: false
+            scalar: text
+      name: GetFormattedTokensWithPerformanceResult
+    - fields:
         - name: id
           type:
             nullable: false
@@ -301,6 +355,26 @@
       code: SELECT * FROM get_formatted_tokens({{since}});
       returns: GetFormattedTokensResult
       root_field_name: get_formatted_tokens_since
+    - arguments:
+        after_intervals:
+          description: ""
+          nullable: false
+          type: text
+        end:
+          description: ""
+          nullable: false
+          type: timestamptz
+        interval:
+          description: ""
+          nullable: false
+          type: interval
+        start:
+          description: ""
+          nullable: false
+          type: timestamptz
+      code: SELECT * FROM get_formatted_tokens_with_performance_intervals_within_period({{start}}, {{end}}, {{interval}}, {{after_intervals}});
+      returns: GetFormattedTokensWithPerformanceResult
+      root_field_name: get_formatted_tokens_with_performance_intervals_within_period
     - arguments:
         offset:
           description: ""

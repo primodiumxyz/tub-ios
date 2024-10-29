@@ -58,12 +58,12 @@ export const DateRangePicker = ({ className }: HTMLAttributes<HTMLDivElement>) =
 };
 
 export const DatePresetsPicker = () => {
-  const { setFrom, setTo } = useAnalyticsParams();
+  const { from, to, setFrom, setTo } = useAnalyticsParams();
   return (
     <>
       {DATE_PRESETS.map((preset) => (
         <Button
-          variant="ghost"
+          variant={from === preset.start && to === preset.end ? "secondary" : "ghost"}
           key={preset.label}
           onClick={() => {
             setFrom(preset.start);

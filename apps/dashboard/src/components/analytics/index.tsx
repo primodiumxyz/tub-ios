@@ -1,8 +1,8 @@
 import { useMemo, useRef } from "react";
 
 import { BasePeriodDataTable } from "@/components/analytics/base-period-data";
-import { DatePresetsPicker, DateRangePicker } from "@/components/analytics/date-picker";
 import { FilteredTokensChart } from "@/components/analytics/filtered-tokens-period-chart";
+import { DatePresetsPicker, DateRangePicker } from "@/components/date-picker";
 import { TrackerParams } from "@/components/tracker/tracker-params";
 import { Separator } from "@/components/ui/separator";
 import { useAnalyticsData } from "@/hooks/use-analytics";

@@ -32,7 +32,7 @@ export const useAnalyticsData = (): {
   });
 
   const [filteredTokensPerInterval] = useQuery({
-    query: queries.GetFilteredTokensCountForIntervalsWithinPeriodQuery,
+    query: queries.GetFormattedTokensCountForIntervalsWithinPeriodQuery,
     variables: { from, to, interval: timespan, increasePct: increasePct.toString(), minTrades: minTrades.toString() },
     requestPolicy: "network-only",
   });

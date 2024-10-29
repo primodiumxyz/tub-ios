@@ -2,4 +2,5 @@
 - "!include public_get_formatted_tokens.yaml"
 - "!include public_get_formatted_tokens_intervals_within_period.yaml"
 - "!include public_get_formatted_tokens_period.yaml"
+- "!include public_get_formatted_tokens_with_performance_intervals_within_period.yaml"
 - "!include public_sell_token.yaml"

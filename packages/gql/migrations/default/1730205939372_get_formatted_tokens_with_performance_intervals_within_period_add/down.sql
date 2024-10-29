@@ -1,0 +1,1 @@
+DROP FUNCTION public.get_formatted_tokens_with_performance_intervals_within_period;
