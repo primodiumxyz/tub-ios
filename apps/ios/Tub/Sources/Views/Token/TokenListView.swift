@@ -89,7 +89,7 @@ struct TokenListView: View {
                         .zIndex(2)
                         
                         // Rest of the content
-                        if viewModel.availableTokens.count == 0 {
+                        if viewModel.tokens.count == 0 {
                             Text("No tokens found").foregroundColor(.red)
                         } else {
                             GeometryReader { geometry in
