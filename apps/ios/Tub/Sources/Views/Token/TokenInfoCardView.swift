@@ -116,6 +116,7 @@ struct TokenInfoCardView: View {
         )
         .transition(.move(edge: .bottom))
         .offset(y: dragOffset)
+        .ignoresSafeArea(edges: .horizontal)
         .gesture(
             DragGesture()
                 .onChanged { value in

@@ -90,6 +90,12 @@ struct TokenView : View {
             .font(.sfRounded(size: .sm, weight: .semibold))
             .foregroundColor(tokenModel.priceChange.amountLamps >= 0 ? .green : .red)
         }
+        .onTapGesture {
+            // Toggle the info card
+            withAnimation(.easeInOut) {
+                showInfoCard.toggle()
+            }
+        }
     }
 
     private var chartView: some View {
@@ -135,24 +141,29 @@ struct TokenView : View {
     }
 
     private var infoCardOverlay: some View {
-        Group {
-            if showInfoCard {
-                // Fullscreen tap dismiss
-                AppColors.black.opacity(0.4) // Semi-transparent background
-                    .ignoresSafeArea()
-                    .onTapGesture {
-                        withAnimation(.easeInOut) {
-                            showInfoCard = false // Close the card
+        GeometryReader { geometry in
+            ZStack {
+                if showInfoCard {
+                    // Fullscreen tap dismiss
+                    AppColors.black.opacity(0.4) // Semi-transparent background
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            withAnimation(.easeInOut) {
+                                showInfoCard = false // Close the card
+                            }
                         }
-                    }
-                
-                TokenInfoCardView(tokenModel: tokenModel, isVisible: $showInfoCard)
-                    .transition(.move(edge: .bottom))
-                    .zIndex(1) // Ensure it stays on top
-                
+
+                    // Info card view
+                    TokenInfoCardView(tokenModel: tokenModel, isVisible: $showInfoCard)
+                        .frame(width: geometry.size.width, height: geometry.size.height * 0.4)
+                        .transition(.move(edge: .bottom))
+                        .ignoresSafeArea()
+                        .zIndex(1) // Ensure it stays on top
+                }
             }
         }
     }
+
 
     private var buySheetOverlay: some View {
         Group {
