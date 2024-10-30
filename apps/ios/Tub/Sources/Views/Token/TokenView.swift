@@ -17,6 +17,10 @@ struct TokenView : View {
     @State private var showInfoCard = false
     @State private var selectedTimespan: Timespan = .live
     @State private var showBuySheet: Bool = false
+
+   // TODO: make the interval be updated on the UI, and close the timer on unmount
+    @State private var priceChangeInterval: TimeInterval = 0
+    @State private var priceChangeTimer: Timer?
     
     enum Timespan: String {
         case live = "LIVE"
@@ -24,8 +28,8 @@ struct TokenView : View {
         
         var interval: Double {
             switch self {
-            case .live: return 120.0
-            case .thirtyMin: return 30.0 * 60.0
+                case .live: return 120.0
+                case .thirtyMin: return 30.0 * 60.0
             }
         }
     }
@@ -33,6 +37,7 @@ struct TokenView : View {
     init(tokenModel: TokenModel, activeTab: Binding<String>) {
         self.tokenModel = tokenModel
         self._activeTab = activeTab
+        startPriceChangeTimer()
     }
     
     func handleBuy(amount: Int, completion: ((Bool) -> Void)?) {
@@ -43,6 +48,16 @@ struct TokenView : View {
             }
             completion?(success)
         })
+    }
+
+    private func startPriceChangeTimer() {
+        priceChangeTimer?.invalidate()
+        priceChangeTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+            let interval = Date().timeIntervalSince(self.tokenModel.priceRef?.timestamp ?? self.tokenModel.prices.first?.timestamp ?? Date())
+            DispatchQueue.main.async {
+                self.priceChangeInterval = interval
+            }
+        }
     }
     
     var body: some View {
@@ -81,7 +96,7 @@ struct TokenView : View {
                 Text(priceModel.formatPrice(lamports: tokenModel.priceChange.amountLamps, showSign: true))
                 Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
                 
-                Text(formatTimeElapsed(tokenModel.priceChangeInterval)).foregroundColor(.gray)
+                Text(formatTimeElapsed(self.priceChangeInterval)).foregroundColor(.gray)
             }
             .font(.sfRounded(size: .sm, weight: .semibold))
             .foregroundColor(tokenModel.priceChange.amountLamps >= 0 ? .green : .red)

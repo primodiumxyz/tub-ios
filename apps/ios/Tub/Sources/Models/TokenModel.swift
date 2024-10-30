@@ -15,16 +15,15 @@ class TokenModel: ObservableObject {
     @Published var purchaseTime : Date? = nil
     
     @Published var prices: [Price] = []
+    @Published var priceChange: (amountLamps: Int, percentage: Double) = (0, 0)
+    @Published var priceRef: Price?
+    
     private var lastPriceTimestamp: Date?
-    private var priceRef: Price?
 
     private var timeframeSecs: Double = 30 * 60 
     private var latestPriceSubscription: Apollo.Cancellable?
     private var tokenBalanceSubscription: Apollo.Cancellable?
     
-    @Published var priceChange: (amountLamps: Int, percentage: Double) = (0, 0)
-    @Published var priceChangeInterval: TimeInterval = 0
-    private var priceChangeTimer: Timer?
     
     init(userId: String, tokenId: String? = nil) {
         self.userId = userId
@@ -43,7 +42,6 @@ class TokenModel: ObservableObject {
         self.loading = true  // Reset loading state if needed
         self.prices = []
         self.priceChange = (0, 0)
-        self.priceChangeInterval = 0
         self.balanceLamps = 0
         self.priceRef = nil
 
@@ -54,7 +52,6 @@ class TokenModel: ObservableObject {
             
             subscribeToLatestPrice()
             subscribeToTokenBalance()
-            startPriceChangeTimer()
         }
     }
     
@@ -242,7 +239,6 @@ class TokenModel: ObservableObject {
     private func calculatePriceChange() {
         let latestPrice = prices.last?.price ?? 0
         let initialPrice = priceRef?.price ?? self.prices.first?.price ?? 0
-        let initialTimestamp = priceRef?.timestamp ?? self.prices.first?.timestamp ?? Date()
         
         if latestPrice == 0 || initialPrice == 0 {
             print("Error: Cannot calculate price change. Prices are not available.")
@@ -251,29 +247,9 @@ class TokenModel: ObservableObject {
         
         let priceChangeAmount = latestPrice - initialPrice
         let priceChangePercentage = Double(priceChangeAmount) / Double(initialPrice) * 100
-        let interval = Date().timeIntervalSince(initialTimestamp)
         
         DispatchQueue.main.async {
             self.priceChange = (priceChangeAmount, priceChangePercentage)
-            self.priceChangeInterval = interval
-        }
-    }
-
-    private func startPriceChangeTimer() {
-        // Cancel existing timer if any
-        priceChangeTimer?.invalidate()
-        
-        // Create new timer that fires every second
-        priceChangeTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            guard let self = self else { return }
-            
-            if let initialTimestamp = self.priceRef?.timestamp ?? self.prices.first?.timestamp {
-                let interval = Date().timeIntervalSince(initialTimestamp)
-                
-                DispatchQueue.main.async {
-                    self.priceChangeInterval = interval
-                }
-            }
         }
     }
 }
