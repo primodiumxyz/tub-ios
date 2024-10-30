@@ -43,7 +43,6 @@ struct AccountView: View {
                             .padding(.vertical)
                         Text("Username: \(userModel.username)")
                             .font(.sfRounded(size: .lg, weight: .medium))
-                        let _ = print("val", userModel.balanceLamps)
                         Text("Balance: \(priceModel.formatPrice(lamports: userModel.balanceLamps, minDecimals: 2))")
                             .font(.sfRounded(size: .lg, weight: .medium))
                             .padding(.bottom)
