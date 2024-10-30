@@ -14,9 +14,11 @@ struct AppColors {
     static let primaryPink = Color(red: 0.82, green: 0.31, blue: 0.6)
     static let white = Color.white
     static let black = Color.black
-    static let gray = Color.white
+    static let gray = Color.gray
     static let green = Color.green
     static let red = Color.red
+    static let darkgray = Color(red: 0.12, green: 0.12, blue: 0.11)
+
 
     // graph
     static let aquaBlue = Color(red: 0.43, green: 0.97, blue: 0.98)
