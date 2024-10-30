@@ -94,7 +94,9 @@ struct TokenListView: View {
                         
                         // Rest of the content
                         if viewModel.tokens.count == 0 {
+                            Spacer()
                             Text("No tokens found").foregroundColor(.red)
+                            Spacer()
                         } else {
                             GeometryReader { geometry in
                                 VStack(spacing: 10) {
