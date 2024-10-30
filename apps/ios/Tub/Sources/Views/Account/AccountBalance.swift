@@ -39,11 +39,6 @@ struct AccountBalanceView: View {
                 }
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .topLeading)
-                .onTapGesture {
-                    withAnimation {
-                        isExpanded.toggle()
-                    }
-                }
             }
             
             // Expanded view
@@ -97,6 +92,11 @@ struct AccountBalanceView: View {
         .padding(.vertical, 12.0)
         .background(AppColors.darkgray)
         .cornerRadius(50)
+        .onTapGesture {
+            withAnimation {
+                isExpanded.toggle()
+            }
+        }
     }
     
     private func formatTimeElapsed(_ timeInterval: TimeInterval) -> String {
