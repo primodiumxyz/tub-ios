@@ -216,7 +216,7 @@ const setup = (gql: GqlClient["db"]) => {
     clearTimeout(pingTimeout);
 
     // If it's our manual close, reconnect immediately
-    const delay = Object.values(CLOSE_CODES).includes(event.code) ? 0 : 5000;
+    const delay = Object.values(CLOSE_CODES).includes(event.code) ? 1000 : 5000;
     console.log(`Reconnecting in ${delay}ms...`);
     setTimeout(() => setup(gql), delay);
   };
