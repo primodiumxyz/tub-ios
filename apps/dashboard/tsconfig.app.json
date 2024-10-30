@@ -25,5 +25,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["../../packages/*", "../../apps/web", "../../apps/server", "../../apps/keeper", "../../apps/indexer"]
 }
