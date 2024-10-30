@@ -123,7 +123,7 @@ const handleSwapData = async (gql: GqlClient["db"], swapAccountsArray: SwapAccou
 //   a. No pong received within 30s (we ping every 10s)
 //   b. No messages received within 30s
 const setup = (gql: GqlClient["db"]) => {
-  const ws = new WebSocket(`wss://atlas-mainnet.helius-rpc.com/?api-key=${env.HELIUS_API_KEY}`);
+  const ws = new WebSocket(`ws://atlas-mainnet.helius-rpc.com/?api-key=${env.HELIUS_API_KEY}`);
 
   // Expected close codes (restart straight away)
   const CLOSE_CODES = {
