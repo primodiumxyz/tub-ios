@@ -79,8 +79,13 @@ struct TokenView : View {
                 Text("$\(tokenModel.token.symbol)")
                     .font(.sfRounded(size: .lg, weight: .semibold))
             }
-            Text(priceModel.formatPrice(lamports: tokenModel.prices.last?.price ?? 0, maxDecimals: 9, minDecimals: 2))
-                .font(.sfRounded(size: .xl4, weight: .bold))
+            HStack(alignment: .center, spacing: 6) {
+                Text(priceModel.formatPrice(lamports: tokenModel.prices.last?.price ?? 0, maxDecimals: 9, minDecimals: 2))
+                    .font(.sfRounded(size: .xl4, weight: .bold))
+                Image(systemName: "info.circle.fill")
+                .frame(width: 16, height: 16)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
             
             HStack {
                 Text(priceModel.formatPrice(lamports: tokenModel.priceChange.amountLamps, showSign: true))

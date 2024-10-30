@@ -92,7 +92,7 @@ struct TokenInfoCardView: View {
                         .frame(width: 20, height: 20)
                     Text(" @ MONKAY")
                         .font(.sfRounded(size: .lg, weight: .semibold))
-                        .foregroundColor(AppColors.aquaBlue)
+                        .foregroundColor(AppColors.aquaGreen)
                 }
                 .padding(.top, 8.0)
                 .frame(maxWidth: .infinity, alignment: .leading)
