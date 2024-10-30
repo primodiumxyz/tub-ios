@@ -20,58 +20,62 @@ struct RegisterView: View {
     }
     
     var body: some View {
-        VStack(spacing: 12) {
-            Image("Logo")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 160, height: 160)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(.white, lineWidth: 2)
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .padding(.bottom, 16)
+        if myAuthState.toString == "authenticated" {
+                 Text(myAuthState.toString)
+                     .foregroundStyle(.white.opacity(0.5))
+                     .padding(.bottom, 24)
             
-            // Text(myAuthState.toString)
-            //     .foregroundStyle(.white.opacity(0.5))
-            //     .padding(.bottom, 24)
-            
-            Button(action: {
-                Task {
-                    do {
-                        let _ = try await privy.oAuth.login(with: OAuthProvider.google)
-                    } catch {
-                        debugPrint("Error: \(error)")
-                        // Handle errors
-                    }
-                }
-            }) {
-                GoogleLogoView()
-                    .frame(width: 24, height: 24)
-
-                Text("Sign In With Google").font(.sfRounded(size: .lg, weight: .semibold))
-            }.frame(width: 260).padding().background(.white).cornerRadius(26).foregroundStyle(.black)
-            
-            SignInWithApple()
-                .onTapGesture {
-                    // Ideally this is called in a view model, but showcasing logic here for brevity
+        } else {
+            VStack(spacing: 12) {
+                Image("Logo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 160, height: 160)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(.white, lineWidth: 2)
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .padding(.bottom, 16)
+  
+                
+                Button(action: {
                     Task {
                         do {
-                            let authSession = try await privy.oAuth.login(with: OAuthProvider.apple)
-                            print(authSession.user)
+                            let _ = try await privy.oAuth.login(with: OAuthProvider.google)
                         } catch {
                             debugPrint("Error: \(error)")
+                            // Handle errors
                         }
                     }
+                }) {
+                    GoogleLogoView()
+                        .frame(width: 24, height: 24)
+                    
+                    Text("Sign In With Google").font(.sfRounded(size: .xl, weight: .semibold))
+                }.frame(width: 260).padding().background(.white).cornerRadius(26).foregroundStyle(.black)
+                
+                SignInWithApple()
+                    .onTapGesture {
+                        // Ideally this is called in a view model, but showcasing logic here for brevity
+                        Task {
+                            do {
+                                let authSession = try await privy.oAuth.login(with: OAuthProvider.apple)
+                                print(authSession.user)
+                            } catch {
+                                debugPrint("Error: \(error)")
+                            }
+                        }
+                    }
+                
+            }.onAppear {
+                privy.setAuthStateChangeCallback { state in
+                    self.myAuthState = state
                 }
-          
-        }.onAppear {
-            privy.setAuthStateChangeCallback { state in
-                self.myAuthState = state
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(AppColors.darkBlueGradient)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(AppColors.darkBlueGradient)
     }
 }
 
