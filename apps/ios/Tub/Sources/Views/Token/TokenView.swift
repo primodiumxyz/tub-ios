@@ -60,13 +60,11 @@ struct TokenView : View {
                 BuySellForm(tokenModel: tokenModel, activeTab: $activeTab, showBuySheet: $showBuySheet)
                     .equatable() // Add this modifier
             }
+            .padding(.horizontal)
             .frame(maxWidth: .infinity)
             .foregroundColor(AppColors.white)
             
             infoCardOverlay
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .ignoresSafeArea()
-
             buySheetOverlay
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -144,30 +142,21 @@ struct TokenView : View {
     }
 
     private var infoCardOverlay: some View {
-        GeometryReader { geometry in
-            ZStack {
-                if showInfoCard {
-                    // Fullscreen tap dismiss
-                    AppColors.black.opacity(0.4) // Semi-transparent background
-                        .ignoresSafeArea()
-                        .onTapGesture {
-                            withAnimation(.easeInOut) {
-                                showInfoCard = false // Close the card
-                            }
+        Group {
+            if showInfoCard {
+                // Fullscreen tap dismiss
+                AppColors.black.opacity(0.4) // Semi-transparent background
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        withAnimation(.easeInOut) {
+                            showInfoCard = false // Close the card
                         }
-
-                    // Info card view
-                    TokenInfoCardView(tokenModel: tokenModel, isVisible: $showInfoCard)
-                        .frame(width: geometry.size.width, height: geometry.size.height * 0.4)
-                        .transition(.move(edge: .bottom))
-                        .ignoresSafeArea()
-                        .zIndex(1) // Ensure it stays on top
-                }
+                    }
+                
+                TokenInfoCardView(tokenModel: tokenModel, isVisible: $showInfoCard)
+                    .transition(.move(edge: .bottom))
+                    .zIndex(1) // Ensure it stays on top
             }
-            .frame(maxWidth: .infinity)
-            .ignoresSafeArea()
-
-
         }
     }
 
