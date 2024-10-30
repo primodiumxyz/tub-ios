@@ -108,8 +108,6 @@ class TokenListModel: ObservableObject {
         } else {
             tokens[tokens.count - 1] = getRandomToken(excluding: tokens[currentTokenIndex].id)!
         }
-        
-        print(tokens.count)
     }
 
     func fetchTokens() {
