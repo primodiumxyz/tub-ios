@@ -20,6 +20,10 @@
 		993E5D932CAEF33B000E23A9 /* subscriptions.graphql in Resources */ = {isa = PBXBuildFile; fileRef = 993E5D922CAEF33B000E23A9 /* subscriptions.graphql */; };
 		993E5D942CAEF33B000E23A9 /* queries.graphql in Resources */ = {isa = PBXBuildFile; fileRef = 993E5D912CAEF33B000E23A9 /* queries.graphql */; };
 		9941CD6F2CCAA30D0009E5ED /* FormatPrice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9941CD6E2CCAA30B0009E5ED /* FormatPrice.swift */; };
+		994AE5F72CD2AB3F00553A32 /* GoogleLogoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994AE5F62CD2AB3F00553A32 /* GoogleLogoView.swift */; };
+		99856DA42CD27E1F004B9D40 /* Privy in Frameworks */ = {isa = PBXBuildFile; productRef = 99856DA32CD27E1F004B9D40 /* Privy */; };
+		99856DA62CD27E2E004B9D40 /* Privy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99856DA52CD27E27004B9D40 /* Privy.swift */; };
+		99856DA82CD27F5B004B9D40 /* SignInWithApple.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99856DA72CD27F58004B9D40 /* SignInWithApple.swift */; };
 		999F59562CA6F97100E7AE9F /* TokenModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999F59552CA6F96D00E7AE9F /* TokenModel.swift */; };
 		999F595B2CA754FB00E7AE9F /* ChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999F595A2CA754F900E7AE9F /* ChartView.swift */; };
 		99BB98562CC1798600658059 /* CandleChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99BB98552CC1798400658059 /* CandleChartView.swift */; };
@@ -80,6 +84,11 @@
 		993E5D912CAEF33B000E23A9 /* queries.graphql */ = {isa = PBXFileReference; lastKnownFileType = text; path = queries.graphql; sourceTree = "<group>"; };
 		993E5D922CAEF33B000E23A9 /* subscriptions.graphql */ = {isa = PBXFileReference; lastKnownFileType = text; path = subscriptions.graphql; sourceTree = "<group>"; };
 		9941CD6E2CCAA30B0009E5ED /* FormatPrice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatPrice.swift; sourceTree = "<group>"; };
+		994AE5F62CD2AB3F00553A32 /* GoogleLogoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleLogoView.swift; sourceTree = "<group>"; };
+		99856DA52CD27E27004B9D40 /* Privy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Privy.swift; sourceTree = "<group>"; };
+		99856DA72CD27F58004B9D40 /* SignInWithApple.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInWithApple.swift; sourceTree = "<group>"; };
+		99856DA92CD28271004B9D40 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		99856DCA2CD29201004B9D40 /* TubRelease.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TubRelease.entitlements; sourceTree = "<group>"; };
 		999F59552CA6F96D00E7AE9F /* TokenModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenModel.swift; sourceTree = "<group>"; };
 		999F595A2CA754F900E7AE9F /* ChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartView.swift; sourceTree = "<group>"; };
 		99BB98552CC1798400658059 /* CandleChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CandleChartView.swift; sourceTree = "<group>"; };
@@ -122,6 +131,7 @@
 				99DED2512CAF2A6B0055FC60 /* ApolloCombine in Frameworks */,
 				99C26C1C2CAEE263004807A2 /* ApolloAPI in Frameworks */,
 				993E5D902CAEE423000E23A9 /* ApolloWebSocket in Frameworks */,
+				99856DA42CD27E1F004B9D40 /* Privy in Frameworks */,
 				DFA4D6512CAC500B00AEDC73 /* Apollo in Frameworks */,
 				DB458DB12CAC824A00C5EC18 /* TubAPI in Frameworks */,
 			);
@@ -196,6 +206,7 @@
 				DB458DB32CAC827A00C5EC18 /* Network.swift */,
 				DB6D29042CA1C8F70099951A /* TubApp.swift */,
 				9979D2F02CB57B840040DF41 /* Utils */,
+				99856DA52CD27E27004B9D40 /* Privy.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -203,6 +214,8 @@
 		99DD65FE2CB80D0300B56450 /* Account */ = {
 			isa = PBXGroup;
 			children = (
+				994AE5F62CD2AB3F00553A32 /* GoogleLogoView.swift */,
+				99856DA72CD27F58004B9D40 /* SignInWithApple.swift */,
 				990337042CC9416B002D3A25 /* AccountBalance.swift */,
 				990B90F12CB5B40C00B5B073 /* AccountSetupView.swift */,
 				99DDF62C2CB0280D000234DA /* AccountView.swift */,
@@ -293,6 +306,8 @@
 		DB6D29032CA1C8F70099951A /* Tub */ = {
 			isa = PBXGroup;
 			children = (
+				99856DCA2CD29201004B9D40 /* TubRelease.entitlements */,
+				99856DA92CD28271004B9D40 /* Info.plist */,
 				99A7CD502CB80C4100F27964 /* Sources */,
 				9910F1B42CAAE2F0005DEE6B /* Fonts */,
 				DB6D29082CA1C8F80099951A /* Assets.xcassets */,
@@ -353,6 +368,7 @@
 				99C26C1B2CAEE263004807A2 /* ApolloAPI */,
 				993E5D8F2CAEE423000E23A9 /* ApolloWebSocket */,
 				99DED2502CAF2A6B0055FC60 /* ApolloCombine */,
+				99856DA32CD27E1F004B9D40 /* Privy */,
 			);
 			productName = Tub;
 			productReference = DB6D29012CA1C8F70099951A /* Tub.app */;
@@ -432,6 +448,7 @@
 				DFA4D6522CAC50FE00AEDC73 /* XCRemoteSwiftPackageReference "apollo-ios-codegen" */,
 				DB458DAE2CAC821D00C5EC18 /* XCLocalSwiftPackageReference "TubAPI" */,
 				99DED24F2CAF2A6B0055FC60 /* XCRemoteSwiftPackageReference "ApolloCombine" */,
+				99856DA22CD27E1F004B9D40 /* XCRemoteSwiftPackageReference "privy-ios" */,
 			);
 			productRefGroup = DB6D29022CA1C8F70099951A /* Products */;
 			projectDirPath = "";
@@ -482,6 +499,7 @@
 				DFC723E32CB9A86C003A915C /* TokenInfoCardView.swift in Sources */,
 				9910F1B62CAAE302005DEE6B /* SFRounded.swift in Sources */,
 				990B90F22CB5B41000B5B073 /* AccountSetupView.swift in Sources */,
+				99856DA82CD27F5B004B9D40 /* SignInWithApple.swift in Sources */,
 				99DDF62D2CB02816000234DA /* AccountView.swift in Sources */,
 				9936FC582CADCA5200E21B8A /* Structs.swift in Sources */,
 				DB458DB42CAC827A00C5EC18 /* Network.swift in Sources */,
@@ -489,8 +507,10 @@
 				99DED2532CAF2C6D0055FC60 /* RegisterView.swift in Sources */,
 				4619A8182CCA4E25003CD119 /* TokenListModel.swift in Sources */,
 				DF5A2FC32CAF165D00508A56 /* HistoryView.swift in Sources */,
+				994AE5F72CD2AB3F00553A32 /* GoogleLogoView.swift in Sources */,
 				992875672CCACD4C004B48BE /* ErrorView.swift in Sources */,
 				DF5A2FC52CAF2DEF00508A56 /* HistoryDetailsView.swift in Sources */,
+				99856DA62CD27E2E004B9D40 /* Privy.swift in Sources */,
 				999F595B2CA754FB00E7AE9F /* ChartView.swift in Sources */,
 				DFF5292B2CC0121B007DC43F /* AppColors.swift in Sources */,
 				99DED24E2CAF28C10055FC60 /* UserModel.swift in Sources */,
@@ -670,6 +690,7 @@
 				DEVELOPMENT_TEAM = YQ22J47VA8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Tub/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Tub;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
@@ -704,7 +725,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
-				CODE_SIGN_ENTITLEMENTS = Tub/Tub.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Tub/TubRelease.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -712,6 +733,7 @@
 				DEVELOPMENT_TEAM = YQ22J47VA8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Tub/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Tub;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
@@ -875,6 +897,14 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		99856DA22CD27E1F004B9D40 /* XCRemoteSwiftPackageReference "privy-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/privy-io/privy-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.4.0;
+			};
+		};
 		999F59592CA754CB00E7AE9F /* XCRemoteSwiftPackageReference "Charts" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/danielgindi/Charts.git";
@@ -914,6 +944,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = DFA4D64F2CAC500B00AEDC73 /* XCRemoteSwiftPackageReference "apollo-ios" */;
 			productName = ApolloWebSocket;
+		};
+		99856DA32CD27E1F004B9D40 /* Privy */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 99856DA22CD27E1F004B9D40 /* XCRemoteSwiftPackageReference "privy-ios" */;
+			productName = Privy;
 		};
 		99C26C1B2CAEE263004807A2 /* ApolloAPI */ = {
 			isa = XCSwiftPackageProductDependency;
