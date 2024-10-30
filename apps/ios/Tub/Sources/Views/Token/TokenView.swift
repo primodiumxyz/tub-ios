@@ -64,6 +64,9 @@ struct TokenView : View {
             .foregroundColor(AppColors.white)
             
             infoCardOverlay
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .ignoresSafeArea()
+
             buySheetOverlay
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -161,6 +164,10 @@ struct TokenView : View {
                         .zIndex(1) // Ensure it stays on top
                 }
             }
+            .frame(maxWidth: .infinity)
+            .ignoresSafeArea()
+
+
         }
     }
 

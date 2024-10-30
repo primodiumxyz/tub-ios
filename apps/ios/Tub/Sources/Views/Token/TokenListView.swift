@@ -138,6 +138,7 @@ struct TokenListView: View {
                         if showInfoCard {
                             TokenInfoCardView(tokenModel: viewModel.currentTokenModel, isVisible: $showInfoCard)
                                 .transition(.move(edge: .bottom))
+                                .ignoresSafeArea()
                         }
                     }
                 }
