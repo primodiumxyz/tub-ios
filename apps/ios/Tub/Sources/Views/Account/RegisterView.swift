@@ -21,9 +21,14 @@ struct RegisterView: View {
     
     var body: some View {
         if myAuthState.toString == "authenticated" {
-                 Text(myAuthState.toString)
-                     .foregroundStyle(.white.opacity(0.5))
-                     .padding(.bottom, 24)
+            Text(myAuthState.toString)
+                .foregroundStyle(.white.opacity(0.5))
+                .padding(.bottom, 24)
+            Button(action: {
+                privy.logout()
+            }) {
+                Text("logout")
+            }
             
         } else {
             VStack(spacing: 12) {
@@ -37,7 +42,7 @@ struct RegisterView: View {
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .padding(.bottom, 16)
-  
+                
                 
                 Button(action: {
                     Task {
@@ -67,7 +72,20 @@ struct RegisterView: View {
                             }
                         }
                     }
-                
+                Button(action: {
+                    
+                    Network.shared.registerNewUser(username: "test", airdropAmount: String(Int(1.0 * 1e9))) { result in
+                        handleRegistration(completion: result)
+                    }
+                }) {
+                    Text("Dev Login")
+                        .font(.sfRounded(size: .base, weight: .semibold))
+                        .foregroundColor(AppColors.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(12)
+                        .background(AppColors.primaryPurple)
+                        .cornerRadius(26)
+                }.padding([.top, .leading, .trailing])               
             }.onAppear {
                 privy.setAuthStateChangeCallback { state in
                     self.myAuthState = state
