@@ -14,117 +14,109 @@ struct TokenInfoCardView: View {
     @State private var animatingSwipe: Bool = false
     @State private var isClosing: Bool = false
     
+    //placeholder
+    let stats = [
+            ("Market Cap", "$144M"),
+            ("Volume", "1.52M"),
+            ("Holders", "53.3K"),
+            ("Supply", "989M")
+    ]
+    
     var body: some View {
-        VStack() {
-            //Coin
-            Capsule()
-                .fill(AppColors.white.opacity(0.3))
-                .frame(width: 60, height: 4)
-                .offset(y:-15)
-            
-            HStack {
-                if tokenModel.token.imageUri != nil {
-                    ImageView(imageUri: tokenModel.token.imageUri!, size: 20)
-                }
-                Text("\(tokenModel.token.name)")
-                    .font(.sfRounded(size: .xl, weight: .semibold))
-                    .foregroundColor(AppColors.lightYellow)
+        
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .center, spacing: 0) {
+                Rectangle()
+                .foregroundColor(.clear)
+                .frame(width: 60, height: 3)
+                .background(AppColors.lightGray)
+                .cornerRadius(100)
             }
-            .offset(y:-8)
+            .padding()
+            .frame(maxWidth: .infinity, minHeight: 22, maxHeight: 22, alignment: .center)
             
-            //Info
-            VStack(alignment: .leading) {
-                //inner rectangle
-                VStack(alignment: .leading) {
-                    HStack{
-                        VStack(alignment: .leading){
-                            VStack(alignment: .leading){
-                                Text("Market Cap")
-                                    .font(.sfRounded(size: .sm, weight: .medium))
-                                
-                                Text("$544M")
-                                    .font(.sfRounded(size: .xl2, weight: .semibold))
-                            }.padding(.vertical, 5.0)
-                            
-                            VStack(alignment: .leading){
-                                Text("Holders")
-                                    .font(.sfRounded(size: .sm, weight: .medium))
-                                Text("23.3K")
-                                    .font(.sfRounded(size: .xl2, weight: .semibold))
-                            }.padding(.vertical, 5.0)
-                        }
-                        
-                        Spacer()
-                        
-                        VStack(alignment: .leading){
-                            VStack(alignment: .leading){
-                                Text("Volume (24h)")
-                                    .font(.sfRounded(size: .sm, weight: .medium))
-                                Text("$29.0M")
-                                    .font(.sfRounded(size: .xl2, weight: .semibold))
-                            }.padding(.vertical, 5.0)
-                            
-                            VStack(alignment: .leading){
-                                Text("Circulating Supply")
-                                    .font(.sfRounded(size: .sm, weight: .medium))
-                                Text("900M")
-                                    .font(.sfRounded(size: .xl2, weight: .semibold))
-                            }.padding(.vertical, 5.0)
-                        }
-                        .offset(x:-15)
-                    }
-                    
-                    HStack(alignment: .bottom) {
-                        Text("Created")
-                            .font(.sfRounded(size: .sm, weight: .regular))
-                        Text("28d 20h")
-                            .font(.sfRounded(size: .sm, weight: .semibold))
-                            .offset(x:-3)
-                        Text("ago")
-                            .font(.sfRounded(size: .sm, weight: .regular))
-                            .offset(x:-8)
-                    }
-                }
-                .padding([.leading, .bottom, .trailing], 24.0)
-                .padding(.top, 20.0)
-                .foregroundColor(AppColors.white)
-                .cornerRadius(10)
-                .background(AppColors.darkBlue)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .inset(by: 0.5)
-                        .strokeBorder(AppColors.white)
-                )
+            VStack(alignment: .leading, spacing: 0) {
                 
-                //About
-                VStack(alignment: .leading){
+                Text("Stats")
+                    .font(.sfRounded(size: .xl, weight: .semibold))
+                    .foregroundColor(AppColors.white)
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
+                
+                // grid
+                ForEach(0..<stats.count/2, id: \.self) { index in
+                    HStack(alignment: .top, spacing: 20) {
+                        ForEach(0..<2) { subIndex in
+                            let stat = stats[index * 2 + subIndex]
+                            VStack {
+                                HStack(alignment: .center)  {
+                                    Text(stat.0)
+                                        .font(.sfRounded(size: .sm, weight: .regular))
+                                        .foregroundColor(AppColors.gray)
+                                        .fixedSize(horizontal: true, vertical: false)
+                                    
+                                    Text(stat.1)
+                                        .font(.sfRounded(size: .base, weight: .semibold))
+                                        .frame(maxWidth: .infinity, alignment: .topTrailing)
+                                        .foregroundColor(AppColors.white)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                
+                                //divider
+                                Rectangle()
+                                    .foregroundColor(.clear)
+                                    .frame(height: 0.5)
+                                    .background(AppColors.gray.opacity(0.5))
+                            }
+                        }
+                    }
+                    .padding(8)
+                }
+                
+                VStack(alignment: .leading, spacing: 8) {
                     Text("About")
-                        .font(.sfRounded(size: .xl2, weight: .bold))
+                        .font(.sfRounded(size: .xl, weight: .semibold))
+                        .foregroundColor(AppColors.white)
+                        .frame(maxWidth: .infinity, alignment: .topLeading)
                     
                     Text("This is what the coin is about. Norem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.")
-                        .font(.sfRounded(size: .sm, weight: .medium))
+                        .font(.sfRounded(size: .sm, weight: .regular))
+                        .foregroundColor(AppColors.lightGray)
+                        .padding(.horizontal, 8)
                 }
-                .foregroundColor(AppColors.white)
-                .padding(.vertical, 10.0)
-                
-                //Twitter Link
-                HStack(alignment: .center){
+                .padding(.vertical, 16)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                HStack(alignment: .center, spacing: 4) {
                     Image("X-logo-white")
                         .resizable()
                         .frame(width: 20, height: 20)
                     Text(" @ MONKAY")
                         .font(.sfRounded(size: .lg, weight: .semibold))
+                        .foregroundColor(AppColors.aquaGreen)
                 }
-                .padding(.vertical, 10.0)
-                .foregroundColor(AppColors.white)
+                .padding(.top, 8.0)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                
             }
-            .padding(.horizontal, 30.0)
+            .padding(24)
+            .frame(maxWidth: .infinity, alignment: .topLeading)
+            .background(AppColors.darkGrayGradient)
+            .cornerRadius(12)
+
         }
-        .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.53)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 0)
+        .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.4, alignment: .topLeading)
+        .background(AppColors.black)
+        .cornerRadius(30)
+        .overlay(
+            RoundedRectangle(cornerRadius: 30)
+                .inset(by: 0.5)
+                .stroke(AppColors.shadowGray, lineWidth: 1)
+        )
         .transition(.move(edge: .bottom))
-        .background(AppColors.darkBlueGradient)
-        .cornerRadius(20)
         .offset(y: dragOffset)
+        .ignoresSafeArea(edges: .horizontal)
         .gesture(
             DragGesture()
                 .onChanged { value in

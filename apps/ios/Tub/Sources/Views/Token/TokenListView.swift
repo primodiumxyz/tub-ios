@@ -22,8 +22,6 @@ struct TokenListView: View {
     @State private var activeOffset: CGFloat = 0
     @State private var dragging = false
     
-    // show info card
-    @State private var showInfoCard = false
     @State var activeTab: String = "buy"
 
     private func canSwipe(value: DragGesture.Value) -> Bool {
@@ -103,7 +101,6 @@ struct TokenListView: View {
                                         .frame(height: geometry.size.height)
                                         .opacity(dragging ? 0.2 : 0)
                                 }
-                                .padding(.horizontal)
                                 .zIndex(1)
                                 .offset(y: -geometry.size.height - 40 + offset + activeOffset)
                                 .gesture(
@@ -133,11 +130,6 @@ struct TokenListView: View {
                                         }
                                 ).zIndex(1)
                             }
-                        }
-                        
-                        if showInfoCard {
-                            TokenInfoCardView(tokenModel: viewModel.currentTokenModel, isVisible: $showInfoCard)
-                                .transition(.move(edge: .bottom))
                         }
                     }
                 }
