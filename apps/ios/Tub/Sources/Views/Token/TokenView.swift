@@ -37,7 +37,6 @@ struct TokenView : View {
     init(tokenModel: TokenModel, activeTab: Binding<String>) {
         self.tokenModel = tokenModel
         self._activeTab = activeTab
-        startPriceChangeTimer()
     }
     
     func handleBuy(amount: Int, completion: ((Bool) -> Void)?) {
@@ -53,9 +52,8 @@ struct TokenView : View {
     private func startPriceChangeTimer() {
         priceChangeTimer?.invalidate()
         priceChangeTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-            let interval = Date().timeIntervalSince(self.tokenModel.priceRef?.timestamp ?? self.tokenModel.prices.first?.timestamp ?? Date())
-            DispatchQueue.main.async {
-                self.priceChangeInterval = interval
+            if let refTime = self.tokenModel.priceRef?.timestamp {
+                self.priceChangeInterval = Date().timeIntervalSince(refTime)
             }
         }
     }
@@ -78,6 +76,13 @@ struct TokenView : View {
             buySheetOverlay
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onAppear {
+            startPriceChangeTimer()
+        }
+        .onDisappear {
+            priceChangeTimer?.invalidate()
+            priceChangeTimer = nil
+        }
     }
 
     private var tokenInfoView: some View {

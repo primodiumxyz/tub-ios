@@ -124,7 +124,12 @@ class TokenModel: ObservableObject {
                             return nil
                         } ?? []
                         self.lastPriceTimestamp = self.prices.last?.timestamp
-                        self.priceRef = self.prices.last
+                        // Find the price ref the closest to 30s ago
+                        self.priceRef = self.prices.min { a, b in
+                            let timeframeStart = Date().addingTimeInterval(-30)
+                            return abs(a.timestamp.timeIntervalSince(timeframeStart)) < 
+                                   abs(b.timestamp.timeIntervalSince(timeframeStart))
+                        }
                         self.loading = false
                         self.calculatePriceChange()
                     }
