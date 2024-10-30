@@ -199,7 +199,6 @@ const setup = (gql: GqlClient["db"]) => {
     const result = obj.params?.result as TransactionSubscriptionResult | undefined;
 
     if (result) {
-      console.log(`Received swap data. Time since last message: ${timeSinceLastMessage}ms`);
       const swapAccounts = processLogs(result);
       handleSwapData(gql, swapAccounts);
     } else {
