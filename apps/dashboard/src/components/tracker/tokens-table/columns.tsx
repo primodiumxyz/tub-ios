@@ -1,9 +1,9 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 
-import { PRICE_PRECISION } from "@tub/indexer/constants";
 import { Button } from "@/components/ui/button";
 import { Token } from "@/hooks/use-tokens";
+import { PRICE_PRECISION } from "@/lib/constants";
 
 export const columns: ColumnDef<Token>[] = [
   {
