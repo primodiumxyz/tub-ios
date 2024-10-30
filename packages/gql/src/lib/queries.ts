@@ -248,11 +248,12 @@ export const GetFormattedTokensWithPerformanceForIntervalsWithinPeriodQuery = gr
     $from: timestamptz!
     $to: timestamptz!
     $interval: interval!
+    $afterIntervals: String!
     $increasePct: float8!
     $minTrades: bigint!
   ) {
     get_formatted_tokens_with_performance_intervals_within_period(
-      args: { start: $from, end: $to, interval: $interval }
+      args: { start: $from, end: $to, interval: $interval, after_intervals: $afterIntervals }
       where: { trades: { _gte: $minTrades }, increase_pct: { _gte: $increasePct } }
       order_by: { interval_start: asc }
     ) {
@@ -261,7 +262,6 @@ export const GetFormattedTokensWithPerformanceForIntervalsWithinPeriodQuery = gr
       trades
       increase_pct_after
       trades_after
-      pump_duration
       created_at
       interval_start
     }

@@ -125,6 +125,24 @@
             nullable: false
             scalar: text
       name: GetFormattedTokensWithPerformanceResult
+      select_permissions:
+        - permission:
+            columns:
+              - token_id
+              - mint
+              - name
+              - symbol
+              - latest_price
+              - increase_pct
+              - trades
+              - created_at
+              - platform
+              - decimals
+              - interval_start
+              - increase_pct_after
+              - trades_after
+            filter: {}
+          role: public
     - fields:
         - name: id
           type:

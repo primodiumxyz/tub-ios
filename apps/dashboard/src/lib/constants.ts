@@ -22,3 +22,6 @@ export const DATE_PRESETS = [
 
 export const DEFAULT_FROM = DATE_PRESETS[0].start;
 export const DEFAULT_TO = DATE_PRESETS[0].end;
+
+// Performance
+export const AFTER_INTERVALS = ["10s", "30s", "60s"]; // Intervals to measure the performance after the initial period

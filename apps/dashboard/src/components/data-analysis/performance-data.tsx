@@ -9,7 +9,9 @@ import { useDataAnalysisData } from "@/hooks/use-data-analysis";
 export const PerformanceBasePeriodDataTable = () => {
   const { data } = useDataAnalysisData();
   const { from, to } = useAnalyticsParams();
+  console.log(data);
 
+  return null;
   return (
     <Table className="text-left w-full">
       <TableCaption>
