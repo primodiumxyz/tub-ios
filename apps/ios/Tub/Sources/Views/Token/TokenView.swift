@@ -8,10 +8,6 @@
 import SwiftUI
 import Combine
 
-
-
-
-
 struct TokenView : View {
     @ObservedObject var tokenModel: TokenModel
     @EnvironmentObject var priceModel: SolPriceModel
@@ -85,7 +81,7 @@ struct TokenView : View {
                 Text(priceModel.formatPrice(lamports: tokenModel.priceChange.amountLamps, showSign: true))
                 Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
                 
-                Text("30s").foregroundColor(.gray)
+                Text(formatTimeElapsed(tokenModel.priceChangeInterval)).foregroundColor(.gray)
             }
             .font(.sfRounded(size: .sm, weight: .semibold))
             .foregroundColor(tokenModel.priceChange.amountLamps >= 0 ? .green : .red)
@@ -170,6 +166,22 @@ struct TokenView : View {
                     .zIndex(2) // Ensure it stays on top of everything
                     .offset(y: 20)
             }
+        }
+    }
+
+    private func formatTimeElapsed(_ timeInterval: TimeInterval) -> String {
+        let hours = Int(timeInterval) / 3600
+        let minutes = (Int(timeInterval) % 3600) / 60
+        let seconds = Int(timeInterval) % 60
+
+        if hours > 1 {
+            return "\(hours)h"
+        } else if hours > 0 {
+            return "\(hours)h"
+        } else if minutes > 1 {
+            return "\(minutes)m"
+        } else  {
+            return "\(seconds)s"
         }
     }
 }
