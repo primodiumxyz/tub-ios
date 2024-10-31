@@ -3,7 +3,8 @@ import { useQuery } from "urql";
 
 import { queries } from "@tub/gql";
 import { useAnalyticsParams } from "@/hooks/use-analytics-params";
-import { useTrackerParams } from "@/hooks/use-tracker-params";
+
+// import { useTrackerParams } from "@/hooks/use-tracker-params";
 
 // TODO: maybe support filters (e.g. only pump tokens) for these 3 queries
 export const useAnalyticsData = (): {
@@ -11,14 +12,14 @@ export const useAnalyticsData = (): {
   newTokens: { hour: Date | null; count: string | null }[] | undefined;
   totalSwaps: number | undefined;
   totalNewTokens: number | undefined;
-  filteredTokensPerInterval: {
-    data: { interval_start: Date; token_count: string }[] | undefined;
-    error: string | undefined;
-  };
+  // filteredTokensPerInterval: {
+  //   data: { interval_start: Date; token_count: string }[] | undefined;
+  //   error: string | undefined;
+  // };
   error: string | undefined;
 } => {
   const { from, to } = useAnalyticsParams();
-  const { timespan, increasePct, minTrades } = useTrackerParams();
+  // const { timespan, increasePct, minTrades } = useTrackerParams();
 
   const [swapResult] = useQuery({
     query: queries.GetSwapsInPeriodCountQuery,
@@ -32,18 +33,18 @@ export const useAnalyticsData = (): {
     requestPolicy: "network-only",
   });
 
-  const [filteredTokensPerInterval] = useQuery({
-    query: queries.GetFormattedTokensCountForIntervalsWithinPeriodQuery,
-    variables: {
-      from,
-      to,
-      interval: timespan,
-      increasePct: increasePct.toString(),
-      minTrades: minTrades.toString(),
-    },
-    requestPolicy: "network-only",
-  });
-  console.log(filteredTokensPerInterval.data);
+  // TODO: replace with some volume per interval aggregation
+  // const [filteredTokensPerInterval] = useQuery({
+  //   query: queries.GetFormattedTokensCountForIntervalsWithinPeriodQuery,
+  //   variables: {
+  //     from,
+  //     to,
+  //     interval: timespan,
+  //     increasePct: increasePct.toString(),
+  //     minTrades: minTrades.toString(),
+  //   },
+  //   requestPolicy: "network-only",
+  // });
 
   return useMemo(
     () => ({
@@ -52,18 +53,18 @@ export const useAnalyticsData = (): {
       totalSwaps: swapResult.data?.swaps_total.aggregate?.count,
       totalNewTokens: newTokenResult.data?.new_tokens_total.aggregate?.count,
       error: swapResult.error?.message || newTokenResult.error?.message,
-      filteredTokensPerInterval: {
-        data: filteredTokensPerInterval.data?.get_formatted_tokens_intervals_within_period_aggregate,
-        error: filteredTokensPerInterval.error?.message,
-      },
+      // filteredTokensPerInterval: {
+      //   data: filteredTokensPerInterval.data?.get_formatted_tokens_intervals_within_period_aggregate,
+      //   error: filteredTokensPerInterval.error?.message,
+      // },
     }),
     [
       swapResult.data,
       newTokenResult.data,
       swapResult.error,
       newTokenResult.error,
-      filteredTokensPerInterval.data,
-      filteredTokensPerInterval.error,
+      // filteredTokensPerInterval.data,
+      // filteredTokensPerInterval.error,
     ],
   );
 };

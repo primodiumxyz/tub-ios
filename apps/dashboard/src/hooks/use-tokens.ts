@@ -19,21 +19,19 @@ export const useTokens = (): {
   fetching: boolean;
   error: string | undefined;
 } => {
-  const { timespan, increasePct, minTrades, onlyPumpTokens } = useTrackerParams();
+  const { timespan } = useTrackerParams();
 
   const [filteredTokensResult] = useSubscription({
     query: subscriptions.GetFilteredTokensIntervalSubscription,
     variables: {
       interval: timespan,
-      minIncreasePct: increasePct.toString(),
-      minTrades: minTrades.toString(),
-      mintFilter: onlyPumpTokens ? "%pump%" : "%",
     },
   });
 
   const tokens = useMemo(() => {
     if (!filteredTokensResult.data?.formatted_tokens_interval) return [];
     return filteredTokensResult.data.formatted_tokens_interval.map((token) => ({
+      // TODO: fix null values when they are not nullable
       mint: token.mint!,
       latestPrice: Number(token.latest_price!),
       increasePct: Number(token.increase_pct!),
