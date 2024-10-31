@@ -104,7 +104,6 @@ struct BuyForm: View {
             .frame(maxWidth: .infinity)
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(AppColors.black)
             .cornerRadius(30)
             .overlay(
                 RoundedRectangle(cornerRadius: 30)

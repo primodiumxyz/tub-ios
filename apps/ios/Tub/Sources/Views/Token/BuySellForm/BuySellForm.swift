@@ -65,7 +65,6 @@ struct BuySellForm: View {
                         .frame(maxWidth: .infinity)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 12)
-                        .background(AppColors.black)
                         .cornerRadius(30)
                         .overlay(
                             RoundedRectangle(cornerRadius: 30)
@@ -78,34 +77,6 @@ struct BuySellForm: View {
                 SellForm(tokenModel: tokenModel, onSell: handleSell)
             }
         }
-            
-//        .overlay(
-//            Group {
-//                if showBuySheet {
-//                    Color.black.opacity(0.4)
-//                        .ignoresSafeArea()
-//                        .onTapGesture {
-//                            withAnimation(.easeInOut(duration: 0.3)) {
-//                                showBuySheet = false
-//                            }
-//                        }
-//                    
-//                    BuyForm(
-//                        isVisible: $showBuySheet,
-//                        defaultAmount: $defaultAmount,
-//                        tokenModel: tokenModel,
-//                        onBuy: { amount in
-//                            handleBuy(amount: amount)
-//                            showBuySheet = false
-//                        }
-//                    )
-//                    .transition(.move(edge: .bottom))
-//                    .zIndex(2)
-//                    .offset(y: showBuySheet ? 0 : UIScreen.main.bounds.height)
-//                    .animation(.easeInOut(duration: 0.3), value: showBuySheet)
-//                }
-//            }
-//        )
     }
 }
 

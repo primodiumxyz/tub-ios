@@ -62,7 +62,6 @@ struct TokenView : View {
                 )
                     .equatable() // Add this modifier
             }
-            .padding(.horizontal)
             .frame(maxWidth: .infinity)
             .foregroundColor(AppColors.white)
             
@@ -98,6 +97,7 @@ struct TokenView : View {
             .font(.sfRounded(size: .sm, weight: .semibold))
             .foregroundColor(tokenModel.priceChange.amountLamps >= 0 ? .green : .red)
         }
+        .padding(.horizontal)
         .onTapGesture {
             // Toggle the info card
             withAnimation(.easeInOut) {
@@ -115,6 +115,7 @@ struct TokenView : View {
                     .id(tokenModel.prices.count)
             }
         }
+        .padding(.horizontal)
     }
 
     private var timespanButtons: some View {
@@ -146,6 +147,7 @@ struct TokenView : View {
             Spacer()
         }
         .padding(.bottom, 8)
+        .padding(.horizontal)
     }
 
     private var infoCardOverlay: some View {
