@@ -177,21 +177,29 @@ export const GetTokenPriceHistorySinceQuery = graphql(`
   }
 `);
 
-export const GetFilteredTokensQuery = graphql(`
-  query GetFilteredTokens($since: timestamptz!, $minTrades: bigint!, $minIncreasePct: float8!) {
-    get_formatted_tokens_since(
-      args: { since: $since }
-      where: { trades: { _gte: $minTrades }, increase_pct: { _gte: $minIncreasePct } }
+// TODO: order by volume once integrated
+export const GetFilteredTokensIntervalQuery = graphql(`
+  query GetFilteredTokensInterval($interval: interval!) {
+    get_formatted_tokens_interval(
+      args: { interval: $interval }
+      where: { is_pump_token: { _eq: true } }
+      order_by: { trades: desc }
     ) {
       token_id
       mint
-      decimals
       name
       symbol
-      platform
-      latest_price
+      description
+      uri
+      supply
+      decimals
+      mint_burnt
+      freeze_burnt
+      is_pump_token
       increase_pct
       trades
+      volume
+      latest_price
       created_at
     }
   }

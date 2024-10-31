@@ -1,20 +1,3 @@
 table:
   name: formatted_tokens
   schema: public
-select_permissions:
-  - role: public
-    permission:
-      columns:
-        - trades
-        - name
-        - symbol
-        - increase_pct
-        - decimals
-        - latest_price
-        - mint
-        - platform
-        - created_at
-        - token_id
-      filter: {}
-      allow_aggregations: true
-    comment: ""

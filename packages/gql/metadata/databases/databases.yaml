@@ -10,63 +10,6 @@
     naming_convention: hasura-default
   logical_models:
     - fields:
-        - name: token_id
-          type:
-            nullable: false
-            scalar: uuid
-        - name: mint
-          type:
-            nullable: false
-            scalar: text
-        - name: name
-          type:
-            nullable: false
-            scalar: varchar
-        - name: symbol
-          type:
-            nullable: false
-            scalar: varchar
-        - name: latest_price
-          type:
-            nullable: false
-            scalar: numeric
-        - name: increase_pct
-          type:
-            nullable: false
-            scalar: float8
-        - name: trades
-          type:
-            nullable: false
-            scalar: bigint
-        - name: created_at
-          type:
-            nullable: false
-            scalar: timestamptz
-        - name: platform
-          type:
-            nullable: false
-            scalar: text
-        - name: decimals
-          type:
-            nullable: true
-            scalar: integer
-      name: GetFormattedTokensResult
-      select_permissions:
-        - permission:
-            columns:
-              - token_id
-              - mint
-              - name
-              - symbol
-              - latest_price
-              - increase_pct
-              - trades
-              - created_at
-              - platform
-              - decimals
-            filter: {}
-          role: public
-    - fields:
         - name: id
           type:
             nullable: false
@@ -100,6 +43,72 @@
               - balance
             filter: {}
           role: public
+    - fields:
+        - name: token_id
+          type:
+            nullable: false
+            scalar: uuid
+        - name: mint
+          type:
+            nullable: false
+            scalar: text
+        - name: name
+          type:
+            nullable: true
+            scalar: varchar
+        - name: symbol
+          type:
+            nullable: true
+            scalar: varchar
+        - name: description
+          type:
+            nullable: true
+            scalar: text
+        - name: uri
+          type:
+            nullable: true
+            scalar: text
+        - name: supply
+          type:
+            nullable: true
+            scalar: numeric
+        - name: decimals
+          type:
+            nullable: true
+            scalar: integer
+        - name: mint_burnt
+          type:
+            nullable: true
+            scalar: boolean
+        - name: freeze_burnt
+          type:
+            nullable: true
+            scalar: boolean
+        - name: is_pump_token
+          type:
+            nullable: true
+            scalar: boolean
+        - name: increase_pct
+          type:
+            nullable: true
+            scalar: float8
+        - name: trades
+          type:
+            nullable: false
+            scalar: bigint
+        - name: volume
+          type:
+            nullable: false
+            scalar: numeric
+        - name: latest_price
+          type:
+            nullable: false
+            scalar: numeric
+        - name: created_at
+          type:
+            nullable: false
+            scalar: timestamptz
+      name: formatted_tokens
     - fields:
         - name: id
           type:
@@ -216,17 +225,9 @@
           description: ""
           nullable: false
           type: interval
-      code: SELECT * FROM get_formatted_tokens_interval({{interval}});
-      returns: GetFormattedTokensResult
+      code: SELECT * FROM get_formatted_tokens_interval({{interval}})
+      returns: formatted_tokens
       root_field_name: get_formatted_tokens_interval
-    - arguments:
-        since:
-          description: ""
-          nullable: false
-          type: timestamptz
-      code: SELECT * FROM get_formatted_tokens({{since}});
-      returns: GetFormattedTokensResult
-      root_field_name: get_formatted_tokens_since
     - arguments:
         offset:
           description: ""
