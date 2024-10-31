@@ -23,7 +23,7 @@ public enum SchemaMetadata: ApolloAPI.SchemaMetadata {
     case "subscription_root": return TubAPI.Objects.Subscription_root
     case "token": return TubAPI.Objects.Token
     case "token_price_history": return TubAPI.Objects.Token_price_history
-    case "GetFormattedTokensResult": return TubAPI.Objects.GetFormattedTokensResult
+    case "formatted_tokens": return TubAPI.Objects.Formatted_tokens
     case "balance_offset_model": return TubAPI.Objects.Balance_offset_model
     case "token_price_history_offset": return TubAPI.Objects.Token_price_history_offset
     case "query_root": return TubAPI.Objects.Query_root

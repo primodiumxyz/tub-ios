@@ -41,12 +41,12 @@ public class GetTokensByMintsQuery: GraphQLQuery {
       public static var __selections: [ApolloAPI.Selection] { [
         .field("__typename", String.self),
         .field("id", TubAPI.Uuid.self),
-        .field("mint", String?.self),
+        .field("mint", String.self),
       ] }
 
       public var id: TubAPI.Uuid { __data["id"] }
       /// token mint address (only for real tokens)
-      public var mint: String? { __data["mint"] }
+      public var mint: String { __data["mint"] }
     }
   }
 }
