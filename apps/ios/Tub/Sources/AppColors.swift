@@ -74,4 +74,14 @@ struct AppColors {
     startPoint: UnitPoint(x: 0.5, y: 0),
     endPoint: UnitPoint(x: 0.5, y: 1)
     )
+    
+    // buy green bg
+    static let darkGreenGradient = LinearGradient(
+        stops: [
+        Gradient.Stop(color: Color(red: 0.1, green: 0.2, blue: 0.18), location: 0.29),
+        Gradient.Stop(color: .black, location: 1.00),
+        ],
+        startPoint: UnitPoint(x: 0.5, y: 0),
+        endPoint: UnitPoint(x: 0.5, y: 1)
+        )
 }
