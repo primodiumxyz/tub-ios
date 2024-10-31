@@ -17,7 +17,7 @@ export const decodeSwapData = <T extends SwapType = SwapType>(
   const programIxs = parsedIxs.filter(
     (ix) =>
       ix.programId.toString() === RaydiumAmmParser.PROGRAM_ID.toString() &&
-      (ix.name.toLowerCase() === "swapBaseIn" || ix.name.toLowerCase() === "swapBaseOut"),
+      (ix.name === "swapBaseIn" || ix.name === "swapBaseOut"),
   );
   if (programIxs.length === 0) return [];
 
@@ -25,7 +25,7 @@ export const decodeSwapData = <T extends SwapType = SwapType>(
   return programIxs
     .map((ix) => {
       const vaultA = ix.accounts.find((account) => account.name === "poolCoinTokenAccount")?.pubkey;
-      const vaultB = ix.accounts.find((account) => account.name === "poolTokenTokenAccount")?.pubkey;
+      const vaultB = ix.accounts.find((account) => account.name === "poolPcTokenAccount")?.pubkey;
       if (!vaultA || !vaultB) return;
 
       return {
@@ -88,18 +88,20 @@ const getTokensMetadata = async (helius: Helius, mints: string[]): Promise<Token
     const tokenInfo = data.token_info;
     const imageUri = data.content?.files?.[0]?.cdn_uri ?? data.content?.files?.[0]?.uri ?? data.content?.links?.image;
 
+    // we need to explicitly cast to null to be able to insert null values in the DB
     return {
       mint: data.id,
       metadata: {
-        name: metadata?.name,
-        symbol: metadata?.symbol,
-        description: metadata?.description,
-        imageUri,
+        name: metadata?.name?.slice(0, 255) || metadata?.symbol?.slice(0, 255) || null,
+        symbol: metadata?.symbol?.slice(0, 255) || metadata?.name?.slice(0, 255) || null,
+        description: metadata?.description || null,
+        imageUri: imageUri || null,
       },
-      mintBurnt: !tokenInfo?.mint_authority,
-      freezeBurnt: !tokenInfo?.freeze_authority,
-      supply: tokenInfo?.supply,
-      isPumpToken: data.authorities?.some((authority) => authority.address === PUMP_FUN_AUTHORITY.toString()),
+      mintBurnt: !tokenInfo?.mint_authority || null,
+      freezeBurnt: !tokenInfo?.freeze_authority || null,
+      supply: tokenInfo?.supply || null,
+      decimals: tokenInfo?.decimals || null,
+      isPumpToken: data.authorities?.some((authority) => authority.address === PUMP_FUN_AUTHORITY.toString()) || null,
     };
   });
 };
@@ -136,6 +138,5 @@ const calculatePrice = (
   return {
     mint: tokenInfo.mint,
     price: tokenPrice,
-    decimals: tokenInfo.tokenAmount.decimals,
   };
 };

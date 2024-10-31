@@ -19,21 +19,21 @@ export type Swap<T extends SwapType> = {
 export type TokenMetadata = {
   mint: string;
   metadata: {
-    name: string | undefined;
-    symbol: string | undefined;
-    description: string | undefined;
-    imageUri: string | undefined;
+    name: string | null;
+    symbol: string | null;
+    description: string | null;
+    imageUri: string | null;
   };
-  mintBurnt: boolean | undefined;
-  freezeBurnt: boolean | undefined;
-  supply: number | undefined;
-  isPumpToken: boolean | undefined;
+  mintBurnt: boolean | null;
+  freezeBurnt: boolean | null;
+  supply: number | null;
+  decimals: number | null;
+  isPumpToken: boolean | null;
 };
 
 export type PriceData<T extends SwapType = SwapType> = {
   mint: string;
   price: number;
-  decimals: number;
   timestamp: number;
   swap: T extends SwapType.IN ? SwapBaseInArgs : SwapBaseOutArgs;
 };

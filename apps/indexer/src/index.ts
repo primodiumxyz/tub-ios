@@ -90,17 +90,30 @@ const handleSwapData = async <T extends SwapType = SwapType>(gql: GqlClient["db"
 
   try {
     // 1. Upsert tokens metadata
+    const uniqueTokens = Array.from(new Map(_tokensDataBatch.map((token) => [token.mint, token])).values());
     const insertRes = await gql.UpsertManyNewTokensMutation({
-      objects: _tokensDataBatch,
+      objects: uniqueTokens.map((token) => ({
+        mint: token.mint,
+        name: token.metadata.name,
+        symbol: token.metadata.symbol,
+        description: token.metadata.description,
+        uri: token.metadata.imageUri,
+        mint_burnt: token.mintBurnt,
+        freeze_burnt: token.freezeBurnt,
+        supply: token.supply?.toString(),
+        decimals: token.decimals,
+        is_pump_token: token.isPumpToken,
+      })),
     });
 
     if (insertRes.error) throw new Error(`Error in UpsertManyNewTokensMutation: ${insertRes.error.message}`);
     console.log(`Upserted ${insertRes.data?.insert_token?.affected_rows} tokens`);
 
     // 2. Add price history
+    const mintToId = new Map(insertRes.data?.insert_token?.returning.map((token) => [token.mint, token.id]) ?? []);
     const addPriceHistoryRes = await gql.AddManyTokenPriceHistoryMutation({
       objects: _priceDataBatch.map(({ mint, price, timestamp, swap }) => ({
-        token: "", // TODO: get id from mint
+        token: mintToId.get(mint),
         price: price.toString(),
         amount_in: "amountIn" in swap ? swap.amountIn.toString() : undefined,
         min_amount_out: "minimumAmountOut" in swap ? swap.minimumAmountOut.toString() : undefined,

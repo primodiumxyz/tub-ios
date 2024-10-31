@@ -16,12 +16,31 @@ export const RegisterNewTokenMutation = graphql(`
   }
 `);
 
-// TODO: Add new columns to the token table
-// TODO: Only update if updated_at is more recent than the existing token's updated_at
-// TODO: Return the tokens ids so we can map mint -> id
 export const UpsertManyNewTokensMutation = graphql(`
   mutation UpsertManyNewTokens($objects: [token_insert_input!]!) {
-    insert_token(objects: $objects, on_conflict: { constraint: token_mint_key, update_columns: [] }) {
+    insert_token(
+      objects: $objects
+      on_conflict: {
+        constraint: token_mint_key
+        update_columns: [
+          name
+          symbol
+          description
+          uri
+          mint_burnt
+          freeze_burnt
+          supply
+          decimals
+          is_pump_token
+          updated_at
+        ]
+        where: { _or: [{ updated_at: { _is_null: true } }, { updated_at: { _lt: NOW } }] }
+      }
+    ) {
+      returning {
+        id
+        mint
+      }
       affected_rows
     }
   }
