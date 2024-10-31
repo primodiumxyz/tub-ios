@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useDataAnalysisData } from "@/hooks/use-data-analysis";
 
 export const DataAnalysis = () => {
-  const { data, error, loading, refetch } = useDataAnalysisData();
+  const { loading, refetch } = useDataAnalysisData();
 
   return (
     <div className="flex flex-col items-start w-full gap-6">
@@ -28,9 +28,7 @@ export const DataAnalysis = () => {
           "Query"
         )}
       </Button>
-      {loading && <div className="w-full text-sm text-muted-foreground">This might take a while...</div>}
-      {!!error && <div className="w-full text-sm text-muted-foreground">{error}</div>}
-      {!!data && <PerformanceBasePeriodDataTable />}
+      <PerformanceBasePeriodDataTable />
     </div>
   );
 };
