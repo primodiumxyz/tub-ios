@@ -250,26 +250,6 @@
       returns: formatted_tokens
       root_field_name: formatted_tokens_interval
     - arguments:
-        after_intervals:
-          description: ""
-          nullable: false
-          type: text
-        end:
-          description: ""
-          nullable: false
-          type: timestamptz
-        interval:
-          description: ""
-          nullable: false
-          type: interval
-        start:
-          description: ""
-          nullable: false
-          type: timestamptz
-      code: SELECT * FROM get_formatted_tokens_with_performance_intervals_within_period({{start}}, {{end}}, {{interval}}, {{after_intervals}});
-      returns: GetFormattedTokensWithPerformanceResult
-      root_field_name: get_formatted_tokens_with_performance_intervals_within_period
-    - arguments:
         offset:
           description: ""
           nullable: false
