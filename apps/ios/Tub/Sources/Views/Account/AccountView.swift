@@ -20,6 +20,7 @@ struct AccountView: View {
     var body: some View {
         NavigationStack {
             VStack() {
+                Text(privy.authState.toString).foregroundStyle(.white)
                 if userModel.username.isEmpty {
                     Text("Please register to view your account details.")
                         .font(.sfRounded(size: .lg, weight: .medium))
