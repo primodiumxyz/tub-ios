@@ -164,7 +164,7 @@ class TokenModel: ObservableObject {
         
         tokenBalanceSubscription = Network.shared.apollo.subscribe(
             subscription: SubAccountTokenBalanceSubscription(
-                account: Uuid(self.userId), token: self.tokenId)
+                account: self.userId, token: self.tokenId)
         ) { [weak self] result in
             guard let self = self else { return }
             DispatchQueue.main.async {
