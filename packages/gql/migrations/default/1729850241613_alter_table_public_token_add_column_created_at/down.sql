@@ -1,1 +1,0 @@
-alter table "public"."token" drop column "created_at";

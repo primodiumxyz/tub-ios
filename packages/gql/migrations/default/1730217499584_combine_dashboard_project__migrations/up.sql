@@ -1,4 +1,121 @@
 
+alter table "public"."token" add column "created_at" timestamptz
+ null default now();
+
+CREATE OR REPLACE FUNCTION public.get_formatted_tokens_period(p_start timestamp with time zone, p_end timestamp with time zone)
+ RETURNS SETOF formatted_tokens
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+    PERFORM set_config('my.p_start', p_start::text, true);
+    PERFORM set_config('my.p_end', p_end::text, true);
+    RETURN QUERY
+    SELECT *
+    FROM formatted_tokens;
+END;
+$function$;
+
+alter table "public"."token" alter column "created_at" set not null;
+
+CREATE OR REPLACE VIEW hourly_swaps AS
+SELECT
+  date_trunc('hour', created_at) AS hour,
+  COUNT(*) AS count
+FROM
+  token_price_history
+GROUP BY
+  date_trunc('hour', created_at)
+ORDER BY
+  hour;
+
+CREATE OR REPLACE VIEW hourly_new_tokens AS
+SELECT
+  date_trunc('hour', created_at) AS hour,
+  COUNT(*) AS count
+FROM
+  token
+GROUP BY
+  date_trunc('hour', created_at)
+ORDER BY
+  hour;
+
+CREATE OR REPLACE VIEW "public"."formatted_tokens" AS 
+ WITH RECURSIVE params(p_start, p_end) AS (
+         SELECT (current_setting('my.p_start'::text, true))::timestamp with time zone AS current_setting,
+            (current_setting('my.p_end'::text, true))::timestamp with time zone AS current_setting
+        ), filtered_token_stats AS (
+         SELECT t.id AS token_id,
+            t.mint,
+            t.decimals,
+            t.name,
+            t.symbol,
+            t.platform,
+            tph.price,
+            tph.created_at,
+            params.p_start AS interval_start
+           FROM ((token t
+             JOIN token_price_history tph ON ((t.id = tph.token)))
+             CROSS JOIN params)
+          WHERE ((t.mint IS NOT NULL) AND (tph.created_at >= params.p_start) AND (tph.created_at <= params.p_end))
+        ), latest_token_stats AS (
+         SELECT DISTINCT ON (filtered_token_stats.mint) filtered_token_stats.token_id,
+            filtered_token_stats.mint,
+            filtered_token_stats.decimals,
+            filtered_token_stats.name,
+            filtered_token_stats.symbol,
+            filtered_token_stats.platform,
+            count(*) OVER (PARTITION BY filtered_token_stats.mint) AS trades,
+            first_value(filtered_token_stats.price) OVER (PARTITION BY filtered_token_stats.mint ORDER BY filtered_token_stats.created_at DESC) AS latest_price,
+            first_value(filtered_token_stats.price) OVER (PARTITION BY filtered_token_stats.mint ORDER BY filtered_token_stats.created_at) AS initial_price,
+            max(filtered_token_stats.created_at) OVER (PARTITION BY filtered_token_stats.mint) AS latest_created_at,
+            filtered_token_stats.interval_start
+           FROM filtered_token_stats
+          ORDER BY filtered_token_stats.mint, filtered_token_stats.created_at DESC
+        )
+ SELECT latest_token_stats.token_id,
+    latest_token_stats.mint,
+    latest_token_stats.decimals,
+    latest_token_stats.name,
+    latest_token_stats.symbol,
+    latest_token_stats.latest_price,
+        CASE
+            WHEN (latest_token_stats.initial_price = (0)::numeric) THEN (0)::double precision
+            ELSE ((((latest_token_stats.latest_price - latest_token_stats.initial_price) * (100)::numeric) / latest_token_stats.initial_price))::double precision
+        END AS increase_pct,
+    latest_token_stats.trades,
+    latest_token_stats.latest_created_at AS created_at,
+    latest_token_stats.platform,
+    latest_token_stats.interval_start
+   FROM latest_token_stats;
+
+DROP FUNCTION IF EXISTS public.get_formatted_tokens_intervals_within_period(timestamptz, timestamptz, interval);
+CREATE OR REPLACE FUNCTION public.get_formatted_tokens_intervals_within_period(
+  p_start timestamptz,
+  p_end timestamptz,
+  p_interval interval
+)
+RETURNS SETOF formatted_tokens AS $$
+DECLARE
+  current_start timestamptz;
+  current_end timestamptz;
+BEGIN
+  current_start := p_start;
+  
+  WHILE current_start < p_end LOOP
+    current_end := least(current_start + p_interval, p_end);
+    
+    PERFORM set_config('my.p_start', current_start::text, true);
+    PERFORM set_config('my.p_end', current_end::text, true);
+    
+    RETURN QUERY
+    SELECT * FROM formatted_tokens;
+    
+    current_start := current_end;
+  END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+
 CREATE OR REPLACE VIEW "public"."formatted_tokens_with_performance" AS 
 WITH RECURSIVE params(p_start, p_end) AS (
     SELECT 

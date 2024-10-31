@@ -1,1 +1,0 @@
-DROP FUNCTION IF EXISTS public.get_formatted_tokens_intervals_within_period(timestamptz, timestamptz, interval);
