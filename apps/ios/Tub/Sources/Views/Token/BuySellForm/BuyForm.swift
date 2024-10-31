@@ -9,6 +9,7 @@ import SwiftUI
 
 struct BuyForm: View {
     @Binding var isVisible: Bool
+    @Binding var defaultAmount: Double
     @EnvironmentObject var priceModel: SolPriceModel
     @ObservedObject var tokenModel: TokenModel
     var onBuy: (Int, ((Bool) -> Void)?) -> ()
@@ -30,10 +31,14 @@ struct BuyForm: View {
     @State private var isDefaultOn: Bool = true //by default is on
     
     func handleBuy() {
+        if isDefaultOn {
+            defaultAmount = buyAmountUsd
+        }
         let buyAmountLamps = priceModel.usdToLamports(usd: buyAmountUsd)
         let _ = onBuy(buyAmountLamps, { success in
             if success {
                 resetForm()
+                isVisible = false // Close BuyForm after purchase
             }
         })
     }
@@ -54,6 +59,7 @@ struct BuyForm: View {
         buyAmountUsd = 0
         isValidInput = true
         animatingSwipe = false
+        isDefaultOn = true
     }
     
     
@@ -83,30 +89,34 @@ struct BuyForm: View {
                 numberInput
 //                tokenConversionDisplay
                 amountButtons
-                Button(action: {
-                    handleBuy()
-                }) {
-                    HStack(alignment: .center, spacing: 8) {
-                        Text("Buy")
-                            .font(.sfRounded(size: .xl, weight: .semibold))
-                            .foregroundColor(AppColors.aquaGreen)
-                            .multilineTextAlignment(.center)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .background(AppColors.black)
-                    .cornerRadius(30)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 30)
-                            .inset(by: 0.5)
-                            .stroke(AppColors.aquaGreen, lineWidth: 1)
-                    )
-                }
+                buyButton
             }
         }
         .padding(8)
         .frame(height: 230)
+    }
+    
+    private var buyButton: some View {
+        Button(action: {
+            handleBuy()
+        }) {
+            HStack {
+                Text("Buy")
+                    .font(.sfRounded(size: .xl, weight: .semibold))
+                    .foregroundColor(AppColors.aquaGreen)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(AppColors.black)
+            .cornerRadius(30)
+            .overlay(
+                RoundedRectangle(cornerRadius: 30)
+                    .inset(by: 0.5)
+                    .stroke(AppColors.aquaGreen, lineWidth: 1)
+            )
+        }
     }
     
     private var numberInput: some View {

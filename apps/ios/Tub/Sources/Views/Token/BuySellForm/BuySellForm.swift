@@ -11,6 +11,7 @@ struct BuySellForm: View {
     @ObservedObject var tokenModel: TokenModel
     @Binding var activeTab: String
     @Binding var showBuySheet: Bool
+    @Binding var defaultAmount: Double
     
     func handleSell(completion: ((Bool) -> Void)?) {
         tokenModel.sellTokens(completion: {success in
@@ -46,7 +47,7 @@ struct BuySellForm: View {
                         //handleBuy()
                     }) {
                         HStack(alignment: .center, spacing: 8) {
-                            Text("Buy")
+                            Text("Buy $\(String(format: "%.2f", defaultAmount))")
                                 .font(.sfRounded(size: .xl, weight: .semibold))
                                 .foregroundColor(AppColors.aquaGreen)
                                 .multilineTextAlignment(.center)
@@ -76,9 +77,10 @@ struct BuySellForm: View {
     @Previewable @State var activeTab: String = "buy"
     @Previewable @State var showSheet = false
     @ObservedObject var  tokenModel = TokenModel(userId: userId, tokenId: mockTokenId)
+    @State var defaultAmount: Double = 50.0
 
     VStack {
-        BuySellForm(tokenModel: tokenModel, activeTab: $activeTab, showBuySheet: $showSheet)
+        BuySellForm(tokenModel: tokenModel, activeTab: $activeTab, showBuySheet: $showSheet, defaultAmount: $defaultAmount)
             .environmentObject(UserModel(userId: userId))
            // Buy Sheet View
             if showSheet {
@@ -90,7 +92,7 @@ struct BuySellForm: View {
                         }
                     }
 
-                BuyForm(isVisible: $showSheet, tokenModel: tokenModel, onBuy: {_,_ in })
+                BuyForm(isVisible: $showSheet,defaultAmount: $defaultAmount, tokenModel: tokenModel, onBuy: {_,_ in })
                     .transition(.move(edge: .bottom))
                     .zIndex(2) // Ensure it stays on top of everything
                     .offset(y: -200)

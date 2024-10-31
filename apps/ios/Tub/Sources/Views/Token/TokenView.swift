@@ -21,6 +21,7 @@ struct TokenView : View {
     @State private var showInfoCard = false
     @State private var selectedTimespan: Timespan = .live
     @State private var showBuySheet: Bool = false
+    @State private var defaultAmount: Double = 50.0
     
     enum Timespan: String {
         case live = "LIVE"
@@ -57,7 +58,12 @@ struct TokenView : View {
                 chartView
                 timespanButtons
                 Spacer()
-                BuySellForm(tokenModel: tokenModel, activeTab: $activeTab, showBuySheet: $showBuySheet)
+                BuySellForm(
+                    tokenModel: tokenModel,
+                    activeTab: $activeTab,
+                    showBuySheet: $showBuySheet,
+                    defaultAmount: $defaultAmount
+                )
                     .equatable() // Add this modifier
             }
             .padding(.horizontal)
@@ -177,7 +183,7 @@ struct TokenView : View {
                         }
                     }
                 
-                BuyForm(isVisible: $showBuySheet, tokenModel: tokenModel, onBuy: handleBuy)
+                BuyForm(isVisible: $showBuySheet, defaultAmount: $defaultAmount, tokenModel: tokenModel, onBuy: handleBuy)
                     .transition(.move(edge: .bottom))
                     .zIndex(2) // Ensure it stays on top of everything
                     .offset(y: 20)
