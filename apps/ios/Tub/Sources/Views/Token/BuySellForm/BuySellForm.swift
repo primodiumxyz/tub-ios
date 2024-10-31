@@ -8,6 +8,7 @@ import SwiftUI
 
 struct BuySellForm: View {
     @EnvironmentObject var userModel: UserModel
+    @EnvironmentObject var priceModel: SolPriceModel
     @ObservedObject var tokenModel: TokenModel
     @Binding var activeTab: String
     @Binding var showBuySheet: Bool
@@ -22,16 +23,25 @@ struct BuySellForm: View {
         })
     }
     
+    func handleBuy(amount: Double) {
+        let buyAmountLamps = priceModel.usdToLamports(usd: amount)
+        tokenModel.buyTokens(buyAmountLamps: buyAmountLamps) { success in
+            if success {
+                activeTab = "sell" // Switch tab after successful buy
+            }
+        }
+    }
+    
     var body: some View {
         VStack {
-            if userModel.userId == "" {
-                Text("Register to trade")
-                    .font(.title)
-                    .foregroundColor(.yellow)
-                    .padding()
-                    .frame(maxWidth: .infinity, alignment: .center)
-            } else
-            if activeTab == "buy" {
+        if userModel.userId == "" {
+            Text("Register to trade")
+                .font(.title)
+                .foregroundColor(.yellow)
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .center)
+        } else if activeTab == "buy" {
+                // edit button
                 HStack(spacing: 16) {
                     Button(action: {
                         showBuySheet = true
@@ -44,7 +54,7 @@ struct BuySellForm: View {
                     }
                     
                     Button(action: {
-                        //handleBuy()
+                        handleBuy(amount: defaultAmount)
                     }) {
                         HStack(alignment: .center, spacing: 8) {
                             Text("Buy $\(String(format: "%.2f", defaultAmount))")
@@ -68,6 +78,34 @@ struct BuySellForm: View {
                 SellForm(tokenModel: tokenModel, onSell: handleSell)
             }
         }
+            
+//        .overlay(
+//            Group {
+//                if showBuySheet {
+//                    Color.black.opacity(0.4)
+//                        .ignoresSafeArea()
+//                        .onTapGesture {
+//                            withAnimation(.easeInOut(duration: 0.3)) {
+//                                showBuySheet = false
+//                            }
+//                        }
+//                    
+//                    BuyForm(
+//                        isVisible: $showBuySheet,
+//                        defaultAmount: $defaultAmount,
+//                        tokenModel: tokenModel,
+//                        onBuy: { amount in
+//                            handleBuy(amount: amount)
+//                            showBuySheet = false
+//                        }
+//                    )
+//                    .transition(.move(edge: .bottom))
+//                    .zIndex(2)
+//                    .offset(y: showBuySheet ? 0 : UIScreen.main.bounds.height)
+//                    .animation(.easeInOut(duration: 0.3), value: showBuySheet)
+//                }
+//            }
+//        )
     }
 }
 
@@ -80,24 +118,41 @@ struct BuySellForm: View {
     @State var defaultAmount: Double = 50.0
 
     VStack {
-        BuySellForm(tokenModel: tokenModel, activeTab: $activeTab, showBuySheet: $showSheet, defaultAmount: $defaultAmount)
-            .environmentObject(UserModel(userId: userId))
-           // Buy Sheet View
-            if showSheet {
-                Color.black.opacity(0.4)
-                    .ignoresSafeArea()
-                    .onTapGesture {
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            showSheet = false
-                        }
+        BuySellForm(
+            tokenModel: tokenModel,
+            activeTab: $activeTab,
+            showBuySheet: $showSheet,
+            defaultAmount: $defaultAmount
+        )
+        .environmentObject(UserModel(userId: userId))
+        .environmentObject(SolPriceModel(mock: true))
+        // Buy Sheet View
+        if showSheet {
+            Color.black.opacity(0.4)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        showSheet = false
                     }
+                }
 
-                BuyForm(isVisible: $showSheet,defaultAmount: $defaultAmount, tokenModel: tokenModel, onBuy: {_,_ in })
-                    .transition(.move(edge: .bottom))
-                    .zIndex(2) // Ensure it stays on top of everything
-                    .offset(y: -200)
-            }
-    }.frame(maxWidth: .infinity, maxHeight: .infinity) .background(.black).foregroundColor(.white)
+            BuyForm(
+                isVisible: $showSheet,
+                defaultAmount: $defaultAmount,
+                tokenModel: tokenModel,
+                onBuy: { amount in
+                    showSheet = false
+                }
+            )
+            .transition(.move(edge: .bottom))
+            .zIndex(2) // Ensure it stays on top of everything
+            .offset(y: -200)
+            .environmentObject(SolPriceModel(mock: true))
+        }
+    }
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .background(.black)
+    .foregroundColor(.white)
 }
 
 // MARK: - Equatable Implementation

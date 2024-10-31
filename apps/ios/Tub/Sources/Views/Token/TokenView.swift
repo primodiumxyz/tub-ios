@@ -8,10 +8,6 @@
 import SwiftUI
 import Combine
 
-
-
-
-
 struct TokenView : View {
     @ObservedObject var tokenModel: TokenModel
     @EnvironmentObject var priceModel: SolPriceModel
@@ -40,14 +36,14 @@ struct TokenView : View {
         self._activeTab = activeTab
     }
     
-    func handleBuy(amount: Int, completion: ((Bool) -> Void)?) {
-        tokenModel.buyTokens(buyAmountLamps: amount, completion: {success in
+    func handleBuy(amount: Double) {
+        let buyAmountLamps = priceModel.usdToLamports(usd: amount)
+        tokenModel.buyTokens(buyAmountLamps: buyAmountLamps) { success in
             if success {
                 showBuySheet = false
-                activeTab = "sell"
+                activeTab = "sell" // Switch tab after successful buy
             }
-            completion?(success)
-        })
+        }
     }
     
     var body: some View {
@@ -186,7 +182,6 @@ struct TokenView : View {
                 BuyForm(isVisible: $showBuySheet, defaultAmount: $defaultAmount, tokenModel: tokenModel, onBuy: handleBuy)
                     .transition(.move(edge: .bottom))
                     .zIndex(2) // Ensure it stays on top of everything
-                    .offset(y: 20)
             }
         }
     }

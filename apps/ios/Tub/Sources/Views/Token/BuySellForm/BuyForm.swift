@@ -12,7 +12,7 @@ struct BuyForm: View {
     @Binding var defaultAmount: Double
     @EnvironmentObject var priceModel: SolPriceModel
     @ObservedObject var tokenModel: TokenModel
-    var onBuy: (Int, ((Bool) -> Void)?) -> ()
+    var onBuy: (Double) -> Void
     
     @EnvironmentObject private var userModel: UserModel
     @State private var buyAmountUsdString: String = ""
@@ -30,17 +30,12 @@ struct BuyForm: View {
     
     @State private var isDefaultOn: Bool = true //by default is on
     
-    func handleBuy() {
+    private func handleBuy() {
         if isDefaultOn {
             defaultAmount = buyAmountUsd
         }
-        let buyAmountLamps = priceModel.usdToLamports(usd: buyAmountUsd)
-        let _ = onBuy(buyAmountLamps, { success in
-            if success {
-                resetForm()
-                isVisible = false // Close BuyForm after purchase
-            }
-        })
+        onBuy(buyAmountUsd)
+        isVisible = false // Close BuyForm after purchase
     }
     
     func updateBuyAmount(_ amountLamps: Int) {
