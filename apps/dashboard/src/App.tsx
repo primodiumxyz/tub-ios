@@ -28,7 +28,7 @@ function App() {
             <SidebarProvider>
               <Router>
                 <AppSidebar />
-                <div className="flex flex-col items-center w-full">
+                <div className="flex flex-col items-center w-full p-8">
                   <Routes>
                     <Route path="/" element={<Tracker />} />
                     <Route path="/analytics" element={<Analytics />} />

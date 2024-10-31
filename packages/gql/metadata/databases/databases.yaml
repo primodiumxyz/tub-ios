@@ -50,6 +50,10 @@
           type:
             nullable: true
             scalar: integer
+        - name: interval_start
+          type:
+            nullable: false
+            scalar: timestamptz
       name: GetFormattedTokensResult
       select_permissions:
         - permission:
@@ -64,6 +68,7 @@
               - created_at
               - platform
               - decimals
+              - interval_start
             filter: {}
           role: public
     - fields:
@@ -98,6 +103,23 @@
         - permission:
             columns:
               - balance
+            filter: {}
+          role: public
+    - fields:
+        - name: interval_start
+          type:
+            nullable: false
+            scalar: timestamptz
+        - name: token_count
+          type:
+            nullable: false
+            scalar: bigint
+      name: get_formatted_tokens_intervals_within_period_aggregate
+      select_permissions:
+        - permission:
+            columns:
+              - interval_start
+              - token_count
             filter: {}
           role: public
     - fields:
@@ -219,6 +241,46 @@
       code: SELECT * FROM get_formatted_tokens_interval({{interval}});
       returns: GetFormattedTokensResult
       root_field_name: get_formatted_tokens_interval
+    - arguments:
+        end:
+          description: ""
+          nullable: false
+          type: timestamptz
+        interval:
+          description: ""
+          nullable: false
+          type: interval
+        start:
+          description: ""
+          nullable: false
+          type: timestamptz
+      code: SELECT * FROM get_formatted_tokens_intervals_within_period({{start}}, {{end}}, {{interval}});
+      returns: GetFormattedTokensResult
+      root_field_name: get_formatted_tokens_intervals_within_period
+    - arguments:
+        end:
+          description: ""
+          nullable: false
+          type: timestamptz
+        increase_pct:
+          description: ""
+          nullable: false
+          type: float8
+        interval:
+          description: ""
+          nullable: false
+          type: interval
+        start:
+          description: ""
+          nullable: false
+          type: timestamptz
+        trades:
+          description: ""
+          nullable: false
+          type: bigint
+      code: "SELECT \n  interval_start,\n  COUNT(DISTINCT mint) as token_count\nFROM \n  get_formatted_tokens_intervals_within_period({{start}}, {{end}}, {{interval}})\nWHERE\n  increase_pct >= {{increase_pct}} AND trades >= {{trades}}\nGROUP BY \n  interval_start\nORDER BY \n  interval_start;"
+      returns: get_formatted_tokens_intervals_within_period_aggregate
+      root_field_name: get_formatted_tokens_intervals_within_period_aggregate
     - arguments:
         end:
           description: ""

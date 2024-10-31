@@ -1,78 +1,60 @@
-import { formatDistance } from "date-fns";
+import { useMemo } from "react";
 
+import { BasePeriodDataTable } from "@/components/analytics/base-period-data";
 import { DatePresetsPicker, DateRangePicker } from "@/components/analytics/date-picker";
+import { FilteredTokensChart } from "@/components/analytics/filtered-tokens-period-chart";
+import { TrackerParams } from "@/components/tracker/tracker-params";
+import { Separator } from "@/components/ui/separator";
 import { useAnalyticsData } from "@/hooks/use-analytics";
-import { useAnalyticsParams } from "@/hooks/use-analytics-params";
+import { useTrackerParams } from "@/hooks/use-tracker-params";
 
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
+const MAX_POINTS_PER_CHART = 360;
 
-// Select one day: total + each hour (total + avg per second)
-// Select multiple days: total + each day (total + avg per second)
 export const Analytics = () => {
-  const { swaps, totalSwaps, newTokens, totalNewTokens, error } = useAnalyticsData();
-  const { from, to } = useAnalyticsParams();
+  const { filteredTokensPerInterval } = useAnalyticsData();
+  const { timespan, increasePct, minTrades } = useTrackerParams();
 
-  if (error) return <div>{error}</div>;
+  const chartGroups = useMemo(() => {
+    if (!filteredTokensPerInterval.data) return [];
+
+    const data = filteredTokensPerInterval.data;
+    const groups: (typeof data)[] = [];
+
+    for (let i = 0; i < data.length; i += MAX_POINTS_PER_CHART) {
+      groups.push(data.slice(i, i + MAX_POINTS_PER_CHART));
+    }
+
+    return groups;
+  }, [filteredTokensPerInterval.data]);
+
   return (
-    <div className="flex flex-col items-start w-full max-h-fit">
-      <h3 className="text-lg font-semibold">Analytics</h3>
-      <div className="flex gap-2">
-        <DateRangePicker />
-        <DatePresetsPicker />
+    <div className="flex flex-col items-start w-full gap-4">
+      <div className="flex justify-between gap-4 w-full">
+        <h3 className="text-lg font-semibold">Analytics</h3>
+        <div className="flex gap-2">
+          <DateRangePicker />
+          <DatePresetsPicker />
+        </div>
       </div>
-      <Table className="text-left w-full">
-        <TableCaption>Swaps and new tokens over a period of {formatDistance(from, to)}.</TableCaption>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[100px]">Category</TableHead>
-            <TableHead>Total</TableHead>
-            {swaps?.map((swap) => (
-              <TableHead>
-                {swaps.indexOf(swap) === 0 ||
-                new Date(swap.hour ?? "").getDay() !== new Date(swaps[swaps.indexOf(swap) - 1].hour ?? "").getDay()
-                  ? new Date(swap.hour ?? "").toLocaleString()
-                  : new Date(swap.hour ?? "").toLocaleTimeString()}
-              </TableHead>
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          <TableRow>
-            <TableCell className="font-medium">Swaps</TableCell>
-            <TableCell>
-              {totalSwaps?.toLocaleString()}{" "}
-              <span className="text-muted-foreground">
-                {totalSwaps ? (totalSwaps / (3600 * (swaps?.length ?? 1))).toLocaleString() : 0}/s
-              </span>
-            </TableCell>
-            {swaps?.map((swap) => (
-              <TableCell>
-                {swap.count?.toLocaleString()}{" "}
-                <span className="text-muted-foreground">
-                  {swap.count ? (Number(swap.count) / 3600).toLocaleString() : 0}/s
+      <BasePeriodDataTable />
+      <Separator className="my-4" />
+      <TrackerParams />
+      {!!filteredTokensPerInterval.data && !filteredTokensPerInterval.error && (
+        <div className="w-full flex flex-col gap-4 overflow-x-scroll items-center pt-8 max-w-[calc(100vw-var(--sidebar-width)-8rem)]">
+          {chartGroups.map((group, index) => (
+            <div key={index} className="w-full flex flex-col items-center">
+              <FilteredTokensChart data={group} width={1200} height={400} />
+              {index === chartGroups.length - 1 && (
+                <span className="block text-center text-sm text-muted-foreground mt-2">
+                  Tokens pumping at least {increasePct}% with minimum {minTrades} trades, for each {timespan} intervals
+                  over the specified period.
                 </span>
-              </TableCell>
-            ))}
-          </TableRow>
-          <TableRow>
-            <TableCell className="font-medium">New tokens</TableCell>
-            <TableCell>
-              {totalNewTokens?.toLocaleString()}{" "}
-              <span className="text-muted-foreground">
-                {totalNewTokens ? (totalNewTokens / (3600 * (newTokens?.length ?? 1))).toLocaleString() : 0}/s
-              </span>
-            </TableCell>
-            {newTokens?.map((newToken) => (
-              <TableCell>
-                {newToken.count?.toLocaleString()}{" "}
-                <span className="text-muted-foreground">
-                  {newToken.count ? (Number(newToken.count) / 3600).toLocaleString() : 0}/s
-                </span>
-              </TableCell>
-            ))}
-          </TableRow>
-        </TableBody>
-      </Table>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+      {filteredTokensPerInterval.error && <div>{filteredTokensPerInterval.error}</div>}
     </div>
   );
 };
