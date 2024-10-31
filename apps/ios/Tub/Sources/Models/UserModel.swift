@@ -56,11 +56,6 @@ class UserModel: ObservableObject {
 
     private func fetchInitialData() async {
         do {
-            // Validate userId is a valid UUID
-            guard UUID(uuidString: userId) != nil else {
-                throw NSError(domain: "UserModel", code: 2, userInfo: [NSLocalizedDescriptionKey: "Invalid userId: Not a valid UUID"])
-            }
-            
             try await fetchAccountData()
             try await fetchInitialBalance()
             DispatchQueue.main.async {
@@ -78,7 +73,7 @@ class UserModel: ObservableObject {
     }
 
     private func fetchAccountData() async throws {
-        let query = GetAccountDataQuery(accountId: Uuid(userId))
+        let query = GetAccountDataQuery(accountId: userId)
         return try await withCheckedThrowingContinuation { continuation in
             Network.shared.apollo.fetch(query: query) { [weak self] result in
                 guard let self = self else {
@@ -105,7 +100,7 @@ class UserModel: ObservableObject {
     }
     
     private func fetchInitialBalance() async throws {
-        let query = GetAccountBalanceQuery(account: Uuid(userId))
+        let query = GetAccountBalanceQuery(account: userId)
         
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { [weak self] result in
@@ -133,7 +128,7 @@ class UserModel: ObservableObject {
         
         accountBalanceSubscription = Network.shared.apollo.subscribe(
             subscription: SubAccountBalanceSubscription(
-                account: Uuid(self.userId))
+                account: self.userId)
         ) { [weak self] result in
             guard let self = self else { return }
             DispatchQueue.main.async {
