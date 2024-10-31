@@ -57,7 +57,7 @@ export const GetAllOnchainTokensPriceHistorySinceSubscription = graphql(`
 // TODO: order by volume once integrated
 export const GetFilteredTokensIntervalSubscription = graphql(`
   subscription SubFilteredTokensInterval($interval: interval = "30s") {
-    get_formatted_tokens_interval(
+    formatted_tokens_interval(
       args: { interval: $interval }
       where: { is_pump_token: { _eq: true } }
       order_by: { trades: desc }

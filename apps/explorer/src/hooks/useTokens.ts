@@ -9,7 +9,6 @@ export type Token = {
   latestPrice: number;
   increasePct: number;
   trades: number;
-  platform: string;
   name: string;
   symbol: string;
   id: string;
@@ -20,28 +19,25 @@ export const useTokens = (): {
   fetching: boolean;
   error: string | undefined;
 } => {
-  const { timespan, increasePct, minTrades } = useTrackerParams();
+  const { timespan } = useTrackerParams();
 
   const [filteredTokensResult] = useSubscription({
     query: subscriptions.GetFilteredTokensIntervalSubscription,
     variables: {
       interval: timespan,
-      minIncreasePct: increasePct.toString(),
-      minTrades: minTrades.toString(),
     },
   });
 
   const tokens = useMemo(() => {
-    if (!filteredTokensResult.data?.get_formatted_tokens_interval) return [];
-    return filteredTokensResult.data.get_formatted_tokens_interval.map((token) => ({
-      mint: token.mint,
-      latestPrice: Number(token.latest_price),
-      increasePct: Number(token.increase_pct),
-      trades: Number(token.trades),
-      platform: token.platform,
-      name: token.name,
-      symbol: token.symbol,
-      id: token.token_id,
+    if (!filteredTokensResult.data?.formatted_tokens_interval) return [];
+    return filteredTokensResult.data.formatted_tokens_interval.map((token) => ({
+      mint: token.mint!,
+      latestPrice: Number(token.latest_price!),
+      increasePct: Number(token.increase_pct!),
+      trades: Number(token.trades!),
+      name: token.name ?? "NAME",
+      symbol: token.symbol ?? "SYMBOL",
+      id: token.token_id!,
     }));
   }, [filteredTokensResult.data]);
 
