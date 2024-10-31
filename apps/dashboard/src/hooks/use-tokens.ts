@@ -20,7 +20,7 @@ export const useTokens = (): {
   fetching: boolean;
   error: string | undefined;
 } => {
-  const { timespan, increasePct, minTrades } = useTrackerParams();
+  const { timespan, increasePct, minTrades, onlyPumpTokens } = useTrackerParams();
 
   const [filteredTokensResult] = useSubscription({
     query: subscriptions.GetFilteredTokensIntervalSubscription,
@@ -28,6 +28,7 @@ export const useTokens = (): {
       interval: timespan,
       minIncreasePct: increasePct.toString(),
       minTrades: minTrades.toString(),
+      mintFilter: onlyPumpTokens ? "%pump%" : "%",
     },
   });
 

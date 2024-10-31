@@ -37,6 +37,9 @@ export const Analytics = () => {
 
   return (
     <div ref={containerRef} className="flex flex-col items-start w-full gap-4">
+      <span className="text-sm text-muted-foreground">
+        The data above is for all tokens (no pump.fun filter available).
+      </span>
       <div className="flex justify-between gap-4 w-full">
         <h3 className="text-lg font-semibold">Analytics</h3>
         <div className="flex gap-2">

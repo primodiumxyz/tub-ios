@@ -251,10 +251,11 @@ export const GetFormattedTokensWithPerformanceForIntervalsWithinPeriodQuery = gr
     $afterIntervals: String!
     $increasePct: float8!
     $minTrades: bigint!
+    $mintFilter: String = "%"
   ) {
     get_formatted_tokens_with_performance_intervals_within_period(
       args: { start: $from, end: $to, interval: $interval, after_intervals: $afterIntervals }
-      where: { trades: { _gte: $minTrades }, increase_pct: { _gte: $increasePct } }
+      where: { trades: { _gte: $minTrades }, increase_pct: { _gte: $increasePct }, mint: { _ilike: $mintFilter } }
       order_by: { interval_start: asc }
     ) {
       mint
