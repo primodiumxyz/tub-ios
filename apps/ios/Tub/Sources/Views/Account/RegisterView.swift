@@ -72,8 +72,10 @@ struct RegisterView: View {
                             }
                         }
                     }
+                
+                SignInWithEmailView()
+                
                 Button(action: {
-                    
                     Network.shared.registerNewUser(username: "test", airdropAmount: String(Int(1.0 * 1e9))) { result in
                         handleRegistration(completion: result)
                     }
