@@ -35,7 +35,6 @@ struct BuyForm: View {
             defaultAmount = buyAmountUsd
         }
         onBuy(buyAmountUsd)
-        isVisible = false // Close BuyForm after purchase
     }
     
     func updateBuyAmount(_ amountLamps: Int) {

@@ -40,8 +40,10 @@ struct TokenView : View {
         let buyAmountLamps = priceModel.usdToLamports(usd: amount)
         tokenModel.buyTokens(buyAmountLamps: buyAmountLamps) { success in
             if success {
-                showBuySheet = false
-                activeTab = "sell" // Switch tab after successful buy
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    showBuySheet = false
+                    activeTab = "sell" //  Switch tab after successful buy
+                }
             }
         }
     }
@@ -60,7 +62,7 @@ struct TokenView : View {
                     showBuySheet: $showBuySheet,
                     defaultAmount: $defaultAmount
                 )
-                    .equatable() // Add this modifier
+                .equatable() // Add this modifier
             }
             .frame(maxWidth: .infinity)
             .foregroundColor(AppColors.white)
@@ -70,7 +72,7 @@ struct TokenView : View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
-
+    
     private var tokenInfoView: some View {
         VStack(alignment: .leading) {
             HStack {
@@ -84,7 +86,7 @@ struct TokenView : View {
                 Text(priceModel.formatPrice(lamports: tokenModel.prices.last?.price ?? 0, maxDecimals: 9, minDecimals: 2))
                     .font(.sfRounded(size: .xl4, weight: .bold))
                 Image(systemName: "info.circle.fill")
-                .frame(width: 16, height: 16)
+                    .frame(width: 16, height: 16)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             
@@ -105,7 +107,7 @@ struct TokenView : View {
             }
         }
     }
-
+    
     private var chartView: some View {
         Group {
             if selectedTimespan == .live {
@@ -117,7 +119,7 @@ struct TokenView : View {
         }
         .padding(.horizontal)
     }
-
+    
     private var timespanButtons: some View {
         HStack {
             Spacer()
@@ -149,7 +151,7 @@ struct TokenView : View {
         .padding(.bottom, 8)
         .padding(.horizontal)
     }
-
+    
     private var infoCardOverlay: some View {
         Group {
             if showInfoCard {
@@ -168,8 +170,8 @@ struct TokenView : View {
             }
         }
     }
-
-
+    
+    
     private var buySheetOverlay: some View {
         Group {
             if showBuySheet {
@@ -177,6 +179,7 @@ struct TokenView : View {
                     .ignoresSafeArea()
                     .onTapGesture {
                         withAnimation(.easeInOut(duration: 0.3)) {
+                            print("CLOSING")
                             showBuySheet = false
                         }
                     }
