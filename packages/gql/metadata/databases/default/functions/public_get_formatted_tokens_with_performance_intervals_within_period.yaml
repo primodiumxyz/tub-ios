@@ -1,0 +1,3 @@
+function:
+  name: get_formatted_tokens_with_performance_intervals_within_period
+  schema: public
