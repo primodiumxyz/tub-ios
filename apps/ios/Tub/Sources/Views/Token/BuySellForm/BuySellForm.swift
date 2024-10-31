@@ -59,12 +59,13 @@ struct BuySellForm: View {
                         HStack(alignment: .center, spacing: 8) {
                             Text("Buy $\(String(format: "%.2f", defaultAmount))")
                                 .font(.sfRounded(size: .xl, weight: .semibold))
-                                .foregroundColor(AppColors.aquaGreen)
+                                .foregroundColor(AppColors.black)
                                 .multilineTextAlignment(.center)
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 12)
+                        .background(AppColors.aquaGreen)
                         .cornerRadius(30)
                         .overlay(
                             RoundedRectangle(cornerRadius: 30)
