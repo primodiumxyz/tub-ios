@@ -2,9 +2,6 @@ table:
   name: token_transaction
   schema: public
 object_relationships:
-  - name: account_transaction_data
-    using:
-      foreign_key_constraint_on: account_transaction
   - name: token_data
     using:
       foreign_key_constraint_on: token
@@ -15,11 +12,14 @@ object_relationships:
         table:
           name: token_price_history
           schema: public
+  - name: wallet_transaction_data
+    using:
+      foreign_key_constraint_on: wallet_transaction
 select_permissions:
   - role: public
     permission:
       columns:
-        - account_transaction
+        - wallet_transaction
         - amount
         - id
         - token
