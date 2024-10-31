@@ -8,16 +8,19 @@
 import SwiftUI
 
 struct AccountView: View {
+    @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject private var userModel: UserModel
     @State private var isNavigatingToRegister = false
     @State private var isAirdropping = false
     @State private var airdropResult: String?
     @State private var errorMessage: String?
     @Environment(\.presentationMode) var presentationMode
+    
 
     var body: some View {
         NavigationStack {
             VStack() {
+                Text(privy.authState.toString).foregroundStyle(.white)
                 if userModel.username.isEmpty {
                     Text("Please register to view your account details.")
                         .font(.sfRounded(size: .lg, weight: .medium))
@@ -41,7 +44,7 @@ struct AccountView: View {
                             .padding(.vertical)
                         Text("Username: \(userModel.username)")
                             .font(.sfRounded(size: .lg, weight: .medium))
-                        Text("Balance: \(PriceFormatter.formatPrice(lamports: userModel.balanceLamps)) SOL")
+                        Text("Balance: \(priceModel.formatPrice(lamports: userModel.balanceLamps, minDecimals: 2))")
                             .font(.sfRounded(size: .lg, weight: .medium))
                             .padding(.bottom)
                         if let error = errorMessage {
@@ -114,7 +117,13 @@ struct AccountView: View {
 
 #Preview {
     @Previewable @AppStorage("userId") var userId: String = ""
+    @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
     @State @Previewable var isRegistered = false
-    AccountView()
-        .environmentObject(UserModel(userId: userId))
+    if !priceModel.isReady {
+        LoadingView()
+    } else {
+        AccountView()
+            .environmentObject(UserModel(userId: userId))
+            .environmentObject(priceModel)
+    }
 }

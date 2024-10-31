@@ -9,6 +9,7 @@ import SwiftUI
 import Charts
 
 struct CandleChartView: View {
+    @EnvironmentObject var priceModel: SolPriceModel
     let prices: [Price]
     let intervalSecs: Double
     var timeframeMins: Double = 30
@@ -22,6 +23,21 @@ struct CandleChartView: View {
         self.timeframeMins = timeframeMins ?? 30
     }
 
+    private var filteredPrices: [Price] {
+        let filteredPrices = filterPrices(prices: prices, timeframeSecs: timeframeMins * 60)
+        return filteredPrices
+    }
+    
+    private func filterPrices(prices: [Price], timeframeSecs: Double) -> [Price] {
+        let cutoffDate = Date().addingTimeInterval(-timeframeSecs)
+        let filteredPrices = prices.filter { $0.timestamp >= cutoffDate }
+        
+        if filteredPrices.count < 2 {
+            return Array(prices.suffix(2))
+        }
+        
+        return filteredPrices
+    }
     private func updateCandles() {
         if prices.isEmpty { return }
         let startTime = prices.first!.timestamp
@@ -140,7 +156,7 @@ struct CandleChartView: View {
             .foregroundStyle(AppColors.white.opacity(0.7))
             .annotation(position: lastCandle.close >= lastCandle.open ? .top : .bottom, spacing: 4) {
                 PillView(
-                    value: String(format: "%.2f SOL", lastCandle.close),
+                    value: priceModel.formatPrice(lamports: lastCandle.close),
                     color: AppColors.white.opacity(0.7),
                     foregroundColor: AppColors.black
                 )
@@ -154,8 +170,12 @@ struct CandleChartView: View {
         AxisMarks(position: .leading) { value in
             AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
                 .foregroundStyle(.white.opacity(0.2))
-            AxisValueLabel()
-                .foregroundStyle(.white.opacity(0.5))
+            AxisValueLabel {
+                if let intValue = value.as(Int.self) {
+                    Text(priceModel.formatPrice(lamports: intValue))
+                        .foregroundStyle(.white.opacity(0.5))
+                }
+            }
         }
     }
 
