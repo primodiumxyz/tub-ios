@@ -1,24 +1,6 @@
 import { graphql } from "./init";
 
-export const GetAllAccountsQuery = graphql(`
-  query GetAllAccounts {
-    account {
-      id
-      username
-      created_at
-    }
-  }
-`);
 
-export const GetAccountDataQuery = graphql(`
-  query GetAccountData($accountId: uuid!) {
-    account(where: { id: { _eq: $accountId } }) {
-      username
-      id
-      created_at
-    }
-  }
-`);
 
 export const GetAllMockTokensQuery = graphql(`
   query GetAllTokens {
@@ -57,42 +39,42 @@ export const GetTokensByMintsQuery = graphql(`
   }
 `);
 
-export const GetAccountTokenBalanceQuery = graphql(`
-  query GetAccountTokenBalance($account: uuid!, $token: uuid!, $start: timestamptz = "now()") {
-    balance: account_token_balance_ignore_interval(
-      args: { account: $account, interval: "0", start: $start, token: $token }
+export const GetWalletTokenBalanceQuery = graphql(`
+  query GetWalletTokenBalance($wallet: String!, $token: uuid!, $start: timestamptz = "now()") {
+    balance: wallet_token_balance_ignore_interval(
+      args: { wallet: $wallet, interval: "0", start: $start, token: $token }
     ) {
       value: balance
     }
   }
 `);
 
-export const GetAccountTokenBalanceIgnoreIntervalQuery = graphql(`
-  query GetAccountTokenBalanceIgnoreInterval(
-    $account: uuid!
+export const GetWalletTokenBalanceIgnoreIntervalQuery = graphql(`
+  query GetWalletTokenBalanceIgnoreInterval(
+    $wallet: String!
     $start: timestamptz = "now()"
     $interval: interval!
     $token: uuid!
   ) {
-    balance: account_token_balance_ignore_interval(
-      args: { account: $account, interval: $interval, start: $start, token: $token }
+    balance: wallet_token_balance_ignore_interval(
+        args: { wallet: $wallet, interval: $interval, start: $start, token: $token }
     ) {
       value: balance
     }
   }
 `);
 
-export const GetAccountBalanceQuery = graphql(`
-  query GetAccountBalance($account: uuid!, $start: timestamptz = "now()") {
-    balance: account_balance_ignore_interval(args: { account: $account, interval: "0", start: $start }) {
+export const GetwalletBalanceQuery = graphql(`
+  query GetWalletBalance($wallet: String!, $start: timestamptz = "now()") {
+    balance: wallet_balance_ignore_interval(args: { wallet: $wallet, interval: "0", start: $start }) {
       value: balance
     }
   }
 `);
 
-export const GetAccountBalanceIgnoreIntervalQuery = graphql(`
-  query GetAccountBalanceIgnoreInterval($account: uuid!, $start: timestamptz = "now()", $interval: interval!) {
-    balance: account_balance_ignore_interval(args: { account: $account, interval: $interval, start: $start }) {
+export const GetWalletBalanceIgnoreIntervalQuery = graphql(`
+  query GetWalletBalanceIgnoreInterval($wallet: String!, $start: timestamptz = "now()", $interval: interval!) {
+    balance: wallet_balance_ignore_interval(args: { wallet: $wallet, interval: $interval, start: $start }) {
       value: balance
     }
   }
@@ -135,13 +117,13 @@ export const GetLatestTokenPriceQuery = graphql(`
   }
 `);
 
-export const GetAccountTransactionsQuery = graphql(`
-  query GetAccountTransactions($accountId: uuid!) {
+export const GetWalletTransactionsQuery = graphql(`
+  query GetWalletTransactions($wallet: String!) {
     token_transaction(
-      order_by: { account_transaction_data: { created_at: desc } }
-      where: { account_transaction_data: { account_data: { id: { _eq: $accountId } } } }
+      order_by: { wallet_transaction_data: { created_at: desc } }
+      where: { wallet_transaction_data: { wallet: { _eq: $wallet } } }
     ) {
-      account_transaction
+      wallet_transaction
       amount
       id
       token
@@ -152,7 +134,7 @@ export const GetAccountTransactionsQuery = graphql(`
         symbol
         uri
       }
-      account_transaction_data {
+      wallet_transaction_data {
         created_at
       }
       token_price {
