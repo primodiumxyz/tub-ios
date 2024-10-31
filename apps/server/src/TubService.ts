@@ -1,3 +1,4 @@
+import { PrivyClient } from "@privy-io/server-auth";
 import { parseEnv } from "../bin/parseEnv";
 import { Core, CounterData } from "@tub/core";
 import { GqlClient } from "@tub/gql";
@@ -14,19 +15,19 @@ export class TubService {
   private core: Core;
   private counterSubscribers: Set<CounterUpdateCallback> = new Set();
   private counter: number = 0;
+  private privy: PrivyClient;
   private gql: GqlClient["db"];
 
-  constructor(core: Core, gqlClient: GqlClient["db"]) {
+  constructor(core: Core, gqlClient: GqlClient["db"], privy: PrivyClient) {
     this.core = core;
     this.gql = gqlClient;
-
-    this.initializeCounterSubscription();
+    this.privy = privy;
   }
 
-  private verifyJWT = (token: string) => {
+  private verifyJWT = async (token: string) => {
     try {
-      const payload = jwt.verify(token, env.JWT_SECRET) as jwt.JwtPayload;
-      return payload.uuid;
+      const verifiedClaims = await this.privy.verifyAuthToken(token);
+      return verifiedClaims.userId;
     } catch (e: any) {
       throw new Error(`Invalid JWT: ${e.message}`);
     }
@@ -100,7 +101,7 @@ export class TubService {
   }
 
   async sellToken(token: string, tokenId: string, amount: bigint) {
-    const accountId = this.verifyJWT(token);
+    const accountId = await this.verifyJWT(token);
 
     const result = await this.gql.SellTokenMutation({
       account: accountId,
@@ -116,7 +117,7 @@ export class TubService {
   }
 
   async buyToken(token: string, tokenId: string, amount: bigint) {
-    const accountId = this.verifyJWT(token);
+    const accountId = await this.verifyJWT(token);
 
     const result = await this.gql.BuyTokenMutation({
       account: accountId,
@@ -147,7 +148,7 @@ export class TubService {
   }
 
   async airdropNativeToUser(token: string, amount: bigint) {
-    const accountId = this.verifyJWT(token);
+    const accountId = await this.verifyJWT(token);
 
     const result = await this.gql.AirdropNativeToUserMutation({
       account: accountId,

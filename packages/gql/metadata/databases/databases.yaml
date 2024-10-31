@@ -71,10 +71,10 @@
           type:
             nullable: false
             scalar: uuid
-        - name: account
+        - name: privy_user_id
           type:
             nullable: false
-            scalar: uuid
+            scalar: varchar
         - name: amount
           type:
             nullable: false
@@ -150,10 +150,10 @@
           type:
             nullable: false
             scalar: numeric
-        - name: account
+        - name: privy_user_id
           type:
             nullable: false
-            scalar: uuid
+            scalar: varchar
         - name: created_at
           type:
             nullable: false
@@ -165,14 +165,14 @@
       name: token_transaction_offset_model
   native_queries:
     - arguments:
-        account:
-          description: ""
-          nullable: false
-          type: uuid
         interval:
           description: ""
           nullable: false
           type: interval
+        privy_user_id:
+          description: ""
+          nullable: false
+          type: varchar
         start:
           description: ""
           nullable: false
@@ -180,18 +180,18 @@
       code: |-
         SELECT COALESCE(SUM(account_transaction_offset.amount), 0) as balance
         from  (SELECT *, created_at + {{interval}} as created_at_offset from account_transaction) as account_transaction_offset
-        where account_transaction_offset.account = {{account}} and account_transaction_offset.created_at_offset <= {{start}}
+        where account_transaction_offset.privy_user_id = {{privy_user_id}} and account_transaction_offset.created_at_offset <= {{start}}
       returns: balance_offset_model
       root_field_name: account_balance_ignore_interval
     - arguments:
-        account:
-          description: ""
-          nullable: false
-          type: uuid
         interval:
           description: ""
           nullable: false
           type: interval
+        privy_user_id:
+          description: ""
+          nullable: false
+          type: varchar
         start:
           description: ""
           nullable: false
@@ -200,7 +200,7 @@
           description: ""
           nullable: false
           type: uuid
-      code: "SELECT \n    COALESCE(SUM(token_transaction_offset.amount), 0) AS balance\nFROM (\n    SELECT  \n        token_transaction.id,  \n        token_transaction.token,  \n        token_transaction.amount, \n        account_transaction.account, \n        account_transaction.created_at, \n        account_transaction.created_at + {{interval}} AS created_at_offset\n    FROM \n        token_transaction\n    INNER JOIN \n        account_transaction \n    ON \n        token_transaction.account_transaction = account_transaction.id\n) AS token_transaction_offset\nWHERE \n    token_transaction_offset.account = {{account}} \n    AND token_transaction_offset.token = {{token}} \n    AND token_transaction_offset.created_at_offset <= {{start}};"
+      code: "SELECT \n    COALESCE(SUM(token_transaction_offset.amount), 0) AS balance\nFROM (\n    SELECT  \n        token_transaction.id,  \n        token_transaction.token,  \n        token_transaction.amount, \n        account_transaction.privy_user_id, \n        account_transaction.created_at, \n        account_transaction.created_at + {{interval}} AS created_at_offset\n    FROM \n        token_transaction\n    INNER JOIN \n        account_transaction \n    ON \n        token_transaction.account_transaction = account_transaction.id\n) AS token_transaction_offset\nWHERE \n    token_transaction_offset.privy_user_id = {{privy_user_id}} \n    AND token_transaction_offset.token = {{token}} \n    AND token_transaction_offset.created_at_offset <= {{start}};"
       returns: balance_offset_model
       root_field_name: account_token_balance_ignore_interval
     - arguments:
@@ -240,7 +240,7 @@
           description: ""
           nullable: false
           type: interval
-      code: SELECT  token_transaction.id,  token_transaction.token,  token_transaction.amount, account, created_at, created_at + {{offset}} as created_at_offset from token_transaction inner JOIN account_transaction on token_transaction.account_transaction = account_transaction.id
+      code: SELECT  token_transaction.id,  token_transaction.token,  token_transaction.amount, account_transaction.privy_user_id, created_at, created_at + {{offset}} as created_at_offset from token_transaction inner JOIN account_transaction on token_transaction.account_transaction = account_transaction.id
       returns: token_transaction_offset_model
       root_field_name: token_transaction_offset
   tables: "!include default/tables/tables.yaml"

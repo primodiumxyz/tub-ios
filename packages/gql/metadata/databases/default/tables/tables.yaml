@@ -1,4 +1,3 @@
-- "!include public_account.yaml"
 - "!include public_account_transaction.yaml"
 - "!include public_formatted_tokens.yaml"
 - "!include public_token.yaml"

@@ -1,10 +1,6 @@
 table:
   name: account_transaction
   schema: public
-object_relationships:
-  - name: account_data
-    using:
-      foreign_key_constraint_on: account
 array_relationships:
   - name: token_transactions
     using:
@@ -17,10 +13,10 @@ select_permissions:
   - role: public
     permission:
       columns:
-        - account
         - amount
         - created_at
         - id
+        - privy_user_id
       filter: {}
       allow_aggregations: true
     comment: ""
