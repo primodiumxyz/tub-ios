@@ -10,7 +10,7 @@ import { getTokensPerformanceStats } from "@/lib/utils";
 
 // Total average performance after the period has ended
 // Average performance per interval during the period, using the same chart as the analytics
-export const PerformanceBasePeriodDataTable = () => {
+export const PerformanceBasePeriodDataTable = ({ chartWidth }: { chartWidth: number }) => {
   const { data, error, loading } = useDataAnalysisData();
   // const { from, to } = useAnalyticsParams();
   const stats = useMemo(() => (data ? getTokensPerformanceStats(data) : undefined), [data]);
@@ -27,14 +27,14 @@ export const PerformanceBasePeriodDataTable = () => {
       .sort((a, b) => a.interval_start.getTime() - b.interval_start.getTime());
   }, [stats]);
 
-  // if (loading) return <div className="w-full text-sm text-muted-foreground">This might take a while...</div>;
+  if (loading && !stats) return <div className="w-full text-sm text-muted-foreground">This might take a while...</div>;
   if (error) return <div className="w-full text-sm text-muted-foreground">{error}</div>;
   if (!stats) return <div>No data</div>;
 
   return (
     <div className="w-full flex flex-col gap-8 items-start">
       <GlobalStatsTable stats={stats.global} />
-      <PerformanceChart data={chartData} width={800} height={400} />
+      <PerformanceChart data={chartData} width={chartWidth} height={400} />
     </div>
   );
 };

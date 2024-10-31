@@ -104,6 +104,37 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, width,
     }
   };
 
+  const handleMouseMove = (event: React.MouseEvent<SVGPathElement>, index: number) => {
+    const svgElement = event.currentTarget.ownerSVGElement;
+    if (!svgElement) return;
+
+    const rect = svgElement.getBoundingClientRect();
+    const mouseX = event.clientX - rect.left - margin.left;
+    const xDate = xScale.invert(mouseX);
+
+    const nearestPoint = data.reduce((prev, curr) => {
+      return Math.abs(curr.interval_start.getTime() - xDate.getTime()) <
+        Math.abs(prev.interval_start.getTime() - xDate.getTime())
+        ? curr
+        : prev;
+    });
+
+    const tooltipX = xScale(nearestPoint.interval_start.getTime());
+    const tooltipY = yScale(nearestPoint.stats[index]?.increasePct.avg ?? 0);
+
+    showTooltip({
+      tooltipData: {
+        date: nearestPoint.interval_start,
+        values: nearestPoint.stats.map((s, i) => ({
+          afterInterval: AFTER_INTERVALS[i],
+          value: s.increasePct.avg,
+        })),
+      },
+      tooltipLeft: tooltipX + margin.left,
+      tooltipTop: tooltipY + margin.top,
+    });
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex justify-end gap-8 w-full">
@@ -171,28 +202,7 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, width,
                     y={(d) => yScale(d.stats[index]?.increasePct.avg ?? 0)}
                     stroke={getLineColor(index)}
                     strokeWidth={2}
-                    onMouseMove={(event) => {
-                      const { clientX, clientY } = event;
-                      const xValue = xScale.invert(clientX);
-                      const nearestPoint = data.reduce((prev, curr) => {
-                        return Math.abs(curr.interval_start.getTime() - xValue.getTime()) <
-                          Math.abs(prev.interval_start.getTime() - xValue.getTime())
-                          ? curr
-                          : prev;
-                      });
-
-                      showTooltip({
-                        tooltipData: {
-                          date: nearestPoint.interval_start,
-                          values: nearestPoint.stats.map((s, i) => ({
-                            afterInterval: AFTER_INTERVALS[i],
-                            value: s.increasePct.avg,
-                          })),
-                        },
-                        tooltipLeft: clientX,
-                        tooltipTop: clientY,
-                      });
-                    }}
+                    onMouseMove={(event) => handleMouseMove(event, index)}
                     onMouseLeave={hideTooltip}
                   />
                 ),
@@ -221,17 +231,26 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, width,
             left={tooltipLeft}
             style={{
               ...defaultStyles,
+              position: "absolute",
               transform: "translate(-50%, -100%)",
+              backgroundColor: "rgba(0, 0, 0, 0.85)",
+              padding: "8px",
+              borderRadius: "4px",
+              color: "white",
+              fontSize: "12px",
+              pointerEvents: "none",
             }}
           >
             <div>
               <strong>Time:</strong> {format(tooltipData.date, "HH:mm:ss")}
             </div>
-            {tooltipData.values.map(({ afterInterval, value }) => (
-              <div key={afterInterval}>
-                <strong>{afterInterval}:</strong> {value.toFixed(2)}%
-              </div>
-            ))}
+            {tooltipData.values
+              .filter(({ afterInterval }) => visibleIntervals.has(afterInterval))
+              .map(({ afterInterval, value }) => (
+                <div key={afterInterval}>
+                  <strong>{afterInterval}:</strong> {value.toLocaleString()}%
+                </div>
+              ))}
           </Tooltip>
         )}
       </div>
