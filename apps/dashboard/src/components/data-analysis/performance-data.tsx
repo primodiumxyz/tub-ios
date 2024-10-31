@@ -1,4 +1,3 @@
-// import { useAnalyticsParams } from "@/hooks/use-analytics-params";
 import { useMemo } from "react";
 
 import { PerformanceChart } from "@/components/data-analysis/performance-data-chart";
@@ -8,11 +7,8 @@ import { AFTER_INTERVALS } from "@/lib/constants";
 import { TokenStats } from "@/lib/types";
 import { getTokensPerformanceStats } from "@/lib/utils";
 
-// Total average performance after the period has ended
-// Average performance per interval during the period, using the same chart as the analytics
 export const PerformanceBasePeriodDataTable = ({ chartWidth }: { chartWidth: number }) => {
   const { data, error, loading } = useDataAnalysisData();
-  // const { from, to } = useAnalyticsParams();
   const stats = useMemo(() => (data ? getTokensPerformanceStats(data) : undefined), [data]);
   console.log(stats);
 
