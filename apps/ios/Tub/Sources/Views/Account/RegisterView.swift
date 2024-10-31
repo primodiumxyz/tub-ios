@@ -3,9 +3,6 @@ import PrivySDK
 import AuthenticationServices
 
 struct RegisterView: View {
-    @AppStorage("userId") private var userId = ""
-    @State private var username = ""
-    @Binding var isRegistered: Bool
     @State var myAuthState : AuthState = AuthState.notReady
     @State private var showPhoneModal = false
     @State private var showEmailModal = false
@@ -133,20 +130,6 @@ struct RegisterView: View {
                 .background(.white)
                 .cornerRadius(26)
                 .foregroundStyle(.black)
-                
-                Button(action: {
-                    Network.shared.registerNewUser(username: "test", airdropAmount: String(Int(1.0 * 1e9))) { result in
-                        handleRegistration(completion: result)
-                    }
-                }) {
-                    Text("Dev Login")
-                        .font(.sfRounded(size: .base, weight: .semibold))
-                        .foregroundColor(AppColors.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(12)
-                        .background(AppColors.primaryPurple)
-                        .cornerRadius(26)
-                }.padding([.top, .leading, .trailing])               
             }.sheet(isPresented: $showPhoneModal) {
                 SignInWithPhoneView()
                     .presentationDetents([.height(400)])
@@ -169,6 +152,5 @@ struct RegisterView: View {
 }
 
 #Preview {
-    @State @Previewable var isRegistered = false
-    return RegisterView(isRegistered: $isRegistered)
+    RegisterView()
 }

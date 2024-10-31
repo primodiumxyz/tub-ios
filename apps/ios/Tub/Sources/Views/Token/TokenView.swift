@@ -186,16 +186,3 @@ struct TokenView : View {
     }
 }
 
-#Preview {
-    @Previewable @AppStorage("userId") var userId: String = ""
-    @Previewable @State var activeTab: String = "buy"
-    @Previewable @State var tokenId: String = "55dcf2e6-c89b-4722-8152-11ed7f38e527"
-    @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
-    if !priceModel.isReady {
-        LoadingView()
-    } else {
-        TokenView(tokenModel: TokenModel(userId: userId, tokenId: tokenId), activeTab: $activeTab).background(.black)
-            .environmentObject(UserModel(userId: userId))
-            .environmentObject(priceModel)
-    }
-}
