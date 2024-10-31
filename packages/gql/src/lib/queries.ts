@@ -234,23 +234,15 @@ export const GetNewTokensInPeriodCountQuery = graphql(`
   }
 `);
 
-// TODO: replace with some volume per interval aggregation
-// export const GetFormattedTokensCountForIntervalsWithinPeriodQuery = graphql(`
-//   query GetFormattedTokensCountForIntervalsWithinPeriodQuery(
-//     $from: timestamptz!
-//     $to: timestamptz!
-//     $interval: interval!
-//     $increasePct: float8!
-//     $minTrades: bigint!
-//   ) {
-//     formatted_tokens_intervals_within_period_aggregate(
-//       args: { start: $from, end: $to, interval: $interval, trades: $minTrades, increase_pct: $increasePct }
-//     ) {
-//       interval_start
-//       token_count
-//     }
-//   }
-// `);
+export const GetVolumeIntervalsWithinPeriodQuery = graphql(`
+  query GetVolumeIntervalsWithinPeriod($from: timestamptz!, $to: timestamptz!, $interval: interval!) {
+    volume_intervals_within_period(args: { start: $from, end: $to, interval: $interval }) {
+      interval_start
+      total_volume
+      token_count
+    }
+  }
+`);
 
 export const GetFormattedTokensWithPerformanceForIntervalsWithinPeriodQuery = graphql(`
   query GetFormattedTokensWithPerformanceForIntervalsWithinPeriodQuery(
