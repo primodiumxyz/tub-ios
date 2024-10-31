@@ -226,35 +226,8 @@ export const GetNewTokensInPeriodCountQuery = graphql(`
   }
 `);
 
-export const GetFilteredTokensForIntervalsWithinPeriodQuery = graphql(`
-  query GetFilteredTokensForIntervalsWithinPeriod(
-    $from: timestamptz!
-    $to: timestamptz!
-    $interval: interval!
-    $increasePct: float8!
-    $minTrades: bigint!
-  ) {
-    get_formatted_tokens_intervals_within_period(
-      args: { start: $from, end: $to, interval: $interval }
-      where: { trades: { _gte: $minTrades }, increase_pct: { _gte: $increasePct } }
-    ) {
-      token_id
-      mint
-      decimals
-      name
-      symbol
-      platform
-      latest_price
-      increase_pct
-      trades
-      created_at
-      interval_start
-    }
-  }
-`);
-
-export const GetFilteredTokensCountForIntervalsWithinPeriodQuery = graphql(`
-  query GetFilteredTokensCountByInterval(
+export const GetFormattedTokensCountForIntervalsWithinPeriodQuery = graphql(`
+  query GetFormattedTokensCountForIntervalsWithinPeriodQuery(
     $from: timestamptz!
     $to: timestamptz!
     $interval: interval!
@@ -266,6 +239,32 @@ export const GetFilteredTokensCountForIntervalsWithinPeriodQuery = graphql(`
     ) {
       interval_start
       token_count
+    }
+  }
+`);
+
+export const GetFormattedTokensWithPerformanceForIntervalsWithinPeriodQuery = graphql(`
+  query GetFormattedTokensWithPerformanceForIntervalsWithinPeriodQuery(
+    $from: timestamptz!
+    $to: timestamptz!
+    $interval: interval!
+    $afterIntervals: String!
+    $increasePct: float8!
+    $minTrades: bigint!
+    $mintFilter: String = "%"
+  ) {
+    get_formatted_tokens_with_performance_intervals_within_period(
+      args: { start: $from, end: $to, interval: $interval, after_intervals: $afterIntervals }
+      where: { trades: { _gte: $minTrades }, increase_pct: { _gte: $increasePct }, mint: { _ilike: $mintFilter } }
+      order_by: { interval_start: asc }
+    ) {
+      mint
+      increase_pct
+      trades
+      increase_pct_after
+      trades_after
+      created_at
+      interval_start
     }
   }
 `);

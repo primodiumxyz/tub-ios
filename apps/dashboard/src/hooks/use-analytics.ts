@@ -5,6 +5,7 @@ import { queries } from "@tub/gql";
 import { useAnalyticsParams } from "@/hooks/use-analytics-params";
 import { useTrackerParams } from "@/hooks/use-tracker-params";
 
+// TODO: maybe support filters (e.g. only pump tokens) for these 3 queries
 export const useAnalyticsData = (): {
   swaps: { hour: Date | null; count: string | null }[] | undefined;
   newTokens: { hour: Date | null; count: string | null }[] | undefined;
@@ -32,8 +33,14 @@ export const useAnalyticsData = (): {
   });
 
   const [filteredTokensPerInterval] = useQuery({
-    query: queries.GetFilteredTokensCountForIntervalsWithinPeriodQuery,
-    variables: { from, to, interval: timespan, increasePct: increasePct.toString(), minTrades: minTrades.toString() },
+    query: queries.GetFormattedTokensCountForIntervalsWithinPeriodQuery,
+    variables: {
+      from,
+      to,
+      interval: timespan,
+      increasePct: increasePct.toString(),
+      minTrades: minTrades.toString(),
+    },
     requestPolicy: "network-only",
   });
   console.log(filteredTokensPerInterval.data);
