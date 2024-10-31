@@ -154,7 +154,7 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, width,
             <AxisBottom
               top={yMax}
               scale={xScale}
-              tickFormat={(d) => format(d, "HH:mm")}
+              tickFormat={(d) => format(d.toString(), "HH:mm")}
               tickLabelProps={() => ({
                 fill: "rgba(255, 255, 255, 0.6)",
                 fontSize: 11,
@@ -172,8 +172,8 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, width,
                     stroke={getLineColor(index)}
                     strokeWidth={2}
                     onMouseMove={(event) => {
-                      const { x } = event;
-                      const xValue = xScale.invert(x);
+                      const { clientX, clientY } = event;
+                      const xValue = xScale.invert(clientX);
                       const nearestPoint = data.reduce((prev, curr) => {
                         return Math.abs(curr.interval_start.getTime() - xValue.getTime()) <
                           Math.abs(prev.interval_start.getTime() - xValue.getTime())
@@ -189,8 +189,8 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, width,
                             value: s.increasePct.avg,
                           })),
                         },
-                        tooltipLeft: x,
-                        tooltipTop: event.y,
+                        tooltipLeft: clientX,
+                        tooltipTop: clientY,
                       });
                     }}
                     onMouseLeave={hideTooltip}
