@@ -60,6 +60,7 @@ struct TokenView : View {
                 BuySellForm(tokenModel: tokenModel, activeTab: $activeTab, showBuySheet: $showBuySheet)
                     .equatable() // Add this modifier
             }
+            .padding(.horizontal)
             .frame(maxWidth: .infinity)
             .foregroundColor(AppColors.white)
             
@@ -78,8 +79,13 @@ struct TokenView : View {
                 Text("$\(tokenModel.token.symbol)")
                     .font(.sfRounded(size: .lg, weight: .semibold))
             }
-            Text(priceModel.formatPrice(lamports: tokenModel.prices.last?.price ?? 0, maxDecimals: 9, minDecimals: 2))
-                .font(.sfRounded(size: .xl4, weight: .bold))
+            HStack(alignment: .center, spacing: 6) {
+                Text(priceModel.formatPrice(lamports: tokenModel.prices.last?.price ?? 0, maxDecimals: 9, minDecimals: 2))
+                    .font(.sfRounded(size: .xl4, weight: .bold))
+                Image(systemName: "info.circle.fill")
+                .frame(width: 16, height: 16)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
             
             HStack {
                 Text(priceModel.formatPrice(lamports: tokenModel.priceChange.amountLamps, showSign: true))
@@ -89,6 +95,12 @@ struct TokenView : View {
             }
             .font(.sfRounded(size: .sm, weight: .semibold))
             .foregroundColor(tokenModel.priceChange.amountLamps >= 0 ? .green : .red)
+        }
+        .onTapGesture {
+            // Toggle the info card
+            withAnimation(.easeInOut) {
+                showInfoCard.toggle()
+            }
         }
     }
 
@@ -149,10 +161,10 @@ struct TokenView : View {
                 TokenInfoCardView(tokenModel: tokenModel, isVisible: $showInfoCard)
                     .transition(.move(edge: .bottom))
                     .zIndex(1) // Ensure it stays on top
-                
             }
         }
     }
+
 
     private var buySheetOverlay: some View {
         Group {
