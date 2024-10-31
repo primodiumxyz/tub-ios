@@ -7,6 +7,8 @@ struct RegisterView: View {
     @State private var username = ""
     @Binding var isRegistered: Bool
     @State var myAuthState : AuthState = AuthState.notReady
+    @State private var showPhoneModal = false
+    @State private var showEmailModal = false
     
     func handleRegistration(completion: Result<UserResponse, Error>) {
         switch completion {
@@ -62,7 +64,7 @@ struct RegisterView: View {
                 
                 SignInWithApple()
                     .onTapGesture {
-                        // Ideally this is called in a view model, but showcasing logic here for brevity
+                        // Ideally this is called in a view model, but showcasinlug logic here for brevity
                         Task {
                             do {
                                 let authSession = try await privy.oAuth.login(with: OAuthProvider.apple)
@@ -73,8 +75,37 @@ struct RegisterView: View {
                         }
                     }
                 
-                SignInWithEmailView()
-                SignInWithPhoneView()
+                // Email button
+                Button(action: { showEmailModal = true }) {
+                    HStack {
+                        Image(systemName: "envelope.fill")
+                            .frame(width: 24, height: 24)
+                        
+                        Text("Continue with Email")
+                            .font(.sfRounded(size: .xl, weight: .semibold))
+                    }
+                }
+                .frame(width: 260)
+                .padding()
+                .background(.white)
+                .cornerRadius(26)
+                .foregroundStyle(.black)
+                
+                // Phone button
+                Button(action: { showPhoneModal = true }) {
+                    HStack {
+                        Image(systemName: "phone.fill")
+                            .frame(width: 24, height: 24)
+                        
+                        Text("Continue with Phone")
+                            .font(.sfRounded(size: .xl, weight: .semibold))
+                    }
+                }
+                .frame(width: 260)
+                .padding()
+                .background(.white)
+                .cornerRadius(26)
+                .foregroundStyle(.black)
                 
                 Button(action: {
                     Network.shared.registerNewUser(username: "test", airdropAmount: String(Int(1.0 * 1e9))) { result in
@@ -89,7 +120,15 @@ struct RegisterView: View {
                         .background(AppColors.primaryPurple)
                         .cornerRadius(26)
                 }.padding([.top, .leading, .trailing])               
-            }.onAppear {
+            }.sheet(isPresented: $showPhoneModal) {
+                SignInWithPhoneView()
+                    .presentationDetents([.height(400)])
+            }
+            .sheet(isPresented: $showEmailModal) {
+                SignInWithEmailView()
+                    .presentationDetents([.height(400)])
+            }
+            .onAppear {
                 privy.setAuthStateChangeCallback { state in
                     self.myAuthState = state
                 }
