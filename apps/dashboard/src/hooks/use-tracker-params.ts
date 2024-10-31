@@ -1,14 +1,12 @@
 import { useTrackerParamsContext } from "@/providers/tracker-params-provider";
 
 export const useTrackerParams = () => {
-  const { params, onlyPumpTokens, setTimespan, setIncreasePct, setMinTrades, setOnlyPumpTokens } =
-    useTrackerParamsContext();
+  const { params, setTimespan, setIncreasePct, setMinTrades } = useTrackerParamsContext();
 
   return {
     timespan: params.timespan,
     increasePct: params.increasePct,
     minTrades: params.minTrades,
-    onlyPumpTokens,
     setTimespan: (value: string) => {
       setTimespan(value);
     },
@@ -24,6 +22,5 @@ export const useTrackerParams = () => {
         setMinTrades(numValue);
       }
     },
-    setOnlyPumpTokens,
   };
 };

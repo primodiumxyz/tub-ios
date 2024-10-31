@@ -10,11 +10,9 @@ export type TrackerParams = {
 
 type TrackerParamsContextType = {
   params: TrackerParams;
-  onlyPumpTokens: boolean;
   setTimespan: (value: string) => void;
   setIncreasePct: (value: number) => void;
   setMinTrades: (value: number) => void;
-  setOnlyPumpTokens: (value: boolean) => void;
 };
 
 const TrackerParamsContext = createContext<TrackerParamsContextType | undefined>(undefined);
@@ -26,16 +24,13 @@ export const TrackerParamsProvider: React.FC<React.PropsWithChildren<{}>> = ({ c
     increasePct: DEFAULT_INCREASE_PCT,
     minTrades: DEFAULT_MIN_TRADES,
   });
-  const [onlyPumpTokens, setOnlyPumpTokens] = useState(true);
 
   const setTimespan = (value: string) => setParams((prev) => ({ ...prev, timespan: value }));
   const setIncreasePct = (value: number) => setParams((prev) => ({ ...prev, increasePct: value }));
   const setMinTrades = (value: number) => setParams((prev) => ({ ...prev, minTrades: value }));
 
   return (
-    <TrackerParamsContext.Provider
-      value={{ params, onlyPumpTokens, setTimespan, setIncreasePct, setMinTrades, setOnlyPumpTokens }}
-    >
+    <TrackerParamsContext.Provider value={{ params, setTimespan, setIncreasePct, setMinTrades }}>
       {children}
     </TrackerParamsContext.Provider>
   );
