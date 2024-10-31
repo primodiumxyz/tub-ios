@@ -196,3 +196,75 @@ export const GetFilteredTokensQuery = graphql(`
     }
   }
 `);
+
+// Dashboard
+export const GetSwapsInPeriodCountQuery = graphql(`
+  query GetSwapsInPeriod($from: timestamptz!, $to: timestamptz!) {
+    swaps_total: token_price_history_aggregate(where: { created_at: { _gte: $from, _lte: $to } }) {
+      aggregate {
+        count
+      }
+    }
+    swaps_hourly: hourly_swaps(where: { hour: { _gte: $from, _lte: $to } }) {
+      hour
+      count
+    }
+  }
+`);
+
+export const GetNewTokensInPeriodCountQuery = graphql(`
+  query GetNewTokensInPeriod($from: timestamptz!, $to: timestamptz!) {
+    new_tokens_total: token_aggregate(where: { created_at: { _gte: $from, _lte: $to } }) {
+      aggregate {
+        count
+      }
+    }
+    new_tokens_hourly: hourly_new_tokens(where: { hour: { _gte: $from, _lte: $to } }) {
+      hour
+      count
+    }
+  }
+`);
+
+export const GetFormattedTokensCountForIntervalsWithinPeriodQuery = graphql(`
+  query GetFormattedTokensCountForIntervalsWithinPeriodQuery(
+    $from: timestamptz!
+    $to: timestamptz!
+    $interval: interval!
+    $increasePct: float8!
+    $minTrades: bigint!
+  ) {
+    get_formatted_tokens_intervals_within_period_aggregate(
+      args: { start: $from, end: $to, interval: $interval, trades: $minTrades, increase_pct: $increasePct }
+    ) {
+      interval_start
+      token_count
+    }
+  }
+`);
+
+export const GetFormattedTokensWithPerformanceForIntervalsWithinPeriodQuery = graphql(`
+  query GetFormattedTokensWithPerformanceForIntervalsWithinPeriodQuery(
+    $from: timestamptz!
+    $to: timestamptz!
+    $interval: interval!
+    $afterIntervals: String!
+    $increasePct: float8!
+    $minTrades: bigint!
+    $mintFilter: String = "%"
+  ) {
+    get_formatted_tokens_with_performance_intervals_within_period(
+      args: { start: $from, end: $to, interval: $interval, after_intervals: $afterIntervals }
+      where: { trades: { _gte: $minTrades }, increase_pct: { _gte: $increasePct }, mint: { _ilike: $mintFilter } }
+      order_by: { interval_start: asc }
+    ) {
+      mint
+      increase_pct
+      trades
+      increase_pct_after
+      trades_after
+      created_at
+      interval_start
+    }
+  }
+`);

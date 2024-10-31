@@ -20,15 +20,16 @@ select_permissions:
   - role: public
     permission:
       columns:
-        - name
-        - symbol
+        - created_at
         - decimals
-        - supply
-        - platform
-        - uri
-        - updated_at
         - id
         - mint
+        - name
+        - platform
+        - supply
+        - symbol
+        - updated_at
+        - uri
       filter: {}
       allow_aggregations: true
     comment: ""
