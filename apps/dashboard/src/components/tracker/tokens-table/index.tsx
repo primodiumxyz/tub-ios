@@ -8,7 +8,7 @@ import { useTrackerParams } from "@/hooks/use-tracker-params";
 
 export const TokensTable = () => {
   const { tokens, fetching, error } = useTokens();
-  const { timespan, increasePct, minTrades } = useTrackerParams();
+  const { timespan, minTrades, minVolume } = useTrackerParams();
   const [globalFilter, setGlobalFilter] = useState<string>("");
 
   const filteredTokens = useMemo(() => {
@@ -37,7 +37,7 @@ export const TokensTable = () => {
       <DataTable
         columns={columns}
         data={filteredTokens}
-        caption={`List of tokens pumping at least ${increasePct}% in the last ${timespan} with at least ${minTrades} trades`}
+        caption={`List of tokens with at least ${minVolume} volume and at least ${minTrades} trades in the last ${timespan}`}
         loading={fetching}
         pagination={true}
         defaultSorting={[{ id: "increasePct", desc: true }]}

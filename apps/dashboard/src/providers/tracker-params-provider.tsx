@@ -1,18 +1,18 @@
 import React, { createContext, useContext, useState } from "react";
 
-import { DEFAULT_INCREASE_PCT, DEFAULT_MIN_TRADES, DEFAULT_TIMESPAN } from "@/lib/constants";
+import { DEFAULT_MIN_TRADES, DEFAULT_MIN_VOLUME, DEFAULT_TIMESPAN } from "@/lib/constants";
 
 export type TrackerParams = {
   timespan: string;
-  increasePct: number;
   minTrades: number;
+  minVolume: number;
 };
 
 type TrackerParamsContextType = {
   params: TrackerParams;
   setTimespan: (value: string) => void;
-  setIncreasePct: (value: number) => void;
   setMinTrades: (value: number) => void;
+  setMinVolume: (value: number) => void;
 };
 
 const TrackerParamsContext = createContext<TrackerParamsContextType | undefined>(undefined);
@@ -21,16 +21,16 @@ const TrackerParamsContext = createContext<TrackerParamsContextType | undefined>
 export const TrackerParamsProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
   const [params, setParams] = useState<TrackerParams>({
     timespan: DEFAULT_TIMESPAN,
-    increasePct: DEFAULT_INCREASE_PCT,
     minTrades: DEFAULT_MIN_TRADES,
+    minVolume: DEFAULT_MIN_VOLUME,
   });
 
   const setTimespan = (value: string) => setParams((prev) => ({ ...prev, timespan: value }));
-  const setIncreasePct = (value: number) => setParams((prev) => ({ ...prev, increasePct: value }));
   const setMinTrades = (value: number) => setParams((prev) => ({ ...prev, minTrades: value }));
+  const setMinVolume = (value: number) => setParams((prev) => ({ ...prev, minVolume: value }));
 
   return (
-    <TrackerParamsContext.Provider value={{ params, setTimespan, setIncreasePct, setMinTrades }}>
+    <TrackerParamsContext.Provider value={{ params, setTimespan, setMinTrades, setMinVolume }}>
       {children}
     </TrackerParamsContext.Provider>
   );

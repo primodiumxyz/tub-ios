@@ -14,7 +14,7 @@ export const useDataAnalysisData = (): {
   refetch: () => void;
 } => {
   const { from, to } = useAnalyticsParams();
-  const { timespan } = useTrackerParams();
+  const { timespan, minTrades, minVolume } = useTrackerParams();
 
   const [filteredTokensPerformancePerInterval, queryFilteredTokensPerformancePerInterval] = useQuery({
     query: queries.GetFormattedTokensWithPerformanceForIntervalsWithinPeriodQuery,
@@ -23,6 +23,8 @@ export const useDataAnalysisData = (): {
       to,
       interval: timespan,
       afterIntervals: AFTER_INTERVALS.join(","),
+      minTrades: minTrades.toString(),
+      minVolume: minVolume.toString(),
     },
     requestPolicy: "network-only",
   });

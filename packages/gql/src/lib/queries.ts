@@ -179,10 +179,10 @@ export const GetTokenPriceHistorySinceQuery = graphql(`
 
 // TODO: order by volume once integrated
 export const GetFilteredTokensIntervalQuery = graphql(`
-  query GetFilteredTokensInterval($interval: interval!) {
+  query GetFilteredTokensInterval($interval: interval!, $minTrades: bigint = 0, $minVolume: numeric = 0) {
     formatted_tokens_interval(
       args: { interval: $interval }
-      where: { is_pump_token: { _eq: true } }
+      where: { is_pump_token: { _eq: true }, trades: { _gte: $minTrades }, volume: { _gte: $minVolume } }
       order_by: { trades: desc }
     ) {
       token_id
@@ -258,9 +258,12 @@ export const GetFormattedTokensWithPerformanceForIntervalsWithinPeriodQuery = gr
     $to: timestamptz!
     $interval: interval!
     $afterIntervals: String!
+    $minTrades: bigint = 0
+    $minVolume: numeric = 0
   ) {
     formatted_tokens_with_performance_intervals_within_period(
       args: { start: $from, end: $to, interval: $interval, after_intervals: $afterIntervals }
+      where: { trades: { _gte: $minTrades }, volume: { _gte: $minVolume } }
       order_by: { interval_start: asc }
     ) {
       token_id
