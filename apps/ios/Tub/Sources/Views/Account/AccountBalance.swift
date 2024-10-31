@@ -59,16 +59,3 @@ struct AccountBalanceView: View {
     }
 }
 
-#Preview {
-    @Previewable @AppStorage("userId") var userId: String = ""
-    @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
-    if !priceModel.isReady {
-        LoadingView()
-    } else {
-        AccountBalanceView(
-            userModel: UserModel(userId: userId), 
-            currentTokenModel: TokenModel(userId: userId) 
-        )
-        .environmentObject(SolPriceModel(mock: true))
-    }
-}

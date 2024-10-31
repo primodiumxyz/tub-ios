@@ -10,24 +10,31 @@ import PrivySDK
 
 @main
 struct TubApp: App {
-    @AppStorage("userId") private var userId = ""
     @State var isPrivySdkReady = false
+    @State var myAuthState : AuthState = AuthState.notReady
+    @State var userId : String = ""
     
     var body: some Scene {
         WindowGroup {
             Group{
-                if !isPrivySdkReady {
+                if myAuthState.toString == "notReady" || userId == "" {
                     LoadingView()
                 }
-                else if userId.isEmpty {
-                    AccountSetupView().font(.sfRounded())
+                else if myAuthState.toString != "authorized" {
+                    RegisterView()
                 } else {
-                    HomeTabsView().font(.sfRounded())
+                    HomeTabsView(userId: userId).font(.sfRounded())
                 }
             }.onAppear(perform: {
                 privy.setAuthStateChangeCallback { state in
-                    if !self.isPrivySdkReady && state != AuthState.notReady {
-                        self.isPrivySdkReady = true
+                    if myAuthState.toString == "authorized" { return }
+                    self.myAuthState = state
+                    Task {
+                        do {
+                            userId = try await privy.refreshSession().user.id
+                        } catch {
+                            print("error fetching session", error)
+                        }
                     }
                 }
             })
@@ -36,11 +43,32 @@ struct TubApp: App {
 }
 
 #Preview {
-    HomeTabsView()
-        .font(.sfRounded())
+    @Previewable @State var userId : String? = nil
+    @Previewable @State var errored: Bool = false
+    
+    Group {
+        if errored {
+            Text("You need to register with Privy!")
+        } else if userId == nil {
+            LoadingView()
+        } else {
+            HomeTabsView(userId: userId!)
+                .font(.sfRounded())
+        }
+    } .onAppear {
+        Task {
+            do {
+                userId = try await privy.refreshSession().user.id
+                print(userId)
+            } catch {
+                print("error in preview: \(error)")
+                errored = true
+            }
+        }
+    }
 }
 
-#Preview("Account Setup") {
-    AccountSetupView()
+#Preview("Register") {
+    RegisterView()
         .font(.sfRounded())
 }
