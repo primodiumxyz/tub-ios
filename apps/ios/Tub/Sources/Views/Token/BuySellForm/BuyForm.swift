@@ -100,7 +100,7 @@ struct BuyForm: View {
                     .overlay(
                         RoundedRectangle(cornerRadius: 30)
                             .inset(by: 0.5)
-                            .stroke(Color(red: 0.01, green: 1, blue: 0.85), lineWidth: 1)
+                            .stroke(AppColors.aquaGreen, lineWidth: 1)
                     )
                 }
             }

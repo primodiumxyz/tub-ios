@@ -29,18 +29,40 @@ struct BuySellForm: View {
                     .foregroundColor(.yellow)
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .center)
-            } else if activeTab == "buy" {
-                Button(action: {
-                    showBuySheet = true
-                }) {
-            Text("Buy")
-                .font(.sfRounded(size: .xl, weight: .semibold))
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .padding(12)
-                .background(AppColors.primaryPurple.opacity(0.4))
-                .cornerRadius(26)
-            }.offset(y:10)
+            } else
+            if activeTab == "buy" {
+                HStack(spacing: 16) {
+                    Button(action: {
+                        showBuySheet = true
+                    }) {
+                        Image(systemName: "pencil")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(AppColors.aquaGreen)
+                            .padding(12)
+                            .background(Circle().stroke(AppColors.aquaGreen, lineWidth: 1))
+                    }
+                    
+                    Button(action: {
+                        //handleBuy()
+                    }) {
+                        HStack(alignment: .center, spacing: 8) {
+                            Text("Buy")
+                                .font(.sfRounded(size: .xl, weight: .semibold))
+                                .foregroundColor(AppColors.aquaGreen)
+                                .multilineTextAlignment(.center)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background(AppColors.black)
+                        .cornerRadius(30)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 30)
+                                .inset(by: 0.5)
+                                .stroke(AppColors.aquaGreen, lineWidth: 1)
+                        )
+                    }
+                }.padding(.horizontal,16)
             } else {
                 SellForm(tokenModel: tokenModel, onSell: handleSell)
             }
