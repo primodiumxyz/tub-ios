@@ -10,7 +10,6 @@ import { getTokensPerformanceStats } from "@/lib/utils";
 export const PerformanceBasePeriodDataTable = ({ chartWidth }: { chartWidth: number }) => {
   const { data, error, loading } = useDataAnalysisData();
   const stats = useMemo(() => (data ? getTokensPerformanceStats(data) : undefined), [data]);
-  console.log(stats);
 
   const chartData = useMemo(() => {
     if (!stats) return [];
