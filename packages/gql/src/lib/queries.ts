@@ -196,3 +196,32 @@ export const GetFilteredTokensQuery = graphql(`
     }
   }
 `);
+
+// Dashboard
+export const GetSwapsInPeriodQuery = graphql(`
+  query GetSwapsInPeriod($from: timestamptz!, $to: timestamptz!) {
+    swaps_total: token_price_history_aggregate(where: { created_at: { _gte: $from, _lte: $to } }) {
+      aggregate {
+        count
+      }
+    }
+    swaps_hourly: hourly_swaps(where: { hour: { _gte: $from, _lte: $to } }) {
+      hour
+      count
+    }
+  }
+`);
+
+export const GetNewTokensInPeriodQuery = graphql(`
+  query GetNewTokensInPeriod($from: timestamptz!, $to: timestamptz!) {
+    new_tokens_total: token_aggregate(where: { created_at: { _gte: $from, _lte: $to } }) {
+      aggregate {
+        count
+      }
+    }
+    new_tokens_hourly: hourly_new_tokens(where: { hour: { _gte: $from, _lte: $to } }) {
+      hour
+      count
+    }
+  }
+`);

@@ -220,6 +220,18 @@
       returns: GetFormattedTokensResult
       root_field_name: get_formatted_tokens_interval
     - arguments:
+        end:
+          description: ""
+          nullable: false
+          type: timestamptz
+        start:
+          description: ""
+          nullable: false
+          type: timestamptz
+      code: SELECT * FROM get_formatted_tokens_period({{start}}, {{end}});
+      returns: GetFormattedTokensResult
+      root_field_name: get_formatted_tokens_period
+    - arguments:
         since:
           description: ""
           nullable: false
