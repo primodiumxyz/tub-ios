@@ -44,7 +44,7 @@ class TokenModel: ObservableObject {
 
         // Re-run the initialization logic
         Task {
-            self.timeframeSecs = timeframeSecs ?? 30 * 60
+            self.timeframeSecs = timeframeSecs
             await fetchInitialData(self.timeframeSecs)
             
             subscribeToLatestPrice()
@@ -116,13 +116,14 @@ class TokenModel: ObservableObject {
                     DispatchQueue.main.async {
                         self.prices = response.data?.token_price_history.compactMap { history in
                             if let date = formatDateString(history.created_at) {
-                                return Price(timestamp: date, price: Int(history.price) ?? 0)
+                                return Price(timestamp: date, price: Int(history.price))
                             }
                             return nil
                         } ?? []
                         self.lastPriceTimestamp = self.prices.last?.timestamp
                         self.loading = false
                         self.calculatePriceChange()
+                        print(self.token.mint, self.token.supply, (self.prices.last?.price ?? 0) * (self.token.supply ?? 0))
                     }
                     continuation.resume()
                 case .failure(let error):
@@ -144,7 +145,7 @@ class TokenModel: ObservableObject {
                 if let priceHistory = graphQLResult.data?.token_price_history.first,
                    let date = formatDateString(priceHistory.created_at) {
                     DispatchQueue.main.async {
-                        let newPrice = Price(timestamp: date, price: Int(priceHistory.price) ?? 0)
+                        let newPrice = Price(timestamp: date, price: Int(priceHistory.price))
                         
                         if self.lastPriceTimestamp != date {
                             self.prices.append(newPrice)

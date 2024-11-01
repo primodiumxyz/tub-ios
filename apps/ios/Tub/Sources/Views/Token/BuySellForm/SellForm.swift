@@ -27,7 +27,7 @@ struct SellForm: View {
             Text("$\(priceModel.formatPrice(lamports: tokenAmount, showUnit: false, maxDecimals: 2))")
                 .font(.sfRounded(size: .xl, weight: .semibold))
                 .foregroundColor(AppColors.white)
-            Text("\(priceModel.formatPrice(lamports: tokenModel.balanceLamps, showUnit: false)) \(tokenModel.token.symbol)")
+            Text("\(priceModel.formatPrice(lamports: tokenModel.balanceLamps, showUnit: false)) \(tokenModel.token.symbol ?? "")")
                 .font(.sfRounded(size: .sm, weight: .medium))
                 .foregroundColor(AppColors.white.opacity(0.5))
         }
