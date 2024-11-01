@@ -374,7 +374,7 @@ struct TransactionRow: View {
                     Text(transaction.isBuy ? "Buy" : "Sell")
                         .font(.sfRounded(size: .base, weight: .bold))
                         .foregroundColor(AppColors.white)
-                    Text(transaction.name.isEmpty ? transaction.mint.truncated() : transaction.name)
+                    Text(transaction.name.isEmpty ? transaction.mint.truncatedAddress() : transaction.name)
                         .font(.sfRounded(size: .base, weight: .bold))
                         .foregroundColor(AppColors.lightYellow)
                         .offset(x:-2)

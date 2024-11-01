@@ -8,7 +8,7 @@
 import Foundation
 
 extension String {
-    func truncated(_ prefixLength: Int = 6, _ suffixLength: Int? = 4) -> String {
+    func truncatedAddress(_ prefixLength: Int = 4, _ suffixLength: Int = 6) -> String {
         guard self.count > prefixLength + (suffixLength ?? 0) else { return self }
         let prefix = String(self.prefix(prefixLength))
         let suffix = String(self.suffix(suffixLength ?? 0))
