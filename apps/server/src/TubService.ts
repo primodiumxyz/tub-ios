@@ -1,12 +1,5 @@
 import { PrivyClient } from "@privy-io/server-auth";
-import { parseEnv } from "../bin/parseEnv";
 import { GqlClient } from "@tub/gql";
-import { config } from "dotenv";
-import jwt from "jsonwebtoken";
-
-config({ path: "../../.env" });
-
-const env = parseEnv();
 
 export class TubService {
   private privy: PrivyClient;
