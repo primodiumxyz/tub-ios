@@ -75,10 +75,15 @@ export const GetFilteredTokensSubscription = graphql(`
 `);
 
 export const GetFilteredTokensIntervalSubscription = graphql(`
-  subscription SubFilteredTokensInterval($interval: interval = "30s", $minTrades: bigint!, $minIncreasePct: float8!) {
+  subscription SubFilteredTokensInterval(
+    $interval: interval = "30s"
+    $minTrades: bigint!
+    $minIncreasePct: float8!
+    $mintFilter: String = "%"
+  ) {
     get_formatted_tokens_interval(
       args: { interval: $interval }
-      where: { trades: { _gte: $minTrades }, increase_pct: { _gte: $minIncreasePct } }
+      where: { trades: { _gte: $minTrades }, increase_pct: { _gte: $minIncreasePct }, mint: { _ilike: $mintFilter } }
     ) {
       token_id
       mint

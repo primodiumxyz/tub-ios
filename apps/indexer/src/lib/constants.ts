@@ -1,12 +1,11 @@
 import { PublicKey } from "@solana/web3.js";
 
-// Relative imports to not conflict with constants imports in other packages
-import { MeteoraDlmmParser } from "./parsers/meteora-dlmm-parser";
-import { MinimalParser } from "./parsers/minimal-parser";
-import { OrcaWhirlpoolParser } from "./parsers/orca-whirlpool-parser";
-import { RaydiumAmmParser } from "./parsers/raydium-amm-parser";
-import { RaydiumClmmParser } from "./parsers/raydium-clmm-parser";
-import { Program } from "./types";
+import { MeteoraDlmmParser } from "@/lib/parsers/meteora-dlmm-parser";
+import { MinimalParser } from "@/lib/parsers/minimal-parser";
+import { OrcaWhirlpoolParser } from "@/lib/parsers/orca-whirlpool-parser";
+import { RaydiumAmmParser } from "@/lib/parsers/raydium-amm-parser";
+import { RaydiumClmmParser } from "@/lib/parsers/raydium-clmm-parser";
+import { Program } from "@/lib/types";
 
 // Helius Business plan has a limit of 200 req/s
 // Solana has <3,500 TPS as of 2024-10-11 (of which ~1/10 are swaps)

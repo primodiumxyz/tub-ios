@@ -7,22 +7,22 @@ public class AirdropNativeToUserMutation: GraphQLMutation {
   public static let operationName: String = "AirdropNativeToUser"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"mutation AirdropNativeToUser($account: uuid!, $amount: numeric!) { insert_account_transaction_one(object: { account: $account, amount: $amount }) { __typename id } }"#
+      #"mutation AirdropNativeToUser($wallet: String!, $amount: numeric!) { insert_wallet_transaction_one(object: { wallet: $wallet, amount: $amount }) { __typename id } }"#
     ))
 
-  public var account: Uuid
+  public var wallet: String
   public var amount: Numeric
 
   public init(
-    account: Uuid,
+    wallet: String,
     amount: Numeric
   ) {
-    self.account = account
+    self.wallet = wallet
     self.amount = amount
   }
 
   public var __variables: Variables? { [
-    "account": account,
+    "wallet": wallet,
     "amount": amount
   ] }
 
@@ -32,23 +32,23 @@ public class AirdropNativeToUserMutation: GraphQLMutation {
 
     public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Mutation_root }
     public static var __selections: [ApolloAPI.Selection] { [
-      .field("insert_account_transaction_one", Insert_account_transaction_one?.self, arguments: ["object": [
-        "account": .variable("account"),
+      .field("insert_wallet_transaction_one", Insert_wallet_transaction_one?.self, arguments: ["object": [
+        "wallet": .variable("wallet"),
         "amount": .variable("amount")
       ]]),
     ] }
 
-    /// insert a single row into the table: "account_transaction"
-    public var insert_account_transaction_one: Insert_account_transaction_one? { __data["insert_account_transaction_one"] }
+    /// insert a single row into the table: "wallet_transaction"
+    public var insert_wallet_transaction_one: Insert_wallet_transaction_one? { __data["insert_wallet_transaction_one"] }
 
-    /// Insert_account_transaction_one
+    /// Insert_wallet_transaction_one
     ///
-    /// Parent Type: `Account_transaction`
-    public struct Insert_account_transaction_one: TubAPI.SelectionSet {
+    /// Parent Type: `Wallet_transaction`
+    public struct Insert_wallet_transaction_one: TubAPI.SelectionSet {
       public let __data: DataDict
       public init(_dataDict: DataDict) { __data = _dataDict }
 
-      public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Account_transaction }
+      public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Wallet_transaction }
       public static var __selections: [ApolloAPI.Selection] { [
         .field("__typename", String.self),
         .field("id", TubAPI.Uuid.self),

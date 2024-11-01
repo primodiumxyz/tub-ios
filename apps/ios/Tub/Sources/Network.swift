@@ -51,19 +51,19 @@ class Network {
     
     init() {
         // setup graphql
-        let httpURL = URL(string: "http://localhost:8080/v1/graphql")!
+        let httpURL = URL(string: graphqlHttpUrl)!
         let store = ApolloStore()
         httpTransport = RequestChainNetworkTransport(
             interceptorProvider: DefaultInterceptorProvider(store: store),
             endpointURL: httpURL
         )
 
-        let webSocketURL = URL(string: "ws://localhost:8080/v1/graphql")!
+        let webSocketURL = URL(string: graphqlWsUrl)!
         let websocket = WebSocket(url: webSocketURL, protocol: .graphql_ws)
         webSocketTransport = WebSocketTransport(websocket: websocket)
         
         // setup tRPC
-        baseURL = URL(string: "http://localhost:8888/trpc")!
+        baseURL = URL(string: serverBaseUrl)!
         session = URLSession(configuration: .default)
     }
 
@@ -122,6 +122,7 @@ class Network {
         callProcedure("getStatus", completion: completion)
     }
     
+    @available(*, deprecated)
     func registerNewUser(username: String, airdropAmount: String? = nil, completion: @escaping (Result<UserResponse, Error>) -> Void) {
         let input = ["username": username, "airdropAmount": airdropAmount].compactMapValues { $0 }
         callProcedure("registerNewUser", input: input) { (result: Result<UserResponse, Error>) in
@@ -145,18 +146,19 @@ class Network {
         SecItemDelete(query as CFDictionary)
         SecItemAdd(query as CFDictionary, nil)
     }
-
+    
+    @available(*, deprecated)
     func incrementCall(completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
         callProcedure("incrementCall", completion: completion)
     }
 
-    func buyToken(accountId: String, tokenId: String, amount: String, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
-        let input = ["accountId": accountId, "tokenId": tokenId, "amount": amount]
+    func buyToken(tokenId: String, amount: String, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
+        let input = ["tokenId": tokenId, "amount": amount]
         callProcedure("buyToken", input: input, completion: completion)
     }
     
-    func sellToken(accountId: String, tokenId: String, amount: String, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
-        let input = ["accountId": accountId, "tokenId": tokenId, "amount": amount]
+    func sellToken(tokenId: String, amount: String, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
+        let input = ["tokenId": tokenId, "amount": amount]
         callProcedure("sellToken", input: input, completion: completion)
     }
     
@@ -165,8 +167,8 @@ class Network {
         callProcedure("registerNewToken", input: input, completion: completion)
     }
     
-    func airdropNativeToUser(accountId: String, amount: Int, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
-        let input = ["accountId": accountId, "amount": String(amount)]
+    func airdropNativeToUser(amount: Int, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
+        let input = ["amount": String(amount)]
         callProcedure("airdropNativeToUser", input: input, completion: completion)
     }
 }
@@ -212,23 +214,6 @@ extension Network {
         }
         
         return token
-    }
-
-    func refreshToken(completion: @escaping (Result<String, Error>) -> Void) {
-        guard let currentToken = getStoredToken() else {
-            completion(.failure(NSError(domain: "TokenRefresh", code: 0, userInfo: [NSLocalizedDescriptionKey: "No token stored"])))
-            return
-        }
-        
-        callProcedure("refreshToken", input: ["token": currentToken]) { (result: Result<RefreshTokenResponse, Error>) in
-            switch result {
-            case .success(let response):
-                self.storeToken(response.token)
-                completion(.success(response.token))
-            case .failure(let error):
-                completion(.failure(error))
-            }
-        }
     }
 
     func fetchSolPrice(completion: @escaping (Result<Double, Error>) -> Void) {

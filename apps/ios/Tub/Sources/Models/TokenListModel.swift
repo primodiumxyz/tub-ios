@@ -44,6 +44,10 @@ class TokenListModel: ObservableObject {
     var isFirstToken: Bool {
         return currentTokenIndex == 0
     }
+    
+    var isNextTokenAvailable: Bool {
+        return self.availableTokens.count > 1
+    }
 
     private func initTokenModel() {
         DispatchQueue.main.async {
@@ -74,8 +78,10 @@ class TokenListModel: ObservableObject {
         previousTokenModel = currentTokenModel
         nextTokenModel = createTokenModel()
         
-        tokens.append(getRandomToken(excluding: tokens[currentTokenIndex].id)!)
-        initTokenModel()
+        if let newRandomToken = getRandomToken(excluding: tokens[currentTokenIndex].id) {
+            tokens.append(newRandomToken)
+            initTokenModel()
+        }
     }
 
     // - Set the current token to the previously visited one
@@ -122,7 +128,7 @@ class TokenListModel: ObservableObject {
                         self.availableTokens = tokens.map { elem in
                             Token(id: elem.token_id, name: elem.name, symbol: elem.symbol, mint: elem.mint, decimals: elem.decimals ?? 6, imageUri: nil)
                         }
-                        
+
                         self.updateTokens()
                     }
                 case .failure(let error):

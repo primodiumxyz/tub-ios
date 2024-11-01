@@ -8,10 +8,6 @@
 import SwiftUI
 import Combine
 
-
-
-
-
 struct TokenView : View {
     @ObservedObject var tokenModel: TokenModel
     @EnvironmentObject var priceModel: SolPriceModel
@@ -21,6 +17,10 @@ struct TokenView : View {
     @State private var showInfoCard = false
     @State private var selectedTimespan: Timespan = .live
     @State private var showBuySheet: Bool = false
+    @State private var defaultAmount: Double = 50.0
+
+    @State private var priceChangeInterval: TimeInterval = 0
+    @State private var priceChangeTimer: Timer?
     
     enum Timespan: String {
         case live = "LIVE"
@@ -28,8 +28,8 @@ struct TokenView : View {
         
         var interval: Double {
             switch self {
-            case .live: return 120.0
-            case .thirtyMin: return 30.0 * 60.0
+                case .live: return 120.0
+                case .thirtyMin: return 30.0 * 60.0
             }
         }
     }
@@ -39,14 +39,25 @@ struct TokenView : View {
         self._activeTab = activeTab
     }
     
-    func handleBuy(amount: Int, completion: ((Bool) -> Void)?) {
-        tokenModel.buyTokens(buyAmountLamps: amount, completion: {success in
+    func handleBuy(amount: Double) {
+        let buyAmountLamps = priceModel.usdToLamports(usd: amount)
+        tokenModel.buyTokens(buyAmountLamps: buyAmountLamps) { success in
             if success {
-                showBuySheet = false
-                activeTab = "sell"
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    showBuySheet = false
+                    activeTab = "sell" //  Switch tab after successful buy
+                }
             }
-            completion?(success)
-        })
+        }
+    }
+
+    private func startPriceChangeTimer() {
+        priceChangeTimer?.invalidate()
+        priceChangeTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+            if let refTime = self.tokenModel.priceRef?.timestamp {
+                self.priceChangeInterval = Date().timeIntervalSince(refTime)
+            }
+        }
     }
     
     var body: some View {
@@ -57,10 +68,14 @@ struct TokenView : View {
                 chartView
                 timespanButtons
                 Spacer()
-                BuySellForm(tokenModel: tokenModel, activeTab: $activeTab, showBuySheet: $showBuySheet)
-                    .equatable() // Add this modifier
+                BuySellForm(
+                    tokenModel: tokenModel,
+                    activeTab: $activeTab,
+                    showBuySheet: $showBuySheet,
+                    defaultAmount: $defaultAmount
+                )
+                .equatable() // Add this modifier
             }
-            .padding(.horizontal)
             .frame(maxWidth: .infinity)
             .foregroundColor(AppColors.white)
             
@@ -68,8 +83,15 @@ struct TokenView : View {
             buySheetOverlay
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onAppear {
+            startPriceChangeTimer()
+        }
+        .onDisappear {
+            priceChangeTimer?.invalidate()
+            priceChangeTimer = nil
+        }
     }
-
+    
     private var tokenInfoView: some View {
         VStack(alignment: .leading) {
             HStack {
@@ -83,7 +105,7 @@ struct TokenView : View {
                 Text(priceModel.formatPrice(lamports: tokenModel.prices.last?.price ?? 0, maxDecimals: 9, minDecimals: 2))
                     .font(.sfRounded(size: .xl4, weight: .bold))
                 Image(systemName: "info.circle.fill")
-                .frame(width: 16, height: 16)
+                    .frame(width: 16, height: 16)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             
@@ -91,11 +113,12 @@ struct TokenView : View {
                 Text(priceModel.formatPrice(lamports: tokenModel.priceChange.amountLamps, showSign: true))
                 Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
                 
-                Text("30s").foregroundColor(.gray)
+                Text(formatTimeElapsed(self.priceChangeInterval)).foregroundColor(.gray)
             }
             .font(.sfRounded(size: .sm, weight: .semibold))
             .foregroundColor(tokenModel.priceChange.amountLamps >= 0 ? .green : .red)
         }
+        .padding(.horizontal)
         .onTapGesture {
             // Toggle the info card
             withAnimation(.easeInOut) {
@@ -103,7 +126,7 @@ struct TokenView : View {
             }
         }
     }
-
+    
     private var chartView: some View {
         Group {
             if selectedTimespan == .live {
@@ -113,8 +136,9 @@ struct TokenView : View {
                     .id(tokenModel.prices.count)
             }
         }
+        .padding(.horizontal)
     }
-
+    
     private var timespanButtons: some View {
         HStack {
             Spacer()
@@ -144,8 +168,9 @@ struct TokenView : View {
             Spacer()
         }
         .padding(.bottom, 8)
+        .padding(.horizontal)
     }
-
+    
     private var infoCardOverlay: some View {
         Group {
             if showInfoCard {
@@ -164,8 +189,8 @@ struct TokenView : View {
             }
         }
     }
-
-
+    
+    
     private var buySheetOverlay: some View {
         Group {
             if showBuySheet {
@@ -173,15 +198,31 @@ struct TokenView : View {
                     .ignoresSafeArea()
                     .onTapGesture {
                         withAnimation(.easeInOut(duration: 0.3)) {
+                            print("CLOSING")
                             showBuySheet = false
                         }
                     }
                 
-                BuyForm(isVisible: $showBuySheet, tokenModel: tokenModel, onBuy: handleBuy)
+                BuyForm(isVisible: $showBuySheet, defaultAmount: $defaultAmount, tokenModel: tokenModel, onBuy: handleBuy)
                     .transition(.move(edge: .bottom))
                     .zIndex(2) // Ensure it stays on top of everything
-                    .offset(y: 20)
             }
+        }
+    }
+
+    private func formatTimeElapsed(_ timeInterval: TimeInterval) -> String {
+        let hours = Int(timeInterval) / 3600
+        let minutes = (Int(timeInterval) % 3600) / 60
+        let seconds = Int(timeInterval) % 60
+
+        if hours > 1 {
+            return "\(hours)h"
+        } else if hours > 0 {
+            return "\(hours)h"
+        } else if minutes > 1 {
+            return "\(minutes)m"
+        } else  {
+            return "\(seconds)s"
         }
     }
 }
