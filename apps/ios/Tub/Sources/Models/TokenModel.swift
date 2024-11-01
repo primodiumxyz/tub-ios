@@ -248,4 +248,10 @@ class TokenModel: ObservableObject {
             self.priceChange = (priceChangeAmount, priceChangePercentage)
         }
     }
+
+    func updateTokenDetails(from token: Token) {
+        DispatchQueue.main.async {
+            self.token = token
+        }
+    }
 }

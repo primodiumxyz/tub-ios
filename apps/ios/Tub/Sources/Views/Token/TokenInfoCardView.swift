@@ -7,7 +7,7 @@
 import SwiftUI
 
 struct TokenInfoCardView: View {
-    var tokenModel: TokenModel
+    @ObservedObject var tokenModel: TokenModel
     @Binding var isVisible: Bool
     @EnvironmentObject var priceModel: SolPriceModel
     

@@ -129,6 +129,11 @@ class TokenListModel: ObservableObject {
                         }
                         
                         self.updateTokens()
+                        
+                        // Update current token model if the token exists in available tokens
+                        if let currentToken = self.availableTokens.first(where: { $0.id == self.currentTokenModel.tokenId }) {
+                            self.currentTokenModel.updateTokenDetails(from: currentToken)
+                        }
                     }
                 case .failure(let error):
                     print(error.localizedDescription)

@@ -37,6 +37,20 @@ subscription SubLatestTokenPrice($tokenId: uuid!) {
   }
 }
 
+subscription SubTokenData($tokenId: uuid!) {
+  token(where: { id: { _eq: $tokenId } }) {
+    id
+    mint
+    name
+    symbol
+    description
+    supply
+    decimals
+    updated_at
+    uri
+  }
+}
+
 subscription SubAllOnchainTokensPriceHistorySince($since: timestamptz!) {
   token_price_history(
     where: {
