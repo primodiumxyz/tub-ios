@@ -50,6 +50,7 @@
 		DB6D29212CA1C8F80099951A /* TubUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6D29202CA1C8F80099951A /* TubUITests.swift */; };
 		DB6D29232CA1C8F80099951A /* TubUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6D29222CA1C8F80099951A /* TubUITestsLaunchTests.swift */; };
 		DF1FE3C82CD568F700594C63 /* CountryCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF1FE3C72CD568F700594C63 /* CountryCode.swift */; };
+		DBADAB7B2CD098BB0018C2B8 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBADAB7A2CD098BB0018C2B8 /* Constants.swift */; };
 		DF5A2FC32CAF165D00508A56 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5A2FC22CAF165D00508A56 /* HistoryView.swift */; };
 		DF5A2FC52CAF2DEF00508A56 /* HistoryDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5A2FC42CAF2DEF00508A56 /* HistoryDetailsView.swift */; };
 		DFA36D562CB4278C00F63D2D /* DummyData.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFA36D552CB4278C00F63D2D /* DummyData.swift */; };
@@ -120,6 +121,7 @@
 		DB6D29202CA1C8F80099951A /* TubUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TubUITests.swift; sourceTree = "<group>"; };
 		DB6D29222CA1C8F80099951A /* TubUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TubUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		DF1FE3C72CD568F700594C63 /* CountryCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CountryCode.swift; path = Tub/Sources/CountryCode.swift; sourceTree = SOURCE_ROOT; };
+		DBADAB7A2CD098BB0018C2B8 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		DF5A2FC22CAF165D00508A56 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		DF5A2FC42CAF2DEF00508A56 /* HistoryDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryDetailsView.swift; sourceTree = "<group>"; };
 		DFA36D552CB4278C00F63D2D /* DummyData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DummyData.swift; path = Tub/Sources/Utils/DummyData.swift; sourceTree = SOURCE_ROOT; };
@@ -176,6 +178,7 @@
 			children = (
 				9941CD6E2CCAA30B0009E5ED /* FormatPrice.swift */,
 				99290EBF2CB7110C003E740A /* FormatDate.swift */,
+				DBADAB7A2CD098BB0018C2B8 /* Constants.swift */,
 				DFA36D552CB4278C00F63D2D /* DummyData.swift */,
 			);
 			path = Utils;
@@ -514,6 +517,7 @@
 				990B90F22CB5B41000B5B073 /* AccountSetupView.swift in Sources */,
 				99856DA82CD27F5B004B9D40 /* SignInWithApple.swift in Sources */,
 				99DDF62D2CB02816000234DA /* AccountView.swift in Sources */,
+				DBADAB7B2CD098BB0018C2B8 /* Constants.swift in Sources */,
 				9936FC582CADCA5200E21B8A /* Structs.swift in Sources */,
 				DB458DB42CAC827A00C5EC18 /* Network.swift in Sources */,
 				DB675A332CA2B73D006FC9B3 /* HomeTabsView.swift in Sources */,
