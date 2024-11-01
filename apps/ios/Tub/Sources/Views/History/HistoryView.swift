@@ -49,8 +49,8 @@ struct HistoryView : View {
                             let valueLamps = price * transaction.amount / Int(1e9)
                             
                             let newTransaction = Transaction(
-                                name: name,
-                                symbol: symbol,
+                                name: name ?? "",
+                                symbol: symbol ?? "",
                                 imageUri: imageUri,
                                 date: date,
                                 valueUsd: priceModel.lamportsToUsd(lamports: -valueLamps),

@@ -7,16 +7,36 @@ public class GetFilteredTokensQuery: GraphQLQuery {
   public static let operationName: String = "GetFilteredTokens"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetFilteredTokens($interval: interval!) { formatted_tokens_interval( args: { interval: $interval } where: { is_pump_token: { _eq: true } } order_by: { trades: desc } ) { __typename token_id mint name symbol description uri supply decimals mint_burnt freeze_burnt is_pump_token increase_pct trades volume latest_price created_at } }"#
+      #"query GetFilteredTokens($interval: interval!, $minTrades: bigint = "0", $minVolume: numeric = 0, $mintBurnt: Boolean = false, $freezeBurnt: Boolean = false) { formatted_tokens_interval( args: { interval: $interval } where: { is_pump_token: { _eq: true } trades: { _gte: $minTrades } volume: { _gte: $minVolume } _and: [ { _or: [{ _not: { mint_burnt: { _eq: $mintBurnt } } }, { mint_burnt: { _eq: true } }] } { _or: [ { _not: { freeze_burnt: { _eq: $freezeBurnt } } } { freeze_burnt: { _eq: true } } ] } ] } order_by: { trades: desc } ) { __typename token_id mint name symbol description uri supply decimals mint_burnt freeze_burnt is_pump_token increase_pct trades volume latest_price created_at } }"#
     ))
 
   public var interval: Interval
+  public var minTrades: GraphQLNullable<Bigint>
+  public var minVolume: GraphQLNullable<Numeric>
+  public var mintBurnt: GraphQLNullable<Bool>
+  public var freezeBurnt: GraphQLNullable<Bool>
 
-  public init(interval: Interval) {
+  public init(
+    interval: Interval,
+    minTrades: GraphQLNullable<Bigint> = "0",
+    minVolume: GraphQLNullable<Numeric> = 0,
+    mintBurnt: GraphQLNullable<Bool> = false,
+    freezeBurnt: GraphQLNullable<Bool> = false
+  ) {
     self.interval = interval
+    self.minTrades = minTrades
+    self.minVolume = minVolume
+    self.mintBurnt = mintBurnt
+    self.freezeBurnt = freezeBurnt
   }
 
-  public var __variables: Variables? { ["interval": interval] }
+  public var __variables: Variables? { [
+    "interval": interval,
+    "minTrades": minTrades,
+    "minVolume": minVolume,
+    "mintBurnt": mintBurnt,
+    "freezeBurnt": freezeBurnt
+  ] }
 
   public struct Data: TubAPI.SelectionSet {
     public let __data: DataDict
@@ -26,7 +46,12 @@ public class GetFilteredTokensQuery: GraphQLQuery {
     public static var __selections: [ApolloAPI.Selection] { [
       .field("formatted_tokens_interval", [Formatted_tokens_interval].self, arguments: [
         "args": ["interval": .variable("interval")],
-        "where": ["is_pump_token": ["_eq": true]],
+        "where": [
+          "is_pump_token": ["_eq": true],
+          "trades": ["_gte": .variable("minTrades")],
+          "volume": ["_gte": .variable("minVolume")],
+          "_and": [["_or": [["_not": ["mint_burnt": ["_eq": .variable("mintBurnt")]]], ["mint_burnt": ["_eq": true]]]], ["_or": [["_not": ["freeze_burnt": ["_eq": .variable("freezeBurnt")]]], ["freeze_burnt": ["_eq": true]]]]]
+        ],
         "order_by": ["trades": "desc"]
       ]),
     ] }

@@ -7,4 +7,4 @@
 
 import ApolloAPI
 
-public typealias Float8 = String
+public typealias Float8 = Double
