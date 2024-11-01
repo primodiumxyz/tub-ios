@@ -7,17 +7,6 @@ struct RegisterView: View {
     @State private var showPhoneModal = false
     @State private var showEmailModal = false
     
-    func handleRegistration(completion: Result<UserResponse, Error>) {
-        switch completion {
-        case .success(let user):
-            userId = user.uuid
-            UserDefaults.standard.set(user.uuid, forKey: "userId")
-            isRegistered = true
-            
-                    case .failure(let error):
-            print("Registration failed: \(error.localizedDescription)")
-        }
-    }
 
     func createEmbeddedWallet() {
         Task {
@@ -130,6 +119,35 @@ struct RegisterView: View {
                 .background(.white)
                 .cornerRadius(26)
                 .foregroundStyle(.black)
+
+                // Add dev login button in debug builds only
+                #if DEBUG
+                Button(action: {
+                    Task {
+                        do {
+                            // Send OTP to test email
+                            let _ = await privy.email.sendCode(to: "test-0932@privy.io")
+                            // Login with predefined OTP
+                            let _ = try await privy.email.loginWithCode("145288", sentTo: "test-0932@privy.io")
+                        } catch {
+                            debugPrint("Dev login error: \(error)")
+                        }
+                    }
+                }) {
+                    HStack {
+                        Image(systemName: "ladybug.fill")
+                            .frame(width: 24, height: 24)
+                        
+                        Text("Dev Login")
+                            .font(.sfRounded(size: .xl, weight: .semibold))
+                    }
+                }
+                .frame(width: 260)
+                .padding()
+                .background(.red.opacity(0.8))
+                .cornerRadius(26)
+                .foregroundStyle(.white)
+                #endif
             }.sheet(isPresented: $showPhoneModal) {
                 SignInWithPhoneView()
                     .presentationDetents([.height(400)])
