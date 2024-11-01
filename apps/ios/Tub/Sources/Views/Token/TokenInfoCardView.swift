@@ -9,21 +9,46 @@ import SwiftUI
 struct TokenInfoCardView: View {
     var tokenModel: TokenModel
     @Binding var isVisible: Bool
+    @EnvironmentObject var priceModel: SolPriceModel
     
     @State private var dragOffset: CGFloat = 0.0
     @State private var animatingSwipe: Bool = false
     @State private var isClosing: Bool = false
     
-    //placeholder
-    let stats = [
-            ("Market Cap", "$144M"),
-            ("Volume", "1.52M"),
-            ("Holders", "53.3K"),
-            ("Supply", "989M")
-    ]
+    private func formatLargeNumber(_ number: Int) -> String {
+        let trillion = 1_000_000_000_000
+        let billion = 1_000_000_000
+        let million = 1_000_000
+        let thousand = 1_000
+        
+        switch number {
+        case let n where n >= trillion:
+            let formatted = Double(n) / Double(trillion)
+            return String(format: "%.1fT", formatted)
+        case let n where n >= billion:
+            let formatted = Double(n) / Double(billion)
+            return String(format: "%.1fB", formatted)
+        case let n where n >= million:
+            let formatted = Double(n) / Double(million)
+            return String(format: "%.1fM", formatted)
+        case let n where n >= thousand:
+            let formatted = Double(n) / Double(thousand)
+            return String(format: "%.1fK", formatted)
+        default:
+            return String(number)
+        }
+    }
+    
+    private var stats: [(String, String)] {
+        [
+            ("Market Cap", priceModel.formatPrice(lamports: (tokenModel.prices.last?.price ?? 0) * (tokenModel.token.supply ?? 0) / Int(pow(10.0, Double(tokenModel.token.decimals ?? 0))))),
+            ("Volume", "1.52M"), // TODO: Add volume data
+            ("Holders", "53.3K"), // TODO: Add holders data?
+            ("Supply", formatLargeNumber((tokenModel.token.supply ?? 0) / Int(pow(10.0, Double(tokenModel.token.decimals ?? 0)))))
+        ]
+    }
     
     var body: some View {
-        
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .center, spacing: 0) {
                 Rectangle()
@@ -78,7 +103,7 @@ struct TokenInfoCardView: View {
                         .foregroundColor(AppColors.white)
                         .frame(maxWidth: .infinity, alignment: .topLeading)
                     
-                    Text("This is what the coin is about. Norem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.")
+                    Text("\(tokenModel.token.description ?? "")")
                         .font(.sfRounded(size: .sm, weight: .regular))
                         .foregroundColor(AppColors.lightGray)
                         .padding(.horizontal, 8)
@@ -162,5 +187,11 @@ struct TokenInfoCardView: View {
 #Preview {
     @Previewable @AppStorage("userId") var userId: String = ""
     @Previewable @State var isVisible = true
-    TokenInfoCardView(tokenModel: TokenModel(userId: userId, tokenId: mockTokenId), isVisible: $isVisible)
+    @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
+    
+    return TokenInfoCardView(
+        tokenModel: TokenModel(userId: userId, tokenId: mockTokenId),
+        isVisible: $isVisible
+    )
+    .environmentObject(priceModel)
 }

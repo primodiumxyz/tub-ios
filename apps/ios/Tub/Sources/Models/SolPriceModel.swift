@@ -48,6 +48,19 @@ class SolPriceModel: ObservableObject {
             }
             
             let usdPrice = sol * price
+            
+            // Handle large numbers
+            if usdPrice >= 1_000_000_000 {
+                let formatted = usdPrice / 1_000_000_000
+                return "\(showSign ? (formatted >= 0 ? "+" : "") : "")\(showUnit ? "$" : "")\(String(format: "%.1fB", formatted))"
+            } else if usdPrice >= 1_000_000 {
+                let formatted = usdPrice / 1_000_000
+                return "\(showSign ? (formatted >= 0 ? "+" : "") : "")\(showUnit ? "$" : "")\(String(format: "%.1fM", formatted))"
+            } else if usdPrice >= 10_000 {
+                let formatted = usdPrice / 1_000
+                return "\(showSign ? (formatted >= 0 ? "+" : "") : "")\(showUnit ? "$" : "")\(String(format: "%.1fK", formatted))"
+            }
+            
             let (minFractionDigits, maxFractionDigits) = getFormattingParameters(for: usdPrice)
             var result = formatInitial(usdPrice, minFractionDigits: max(minFractionDigits, minDecimals), maxFractionDigits: min(maxFractionDigits, maxDecimals))
             
