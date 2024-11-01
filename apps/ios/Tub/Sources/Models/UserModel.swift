@@ -20,7 +20,7 @@ class UserModel: ObservableObject {
     
     @Published var userId: String
     @Published var username: String = ""
-    @Published var walletAddress: String
+    @Published var walletAddress: String  = ""
 
     @Published var initialBalanceLamps: Int = 0
     @Published var balanceLamps: Int = 0
@@ -41,18 +41,11 @@ class UserModel: ObservableObject {
         self.userId = userId
         print("wallet state:", privy.embeddedWallet.embeddedWalletState.toString)
         
-        switch privy.embeddedWallet.embeddedWalletState {
-        case .connected(let wallets):
-            if let wallet = wallets.first {
-                self.walletAddress = wallet.address
-            } else {
-                self.walletAddress = ""
-                // No wallet found in connected state
-                print("No wallet found in connected state")
-            }
-        default:
-            self.walletAddress = ""
-            print("Wallet must be connected to initialize UserModel")
+        self.updateWalletAddress()
+        
+        privy.embeddedWallet.setEmbeddedWalletStateChangeCallback { [weak self] state in
+            print("updating wallet in UserModel")
+            self?.updateWalletAddress()
         }
         
         if(mock == true) {
@@ -167,7 +160,30 @@ class UserModel: ObservableObject {
             }
     }
 
+    private func updateWalletAddress() {
+        switch privy.embeddedWallet.embeddedWalletState {
+        case .connected(let wallets):
+            if let wallet = wallets.first {
+                DispatchQueue.main.async {
+                    self.walletAddress = wallet.address
+                }
+            } else {
+                DispatchQueue.main.async {
+                    self.walletAddress = ""
+                }
+                print("No wallet found in connected state")
+            }
+        default:
+            DispatchQueue.main.async {
+                self.walletAddress = ""
+            }
+            print("Wallet must be connected to initialize UserModel")
+        }
+    }
+
     func logout() {
+        privy.logout()
+        
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             self.userId = ""
@@ -181,5 +197,6 @@ class UserModel: ObservableObject {
         cancellables.forEach { $0.cancel() }
         cancellables.removeAll()
         timerCancellable?.cancel()
+        
     }
 }

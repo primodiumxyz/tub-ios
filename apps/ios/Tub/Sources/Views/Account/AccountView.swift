@@ -20,8 +20,7 @@ struct AccountView: View {
     var body: some View {
         NavigationStack {
             VStack() {
-                Text(privy.authState.toString).foregroundStyle(.white)
-                if userModel.username.isEmpty {
+                if userModel.userId.isEmpty {
                     Text("Please register to view your account details.")
                         .font(.sfRounded(size: .lg, weight: .medium))
                         .foregroundColor(.yellow)
@@ -42,8 +41,11 @@ struct AccountView: View {
                             .font(.sfRounded(size: .xl2, weight: .medium))
                             .foregroundColor(AppColors.white)
                             .padding(.vertical)
-                        Text("Username: \(userModel.username)")
+                        Text("User id: \(userModel.userId)")
                             .font(.sfRounded(size: .lg, weight: .medium))
+                        Text("Wallet address: \(userModel.walletAddress)")
+                            .font(.sfRounded(size: .lg, weight: .medium))
+
                         Text("Balance: \(priceModel.formatPrice(lamports: userModel.balanceLamps, minDecimals: 2))")
                             .font(.sfRounded(size: .lg, weight: .medium))
                             .padding(.bottom)

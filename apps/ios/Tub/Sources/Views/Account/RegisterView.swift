@@ -22,7 +22,7 @@ struct RegisterView: View {
                     case .notCreated:
                         // Create a new embedded wallet
                         print("Creating new embedded wallet")
-                        _ = try await privy.embeddedWallet.createWallet(allowAdditional: false)
+                        let _ = try await privy.embeddedWallet.createWallet(allowAdditional: false)
                     case .connected(let wallets):
                         print("Wallet already exists: \(wallets)")
                     default:

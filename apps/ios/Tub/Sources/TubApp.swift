@@ -26,7 +26,7 @@ struct AppContent : View {
     
     var body: some View {
         Group{
-            if myAuthState.toString == "notReady" || userId == "" || walletState == .connecting {
+            if myAuthState.toString == "notReady" || walletState == .connecting {
                 LoadingView()
             }
             else if myAuthState.toString != "authenticated" {
@@ -39,18 +39,18 @@ struct AppContent : View {
         }.onAppear(perform: {
             privy.embeddedWallet.setEmbeddedWalletStateChangeCallback({
                 state in walletState = state
+                
             })
             
             privy.setAuthStateChangeCallback { state in
-                if myAuthState.toString == "authorized" { return }
+                if myAuthState.toString == "authenticated" { return }
                 
                 self.myAuthState = state
-                Task {
-                    do {
-                        userId = try await privy.refreshSession().user.id
-                    } catch {
-                        print("error fetching session", error)
-                    }
+                switch state {
+                    case .authenticated(let session):
+                        userId = session.user.id
+                    default:
+                        break
                 }
             }
         })
