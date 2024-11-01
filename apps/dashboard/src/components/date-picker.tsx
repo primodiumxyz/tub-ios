@@ -19,23 +19,25 @@ export const DateRangePicker = ({ className }: HTMLAttributes<HTMLDivElement>) =
           <Button
             id="date"
             variant={"outline"}
-            className={cn(
-              "w-[300px] justify-start text-left font-normal gap-2",
-              !from || (!to && "text-muted-foreground"),
-            )}
+            className={cn("w-[300px] h-[76px] flex-col items-start", !from || (!to && "text-muted-foreground"))}
           >
-            <CalendarIcon />
-            {from ? (
-              to ? (
-                <>
-                  {format(from, "LLL dd, y")} - {format(to, "LLL dd, y")}
-                </>
+            <div className="flex justify-start items-center text-left font-normal gap-2">
+              <CalendarIcon />
+              {from ? (
+                to ? (
+                  <>
+                    {format(from, "LLL dd, y")} - {format(to, "LLL dd, y")}
+                  </>
+                ) : (
+                  format(from, "LLL dd, y")
+                )
               ) : (
-                format(from, "LLL dd, y")
-              )
-            ) : (
-              <span>Pick a date</span>
-            )}
+                <span>Pick a date</span>
+              )}
+            </div>
+            <span className="text-xs text-muted-foreground text-start">
+              {format(from, "HH:mm")} - {format(to, "HH:mm")}
+            </span>
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
@@ -58,21 +60,21 @@ export const DateRangePicker = ({ className }: HTMLAttributes<HTMLDivElement>) =
 };
 
 export const DatePresetsPicker = () => {
-  const { from, to, setFrom, setTo } = useAnalyticsParams();
+  const { setFrom, setTo } = useAnalyticsParams();
   return (
-    <>
+    <div className="grid grid-cols-2 gap-1">
       {DATE_PRESETS.map((preset) => (
         <Button
-          variant={from === preset.start && to === preset.end ? "secondary" : "ghost"}
+          variant="ghost"
           key={preset.label}
           onClick={() => {
-            setFrom(preset.start);
-            setTo(preset.end);
+            setFrom(preset.getStart());
+            setTo(preset.getEnd());
           }}
         >
           {preset.label}
         </Button>
       ))}
-    </>
+    </div>
   );
 };

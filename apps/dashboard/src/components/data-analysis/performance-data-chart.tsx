@@ -46,7 +46,7 @@ const getLineColor = (index: number) => {
 };
 
 export const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, width, height }) => {
-  const [maxYValue, setMaxYValue] = useState(500); // Start with 500%
+  const [maxYValue, setMaxYValue] = useState(50); // Start with 50%
   const [visibleIntervals, setVisibleIntervals] = useState<Set<string>>(new Set(AFTER_INTERVALS));
 
   const margin = { top: 20, right: 100, bottom: 60, left: 80 };

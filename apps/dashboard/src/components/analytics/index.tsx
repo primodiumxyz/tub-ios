@@ -35,12 +35,9 @@ export const Analytics = () => {
 
   return (
     <div ref={containerRef} className="flex flex-col items-start w-full gap-4">
-      <div className="flex justify-between gap-4 w-full">
-        <h3 className="text-lg font-semibold">Analytics</h3>
-        <div className="flex gap-2">
-          <DateRangePicker />
-          <DatePresetsPicker />
-        </div>
+      <div className="flex gap-2">
+        <DateRangePicker />
+        <DatePresetsPicker />
       </div>
       <BasePeriodDataTable />
       {!!volumeIntervals.data && !volumeIntervals.error && (
