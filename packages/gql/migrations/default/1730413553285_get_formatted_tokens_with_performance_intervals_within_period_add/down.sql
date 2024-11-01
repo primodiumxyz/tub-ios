@@ -1,1 +1,0 @@
-DROP FUNCTION public.get_formatted_tokens_with_performance_intervals_within_period(p_start timestamp with time zone, p_end timestamp with time zone, p_interval interval, p_intervals text DEFAULT '1 minute'::text);
