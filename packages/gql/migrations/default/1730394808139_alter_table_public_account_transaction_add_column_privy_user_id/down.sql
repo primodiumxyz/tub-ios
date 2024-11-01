@@ -1,4 +1,0 @@
--- Could not auto-generate a down migration.
--- Please write an appropriate down migration for the SQL below:
--- alter table "public"."account_transaction" add column "privy_user_id" VARCHAR(25)
---  not null default 'cm2wc6voi018svp96uply2hsq';

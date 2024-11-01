@@ -1,6 +1,6 @@
 drop function sell_token;
 
-CREATE OR REPLACE FUNCTION public.sell_token(wallet varchar, token_id uuid, amount_to_sell numeric, token_cost numeric DEFAULT NULL::numeric)
+CREATE OR REPLACE FUNCTION public.sell_token(user_wallet varchar, token_id uuid, amount_to_sell numeric, token_cost numeric DEFAULT NULL::numeric)
  RETURNS token_transaction
  LANGUAGE plpgsql
 AS $function$
@@ -12,7 +12,7 @@ DECLARE
     token_txn token_transaction%ROWTYPE;
 BEGIN
     -- Acquire an advisory lock on the wallet
-    PERFORM pg_advisory_xact_lock(hashtext(wallet::text));
+    PERFORM pg_advisory_xact_lock(hashtext(user_wallet::text));
     -- Determine the latest price
     IF token_cost IS NOT NULL THEN
         latest_price := token_cost;
@@ -35,7 +35,7 @@ BEGIN
     SELECT COALESCE(SUM(amount), 0) INTO token_balance
     FROM token_transaction
     WHERE wallet_transaction IN (
-        SELECT id FROM wallet_transaction WHERE wallet = wallet
+        SELECT id FROM wallet_transaction WHERE wallet_transaction.wallet = user_wallet
     ) AND token = token_id;
     -- Check if wallet has enough tokens to sell
     IF token_balance < amount_to_sell THEN
@@ -43,7 +43,7 @@ BEGIN
     END IF;
     -- Insert a new wallet_transaction for the proceeds (credit)
     INSERT INTO wallet_transaction (wallet, amount)
-    VALUES (wallet, total_proceeds)
+    VALUES (user_wallet, total_proceeds)
     RETURNING id INTO wallet_transaction_id;
     -- Insert a new token_transaction for the tokens sold (debit)
     INSERT INTO token_transaction (token, amount, wallet_transaction)

@@ -21,7 +21,7 @@ export const RegisterManyNewTokensMutation = graphql(`
 export const BuyTokenMutation = graphql(`
   mutation BuyToken($wallet: String!, $token: uuid!, $amount: numeric!, $override_token_price: numeric) {
     buy_token(
-      args: { wallet: $wallet, token_id: $token, amount_to_buy: $amount, token_cost: $override_token_price }
+      args: { user_wallet: $wallet, token_id: $token, amount_to_buy: $amount, token_cost: $override_token_price }
     ) {
       id
     }
@@ -31,7 +31,7 @@ export const BuyTokenMutation = graphql(`
 export const SellTokenMutation = graphql(`
   mutation SellToken($wallet: String!, $token: uuid!, $amount: numeric!, $override_token_price: numeric) {
     sell_token(
-      args: { wallet: $wallet, token_id: $token, amount_to_sell: $amount, token_cost: $override_token_price }
+      args: { user_wallet: $wallet, token_id: $token, amount_to_sell: $amount, token_cost: $override_token_price }
     ) {
       id
     }
