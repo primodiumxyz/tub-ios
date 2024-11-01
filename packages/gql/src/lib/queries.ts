@@ -37,9 +37,11 @@ export const GetTokenDataQuery = graphql(`
   query GetTokenData($tokenId: uuid!) {
     token(where: { id: { _eq: $tokenId } }) {
       id
+      mint
       name
       symbol
-      mint
+      description
+      supply
       decimals
       updated_at
       supply

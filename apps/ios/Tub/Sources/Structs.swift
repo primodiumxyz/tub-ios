@@ -3,10 +3,12 @@ import SwiftUI
 
 struct Token: Identifiable {
     var id: String
-    var name: String
-    var symbol: String
     var mint: String
-    var decimals: Int
+    var name: String?
+    var symbol: String?
+    var description: String?
+    var supply: Int?
+    var decimals: Int?
     var imageUri: String?
 }
 
