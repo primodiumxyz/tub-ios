@@ -4,9 +4,9 @@
 import ApolloAPI
 
 public extension Objects {
-  /// columns and relationships of "account"
-  static let Account = ApolloAPI.Object(
-    typename: "account",
+  /// aggregated selection of "token"
+  static let Token_aggregate = ApolloAPI.Object(
+    typename: "token_aggregate",
     implementedInterfaces: []
   )
 }

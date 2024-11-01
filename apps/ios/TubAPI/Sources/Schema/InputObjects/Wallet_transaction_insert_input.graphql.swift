@@ -3,8 +3,8 @@
 
 import ApolloAPI
 
-/// input type for inserting data into table "account_transaction"
-public struct Account_transaction_insert_input: InputObject {
+/// input type for inserting data into table "wallet_transaction"
+public struct Wallet_transaction_insert_input: InputObject {
   public private(set) var __data: InputDict
 
   public init(_ data: InputDict) {
@@ -12,31 +12,19 @@ public struct Account_transaction_insert_input: InputObject {
   }
 
   public init(
-    account: GraphQLNullable<Uuid> = nil,
-    accountData: GraphQLNullable<Account_obj_rel_insert_input> = nil,
     amount: GraphQLNullable<Numeric> = nil,
     createdAt: GraphQLNullable<Timestamptz> = nil,
     id: GraphQLNullable<Uuid> = nil,
-    tokenTransactions: GraphQLNullable<Token_transaction_arr_rel_insert_input> = nil
+    tokenTransactions: GraphQLNullable<Token_transaction_arr_rel_insert_input> = nil,
+    wallet: GraphQLNullable<String> = nil
   ) {
     __data = InputDict([
-      "account": account,
-      "account_data": accountData,
       "amount": amount,
       "created_at": createdAt,
       "id": id,
-      "token_transactions": tokenTransactions
+      "token_transactions": tokenTransactions,
+      "wallet": wallet
     ])
-  }
-
-  public var account: GraphQLNullable<Uuid> {
-    get { __data["account"] }
-    set { __data["account"] = newValue }
-  }
-
-  public var accountData: GraphQLNullable<Account_obj_rel_insert_input> {
-    get { __data["account_data"] }
-    set { __data["account_data"] = newValue }
   }
 
   public var amount: GraphQLNullable<Numeric> {
@@ -57,5 +45,10 @@ public struct Account_transaction_insert_input: InputObject {
   public var tokenTransactions: GraphQLNullable<Token_transaction_arr_rel_insert_input> {
     get { __data["token_transactions"] }
     set { __data["token_transactions"] = newValue }
+  }
+
+  public var wallet: GraphQLNullable<String> {
+    get { __data["wallet"] }
+    set { __data["wallet"] = newValue }
   }
 }

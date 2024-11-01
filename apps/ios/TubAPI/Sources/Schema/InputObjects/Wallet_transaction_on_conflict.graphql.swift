@@ -3,8 +3,8 @@
 
 import ApolloAPI
 
-/// on_conflict condition type for table "account"
-public struct Account_on_conflict: InputObject {
+/// on_conflict condition type for table "wallet_transaction"
+public struct Wallet_transaction_on_conflict: InputObject {
   public private(set) var __data: InputDict
 
   public init(_ data: InputDict) {
@@ -12,9 +12,9 @@ public struct Account_on_conflict: InputObject {
   }
 
   public init(
-    constraint: GraphQLEnum<Account_constraint>,
-    updateColumns: [GraphQLEnum<Account_update_column>]? = nil,
-    `where`: GraphQLNullable<Account_bool_exp> = nil
+    constraint: GraphQLEnum<Wallet_transaction_constraint>,
+    updateColumns: [GraphQLEnum<Wallet_transaction_update_column>]? = nil,
+    `where`: GraphQLNullable<Wallet_transaction_bool_exp> = nil
   ) {
     __data = InputDict([
       "constraint": constraint,
@@ -23,17 +23,17 @@ public struct Account_on_conflict: InputObject {
     ])
   }
 
-  public var constraint: GraphQLEnum<Account_constraint> {
+  public var constraint: GraphQLEnum<Wallet_transaction_constraint> {
     get { __data["constraint"] }
     set { __data["constraint"] = newValue }
   }
 
-  public var updateColumns: [GraphQLEnum<Account_update_column>]? {
+  public var updateColumns: [GraphQLEnum<Wallet_transaction_update_column>]? {
     get { __data["update_columns"] }
     set { __data["update_columns"] = newValue }
   }
 
-  public var `where`: GraphQLNullable<Account_bool_exp> {
+  public var `where`: GraphQLNullable<Wallet_transaction_bool_exp> {
     get { __data["where"] }
     set { __data["where"] = newValue }
   }

@@ -3,26 +3,26 @@
 
 @_exported import ApolloAPI
 
-public class SubAccountBalanceSubscription: GraphQLSubscription {
-  public static let operationName: String = "SubAccountBalance"
+public class SubWalletBalanceSubscription: GraphQLSubscription {
+  public static let operationName: String = "SubWalletBalance"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"subscription SubAccountBalance($account: uuid!, $start: timestamptz = "now()") { balance: account_balance_ignore_interval( args: { account: $account, interval: "0", start: $start } ) { __typename value: balance } }"#
+      #"subscription SubWalletBalance($wallet: String!, $start: timestamptz = "now()") { balance: wallet_balance_ignore_interval( args: { wallet: $wallet, interval: "0", start: $start } ) { __typename value: balance } }"#
     ))
 
-  public var account: Uuid
+  public var wallet: String
   public var start: GraphQLNullable<Timestamptz>
 
   public init(
-    account: Uuid,
+    wallet: String,
     start: GraphQLNullable<Timestamptz> = "now()"
   ) {
-    self.account = account
+    self.wallet = wallet
     self.start = start
   }
 
   public var __variables: Variables? { [
-    "account": account,
+    "wallet": wallet,
     "start": start
   ] }
 
@@ -32,8 +32,8 @@ public class SubAccountBalanceSubscription: GraphQLSubscription {
 
     public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Subscription_root }
     public static var __selections: [ApolloAPI.Selection] { [
-      .field("account_balance_ignore_interval", alias: "balance", [Balance].self, arguments: ["args": [
-        "account": .variable("account"),
+      .field("wallet_balance_ignore_interval", alias: "balance", [Balance].self, arguments: ["args": [
+        "wallet": .variable("wallet"),
         "interval": "0",
         "start": .variable("start")
       ]]),

@@ -3,31 +3,31 @@
 
 @_exported import ApolloAPI
 
-public class SubAccountBalanceIgnoreIntervalSubscription: GraphQLSubscription {
-  public static let operationName: String = "SubAccountBalanceIgnoreInterval"
+public class SubWalletTokenBalanceSubscription: GraphQLSubscription {
+  public static let operationName: String = "SubWalletTokenBalance"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"subscription SubAccountBalanceIgnoreInterval($account: uuid!, $start: timestamptz = "now()", $interval: interval = "0") { balance: account_balance_ignore_interval( args: { account: $account, interval: $interval, start: $start } ) { __typename value: balance } }"#
+      #"subscription SubWalletTokenBalance($wallet: String!, $token: uuid!, $start: timestamptz = "now()") { balance: wallet_token_balance_ignore_interval( args: { wallet: $wallet, interval: "0", start: $start, token: $token } ) { __typename value: balance } }"#
     ))
 
-  public var account: Uuid
+  public var wallet: String
+  public var token: Uuid
   public var start: GraphQLNullable<Timestamptz>
-  public var interval: GraphQLNullable<Interval>
 
   public init(
-    account: Uuid,
-    start: GraphQLNullable<Timestamptz> = "now()",
-    interval: GraphQLNullable<Interval> = "0"
+    wallet: String,
+    token: Uuid,
+    start: GraphQLNullable<Timestamptz> = "now()"
   ) {
-    self.account = account
+    self.wallet = wallet
+    self.token = token
     self.start = start
-    self.interval = interval
   }
 
   public var __variables: Variables? { [
-    "account": account,
-    "start": start,
-    "interval": interval
+    "wallet": wallet,
+    "token": token,
+    "start": start
   ] }
 
   public struct Data: TubAPI.SelectionSet {
@@ -36,10 +36,11 @@ public class SubAccountBalanceIgnoreIntervalSubscription: GraphQLSubscription {
 
     public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Subscription_root }
     public static var __selections: [ApolloAPI.Selection] { [
-      .field("account_balance_ignore_interval", alias: "balance", [Balance].self, arguments: ["args": [
-        "account": .variable("account"),
-        "interval": .variable("interval"),
-        "start": .variable("start")
+      .field("wallet_token_balance_ignore_interval", alias: "balance", [Balance].self, arguments: ["args": [
+        "wallet": .variable("wallet"),
+        "interval": "0",
+        "start": .variable("start"),
+        "token": .variable("token")
       ]]),
     ] }
 

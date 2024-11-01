@@ -3,29 +3,29 @@
 
 @_exported import ApolloAPI
 
-public class GetAccountBalanceIgnoreIntervalQuery: GraphQLQuery {
-  public static let operationName: String = "GetAccountBalanceIgnoreInterval"
+public class GetWalletBalanceIgnoreIntervalQuery: GraphQLQuery {
+  public static let operationName: String = "GetWalletBalanceIgnoreInterval"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetAccountBalanceIgnoreInterval($account: uuid!, $start: timestamptz = "now()", $interval: interval!) { balance: account_balance_ignore_interval( args: { account: $account, interval: $interval, start: $start } ) { __typename value: balance } }"#
+      #"query GetWalletBalanceIgnoreInterval($wallet: String!, $start: timestamptz = "now()", $interval: interval!) { balance: wallet_balance_ignore_interval( args: { wallet: $wallet, interval: $interval, start: $start } ) { __typename value: balance } }"#
     ))
 
-  public var account: Uuid
+  public var wallet: String
   public var start: GraphQLNullable<Timestamptz>
   public var interval: Interval
 
   public init(
-    account: Uuid,
+    wallet: String,
     start: GraphQLNullable<Timestamptz> = "now()",
     interval: Interval
   ) {
-    self.account = account
+    self.wallet = wallet
     self.start = start
     self.interval = interval
   }
 
   public var __variables: Variables? { [
-    "account": account,
+    "wallet": wallet,
     "start": start,
     "interval": interval
   ] }
@@ -36,8 +36,8 @@ public class GetAccountBalanceIgnoreIntervalQuery: GraphQLQuery {
 
     public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Query_root }
     public static var __selections: [ApolloAPI.Selection] { [
-      .field("account_balance_ignore_interval", alias: "balance", [Balance].self, arguments: ["args": [
-        "account": .variable("account"),
+      .field("wallet_balance_ignore_interval", alias: "balance", [Balance].self, arguments: ["args": [
+        "wallet": .variable("wallet"),
         "interval": .variable("interval"),
         "start": .variable("start")
       ]]),

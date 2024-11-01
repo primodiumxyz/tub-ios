@@ -15,6 +15,7 @@ public struct Token_bool_exp: InputObject {
     _and: GraphQLNullable<[Token_bool_exp]> = nil,
     _not: GraphQLNullable<Token_bool_exp> = nil,
     _or: GraphQLNullable<[Token_bool_exp]> = nil,
+    createdAt: GraphQLNullable<Timestamptz_comparison_exp> = nil,
     decimals: GraphQLNullable<Int_comparison_exp> = nil,
     id: GraphQLNullable<Uuid_comparison_exp> = nil,
     mint: GraphQLNullable<String_comparison_exp> = nil,
@@ -33,6 +34,7 @@ public struct Token_bool_exp: InputObject {
       "_and": _and,
       "_not": _not,
       "_or": _or,
+      "created_at": createdAt,
       "decimals": decimals,
       "id": id,
       "mint": mint,
@@ -62,6 +64,11 @@ public struct Token_bool_exp: InputObject {
   public var _or: GraphQLNullable<[Token_bool_exp]> {
     get { __data["_or"] }
     set { __data["_or"] = newValue }
+  }
+
+  public var createdAt: GraphQLNullable<Timestamptz_comparison_exp> {
+    get { __data["created_at"] }
+    set { __data["created_at"] = newValue }
   }
 
   public var decimals: GraphQLNullable<Int_comparison_exp> {

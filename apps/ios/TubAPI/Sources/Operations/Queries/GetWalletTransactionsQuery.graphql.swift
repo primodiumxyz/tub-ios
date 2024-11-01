@@ -3,20 +3,20 @@
 
 @_exported import ApolloAPI
 
-public class GetAccountTransactionsQuery: GraphQLQuery {
-  public static let operationName: String = "GetAccountTransactions"
+public class GetWalletTransactionsQuery: GraphQLQuery {
+  public static let operationName: String = "GetWalletTransactions"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetAccountTransactions($accountId: uuid!) { token_transaction( order_by: { account_transaction_data: { created_at: desc } } where: { account_transaction_data: { account_data: { id: { _eq: $accountId } } } } ) { __typename account_transaction amount id token token_data { __typename id name supply symbol uri } account_transaction_data { __typename created_at } token_price { __typename price created_at } } }"#
+      #"query GetWalletTransactions($wallet: String!) { token_transaction( order_by: { wallet_transaction_data: { created_at: desc } } where: { wallet_transaction_data: { wallet: { _eq: $wallet } } } ) { __typename wallet_transaction amount id token token_data { __typename id name supply symbol uri } wallet_transaction_data { __typename created_at } token_price { __typename price created_at } } }"#
     ))
 
-  public var accountId: Uuid
+  public var wallet: String
 
-  public init(accountId: Uuid) {
-    self.accountId = accountId
+  public init(wallet: String) {
+    self.wallet = wallet
   }
 
-  public var __variables: Variables? { ["accountId": accountId] }
+  public var __variables: Variables? { ["wallet": wallet] }
 
   public struct Data: TubAPI.SelectionSet {
     public let __data: DataDict
@@ -25,8 +25,8 @@ public class GetAccountTransactionsQuery: GraphQLQuery {
     public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Query_root }
     public static var __selections: [ApolloAPI.Selection] { [
       .field("token_transaction", [Token_transaction].self, arguments: [
-        "order_by": ["account_transaction_data": ["created_at": "desc"]],
-        "where": ["account_transaction_data": ["account_data": ["id": ["_eq": .variable("accountId")]]]]
+        "order_by": ["wallet_transaction_data": ["created_at": "desc"]],
+        "where": ["wallet_transaction_data": ["wallet": ["_eq": .variable("wallet")]]]
       ]),
     ] }
 
@@ -43,23 +43,23 @@ public class GetAccountTransactionsQuery: GraphQLQuery {
       public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Token_transaction }
       public static var __selections: [ApolloAPI.Selection] { [
         .field("__typename", String.self),
-        .field("account_transaction", TubAPI.Uuid.self),
+        .field("wallet_transaction", TubAPI.Uuid.self),
         .field("amount", TubAPI.Numeric.self),
         .field("id", TubAPI.Uuid.self),
         .field("token", TubAPI.Uuid.self),
         .field("token_data", Token_data.self),
-        .field("account_transaction_data", Account_transaction_data.self),
+        .field("wallet_transaction_data", Wallet_transaction_data.self),
         .field("token_price", Token_price?.self),
       ] }
 
-      public var account_transaction: TubAPI.Uuid { __data["account_transaction"] }
+      public var wallet_transaction: TubAPI.Uuid { __data["wallet_transaction"] }
       public var amount: TubAPI.Numeric { __data["amount"] }
       public var id: TubAPI.Uuid { __data["id"] }
       public var token: TubAPI.Uuid { __data["token"] }
       /// An object relationship
       public var token_data: Token_data { __data["token_data"] }
       /// An object relationship
-      public var account_transaction_data: Account_transaction_data { __data["account_transaction_data"] }
+      public var wallet_transaction_data: Wallet_transaction_data { __data["wallet_transaction_data"] }
       /// An object relationship
       public var token_price: Token_price? { __data["token_price"] }
 
@@ -87,14 +87,14 @@ public class GetAccountTransactionsQuery: GraphQLQuery {
         public var uri: String? { __data["uri"] }
       }
 
-      /// Token_transaction.Account_transaction_data
+      /// Token_transaction.Wallet_transaction_data
       ///
-      /// Parent Type: `Account_transaction`
-      public struct Account_transaction_data: TubAPI.SelectionSet {
+      /// Parent Type: `Wallet_transaction`
+      public struct Wallet_transaction_data: TubAPI.SelectionSet {
         public let __data: DataDict
         public init(_dataDict: DataDict) { __data = _dataDict }
 
-        public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Account_transaction }
+        public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Wallet_transaction }
         public static var __selections: [ApolloAPI.Selection] { [
           .field("__typename", String.self),
           .field("created_at", TubAPI.Timestamptz.self),

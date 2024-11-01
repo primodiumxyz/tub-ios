@@ -7,28 +7,28 @@ public class BuyTokenMutation: GraphQLMutation {
   public static let operationName: String = "BuyToken"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"mutation BuyToken($account: uuid!, $token: uuid!, $amount: numeric!, $override_token_price: numeric) { buy_token( args: { account_id: $account token_id: $token amount_to_buy: $amount token_cost: $override_token_price } ) { __typename id } }"#
+      #"mutation BuyToken($wallet: String!, $token: uuid!, $amount: numeric!, $override_token_price: numeric) { buy_token( args: { user_wallet: $wallet token_id: $token amount_to_buy: $amount token_cost: $override_token_price } ) { __typename id } }"#
     ))
 
-  public var account: Uuid
+  public var wallet: String
   public var token: Uuid
   public var amount: Numeric
   public var override_token_price: GraphQLNullable<Numeric>
 
   public init(
-    account: Uuid,
+    wallet: String,
     token: Uuid,
     amount: Numeric,
     override_token_price: GraphQLNullable<Numeric>
   ) {
-    self.account = account
+    self.wallet = wallet
     self.token = token
     self.amount = amount
     self.override_token_price = override_token_price
   }
 
   public var __variables: Variables? { [
-    "account": account,
+    "wallet": wallet,
     "token": token,
     "amount": amount,
     "override_token_price": override_token_price
@@ -41,7 +41,7 @@ public class BuyTokenMutation: GraphQLMutation {
     public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Mutation_root }
     public static var __selections: [ApolloAPI.Selection] { [
       .field("buy_token", Buy_token?.self, arguments: ["args": [
-        "account_id": .variable("account"),
+        "user_wallet": .variable("wallet"),
         "token_id": .variable("token"),
         "amount_to_buy": .variable("amount"),
         "token_cost": .variable("override_token_price")

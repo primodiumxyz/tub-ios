@@ -3,8 +3,8 @@
 
 import ApolloAPI
 
-/// input type for inserting object relation for remote table "account_transaction"
-public struct Account_transaction_obj_rel_insert_input: InputObject {
+/// input type for inserting object relation for remote table "wallet_transaction"
+public struct Wallet_transaction_obj_rel_insert_input: InputObject {
   public private(set) var __data: InputDict
 
   public init(_ data: InputDict) {
@@ -12,8 +12,8 @@ public struct Account_transaction_obj_rel_insert_input: InputObject {
   }
 
   public init(
-    data: Account_transaction_insert_input,
-    onConflict: GraphQLNullable<Account_transaction_on_conflict> = nil
+    data: Wallet_transaction_insert_input,
+    onConflict: GraphQLNullable<Wallet_transaction_on_conflict> = nil
   ) {
     __data = InputDict([
       "data": data,
@@ -21,13 +21,13 @@ public struct Account_transaction_obj_rel_insert_input: InputObject {
     ])
   }
 
-  public var data: Account_transaction_insert_input {
+  public var data: Wallet_transaction_insert_input {
     get { __data["data"] }
     set { __data["data"] = newValue }
   }
 
   /// upsert condition
-  public var onConflict: GraphQLNullable<Account_transaction_on_conflict> {
+  public var onConflict: GraphQLNullable<Wallet_transaction_on_conflict> {
     get { __data["on_conflict"] }
     set { __data["on_conflict"] = newValue }
   }
