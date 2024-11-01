@@ -179,10 +179,24 @@ export const GetTokenPriceHistorySinceQuery = graphql(`
 
 // TODO: order by volume once integrated
 export const GetFilteredTokensIntervalQuery = graphql(`
-  query GetFilteredTokensInterval($interval: interval!) {
+  query GetFilteredTokensInterval(
+    $interval: interval!
+    $minTrades: bigint = 0
+    $minVolume: numeric = 0
+    $mintBurnt: Boolean = false
+    $freezeBurnt: Boolean = false
+  ) {
     formatted_tokens_interval(
       args: { interval: $interval }
-      where: { is_pump_token: { _eq: true } }
+      where: {
+        is_pump_token: { _eq: true }
+        trades: { _gte: $minTrades }
+        volume: { _gte: $minVolume }
+        _and: [
+          { _or: [{ _not: { mint_burnt: { _eq: $mintBurnt } } }, { mint_burnt: { _eq: true } }] }
+          { _or: [{ _not: { freeze_burnt: { _eq: $freezeBurnt } } }, { freeze_burnt: { _eq: true } }] }
+        ]
+      }
       order_by: { trades: desc }
     ) {
       token_id
@@ -201,6 +215,92 @@ export const GetFilteredTokensIntervalQuery = graphql(`
       volume
       latest_price
       created_at
+    }
+  }
+`);
+
+// Dashboard
+export const GetSwapsInPeriodCountQuery = graphql(`
+  query GetSwapsInPeriod($from: timestamptz!, $to: timestamptz!) {
+    swaps_total: token_price_history_aggregate(where: { created_at: { _gte: $from, _lte: $to } }) {
+      aggregate {
+        count
+      }
+    }
+    swaps_hourly: hourly_swaps(where: { hour: { _gte: $from, _lte: $to } }) {
+      hour
+      count
+    }
+  }
+`);
+
+export const GetNewTokensInPeriodCountQuery = graphql(`
+  query GetNewTokensInPeriod($from: timestamptz!, $to: timestamptz!) {
+    new_tokens_total: token_aggregate(where: { created_at: { _gte: $from, _lte: $to } }) {
+      aggregate {
+        count
+      }
+    }
+    new_tokens_hourly: hourly_new_tokens(where: { hour: { _gte: $from, _lte: $to } }) {
+      hour
+      count
+    }
+  }
+`);
+
+export const GetVolumeIntervalsWithinPeriodQuery = graphql(`
+  query GetVolumeIntervalsWithinPeriod($from: timestamptz!, $to: timestamptz!, $interval: interval!) {
+    volume_intervals_within_period(args: { start: $from, end: $to, interval: $interval }) {
+      interval_start
+      total_volume
+      token_count
+    }
+  }
+`);
+
+export const GetFormattedTokensWithPerformanceForIntervalsWithinPeriodQuery = graphql(`
+  query GetFormattedTokensWithPerformanceForIntervalsWithinPeriodQuery(
+    $from: timestamptz!
+    $to: timestamptz!
+    $interval: interval!
+    $afterIntervals: String!
+    $minTrades: bigint = 0
+    $minVolume: numeric = 0
+    $mintBurnt: Boolean = false
+    $freezeBurnt: Boolean = false
+  ) {
+    formatted_tokens_with_performance_intervals_within_period(
+      args: { start: $from, end: $to, interval: $interval, after_intervals: $afterIntervals }
+      where: {
+        trades: { _gte: $minTrades }
+        volume: { _gte: $minVolume }
+        _and: [
+          { _or: [{ _not: { mint_burnt: { _eq: $mintBurnt } } }, { mint_burnt: { _eq: true } }] }
+          { _or: [{ _not: { freeze_burnt: { _eq: $freezeBurnt } } }, { freeze_burnt: { _eq: true } }] }
+        ]
+      }
+      order_by: { interval_start: asc }
+    ) {
+      token_id
+      mint
+      name
+      symbol
+      description
+      uri
+      supply
+      decimals
+      mint_burnt
+      freeze_burnt
+      is_pump_token
+      increase_pct
+      trades
+      volume
+      latest_price
+      created_at
+      increase_pct_after
+      trades_after
+      volume_after
+      interval_start
     }
   }
 `);

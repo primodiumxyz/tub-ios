@@ -178,10 +178,34 @@ query GetTokenPriceHistorySince($tokenId: uuid!, $since: timestamptz!) {
   }
 }
 
-query GetFilteredTokens($interval: interval!) {
+query GetFilteredTokens(
+  $interval: interval!
+  $minTrades: bigint = 0
+  $minVolume: numeric = 0
+  $mintBurnt: Boolean = false
+  $freezeBurnt: Boolean = false
+) {
   formatted_tokens_interval(
     args: { interval: $interval }
-    where: { is_pump_token: { _eq: true } }
+    where: {
+      is_pump_token: { _eq: true }
+      trades: { _gte: $minTrades }
+      volume: { _gte: $minVolume }
+      _and: [
+        {
+          _or: [
+            { _not: { mint_burnt: { _eq: $mintBurnt } } }
+            { mint_burnt: { _eq: true } }
+          ]
+        }
+        {
+          _or: [
+            { _not: { freeze_burnt: { _eq: $freezeBurnt } } }
+            { freeze_burnt: { _eq: true } }
+          ]
+        }
+      ]
+    }
     order_by: { trades: desc }
   ) {
     token_id

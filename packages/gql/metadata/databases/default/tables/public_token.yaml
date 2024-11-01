@@ -28,9 +28,9 @@ select_permissions:
         - decimals
         - supply
         - description
-        - platform
         - uri
         - updated_at
+        - created_at
         - id
         - mint
       filter: {}
