@@ -23,8 +23,6 @@ struct RegisterView: View {
     }
 
     func createEmbeddedWallet() {
-        // Check for Solana wallet after successful registration
-        print("Creating embedded wallet")
         Task {
             do {
                     // Ensure we're authenticated first
@@ -55,7 +53,6 @@ struct RegisterView: View {
             Text(myAuthState.toString)
                 .foregroundStyle(.black.opacity(0.5))
                 .padding(.bottom, 24)
-            
             Button(action: {
                 privy.logout()
             }) {
