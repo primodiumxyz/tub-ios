@@ -19,10 +19,11 @@ export function createAppRouter() {
         z.object({
           tokenId: z.string(),
           amount: z.string(),
+          overridePrice: z.string().optional(),
         }),
       )
       .mutation(async ({ ctx, input }) => {
-        return await ctx.tubService.buyToken(ctx.jwtToken, input.tokenId, BigInt(input.amount));
+        return await ctx.tubService.buyToken(ctx.jwtToken, input.tokenId, BigInt(input.amount), BigInt(input.overridePrice ?? "1"));
       }),
     sellToken: t.procedure
       .input(

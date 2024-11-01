@@ -35,11 +35,6 @@ export class TubService {
     return { status: 200 };
   }
 
-  async refreshToken(uuid: string) {
-    const token = jwt.sign({ uuid }, env.JWT_SECRET, { expiresIn: "5y" });
-    return token;
-  }
-
   async sellToken(token: string, tokenId: string, amount: bigint) {
     const accountId = await this.verifyJWT(token);
     const wallet = await this.getUserWallet(accountId);
@@ -61,7 +56,7 @@ export class TubService {
     return result.data;
   }
 
-  async buyToken(token: string, tokenId: string, amount: bigint) {
+  async buyToken(token: string, tokenId: string, amount: bigint, overridePrice: bigint) {
     const accountId = await this.verifyJWT(token);
     const wallet = await this.getUserWallet(accountId);
 
@@ -73,6 +68,7 @@ export class TubService {
       wallet: wallet,
       token: tokenId,
       amount: amount.toString(),
+      override_token_price: overridePrice.toString(),
     });
 
     if (result.error) {
