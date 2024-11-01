@@ -982,13 +982,72 @@ input formatted_tokens_bool_exp {
   volume: numeric_comparison_exp
 }
 
+"""formatted_tokens_intervalNative Query Arguments"""
+input formatted_tokens_interval_arguments {
+  """"""
+  interval: interval!
+}
+
+"""aggregate max on columns"""
+type formatted_tokens_max_fields {
+  created_at: timestamptz
+  decimals: Int
+  description: String
+  increase_pct: float8
+  latest_price: numeric
+  mint: String
+  name: String
+  supply: numeric
+  symbol: String
+  token_id: uuid
+  trades: bigint
+  uri: String
+  volume: numeric
+}
+
+"""aggregate min on columns"""
+type formatted_tokens_min_fields {
+  created_at: timestamptz
+  decimals: Int
+  description: String
+  increase_pct: float8
+  latest_price: numeric
+  mint: String
+  name: String
+  supply: numeric
+  symbol: String
+  token_id: uuid
+  trades: bigint
+  uri: String
+  volume: numeric
+}
+
+type formatted_tokens_model {
+  created_at: timestamptz!
+  decimals: Int
+  description: String
+  freeze_burnt: Boolean
+  increase_pct: float8!
+  is_pump_token: Boolean
+  latest_price: numeric!
+  mint: String!
+  mint_burnt: Boolean
+  name: String
+  supply: numeric
+  symbol: String
+  token_id: uuid!
+  trades: bigint!
+  uri: String
+  volume: numeric!
+}
+
 """
-Boolean expression to filter rows from the logical model for "formatted_tokens". All fields are combined with a logical 'AND'.
+Boolean expression to filter rows from the logical model for "formatted_tokens_model". All fields are combined with a logical 'AND'.
 """
-input formatted_tokens_bool_exp_bool_exp {
-  _and: [formatted_tokens_bool_exp_bool_exp!]
-  _not: formatted_tokens_bool_exp_bool_exp
-  _or: [formatted_tokens_bool_exp_bool_exp!]
+input formatted_tokens_model_bool_exp_bool_exp {
+  _and: [formatted_tokens_model_bool_exp_bool_exp!]
+  _not: formatted_tokens_model_bool_exp_bool_exp
+  _or: [formatted_tokens_model_bool_exp_bool_exp!]
   created_at: timestamptz_comparison_exp
   decimals: Int_comparison_exp
   description: String_comparison_exp
@@ -1007,7 +1066,7 @@ input formatted_tokens_bool_exp_bool_exp {
   volume: numeric_comparison_exp
 }
 
-enum formatted_tokens_enum_name {
+enum formatted_tokens_model_enum_name {
   """column name"""
   created_at
 
@@ -1057,44 +1116,24 @@ enum formatted_tokens_enum_name {
   volume
 }
 
-"""formatted_tokens_intervalNative Query Arguments"""
-input formatted_tokens_interval_arguments {
-  """"""
-  interval: interval!
-}
-
-"""aggregate max on columns"""
-type formatted_tokens_max_fields {
-  created_at: timestamptz
-  decimals: Int
-  description: String
-  increase_pct: float8
-  latest_price: numeric
-  mint: String
-  name: String
-  supply: numeric
-  symbol: String
-  token_id: uuid
-  trades: bigint
-  uri: String
-  volume: numeric
-}
-
-"""aggregate min on columns"""
-type formatted_tokens_min_fields {
-  created_at: timestamptz
-  decimals: Int
-  description: String
-  increase_pct: float8
-  latest_price: numeric
-  mint: String
-  name: String
-  supply: numeric
-  symbol: String
-  token_id: uuid
-  trades: bigint
-  uri: String
-  volume: numeric
+"""Ordering options when selecting data from "formatted_tokens_model"."""
+input formatted_tokens_model_order_by {
+  created_at: order_by
+  decimals: order_by
+  description: order_by
+  freeze_burnt: order_by
+  increase_pct: order_by
+  is_pump_token: order_by
+  latest_price: order_by
+  mint: order_by
+  mint_burnt: order_by
+  name: order_by
+  supply: order_by
+  symbol: order_by
+  token_id: order_by
+  trades: order_by
+  uri: order_by
+  volume: order_by
 }
 
 """Ordering options when selecting data from "formatted_tokens"."""
@@ -1362,12 +1401,94 @@ input formatted_tokens_with_performance_bool_exp {
 }
 
 """
-Boolean expression to filter rows from the logical model for "formatted_tokens_with_performance". All fields are combined with a logical 'AND'.
+formatted_tokens_with_performance_intervals_within_periodNative Query Arguments
 """
-input formatted_tokens_with_performance_bool_exp_bool_exp {
-  _and: [formatted_tokens_with_performance_bool_exp_bool_exp!]
-  _not: formatted_tokens_with_performance_bool_exp_bool_exp
-  _or: [formatted_tokens_with_performance_bool_exp_bool_exp!]
+input formatted_tokens_with_performance_intervals_within_period_arguments {
+  """"""
+  after_intervals: String!
+
+  """"""
+  end: timestamptz!
+
+  """"""
+  interval: interval!
+
+  """"""
+  start: timestamptz!
+}
+
+"""aggregate max on columns"""
+type formatted_tokens_with_performance_max_fields {
+  created_at: timestamptz
+  decimals: Int
+  description: String
+  increase_pct: float8
+  increase_pct_after: String
+  interval_start: timestamptz
+  latest_price: numeric
+  mint: String
+  name: String
+  supply: numeric
+  symbol: String
+  token_id: uuid
+  trades: bigint
+  trades_after: String
+  uri: String
+  volume: numeric
+  volume_after: String
+}
+
+"""aggregate min on columns"""
+type formatted_tokens_with_performance_min_fields {
+  created_at: timestamptz
+  decimals: Int
+  description: String
+  increase_pct: float8
+  increase_pct_after: String
+  interval_start: timestamptz
+  latest_price: numeric
+  mint: String
+  name: String
+  supply: numeric
+  symbol: String
+  token_id: uuid
+  trades: bigint
+  trades_after: String
+  uri: String
+  volume: numeric
+  volume_after: String
+}
+
+type formatted_tokens_with_performance_model {
+  created_at: timestamptz!
+  decimals: Int
+  description: String
+  freeze_burnt: Boolean
+  increase_pct: float8!
+  increase_pct_after: String!
+  interval_start: timestamptz!
+  is_pump_token: Boolean
+  latest_price: numeric!
+  mint: String!
+  mint_burnt: Boolean
+  name: String
+  supply: numeric
+  symbol: String
+  token_id: uuid!
+  trades: bigint!
+  trades_after: String!
+  uri: String
+  volume: numeric!
+  volume_after: String!
+}
+
+"""
+Boolean expression to filter rows from the logical model for "formatted_tokens_with_performance_model". All fields are combined with a logical 'AND'.
+"""
+input formatted_tokens_with_performance_model_bool_exp_bool_exp {
+  _and: [formatted_tokens_with_performance_model_bool_exp_bool_exp!]
+  _not: formatted_tokens_with_performance_model_bool_exp_bool_exp
+  _or: [formatted_tokens_with_performance_model_bool_exp_bool_exp!]
   created_at: timestamptz_comparison_exp
   decimals: Int_comparison_exp
   description: String_comparison_exp
@@ -1390,7 +1511,7 @@ input formatted_tokens_with_performance_bool_exp_bool_exp {
   volume_after: String_comparison_exp
 }
 
-enum formatted_tokens_with_performance_enum_name {
+enum formatted_tokens_with_performance_model_enum_name {
   """column name"""
   created_at
 
@@ -1453,62 +1574,29 @@ enum formatted_tokens_with_performance_enum_name {
 }
 
 """
-formatted_tokens_with_performance_intervals_within_periodNative Query Arguments
+Ordering options when selecting data from "formatted_tokens_with_performance_model".
 """
-input formatted_tokens_with_performance_intervals_within_period_arguments {
-  """"""
-  after_intervals: String!
-
-  """"""
-  end: timestamptz!
-
-  """"""
-  interval: interval!
-
-  """"""
-  start: timestamptz!
-}
-
-"""aggregate max on columns"""
-type formatted_tokens_with_performance_max_fields {
-  created_at: timestamptz
-  decimals: Int
-  description: String
-  increase_pct: float8
-  increase_pct_after: String
-  interval_start: timestamptz
-  latest_price: numeric
-  mint: String
-  name: String
-  supply: numeric
-  symbol: String
-  token_id: uuid
-  trades: bigint
-  trades_after: String
-  uri: String
-  volume: numeric
-  volume_after: String
-}
-
-"""aggregate min on columns"""
-type formatted_tokens_with_performance_min_fields {
-  created_at: timestamptz
-  decimals: Int
-  description: String
-  increase_pct: float8
-  increase_pct_after: String
-  interval_start: timestamptz
-  latest_price: numeric
-  mint: String
-  name: String
-  supply: numeric
-  symbol: String
-  token_id: uuid
-  trades: bigint
-  trades_after: String
-  uri: String
-  volume: numeric
-  volume_after: String
+input formatted_tokens_with_performance_model_order_by {
+  created_at: order_by
+  decimals: order_by
+  description: order_by
+  freeze_burnt: order_by
+  increase_pct: order_by
+  increase_pct_after: order_by
+  interval_start: order_by
+  is_pump_token: order_by
+  latest_price: order_by
+  mint: order_by
+  mint_burnt: order_by
+  name: order_by
+  supply: order_by
+  symbol: order_by
+  token_id: order_by
+  trades: order_by
+  trades_after: order_by
+  uri: order_by
+  volume: order_by
+  volume_after: order_by
 }
 
 """
@@ -2650,7 +2738,7 @@ type query_root {
     args: formatted_tokens_interval_arguments!
 
     """distinct select on columns"""
-    distinct_on: [formatted_tokens_enum_name!]
+    distinct_on: [formatted_tokens_model_enum_name!]
 
     """limit the number of rows returned"""
     limit: Int
@@ -2659,11 +2747,11 @@ type query_root {
     offset: Int
 
     """sort the rows by one or more columns"""
-    order_by: [formatted_tokens_order_by!]
+    order_by: [formatted_tokens_model_order_by!]
 
     """filter the rows returned"""
-    where: formatted_tokens_bool_exp_bool_exp
-  ): [formatted_tokens!]!
+    where: formatted_tokens_model_bool_exp_bool_exp
+  ): [formatted_tokens_model!]!
 
   """
   fetch data from the table: "formatted_tokens_with_performance"
@@ -2711,7 +2799,7 @@ type query_root {
     args: formatted_tokens_with_performance_intervals_within_period_arguments!
 
     """distinct select on columns"""
-    distinct_on: [formatted_tokens_with_performance_enum_name!]
+    distinct_on: [formatted_tokens_with_performance_model_enum_name!]
 
     """limit the number of rows returned"""
     limit: Int
@@ -2720,11 +2808,11 @@ type query_root {
     offset: Int
 
     """sort the rows by one or more columns"""
-    order_by: [formatted_tokens_with_performance_order_by!]
+    order_by: [formatted_tokens_with_performance_model_order_by!]
 
     """filter the rows returned"""
-    where: formatted_tokens_with_performance_bool_exp_bool_exp
-  ): [formatted_tokens_with_performance!]!
+    where: formatted_tokens_with_performance_model_bool_exp_bool_exp
+  ): [formatted_tokens_with_performance_model!]!
 
   """
   fetch data from the table: "hourly_new_tokens"
@@ -3222,7 +3310,7 @@ type subscription_root {
     args: formatted_tokens_interval_arguments!
 
     """distinct select on columns"""
-    distinct_on: [formatted_tokens_enum_name!]
+    distinct_on: [formatted_tokens_model_enum_name!]
 
     """limit the number of rows returned"""
     limit: Int
@@ -3231,11 +3319,11 @@ type subscription_root {
     offset: Int
 
     """sort the rows by one or more columns"""
-    order_by: [formatted_tokens_order_by!]
+    order_by: [formatted_tokens_model_order_by!]
 
     """filter the rows returned"""
-    where: formatted_tokens_bool_exp_bool_exp
-  ): [formatted_tokens!]!
+    where: formatted_tokens_model_bool_exp_bool_exp
+  ): [formatted_tokens_model!]!
 
   """
   fetch data from the table in a streaming manner: "formatted_tokens"
@@ -3297,7 +3385,7 @@ type subscription_root {
     args: formatted_tokens_with_performance_intervals_within_period_arguments!
 
     """distinct select on columns"""
-    distinct_on: [formatted_tokens_with_performance_enum_name!]
+    distinct_on: [formatted_tokens_with_performance_model_enum_name!]
 
     """limit the number of rows returned"""
     limit: Int
@@ -3306,11 +3394,11 @@ type subscription_root {
     offset: Int
 
     """sort the rows by one or more columns"""
-    order_by: [formatted_tokens_with_performance_order_by!]
+    order_by: [formatted_tokens_with_performance_model_order_by!]
 
     """filter the rows returned"""
-    where: formatted_tokens_with_performance_bool_exp_bool_exp
-  ): [formatted_tokens_with_performance!]!
+    where: formatted_tokens_with_performance_model_bool_exp_bool_exp
+  ): [formatted_tokens_with_performance_model!]!
 
   """
   fetch data from the table in a streaming manner: "formatted_tokens_with_performance"

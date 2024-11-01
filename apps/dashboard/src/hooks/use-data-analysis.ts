@@ -31,21 +31,7 @@ export const useDataAnalysisData = (): {
 
   return useMemo(
     () => ({
-      // TODO: fix null values although they are not nullable
-      data: filteredTokensPerformancePerInterval.data?.formatted_tokens_with_performance_intervals_within_period.map(
-        (token) => ({
-          ...token,
-          mint: token.mint!,
-          increase_pct: token.increase_pct!,
-          trades: token.trades!,
-          volume: token.volume!,
-          increase_pct_after: token.increase_pct_after!,
-          trades_after: token.trades_after!,
-          volume_after: token.volume_after!,
-          created_at: token.created_at!,
-          interval_start: token.interval_start!,
-        }),
-      ),
+      data: filteredTokensPerformancePerInterval.data?.formatted_tokens_with_performance_intervals_within_period,
       error: filteredTokensPerformancePerInterval.error?.message,
       loading: filteredTokensPerformancePerInterval.fetching,
       refetch: queryFilteredTokensPerformancePerInterval,

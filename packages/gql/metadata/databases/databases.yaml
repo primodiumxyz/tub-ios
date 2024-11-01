@@ -108,28 +108,7 @@
           type:
             nullable: false
             scalar: timestamptz
-      name: formatted_tokens
-      select_permissions:
-        - permission:
-            columns:
-              - token_id
-              - mint
-              - name
-              - symbol
-              - description
-              - uri
-              - supply
-              - decimals
-              - mint_burnt
-              - freeze_burnt
-              - is_pump_token
-              - increase_pct
-              - trades
-              - volume
-              - latest_price
-              - created_at
-            filter: {}
-          role: public
+      name: formatted_tokens_model
     - fields:
         - name: token_id
           type:
@@ -211,32 +190,7 @@
           type:
             nullable: false
             scalar: timestamptz
-      name: formatted_tokens_with_performance
-      select_permissions:
-        - permission:
-            columns:
-              - token_id
-              - mint
-              - name
-              - symbol
-              - description
-              - uri
-              - supply
-              - decimals
-              - mint_burnt
-              - freeze_burnt
-              - is_pump_token
-              - increase_pct
-              - trades
-              - volume
-              - latest_price
-              - created_at
-              - trades_after
-              - increase_pct_after
-              - volume_after
-              - interval_start
-            filter: {}
-          role: public
+      name: formatted_tokens_with_performance_model
     - fields:
         - name: id
           type:
@@ -376,7 +330,7 @@
           nullable: false
           type: interval
       code: SELECT * FROM get_formatted_tokens_interval({{interval}})
-      returns: formatted_tokens
+      returns: formatted_tokens_model
       root_field_name: formatted_tokens_interval
     - arguments:
         after_intervals:
@@ -396,7 +350,7 @@
           nullable: false
           type: timestamptz
       code: SELECT * FROM get_formatted_tokens_with_performance_intervals_within_period({{start}}, {{end}}, {{interval}}, {{after_intervals}});
-      returns: formatted_tokens_with_performance
+      returns: formatted_tokens_with_performance_model
       root_field_name: formatted_tokens_with_performance_intervals_within_period
     - arguments:
         offset:

@@ -124,8 +124,7 @@ class TokenListModel: ObservableObject {
                     }
                     if let tokens = graphQLResult.data?.formatted_tokens_interval {
                         self.availableTokens = tokens.map { elem in
-                            // TODO: remove default values once type fixed
-                            Token(id: elem.token_id ?? "", mint: elem.mint ?? "", name: elem.name ?? "", symbol: elem.symbol ?? "", description: elem.description ?? "", supply: elem.supply ?? 0, decimals: elem.decimals ?? 6, imageUri: elem.uri ?? "")
+                            Token(id: elem.token_id, mint: elem.mint, name: elem.name ?? "", symbol: elem.symbol ?? "", description: elem.description ?? "", supply: elem.supply ?? 0, decimals: elem.decimals ?? 6, imageUri: elem.uri ?? "")
                         }
                         
                         self.updateTokens()
