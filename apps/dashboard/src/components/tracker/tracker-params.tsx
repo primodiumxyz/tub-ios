@@ -1,5 +1,6 @@
 import { Flame, Snowflake } from "lucide-react";
 
+import { HintTooltip } from "@/components/HintTooltip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,7 +23,7 @@ export const TrackerParams = () => {
     setMintBurnt,
   } = useTrackerParams();
   return (
-    <div className="grid xs:grid-cols-2 sm:grid-cols-3 xl:grid-cols-[1fr_1fr_1fr_auto_auto] gap-2 w-full items-center">
+    <div className="relative grid xs:grid-cols-2 sm:grid-cols-3 xl:grid-cols-[1fr_1fr_1fr_auto_auto] gap-2 w-full items-center">
       <div className="grid w-full max-w-md gap-1 text-start">
         <Label htmlFor="timespan">Timespan</Label>
         <Select onValueChange={(value) => setTimespan(value)}>
@@ -74,6 +75,17 @@ export const TrackerParams = () => {
         <Snowflake className="w-4 h-4" />
         <span>Freeze burnt</span>
       </Button>
+      <HintTooltip
+        content={
+          <div>
+            <p>Select an interval for which a token needs to reach the minimum volume and trades to be included.</p>
+            <p>
+              "Mint burnt" and "Freeze burnt" are additional filters to narrow down to tokens that renounced their mint
+              authority and freeze ability.
+            </p>
+          </div>
+        }
+      />
     </div>
   );
 };

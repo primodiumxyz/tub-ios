@@ -2,6 +2,7 @@ import { HTMLAttributes } from "react";
 import { endOfDay, format, startOfDay } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 
+import { HintTooltip } from "@/components/HintTooltip";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -13,7 +14,7 @@ export const DateRangePicker = ({ className }: HTMLAttributes<HTMLDivElement>) =
   const { from, to, setFrom, setTo } = useAnalyticsParams();
 
   return (
-    <div className={cn("grid gap-2", className)}>
+    <div className={cn("relative grid gap-2", className)}>
       <Popover>
         <PopoverTrigger asChild>
           <Button
@@ -55,6 +56,7 @@ export const DateRangePicker = ({ className }: HTMLAttributes<HTMLDivElement>) =
           />
         </PopoverContent>
       </Popover>
+      <HintTooltip content="Select a period over which the below analysis is performed." />
     </div>
   );
 };
