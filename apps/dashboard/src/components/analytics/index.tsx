@@ -3,8 +3,6 @@ import { useMemo, useRef } from "react";
 import { BasePeriodDataTable } from "@/components/analytics/base-period-data";
 import { VolumeChart } from "@/components/analytics/volume-chart";
 import { DatePresetsPicker, DateRangePicker } from "@/components/date-picker";
-import { TrackerParams } from "@/components/tracker/tracker-params";
-import { Separator } from "@/components/ui/separator";
 import { useAnalyticsData } from "@/hooks/use-analytics";
 import { useTrackerParams } from "@/hooks/use-tracker-params";
 import { useWindowDimensions } from "@/hooks/use-window-dimensions";
@@ -38,7 +36,7 @@ export const Analytics = () => {
   return (
     <div ref={containerRef} className="flex flex-col items-start w-full gap-4">
       <span className="text-sm text-muted-foreground">
-        The data above is for all tokens (no pump.fun filter available).
+        The data below does not apply the parameters from the sidebar.
       </span>
       <div className="flex justify-between gap-4 w-full">
         <h3 className="text-lg font-semibold">Analytics</h3>
@@ -48,8 +46,6 @@ export const Analytics = () => {
         </div>
       </div>
       <BasePeriodDataTable />
-      <Separator className="my-4" />
-      <TrackerParams />
       {!!volumeIntervals.data && !volumeIntervals.error && (
         <div className="w-full flex flex-col gap-4 items-center pt-8" style={{ width: chartWidth }}>
           {chartGroups.map((group, index) => (

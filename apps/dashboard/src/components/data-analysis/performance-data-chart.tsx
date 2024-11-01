@@ -142,9 +142,9 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({ data, width,
           <span className="text-sm text-muted-foreground whitespace-nowrap">Zoom</span>
           <Slider
             min={50}
-            max={1000000}
+            max={10000}
             step={50}
-            defaultValue={[500]}
+            defaultValue={[50]}
             value={[maxYValue]}
             onValueChange={(value) => setMaxYValue(value[0])}
           />

@@ -1,15 +1,18 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { PerformanceChart } from "@/components/data-analysis/performance-data-chart";
+import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useDataAnalysisData } from "@/hooks/use-data-analysis";
-import { AFTER_INTERVALS } from "@/lib/constants";
+import { AFTER_INTERVALS, DEFAULT_SORT_BY, SortByMetric } from "@/lib/constants";
 import { TokenStats } from "@/lib/types";
 import { getTokensPerformanceStats } from "@/lib/utils";
 
 export const PerformanceBasePeriodDataTable = ({ chartWidth }: { chartWidth: number }) => {
   const { data, error, loading } = useDataAnalysisData();
-  const stats = useMemo(() => (data ? getTokensPerformanceStats(data) : undefined), [data]);
+  const [sortBy, setSortBy] = useState<SortByMetric>(DEFAULT_SORT_BY);
+
+  const stats = useMemo(() => (data ? getTokensPerformanceStats(data, sortBy) : undefined), [data, sortBy]);
 
   const chartData = useMemo(() => {
     if (!stats) return [];
@@ -28,19 +31,39 @@ export const PerformanceBasePeriodDataTable = ({ chartWidth }: { chartWidth: num
 
   return (
     <div className="w-full flex flex-col gap-8 items-start">
-      <GlobalStatsTable stats={stats.global} />
+      <div className="flex gap-2 items-center">
+        <span className="text-sm text-muted-foreground">Sort by:</span>
+        <Button
+          variant={sortBy === SortByMetric.TRADES ? "secondary" : "ghost"}
+          size="sm"
+          onClick={() => setSortBy(SortByMetric.TRADES)}
+        >
+          Trades
+        </Button>
+        <Button
+          variant={sortBy === SortByMetric.VOLUME ? "secondary" : "ghost"}
+          size="sm"
+          onClick={() => setSortBy(SortByMetric.VOLUME)}
+        >
+          Volume
+        </Button>
+      </div>
+      <GlobalStatsTable stats={stats.global} sortBy={sortBy} />
       <PerformanceChart data={chartData} width={chartWidth} height={400} />
     </div>
   );
 };
 
-export const GlobalStatsTable = ({ stats }: { stats: TokenStats }) => {
+export const GlobalStatsTable = ({ stats, sortBy }: { stats: TokenStats; sortBy: SortByMetric }) => {
   return (
     <Table className="text-start">
-      <TableCaption>Global performance across {stats.tokenCount.toLocaleString()} tokens</TableCaption>
+      <TableCaption>
+        Performance of top 10 tokens by {sortBy.toLowerCase()} during the next intervals across{" "}
+        {stats.tokenCount.toLocaleString()} tokens
+      </TableCaption>
       <TableHeader>
         <TableRow>
-          <TableHead>Interval after pump</TableHead>
+          <TableHead>Next</TableHead>
           <TableHead>Avg. increase %</TableHead>
           <TableHead>Min increase %</TableHead>
           <TableHead>Max increase %</TableHead>
