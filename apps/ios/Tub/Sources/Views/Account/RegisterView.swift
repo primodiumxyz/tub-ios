@@ -59,11 +59,6 @@ struct RegisterView: View {
                         .padding(.horizontal,10)
                     
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("We only need your email to log you in.")
-                            .font(.sfRounded(size: .base, weight: .medium))
-                            .foregroundColor(AppColors.lightGray)
-                            .padding(.horizontal,10)
-                        
                         TextField("Enter your email", text: $email)
                             .padding(.horizontal, 20)
                             .padding(.vertical, 10)

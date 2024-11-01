@@ -22,18 +22,32 @@ struct SignInWithPhoneView: View {
     @State private var pinFour = ""
     @State private var pinFive = ""
     @State private var pinSix = ""
+    @State private var showPhoneError = false
+    @State private var selectedCountryCode = countryCodes[0].code
     
     private var otpCode: String {
         pinOne + pinTwo + pinThree + pinFour + pinFive + pinSix
     }
     
     private func handlePhoneLogin() {
+        if phoneNumber.isEmpty || !isValidPhoneNumber(phoneNumber) {
+            showPhoneError = true
+            return
+        }
         Task {
             let otpSent = await privy.sms.sendCode(to: phoneNumber)
             if otpSent {
                 showOTPInput = true
+            }else {
+                debugPrint("Error: Failed to send OTP.")
+                showOTPInput = false
             }
         }
+    }
+    
+    private func isValidPhoneNumber(_ number: String) -> Bool {
+        let phoneRegex = "^[0-9]{10,15}$"
+        return NSPredicate(format: "SELF MATCHES %@", phoneRegex).evaluate(with: number)
     }
     
     private func verifyOTP() {
@@ -47,25 +61,53 @@ struct SignInWithPhoneView: View {
     }
     
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(alignment:.leading, spacing: 12) {
             Text("Continue with Phone Number")
                 .font(.sfRounded(size: .lg, weight: .medium))
                 .foregroundColor(AppColors.white)
+                .padding(.horizontal,20)
             
-            TextField("Enter your Phone Number", text: $phoneNumber)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 10)
-                .frame(maxWidth: .infinity, minHeight: 50, alignment: .leading)
+            HStack {
+                Picker("Country Code", selection: $selectedCountryCode) {
+                    ForEach(countryCodes, id: \.code) { country in
+                        Text("\(country.name) \(country.code)").tag(country.code)
+                    }
+                }
+                .pickerStyle(MenuPickerStyle())
+                .frame(width: 100, height: 50)
                 .background(AppColors.white)
                 .cornerRadius(30)
-                .padding(.horizontal)
-                .keyboardType(.phonePad)
+                
+                TextField("Enter your Phone Number", text: $phoneNumber)
+                    .keyboardType(.phonePad)
+                    .padding()
+                    .background(AppColors.white)
+                    .frame(maxWidth: .infinity, maxHeight: 50, alignment: .leading)
+                    .cornerRadius(30)
+                    .onChange(of: phoneNumber) { newValue in
+                        showPhoneError = false
+                    }
+            }
+            .padding(.horizontal)
+            
+            
+            if showPhoneError {
+                Text("Please enter a valid phone number.")
+                    .foregroundColor(.red)
+                    .font(.caption)
+                    .padding(.top, -4)
+                    .padding(.horizontal,20)
+
+            }
             
             if showOTPInput {
-                Text("Enter verification code")
-                    .font(.sfRounded(size: .base, weight: .medium))
-                    .foregroundStyle(.white)
-
+                VStack(alignment:.leading) {
+                    Text("Enter verification code")
+                        .font(.sfRounded(size: .lg, weight: .medium))
+                        .foregroundColor(AppColors.white)
+                        .padding(.top,16)
+                        .padding(.horizontal,20)
+                }
                 HStack(spacing: 15) {
                     TextField("", text: $pinOne)
                         .modifier(OtpModifer(pin: $pinOne))
@@ -131,8 +173,8 @@ struct SignInWithPhoneView: View {
                         }
                         .focused($pinFocusState, equals: .pinSix)
                 }
-                .padding(.vertical)
-                .padding(.horizontal)
+                .padding(.vertical, 6)
+                .padding(.horizontal, 20)
                 
                 Button(action: verifyOTP) {
                     Text("Verify Code")
