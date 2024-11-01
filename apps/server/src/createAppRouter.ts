@@ -1,5 +1,4 @@
 import { initTRPC } from "@trpc/server";
-import { observable } from "@trpc/server/observable";
 import { z } from "zod";
 import { TubService } from "./TubService";
 
@@ -14,33 +13,6 @@ export function createAppRouter() {
   return t.router({
     getStatus: t.procedure.query(({ ctx }) => {
       return ctx.tubService.getStatus();
-    }),
-    incrementCall: t.procedure.mutation(async ({ ctx }) => {
-      await ctx.tubService.incrementCall();
-    }),
-    onCounterUpdate: t.procedure.subscription(({ ctx }) => {
-      return observable<number>((emit) => {
-        const onUpdate = (value: number) => {
-          emit.next(value);
-        };
-        ctx.tubService.subscribeToCounter(onUpdate);
-        return () => {
-          ctx.tubService.unsubscribeFromCounter(onUpdate);
-        };
-      });
-    }),
-    registerNewUser: t.procedure
-      .input(
-        z.object({
-          username: z.string(),
-          airdropAmount: z.string().optional(),
-        }),
-      )
-      .mutation(async ({ ctx, input }) => {
-        return await ctx.tubService.registerNewUser(input.username, input.airdropAmount ? BigInt(input.airdropAmount) : BigInt("100"));
-      }),
-    refreshToken: t.procedure.input(z.object({ uuid: z.string() })).mutation(async ({ ctx, input }) => {
-      return await ctx.tubService.refreshToken(input.uuid);
     }),
     buyToken: t.procedure
       .input(
