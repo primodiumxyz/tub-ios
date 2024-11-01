@@ -9,8 +9,12 @@ export type Token = {
   latestPrice: number;
   increasePct: number;
   trades: number;
+  volume: number;
   name: string;
   symbol: string;
+  uri: string;
+  mintBurnt: boolean;
+  freezeBurnt: boolean;
   id: string;
 };
 
@@ -40,8 +44,12 @@ export const useTokens = (): {
       latestPrice: Number(token.latest_price!),
       increasePct: Number(token.increase_pct!),
       trades: Number(token.trades!),
+      volume: Number(token.volume!),
       name: token.name ?? "NAME",
       symbol: token.symbol ?? "SYMBOL",
+      uri: token.uri ?? "",
+      mintBurnt: token.mint_burnt ?? false,
+      freezeBurnt: token.freeze_burnt ?? false,
       id: token.token_id!,
     }));
   }, [filteredTokensResult.data]);
