@@ -17,9 +17,16 @@ struct RegisterView: View {
             UserDefaults.standard.set(user.uuid, forKey: "userId")
             isRegistered = true
             
-            // Check for Solana wallet after successful registration
-            Task {
-                do {
+                    case .failure(let error):
+            print("Registration failed: \(error.localizedDescription)")
+        }
+    }
+
+    func createEmbeddedWallet() {
+        // Check for Solana wallet after successful registration
+        print("Creating embedded wallet")
+        Task {
+            do {
                     // Ensure we're authenticated first
                     guard case .authenticated = privy.authState else { return }
                     
@@ -30,6 +37,7 @@ struct RegisterView: View {
                     switch walletState {
                     case .notCreated:
                         // Create a new embedded wallet
+                        print("Creating new embedded wallet")
                         _ = try await privy.embeddedWallet.createWallet(allowAdditional: false)
                     case .connected(let wallets):
                         print("Wallet already exists: \(wallets)")
@@ -40,17 +48,14 @@ struct RegisterView: View {
                     print("Error creating wallet: \(error.localizedDescription)")
                 }
             }
-            
-        case .failure(let error):
-            print("Registration failed: \(error.localizedDescription)")
-        }
     }
     
     var body: some View {
         if myAuthState.toString == "authenticated" {
             Text(myAuthState.toString)
-                .foregroundStyle(.white.opacity(0.5))
+                .foregroundStyle(.black.opacity(0.5))
                 .padding(.bottom, 24)
+            
             Button(action: {
                 privy.logout()
             }) {
@@ -156,7 +161,9 @@ struct RegisterView: View {
             .onAppear {
                 privy.setAuthStateChangeCallback { state in
                     self.myAuthState = state
+                    createEmbeddedWallet()
                 }
+         
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(AppColors.darkBlueGradient)
