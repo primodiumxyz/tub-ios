@@ -45,87 +45,87 @@ struct SignInWithEmailView: View {
     
     var body: some View {
         VStack(spacing: 12) {
-                Text("Enter verification code")
-                    .font(.sfRounded(size: .base, weight: .medium))
-                    .foregroundStyle(.white)
-
-                HStack(spacing: 15) {
-                    TextField("", text: $pinOne)
-                        .modifier(OtpModifer(pin: $pinOne))
-                        .onChange(of: pinOne) { newVal in
-                            if newVal.count == 1 {
-                                pinFocusState = .pinTwo
-                            }
+            Text("Enter verification code")
+                .font(.sfRounded(size: .lg, weight: .medium))
+                .foregroundColor(AppColors.white)
+            
+            HStack(spacing: 15) {
+                TextField("", text: $pinOne)
+                    .modifier(OtpModifer(pin: $pinOne))
+                    .onChange(of: pinOne) { newVal in
+                        if newVal.count == 1 {
+                            pinFocusState = .pinTwo
                         }
-                        .focused($pinFocusState, equals: .pinOne)
-                    
-                    TextField("", text: $pinTwo)
-                        .modifier(OtpModifer(pin: $pinTwo))
-                        .onChange(of: pinTwo) { newVal in
-                            if newVal.count == 0 {
-                                pinFocusState = .pinOne
-                            } else if newVal.count == 1 {
-                                pinFocusState = .pinThree
-                            }
-                        }
-                        .focused($pinFocusState, equals: .pinTwo)
-                    
-                    TextField("", text: $pinThree)
-                        .modifier(OtpModifer(pin: $pinThree))
-                        .onChange(of: pinThree) { newVal in
-                            if newVal.count == 0 {
-                                pinFocusState = .pinTwo
-                            } else if newVal.count == 1 {
-                                pinFocusState = .pinFour
-                            }
-                        }
-                        .focused($pinFocusState, equals: .pinThree)
-                    
-                    TextField("", text: $pinFour)
-                        .modifier(OtpModifer(pin: $pinFour))
-                        .onChange(of: pinFour) { newVal in
-                            if newVal.count == 0 {
-                                pinFocusState = .pinThree
-                            } else if newVal.count == 1 {
-                                pinFocusState = .pinFive
-                            }
-                        }
-                        .focused($pinFocusState, equals: .pinFour)
-                    
-                    TextField("", text: $pinFive)
-                        .modifier(OtpModifer(pin: $pinFive))
-                        .onChange(of: pinFive) { newVal in
-                            if newVal.count == 0 {
-                                pinFocusState = .pinFour
-                            } else if newVal.count == 1 {
-                                pinFocusState = .pinSix
-                            }
-                        }
-                        .focused($pinFocusState, equals: .pinFive)
-                        
-                    TextField("", text: $pinSix)
-                        .modifier(OtpModifer(pin: $pinSix))
-                        .onChange(of: pinSix) { newVal in
-                            if newVal.count == 0 {
-                                pinFocusState = .pinFive
-                            } else if newVal.count == 1 {
-                                verifyOTP()
-                            }
-                        }
-                        .focused($pinFocusState, equals: .pinSix)
-                }
-                .padding(.vertical)
-                .padding(.horizontal)
+                    }
+                    .focused($pinFocusState, equals: .pinOne)
                 
-                Button(action: verifyOTP) {
-                    Text("Verify Code")
-                        .font(.sfRounded(size: .base, weight: .semibold))
-                        .foregroundColor(AppColors.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(12)
-                        .background(AppColors.primaryPurple)
-                        .cornerRadius(26)
-                }.padding(.horizontal)
+                TextField("", text: $pinTwo)
+                    .modifier(OtpModifer(pin: $pinTwo))
+                    .onChange(of: pinTwo) { newVal in
+                        if newVal.count == 0 {
+                            pinFocusState = .pinOne
+                        } else if newVal.count == 1 {
+                            pinFocusState = .pinThree
+                        }
+                    }
+                    .focused($pinFocusState, equals: .pinTwo)
+                
+                TextField("", text: $pinThree)
+                    .modifier(OtpModifer(pin: $pinThree))
+                    .onChange(of: pinThree) { newVal in
+                        if newVal.count == 0 {
+                            pinFocusState = .pinTwo
+                        } else if newVal.count == 1 {
+                            pinFocusState = .pinFour
+                        }
+                    }
+                    .focused($pinFocusState, equals: .pinThree)
+                
+                TextField("", text: $pinFour)
+                    .modifier(OtpModifer(pin: $pinFour))
+                    .onChange(of: pinFour) { newVal in
+                        if newVal.count == 0 {
+                            pinFocusState = .pinThree
+                        } else if newVal.count == 1 {
+                            pinFocusState = .pinFive
+                        }
+                    }
+                    .focused($pinFocusState, equals: .pinFour)
+                
+                TextField("", text: $pinFive)
+                    .modifier(OtpModifer(pin: $pinFive))
+                    .onChange(of: pinFive) { newVal in
+                        if newVal.count == 0 {
+                            pinFocusState = .pinFour
+                        } else if newVal.count == 1 {
+                            pinFocusState = .pinSix
+                        }
+                    }
+                    .focused($pinFocusState, equals: .pinFive)
+                    
+                TextField("", text: $pinSix)
+                    .modifier(OtpModifer(pin: $pinSix))
+                    .onChange(of: pinSix) { newVal in
+                        if newVal.count == 0 {
+                            pinFocusState = .pinFive
+                        } else if newVal.count == 1 {
+                            verifyOTP()
+                        }
+                    }
+                    .focused($pinFocusState, equals: .pinSix)
+            }
+            .padding(.vertical)
+            .padding(.horizontal)
+            
+            Button(action: verifyOTP) {
+                Text("Verify Code")
+                    .font(.sfRounded(size: .base, weight: .semibold))
+                    .foregroundColor(AppColors.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(14)
+                    .background(AppColors.primaryPurple)
+                    .cornerRadius(26)
+            }.padding(.horizontal)
         }
         .frame(maxHeight: .infinity)
         .background(.black)

@@ -48,10 +48,16 @@ struct SignInWithPhoneView: View {
     
     var body: some View {
         VStack(spacing: 12) {
-            Text("Continue with Phone")
-                .foregroundStyle(.white)
-            TextField("Phone Number", text: $phoneNumber)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
+            Text("Continue with Phone Number")
+                .font(.sfRounded(size: .lg, weight: .medium))
+                .foregroundColor(AppColors.white)
+            
+            TextField("Enter your Phone Number", text: $phoneNumber)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 10)
+                .frame(maxWidth: .infinity, minHeight: 50, alignment: .leading)
+                .background(AppColors.white)
+                .cornerRadius(30)
                 .padding(.horizontal)
                 .keyboardType(.phonePad)
             
@@ -130,23 +136,25 @@ struct SignInWithPhoneView: View {
                 
                 Button(action: verifyOTP) {
                     Text("Verify Code")
-                        .font(.sfRounded(size: .base, weight: .semibold))
+                        .font(.sfRounded(size: .lg, weight: .semibold))
                         .foregroundColor(AppColors.white)
                         .frame(maxWidth: .infinity)
-                        .padding(12)
+                        .padding(14)
                         .background(AppColors.primaryPurple)
                         .cornerRadius(26)
                 }.padding(.horizontal)
             } else {
                 Button(action: handlePhoneLogin) {
                     Text("Continue")
-                        .font(.sfRounded(size: .base, weight: .semibold))
+                        .font(.sfRounded(size: .lg, weight: .semibold))
                         .foregroundColor(AppColors.white)
                         .frame(maxWidth: .infinity)
-                        .padding(12)
+                        .padding(14)
                         .background(AppColors.primaryPurple)
                         .cornerRadius(26)
-                }.padding(.horizontal)
+                }
+                .padding(.horizontal)
+                .padding(.top, 5)
             }
         }
         .frame(maxHeight: .infinity)

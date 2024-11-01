@@ -41,9 +41,11 @@ struct RegisterView: View {
             }
             
         } else {
-            VStack(spacing: 12) {
-                Spacer()
+            VStack(spacing: 10) {
+                GeometryReader { geometry in
                 VStack(alignment: .leading, spacing: 12){
+                        Spacer()
+                            .frame(height: geometry.size.height * 0.25)
                     Image("Logo")
                         .resizable()
                         .scaledToFit()
@@ -83,6 +85,7 @@ struct RegisterView: View {
                                 .padding(.horizontal, 20)
                         }
                     }
+                    Spacer()
                     
                     Button(action: {
                         if isEmailValid {
@@ -97,21 +100,21 @@ struct RegisterView: View {
                             .frame(maxWidth: .infinity)
                             .padding(14)
                     }
-//                    .background(AppColors.black)
+                    .background(AppColors.primaryPurple)
                     .cornerRadius(30)
                     .overlay(
                         RoundedRectangle(cornerRadius: 30)
                             .inset(by: 0.5)
-                            .stroke(AppColors.white, lineWidth: 1)
+                            .stroke(AppColors.primaryPurple, lineWidth: 1)
                     )
                 }
                 .padding(.horizontal)
-                .padding(.top,4)
+                }
+                .frame(maxHeight: .infinity)
                 
-                Spacer()
                 
                 // or divider line
-                HStack(alignment: .center, spacing: 11) {
+                HStack(alignment: .center, spacing: 12) {
                     Divider()
                     .frame(width: 153, height: 1)
                     .overlay(
@@ -130,6 +133,7 @@ struct RegisterView: View {
                         .stroke(AppColors.lightGray, lineWidth: 1)
                     )
                 }
+                
                 // Phone button
                 Button(action: { showPhoneModal = true }) {
                     HStack {
@@ -141,7 +145,8 @@ struct RegisterView: View {
                     }
                 }
                 .frame(maxWidth: .infinity)
-                .padding()
+                .padding(.bottom, 10.0)
+                .padding(.top, 5.0)
                 .foregroundStyle(AppColors.white)
                 
                 // Google Login
@@ -211,7 +216,7 @@ struct RegisterView: View {
                 
             }.sheet(isPresented: $showPhoneModal) {
                 SignInWithPhoneView()
-                    .presentationDetents([.height(400)])
+                    .presentationDetents([.height(500)])
             }
             .sheet(isPresented: $showEmailModal) {
                 SignInWithEmailView(email: $email)
@@ -223,7 +228,7 @@ struct RegisterView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(AppColors.darkGreenGradient)
+            .background(AppColors.darkBlueGradient)
         }
     }
 }
