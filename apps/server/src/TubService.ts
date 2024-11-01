@@ -6,8 +6,6 @@ import jwt from "jsonwebtoken";
 
 config({ path: "../../.env" });
 
-type CounterUpdateCallback = (value: number) => void;
-
 const env = parseEnv();
 
 export class TubService {
