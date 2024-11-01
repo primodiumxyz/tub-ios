@@ -25,11 +25,7 @@ struct TokenListView: View {
     @State var activeTab: String = "buy"
 
     private func canSwipe(value: DragGesture.Value) -> Bool {
-        return activeTab != "sell" &&
-            // not trying to swipe up from the first token
-            !(value.translation.height > 0 && viewModel.currentTokenIndex == 0) &&
-            // not trying to swipe down when there is only one token available (the current one)
-            !(value.translation.height < 0 && !viewModel.isNextTokenAvailable)
+        return activeTab != "sell" && !(value.translation.height > 0 && viewModel.currentTokenIndex == 0)
     }
     
     init() {
@@ -91,10 +87,8 @@ struct TokenListView: View {
                         .zIndex(2)
                         
                         // Rest of the content
-                        if viewModel.tokens.count == 0 {
-                            Spacer()
+                        if viewModel.availableTokens.count == 0 {
                             Text("No tokens found").foregroundColor(.red)
-                            Spacer()
                         } else {
                             GeometryReader { geometry in
                                 VStack(spacing: 10) {

@@ -15,15 +15,13 @@ class TokenModel: ObservableObject {
     @Published var purchaseTime : Date? = nil
     
     @Published var prices: [Price] = []
-    @Published var priceChange: (amountLamps: Int, percentage: Double) = (0, 0)
-    @Published var priceRef: Price?
-    
     private var lastPriceTimestamp: Date?
 
     private var timeframeSecs: Double = 30 * 60 
     private var latestPriceSubscription: Apollo.Cancellable?
     private var tokenBalanceSubscription: Apollo.Cancellable?
     
+    @Published var priceChange: (amountLamps: Int, percentage: Double) = (0, 0)
     
     init(userId: String, tokenId: String? = nil) {
         self.userId = userId
@@ -43,7 +41,6 @@ class TokenModel: ObservableObject {
         self.prices = []
         self.priceChange = (0, 0)
         self.balanceLamps = 0
-        self.priceRef = nil
 
         // Re-run the initialization logic
         Task {
@@ -124,12 +121,6 @@ class TokenModel: ObservableObject {
                             return nil
                         } ?? []
                         self.lastPriceTimestamp = self.prices.last?.timestamp
-                        // Find the price ref the closest to 30s ago
-                        self.priceRef = self.prices.min { a, b in
-                            let timeframeStart = Date().addingTimeInterval(-30)
-                            return abs(a.timestamp.timeIntervalSince(timeframeStart)) < 
-                                   abs(b.timestamp.timeIntervalSince(timeframeStart))
-                        }
                         self.loading = false
                         self.calculatePriceChange()
                     }
@@ -242,15 +233,14 @@ class TokenModel: ObservableObject {
     }
     
     private func calculatePriceChange() {
-        let latestPrice = prices.last?.price ?? 0
-        let initialPrice = priceRef?.price ?? self.prices.first?.price ?? 0
-        
-        if latestPrice == 0 || initialPrice == 0 {
+        let currentPrice = prices.last?.price ?? 0
+        let initialPrice = prices.first?.price ?? 0
+        if currentPrice == 0 || initialPrice == 0 {
             print("Error: Cannot calculate price change. Prices are not available.")
             return
         }
         
-        let priceChangeAmount = latestPrice - initialPrice
+        let priceChangeAmount = currentPrice - initialPrice
         let priceChangePercentage = Double(priceChangeAmount) / Double(initialPrice) * 100
         
         DispatchQueue.main.async {

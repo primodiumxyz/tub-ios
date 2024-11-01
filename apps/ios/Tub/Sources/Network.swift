@@ -51,19 +51,19 @@ class Network {
     
     init() {
         // setup graphql
-        let httpURL = URL(string: graphqlHttpUrl)!
+        let httpURL = URL(string: "http://localhost:8080/v1/graphql")!
         let store = ApolloStore()
         httpTransport = RequestChainNetworkTransport(
             interceptorProvider: DefaultInterceptorProvider(store: store),
             endpointURL: httpURL
         )
 
-        let webSocketURL = URL(string: graphqlWsUrl)!
+        let webSocketURL = URL(string: "ws://localhost:8080/v1/graphql")!
         let websocket = WebSocket(url: webSocketURL, protocol: .graphql_ws)
         webSocketTransport = WebSocketTransport(websocket: websocket)
         
         // setup tRPC
-        baseURL = URL(string: serverBaseUrl)!
+        baseURL = URL(string: "http://localhost:8888/trpc")!
         session = URLSession(configuration: .default)
     }
 

@@ -9,8 +9,8 @@ export const ServerContext = createContext<ServerContextType | null>(null);
 export const ServerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const server = useMemo(() => {
     return createServerClient({
-      httpUrl: "https://tub-server.primodium.ai/trpc",
-      wsUrl: "wss://tub-server.primodium.ai/trpc",
+      httpUrl: "http://localhost:8888/trpc",
+      wsUrl: "ws://localhost:8888/trpc",
       httpHeaders: () => {
         return {
           Authorization: `Bearer xxx`,
