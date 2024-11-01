@@ -1,15 +1,5 @@
 import { graphql } from "./init";
 
-export const RegisterNewUserMutation = graphql(`
-  mutation RegisterNewUser($wallet: String!, $amount: numeric!) {
-    insert_wallet_transaction_one(
-      object: { wallet: $wallet, amount: $amount }
-    ) {
-      id
-    }
-  }
-`);
-
 export const RegisterNewTokenMutation = graphql(`
   mutation RegisterNewToken($name: String!, $symbol: String!, $supply: numeric!, $uri: String) {
     insert_token_one(object: { name: $name, symbol: $symbol, uri: $uri, supply: $supply }) {
