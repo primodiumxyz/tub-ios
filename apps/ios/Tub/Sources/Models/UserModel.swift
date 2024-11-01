@@ -20,8 +20,7 @@ class UserModel: ObservableObject {
     
     @Published var userId: String
     @Published var username: String = ""
-    @AppStorage("userId") private var storedUserId: String?
-    @AppStorage("username") private var storedUsername: String?
+    @Published var walletAddress: String
 
     @Published var initialBalanceLamps: Int = 0
     @Published var balanceLamps: Int = 0
@@ -40,6 +39,21 @@ class UserModel: ObservableObject {
 
     init(userId: String, mock: Bool? = false) {
         self.userId = userId
+        print("wallet state:", privy.embeddedWallet.embeddedWalletState.toString)
+        
+        switch privy.embeddedWallet.embeddedWalletState {
+        case .connected(let wallets):
+            if let wallet = wallets.first {
+                self.walletAddress = wallet.address
+            } else {
+                self.walletAddress = ""
+                // No wallet found in connected state
+                print("No wallet found in connected state")
+            }
+        default:
+            self.walletAddress = ""
+            print("Wallet must be connected to initialize UserModel")
+        }
         
         if(mock == true) {
             self.balanceLamps = 1000
@@ -64,8 +78,6 @@ class UserModel: ObservableObject {
             }
         } catch {
             print("Error fetching initial data: \(error)")
-            storedUserId = ""
-            storedUsername = ""
             DispatchQueue.main.async {
                 self.isLoading = false
             }
@@ -156,11 +168,6 @@ class UserModel: ObservableObject {
     }
 
     func logout() {
-        // Clear the stored values
-        storedUserId = nil
-        storedUsername = nil
-        
-        // Reset the published properties
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             self.userId = ""

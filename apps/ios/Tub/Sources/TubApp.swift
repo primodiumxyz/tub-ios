@@ -10,65 +10,54 @@ import PrivySDK
 
 @main
 struct TubApp: App {
+    var body : some Scene {
+        WindowGroup {
+            AppContent()
+        }
+    }
+    
+}
+
+struct AppContent : View {
     @State var isPrivySdkReady = false
     @State var myAuthState : AuthState = AuthState.notReady
     @State var userId : String = ""
+    @State var walletState : EmbeddedWalletState = EmbeddedWalletState.notCreated
     
-    var body: some Scene {
-        WindowGroup {
-            Group{
-                if myAuthState.toString == "notReady" || userId == "" {
-                    LoadingView()
-                }
-                else if myAuthState.toString != "authorized" {
-                    RegisterView()
-                } else {
-                    HomeTabsView(userId: userId).font(.sfRounded())
-                }
-            }.onAppear(perform: {
-                privy.setAuthStateChangeCallback { state in
-                    if myAuthState.toString == "authorized" { return }
-                    self.myAuthState = state
-                    Task {
-                        do {
-                            userId = try await privy.refreshSession().user.id
-                        } catch {
-                            print("error fetching session", error)
-                        }
+    var body: some View {
+        Group{
+            if myAuthState.toString == "notReady" || userId == "" || walletState == .connecting {
+                LoadingView()
+            }
+            else if myAuthState.toString != "authenticated" {
+                RegisterView()
+            } else if walletState == EmbeddedWalletState.notCreated {
+                CreateWalletView()
+            } else {
+                HomeTabsView(userId: userId).font(.sfRounded())
+            }
+        }.onAppear(perform: {
+            privy.embeddedWallet.setEmbeddedWalletStateChangeCallback({
+                state in walletState = state
+            })
+            
+            privy.setAuthStateChangeCallback { state in
+                if myAuthState.toString == "authorized" { return }
+                
+                self.myAuthState = state
+                Task {
+                    do {
+                        userId = try await privy.refreshSession().user.id
+                    } catch {
+                        print("error fetching session", error)
                     }
                 }
-            })
-        }
+            }
+        })
     }
 }
 
 #Preview {
-    @Previewable @State var userId : String? = nil
-    @Previewable @State var errored: Bool = false
-    
-    Group {
-        if errored {
-            Text("You need to register with Privy!")
-        } else if userId == nil {
-            LoadingView()
-        } else {
-            HomeTabsView(userId: userId!)
-                .font(.sfRounded())
-        }
-    } .onAppear {
-        Task {
-            do {
-                userId = try await privy.refreshSession().user.id
-                print(userId)
-            } catch {
-                print("error in preview: \(error)")
-                errored = true
-            }
-        }
-    }
+    AppContent()
 }
 
-#Preview("Register") {
-    RegisterView()
-        .font(.sfRounded())
-}
