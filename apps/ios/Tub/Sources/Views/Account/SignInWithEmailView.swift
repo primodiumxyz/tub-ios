@@ -9,7 +9,7 @@ import SwiftUI
 import PrivySDK
 
 struct SignInWithEmailView: View {
-    @State private var email = ""
+    @Binding var email: String // Email passed from RegisterView
     @State private var showOTPInput = false
     @State private var otpFlowState: OtpFlowState = .initial
     @FocusState private var pinFocusState: FocusPin?
@@ -45,14 +45,6 @@ struct SignInWithEmailView: View {
     
     var body: some View {
         VStack(spacing: 12) {
-            Text("Continue with Email")
-                .foregroundStyle(.white)
-            TextField("Email", text: $email)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .padding(.horizontal)
-                .autocapitalization(.none)
-            
-            if showOTPInput {
                 Text("Enter verification code")
                     .font(.sfRounded(size: .base, weight: .medium))
                     .foregroundStyle(.white)
@@ -134,17 +126,6 @@ struct SignInWithEmailView: View {
                         .background(AppColors.primaryPurple)
                         .cornerRadius(26)
                 }.padding(.horizontal)
-            } else {
-                Button(action: handleEmailLogin) {
-                    Text("Continue")
-                        .font(.sfRounded(size: .base, weight: .semibold))
-                        .foregroundColor(AppColors.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(12)
-                        .background(AppColors.primaryPurple)
-                        .cornerRadius(26)
-                }.padding(.horizontal)
-            }
         }
         .frame(maxHeight: .infinity)
         .background(.black)
@@ -152,6 +133,7 @@ struct SignInWithEmailView: View {
             privy.email.setOtpFlowStateChangeCallback { state in
                 otpFlowState = state
             }
+            handleEmailLogin() // Automatically send OTP on appearance
         }
     }
 }
