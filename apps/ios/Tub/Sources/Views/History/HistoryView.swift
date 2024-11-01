@@ -27,7 +27,7 @@ struct HistoryView : View {
     func fetchUserTxs(_ userId: String) {
         loading = true
         error = nil // Reset error state
-        let query = GetWalletTransactionsQuery(wallet: "0x123")
+        let query = GetWalletTransactionsQuery(wallet: userModel.walletAddress)
         
         Network.shared.apollo.fetch(query: query) { result in
             DispatchQueue.main.async {
