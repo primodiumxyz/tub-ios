@@ -78,34 +78,11 @@ class UserModel: ObservableObject {
     }
 
     private func fetchAccountData() async throws {
-        let query = GetAccountDataQuery(accountId: Uuid(userId))
-        return try await withCheckedThrowingContinuation { continuation in
-            Network.shared.apollo.fetch(query: query) { [weak self] result in
-                guard let self = self else {
-                    continuation.resume(throwing: NSError(domain: "UserModel", code: 0, userInfo: [NSLocalizedDescriptionKey: "Self is nil"]))
-                    return
-                }
-                
-                switch result {
-                case .success(let response):
-                    if let account = response.data?.account.first {
-                        DispatchQueue.main.async {
-                            self.username = account.username
-                            // Add any other properties you want to set from the account data
-                        }
-                        continuation.resume()
-                    } else {
-                        continuation.resume(throwing: NSError(domain: "UserModel", code: 1, userInfo: [NSLocalizedDescriptionKey: "Account not found"]))
-                    }
-                case .failure(let error):
-                    continuation.resume(throwing: error)
-                }
-            }
-        }
+        self.username = "Pepega"
     }
     
     private func fetchInitialBalance() async throws {
-        let query = GetAccountBalanceQuery(account: Uuid(userId))
+        let query = GetWalletBalanceQuery(wallet: "0x123")
         
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { [weak self] result in
@@ -132,8 +109,8 @@ class UserModel: ObservableObject {
         accountBalanceSubscription?.cancel()
         
         accountBalanceSubscription = Network.shared.apollo.subscribe(
-            subscription: SubAccountBalanceSubscription(
-                account: Uuid(self.userId))
+            subscription: SubWalletBalanceSubscription(
+                wallet: "0x123")
         ) { [weak self] result in
             guard let self = self else { return }
             DispatchQueue.main.async {
