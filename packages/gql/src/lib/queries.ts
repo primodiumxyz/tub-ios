@@ -64,7 +64,7 @@ export const GetWalletTokenBalanceIgnoreIntervalQuery = graphql(`
   }
 `);
 
-export const GetwalletBalanceQuery = graphql(`
+export const GetWalletBalanceQuery = graphql(`
   query GetWalletBalance($wallet: String!, $start: timestamptz = "now()") {
     balance: wallet_balance_ignore_interval(args: { wallet: $wallet, interval: "0", start: $start }) {
       value: balance
