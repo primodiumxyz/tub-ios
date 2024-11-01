@@ -1,11 +1,11 @@
 table:
-  name: account_transaction
+  name: wallet_transaction
   schema: public
 array_relationships:
   - name: token_transactions
     using:
       foreign_key_constraint_on:
-        column: account_transaction
+        column: wallet_transaction
         table:
           name: token_transaction
           schema: public
@@ -16,7 +16,6 @@ select_permissions:
         - amount
         - created_at
         - id
-        - privy_user_id
       filter: {}
       allow_aggregations: true
     comment: ""
