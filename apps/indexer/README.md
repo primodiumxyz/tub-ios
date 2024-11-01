@@ -13,7 +13,7 @@ pnpm start
 Or run along with other packages from root dir with:
 
 ```sh
-pnpm dev:pumping-tokens # this will also run an explorer
+pnpm dev:web-dashboard # this will also run an explorer
 ```
 
 ## Configuration
