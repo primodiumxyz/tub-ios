@@ -1,0 +1,3 @@
+table:
+  name: formatted_tokens_with_performance
+  schema: public

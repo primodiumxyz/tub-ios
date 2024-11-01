@@ -105,7 +105,7 @@ class UserModel: ObservableObject {
     }
     
     private func fetchInitialBalance() async throws {
-        let query = GetAccountBalanceQuery(account: userId)
+        let query = GetWalletBalanceQuery(wallet: "0x123")
         
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { [weak self] result in
@@ -132,8 +132,8 @@ class UserModel: ObservableObject {
         accountBalanceSubscription?.cancel()
         
         accountBalanceSubscription = Network.shared.apollo.subscribe(
-            subscription: SubAccountBalanceSubscription(
-                account: self.userId)
+            subscription: SubWalletBalanceSubscription(
+                wallet: "0x123")
         ) { [weak self] result in
             guard let self = self else { return }
             DispatchQueue.main.async {

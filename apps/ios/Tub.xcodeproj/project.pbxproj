@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		4619A8182CCA4E25003CD119 /* TokenListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4619A8172CCA4E25003CD119 /* TokenListModel.swift */; };
+		5DB173CA2CD54BC400831FD7 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DB173C92CD54BC100831FD7 /* Constants.swift */; };
 		990337052CC94175002D3A25 /* AccountBalance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990337042CC9416B002D3A25 /* AccountBalance.swift */; };
 		9906661F2CC94B110068EA06 /* SolPriceModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9906661E2CC94B0D0068EA06 /* SolPriceModel.swift */; };
 		9910F1B62CAAE302005DEE6B /* SFRounded.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9910F1B52CAAE2FD005DEE6B /* SFRounded.swift */; };
@@ -76,6 +77,7 @@
 
 /* Begin PBXFileReference section */
 		4619A8172CCA4E25003CD119 /* TokenListModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenListModel.swift; sourceTree = "<group>"; };
+		5DB173C92CD54BC100831FD7 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		990337042CC9416B002D3A25 /* AccountBalance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountBalance.swift; sourceTree = "<group>"; };
 		9906661E2CC94B0D0068EA06 /* SolPriceModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SolPriceModel.swift; sourceTree = "<group>"; };
 		9910F1B52CAAE2FD005DEE6B /* SFRounded.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SFRounded.swift; sourceTree = "<group>"; };
@@ -174,6 +176,7 @@
 			children = (
 				9941CD6E2CCAA30B0009E5ED /* FormatPrice.swift */,
 				99290EBF2CB7110C003E740A /* FormatDate.swift */,
+				5DB173C92CD54BC100831FD7 /* Constants.swift */,
 				DFA36D552CB4278C00F63D2D /* DummyData.swift */,
 			);
 			path = Utils;
@@ -427,7 +430,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1520;
-				LastUpgradeCheck = 1520;
+				LastUpgradeCheck = 1600;
 				TargetAttributes = {
 					DB6D29002CA1C8F70099951A = {
 						CreatedOnToolsVersion = 15.2;
@@ -518,6 +521,7 @@
 				4619A8182CCA4E25003CD119 /* TokenListModel.swift in Sources */,
 				DF5A2FC32CAF165D00508A56 /* HistoryView.swift in Sources */,
 				994AE5F72CD2AB3F00553A32 /* GoogleLogoView.swift in Sources */,
+				5DB173CA2CD54BC400831FD7 /* Constants.swift in Sources */,
 				992875672CCACD4C004B48BE /* ErrorView.swift in Sources */,
 				99784EEA2CD3DC7D009AEA45 /* SignInWithPhoneView.swift in Sources */,
 				DF5A2FC52CAF2DEF00508A56 /* HistoryDetailsView.swift in Sources */,
@@ -537,7 +541,6 @@
 				99BB98562CC1798600658059 /* CandleChartView.swift in Sources */,
 				99E789492CC147C000C3CEEB /* ImageView.swift in Sources */,
 				DFA36D562CB4278C00F63D2D /* DummyData.swift in Sources */,
-				999F59562CA6F97100E7AE9F /* TokenModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -608,6 +611,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -669,6 +673,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -698,6 +703,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Tub/Preview Content\"";
 				DEVELOPMENT_TEAM = YQ22J47VA8;
 				ENABLE_PREVIEWS = YES;
@@ -741,6 +747,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Tub/Preview Content\"";
 				DEVELOPMENT_TEAM = YQ22J47VA8;
 				ENABLE_PREVIEWS = YES;
@@ -777,10 +784,10 @@
 		DB6D292A2CA1C8F80099951A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
 				MACOSX_DEPLOYMENT_TARGET = 14.2;
@@ -799,10 +806,10 @@
 		DB6D292B2CA1C8F80099951A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
 				MACOSX_DEPLOYMENT_TARGET = 14.2;
@@ -821,9 +828,9 @@
 		DB6D292D2CA1C8F80099951A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
 				MACOSX_DEPLOYMENT_TARGET = 14.2;
@@ -842,9 +849,9 @@
 		DB6D292E2CA1C8F80099951A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
 				MACOSX_DEPLOYMENT_TARGET = 14.2;
