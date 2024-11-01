@@ -43,10 +43,10 @@ class UserModel: ObservableObject {
         
         self.updateWalletAddress()
         
-        privy.embeddedWallet.setEmbeddedWalletStateChangeCallback { [weak self] state in
-            print("updating wallet in UserModel")
-            self?.updateWalletAddress()
-        }
+//        privy.embeddedWallet.setEmbeddedWalletStateChangeCallback { [weak self] state in
+//            print("updating wallet in UserModel")
+//            self?.updateWalletAddress()
+//        }
         
         if(mock == true) {
             self.balanceLamps = 1000

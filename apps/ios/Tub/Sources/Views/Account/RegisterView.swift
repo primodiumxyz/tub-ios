@@ -3,7 +3,6 @@ import PrivySDK
 import AuthenticationServices
 
 struct RegisterView: View {
-    @State var myAuthState : AuthState = AuthState.notReady
     @State private var showPhoneModal = false
     @State private var showEmailModal = false
     
@@ -35,17 +34,7 @@ struct RegisterView: View {
     }
     
     var body: some View {
-        if myAuthState.toString == "authenticated" {
-            Text(myAuthState.toString)
-                .foregroundStyle(.black.opacity(0.5))
-                .padding(.bottom, 24)
-            Button(action: {
-                privy.logout()
-            }) {
-                Text("logout")
-            }
-            
-        } else {
+      
             VStack(spacing: 12) {
                 Image("Logo")
                     .resizable()
@@ -57,7 +46,6 @@ struct RegisterView: View {
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .padding(.bottom, 16)
-                
                 
                 Button(action: {
                     Task {
@@ -156,16 +144,8 @@ struct RegisterView: View {
                 SignInWithEmailView()
                     .presentationDetents([.height(400)])
             }
-            .onAppear {
-                privy.setAuthStateChangeCallback { state in
-                    self.myAuthState = state
-                    createEmbeddedWallet()
-                }
-         
-            }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(AppColors.darkBlueGradient)
-        }
     }
 }
 
