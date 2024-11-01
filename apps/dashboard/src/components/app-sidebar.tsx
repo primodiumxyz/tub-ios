@@ -1,7 +1,6 @@
 import { ChartCandlestick, ChevronRight, Frame, LucideIcon, PieChart } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
-import { TrackerParams } from "@/components/tracker/tracker-params";
 import {
   Sidebar,
   SidebarContent,
@@ -61,8 +60,6 @@ export const AppSidebar = () => {
             );
           })}
           <div className="flex-1" />
-          <TrackerParams />
-          <div className="h-12" />
         </SidebarContent>
         <SidebarTrigger className="absolute bottom-4 right-[18px]" />
       </Sidebar>
