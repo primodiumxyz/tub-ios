@@ -7,7 +7,7 @@ public class GetAccountTransactionsQuery: GraphQLQuery {
   public static let operationName: String = "GetAccountTransactions"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetAccountTransactions($accountId: uuid!) { token_transaction( order_by: { account_transaction_data: { created_at: desc } } where: { account_transaction_data: { account_data: { id: { _eq: $accountId } } } } ) { __typename account_transaction amount id token token_data { __typename id name supply symbol uri } account_transaction_data { __typename created_at } token_price { __typename price created_at } } }"#
+      #"query GetAccountTransactions($accountId: uuid!) { token_transaction( order_by: { account_transaction_data: { created_at: desc } } where: { account_transaction_data: { account_data: { id: { _eq: $accountId } } } } ) { __typename account_transaction amount id token token_data { __typename id name supply symbol uri mint } account_transaction_data { __typename created_at } token_price { __typename price created_at } } }"#
     ))
 
   public var accountId: Uuid
@@ -78,6 +78,7 @@ public class GetAccountTransactionsQuery: GraphQLQuery {
           .field("supply", TubAPI.Numeric?.self),
           .field("symbol", String?.self),
           .field("uri", String?.self),
+          .field("mint", String.self),
         ] }
 
         public var id: TubAPI.Uuid { __data["id"] }
@@ -85,6 +86,8 @@ public class GetAccountTransactionsQuery: GraphQLQuery {
         public var supply: TubAPI.Numeric? { __data["supply"] }
         public var symbol: String? { __data["symbol"] }
         public var uri: String? { __data["uri"] }
+        /// token mint address (only for real tokens)
+        public var mint: String { __data["mint"] }
       }
 
       /// Token_transaction.Account_transaction_data

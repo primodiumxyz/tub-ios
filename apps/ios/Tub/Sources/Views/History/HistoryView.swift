@@ -44,6 +44,7 @@ struct HistoryView : View {
                             let isBuy = transaction.amount >= 0
                             let symbol = transaction.token_data.symbol
                             let name = transaction.token_data.name
+                            let mint = transaction.token_data.mint
                             let imageUri = transaction.token_data.uri ?? ""
                             let price = transaction.token_price?.price ?? 0
                             let valueLamps = price * transaction.amount / Int(1e9)
@@ -55,7 +56,8 @@ struct HistoryView : View {
                                 date: date,
                                 valueUsd: priceModel.lamportsToUsd(lamports: -valueLamps),
                                 quantityTokens: transaction.amount,
-                                isBuy: isBuy
+                                isBuy: isBuy,
+                                mint: mint
                             )
                             
                             result.append(newTransaction)
@@ -372,7 +374,7 @@ struct TransactionRow: View {
                     Text(transaction.isBuy ? "Buy" : "Sell")
                         .font(.sfRounded(size: .base, weight: .bold))
                         .foregroundColor(AppColors.white)
-                    Text(transaction.name)
+                    Text(transaction.name.isEmpty ? transaction.mint.truncated() : transaction.name)
                         .font(.sfRounded(size: .base, weight: .bold))
                         .foregroundColor(AppColors.lightYellow)
                         .offset(x:-2)

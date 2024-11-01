@@ -15,36 +15,12 @@ struct TokenInfoCardView: View {
     @State private var animatingSwipe: Bool = false
     @State private var isClosing: Bool = false
     
-    private func formatLargeNumber(_ number: Int) -> String {
-        let trillion = 1_000_000_000_000
-        let billion = 1_000_000_000
-        let million = 1_000_000
-        let thousand = 1_000
-        
-        switch number {
-        case let n where n >= trillion:
-            let formatted = Double(n) / Double(trillion)
-            return String(format: "%.1fT", formatted)
-        case let n where n >= billion:
-            let formatted = Double(n) / Double(billion)
-            return String(format: "%.1fB", formatted)
-        case let n where n >= million:
-            let formatted = Double(n) / Double(million)
-            return String(format: "%.1fM", formatted)
-        case let n where n >= thousand:
-            let formatted = Double(n) / Double(thousand)
-            return String(format: "%.1fK", formatted)
-        default:
-            return String(number)
-        }
-    }
-    
     private var stats: [(String, String)] {
         [
             ("Market Cap", priceModel.formatPrice(lamports: (tokenModel.prices.last?.price ?? 0) * (tokenModel.token.supply ?? 0) / Int(pow(10.0, Double(tokenModel.token.decimals ?? 0))))),
             ("Volume", "1.52M"), // TODO: Add volume data
             ("Holders", "53.3K"), // TODO: Add holders data?
-            ("Supply", formatLargeNumber((tokenModel.token.supply ?? 0) / Int(pow(10.0, Double(tokenModel.token.decimals ?? 0)))))
+            ("Supply", formatLargeNumber(Double(tokenModel.token.supply ?? 0) / pow(10.0, Double(tokenModel.token.decimals ?? 0))))
         ]
     }
     

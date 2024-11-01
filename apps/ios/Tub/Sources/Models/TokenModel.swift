@@ -123,7 +123,6 @@ class TokenModel: ObservableObject {
                         self.lastPriceTimestamp = self.prices.last?.timestamp
                         self.loading = false
                         self.calculatePriceChange()
-                        print(self.token.mint, self.token.supply, (self.prices.last?.price ?? 0) * (self.token.supply ?? 0))
                     }
                     continuation.resume()
                 case .failure(let error):

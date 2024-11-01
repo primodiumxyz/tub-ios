@@ -30,5 +30,6 @@ struct Transaction: Identifiable, Equatable {
     let valueUsd: Double
     let quantityTokens: Int
     let isBuy: Bool
+    let mint: String
 }
 

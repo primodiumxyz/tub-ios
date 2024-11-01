@@ -157,6 +157,7 @@ query GetAccountTransactions($accountId: uuid!) {
       supply
       symbol
       uri
+      mint
     }
     account_transaction_data {
       created_at
