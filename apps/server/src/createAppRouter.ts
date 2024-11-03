@@ -37,7 +37,10 @@ export function createAppRouter() {
         }),
       )
       .mutation(async ({ ctx, input }) => {
-        return await ctx.tubService.registerNewUser(input.username, input.airdropAmount ? BigInt(input.airdropAmount) : BigInt("100"));
+        return await ctx.tubService.registerNewUser(
+          input.username,
+          input.airdropAmount ? BigInt(input.airdropAmount) : BigInt("100"),
+        );
       }),
     refreshToken: t.procedure.input(z.object({ uuid: z.string() })).mutation(async ({ ctx, input }) => {
       return await ctx.tubService.refreshToken(input.uuid);
@@ -72,7 +75,12 @@ export function createAppRouter() {
         }),
       )
       .mutation(async ({ ctx, input }) => {
-        return await ctx.tubService.registerNewToken(input.name, input.symbol, input.supply ? BigInt(input.supply) : undefined, input.uri);
+        return await ctx.tubService.registerNewToken(
+          input.name,
+          input.symbol,
+          input.supply ? BigInt(input.supply) : undefined,
+          input.uri,
+        );
       }),
     airdropNativeToUser: t.procedure
       .input(
@@ -82,6 +90,15 @@ export function createAppRouter() {
       )
       .mutation(async ({ ctx, input }) => {
         return await ctx.tubService.airdropNativeToUser(ctx.jwtToken, BigInt(input.amount));
+      }),
+    getCoinbaseSolanaOnrampUrl: t.procedure
+      .input(
+        z.object({
+          address: z.string(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        return await ctx.tubService.getCoinbaseSolanaOnrampUrl(input.address);
       }),
   });
 }

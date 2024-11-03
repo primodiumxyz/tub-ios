@@ -1,8 +1,9 @@
-import { parseEnv } from "../bin/parseEnv";
+import crypto from "crypto";
 import { Core, CounterData } from "@tub/core";
 import { GqlClient } from "@tub/gql";
 import { config } from "dotenv";
 import jwt from "jsonwebtoken";
+import { parseEnv } from "../bin/parseEnv";
 
 config({ path: "../../.env" });
 
@@ -159,5 +160,67 @@ export class TubService {
     }
 
     return result.data;
+  }
+
+  // Coinbase CDP services, generates a secure onboarding URL based on the user's wallet
+  async getCoinbaseSolanaOnrampUrl(address: string) {
+    const { keyName, keySecret } = JSON.parse(env.COINBASE_CDP_API_KEY);
+
+    if (!keyName || !keySecret) {
+      return { status: 500 };
+    }
+
+    // Create a request for a JWT from Coinbase Developer
+    const host = "api.developer.coinbase.com";
+    const request_method = "POST";
+    const requestPath = "/onramp/v1/token";
+
+    const url = `https://${host}${requestPath}`;
+    const uri = `${request_method} ${host}${requestPath}`;
+
+    const payload = {
+      iss: "coinbase-cloud",
+      nbf: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 120,
+      sub: keyName,
+      uri,
+    };
+
+    const signOptions: jwt.SignOptions = {
+      algorithm: "ES256",
+      header: {
+        kid: keyName,
+        // @ts-ignore
+        nonce: crypto.randomBytes(16).toString("hex"), // non-standard, coinbase-specific header, from onramp demo
+      },
+    };
+
+    const jwtToken = jwt.sign(payload, keySecret, signOptions);
+    const body = {
+      destination_wallets: [
+        {
+          address: address,
+          blockchains: ["solana"],
+        },
+      ],
+    };
+
+    // Fetch from coinbase servers
+    try {
+      const coinbaseResponse = await fetch(url, {
+        method: request_method,
+        body: JSON.stringify(body),
+        headers: { Authorization: "Bearer " + jwtToken },
+      });
+
+      const json = await coinbaseResponse.json();
+      if (json.message) {
+        return { status: 500, error: json.message };
+      } else {
+        return { status: 200, data: json };
+      }
+    } catch (error) {
+      return { status: 500, error: "Coinbase Onramp API returned an error." };
+    }
   }
 }

@@ -12,6 +12,7 @@ const commonSchema = z.object({
       "9344dc8d6fbc1a788e75195e0e6e4c5910b200633baf9818d956c80580e82303bd7e14bda125a12268d3862688f2acf77d1a2d0e258540d041bf9722cabd4a14",
     ),
   JWT_SECRET: z.string().default("secret"),
+  COINBASE_CDP_API_KEY: z.string().default('{"name":"","privateKey":""}'),
 });
 
 export function parseEnv<TSchema extends ZodTypeAny | undefined = undefined>(
