@@ -169,6 +169,11 @@ class Network {
         let input = ["accountId": accountId, "amount": String(amount)]
         callProcedure("airdropNativeToUser", input: input, completion: completion)
     }
+    
+    func getCoinbaseSolanaOnrampUrl(accountId: String, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
+        let input = ["accountId": accountId]
+        callProcedure("getCoinbaseSolanaOnrampUrl", input: input, completion: completion)
+    }
 }
 
 struct ResponseWrapper<T: Codable>: Codable {
