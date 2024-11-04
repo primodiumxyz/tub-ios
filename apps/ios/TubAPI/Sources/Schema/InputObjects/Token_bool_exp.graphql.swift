@@ -15,9 +15,11 @@ public struct Token_bool_exp: InputObject {
     _and: GraphQLNullable<[Token_bool_exp]> = nil,
     _not: GraphQLNullable<Token_bool_exp> = nil,
     _or: GraphQLNullable<[Token_bool_exp]> = nil,
+    decimals: GraphQLNullable<Int_comparison_exp> = nil,
     id: GraphQLNullable<Uuid_comparison_exp> = nil,
     mint: GraphQLNullable<String_comparison_exp> = nil,
     name: GraphQLNullable<String_comparison_exp> = nil,
+    platform: GraphQLNullable<String_comparison_exp> = nil,
     supply: GraphQLNullable<Numeric_comparison_exp> = nil,
     symbol: GraphQLNullable<String_comparison_exp> = nil,
     tokenPriceHistories: GraphQLNullable<Token_price_history_bool_exp> = nil,
@@ -31,9 +33,11 @@ public struct Token_bool_exp: InputObject {
       "_and": _and,
       "_not": _not,
       "_or": _or,
+      "decimals": decimals,
       "id": id,
       "mint": mint,
       "name": name,
+      "platform": platform,
       "supply": supply,
       "symbol": symbol,
       "token_price_histories": tokenPriceHistories,
@@ -60,6 +64,11 @@ public struct Token_bool_exp: InputObject {
     set { __data["_or"] = newValue }
   }
 
+  public var decimals: GraphQLNullable<Int_comparison_exp> {
+    get { __data["decimals"] }
+    set { __data["decimals"] = newValue }
+  }
+
   public var id: GraphQLNullable<Uuid_comparison_exp> {
     get { __data["id"] }
     set { __data["id"] = newValue }
@@ -73,6 +82,11 @@ public struct Token_bool_exp: InputObject {
   public var name: GraphQLNullable<String_comparison_exp> {
     get { __data["name"] }
     set { __data["name"] = newValue }
+  }
+
+  public var platform: GraphQLNullable<String_comparison_exp> {
+    get { __data["platform"] }
+    set { __data["platform"] = newValue }
   }
 
   public var supply: GraphQLNullable<Numeric_comparison_exp> {

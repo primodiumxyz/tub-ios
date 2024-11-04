@@ -5,6 +5,8 @@ struct Token: Identifiable {
     var id: String
     var name: String
     var symbol: String
+    var mint: String
+    var decimals: Int
     var imageUri: String?
 }
 
@@ -14,7 +16,7 @@ struct Price: Identifiable, Equatable {
     }
     var id = UUID()
     var timestamp: Date
-    var price: Double
+    var price: Int
 }
 
 struct Transaction: Identifiable, Equatable {
@@ -23,7 +25,8 @@ struct Transaction: Identifiable, Equatable {
     let symbol: String
     let imageUri: String
     let date: Date
-    let value: Double
-    let quantity: Double
+    let valueUsd: Double
+    let quantityTokens: Int
     let isBuy: Bool
 }
+

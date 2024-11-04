@@ -51,19 +51,19 @@ class Network {
     
     init() {
         // setup graphql
-        let httpURL = URL(string: "https://tub-graphql.primodium.ai/v1/graphql")!
+        let httpURL = URL(string: graphqlHttpUrl)!
         let store = ApolloStore()
         httpTransport = RequestChainNetworkTransport(
             interceptorProvider: DefaultInterceptorProvider(store: store),
             endpointURL: httpURL
         )
 
-        let webSocketURL = URL(string: "wss://tub-graphql.primodium.ai/v1/graphql")!
+        let webSocketURL = URL(string: graphqlWsUrl)!
         let websocket = WebSocket(url: webSocketURL, protocol: .graphql_ws)
         webSocketTransport = WebSocketTransport(websocket: websocket)
         
         // setup tRPC
-        baseURL = URL(string: "https://tub-server.primodium.ai/trpc")!
+        baseURL = URL(string: serverBaseUrl)!
         session = URLSession(configuration: .default)
     }
 
@@ -165,9 +165,8 @@ class Network {
         callProcedure("registerNewToken", input: input, completion: completion)
     }
     
-    func airdropNativeToUser(accountId: String, amount: Double, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
-        let scaledAmount = String(Int(amount * 1e9))
-        let input = ["accountId": accountId, "amount": scaledAmount]
+    func airdropNativeToUser(accountId: String, amount: Int, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
+        let input = ["accountId": accountId, "amount": String(amount)]
         callProcedure("airdropNativeToUser", input: input, completion: completion)
     }
 }
@@ -231,5 +230,32 @@ extension Network {
             }
         }
     }
-}
 
+    func fetchSolPrice(completion: @escaping (Result<Double, Error>) -> Void) {
+        let url = URL(string: "https://min-api.cryptocompare.com/data/price?fsym=SOL&tsyms=Usd")!
+        let task = session.dataTask(with: url) { data, response, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            
+            guard let data = data else {
+                completion(.failure(NSError(domain: "NetworkError", code: 0, userInfo: [NSLocalizedDescriptionKey: "No data received"])))
+                return
+            }
+            
+            do {
+                if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Double],
+                   let price = json["USD"] {
+                    completion(.success(price))
+                } else {
+                    completion(.failure(NSError(domain: "ParsingError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to parse JSON response"])))
+                }
+            } catch {
+                completion(.failure(error))
+            }
+        }
+        
+        task.resume()
+    }
+}

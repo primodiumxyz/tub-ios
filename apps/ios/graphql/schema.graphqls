@@ -39,10 +39,12 @@ directive @defer(
 
 type GetFormattedTokensResult {
   created_at: timestamptz!
+  decimals: Int
   increase_pct: float8!
   latest_price: numeric!
   mint: String!
   name: String!
+  platform: String!
   symbol: String!
   token_id: uuid!
   trades: bigint!
@@ -56,10 +58,12 @@ input GetFormattedTokensResult_bool_exp_bool_exp {
   _not: GetFormattedTokensResult_bool_exp_bool_exp
   _or: [GetFormattedTokensResult_bool_exp_bool_exp!]
   created_at: timestamptz_comparison_exp
+  decimals: Int_comparison_exp
   increase_pct: float8_comparison_exp
   latest_price: numeric_comparison_exp
   mint: String_comparison_exp
   name: String_comparison_exp
+  platform: String_comparison_exp
   symbol: String_comparison_exp
   token_id: uuid_comparison_exp
   trades: bigint_comparison_exp
@@ -68,6 +72,9 @@ input GetFormattedTokensResult_bool_exp_bool_exp {
 enum GetFormattedTokensResult_enum_name {
   """column name"""
   created_at
+
+  """column name"""
+  decimals
 
   """column name"""
   increase_pct
@@ -82,6 +89,9 @@ enum GetFormattedTokensResult_enum_name {
   name
 
   """column name"""
+  platform
+
+  """column name"""
   symbol
 
   """column name"""
@@ -94,10 +104,12 @@ enum GetFormattedTokensResult_enum_name {
 """Ordering options when selecting data from "GetFormattedTokensResult"."""
 input GetFormattedTokensResult_order_by {
   created_at: order_by
+  decimals: order_by
   increase_pct: order_by
   latest_price: order_by
   mint: order_by
   name: order_by
+  platform: order_by
   symbol: order_by
   token_id: order_by
   trades: order_by
@@ -956,10 +968,12 @@ columns and relationships of "formatted_tokens"
 """
 type formatted_tokens {
   created_at: timestamptz
+  decimals: Int
   increase_pct: float8
   latest_price: numeric
   mint: String
   name: String
+  platform: String
   symbol: String
   token_id: uuid
   trades: bigint
@@ -992,6 +1006,7 @@ type formatted_tokens_aggregate_fields {
 
 """aggregate avg on columns"""
 type formatted_tokens_avg_fields {
+  decimals: Float
   increase_pct: Float
   latest_price: Float
   trades: Float
@@ -1005,10 +1020,12 @@ input formatted_tokens_bool_exp {
   _not: formatted_tokens_bool_exp
   _or: [formatted_tokens_bool_exp!]
   created_at: timestamptz_comparison_exp
+  decimals: Int_comparison_exp
   increase_pct: float8_comparison_exp
   latest_price: numeric_comparison_exp
   mint: String_comparison_exp
   name: String_comparison_exp
+  platform: String_comparison_exp
   symbol: String_comparison_exp
   token_id: uuid_comparison_exp
   trades: bigint_comparison_exp
@@ -1017,10 +1034,12 @@ input formatted_tokens_bool_exp {
 """aggregate max on columns"""
 type formatted_tokens_max_fields {
   created_at: timestamptz
+  decimals: Int
   increase_pct: float8
   latest_price: numeric
   mint: String
   name: String
+  platform: String
   symbol: String
   token_id: uuid
   trades: bigint
@@ -1029,10 +1048,12 @@ type formatted_tokens_max_fields {
 """aggregate min on columns"""
 type formatted_tokens_min_fields {
   created_at: timestamptz
+  decimals: Int
   increase_pct: float8
   latest_price: numeric
   mint: String
   name: String
+  platform: String
   symbol: String
   token_id: uuid
   trades: bigint
@@ -1041,10 +1062,12 @@ type formatted_tokens_min_fields {
 """Ordering options when selecting data from "formatted_tokens"."""
 input formatted_tokens_order_by {
   created_at: order_by
+  decimals: order_by
   increase_pct: order_by
   latest_price: order_by
   mint: order_by
   name: order_by
+  platform: order_by
   symbol: order_by
   token_id: order_by
   trades: order_by
@@ -1056,6 +1079,9 @@ select columns of table "formatted_tokens"
 enum formatted_tokens_select_column {
   """column name"""
   created_at
+
+  """column name"""
+  decimals
 
   """column name"""
   increase_pct
@@ -1070,6 +1096,9 @@ enum formatted_tokens_select_column {
   name
 
   """column name"""
+  platform
+
+  """column name"""
   symbol
 
   """column name"""
@@ -1081,6 +1110,7 @@ enum formatted_tokens_select_column {
 
 """aggregate stddev on columns"""
 type formatted_tokens_stddev_fields {
+  decimals: Float
   increase_pct: Float
   latest_price: Float
   trades: Float
@@ -1088,6 +1118,7 @@ type formatted_tokens_stddev_fields {
 
 """aggregate stddev_pop on columns"""
 type formatted_tokens_stddev_pop_fields {
+  decimals: Float
   increase_pct: Float
   latest_price: Float
   trades: Float
@@ -1095,6 +1126,7 @@ type formatted_tokens_stddev_pop_fields {
 
 """aggregate stddev_samp on columns"""
 type formatted_tokens_stddev_samp_fields {
+  decimals: Float
   increase_pct: Float
   latest_price: Float
   trades: Float
@@ -1114,10 +1146,12 @@ input formatted_tokens_stream_cursor_input {
 """Initial value of the column from where the streaming should start"""
 input formatted_tokens_stream_cursor_value_input {
   created_at: timestamptz
+  decimals: Int
   increase_pct: float8
   latest_price: numeric
   mint: String
   name: String
+  platform: String
   symbol: String
   token_id: uuid
   trades: bigint
@@ -1125,6 +1159,7 @@ input formatted_tokens_stream_cursor_value_input {
 
 """aggregate sum on columns"""
 type formatted_tokens_sum_fields {
+  decimals: Int
   increase_pct: float8
   latest_price: numeric
   trades: bigint
@@ -1132,6 +1167,7 @@ type formatted_tokens_sum_fields {
 
 """aggregate var_pop on columns"""
 type formatted_tokens_var_pop_fields {
+  decimals: Float
   increase_pct: Float
   latest_price: Float
   trades: Float
@@ -1139,6 +1175,7 @@ type formatted_tokens_var_pop_fields {
 
 """aggregate var_samp on columns"""
 type formatted_tokens_var_samp_fields {
+  decimals: Float
   increase_pct: Float
   latest_price: Float
   trades: Float
@@ -1146,9 +1183,26 @@ type formatted_tokens_var_samp_fields {
 
 """aggregate variance on columns"""
 type formatted_tokens_variance_fields {
+  decimals: Float
   increase_pct: Float
   latest_price: Float
   trades: Float
+}
+
+input get_formatted_tokens_args {
+  p_since: timestamptz
+}
+
+"""get_formatted_tokens_intervalNative Query Arguments"""
+input get_formatted_tokens_interval_arguments {
+  """"""
+  interval: interval!
+}
+
+"""get_formatted_tokens_sinceNative Query Arguments"""
+input get_formatted_tokens_since_arguments {
+  """"""
+  since: timestamptz!
 }
 
 scalar interval
@@ -1244,6 +1298,31 @@ type mutation_root {
   delete single row from the table: "token_transaction"
   """
   delete_token_transaction_by_pk(id: uuid!): token_transaction
+
+  """
+  execute VOLATILE function "get_formatted_tokens" which returns "formatted_tokens"
+  """
+  get_formatted_tokens(
+    """
+    input parameters for function "get_formatted_tokens"
+    """
+    args: get_formatted_tokens_args!
+
+    """distinct select on columns"""
+    distinct_on: [formatted_tokens_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [formatted_tokens_order_by!]
+
+    """filter the rows returned"""
+    where: formatted_tokens_bool_exp
+  ): [formatted_tokens!]!
 
   """
   insert data into the table: "account"
@@ -1584,23 +1663,6 @@ enum order_by {
 }
 
 type query_root {
-  GetFormattedTokens(
-    """distinct select on columns"""
-    distinct_on: [GetFormattedTokensResult_enum_name!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [GetFormattedTokensResult_order_by!]
-
-    """filter the rows returned"""
-    where: GetFormattedTokensResult_bool_exp_bool_exp
-  ): [GetFormattedTokensResult!]!
-
   """
   fetch data from the table: "account"
   """
@@ -1785,6 +1847,44 @@ type query_root {
     """filter the rows returned"""
     where: formatted_tokens_bool_exp
   ): formatted_tokens_aggregate!
+  get_formatted_tokens_interval(
+    """get_formatted_tokens_intervalNative Query Arguments"""
+    args: get_formatted_tokens_interval_arguments!
+
+    """distinct select on columns"""
+    distinct_on: [GetFormattedTokensResult_enum_name!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [GetFormattedTokensResult_order_by!]
+
+    """filter the rows returned"""
+    where: GetFormattedTokensResult_bool_exp_bool_exp
+  ): [GetFormattedTokensResult!]!
+  get_formatted_tokens_since(
+    """get_formatted_tokens_sinceNative Query Arguments"""
+    args: get_formatted_tokens_since_arguments!
+
+    """distinct select on columns"""
+    distinct_on: [GetFormattedTokensResult_enum_name!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [GetFormattedTokensResult_order_by!]
+
+    """filter the rows returned"""
+    where: GetFormattedTokensResult_bool_exp_bool_exp
+  ): [GetFormattedTokensResult!]!
 
   """
   fetch data from the table: "token"
@@ -1966,23 +2066,6 @@ input sell_token_args {
 }
 
 type subscription_root {
-  GetFormattedTokens(
-    """distinct select on columns"""
-    distinct_on: [GetFormattedTokensResult_enum_name!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [GetFormattedTokensResult_order_by!]
-
-    """filter the rows returned"""
-    where: GetFormattedTokensResult_bool_exp_bool_exp
-  ): [GetFormattedTokensResult!]!
-
   """
   fetch data from the table: "account"
   """
@@ -2209,6 +2292,44 @@ type subscription_root {
     """filter the rows returned"""
     where: formatted_tokens_bool_exp
   ): [formatted_tokens!]!
+  get_formatted_tokens_interval(
+    """get_formatted_tokens_intervalNative Query Arguments"""
+    args: get_formatted_tokens_interval_arguments!
+
+    """distinct select on columns"""
+    distinct_on: [GetFormattedTokensResult_enum_name!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [GetFormattedTokensResult_order_by!]
+
+    """filter the rows returned"""
+    where: GetFormattedTokensResult_bool_exp_bool_exp
+  ): [GetFormattedTokensResult!]!
+  get_formatted_tokens_since(
+    """get_formatted_tokens_sinceNative Query Arguments"""
+    args: get_formatted_tokens_since_arguments!
+
+    """distinct select on columns"""
+    distinct_on: [GetFormattedTokensResult_enum_name!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [GetFormattedTokensResult_order_by!]
+
+    """filter the rows returned"""
+    where: GetFormattedTokensResult_bool_exp_bool_exp
+  ): [GetFormattedTokensResult!]!
 
   """
   fetch data from the table: "token"
@@ -2445,11 +2566,13 @@ input timestamptz_comparison_exp {
 columns and relationships of "token"
 """
 type token {
+  decimals: Int
   id: uuid!
 
   """token mint address (only for real tokens)"""
   mint: String
   name: String!
+  platform: String
   supply: numeric!
   symbol: String!
 
@@ -2555,6 +2678,7 @@ type token_aggregate_fields {
 
 """aggregate avg on columns"""
 type token_avg_fields {
+  decimals: Float
   supply: Float
 }
 
@@ -2565,9 +2689,11 @@ input token_bool_exp {
   _and: [token_bool_exp!]
   _not: token_bool_exp
   _or: [token_bool_exp!]
+  decimals: Int_comparison_exp
   id: uuid_comparison_exp
   mint: String_comparison_exp
   name: String_comparison_exp
+  platform: String_comparison_exp
   supply: numeric_comparison_exp
   symbol: String_comparison_exp
   token_price_histories: token_price_history_bool_exp
@@ -2597,6 +2723,7 @@ enum token_constraint {
 input type for incrementing numeric columns in table "token"
 """
 input token_inc_input {
+  decimals: Int
   supply: numeric
 }
 
@@ -2604,11 +2731,13 @@ input token_inc_input {
 input type for inserting data into table "token"
 """
 input token_insert_input {
+  decimals: Int
   id: uuid
 
   """token mint address (only for real tokens)"""
   mint: String
   name: String
+  platform: String
   supply: numeric
   symbol: String
   token_price_histories: token_price_history_arr_rel_insert_input
@@ -2619,11 +2748,13 @@ input token_insert_input {
 
 """aggregate max on columns"""
 type token_max_fields {
+  decimals: Int
   id: uuid
 
   """token mint address (only for real tokens)"""
   mint: String
   name: String
+  platform: String
   supply: numeric
   symbol: String
   updated_at: timestamptz
@@ -2632,11 +2763,13 @@ type token_max_fields {
 
 """aggregate min on columns"""
 type token_min_fields {
+  decimals: Int
   id: uuid
 
   """token mint address (only for real tokens)"""
   mint: String
   name: String
+  platform: String
   supply: numeric
   symbol: String
   updated_at: timestamptz
@@ -2675,9 +2808,11 @@ input token_on_conflict {
 
 """Ordering options when selecting data from "token"."""
 input token_order_by {
+  decimals: order_by
   id: order_by
   mint: order_by
   name: order_by
+  platform: order_by
   supply: order_by
   symbol: order_by
   token_price_histories_aggregate: token_price_history_aggregate_order_by
@@ -3153,6 +3288,9 @@ select columns of table "token"
 """
 enum token_select_column {
   """column name"""
+  decimals
+
+  """column name"""
   id
 
   """column name"""
@@ -3160,6 +3298,9 @@ enum token_select_column {
 
   """column name"""
   name
+
+  """column name"""
+  platform
 
   """column name"""
   supply
@@ -3178,11 +3319,13 @@ enum token_select_column {
 input type for updating data in table "token"
 """
 input token_set_input {
+  decimals: Int
   id: uuid
 
   """token mint address (only for real tokens)"""
   mint: String
   name: String
+  platform: String
   supply: numeric
   symbol: String
   updated_at: timestamptz
@@ -3191,16 +3334,19 @@ input token_set_input {
 
 """aggregate stddev on columns"""
 type token_stddev_fields {
+  decimals: Float
   supply: Float
 }
 
 """aggregate stddev_pop on columns"""
 type token_stddev_pop_fields {
+  decimals: Float
   supply: Float
 }
 
 """aggregate stddev_samp on columns"""
 type token_stddev_samp_fields {
+  decimals: Float
   supply: Float
 }
 
@@ -3217,11 +3363,13 @@ input token_stream_cursor_input {
 
 """Initial value of the column from where the streaming should start"""
 input token_stream_cursor_value_input {
+  decimals: Int
   id: uuid
 
   """token mint address (only for real tokens)"""
   mint: String
   name: String
+  platform: String
   supply: numeric
   symbol: String
   updated_at: timestamptz
@@ -3230,6 +3378,7 @@ input token_stream_cursor_value_input {
 
 """aggregate sum on columns"""
 type token_sum_fields {
+  decimals: Int
   supply: numeric
 }
 
@@ -3680,6 +3829,9 @@ update columns of table "token"
 """
 enum token_update_column {
   """column name"""
+  decimals
+
+  """column name"""
   id
 
   """column name"""
@@ -3687,6 +3839,9 @@ enum token_update_column {
 
   """column name"""
   name
+
+  """column name"""
+  platform
 
   """column name"""
   supply
@@ -3714,16 +3869,19 @@ input token_updates {
 
 """aggregate var_pop on columns"""
 type token_var_pop_fields {
+  decimals: Float
   supply: Float
 }
 
 """aggregate var_samp on columns"""
 type token_var_samp_fields {
+  decimals: Float
   supply: Float
 }
 
 """aggregate variance on columns"""
 type token_variance_fields {
+  decimals: Float
   supply: Float
 }
 

@@ -3,14 +3,14 @@ import React, { createContext, useContext, useState } from "react";
 import { DEFAULT_INCREASE_PCT, DEFAULT_MIN_TRADES, DEFAULT_TIMESPAN } from "@/lib/constants";
 
 export type TrackerParams = {
-  timespan: number;
+  timespan: string;
   increasePct: number;
   minTrades: number;
 };
 
 type TrackerParamsContextType = {
   params: TrackerParams;
-  setTimespan: (value: number) => void;
+  setTimespan: (value: string) => void;
   setIncreasePct: (value: number) => void;
   setMinTrades: (value: number) => void;
 };
@@ -24,7 +24,7 @@ export const TrackerParamsProvider: React.FC<React.PropsWithChildren<{}>> = ({ c
     minTrades: DEFAULT_MIN_TRADES,
   });
 
-  const setTimespan = (value: number) => setParams((prev) => ({ ...prev, timespan: value }));
+  const setTimespan = (value: string) => setParams((prev) => ({ ...prev, timespan: value }));
   const setIncreasePct = (value: number) => setParams((prev) => ({ ...prev, increasePct: value }));
   const setMinTrades = (value: number) => setParams((prev) => ({ ...prev, minTrades: value }));
 

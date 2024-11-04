@@ -1,2 +1,3 @@
 - "!include public_buy_token.yaml"
+- "!include public_get_formatted_tokens.yaml"
 - "!include public_sell_token.yaml"

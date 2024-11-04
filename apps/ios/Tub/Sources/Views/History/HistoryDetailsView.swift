@@ -8,11 +8,10 @@
 import SwiftUI
 
 struct HistoryDetailsView: View {
+    @EnvironmentObject private var priceModel: SolPriceModel
     let transaction: Transaction
-
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            
             Text(transaction.isBuy ? "Buy Details" : "Sell Details")
                 .font(.sfRounded(size: .xl2, weight: .bold))
                 .foregroundColor(AppColors.white)
@@ -44,23 +43,12 @@ struct HistoryDetailsView: View {
                         .font(.sfRounded(size: .lg, weight: .regular))
                 }
                 
-                // Order status
-                VStack(alignment: .leading) {
-                    Text("Order status")
-                        .foregroundColor(AppColors.gray)
-                        .font(.sfRounded(size: .sm, weight: .medium))
-                    Text("Filled")
-                        .foregroundColor(AppColors.white)
-                        .font(.sfRounded(size: .lg, weight: .regular))
-
-                }
-                
                 // Quantity
                 VStack(alignment: .leading) {
                     Text("Quantity")
                         .foregroundColor(AppColors.gray)
                         .font(.sfRounded(size: .sm, weight: .medium))
-                    Text("\(transaction.quantity, specifier: "%.0f") \(transaction.symbol)")
+                    Text("\(priceModel.formatPrice(lamports:transaction.quantityTokens, showUnit: false)) \(transaction.symbol)")
                         .foregroundColor(AppColors.white)
                         .font(.sfRounded(size: .lg, weight: .regular))
                 }
@@ -70,7 +58,7 @@ struct HistoryDetailsView: View {
                     Text("Price")
                         .foregroundColor(AppColors.gray)
                         .font(.sfRounded(size: .sm, weight: .medium))
-                    Text(formatAmount(transaction.value))
+                    Text(priceModel.formatPrice(usd: transaction.valueUsd))
                         .foregroundColor(AppColors.white)
                         .font(.sfRounded(size: .lg, weight: .regular))
                 }
@@ -84,17 +72,6 @@ struct HistoryDetailsView: View {
                         .foregroundColor(AppColors.white)
                         .font(.sfRounded(size: .lg, weight: .regular))
                 }
-                
-                // Note section
-                VStack(alignment: .leading) {
-                    Text("Note")
-                        .foregroundColor(AppColors.gray)
-                        .font(.sfRounded(size: .sm, weight: .medium))
-                    Text("-")
-                        .foregroundColor(AppColors.white)
-                        .font(.sfRounded(size: .lg, weight: .regular))
-
-                }
             }
             .padding(.leading, 10.0)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -107,29 +84,17 @@ struct HistoryDetailsView: View {
         .foregroundColor(AppColors.white)
     }
     
-    // Helper functions to format amount and date
-    func formatAmount(_ amount: Double) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        return formatter.string(from: NSNumber(value: amount)) ?? "$0.00"
-    }
-    
-    func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        return formatter.string(from: date)
-    }
 
-    func formatTime(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        return formatter.string(from: date)
-    }
 
 }
 
-struct HistoryDetailsView_Previews: PreviewProvider {
-    static var previews: some View {
-            HistoryDetailsView(transaction: dummyData[0])
-        }
+
+#Preview {
+    @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
+    if !priceModel.isReady {
+        LoadingView()
+    } else {
+        HistoryDetailsView(transaction: dummyData[0]).environmentObject(priceModel)
+    }
 }
+
