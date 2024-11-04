@@ -35,18 +35,18 @@ public class GetAllTokensQuery: GraphQLQuery {
       public static var __selections: [ApolloAPI.Selection] { [
         .field("__typename", String.self),
         .field("id", TubAPI.Uuid.self),
-        .field("name", String.self),
-        .field("symbol", String.self),
+        .field("name", String?.self),
+        .field("symbol", String?.self),
         .field("updated_at", TubAPI.Timestamptz.self),
-        .field("supply", TubAPI.Numeric.self),
+        .field("supply", TubAPI.Numeric?.self),
         .field("uri", String?.self),
       ] }
 
       public var id: TubAPI.Uuid { __data["id"] }
-      public var name: String { __data["name"] }
-      public var symbol: String { __data["symbol"] }
+      public var name: String? { __data["name"] }
+      public var symbol: String? { __data["symbol"] }
       public var updated_at: TubAPI.Timestamptz { __data["updated_at"] }
-      public var supply: TubAPI.Numeric { __data["supply"] }
+      public var supply: TubAPI.Numeric? { __data["supply"] }
       public var uri: String? { __data["uri"] }
     }
   }

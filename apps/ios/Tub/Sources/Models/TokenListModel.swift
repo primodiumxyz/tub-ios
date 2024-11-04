@@ -29,8 +29,6 @@ class TokenListModel: ObservableObject {
 
     // Constants for token filtering
     private let INTERVAL: Interval = "30s"
-    private let MIN_TRADES: Int = 10
-    private let MIN_INCREASE_PCT: Double = 5.0
     
     init(userModel: UserModel) {
         self.userModel = userModel
@@ -106,9 +104,7 @@ class TokenListModel: ObservableObject {
 
     func fetchTokens() {
         subscription = Network.shared.apollo.subscribe(subscription: SubFilteredTokensIntervalSubscription(
-            interval: .some(INTERVAL),
-            minTrades: String(MIN_TRADES),
-            minIncreasePct: String(MIN_INCREASE_PCT)
+            interval: .some(INTERVAL)
         )) { result in
             DispatchQueue.main.async {
                 self.isLoading = false

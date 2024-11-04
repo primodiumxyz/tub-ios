@@ -29,14 +29,6 @@ export const columns: ColumnDef<Token>[] = [
     },
   },
   {
-    accessorKey: "platform",
-    header: "Platform",
-    cell: ({ row }) => {
-      if (row.original.platform === "") return <span className="opacity-50">N/A</span>;
-      return <div>{row.original.platform}</div>;
-    },
-  },
-  {
     accessorKey: "trades",
     header: ({ column }) => {
       return (
@@ -59,6 +51,13 @@ export const columns: ColumnDef<Token>[] = [
           </Button>
         </div>
       );
+    },
+  },
+  {
+    accessorKey: "volume",
+    header: "Volume",
+    cell: ({ row }) => {
+      return <div>{row.original.volume.toLocaleString()}</div>;
     },
   },
   {
@@ -115,6 +114,20 @@ export const columns: ColumnDef<Token>[] = [
     },
     cell: ({ row }) => {
       return <div>{Number(row.original.increasePct.toFixed(2))}</div>;
+    },
+  },
+  {
+    accessorKey: "mintBurnt",
+    header: "Mint Burnt",
+    cell: ({ row }) => {
+      return <div>{row.original.mintBurnt ? "Yes" : "No"}</div>;
+    },
+  },
+  {
+    accessorKey: "freezeBurnt",
+    header: "Freeze Burnt",
+    cell: ({ row }) => {
+      return <div>{row.original.freezeBurnt ? "Yes" : "No"}</div>;
     },
   },
 ];

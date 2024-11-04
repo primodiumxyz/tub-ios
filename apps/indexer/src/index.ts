@@ -1,117 +1,135 @@
 // #!/usr/bin/env node
+import { PublicKey } from "@solana/web3.js";
 import { config } from "dotenv";
 import { WebSocket } from "ws";
 
 import { createClient as createGqlClient, GqlClient } from "@tub/gql";
 import { parseEnv } from "@bin/parseEnv";
-import { getRandomTokenMetadata } from "@/lib/_random";
-import { FETCH_PRICE_BATCH_SIZE, PROGRAMS, WRITE_GQL_BATCH_SIZE } from "@/lib/constants";
-import { connection, ixParser, txFormatter } from "@/lib/setup";
-import { PriceData, SwapAccounts, TransactionSubscriptionResult } from "@/lib/types";
-import { decodeSwapAccounts, getPoolTokenPriceMultiple } from "@/lib/utils";
+import { FETCH_DATA_BATCH_SIZE, FETCH_HELIUS_WRITE_GQL_BATCH_SIZE } from "@/lib/constants";
+import { RaydiumAmmParser } from "@/lib/parsers/raydium-amm-parser";
+import { connection, helius, ixParser, txFormatter } from "@/lib/setup";
+import { PriceData, Swap, SwapType, TokenMetadata, TransactionSubscriptionResult } from "@/lib/types";
+import { decodeSwapData, processVaultsData } from "@/lib/utils";
 
 config({ path: "../../.env" });
 
 const env = parseEnv();
 
 /* ------------------------------ PROCESS LOGS ------------------------------ */
-const processLogs = (result: TransactionSubscriptionResult): SwapAccounts[] => {
+const handleLogs = <T extends SwapType = SwapType>(result: TransactionSubscriptionResult): Swap<T>[] => {
   try {
     // Parse the transaction and retrieve the swapped token accounts
     const timestamp = Date.now();
     const tx = txFormatter.formTransactionFromJson(result, timestamp);
 
     const parsedIxs = ixParser.parseParsedTransactionWithInnerInstructions(tx);
-    return decodeSwapAccounts(parsedIxs, timestamp);
+    return decodeSwapData(parsedIxs, timestamp);
   } catch (error) {
-    console.error("Unexpected error in processLogs:", error);
+    console.error("Unexpected error in handleLogs:", error);
     return [];
   }
 };
 
 /* ------------------------------- HANDLE DATA ------------------------------ */
-let swapAccountsBatch: SwapAccounts[] = [];
-let priceDataBatch: PriceData[] = [];
+let swapsBatch: Swap<SwapType>[] = []; // batch of swaps we need to process
+let uniqueVaultPairsBatch: PublicKey[][] = []; // batch of unique vault pairs inside `swapsBatch` we need to fetch metadata and price for
+let tokensDataBatch: TokenMetadata[] = []; // tokens metadata we need to save to the DB
+let priceDataBatch: PriceData[] = []; // price data based on swaps we need to save to the DB
 
-const handleSwapData = async (gql: GqlClient["db"], swapAccountsArray: SwapAccounts[]) => {
+const handleSwapData = async <T extends SwapType = SwapType>(gql: GqlClient["db"], swaps: Swap<T>[]) => {
   // Add swap data to batch and continue only if the batch is filled enough
-  if (swapAccountsArray.length === 0) return;
-  swapAccountsBatch.push(...swapAccountsArray);
-  if (swapAccountsBatch.length < FETCH_PRICE_BATCH_SIZE) return;
+  if (swaps.length === 0) return;
+  swapsBatch.push(...swaps);
+  // Aggregate unique vault pairs associated with the swaps
+  uniqueVaultPairsBatch.push(
+    ...Array.from(new Set(swaps.map(({ vaultA, vaultB }) => (vaultA < vaultB ? [vaultA, vaultB] : [vaultB, vaultA])))),
+  );
+  if (uniqueVaultPairsBatch.length < FETCH_DATA_BATCH_SIZE) return;
 
-  // Fetch price data out of swap accounts, add it and continue only if the second batch is filled enough
-  const _swapAccountsBatch = swapAccountsBatch.slice(0, FETCH_PRICE_BATCH_SIZE);
+  // Fetch metadata and price data for a batch of tokens, and get the swaps related to these tokens
+  const _uniqueVaultPairsBatch = uniqueVaultPairsBatch.slice(0, FETCH_DATA_BATCH_SIZE);
+  const _swapsBatch = swapsBatch.filter(({ vaultA, vaultB }) =>
+    _uniqueVaultPairsBatch.some(
+      ([_vaultA, _vaultB]) =>
+        (_vaultA?.equals(vaultA) && _vaultB?.equals(vaultB)) || (_vaultA?.equals(vaultB) && _vaultB?.equals(vaultA)),
+    ),
+  );
   try {
     // clear the batch before the async call so it isn't included in the next batch
-    swapAccountsBatch = swapAccountsBatch.slice(FETCH_PRICE_BATCH_SIZE);
-    const priceData = await getPoolTokenPriceMultiple(connection, _swapAccountsBatch);
+    uniqueVaultPairsBatch = uniqueVaultPairsBatch.slice(FETCH_DATA_BATCH_SIZE);
+    swapsBatch = swapsBatch.filter(
+      ({ vaultA, vaultB }) =>
+        !_uniqueVaultPairsBatch.some(
+          ([_vaultA, _vaultB]) =>
+            (_vaultA?.equals(vaultA) && _vaultB?.equals(vaultB)) ||
+            (_vaultA?.equals(vaultB) && _vaultB?.equals(vaultA)),
+        ),
+    );
+
+    const { tokensMetadata, priceData } = await processVaultsData(
+      connection,
+      helius,
+      _uniqueVaultPairsBatch,
+      _swapsBatch,
+    );
+    tokensDataBatch.push(...tokensMetadata);
     priceDataBatch.push(...priceData);
   } catch (err) {
     console.error("Unexpected error in getPoolTokenPriceMultiple:", err);
     // readd the failed batch so it can be retried in the next iteration
-    swapAccountsBatch.push(..._swapAccountsBatch);
+    swapsBatch.push(..._swapsBatch);
   }
 
-  if (priceDataBatch.length < WRITE_GQL_BATCH_SIZE) return;
+  // Save token metadata and price data to the database if we reached the batch size
+  if (priceDataBatch.length < FETCH_HELIUS_WRITE_GQL_BATCH_SIZE) return;
+  const _tokensDataBatch = tokensDataBatch;
   const _priceDataBatch = priceDataBatch;
-  // clear the batch before all async calls for the same reason as above
+  // clear batches before all async calls for the same reason as above
+  tokensDataBatch = [];
   priceDataBatch = [];
 
   try {
-    // 1. Insert new tokens
-    const insertRes = await gql.RegisterManyNewTokensMutation({
-      objects: _priceDataBatch.map(({ mint, decimals, platform, timestamp }) => ({
-        // TODO: temporary until we know when to fetch & write actual token metadata
-        ...getRandomTokenMetadata(),
-        mint,
-        platform,
-        decimals,
-        updated_at: new Date(timestamp),
+    // 1. Upsert tokens metadata
+    const uniqueTokens = Array.from(new Map(_tokensDataBatch.map((token) => [token.mint, token])).values());
+    const insertRes = await gql.UpsertManyNewTokensMutation({
+      objects: uniqueTokens.map((token) => ({
+        mint: token.mint,
+        name: token.metadata.name,
+        symbol: token.metadata.symbol,
+        description: token.metadata.description,
+        uri: token.metadata.imageUri,
+        mint_burnt: token.mintBurnt,
+        freeze_burnt: token.freezeBurnt,
+        supply: token.supply?.toString(),
+        decimals: token.decimals,
+        is_pump_token: token.isPumpToken,
       })),
     });
 
-    if (insertRes.error) {
-      console.error("Error in RegisterManyNewTokensMutation:", insertRes.error.message);
-      priceDataBatch.push(..._priceDataBatch);
-      return;
-    }
-    console.log(`Inserted ${insertRes.data?.insert_token?.affected_rows} new tokens`);
+    if (insertRes.error) throw new Error(`Error in UpsertManyNewTokensMutation: ${insertRes.error.message}`);
+    console.log(`Upserted ${insertRes.data?.insert_token?.affected_rows} tokens`);
 
-    // 2. Fetch all tokens ids (both new and existing)
-    const mints = _priceDataBatch.map(({ mint }) => mint);
-    const fetchRes = await gql.GetTokensByMintsQuery({ mints });
-    if (fetchRes.error) {
-      console.error("Error in GetTokensByMintsQuery:", fetchRes.error.message);
-      priceDataBatch.push(..._priceDataBatch);
-      return;
-    }
-
-    const tokenMap = new Map(fetchRes.data?.token.map((token) => [token.mint, token.id]));
-    const validPriceData = _priceDataBatch.filter(({ mint }) => tokenMap.has(mint));
-    if (validPriceData.length !== _priceDataBatch.length) {
-      console.error(`${_priceDataBatch.length - validPriceData.length} tokens were not found`);
-      priceDataBatch.push(..._priceDataBatch);
-      return;
-    }
-
-    // 3. Add price history
+    // 2. Add price history
+    const mintToId = new Map(insertRes.data?.insert_token?.returning.map((token) => [token.mint, token.id]) ?? []);
     const addPriceHistoryRes = await gql.AddManyTokenPriceHistoryMutation({
-      objects: validPriceData.map(({ mint, price, timestamp }) => ({
-        token: tokenMap.get(mint)!,
+      objects: _priceDataBatch.map(({ mint, price, timestamp, swap }) => ({
+        token: mintToId.get(mint),
         price: price.toString(),
+        amount_in: "amountIn" in swap ? swap.amountIn.toString() : undefined,
+        min_amount_out: "minimumAmountOut" in swap ? swap.minimumAmountOut.toString() : undefined,
+        max_amount_in: "maxAmountIn" in swap ? swap.maxAmountIn.toString() : undefined,
+        amount_out: "amountOut" in swap ? swap.amountOut.toString() : undefined,
         created_at: new Date(timestamp),
       })),
     });
 
-    if (addPriceHistoryRes.error) {
-      console.error("Error in AddManyTokenPriceHistoryMutation:", addPriceHistoryRes.error.message);
-      priceDataBatch.push(..._priceDataBatch);
-      return;
-    }
+    if (addPriceHistoryRes.error)
+      throw new Error(`Error in AddManyTokenPriceHistoryMutation: ${addPriceHistoryRes.error.message}`);
 
-    console.log(`Saved ${validPriceData.length} price data points`);
+    console.log(`Saved ${_priceDataBatch.length} price data points`);
   } catch (err) {
     console.error("Unexpected error in handleSwapData:", err);
+    priceDataBatch.push(..._priceDataBatch);
   }
 };
 
@@ -179,7 +197,7 @@ const setup = (gql: GqlClient["db"]) => {
         id: 420,
         method: "transactionSubscribe",
         params: [
-          { failed: false, accountInclude: Object.values(PROGRAMS).map((p) => p.publicKey.toString()) },
+          { failed: false, accountInclude: [RaydiumAmmParser.PROGRAM_ID.toString()] },
           {
             commitment: "confirmed",
             encoding: "jsonParsed",
@@ -199,7 +217,7 @@ const setup = (gql: GqlClient["db"]) => {
     const result = obj.params?.result as TransactionSubscriptionResult | undefined;
 
     if (result) {
-      const swapAccounts = processLogs(result);
+      const swapAccounts = handleLogs(result);
       handleSwapData(gql, swapAccounts);
     } else {
       // Log other types of messages (like subscription confirmations)

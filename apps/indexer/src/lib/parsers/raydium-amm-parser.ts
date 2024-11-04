@@ -6,13 +6,13 @@ import { struct, u8 } from "@solana/buffer-layout";
 import { u64 } from "@solana/buffer-layout-utils";
 import { AccountMeta, PublicKey, TransactionInstruction } from "@solana/web3.js";
 
-type SwapBaseInArgs = {
+export type SwapBaseInArgs = {
   amountIn: bigint;
   minimumAmountOut: bigint;
 };
 const SwapBaseInArgsLayout = struct<SwapBaseInArgs>([u64("amountIn"), u64("minimumAmountOut")]);
 
-type SwapBaseOutArgs = {
+export type SwapBaseOutArgs = {
   maxAmountIn: bigint;
   amountOut: bigint;
 };
@@ -87,8 +87,8 @@ export class RaydiumAmmParser {
       name: "swapBaseIn",
       accounts: parseSwapAccounts(accounts),
       args: {
-        amountIn: Number(args.amountIn),
-        minimumAmountOut: Number(args.minimumAmountOut),
+        amountIn: BigInt(args.amountIn),
+        minimumAmountOut: BigInt(args.minimumAmountOut),
       },
       programId: instruction.programId,
     };
@@ -102,8 +102,8 @@ export class RaydiumAmmParser {
       name: "swapBaseOut",
       accounts: parseSwapAccounts(accounts),
       args: {
-        maxAmountIn: Number(args.maxAmountIn),
-        amountOut: Number(args.amountOut),
+        maxAmountIn: BigInt(args.maxAmountIn),
+        amountOut: BigInt(args.amountOut),
       },
       programId: instruction.programId,
     };

@@ -9,9 +9,12 @@ export type Token = {
   latestPrice: number;
   increasePct: number;
   trades: number;
-  platform: string;
+  volume: number;
   name: string;
   symbol: string;
+  uri: string;
+  mintBurnt: boolean;
+  freezeBurnt: boolean;
   id: string;
 };
 
@@ -20,29 +23,34 @@ export const useTokens = (): {
   fetching: boolean;
   error: string | undefined;
 } => {
-  const { timespan, increasePct, minTrades, onlyPumpTokens } = useTrackerParams();
+  const { timespan, minTrades, minVolume, mintBurnt, freezeBurnt } = useTrackerParams();
 
   const [filteredTokensResult] = useSubscription({
     query: subscriptions.GetFilteredTokensIntervalSubscription,
     variables: {
       interval: timespan,
-      minIncreasePct: increasePct.toString(),
       minTrades: minTrades.toString(),
-      mintFilter: onlyPumpTokens ? "%pump%" : "%",
+      minVolume: minVolume.toString(),
+      mintBurnt,
+      freezeBurnt,
     },
   });
 
   const tokens = useMemo(() => {
-    if (!filteredTokensResult.data?.get_formatted_tokens_interval) return [];
-    return filteredTokensResult.data.get_formatted_tokens_interval.map((token) => ({
-      mint: token.mint,
-      latestPrice: Number(token.latest_price),
-      increasePct: Number(token.increase_pct),
-      trades: Number(token.trades),
-      platform: token.platform,
-      name: token.name,
-      symbol: token.symbol,
-      id: token.token_id,
+    if (!filteredTokensResult.data?.formatted_tokens_interval) return [];
+    return filteredTokensResult.data.formatted_tokens_interval.map((token) => ({
+      // TODO: fix null values when they are not nullable
+      mint: token.mint!,
+      latestPrice: Number(token.latest_price!),
+      increasePct: Number(token.increase_pct!),
+      trades: Number(token.trades!),
+      volume: Number(token.volume!),
+      name: token.name ?? "NAME",
+      symbol: token.symbol ?? "SYMBOL",
+      uri: token.uri ?? "",
+      mintBurnt: token.mint_burnt ?? false,
+      freezeBurnt: token.freeze_burnt ?? false,
+      id: token.token_id!,
     }));
   }, [filteredTokensResult.data]);
 

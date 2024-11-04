@@ -37,82 +37,19 @@ directive @defer(
   label: String
 ) on FRAGMENT_SPREAD | INLINE_FRAGMENT
 
-type GetFormattedTokensResult {
-  created_at: timestamptz!
-  decimals: Int
-  increase_pct: float8!
-  latest_price: numeric!
-  mint: String!
-  name: String!
-  platform: String!
-  symbol: String!
-  token_id: uuid!
-  trades: bigint!
-}
-
 """
-Boolean expression to filter rows from the logical model for "GetFormattedTokensResult". All fields are combined with a logical 'AND'.
+Boolean expression to compare columns of type "Boolean". All fields are combined with logical 'AND'.
 """
-input GetFormattedTokensResult_bool_exp_bool_exp {
-  _and: [GetFormattedTokensResult_bool_exp_bool_exp!]
-  _not: GetFormattedTokensResult_bool_exp_bool_exp
-  _or: [GetFormattedTokensResult_bool_exp_bool_exp!]
-  created_at: timestamptz_comparison_exp
-  decimals: Int_comparison_exp
-  increase_pct: float8_comparison_exp
-  latest_price: numeric_comparison_exp
-  mint: String_comparison_exp
-  name: String_comparison_exp
-  platform: String_comparison_exp
-  symbol: String_comparison_exp
-  token_id: uuid_comparison_exp
-  trades: bigint_comparison_exp
-}
-
-enum GetFormattedTokensResult_enum_name {
-  """column name"""
-  created_at
-
-  """column name"""
-  decimals
-
-  """column name"""
-  increase_pct
-
-  """column name"""
-  latest_price
-
-  """column name"""
-  mint
-
-  """column name"""
-  name
-
-  """column name"""
-  platform
-
-  """column name"""
-  symbol
-
-  """column name"""
-  token_id
-
-  """column name"""
-  trades
-}
-
-"""Ordering options when selecting data from "GetFormattedTokensResult"."""
-input GetFormattedTokensResult_order_by {
-  created_at: order_by
-  decimals: order_by
-  increase_pct: order_by
-  latest_price: order_by
-  mint: order_by
-  name: order_by
-  platform: order_by
-  symbol: order_by
-  token_id: order_by
-  trades: order_by
+input Boolean_comparison_exp {
+  _eq: Boolean
+  _gt: Boolean
+  _gte: Boolean
+  _in: [Boolean!]
+  _is_null: Boolean
+  _lt: Boolean
+  _lte: Boolean
+  _neq: Boolean
+  _nin: [Boolean!]
 }
 
 """
@@ -969,14 +906,20 @@ columns and relationships of "formatted_tokens"
 type formatted_tokens {
   created_at: timestamptz
   decimals: Int
+  description: String
+  freeze_burnt: Boolean
   increase_pct: float8
+  is_pump_token: Boolean
   latest_price: numeric
   mint: String
+  mint_burnt: Boolean
   name: String
-  platform: String
+  supply: numeric
   symbol: String
   token_id: uuid
   trades: bigint
+  uri: String
+  volume: numeric
 }
 
 """
@@ -1009,7 +952,9 @@ type formatted_tokens_avg_fields {
   decimals: Float
   increase_pct: Float
   latest_price: Float
+  supply: Float
   trades: Float
+  volume: Float
 }
 
 """
@@ -1021,56 +966,155 @@ input formatted_tokens_bool_exp {
   _or: [formatted_tokens_bool_exp!]
   created_at: timestamptz_comparison_exp
   decimals: Int_comparison_exp
+  description: String_comparison_exp
+  freeze_burnt: Boolean_comparison_exp
   increase_pct: float8_comparison_exp
+  is_pump_token: Boolean_comparison_exp
   latest_price: numeric_comparison_exp
   mint: String_comparison_exp
+  mint_burnt: Boolean_comparison_exp
   name: String_comparison_exp
-  platform: String_comparison_exp
+  supply: numeric_comparison_exp
   symbol: String_comparison_exp
   token_id: uuid_comparison_exp
   trades: bigint_comparison_exp
+  uri: String_comparison_exp
+  volume: numeric_comparison_exp
+}
+
+"""
+Boolean expression to filter rows from the logical model for "formatted_tokens". All fields are combined with a logical 'AND'.
+"""
+input formatted_tokens_bool_exp_bool_exp {
+  _and: [formatted_tokens_bool_exp_bool_exp!]
+  _not: formatted_tokens_bool_exp_bool_exp
+  _or: [formatted_tokens_bool_exp_bool_exp!]
+  created_at: timestamptz_comparison_exp
+  decimals: Int_comparison_exp
+  description: String_comparison_exp
+  freeze_burnt: Boolean_comparison_exp
+  increase_pct: float8_comparison_exp
+  is_pump_token: Boolean_comparison_exp
+  latest_price: numeric_comparison_exp
+  mint: String_comparison_exp
+  mint_burnt: Boolean_comparison_exp
+  name: String_comparison_exp
+  supply: numeric_comparison_exp
+  symbol: String_comparison_exp
+  token_id: uuid_comparison_exp
+  trades: bigint_comparison_exp
+  uri: String_comparison_exp
+  volume: numeric_comparison_exp
+}
+
+enum formatted_tokens_enum_name {
+  """column name"""
+  created_at
+
+  """column name"""
+  decimals
+
+  """column name"""
+  description
+
+  """column name"""
+  freeze_burnt
+
+  """column name"""
+  increase_pct
+
+  """column name"""
+  is_pump_token
+
+  """column name"""
+  latest_price
+
+  """column name"""
+  mint
+
+  """column name"""
+  mint_burnt
+
+  """column name"""
+  name
+
+  """column name"""
+  supply
+
+  """column name"""
+  symbol
+
+  """column name"""
+  token_id
+
+  """column name"""
+  trades
+
+  """column name"""
+  uri
+
+  """column name"""
+  volume
+}
+
+"""formatted_tokens_intervalNative Query Arguments"""
+input formatted_tokens_interval_arguments {
+  """"""
+  interval: interval!
 }
 
 """aggregate max on columns"""
 type formatted_tokens_max_fields {
   created_at: timestamptz
   decimals: Int
+  description: String
   increase_pct: float8
   latest_price: numeric
   mint: String
   name: String
-  platform: String
+  supply: numeric
   symbol: String
   token_id: uuid
   trades: bigint
+  uri: String
+  volume: numeric
 }
 
 """aggregate min on columns"""
 type formatted_tokens_min_fields {
   created_at: timestamptz
   decimals: Int
+  description: String
   increase_pct: float8
   latest_price: numeric
   mint: String
   name: String
-  platform: String
+  supply: numeric
   symbol: String
   token_id: uuid
   trades: bigint
+  uri: String
+  volume: numeric
 }
 
 """Ordering options when selecting data from "formatted_tokens"."""
 input formatted_tokens_order_by {
   created_at: order_by
   decimals: order_by
+  description: order_by
+  freeze_burnt: order_by
   increase_pct: order_by
+  is_pump_token: order_by
   latest_price: order_by
   mint: order_by
+  mint_burnt: order_by
   name: order_by
-  platform: order_by
+  supply: order_by
   symbol: order_by
   token_id: order_by
   trades: order_by
+  uri: order_by
+  volume: order_by
 }
 
 """
@@ -1084,7 +1128,16 @@ enum formatted_tokens_select_column {
   decimals
 
   """column name"""
+  description
+
+  """column name"""
+  freeze_burnt
+
+  """column name"""
   increase_pct
+
+  """column name"""
+  is_pump_token
 
   """column name"""
   latest_price
@@ -1093,10 +1146,13 @@ enum formatted_tokens_select_column {
   mint
 
   """column name"""
+  mint_burnt
+
+  """column name"""
   name
 
   """column name"""
-  platform
+  supply
 
   """column name"""
   symbol
@@ -1106,6 +1162,12 @@ enum formatted_tokens_select_column {
 
   """column name"""
   trades
+
+  """column name"""
+  uri
+
+  """column name"""
+  volume
 }
 
 """aggregate stddev on columns"""
@@ -1113,7 +1175,9 @@ type formatted_tokens_stddev_fields {
   decimals: Float
   increase_pct: Float
   latest_price: Float
+  supply: Float
   trades: Float
+  volume: Float
 }
 
 """aggregate stddev_pop on columns"""
@@ -1121,7 +1185,9 @@ type formatted_tokens_stddev_pop_fields {
   decimals: Float
   increase_pct: Float
   latest_price: Float
+  supply: Float
   trades: Float
+  volume: Float
 }
 
 """aggregate stddev_samp on columns"""
@@ -1129,7 +1195,9 @@ type formatted_tokens_stddev_samp_fields {
   decimals: Float
   increase_pct: Float
   latest_price: Float
+  supply: Float
   trades: Float
+  volume: Float
 }
 
 """
@@ -1147,14 +1215,20 @@ input formatted_tokens_stream_cursor_input {
 input formatted_tokens_stream_cursor_value_input {
   created_at: timestamptz
   decimals: Int
+  description: String
+  freeze_burnt: Boolean
   increase_pct: float8
+  is_pump_token: Boolean
   latest_price: numeric
   mint: String
+  mint_burnt: Boolean
   name: String
-  platform: String
+  supply: numeric
   symbol: String
   token_id: uuid
   trades: bigint
+  uri: String
+  volume: numeric
 }
 
 """aggregate sum on columns"""
@@ -1162,7 +1236,9 @@ type formatted_tokens_sum_fields {
   decimals: Int
   increase_pct: float8
   latest_price: numeric
+  supply: numeric
   trades: bigint
+  volume: numeric
 }
 
 """aggregate var_pop on columns"""
@@ -1170,7 +1246,9 @@ type formatted_tokens_var_pop_fields {
   decimals: Float
   increase_pct: Float
   latest_price: Float
+  supply: Float
   trades: Float
+  volume: Float
 }
 
 """aggregate var_samp on columns"""
@@ -1178,7 +1256,9 @@ type formatted_tokens_var_samp_fields {
   decimals: Float
   increase_pct: Float
   latest_price: Float
+  supply: Float
   trades: Float
+  volume: Float
 }
 
 """aggregate variance on columns"""
@@ -1186,23 +1266,13 @@ type formatted_tokens_variance_fields {
   decimals: Float
   increase_pct: Float
   latest_price: Float
+  supply: Float
   trades: Float
+  volume: Float
 }
 
-input get_formatted_tokens_args {
-  p_since: timestamptz
-}
-
-"""get_formatted_tokens_intervalNative Query Arguments"""
-input get_formatted_tokens_interval_arguments {
-  """"""
-  interval: interval!
-}
-
-"""get_formatted_tokens_sinceNative Query Arguments"""
-input get_formatted_tokens_since_arguments {
-  """"""
-  since: timestamptz!
+input get_formatted_tokens_interval_args {
+  interval_param: interval
 }
 
 scalar interval
@@ -1300,13 +1370,13 @@ type mutation_root {
   delete_token_transaction_by_pk(id: uuid!): token_transaction
 
   """
-  execute VOLATILE function "get_formatted_tokens" which returns "formatted_tokens"
+  execute VOLATILE function "get_formatted_tokens_interval" which returns "formatted_tokens"
   """
-  get_formatted_tokens(
+  get_formatted_tokens_interval(
     """
-    input parameters for function "get_formatted_tokens"
+    input parameters for function "get_formatted_tokens_interval"
     """
-    args: get_formatted_tokens_args!
+    args: get_formatted_tokens_interval_args!
 
     """distinct select on columns"""
     distinct_on: [formatted_tokens_select_column!]
@@ -1847,12 +1917,12 @@ type query_root {
     """filter the rows returned"""
     where: formatted_tokens_bool_exp
   ): formatted_tokens_aggregate!
-  get_formatted_tokens_interval(
-    """get_formatted_tokens_intervalNative Query Arguments"""
-    args: get_formatted_tokens_interval_arguments!
+  formatted_tokens_interval(
+    """formatted_tokens_intervalNative Query Arguments"""
+    args: formatted_tokens_interval_arguments!
 
     """distinct select on columns"""
-    distinct_on: [GetFormattedTokensResult_enum_name!]
+    distinct_on: [formatted_tokens_enum_name!]
 
     """limit the number of rows returned"""
     limit: Int
@@ -1861,30 +1931,11 @@ type query_root {
     offset: Int
 
     """sort the rows by one or more columns"""
-    order_by: [GetFormattedTokensResult_order_by!]
+    order_by: [formatted_tokens_order_by!]
 
     """filter the rows returned"""
-    where: GetFormattedTokensResult_bool_exp_bool_exp
-  ): [GetFormattedTokensResult!]!
-  get_formatted_tokens_since(
-    """get_formatted_tokens_sinceNative Query Arguments"""
-    args: get_formatted_tokens_since_arguments!
-
-    """distinct select on columns"""
-    distinct_on: [GetFormattedTokensResult_enum_name!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [GetFormattedTokensResult_order_by!]
-
-    """filter the rows returned"""
-    where: GetFormattedTokensResult_bool_exp_bool_exp
-  ): [GetFormattedTokensResult!]!
+    where: formatted_tokens_bool_exp_bool_exp
+  ): [formatted_tokens!]!
 
   """
   fetch data from the table: "token"
@@ -2278,6 +2329,25 @@ type subscription_root {
     """filter the rows returned"""
     where: formatted_tokens_bool_exp
   ): formatted_tokens_aggregate!
+  formatted_tokens_interval(
+    """formatted_tokens_intervalNative Query Arguments"""
+    args: formatted_tokens_interval_arguments!
+
+    """distinct select on columns"""
+    distinct_on: [formatted_tokens_enum_name!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [formatted_tokens_order_by!]
+
+    """filter the rows returned"""
+    where: formatted_tokens_bool_exp_bool_exp
+  ): [formatted_tokens!]!
 
   """
   fetch data from the table in a streaming manner: "formatted_tokens"
@@ -2292,44 +2362,6 @@ type subscription_root {
     """filter the rows returned"""
     where: formatted_tokens_bool_exp
   ): [formatted_tokens!]!
-  get_formatted_tokens_interval(
-    """get_formatted_tokens_intervalNative Query Arguments"""
-    args: get_formatted_tokens_interval_arguments!
-
-    """distinct select on columns"""
-    distinct_on: [GetFormattedTokensResult_enum_name!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [GetFormattedTokensResult_order_by!]
-
-    """filter the rows returned"""
-    where: GetFormattedTokensResult_bool_exp_bool_exp
-  ): [GetFormattedTokensResult!]!
-  get_formatted_tokens_since(
-    """get_formatted_tokens_sinceNative Query Arguments"""
-    args: get_formatted_tokens_since_arguments!
-
-    """distinct select on columns"""
-    distinct_on: [GetFormattedTokensResult_enum_name!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [GetFormattedTokensResult_order_by!]
-
-    """filter the rows returned"""
-    where: GetFormattedTokensResult_bool_exp_bool_exp
-  ): [GetFormattedTokensResult!]!
 
   """
   fetch data from the table: "token"
@@ -2567,14 +2599,18 @@ columns and relationships of "token"
 """
 type token {
   decimals: Int
+  description: String
+  freeze_burnt: Boolean
   id: uuid!
+  is_pump_token: Boolean
 
   """token mint address (only for real tokens)"""
-  mint: String
-  name: String!
+  mint: String!
+  mint_burnt: Boolean
+  name: String
   platform: String
-  supply: numeric!
-  symbol: String!
+  supply: numeric
+  symbol: String
 
   """An array relationship"""
   token_price_histories(
@@ -2690,8 +2726,12 @@ input token_bool_exp {
   _not: token_bool_exp
   _or: [token_bool_exp!]
   decimals: Int_comparison_exp
+  description: String_comparison_exp
+  freeze_burnt: Boolean_comparison_exp
   id: uuid_comparison_exp
+  is_pump_token: Boolean_comparison_exp
   mint: String_comparison_exp
+  mint_burnt: Boolean_comparison_exp
   name: String_comparison_exp
   platform: String_comparison_exp
   supply: numeric_comparison_exp
@@ -2732,10 +2772,14 @@ input type for inserting data into table "token"
 """
 input token_insert_input {
   decimals: Int
+  description: String
+  freeze_burnt: Boolean
   id: uuid
+  is_pump_token: Boolean
 
   """token mint address (only for real tokens)"""
   mint: String
+  mint_burnt: Boolean
   name: String
   platform: String
   supply: numeric
@@ -2749,6 +2793,7 @@ input token_insert_input {
 """aggregate max on columns"""
 type token_max_fields {
   decimals: Int
+  description: String
   id: uuid
 
   """token mint address (only for real tokens)"""
@@ -2764,6 +2809,7 @@ type token_max_fields {
 """aggregate min on columns"""
 type token_min_fields {
   decimals: Int
+  description: String
   id: uuid
 
   """token mint address (only for real tokens)"""
@@ -2809,8 +2855,12 @@ input token_on_conflict {
 """Ordering options when selecting data from "token"."""
 input token_order_by {
   decimals: order_by
+  description: order_by
+  freeze_burnt: order_by
   id: order_by
+  is_pump_token: order_by
   mint: order_by
+  mint_burnt: order_by
   name: order_by
   platform: order_by
   supply: order_by
@@ -2830,9 +2880,13 @@ input token_pk_columns_input {
 columns and relationships of "token_price_history"
 """
 type token_price_history {
+  amount_in: numeric
+  amount_out: numeric
   created_at: timestamptz!
   id: uuid!
   internal_token_transaction_ref: uuid
+  max_amount_in: numeric
+  min_amount_out: numeric
   price: numeric!
   token: uuid!
 
@@ -2908,6 +2962,10 @@ input token_price_history_arr_rel_insert_input {
 
 """aggregate avg on columns"""
 type token_price_history_avg_fields {
+  amount_in: Float
+  amount_out: Float
+  max_amount_in: Float
+  min_amount_out: Float
   price: Float
 }
 
@@ -2915,6 +2973,10 @@ type token_price_history_avg_fields {
 order by avg() on columns of table "token_price_history"
 """
 input token_price_history_avg_order_by {
+  amount_in: order_by
+  amount_out: order_by
+  max_amount_in: order_by
+  min_amount_out: order_by
   price: order_by
 }
 
@@ -2925,9 +2987,13 @@ input token_price_history_bool_exp {
   _and: [token_price_history_bool_exp!]
   _not: token_price_history_bool_exp
   _or: [token_price_history_bool_exp!]
+  amount_in: numeric_comparison_exp
+  amount_out: numeric_comparison_exp
   created_at: timestamptz_comparison_exp
   id: uuid_comparison_exp
   internal_token_transaction_ref: uuid_comparison_exp
+  max_amount_in: numeric_comparison_exp
+  min_amount_out: numeric_comparison_exp
   price: numeric_comparison_exp
   token: uuid_comparison_exp
   token_relationship: token_bool_exp
@@ -2953,6 +3019,10 @@ enum token_price_history_constraint {
 input type for incrementing numeric columns in table "token_price_history"
 """
 input token_price_history_inc_input {
+  amount_in: numeric
+  amount_out: numeric
+  max_amount_in: numeric
+  min_amount_out: numeric
   price: numeric
 }
 
@@ -2960,9 +3030,13 @@ input token_price_history_inc_input {
 input type for inserting data into table "token_price_history"
 """
 input token_price_history_insert_input {
+  amount_in: numeric
+  amount_out: numeric
   created_at: timestamptz
   id: uuid
   internal_token_transaction_ref: uuid
+  max_amount_in: numeric
+  min_amount_out: numeric
   price: numeric
   token: uuid
   token_relationship: token_obj_rel_insert_input
@@ -2971,9 +3045,13 @@ input token_price_history_insert_input {
 
 """aggregate max on columns"""
 type token_price_history_max_fields {
+  amount_in: numeric
+  amount_out: numeric
   created_at: timestamptz
   id: uuid
   internal_token_transaction_ref: uuid
+  max_amount_in: numeric
+  min_amount_out: numeric
   price: numeric
   token: uuid
 }
@@ -2982,18 +3060,26 @@ type token_price_history_max_fields {
 order by max() on columns of table "token_price_history"
 """
 input token_price_history_max_order_by {
+  amount_in: order_by
+  amount_out: order_by
   created_at: order_by
   id: order_by
   internal_token_transaction_ref: order_by
+  max_amount_in: order_by
+  min_amount_out: order_by
   price: order_by
   token: order_by
 }
 
 """aggregate min on columns"""
 type token_price_history_min_fields {
+  amount_in: numeric
+  amount_out: numeric
   created_at: timestamptz
   id: uuid
   internal_token_transaction_ref: uuid
+  max_amount_in: numeric
+  min_amount_out: numeric
   price: numeric
   token: uuid
 }
@@ -3002,9 +3088,13 @@ type token_price_history_min_fields {
 order by min() on columns of table "token_price_history"
 """
 input token_price_history_min_order_by {
+  amount_in: order_by
+  amount_out: order_by
   created_at: order_by
   id: order_by
   internal_token_transaction_ref: order_by
+  max_amount_in: order_by
+  min_amount_out: order_by
   price: order_by
   token: order_by
 }
@@ -3103,9 +3193,13 @@ input token_price_history_on_conflict {
 
 """Ordering options when selecting data from "token_price_history"."""
 input token_price_history_order_by {
+  amount_in: order_by
+  amount_out: order_by
   created_at: order_by
   id: order_by
   internal_token_transaction_ref: order_by
+  max_amount_in: order_by
+  min_amount_out: order_by
   price: order_by
   token: order_by
   token_relationship: token_order_by
@@ -3122,6 +3216,12 @@ select columns of table "token_price_history"
 """
 enum token_price_history_select_column {
   """column name"""
+  amount_in
+
+  """column name"""
+  amount_out
+
+  """column name"""
   created_at
 
   """column name"""
@@ -3129,6 +3229,12 @@ enum token_price_history_select_column {
 
   """column name"""
   internal_token_transaction_ref
+
+  """column name"""
+  max_amount_in
+
+  """column name"""
+  min_amount_out
 
   """column name"""
   price
@@ -3141,15 +3247,23 @@ enum token_price_history_select_column {
 input type for updating data in table "token_price_history"
 """
 input token_price_history_set_input {
+  amount_in: numeric
+  amount_out: numeric
   created_at: timestamptz
   id: uuid
   internal_token_transaction_ref: uuid
+  max_amount_in: numeric
+  min_amount_out: numeric
   price: numeric
   token: uuid
 }
 
 """aggregate stddev on columns"""
 type token_price_history_stddev_fields {
+  amount_in: Float
+  amount_out: Float
+  max_amount_in: Float
+  min_amount_out: Float
   price: Float
 }
 
@@ -3157,11 +3271,19 @@ type token_price_history_stddev_fields {
 order by stddev() on columns of table "token_price_history"
 """
 input token_price_history_stddev_order_by {
+  amount_in: order_by
+  amount_out: order_by
+  max_amount_in: order_by
+  min_amount_out: order_by
   price: order_by
 }
 
 """aggregate stddev_pop on columns"""
 type token_price_history_stddev_pop_fields {
+  amount_in: Float
+  amount_out: Float
+  max_amount_in: Float
+  min_amount_out: Float
   price: Float
 }
 
@@ -3169,11 +3291,19 @@ type token_price_history_stddev_pop_fields {
 order by stddev_pop() on columns of table "token_price_history"
 """
 input token_price_history_stddev_pop_order_by {
+  amount_in: order_by
+  amount_out: order_by
+  max_amount_in: order_by
+  min_amount_out: order_by
   price: order_by
 }
 
 """aggregate stddev_samp on columns"""
 type token_price_history_stddev_samp_fields {
+  amount_in: Float
+  amount_out: Float
+  max_amount_in: Float
+  min_amount_out: Float
   price: Float
 }
 
@@ -3181,6 +3311,10 @@ type token_price_history_stddev_samp_fields {
 order by stddev_samp() on columns of table "token_price_history"
 """
 input token_price_history_stddev_samp_order_by {
+  amount_in: order_by
+  amount_out: order_by
+  max_amount_in: order_by
+  min_amount_out: order_by
   price: order_by
 }
 
@@ -3197,15 +3331,23 @@ input token_price_history_stream_cursor_input {
 
 """Initial value of the column from where the streaming should start"""
 input token_price_history_stream_cursor_value_input {
+  amount_in: numeric
+  amount_out: numeric
   created_at: timestamptz
   id: uuid
   internal_token_transaction_ref: uuid
+  max_amount_in: numeric
+  min_amount_out: numeric
   price: numeric
   token: uuid
 }
 
 """aggregate sum on columns"""
 type token_price_history_sum_fields {
+  amount_in: numeric
+  amount_out: numeric
+  max_amount_in: numeric
+  min_amount_out: numeric
   price: numeric
 }
 
@@ -3213,6 +3355,10 @@ type token_price_history_sum_fields {
 order by sum() on columns of table "token_price_history"
 """
 input token_price_history_sum_order_by {
+  amount_in: order_by
+  amount_out: order_by
+  max_amount_in: order_by
+  min_amount_out: order_by
   price: order_by
 }
 
@@ -3221,6 +3367,12 @@ update columns of table "token_price_history"
 """
 enum token_price_history_update_column {
   """column name"""
+  amount_in
+
+  """column name"""
+  amount_out
+
+  """column name"""
   created_at
 
   """column name"""
@@ -3228,6 +3380,12 @@ enum token_price_history_update_column {
 
   """column name"""
   internal_token_transaction_ref
+
+  """column name"""
+  max_amount_in
+
+  """column name"""
+  min_amount_out
 
   """column name"""
   price
@@ -3249,6 +3407,10 @@ input token_price_history_updates {
 
 """aggregate var_pop on columns"""
 type token_price_history_var_pop_fields {
+  amount_in: Float
+  amount_out: Float
+  max_amount_in: Float
+  min_amount_out: Float
   price: Float
 }
 
@@ -3256,11 +3418,19 @@ type token_price_history_var_pop_fields {
 order by var_pop() on columns of table "token_price_history"
 """
 input token_price_history_var_pop_order_by {
+  amount_in: order_by
+  amount_out: order_by
+  max_amount_in: order_by
+  min_amount_out: order_by
   price: order_by
 }
 
 """aggregate var_samp on columns"""
 type token_price_history_var_samp_fields {
+  amount_in: Float
+  amount_out: Float
+  max_amount_in: Float
+  min_amount_out: Float
   price: Float
 }
 
@@ -3268,11 +3438,19 @@ type token_price_history_var_samp_fields {
 order by var_samp() on columns of table "token_price_history"
 """
 input token_price_history_var_samp_order_by {
+  amount_in: order_by
+  amount_out: order_by
+  max_amount_in: order_by
+  min_amount_out: order_by
   price: order_by
 }
 
 """aggregate variance on columns"""
 type token_price_history_variance_fields {
+  amount_in: Float
+  amount_out: Float
+  max_amount_in: Float
+  min_amount_out: Float
   price: Float
 }
 
@@ -3280,6 +3458,10 @@ type token_price_history_variance_fields {
 order by variance() on columns of table "token_price_history"
 """
 input token_price_history_variance_order_by {
+  amount_in: order_by
+  amount_out: order_by
+  max_amount_in: order_by
+  min_amount_out: order_by
   price: order_by
 }
 
@@ -3291,10 +3473,22 @@ enum token_select_column {
   decimals
 
   """column name"""
+  description
+
+  """column name"""
+  freeze_burnt
+
+  """column name"""
   id
 
   """column name"""
+  is_pump_token
+
+  """column name"""
   mint
+
+  """column name"""
+  mint_burnt
 
   """column name"""
   name
@@ -3320,10 +3514,14 @@ input type for updating data in table "token"
 """
 input token_set_input {
   decimals: Int
+  description: String
+  freeze_burnt: Boolean
   id: uuid
+  is_pump_token: Boolean
 
   """token mint address (only for real tokens)"""
   mint: String
+  mint_burnt: Boolean
   name: String
   platform: String
   supply: numeric
@@ -3364,10 +3562,14 @@ input token_stream_cursor_input {
 """Initial value of the column from where the streaming should start"""
 input token_stream_cursor_value_input {
   decimals: Int
+  description: String
+  freeze_burnt: Boolean
   id: uuid
+  is_pump_token: Boolean
 
   """token mint address (only for real tokens)"""
   mint: String
+  mint_burnt: Boolean
   name: String
   platform: String
   supply: numeric
@@ -3832,10 +4034,22 @@ enum token_update_column {
   decimals
 
   """column name"""
+  description
+
+  """column name"""
+  freeze_burnt
+
+  """column name"""
   id
 
   """column name"""
+  is_pump_token
+
+  """column name"""
   mint
+
+  """column name"""
+  mint_burnt
 
   """column name"""
   name
