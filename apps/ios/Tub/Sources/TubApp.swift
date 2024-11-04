@@ -25,12 +25,6 @@ struct AppContent : View {
     @State var walletState : EmbeddedWalletState = EmbeddedWalletState.notCreated
     
     var body: some View {
-        
-        #if DEBUG
-        Text("userId: \(userId)")
-        Text("walletState: \(walletState.toString)")
-        Text("myAuthState: \(myAuthState.toString)")
-        #endif
         Group{
             if myAuthState.toString == "notReady" || walletState == .connecting {
                 LoadingView()
@@ -45,7 +39,6 @@ struct AppContent : View {
         }.onAppear(perform: {
             privy.embeddedWallet.setEmbeddedWalletStateChangeCallback({
                 state in walletState = state
-                
             })
             
             privy.setAuthStateChangeCallback { state in
