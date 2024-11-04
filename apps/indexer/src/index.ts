@@ -5,7 +5,7 @@ import { WebSocket } from "ws";
 
 import { createClient as createGqlClient, GqlClient } from "@tub/gql";
 import { parseEnv } from "@bin/parseEnv";
-import { FETCH_DATA_BATCH_SIZE, FETCH_HELIUS_WRITE_GQL_BATCH_SIZE } from "@/lib/constants";
+import { CLOSE_CODES, FETCH_DATA_BATCH_SIZE, FETCH_HELIUS_WRITE_GQL_BATCH_SIZE } from "@/lib/constants";
 import { RaydiumAmmParser } from "@/lib/parsers/raydium-amm-parser";
 import { connection, helius, ixParser, txFormatter } from "@/lib/setup";
 import { PriceData, Swap, SwapType, TokenMetadata, TransactionSubscriptionResult } from "@/lib/types";
@@ -139,137 +139,144 @@ const handleSwapData = async <T extends SwapType = SwapType>(gql: GqlClient["db"
 // 3. Restart the websocket connection on close
 // 4. Terminate the connection (which will trigger a reconnect) if:
 //   a. No pong received within 30s (we ping every 10s)
-//   b. No messages received within 30s
-const setup = (gql: GqlClient["db"]) => {
-  const ws = new WebSocket(`ws://atlas-mainnet.helius-rpc.com/?api-key=${env.HELIUS_API_KEY}`);
+//   b. No messages received within 5s
+const setup = async (ws: WebSocket, gql: GqlClient["db"], connectionId: string) => {
+  return new Promise((_, reject) => {
+    let lastMessageTime = Date.now();
+    let lastPongTime = Date.now();
+    let pingTimeout: NodeJS.Timeout;
+    let heartbeatInterval: NodeJS.Timeout;
+    let pingInterval: NodeJS.Timeout;
 
-  // Expected close codes (restart straight away)
-  const CLOSE_CODES = {
-    MANUAL_RESTART: 3000,
-    PING_TIMEOUT: 3001,
-    NO_DATA: 3002,
-  };
+    // Terminate connection if no pong received within 30s
+    const heartbeat = () => {
+      clearTimeout(pingTimeout);
+      pingTimeout = setTimeout(() => {
+        const timeSinceLastPong = Date.now() - lastPongTime;
+        console.log(
+          `[${connectionId}] Ping timeout - terminating connection. Time since last pong: ${timeSinceLastPong}ms`,
+        );
+        ws.close(CLOSE_CODES.PING_TIMEOUT, "Ping timeout");
+      }, 30_000);
+    };
 
-  let lastMessageTime = Date.now();
-  let lastPongTime = Date.now();
-  let pingTimeout: NodeJS.Timeout;
-  let heartbeatInterval: NodeJS.Timeout;
+    ws.on("pong", () => {
+      lastPongTime = Date.now();
+      const timeSinceLastMessage = Date.now() - lastMessageTime;
+      console.log(`[${connectionId}] Pong received. Time since last message: ${timeSinceLastMessage}ms`);
+      heartbeat();
+    });
 
-  // Terminate connection if no pong received within 30s
-  const heartbeat = () => {
-    clearTimeout(pingTimeout);
+    ws.onopen = () => {
+      console.log(`[${connectionId}] WebSocket connection opened at ${new Date().toISOString()}`);
+      heartbeat();
 
-    pingTimeout = setTimeout(() => {
-      const timeSinceLastPong = Date.now() - lastPongTime;
-      console.log(`Ping timeout - terminating connection. Time since last pong: ${timeSinceLastPong}ms`);
-      ws.close(CLOSE_CODES.PING_TIMEOUT, "Ping timeout");
-    }, 30_000);
-  };
+      // Start heartbeat check every 10 seconds
+      heartbeatInterval = setInterval(() => {
+        const timeSinceLastMessage = Date.now() - lastMessageTime;
+        if (timeSinceLastMessage > 5_000) {
+          console.log(
+            `[${connectionId}] No data received for 5 seconds - reconnecting. Last message was at ${new Date(lastMessageTime).toISOString()}`,
+          );
+          ws.close(CLOSE_CODES.NO_DATA, "No data received");
+        }
+      }, 10_000);
 
-  // Terminate connection if no data received for 5 seconds
-  const checkDataFlow = () => {
-    const timeSinceLastMessage = Date.now() - lastMessageTime;
-    if (timeSinceLastMessage > 5_000) {
-      console.log(
-        `No data received for 5 seconds - reconnecting. Last message was at ${new Date(lastMessageTime).toISOString()}`,
+      ws.send(
+        JSON.stringify({
+          jsonrpc: "2.0",
+          id: 420,
+          method: "transactionSubscribe",
+          params: [
+            { failed: false, accountInclude: [RaydiumAmmParser.PROGRAM_ID.toString()] },
+            {
+              commitment: "confirmed",
+              encoding: "jsonParsed",
+              transactionDetails: "full",
+              maxSupportedTransactionVersion: 0,
+            },
+          ],
+        }),
       );
-      ws.close(CLOSE_CODES.NO_DATA, "No data received");
-    }
-  };
+    };
 
-  ws.on("pong", () => {
-    lastPongTime = Date.now();
-    const timeSinceLastMessage = Date.now() - lastMessageTime;
-    console.log(`Pong received. Time since last message: ${timeSinceLastMessage}ms`);
-    heartbeat();
+    ws.onmessage = (event) => {
+      lastMessageTime = Date.now();
+
+      const obj = JSON.parse(event.data.toString());
+      const result = obj.params?.result as TransactionSubscriptionResult | undefined;
+
+      if (result) {
+        const swapAccounts = handleLogs(result);
+        handleSwapData(gql, swapAccounts);
+      } else {
+        // Log other types of messages (like subscription confirmations)
+        console.log(`Received non-swap message: ${JSON.stringify(obj).slice(0, 200)}...`);
+      }
+    };
+
+    ws.onclose = (event) => {
+      console.log(`[${connectionId}] WebSocket connection closing. Code: ${event.code}, Reason: ${event.reason}`);
+      // Clean up all intervals and timeouts
+      clearInterval(heartbeatInterval);
+      clearInterval(pingInterval);
+      clearTimeout(pingTimeout);
+
+      reject(
+        new Error(
+          `[${connectionId}] WebSocket connection closed at ${new Date().toISOString()}. Code: ${event.code}, Reason: ${event.reason}`,
+        ),
+      );
+    };
+
+    ws.onerror = (error) => {
+      console.log(`[${connectionId}] WebSocket error at ${new Date().toISOString()}:`, error);
+      ws.close(CLOSE_CODES.MANUAL_RESTART, "Error occurred");
+    };
+
+    // Send ping every 10s
+    pingInterval = setInterval(() => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.ping();
+        console.log(
+          `[${connectionId}] Ping sent at ${new Date().toISOString()}. Time since last message: ${Date.now() - lastMessageTime}ms`,
+        );
+      } else {
+        console.log(`[${connectionId}] Cannot send ping - WebSocket state: ${ws.readyState}. Forcing restart...`);
+        ws.close(CLOSE_CODES.MANUAL_RESTART, "Invalid websocket state");
+      }
+    }, 10_000);
   });
-
-  ws.onopen = () => {
-    console.log(`WebSocket connection opened at ${new Date().toISOString()}`);
-    heartbeat();
-
-    // Start heartbeat check every 10 seconds
-    heartbeatInterval = setInterval(checkDataFlow, 10_000);
-
-    ws.send(
-      JSON.stringify({
-        jsonrpc: "2.0",
-        id: 420,
-        method: "transactionSubscribe",
-        params: [
-          { failed: false, accountInclude: [RaydiumAmmParser.PROGRAM_ID.toString()] },
-          {
-            commitment: "confirmed",
-            encoding: "jsonParsed",
-            transactionDetails: "full",
-            maxSupportedTransactionVersion: 0,
-          },
-        ],
-      }),
-    );
-  };
-
-  ws.onmessage = (event) => {
-    const timeSinceLastMessage = Date.now() - lastMessageTime;
-    lastMessageTime = Date.now();
-
-    const obj = JSON.parse(event.data.toString());
-    const result = obj.params?.result as TransactionSubscriptionResult | undefined;
-
-    if (result) {
-      const swapAccounts = handleLogs(result);
-      handleSwapData(gql, swapAccounts);
-    } else {
-      // Log other types of messages (like subscription confirmations)
-      console.log(`Received non-swap message: ${JSON.stringify(obj).slice(0, 200)}...`);
-    }
-  };
-
-  ws.onclose = (event) => {
-    console.log(
-      `WebSocket connection closed at ${new Date().toISOString()}. Code: ${event.code}, Reason: ${event.reason}`,
-    );
-    clearInterval(heartbeatInterval);
-    clearTimeout(pingTimeout);
-
-    // If it's our manual close, reconnect immediately
-    const delay = Object.values(CLOSE_CODES).includes(event.code) ? 1000 : 5000;
-    console.log(`Reconnecting in ${delay}ms...`);
-    setTimeout(() => setup(gql), delay);
-  };
-
-  ws.onerror = (error) => {
-    console.log(`WebSocket error at ${new Date().toISOString()}:`, error);
-    ws.close(CLOSE_CODES.MANUAL_RESTART, "Error occurred");
-  };
-
-  // Send ping every 10s
-  setInterval(() => {
-    if (ws.readyState === WebSocket.OPEN) {
-      ws.ping();
-      console.log(
-        `Ping sent at ${new Date().toISOString()}. Time since last message: ${Date.now() - lastMessageTime}ms`,
-      );
-    } else {
-      console.log(`Cannot send ping - WebSocket state: ${ws.readyState}. Forcing restart...`);
-      ws.close(CLOSE_CODES.MANUAL_RESTART, "Invalid websocket state");
-    }
-  }, 10_000);
 };
 
+let currentConnectionId = 0;
 export const start = async () => {
-  try {
-    const gql = (
-      await createGqlClient({
-        url: env.NODE_ENV !== "production" ? "http://localhost:8080/v1/graphql" : env.GRAPHQL_URL,
-        hasuraAdminSecret: env.NODE_ENV !== "production" ? "password" : env.HASURA_ADMIN_SECRET,
-      })
-    ).db;
-    setup(gql);
-  } catch (err) {
-    console.warn("Error in indexer, restarting in 5 seconds...");
-    console.error(err);
-    await new Promise((resolve) => setTimeout(resolve, 5000));
-    start(); // recursive call to restart if there's an unhandled error
+  while (true) {
+    const connectionId = `conn_${++currentConnectionId}`;
+    let ws: WebSocket | null = null;
+
+    try {
+      console.log(`[${connectionId}] Starting new WebSocket connection`);
+      ws = new WebSocket(`wss://atlas-mainnet.helius-rpc.com/?api-key=${env.HELIUS_API_KEY}`);
+
+      const gql = (
+        await createGqlClient({
+          url: env.NODE_ENV !== "production" ? "http://localhost:8080/v1/graphql" : env.GRAPHQL_URL,
+          hasuraAdminSecret: env.NODE_ENV !== "production" ? "password" : env.HASURA_ADMIN_SECRET,
+        })
+      ).db;
+
+      await setup(ws, gql, connectionId);
+    } catch (err) {
+      console.warn(`[${connectionId}] Error in indexer, restarting in a second...`);
+      console.error(err);
+
+      // Ensure WebSocket is properly closed
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.close(CLOSE_CODES.MANUAL_RESTART, "Error occurred");
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 1_000));
+    }
   }
 };
