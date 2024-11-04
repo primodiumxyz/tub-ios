@@ -16,6 +16,21 @@ struct AccountView: View {
     @State private var errorMessage: String?
     @Environment(\.presentationMode) var presentationMode
     
+    func handleAirdrop () {
+        
+        Network.shared.airdropNativeToUser(amount: Int(1e9), completion: {result in
+            switch result {
+            case .success:
+                airdropResult = "Airdrop successful!"
+                errorMessage = nil
+                
+            case .failure(let error):
+                errorMessage = "Airdrop failed!"
+                print(error)
+                airdropResult = nil
+            }
+        })
+    }
     
     var body: some View {
         NavigationStack {
@@ -45,7 +60,7 @@ struct AccountView: View {
                             .font(.sfRounded(size: .lg, weight: .medium))
                         Text("Wallet address: \(userModel.walletAddress)")
                             .font(.sfRounded(size: .lg, weight: .medium))
-
+                        
                         Text("Balance: \(priceModel.formatPrice(lamports: userModel.balanceLamps, minDecimals: 2))")
                             .font(.sfRounded(size: .lg, weight: .medium))
                             .padding(.bottom)
@@ -71,6 +86,20 @@ struct AccountView: View {
                             .disabled(isAirdropping)
                             .padding(.bottom, 5.0)
                         }
+                        
+                        Button(action:
+                                handleAirdrop
+                        ) {
+                            Text("Airdrop 1 SOL")
+                                .font(.sfRounded(size: .base, weight: .semibold))
+                                .foregroundColor(AppColors.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(12)
+                                .background(AppColors.primaryPurple)
+                                .cornerRadius(26)
+                        }
+                        .foregroundColor(AppColors.white)
+                        .padding(.bottom, 5.0)
                         
                         Button(action: userModel.logout) {
                             Text("Logout")

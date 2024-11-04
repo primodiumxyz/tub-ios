@@ -23,7 +23,12 @@ export function createAppRouter() {
         }),
       )
       .mutation(async ({ ctx, input }) => {
-        return await ctx.tubService.buyToken(ctx.jwtToken, input.tokenId, BigInt(input.amount), BigInt(input.overridePrice ?? "1"));
+        return await ctx.tubService.buyToken(
+          ctx.jwtToken,
+          input.tokenId,
+          BigInt(input.amount),
+          BigInt(input.overridePrice ?? "1"),
+        );
       }),
     sellToken: t.procedure
       .input(
@@ -45,7 +50,12 @@ export function createAppRouter() {
         }),
       )
       .mutation(async ({ ctx, input }) => {
-        return await ctx.tubService.registerNewToken(input.name, input.symbol, input.supply ? BigInt(input.supply) : undefined, input.uri);
+        return await ctx.tubService.registerNewToken(
+          input.name,
+          input.symbol,
+          input.supply ? BigInt(input.supply) : undefined,
+          input.uri,
+        );
       }),
     airdropNativeToUser: t.procedure
       .input(
