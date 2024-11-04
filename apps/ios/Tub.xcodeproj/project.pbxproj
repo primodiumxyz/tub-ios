@@ -126,6 +126,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		46B4B4532CD542DB00D8175A /* Extensions */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Extensions; sourceTree = "<group>"; };
 		99DDF62E2CB0333D000234DA /* BuySellForm */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = BuySellForm; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
@@ -205,6 +206,7 @@
 		99A7CD502CB80C4100F27964 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				46B4B4532CD542DB00D8175A /* Extensions */,
 				999F59532CA6F70C00E7AE9F /* Models */,
 				999F59522CA6F6A900E7AE9F /* Views */,
 				9936FC562CADCA5200E21B8A /* Structs.swift */,
@@ -368,6 +370,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				46B4B4532CD542DB00D8175A /* Extensions */,
 				99DDF62E2CB0333D000234DA /* BuySellForm */,
 			);
 			name = Tub;

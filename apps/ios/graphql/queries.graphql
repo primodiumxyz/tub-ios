@@ -28,9 +28,11 @@ query GetAllTokens {
 query GetTokenData($tokenId: uuid!) {
   token(where: { id: { _eq: $tokenId } }) {
     id
+    mint
     name
     symbol
-    mint
+    description
+    supply
     decimals
     updated_at
     supply
@@ -155,6 +157,7 @@ query GetAccountTransactions($accountId: uuid!) {
       supply
       symbol
       uri
+      mint
     }
     account_transaction_data {
       created_at
@@ -180,7 +183,7 @@ query GetTokenPriceHistorySince($tokenId: uuid!, $since: timestamptz!) {
 
 query GetFilteredTokens(
   $interval: interval!
-  $minTrades: bigint = 0
+  $minTrades: bigint = "0"
   $minVolume: numeric = 0
   $mintBurnt: Boolean = false
   $freezeBurnt: Boolean = false

@@ -29,6 +29,10 @@ class TokenListModel: ObservableObject {
 
     // Constants for token filtering
     private let INTERVAL: Interval = "30s"
+    private let MIN_TRADES: Int = 30
+    private let MIN_VOLUME: Int = 1
+    private let MINT_BURNT: Bool = true
+    private let FREEZE_BURNT: Bool = true
     
     init(userModel: UserModel) {
         self.userModel = userModel
@@ -104,7 +108,11 @@ class TokenListModel: ObservableObject {
 
     func fetchTokens() {
         subscription = Network.shared.apollo.subscribe(subscription: SubFilteredTokensIntervalSubscription(
-            interval: .some(INTERVAL)
+            interval: .some(INTERVAL),
+            minTrades: .some(String(MIN_TRADES)),
+            minVolume: .some(MIN_VOLUME),
+            mintBurnt: .some(MINT_BURNT),
+            freezeBurnt: .some(FREEZE_BURNT)
         )) { result in
             DispatchQueue.main.async {
                 self.isLoading = false
@@ -114,12 +122,17 @@ class TokenListModel: ObservableObject {
                         print(error)
                         self.errorMessage = "Error: \(error)"
                     }
-                    if let tokens = graphQLResult.data?.get_formatted_tokens_interval {
+                    if let tokens = graphQLResult.data?.formatted_tokens_interval {
                         self.availableTokens = tokens.map { elem in
-                            Token(id: elem.token_id, name: elem.name, symbol: elem.symbol, mint: elem.mint, decimals: elem.decimals ?? 6, imageUri: nil)
+                            Token(id: elem.token_id, mint: elem.mint, name: elem.name ?? "", symbol: elem.symbol ?? "", description: elem.description ?? "", supply: elem.supply ?? 0, decimals: elem.decimals ?? 6, imageUri: elem.uri ?? "")
                         }
                         
                         self.updateTokens()
+                        
+                        // Update current token model if the token exists in available tokens
+                        if let currentToken = self.availableTokens.first(where: { $0.id == self.currentTokenModel.tokenId }) {
+                            self.currentTokenModel.updateTokenDetails(from: currentToken)
+                        }
                     }
                 case .failure(let error):
                     print(error.localizedDescription)

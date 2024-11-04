@@ -3,11 +3,11 @@
 
 @_exported import ApolloAPI
 
-public class GetTokenDataQuery: GraphQLQuery {
-  public static let operationName: String = "GetTokenData"
+public class SubTokenDataSubscription: GraphQLSubscription {
+  public static let operationName: String = "SubTokenData"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetTokenData($tokenId: uuid!) { token(where: { id: { _eq: $tokenId } }) { __typename id mint name symbol description supply decimals updated_at supply uri } }"#
+      #"subscription SubTokenData($tokenId: uuid!) { token(where: { id: { _eq: $tokenId } }) { __typename id mint name symbol description supply decimals updated_at uri } }"#
     ))
 
   public var tokenId: Uuid
@@ -22,7 +22,7 @@ public class GetTokenDataQuery: GraphQLQuery {
     public let __data: DataDict
     public init(_dataDict: DataDict) { __data = _dataDict }
 
-    public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Query_root }
+    public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Subscription_root }
     public static var __selections: [ApolloAPI.Selection] { [
       .field("token", [Token].self, arguments: ["where": ["id": ["_eq": .variable("tokenId")]]]),
     ] }
