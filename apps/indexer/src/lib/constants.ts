@@ -13,3 +13,10 @@ export const PRICE_PRECISION = 1e9;
 
 export const WRAPPED_SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
 export const PUMP_FUN_AUTHORITY = new PublicKey("TSLvdd1pWpHVjahSpsvCXUbgwsL3JAcvokwaKt1eokM");
+
+// Expected close codes for the websocket (restart straight away)
+export const CLOSE_CODES = {
+  MANUAL_RESTART: 3000,
+  PING_TIMEOUT: 3001,
+  NO_DATA: 3002,
+};
