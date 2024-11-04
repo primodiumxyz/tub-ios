@@ -69,7 +69,7 @@ func formatLargeNumber(_ value: Double) -> String {
         return "\(String(format: "%.1fB", value / 1_000_000_000))"
     case 1_000_000...:
         return "\(String(format: "%.1fM", value / 1_000_000))"
-    case 1_000...:
+    case 10_000...:
         return "\(String(format: "%.1fK", value / 1_000))"
     default:
         return String(value)
