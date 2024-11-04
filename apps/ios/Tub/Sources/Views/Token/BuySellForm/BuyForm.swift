@@ -166,7 +166,7 @@ struct BuyForm: View {
                 let buyAmountLamps = priceModel.usdToLamports(usd: buyAmountUsd)
                 let tokenAmount = Int(Double(buyAmountLamps) / Double(currentPrice) * 1e9)
 
-                Text("\(priceModel.formatPrice(lamports: tokenAmount, showUnit: false)) \(tokenModel.token.symbol)")
+                Text("\(priceModel.formatPrice(lamports: tokenAmount, showUnit: false)) \(tokenModel.token.symbol ?? "")")
                     .font(.sfRounded(size: .base, weight: .bold))
                     .opacity(0.8)
             }

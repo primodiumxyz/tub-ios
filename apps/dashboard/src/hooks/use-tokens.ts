@@ -39,18 +39,17 @@ export const useTokens = (): {
   const tokens = useMemo(() => {
     if (!filteredTokensResult.data?.formatted_tokens_interval) return [];
     return filteredTokensResult.data.formatted_tokens_interval.map((token) => ({
-      // TODO: fix null values when they are not nullable
-      mint: token.mint!,
-      latestPrice: Number(token.latest_price!),
-      increasePct: Number(token.increase_pct!),
-      trades: Number(token.trades!),
-      volume: Number(token.volume!),
+      mint: token.mint,
+      latestPrice: Number(token.latest_price),
+      increasePct: Number(token.increase_pct),
+      trades: Number(token.trades),
+      volume: Number(token.volume),
       name: token.name ?? "NAME",
       symbol: token.symbol ?? "SYMBOL",
       uri: token.uri ?? "",
       mintBurnt: token.mint_burnt ?? false,
       freezeBurnt: token.freeze_burnt ?? false,
-      id: token.token_id!,
+      id: token.token_id,
     }));
   }, [filteredTokensResult.data]);
 

@@ -98,7 +98,7 @@ struct TokenView : View {
                 if tokenModel.token.imageUri != nil {
                     ImageView(imageUri: tokenModel.token.imageUri!, size: 20)
                 }
-                Text("$\(tokenModel.token.symbol)")
+                Text("$\(tokenModel.token.symbol ?? "")")
                     .font(.sfRounded(size: .lg, weight: .semibold))
             }
             HStack(alignment: .center, spacing: 6) {

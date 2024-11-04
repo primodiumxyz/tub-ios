@@ -37,6 +37,20 @@ subscription SubLatestTokenPrice($tokenId: uuid!) {
   }
 }
 
+subscription SubTokenData($tokenId: uuid!) {
+  token(where: { id: { _eq: $tokenId } }) {
+    id
+    mint
+    name
+    symbol
+    description
+    supply
+    decimals
+    updated_at
+    uri
+  }
+}
+
 subscription SubAllOnchainTokensPriceHistorySince($since: timestamptz!) {
   token_price_history(
     where: {
@@ -57,7 +71,7 @@ subscription SubAllOnchainTokensPriceHistorySince($since: timestamptz!) {
 
 subscription SubFilteredTokensInterval(
   $interval: interval = "30s"
-  $minTrades: bigint = 0
+  $minTrades: bigint = "0"
   $minVolume: numeric = 0
   $mintBurnt: Boolean = false
   $freezeBurnt: Boolean = false

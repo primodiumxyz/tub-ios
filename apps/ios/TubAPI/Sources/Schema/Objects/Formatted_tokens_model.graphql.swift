@@ -4,9 +4,8 @@
 import ApolloAPI
 
 public extension Objects {
-  /// columns and relationships of "formatted_tokens"
-  static let Formatted_tokens = ApolloAPI.Object(
-    typename: "formatted_tokens",
+  static let Formatted_tokens_model = ApolloAPI.Object(
+    typename: "formatted_tokens_model",
     implementedInterfaces: []
   )
 }
