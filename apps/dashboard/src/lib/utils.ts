@@ -1,19 +1,36 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
-import { AFTER_INTERVALS } from "@/lib/constants";
+import { AFTER_INTERVALS, SortByMetric, TOP_N_TOKENS } from "@/lib/constants";
 import { AggregatedStats, FilteredTokensPerformancePerIntervalData, TokenStats } from "@/lib/types";
 
 export const cn = (...inputs: ClassValue[]) => {
   return twMerge(clsx(inputs));
 };
 
-export const getTokensPerformanceStats = (data: FilteredTokensPerformancePerIntervalData[]): AggregatedStats => {
-  const processedData = data.map((token) => ({
-    ...token,
-    increase_pct_after: (JSON.parse(token.increase_pct_after) ?? []) as number[],
-    trades_after: (JSON.parse(token.trades_after) ?? []) as number[],
-  }));
+export const getTokensPerformanceStats = (
+  data: FilteredTokensPerformancePerIntervalData[],
+  sortBy: SortByMetric = SortByMetric.TRADES,
+): AggregatedStats => {
+  const processedData = data
+    .map((token) => ({
+      ...token,
+      increase_pct_after: (JSON.parse(token.increase_pct_after) ?? []) as number[],
+      trades_after: (JSON.parse(token.trades_after) ?? []) as number[],
+      volume_after: (JSON.parse(token.volume_after) ?? []) as number[],
+    }))
+    .sort((a, b) => {
+      if (sortBy === SortByMetric.TRADES) {
+        const sumTradesA = a.trades_after.reduce((sum, trades) => sum + trades, 0);
+        const sumTradesB = b.trades_after.reduce((sum, trades) => sum + trades, 0);
+        return sumTradesB - sumTradesA;
+      } else {
+        const sumVolumeA = a.volume_after.reduce((sum, volume) => sum + Number(volume), 0);
+        const sumVolumeB = b.volume_after.reduce((sum, volume) => sum + Number(volume), 0);
+        return sumVolumeB - sumVolumeA;
+      }
+    })
+    .slice(0, TOP_N_TOKENS);
 
   const byInterval = new Map<string, TokenStats>();
   const globalAfterIntervals: Array<{

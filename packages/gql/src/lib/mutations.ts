@@ -2,9 +2,7 @@ import { graphql } from "./init";
 
 export const RegisterNewUserMutation = graphql(`
   mutation RegisterNewUser($username: String!, $amount: numeric!) {
-    insert_account_one(
-      object: { account_transactions: { data: { amount: $amount} }, username: $username }
-    ) {
+    insert_account_one(object: { account_transactions: { data: { amount: $amount } }, username: $username }) {
       id
     }
   }
@@ -18,11 +16,31 @@ export const RegisterNewTokenMutation = graphql(`
   }
 `);
 
-// This mutation will ignore duplicate tokens (if we try to register a "mint" that was already inserted)
-// This makes it quicker to register tokens in batches when we receive price data from websocket
-export const RegisterManyNewTokensMutation = graphql(`
-  mutation RegisterManyNewTokens($objects: [token_insert_input!]!) {
-    insert_token(objects: $objects, on_conflict: { constraint: token_mint_key, update_columns: [] }) {
+export const UpsertManyNewTokensMutation = graphql(`
+  mutation UpsertManyNewTokens($objects: [token_insert_input!]!) {
+    insert_token(
+      objects: $objects
+      on_conflict: {
+        constraint: token_mint_key
+        update_columns: [
+          name
+          symbol
+          description
+          uri
+          mint_burnt
+          freeze_burnt
+          supply
+          decimals
+          is_pump_token
+          updated_at
+        ]
+        where: { _or: [{ updated_at: { _is_null: true } }, { updated_at: { _lt: NOW } }] }
+      }
+    ) {
+      returning {
+        id
+        mint
+      }
       affected_rows
     }
   }
@@ -64,6 +82,7 @@ export const AddTokenPriceHistoryMutation = graphql(`
   }
 `);
 
+// TODO: Add new columns for swap amount data
 export const AddManyTokenPriceHistoryMutation = graphql(`
   mutation AddManyTokenPriceHistory($objects: [token_price_history_insert_input!]!) {
     insert_token_price_history(objects: $objects) {

@@ -1,20 +1,28 @@
 import React, { createContext, useContext, useState } from "react";
 
-import { DEFAULT_INCREASE_PCT, DEFAULT_MIN_TRADES, DEFAULT_TIMESPAN } from "@/lib/constants";
+import {
+  DEFAULT_FREEZE_BURNT,
+  DEFAULT_MIN_TRADES,
+  DEFAULT_MIN_VOLUME,
+  DEFAULT_MINT_BURNT,
+  DEFAULT_TIMESPAN,
+} from "@/lib/constants";
 
 export type TrackerParams = {
   timespan: string;
-  increasePct: number;
   minTrades: number;
+  minVolume: number;
+  freezeBurnt: boolean;
+  mintBurnt: boolean;
 };
 
 type TrackerParamsContextType = {
   params: TrackerParams;
-  onlyPumpTokens: boolean;
   setTimespan: (value: string) => void;
-  setIncreasePct: (value: number) => void;
   setMinTrades: (value: number) => void;
-  setOnlyPumpTokens: (value: boolean) => void;
+  setMinVolume: (value: number) => void;
+  setFreezeBurnt: (value: boolean) => void;
+  setMintBurnt: (value: boolean) => void;
 };
 
 const TrackerParamsContext = createContext<TrackerParamsContextType | undefined>(undefined);
@@ -23,18 +31,21 @@ const TrackerParamsContext = createContext<TrackerParamsContextType | undefined>
 export const TrackerParamsProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
   const [params, setParams] = useState<TrackerParams>({
     timespan: DEFAULT_TIMESPAN,
-    increasePct: DEFAULT_INCREASE_PCT,
     minTrades: DEFAULT_MIN_TRADES,
+    minVolume: DEFAULT_MIN_VOLUME,
+    freezeBurnt: DEFAULT_FREEZE_BURNT,
+    mintBurnt: DEFAULT_MINT_BURNT,
   });
-  const [onlyPumpTokens, setOnlyPumpTokens] = useState(true);
 
   const setTimespan = (value: string) => setParams((prev) => ({ ...prev, timespan: value }));
-  const setIncreasePct = (value: number) => setParams((prev) => ({ ...prev, increasePct: value }));
   const setMinTrades = (value: number) => setParams((prev) => ({ ...prev, minTrades: value }));
+  const setMinVolume = (value: number) => setParams((prev) => ({ ...prev, minVolume: value }));
+  const setFreezeBurnt = (value: boolean) => setParams((prev) => ({ ...prev, freezeBurnt: value }));
+  const setMintBurnt = (value: boolean) => setParams((prev) => ({ ...prev, mintBurnt: value }));
 
   return (
     <TrackerParamsContext.Provider
-      value={{ params, onlyPumpTokens, setTimespan, setIncreasePct, setMinTrades, setOnlyPumpTokens }}
+      value={{ params, setTimespan, setMinTrades, setMinVolume, setFreezeBurnt, setMintBurnt }}
     >
       {children}
     </TrackerParamsContext.Provider>
