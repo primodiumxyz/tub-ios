@@ -16,7 +16,7 @@ struct AccountView: View {
     @State private var errorMessage: String?
     @Environment(\.presentationMode) var presentationMode
     
-
+    
     var body: some View {
         NavigationStack {
             VStack() {
@@ -27,7 +27,7 @@ struct AccountView: View {
                         .foregroundColor(.yellow)
                         .multilineTextAlignment(.center)
                         .padding()
-                    NavigationLink(destination: RegisterView(isRegistered: .constant(false))) {
+                    NavigationLink(destination: RegisterView()) {
                         Text("Register Now")
                             .font(.sfRounded(size: .base, weight: .semibold))
                             .foregroundColor(AppColors.white)
@@ -95,7 +95,7 @@ struct AccountView: View {
             }
         }
     }
-
+    
     private func performAirdrop() {
         isAirdropping = true
         airdropResult = nil
@@ -116,14 +116,25 @@ struct AccountView: View {
 }
 
 #Preview {
-    @Previewable @AppStorage("userId") var userId: String = ""
     @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
-    @State @Previewable var isRegistered = false
-    if !priceModel.isReady {
-        LoadingView()
-    } else {
-        AccountView()
-            .environmentObject(UserModel(userId: userId))
-            .environmentObject(priceModel)
+    @Previewable @State var userId : String? = nil
+    
+    Group {
+        if !priceModel.isReady || userId == nil {
+            LoadingView()
+        } else {
+            AccountView()
+                .environmentObject(UserModel(userId: userId!))
+                .environmentObject(priceModel)
+        }
+    }.onAppear {
+        Task {
+            do {
+                userId = try await privy.refreshSession().user.id
+                print(userId)
+            } catch {
+                print("error in preview: \(error)")
+            }
+        }
     }
 }

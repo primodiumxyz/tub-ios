@@ -56,11 +56,6 @@ class UserModel: ObservableObject {
 
     private func fetchInitialData() async {
         do {
-            // Validate userId is a valid UUID
-            guard UUID(uuidString: userId) != nil else {
-                throw NSError(domain: "UserModel", code: 2, userInfo: [NSLocalizedDescriptionKey: "Invalid userId: Not a valid UUID"])
-            }
-            
             try await fetchAccountData()
             try await fetchInitialBalance()
             DispatchQueue.main.async {
@@ -78,7 +73,30 @@ class UserModel: ObservableObject {
     }
 
     private func fetchAccountData() async throws {
-        self.username = "Pepega"
+        let query = GetAccountDataQuery(accountId: userId)
+        return try await withCheckedThrowingContinuation { continuation in
+            Network.shared.apollo.fetch(query: query) { [weak self] result in
+                guard let self = self else {
+                    continuation.resume(throwing: NSError(domain: "UserModel", code: 0, userInfo: [NSLocalizedDescriptionKey: "Self is nil"]))
+                    return
+                }
+                
+                switch result {
+                case .success(let response):
+                    if let account = response.data?.account.first {
+                        DispatchQueue.main.async {
+                            self.username = account.username
+                            // Add any other properties you want to set from the account data
+                        }
+                        continuation.resume()
+                    } else {
+                        continuation.resume(throwing: NSError(domain: "UserModel", code: 1, userInfo: [NSLocalizedDescriptionKey: "Account not found"]))
+                    }
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
     }
     
     private func fetchInitialBalance() async throws {
