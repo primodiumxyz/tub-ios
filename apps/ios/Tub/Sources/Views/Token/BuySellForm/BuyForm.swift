@@ -45,7 +45,6 @@ struct BuyForm: View {
         
         buyAmountUsdString = priceModel.formatPrice(lamports: amountLamps, showSign: false, showUnit: false, formatLarge: false)
         buyAmountUsd = priceModel.lamportsToUsd(lamports: amountLamps)
-        print(amountLamps, buyAmountUsd)
         isValidInput = true
     }
     
