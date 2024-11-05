@@ -54,7 +54,6 @@ export const GetAllOnchainTokensPriceHistorySinceSubscription = graphql(`
   }
 `);
 
-// TODO: order by volume once integrated
 // when $mintBurnt is false, this matches everything
 // when $mintBurnt is true, this ensures mint_burnt is true
 export const GetFilteredTokensIntervalSubscription = graphql(`
@@ -76,7 +75,7 @@ export const GetFilteredTokensIntervalSubscription = graphql(`
           { _or: [{ _not: { freeze_burnt: { _eq: $freezeBurnt } } }, { freeze_burnt: { _eq: true } }] }
         ]
       }
-      order_by: { trades: desc }
+      order_by: { volume: desc }
     ) {
       token_id
       mint

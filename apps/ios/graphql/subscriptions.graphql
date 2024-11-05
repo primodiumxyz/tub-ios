@@ -97,7 +97,7 @@ subscription SubFilteredTokensInterval(
         }
       ]
     }
-    order_by: { trades: desc }
+    order_by: { volume: desc }
   ) {
     token_id
     mint

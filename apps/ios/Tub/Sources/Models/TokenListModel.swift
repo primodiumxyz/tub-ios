@@ -61,16 +61,14 @@ class TokenListModel: ObservableObject {
         return TokenModel(userId: userModel.userId)
     }
     
-    private func getRandomToken(excluding currentId: String? = nil) -> Token? {
+    private func getNextToken(excluding currentId: String? = nil) -> Token? {
         guard !availableTokens.isEmpty else { return nil }
         guard availableTokens.count > 1 else { return availableTokens[0] }
-        var newToken: Token
-        repeat {
-            let randomIndex = Int.random(in: 0..<availableTokens.count)
-            newToken = availableTokens[randomIndex]
-        } while newToken.id == currentId
-
-        return newToken
+        
+        // Find the first token that doesn't match the currentId
+        return availableTokens.first { token in
+            token.id != currentId
+        }
     }
     
     // - Set the current token to the next one in line
@@ -80,7 +78,7 @@ class TokenListModel: ObservableObject {
         previousTokenModel = currentTokenModel
         nextTokenModel = createTokenModel()
         
-        if let newRandomToken = getRandomToken(excluding: tokens[currentTokenIndex].id) {
+        if let newRandomToken = getNextToken(excluding: tokens[currentTokenIndex].id) {
             tokens.append(newRandomToken)
             initTokenModel()
         }
@@ -90,7 +88,6 @@ class TokenListModel: ObservableObject {
     // - Update the current token model
     // - Pop the last token in the array (swiping down should always be a fresh pumping token)
     func loadPreviousToken() {
-        // TODO: lock swiping up if there is no previous token
         if currentTokenIndex == 0 { return }
         nextTokenModel = currentTokenModel
         previousTokenModel = createTokenModel()
@@ -104,11 +101,11 @@ class TokenListModel: ObservableObject {
         guard !availableTokens.isEmpty else { return }
         // If it's initial load, generate two random tokens (current and next)
         if tokens.count == 0 {
-            tokens.append(getRandomToken()!)
-            tokens.append(getRandomToken(excluding: tokens[0].id)!)
+            tokens.append(getNextToken()!)
+            tokens.append(getNextToken(excluding: tokens[0].id)!)
             initTokenModel()
         } else {
-            tokens[tokens.count - 1] = getRandomToken(excluding: tokens[currentTokenIndex].id)!
+            tokens[tokens.count - 1] = getNextToken(excluding: tokens[currentTokenIndex].id)!
         }
     }
 
@@ -130,7 +127,7 @@ class TokenListModel: ObservableObject {
                     }
                     if let tokens = graphQLResult.data?.formatted_tokens_interval {
                         self.availableTokens = tokens.map { elem in
-                            Token(id: elem.token_id, mint: elem.mint, name: elem.name ?? "", symbol: elem.symbol ?? "", description: elem.description ?? "", supply: elem.supply ?? 0, decimals: elem.decimals ?? 6, imageUri: elem.uri ?? "")
+                            Token(id: elem.token_id, mint: elem.mint, name: elem.name ?? "", symbol: elem.symbol ?? "", description: elem.description ?? "", supply: elem.supply ?? 0, decimals: elem.decimals ?? 6, imageUri: elem.uri ?? "", volume: (elem.volume, self.INTERVAL))
                         }
 
                         self.updateTokens()

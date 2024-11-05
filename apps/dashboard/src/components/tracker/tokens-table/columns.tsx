@@ -4,8 +4,9 @@ import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Token } from "@/hooks/use-tokens";
 import { PRICE_PRECISION } from "@/lib/constants";
+import { formatLargeNumber } from "@/lib/utils";
 
-export const columns: ColumnDef<Token>[] = [
+export const getColumns = (solToUsd: (solAmount: number) => string): ColumnDef<Token>[] => [
   {
     accessorKey: "mint",
     header: "Token",
@@ -55,17 +56,10 @@ export const columns: ColumnDef<Token>[] = [
   },
   {
     accessorKey: "volume",
-    header: "Volume",
-    cell: ({ row }) => {
-      return <div>{row.original.volume.toLocaleString()}</div>;
-    },
-  },
-  {
-    accessorKey: "latestPrice",
     header: ({ column }) => {
       return (
         <div className="flex items-center gap-2">
-          Price (SOL)
+          Volume
           <Button
             className="w-7 h-7 p-0"
             variant="ghost"
@@ -85,7 +79,49 @@ export const columns: ColumnDef<Token>[] = [
       );
     },
     cell: ({ row }) => {
-      return <div>{(row.original.latestPrice / PRICE_PRECISION).toFixed(9)}</div>;
+      return (
+        <div className="flex flex-col gap-1">
+          <span>{solToUsd(row.original.volume / PRICE_PRECISION)}</span>
+          <span className="text-xs text-muted-foreground">
+            ({formatLargeNumber(row.original.volume / PRICE_PRECISION)} SOL)
+          </span>
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "latestPrice",
+    header: ({ column }) => {
+      return (
+        <div className="flex items-center gap-2">
+          Price
+          <Button
+            className="w-7 h-7 p-0"
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {column.getIsSorted() ? (
+              column.getIsSorted() === "asc" ? (
+                <ArrowUp className="size-4" />
+              ) : (
+                <ArrowDown className="size-4" />
+              )
+            ) : (
+              <ArrowUpDown className="size-4" />
+            )}
+          </Button>
+        </div>
+      );
+    },
+    cell: ({ row }) => {
+      return (
+        <div className="flex flex-col gap-1">
+          <span>{solToUsd(row.original.latestPrice / PRICE_PRECISION)}</span>
+          <span className="text-xs text-muted-foreground">
+            ({(row.original.latestPrice / PRICE_PRECISION).toFixed(9)} SOL)
+          </span>
+        </div>
+      );
     },
   },
   {
@@ -93,7 +129,7 @@ export const columns: ColumnDef<Token>[] = [
     header: ({ column }) => {
       return (
         <div className="flex items-center gap-2">
-          Price increase (%)
+          Price change (%)
           <Button
             className="w-7 h-7 p-0"
             variant="ghost"

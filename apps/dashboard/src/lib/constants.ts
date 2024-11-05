@@ -38,5 +38,5 @@ export enum SortByMetric {
   VOLUME = "volume",
   TRADES = "trades",
 }
-// TODO: change to volume when integrated
-export const DEFAULT_SORT_BY = SortByMetric.TRADES;
+
+export const DEFAULT_SORT_BY = SortByMetric.VOLUME;

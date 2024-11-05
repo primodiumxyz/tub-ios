@@ -36,6 +36,9 @@ let uniqueVaultPairsBatch: PublicKey[][] = []; // batch of unique vault pairs in
 let tokensDataBatch: TokenMetadata[] = []; // tokens metadata we need to save to the DB
 let priceDataBatch: PriceData[] = []; // price data based on swaps we need to save to the DB
 
+// TODO: Problem here is that since we fetch prices in batches, when we get the price of a token for a trade, the price will be too recent.
+// Meaning that the price at this timestamp will be wrong, as well as the volume.
+// An easy fix is to reduce the batch size, a good one would be to fetch the price at the timestamp of the trade with some archival node.
 const handleSwapData = async <T extends SwapType = SwapType>(gql: GqlClient["db"], swaps: Swap<T>[]) => {
   // Add swap data to batch and continue only if the batch is filled enough
   if (swaps.length === 0) return;
@@ -89,10 +92,10 @@ const handleSwapData = async <T extends SwapType = SwapType>(gql: GqlClient["db"
   priceDataBatch = [];
 
   try {
-    // 1. Upsert tokens metadata
     const uniqueTokens = Array.from(new Map(_tokensDataBatch.map((token) => [token.mint, token])).values());
-    const insertRes = await gql.UpsertManyNewTokensMutation({
-      objects: uniqueTokens.map((token) => ({
+
+    const result = await gql.UpsertManyTokensAndPriceHistoryMutation({
+      tokens: uniqueTokens.map((token) => ({
         mint: token.mint,
         name: token.metadata.name,
         symbol: token.metadata.symbol,
@@ -104,16 +107,8 @@ const handleSwapData = async <T extends SwapType = SwapType>(gql: GqlClient["db"
         decimals: token.decimals,
         is_pump_token: token.isPumpToken,
       })),
-    });
-
-    if (insertRes.error) throw new Error(`Error in UpsertManyNewTokensMutation: ${insertRes.error.message}`);
-    console.log(`Upserted ${insertRes.data?.insert_token?.affected_rows} tokens`);
-
-    // 2. Add price history
-    const mintToId = new Map(insertRes.data?.insert_token?.returning.map((token) => [token.mint, token.id]) ?? []);
-    const addPriceHistoryRes = await gql.AddManyTokenPriceHistoryMutation({
-      objects: _priceDataBatch.map(({ mint, price, timestamp, swap }) => ({
-        token: mintToId.get(mint),
+      priceHistory: _priceDataBatch.map(({ mint, price, timestamp, swap }) => ({
+        mint,
         price: price.toString(),
         amount_in: "amountIn" in swap ? swap.amountIn.toString() : undefined,
         min_amount_out: "minimumAmountOut" in swap ? swap.minimumAmountOut.toString() : undefined,
@@ -123,10 +118,13 @@ const handleSwapData = async <T extends SwapType = SwapType>(gql: GqlClient["db"
       })),
     });
 
-    if (addPriceHistoryRes.error)
-      throw new Error(`Error in AddManyTokenPriceHistoryMutation: ${addPriceHistoryRes.error.message}`);
-
-    console.log(`Saved ${_priceDataBatch.length} price data points`);
+    if (result.error) {
+      console.error("Unexpected error in UpsertManyTokensAndPriceHistoryMutation:", result.error);
+      priceDataBatch.push(..._priceDataBatch);
+    } else {
+      console.log(`Upserted ${uniqueTokens.length} tokens`);
+      console.log(`Saved ${_priceDataBatch.length} price data points`);
+    }
   } catch (err) {
     console.error("Unexpected error in handleSwapData:", err);
     priceDataBatch.push(..._priceDataBatch);

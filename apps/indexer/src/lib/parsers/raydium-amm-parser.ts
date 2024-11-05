@@ -7,16 +7,18 @@ import { u64 } from "@solana/buffer-layout-utils";
 import { AccountMeta, PublicKey, TransactionInstruction } from "@solana/web3.js";
 
 export type SwapBaseInArgs = {
+  discriminator: number;
   amountIn: bigint;
   minimumAmountOut: bigint;
 };
-const SwapBaseInArgsLayout = struct<SwapBaseInArgs>([u64("amountIn"), u64("minimumAmountOut")]);
+const SwapBaseInArgsLayout = struct<SwapBaseInArgs>([u8("discriminator"), u64("amountIn"), u64("minimumAmountOut")]);
 
 export type SwapBaseOutArgs = {
+  discriminator: number;
   maxAmountIn: bigint;
   amountOut: bigint;
 };
-const SwapBaseOutArgsLayout = struct<SwapBaseOutArgs>([u64("maxAmountIn"), u64("amountOut")]);
+const SwapBaseOutArgsLayout = struct<SwapBaseOutArgs>([u8("discriminator"), u64("maxAmountIn"), u64("amountOut")]);
 
 const parseSwapAccounts = (accounts: AccountMeta[]): AccountMeta[] => {
   // Transactions that go directly through Raydium include the 'ammTargetOrders' account

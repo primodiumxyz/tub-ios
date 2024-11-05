@@ -80,7 +80,7 @@ class TokenModel: ObservableObject {
                 case .success(let response):
                     if let token = response.data?.token.first(where: { $0.id == self.tokenId }) {
                         DispatchQueue.main.async {
-                            self.token = Token(id: token.id, mint: token.mint, name: token.name ?? "", symbol: token.symbol ?? "", description: token.description ?? "", supply: token.supply ?? 0, decimals: token.decimals ?? 6, imageUri: token.uri ?? "")
+                            self.token = Token(id: token.id, mint: token.mint, name: token.name ?? "", symbol: token.symbol ?? "", description: token.description ?? "", supply: token.supply ?? 0, decimals: token.decimals ?? 6, imageUri: token.uri ?? "", volume: (0, "30s"))
                         }
                         continuation.resume()
                     } else {
