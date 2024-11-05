@@ -1,14 +1,17 @@
-import { afterAll, afterEach, beforeAll } from "vitest";
-import { server, start } from "../bin/tub-server";
+import { start, server } from "@bin/tub-server"
 
-beforeAll(async () => {
+let teardownHappened = false
+
+export default async function () {
+  console.log("Setting up server for tests");
   await start();
-});
 
-afterAll(async () => {
-  server.close();
-});
+  return async () => {
+    if (teardownHappened) {
+      throw new Error('teardown called twice')
+    }
+    teardownHappened = true
 
-afterEach(() => {
-  // Clean up after each test
-});
+    await server.close();
+  }
+}
