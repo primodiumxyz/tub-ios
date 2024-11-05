@@ -88,10 +88,10 @@ struct AccountBalanceView: View {
                 .padding(.trailing)
             }
         }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 12.0)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8.0)
         .background(AppColors.darkgray)
-        .cornerRadius(50)
+        .cornerRadius(40)
         .onTapGesture {
             withAnimation {
                 isExpanded.toggle()

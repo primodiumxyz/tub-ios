@@ -84,10 +84,8 @@ struct TokenListView: View {
                             userModel: userModel,
                             currentTokenModel: viewModel.currentTokenModel
                         )
-                        .padding(.top, 35)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 10)
                         .background(dragging ? AppColors.black : nil)
-                        .ignoresSafeArea()
                         .zIndex(2)
                         
                         // Rest of the content
