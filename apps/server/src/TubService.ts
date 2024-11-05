@@ -124,7 +124,7 @@ export class TubService {
     const keySecret = env.COINBASE_CDP_API_KEY_PRIVATE_KEY.replace(/\\n/g, "\n");
 
     if (!keyName || !keySecret) {
-      return { status: 500 };
+      throw new Error("Missing Coinbase CDP Environment Variables on server");
     }
 
     // Create a request for a JWT from Coinbase Developer
@@ -178,15 +178,15 @@ export class TubService {
       const json = await coinbaseResponse.json();
 
       if (json.message) {
-        return { status: 500, error: json.message };
+        throw new Error(`${json.message}`);
       } else {
         return {
-          token: json.token,
+          coinbaseToken: json.token as string,
           url: `https://pay.coinbase.com/landing?sessionToken=${json.token}`,
         };
       }
     } catch (error) {
-      return { status: 500, error: "Coinbase Onramp API returned an error." };
+      throw new Error("Coinbase Onramp API returned an error.");
     }
   }
 }

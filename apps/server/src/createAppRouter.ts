@@ -66,15 +66,9 @@ export function createAppRouter() {
       .mutation(async ({ ctx, input }) => {
         return await ctx.tubService.airdropNativeToUser(ctx.jwtToken, BigInt(input.amount));
       }),
-    getCoinbaseSolanaOnrampUrl: t.procedure
-      .input(
-        z.object({
-          address: z.string(),
-        }),
-      )
-      .mutation(async ({ ctx, input }) => {
-        return await ctx.tubService.getCoinbaseSolanaOnrampUrl(input.address);
-      }),
+    getCoinbaseSolanaOnrampUrl: t.procedure.mutation(async ({ ctx }) => {
+      return await ctx.tubService.getCoinbaseSolanaOnrampUrl(ctx.jwtToken);
+    }),
   });
 }
 

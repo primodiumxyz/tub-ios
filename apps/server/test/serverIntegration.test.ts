@@ -1,11 +1,11 @@
+import { PrivyClient } from "@privy-io/server-auth";
 import { createTRPCProxyClient, createWSClient, httpBatchLink, splitLink, wsLink } from "@trpc/client";
+import { config } from "dotenv";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import WebSocket from "ws";
+import { parseEnv } from "../bin/parseEnv";
 import { server, start } from "../bin/tub-server";
 import { AppRouter } from "../src/createAppRouter";
-import { parseEnv } from "../bin/parseEnv";
-import { PrivyClient } from "@privy-io/server-auth";
-import { config } from "dotenv";
 
 config({ path: "../../../.env" });
 const env = parseEnv();
@@ -15,11 +15,9 @@ describe("Server Integration Tests", () => {
   let client: ReturnType<typeof createTRPCProxyClient<AppRouter>>;
   const privy = new PrivyClient(env.PRIVY_APP_ID, env.PRIVY_APP_SECRET);
 
-
   beforeAll(async () => {
     await start();
     const address = server.server.address();
-    env
 
     const port = typeof address === "string" ? address : address?.port;
     const wsClient = createWSClient({
@@ -36,7 +34,7 @@ describe("Server Integration Tests", () => {
             url: `http://localhost:${port}/trpc`,
             headers: {
               Authorization: `Bearer ${(await privy.getTestAccessToken()).accessToken}`,
-            }
+            },
           }),
         }),
       ],
