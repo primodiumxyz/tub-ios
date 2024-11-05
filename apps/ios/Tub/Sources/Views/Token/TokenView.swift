@@ -71,14 +71,14 @@ struct TokenView : View {
     var body: some View {
         ZStack {
             // Main content
-            VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 4) {
                 tokenInfoView
                 chartView
                 timespanButtons
                 infoCardLowOpacity
                     .opacity(0.5) // Adjust opacity here
                     .padding(.horizontal, 8)
-                    .padding(.top, 4)
+                    .padding(.bottom, -4)
 
                 BuySellForm(
                     tokenModel: tokenModel,
@@ -159,20 +159,20 @@ struct TokenView : View {
                         selectedTimespan = timespan
                         tokenModel.updateHistoryTimeframe(timespan.interval)
                     }) {
-                        HStack {
+                        HStack(spacing: 4) {
                             if timespan == Timespan.live {
                                 Circle()
                                     .fill(AppColors.red)
-                                    .frame(width: 10, height: 10)
+                                    .frame(width: 7, height: 7)
                             }
                             Text(timespan.rawValue)
-                                .font(.sfRounded(size: .base, weight: .semibold))
+                                .font(.sfRounded(size: .sm, weight: .semibold))
                         }
-                        .padding(.horizontal, 8)
+                        .padding(.horizontal, 10)
                         .padding(.vertical, 6)
                         .background(selectedTimespan == timespan ? AppColors.aquaBlue : Color.clear)
                         .foregroundColor(selectedTimespan == timespan ? AppColors.black : AppColors.white)
-                        .cornerRadius(6)
+                        .cornerRadius(20)
                     }
                 }
             }

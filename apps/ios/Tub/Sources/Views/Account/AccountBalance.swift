@@ -39,7 +39,7 @@ struct AccountBalanceView: View {
                 }
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .topLeading)
-                .padding(.vertical, 8.0)
+                .padding(.vertical, 6.0)
             }
             
             // Expanded view

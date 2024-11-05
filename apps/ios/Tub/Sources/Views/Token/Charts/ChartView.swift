@@ -174,7 +174,7 @@ struct ChartView: View {
 //            }
 //        }
         .chartYScale(domain: .automatic)
-        .frame(width: .infinity, height: 320)
+        .frame(width: .infinity, height: 330)
         .onReceive(Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()) { _ in
             currentTime = Date().timeIntervalSince1970
         }
