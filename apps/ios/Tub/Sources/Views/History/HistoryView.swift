@@ -41,26 +41,36 @@ struct HistoryView : View {
                                 return
                             }
                             
-                            let isBuy = transaction.amount >= 0
-                            let symbol = transaction.token_data.symbol
-                            let name = transaction.token_data.name
-                            let mint = transaction.token_data.mint
-                            let imageUri = transaction.token_data.uri ?? ""
-                            let price = transaction.token_price?.price ?? 0
-                            let valueLamps = price * transaction.amount / Int(1e9)
-                            
-                            let newTransaction = Transaction(
-                                name: name ?? "",
-                                symbol: symbol ?? "",
-                                imageUri: imageUri,
-                                date: date,
-                                valueUsd: priceModel.lamportsToUsd(lamports: -valueLamps),
-                                quantityTokens: transaction.amount,
-                                isBuy: isBuy,
-                                mint: mint
-                            )
-                            
-                            result.append(newTransaction)
+                            if abs(transaction.amount) > 0 {
+                                let isBuy = transaction.amount >= 0
+                                let symbol = transaction.token_data.symbol
+                                let name = transaction.token_data.name
+                                let mint = transaction.token_data.mint
+                                let imageUri = transaction.token_data.uri ?? ""
+                                let price = transaction.token_price?.price ?? 0
+                                
+                                var valueLamps = 0
+                                let maxSafeValue = Int.max / abs(transaction.amount)
+                                if Double(price) > Double(maxSafeValue) {
+                                    valueLamps = maxSafeValue
+                                } else {
+                                    valueLamps = Int(Double(price) * Double(transaction.amount) / Double(1e9))
+                                }
+                                
+                                let newTransaction = Transaction(
+                                    name: name ?? "",
+                                    symbol: symbol ?? "",
+                                    imageUri: imageUri,
+                                    date: date,
+                                    valueUsd: priceModel.lamportsToUsd(lamports: -valueLamps),
+                                    valueLamps: -valueLamps,
+                                    quantityTokens: transaction.amount,
+                                    isBuy: isBuy,
+                                    mint: mint
+                                )
+                                
+                                result.append(newTransaction)
+                            }
                         }
                     } else {
                         self.error = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "No transaction data found"])
@@ -388,12 +398,14 @@ struct TransactionRow: View {
             }
             Spacer()
             VStack(alignment: .trailing) {
-                Text(priceModel.formatPrice(usd: transaction.valueUsd, showSign: true))
-                    .font(.sfRounded(size: .base, weight: .bold))
-                    .foregroundColor(transaction.isBuy ? AppColors.red: AppColors.green)
+                HStack {
+                    Text(priceModel.formatPrice(usd: transaction.valueUsd, showSign: true))
+                        .font(.sfRounded(size: .base, weight: .bold))
+                        .foregroundColor(transaction.isBuy ? AppColors.red: AppColors.green)
+                }
                 
                 HStack {
-                    Text(priceModel.formatPrice(lamports: transaction.quantityTokens, showUnit: false))
+                    Text(priceModel.formatPrice(lamports: abs(transaction.quantityTokens), showUnit: false))
                         .font(.sfRounded(size: .xs, weight: .regular))
                         .foregroundColor(AppColors.gray)
                         .offset(x:4, y:2)
