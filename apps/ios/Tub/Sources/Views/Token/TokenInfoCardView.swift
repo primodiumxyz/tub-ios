@@ -18,8 +18,6 @@ struct TokenInfoCardView: View {
     private var stats: [(String, String)] {
         [
             ("Market Cap", priceModel.formatPrice(lamports: (tokenModel.prices.last?.price ?? 0) * (tokenModel.token.supply ?? 0) / Int(pow(10.0, Double(tokenModel.token.decimals ?? 0))))),
-            ("Volume", "1.52M"), // TODO: Add volume data
-            ("Holders", "53.3K"), // TODO: Add holders data?
             ("Supply", formatLargeNumber(Double(tokenModel.token.supply ?? 0) / pow(10.0, Double(tokenModel.token.decimals ?? 0))))
         ]
     }
@@ -70,7 +68,6 @@ struct TokenInfoCardView: View {
                             }
                         }
                     }
-                    .padding(8)
                 }
                 
                 VStack(alignment: .leading, spacing: 8) {
@@ -85,17 +82,6 @@ struct TokenInfoCardView: View {
                         .padding(.horizontal, 8)
                 }
                 .padding(.vertical, 16)
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-                HStack(alignment: .center, spacing: 4) {
-                    Image("X-logo-white")
-                        .resizable()
-                        .frame(width: 20, height: 20)
-                    Text(" @ MONKAY")
-                        .font(.sfRounded(size: .lg, weight: .semibold))
-                        .foregroundColor(AppColors.aquaGreen)
-                }
-                .padding(.top, 8.0)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 
             }
