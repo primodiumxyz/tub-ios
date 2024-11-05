@@ -1,10 +1,30 @@
-import { start, server } from "@bin/tub-server"
+import { start } from "@bin/tub-server"
+import type { GlobalSetupContext } from 'vitest/node'
+import { AddressInfo } from "ws"
 
 let teardownHappened = false
 
-export default async function () {
+declare module 'vitest' {
+  export interface ProvidedContext {
+    port: number
+    host: string
+  }
+}
+
+export default async function ({ provide }: GlobalSetupContext) {
+
+
   console.log("Setting up server for tests");
-  await start();
+  const server = await start();
+
+  const serverInfo = server.server.address();
+
+  if (!serverInfo || typeof serverInfo !== 'object') {
+    throw new Error('Server info not found')
+  }
+
+  provide('port', serverInfo.port)
+  provide('host', serverInfo.address)
 
   return async () => {
     if (teardownHappened) {
