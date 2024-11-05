@@ -91,3 +91,11 @@ export const AddManyTokenPriceHistoryMutation = graphql(`
     }
   }
 `);
+
+export const UpsertManyTokensAndPriceHistoryMutation = graphql(`
+  mutation UpsertManyTokensAndPriceHistory($tokens: jsonb!, $priceHistory: jsonb!) {
+    upsert_tokens_and_price_history(args: { tokens: $tokens, price_history: $priceHistory }) {
+      id
+    }
+  }
+`);
