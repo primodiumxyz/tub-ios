@@ -10,6 +10,7 @@ struct Token: Identifiable {
     var supply: Int?
     var decimals: Int?
     var imageUri: String?
+    var volume: (value: Int, interval: String)?
 }
 
 struct Price: Identifiable, Equatable {

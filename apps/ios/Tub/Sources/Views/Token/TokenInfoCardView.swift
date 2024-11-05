@@ -18,7 +18,7 @@ struct TokenInfoCardView: View {
     private var stats: [(String, String)] {
         [
             ("Market Cap", priceModel.formatPrice(lamports: (tokenModel.prices.last?.price ?? 0) * (tokenModel.token.supply ?? 0) / Int(pow(10.0, Double(tokenModel.token.decimals ?? 0))))),
-            ("Volume", "1.52M"), // TODO: Add volume data
+            ("Volume (\(String(tokenModel.token.volume?.interval ?? "30s")))", formatLargeNumber(Double(tokenModel.token.volume?.value ?? 0) / 1e9)), // TODO: fix volume calculation
             ("Holders", "53.3K"), // TODO: Add holders data?
             ("Supply", formatLargeNumber(Double(tokenModel.token.supply ?? 0) / pow(10.0, Double(tokenModel.token.decimals ?? 0))))
         ]
