@@ -71,13 +71,15 @@ struct TokenView : View {
     var body: some View {
         ZStack {
             // Main content
-            VStack(alignment: .leading) {
+            VStack(alignment: .leading, spacing: 0) {
                 tokenInfoView
                 chartView
                 timespanButtons
                 infoCardLowOpacity
                     .opacity(0.5) // Adjust opacity here
                     .padding(.horizontal, 8)
+                    .padding(.top, 4)
+
                 BuySellForm(
                     tokenModel: tokenModel,
                     activeTab: $activeTab,
@@ -103,7 +105,7 @@ struct TokenView : View {
     }
     
     private var tokenInfoView: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 4) {
             HStack {
                 if tokenModel.token.imageUri != nil {
                     ImageView(imageUri: tokenModel.token.imageUri!, size: 20)
@@ -146,7 +148,6 @@ struct TokenView : View {
                     .id(tokenModel.prices.count)
             }
         }
-        .padding(.horizontal)
     }
     
     private var timespanButtons: some View {
@@ -222,7 +223,7 @@ struct TokenView : View {
         }
         .padding(.horizontal,24)
         .padding(.vertical,16)
-        .frame(maxWidth: .infinity, alignment: .topLeading)
+        .frame(maxWidth: .infinity, maxHeight: 95 ,alignment: .topLeading)
         .background(AppColors.darkGrayGradient)
         .cornerRadius(12)
         .onTapGesture {

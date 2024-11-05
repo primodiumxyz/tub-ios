@@ -152,29 +152,29 @@ struct ChartView: View {
                 }
             }
         }
-        .chartXAxis {
-            AxisMarks(values: .stride(by: .second, count: Int(floor(timeframeSecs / 2)))) { value in
-                AxisValueLabel(format: .dateTime.hour().minute())
-                    .foregroundStyle(.white.opacity(0.5))
-            }
-        }
-        .chartYAxis {
-            AxisMarks(position: .leading) { value in
-                AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
-                    .foregroundStyle(.white.opacity(0.2))
-                AxisValueLabel()
-                AxisValueLabel {
-                    if let intValue = value.as(Int.self) {
-                        Text(priceModel.formatPrice(lamports: intValue))
-                            .foregroundStyle(.white)
-                            .font(.sfRounded(size: .xs, weight: .regular))
-                    }
-                }
-                .foregroundStyle(.white.opacity(0.5))
-            }
-        }
+//        .chartXAxis {
+//            AxisMarks(values: .stride(by: .second, count: Int(floor(timeframeSecs / 2)))) { value in
+//                AxisValueLabel(format: .dateTime.hour().minute())
+//                    .foregroundStyle(.white.opacity(0.5))
+//            }
+//        }
+//        .chartYAxis {
+//            AxisMarks(position: .leading) { value in
+//                AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
+//                    .foregroundStyle(.white.opacity(0.2))
+//                AxisValueLabel()
+//                AxisValueLabel {
+//                    if let intValue = value.as(Int.self) {
+//                        Text(priceModel.formatPrice(lamports: intValue))
+//                            .foregroundStyle(.white)
+//                            .font(.sfRounded(size: .xs, weight: .regular))
+//                    }
+//                }
+//                .foregroundStyle(.white.opacity(0.5))
+//            }
+//        }
         .chartYScale(domain: .automatic)
-        .frame(width: .infinity, height: 350)
+        .frame(width: .infinity, height: 320)
         .onReceive(Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()) { _ in
             currentTime = Date().timeIntervalSince1970
         }

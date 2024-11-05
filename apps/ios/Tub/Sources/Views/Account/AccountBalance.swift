@@ -39,6 +39,7 @@ struct AccountBalanceView: View {
                 }
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .topLeading)
+                .padding(.vertical, 8.0)
             }
             
             // Expanded view
@@ -86,10 +87,10 @@ struct AccountBalanceView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .topLeading)
                 .padding(.trailing)
+                .padding(.vertical, 3.0)
             }
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 8.0)
         .background(AppColors.darkgray)
         .cornerRadius(40)
         .onTapGesture {
