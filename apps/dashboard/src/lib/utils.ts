@@ -16,7 +16,7 @@ export const formatLargeNumber = (num: number) => {
   } else if (num >= 1e3) {
     return `${(num / 1e3).toFixed(1)}K`;
   }
-  return num.toString();
+  return num.toFixed(2);
 };
 
 export const getTokensPerformanceStats = (

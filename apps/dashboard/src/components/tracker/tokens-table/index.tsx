@@ -1,15 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 
-import { columns } from "@/components/tracker/tokens-table/columns";
+import { getColumns } from "@/components/tracker/tokens-table/columns";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
+import { useSolPrice } from "@/hooks/use-sol-price";
 import { Token, useTokens } from "@/hooks/use-tokens";
 import { useTrackerParams } from "@/hooks/use-tracker-params";
 
 export const TokensTable = () => {
   const { tokens, fetching, error } = useTokens();
   const { timespan, minTrades, minVolume } = useTrackerParams();
+  const { solToUsd } = useSolPrice();
   const [globalFilter, setGlobalFilter] = useState<string>("");
   const [frozen, setFrozen] = useState(false);
   const [frozenTokens, setFrozenTokens] = useState<Token[]>([]);
@@ -52,7 +54,7 @@ export const TokensTable = () => {
         />
       </div>
       <DataTable
-        columns={columns}
+        columns={getColumns(solToUsd)}
         data={filteredTokens}
         caption={`List of tokens with at least ${minVolume} volume and at least ${minTrades} trades in the last ${timespan}`}
         loading={fetching}
