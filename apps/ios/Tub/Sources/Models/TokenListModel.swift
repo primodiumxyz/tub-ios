@@ -90,7 +90,6 @@ class TokenListModel: ObservableObject {
     // - Update the current token model
     // - Pop the last token in the array (swiping down should always be a fresh pumping token)
     func loadPreviousToken() {
-        // TODO: lock swiping up if there is no previous token
         if currentTokenIndex == 0 { return }
         nextTokenModel = currentTokenModel
         previousTokenModel = createTokenModel()
