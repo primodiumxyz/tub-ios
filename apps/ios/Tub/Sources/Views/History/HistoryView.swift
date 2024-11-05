@@ -29,7 +29,7 @@ struct HistoryView : View {
         error = nil // Reset error state
         let query = GetAccountTransactionsQuery(accountId: userId)
         
-        Network.shared.apollo.fetch(query: query) { result in
+        Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { result in
             DispatchQueue.main.async {
                 self.loading = false
                 
@@ -93,9 +93,7 @@ struct HistoryView : View {
                 HistoryViewContent(txs: txs)
             }
         }.onAppear {
-            if txs.isEmpty {
-                fetchUserTxs(userModel.userId)
-            }
+            fetchUserTxs(userModel.userId)
         }
     }
 }
