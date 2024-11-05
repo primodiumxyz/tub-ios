@@ -25,10 +25,15 @@ struct BuySellForm: View {
     
     func handleBuy(amount: Double) {
         let buyAmountLamps = priceModel.usdToLamports(usd: amount)
-        tokenModel.buyTokens(buyAmountLamps: buyAmountLamps) { success in
-            if success {
-                activeTab = "sell" // Switch tab after successful buy
+        
+        if userModel.balanceLamps >= buyAmountLamps {
+            tokenModel.buyTokens(buyAmountLamps: buyAmountLamps) { success in
+                if success {
+                    activeTab = "sell" // Switch tab after successful buy
+                }
             }
+        } else {
+            print("Insufficient balance to complete the purchase.")
         }
     }
     
