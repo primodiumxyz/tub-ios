@@ -179,7 +179,6 @@ export const GetTokenPriceHistorySinceQuery = graphql(`
   }
 `);
 
-// TODO: order by volume once integrated
 export const GetFilteredTokensIntervalQuery = graphql(`
   query GetFilteredTokensInterval(
     $interval: interval!
@@ -199,7 +198,7 @@ export const GetFilteredTokensIntervalQuery = graphql(`
           { _or: [{ _not: { freeze_burnt: { _eq: $freezeBurnt } } }, { freeze_burnt: { _eq: true } }] }
         ]
       }
-      order_by: { trades: desc }
+      order_by: { volume: desc }
     ) {
       token_id
       mint
