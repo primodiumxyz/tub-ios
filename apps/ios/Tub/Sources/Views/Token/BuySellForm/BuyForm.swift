@@ -43,8 +43,9 @@ struct BuyForm: View {
             return
         }
         
-        buyAmountUsdString = priceModel.formatPrice(lamports: amountLamps, showSign: false, showUnit: false)
+        buyAmountUsdString = priceModel.formatPrice(lamports: amountLamps, showSign: false, showUnit: false, formatLarge: false)
         buyAmountUsd = priceModel.lamportsToUsd(lamports: amountLamps)
+        print(amountLamps, buyAmountUsd)
         isValidInput = true
     }
     
@@ -122,10 +123,9 @@ struct BuyForm: View {
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.center)
                 .onChange(of: buyAmountUsdString) { newValue in
-                    if let amount = formatter.number(from:buyAmountUsdString)?.doubleValue {
-                        print("amount: \(amount)")
+                    if let amount = formatter.number(from:newValue)?.doubleValue {
                         buyAmountUsd = amount
-                        buyAmountUsdString = priceModel.formatPrice(usd: amount, showSign: false, showUnit: false)
+                        buyAmountUsdString = priceModel.formatPrice(usd: amount, showSign: false, showUnit: false, formatLarge: false)
                         isValidInput = true
                     } else {
                         buyAmountUsd = 0
