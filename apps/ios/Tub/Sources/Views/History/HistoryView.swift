@@ -27,7 +27,7 @@ struct HistoryView : View {
     func fetchUserTxs(_ userId: String) {
         loading = true
         error = nil // Reset error state
-        let query = GetAccountTransactionsQuery(accountId: userId)
+        let query = GetWalletTransactionsQuery(wallet: "0x123")
         
         Network.shared.apollo.fetch(query: query) { result in
             DispatchQueue.main.async {
@@ -37,7 +37,7 @@ struct HistoryView : View {
                 case .success(let graphQLResult):
                     if let tokenTransactions = graphQLResult.data?.token_transaction {
                         self.txs = tokenTransactions.reduce(into: []) { result, transaction in
-                            guard let date = formatDateString(transaction.account_transaction_data.created_at) else {
+                            guard let date = formatDateString(transaction.wallet_transaction_data.created_at) else {
                                 return
                             }
                             

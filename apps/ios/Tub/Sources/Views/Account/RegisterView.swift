@@ -3,23 +3,9 @@ import PrivySDK
 import AuthenticationServices
 
 struct RegisterView: View {
-    @AppStorage("userId") private var userId = ""
-    @State private var username = ""
-    @Binding var isRegistered: Bool
     @State var myAuthState : AuthState = AuthState.notReady
     @State private var showPhoneModal = false
     @State private var showEmailModal = false
-    
-    func handleRegistration(completion: Result<UserResponse, Error>) {
-        switch completion {
-        case .success(let user):
-            userId = user.uuid
-            UserDefaults.standard.set(user.uuid, forKey: "userId")
-            isRegistered = true
-        case .failure(let error):
-            print("Registration failed: \(error.localizedDescription)")
-        }
-    }
     
     var body: some View {
         if myAuthState.toString == "authenticated" {
@@ -106,20 +92,6 @@ struct RegisterView: View {
                 .background(.white)
                 .cornerRadius(26)
                 .foregroundStyle(.black)
-                
-                Button(action: {
-                    Network.shared.registerNewUser(username: "test", airdropAmount: String(Int(1.0 * 1e9))) { result in
-                        handleRegistration(completion: result)
-                    }
-                }) {
-                    Text("Dev Login")
-                        .font(.sfRounded(size: .base, weight: .semibold))
-                        .foregroundColor(AppColors.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(12)
-                        .background(AppColors.primaryPurple)
-                        .cornerRadius(26)
-                }.padding([.top, .leading, .trailing])               
             }.sheet(isPresented: $showPhoneModal) {
                 SignInWithPhoneView()
                     .presentationDetents([.height(400)])
@@ -140,6 +112,5 @@ struct RegisterView: View {
 }
 
 #Preview {
-    @State @Previewable var isRegistered = false
-    return RegisterView(isRegistered: $isRegistered)
+    RegisterView()
 }

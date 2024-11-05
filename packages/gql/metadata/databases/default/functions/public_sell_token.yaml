@@ -1,3 +1,6 @@
 function:
   name: sell_token
   schema: public
+configuration:
+  custom_root_fields: {}
+  exposed_as: mutation

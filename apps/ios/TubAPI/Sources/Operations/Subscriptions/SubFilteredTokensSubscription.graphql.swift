@@ -7,7 +7,7 @@ public class SubFilteredTokensSubscription: GraphQLSubscription {
   public static let operationName: String = "SubFilteredTokens"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"subscription SubFilteredTokens($since: timestamptz!, $minTrades: bigint!, $minIncreasePct: float8!) { get_formatted_tokens_since( args: { since: $since } where: { trades: { _gte: $minTrades }, increase_pct: { _gte: $minIncreasePct } } ) { __typename token_id mint decimals name symbol platform latest_price increase_pct trades created_at } }"#
+      #"subscription SubFilteredTokens($since: timestamptz!, $minTrades: bigint!, $minIncreasePct: float8!) { get_formatted_tokens_since( args: { since: $since } where: { trades: { _gte: $minTrades }, increase_pct: { _gte: $minIncreasePct } } ) { __typename token_id mint decimals name platform symbol latest_price increase_pct trades created_at } }"#
     ))
 
   public var since: Timestamptz
@@ -61,8 +61,8 @@ public class SubFilteredTokensSubscription: GraphQLSubscription {
         .field("mint", String.self),
         .field("decimals", Int?.self),
         .field("name", String.self),
-        .field("symbol", String.self),
         .field("platform", String.self),
+        .field("symbol", String.self),
         .field("latest_price", TubAPI.Numeric.self),
         .field("increase_pct", TubAPI.Float8.self),
         .field("trades", TubAPI.Bigint.self),
@@ -73,8 +73,8 @@ public class SubFilteredTokensSubscription: GraphQLSubscription {
       public var mint: String { __data["mint"] }
       public var decimals: Int? { __data["decimals"] }
       public var name: String { __data["name"] }
-      public var symbol: String { __data["symbol"] }
       public var platform: String { __data["platform"] }
+      public var symbol: String { __data["symbol"] }
       public var latest_price: TubAPI.Numeric { __data["latest_price"] }
       public var increase_pct: TubAPI.Float8 { __data["increase_pct"] }
       public var trades: TubAPI.Bigint { __data["trades"] }
