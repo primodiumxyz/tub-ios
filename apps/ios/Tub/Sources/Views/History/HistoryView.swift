@@ -52,7 +52,7 @@ struct HistoryView : View {
                                 var valueLamps = 0
                                 let maxSafeValue = Int.max / abs(transaction.amount)
                                 if Double(price) > Double(maxSafeValue) {
-                                    valueLamps = maxSafeValue
+                                    valueLamps = maxSafeValue / Int(1e9)
                                 } else {
                                     valueLamps = Int(Double(price) * Double(transaction.amount) / Double(1e9))
                                 }
