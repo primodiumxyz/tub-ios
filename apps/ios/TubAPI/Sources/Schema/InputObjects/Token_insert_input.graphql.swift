@@ -12,6 +12,7 @@ public struct Token_insert_input: InputObject {
   }
 
   public init(
+    createdAt: GraphQLNullable<Timestamptz> = nil,
     decimals: GraphQLNullable<Int> = nil,
     id: GraphQLNullable<Uuid> = nil,
     mint: GraphQLNullable<String> = nil,
@@ -25,6 +26,7 @@ public struct Token_insert_input: InputObject {
     uri: GraphQLNullable<String> = nil
   ) {
     __data = InputDict([
+      "created_at": createdAt,
       "decimals": decimals,
       "id": id,
       "mint": mint,
@@ -37,6 +39,11 @@ public struct Token_insert_input: InputObject {
       "updated_at": updatedAt,
       "uri": uri
     ])
+  }
+
+  public var createdAt: GraphQLNullable<Timestamptz> {
+    get { __data["created_at"] }
+    set { __data["created_at"] = newValue }
   }
 
   public var decimals: GraphQLNullable<Int> {

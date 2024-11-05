@@ -3,8 +3,8 @@ import { AppRouter, createAppRouter } from "@/createAppRouter";
 import { TubService } from "@/TubService";
 import { parseEnv } from "@bin/parseEnv";
 import { Wallet } from "@coral-xyz/anchor";
-import { createCore } from "@core/createCore";
 import fastifyWebsocket from "@fastify/websocket";
+import { PrivyClient } from "@privy-io/server-auth";
 import { clusterApiUrl, Connection, Keypair } from "@solana/web3.js";
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import { applyWSSHandler } from "@trpc/server/adapters/ws";
@@ -42,15 +42,16 @@ const getBearerToken = (req: any) => {
 
 export const start = async () => {
   try {
-    const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+    // const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
-    const wallet = new Wallet(Keypair.fromSecretKey(Buffer.from(env.PRIVATE_KEY, "hex")));
-    const core = createCore(wallet, connection);
     if (!process.env.GRAPHQL_URL && env.NODE_ENV === "production") {
       throw new Error("GRAPHQL_URL is not set");
     }
     const gqlClient = (await createGqlClient({ url: env.NODE_ENV !== "production" ? "http://localhost:8080/v1/graphql" : env.GRAPHQL_URL, hasuraAdminSecret: env.NODE_ENV !== "production" ? "password" : env.HASURA_ADMIN_SECRET })).db;
-    const tubService = new TubService(core, gqlClient);
+
+    const privy = new PrivyClient(env.PRIVY_APP_ID, env.PRIVY_APP_SECRET);
+
+    const tubService = new TubService(gqlClient, privy);
 
     // @see https://trpc.io/docs/server/adapters/fastify
     server.register(fastifyTRPCPlugin<AppRouter>, {

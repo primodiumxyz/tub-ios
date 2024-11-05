@@ -14,6 +14,8 @@ const commonSchema = z.object({
   JWT_SECRET: z.string().default("secret"),
   COINBASE_CDP_API_KEY_NAME: z.string().default(""),
   COINBASE_CDP_API_KEY_PRIVATE_KEY: z.string().default(""),
+  PRIVY_APP_ID: z.string(),
+  PRIVY_APP_SECRET: z.string(),
 });
 
 export function parseEnv<TSchema extends ZodTypeAny | undefined = undefined>(

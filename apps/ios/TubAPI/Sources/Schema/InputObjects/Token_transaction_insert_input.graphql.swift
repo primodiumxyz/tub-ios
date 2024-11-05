@@ -12,33 +12,23 @@ public struct Token_transaction_insert_input: InputObject {
   }
 
   public init(
-    accountTransaction: GraphQLNullable<Uuid> = nil,
-    accountTransactionData: GraphQLNullable<Account_transaction_obj_rel_insert_input> = nil,
     amount: GraphQLNullable<Numeric> = nil,
     id: GraphQLNullable<Uuid> = nil,
     token: GraphQLNullable<Uuid> = nil,
     tokenData: GraphQLNullable<Token_obj_rel_insert_input> = nil,
-    tokenPrice: GraphQLNullable<Token_price_history_obj_rel_insert_input> = nil
+    tokenPrice: GraphQLNullable<Token_price_history_obj_rel_insert_input> = nil,
+    walletTransaction: GraphQLNullable<Uuid> = nil,
+    walletTransactionData: GraphQLNullable<Wallet_transaction_obj_rel_insert_input> = nil
   ) {
     __data = InputDict([
-      "account_transaction": accountTransaction,
-      "account_transaction_data": accountTransactionData,
       "amount": amount,
       "id": id,
       "token": token,
       "token_data": tokenData,
-      "token_price": tokenPrice
+      "token_price": tokenPrice,
+      "wallet_transaction": walletTransaction,
+      "wallet_transaction_data": walletTransactionData
     ])
-  }
-
-  public var accountTransaction: GraphQLNullable<Uuid> {
-    get { __data["account_transaction"] }
-    set { __data["account_transaction"] = newValue }
-  }
-
-  public var accountTransactionData: GraphQLNullable<Account_transaction_obj_rel_insert_input> {
-    get { __data["account_transaction_data"] }
-    set { __data["account_transaction_data"] = newValue }
   }
 
   public var amount: GraphQLNullable<Numeric> {
@@ -64,5 +54,15 @@ public struct Token_transaction_insert_input: InputObject {
   public var tokenPrice: GraphQLNullable<Token_price_history_obj_rel_insert_input> {
     get { __data["token_price"] }
     set { __data["token_price"] = newValue }
+  }
+
+  public var walletTransaction: GraphQLNullable<Uuid> {
+    get { __data["wallet_transaction"] }
+    set { __data["wallet_transaction"] = newValue }
+  }
+
+  public var walletTransactionData: GraphQLNullable<Wallet_transaction_obj_rel_insert_input> {
+    get { __data["wallet_transaction_data"] }
+    set { __data["wallet_transaction_data"] = newValue }
   }
 }

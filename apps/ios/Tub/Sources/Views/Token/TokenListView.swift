@@ -23,7 +23,7 @@ struct TokenListView: View {
     @State private var dragging = false
     
     @State var activeTab: String = "buy"
-
+    
     private func canSwipe(value: DragGesture.Value) -> Bool {
         return activeTab != "sell" &&
             // not trying to swipe up from the first token
@@ -48,7 +48,7 @@ struct TokenListView: View {
                 activeOffset -= geometry.size.height
             }
         }
-
+        
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             activeOffset = 0
         }
@@ -150,13 +150,26 @@ struct TokenListView: View {
 }
 
 #Preview {
-    @Previewable @AppStorage("userId") var userId: String = ""
     @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
-    if !priceModel.isReady {
-        LoadingView()
-    } else {
-        TokenListView()
-            .environmentObject(UserModel(userId: userId))
-            .environmentObject(priceModel)
+    @Previewable @State var userId : String? = nil
+    
+    Group {
+        if !priceModel.isReady  || userId == nil {
+            LoadingView()
+        } else {
+            TokenListView()
+                .environmentObject(UserModel(userId: userId.unsafelyUnwrapped))
+                .environmentObject(priceModel)
+        }
+    }
+    .onAppear {
+        Task {
+            do {
+                userId = try await privy.refreshSession().user.id
+                print(userId)
+            } catch {
+                print("error in preview: \(error)")
+            }
+        }
     }
 }
