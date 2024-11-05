@@ -6,7 +6,7 @@ import { Token } from "@/hooks/use-tokens";
 import { PRICE_PRECISION } from "@/lib/constants";
 import { formatLargeNumber } from "@/lib/utils";
 
-export const columns: ColumnDef<Token>[] = [
+export const getColumns = (solToUsd: (solAmount: number) => string): ColumnDef<Token>[] => [
   {
     accessorKey: "mint",
     header: "Token",
@@ -59,7 +59,7 @@ export const columns: ColumnDef<Token>[] = [
     header: ({ column }) => {
       return (
         <div className="flex items-center gap-2">
-          Volume (SOL)
+          Volume
           <Button
             className="w-7 h-7 p-0"
             variant="ghost"
@@ -79,7 +79,14 @@ export const columns: ColumnDef<Token>[] = [
       );
     },
     cell: ({ row }) => {
-      return <div>{formatLargeNumber(row.original.volume / PRICE_PRECISION)}</div>;
+      return (
+        <div className="flex flex-col gap-1">
+          <span>{solToUsd(row.original.volume / PRICE_PRECISION)}</span>
+          <span className="text-xs text-muted-foreground">
+            ({formatLargeNumber(row.original.volume / PRICE_PRECISION)} SOL)
+          </span>
+        </div>
+      );
     },
   },
   {
@@ -87,7 +94,7 @@ export const columns: ColumnDef<Token>[] = [
     header: ({ column }) => {
       return (
         <div className="flex items-center gap-2">
-          Price (SOL)
+          Price
           <Button
             className="w-7 h-7 p-0"
             variant="ghost"
@@ -107,7 +114,14 @@ export const columns: ColumnDef<Token>[] = [
       );
     },
     cell: ({ row }) => {
-      return <div>{(row.original.latestPrice / PRICE_PRECISION).toFixed(9)}</div>;
+      return (
+        <div className="flex flex-col gap-1">
+          <span>{solToUsd(row.original.latestPrice / PRICE_PRECISION)}</span>
+          <span className="text-xs text-muted-foreground">
+            ({(row.original.latestPrice / PRICE_PRECISION).toFixed(9)} SOL)
+          </span>
+        </div>
+      );
     },
   },
   {
