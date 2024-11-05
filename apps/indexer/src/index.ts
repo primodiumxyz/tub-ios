@@ -36,6 +36,9 @@ let uniqueVaultPairsBatch: PublicKey[][] = []; // batch of unique vault pairs in
 let tokensDataBatch: TokenMetadata[] = []; // tokens metadata we need to save to the DB
 let priceDataBatch: PriceData[] = []; // price data based on swaps we need to save to the DB
 
+// TODO: Problem here is that since we fetch prices in batches, when we get the price of a token for a trade, the price will be too recent.
+// Meaning that the price at this timestamp will be wrong, as well as the volume.
+// An easy fix is to reduce the batch size, a good one would be to fetch the price at the timestamp of the trade with some archival node.
 const handleSwapData = async <T extends SwapType = SwapType>(gql: GqlClient["db"], swaps: Swap<T>[]) => {
   // Add swap data to batch and continue only if the batch is filled enough
   if (swaps.length === 0) return;
