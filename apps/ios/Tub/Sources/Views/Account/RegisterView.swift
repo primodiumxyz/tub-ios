@@ -3,22 +3,38 @@ import PrivySDK
 import AuthenticationServices
 
 struct RegisterView: View {
-    @State var myAuthState : AuthState = AuthState.notReady
     @State private var showPhoneModal = false
     @State private var showEmailModal = false
     
-    var body: some View {
-        if myAuthState.toString == "authenticated" {
-            Text(myAuthState.toString)
-                .foregroundStyle(.white.opacity(0.5))
-                .padding(.bottom, 24)
-            Button(action: {
-                privy.logout()
-            }) {
-                Text("logout")
+
+    func createEmbeddedWallet() {
+        Task {
+            do {
+                    // Ensure we're authenticated first
+                    guard case .authenticated = privy.authState else { return }
+                    
+                    // Get the current embedded wallet state
+                    let walletState = privy.embeddedWallet.embeddedWalletState
+                    
+                    // Check if we need to create a wallet
+                    switch walletState {
+                    case .notCreated:
+                        // Create a new embedded wallet
+                        print("Creating new embedded wallet")
+                        let _ = try await privy.embeddedWallet.createWallet(allowAdditional: false)
+                    case .connected(let wallets):
+                        print("Wallet already exists: \(wallets)")
+                    default:
+                        print("Wallet state: \(walletState.toString)")
+                    }
+                } catch {
+                    print("Error creating wallet: \(error.localizedDescription)")
+                }
             }
-            
-        } else {
+    }
+    
+    var body: some View {
+      
             VStack(spacing: 12) {
                 Image("Logo")
                     .resizable()
@@ -30,7 +46,6 @@ struct RegisterView: View {
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .padding(.bottom, 16)
-                
                 
                 Button(action: {
                     Task {
@@ -92,6 +107,35 @@ struct RegisterView: View {
                 .background(.white)
                 .cornerRadius(26)
                 .foregroundStyle(.black)
+
+                // Add dev login button in debug builds only
+                #if DEBUG
+                Button(action: {
+                    Task {
+                        do {
+                            // Send OTP to test email
+                            let _ = await privy.email.sendCode(to: "test-0932@privy.io")
+                            // Login with predefined OTP
+                            let _ = try await privy.email.loginWithCode("145288", sentTo: "test-0932@privy.io")
+                        } catch {
+                            debugPrint("Dev login error: \(error)")
+                        }
+                    }
+                }) {
+                    HStack {
+                        Image(systemName: "ladybug.fill")
+                            .frame(width: 24, height: 24)
+                        
+                        Text("Dev Login")
+                            .font(.sfRounded(size: .xl, weight: .semibold))
+                    }
+                }
+                .frame(width: 260)
+                .padding()
+                .background(.red.opacity(0.8))
+                .cornerRadius(26)
+                .foregroundStyle(.white)
+                #endif
             }.sheet(isPresented: $showPhoneModal) {
                 SignInWithPhoneView()
                     .presentationDetents([.height(400)])
@@ -100,14 +144,8 @@ struct RegisterView: View {
                 SignInWithEmailView()
                     .presentationDetents([.height(400)])
             }
-            .onAppear {
-                privy.setAuthStateChangeCallback { state in
-                    self.myAuthState = state
-                }
-            }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(AppColors.darkBlueGradient)
-        }
     }
 }
 

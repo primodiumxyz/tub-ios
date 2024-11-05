@@ -44,9 +44,9 @@ class Network {
             let path: String?
         }
     }
-
+    
     // tRPC
-    private let baseURL : URL 
+    private let baseURL : URL
     private let session : URLSession
     
     init() {
@@ -57,7 +57,7 @@ class Network {
             interceptorProvider: DefaultInterceptorProvider(store: store),
             endpointURL: httpURL
         )
-
+        
         let webSocketURL = URL(string: graphqlWsUrl)!
         let websocket = WebSocket(url: webSocketURL, protocol: .graphql_ws)
         webSocketTransport = WebSocketTransport(websocket: websocket)
@@ -66,18 +66,18 @@ class Network {
         baseURL = URL(string: serverBaseUrl)!
         session = URLSession(configuration: .default)
     }
-
+    
     private func callProcedure<T: Codable>(_ procedure: String, input: Codable? = nil, completion: @escaping (Result<T, Error>) -> Void) {
         let url = baseURL.appendingPathComponent(procedure)
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         // Add JWT token to the header
-
+        
         if let token = getStoredToken() {
             request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
-
+        
         if let input = input {
             do {
                 request.httpBody = try JSONEncoder().encode(input)
@@ -135,7 +135,7 @@ class Network {
             }
         }
     }
-
+    
     private func storeToken(_ token: String) {
         let data = Data(token.utf8)
         let query: [String: Any] = [
@@ -151,7 +151,7 @@ class Network {
     func incrementCall(completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
         callProcedure("incrementCall", completion: completion)
     }
-
+    
     func buyToken(tokenId: String, amount: String, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
         let input = ["tokenId": tokenId, "amount": amount]
         callProcedure("buyToken", input: input, completion: completion)
@@ -198,24 +198,14 @@ struct StatusResponse: Codable {
 
 extension Network {
     func getStoredToken() -> String? {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: "userToken",
-            kSecReturnData as String: true
-        ]
-        
-        var item: CFTypeRef?
-        let status = SecItemCopyMatching(query as CFDictionary, &item)
-        
-        guard status == errSecSuccess,
-              let data = item as? Data,
-              let token = String(data: data, encoding: .utf8) else {
+        switch privy.authState {
+        case .authenticated(let authSession):
+            return authSession.authToken
+        default:
             return nil
         }
-        
-        return token
     }
-
+    
     func fetchSolPrice(completion: @escaping (Result<Double, Error>) -> Void) {
         let url = URL(string: "https://min-api.cryptocompare.com/data/price?fsym=SOL&tsyms=Usd")!
         let task = session.dataTask(with: url) { data, response, error in

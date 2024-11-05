@@ -16,6 +16,7 @@ select_permissions:
         - amount
         - created_at
         - id
+        - wallet
       filter: {}
       allow_aggregations: true
     comment: ""
