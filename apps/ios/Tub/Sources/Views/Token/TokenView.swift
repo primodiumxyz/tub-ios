@@ -269,6 +269,7 @@ struct TokenView : View {
                 
                 BuyForm(isVisible: $showBuySheet, defaultAmount: $defaultAmount, tokenModel: tokenModel, onBuy: handleBuy)
                     .transition(.move(edge: .bottom))
+                    .offset(y:40)
                     .zIndex(2) // Ensure it stays on top
             }
         }
