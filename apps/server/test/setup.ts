@@ -1,14 +1,14 @@
-import { beforeAll, afterAll, afterEach } from 'vitest';
+import { afterAll, afterEach, beforeAll } from "vitest";
+import { server, start } from "../bin/tub-server";
 
-beforeAll(() => {
-  // Add any global setup here
+beforeAll(async () => {
+  await start();
 });
 
-afterAll(() => {
-  // Add any global teardown here
+afterAll(async () => {
+  server.close();
 });
 
 afterEach(() => {
   // Clean up after each test
 });
-
