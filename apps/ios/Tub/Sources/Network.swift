@@ -172,9 +172,9 @@ class Network {
         callProcedure("airdropNativeToUser", input: input, completion: completion)
     }
     
-    func getCoinbaseSolanaOnrampUrl(accountId: String, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
+    func getCoinbaseSolanaOnrampUrl(completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
         let input = ["accountId": accountId]
-        callProcedure("getCoinbaseSolanaOnrampUrl", input: input, completion: completion)
+        callProcedure("getCoinbaseSolanaOnrampUrl", completion: completion)
     }
 }
 
