@@ -173,7 +173,6 @@ class Network {
     }
     
     func getCoinbaseSolanaOnrampUrl(completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
-        let input = ["accountId": accountId]
         callProcedure("getCoinbaseSolanaOnrampUrl", completion: completion)
     }
 }
