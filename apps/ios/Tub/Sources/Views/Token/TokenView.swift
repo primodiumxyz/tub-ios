@@ -26,7 +26,7 @@ struct TokenView : View {
         
         var interval: Interval {
             switch self {
-                case .live: return "60s"
+                case .live: return "1m"
                 case .thirtyMin: return "30m"
             }
         }

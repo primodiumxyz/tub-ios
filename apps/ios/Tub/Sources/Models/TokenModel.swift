@@ -16,7 +16,7 @@ class TokenModel: ObservableObject {
     
     @Published var prices: [Price] = []
     @Published var priceChange: (amountLamps: Int, percentage: Double) = (0, 0)
-    @Published var interval: Interval = "60s"
+    @Published var interval: Interval = "1m"
  
     private var latestPriceSubscription: Apollo.Cancellable?
     private var tokenBalanceSubscription: Apollo.Cancellable?
@@ -29,7 +29,7 @@ class TokenModel: ObservableObject {
         }
     }
     
-    func initialize(with newTokenId: String, interval: Interval = "60s") {
+    func initialize(with newTokenId: String, interval: Interval = "1m") {
         // Cancel all existing subscriptions
         latestPriceSubscription?.cancel()
         tokenBalanceSubscription?.cancel()
