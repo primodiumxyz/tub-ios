@@ -94,6 +94,17 @@ struct ChartView: View {
         return filteredPrices
     }
     
+    private var yDomain: ClosedRange<Int> {
+        if filteredPrices.isEmpty { return 0...100 }
+        
+        let minPrice = filteredPrices.min { $0.price < $1.price }?.price ?? 0
+        let maxPrice = filteredPrices.max { $0.price < $1.price }?.price ?? 100
+        let range = maxPrice - minPrice
+        let padding = Int(Double(range) * 0.15)
+        
+        return (minPrice - padding)...(maxPrice + padding)
+    }
+    
     var body: some View {
         Chart {
             ForEach(filteredPrices) { price in
@@ -173,7 +184,7 @@ struct ChartView: View {
                 .foregroundStyle(.white.opacity(0.5))
             }
         }
-        .chartYScale(domain: .automatic)
+        .chartYScale(domain: yDomain)
         .frame(width: .infinity, height: 350)
         .onReceive(Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()) { _ in
             currentTime = Date().timeIntervalSince1970
