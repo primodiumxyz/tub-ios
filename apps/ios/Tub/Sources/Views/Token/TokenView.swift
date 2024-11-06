@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Combine
+import TubAPI
 
 struct TokenView : View {
     @ObservedObject var tokenModel: TokenModel
@@ -18,18 +19,15 @@ struct TokenView : View {
     @State private var selectedTimespan: Timespan = .live
     @State private var showBuySheet: Bool = false
     @State private var defaultAmount: Double = 50.0
-
-    @State private var priceChangeInterval: TimeInterval = 0
-    @State private var priceChangeTimer: Timer?
     
-    enum Timespan: String {
+    enum Timespan: String, CaseIterable {
         case live = "LIVE"
         case thirtyMin = "30M"
         
-        var interval: Double {
+        var interval: Interval {
             switch self {
-                case .live: return 120.0
-                case .thirtyMin: return 30.0 * 60.0
+                case .live: return "60s"
+                case .thirtyMin: return "30m"
             }
         }
     }
@@ -50,15 +48,6 @@ struct TokenView : View {
             }
         }
     }
-
-    private func startPriceChangeTimer() {
-        priceChangeTimer?.invalidate()
-        priceChangeTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-            if let refTime = self.tokenModel.priceRef?.timestamp {
-                self.priceChangeInterval = Date().timeIntervalSince(refTime)
-            }
-        }
-    }
     
     var body: some View {
         ZStack {
@@ -66,7 +55,7 @@ struct TokenView : View {
             VStack(alignment: .leading) {
                 tokenInfoView
                 chartView
-                timespanButtons
+                intervalButtons
                 Spacer()
                 BuySellForm(
                     tokenModel: tokenModel,
@@ -83,13 +72,6 @@ struct TokenView : View {
             buySheetOverlay
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .onAppear {
-            startPriceChangeTimer()
-        }
-        .onDisappear {
-            priceChangeTimer?.invalidate()
-            priceChangeTimer = nil
-        }
     }
     
     private var tokenInfoView: some View {
@@ -113,7 +95,7 @@ struct TokenView : View {
                 Text(priceModel.formatPrice(lamports: tokenModel.priceChange.amountLamps, showSign: true))
                 Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
                 
-                Text(formatTimeElapsed(self.priceChangeInterval)).foregroundColor(.gray)
+                Text(tokenModel.interval).foregroundColor(.gray)
             }
             .font(.sfRounded(size: .sm, weight: .semibold))
             .foregroundColor(tokenModel.priceChange.amountLamps >= 0 ? .green : .red)
@@ -139,36 +121,41 @@ struct TokenView : View {
         .padding(.horizontal)
     }
     
-    private var timespanButtons: some View {
+    private var intervalButtons: some View {
         HStack {
             Spacer()
             HStack {
-                ForEach([Timespan.live, Timespan.thirtyMin], id: \.self) { timespan in
-                    Button(action: {
-                        selectedTimespan = timespan
-                        tokenModel.updateHistoryTimeframe(timespan.interval)
-                    }) {
-                        HStack {
-                            if timespan == Timespan.live {
-                                Circle()
-                                    .fill(AppColors.red)
-                                    .frame(width: 10, height: 10)
-                            }
-                            Text(timespan.rawValue)
-                                .font(.sfRounded(size: .base, weight: .semibold))
-                        }
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 6)
-                        .background(selectedTimespan == timespan ? AppColors.aquaBlue : Color.clear)
-                        .foregroundColor(selectedTimespan == timespan ? AppColors.black : AppColors.white)
-                        .cornerRadius(6)
-                    }
-                }
+                intervalButton(for: .live)
+                intervalButton(for: .thirtyMin)
             }
             Spacer()
         }
         .padding(.bottom, 8)
         .padding(.horizontal)
+    }
+    
+    private func intervalButton(for timespan: Timespan) -> some View {
+        Button {
+            withAnimation {
+                selectedTimespan = timespan
+                tokenModel.updateHistoryInterval(timespan.interval)
+            }
+        } label: {
+            HStack {
+                if timespan == .live {
+                    Circle()
+                        .fill(AppColors.red)
+                        .frame(width: 10, height: 10)
+                }
+                Text(timespan.rawValue)
+                    .font(.sfRounded(size: .base, weight: .semibold))
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+            .background(selectedTimespan == timespan ? AppColors.aquaBlue : Color.clear)
+            .foregroundColor(selectedTimespan == timespan ? AppColors.black : AppColors.white)
+            .cornerRadius(6)
+        }
     }
     
     private var infoCardOverlay: some View {
@@ -207,22 +194,6 @@ struct TokenView : View {
                     .transition(.move(edge: .bottom))
                     .zIndex(2) // Ensure it stays on top of everything
             }
-        }
-    }
-
-    private func formatTimeElapsed(_ timeInterval: TimeInterval) -> String {
-        let hours = Int(timeInterval) / 3600
-        let minutes = (Int(timeInterval) % 3600) / 60
-        let seconds = Int(timeInterval) % 60
-
-        if hours > 1 {
-            return "\(hours)h"
-        } else if hours > 0 {
-            return "\(hours)h"
-        } else if minutes > 1 {
-            return "\(minutes)m"
-        } else  {
-            return "\(seconds)s"
         }
     }
 }
