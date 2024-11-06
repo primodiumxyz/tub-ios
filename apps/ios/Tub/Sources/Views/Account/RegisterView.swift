@@ -28,7 +28,6 @@ struct RegisterView: View {
                     print("Wallet state: \(walletState.toString)")
                 }
             } catch {
-                print("Error creating wallet: \(error.localizedDescription)")
                 errorHandler.show(error)
             }
         }
@@ -52,7 +51,7 @@ struct RegisterView: View {
                 Task {
                     do {
                         let _ = try await privy.oAuth.login(with: OAuthProvider.google)
-                    } catch (let error){
+                    } catch {
                         errorHandler.show(error)
                     }
                 }
@@ -70,7 +69,8 @@ struct RegisterView: View {
                         do {
                             let authSession = try await privy.oAuth.login(with: OAuthProvider.apple)
                             print(authSession.user)
-                        } catch (let error){
+                        } catch {
+                             
                             errorHandler.show(error)
                         }
                     }
@@ -117,7 +117,7 @@ struct RegisterView: View {
                         let _ = await privy.email.sendCode(to: "test-0932@privy.io")
                         // Login with predefined OTP
                         let _ = try await privy.email.loginWithCode("145288", sentTo: "test-0932@privy.io")
-                    } catch let error {
+                    } catch {
                         errorHandler.show(error)
                     }
                 }

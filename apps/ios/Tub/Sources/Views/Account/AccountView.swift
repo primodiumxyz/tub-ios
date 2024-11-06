@@ -21,18 +21,17 @@ struct AccountView: View {
         // isAirdropping = true
         airdropResult = nil
         
-        errorHandler.show(NSError(domain: "Airdrop", code: 0, userInfo: [NSLocalizedDescriptionKey: "Airdrop failed!"]))
-        // Network.shared.airdropNativeToUser(amount: 100 * Int(1e9)) { result in
-        //     DispatchQueue.main.async {
-        //         isAirdropping = false
-        //         switch result {
-        //         case .success(_):
-        //             airdropResult = "Airdrop successful!"
-        //         case .failure(let error):
-        //             errorHandler.show(error)
-        //         }
-        //     }
-        // }
+        Network.shared.airdropNativeToUser(amount: 100 * Int(1e9)) { result in
+            DispatchQueue.main.async {
+                isAirdropping = false
+                switch result {
+                case .success:
+                    airdropResult = "Airdrop successful!"
+                case .failure(let error):
+                    errorHandler.show(error)
+                }
+            }
+        }
     }
     
     var body: some View {

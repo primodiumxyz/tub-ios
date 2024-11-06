@@ -58,7 +58,7 @@ struct TokenView : View {
     }
     
     private func startPriceChangeTimer() {
-    priceChangeTimer?.invalidate()
+        priceChangeTimer?.invalidate()
         priceChangeTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
             if let refTime = self.tokenModel.priceRef?.timestamp {
                 self.priceChangeInterval = Date().timeIntervalSince(refTime)

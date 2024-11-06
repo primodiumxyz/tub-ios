@@ -153,13 +153,11 @@ class Network {
     }
     
     func buyToken(tokenId: String, amount: String, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
-        print("buying \(amount) \(tokenId)")
         let input = ["tokenId": tokenId, "amount": amount]
         callProcedure("buyToken", input: input, completion: completion)
     }
     
     func sellToken(tokenId: String, amount: String, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
-        print("selling \(amount) \(tokenId)")
         let input = ["tokenId": tokenId, "amount": amount]
         callProcedure("sellToken", input: input, completion: completion)
     }
