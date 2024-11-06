@@ -41,7 +41,7 @@ class SolPriceModel: ObservableObject {
         }
     }
     
-    func formatPrice(sol: Double, showSign: Bool = false, showUnit: Bool = true, maxDecimals: Int = 9, minDecimals: Int = 0) -> String {
+    func formatPrice(sol: Double, showSign: Bool = false, showUnit: Bool = true, maxDecimals: Int = 9, minDecimals: Int = 0, formatLarge: Bool = true) -> String {
         if let price = currentPrice, price > 0 {
             if sol.isNaN || sol.isInfinite || sol == 0 {
                 return showUnit ? "$0.00" : "0.00"
@@ -50,7 +50,7 @@ class SolPriceModel: ObservableObject {
             let usdPrice = sol * price
             
             // Handle large numbers
-            if usdPrice >= 1_000 {
+            if usdPrice >= 10_000 && formatLarge {
                 return "\(showSign ? (usdPrice >= 0 ? "+" : "") : "")\(showUnit ? "$" : "")\(formatLargeNumber(usdPrice))"
             }
             
@@ -76,14 +76,14 @@ class SolPriceModel: ObservableObject {
         }
     }
     
-    func formatPrice(lamports: Int, showSign: Bool = false, showUnit: Bool = true, maxDecimals: Int = 9, minDecimals: Int = 0) -> String {
+    func formatPrice(lamports: Int, showSign: Bool = false, showUnit: Bool = true, maxDecimals: Int = 9, minDecimals: Int = 0, formatLarge: Bool = true) -> String {
         let solPrice = Double(lamports) / 1e9
-        return formatPrice(sol: solPrice, showSign: showSign, showUnit: showUnit, maxDecimals: maxDecimals, minDecimals: minDecimals)
+        return formatPrice(sol: solPrice, showSign: showSign, showUnit: showUnit, maxDecimals: maxDecimals, minDecimals: minDecimals, formatLarge: formatLarge)
     }
     
-    func formatPrice(usd: Double, showSign: Bool = false, showUnit: Bool = true, maxDecimals: Int = 2, minDecimals: Int = 0) -> String {
+    func formatPrice(usd: Double, showSign: Bool = false, showUnit: Bool = true, maxDecimals: Int = 2, minDecimals: Int = 0, formatLarge: Bool = true) -> String {
         if let price = currentPrice, price > 0 {
-            return formatPrice(sol: usd / price, showSign: showSign, showUnit: showUnit, maxDecimals: maxDecimals, minDecimals: minDecimals)
+            return formatPrice(sol: usd / price, showSign: showSign, showUnit: showUnit, maxDecimals: maxDecimals, minDecimals: minDecimals, formatLarge: formatLarge)
         } else {
             return "0.00"
         }

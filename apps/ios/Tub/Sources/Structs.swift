@@ -29,6 +29,7 @@ struct Transaction: Identifiable, Equatable {
     let imageUri: String
     let date: Date
     let valueUsd: Double
+    let valueLamps: Int
     let quantityTokens: Int
     let isBuy: Bool
     let mint: String
