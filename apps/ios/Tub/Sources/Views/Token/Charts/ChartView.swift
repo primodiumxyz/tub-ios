@@ -84,10 +84,11 @@ struct ChartView: View {
                     if closestPurchasePrice?.timestamp == currentPrice.timestamp {
                         EmptyView()
                     } else {
-                    PillView(value:
-                                "\(priceModel.formatPrice(lamports: abs(currentPrice.price)))",
+                        PillView(
+                            value: "\(priceModel.formatPrice(lamports: abs(currentPrice.price)))",
                              color: dashedLineColor,
-                             foregroundColor: AppColors.black)
+                             foregroundColor: AppColors.black
+                        )
                     }
                 }
             }
@@ -111,27 +112,6 @@ struct ChartView: View {
                         value: "\(priceModel.formatPrice(lamports: purchasePrice.price))",
                         color: AppColors.primaryPink.opacity(0.8), foregroundColor: AppColors.white)
                 }
-            }
-        }
-        .chartXAxis {
-            AxisMarks(values: .stride(by: .second, count: Int(floor(timeframeSecs / 2)))) { value in
-                AxisValueLabel(format: .dateTime.hour().minute())
-                    .foregroundStyle(.white.opacity(0.5))
-            }
-        }
-        .chartYAxis {
-            AxisMarks(position: .leading) { value in
-                AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
-                    .foregroundStyle(.white.opacity(0.2))
-                AxisValueLabel()
-                AxisValueLabel {
-                    if let intValue = value.as(Int.self) {
-                        Text(priceModel.formatPrice(lamports: intValue))
-                            .foregroundStyle(.white)
-                            .font(.sfRounded(size: .xs, weight: .regular))
-                    }
-                }
-                .foregroundStyle(.white.opacity(0.5))
             }
         }
         .chartYScale(domain: yDomain)
