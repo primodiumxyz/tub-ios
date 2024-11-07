@@ -103,7 +103,7 @@ struct CandleChartView: View {
         .chartYAxis(content: yAxisConfig)
         .chartXAxis(content: xAxisConfig)
         .chartYScale(domain: .automatic)
-        .frame(height: 350)
+        .frame(height: 330)
         .onAppear(perform: updateCandles)
         .onChange(of: prices) { _ in updateCandles() }
     }

@@ -68,22 +68,20 @@ struct TokenListView: View {
             } else {
                 ZStack {
                     // Background gradient
-                    LinearGradient(
-                        stops: activeTab == "buy" ? purpleStops : pinkStops,
-                        startPoint: UnitPoint(x: 0.5, y: activeTab == "buy" ? 1 : 0),
-                        endPoint: UnitPoint(x: 0.5, y: activeTab == "buy" ? 0 : 1)
-                    )
-                    .ignoresSafeArea()
+//                    LinearGradient(
+//                        stops: activeTab == "buy" ? purpleStops : pinkStops,
+//                        startPoint: UnitPoint(x: 0.5, y: activeTab == "buy" ? 1 : 0),
+//                        endPoint: UnitPoint(x: 0.5, y: activeTab == "buy" ? 0 : 1)
+//                    )
+//                    .ignoresSafeArea()
                     
                     VStack(spacing: 0) {
                         AccountBalanceView(
                             userModel: userModel,
                             currentTokenModel: viewModel.currentTokenModel
                         )
-                        .padding(.top, 35)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 10)
                         .background(dragging ? AppColors.black : nil)
-                        .ignoresSafeArea()
                         .zIndex(2)
                         
                         // Rest of the content
