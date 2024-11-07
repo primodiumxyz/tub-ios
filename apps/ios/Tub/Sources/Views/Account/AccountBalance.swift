@@ -39,6 +39,7 @@ struct AccountBalanceView: View {
                 }
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .topLeading)
+                .padding(.vertical, 6.0)
             }
             
             // Expanded view
@@ -86,12 +87,12 @@ struct AccountBalanceView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .topLeading)
                 .padding(.trailing)
+                .padding(.vertical, 3.0)
             }
         }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 12.0)
+        .padding(.horizontal, 16)
         .background(AppColors.darkgray)
-        .cornerRadius(50)
+        .cornerRadius(40)
         .onTapGesture {
             withAnimation {
                 isExpanded.toggle()
