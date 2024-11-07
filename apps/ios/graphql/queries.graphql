@@ -242,7 +242,7 @@ query GetFormattedTokensWithPerformanceForIntervalsWithinPeriodQuery(
   $to: timestamptz!
   $interval: interval!
   $afterIntervals: String!
-  $minTrades: bigint = 0
+  $minTrades: bigint = "0"
   $minVolume: numeric = 0
   $mintBurnt: Boolean = false
   $freezeBurnt: Boolean = false

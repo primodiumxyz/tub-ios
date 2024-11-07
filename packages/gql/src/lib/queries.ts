@@ -1,7 +1,5 @@
 import { graphql } from "./init";
 
-
-
 export const GetAllMockTokensQuery = graphql(`
   query GetAllTokens {
     token(where: { mint: { _is_null: true } }) {
@@ -59,7 +57,7 @@ export const GetWalletTokenBalanceIgnoreIntervalQuery = graphql(`
     $token: uuid!
   ) {
     balance: wallet_token_balance_ignore_interval(
-        args: { wallet: $wallet, interval: $interval, start: $start, token: $token }
+      args: { wallet: $wallet, interval: $interval, start: $start, token: $token }
     ) {
       value: balance
     }
@@ -164,7 +162,7 @@ export const GetTokenPriceHistorySinceQuery = graphql(`
 export const GetFilteredTokensIntervalQuery = graphql(`
   query GetFilteredTokensInterval(
     $interval: interval!
-    $minTrades: bigint = 0
+    $minTrades: bigint = "0"
     $minVolume: numeric = 0
     $mintBurnt: Boolean = false
     $freezeBurnt: Boolean = false
@@ -247,7 +245,7 @@ export const GetFormattedTokensWithPerformanceForIntervalsWithinPeriodQuery = gr
     $to: timestamptz!
     $interval: interval!
     $afterIntervals: String!
-    $minTrades: bigint = 0
+    $minTrades: bigint = "0"
     $minVolume: numeric = 0
     $mintBurnt: Boolean = false
     $freezeBurnt: Boolean = false

@@ -59,7 +59,7 @@ export const GetAllOnchainTokensPriceHistorySinceSubscription = graphql(`
 export const GetFilteredTokensIntervalSubscription = graphql(`
   subscription SubFilteredTokensInterval(
     $interval: interval = "30s"
-    $minTrades: bigint = 0
+    $minTrades: bigint = "0"
     $minVolume: numeric = 0
     $mintBurnt: Boolean = false
     $freezeBurnt: Boolean = false

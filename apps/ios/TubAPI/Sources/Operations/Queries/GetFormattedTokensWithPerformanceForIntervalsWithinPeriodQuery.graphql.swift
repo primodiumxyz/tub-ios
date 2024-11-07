@@ -7,7 +7,7 @@ public class GetFormattedTokensWithPerformanceForIntervalsWithinPeriodQuery: Gra
   public static let operationName: String = "GetFormattedTokensWithPerformanceForIntervalsWithinPeriodQuery"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetFormattedTokensWithPerformanceForIntervalsWithinPeriodQuery($from: timestamptz!, $to: timestamptz!, $interval: interval!, $afterIntervals: String!, $minTrades: bigint = 0, $minVolume: numeric = 0, $mintBurnt: Boolean = false, $freezeBurnt: Boolean = false) { formatted_tokens_with_performance_intervals_within_period( args: { start: $from end: $to interval: $interval after_intervals: $afterIntervals } where: { trades: { _gte: $minTrades } volume: { _gte: $minVolume } _and: [ { _or: [{ _not: { mint_burnt: { _eq: $mintBurnt } } }, { mint_burnt: { _eq: true } }] } { _or: [ { _not: { freeze_burnt: { _eq: $freezeBurnt } } } { freeze_burnt: { _eq: true } } ] } ] } order_by: { interval_start: asc } ) { __typename token_id mint name symbol description uri supply decimals mint_burnt freeze_burnt is_pump_token increase_pct trades volume latest_price created_at increase_pct_after trades_after volume_after interval_start } }"#
+      #"query GetFormattedTokensWithPerformanceForIntervalsWithinPeriodQuery($from: timestamptz!, $to: timestamptz!, $interval: interval!, $afterIntervals: String!, $minTrades: bigint = "0", $minVolume: numeric = 0, $mintBurnt: Boolean = false, $freezeBurnt: Boolean = false) { formatted_tokens_with_performance_intervals_within_period( args: { start: $from end: $to interval: $interval after_intervals: $afterIntervals } where: { trades: { _gte: $minTrades } volume: { _gte: $minVolume } _and: [ { _or: [{ _not: { mint_burnt: { _eq: $mintBurnt } } }, { mint_burnt: { _eq: true } }] } { _or: [ { _not: { freeze_burnt: { _eq: $freezeBurnt } } } { freeze_burnt: { _eq: true } } ] } ] } order_by: { interval_start: asc } ) { __typename token_id mint name symbol description uri supply decimals mint_burnt freeze_burnt is_pump_token increase_pct trades volume latest_price created_at increase_pct_after trades_after volume_after interval_start } }"#
     ))
 
   public var from: Timestamptz
@@ -24,7 +24,7 @@ public class GetFormattedTokensWithPerformanceForIntervalsWithinPeriodQuery: Gra
     to: Timestamptz,
     interval: Interval,
     afterIntervals: String,
-    minTrades: GraphQLNullable<Bigint> = 0,
+    minTrades: GraphQLNullable<Bigint> = "0",
     minVolume: GraphQLNullable<Numeric> = 0,
     mintBurnt: GraphQLNullable<Bool> = false,
     freezeBurnt: GraphQLNullable<Bool> = false
