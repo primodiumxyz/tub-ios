@@ -84,21 +84,29 @@ struct TokenView : View {
                     .font(.sfRounded(size: .lg, weight: .semibold))
             }
             HStack(alignment: .center, spacing: 6) {
-                Text(priceModel.formatPrice(lamports: tokenModel.prices.last?.price ?? 0, maxDecimals: 9, minDecimals: 2))
-                    .font(.sfRounded(size: .xl4, weight: .bold))
+                if tokenModel.loading {
+                    LoadingPrice()
+                } else {
+                    Text(priceModel.formatPrice(lamports: tokenModel.prices.last?.price ?? 0, maxDecimals: 9, minDecimals: 2))
+                        .font(.sfRounded(size: .xl4, weight: .bold))
+                }
                 Image(systemName: "info.circle.fill")
                     .frame(width: 16, height: 16)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             
-            HStack {
-                Text(priceModel.formatPrice(lamports: tokenModel.priceChange.amountLamps, showSign: true))
-                Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
-                
-                Text(tokenModel.interval).foregroundColor(.gray)
+            if tokenModel.loading {
+                LoadingPriceChange()
+            } else {
+                HStack {
+                    Text(priceModel.formatPrice(lamports: tokenModel.priceChange.amountLamps, showSign: true))
+                    Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
+                    
+                    Text(tokenModel.interval).foregroundColor(.gray)
+                }
+                .font(.sfRounded(size: .sm, weight: .semibold))
+                .foregroundColor(tokenModel.priceChange.amountLamps >= 0 ? .green : .red)
             }
-            .font(.sfRounded(size: .sm, weight: .semibold))
-            .foregroundColor(tokenModel.priceChange.amountLamps >= 0 ? .green : .red)
         }
         .padding(.horizontal)
         .onTapGesture {
@@ -111,7 +119,9 @@ struct TokenView : View {
     
     private var chartView: some View {
         Group {
-            if selectedTimespan == .live {
+            if tokenModel.loading {
+                LoadingChart()
+            } else if selectedTimespan == .live {
                 ChartView(prices: tokenModel.prices, timeframeSecs: 90.0, purchaseTime: tokenModel.purchaseTime, purchaseAmount: tokenModel.balanceLamps)
             } else {
                 CandleChartView(prices: tokenModel.prices, intervalSecs: 90, timeframeMins: 30)
@@ -195,6 +205,75 @@ struct TokenView : View {
                     .zIndex(2) // Ensure it stays on top of everything
             }
         }
+    }
+}
+
+struct LoadingPrice: View {
+    var body: some View {
+        RoundedRectangle(cornerRadius: 4)
+            .fill(Color.white.opacity(0.05))
+            .frame(width: 120, height: 32)
+            .shimmering(opacity: 0.1)
+    }
+}
+
+struct LoadingPriceChange: View {
+    var body: some View {
+        RoundedRectangle(cornerRadius: 4)
+            .fill(Color.white.opacity(0.05))
+            .frame(width: 80, height: 20)
+            .shimmering(opacity: 0.1)
+    }
+}
+
+struct LoadingChart: View {
+    var body: some View {
+        RoundedRectangle(cornerRadius: 8)
+            .fill(Color.white.opacity(0.03))
+            .frame(height: 350)
+            .shimmering(opacity: 0.08)
+    }
+}
+
+struct ShimmeringView: ViewModifier {
+    @State private var phase: CGFloat = 0
+    let opacity: Double
+    
+    init(opacity: Double = 0.1) {
+        self.opacity = opacity
+    }
+    
+    func body(content: Content) -> some View {
+        content
+            .overlay(
+                GeometryReader { geometry in
+                    Color.white
+                        .opacity(opacity)
+                        .mask(
+                            Rectangle()
+                                .fill(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [.clear, .white.opacity(0.3), .clear]),
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .frame(width: geometry.size.width * 2)
+                                .offset(x: -geometry.size.width + (phase * geometry.size.width * 2))
+                        )
+                }
+            )
+            .onAppear {
+                withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
+                    phase = 1
+                }
+            }
+    }
+}
+
+extension View {
+    func shimmering(opacity: Double = 0.1) -> some View {
+        modifier(ShimmeringView(opacity: opacity))
     }
 }
 
