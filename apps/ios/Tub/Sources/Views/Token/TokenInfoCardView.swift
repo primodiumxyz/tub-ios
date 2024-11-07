@@ -107,7 +107,7 @@ struct TokenInfoCardView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 0)
-        .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.4, alignment: .topLeading)
+        .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.42, alignment: .topLeading)
         .background(AppColors.black)
         .cornerRadius(30)
         .overlay(
