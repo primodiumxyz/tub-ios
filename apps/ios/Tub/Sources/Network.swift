@@ -171,6 +171,10 @@ class Network {
         let input = ["amount": String(amount)]
         callProcedure("airdropNativeToUser", input: input, completion: completion)
     }
+    
+    func getCoinbaseSolanaOnrampUrl(completion: @escaping (Result<CoinbaseSolanaOnrampUrlResponse, Error>) -> Void) {
+        callProcedure("getCoinbaseSolanaOnrampUrl", completion: completion)
+    }
 }
 
 struct ResponseWrapper<T: Codable>: Codable {
@@ -195,6 +199,10 @@ struct StatusResponse: Codable {
     let status: Int
 }
 
+struct CoinbaseSolanaOnrampUrlResponse: Codable {
+    let coinbaseToken: String
+    let url: String
+}
 
 extension Network {
     func getStoredToken() -> String? {

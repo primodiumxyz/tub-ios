@@ -71,6 +71,8 @@ export const start = async () => {
       router: createAppRouter(),
       createContext: async (opt) => ({ tubService, jwtToken: getBearerToken(opt.req) }),
     });
+
+    return server;
   } catch (err) {
     server.log.error(err);
     process.exit(1);
