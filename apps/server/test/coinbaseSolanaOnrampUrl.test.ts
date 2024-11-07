@@ -8,8 +8,8 @@ import { AppRouter } from "../src/createAppRouter";
 
 config({ path: "../../../.env" });
 const env = parseEnv();
-const port = inject('port');
-const host = inject('host');
+const port = inject("port");
+const host = inject("host");
 
 describe("Coinbase Solana Onramp URL Test", () => {
   let client: ReturnType<typeof createTRPCProxyClient<AppRouter>>;

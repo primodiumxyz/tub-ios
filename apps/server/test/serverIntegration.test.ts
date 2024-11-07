@@ -1,18 +1,16 @@
 import { PrivyClient } from "@privy-io/server-auth";
 import { createTRPCProxyClient, createWSClient, httpBatchLink, splitLink, wsLink } from "@trpc/client";
 import { config } from "dotenv";
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, inject, it } from "vitest";
 import WebSocket from "ws";
 import { parseEnv } from "../bin/parseEnv";
 import { AppRouter } from "../src/createAppRouter";
-import { inject } from 'vitest'
-
 
 config({ path: "../../../.env" });
 const env = parseEnv();
 const tokenId = "722e8490-e852-4298-a250-7b0a399fec57";
-const port = inject('port');
-const host = inject('host');
+const port = inject("port");
+const host = inject("host");
 
 describe("Server Integration Tests", () => {
   let client: ReturnType<typeof createTRPCProxyClient<AppRouter>>;
