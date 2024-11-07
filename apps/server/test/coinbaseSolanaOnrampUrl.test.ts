@@ -44,8 +44,8 @@ describe("Coinbase Solana Onramp URL Test", () => {
     const result = await client.getCoinbaseSolanaOnrampUrl.mutate();
 
     // Test if valid UUID
-    const binaryStr = Buffer.from(result.coinbaseToken, "base64").toString();
-    expect(binaryStr).toHaveLength(36);
+    const uuidStr = Buffer.from(result.coinbaseToken, "base64").toString();
+    expect(uuidStr).toHaveLength(36);
 
     expect(result.url).toMatch(new RegExp(`^${expectedUrlStart}`));
   });
