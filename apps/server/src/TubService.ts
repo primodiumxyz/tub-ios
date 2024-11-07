@@ -117,7 +117,8 @@ export class TubService {
   }
 
   // Coinbase CDP services, generates a secure onboarding URL based on the user's wallet
-  async getCoinbaseSolanaOnrampUrl(/* token: string */) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async getCoinbaseSolanaOnrampUrl(token: string) {
     // TODO: replace the placeholder
     // ----------------------------
     // // replace with this when Privy wallet generation is supported
