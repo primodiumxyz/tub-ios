@@ -114,6 +114,7 @@ struct SignInWithEmailView: View {
                     }
                     .focused($pinFocusState, equals: .pinSix)
             }
+            .foregroundColor(.black)
             .padding(.vertical)
             .padding(.horizontal)
             

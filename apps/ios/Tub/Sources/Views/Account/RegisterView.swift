@@ -13,15 +13,31 @@ struct RegisterView: View {
     @State private var isEmailValid = false
     @State private var showEmailError = false
     
-    func handleRegistration(completion: Result<UserResponse, Error>) {
-        switch completion {
-        case .success(let user):
-            userId = user.uuid
-            UserDefaults.standard.set(user.uuid, forKey: "userId")
-            isRegistered = true
-        case .failure(let error):
-            print("Registration failed: \(error.localizedDescription)")
-        }
+
+    func createEmbeddedWallet() {
+        Task {
+            do {
+                    // Ensure we're authenticated first
+                    guard case .authenticated = privy.authState else { return }
+                    
+                    // Get the current embedded wallet state
+                    let walletState = privy.embeddedWallet.embeddedWalletState
+                    
+                    // Check if we need to create a wallet
+                    switch walletState {
+                    case .notCreated:
+                        // Create a new embedded wallet
+                        print("Creating new embedded wallet")
+                        let _ = try await privy.embeddedWallet.createWallet(allowAdditional: false)
+                    case .connected(let wallets):
+                        print("Wallet already exists: \(wallets)")
+                    default:
+                        print("Wallet state: \(walletState.toString)")
+                    }
+                } catch {
+                    print("Error creating wallet: \(error.localizedDescription)")
+                }
+            }
     }
     // Email validation function using regex
     func validateEmail(_ email: String) -> Bool {
@@ -210,16 +226,32 @@ struct RegisterView: View {
                             }
                         }
                     
-                    Button(action: {
-                        Network.shared.registerNewUser(username: "test", airdropAmount: String(Int(1.0 * 1e9))) { result in
-                            handleRegistration(completion: result)
+            // Add dev login button in debug builds only
+                #if DEBUG
+                Button(action: {
+                    Task {
+                        do {
+                            // Send OTP to test email
+                            let _ = await privy.email.sendCode(to: "test-0932@privy.io")
+                            // Login with predefined OTP
+                            let _ = try await privy.email.loginWithCode("145288", sentTo: "test-0932@privy.io")
+                        } catch {
+                            debugPrint("Dev login error: \(error)")
                         }
-                    }) {
+                    }
+                }) {
+                    HStack() {
+                        Image(systemName: "ladybug.fill")
+                            .frame(width: 24, height: 24)
+                        
                         Text("Dev Login")
                             .font(.sfRounded(size: .base, weight: .semibold))
-                            .foregroundColor(AppColors.lightGray)
-                            .frame(maxWidth: .infinity, maxHeight: 50)
                     }
+                    .foregroundColor(AppColors.lightGray)
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                #endif
                     
                 }.sheet(isPresented: $showPhoneModal) {
                     SignInWithPhoneView()

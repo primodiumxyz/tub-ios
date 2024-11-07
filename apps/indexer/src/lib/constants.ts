@@ -401,3 +401,10 @@ export const PROGRAMS = [
 ] as const satisfies Program[];
 
 export const PLATFORMS = PROGRAMS.map((program) => program.id);
+
+// Expected close codes for the websocket (restart straight away)
+export const CLOSE_CODES = {
+  MANUAL_RESTART: 3000,
+  PING_TIMEOUT: 3001,
+  NO_DATA: 3002,
+};

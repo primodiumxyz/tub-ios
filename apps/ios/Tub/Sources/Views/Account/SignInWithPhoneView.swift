@@ -82,6 +82,7 @@ struct SignInWithPhoneView: View {
                     .keyboardType(.phonePad)
                     .padding()
                     .background(AppColors.white)
+                    .foregroundColor(.black)
                     .frame(maxWidth: .infinity, maxHeight: 50, alignment: .leading)
                     .cornerRadius(30)
                     .onChange(of: phoneNumber) { newValue in
@@ -173,6 +174,7 @@ struct SignInWithPhoneView: View {
                         }
                         .focused($pinFocusState, equals: .pinSix)
                 }
+                .foregroundColor(.black)
                 .padding(.vertical, 6)
                 .padding(.horizontal, 20)
                 

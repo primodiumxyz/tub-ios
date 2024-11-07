@@ -99,46 +99,46 @@ export const GetFilteredTokensIntervalSubscription = graphql(`
   }
 `);
 
-export const GetAccountTokenBalanceSubscription = graphql(`
-  subscription SubAccountTokenBalance($account: uuid!, $token: uuid!, $start: timestamptz = "now()") {
-    balance: account_token_balance_ignore_interval(
-      args: { account: $account, interval: "0", start: $start, token: $token }
+export const GetWalletTokenBalanceSubscription = graphql(`
+  subscription SubWalletTokenBalance($wallet: String!, $token: uuid!, $start: timestamptz = "now()") {
+    balance: wallet_token_balance_ignore_interval(
+      args: { wallet: $wallet, interval: "0", start: $start, token: $token }
     ) {
       value: balance
     }
   }
 `);
 
-export const GetAccountTokenBalanceIgnoreIntervalSubscription = graphql(`
-  subscription SubAccountTokenBalanceIgnoreInterval(
-    $account: uuid!
+export const GetWalletTokenBalanceIgnoreIntervalSubscription = graphql(`
+  subscription SubWalletTokenBalanceIgnoreInterval(
+    $wallet: String!
     $start: timestamptz = "now()"
     $interval: interval = "0"
     $token: uuid!
   ) {
-    balance: account_token_balance_ignore_interval(
-      args: { account: $account, interval: $interval, start: $start, token: $token }
+    balance: wallet_token_balance_ignore_interval(
+      args: { wallet: $wallet, interval: $interval, start: $start, token: $token }
     ) {
       value: balance
     }
   }
 `);
 
-export const GetAccountBalanceSubscription = graphql(`
-  subscription SubAccountBalance($account: uuid!, $start: timestamptz = "now()") {
-    balance: account_balance_ignore_interval(args: { account: $account, interval: "0", start: $start }) {
+export const GetWalletBalanceSubscription = graphql(`
+  subscription SubWalletBalance($wallet: String!, $start: timestamptz = "now()") {
+    balance: wallet_balance_ignore_interval(args: { wallet: $wallet, interval: "0", start: $start }) {
       value: balance
     }
   }
 `);
 
-export const GetAccountBalanceIgnoreIntervalSubscription = graphql(`
-  subscription SubAccountBalanceIgnoreInterval(
-    $account: uuid!
+export const GetWalletBalanceIgnoreIntervalSubscription = graphql(`
+  subscription SubWalletBalanceIgnoreInterval(
+    $wallet: String!
     $start: timestamptz = "now()"
     $interval: interval = "0"
   ) {
-    balance: account_balance_ignore_interval(args: { account: $account, interval: $interval, start: $start }) {
+    balance: wallet_balance_ignore_interval(args: { wallet: $wallet, interval: $interval, start: $start }) {
       value: balance
     }
   }
