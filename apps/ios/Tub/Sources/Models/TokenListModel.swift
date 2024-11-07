@@ -34,7 +34,7 @@ class TokenListModel: ObservableObject {
     
     init(userModel: UserModel) {
         self.userModel = userModel
-        self.currentTokenModel = TokenModel(userId: userModel.userId)
+        self.currentTokenModel = TokenModel(walletAddress: userModel.walletAddress)
     }
 
     var currentTokenIndex: Int {
@@ -56,7 +56,7 @@ class TokenListModel: ObservableObject {
     }
 
     func createTokenModel() -> TokenModel {
-        return TokenModel(userId: userModel.userId)
+        return TokenModel(walletAddress: userModel.walletAddress)
     }
     
     private func getRandomToken(excluding currentId: String? = nil) -> Token? {

@@ -22,6 +22,14 @@ struct TokenView : View {
     @State private var priceChangeInterval: TimeInterval = 0
     @State private var priceChangeTimer: Timer?
     
+    //placeholder
+    let stats = [
+            ("Market Cap", "$144M"),
+            ("Volume", "1.52M"),
+            ("Holders", "53.3K"),
+            ("Supply", "989M")
+    ]
+    
     enum Timespan: String {
         case live = "LIVE"
         case thirtyMin = "30M"
@@ -63,11 +71,15 @@ struct TokenView : View {
     var body: some View {
         ZStack {
             // Main content
-            VStack(alignment: .leading) {
+            VStack(alignment: .leading, spacing: 4) {
                 tokenInfoView
                 chartView
                 timespanButtons
-                Spacer()
+                infoCardLowOpacity
+                    .opacity(0.5) // Adjust opacity here
+                    .padding(.horizontal, 8)
+                    .padding(.bottom, -4)
+
                 BuySellForm(
                     tokenModel: tokenModel,
                     activeTab: $activeTab,
@@ -93,7 +105,7 @@ struct TokenView : View {
     }
     
     private var tokenInfoView: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 4) {
             HStack {
                 if tokenModel.token.imageUri != nil {
                     ImageView(imageUri: tokenModel.token.imageUri!, size: 20)
@@ -136,7 +148,6 @@ struct TokenView : View {
                     .id(tokenModel.prices.count)
             }
         }
-        .padding(.horizontal)
     }
     
     private var timespanButtons: some View {
@@ -148,44 +159,97 @@ struct TokenView : View {
                         selectedTimespan = timespan
                         tokenModel.updateHistoryTimeframe(timespan.interval)
                     }) {
-                        HStack {
+                        HStack(spacing: 4) {
                             if timespan == Timespan.live {
                                 Circle()
                                     .fill(AppColors.red)
-                                    .frame(width: 10, height: 10)
+                                    .frame(width: 7, height: 7)
                             }
                             Text(timespan.rawValue)
-                                .font(.sfRounded(size: .base, weight: .semibold))
+                                .font(.sfRounded(size: .sm, weight: .semibold))
                         }
-                        .padding(.horizontal, 8)
+                        .padding(.horizontal, 10)
                         .padding(.vertical, 6)
                         .background(selectedTimespan == timespan ? AppColors.aquaBlue : Color.clear)
                         .foregroundColor(selectedTimespan == timespan ? AppColors.black : AppColors.white)
-                        .cornerRadius(6)
+                        .cornerRadius(20)
                     }
                 }
             }
             Spacer()
         }
-        .padding(.bottom, 8)
         .padding(.horizontal)
+    }
+    
+    private var infoCardLowOpacity: some View {
+        
+        VStack(alignment: .leading, spacing: 0) {
+            
+            Text("Stats")
+                .font(.sfRounded(size: .xl, weight: .semibold))
+                .foregroundColor(AppColors.white)
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+            
+            // grid
+            ForEach(0..<stats.count/2, id: \.self) { index in
+                HStack(alignment: .top, spacing: 20) {
+                    ForEach(0..<2) { subIndex in
+                        let stat = stats[index * 2 + subIndex]
+                        VStack {
+                            HStack(alignment: .center)  {
+                                Text(stat.0)
+                                    .font(.sfRounded(size: .sm, weight: .regular))
+                                    .foregroundColor(AppColors.gray)
+                                    .fixedSize(horizontal: true, vertical: false)
+                                
+                                Text(stat.1)
+                                    .font(.sfRounded(size: .base, weight: .semibold))
+                                    .frame(maxWidth: .infinity, alignment: .topTrailing)
+                                    .foregroundColor(AppColors.white)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            //divider
+                            Rectangle()
+                                .foregroundColor(.clear)
+                                .frame(height: 0.5)
+                                .background(AppColors.gray.opacity(0.5))
+                        }
+                    }
+                }
+                .padding(.top,8)
+                .padding(.horizontal,8)
+            }
+        }
+        .padding(.horizontal,24)
+        .padding(.vertical,16)
+        .frame(maxWidth: .infinity, maxHeight: 95 ,alignment: .topLeading)
+        .background(AppColors.darkGrayGradient)
+        .cornerRadius(12)
+        .onTapGesture {
+            withAnimation(.easeInOut) {
+                showInfoCard.toggle()
+            }
+        }
     }
     
     private var infoCardOverlay: some View {
         Group {
             if showInfoCard {
                 // Fullscreen tap dismiss
-                AppColors.black.opacity(0.4) // Semi-transparent background
+                AppColors.black.opacity(0.2)
                     .ignoresSafeArea()
                     .onTapGesture {
                         withAnimation(.easeInOut) {
                             showInfoCard = false // Close the card
                         }
                     }
-                
-                TokenInfoCardView(tokenModel: tokenModel, isVisible: $showInfoCard)
-                    .transition(.move(edge: .bottom))
-                    .zIndex(1) // Ensure it stays on top
+                VStack {
+                    Spacer()
+                    TokenInfoCardView(tokenModel: tokenModel, isVisible: $showInfoCard)
+                }
+                .transition(.move(edge: .bottom))
+                .zIndex(1) // Ensure it stays on top
             }
         }
     }
@@ -194,7 +258,7 @@ struct TokenView : View {
     private var buySheetOverlay: some View {
         Group {
             if showBuySheet {
-                Color.black.opacity(0.4)
+                AppColors.black.opacity(0.4)
                     .ignoresSafeArea()
                     .onTapGesture {
                         withAnimation(.easeInOut(duration: 0.3)) {
@@ -205,7 +269,8 @@ struct TokenView : View {
                 
                 BuyForm(isVisible: $showBuySheet, defaultAmount: $defaultAmount, tokenModel: tokenModel, onBuy: handleBuy)
                     .transition(.move(edge: .bottom))
-                    .zIndex(2) // Ensure it stays on top of everything
+                    .offset(y:40)
+                    .zIndex(2) // Ensure it stays on top
             }
         }
     }
