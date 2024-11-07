@@ -37,7 +37,7 @@ export class TubService {
     return { status: 200 };
   }
 
-  async sellToken(token: string, tokenId: string, amount: bigint) {
+  async sellToken(token: string, tokenId: string, amount: bigint, overridePrice?: bigint) {
     const accountId = await this.verifyJWT(token);
     const wallet = await this.getUserWallet(accountId);
 
@@ -49,6 +49,7 @@ export class TubService {
       wallet: wallet,
       token: tokenId,
       amount: amount.toString(),
+      override_token_price: overridePrice?.toString(),
     });
 
     if (result.error) {
@@ -58,7 +59,7 @@ export class TubService {
     return result.data;
   }
 
-  async buyToken(token: string, tokenId: string, amount: bigint, overridePrice: bigint) {
+  async buyToken(token: string, tokenId: string, amount: bigint, overridePrice?: bigint) {
     const accountId = await this.verifyJWT(token);
     const wallet = await this.getUserWallet(accountId);
 
@@ -70,7 +71,7 @@ export class TubService {
       wallet: wallet,
       token: tokenId,
       amount: amount.toString(),
-      override_token_price: overridePrice.toString(),
+      override_token_price: overridePrice?.toString(),
     });
 
     if (result.error) {

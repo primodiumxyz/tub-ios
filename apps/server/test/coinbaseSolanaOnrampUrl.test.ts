@@ -42,7 +42,11 @@ describe("Coinbase Solana Onramp URL Test", () => {
 
     // Await the result since getCoinbaseSolanaOnrampUrl is async
     const result = await client.getCoinbaseSolanaOnrampUrl.mutate();
-    expect(result.coinbaseToken).toHaveLength(48);
+
+    // Test if valid UUID
+    const binaryStr = Buffer.from(result.coinbaseToken, "base64").toString();
+    expect(binaryStr).toHaveLength(36);
+
     expect(result.url).toMatch(new RegExp(`^${expectedUrlStart}`));
   });
 });

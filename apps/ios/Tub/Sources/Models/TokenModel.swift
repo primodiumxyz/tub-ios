@@ -5,7 +5,7 @@ import TubAPI
 
 class TokenModel: ObservableObject {
     var tokenId: String = ""
-    var userId: String = ""
+    var walletAddress: String = ""
     
     @Published var token: Token = Token(id: "", name: "COIN", symbol: "SYMBOL", mint: "", decimals: 6, imageUri: "")
     @Published var loading = true
@@ -25,8 +25,8 @@ class TokenModel: ObservableObject {
     private var tokenBalanceSubscription: Apollo.Cancellable?
     
     
-    init(userId: String, tokenId: String? = nil) {
-        self.userId = userId
+    init(walletAddress: String, tokenId: String? = nil) {
+        self.walletAddress = walletAddress
         if tokenId != nil {
             self.initialize(with: tokenId!)
         }
@@ -173,7 +173,7 @@ class TokenModel: ObservableObject {
         
         tokenBalanceSubscription = Network.shared.apollo.subscribe(
             subscription: SubWalletTokenBalanceSubscription(
-                wallet: "0x123", token: self.tokenId)
+                wallet: self.walletAddress, token: self.tokenId)
         ) { [weak self] result in
             guard let self = self else { return }
             DispatchQueue.main.async {
