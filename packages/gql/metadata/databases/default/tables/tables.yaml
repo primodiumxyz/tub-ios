@@ -1,5 +1,3 @@
-- "!include public_account.yaml"
-- "!include public_account_transaction.yaml"
 - "!include public_formatted_tokens.yaml"
 - "!include public_formatted_tokens_with_performance.yaml"
 - "!include public_hourly_new_tokens.yaml"
@@ -7,3 +5,4 @@
 - "!include public_token.yaml"
 - "!include public_token_price_history.yaml"
 - "!include public_token_transaction.yaml"
+- "!include public_wallet_transaction.yaml"

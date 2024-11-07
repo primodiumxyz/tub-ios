@@ -1,11 +1,3 @@
-mutation RegisterNewUser($username: String!, $amount: numeric!) {
-  insert_account_one(
-    object: { account_transactions: { data: { amount: $amount} }, username: $username }
-  ) {
-    id
-  }
-}
-
 mutation RegisterNewToken($name: String!, $symbol: String!, $supply: numeric!, $uri: String) {
   insert_token_one(object: { name: $name, symbol: $symbol, uri: $uri, supply: $supply }) {
     id
@@ -18,24 +10,24 @@ mutation RegisterManyNewTokens($objects: [token_insert_input!]!) {
   }
 }
 
-mutation BuyToken($account: uuid!, $token: uuid!, $amount: numeric!, $override_token_price: numeric) {
+mutation BuyToken($wallet: String!, $token: uuid!, $amount: numeric!, $override_token_price: numeric) {
   buy_token(
-    args: { account_id: $account, token_id: $token, amount_to_buy: $amount, token_cost: $override_token_price }
+    args: { user_wallet: $wallet, token_id: $token, amount_to_buy: $amount, token_cost: $override_token_price }
   ) {
     id
   }
 }
 
-mutation SellToken($account: uuid!, $token: uuid!, $amount: numeric!, $override_token_price: numeric) {
+mutation SellToken($wallet: String!, $token: uuid!, $amount: numeric!, $override_token_price: numeric) {
   sell_token(
-    args: { account_id: $account, token_id: $token, amount_to_sell: $amount, token_cost: $override_token_price }
+    args: { user_wallet: $wallet, token_id: $token, amount_to_sell: $amount, token_cost: $override_token_price }
   ) {
     id
   }
 }
 
-mutation AirdropNativeToUser($account: uuid!, $amount: numeric!) {
-  insert_account_transaction_one(object: { account: $account, amount: $amount }) {
+mutation AirdropNativeToUser($wallet: String!, $amount: numeric!) {
+  insert_wallet_transaction_one(object: { wallet: $wallet, amount: $amount }) {
     id
   }
 }

@@ -7,7 +7,7 @@ public class GetFilteredTokensQuery: GraphQLQuery {
   public static let operationName: String = "GetFilteredTokens"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetFilteredTokens($interval: interval!, $minTrades: bigint = "0", $minVolume: numeric = 0, $mintBurnt: Boolean = false, $freezeBurnt: Boolean = false) { formatted_tokens_interval( args: { interval: $interval } where: { is_pump_token: { _eq: true } trades: { _gte: $minTrades } volume: { _gte: $minVolume } _and: [ { _or: [{ _not: { mint_burnt: { _eq: $mintBurnt } } }, { mint_burnt: { _eq: true } }] } { _or: [ { _not: { freeze_burnt: { _eq: $freezeBurnt } } } { freeze_burnt: { _eq: true } } ] } ] } order_by: { trades: desc } ) { __typename token_id mint name symbol description uri supply decimals mint_burnt freeze_burnt is_pump_token increase_pct trades volume latest_price created_at } }"#
+      #"query GetFilteredTokens($interval: interval!, $minTrades: bigint = "0", $minVolume: numeric = 0, $mintBurnt: Boolean = false, $freezeBurnt: Boolean = false) { formatted_tokens_interval( args: { interval: $interval } where: { is_pump_token: { _eq: true } trades: { _gte: $minTrades } volume: { _gte: $minVolume } _and: [ { _or: [{ _not: { mint_burnt: { _eq: $mintBurnt } } }, { mint_burnt: { _eq: true } }] } { _or: [ { _not: { freeze_burnt: { _eq: $freezeBurnt } } } { freeze_burnt: { _eq: true } } ] } ] } order_by: { volume: desc } ) { __typename token_id mint name symbol description uri supply decimals mint_burnt freeze_burnt is_pump_token increase_pct trades volume latest_price created_at } }"#
     ))
 
   public var interval: Interval
@@ -52,7 +52,7 @@ public class GetFilteredTokensQuery: GraphQLQuery {
           "volume": ["_gte": .variable("minVolume")],
           "_and": [["_or": [["_not": ["mint_burnt": ["_eq": .variable("mintBurnt")]]], ["mint_burnt": ["_eq": true]]]], ["_or": [["_not": ["freeze_burnt": ["_eq": .variable("freezeBurnt")]]], ["freeze_burnt": ["_eq": true]]]]]
         ],
-        "order_by": ["trades": "desc"]
+        "order_by": ["volume": "desc"]
       ]),
     ] }
 

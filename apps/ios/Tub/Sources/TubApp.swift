@@ -10,37 +10,53 @@ import PrivySDK
 
 @main
 struct TubApp: App {
-    @AppStorage("userId") private var userId = ""
-    @State var isPrivySdkReady = false
-    
-    var body: some Scene {
+    var body : some Scene {
         WindowGroup {
-            Group{
-                if !isPrivySdkReady {
-                    LoadingView()
-                }
-                else if userId.isEmpty {
-                    AccountSetupView().font(.sfRounded())
-                } else {
-                    HomeTabsView().font(.sfRounded())
-                }
-            }.onAppear(perform: {
-                privy.setAuthStateChangeCallback { state in
-                    if !self.isPrivySdkReady && state != AuthState.notReady {
-                        self.isPrivySdkReady = true
-                    }
-                }
-            })
+            AppContent()
         }
+    }
+    
+}
+
+struct AppContent : View {
+    @State var isPrivySdkReady = false
+    @State var myAuthState : AuthState = AuthState.notReady
+    @State var userId : String = ""
+    @State var walletState : EmbeddedWalletState = EmbeddedWalletState.notCreated
+    
+    var body: some View {
+        Group{
+            if myAuthState.toString == "notReady" || walletState == .connecting {
+                LoadingView()
+            }
+            else if myAuthState.toString != "authenticated" {
+                RegisterView()
+            } else if walletState == EmbeddedWalletState.notCreated {
+                CreateWalletView()
+            } else {
+                HomeTabsView(userId: userId).font(.sfRounded())
+            }
+        }.onAppear(perform: {
+            privy.embeddedWallet.setEmbeddedWalletStateChangeCallback({
+                state in walletState = state
+            })
+            
+            privy.setAuthStateChangeCallback { state in
+                self.myAuthState = state
+                switch state {
+                    case .authenticated(let session):
+                        userId = session.user.id
+                case .unauthenticated :
+                    userId = ""
+                default:
+                   break
+                }
+            }
+        })
     }
 }
 
 #Preview {
-    HomeTabsView()
-        .font(.sfRounded())
+    AppContent()
 }
 
-#Preview("Account Setup") {
-    AccountSetupView()
-        .font(.sfRounded())
-}

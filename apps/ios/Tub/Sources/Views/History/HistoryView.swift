@@ -12,7 +12,7 @@ struct HistoryView : View {
     
     @EnvironmentObject private var userModel: UserModel
     @EnvironmentObject private var priceModel: SolPriceModel
-
+    
     
     @State private var txs: [Transaction]
     @State private var loading : Bool
@@ -27,7 +27,7 @@ struct HistoryView : View {
     func fetchUserTxs(_ userId: String) {
         loading = true
         error = nil // Reset error state
-        let query = GetAccountTransactionsQuery(accountId: userId)
+        let query = GetWalletTransactionsQuery(wallet: userModel.walletAddress)
         
         Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { result in
             DispatchQueue.main.async {
@@ -37,7 +37,7 @@ struct HistoryView : View {
                 case .success(let graphQLResult):
                     if let tokenTransactions = graphQLResult.data?.token_transaction {
                         self.txs = tokenTransactions.reduce(into: []) { result, transaction in
-                            guard let date = formatDateString(transaction.account_transaction_data.created_at) else {
+                            guard let date = formatDateString(transaction.wallet_transaction_data.created_at) else {
                                 return
                             }
                             if (abs(transaction.amount) == 0) {
@@ -73,8 +73,11 @@ struct HistoryView : View {
                                 
                             result.append(newTransaction)
                         }
+                    } else if let error = graphQLResult.errors?.first {
+                        print(error)
+                        self.error = error
                     } else {
-                        self.error = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "No transaction data found"])
+                        self.txs = []
                     }
                 case .failure(let error):
                     print("Error fetching transactions: \(error)")
@@ -89,7 +92,7 @@ struct HistoryView : View {
             if loading == true {
                 LoadingView()
             } else if let error = error {
-                ErrorView(error: error, retryAction: { fetchUserTxs(userModel.userId) })
+                ErrorView(error: error)
             } else {
                 HistoryViewContent(txs: txs)
             }
@@ -152,7 +155,7 @@ struct HistoryViewContent: View {
                                 Image(systemName: isSearching ? "xmark.circle.fill" : "magnifyingglass")
                                     .foregroundColor(AppColors.white)
                                     .font(.sfRounded(size: .lg, weight: .semibold))
-
+                                
                             }
                             
                             if isSearching {
@@ -253,28 +256,34 @@ struct HistoryViewContent: View {
                 
                 
                 // Transaction List
-                List {
-                    ForEach(filteredTransactions(), id: \.id) { transaction in
-                        NavigationLink(destination: HistoryDetailsView(transaction: transaction)) {
-                            
-                            VStack {
-                                TransactionRow(transaction: transaction)
-                                    .padding(.bottom, 2.0)
-                                    .padding(.leading, 10.0)
+                if filteredTransactions().isEmpty {
+                    Text("No transactions found")
+                        .font(.sfRounded(size: .base, weight: .regular))
+                        .foregroundColor(AppColors.gray)
+                } else {
+                    List {
+                        ForEach(filteredTransactions(), id: \.id) { transaction in
+                            NavigationLink(destination: HistoryDetailsView(transaction: transaction)) {
                                 
-                                if transaction != txs.last  {
-                                    Divider()
-                                        .frame(width: 340.0, height: 1.0)
-                                        .background(Color(hue: 1.0, saturation: 0.0, brightness: 0.2))
+                                VStack {
+                                    TransactionRow(transaction: transaction)
+                                        .padding(.bottom, 2.0)
+                                        .padding(.leading, 10.0)
+                                    
+                                    if transaction != txs.last  {
+                                        Divider()
+                                            .frame(width: 340.0, height: 1.0)
+                                            .background(Color(hue: 1.0, saturation: 0.0, brightness: 0.2))
+                                    }
                                 }
                             }
+                            .listRowBackground(Color.black)
                         }
-                        .listRowBackground(Color.black)
                     }
+                    .listStyle(PlainListStyle())
                 }
-                .listStyle(PlainListStyle())
                 Spacer()
-                    
+                
             }
             .background(Color.black.edgesIgnoringSafeArea(.all))
         }
@@ -310,7 +319,7 @@ struct HistoryViewContent: View {
     // Helper function to filter transactions
     func filteredTransactions() -> [Transaction] {
         var filteredData = txs
-                
+        
         // Filter by search text
         if !searchText.isEmpty {
             filteredData = filteredData.filter { transaction in
@@ -343,7 +352,7 @@ struct HistoryViewContent: View {
                 break
             }
         }
-
+        
         // Filter by Status (checkboxes)
         if selectedFilled && !selectedUnfilled {
             filteredData = filteredData.filter { _ in true }
@@ -368,11 +377,11 @@ struct HistoryViewContent: View {
         return filteredData
     }
 }
-    
+
 struct TransactionRow: View {
     let transaction: Transaction
     @EnvironmentObject private var priceModel: SolPriceModel
-
+    
     var body: some View {
         HStack {
             ImageView(imageUri: transaction.imageUri, size: 40)

@@ -165,8 +165,8 @@ struct TokenInfoCardView: View {
     @Previewable @State var isVisible = true
     @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
     
-    return TokenInfoCardView(
-        tokenModel: TokenModel(userId: userId, tokenId: mockTokenId),
+    TokenInfoCardView(
+        tokenModel: TokenModel(walletAddress: "", tokenId: mockTokenId),
         isVisible: $isVisible
     )
     .environmentObject(priceModel)

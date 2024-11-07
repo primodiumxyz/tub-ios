@@ -44,9 +44,9 @@ class Network {
             let path: String?
         }
     }
-
+    
     // tRPC
-    private let baseURL : URL 
+    private let baseURL : URL
     private let session : URLSession
     
     init() {
@@ -57,7 +57,7 @@ class Network {
             interceptorProvider: DefaultInterceptorProvider(store: store),
             endpointURL: httpURL
         )
-
+        
         let webSocketURL = URL(string: graphqlWsUrl)!
         let websocket = WebSocket(url: webSocketURL, protocol: .graphql_ws)
         webSocketTransport = WebSocketTransport(websocket: websocket)
@@ -66,18 +66,18 @@ class Network {
         baseURL = URL(string: serverBaseUrl)!
         session = URLSession(configuration: .default)
     }
-
+    
     private func callProcedure<T: Codable>(_ procedure: String, input: Codable? = nil, completion: @escaping (Result<T, Error>) -> Void) {
         let url = baseURL.appendingPathComponent(procedure)
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         // Add JWT token to the header
-
+        
         if let token = getStoredToken() {
             request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
-
+        
         if let input = input {
             do {
                 request.httpBody = try JSONEncoder().encode(input)
@@ -122,6 +122,7 @@ class Network {
         callProcedure("getStatus", completion: completion)
     }
     
+    @available(*, deprecated)
     func registerNewUser(username: String, airdropAmount: String? = nil, completion: @escaping (Result<UserResponse, Error>) -> Void) {
         let input = ["username": username, "airdropAmount": airdropAmount].compactMapValues { $0 }
         callProcedure("registerNewUser", input: input) { (result: Result<UserResponse, Error>) in
@@ -134,7 +135,7 @@ class Network {
             }
         }
     }
-
+    
     private func storeToken(_ token: String) {
         let data = Data(token.utf8)
         let query: [String: Any] = [
@@ -145,18 +146,19 @@ class Network {
         SecItemDelete(query as CFDictionary)
         SecItemAdd(query as CFDictionary, nil)
     }
-
+    
+    @available(*, deprecated)
     func incrementCall(completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
         callProcedure("incrementCall", completion: completion)
     }
-
-    func buyToken(accountId: String, tokenId: String, amount: String, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
-        let input = ["accountId": accountId, "tokenId": tokenId, "amount": amount]
+    
+    func buyToken(tokenId: String, amount: String, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
+        let input = ["tokenId": tokenId, "amount": amount]
         callProcedure("buyToken", input: input, completion: completion)
     }
     
-    func sellToken(accountId: String, tokenId: String, amount: String, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
-        let input = ["accountId": accountId, "tokenId": tokenId, "amount": amount]
+    func sellToken(tokenId: String, amount: String, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
+        let input = ["tokenId": tokenId, "amount": amount]
         callProcedure("sellToken", input: input, completion: completion)
     }
     
@@ -165,9 +167,13 @@ class Network {
         callProcedure("registerNewToken", input: input, completion: completion)
     }
     
-    func airdropNativeToUser(accountId: String, amount: Int, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
-        let input = ["accountId": accountId, "amount": String(amount)]
+    func airdropNativeToUser(amount: Int, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
+        let input = ["amount": String(amount)]
         callProcedure("airdropNativeToUser", input: input, completion: completion)
+    }
+    
+    func getCoinbaseSolanaOnrampUrl(completion: @escaping (Result<CoinbaseSolanaOnrampUrlResponse, Error>) -> Void) {
+        callProcedure("getCoinbaseSolanaOnrampUrl", completion: completion)
     }
 }
 
@@ -193,44 +199,21 @@ struct StatusResponse: Codable {
     let status: Int
 }
 
+struct CoinbaseSolanaOnrampUrlResponse: Codable {
+    let coinbaseToken: String
+    let url: String
+}
 
 extension Network {
     func getStoredToken() -> String? {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: "userToken",
-            kSecReturnData as String: true
-        ]
-        
-        var item: CFTypeRef?
-        let status = SecItemCopyMatching(query as CFDictionary, &item)
-        
-        guard status == errSecSuccess,
-              let data = item as? Data,
-              let token = String(data: data, encoding: .utf8) else {
+        switch privy.authState {
+        case .authenticated(let authSession):
+            return authSession.authToken
+        default:
             return nil
         }
-        
-        return token
     }
-
-    func refreshToken(completion: @escaping (Result<String, Error>) -> Void) {
-        guard let currentToken = getStoredToken() else {
-            completion(.failure(NSError(domain: "TokenRefresh", code: 0, userInfo: [NSLocalizedDescriptionKey: "No token stored"])))
-            return
-        }
-        
-        callProcedure("refreshToken", input: ["token": currentToken]) { (result: Result<RefreshTokenResponse, Error>) in
-            switch result {
-            case .success(let response):
-                self.storeToken(response.token)
-                completion(.success(response.token))
-            case .failure(let error):
-                completion(.failure(error))
-            }
-        }
-    }
-
+    
     func fetchSolPrice(completion: @escaping (Result<Double, Error>) -> Void) {
         let url = URL(string: "https://min-api.cryptocompare.com/data/price?fsym=SOL&tsyms=Usd")!
         let task = session.dataTask(with: url) { data, response, error in
