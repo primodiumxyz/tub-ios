@@ -8,11 +8,10 @@ import { AppRouter } from "../src/createAppRouter";
 
 config({ path: "../../../.env" });
 const env = parseEnv();
-const tokenId = "722e8490-e852-4298-a250-7b0a399fec57";
 const port = inject("port");
 const host = inject("host");
 
-describe("Server Integration Tests", () => {
+describe("Coinbase Solana Onramp URL Test", () => {
   let client: ReturnType<typeof createTRPCProxyClient<AppRouter>>;
   const privy = new PrivyClient(env.PRIVY_APP_ID, env.PRIVY_APP_SECRET);
 
@@ -38,37 +37,16 @@ describe("Server Integration Tests", () => {
     });
   });
 
-  it("should get status", async () => {
-    const result = await client.getStatus.query();
-    expect(result).toEqual({ status: 200 });
-  });
+  it("should return a URL starting with the Coinbase onramp URL", async () => {
+    const expectedUrlStart = "https://pay.coinbase.com/landing\\?sessionToken=";
 
-  it("should airdrop tokens to a user", async () => {
-    const _result = await client.airdropNativeToUser.mutate({
-      amount: "1000000000000000000",
-    });
+    // Await the result since getCoinbaseSolanaOnrampUrl is async
+    const result = await client.getCoinbaseSolanaOnrampUrl.mutate();
 
-    const id = _result?.insert_wallet_transaction_one?.id;
+    // Test if valid UUID
+    const uuidStr = Buffer.from(result.coinbaseToken, "base64").toString();
+    expect(uuidStr).toHaveLength(36);
 
-    expect(id).toBeDefined();
-  });
-
-  it("should buy tokens", async () => {
-    const result = await client.buyToken.mutate({
-      tokenId,
-      amount: "100",
-      overridePrice: "1000000000",
-    });
-
-    expect(result).toBeDefined();
-  });
-
-  it("should sell tokens", async () => {
-    const result = await client.sellToken.mutate({
-      tokenId,
-      amount: "100",
-    });
-
-    expect(result).toBeDefined();
+    expect(result.url).toMatch(new RegExp(`^${expectedUrlStart}`));
   });
 });
