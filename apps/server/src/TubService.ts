@@ -117,8 +117,9 @@ export class TubService {
   }
 
   // Coinbase CDP services, generates a secure onboarding URL based on the user's wallet
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async getCoinbaseSolanaOnrampUrl(token: string) {
+    // Temp just so token is used and Vercel build doesn't fail
+    console.log(token);
     // TODO: replace the placeholder
     // ----------------------------
     // // replace with this when Privy wallet generation is supported
