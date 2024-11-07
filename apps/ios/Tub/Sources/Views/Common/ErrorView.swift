@@ -9,7 +9,12 @@ import SwiftUI
 
 struct ErrorView: View {
     let error: Error
-    let retryAction: () -> Void
+    var retryAction: (() -> Void)? = nil
+    
+    init(error: Error, retryAction: (() -> Void)? = nil) {
+        self.error = error
+        self.retryAction = retryAction
+    }
     
     var body: some View {
         VStack {
@@ -27,15 +32,17 @@ struct ErrorView: View {
                 .multilineTextAlignment(.center)
                 .padding()
             
-            Button(action: retryAction) {
-                Text("Try Again")
+            if let retryAction = retryAction {
+                Button(action: retryAction) {
+                    Text("Try Again")
                     .foregroundColor(.white)
                     .padding()
                     .background(Color.blue)
                     .cornerRadius(10)
+                }
             }
         }
-        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.black)
         .foregroundColor(.white)
     }

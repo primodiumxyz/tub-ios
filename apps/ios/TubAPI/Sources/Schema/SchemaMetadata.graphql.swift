@@ -27,9 +27,16 @@ public enum SchemaMetadata: ApolloAPI.SchemaMetadata {
     case "balance_offset_model": return TubAPI.Objects.Balance_offset_model
     case "token_price_history_offset": return TubAPI.Objects.Token_price_history_offset
     case "query_root": return TubAPI.Objects.Query_root
-    case "account": return TubAPI.Objects.Account
     case "token_transaction": return TubAPI.Objects.Token_transaction
-    case "account_transaction": return TubAPI.Objects.Account_transaction
+    case "wallet_transaction": return TubAPI.Objects.Wallet_transaction
+    case "token_price_history_aggregate": return TubAPI.Objects.Token_price_history_aggregate
+    case "token_price_history_aggregate_fields": return TubAPI.Objects.Token_price_history_aggregate_fields
+    case "hourly_swaps": return TubAPI.Objects.Hourly_swaps
+    case "token_aggregate": return TubAPI.Objects.Token_aggregate
+    case "token_aggregate_fields": return TubAPI.Objects.Token_aggregate_fields
+    case "hourly_new_tokens": return TubAPI.Objects.Hourly_new_tokens
+    case "get_formatted_tokens_intervals_within_period_aggregate": return TubAPI.Objects.Get_formatted_tokens_intervals_within_period_aggregate
+    case "GetFormattedTokensWithPerformanceResult": return TubAPI.Objects.GetFormattedTokensWithPerformanceResult
     case "mutation_root": return TubAPI.Objects.Mutation_root
     case "token_mutation_response": return TubAPI.Objects.Token_mutation_response
     case "token_price_history_mutation_response": return TubAPI.Objects.Token_price_history_mutation_response

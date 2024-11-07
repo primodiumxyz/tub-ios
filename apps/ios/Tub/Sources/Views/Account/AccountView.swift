@@ -16,18 +16,32 @@ struct AccountView: View {
     @State private var errorMessage: String?
     @Environment(\.presentationMode) var presentationMode
     
-
+    func handleAirdrop () {
+        
+        Network.shared.airdropNativeToUser(amount: Int(1e9), completion: {result in
+            switch result {
+            case .success:
+                airdropResult = "Airdrop successful!"
+                errorMessage = nil
+                
+            case .failure(let error):
+                errorMessage = "Airdrop failed!"
+                print(error)
+                airdropResult = nil
+            }
+        })
+    }
+    
     var body: some View {
         NavigationStack {
             VStack() {
-                Text(privy.authState.toString).foregroundStyle(.white)
-                if userModel.username.isEmpty {
+                if userModel.userId.isEmpty {
                     Text("Please register to view your account details.")
                         .font(.sfRounded(size: .lg, weight: .medium))
                         .foregroundColor(.yellow)
                         .multilineTextAlignment(.center)
                         .padding()
-                    NavigationLink(destination: RegisterView(isRegistered: .constant(false))) {
+                    NavigationLink(destination: RegisterView()) {
                         Text("Register Now")
                             .font(.sfRounded(size: .base, weight: .semibold))
                             .foregroundColor(AppColors.white)
@@ -42,8 +56,11 @@ struct AccountView: View {
                             .font(.sfRounded(size: .xl2, weight: .medium))
                             .foregroundColor(AppColors.white)
                             .padding(.vertical)
-                        Text("Username: \(userModel.username)")
+                        Text("User id: \(userModel.userId)")
                             .font(.sfRounded(size: .lg, weight: .medium))
+                        Text("Wallet address: \(userModel.walletAddress)")
+                            .font(.sfRounded(size: .lg, weight: .medium))
+                        
                         Text("Balance: \(priceModel.formatPrice(lamports: userModel.balanceLamps, minDecimals: 2))")
                             .font(.sfRounded(size: .lg, weight: .medium))
                             .padding(.bottom)
@@ -70,6 +87,20 @@ struct AccountView: View {
                             .padding(.bottom, 5.0)
                         }
                         
+                        Button(action:
+                                handleAirdrop
+                        ) {
+                            Text("Airdrop 1 SOL")
+                                .font(.sfRounded(size: .base, weight: .semibold))
+                                .foregroundColor(AppColors.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(12)
+                                .background(AppColors.primaryPurple)
+                                .cornerRadius(26)
+                        }
+                        .foregroundColor(AppColors.white)
+                        .padding(.bottom, 5.0)
+                        
                         Button(action: userModel.logout) {
                             Text("Logout")
                                 .font(.sfRounded(size: .base, weight: .semibold))
@@ -95,12 +126,12 @@ struct AccountView: View {
             }
         }
     }
-
+    
     private func performAirdrop() {
         isAirdropping = true
         airdropResult = nil
         
-        Network.shared.airdropNativeToUser(accountId: userModel.userId, amount: 100 * Int(1e9)) { result in
+        Network.shared.airdropNativeToUser(amount: 100 * Int(1e9)) { result in
             DispatchQueue.main.async {
                 isAirdropping = false
                 switch result {
@@ -116,14 +147,25 @@ struct AccountView: View {
 }
 
 #Preview {
-    @Previewable @AppStorage("userId") var userId: String = ""
     @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
-    @State @Previewable var isRegistered = false
-    if !priceModel.isReady {
-        LoadingView()
-    } else {
-        AccountView()
-            .environmentObject(UserModel(userId: userId))
-            .environmentObject(priceModel)
+    @Previewable @State var userId : String? = nil
+    
+    Group {
+        if !priceModel.isReady || userId == nil {
+            LoadingView()
+        } else {
+            AccountView()
+                .environmentObject(UserModel(userId: userId!))
+                .environmentObject(priceModel)
+        }
+    }.onAppear {
+        Task {
+            do {
+                userId = try await privy.refreshSession().user.id
+                print(userId)
+            } catch {
+                print("error in preview: \(error)")
+            }
+        }
     }
 }
