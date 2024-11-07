@@ -107,7 +107,7 @@ struct RegisterView: View {
                             .frame(height: 80) // Adjust this value to accommodate both states
                             
                             Spacer()
-                                .frame(height: 20)
+                                .frame(height: 30)
                             
                             Button(action: {
                                 if isEmailValid {
@@ -157,20 +157,28 @@ struct RegisterView: View {
                             )
                     }
                     
-                    // Phone button
-                    Button(action: { showPhoneModal = true }) {
-                        HStack {
-                            Image(systemName: "phone.fill")
-                                .frame(width: 24, height: 24)
-                            
-                            Text("Continue with Phone")
-                                .font(.sfRounded(size: .lg, weight: .semibold))
+                    // Apple Login
+                    SignInWithApple()
+                        .frame(maxWidth: .infinity, maxHeight: 50, alignment: .center)
+                        .cornerRadius(30)
+                        .padding(.horizontal,10)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 30)
+                                .inset(by: 0.5)
+                                .stroke(.white, lineWidth: 1)
+                                .padding(.horizontal,10)
+                        )
+                        .onTapGesture {
+                            // Ideally this is called in a view model, but showcasinlug logic here for brevity
+                            Task {
+                                do {
+                                    let authSession = try await privy.oAuth.login(with: OAuthProvider.apple)
+                                    print(authSession.user)
+                                } catch {
+                                    debugPrint("Error: \(error)")
+                                }
+                            }
                         }
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.bottom, 10.0)
-                    .padding(.top, 5.0)
-                    .foregroundStyle(AppColors.white)
                     
                     // Google Login
                     Button(action: {
@@ -203,28 +211,19 @@ struct RegisterView: View {
                             .padding(.horizontal,10)
                     )
                     
-                    // Apple Login
-                    SignInWithApple()
-                        .frame(maxWidth: .infinity, maxHeight: 50, alignment: .center)
-                        .cornerRadius(30)
-                        .padding(.horizontal,10)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 30)
-                                .inset(by: 0.5)
-                                .stroke(.white, lineWidth: 1)
-                                .padding(.horizontal,10)
-                        )
-                        .onTapGesture {
-                            // Ideally this is called in a view model, but showcasinlug logic here for brevity
-                            Task {
-                                do {
-                                    let authSession = try await privy.oAuth.login(with: OAuthProvider.apple)
-                                    print(authSession.user)
-                                } catch {
-                                    debugPrint("Error: \(error)")
-                                }
-                            }
-                        }
+                // Phone button
+                Button(action: { showPhoneModal = true }) {
+                    HStack(alignment: .center) {
+                        Image(systemName: "phone.fill")
+                            .frame(width: 24, height: 24)
+                        
+                        Text("Continue with Phone")
+                            .font(.sfRounded(size: .lg, weight: .semibold))
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10.0)
+                .foregroundStyle(AppColors.white)
                     
             // Add dev login button in debug builds only
                 #if DEBUG
@@ -250,7 +249,7 @@ struct RegisterView: View {
                     .foregroundColor(AppColors.lightGray)
                 }
                 .frame(maxWidth: .infinity)
-                .padding()
+                .padding(.vertical, 5)
                 #endif
                     
                 }.sheet(isPresented: $showPhoneModal) {
