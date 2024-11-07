@@ -1,11 +1,5 @@
 #!/bin/bash
 
-# Check if we're running in a test environment by looking for Vitest process
-IS_TEST=false
-if ps aux | grep -q "[v]itest"; then
-  IS_TEST=true
-fi
-
 docker-compose up &
 
 # Store the process ID of the background docker-compose up command
@@ -33,22 +27,8 @@ echo "Waiting for the service to be healthy..."
 for ((i=1; i<=$RETRIES; i++)); do
   if check_health; then
     echo "Service is healthy!"
-    if [ "$IS_TEST" = true ]; then
-      echo "Running in test environment..."
-      if [ -d "seeds" ]; then
-        echo "Applying development seeds..."
-        HASURA_SEEDS_DIR=seeds pnpm db:local:seed-apply
-      fi
-      echo "Applying test seeds..."
-      HASURA_SEEDS_DIR=__test__/seeds pnpm db:local:seed-apply
-    else
-      echo "Running in development environment..."
-      if [ -d "seeds" ]; then
-        echo "Applying development seeds..."
-        HASURA_SEEDS_DIR=seeds pnpm db:local:seed-apply
-      fi
-      pnpm db:local:console
-    fi
+    pnpm db:local:seed-apply
+    pnpm db:local:console
     break
   else
     echo "Health check failed. Retrying in $DELAY seconds..."
