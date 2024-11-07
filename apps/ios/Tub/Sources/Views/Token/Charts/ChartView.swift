@@ -117,7 +117,7 @@ struct ChartView: View {
         .chartYScale(domain: yDomain)
         .chartYAxis(.hidden)
         .chartXAxis(.hidden)
-        .frame(width: .infinity, height: 350)
+        .frame(width: .infinity, height: 330)
         .onReceive(Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()) { _ in
             currentTime = Date().timeIntervalSince1970
         }

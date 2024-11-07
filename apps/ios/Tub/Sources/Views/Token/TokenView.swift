@@ -20,6 +20,16 @@ struct TokenView : View {
     @State private var showBuySheet: Bool = false
     @State private var defaultAmount: Double = 50.0
     
+    // TODO: have the token info card in one place and adapt params for opacity (open/close)
+    private var stats: [(String, String)] {
+        [
+            ("Market Cap", priceModel.formatPrice(lamports: (tokenModel.prices.last?.price ?? 0) * (tokenModel.token.supply ?? 0) / Int(pow(10.0, Double(tokenModel.token.decimals ?? 0))))),
+            ("Volume (\(String(tokenModel.token.volume?.interval ?? "30s")))", formatLargeNumber(Double(tokenModel.token.volume?.value ?? 0) / 1e9)), // TODO: fix volume calculation
+            ("Holders", "53.3K"), // TODO: Add holders data?
+            ("Supply", formatLargeNumber(Double(tokenModel.token.supply ?? 0) / pow(10.0, Double(tokenModel.token.decimals ?? 0))))
+        ]
+    }
+    
     enum Timespan: String, CaseIterable {
         case live = "LIVE"
         case thirtyMin = "30M"
@@ -52,11 +62,15 @@ struct TokenView : View {
     var body: some View {
         ZStack {
             // Main content
-            VStack(alignment: .leading) {
+            VStack(alignment: .leading, spacing: 4) {
                 tokenInfoView
                 chartView
                 intervalButtons
-                Spacer()
+                infoCardLowOpacity
+                    .opacity(0.5) // Adjust opacity here
+                    .padding(.horizontal, 8)
+                    .padding(.bottom, -4)
+
                 BuySellForm(
                     tokenModel: tokenModel,
                     activeTab: $activeTab,
@@ -75,7 +89,7 @@ struct TokenView : View {
     }
     
     private var tokenInfoView: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 4) {
             HStack {
                 if tokenModel.token.imageUri != nil {
                     ImageView(imageUri: tokenModel.token.imageUri!, size: 20)
@@ -128,7 +142,6 @@ struct TokenView : View {
                     .id(tokenModel.prices.count)
             }
         }
-        .padding(.horizontal)
     }
     
     private var intervalButtons: some View {
@@ -140,7 +153,6 @@ struct TokenView : View {
             }
             Spacer()
         }
-        .padding(.bottom, 8)
         .padding(.horizontal)
     }
     
@@ -168,21 +180,75 @@ struct TokenView : View {
         }
     }
     
+    private var infoCardLowOpacity: some View {
+        
+        VStack(alignment: .leading, spacing: 0) {
+            
+            Text("Stats")
+                .font(.sfRounded(size: .xl, weight: .semibold))
+                .foregroundColor(AppColors.white)
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+            
+            // grid
+            ForEach(0..<stats.count/2, id: \.self) { index in
+                HStack(alignment: .top, spacing: 20) {
+                    ForEach(0..<2) { subIndex in
+                        let stat = stats[index * 2 + subIndex]
+                        VStack {
+                            HStack(alignment: .center)  {
+                                Text(stat.0)
+                                    .font(.sfRounded(size: .sm, weight: .regular))
+                                    .foregroundColor(AppColors.gray)
+                                    .fixedSize(horizontal: true, vertical: false)
+                                
+                                Text(stat.1)
+                                    .font(.sfRounded(size: .base, weight: .semibold))
+                                    .frame(maxWidth: .infinity, alignment: .topTrailing)
+                                    .foregroundColor(AppColors.white)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            //divider
+                            Rectangle()
+                                .foregroundColor(.clear)
+                                .frame(height: 0.5)
+                                .background(AppColors.gray.opacity(0.5))
+                        }
+                    }
+                }
+                .padding(.top,8)
+                .padding(.horizontal,8)
+            }
+        }
+        .padding(.horizontal,24)
+        .padding(.vertical,16)
+        .frame(maxWidth: .infinity, maxHeight: 95 ,alignment: .topLeading)
+        .background(AppColors.darkGrayGradient)
+        .cornerRadius(12)
+        .onTapGesture {
+            withAnimation(.easeInOut) {
+                showInfoCard.toggle()
+            }
+        }
+    }
+    
     private var infoCardOverlay: some View {
         Group {
             if showInfoCard {
                 // Fullscreen tap dismiss
-                AppColors.black.opacity(0.4) // Semi-transparent background
+                AppColors.black.opacity(0.2)
                     .ignoresSafeArea()
                     .onTapGesture {
                         withAnimation(.easeInOut) {
                             showInfoCard = false // Close the card
                         }
                     }
-                
-                TokenInfoCardView(tokenModel: tokenModel, isVisible: $showInfoCard)
-                    .transition(.move(edge: .bottom))
-                    .zIndex(1) // Ensure it stays on top
+                VStack {
+                    Spacer()
+                    TokenInfoCardView(tokenModel: tokenModel, isVisible: $showInfoCard)
+                }
+                .transition(.move(edge: .bottom))
+                .zIndex(1) // Ensure it stays on top
             }
         }
     }
@@ -191,7 +257,7 @@ struct TokenView : View {
     private var buySheetOverlay: some View {
         Group {
             if showBuySheet {
-                Color.black.opacity(0.4)
+                AppColors.black.opacity(0.4)
                     .ignoresSafeArea()
                     .onTapGesture {
                         withAnimation(.easeInOut(duration: 0.3)) {
@@ -202,7 +268,8 @@ struct TokenView : View {
                 
                 BuyForm(isVisible: $showBuySheet, defaultAmount: $defaultAmount, tokenModel: tokenModel, onBuy: handleBuy)
                     .transition(.move(edge: .bottom))
-                    .zIndex(2) // Ensure it stays on top of everything
+                    .offset(y:40)
+                    .zIndex(2) // Ensure it stays on top
             }
         }
     }
