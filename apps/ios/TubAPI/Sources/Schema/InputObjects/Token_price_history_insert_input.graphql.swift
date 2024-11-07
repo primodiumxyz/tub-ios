@@ -12,23 +12,41 @@ public struct Token_price_history_insert_input: InputObject {
   }
 
   public init(
+    amountIn: GraphQLNullable<Numeric> = nil,
+    amountOut: GraphQLNullable<Numeric> = nil,
     createdAt: GraphQLNullable<Timestamptz> = nil,
     id: GraphQLNullable<Uuid> = nil,
     internalTokenTransactionRef: GraphQLNullable<Uuid> = nil,
+    maxAmountIn: GraphQLNullable<Numeric> = nil,
+    minAmountOut: GraphQLNullable<Numeric> = nil,
     price: GraphQLNullable<Numeric> = nil,
     token: GraphQLNullable<Uuid> = nil,
     tokenRelationship: GraphQLNullable<Token_obj_rel_insert_input> = nil,
     tokenTransaction: GraphQLNullable<Token_transaction_obj_rel_insert_input> = nil
   ) {
     __data = InputDict([
+      "amount_in": amountIn,
+      "amount_out": amountOut,
       "created_at": createdAt,
       "id": id,
       "internal_token_transaction_ref": internalTokenTransactionRef,
+      "max_amount_in": maxAmountIn,
+      "min_amount_out": minAmountOut,
       "price": price,
       "token": token,
       "token_relationship": tokenRelationship,
       "token_transaction": tokenTransaction
     ])
+  }
+
+  public var amountIn: GraphQLNullable<Numeric> {
+    get { __data["amount_in"] }
+    set { __data["amount_in"] = newValue }
+  }
+
+  public var amountOut: GraphQLNullable<Numeric> {
+    get { __data["amount_out"] }
+    set { __data["amount_out"] = newValue }
   }
 
   public var createdAt: GraphQLNullable<Timestamptz> {
@@ -44,6 +62,16 @@ public struct Token_price_history_insert_input: InputObject {
   public var internalTokenTransactionRef: GraphQLNullable<Uuid> {
     get { __data["internal_token_transaction_ref"] }
     set { __data["internal_token_transaction_ref"] = newValue }
+  }
+
+  public var maxAmountIn: GraphQLNullable<Numeric> {
+    get { __data["max_amount_in"] }
+    set { __data["max_amount_in"] = newValue }
+  }
+
+  public var minAmountOut: GraphQLNullable<Numeric> {
+    get { __data["min_amount_out"] }
+    set { __data["min_amount_out"] = newValue }
   }
 
   public var price: GraphQLNullable<Numeric> {

@@ -20,16 +20,19 @@ select_permissions:
   - role: public
     permission:
       columns:
-        - created_at
+        - freeze_burnt
+        - is_pump_token
+        - mint_burnt
+        - name
+        - symbol
         - decimals
+        - supply
+        - description
+        - uri
+        - updated_at
+        - created_at
         - id
         - mint
-        - name
-        - platform
-        - supply
-        - symbol
-        - updated_at
-        - uri
       filter: {}
       allow_aggregations: true
     comment: ""

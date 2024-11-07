@@ -1,41 +1,41 @@
 import { PublicKey, TokenBalance } from "@solana/web3.js";
 
-import { PLATFORMS } from "@/lib/constants";
-import { MinimalParser } from "@/lib/parsers/minimal-parser";
-
-/* -------------------------------- PROGRAMS -------------------------------- */
-export type Program = {
-  id: string;
-  publicKey: PublicKey;
-  parser: MinimalParser | Omit<MinimalParser, "programId" | "swapInstructions" | "getSwapInstructionNames">;
-  swaps?: {
-    name: string;
-    accounts: string[][];
-  }[];
-};
-
-export type SwapInstructionDetails = {
-  name: string;
-  discriminator: number;
-  accountIndexes: [number, number];
-};
+import { SwapBaseInArgs, SwapBaseOutArgs } from "@/lib/parsers/raydium-amm-parser";
 
 /* ------------------------------- PARSED DATA ------------------------------ */
-export type Platform = (typeof PLATFORMS)[number] | "n/a";
+export enum SwapType {
+  IN = "in",
+  OUT = "out",
+}
 
-export type SwapAccounts = {
+export type Swap<T extends SwapType> = {
   vaultA: PublicKey;
   vaultB: PublicKey;
-  platform: Platform;
+  type: T;
+  args: T extends SwapType.IN ? SwapBaseInArgs : SwapBaseOutArgs;
   timestamp: number;
 };
 
-export type PriceData = {
+export type TokenMetadata = {
+  mint: string;
+  metadata: {
+    name: string | null;
+    symbol: string | null;
+    description: string | null;
+    imageUri: string | null;
+  };
+  mintBurnt: boolean | null;
+  freezeBurnt: boolean | null;
+  supply: number | null;
+  decimals: number | null;
+  isPumpToken: boolean | null;
+};
+
+export type PriceData<T extends SwapType = SwapType> = {
   mint: string;
   price: number;
-  decimals: number;
-  platform: Platform;
   timestamp: number;
+  swap: T extends SwapType.IN ? SwapBaseInArgs : SwapBaseOutArgs;
 };
 
 /* ----------------------------------- RPC ---------------------------------- */

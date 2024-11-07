@@ -1,7 +1,5 @@
 import { graphql } from "./init";
 
-
-
 export const GetAllMockTokensQuery = graphql(`
   query GetAllTokens {
     token(where: { mint: { _is_null: true } }) {
@@ -19,9 +17,11 @@ export const GetTokenDataQuery = graphql(`
   query GetTokenData($tokenId: uuid!) {
     token(where: { id: { _eq: $tokenId } }) {
       id
+      mint
       name
       symbol
-      mint
+      description
+      supply
       decimals
       updated_at
       supply
@@ -57,7 +57,7 @@ export const GetWalletTokenBalanceIgnoreIntervalQuery = graphql(`
     $token: uuid!
   ) {
     balance: wallet_token_balance_ignore_interval(
-        args: { wallet: $wallet, interval: $interval, start: $start, token: $token }
+      args: { wallet: $wallet, interval: $interval, start: $start, token: $token }
     ) {
       value: balance
     }
@@ -159,21 +159,42 @@ export const GetTokenPriceHistorySinceQuery = graphql(`
   }
 `);
 
-export const GetFilteredTokensQuery = graphql(`
-  query GetFilteredTokens($since: timestamptz!, $minTrades: bigint!, $minIncreasePct: float8!) {
-    get_formatted_tokens_since(
-      args: { since: $since }
-      where: { trades: { _gte: $minTrades }, increase_pct: { _gte: $minIncreasePct } }
+export const GetFilteredTokensIntervalQuery = graphql(`
+  query GetFilteredTokensInterval(
+    $interval: interval!
+    $minTrades: bigint = "0"
+    $minVolume: numeric = 0
+    $mintBurnt: Boolean = false
+    $freezeBurnt: Boolean = false
+  ) {
+    formatted_tokens_interval(
+      args: { interval: $interval }
+      where: {
+        is_pump_token: { _eq: true }
+        trades: { _gte: $minTrades }
+        volume: { _gte: $minVolume }
+        _and: [
+          { _or: [{ _not: { mint_burnt: { _eq: $mintBurnt } } }, { mint_burnt: { _eq: true } }] }
+          { _or: [{ _not: { freeze_burnt: { _eq: $freezeBurnt } } }, { freeze_burnt: { _eq: true } }] }
+        ]
+      }
+      order_by: { volume: desc }
     ) {
       token_id
       mint
-      decimals
       name
       symbol
-      platform
-      latest_price
+      description
+      uri
+      supply
+      decimals
+      mint_burnt
+      freeze_burnt
+      is_pump_token
       increase_pct
       trades
+      volume
+      latest_price
       created_at
     }
   }
@@ -208,18 +229,11 @@ export const GetNewTokensInPeriodCountQuery = graphql(`
   }
 `);
 
-export const GetFormattedTokensCountForIntervalsWithinPeriodQuery = graphql(`
-  query GetFormattedTokensCountForIntervalsWithinPeriodQuery(
-    $from: timestamptz!
-    $to: timestamptz!
-    $interval: interval!
-    $increasePct: float8!
-    $minTrades: bigint!
-  ) {
-    get_formatted_tokens_intervals_within_period_aggregate(
-      args: { start: $from, end: $to, interval: $interval, trades: $minTrades, increase_pct: $increasePct }
-    ) {
+export const GetVolumeIntervalsWithinPeriodQuery = graphql(`
+  query GetVolumeIntervalsWithinPeriod($from: timestamptz!, $to: timestamptz!, $interval: interval!) {
+    volume_intervals_within_period(args: { start: $from, end: $to, interval: $interval }) {
       interval_start
+      total_volume
       token_count
     }
   }
@@ -231,21 +245,42 @@ export const GetFormattedTokensWithPerformanceForIntervalsWithinPeriodQuery = gr
     $to: timestamptz!
     $interval: interval!
     $afterIntervals: String!
-    $increasePct: float8!
-    $minTrades: bigint!
-    $mintFilter: String = "%"
+    $minTrades: bigint = "0"
+    $minVolume: numeric = 0
+    $mintBurnt: Boolean = false
+    $freezeBurnt: Boolean = false
   ) {
-    get_formatted_tokens_with_performance_intervals_within_period(
+    formatted_tokens_with_performance_intervals_within_period(
       args: { start: $from, end: $to, interval: $interval, after_intervals: $afterIntervals }
-      where: { trades: { _gte: $minTrades }, increase_pct: { _gte: $increasePct }, mint: { _ilike: $mintFilter } }
+      where: {
+        trades: { _gte: $minTrades }
+        volume: { _gte: $minVolume }
+        _and: [
+          { _or: [{ _not: { mint_burnt: { _eq: $mintBurnt } } }, { mint_burnt: { _eq: true } }] }
+          { _or: [{ _not: { freeze_burnt: { _eq: $freezeBurnt } } }, { freeze_burnt: { _eq: true } }] }
+        ]
+      }
       order_by: { interval_start: asc }
     ) {
+      token_id
       mint
+      name
+      symbol
+      description
+      uri
+      supply
+      decimals
+      mint_burnt
+      freeze_burnt
+      is_pump_token
       increase_pct
       trades
+      volume
+      latest_price
+      created_at
       increase_pct_after
       trades_after
-      created_at
+      volume_after
       interval_start
     }
   }

@@ -68,13 +68,13 @@ public class SubAllOnchainTokensPriceHistorySinceSubscription: GraphQLSubscripti
         public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Token }
         public static var __selections: [ApolloAPI.Selection] { [
           .field("__typename", String.self),
-          .field("mint", String?.self),
-          .field("name", String.self),
+          .field("mint", String.self),
+          .field("name", String?.self),
         ] }
 
         /// token mint address (only for real tokens)
-        public var mint: String? { __data["mint"] }
-        public var name: String { __data["name"] }
+        public var mint: String { __data["mint"] }
+        public var name: String? { __data["name"] }
       }
     }
   }

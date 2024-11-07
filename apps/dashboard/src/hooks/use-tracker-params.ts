@@ -1,22 +1,16 @@
 import { useTrackerParamsContext } from "@/providers/tracker-params-provider";
 
 export const useTrackerParams = () => {
-  const { params, onlyPumpTokens, setTimespan, setIncreasePct, setMinTrades, setOnlyPumpTokens } =
-    useTrackerParamsContext();
+  const { params, setTimespan, setMinTrades, setMinVolume, setFreezeBurnt, setMintBurnt } = useTrackerParamsContext();
 
   return {
     timespan: params.timespan,
-    increasePct: params.increasePct,
     minTrades: params.minTrades,
-    onlyPumpTokens,
+    minVolume: params.minVolume,
+    freezeBurnt: params.freezeBurnt,
+    mintBurnt: params.mintBurnt,
     setTimespan: (value: string) => {
       setTimespan(value);
-    },
-    setIncreasePct: (value: string | number) => {
-      const numValue = typeof value === "string" ? parseFloat(value) : value;
-      if (!isNaN(numValue)) {
-        setIncreasePct(numValue);
-      }
     },
     setMinTrades: (value: string | number) => {
       const numValue = typeof value === "string" ? parseFloat(value) : value;
@@ -24,6 +18,17 @@ export const useTrackerParams = () => {
         setMinTrades(numValue);
       }
     },
-    setOnlyPumpTokens,
+    setMinVolume: (value: string | number) => {
+      const numValue = typeof value === "string" ? parseFloat(value) : value;
+      if (!isNaN(numValue)) {
+        setMinVolume(numValue);
+      }
+    },
+    setFreezeBurnt: (value: boolean) => {
+      setFreezeBurnt(value);
+    },
+    setMintBurnt: (value: boolean) => {
+      setMintBurnt(value);
+    },
   };
 };

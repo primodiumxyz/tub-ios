@@ -2,8 +2,10 @@ export type FilteredTokensPerformancePerIntervalData = {
   mint: string;
   increase_pct: string;
   trades: string;
+  volume: string;
   increase_pct_after: string;
   trades_after: string;
+  volume_after: string;
   created_at: Date;
   interval_start: Date;
 };
