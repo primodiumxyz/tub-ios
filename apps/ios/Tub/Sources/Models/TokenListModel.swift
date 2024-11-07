@@ -33,6 +33,10 @@ class TokenListModel: ObservableObject {
     private let MIN_VOLUME: Int = 1
     private let MINT_BURNT: Bool = true
     private let FREEZE_BURNT: Bool = true
+
+    // Cooldown for not showing the same token too often
+    private let TOKEN_COOLDOWN: TimeInterval = 30 // 30 seconds cooldown
+    private var recentlyShownTokens: [(id: String, timestamp: Date)] = []
     
     init(userModel: UserModel) {
         self.userModel = userModel
@@ -63,12 +67,37 @@ class TokenListModel: ObservableObject {
     
     private func getNextToken(excluding currentId: String? = nil) -> Token? {
         guard !availableTokens.isEmpty else { return nil }
-        guard availableTokens.count > 1 else { return availableTokens[0] }
         
-        // Find the first token that doesn't match the currentId
-        return availableTokens.first { token in
-            token.id != currentId
+        // Clean up expired cooldowns
+        let now = Date()
+        recentlyShownTokens = recentlyShownTokens.filter { 
+            now.timeIntervalSince($0.timestamp) < TOKEN_COOLDOWN 
         }
+        
+        // Get available tokens excluding those in cooldown and current
+        let availableTokensFiltered = availableTokens.filter { token in
+            token.id != currentId && 
+            !recentlyShownTokens.contains { $0.id == token.id }
+        }
+        
+        guard !availableTokensFiltered.isEmpty else {
+            // If no tokens available after filtering, use the original list
+            if let fallbackToken = availableTokens.first(where: { token in
+                token.id != currentId
+            }) {
+                recentlyShownTokens.append((id: fallbackToken.id, timestamp: now))
+                return fallbackToken
+            }
+            return nil
+        }
+        
+        // Get the first available token and add it to recently shown
+        if let selectedToken = availableTokensFiltered.first {
+            recentlyShownTokens.append((id: selectedToken.id, timestamp: now))
+            return selectedToken
+        }
+        
+        return nil
     }
     
     // - Set the current token to the next one in line
