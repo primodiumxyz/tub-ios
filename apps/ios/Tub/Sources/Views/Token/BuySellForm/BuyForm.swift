@@ -63,8 +63,6 @@ struct BuyForm: View {
         isDefaultOn = true
     }
     
-    
-    
     var body: some View {
         VStack {
             formContent
@@ -107,6 +105,7 @@ struct BuyForm: View {
                     .foregroundColor(AppColors.aquaGreen)
                     .multilineTextAlignment(.center)
             }
+            .disabled(userModel.balanceLamps < priceModel.usdToLamports(usd: buyAmountUsd))
             .frame(maxWidth: .infinity)
             .padding(.horizontal, 16)
             .padding(.vertical, 12)

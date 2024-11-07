@@ -5,7 +5,7 @@ import TubAPI
 
 class TokenModel: ObservableObject {
     var tokenId: String = ""
-    var userId: String = ""
+    var walletAddress: String = ""
     
     @Published var token: Token = Token(id: "", name: "COIN", symbol: "SYMBOL", mint: "", decimals: 6, imageUri: "")
     @Published var loading = true
@@ -25,8 +25,8 @@ class TokenModel: ObservableObject {
     private var tokenBalanceSubscription: Apollo.Cancellable?
     
     
-    init(userId: String, tokenId: String? = nil) {
-        self.userId = userId
+    init(walletAddress: String, tokenId: String? = nil) {
+        self.walletAddress = walletAddress
         if tokenId != nil {
             self.initialize(with: tokenId!)
         }
@@ -172,8 +172,8 @@ class TokenModel: ObservableObject {
         tokenBalanceSubscription?.cancel()
         
         tokenBalanceSubscription = Network.shared.apollo.subscribe(
-            subscription: SubAccountTokenBalanceSubscription(
-                account: Uuid(self.userId), token: self.tokenId)
+            subscription: SubWalletTokenBalanceSubscription(
+                wallet: self.walletAddress, token: self.tokenId)
         ) { [weak self] result in
             guard let self = self else { return }
             DispatchQueue.main.async {
@@ -193,8 +193,7 @@ class TokenModel: ObservableObject {
             let tokenAmount = Int(Double(buyAmountLamps) / Double(price) * 1e9)
             print("token amount:", tokenAmount)
             
-            Network.shared.buyToken(
-                accountId: self.userId, tokenId: self.tokenId, amount: String(tokenAmount)
+            Network.shared.buyToken(tokenId: self.tokenId, amount: String(tokenAmount)
             ) { result in
                 switch result {
                 case .success:
@@ -210,8 +209,7 @@ class TokenModel: ObservableObject {
     }
     
     func sellTokens(completion: ((Bool) -> Void)?) {
-        Network.shared.sellToken(
-            accountId: self.userId, tokenId: self.tokenId, amount: String(self.balanceLamps)
+        Network.shared.sellToken(tokenId: self.tokenId, amount: String(self.balanceLamps)
         ) { result in
             switch result {
             case .success:
