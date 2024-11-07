@@ -414,10 +414,22 @@
           description: ""
           nullable: false
           type: timestamptz
+        end:
+          description: ""
+          nullable: false
+          type: timestamptz
       code: "WITH RECURSIVE intervals AS (\n    -- Base case: first interval\n    SELECT \n        {{start}}::timestamptz as interval_start,\n        least({{start}}::timestamptz + {{interval}}::interval, {{end}}::timestamptz) as interval_end\n    \n    UNION ALL\n    \n    -- Recursive case: subsequent intervals\n    SELECT\n        interval_end,\n        least(interval_end + {{interval}}::interval, {{end}}::timestamptz)\n    FROM intervals\n    WHERE interval_end < {{end}}::timestamptz\n),\nvolume_stats AS (\n    SELECT \n        i.interval_start,\n        i.interval_end,\n        COALESCE(SUM(tph.price), 0) as total_volume,\n        COUNT(DISTINCT t.id) as token_count\n    FROM intervals i\n    LEFT JOIN token_price_history tph ON \n        tph.created_at >= i.interval_start AND \n        tph.created_at < i.interval_end\n    LEFT JOIN token t ON \n        t.id = tph.token AND \n        t.mint IS NOT NULL\n    GROUP BY i.interval_start, i.interval_end\n)\nSELECT \n    interval_start,\n    total_volume,\n    token_count\nFROM volume_stats\nORDER BY interval_start;"
       returns: volume_intervals_within_period
       root_field_name: volume_intervals_within_period
     - arguments:
+        interval:
+          description: ""
+          nullable: false
+          type: interval
+        start:
+          description: ""
+          nullable: false
+          type: timestamptz
         wallet:
           description: ""
           nullable: false
