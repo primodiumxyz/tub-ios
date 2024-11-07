@@ -43,141 +43,141 @@ struct RegisterView: View {
         } else {
             VStack(spacing: 10) {
                 GeometryReader { geometry in
-                VStack(alignment: .leading, spacing: 12){
-                        Spacer()
-                            .frame(height: geometry.size.height * 0.25)
-                    Image("Logo")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 100, height: 100)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .padding(.horizontal,10)
-                    
-                    Text("Welcome to tub")
-                        .font(.sfRounded(size: .xl2, weight: .semibold))
-                        .foregroundColor(AppColors.white)
-                        .padding(.horizontal,10)
-                    
-                    VStack(alignment: .leading, spacing: 10) {
-                        TextField("Enter your email", text: $email)
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 10)
-                            .frame(maxWidth: .infinity, minHeight: 50, alignment: .leading)
-                            .background(AppColors.white)
-                            .cornerRadius(30)
-                            .keyboardType(.emailAddress)
-                            .onChange(of: email) { newValue in
-                                isEmailValid = validateEmail(newValue)
-                                showEmailError = false
+                    ScrollView(showsIndicators: false) {
+                        VStack(alignment: .leading, spacing: 12){
+                            Spacer()
+                                .frame(height: geometry.size.height * 0.25)
+                            Image("Logo")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 100, height: 100)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .padding(.horizontal,10)
+                            
+                            Text("Welcome to tub")
+                                .font(.sfRounded(size: .xl2, weight: .semibold))
+                                .foregroundColor(AppColors.white)
+                                .padding(.horizontal,10)
+                            
+                            VStack(alignment: .leading, spacing: 10) {
+                                TextField("Enter your email", text: $email)
+                                    .padding(.horizontal, 20)
+                                    .padding(.vertical, 10)
+                                    .frame(maxWidth: .infinity, minHeight: 50, alignment: .leading)
+                                    .background(AppColors.white)
+                                    .cornerRadius(30)
+                                    .keyboardType(.emailAddress)
+                                    .foregroundColor(.black)
+                                    .onChange(of: email) { newValue in
+                                        isEmailValid = validateEmail(newValue)
+                                        showEmailError = false
+                                    }
+                                
+                                // if email invalid
+                                if showEmailError {
+                                    Text("Please enter a valid email address.")
+                                        .font(.caption)
+                                        .foregroundColor(.red)
+                                        .padding(.top, -4)
+                                        .padding(.horizontal, 20)
+                                } else {
+                                    // Invisible placeholder to maintain spacing
+                                    Text("")
+                                        .font(.caption)
+                                        .padding(.top, -4)
+                                        .padding(.horizontal, 20)
+                                }
                             }
+                            .frame(height: 80) // Adjust this value to accommodate both states
+                            
+                            Spacer()
+                                .frame(height: 20)
+                            
+                            Button(action: {
+                                if isEmailValid {
+                                    showEmailModal = true
+                                } else {
+                                    showEmailError = true
+                                }
+                            }) {
+                                Text("Continue")
+                                    .font(.sfRounded(size: .lg, weight: .semibold))
+                                    .foregroundColor(AppColors.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(14)
+                            }
+                            .background(AppColors.primaryPurple)
+                            .cornerRadius(30)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 30)
+                                    .inset(by: 0.5)
+                                    .stroke(AppColors.primaryPurple, lineWidth: 1)
+                            )
+                        }
+                        .padding(.horizontal)
+                    }
+                }
+                // .frame(maxHeight: .infinity)
+                
+                VStack(spacing: 15) {
+                    // or divider line
+                    HStack(alignment: .center, spacing: 12) {
+                        Divider()
+                            .frame(width: 153, height: 1)
+                            .overlay(
+                                Rectangle()
+                                    .stroke(AppColors.lightGray, lineWidth: 1)
+                            )
                         
-                        // if email invalid
-                        if showEmailError {
-                            Text("Please enter a valid email address.")
-                                .font(.caption)
-                                .foregroundColor(.red)
-                                .padding(.top, -4)
-                                .padding(.horizontal, 20)
+                        Text("or")
+                            .font(.sfRounded(size: .base, weight: .semibold))
+                            .foregroundColor(AppColors.white)
+                        
+                        Divider()
+                            .frame(width: 153, height: 1)
+                            .overlay(
+                                Rectangle()
+                                    .stroke(AppColors.lightGray, lineWidth: 1)
+                            )
+                    }
+                    
+                    // Phone button
+                    Button(action: { showPhoneModal = true }) {
+                        HStack {
+                            Image(systemName: "phone.fill")
+                                .frame(width: 24, height: 24)
+                            
+                            Text("Continue with Phone")
+                                .font(.sfRounded(size: .lg, weight: .semibold))
                         }
                     }
-                    Spacer()
+                    .frame(maxWidth: .infinity)
+                    .padding(.bottom, 10.0)
+                    .padding(.top, 5.0)
+                    .foregroundStyle(AppColors.white)
                     
+                    // Google Login
                     Button(action: {
-                        if isEmailValid {
-                            showEmailModal = true
-                        } else {
-                            showEmailError = true
+                        Task {
+                            do {
+                                let _ = try await privy.oAuth.login(with: OAuthProvider.google)
+                            } catch {
+                                debugPrint("Error: \(error)")
+                                // Handle errors
+                            }
                         }
                     }) {
-                        Text("Continue")
-                            .font(.sfRounded(size: .lg, weight: .semibold))
-                            .foregroundColor(AppColors.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(14)
-                    }
-                    .background(AppColors.primaryPurple)
-                    .cornerRadius(30)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 30)
-                            .inset(by: 0.5)
-                            .stroke(AppColors.primaryPurple, lineWidth: 1)
-                    )
-                }
-                .padding(.horizontal)
-                }
-                .frame(maxHeight: .infinity)
-                
-                
-                // or divider line
-                HStack(alignment: .center, spacing: 12) {
-                    Divider()
-                    .frame(width: 153, height: 1)
-                    .overlay(
-                        Rectangle()
-                        .stroke(AppColors.lightGray, lineWidth: 1)
-                    )
-
-                    Text("or")
-                        .font(.sfRounded(size: .base, weight: .semibold))
-                        .foregroundColor(AppColors.white)
-                    
-                    Divider()
-                    .frame(width: 153, height: 1)
-                    .overlay(
-                        Rectangle()
-                        .stroke(AppColors.lightGray, lineWidth: 1)
-                    )
-                }
-                
-                // Phone button
-                Button(action: { showPhoneModal = true }) {
-                    HStack {
-                        Image(systemName: "phone.fill")
-                            .frame(width: 24, height: 24)
-                        
-                        Text("Continue with Phone")
-                            .font(.sfRounded(size: .lg, weight: .semibold))
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.bottom, 10.0)
-                .padding(.top, 5.0)
-                .foregroundStyle(AppColors.white)
-                
-                // Google Login
-                Button(action: {
-                    Task {
-                        do {
-                            let _ = try await privy.oAuth.login(with: OAuthProvider.google)
-                        } catch {
-                            debugPrint("Error: \(error)")
-                            // Handle errors
+                        HStack(alignment: .center, spacing: 8) {
+                            GoogleLogoView()
+                                .frame(width: 20, height: 20)
+                            Text("Sign in with Google").font(.sfRounded(size: .lg, weight: .semibold))
                         }
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(10)
+                        .padding(.vertical, 5.0)
                     }
-                }) {
-                    HStack(alignment: .center, spacing: 8) {
-                        GoogleLogoView()
-                            .frame(width: 20, height: 20)
-                        Text("Sign in with Google").font(.sfRounded(size: .lg, weight: .semibold))
-                    }
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(10)
-                    .padding(.vertical, 5.0)
-                }
-                .background(AppColors.black)
-                .foregroundStyle(AppColors.white)
-                .cornerRadius(30)
-                .padding(.horizontal,10)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 30)
-                        .inset(by: 0.5)
-                        .stroke(.white, lineWidth: 1)
-                        .padding(.horizontal,10)
-                )
-                
-                // Apple Login
-                SignInWithApple()
-                    .frame(maxWidth: .infinity, maxHeight: 50, alignment: .center)
+                    .background(AppColors.black)
+                    .foregroundStyle(AppColors.white)
                     .cornerRadius(30)
                     .padding(.horizontal,10)
                     .overlay(
@@ -186,42 +186,57 @@ struct RegisterView: View {
                             .stroke(.white, lineWidth: 1)
                             .padding(.horizontal,10)
                     )
-                    .onTapGesture {
-                    // Ideally this is called in a view model, but showcasinlug logic here for brevity
-                        Task {
-                            do {
-                                let authSession = try await privy.oAuth.login(with: OAuthProvider.apple)
-                                print(authSession.user)
-                            } catch {
-                                debugPrint("Error: \(error)")
+                    
+                    // Apple Login
+                    SignInWithApple()
+                        .frame(maxWidth: .infinity, maxHeight: 50, alignment: .center)
+                        .cornerRadius(30)
+                        .padding(.horizontal,10)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 30)
+                                .inset(by: 0.5)
+                                .stroke(.white, lineWidth: 1)
+                                .padding(.horizontal,10)
+                        )
+                        .onTapGesture {
+                            // Ideally this is called in a view model, but showcasinlug logic here for brevity
+                            Task {
+                                do {
+                                    let authSession = try await privy.oAuth.login(with: OAuthProvider.apple)
+                                    print(authSession.user)
+                                } catch {
+                                    debugPrint("Error: \(error)")
+                                }
                             }
                         }
+                    
+                    Button(action: {
+                        Network.shared.registerNewUser(username: "test", airdropAmount: String(Int(1.0 * 1e9))) { result in
+                            handleRegistration(completion: result)
+                        }
+                    }) {
+                        Text("Dev Login")
+                            .font(.sfRounded(size: .base, weight: .semibold))
+                            .foregroundColor(AppColors.lightGray)
+                            .frame(maxWidth: .infinity, maxHeight: 50)
                     }
-                
-                Button(action: {
-                    Network.shared.registerNewUser(username: "test", airdropAmount: String(Int(1.0 * 1e9))) { result in
-                        handleRegistration(completion: result)
+                    
+                }.sheet(isPresented: $showPhoneModal) {
+                    SignInWithPhoneView()
+                        .presentationDetents([.height(500)])
+                }
+                .sheet(isPresented: $showEmailModal) {
+                    SignInWithEmailView(email: $email)
+                        .presentationDetents([.height(400)])
+                }
+                .onAppear {
+                    privy.setAuthStateChangeCallback { state in
+                        self.myAuthState = state
                     }
-                }) {
-                    Text("Dev Login")
-                        .font(.sfRounded(size: .base, weight: .semibold))
-                        .foregroundColor(AppColors.lightGray)
-                        .frame(maxWidth: .infinity, maxHeight: 50)
-                }
-                
-            }.sheet(isPresented: $showPhoneModal) {
-                SignInWithPhoneView()
-                    .presentationDetents([.height(500)])
-            }
-            .sheet(isPresented: $showEmailModal) {
-                SignInWithEmailView(email: $email)
-                    .presentationDetents([.height(400)])
-            }
-            .onAppear {
-                privy.setAuthStateChangeCallback { state in
-                    self.myAuthState = state
                 }
             }
+            .ignoresSafeArea(.keyboard)
+            .padding(.top, 20)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(AppColors.darkBlueGradient)
         }
