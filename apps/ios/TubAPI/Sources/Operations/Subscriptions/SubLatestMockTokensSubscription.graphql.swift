@@ -45,17 +45,17 @@ public class SubLatestMockTokensSubscription: GraphQLSubscription {
       public static var __selections: [ApolloAPI.Selection] { [
         .field("__typename", String.self),
         .field("id", TubAPI.Uuid.self),
-        .field("symbol", String.self),
-        .field("supply", TubAPI.Numeric.self),
-        .field("name", String.self),
+        .field("symbol", String?.self),
+        .field("supply", TubAPI.Numeric?.self),
+        .field("name", String?.self),
         .field("uri", String?.self),
         .field("updated_at", TubAPI.Timestamptz.self),
       ] }
 
       public var id: TubAPI.Uuid { __data["id"] }
-      public var symbol: String { __data["symbol"] }
-      public var supply: TubAPI.Numeric { __data["supply"] }
-      public var name: String { __data["name"] }
+      public var symbol: String? { __data["symbol"] }
+      public var supply: TubAPI.Numeric? { __data["supply"] }
+      public var name: String? { __data["name"] }
       public var uri: String? { __data["uri"] }
       public var updated_at: TubAPI.Timestamptz { __data["updated_at"] }
     }

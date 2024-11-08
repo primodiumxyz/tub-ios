@@ -6,13 +6,19 @@ select_permissions:
     permission:
       columns:
         - trades
+        - freeze_burnt
+        - is_pump_token
+        - mint_burnt
         - name
         - symbol
         - increase_pct
         - decimals
         - latest_price
+        - supply
+        - volume
+        - description
         - mint
-        - platform
+        - uri
         - created_at
         - token_id
       filter: {}

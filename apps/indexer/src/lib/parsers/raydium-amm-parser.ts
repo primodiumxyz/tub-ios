@@ -6,17 +6,19 @@ import { struct, u8 } from "@solana/buffer-layout";
 import { u64 } from "@solana/buffer-layout-utils";
 import { AccountMeta, PublicKey, TransactionInstruction } from "@solana/web3.js";
 
-type SwapBaseInArgs = {
+export type SwapBaseInArgs = {
+  discriminator: number;
   amountIn: bigint;
   minimumAmountOut: bigint;
 };
-const SwapBaseInArgsLayout = struct<SwapBaseInArgs>([u64("amountIn"), u64("minimumAmountOut")]);
+const SwapBaseInArgsLayout = struct<SwapBaseInArgs>([u8("discriminator"), u64("amountIn"), u64("minimumAmountOut")]);
 
-type SwapBaseOutArgs = {
+export type SwapBaseOutArgs = {
+  discriminator: number;
   maxAmountIn: bigint;
   amountOut: bigint;
 };
-const SwapBaseOutArgsLayout = struct<SwapBaseOutArgs>([u64("maxAmountIn"), u64("amountOut")]);
+const SwapBaseOutArgsLayout = struct<SwapBaseOutArgs>([u8("discriminator"), u64("maxAmountIn"), u64("amountOut")]);
 
 const parseSwapAccounts = (accounts: AccountMeta[]): AccountMeta[] => {
   // Transactions that go directly through Raydium include the 'ammTargetOrders' account
@@ -87,8 +89,8 @@ export class RaydiumAmmParser {
       name: "swapBaseIn",
       accounts: parseSwapAccounts(accounts),
       args: {
-        amountIn: Number(args.amountIn),
-        minimumAmountOut: Number(args.minimumAmountOut),
+        amountIn: BigInt(args.amountIn),
+        minimumAmountOut: BigInt(args.minimumAmountOut),
       },
       programId: instruction.programId,
     };
@@ -102,8 +104,8 @@ export class RaydiumAmmParser {
       name: "swapBaseOut",
       accounts: parseSwapAccounts(accounts),
       args: {
-        maxAmountIn: Number(args.maxAmountIn),
-        amountOut: Number(args.amountOut),
+        maxAmountIn: BigInt(args.maxAmountIn),
+        amountOut: BigInt(args.amountOut),
       },
       programId: instruction.programId,
     };

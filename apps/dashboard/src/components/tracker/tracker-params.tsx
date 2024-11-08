@@ -1,15 +1,30 @@
+import { Flame, Snowflake } from "lucide-react";
+
+import { HintTooltip } from "@/components/HintTooltip";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTrackerParams } from "@/hooks/use-tracker-params";
 import { TIMESPAN_OPTIONS } from "@/lib/constants";
+import { cn } from "@/lib/utils";
 
 export const TrackerParams = () => {
-  const { timespan, increasePct, minTrades, setTimespan, setIncreasePct, setMinTrades } = useTrackerParams();
-
+  const {
+    timespan,
+    minTrades,
+    minVolume,
+    freezeBurnt,
+    mintBurnt,
+    setTimespan,
+    setMinTrades,
+    setMinVolume,
+    setFreezeBurnt,
+    setMintBurnt,
+  } = useTrackerParams();
   return (
-    <div className="grid xs: grid-cols-2 sm:grid-cols-3 gap-2 w-full items-start">
-      <div className="grid w-full max-w-md gap-1.5 text-start">
+    <div className="relative grid xs:grid-cols-2 sm:grid-cols-3 xl:grid-cols-[1fr_1fr_1fr_auto_auto] gap-2 w-full items-center">
+      <div className="grid w-full max-w-md gap-1 text-start">
         <Label htmlFor="timespan">Timespan</Label>
         <Select onValueChange={(value) => setTimespan(value)}>
           <SelectTrigger>
@@ -25,17 +40,12 @@ export const TrackerParams = () => {
         </Select>
         <span className="text-xs text-gray-500">{timespan}</span>
       </div>
-      <div className="grid w-full max-w-md gap-1.5 text-start">
-        <Label htmlFor="increasePct">Price increase</Label>
-        <Input
-          type="number"
-          id="increasePct"
-          placeholder="Price increase in %"
-          onChange={(e) => setIncreasePct(e.target.value)}
-        />
-        <span className="text-xs text-gray-500">{increasePct}%</span>
+      <div className="grid w-full max-w-md gap-1 text-start">
+        <Label htmlFor="minVolume">Volume</Label>
+        <Input type="number" id="minVolume" placeholder="Min. volume" onChange={(e) => setMinVolume(e.target.value)} />
+        <span className="text-xs text-gray-500">{minVolume}</span>
       </div>
-      <div className="grid w-full max-w-md gap-1.5 text-start">
+      <div className="grid w-full max-w-md gap-1 text-start">
         <Label htmlFor="minTrades" className="text-start">
           Minimum trades
         </Label>
@@ -49,6 +59,33 @@ export const TrackerParams = () => {
           {">"} {minTrades}
         </span>
       </div>
+      <Button
+        variant={mintBurnt ? "secondary" : "ghost"}
+        onClick={() => setMintBurnt(!mintBurnt)}
+        className={cn(!mintBurnt && "opacity-70")}
+      >
+        <Flame className="w-4 h-4" />
+        <span>Mint burnt</span>
+      </Button>
+      <Button
+        variant={freezeBurnt ? "secondary" : "ghost"}
+        onClick={() => setFreezeBurnt(!freezeBurnt)}
+        className={cn(!freezeBurnt && "opacity-70")}
+      >
+        <Snowflake className="w-4 h-4" />
+        <span>Freeze burnt</span>
+      </Button>
+      <HintTooltip
+        content={
+          <div>
+            <p>Select an interval for which a token needs to reach the minimum volume and trades to be included.</p>
+            <p>
+              "Mint burnt" and "Freeze burnt" are additional filters to narrow down to tokens that renounced their mint
+              authority and freeze ability.
+            </p>
+          </div>
+        }
+      />
     </div>
   );
 };

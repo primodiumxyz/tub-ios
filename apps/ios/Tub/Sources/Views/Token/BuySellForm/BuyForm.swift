@@ -50,7 +50,7 @@ struct BuyForm: View {
             return
         }
         
-        buyAmountUsdString = priceModel.formatPrice(lamports: amountLamps, showSign: false, showUnit: false)
+        buyAmountUsdString = priceModel.formatPrice(lamports: amountLamps, showSign: false, showUnit: false, formatLarge: false)
         buyAmountUsd = priceModel.lamportsToUsd(lamports: amountLamps)
         isValidInput = true
     }
@@ -128,10 +128,9 @@ struct BuyForm: View {
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.center)
                 .onChange(of: buyAmountUsdString) { newValue in
-                    if let amount = formatter.number(from:buyAmountUsdString)?.doubleValue {
-                        print("amount: \(amount)")
+                    if let amount = formatter.number(from:newValue)?.doubleValue {
                         buyAmountUsd = amount
-                        buyAmountUsdString = priceModel.formatPrice(usd: amount, showSign: false, showUnit: false)
+                        buyAmountUsdString = priceModel.formatPrice(usd: amount, showSign: false, showUnit: false, formatLarge: false)
                         isValidInput = true
                     } else {
                         buyAmountUsd = 0
@@ -172,7 +171,7 @@ struct BuyForm: View {
                 let buyAmountLamps = priceModel.usdToLamports(usd: buyAmountUsd)
                 let tokenAmount = Int(Double(buyAmountLamps) / Double(currentPrice) * 1e9)
 
-                Text("\(priceModel.formatPrice(lamports: tokenAmount, showUnit: false)) \(tokenModel.token.symbol)")
+                Text("\(priceModel.formatPrice(lamports: tokenAmount, showUnit: false)) \(tokenModel.token.symbol ?? "")")
                     .font(.sfRounded(size: .base, weight: .bold))
                     .opacity(0.8)
             }
