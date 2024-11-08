@@ -17,7 +17,7 @@ struct TokenView : View {
     @State private var showInfoCard = false
     @State private var selectedTimespan: Timespan = .live
     @State private var showBuySheet: Bool = false
-    @State private var defaultAmount: Double = 50.0
+    @State private var defaultAmount: Double = 10.0
     
     //placeholder
     let stats = [
