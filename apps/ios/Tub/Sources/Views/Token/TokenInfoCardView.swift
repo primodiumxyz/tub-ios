@@ -65,7 +65,7 @@ struct TokenInfoCardView: View {
                             }
                         }
                     }
-                    .padding(8)
+                    .padding(.vertical, 8)
                 }
                 
                 VStack(alignment: .leading, spacing: 8) {

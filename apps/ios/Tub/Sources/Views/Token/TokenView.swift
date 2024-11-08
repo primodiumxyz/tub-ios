@@ -210,7 +210,6 @@ struct TokenView : View {
                     }
                 }
                 .padding(.top,8)
-                .padding(.horizontal,8)
             }
         }
         .padding(.horizontal,24)

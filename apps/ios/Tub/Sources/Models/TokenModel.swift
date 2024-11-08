@@ -231,12 +231,11 @@ class TokenModel: ObservableObject {
     func getTokenStats(priceModel: SolPriceModel) -> [(String, String)] {
         let currentPrice = prices.last?.price ?? 0
         let marketCap = Double(token.supply) / pow(10.0, Double(token.decimals)) * Double(currentPrice) // we're dividing first otherwise it will overflow...
-        let volumeValue = Double(token.volume.value) / 1e9
         let supplyValue = Double(token.supply) / pow(10.0, Double(token.decimals))
         
         return [
             ("Market Cap", priceModel.formatPrice(lamports: Int(marketCap))),
-            ("Volume (\(String(token.volume.interval)))", formatLargeNumber(volumeValue)),
+            ("Volume (\(String(token.volume.interval)))", priceModel.formatPrice(lamports: token.volume.value)),
             ("Holders", "53.3K"), // TODO: Add holders data
             ("Supply", formatLargeNumber(supplyValue))
         ]
