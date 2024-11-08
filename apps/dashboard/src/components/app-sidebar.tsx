@@ -1,7 +1,6 @@
-import { ChartCandlestick, Check, ChevronRight, Frame, Globe, LucideIcon, PieChart, Pill } from "lucide-react";
+import { ChartCandlestick, ChevronRight, Frame, LucideIcon, PieChart } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
-import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -13,7 +12,6 @@ import {
   SidebarMenuItem,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { useTrackerParams } from "@/hooks/use-tracker-params";
 import { cn } from "@/lib/utils";
 
 type NavItemType = {
@@ -62,39 +60,10 @@ export const AppSidebar = () => {
             );
           })}
           <div className="flex-1" />
-          <Footer />
-          <div className="h-12" />
         </SidebarContent>
         <SidebarTrigger className="absolute bottom-4 right-[18px]" />
       </Sidebar>
     </>
-  );
-};
-
-const Footer = () => {
-  const { onlyPumpTokens, setOnlyPumpTokens } = useTrackerParams();
-
-  return (
-    <div className="flex flex-col">
-      <Button
-        variant="secondary"
-        onClick={() => setOnlyPumpTokens(false)}
-        className={cn("flex gap-2 items-center justify-start", onlyPumpTokens && "bg-transparent")}
-      >
-        <Globe className="size-4" />
-        <span className="flex-1 text-left">All tokens</span>
-        {!onlyPumpTokens && <Check className="size-4" />}
-      </Button>
-      <Button
-        variant="secondary"
-        onClick={() => setOnlyPumpTokens(true)}
-        className={cn("flex gap-2 items-center justify-start", !onlyPumpTokens && "bg-transparent")}
-      >
-        <Pill className="size-4" />
-        <span className="flex-1 text-left">pump.fun tokens</span>
-        {onlyPumpTokens && <Check className="size-4" />}
-      </Button>
-    </div>
   );
 };
 

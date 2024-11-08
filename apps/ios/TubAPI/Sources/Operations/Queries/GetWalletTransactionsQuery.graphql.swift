@@ -7,7 +7,7 @@ public class GetWalletTransactionsQuery: GraphQLQuery {
   public static let operationName: String = "GetWalletTransactions"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetWalletTransactions($wallet: String!) { token_transaction( order_by: { wallet_transaction_data: { created_at: desc } } where: { wallet_transaction_data: { wallet: { _eq: $wallet } } } ) { __typename wallet_transaction amount id token token_data { __typename id name supply symbol uri } wallet_transaction_data { __typename created_at } token_price { __typename price created_at } } }"#
+      #"query GetWalletTransactions($wallet: String!) { token_transaction( order_by: { wallet_transaction_data: { created_at: desc } } where: { wallet_transaction_data: { wallet: { _eq: $wallet } } } ) { __typename wallet_transaction amount id token token_data { __typename id name supply symbol uri mint } wallet_transaction_data { __typename created_at } token_price { __typename price created_at } } }"#
     ))
 
   public var wallet: String
@@ -74,17 +74,20 @@ public class GetWalletTransactionsQuery: GraphQLQuery {
         public static var __selections: [ApolloAPI.Selection] { [
           .field("__typename", String.self),
           .field("id", TubAPI.Uuid.self),
-          .field("name", String.self),
-          .field("supply", TubAPI.Numeric.self),
-          .field("symbol", String.self),
+          .field("name", String?.self),
+          .field("supply", TubAPI.Numeric?.self),
+          .field("symbol", String?.self),
           .field("uri", String?.self),
+          .field("mint", String.self),
         ] }
 
         public var id: TubAPI.Uuid { __data["id"] }
-        public var name: String { __data["name"] }
-        public var supply: TubAPI.Numeric { __data["supply"] }
-        public var symbol: String { __data["symbol"] }
+        public var name: String? { __data["name"] }
+        public var supply: TubAPI.Numeric? { __data["supply"] }
+        public var symbol: String? { __data["symbol"] }
         public var uri: String? { __data["uri"] }
+        /// token mint address (only for real tokens)
+        public var mint: String { __data["mint"] }
       }
 
       /// Token_transaction.Wallet_transaction_data

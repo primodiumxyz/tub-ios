@@ -28,7 +28,6 @@ struct BuySellForm: View {
         })
     }
     
-
     var body: some View {
         VStack {
         if userModel.userId == "" {
@@ -54,7 +53,7 @@ struct BuySellForm: View {
                         handleBuy(defaultAmount)
                     }) {
                         HStack(alignment: .center, spacing: 8) {
-                            Text("Buy $\(String(format: "%.2f", defaultAmount))")
+                            Text("Buy \(priceModel.formatPrice(usd: defaultAmount))")
                                 .font(.sfRounded(size: .xl, weight: .semibold))
                                 .foregroundColor(AppColors.black)
                                 .multilineTextAlignment(.center)

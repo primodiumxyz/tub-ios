@@ -54,46 +54,44 @@ export const GetAllOnchainTokensPriceHistorySinceSubscription = graphql(`
   }
 `);
 
-export const GetFilteredTokensSubscription = graphql(`
-  subscription SubFilteredTokens($since: timestamptz!, $minTrades: bigint!, $minIncreasePct: float8!) {
-    get_formatted_tokens_since(
-      args: { since: $since }
-      where: { trades: { _gte: $minTrades }, increase_pct: { _gte: $minIncreasePct } }
-    ) {
-      token_id
-      mint
-      decimals
-      name
-      platform
-      symbol
-      latest_price
-      increase_pct
-      trades
-      created_at
-    }
-  }
-`);
-
+// when $mintBurnt is false, this matches everything
+// when $mintBurnt is true, this ensures mint_burnt is true
 export const GetFilteredTokensIntervalSubscription = graphql(`
   subscription SubFilteredTokensInterval(
     $interval: interval = "30s"
-    $minTrades: bigint!
-    $minIncreasePct: float8!
-    $mintFilter: String = "%"
+    $minTrades: bigint = "0"
+    $minVolume: numeric = 0
+    $mintBurnt: Boolean = false
+    $freezeBurnt: Boolean = false
   ) {
-    get_formatted_tokens_interval(
+    formatted_tokens_interval(
       args: { interval: $interval }
-      where: { trades: { _gte: $minTrades }, increase_pct: { _gte: $minIncreasePct }, mint: { _ilike: $mintFilter } }
+      where: {
+        is_pump_token: { _eq: true }
+        trades: { _gte: $minTrades }
+        volume: { _gte: $minVolume }
+        _and: [
+          { _or: [{ _not: { mint_burnt: { _eq: $mintBurnt } } }, { mint_burnt: { _eq: true } }] }
+          { _or: [{ _not: { freeze_burnt: { _eq: $freezeBurnt } } }, { freeze_burnt: { _eq: true } }] }
+        ]
+      }
+      order_by: { volume: desc }
     ) {
       token_id
       mint
-      decimals
       name
-      platform
       symbol
-      latest_price
+      description
+      uri
+      supply
+      decimals
+      mint_burnt
+      freeze_burnt
+      is_pump_token
       increase_pct
       trades
+      volume
+      latest_price
       created_at
     }
   }

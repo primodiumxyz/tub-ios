@@ -1,7 +1,5 @@
 - "!include public_buy_token.yaml"
-- "!include public_get_formatted_tokens.yaml"
 - "!include public_get_formatted_tokens_interval.yaml"
-- "!include public_get_formatted_tokens_intervals_within_period.yaml"
-- "!include public_get_formatted_tokens_period.yaml"
 - "!include public_get_formatted_tokens_with_performance_intervals_within_period.yaml"
 - "!include public_sell_token.yaml"
+- "!include public_upsert_tokens_and_price_history.yaml"

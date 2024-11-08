@@ -7,23 +7,24 @@
 import SwiftUI
 
 struct TokenInfoCardView: View {
-    var tokenModel: TokenModel
+    @ObservedObject var tokenModel: TokenModel
     @Binding var isVisible: Bool
+    @EnvironmentObject var priceModel: SolPriceModel
     
     @State private var dragOffset: CGFloat = 0.0
     @State private var animatingSwipe: Bool = false
     @State private var isClosing: Bool = false
     
-    //placeholder
-    let stats = [
-            ("Market Cap", "$144M"),
-            ("Volume", "1.52M"),
-            ("Holders", "53.3K"),
-            ("Supply", "989M")
-    ]
+    private var stats: [(String, String)] {
+        [
+            ("Market Cap", priceModel.formatPrice(lamports: (tokenModel.prices.last?.price ?? 0) * (tokenModel.token.supply ?? 0) / Int(pow(10.0, Double(tokenModel.token.decimals ?? 0))))),
+            ("Volume (\(String(tokenModel.token.volume?.interval ?? "30s")))", formatLargeNumber(Double(tokenModel.token.volume?.value ?? 0) / 1e9)), // TODO: fix volume calculation
+            ("Holders", "53.3K"), // TODO: Add holders data?
+            ("Supply", formatLargeNumber(Double(tokenModel.token.supply ?? 0) / pow(10.0, Double(tokenModel.token.decimals ?? 0))))
+        ]
+    }
     
     var body: some View {
-        
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .center, spacing: 0) {
                 Rectangle()
@@ -78,7 +79,7 @@ struct TokenInfoCardView: View {
                         .foregroundColor(AppColors.white)
                         .frame(maxWidth: .infinity, alignment: .topLeading)
                     
-                    Text("This is what the coin is about. Norem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.")
+                    Text("\(tokenModel.token.description ?? "")")
                         .font(.sfRounded(size: .sm, weight: .regular))
                         .foregroundColor(AppColors.lightGray)
                         .padding(.horizontal, 8)
@@ -106,7 +107,7 @@ struct TokenInfoCardView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 0)
-        .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.4, alignment: .topLeading)
+        .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.42, alignment: .topLeading)
         .background(AppColors.black)
         .cornerRadius(30)
         .overlay(
@@ -159,3 +160,14 @@ struct TokenInfoCardView: View {
     }
 }
 
+#Preview {
+    @Previewable @AppStorage("userId") var userId: String = ""
+    @Previewable @State var isVisible = true
+    @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
+    
+    TokenInfoCardView(
+        tokenModel: TokenModel(walletAddress: "", tokenId: mockTokenId),
+        isVisible: $isVisible
+    )
+    .environmentObject(priceModel)
+}

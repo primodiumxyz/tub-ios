@@ -3,11 +3,14 @@ import SwiftUI
 
 struct Token: Identifiable {
     var id: String
-    var name: String
-    var symbol: String
     var mint: String
-    var decimals: Int
+    var name: String?
+    var symbol: String?
+    var description: String?
+    var supply: Int?
+    var decimals: Int?
     var imageUri: String?
+    var volume: (value: Int, interval: String)?
 }
 
 struct Price: Identifiable, Equatable {
@@ -26,7 +29,9 @@ struct Transaction: Identifiable, Equatable {
     let imageUri: String
     let date: Date
     let valueUsd: Double
+    let valueLamps: Int
     let quantityTokens: Int
     let isBuy: Bool
+    let mint: String
 }
 

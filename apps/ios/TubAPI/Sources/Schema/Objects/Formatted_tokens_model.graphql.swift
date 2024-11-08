@@ -4,8 +4,8 @@
 import ApolloAPI
 
 public extension Objects {
-  static let GetFormattedTokensResult = ApolloAPI.Object(
-    typename: "GetFormattedTokensResult",
+  static let Formatted_tokens_model = ApolloAPI.Object(
+    typename: "formatted_tokens_model",
     implementedInterfaces: []
   )
 }
