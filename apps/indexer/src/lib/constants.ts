@@ -8,7 +8,7 @@ import { PublicKey } from "@solana/web3.js";
 // vvv (if we only use getPoolTokenPrice.getMultipleParsedAccounts with the Helius RPC)
 // -> so we can actually handle ~1,900 swaps/s to stay withing usage limits with this current plan
 export const FETCH_DATA_BATCH_SIZE = 10; // this is the max batch size (50 * 2 accounts)
-export const FETCH_HELIUS_WRITE_GQL_BATCH_SIZE = 100; // max 1k because we're fetching `getAssetBatch` from Helius and it has a limit of 1k
+export const FETCH_HELIUS_WRITE_GQL_BATCH_SIZE = 50; // max 1k because we're fetching `getAssetBatch` from Helius and it has a limit of 1k
 export const PRICE_PRECISION = 1e9;
 
 export const WRAPPED_SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
