@@ -9,6 +9,7 @@ import SwiftUI
 import PrivySDK
 
 struct SignInWithEmailView: View {
+    @EnvironmentObject private var errorHandler: ErrorHandler
     @Binding var email: String // Email passed from RegisterView
     @State private var showOTPInput = false
     @State private var otpFlowState: OtpFlowState = .initial
@@ -38,7 +39,7 @@ struct SignInWithEmailView: View {
             do {
                 let _ = try await privy.email.loginWithCode(otpCode, sentTo: email)
             } catch {
-                debugPrint("OTP verification error: \(error)")
+                errorHandler.show(error)
             }
         }
     }

@@ -10,15 +10,16 @@ import PrivySDK
 
 @main
 struct TubApp: App {
-    var body : some Scene {
+    
+    var body: some Scene {
         WindowGroup {
             AppContent()
         }
     }
-    
 }
 
 struct AppContent : View {
+    @StateObject private var errorHandler = ErrorHandler()
     @State var isPrivySdkReady = false
     @State var myAuthState : AuthState = AuthState.notReady
     @State var userId : String = ""
@@ -53,10 +54,18 @@ struct AppContent : View {
                 }
             }
         })
+        .withErrorHandling()
+        .environmentObject(errorHandler)
     }
 }
 
 #Preview {
     AppContent()
+}
+
+extension View {
+    func withErrorHandling() -> some View {
+        modifier(ErrorOverlay())
+    }
 }
 

@@ -12,6 +12,7 @@ enum FocusPin {
 }
 
 struct SignInWithPhoneView: View {
+    @EnvironmentObject private var errorHandler: ErrorHandler
     @State private var phoneNumber = ""
     @State private var showOTPInput = false
     @State private var otpFlowState: OtpFlowState = .initial
@@ -55,7 +56,7 @@ struct SignInWithPhoneView: View {
             do {
                 let _ = try await privy.sms.loginWithCode(otpCode, sentTo: phoneNumber)
             } catch {
-                debugPrint("OTP verification error: \(error)")
+                errorHandler.show(error)
             }
         }
     }

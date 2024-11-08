@@ -9,34 +9,34 @@ struct RegisterView: View {
     @State var myAuthState : AuthState = AuthState.notReady
     @State private var showPhoneModal = false
     @State private var showEmailModal = false
+    @EnvironmentObject private var errorHandler: ErrorHandler
     @State private var isEmailValid = false
     @State private var showEmailError = false
     
-
     func createEmbeddedWallet() {
         Task {
             do {
-                    // Ensure we're authenticated first
-                    guard case .authenticated = privy.authState else { return }
-                    
-                    // Get the current embedded wallet state
-                    let walletState = privy.embeddedWallet.embeddedWalletState
-                    
-                    // Check if we need to create a wallet
-                    switch walletState {
-                    case .notCreated:
-                        // Create a new embedded wallet
-                        print("Creating new embedded wallet")
-                        let _ = try await privy.embeddedWallet.createWallet(allowAdditional: false)
-                    case .connected(let wallets):
-                        print("Wallet already exists: \(wallets)")
-                    default:
-                        print("Wallet state: \(walletState.toString)")
-                    }
-                } catch {
-                    print("Error creating wallet: \(error.localizedDescription)")
+                // Ensure we're authenticated first
+                guard case .authenticated = privy.authState else { return }
+                
+                // Get the current embedded wallet state
+                let walletState = privy.embeddedWallet.embeddedWalletState
+                
+                // Check if we need to create a wallet
+                switch walletState {
+                case .notCreated:
+                    // Create a new embedded wallet
+                    print("Creating new embedded wallet")
+                    let _ = try await privy.embeddedWallet.createWallet(allowAdditional: false)
+                case .connected(let wallets):
+                    print("Wallet already exists: \(wallets)")
+                default:
+                    print("Wallet state: \(walletState.toString)")
                 }
+            } catch {
+                errorHandler.show(error)
             }
+        }
     }
     // Email validation function using regex
     func validateEmail(_ email: String) -> Bool {
@@ -174,7 +174,7 @@ struct RegisterView: View {
                                     let authSession = try await privy.oAuth.login(with: OAuthProvider.apple)
                                     print(authSession.user)
                                 } catch {
-                                    debugPrint("Error: \(error)")
+                                    errorHandler.show(error)
                                 }
                             }
                         }
@@ -185,8 +185,7 @@ struct RegisterView: View {
                             do {
                                 let _ = try await privy.oAuth.login(with: OAuthProvider.google)
                             } catch {
-                                debugPrint("Error: \(error)")
-                                // Handle errors
+                                errorHandler.show(error)
                             }
                         }
                     }) {
@@ -234,7 +233,7 @@ struct RegisterView: View {
                             // Login with predefined OTP
                             let _ = try await privy.email.loginWithCode("145288", sentTo: "test-0932@privy.io")
                         } catch {
-                            debugPrint("Dev login error: \(error)")
+                            errorHandler.show(error)
                         }
                     }
                 }) {

@@ -25,6 +25,8 @@
 		99784EE82CD3DB5B009AEA45 /* SignInWithEmailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99784EE72CD3DB55009AEA45 /* SignInWithEmailView.swift */; };
 		99784EEA2CD3DC7D009AEA45 /* SignInWithPhoneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99784EE92CD3DC75009AEA45 /* SignInWithPhoneView.swift */; };
 		99784EEC2CD3DE93009AEA45 /* OtpModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99784EEB2CD3DE90009AEA45 /* OtpModifier.swift */; };
+		997DE8F22CDAC84900164366 /* ErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 997DE8F12CDAC84600164366 /* ErrorHandler.swift */; };
+		997DE8F42CDAC86500164366 /* ErrorOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 997DE8F32CDAC86000164366 /* ErrorOverlay.swift */; };
 		99856DA42CD27E1F004B9D40 /* Privy in Frameworks */ = {isa = PBXBuildFile; productRef = 99856DA32CD27E1F004B9D40 /* Privy */; };
 		99856DA62CD27E2E004B9D40 /* Privy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99856DA52CD27E27004B9D40 /* Privy.swift */; };
 		99856DA82CD27F5B004B9D40 /* SignInWithApple.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99856DA72CD27F58004B9D40 /* SignInWithApple.swift */; };
@@ -94,6 +96,8 @@
 		99784EE72CD3DB55009AEA45 /* SignInWithEmailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInWithEmailView.swift; sourceTree = "<group>"; };
 		99784EE92CD3DC75009AEA45 /* SignInWithPhoneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInWithPhoneView.swift; sourceTree = "<group>"; };
 		99784EEB2CD3DE90009AEA45 /* OtpModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OtpModifier.swift; sourceTree = "<group>"; };
+		997DE8F12CDAC84600164366 /* ErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorHandler.swift; sourceTree = "<group>"; };
+		997DE8F32CDAC86000164366 /* ErrorOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorOverlay.swift; sourceTree = "<group>"; };
 		99856DA52CD27E27004B9D40 /* Privy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Privy.swift; sourceTree = "<group>"; };
 		99856DA72CD27F58004B9D40 /* SignInWithApple.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInWithApple.swift; sourceTree = "<group>"; };
 		99856DA92CD28271004B9D40 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -197,6 +201,7 @@
 		999F59522CA6F6A900E7AE9F /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				997DE8F32CDAC86000164366 /* ErrorOverlay.swift */,
 				99DD66022CB80D5B00B56450 /* Common */,
 				99DD66012CB80D3D00B56450 /* Token */,
 				99DD65FF2CB80D1100B56450 /* History */,
@@ -209,6 +214,7 @@
 		999F59532CA6F70C00E7AE9F /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				997DE8F12CDAC84600164366 /* ErrorHandler.swift */,
 				9906661E2CC94B0D0068EA06 /* SolPriceModel.swift */,
 				99DED24D2CAF28BD0055FC60 /* UserModel.swift */,
 				999F59552CA6F96D00E7AE9F /* TokenModel.swift */,
@@ -532,6 +538,7 @@
 				99DDF62D2CB02816000234DA /* AccountView.swift in Sources */,
 				9936FC582CADCA5200E21B8A /* Structs.swift in Sources */,
 				DB458DB42CAC827A00C5EC18 /* Network.swift in Sources */,
+				997DE8F42CDAC86500164366 /* ErrorOverlay.swift in Sources */,
 				DB675A332CA2B73D006FC9B3 /* HomeTabsView.swift in Sources */,
 				99DED2532CAF2C6D0055FC60 /* RegisterView.swift in Sources */,
 				46442B952CDD7380009A6F0B /* Constants.swift in Sources */,
@@ -539,6 +546,7 @@
 				DF5A2FC32CAF165D00508A56 /* HistoryView.swift in Sources */,
 				994AE5F72CD2AB3F00553A32 /* GoogleLogoView.swift in Sources */,
 				992875672CCACD4C004B48BE /* ErrorView.swift in Sources */,
+				997DE8F22CDAC84900164366 /* ErrorHandler.swift in Sources */,
 				99784EEA2CD3DC7D009AEA45 /* SignInWithPhoneView.swift in Sources */,
 				DF5A2FC52CAF2DEF00508A56 /* HistoryDetailsView.swift in Sources */,
 				99856DA62CD27E2E004B9D40 /* Privy.swift in Sources */,

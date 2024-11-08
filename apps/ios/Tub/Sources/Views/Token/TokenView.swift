@@ -9,6 +9,7 @@ import SwiftUI
 import Combine
 
 struct TokenView : View {
+    @EnvironmentObject private var errorHandler: ErrorHandler
     @ObservedObject var tokenModel: TokenModel
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject private var userModel: UserModel
@@ -17,8 +18,8 @@ struct TokenView : View {
     @State private var showInfoCard = false
     @State private var selectedTimespan: Timespan = .live
     @State private var showBuySheet: Bool = false
-    @State private var defaultAmount: Double = 10.0
-
+    @State private var defaultAmount: Double = 50.0
+    
     @State private var priceChangeInterval: TimeInterval = 0
     @State private var priceChangeTimer: Timer?
     
@@ -49,16 +50,21 @@ struct TokenView : View {
     
     func handleBuy(amount: Double) {
         let buyAmountLamps = priceModel.usdToLamports(usd: amount)
-        tokenModel.buyTokens(buyAmountLamps: buyAmountLamps) { success in
-            if success {
+        tokenModel.buyTokens(buyAmountLamps: buyAmountLamps) { result in
+            switch result {
+            case .success:
                 withAnimation(.easeInOut(duration: 0.3)) {
                     showBuySheet = false
                     activeTab = "sell" //  Switch tab after successful buy
                 }
+            case .failure(let error):
+                print("failed to buy")
+                print(error)
+                errorHandler.show(error)
             }
         }
     }
-
+    
     private func startPriceChangeTimer() {
         priceChangeTimer?.invalidate()
         priceChangeTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
@@ -84,7 +90,8 @@ struct TokenView : View {
                     tokenModel: tokenModel,
                     activeTab: $activeTab,
                     showBuySheet: $showBuySheet,
-                    defaultAmount: $defaultAmount
+                    defaultAmount: $defaultAmount,
+                    handleBuy: handleBuy
                 )
                 .equatable() // Add this modifier
             }
@@ -274,12 +281,12 @@ struct TokenView : View {
             }
         }
     }
-
+    
     private func formatTimeElapsed(_ timeInterval: TimeInterval) -> String {
         let hours = Int(timeInterval) / 3600
         let minutes = (Int(timeInterval) % 3600) / 60
         let seconds = Int(timeInterval) % 60
-
+        
         if hours > 1 {
             return "\(hours)h"
         } else if hours > 0 {
