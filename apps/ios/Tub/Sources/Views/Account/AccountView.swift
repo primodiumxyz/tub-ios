@@ -15,6 +15,7 @@ struct AccountView: View {
     @State private var airdropResult: String?
     @State private var errorMessage: String?
     @Environment(\.presentationMode) var presentationMode
+    @State private var showOnrampView = false
     
     func handleAirdrop () {
         
@@ -35,6 +36,7 @@ struct AccountView: View {
     var body: some View {
         NavigationStack {
             VStack() {
+                Text(serverBaseUrl).foregroundStyle(.white)
                 if userModel.userId.isEmpty {
                     Text("Please register to view your account details.")
                         .font(.sfRounded(size: .lg, weight: .medium))
@@ -101,6 +103,17 @@ struct AccountView: View {
                         .foregroundColor(AppColors.white)
                         .padding(.bottom, 5.0)
                         
+                        Button(action: { showOnrampView = true }) {
+                            Text("Buy SOL")
+                                .font(.sfRounded(size: .base, weight: .semibold))
+                                .foregroundColor(AppColors.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(12)
+                                .background(AppColors.primaryPurple)
+                                .cornerRadius(26)
+                        }
+                        .padding(.bottom, 5.0)
+                        
                         Button(action: userModel.logout) {
                             Text("Logout")
                                 .font(.sfRounded(size: .base, weight: .semibold))
@@ -123,6 +136,9 @@ struct AccountView: View {
                 if newValue.isEmpty {
                     presentationMode.wrappedValue.dismiss()
                 }
+            }
+            .sheet(isPresented: $showOnrampView) {
+                CoinbaseOnrampView()
             }
         }
     }
