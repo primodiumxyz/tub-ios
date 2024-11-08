@@ -65,7 +65,7 @@ struct ChartView: View {
                 .foregroundStyle(AppColors.aquaBlue.opacity(0.8))
                 .shadow(color: AppColors.aquaBlue, radius: 3, x: 2, y: 2)
                 .lineStyle(StrokeStyle(lineWidth: 3))
-                .interpolationMethod(.catmullRom) 
+//                .interpolationMethod(.catmullRom) 
             }
             
             if let currentPrice = prices.last, prices.count >= 2 {

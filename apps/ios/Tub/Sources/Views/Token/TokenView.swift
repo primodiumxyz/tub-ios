@@ -30,7 +30,7 @@ struct TokenView : View {
         
         var interval: Interval {
             switch self {
-                case .live: return "1m"
+                case .live: return CHART_INTERVAL
                 case .thirtyMin: return "30m"
             }
         }
@@ -131,7 +131,7 @@ struct TokenView : View {
             if tokenModel.loading {
                 LoadingChart()
             } else if selectedTimespan == .live {
-                ChartView(prices: tokenModel.prices, timeframeSecs: 90.0, purchaseTime: tokenModel.purchaseTime, purchaseAmount: tokenModel.balanceLamps)
+                ChartView(prices: tokenModel.prices, timeframeSecs: 120.0, purchaseTime: tokenModel.purchaseTime, purchaseAmount: tokenModel.balanceLamps)
             } else {
                 CandleChartView(prices: tokenModel.prices, intervalSecs: 90, timeframeMins: 30)
                     .id(tokenModel.prices.count)
