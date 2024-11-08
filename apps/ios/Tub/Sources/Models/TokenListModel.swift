@@ -25,7 +25,7 @@ class TokenListModel: ObservableObject {
     @Published var errorMessage: String?
     
     private var subscription: Cancellable?
-    private var userModel: UserModel
+    private var walletAddress: String
 
     // Constants for token filtering
     private let INTERVAL: Interval = "30s"
@@ -34,9 +34,9 @@ class TokenListModel: ObservableObject {
     private let MINT_BURNT: Bool = true
     private let FREEZE_BURNT: Bool = true
     
-    init(userModel: UserModel) {
-        self.userModel = userModel
-        self.currentTokenModel = TokenModel(walletAddress: userModel.walletAddress)
+    init(walletAddress: String) {
+        self.walletAddress = walletAddress
+        self.currentTokenModel = TokenModel(walletAddress: walletAddress)
     }
 
     var currentTokenIndex: Int {
@@ -58,7 +58,7 @@ class TokenListModel: ObservableObject {
     }
 
     func createTokenModel() -> TokenModel {
-        return TokenModel(walletAddress: userModel.walletAddress)
+        return TokenModel(walletAddress: walletAddress)
     }
     
     private func getNextToken(excluding currentId: String? = nil) -> Token? {
