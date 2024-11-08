@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import WebKit
+import SafariServices
 
 struct CoinbaseOnrampView: View {
     @State private var url: URL?
@@ -40,7 +40,7 @@ struct CoinbaseOnrampView: View {
                     .foregroundColor(.red)
                     .padding()
             } else if let url = url {
-                WebView(url: url)
+                SafariView(url: url)
             }
         }
         .onAppear {
@@ -49,16 +49,15 @@ struct CoinbaseOnrampView: View {
     }
 }
 
-struct WebView: UIViewRepresentable {
+struct SafariView: UIViewControllerRepresentable {
     let url: URL
     
-    func makeUIView(context: Context) -> WKWebView {
-        return WKWebView()
+    func makeUIViewController(context: Context) -> SFSafariViewController {
+        return SFSafariViewController(url: url)
     }
     
-    func updateUIView(_ webView: WKWebView, context: Context) {
-        let request = URLRequest(url: url)
-        webView.load(request)
+    func updateUIViewController(_ safariViewController: SFSafariViewController, context: Context) {
+        // No update needed
     }
 }
 
