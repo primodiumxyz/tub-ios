@@ -10,6 +10,7 @@ import Combine
 import TubAPI
 
 struct TokenView : View {
+    @EnvironmentObject private var errorHandler: ErrorHandler
     @ObservedObject var tokenModel: TokenModel
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject private var userModel: UserModel
@@ -43,12 +44,17 @@ struct TokenView : View {
     
     func handleBuy(amount: Double) {
         let buyAmountLamps = priceModel.usdToLamports(usd: amount)
-        tokenModel.buyTokens(buyAmountLamps: buyAmountLamps) { success in
-            if success {
+        tokenModel.buyTokens(buyAmountLamps: buyAmountLamps) { result in
+            switch result {
+            case .success:
                 withAnimation(.easeInOut(duration: 0.3)) {
                     showBuySheet = false
                     activeTab = "sell" //  Switch tab after successful buy
                 }
+            case .failure(let error):
+                print("failed to buy")
+                print(error)
+                errorHandler.show(error)
             }
         }
     }
@@ -70,7 +76,8 @@ struct TokenView : View {
                     tokenModel: tokenModel,
                     activeTab: $activeTab,
                     showBuySheet: $showBuySheet,
-                    defaultAmount: $defaultAmount
+                    defaultAmount: $defaultAmount,
+                    handleBuy: handleBuy
                 )
                 .equatable() // Add this modifier
             }

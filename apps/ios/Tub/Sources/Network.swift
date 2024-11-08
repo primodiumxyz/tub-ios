@@ -161,7 +161,7 @@ class Network {
         let input = ["tokenId": tokenId, "amount": amount]
         callProcedure("sellToken", input: input, completion: completion)
     }
-    
+
     func registerNewToken(name: String, symbol: String, supply: String? = nil, uri: String? = nil, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
         let input = ["name": name, "symbol": symbol, "supply": supply, "uri": uri].compactMapValues { $0 }
         callProcedure("registerNewToken", input: input, completion: completion)

@@ -6,6 +6,7 @@ import TubAPI
 class TokenModel: ObservableObject {
     var tokenId: String = ""
     var walletAddress: String = ""
+    var errorHandler: ErrorHandler? = nil
     
     @Published var token: Token = Token(
         id: "",
@@ -30,8 +31,7 @@ class TokenModel: ObservableObject {
  
     private var latestPriceSubscription: Apollo.Cancellable?
     private var tokenBalanceSubscription: Apollo.Cancellable?
-    
-    
+        
     init(walletAddress: String, tokenId: String? = nil) {
         self.walletAddress = walletAddress
         if tokenId != nil {
@@ -155,13 +155,13 @@ class TokenModel: ObservableObject {
                     self.balanceLamps =
                     graphQLResult.data?.balance.first?.value ?? 0
                 case .failure(let error):
-                    print("Error: \(error.localizedDescription)")
+                    print("Error updating token balance: \(error.localizedDescription)")
                 }
             }
         }
     }
 
-    func buyTokens(buyAmountLamps: Int, completion: ((Bool) -> Void)?) {
+    func buyTokens(buyAmountLamps: Int, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
         if let price = self.prices.last?.price, price > 0 {
             let tokenAmount = Int(Double(buyAmountLamps) / Double(price) * 1e9)
             print("token amount:", tokenAmount)
@@ -172,26 +172,24 @@ class TokenModel: ObservableObject {
                 case .success:
                     self.amountBoughtLamps = buyAmountLamps
                     self.purchaseTime = Date()
-                    completion?(true)
                 case .failure(let error):
                     print("Error buying tokens: \(error)")
-                    completion?(false)
                 }
+                completion(result)
             }
         }
     }
     
-    func sellTokens(completion: ((Bool) -> Void)?) {
+    func sellTokens(completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
         Network.shared.sellToken(tokenId: self.tokenId, amount: String(self.balanceLamps)
         ) { result in
             switch result {
             case .success:
                 self.purchaseTime = nil
-                completion?(true)
             case .failure(let error):
                 print("Error selling tokens: \(error)")
-                completion?(false)
             }
+            completion(result)
         }
     }
 

@@ -43,11 +43,11 @@ class TokenListModel: ObservableObject {
     var isFirstToken: Bool {
         return currentTokenIndex == 0
     }
-    
+
     var isNextTokenAvailable: Bool {
         return self.availableTokens.count > 1
     }
-
+    
     private func initTokenModel() {
         DispatchQueue.main.async {
             self.currentTokenModel.initialize(with: self.tokens[self.currentTokenIndex].id)

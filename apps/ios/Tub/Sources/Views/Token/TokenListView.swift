@@ -148,6 +148,7 @@ struct TokenListView: View {
 }
 
 #Preview {
+    @Previewable @StateObject var errorHandler = ErrorHandler()
     @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
     @Previewable @State var userId: String? = nil
     
@@ -158,6 +159,7 @@ struct TokenListView: View {
             TokenListView()
                 .environmentObject(UserModel(userId: userId.unsafelyUnwrapped))
                 .environmentObject(priceModel)
+                .environmentObject(errorHandler)
         }
     }
     .onAppear {
