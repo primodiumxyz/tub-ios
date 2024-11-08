@@ -27,14 +27,15 @@ struct AppContent : View {
     
     var body: some View {
         Group{
-            if myAuthState.toString == "notReady" || walletState == .connecting {
-                LoadingView()
-            }
-            else if myAuthState.toString != "authenticated" {
+            if myAuthState == .unauthenticated {
                 RegisterView()
             } else if walletState == EmbeddedWalletState.notCreated {
                 CreateWalletView()
-            } else {
+            } 
+            else if myAuthState.toString != "authenticated" || walletState.toString != "connected" {
+                LoadingView()
+            }
+            else {
                 HomeTabsView(userId: userId).font(.sfRounded())
             }
         }.onAppear(perform: {
