@@ -10,12 +10,7 @@ import SwiftUI
 struct SellForm: View {
     @EnvironmentObject var priceModel: SolPriceModel
     @ObservedObject var tokenModel: TokenModel
-    @Binding var showBuySheet: Bool
-    var onSell : (((Bool) -> Void)?) -> ()
-
-    private func handleSell() {
-        let _ = onSell(nil)
-    }
+    var onSell : () -> ()
 
     private var tokenAmountView: some View {
         let tokenAmount = Int(Double(tokenModel.balanceLamps) / 1e9 * Double(tokenModel.prices.last?.price ?? 0))
@@ -73,41 +68,27 @@ struct SellForm: View {
                 .font(.sfRounded(size: .xl, weight: .semibold))
                 .foregroundColor(AppColors.white)
                 .frame(maxWidth: .infinity)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
+                .padding(12)
                 .background(AppColors.primaryPink)
-                .cornerRadius(30)
+                .cornerRadius(26)
         }
     }
     
     var body: some View {
         GeometryReader { geometry in
-            HStack(spacing: 16) {
-                Button(action: {
-                    showBuySheet = true
-                }) {
-                    HStack(alignment: .center, spacing: 8) {
-                        Text("Buy")
-                            .font(.sfRounded(size: .xl, weight: .semibold))
-                            .foregroundColor(AppColors.primaryPink)
-                            .multilineTextAlignment(.center)
-                    }
-                    .frame(maxWidth: 50)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .background(AppColors.black)
-                    .cornerRadius(26)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 30)
-                            .inset(by: 0.5)
-                            .stroke(AppColors.primaryPink, lineWidth: 1)
-                    )
+            VStack {
+                Spacer()
+                HStack(alignment: .top) {
+                    tokenAmountView
+                    profitView
                 }
+                .padding(.horizontal)
                 
                 sellButton
                 
-            }.padding(.horizontal,16)
+                Spacer()
+            }
         }
-        .frame(height: 50)
+        .frame(height: 100)
     }
 }
