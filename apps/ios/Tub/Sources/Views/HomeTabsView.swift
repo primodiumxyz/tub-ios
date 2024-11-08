@@ -27,7 +27,7 @@ struct HomeTabsView: View {
                     // Main content view
                     Group {
                         if selectedTab == 0 {
-                            TokenListView()
+                            TokenListView(walletAddress: userModel.walletAddress)
                         } else if selectedTab == 1 {
                             HistoryView()
                         } else if selectedTab == 2 {

@@ -25,15 +25,15 @@ class TokenListModel: ObservableObject {
     @Published var errorMessage: String?
     
     private var subscription: Cancellable?
-    private var userModel: UserModel
+    private var walletAddress: String
 
     // Cooldown for not showing the same token too often
     private let TOKEN_COOLDOWN: TimeInterval = 60 // 60 seconds cooldown
     private var recentlyShownTokens: [(id: String, timestamp: Date)] = []
     
-    init(userModel: UserModel) {
-        self.userModel = userModel
-        self.currentTokenModel = TokenModel(walletAddress: userModel.walletAddress)
+    init(walletAddress: String) {
+        self.walletAddress = walletAddress
+        self.currentTokenModel = TokenModel(walletAddress: walletAddress)
     }
 
     var currentTokenIndex: Int {
@@ -55,7 +55,7 @@ class TokenListModel: ObservableObject {
     }
 
     func createTokenModel() -> TokenModel {
-        return TokenModel(walletAddress: userModel.walletAddress)
+        return TokenModel(walletAddress: walletAddress)
     }
     
     private func getNextToken(excluding currentId: String? = nil) -> Token? {

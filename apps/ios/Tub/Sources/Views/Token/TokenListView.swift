@@ -32,8 +32,8 @@ struct TokenListView: View {
             !(value.translation.height < 0 && !viewModel.isNextTokenAvailable)
     }
     
-    init() {
-        self._viewModel = StateObject(wrappedValue: TokenListModel(userModel: UserModel(userId: UserDefaults.standard.string(forKey: "userId") ?? "")))
+    init(walletAddress: String) {
+        self._viewModel = StateObject(wrappedValue: TokenListModel(walletAddress: walletAddress))
     }
     
     private func loadToken(_ geometry: GeometryProxy, _ direction: String) {
@@ -71,14 +71,7 @@ struct TokenListView: View {
                 LoadingView()
             } else {
                 ZStack {
-                    // Background gradient
-//                    LinearGradient(
-//                        stops: activeTab == "buy" ? purpleStops : pinkStops,
-//                        startPoint: UnitPoint(x: 0.5, y: activeTab == "buy" ? 1 : 0),
-//                        endPoint: UnitPoint(x: 0.5, y: activeTab == "buy" ? 0 : 1)
-//                    )
-//                    .ignoresSafeArea()
-                    
+                   
                     VStack(spacing: 0) {
                         AccountBalanceView(
                             userModel: userModel,
@@ -147,29 +140,3 @@ struct TokenListView: View {
     }
 }
 
-#Preview {
-    @Previewable @StateObject var errorHandler = ErrorHandler()
-    @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
-    @Previewable @State var userId: String? = nil
-    
-    return Group {
-        if !priceModel.isReady || userId == nil {
-            LoadingView()
-        } else {
-            TokenListView()
-                .environmentObject(UserModel(userId: userId.unsafelyUnwrapped))
-                .environmentObject(priceModel)
-                .environmentObject(errorHandler)
-        }
-    }
-    .onAppear {
-        Task {
-            do {
-                userId = try await privy.refreshSession().user.id
-                print(userId)
-            } catch {
-                print("error in preview: \(error)")
-            }
-        }
-    }
-}
