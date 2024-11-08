@@ -4,13 +4,25 @@ import SwiftUI
 struct Token: Identifiable {
     var id: String
     var mint: String
-    var name: String?
-    var symbol: String?
-    var description: String?
-    var supply: Int?
-    var decimals: Int?
-    var imageUri: String?
-    var volume: (value: Int, interval: String)?
+    var name: String
+    var symbol: String
+    var description: String
+    var supply: Int
+    var decimals: Int
+    var imageUri: String
+    var volume: (value: Int, interval: String)
+    
+    init(id: String, mint: String, name: String?, symbol: String?, description: String?, supply: Int?, decimals: Int?, imageUri: String?, volume: (value: Int, interval: String)? = nil) {
+        self.id = id
+        self.mint = mint
+        self.name = name ?? "COIN"
+        self.symbol = symbol ?? "SYMBOL"
+        self.description = description ?? "DESCRIPTION"
+        self.supply = supply ?? 0
+        self.decimals = decimals ?? 6
+        self.imageUri = imageUri ?? ""
+        self.volume = volume ?? (0, "1m")
+    }
 }
 
 struct Price: Identifiable, Equatable {

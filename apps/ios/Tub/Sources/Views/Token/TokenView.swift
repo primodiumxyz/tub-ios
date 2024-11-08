@@ -23,10 +23,10 @@ struct TokenView : View {
     // TODO: have the token info card in one place and adapt params for opacity (open/close)
     private var stats: [(String, String)] {
         [
-            ("Market Cap", priceModel.formatPrice(lamports: (tokenModel.prices.last?.price ?? 0) * (tokenModel.token.supply ?? 0) / Int(pow(10.0, Double(tokenModel.token.decimals ?? 0))))),
-            ("Volume (\(String(tokenModel.token.volume?.interval ?? "30s")))", formatLargeNumber(Double(tokenModel.token.volume?.value ?? 0) / 1e9)), // TODO: fix volume calculation
+            ("Market Cap", priceModel.formatPrice(lamports: (tokenModel.prices.last?.price ?? 0) * (tokenModel.token.supply) / Int(pow(10.0, Double(tokenModel.token.decimals))))),
+            ("Volume (\(String(tokenModel.token.volume.interval)))", formatLargeNumber(Double(tokenModel.token.volume.value) / 1e9)), // TODO: fix volume calculation
             ("Holders", "53.3K"), // TODO: Add holders data?
-            ("Supply", formatLargeNumber(Double(tokenModel.token.supply ?? 0) / pow(10.0, Double(tokenModel.token.decimals ?? 0))))
+            ("Supply", formatLargeNumber(Double(tokenModel.token.supply) / pow(10.0, Double(tokenModel.token.decimals))))
         ]
     }
     
@@ -91,10 +91,10 @@ struct TokenView : View {
     private var tokenInfoView: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
-                if tokenModel.token.imageUri != nil {
-                    ImageView(imageUri: tokenModel.token.imageUri!, size: 20)
+                if tokenModel.token.imageUri != "" {
+                    ImageView(imageUri: tokenModel.token.imageUri, size: 20)
                 }
-                Text("$\(tokenModel.token.symbol ?? "")")
+                Text("$\(tokenModel.token.symbol)")
                     .font(.sfRounded(size: .lg, weight: .semibold))
             }
             HStack(alignment: .center, spacing: 6) {

@@ -17,10 +17,10 @@ struct TokenInfoCardView: View {
     
     private var stats: [(String, String)] {
         [
-            ("Market Cap", priceModel.formatPrice(lamports: (tokenModel.prices.last?.price ?? 0) * (tokenModel.token.supply ?? 0) / Int(pow(10.0, Double(tokenModel.token.decimals ?? 0))))),
-            ("Volume (\(String(tokenModel.token.volume?.interval ?? "30s")))", formatLargeNumber(Double(tokenModel.token.volume?.value ?? 0) / 1e9)), // TODO: fix volume calculation
+            ("Market Cap", priceModel.formatPrice(lamports: (tokenModel.prices.last?.price ?? 0) * (tokenModel.token.supply) / Int(pow(10.0, Double(tokenModel.token.decimals))))),
+            ("Volume (\(String(tokenModel.token.volume.interval)))", formatLargeNumber(Double(tokenModel.token.volume.value) / 1e9)), // TODO: fix volume calculation
             ("Holders", "53.3K"), // TODO: Add holders data?
-            ("Supply", formatLargeNumber(Double(tokenModel.token.supply ?? 0) / pow(10.0, Double(tokenModel.token.decimals ?? 0))))
+            ("Supply", formatLargeNumber(Double(tokenModel.token.supply) / pow(10.0, Double(tokenModel.token.decimals))))
         ]
     }
     
@@ -79,7 +79,7 @@ struct TokenInfoCardView: View {
                         .foregroundColor(AppColors.white)
                         .frame(maxWidth: .infinity, alignment: .topLeading)
                     
-                    Text("\(tokenModel.token.description ?? "")")
+                    Text("\(tokenModel.token.description)")
                         .font(.sfRounded(size: .sm, weight: .regular))
                         .foregroundColor(AppColors.lightGray)
                         .padding(.horizontal, 8)
@@ -158,16 +158,4 @@ struct TokenInfoCardView: View {
         }
         .transition(.move(edge: .bottom))
     }
-}
-
-#Preview {
-    @Previewable @AppStorage("userId") var userId: String = ""
-    @Previewable @State var isVisible = true
-    @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
-    
-    TokenInfoCardView(
-        tokenModel: TokenModel(walletAddress: "", tokenId: mockTokenId),
-        isVisible: $isVisible
-    )
-    .environmentObject(priceModel)
 }
