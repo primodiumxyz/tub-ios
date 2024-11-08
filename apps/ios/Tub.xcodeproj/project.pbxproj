@@ -55,7 +55,7 @@
 		DF1FE3C82CD568F700594C63 /* CountryCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF1FE3C72CD568F700594C63 /* CountryCode.swift */; };
 		DF5A2FC32CAF165D00508A56 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5A2FC22CAF165D00508A56 /* HistoryView.swift */; };
 		DF5A2FC52CAF2DEF00508A56 /* HistoryDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5A2FC42CAF2DEF00508A56 /* HistoryDetailsView.swift */; };
-		DF5C79DC2CDE9FEC00CC31DB /* TokenStatsGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5C79DB2CDE9FEC00CC31DB /* TokenStatsGridView.swift */; };
+		DF6342D52CDEAB0D009859C2 /* TokenStatsGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF6342D42CDEAB0D009859C2 /* TokenStatsGridView.swift */; };
 		DFA36D562CB4278C00F63D2D /* DummyData.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFA36D552CB4278C00F63D2D /* DummyData.swift */; };
 		DFA4D6512CAC500B00AEDC73 /* Apollo in Frameworks */ = {isa = PBXBuildFile; productRef = DFA4D6502CAC500B00AEDC73 /* Apollo */; };
 		DFC723E32CB9A86C003A915C /* TokenInfoCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFC723E22CB9A86C003A915C /* TokenInfoCardView.swift */; };
@@ -129,7 +129,7 @@
 		DF1FE3C72CD568F700594C63 /* CountryCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CountryCode.swift; path = Tub/Sources/CountryCode.swift; sourceTree = SOURCE_ROOT; };
 		DF5A2FC22CAF165D00508A56 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		DF5A2FC42CAF2DEF00508A56 /* HistoryDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryDetailsView.swift; sourceTree = "<group>"; };
-		DF5C79DB2CDE9FEC00CC31DB /* TokenStatsGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenStatsGridView.swift; sourceTree = "<group>"; };
+		DF6342D42CDEAB0D009859C2 /* TokenStatsGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenStatsGridView.swift; sourceTree = "<group>"; };
 		DF7C361B2CD941FD00A4B27A /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		DFA36D552CB4278C00F63D2D /* DummyData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DummyData.swift; path = Tub/Sources/Utils/DummyData.swift; sourceTree = SOURCE_ROOT; };
 		DFC723E22CB9A86C003A915C /* TokenInfoCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenInfoCardView.swift; sourceTree = "<group>"; };
@@ -272,7 +272,7 @@
 			children = (
 				99FBEEA72CCA882300BC6392 /* Charts */,
 				991361A02CADE3AA00E5D656 /* TokenListView.swift */,
-				DF5C79DB2CDE9FEC00CC31DB /* TokenStatsGridView.swift */,
+				DF6342D42CDEAB0D009859C2 /* TokenStatsGridView.swift */,
 				DB10A95C2CA5AA1B00B1E4F3 /* TokenView.swift */,
 				DFC723E22CB9A86C003A915C /* TokenInfoCardView.swift */,
 				99DDF62E2CB0333D000234DA /* BuySellForm */,
@@ -561,7 +561,7 @@
 				DB10A95D2CA5AA1B00B1E4F3 /* TokenView.swift in Sources */,
 				DB6D29052CA1C8F70099951A /* TubApp.swift in Sources */,
 				990337052CC94175002D3A25 /* AccountBalance.swift in Sources */,
-				DF5C79DC2CDE9FEC00CC31DB /* TokenStatsGridView.swift in Sources */,
+				DF6342D52CDEAB0D009859C2 /* TokenStatsGridView.swift in Sources */,
 				9941CD6F2CCAA30D0009E5ED /* FormatPrice.swift in Sources */,
 				99FB68342CC003FC00070D2A /* LoadingView.swift in Sources */,
 				999F59562CA6F97100E7AE9F /* TokenModel.swift in Sources */,

@@ -10,18 +10,45 @@ struct TokenInfoCardView: View {
     @ObservedObject var tokenModel: TokenModel
     @Binding var isVisible: Bool
     @EnvironmentObject var priceModel: SolPriceModel
+    @Binding var activeTab: String
     
     @State private var dragOffset: CGFloat = 0.0
     @State private var animatingSwipe: Bool = false
     @State private var isClosing: Bool = false
     
     private var tokenStats: [(String, String)] {
-        [
+        var stats = [(String, String)]()
+        
+        if activeTab == "sell" {
+            // Calculate token amount and value
+            let tokenAmount = Double(tokenModel.balanceLamps) / pow(10.0, Double(tokenModel.token.decimals ?? 0))
+            let currentValueLamps = Int(Double(tokenModel.balanceLamps) / 1e9 * Double(tokenModel.prices.last?.price ?? 0))
+            
+            // Calculate profit
+            let initialValueUsd = priceModel.lamportsToUsd(lamports: tokenModel.amountBoughtLamps)
+            let currentValueUsd = priceModel.lamportsToUsd(lamports: currentValueLamps)
+            let gains = currentValueUsd - initialValueUsd
+            let percentageGain = tokenModel.amountBoughtLamps > 0 ? gains / initialValueUsd * 100 : 0
+            
+            // Add position stats first
+            stats += [
+                ("You Own", "\(formatLargeNumber(tokenAmount)) \(tokenModel.token.symbol ?? "")"),
+                ("Value", priceModel.formatPrice(lamports: currentValueLamps)),
+                // ("All time gains", tokenModel.amountBoughtLamps > 0 ? 
+                //     "\(priceModel.formatPrice(usd: gains, showSign: true)) (\(String(format: "%.2f", percentageGain))%)" : "—"),
+                // ("", "") // Spacer
+            ]
+        }
+        
+        // Add market stats
+        stats += [
             ("Market Cap", priceModel.formatPrice(lamports: (tokenModel.prices.last?.price ?? 0) * (tokenModel.token.supply ?? 0) / Int(pow(10.0, Double(tokenModel.token.decimals ?? 0))))),
             ("Volume (\(String(tokenModel.token.volume?.interval ?? "30s")))", formatLargeNumber(Double(tokenModel.token.volume?.value ?? 0) / 1e9)),// TODO: fix volume calculation
             ("Holders", "53.3K"), // TODO: Add holders data?
             ("Supply", formatLargeNumber(Double(tokenModel.token.supply ?? 0) / pow(10.0, Double(tokenModel.token.decimals ?? 0))))
         ]
+        
+        return stats
     }
     
     var body: some View {
@@ -132,3 +159,16 @@ struct TokenInfoCardView: View {
     }
 }
 
+#Preview {
+    @Previewable @AppStorage("userId") var userId: String = ""
+    @Previewable @State var isVisible = true
+    @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
+    @Previewable @State var activeTab = "buy"
+    
+    TokenInfoCardView(
+        tokenModel: TokenModel(walletAddress: "", tokenId: mockTokenId),
+        isVisible: $isVisible,
+        activeTab: $activeTab
+    )
+    .environmentObject(priceModel)
+}

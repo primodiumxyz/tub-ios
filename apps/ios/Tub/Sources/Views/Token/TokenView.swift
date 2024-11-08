@@ -171,7 +171,7 @@ struct TokenView : View {
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 16)
-        .frame(maxWidth: .infinity, maxHeight: 95, alignment: .topLeading)
+        .frame(maxWidth: .infinity, maxHeight: 110, alignment: .topLeading)
         .background(AppColors.darkGrayGradient)
         .cornerRadius(12)
         .padding(.top, 16)
@@ -195,7 +195,7 @@ struct TokenView : View {
                     }
                 VStack {
                     Spacer()
-                    TokenInfoCardView(tokenModel: tokenModel, isVisible: $showInfoCard)
+                    TokenInfoCardView(tokenModel: tokenModel, isVisible: $showInfoCard, activeTab: $activeTab)
                 }
                 .transition(.move(edge: .bottom))
                 .zIndex(1) // Ensure it stays on top
@@ -294,7 +294,31 @@ extension View {
     }
 
     private var tokenStats: [(String, String)] {
-        [
+        var stats = [(String, String)]()
+        
+        if activeTab == "sell" {
+            // Calculate token amount and value
+            let tokenAmount = Double(tokenModel.balanceLamps) / pow(10.0, Double(tokenModel.token.decimals ?? 0))
+            let currentValueLamps = Int(Double(tokenModel.balanceLamps) / 1e9 * Double(tokenModel.prices.last?.price ?? 0))
+            
+            // Calculate profit
+            let initialValueUsd = priceModel.lamportsToUsd(lamports: tokenModel.amountBoughtLamps)
+            let currentValueUsd = priceModel.lamportsToUsd(lamports: currentValueLamps)
+            let gains = currentValueUsd - initialValueUsd
+            let percentageGain = tokenModel.amountBoughtLamps > 0 ? gains / initialValueUsd * 100 : 0
+            
+            // Add position stats first
+            stats += [
+                ("You Own", "\(formatLargeNumber(tokenAmount)) \(tokenModel.token.symbol ?? "")"),
+                ("Value", priceModel.formatPrice(lamports: currentValueLamps)),
+                // ("All time gains", tokenModel.amountBoughtLamps > 0 ? 
+                //     "\(priceModel.formatPrice(usd: gains, showSign: true)) (\(String(format: "%.2f", percentageGain))%)" : "—"),
+                // ("", "") // Spacer
+            ]
+        }
+        
+        // Add market stats
+        stats += [
             ("Market Cap", {
                 let price = tokenModel.prices.last?.price ?? 0
                 let supply = tokenModel.token.supply ?? 0
@@ -305,14 +329,15 @@ extension View {
                 let volume = tokenModel.token.volume?.value ?? 0
                 return volume > 0 ? formatLargeNumber(Double(volume) / 1e9) : "—"
             }()),
-            ("Holders", "53.3K"), // TODO: Add holders data?
-
+            ("Holders", "53.3K"),
             ("Supply", {
                 let supply = tokenModel.token.supply ?? 0
                 let decimals = tokenModel.token.decimals ?? 0
                 return supply > 0 ? formatLargeNumber(Double(supply) / pow(10.0, Double(decimals))) : "—"
             }())
         ]
+        
+        return stats
     }
 }
 
