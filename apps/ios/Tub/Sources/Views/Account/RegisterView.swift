@@ -6,7 +6,6 @@ struct RegisterView: View {
     @AppStorage("userId") private var userId = ""
     @State private var username = ""
     @State private var email = ""
-    @Binding var isRegistered: Bool
     @State var myAuthState : AuthState = AuthState.notReady
     @State private var showPhoneModal = false
     @State private var showEmailModal = false
@@ -275,6 +274,5 @@ struct RegisterView: View {
 }
 
 #Preview {
-    @State @Previewable var isRegistered = false
-    return RegisterView(isRegistered: $isRegistered)
+    return RegisterView()
 }

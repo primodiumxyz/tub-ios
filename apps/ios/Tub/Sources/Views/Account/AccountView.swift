@@ -41,7 +41,7 @@ struct AccountView: View {
                         .foregroundColor(.yellow)
                         .multilineTextAlignment(.center)
                         .padding()
-                    NavigationLink(destination: RegisterView(isRegistered: .constant(false))) {
+                    NavigationLink(destination: RegisterView()) {
                         Text("Register Now")
                             .font(.sfRounded(size: .base, weight: .semibold))
                             .foregroundColor(AppColors.white)
