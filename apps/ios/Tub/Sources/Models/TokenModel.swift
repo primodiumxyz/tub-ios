@@ -70,10 +70,11 @@ class TokenModel: ObservableObject {
         return try await withCheckedThrowingContinuation { continuation in
             Network.shared.apollo.fetch(query: query) { [weak self] result in
                 guard let self = self else {
-                    continuation.resume(
-                        throwing: NSError(
-                            domain: "TokenModel", code: 0,
-                            userInfo: [NSLocalizedDescriptionKey: "Self is nil"]))
+                    let error = NSError(
+                        domain: "TokenModel", code: 0,
+                        userInfo: [NSLocalizedDescriptionKey: "Self is nil"])
+                    self?.errorHandler?.handle(error)
+                    continuation.resume(throwing: error)
                     return
                 }
                 
@@ -95,18 +96,16 @@ class TokenModel: ObservableObject {
                         }
                         continuation.resume()
                     } else {
-                        continuation.resume(
-                            throwing:
-                                NSError(
-                                    domain: "TokenModel",
-                                    code: 1,
-                                    userInfo: [
-                                        NSLocalizedDescriptionKey: "Token not found"
-                                    ]
-                                )
+                        let error = NSError(
+                            domain: "TokenModel",
+                            code: 1,
+                            userInfo: [NSLocalizedDescriptionKey: "Token not found"]
                         )
+                        self.errorHandler?.handle(error)
+                        continuation.resume(throwing: error)
                     }
                 case .failure(let error):
+                    self.errorHandler?.handle(error)
                     continuation.resume(throwing: error)
                 }
             }
