@@ -21,7 +21,7 @@ struct Token: Identifiable {
         self.supply = supply ?? 0
         self.decimals = decimals ?? 6
         self.imageUri = imageUri ?? ""
-        self.volume = volume ?? (0, "1m")
+        self.volume = volume ?? (0, CHART_INTERVAL)
     }
 }
 

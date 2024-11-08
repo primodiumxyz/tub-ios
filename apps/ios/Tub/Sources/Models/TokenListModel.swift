@@ -27,13 +27,6 @@ class TokenListModel: ObservableObject {
     private var subscription: Cancellable?
     private var userModel: UserModel
 
-    // Constants for token filtering
-    private let INTERVAL: Interval = "30s"
-    private let MIN_TRADES: Int = 30
-    private let MIN_VOLUME: Int = 1
-    private let MINT_BURNT: Bool = true
-    private let FREEZE_BURNT: Bool = true
-
     // Cooldown for not showing the same token too often
     private let TOKEN_COOLDOWN: TimeInterval = 60 // 60 seconds cooldown
     private var recentlyShownTokens: [(id: String, timestamp: Date)] = []
@@ -176,13 +169,17 @@ class TokenListModel: ObservableObject {
         }
     }
 
-    func fetchTokens() {
+    
+
+    func subscribeTokens() {
         subscription = Network.shared.apollo.subscribe(subscription: SubFilteredTokensIntervalSubscription(
-            interval: .some(INTERVAL),
+            interval: .some(FILTER_INTERVAL),
             minTrades: .some(String(MIN_TRADES)),
             minVolume: .some(MIN_VOLUME),
             mintBurnt: .some(MINT_BURNT),
-            freezeBurnt: .some(FREEZE_BURNT)
+            freezeBurnt: .some(FREEZE_BURNT),
+            minDistinctPrices: .some(CHART_INTERVAL_MIN_TRADES),
+            distinctPricesInterval: .some(CHART_INTERVAL)
         )) { result in
             DispatchQueue.main.async {
                 self.isLoading = false
@@ -194,12 +191,21 @@ class TokenListModel: ObservableObject {
                     }
                     if let tokens = graphQLResult.data?.formatted_tokens_interval {
                         self.availableTokens = tokens.map { elem in
-                            Token(id: elem.token_id, mint: elem.mint, name: elem.name ?? "", symbol: elem.symbol ?? "", description: elem.description ?? "", supply: elem.supply ?? 0, decimals: elem.decimals ?? 6, imageUri: elem.uri ?? "", volume: (elem.volume, self.INTERVAL))
-                        }
-
+                                Token(
+                                    id: elem.token_id,
+                                    mint: elem.mint,
+                                    name: elem.name ?? "",
+                                    symbol: elem.symbol ?? "",
+                                    description: elem.description ?? "",
+                                    supply: elem.supply ?? 0,
+                                    decimals: elem.decimals ?? 6,
+                                    imageUri: elem.uri ?? "",
+                                    volume: (elem.volume, FILTER_INTERVAL)
+                                )
+                            }
                         self.updateTokens()
-                        
-                        // Update current token model if the token exists in available tokens
+
+                         // Update current token model if the token exists in available tokens
                         if let currentToken = self.availableTokens.first(where: { $0.id == self.currentTokenModel.tokenId }) {
                             self.currentTokenModel.updateTokenDetails(from: currentToken)
                         }

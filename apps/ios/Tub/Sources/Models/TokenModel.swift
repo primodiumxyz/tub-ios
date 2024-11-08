@@ -16,7 +16,7 @@ class TokenModel: ObservableObject {
         supply: 0,
         decimals: 6,
         imageUri: "",
-        volume: (0, "30s")
+        volume: (0, FILTER_INTERVAL)
     )
     @Published var loading = true
     @Published var balanceLamps: Int = 0
@@ -26,7 +26,7 @@ class TokenModel: ObservableObject {
     
     @Published var prices: [Price] = []
     @Published var priceChange: (amountLamps: Int, percentage: Double) = (0, 0)
-    @Published var interval: Interval = "1m"
+    @Published var interval: Interval = CHART_INTERVAL
  
     private var latestPriceSubscription: Apollo.Cancellable?
     private var tokenBalanceSubscription: Apollo.Cancellable?
@@ -90,7 +90,7 @@ class TokenModel: ObservableObject {
                                 supply: token.supply,
                                 decimals: token.decimals,
                                 imageUri: token.uri,
-                                volume: (0, "30s")
+                                volume: (0, FILTER_INTERVAL)
                             )
                         }
                         continuation.resume()
