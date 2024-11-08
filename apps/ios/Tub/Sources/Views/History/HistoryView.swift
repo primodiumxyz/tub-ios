@@ -29,7 +29,7 @@ struct HistoryView : View {
         error = nil // Reset error state
         let query = GetWalletTransactionsQuery(wallet: userModel.walletAddress)
         
-        Network.shared.apollo.fetch(query: query) { result in
+        Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { result in
             DispatchQueue.main.async {
                 self.loading = false
                 
@@ -40,24 +40,37 @@ struct HistoryView : View {
                             guard let date = formatDateString(transaction.wallet_transaction_data.created_at) else {
                                 return
                             }
+                            if (abs(transaction.amount) == 0) {
+                                return
+                            }
                             
                             let isBuy = transaction.amount >= 0
                             let symbol = transaction.token_data.symbol
                             let name = transaction.token_data.name
+                            let mint = transaction.token_data.mint
                             let imageUri = transaction.token_data.uri ?? ""
                             let price = transaction.token_price?.price ?? 0
-                            let valueLamps = price * transaction.amount / Int(1e9)
                             
+                            var valueLamps = 0
+                            let maxSafeValue = Int.max / abs(transaction.amount)
+                            if Double(price) > Double(maxSafeValue) {
+                                valueLamps = maxSafeValue / Int(1e9)
+                            } else {
+                                valueLamps = Int(Double(price) * Double(transaction.amount) / Double(1e9))
+                            }
+                                
                             let newTransaction = Transaction(
-                                name: name,
-                                symbol: symbol,
+                                name: name ?? "",
+                                symbol: symbol ?? "",
                                 imageUri: imageUri,
                                 date: date,
                                 valueUsd: priceModel.lamportsToUsd(lamports: -valueLamps),
+                                valueLamps: -valueLamps,
                                 quantityTokens: transaction.amount,
-                                isBuy: isBuy
+                                isBuy: isBuy,
+                                mint: mint
                             )
-                            
+                                
                             result.append(newTransaction)
                         }
                     } else if let error = graphQLResult.errors?.first {
@@ -84,9 +97,7 @@ struct HistoryView : View {
                 HistoryViewContent(txs: txs)
             }
         }.onAppear {
-            if txs.isEmpty {
-                fetchUserTxs(userModel.userId)
-            }
+            fetchUserTxs(userModel.userId)
         }
     }
 }
@@ -381,7 +392,7 @@ struct TransactionRow: View {
                     Text(transaction.isBuy ? "Buy" : "Sell")
                         .font(.sfRounded(size: .base, weight: .bold))
                         .foregroundColor(AppColors.white)
-                    Text(transaction.name)
+                    Text(transaction.name.isEmpty ? transaction.mint.truncatedAddress() : transaction.name)
                         .font(.sfRounded(size: .base, weight: .bold))
                         .foregroundColor(AppColors.lightYellow)
                         .offset(x:-2)
@@ -395,12 +406,14 @@ struct TransactionRow: View {
             }
             Spacer()
             VStack(alignment: .trailing) {
-                Text(priceModel.formatPrice(usd: transaction.valueUsd, showSign: true))
-                    .font(.sfRounded(size: .base, weight: .bold))
-                    .foregroundColor(transaction.isBuy ? AppColors.red: AppColors.green)
+                HStack {
+                    Text(priceModel.formatPrice(usd: transaction.valueUsd, showSign: true))
+                        .font(.sfRounded(size: .base, weight: .bold))
+                        .foregroundColor(transaction.isBuy ? AppColors.red: AppColors.green)
+                }
                 
                 HStack {
-                    Text(priceModel.formatPrice(lamports: transaction.quantityTokens, showUnit: false))
+                    Text(priceModel.formatPrice(lamports: abs(transaction.quantityTokens), showUnit: false))
                         .font(.sfRounded(size: .xs, weight: .regular))
                         .foregroundColor(AppColors.gray)
                         .offset(x:4, y:2)
@@ -428,11 +441,12 @@ struct TransactionRow: View {
 
 
 #Preview {
+    @Previewable @StateObject var errorHandler = ErrorHandler()
     @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
     if !priceModel.isReady {
         LoadingView()
     } else {
-        HistoryView(txs: dummyData).environmentObject(priceModel)
+        HistoryView(txs: dummyData).environmentObject(priceModel).environmentObject(errorHandler)
     }
 }
 

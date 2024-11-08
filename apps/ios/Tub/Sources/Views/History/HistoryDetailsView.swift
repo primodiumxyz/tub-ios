@@ -88,13 +88,3 @@ struct HistoryDetailsView: View {
 
 }
 
-
-#Preview {
-    @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
-    if !priceModel.isReady {
-        LoadingView()
-    } else {
-        HistoryDetailsView(transaction: dummyData[0]).environmentObject(priceModel)
-    }
-}
-

@@ -7,7 +7,8 @@ class TokenModel: ObservableObject {
     var tokenId: String = ""
     var walletAddress: String = ""
     
-    @Published var token: Token = Token(id: "", name: "COIN", symbol: "SYMBOL", mint: "", decimals: 6, imageUri: "")
+    var errorHandler: ErrorHandler? = nil
+    @Published var token: Token = Token(id: "", mint: "", name: "COIN", symbol: "SYMBOL", description: "DESCRIPTION", supply: 0, decimals: 6, imageUri: "")
     @Published var loading = true
     @Published var balanceLamps: Int = 0
     
@@ -17,14 +18,13 @@ class TokenModel: ObservableObject {
     @Published var prices: [Price] = []
     @Published var priceChange: (amountLamps: Int, percentage: Double) = (0, 0)
     @Published var priceRef: Price?
-    
+
     private var lastPriceTimestamp: Date?
 
     private var timeframeSecs: Double = 30 * 60 
     private var latestPriceSubscription: Apollo.Cancellable?
     private var tokenBalanceSubscription: Apollo.Cancellable?
-    
-    
+        
     init(walletAddress: String, tokenId: String? = nil) {
         self.walletAddress = walletAddress
         if tokenId != nil {
@@ -47,7 +47,7 @@ class TokenModel: ObservableObject {
 
         // Re-run the initialization logic
         Task {
-            self.timeframeSecs = timeframeSecs ?? 30 * 60
+            self.timeframeSecs = timeframeSecs
             await fetchInitialData(self.timeframeSecs)
             
             subscribeToLatestPrice()
@@ -80,7 +80,7 @@ class TokenModel: ObservableObject {
                 case .success(let response):
                     if let token = response.data?.token.first(where: { $0.id == self.tokenId }) {
                         DispatchQueue.main.async {
-                            self.token = Token(id: token.id, name: token.name, symbol: token.symbol, mint: token.mint ?? "", decimals: token.decimals ?? 6, imageUri: token.uri)
+                            self.token = Token(id: token.id, mint: token.mint, name: token.name ?? "", symbol: token.symbol ?? "", description: token.description ?? "", supply: token.supply ?? 0, decimals: token.decimals ?? 6, imageUri: token.uri ?? "", volume: (0, "30s"))
                         }
                         continuation.resume()
                     } else {
@@ -119,7 +119,7 @@ class TokenModel: ObservableObject {
                     DispatchQueue.main.async {
                         self.prices = response.data?.token_price_history.compactMap { history in
                             if let date = formatDateString(history.created_at) {
-                                return Price(timestamp: date, price: Int(history.price) ?? 0)
+                                return Price(timestamp: date, price: Int(history.price))
                             }
                             return nil
                         } ?? []
@@ -153,7 +153,7 @@ class TokenModel: ObservableObject {
                 if let priceHistory = graphQLResult.data?.token_price_history.first,
                    let date = formatDateString(priceHistory.created_at) {
                     DispatchQueue.main.async {
-                        let newPrice = Price(timestamp: date, price: Int(priceHistory.price) ?? 0)
+                        let newPrice = Price(timestamp: date, price: Int(priceHistory.price))
                         
                         if self.lastPriceTimestamp != date {
                             self.prices.append(newPrice)
@@ -182,13 +182,13 @@ class TokenModel: ObservableObject {
                     self.balanceLamps =
                     graphQLResult.data?.balance.first?.value ?? 0
                 case .failure(let error):
-                    print("Error: \(error.localizedDescription)")
+                    print("Error updating token balance: \(error.localizedDescription)")
                 }
             }
         }
     }
 
-    func buyTokens(buyAmountLamps: Int, completion: ((Bool) -> Void)?) {
+    func buyTokens(buyAmountLamps: Int, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
         if let price = self.prices.last?.price, price > 0 {
             let tokenAmount = Int(Double(buyAmountLamps) / Double(price) * 1e9)
             print("token amount:", tokenAmount)
@@ -199,26 +199,24 @@ class TokenModel: ObservableObject {
                 case .success:
                     self.amountBoughtLamps = buyAmountLamps
                     self.purchaseTime = Date()
-                    completion?(true)
                 case .failure(let error):
                     print("Error buying tokens: \(error)")
-                    completion?(false)
                 }
+                completion(result)
             }
         }
     }
     
-    func sellTokens(completion: ((Bool) -> Void)?) {
+    func sellTokens(completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
         Network.shared.sellToken(tokenId: self.tokenId, amount: String(self.balanceLamps)
         ) { result in
             switch result {
             case .success:
                 self.purchaseTime = nil
-                completion?(true)
             case .failure(let error):
                 print("Error selling tokens: \(error)")
-                completion?(false)
             }
+            completion(result)
         }
     }
 
@@ -253,6 +251,12 @@ class TokenModel: ObservableObject {
         
         DispatchQueue.main.async {
             self.priceChange = (priceChangeAmount, priceChangePercentage)
+        }
+    }
+
+    func updateTokenDetails(from token: Token) {
+        DispatchQueue.main.async {
+            self.token = token
         }
     }
 }

@@ -10,11 +10,7 @@ import SwiftUI
 struct SellForm: View {
     @EnvironmentObject var priceModel: SolPriceModel
     @ObservedObject var tokenModel: TokenModel
-    var onSell : (((Bool) -> Void)?) -> ()
-
-    private func handleSell() {
-        let _ = onSell(nil)
-    }
+    var onSell : () -> ()
 
     private var tokenAmountView: some View {
         let tokenAmount = Int(Double(tokenModel.balanceLamps) / 1e9 * Double(tokenModel.prices.last?.price ?? 0))
@@ -27,7 +23,7 @@ struct SellForm: View {
             Text("$\(priceModel.formatPrice(lamports: tokenAmount, showUnit: false, maxDecimals: 2))")
                 .font(.sfRounded(size: .xl, weight: .semibold))
                 .foregroundColor(AppColors.white)
-            Text("\(priceModel.formatPrice(lamports: tokenModel.balanceLamps, showUnit: false)) \(tokenModel.token.symbol)")
+            Text("\(priceModel.formatPrice(lamports: tokenModel.balanceLamps, showUnit: false)) \(tokenModel.token.symbol ?? "")")
                 .font(.sfRounded(size: .sm, weight: .medium))
                 .foregroundColor(AppColors.white.opacity(0.5))
         }
@@ -67,7 +63,7 @@ struct SellForm: View {
     }
     
     private var sellButton: some View {
-        Button(action: handleSell) {
+        Button(action: onSell) {
             Text("Sell")
                 .font(.sfRounded(size: .xl, weight: .semibold))
                 .foregroundColor(AppColors.white)

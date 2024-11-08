@@ -29,8 +29,10 @@ class TokenListModel: ObservableObject {
 
     // Constants for token filtering
     private let INTERVAL: Interval = "30s"
-    private let MIN_TRADES: Int = 10
-    private let MIN_INCREASE_PCT: Double = 5.0
+    private let MIN_TRADES: Int = 30
+    private let MIN_VOLUME: Int = 1
+    private let MINT_BURNT: Bool = true
+    private let FREEZE_BURNT: Bool = true
     
     init(userModel: UserModel) {
         self.userModel = userModel
@@ -44,11 +46,11 @@ class TokenListModel: ObservableObject {
     var isFirstToken: Bool {
         return currentTokenIndex == 0
     }
-    
+
     var isNextTokenAvailable: Bool {
         return self.availableTokens.count > 1
     }
-
+    
     private func initTokenModel() {
         DispatchQueue.main.async {
             self.currentTokenModel.initialize(with: self.tokens[self.currentTokenIndex].id)
@@ -59,16 +61,14 @@ class TokenListModel: ObservableObject {
         return TokenModel(walletAddress: userModel.walletAddress)
     }
     
-    private func getRandomToken(excluding currentId: String? = nil) -> Token? {
+    private func getNextToken(excluding currentId: String? = nil) -> Token? {
         guard !availableTokens.isEmpty else { return nil }
         guard availableTokens.count > 1 else { return availableTokens[0] }
-        var newToken: Token
-        repeat {
-            let randomIndex = Int.random(in: 0..<availableTokens.count)
-            newToken = availableTokens[randomIndex]
-        } while newToken.id == currentId
-
-        return newToken
+        
+        // Find the first token that doesn't match the currentId
+        return availableTokens.first { token in
+            token.id != currentId
+        }
     }
     
     // - Set the current token to the next one in line
@@ -78,7 +78,7 @@ class TokenListModel: ObservableObject {
         previousTokenModel = currentTokenModel
         nextTokenModel = createTokenModel()
         
-        if let newRandomToken = getRandomToken(excluding: tokens[currentTokenIndex].id) {
+        if let newRandomToken = getNextToken(excluding: tokens[currentTokenIndex].id) {
             tokens.append(newRandomToken)
             initTokenModel()
         }
@@ -88,7 +88,6 @@ class TokenListModel: ObservableObject {
     // - Update the current token model
     // - Pop the last token in the array (swiping down should always be a fresh pumping token)
     func loadPreviousToken() {
-        // TODO: lock swiping up if there is no previous token
         if currentTokenIndex == 0 { return }
         nextTokenModel = currentTokenModel
         previousTokenModel = createTokenModel()
@@ -102,19 +101,21 @@ class TokenListModel: ObservableObject {
         guard !availableTokens.isEmpty else { return }
         // If it's initial load, generate two random tokens (current and next)
         if tokens.count == 0 {
-            tokens.append(getRandomToken()!)
-            tokens.append(getRandomToken(excluding: tokens[0].id)!)
+            tokens.append(getNextToken()!)
+            tokens.append(getNextToken(excluding: tokens[0].id)!)
             initTokenModel()
         } else {
-            tokens[tokens.count - 1] = getRandomToken(excluding: tokens[currentTokenIndex].id)!
+            tokens[tokens.count - 1] = getNextToken(excluding: tokens[currentTokenIndex].id)!
         }
     }
 
     func fetchTokens() {
         subscription = Network.shared.apollo.subscribe(subscription: SubFilteredTokensIntervalSubscription(
             interval: .some(INTERVAL),
-            minTrades: String(MIN_TRADES),
-            minIncreasePct: String(MIN_INCREASE_PCT)
+            minTrades: .some(String(MIN_TRADES)),
+            minVolume: .some(MIN_VOLUME),
+            mintBurnt: .some(MINT_BURNT),
+            freezeBurnt: .some(FREEZE_BURNT)
         )) { result in
             DispatchQueue.main.async {
                 self.isLoading = false
@@ -124,12 +125,17 @@ class TokenListModel: ObservableObject {
                         print(error)
                         self.errorMessage = "Error: \(error)"
                     }
-                    if let tokens = graphQLResult.data?.get_formatted_tokens_interval {
+                    if let tokens = graphQLResult.data?.formatted_tokens_interval {
                         self.availableTokens = tokens.map { elem in
-                            Token(id: elem.token_id, name: elem.name, symbol: elem.symbol, mint: elem.mint, decimals: elem.decimals ?? 6, imageUri: nil)
+                            Token(id: elem.token_id, mint: elem.mint, name: elem.name ?? "", symbol: elem.symbol ?? "", description: elem.description ?? "", supply: elem.supply ?? 0, decimals: elem.decimals ?? 6, imageUri: elem.uri ?? "", volume: (elem.volume, self.INTERVAL))
                         }
-
+                        
                         self.updateTokens()
+                        
+                        // Update current token model if the token exists in available tokens
+                        if let currentToken = self.availableTokens.first(where: { $0.id == self.currentTokenModel.tokenId }) {
+                            self.currentTokenModel.updateTokenDetails(from: currentToken)
+                        }
                     }
                 case .failure(let error):
                     print(error.localizedDescription)

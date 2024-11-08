@@ -7,6 +7,7 @@
 import SwiftUI
 
 struct BuySellForm: View {
+    @EnvironmentObject private var errorHandler: ErrorHandler
     @EnvironmentObject var userModel: UserModel
     @EnvironmentObject var priceModel: SolPriceModel
     @ObservedObject var tokenModel: TokenModel
@@ -14,27 +15,17 @@ struct BuySellForm: View {
     @Binding var showBuySheet: Bool
     @Binding var defaultAmount: Double
     
-    func handleSell(completion: ((Bool) -> Void)?) {
-        tokenModel.sellTokens(completion: {success in
-            if success {
-                activeTab = "buy"
-            }
-            completion?(success)
-        })
-    }
+    var handleBuy: (Double) -> Void
     
-    func handleBuy(amount: Double) {
-        let buyAmountLamps = priceModel.usdToLamports(usd: amount)
-        
-        if userModel.balanceLamps >= buyAmountLamps {
-            tokenModel.buyTokens(buyAmountLamps: buyAmountLamps) { success in
-                if success {
-                    activeTab = "sell" // Switch tab after successful buy
-                }
+    func handleSell() {
+        tokenModel.sellTokens(completion: {result in
+            switch result {
+            case .success:
+                    activeTab = "buy"
+            case .failure (let error):
+                errorHandler.show(error)
             }
-        } else {
-            print("Insufficient balance to complete the purchase.")
-        }
+        })
     }
     
     var body: some View {
@@ -59,10 +50,10 @@ struct BuySellForm: View {
                     }
                     
                     Button(action: {
-                        handleBuy(amount: defaultAmount)
+                        handleBuy(defaultAmount)
                     }) {
                         HStack(alignment: .center, spacing: 8) {
-                            Text("Buy $\(String(format: "%.2f", defaultAmount))")
+                            Text("Buy \(priceModel.formatPrice(usd: defaultAmount))")
                                 .font(.sfRounded(size: .xl, weight: .semibold))
                                 .foregroundColor(AppColors.black)
                                 .multilineTextAlignment(.center)

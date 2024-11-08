@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		4619A8182CCA4E25003CD119 /* TokenListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4619A8172CCA4E25003CD119 /* TokenListModel.swift */; };
-		5DB173CA2CD54BC400831FD7 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DB173C92CD54BC100831FD7 /* Constants.swift */; };
+		46442B952CDD7380009A6F0B /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46442B942CDD737D009A6F0B /* Constants.swift */; };
 		990337052CC94175002D3A25 /* AccountBalance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990337042CC9416B002D3A25 /* AccountBalance.swift */; };
 		9906661F2CC94B110068EA06 /* SolPriceModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9906661E2CC94B0D0068EA06 /* SolPriceModel.swift */; };
 		9910F1B62CAAE302005DEE6B /* SFRounded.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9910F1B52CAAE2FD005DEE6B /* SFRounded.swift */; };
@@ -26,6 +26,8 @@
 		99784EE82CD3DB5B009AEA45 /* SignInWithEmailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99784EE72CD3DB55009AEA45 /* SignInWithEmailView.swift */; };
 		99784EEA2CD3DC7D009AEA45 /* SignInWithPhoneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99784EE92CD3DC75009AEA45 /* SignInWithPhoneView.swift */; };
 		99784EEC2CD3DE93009AEA45 /* OtpModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99784EEB2CD3DE90009AEA45 /* OtpModifier.swift */; };
+		997DE8F22CDAC84900164366 /* ErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 997DE8F12CDAC84600164366 /* ErrorHandler.swift */; };
+		997DE8F42CDAC86500164366 /* ErrorOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 997DE8F32CDAC86000164366 /* ErrorOverlay.swift */; };
 		99856DA42CD27E1F004B9D40 /* Privy in Frameworks */ = {isa = PBXBuildFile; productRef = 99856DA32CD27E1F004B9D40 /* Privy */; };
 		99856DA62CD27E2E004B9D40 /* Privy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99856DA52CD27E27004B9D40 /* Privy.swift */; };
 		99856DA82CD27F5B004B9D40 /* SignInWithApple.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99856DA72CD27F58004B9D40 /* SignInWithApple.swift */; };
@@ -51,9 +53,9 @@
 		DB6D29172CA1C8F80099951A /* TubTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6D29162CA1C8F80099951A /* TubTests.swift */; };
 		DB6D29212CA1C8F80099951A /* TubUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6D29202CA1C8F80099951A /* TubUITests.swift */; };
 		DB6D29232CA1C8F80099951A /* TubUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6D29222CA1C8F80099951A /* TubUITestsLaunchTests.swift */; };
+		DF1FE3C82CD568F700594C63 /* CountryCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF1FE3C72CD568F700594C63 /* CountryCode.swift */; };
 		DF5A2FC32CAF165D00508A56 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5A2FC22CAF165D00508A56 /* HistoryView.swift */; };
 		DF5A2FC52CAF2DEF00508A56 /* HistoryDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5A2FC42CAF2DEF00508A56 /* HistoryDetailsView.swift */; };
-		DF7C361C2CD941FD00A4B27A /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF7C361B2CD941FD00A4B27A /* Constants.swift */; };
 		DFA36D562CB4278C00F63D2D /* DummyData.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFA36D552CB4278C00F63D2D /* DummyData.swift */; };
 		DFA4D6512CAC500B00AEDC73 /* Apollo in Frameworks */ = {isa = PBXBuildFile; productRef = DFA4D6502CAC500B00AEDC73 /* Apollo */; };
 		DFC723E32CB9A86C003A915C /* TokenInfoCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFC723E22CB9A86C003A915C /* TokenInfoCardView.swift */; };
@@ -79,7 +81,7 @@
 
 /* Begin PBXFileReference section */
 		4619A8172CCA4E25003CD119 /* TokenListModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenListModel.swift; sourceTree = "<group>"; };
-		5DB173C92CD54BC100831FD7 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		46442B942CDD737D009A6F0B /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		990337042CC9416B002D3A25 /* AccountBalance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountBalance.swift; sourceTree = "<group>"; };
 		9906661E2CC94B0D0068EA06 /* SolPriceModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SolPriceModel.swift; sourceTree = "<group>"; };
 		9910F1B52CAAE2FD005DEE6B /* SFRounded.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SFRounded.swift; sourceTree = "<group>"; };
@@ -96,6 +98,8 @@
 		99784EE72CD3DB55009AEA45 /* SignInWithEmailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInWithEmailView.swift; sourceTree = "<group>"; };
 		99784EE92CD3DC75009AEA45 /* SignInWithPhoneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInWithPhoneView.swift; sourceTree = "<group>"; };
 		99784EEB2CD3DE90009AEA45 /* OtpModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OtpModifier.swift; sourceTree = "<group>"; };
+		997DE8F12CDAC84600164366 /* ErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorHandler.swift; sourceTree = "<group>"; };
+		997DE8F32CDAC86000164366 /* ErrorOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorOverlay.swift; sourceTree = "<group>"; };
 		99856DA52CD27E27004B9D40 /* Privy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Privy.swift; sourceTree = "<group>"; };
 		99856DA72CD27F58004B9D40 /* SignInWithApple.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInWithApple.swift; sourceTree = "<group>"; };
 		99856DA92CD28271004B9D40 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -123,6 +127,7 @@
 		DB6D291C2CA1C8F80099951A /* TubUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TubUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DB6D29202CA1C8F80099951A /* TubUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TubUITests.swift; sourceTree = "<group>"; };
 		DB6D29222CA1C8F80099951A /* TubUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TubUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		DF1FE3C72CD568F700594C63 /* CountryCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CountryCode.swift; path = Tub/Sources/CountryCode.swift; sourceTree = SOURCE_ROOT; };
 		DF5A2FC22CAF165D00508A56 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		DF5A2FC42CAF2DEF00508A56 /* HistoryDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryDetailsView.swift; sourceTree = "<group>"; };
 		DF7C361B2CD941FD00A4B27A /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
@@ -132,6 +137,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		46B4B4532CD542DB00D8175A /* Extensions */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Extensions; sourceTree = "<group>"; };
 		99DDF62E2CB0333D000234DA /* BuySellForm */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = BuySellForm; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
@@ -167,6 +173,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		46442B892CDD72DF009A6F0B /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				DF7C361B2CD941FD00A4B27A /* Constants.swift */,
+			);
+			name = "Recovered References";
+			sourceTree = "<group>";
+		};
 		9910F1B42CAAE2F0005DEE6B /* Fonts */ = {
 			isa = PBXGroup;
 			children = (
@@ -186,9 +200,9 @@
 		9979D2F02CB57B840040DF41 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				46442B942CDD737D009A6F0B /* Constants.swift */,
 				9941CD6E2CCAA30B0009E5ED /* FormatPrice.swift */,
 				99290EBF2CB7110C003E740A /* FormatDate.swift */,
-				DF7C361B2CD941FD00A4B27A /* Constants.swift */,
 				DFA36D552CB4278C00F63D2D /* DummyData.swift */,
 			);
 			path = Utils;
@@ -197,6 +211,7 @@
 		999F59522CA6F6A900E7AE9F /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				997DE8F32CDAC86000164366 /* ErrorOverlay.swift */,
 				99DD66022CB80D5B00B56450 /* Common */,
 				99DD66012CB80D3D00B56450 /* Token */,
 				99DD65FF2CB80D1100B56450 /* History */,
@@ -210,6 +225,7 @@
 		999F59532CA6F70C00E7AE9F /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				997DE8F12CDAC84600164366 /* ErrorHandler.swift */,
 				9906661E2CC94B0D0068EA06 /* SolPriceModel.swift */,
 				99DED24D2CAF28BD0055FC60 /* UserModel.swift */,
 				999F59552CA6F96D00E7AE9F /* TokenModel.swift */,
@@ -221,9 +237,11 @@
 		99A7CD502CB80C4100F27964 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				46B4B4532CD542DB00D8175A /* Extensions */,
 				999F59532CA6F70C00E7AE9F /* Models */,
 				999F59522CA6F6A900E7AE9F /* Views */,
 				9936FC562CADCA5200E21B8A /* Structs.swift */,
+				DF1FE3C72CD568F700594C63 /* CountryCode.swift */,
 				DFF5292A2CC0121B007DC43F /* AppColors.swift */,
 				DB458DB32CAC827A00C5EC18 /* Network.swift */,
 				DB6D29042CA1C8F70099951A /* TubApp.swift */,
@@ -315,6 +333,7 @@
 				DB6D291F2CA1C8F80099951A /* TubUITests */,
 				DB458DAF2CAC824A00C5EC18 /* Frameworks */,
 				DB6D29022CA1C8F70099951A /* Products */,
+				46442B892CDD72DF009A6F0B /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -384,6 +403,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				46B4B4532CD542DB00D8175A /* Extensions */,
 				99DDF62E2CB0333D000234DA /* BuySellForm */,
 			);
 			name = Tub;
@@ -530,20 +550,23 @@
 				99DDF62D2CB02816000234DA /* AccountView.swift in Sources */,
 				9936FC582CADCA5200E21B8A /* Structs.swift in Sources */,
 				DB458DB42CAC827A00C5EC18 /* Network.swift in Sources */,
+				997DE8F42CDAC86500164366 /* ErrorOverlay.swift in Sources */,
 				DB675A332CA2B73D006FC9B3 /* HomeTabsView.swift in Sources */,
 				99DED2532CAF2C6D0055FC60 /* RegisterView.swift in Sources */,
+				46442B952CDD7380009A6F0B /* Constants.swift in Sources */,
 				4619A8182CCA4E25003CD119 /* TokenListModel.swift in Sources */,
 				DF5A2FC32CAF165D00508A56 /* HistoryView.swift in Sources */,
 				994AE5F72CD2AB3F00553A32 /* GoogleLogoView.swift in Sources */,
 				992875672CCACD4C004B48BE /* ErrorView.swift in Sources */,
+				997DE8F22CDAC84900164366 /* ErrorHandler.swift in Sources */,
 				99784EEA2CD3DC7D009AEA45 /* SignInWithPhoneView.swift in Sources */,
 				DF5A2FC52CAF2DEF00508A56 /* HistoryDetailsView.swift in Sources */,
 				99856DA62CD27E2E004B9D40 /* Privy.swift in Sources */,
 				999F595B2CA754FB00E7AE9F /* ChartView.swift in Sources */,
 				DFF5292B2CC0121B007DC43F /* AppColors.swift in Sources */,
-				DF7C361C2CD941FD00A4B27A /* Constants.swift in Sources */,
 				99DED24E2CAF28C10055FC60 /* UserModel.swift in Sources */,
 				99290EC02CB7110C003E740A /* FormatDate.swift in Sources */,
+				DF1FE3C82CD568F700594C63 /* CountryCode.swift in Sources */,
 				DB10A95D2CA5AA1B00B1E4F3 /* TokenView.swift in Sources */,
 				DB6D29052CA1C8F70099951A /* TubApp.swift in Sources */,
 				990337052CC94175002D3A25 /* AccountBalance.swift in Sources */,
@@ -721,6 +744,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"Tub/Preview Content\"";
 				DEVELOPMENT_TEAM = YQ22J47VA8;
 				ENABLE_PREVIEWS = YES;
+				EXCLUDED_ARCHS = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Tub/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Tub;
@@ -765,6 +789,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"Tub/Preview Content\"";
 				DEVELOPMENT_TEAM = YQ22J47VA8;
 				ENABLE_PREVIEWS = YES;
+				EXCLUDED_ARCHS = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Tub/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Tub;

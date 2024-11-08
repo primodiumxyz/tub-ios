@@ -7,7 +7,7 @@ public class GetTokenDataQuery: GraphQLQuery {
   public static let operationName: String = "GetTokenData"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetTokenData($tokenId: uuid!) { token(where: { id: { _eq: $tokenId } }) { __typename id name symbol mint decimals updated_at supply uri } }"#
+      #"query GetTokenData($tokenId: uuid!) { token(where: { id: { _eq: $tokenId } }) { __typename id mint name symbol description supply decimals updated_at supply uri } }"#
     ))
 
   public var tokenId: Uuid
@@ -41,23 +41,25 @@ public class GetTokenDataQuery: GraphQLQuery {
       public static var __selections: [ApolloAPI.Selection] { [
         .field("__typename", String.self),
         .field("id", TubAPI.Uuid.self),
-        .field("name", String.self),
-        .field("symbol", String.self),
-        .field("mint", String?.self),
+        .field("mint", String.self),
+        .field("name", String?.self),
+        .field("symbol", String?.self),
+        .field("description", String?.self),
+        .field("supply", TubAPI.Numeric?.self),
         .field("decimals", Int?.self),
         .field("updated_at", TubAPI.Timestamptz.self),
-        .field("supply", TubAPI.Numeric.self),
         .field("uri", String?.self),
       ] }
 
       public var id: TubAPI.Uuid { __data["id"] }
-      public var name: String { __data["name"] }
-      public var symbol: String { __data["symbol"] }
       /// token mint address (only for real tokens)
-      public var mint: String? { __data["mint"] }
+      public var mint: String { __data["mint"] }
+      public var name: String? { __data["name"] }
+      public var symbol: String? { __data["symbol"] }
+      public var description: String? { __data["description"] }
+      public var supply: TubAPI.Numeric? { __data["supply"] }
       public var decimals: Int? { __data["decimals"] }
       public var updated_at: TubAPI.Timestamptz { __data["updated_at"] }
-      public var supply: TubAPI.Numeric { __data["supply"] }
       public var uri: String? { __data["uri"] }
     }
   }
