@@ -50,6 +50,7 @@
 		DB6D29172CA1C8F80099951A /* TubTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6D29162CA1C8F80099951A /* TubTests.swift */; };
 		DB6D29212CA1C8F80099951A /* TubUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6D29202CA1C8F80099951A /* TubUITests.swift */; };
 		DB6D29232CA1C8F80099951A /* TubUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6D29222CA1C8F80099951A /* TubUITestsLaunchTests.swift */; };
+		DF1FE3C82CD568F700594C63 /* CountryCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF1FE3C72CD568F700594C63 /* CountryCode.swift */; };
 		DF5A2FC32CAF165D00508A56 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5A2FC22CAF165D00508A56 /* HistoryView.swift */; };
 		DF5A2FC52CAF2DEF00508A56 /* HistoryDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5A2FC42CAF2DEF00508A56 /* HistoryDetailsView.swift */; };
 		DFA36D562CB4278C00F63D2D /* DummyData.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFA36D552CB4278C00F63D2D /* DummyData.swift */; };
@@ -120,6 +121,7 @@
 		DB6D291C2CA1C8F80099951A /* TubUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TubUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DB6D29202CA1C8F80099951A /* TubUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TubUITests.swift; sourceTree = "<group>"; };
 		DB6D29222CA1C8F80099951A /* TubUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TubUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		DF1FE3C72CD568F700594C63 /* CountryCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CountryCode.swift; path = Tub/Sources/CountryCode.swift; sourceTree = SOURCE_ROOT; };
 		DF5A2FC22CAF165D00508A56 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		DF5A2FC42CAF2DEF00508A56 /* HistoryDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryDetailsView.swift; sourceTree = "<group>"; };
 		DF7C361B2CD941FD00A4B27A /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
@@ -222,6 +224,7 @@
 				999F59532CA6F70C00E7AE9F /* Models */,
 				999F59522CA6F6A900E7AE9F /* Views */,
 				9936FC562CADCA5200E21B8A /* Structs.swift */,
+				DF1FE3C72CD568F700594C63 /* CountryCode.swift */,
 				DFF5292A2CC0121B007DC43F /* AppColors.swift */,
 				DB458DB32CAC827A00C5EC18 /* Network.swift */,
 				DB6D29042CA1C8F70099951A /* TubApp.swift */,
@@ -543,6 +546,7 @@
 				DFF5292B2CC0121B007DC43F /* AppColors.swift in Sources */,
 				99DED24E2CAF28C10055FC60 /* UserModel.swift in Sources */,
 				99290EC02CB7110C003E740A /* FormatDate.swift in Sources */,
+				DF1FE3C82CD568F700594C63 /* CountryCode.swift in Sources */,
 				DB10A95D2CA5AA1B00B1E4F3 /* TokenView.swift in Sources */,
 				DB6D29052CA1C8F70099951A /* TubApp.swift in Sources */,
 				990337052CC94175002D3A25 /* AccountBalance.swift in Sources */,

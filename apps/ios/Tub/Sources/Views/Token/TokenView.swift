@@ -17,7 +17,7 @@ struct TokenView : View {
     @State private var showInfoCard = false
     @State private var selectedTimespan: Timespan = .live
     @State private var showBuySheet: Bool = false
-    @State private var defaultAmount: Double = 50.0
+    @State private var defaultAmount: Double = 10.0
 
     @State private var priceChangeInterval: TimeInterval = 0
     @State private var priceChangeTimer: Timer?
@@ -36,8 +36,8 @@ struct TokenView : View {
         
         var interval: Double {
             switch self {
-                case .live: return 120.0
-                case .thirtyMin: return 30.0 * 60.0
+            case .live: return 120.0
+            case .thirtyMin: return 30.0 * 60.0
             }
         }
     }

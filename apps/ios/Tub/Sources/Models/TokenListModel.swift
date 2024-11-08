@@ -46,11 +46,11 @@ class TokenListModel: ObservableObject {
     var isFirstToken: Bool {
         return currentTokenIndex == 0
     }
-    
+
     var isNextTokenAvailable: Bool {
         return self.availableTokens.count > 1
     }
-
+    
     private func initTokenModel() {
         DispatchQueue.main.async {
             self.currentTokenModel.initialize(with: self.tokens[self.currentTokenIndex].id)
@@ -129,7 +129,7 @@ class TokenListModel: ObservableObject {
                         self.availableTokens = tokens.map { elem in
                             Token(id: elem.token_id, mint: elem.mint, name: elem.name ?? "", symbol: elem.symbol ?? "", description: elem.description ?? "", supply: elem.supply ?? 0, decimals: elem.decimals ?? 6, imageUri: elem.uri ?? "", volume: (elem.volume, self.INTERVAL))
                         }
-
+                        
                         self.updateTokens()
                         
                         // Update current token model if the token exists in available tokens

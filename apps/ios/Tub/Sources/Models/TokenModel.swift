@@ -17,14 +17,13 @@ class TokenModel: ObservableObject {
     @Published var prices: [Price] = []
     @Published var priceChange: (amountLamps: Int, percentage: Double) = (0, 0)
     @Published var priceRef: Price?
-    
+
     private var lastPriceTimestamp: Date?
 
     private var timeframeSecs: Double = 30 * 60 
     private var latestPriceSubscription: Apollo.Cancellable?
     private var tokenBalanceSubscription: Apollo.Cancellable?
-    
-    
+        
     init(walletAddress: String, tokenId: String? = nil) {
         self.walletAddress = walletAddress
         if tokenId != nil {
