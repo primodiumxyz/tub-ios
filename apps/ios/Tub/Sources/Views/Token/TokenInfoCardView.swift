@@ -16,12 +16,7 @@ struct TokenInfoCardView: View {
     @State private var isClosing: Bool = false
     
     private var stats: [(String, String)] {
-        [
-            ("Market Cap", priceModel.formatPrice(lamports: (tokenModel.prices.last?.price ?? 0) * (tokenModel.token.supply) / Int(pow(10.0, Double(tokenModel.token.decimals))))),
-            ("Volume (\(String(tokenModel.token.volume.interval)))", formatLargeNumber(Double(tokenModel.token.volume.value) / 1e9)), // TODO: fix volume calculation
-            ("Holders", "53.3K"), // TODO: Add holders data?
-            ("Supply", formatLargeNumber(Double(tokenModel.token.supply) / pow(10.0, Double(tokenModel.token.decimals))))
-        ]
+        return tokenModel.getTokenStats(priceModel: priceModel)
     }
     
     var body: some View {
@@ -159,3 +154,4 @@ struct TokenInfoCardView: View {
         .transition(.move(edge: .bottom))
     }
 }
+

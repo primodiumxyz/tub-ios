@@ -20,14 +20,8 @@ struct TokenView : View {
     @State private var showBuySheet: Bool = false
     @State private var defaultAmount: Double = 50.0
     
-    // TODO: have the token info card in one place and adapt params for opacity (open/close)
     private var stats: [(String, String)] {
-        [
-            ("Market Cap", priceModel.formatPrice(lamports: (tokenModel.prices.last?.price ?? 0) * (tokenModel.token.supply) / Int(pow(10.0, Double(tokenModel.token.decimals))))),
-            ("Volume (\(String(tokenModel.token.volume.interval)))", formatLargeNumber(Double(tokenModel.token.volume.value) / 1e9)), // TODO: fix volume calculation
-            ("Holders", "53.3K"), // TODO: Add holders data?
-            ("Supply", formatLargeNumber(Double(tokenModel.token.supply) / pow(10.0, Double(tokenModel.token.decimals))))
-        ]
+        return tokenModel.getTokenStats(priceModel: priceModel)
     }
     
     enum Timespan: String, CaseIterable {
@@ -70,6 +64,7 @@ struct TokenView : View {
                     .opacity(0.5) // Adjust opacity here
                     .padding(.horizontal, 8)
                     .padding(.bottom, -4)
+                
 
                 BuySellForm(
                     tokenModel: tokenModel,
@@ -181,15 +176,13 @@ struct TokenView : View {
     }
     
     private var infoCardLowOpacity: some View {
-        
         VStack(alignment: .leading, spacing: 0) {
-            
             Text("Stats")
                 .font(.sfRounded(size: .xl, weight: .semibold))
                 .foregroundColor(AppColors.white)
                 .frame(maxWidth: .infinity, alignment: .topLeading)
-            
-            // grid
+//
+//            // grid
             ForEach(0..<stats.count/2, id: \.self) { index in
                 HStack(alignment: .top, spacing: 20) {
                     ForEach(0..<2) { subIndex in

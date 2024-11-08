@@ -142,17 +142,17 @@ struct TokenListView: View {
                 
             }
         } .onAppear {
-            viewModel.fetchTokens()
+                viewModel.fetchTokens()
         }
     }
 }
 
 #Preview {
     @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
-    @Previewable @State var userId : String? = nil
+    @Previewable @State var userId: String? = nil
     
-    Group {
-        if !priceModel.isReady  || userId == nil {
+    return Group {
+        if !priceModel.isReady || userId == nil {
             LoadingView()
         } else {
             TokenListView()
