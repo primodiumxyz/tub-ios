@@ -50,7 +50,7 @@ struct ChartView: View {
         let minPrice = prices.min { $0.price < $1.price }?.price ?? 0
         let maxPrice = prices.max { $0.price < $1.price }?.price ?? 100
         let range = maxPrice - minPrice
-        let padding = Int(Double(range) * 0.15)
+        let padding = Int(Double(range) * 0.25)
         
         return (minPrice - padding)...(maxPrice + padding)
     }
