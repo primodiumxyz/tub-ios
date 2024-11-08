@@ -160,49 +160,14 @@ struct TokenView : View {
         .padding(.horizontal)
     }
     
-    private func intervalButton(for timespan: Timespan) -> some View {
-        Button {
-            withAnimation {
-                selectedTimespan = timespan
-                tokenModel.updateHistoryInterval(timespan.interval)
-            }
-        } label: {
-            HStack {
-                if timespan == .live {
-                    Circle()
-                        .fill(AppColors.red)
-                        .frame(width: 10, height: 10)
-                }
-                Text(timespan.rawValue)
-                    .font(.sfRounded(size: .base, weight: .semibold))
-            }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 6)
-            .background(selectedTimespan == timespan ? AppColors.aquaBlue : Color.clear)
-            .foregroundColor(selectedTimespan == timespan ? AppColors.black : AppColors.white)
-            .cornerRadius(6)
-        }
-    }
-    
     private var infoCardLowOpacity: some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack(alignment: .top, spacing: 20) {
-                ForEach(0..<2) { index in
-                    let stat = stats[index]
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(stat.1)
-                            .font(.sfRounded(size: .base, weight: .semibold))
-                            .foregroundColor(AppColors.white)
-                        
-                        Text(stat.0)
-                            .font(.sfRounded(size: .sm, weight: .regular))
-                            .foregroundColor(AppColors.gray)
-                            .fixedSize(horizontal: true, vertical: false)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
-            }
-            .padding(.top, 8)
+            Text("Stats")
+                .font(.sfRounded(size: .xl, weight: .semibold))
+                .foregroundColor(AppColors.white)
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+            
+            TokenStatsGridView(stats: tokenStats)
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 16)
@@ -326,6 +291,28 @@ struct ShimmeringView: ViewModifier {
 extension View {
     func shimmering(opacity: Double = 0.1) -> some View {
         modifier(ShimmeringView(opacity: opacity))
+    }
+
+    private var tokenStats: [(String, String)] {
+        [
+            ("Market Cap", {
+                let price = tokenModel.prices.last?.price ?? 0
+                let supply = tokenModel.token.supply ?? 0
+                let decimals = tokenModel.token.decimals ?? 0
+                return price > 0 ? priceModel.formatPrice(lamports: price * supply / Int(pow(10.0, Double(decimals)))) : "—"
+            }()),
+            ("Volume (\(String(tokenModel.token.volume?.interval ?? "24h")))", {
+                let volume = tokenModel.token.volume?.value ?? 0
+                return volume > 0 ? formatLargeNumber(Double(volume) / 1e9) : "—"
+            }()),
+            ("Holders", "53.3K"), // TODO: Add holders data?
+
+            ("Supply", {
+                let supply = tokenModel.token.supply ?? 0
+                let decimals = tokenModel.token.decimals ?? 0
+                return supply > 0 ? formatLargeNumber(Double(supply) / pow(10.0, Double(decimals))) : "—"
+            }())
+        ]
     }
 }
 

@@ -71,7 +71,7 @@ struct BuySellForm: View {
                     }
                 }.padding(.horizontal,16)
             } else {
-                SellForm(tokenModel: tokenModel, onSell: handleSell)
+                SellForm(tokenModel: tokenModel, showBuySheet: $showBuySheet, onSell: handleSell)
             }
         }
     }

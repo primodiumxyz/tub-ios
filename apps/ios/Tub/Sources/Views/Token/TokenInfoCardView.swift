@@ -15,8 +15,13 @@ struct TokenInfoCardView: View {
     @State private var animatingSwipe: Bool = false
     @State private var isClosing: Bool = false
     
-    private var stats: [(String, String)] {
-        return tokenModel.getTokenStats(priceModel: priceModel)
+    private var tokenStats: [(String, String)] {
+        [
+            ("Market Cap", priceModel.formatPrice(lamports: (tokenModel.prices.last?.price ?? 0) * (tokenModel.token.supply ?? 0) / Int(pow(10.0, Double(tokenModel.token.decimals ?? 0))))),
+            ("Volume (\(String(tokenModel.token.volume?.interval ?? "30s")))", formatLargeNumber(Double(tokenModel.token.volume?.value ?? 0) / 1e9)),// TODO: fix volume calculation
+            ("Holders", "53.3K"), // TODO: Add holders data?
+            ("Supply", formatLargeNumber(Double(tokenModel.token.supply ?? 0) / pow(10.0, Double(tokenModel.token.decimals ?? 0))))
+        ]
     }
     
     var body: some View {
@@ -38,30 +43,8 @@ struct TokenInfoCardView: View {
                     .foregroundColor(AppColors.white)
                     .frame(maxWidth: .infinity, alignment: .topLeading)
                 
-                // Replace the grid ForEach with a vertical stack
-                ForEach(stats, id: \.0) { stat in
-                    VStack {
-                        HStack(alignment: .center)  {
-                            Text(stat.0)
-                                .font(.sfRounded(size: .sm, weight: .regular))
-                                .foregroundColor(AppColors.gray)
-                                .fixedSize(horizontal: true, vertical: false)
-                            
-                            Text(stat.1)
-                                .font(.sfRounded(size: .base, weight: .semibold))
-                                .frame(maxWidth: .infinity, alignment: .topTrailing)
-                                .foregroundColor(AppColors.white)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        
-                        //divider
-                        Rectangle()
-                            .foregroundColor(.clear)
-                            .frame(height: 0.5)
-                            .background(AppColors.gray.opacity(0.5))
-                    }
-                    .padding(.vertical, 4)
-                }
+                // grid
+                TokenStatsGridView(stats: tokenStats)
                 
                 VStack(alignment: .leading, spacing: 8) {
                     Text("About")

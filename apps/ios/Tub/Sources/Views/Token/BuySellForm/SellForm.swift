@@ -10,7 +10,12 @@ import SwiftUI
 struct SellForm: View {
     @EnvironmentObject var priceModel: SolPriceModel
     @ObservedObject var tokenModel: TokenModel
-    var onSell : () -> ()
+    @Binding var showBuySheet: Bool
+    var onSell : (((Bool) -> Void)?) -> ()
+
+    private func handleSell() {
+        let _ = onSell(nil)
+    }
 
     private var tokenAmountView: some View {
         let tokenAmount = Int(Double(tokenModel.balanceLamps) / 1e9 * Double(tokenModel.prices.last?.price ?? 0))
@@ -68,27 +73,41 @@ struct SellForm: View {
                 .font(.sfRounded(size: .xl, weight: .semibold))
                 .foregroundColor(AppColors.white)
                 .frame(maxWidth: .infinity)
-                .padding(12)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
                 .background(AppColors.primaryPink)
-                .cornerRadius(26)
+                .cornerRadius(30)
         }
     }
     
     var body: some View {
         GeometryReader { geometry in
-            VStack {
-                Spacer()
-                HStack(alignment: .top) {
-                    tokenAmountView
-                    profitView
+            HStack(spacing: 16) {
+                Button(action: {
+                    showBuySheet = true
+                }) {
+                    HStack(alignment: .center, spacing: 8) {
+                        Text("Buy")
+                            .font(.sfRounded(size: .xl, weight: .semibold))
+                            .foregroundColor(AppColors.primaryPink)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: 50)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(AppColors.black)
+                    .cornerRadius(26)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 30)
+                            .inset(by: 0.5)
+                            .stroke(AppColors.primaryPink, lineWidth: 1)
+                    )
                 }
-                .padding(.horizontal)
                 
                 sellButton
                 
-                Spacer()
-            }
+            }.padding(.horizontal,16)
         }
-        .frame(height: 100)
+        .frame(height: 50)
     }
 }
