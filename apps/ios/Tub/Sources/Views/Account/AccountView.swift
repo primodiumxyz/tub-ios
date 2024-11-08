@@ -21,7 +21,7 @@ struct AccountView: View {
         // isAirdropping = true
         airdropResult = nil
         
-        Network.shared.airdropNativeToUser(amount: 100 * Int(1e9)) { result in
+        Network.shared.airdropNativeToUser(amount: 1 * Int(1e9)) { result in
             DispatchQueue.main.async {
                 isAirdropping = false
                 switch result {
