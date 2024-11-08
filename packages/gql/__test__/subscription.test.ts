@@ -39,6 +39,7 @@ describe("query tests", () => {
   it("it should be able to subscribe to the wallet balance before and after a transaction", async () => {
     const wallet = createWallet();
 
+    // use array to store balances to also test the order of the values and prevent race conditions
     let balance: number[] = [];
     let balanceBefore: number[] = [];
 
@@ -94,7 +95,8 @@ describe("query tests", () => {
       token: token_id,
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    // wait for the values to be updated from subscription
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     expect(balance).toBe(100);
 
@@ -104,6 +106,7 @@ describe("query tests", () => {
   it("it should be able to subscribe to the token balance before and after a transaction", async () => {
     const wallet = createWallet();
 
+    // use array to store balances to also test the order of the values and prevent race conditions
     let balance: number[] = [];
     let balanceBefore: number[] = [];
 
@@ -119,6 +122,8 @@ describe("query tests", () => {
 
     const result = await gql.db.AirdropNativeToWalletMutation({ amount: "100", wallet });
     expect(result.data?.insert_wallet_transaction_one?.id).toBeDefined();
+
+    // wait for the values to be updated from subscription
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     expect(balance).toEqual([0]);
