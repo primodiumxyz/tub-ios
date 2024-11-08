@@ -234,7 +234,6 @@ class TokenModel: ObservableObject {
         return [
             ("Market Cap", priceModel.formatPrice(lamports: Int(marketCap))),
             ("Volume (\(String(token.volume.interval)))", priceModel.formatPrice(lamports: token.volume.value, formatLarge: true)),
-            ("Holders", "53.3K"), // TODO: Add holders data
             ("Supply", formatLargeNumber(supplyValue))
         ]
     }
