@@ -6,7 +6,7 @@ import TubAPI
 class TokenModel: ObservableObject {
     var tokenId: String = ""
     var walletAddress: String = ""
-    var errorHandler: ErrorHandler? = nil
+    @EnvironmentObject private var errorHandler: ErrorHandler
     
     @Published var token: Token = Token(
         id: "",
@@ -71,9 +71,11 @@ class TokenModel: ObservableObject {
             Network.shared.apollo.fetch(query: query) { [weak self] result in
                 guard let self = self else {
                     let error = NSError(
-                        domain: "TokenModel", code: 0,
-                        userInfo: [NSLocalizedDescriptionKey: "Self is nil"])
-                    self?.errorHandler?.handle(error)
+                        domain: "TokenModel",
+                        code: 0,
+                        userInfo: [NSLocalizedDescriptionKey: "Self is nil"]
+                    )
+                    self?.errorHandler.show(error)
                     continuation.resume(throwing: error)
                     return
                 }
@@ -101,11 +103,11 @@ class TokenModel: ObservableObject {
                             code: 1,
                             userInfo: [NSLocalizedDescriptionKey: "Token not found"]
                         )
-                        self.errorHandler?.handle(error)
+                        errorHandler.show(error)
                         continuation.resume(throwing: error)
                     }
                 case .failure(let error):
-                    self.errorHandler?.handle(error)
+                    errorHandler.show(error)
                     continuation.resume(throwing: error)
                 }
             }
