@@ -8,11 +8,31 @@ export const RegisterNewTokenMutation = graphql(`
   }
 `);
 
-// This mutation will ignore duplicate tokens (if we try to register a "mint" that was already inserted)
-// This makes it quicker to register tokens in batches when we receive price data from websocket
-export const RegisterManyNewTokensMutation = graphql(`
-  mutation RegisterManyNewTokens($objects: [token_insert_input!]!) {
-    insert_token(objects: $objects, on_conflict: { constraint: token_mint_key, update_columns: [] }) {
+export const UpsertManyNewTokensMutation = graphql(`
+  mutation UpsertManyNewTokens($objects: [token_insert_input!]!) {
+    insert_token(
+      objects: $objects
+      on_conflict: {
+        constraint: token_mint_key
+        update_columns: [
+          name
+          symbol
+          description
+          uri
+          mint_burnt
+          freeze_burnt
+          supply
+          decimals
+          is_pump_token
+          updated_at
+        ]
+        where: { _or: [{ updated_at: { _is_null: true } }, { updated_at: { _lt: NOW } }] }
+      }
+    ) {
+      returning {
+        id
+        mint
+      }
       affected_rows
     }
   }
@@ -60,6 +80,14 @@ export const AddManyTokenPriceHistoryMutation = graphql(`
       returning {
         id
       }
+    }
+  }
+`);
+
+export const UpsertManyTokensAndPriceHistoryMutation = graphql(`
+  mutation UpsertManyTokensAndPriceHistory($tokens: jsonb!, $priceHistory: jsonb!) {
+    upsert_tokens_and_price_history(args: { tokens: $tokens, price_history: $priceHistory }) {
+      id
     }
   }
 `);

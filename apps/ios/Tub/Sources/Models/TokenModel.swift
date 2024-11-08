@@ -7,7 +7,7 @@ class TokenModel: ObservableObject {
     var tokenId: String = ""
     var walletAddress: String = ""
     
-    @Published var token: Token = Token(id: "", name: "COIN", symbol: "SYMBOL", mint: "", decimals: 6, imageUri: "")
+    @Published var token: Token = Token(id: "", mint: "", name: "COIN", symbol: "SYMBOL", description: "DESCRIPTION", supply: 0, decimals: 6, imageUri: "")
     @Published var loading = true
     @Published var balanceLamps: Int = 0
     
@@ -47,7 +47,7 @@ class TokenModel: ObservableObject {
 
         // Re-run the initialization logic
         Task {
-            self.timeframeSecs = timeframeSecs ?? 30 * 60
+            self.timeframeSecs = timeframeSecs
             await fetchInitialData(self.timeframeSecs)
             
             subscribeToLatestPrice()
@@ -80,7 +80,7 @@ class TokenModel: ObservableObject {
                 case .success(let response):
                     if let token = response.data?.token.first(where: { $0.id == self.tokenId }) {
                         DispatchQueue.main.async {
-                            self.token = Token(id: token.id, name: token.name, symbol: token.symbol, mint: token.mint ?? "", decimals: token.decimals ?? 6, imageUri: token.uri)
+                            self.token = Token(id: token.id, mint: token.mint, name: token.name ?? "", symbol: token.symbol ?? "", description: token.description ?? "", supply: token.supply ?? 0, decimals: token.decimals ?? 6, imageUri: token.uri ?? "", volume: (0, "30s"))
                         }
                         continuation.resume()
                     } else {
@@ -119,7 +119,7 @@ class TokenModel: ObservableObject {
                     DispatchQueue.main.async {
                         self.prices = response.data?.token_price_history.compactMap { history in
                             if let date = formatDateString(history.created_at) {
-                                return Price(timestamp: date, price: Int(history.price) ?? 0)
+                                return Price(timestamp: date, price: Int(history.price))
                             }
                             return nil
                         } ?? []
@@ -153,7 +153,7 @@ class TokenModel: ObservableObject {
                 if let priceHistory = graphQLResult.data?.token_price_history.first,
                    let date = formatDateString(priceHistory.created_at) {
                     DispatchQueue.main.async {
-                        let newPrice = Price(timestamp: date, price: Int(priceHistory.price) ?? 0)
+                        let newPrice = Price(timestamp: date, price: Int(priceHistory.price))
                         
                         if self.lastPriceTimestamp != date {
                             self.prices.append(newPrice)
@@ -253,6 +253,12 @@ class TokenModel: ObservableObject {
         
         DispatchQueue.main.async {
             self.priceChange = (priceChangeAmount, priceChangePercentage)
+        }
+    }
+
+    func updateTokenDetails(from token: Token) {
+        DispatchQueue.main.async {
+            self.token = token
         }
     }
 }

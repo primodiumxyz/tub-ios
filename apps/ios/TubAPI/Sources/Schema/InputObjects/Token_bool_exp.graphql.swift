@@ -17,8 +17,12 @@ public struct Token_bool_exp: InputObject {
     _or: GraphQLNullable<[Token_bool_exp]> = nil,
     createdAt: GraphQLNullable<Timestamptz_comparison_exp> = nil,
     decimals: GraphQLNullable<Int_comparison_exp> = nil,
+    description: GraphQLNullable<String_comparison_exp> = nil,
+    freezeBurnt: GraphQLNullable<Boolean_comparison_exp> = nil,
     id: GraphQLNullable<Uuid_comparison_exp> = nil,
+    isPumpToken: GraphQLNullable<Boolean_comparison_exp> = nil,
     mint: GraphQLNullable<String_comparison_exp> = nil,
+    mintBurnt: GraphQLNullable<Boolean_comparison_exp> = nil,
     name: GraphQLNullable<String_comparison_exp> = nil,
     platform: GraphQLNullable<String_comparison_exp> = nil,
     supply: GraphQLNullable<Numeric_comparison_exp> = nil,
@@ -36,8 +40,12 @@ public struct Token_bool_exp: InputObject {
       "_or": _or,
       "created_at": createdAt,
       "decimals": decimals,
+      "description": description,
+      "freeze_burnt": freezeBurnt,
       "id": id,
+      "is_pump_token": isPumpToken,
       "mint": mint,
+      "mint_burnt": mintBurnt,
       "name": name,
       "platform": platform,
       "supply": supply,
@@ -76,14 +84,34 @@ public struct Token_bool_exp: InputObject {
     set { __data["decimals"] = newValue }
   }
 
+  public var description: GraphQLNullable<String_comparison_exp> {
+    get { __data["description"] }
+    set { __data["description"] = newValue }
+  }
+
+  public var freezeBurnt: GraphQLNullable<Boolean_comparison_exp> {
+    get { __data["freeze_burnt"] }
+    set { __data["freeze_burnt"] = newValue }
+  }
+
   public var id: GraphQLNullable<Uuid_comparison_exp> {
     get { __data["id"] }
     set { __data["id"] = newValue }
   }
 
+  public var isPumpToken: GraphQLNullable<Boolean_comparison_exp> {
+    get { __data["is_pump_token"] }
+    set { __data["is_pump_token"] = newValue }
+  }
+
   public var mint: GraphQLNullable<String_comparison_exp> {
     get { __data["mint"] }
     set { __data["mint"] = newValue }
+  }
+
+  public var mintBurnt: GraphQLNullable<Boolean_comparison_exp> {
+    get { __data["mint_burnt"] }
+    set { __data["mint_burnt"] = newValue }
   }
 
   public var name: GraphQLNullable<String_comparison_exp> {

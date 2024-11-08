@@ -1,6 +1,6 @@
 
 alter table "public"."token" add column "created_at" timestamptz
- null default now();
+null default now();
 
 CREATE OR REPLACE FUNCTION public.get_formatted_tokens_period(p_start timestamp with time zone, p_end timestamp with time zone)
  RETURNS SETOF formatted_tokens
@@ -114,7 +114,6 @@ BEGIN
   END LOOP;
 END;
 $$ LANGUAGE plpgsql;
-
 
 CREATE OR REPLACE VIEW "public"."formatted_tokens_with_performance" AS 
 WITH RECURSIVE params(p_start, p_end) AS (
@@ -724,7 +723,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-DROP FUNCTION IF EXISTS public.get_formatted_tokens_with_performance_intervals_within_period;
+DROP FUNCTION IF EXISTS public.get_formatted_tokens_with_performance_intervals_within_period CASCADE;
 CREATE OR REPLACE FUNCTION public.get_formatted_tokens_with_performance_intervals_within_period(p_start timestamp with time zone, p_end timestamp with time zone, p_interval interval, p_intervals text DEFAULT '1 minute')
  RETURNS SETOF formatted_tokens_with_performance
  LANGUAGE plpgsql
@@ -750,9 +749,9 @@ BEGIN
 END;
 $function$;
 
-DROP FUNCTION "public"."get_formatted_tokens_with_performance_intervals_within_period"("pg_catalog"."timestamptz", "pg_catalog"."timestamptz", "pg_catalog"."interval", "pg_catalog"."text");
+DROP FUNCTION IF EXISTS "public"."get_formatted_tokens_with_performance_intervals_within_period"("pg_catalog"."timestamptz", "pg_catalog"."timestamptz", "pg_catalog"."interval", "pg_catalog"."text") CASCADE;
+DROP VIEW IF EXISTS "public"."formatted_tokens_with_performance" CASCADE;
 
-DROP VIEW IF EXISTS "public"."formatted_tokens_with_performance";
 CREATE OR REPLACE VIEW "public"."formatted_tokens_with_performance" AS 
  WITH RECURSIVE params(p_start, p_end, p_intervals) AS (
          SELECT (current_setting('my.p_start'::text, true))::timestamp with time zone AS current_setting,

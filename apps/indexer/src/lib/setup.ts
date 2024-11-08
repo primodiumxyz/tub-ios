@@ -1,10 +1,12 @@
 import { Connection } from "@solana/web3.js";
 import { config } from "dotenv";
+import { Helius } from "helius-sdk";
 
 import { parseEnv } from "@bin/parseEnv";
-import { PROGRAMS } from "@/lib/constants";
 import { SolanaParser } from "@/lib/parsers/solana-parser";
 import { TransactionFormatter } from "@/lib/transaction-formatter";
+
+import { RaydiumAmmParser } from "./parsers/raydium-amm-parser";
 
 config({ path: "../../.env" });
 
@@ -30,6 +32,7 @@ const fetchWithRetry = async (input: RequestInfo | URL, init?: RequestInit): Pro
   }
 };
 
+export const helius = new Helius(env.HELIUS_API_KEY);
 export const connection = new Connection(`https://mainnet.helius-rpc.com/?api-key=${env.HELIUS_API_KEY}`, {
   commitment: "confirmed",
   // @ts-expect-error Property 'referrer' is missing in type 'import("undici-types/fetch").Request'
@@ -38,6 +41,5 @@ export const connection = new Connection(`https://mainnet.helius-rpc.com/?api-ke
 
 export const txFormatter = new TransactionFormatter();
 export const ixParser = new SolanaParser();
-PROGRAMS.forEach((program) =>
-  ixParser.addParser(program.publicKey, program.parser.parseInstruction.bind(program.parser)),
-);
+export const raydiumAmmParser = new RaydiumAmmParser();
+ixParser.addParser(RaydiumAmmParser.PROGRAM_ID, raydiumAmmParser.parseInstruction.bind(raydiumAmmParser));

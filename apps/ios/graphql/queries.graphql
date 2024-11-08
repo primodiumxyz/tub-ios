@@ -12,9 +12,11 @@ query GetAllTokens {
 query GetTokenData($tokenId: uuid!) {
   token(where: { id: { _eq: $tokenId } }) {
     id
+    mint
     name
     symbol
-    mint
+    description
+    supply
     decimals
     updated_at
     supply
@@ -29,7 +31,11 @@ query GetTokensByMints($mints: [String!]!) {
   }
 }
 
-query GetWalletTokenBalance($wallet: String!, $token: uuid!, $start: timestamptz = "now()") {
+query GetWalletTokenBalance(
+  $wallet: String!
+  $token: uuid!
+  $start: timestamptz = "now()"
+) {
   balance: wallet_token_balance_ignore_interval(
     args: { wallet: $wallet, interval: "0", start: $start, token: $token }
   ) {
@@ -44,25 +50,37 @@ query GetWalletTokenBalanceIgnoreInterval(
   $token: uuid!
 ) {
   balance: wallet_token_balance_ignore_interval(
-      args: { wallet: $wallet, interval: $interval, start: $start, token: $token }
+    args: { wallet: $wallet, interval: $interval, start: $start, token: $token }
   ) {
     value: balance
   }
 }
 
 query GetWalletBalance($wallet: String!, $start: timestamptz = "now()") {
-  balance: wallet_balance_ignore_interval(args: { wallet: $wallet, interval: "0", start: $start }) {
+  balance: wallet_balance_ignore_interval(
+    args: { wallet: $wallet, interval: "0", start: $start }
+  ) {
     value: balance
   }
 }
 
-query GetWalletBalanceIgnoreInterval($wallet: String!, $start: timestamptz = "now()", $interval: interval!) {
-  balance: wallet_balance_ignore_interval(args: { wallet: $wallet, interval: $interval, start: $start }) {
+query GetWalletBalanceIgnoreInterval(
+  $wallet: String!
+  $start: timestamptz = "now()"
+  $interval: interval!
+) {
+  balance: wallet_balance_ignore_interval(
+    args: { wallet: $wallet, interval: $interval, start: $start }
+  ) {
     value: balance
   }
 }
 
-query GetTokenPriceHistoryInterval($token: uuid, $start: timestamptz = "now()", $interval: interval!) {
+query GetTokenPriceHistoryInterval(
+  $token: uuid
+  $start: timestamptz = "now()"
+  $interval: interval!
+) {
   token_price_history_offset(
     args: { offset: $interval }
     where: { created_at_offset: { _gte: $start }, token: { _eq: $token } }
@@ -73,7 +91,11 @@ query GetTokenPriceHistoryInterval($token: uuid, $start: timestamptz = "now()", 
   }
 }
 
-query GetTokenPriceHistoryIgnoreInterval($token: uuid, $start: timestamptz = "now()", $interval: interval!) {
+query GetTokenPriceHistoryIgnoreInterval(
+  $token: uuid
+  $start: timestamptz = "now()"
+  $interval: interval!
+) {
   token_price_history_offset(
     args: { offset: $interval }
     where: { created_at_offset: { _lte: $start }, token: { _eq: $token } }
@@ -85,7 +107,11 @@ query GetTokenPriceHistoryIgnoreInterval($token: uuid, $start: timestamptz = "no
 }
 
 query GetLatestTokenPrice($tokenId: uuid!) {
-  token_price_history(where: { token: { _eq: $tokenId } }, order_by: { created_at: desc }, limit: 1) {
+  token_price_history(
+    where: { token: { _eq: $tokenId } }
+    order_by: { created_at: desc }
+    limit: 1
+  ) {
     created_at
     id
     price
@@ -108,6 +134,7 @@ query GetWalletTransactions($wallet: String!) {
       supply
       symbol
       uri
+      mint
     }
     wallet_transaction_data {
       created_at
@@ -131,26 +158,59 @@ query GetTokenPriceHistorySince($tokenId: uuid!, $since: timestamptz!) {
   }
 }
 
-query GetFilteredTokens($since: timestamptz!, $minTrades: bigint!, $minIncreasePct: float8!) {
-  get_formatted_tokens_since(
-    args: { since: $since }
-    where: { trades: { _gte: $minTrades }, increase_pct: { _gte: $minIncreasePct } }
+query GetFilteredTokens(
+  $interval: interval!
+  $minTrades: bigint = "0"
+  $minVolume: numeric = 0
+  $mintBurnt: Boolean = false
+  $freezeBurnt: Boolean = false
+) {
+  formatted_tokens_interval(
+    args: { interval: $interval }
+    where: {
+      is_pump_token: { _eq: true }
+      trades: { _gte: $minTrades }
+      volume: { _gte: $minVolume }
+      _and: [
+        {
+          _or: [
+            { _not: { mint_burnt: { _eq: $mintBurnt } } }
+            { mint_burnt: { _eq: true } }
+          ]
+        }
+        {
+          _or: [
+            { _not: { freeze_burnt: { _eq: $freezeBurnt } } }
+            { freeze_burnt: { _eq: true } }
+          ]
+        }
+      ]
+    }
+    order_by: { volume: desc }
   ) {
     token_id
     mint
-    decimals
     name
     symbol
-    platform
-    latest_price
+    description
+    uri
+    supply
+    decimals
+    mint_burnt
+    freeze_burnt
+    is_pump_token
     increase_pct
     trades
+    volume
+    latest_price
     created_at
   }
 }
 
 query GetSwapsInPeriod($from: timestamptz!, $to: timestamptz!) {
-  swaps_total: token_price_history_aggregate(where: { created_at: { _gte: $from, _lte: $to } }) {
+  swaps_total: token_price_history_aggregate(
+    where: { created_at: { _gte: $from, _lte: $to } }
+  ) {
     aggregate {
       count
     }
@@ -162,29 +222,18 @@ query GetSwapsInPeriod($from: timestamptz!, $to: timestamptz!) {
 }
 
 query GetNewTokensInPeriod($from: timestamptz!, $to: timestamptz!) {
-  new_tokens_total: token_aggregate(where: { created_at: { _gte: $from, _lte: $to } }) {
+  new_tokens_total: token_aggregate(
+    where: { created_at: { _gte: $from, _lte: $to } }
+  ) {
     aggregate {
       count
     }
   }
-  new_tokens_hourly: hourly_new_tokens(where: { hour: { _gte: $from, _lte: $to } }) {
+  new_tokens_hourly: hourly_new_tokens(
+    where: { hour: { _gte: $from, _lte: $to } }
+  ) {
     hour
     count
-  }
-}
-
-query GetFormattedTokensCountForIntervalsWithinPeriodQuery(
-  $from: timestamptz!
-  $to: timestamptz!
-  $interval: interval!
-  $increasePct: float8!
-  $minTrades: bigint!
-) {
-  get_formatted_tokens_intervals_within_period_aggregate(
-    args: { start: $from, end: $to, interval: $interval, trades: $minTrades, increase_pct: $increasePct }
-  ) {
-    interval_start
-    token_count
   }
 }
 
@@ -193,21 +242,57 @@ query GetFormattedTokensWithPerformanceForIntervalsWithinPeriodQuery(
   $to: timestamptz!
   $interval: interval!
   $afterIntervals: String!
-  $increasePct: float8!
-  $minTrades: bigint!
-  $mintFilter: String = "%"
+  $minTrades: bigint = "0"
+  $minVolume: numeric = 0
+  $mintBurnt: Boolean = false
+  $freezeBurnt: Boolean = false
 ) {
-  get_formatted_tokens_with_performance_intervals_within_period(
-    args: { start: $from, end: $to, interval: $interval, after_intervals: $afterIntervals }
-    where: { trades: { _gte: $minTrades }, increase_pct: { _gte: $increasePct }, mint: { _ilike: $mintFilter } }
+  formatted_tokens_with_performance_intervals_within_period(
+    args: {
+      start: $from
+      end: $to
+      interval: $interval
+      after_intervals: $afterIntervals
+    }
+    where: {
+      trades: { _gte: $minTrades }
+      volume: { _gte: $minVolume }
+      _and: [
+        {
+          _or: [
+            { _not: { mint_burnt: { _eq: $mintBurnt } } }
+            { mint_burnt: { _eq: true } }
+          ]
+        }
+        {
+          _or: [
+            { _not: { freeze_burnt: { _eq: $freezeBurnt } } }
+            { freeze_burnt: { _eq: true } }
+          ]
+        }
+      ]
+    }
     order_by: { interval_start: asc }
   ) {
+    token_id
     mint
+    name
+    symbol
+    description
+    uri
+    supply
+    decimals
+    mint_burnt
+    freeze_burnt
+    is_pump_token
     increase_pct
     trades
+    volume
+    latest_price
+    created_at
     increase_pct_after
     trades_after
-    created_at
+    volume_after
     interval_start
   }
 }
