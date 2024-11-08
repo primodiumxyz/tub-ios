@@ -77,7 +77,6 @@ struct TokenInfoCardView: View {
                     Text("\(tokenModel.token.description)")
                         .font(.sfRounded(size: .sm, weight: .regular))
                         .foregroundColor(AppColors.lightGray)
-                        .padding(.horizontal, 8)
                 }
                 .padding(.vertical, 16)
                 .frame(maxWidth: .infinity, alignment: .leading)

@@ -93,5 +93,5 @@ public let MIN_VOLUME: Int = 0
 public let MINT_BURNT: Bool = true
 public let FREEZE_BURNT: Bool = true
     
-public let CHART_INTERVAL: Interval = "2m"
-public let CHART_INTERVAL_MIN_TRADES: Int = 10
+public let CHART_INTERVAL: Interval = "1m"
+public let CHART_INTERVAL_MIN_TRADES: Int = 15
