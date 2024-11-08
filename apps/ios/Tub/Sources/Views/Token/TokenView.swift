@@ -66,10 +66,12 @@ struct TokenView : View {
                 tokenInfoView
                 chartView
                 intervalButtons
-                infoCardLowOpacity
-                    .opacity(0.5) // Adjust opacity here
-                    .padding(.horizontal, 8)
-                    .padding(.bottom, -4)
+                if activeTab != "sell" {
+                    infoCardLowOpacity
+                        .opacity(0.5) // Adjust opacity here
+                        .padding(.horizontal, 8)
+                        .padding(.bottom, -4)
+                }
                 
 
                 BuySellForm(
@@ -184,46 +186,30 @@ struct TokenView : View {
     
     private var infoCardLowOpacity: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("Stats")
-                .font(.sfRounded(size: .xl, weight: .semibold))
-                .foregroundColor(AppColors.white)
-                .frame(maxWidth: .infinity, alignment: .topLeading)
-//
-//            // grid
-            ForEach(0..<stats.count/2, id: \.self) { index in
-                HStack(alignment: .top, spacing: 20) {
-                    ForEach(0..<2) { subIndex in
-                        let stat = stats[index * 2 + subIndex]
-                        VStack {
-                            HStack(alignment: .center)  {
-                                Text(stat.0)
-                                    .font(.sfRounded(size: .sm, weight: .regular))
-                                    .foregroundColor(AppColors.gray)
-                                    .fixedSize(horizontal: true, vertical: false)
-                                
-                                Text(stat.1)
-                                    .font(.sfRounded(size: .base, weight: .semibold))
-                                    .frame(maxWidth: .infinity, alignment: .topTrailing)
-                                    .foregroundColor(AppColors.white)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            
-                            //divider
-                            Rectangle()
-                                .foregroundColor(.clear)
-                                .frame(height: 0.5)
-                                .background(AppColors.gray.opacity(0.5))
-                        }
+            HStack(alignment: .top, spacing: 20) {
+                ForEach(0..<2) { index in
+                    let stat = stats[index]
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(stat.1)
+                            .font(.sfRounded(size: .base, weight: .semibold))
+                            .foregroundColor(AppColors.white)
+                        
+                        Text(stat.0)
+                            .font(.sfRounded(size: .sm, weight: .regular))
+                            .foregroundColor(AppColors.gray)
+                            .fixedSize(horizontal: true, vertical: false)
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .padding(.top,8)
             }
+            .padding(.top, 8)
         }
-        .padding(.horizontal,24)
-        .padding(.vertical,16)
-        .frame(maxWidth: .infinity, maxHeight: 95 ,alignment: .topLeading)
+        .padding(.horizontal, 24)
+        .padding(.vertical, 16)
+        .frame(maxWidth: .infinity, maxHeight: 95, alignment: .topLeading)
         .background(AppColors.darkGrayGradient)
         .cornerRadius(12)
+        .padding(.top, 16)
         .onTapGesture {
             withAnimation(.easeInOut) {
                 showInfoCard.toggle()
