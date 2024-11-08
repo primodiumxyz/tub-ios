@@ -31,10 +31,17 @@ struct BuyForm: View {
     @State private var isDefaultOn: Bool = true //by default is on
     
     private func handleBuy() {
-        if isDefaultOn {
-            defaultAmount = buyAmountUsd
+        let buyAmountLamps = priceModel.usdToLamports(usd: buyAmountUsd)
+            
+        // Check if the user has enough balance
+        if userModel.balanceLamps >= buyAmountLamps {
+            if isDefaultOn {
+                defaultAmount = buyAmountUsd
+            }
+            onBuy(buyAmountUsd)
+        } else {
+            print("Insufficient balance to complete the purchase.")
         }
-        onBuy(buyAmountUsd)
     }
     
     func updateBuyAmount(_ amountLamps: Int) {
@@ -55,8 +62,6 @@ struct BuyForm: View {
         animatingSwipe = false
         isDefaultOn = true
     }
-    
-    
     
     var body: some View {
         VStack {
@@ -100,6 +105,7 @@ struct BuyForm: View {
                     .foregroundColor(AppColors.aquaGreen)
                     .multilineTextAlignment(.center)
             }
+            .disabled(userModel.balanceLamps < priceModel.usdToLamports(usd: buyAmountUsd))
             .frame(maxWidth: .infinity)
             .padding(.horizontal, 16)
             .padding(.vertical, 12)

@@ -7,7 +7,7 @@ public class GetFilteredTokensQuery: GraphQLQuery {
   public static let operationName: String = "GetFilteredTokens"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetFilteredTokens($interval: interval!, $minTrades: bigint = "0", $minVolume: numeric = 0, $mintBurnt: Boolean = false, $freezeBurnt: Boolean = false) { formatted_tokens_interval( args: { interval: $interval } where: { is_pump_token: { _eq: true } trades: { _gte: $minTrades } volume: { _gte: $minVolume } _and: [ { _or: [{ _not: { mint_burnt: { _eq: $mintBurnt } } }, { mint_burnt: { _eq: true } }] } { _or: [ { _not: { freeze_burnt: { _eq: $freezeBurnt } } } { freeze_burnt: { _eq: true } } ] } ] } order_by: { trades: desc } ) { __typename token_id mint name symbol description uri supply decimals mint_burnt freeze_burnt is_pump_token increase_pct trades volume latest_price created_at } }"#
+      #"query GetFilteredTokens($interval: interval!, $minTrades: bigint = "0", $minVolume: numeric = 0, $mintBurnt: Boolean = false, $freezeBurnt: Boolean = false, $minDistinctPrices: Int = 0, $distinctPricesInterval: interval = "1m") { formatted_tokens_interval( args: { interval: $interval min_distinct_prices: $minDistinctPrices distinct_prices_interval: $distinctPricesInterval } where: { is_pump_token: { _eq: true } trades: { _gte: $minTrades } volume: { _gte: $minVolume } _and: [ { _or: [{ _not: { mint_burnt: { _eq: $mintBurnt } } }, { mint_burnt: { _eq: true } }] } { _or: [ { _not: { freeze_burnt: { _eq: $freezeBurnt } } } { freeze_burnt: { _eq: true } } ] } ] } order_by: { volume: desc } ) { __typename token_id mint name symbol description uri supply decimals mint_burnt freeze_burnt is_pump_token increase_pct trades volume latest_price created_at } }"#
     ))
 
   public var interval: Interval
@@ -15,19 +15,25 @@ public class GetFilteredTokensQuery: GraphQLQuery {
   public var minVolume: GraphQLNullable<Numeric>
   public var mintBurnt: GraphQLNullable<Bool>
   public var freezeBurnt: GraphQLNullable<Bool>
+  public var minDistinctPrices: GraphQLNullable<Int>
+  public var distinctPricesInterval: GraphQLNullable<Interval>
 
   public init(
     interval: Interval,
     minTrades: GraphQLNullable<Bigint> = "0",
     minVolume: GraphQLNullable<Numeric> = 0,
     mintBurnt: GraphQLNullable<Bool> = false,
-    freezeBurnt: GraphQLNullable<Bool> = false
+    freezeBurnt: GraphQLNullable<Bool> = false,
+    minDistinctPrices: GraphQLNullable<Int> = 0,
+    distinctPricesInterval: GraphQLNullable<Interval> = "1m"
   ) {
     self.interval = interval
     self.minTrades = minTrades
     self.minVolume = minVolume
     self.mintBurnt = mintBurnt
     self.freezeBurnt = freezeBurnt
+    self.minDistinctPrices = minDistinctPrices
+    self.distinctPricesInterval = distinctPricesInterval
   }
 
   public var __variables: Variables? { [
@@ -35,7 +41,9 @@ public class GetFilteredTokensQuery: GraphQLQuery {
     "minTrades": minTrades,
     "minVolume": minVolume,
     "mintBurnt": mintBurnt,
-    "freezeBurnt": freezeBurnt
+    "freezeBurnt": freezeBurnt,
+    "minDistinctPrices": minDistinctPrices,
+    "distinctPricesInterval": distinctPricesInterval
   ] }
 
   public struct Data: TubAPI.SelectionSet {
@@ -45,14 +53,18 @@ public class GetFilteredTokensQuery: GraphQLQuery {
     public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Query_root }
     public static var __selections: [ApolloAPI.Selection] { [
       .field("formatted_tokens_interval", [Formatted_tokens_interval].self, arguments: [
-        "args": ["interval": .variable("interval")],
+        "args": [
+          "interval": .variable("interval"),
+          "min_distinct_prices": .variable("minDistinctPrices"),
+          "distinct_prices_interval": .variable("distinctPricesInterval")
+        ],
         "where": [
           "is_pump_token": ["_eq": true],
           "trades": ["_gte": .variable("minTrades")],
           "volume": ["_gte": .variable("minVolume")],
           "_and": [["_or": [["_not": ["mint_burnt": ["_eq": .variable("mintBurnt")]]], ["mint_burnt": ["_eq": true]]]], ["_or": [["_not": ["freeze_burnt": ["_eq": .variable("freezeBurnt")]]], ["freeze_burnt": ["_eq": true]]]]]
         ],
-        "order_by": ["trades": "desc"]
+        "order_by": ["volume": "desc"]
       ]),
     ] }
 

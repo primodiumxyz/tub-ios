@@ -15,25 +15,25 @@ public struct Token_transaction_bool_exp: InputObject {
     _and: GraphQLNullable<[Token_transaction_bool_exp]> = nil,
     _not: GraphQLNullable<Token_transaction_bool_exp> = nil,
     _or: GraphQLNullable<[Token_transaction_bool_exp]> = nil,
-    accountTransaction: GraphQLNullable<Uuid_comparison_exp> = nil,
-    accountTransactionData: GraphQLNullable<Account_transaction_bool_exp> = nil,
     amount: GraphQLNullable<Numeric_comparison_exp> = nil,
     id: GraphQLNullable<Uuid_comparison_exp> = nil,
     token: GraphQLNullable<Uuid_comparison_exp> = nil,
     tokenData: GraphQLNullable<Token_bool_exp> = nil,
-    tokenPrice: GraphQLNullable<Token_price_history_bool_exp> = nil
+    tokenPrice: GraphQLNullable<Token_price_history_bool_exp> = nil,
+    walletTransaction: GraphQLNullable<Uuid_comparison_exp> = nil,
+    walletTransactionData: GraphQLNullable<Wallet_transaction_bool_exp> = nil
   ) {
     __data = InputDict([
       "_and": _and,
       "_not": _not,
       "_or": _or,
-      "account_transaction": accountTransaction,
-      "account_transaction_data": accountTransactionData,
       "amount": amount,
       "id": id,
       "token": token,
       "token_data": tokenData,
-      "token_price": tokenPrice
+      "token_price": tokenPrice,
+      "wallet_transaction": walletTransaction,
+      "wallet_transaction_data": walletTransactionData
     ])
   }
 
@@ -50,16 +50,6 @@ public struct Token_transaction_bool_exp: InputObject {
   public var _or: GraphQLNullable<[Token_transaction_bool_exp]> {
     get { __data["_or"] }
     set { __data["_or"] = newValue }
-  }
-
-  public var accountTransaction: GraphQLNullable<Uuid_comparison_exp> {
-    get { __data["account_transaction"] }
-    set { __data["account_transaction"] = newValue }
-  }
-
-  public var accountTransactionData: GraphQLNullable<Account_transaction_bool_exp> {
-    get { __data["account_transaction_data"] }
-    set { __data["account_transaction_data"] = newValue }
   }
 
   public var amount: GraphQLNullable<Numeric_comparison_exp> {
@@ -85,5 +75,15 @@ public struct Token_transaction_bool_exp: InputObject {
   public var tokenPrice: GraphQLNullable<Token_price_history_bool_exp> {
     get { __data["token_price"] }
     set { __data["token_price"] = newValue }
+  }
+
+  public var walletTransaction: GraphQLNullable<Uuid_comparison_exp> {
+    get { __data["wallet_transaction"] }
+    set { __data["wallet_transaction"] = newValue }
+  }
+
+  public var walletTransactionData: GraphQLNullable<Wallet_transaction_bool_exp> {
+    get { __data["wallet_transaction_data"] }
+    set { __data["wallet_transaction_data"] = newValue }
   }
 }

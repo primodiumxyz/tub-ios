@@ -3,9 +3,9 @@ import { endOfDay, startOfDay } from "date-fns";
 export const PRICE_PRECISION = 1e9;
 
 export const TIMESPAN_OPTIONS = ["10s", "30s", "1m", "2m", "5m", "10m", "30m", "1h", "1d"];
-export const DEFAULT_TIMESPAN = TIMESPAN_OPTIONS[1];
-export const DEFAULT_MIN_TRADES = 10;
-export const DEFAULT_MIN_VOLUME = 1000;
+export const DEFAULT_TIMESPAN = "5m";
+export const DEFAULT_MIN_TRADES = 0;
+export const DEFAULT_MIN_VOLUME = 0;
 export const DEFAULT_FREEZE_BURNT = true;
 export const DEFAULT_MINT_BURNT = true;
 

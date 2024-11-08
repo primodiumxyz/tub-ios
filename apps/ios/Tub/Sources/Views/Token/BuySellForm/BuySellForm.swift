@@ -7,6 +7,7 @@
 import SwiftUI
 
 struct BuySellForm: View {
+    @EnvironmentObject private var errorHandler: ErrorHandler
     @EnvironmentObject var userModel: UserModel
     @EnvironmentObject var priceModel: SolPriceModel
     @ObservedObject var tokenModel: TokenModel
@@ -14,22 +15,17 @@ struct BuySellForm: View {
     @Binding var showBuySheet: Bool
     @Binding var defaultAmount: Double
     
-    func handleSell(completion: ((Bool) -> Void)?) {
-        tokenModel.sellTokens(completion: {success in
-            if success {
-                activeTab = "buy"
-            }
-            completion?(success)
-        })
-    }
+    var handleBuy: (Double) -> Void
     
-    func handleBuy(amount: Double) {
-        let buyAmountLamps = priceModel.usdToLamports(usd: amount)
-        tokenModel.buyTokens(buyAmountLamps: buyAmountLamps) { success in
-            if success {
-                activeTab = "sell" // Switch tab after successful buy
+    func handleSell() {
+        tokenModel.sellTokens(completion: {result in
+            switch result {
+            case .success:
+                    activeTab = "buy"
+            case .failure (let error):
+                errorHandler.show(error)
             }
-        }
+        })
     }
     
     var body: some View {
@@ -54,7 +50,7 @@ struct BuySellForm: View {
                     }
                     
                     Button(action: {
-                        handleBuy(amount: defaultAmount)
+                        handleBuy(defaultAmount)
                     }) {
                         HStack(alignment: .center, spacing: 8) {
                             Text("Buy \(priceModel.formatPrice(usd: defaultAmount))")
@@ -79,52 +75,6 @@ struct BuySellForm: View {
             }
         }
     }
-}
-
-#Preview {
-    
-    @Previewable @AppStorage("userId") var userId: String = ""
-    @Previewable @State var activeTab: String = "buy"
-    @Previewable @State var showSheet = false
-    @ObservedObject var  tokenModel = TokenModel(userId: userId, tokenId: mockTokenId)
-    @State var defaultAmount: Double = 50.0
-
-    VStack {
-        BuySellForm(
-            tokenModel: tokenModel,
-            activeTab: $activeTab,
-            showBuySheet: $showSheet,
-            defaultAmount: $defaultAmount
-        )
-        .environmentObject(UserModel(userId: userId))
-        .environmentObject(SolPriceModel(mock: true))
-        // Buy Sheet View
-        if showSheet {
-            Color.black.opacity(0.4)
-                .ignoresSafeArea()
-                .onTapGesture {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        showSheet = false
-                    }
-                }
-
-            BuyForm(
-                isVisible: $showSheet,
-                defaultAmount: $defaultAmount,
-                tokenModel: tokenModel,
-                onBuy: { amount in
-                    showSheet = false
-                }
-            )
-            .transition(.move(edge: .bottom))
-            .zIndex(2) // Ensure it stays on top of everything
-            .offset(y: -200)
-            .environmentObject(SolPriceModel(mock: true))
-        }
-    }
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .background(.black)
-    .foregroundColor(.white)
 }
 
 // MARK: - Equatable Implementation

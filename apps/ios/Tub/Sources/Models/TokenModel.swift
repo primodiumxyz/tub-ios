@@ -5,9 +5,20 @@ import TubAPI
 
 class TokenModel: ObservableObject {
     var tokenId: String = ""
-    var userId: String = ""
+    var walletAddress: String = ""
+    var errorHandler: ErrorHandler? = nil
     
-    @Published var token: Token = Token(id: "", mint: "", name: "COIN", symbol: "SYMBOL", description: "DESCRIPTION", supply: 0, decimals: 6, imageUri: "")
+    @Published var token: Token = Token(
+        id: "",
+        mint: "",
+        name: "COIN",
+        symbol: "SYMBOL",
+        description: "DESCRIPTION",
+        supply: 0,
+        decimals: 6,
+        imageUri: "",
+        volume: (0, FILTER_INTERVAL)
+    )
     @Published var loading = true
     @Published var balanceLamps: Int = 0
     
@@ -16,20 +27,19 @@ class TokenModel: ObservableObject {
     
     @Published var prices: [Price] = []
     @Published var priceChange: (amountLamps: Int, percentage: Double) = (0, 0)
-    @Published var interval: Interval = "1m"
+    @Published var interval: Interval = CHART_INTERVAL
  
     private var latestPriceSubscription: Apollo.Cancellable?
     private var tokenBalanceSubscription: Apollo.Cancellable?
-    
-    
-    init(userId: String, tokenId: String? = nil) {
-        self.userId = userId
+        
+    init(walletAddress: String, tokenId: String? = nil) {
+        self.walletAddress = walletAddress
         if tokenId != nil {
             self.initialize(with: tokenId!)
         }
     }
     
-    func initialize(with newTokenId: String, interval: Interval = "1m") {
+    func initialize(with newTokenId: String, interval: Interval = CHART_INTERVAL) {
         // Cancel all existing subscriptions
         latestPriceSubscription?.cancel()
         tokenBalanceSubscription?.cancel()
@@ -71,7 +81,17 @@ class TokenModel: ObservableObject {
                 case .success(let response):
                     if let token = response.data?.token.first(where: { $0.id == self.tokenId }) {
                         DispatchQueue.main.async {
-                            self.token = Token(id: token.id, mint: token.mint, name: token.name ?? "", symbol: token.symbol ?? "", description: token.description ?? "", supply: token.supply ?? 0, decimals: token.decimals ?? 6, imageUri: token.uri ?? "", volume: (0, "30s"))
+                            self.token = Token(
+                                id: token.id,
+                                mint: token.mint,
+                                name: token.name,
+                                symbol: token.symbol,
+                                description: token.description,
+                                supply: token.supply,
+                                decimals: token.decimals,
+                                imageUri: token.uri,
+                                volume: (0, FILTER_INTERVAL)
+                            )
                         }
                         continuation.resume()
                     } else {
@@ -125,8 +145,8 @@ class TokenModel: ObservableObject {
         tokenBalanceSubscription?.cancel()
         
         tokenBalanceSubscription = Network.shared.apollo.subscribe(
-            subscription: SubAccountTokenBalanceSubscription(
-                account: Uuid(self.userId), token: self.tokenId)
+            subscription: SubWalletTokenBalanceSubscription(
+                wallet: self.walletAddress, token: self.tokenId)
         ) { [weak self] result in
             guard let self = self else { return }
             DispatchQueue.main.async {
@@ -135,45 +155,41 @@ class TokenModel: ObservableObject {
                     self.balanceLamps =
                     graphQLResult.data?.balance.first?.value ?? 0
                 case .failure(let error):
-                    print("Error: \(error.localizedDescription)")
+                    print("Error updating token balance: \(error.localizedDescription)")
                 }
             }
         }
     }
 
-    func buyTokens(buyAmountLamps: Int, completion: ((Bool) -> Void)?) {
+    func buyTokens(buyAmountLamps: Int, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
         if let price = self.prices.last?.price, price > 0 {
             let tokenAmount = Int(Double(buyAmountLamps) / Double(price) * 1e9)
             print("token amount:", tokenAmount)
             
-            Network.shared.buyToken(
-                accountId: self.userId, tokenId: self.tokenId, amount: String(tokenAmount)
+            Network.shared.buyToken(tokenId: self.tokenId, amount: String(tokenAmount)
             ) { result in
                 switch result {
                 case .success:
                     self.amountBoughtLamps = buyAmountLamps
                     self.purchaseTime = Date()
-                    completion?(true)
                 case .failure(let error):
                     print("Error buying tokens: \(error)")
-                    completion?(false)
                 }
+                completion(result)
             }
         }
     }
     
-    func sellTokens(completion: ((Bool) -> Void)?) {
-        Network.shared.sellToken(
-            accountId: self.userId, tokenId: self.tokenId, amount: String(self.balanceLamps)
+    func sellTokens(completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
+        Network.shared.sellToken(tokenId: self.tokenId, amount: String(self.balanceLamps)
         ) { result in
             switch result {
             case .success:
                 self.purchaseTime = nil
-                completion?(true)
             case .failure(let error):
                 print("Error selling tokens: \(error)")
-                completion?(false)
             }
+            completion(result)
         }
     }
 
@@ -207,6 +223,32 @@ class TokenModel: ObservableObject {
     func updateTokenDetails(from token: Token) {
         DispatchQueue.main.async {
             self.token = token
+        }
+    }
+
+    func getTokenStats(priceModel: SolPriceModel) -> [(String, String)] {
+        let currentPrice = prices.last?.price ?? 0
+        let marketCap = Double(token.supply) / pow(10.0, Double(token.decimals)) * Double(currentPrice) // we're dividing first otherwise it will overflow...
+        let supplyValue = Double(token.supply) / pow(10.0, Double(token.decimals))
+        
+        return [
+            ("Market Cap", priceModel.formatPrice(lamports: Int(marketCap))),
+            ("Volume (\(String(token.volume.interval)))", priceModel.formatPrice(lamports: token.volume.value)),
+            ("Holders", "53.3K"), // TODO: Add holders data
+            ("Supply", formatLargeNumber(supplyValue))
+        ]
+    }
+
+    // Helper function to format large numbers
+    private func formatLargeNumber(_ number: Double) -> String {
+        if number >= 1_000_000_000 {
+            return String(format: "%.1fB", number / 1_000_000_000)
+        } else if number >= 1_000_000 {
+            return String(format: "%.1fM", number / 1_000_000)
+        } else if number >= 1_000 {
+            return String(format: "%.1fK", number / 1_000)
+        } else {
+            return String(format: "%.1f", number)
         }
     }
 }

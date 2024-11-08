@@ -1,0 +1,22 @@
+table:
+  name: wallet_transaction
+  schema: public
+array_relationships:
+  - name: token_transactions
+    using:
+      foreign_key_constraint_on:
+        column: wallet_transaction
+        table:
+          name: token_transaction
+          schema: public
+select_permissions:
+  - role: public
+    permission:
+      columns:
+        - amount
+        - created_at
+        - id
+        - wallet
+      filter: {}
+      allow_aggregations: true
+    comment: ""

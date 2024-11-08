@@ -16,10 +16,7 @@ struct TokenInfoCardView: View {
     @State private var isClosing: Bool = false
     
     private var stats: [(String, String)] {
-        [
-            ("Market Cap", priceModel.formatPrice(lamports: (tokenModel.prices.last?.price ?? 0) * (tokenModel.token.supply ?? 0) / Int(pow(10.0, Double(tokenModel.token.decimals ?? 0))))),
-            ("Supply", formatLargeNumber(Double(tokenModel.token.supply ?? 0) / pow(10.0, Double(tokenModel.token.decimals ?? 0))))
-        ]
+        return tokenModel.getTokenStats(priceModel: priceModel)
     }
     
     var body: some View {
@@ -68,6 +65,7 @@ struct TokenInfoCardView: View {
                             }
                         }
                     }
+                    .padding(.vertical, 8)
                 }
                 
                 VStack(alignment: .leading, spacing: 8) {
@@ -76,10 +74,9 @@ struct TokenInfoCardView: View {
                         .foregroundColor(AppColors.white)
                         .frame(maxWidth: .infinity, alignment: .topLeading)
                     
-                    Text("\(tokenModel.token.description ?? "")")
+                    Text("\(tokenModel.token.description)")
                         .font(.sfRounded(size: .sm, weight: .regular))
                         .foregroundColor(AppColors.lightGray)
-                        .padding(.horizontal, 8)
                 }
                 .padding(.vertical, 16)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -93,7 +90,7 @@ struct TokenInfoCardView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 0)
-        .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.4, alignment: .topLeading)
+        .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.42, alignment: .topLeading)
         .background(AppColors.black)
         .cornerRadius(30)
         .overlay(
@@ -146,14 +143,3 @@ struct TokenInfoCardView: View {
     }
 }
 
-#Preview {
-    @Previewable @AppStorage("userId") var userId: String = ""
-    @Previewable @State var isVisible = true
-    @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
-    
-    return TokenInfoCardView(
-        tokenModel: TokenModel(userId: userId, tokenId: mockTokenId),
-        isVisible: $isVisible
-    )
-    .environmentObject(priceModel)
-}

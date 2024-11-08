@@ -10,6 +10,7 @@ import Combine
 import TubAPI
 
 struct TokenView : View {
+    @EnvironmentObject private var errorHandler: ErrorHandler
     @ObservedObject var tokenModel: TokenModel
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject private var userModel: UserModel
@@ -20,13 +21,17 @@ struct TokenView : View {
     @State private var showBuySheet: Bool = false
     @State private var defaultAmount: Double = 50.0
     
+    private var stats: [(String, String)] {
+        return tokenModel.getTokenStats(priceModel: priceModel)
+    }
+    
     enum Timespan: String, CaseIterable {
         case live = "LIVE"
         case thirtyMin = "30M"
         
         var interval: Interval {
             switch self {
-                case .live: return "1m"
+                case .live: return CHART_INTERVAL
                 case .thirtyMin: return "30m"
             }
         }
@@ -39,12 +44,17 @@ struct TokenView : View {
     
     func handleBuy(amount: Double) {
         let buyAmountLamps = priceModel.usdToLamports(usd: amount)
-        tokenModel.buyTokens(buyAmountLamps: buyAmountLamps) { success in
-            if success {
+        tokenModel.buyTokens(buyAmountLamps: buyAmountLamps) { result in
+            switch result {
+            case .success:
                 withAnimation(.easeInOut(duration: 0.3)) {
                     showBuySheet = false
                     activeTab = "sell" //  Switch tab after successful buy
                 }
+            case .failure(let error):
+                print("failed to buy")
+                print(error)
+                errorHandler.show(error)
             }
         }
     }
@@ -52,16 +62,22 @@ struct TokenView : View {
     var body: some View {
         ZStack {
             // Main content
-            VStack(alignment: .leading) {
+            VStack(alignment: .leading, spacing: 4) {
                 tokenInfoView
                 chartView
                 intervalButtons
-                Spacer()
+                infoCardLowOpacity
+                    .opacity(0.5) // Adjust opacity here
+                    .padding(.horizontal, 8)
+                    .padding(.bottom, -4)
+                
+
                 BuySellForm(
                     tokenModel: tokenModel,
                     activeTab: $activeTab,
                     showBuySheet: $showBuySheet,
-                    defaultAmount: $defaultAmount
+                    defaultAmount: $defaultAmount,
+                    handleBuy: handleBuy
                 )
                 .equatable() // Add this modifier
             }
@@ -75,12 +91,12 @@ struct TokenView : View {
     }
     
     private var tokenInfoView: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 4) {
             HStack {
-                if tokenModel.token.imageUri != nil {
-                    ImageView(imageUri: tokenModel.token.imageUri!, size: 20)
+                if tokenModel.token.imageUri != "" {
+                    ImageView(imageUri: tokenModel.token.imageUri, size: 20)
                 }
-                Text("$\(tokenModel.token.symbol ?? "")")
+                Text("$\(tokenModel.token.symbol)")
                     .font(.sfRounded(size: .lg, weight: .semibold))
             }
             HStack(alignment: .center, spacing: 6) {
@@ -122,13 +138,12 @@ struct TokenView : View {
             if tokenModel.loading {
                 LoadingChart()
             } else if selectedTimespan == .live {
-                ChartView(prices: tokenModel.prices, timeframeSecs: 90.0, purchaseTime: tokenModel.purchaseTime, purchaseAmount: tokenModel.balanceLamps)
+                ChartView(prices: tokenModel.prices, timeframeSecs: 120.0, purchaseTime: tokenModel.purchaseTime, purchaseAmount: tokenModel.balanceLamps)
             } else {
                 CandleChartView(prices: tokenModel.prices, intervalSecs: 90, timeframeMins: 30)
                     .id(tokenModel.prices.count)
             }
         }
-        .padding(.horizontal)
     }
     
     private var intervalButtons: some View {
@@ -140,7 +155,6 @@ struct TokenView : View {
             }
             Spacer()
         }
-        .padding(.bottom, 8)
         .padding(.horizontal)
     }
     
@@ -168,21 +182,72 @@ struct TokenView : View {
         }
     }
     
+    private var infoCardLowOpacity: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text("Stats")
+                .font(.sfRounded(size: .xl, weight: .semibold))
+                .foregroundColor(AppColors.white)
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+//
+//            // grid
+            ForEach(0..<stats.count/2, id: \.self) { index in
+                HStack(alignment: .top, spacing: 20) {
+                    ForEach(0..<2) { subIndex in
+                        let stat = stats[index * 2 + subIndex]
+                        VStack {
+                            HStack(alignment: .center)  {
+                                Text(stat.0)
+                                    .font(.sfRounded(size: .sm, weight: .regular))
+                                    .foregroundColor(AppColors.gray)
+                                    .fixedSize(horizontal: true, vertical: false)
+                                
+                                Text(stat.1)
+                                    .font(.sfRounded(size: .base, weight: .semibold))
+                                    .frame(maxWidth: .infinity, alignment: .topTrailing)
+                                    .foregroundColor(AppColors.white)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            //divider
+                            Rectangle()
+                                .foregroundColor(.clear)
+                                .frame(height: 0.5)
+                                .background(AppColors.gray.opacity(0.5))
+                        }
+                    }
+                }
+                .padding(.top,8)
+            }
+        }
+        .padding(.horizontal,24)
+        .padding(.vertical,16)
+        .frame(maxWidth: .infinity, maxHeight: 95 ,alignment: .topLeading)
+        .background(AppColors.darkGrayGradient)
+        .cornerRadius(12)
+        .onTapGesture {
+            withAnimation(.easeInOut) {
+                showInfoCard.toggle()
+            }
+        }
+    }
+    
     private var infoCardOverlay: some View {
         Group {
             if showInfoCard {
                 // Fullscreen tap dismiss
-                AppColors.black.opacity(0.4) // Semi-transparent background
+                AppColors.black.opacity(0.2)
                     .ignoresSafeArea()
                     .onTapGesture {
                         withAnimation(.easeInOut) {
                             showInfoCard = false // Close the card
                         }
                     }
-                
-                TokenInfoCardView(tokenModel: tokenModel, isVisible: $showInfoCard)
-                    .transition(.move(edge: .bottom))
-                    .zIndex(1) // Ensure it stays on top
+                VStack {
+                    Spacer()
+                    TokenInfoCardView(tokenModel: tokenModel, isVisible: $showInfoCard)
+                }
+                .transition(.move(edge: .bottom))
+                .zIndex(1) // Ensure it stays on top
             }
         }
     }
@@ -191,7 +256,7 @@ struct TokenView : View {
     private var buySheetOverlay: some View {
         Group {
             if showBuySheet {
-                Color.black.opacity(0.4)
+                AppColors.black.opacity(0.4)
                     .ignoresSafeArea()
                     .onTapGesture {
                         withAnimation(.easeInOut(duration: 0.3)) {
@@ -202,7 +267,8 @@ struct TokenView : View {
                 
                 BuyForm(isVisible: $showBuySheet, defaultAmount: $defaultAmount, tokenModel: tokenModel, onBuy: handleBuy)
                     .transition(.move(edge: .bottom))
-                    .zIndex(2) // Ensure it stays on top of everything
+                    .offset(y:40)
+                    .zIndex(2) // Ensure it stays on top
             }
         }
     }
@@ -277,16 +343,3 @@ extension View {
     }
 }
 
-#Preview {
-    @Previewable @AppStorage("userId") var userId: String = ""
-    @Previewable @State var activeTab: String = "buy"
-    @Previewable @State var tokenId: String = "55dcf2e6-c89b-4722-8152-11ed7f38e527"
-    @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
-    if !priceModel.isReady {
-        LoadingView()
-    } else {
-        TokenView(tokenModel: TokenModel(userId: userId, tokenId: tokenId), activeTab: $activeTab).background(.black)
-            .environmentObject(UserModel(userId: userId))
-            .environmentObject(priceModel)
-    }
-}

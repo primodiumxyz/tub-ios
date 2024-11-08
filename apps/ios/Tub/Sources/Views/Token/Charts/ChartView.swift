@@ -50,7 +50,7 @@ struct ChartView: View {
         let minPrice = prices.min { $0.price < $1.price }?.price ?? 0
         let maxPrice = prices.max { $0.price < $1.price }?.price ?? 100
         let range = maxPrice - minPrice
-        let padding = Int(Double(range) * 0.15)
+        let padding = Int(Double(range) * 0.25)
         
         return (minPrice - padding)...(maxPrice + padding)
     }
@@ -65,7 +65,7 @@ struct ChartView: View {
                 .foregroundStyle(AppColors.aquaBlue.opacity(0.8))
                 .shadow(color: AppColors.aquaBlue, radius: 3, x: 2, y: 2)
                 .lineStyle(StrokeStyle(lineWidth: 3))
-                .interpolationMethod(.catmullRom) 
+//                .interpolationMethod(.catmullRom) 
             }
             
             if let currentPrice = prices.last, prices.count >= 2 {
@@ -117,7 +117,7 @@ struct ChartView: View {
         .chartYScale(domain: yDomain)
         .chartYAxis(.hidden)
         .chartXAxis(.hidden)
-        .frame(width: .infinity, height: 350)
+        .frame(width: .infinity, height: 330)
         .onReceive(Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()) { _ in
             currentTime = Date().timeIntervalSince1970
         }
