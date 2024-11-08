@@ -362,11 +362,19 @@
       name: wallet_transaction_offset_model
   native_queries:
     - arguments:
+        distinct_prices_interval:
+          description: ""
+          nullable: false
+          type: interval
         interval:
           description: ""
           nullable: false
           type: interval
-      code: SELECT * FROM get_formatted_tokens_interval({{interval}})
+        min_distinct_prices:
+          description: ""
+          nullable: false
+          type: integer
+      code: "WITH base_tokens AS (\n  SELECT * FROM get_formatted_tokens_interval({{interval}})\n),\ndistinct_prices AS (\n  SELECT \n    token,\n    COUNT(DISTINCT price) as distinct_price_count\n  FROM token_price_history\n  WHERE created_at >= NOW() - {{distinct_prices_interval}}::interval\n  GROUP BY token\n)\nSELECT b.* \nFROM base_tokens b\nJOIN distinct_prices dp ON b.token_id = dp.token\nWHERE dp.distinct_price_count >= {{min_distinct_prices}};"
       returns: formatted_tokens_model
       root_field_name: formatted_tokens_interval
     - arguments:
@@ -406,15 +414,15 @@
       returns: token_transaction_offset_model
       root_field_name: token_transaction_offset
     - arguments:
+        end:
+          description: ""
+          nullable: false
+          type: timestamptz
         interval:
           description: ""
           nullable: false
           type: interval
         start:
-          description: ""
-          nullable: false
-          type: timestamptz
-        end:
           description: ""
           nullable: false
           type: timestamptz

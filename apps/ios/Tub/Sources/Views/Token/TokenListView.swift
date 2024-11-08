@@ -135,7 +135,7 @@ struct TokenListView: View {
                 
             }
         } .onAppear {
-            viewModel.fetchTokens()
+                viewModel.subscribeTokens()
         }
     }
 }
