@@ -56,6 +56,7 @@ struct HomeTabsView: View {
 }
 
 #Preview {
+    @Previewable @StateObject var errorHandler = ErrorHandler()
     @Previewable @State var userId : String? = nil
     Group {
         if userId == nil {
@@ -63,7 +64,9 @@ struct HomeTabsView: View {
         } else {
             HomeTabsView(userId: userId!)
         }
-    }.onAppear {
+    }
+        .environmentObject(errorHandler)
+    .onAppear {
         Task {
             do {
                 userId = try await privy.refreshSession().user.id

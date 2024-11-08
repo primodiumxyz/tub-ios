@@ -117,6 +117,7 @@ struct AccountView: View {
 #Preview {
     @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
     @Previewable @State var userId : String? = nil
+    @StateObject var errorHandler = ErrorHandler()
     
     Group {
         if !priceModel.isReady || userId == nil {
@@ -126,7 +127,9 @@ struct AccountView: View {
                 .environmentObject(UserModel(userId: userId!))
                 .environmentObject(priceModel)
         }
-    }.onAppear {
+    }
+    .environmentObject(errorHandler)
+    .onAppear {
         Task {
             do {
                 userId = try await privy.refreshSession().user.id
