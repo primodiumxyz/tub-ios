@@ -72,8 +72,10 @@ class TokenModel: ObservableObject {
             Network.shared.apollo.fetch(query: query) { [weak self] result in
                 guard let self = self else {
                     let error = NSError(
-                        domain: "TokenModel", code: 0,
-                        userInfo: [NSLocalizedDescriptionKey: "Self is nil"])
+                        domain: "TokenModel",
+                        code: 0,
+                        userInfo: [NSLocalizedDescriptionKey: "Self is nil"]
+                    )
                     self?.errorHandler.show(error)
                     continuation.resume(throwing: error)
                     return
