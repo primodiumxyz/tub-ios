@@ -66,6 +66,7 @@ struct TokenView : View {
                 tokenInfoView
                 chartView
                 intervalButtons
+                    .padding(.bottom,8)
                 if activeTab != "sell" {
                     infoCardLowOpacity
                         .opacity(0.5) // Adjust opacity here
@@ -73,7 +74,6 @@ struct TokenView : View {
                         .padding(.bottom, -4)
                 }
                 
-
                 BuySellForm(
                     tokenModel: tokenModel,
                     activeTab: $activeTab,
@@ -151,7 +151,7 @@ struct TokenView : View {
     private var intervalButtons: some View {
         HStack {
             Spacer()
-            HStack {
+            HStack(spacing: 4) {
                 intervalButton(for: .live)
                 intervalButton(for: .thirtyMin)
             }
@@ -167,49 +167,72 @@ struct TokenView : View {
                 tokenModel.updateHistoryInterval(timespan.interval)
             }
         } label: {
-            HStack {
+            HStack(spacing: 4) {
                 if timespan == .live {
                     Circle()
                         .fill(AppColors.red)
-                        .frame(width: 10, height: 10)
+                        .frame(width: 7, height: 7)
                 }
                 Text(timespan.rawValue)
-                    .font(.sfRounded(size: .base, weight: .semibold))
+                    .font(.sfRounded(size: .sm, weight: .medium))
             }
-            .padding(.horizontal, 8)
+            .padding(.horizontal, 10)
             .padding(.vertical, 6)
+            .frame(width: 65)
             .background(selectedTimespan == timespan ? AppColors.aquaBlue : Color.clear)
             .foregroundColor(selectedTimespan == timespan ? AppColors.black : AppColors.white)
-            .cornerRadius(6)
+            .cornerRadius(20)
         }
     }
     
     private var infoCardLowOpacity: some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack(alignment: .top, spacing: 20) {
-                ForEach(0..<2) { index in
-                    let stat = stats[index]
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(stat.1)
-                            .font(.sfRounded(size: .base, weight: .semibold))
-                            .foregroundColor(AppColors.white)
-                        
-                        Text(stat.0)
-                            .font(.sfRounded(size: .sm, weight: .regular))
-                            .foregroundColor(AppColors.gray)
-                            .fixedSize(horizontal: true, vertical: false)
+            
+            Text("Stats")
+                .font(.sfRounded(size: .xl, weight: .semibold))
+                .foregroundColor(AppColors.white)
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+                .padding(.bottom,4)
+            
+            ForEach(0..<(stats.count + 1) / 2, id: \.self) { rowIndex in
+                HStack(spacing: 20) {
+                    ForEach(0..<2) { columnIndex in
+                        let statIndex = rowIndex * 2 + columnIndex
+                        if statIndex < stats.count {
+                            let stat = stats[statIndex]
+                            VStack(spacing: 2){
+                                HStack(spacing: 0) {
+                                    Text(stat.0)
+                                        .font(.sfRounded(size: .xs, weight: .regular))
+                                        .foregroundColor(AppColors.gray)
+                                        .fixedSize(horizontal: true, vertical: false)
+                                    //                                            .frame(maxWidth: .infinity, alignment: .topLeading)
+                                    
+                                    Text(stat.1)
+                                        .font(.sfRounded(size: .base, weight: .semibold))
+                                        .foregroundColor(AppColors.white)
+                                        .frame(maxWidth: .infinity, alignment: .topTrailing)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                
+                                Rectangle()
+                                    .foregroundColor(.clear)
+                                    .frame(height: 0.5)
+                                    .background(AppColors.gray.opacity(0.5))
+                                    .padding(.top, 2)
+                            }
+                            
+                        }
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
+                .padding(.vertical, 4)
             }
-            .padding(.top, 8)
         }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 16)
-        .frame(maxWidth: .infinity, maxHeight: 95, alignment: .topLeading)
-        .background(AppColors.darkGrayGradient)
-        .cornerRadius(12)
+        .padding(.horizontal, 16)
         .padding(.top, 16)
+        .frame(maxWidth: .infinity, maxHeight: 110, alignment: .topLeading)
+        .background(AppColors.darkGrayGradient)
+        .cornerRadius(16)
         .onTapGesture {
             withAnimation(.easeInOut) {
                 showInfoCard.toggle()
