@@ -69,9 +69,10 @@ struct BuySellForm: View {
                                 .stroke(AppColors.aquaGreen, lineWidth: 1)
                         )
                     }
-                }.padding(.horizontal,16)
+                }.padding(.horizontal,8)
             } else {
                 SellForm(tokenModel: tokenModel, showBuySheet: $showBuySheet, onSell: handleSell)
+                    .padding(.horizontal,8)
             }
         }
     }

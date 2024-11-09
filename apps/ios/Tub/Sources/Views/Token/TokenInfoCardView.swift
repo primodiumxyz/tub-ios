@@ -16,32 +16,50 @@ struct TokenInfoCardView: View {
     @State private var animatingSwipe: Bool = false
     @State private var isClosing: Bool = false
     
-    private var stats: [(String, String)] {
-        var stats = [(String, String)]()
+    private struct StatValue {
+        let text: String
+        let color: Color?
+    }
+    
+    private var stats: [(String, StatValue)] {
+        var stats = [(String, StatValue)]()
         
         if activeTab == "sell" {
-            // Calculate token amount and value
-            let tokenAmount = Double(tokenModel.balanceLamps) / pow(10.0, Double(tokenModel.token.decimals))
+            // Calculate current value in lamports
             let currentValueLamps = Int(Double(tokenModel.balanceLamps) / 1e9 * Double(tokenModel.prices.last?.price ?? 0))
-
+            
             // Calculate profit
             let initialValueUsd = priceModel.lamportsToUsd(lamports: tokenModel.amountBoughtLamps)
             let currentValueUsd = priceModel.lamportsToUsd(lamports: currentValueLamps)
             let gains = currentValueUsd - initialValueUsd
-            _ = tokenModel.amountBoughtLamps > 0 ? gains / initialValueUsd * 100 : 0
-
-            // Add position stats first
+            
+            // Add position stats
             stats += [
-                ("You Own", "\(formatLargeNumber(tokenAmount)) \(tokenModel.token.symbol)"),
-                ("Value", priceModel.formatPrice(lamports: currentValueLamps)),
+                ("You Own", StatValue(
+                    text: "\(priceModel.formatPrice(lamports: currentValueLamps, maxDecimals: 2, minDecimals: 2)) (\(priceModel.formatPrice(lamports: tokenModel.balanceLamps, showUnit: false)) \(tokenModel.token.symbol))",
+                    color: nil
+                ))
             ]
+            
+            if tokenModel.amountBoughtLamps > 0 {
+                let percentageGain = gains / initialValueUsd * 100
+                stats += [
+                    ("All Time Gains", StatValue(
+                        text: "\(priceModel.formatPrice(usd: gains, showSign: true)) (\(String(format: "%.2f", percentageGain))%)",
+                        color: gains >= 0 ? AppColors.green : AppColors.red
+                    ))
+                ]
+            }
         }
         
         // Add original stats from tokenModel
-        stats += tokenModel.getTokenStats(priceModel: priceModel)
+        stats += tokenModel.getTokenStats(priceModel: priceModel).map { 
+            ($0.0, StatValue(text: $0.1, color: nil))
+        }
         
         return stats
     }
+    
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -72,10 +90,10 @@ struct TokenInfoCardView: View {
                                 .foregroundColor(AppColors.gray)
                                 .fixedSize(horizontal: true, vertical: false)
                             
-                            Text(stat.1)
+                            Text(stat.1.text)
                                 .font(.sfRounded(size: .base, weight: .semibold))
                                 .frame(maxWidth: .infinity, alignment: .topTrailing)
-                                .foregroundColor(AppColors.white)
+                                .foregroundColor(stat.1.color ?? AppColors.white)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         

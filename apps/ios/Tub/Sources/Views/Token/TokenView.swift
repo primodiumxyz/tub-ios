@@ -21,8 +21,14 @@ struct TokenView : View {
     @State private var showBuySheet: Bool = false
     @State private var defaultAmount: Double = 50.0
     
-    private var stats: [(String, String)] {
-        var stats = [(String, String)]()
+    // Add a type to handle colored text
+    private struct StatValue {
+        let text: String
+        let color: Color?
+    }
+    
+    private var stats: [(String, StatValue)] {
+        var stats = [(String, StatValue)]()
         
         if activeTab == "sell" {
             // Calculate current value in lamports
@@ -33,21 +39,29 @@ struct TokenView : View {
             let currentValueUsd = priceModel.lamportsToUsd(lamports: currentValueLamps)
             let gains = currentValueUsd - initialValueUsd
             
+            // Add position stats
             stats += [
-                ("You Own", "\(priceModel.formatPrice(lamports: currentValueLamps, maxDecimals: 2, minDecimals: 2)) (\(priceModel.formatPrice(lamports: tokenModel.balanceLamps, showUnit: false)) \(tokenModel.token.symbol))")
+                ("You Own", StatValue(
+                    text: "\(priceModel.formatPrice(lamports: currentValueLamps, maxDecimals: 2, minDecimals: 2)) (\(priceModel.formatPrice(lamports: tokenModel.balanceLamps, showUnit: false)) \(tokenModel.token.symbol))",
+                    color: nil
+                ))
             ]
             
-            // Add profit info if user has bought any
             if tokenModel.amountBoughtLamps > 0 {
                 let percentageGain = gains / initialValueUsd * 100
                 stats += [
-                    ("All Time Gains", "\(priceModel.formatPrice(usd: gains, showSign: true)) (\(String(format: "%.2f", percentageGain))%)")
+                    ("All Time Gains", StatValue(
+                        text: "\(priceModel.formatPrice(usd: gains, showSign: true)) (\(String(format: "%.2f", percentageGain))%)",
+                        color: gains >= 0 ? AppColors.green : AppColors.red
+                    ))
                 ]
             }
         }
         
-        // Add original stats from tokenModel
-        stats += tokenModel.getTokenStats(priceModel: priceModel)
+        // Convert original stats to new format
+        stats += tokenModel.getTokenStats(priceModel: priceModel).map { 
+            ($0.0, StatValue(text: $0.1, color: nil))
+        }
         
         return stats
     }
@@ -94,12 +108,17 @@ struct TokenView : View {
                 chartView
                 intervalButtons
                     .padding(.bottom,8)
-//                if activeTab != "sell" {
+                if activeTab == "sell" {
+                    infoCardLowOpacity
+                        .opacity(1) // Adjust opacity here
+                        .padding(.horizontal, 8)
+                        .padding(.bottom, -4)
+                }else{
                     infoCardLowOpacity
                         .opacity(0.5) // Adjust opacity here
                         .padding(.horizontal, 8)
                         .padding(.bottom, -4)
-//                }
+                }
                 
                 BuySellForm(
                     tokenModel: tokenModel,
@@ -230,9 +249,9 @@ struct TokenView : View {
                                 .foregroundColor(AppColors.gray)
                                 .fixedSize(horizontal: true, vertical: false)
                             
-                            Text(stat.1)
+                            Text(stat.1.text)
                                 .font(.sfRounded(size: .base, weight: .semibold))
-                                .foregroundColor(AppColors.white)
+                                .foregroundColor(stat.1.color ?? AppColors.white)
                                 .frame(maxWidth: .infinity, alignment: .topTrailing)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -261,7 +280,7 @@ struct TokenView : View {
                                         .foregroundColor(AppColors.gray)
                                         .fixedSize(horizontal: true, vertical: false)
                                     
-                                    Text(stat.1)
+                                    Text(stat.1.text)
                                         .font(.sfRounded(size: .base, weight: .semibold))
                                         .foregroundColor(AppColors.white)
                                         .frame(maxWidth: .infinity, alignment: .topTrailing)
