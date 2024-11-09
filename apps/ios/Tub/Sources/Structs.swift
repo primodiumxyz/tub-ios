@@ -20,7 +20,7 @@ struct Token: Identifiable {
         self.description = description ?? "DESCRIPTION"
         self.supply = supply ?? 0
         self.decimals = decimals ?? 6
-        self.imageUri = imageUri?.replacingOccurrences(of: "https://cdn.helius-rpc.com/cdn-cgi/image//", with: "").replacingOccurrences(of: "cf-ipfs.com", with: "ipfs.io") ?? "" // Helius cdn link doesn't work out for now
+        self.imageUri = imageUri?.replacingOccurrences(of: "cf-ipfs.com", with: "ipfs.io") ?? "" // sometimes this prefix gets added and it bricks it
         self.volume = volume ?? (0, CHART_INTERVAL)
     }
 }
