@@ -6,7 +6,6 @@ struct RegisterView: View {
     @AppStorage("userId") private var userId = ""
     @State private var username = ""
     @State private var email = ""
-    @State var myAuthState : AuthState = AuthState.notReady
     @State private var showPhoneModal = false
     @State private var showEmailModal = false
     @EnvironmentObject private var errorHandler: ErrorHandler
@@ -45,17 +44,7 @@ struct RegisterView: View {
     }
     
     var body: some View {
-        if myAuthState.toString == "authenticated" {
-            Text(myAuthState.toString)
-                .foregroundStyle(.white.opacity(0.5))
-                .padding(.bottom, 24)
-            Button(action: {
-                privy.logout()
-            }) {
-                Text("logout")
-            }
-            
-        } else {
+        
             VStack(spacing: 10) {
                 GeometryReader { geometry in
                     ScrollView(showsIndicators: false) {
@@ -258,11 +247,6 @@ struct RegisterView: View {
                     SignInWithEmailView(email: $email)
                         .presentationDetents([.height(400)])
                 }
-                .onAppear {
-                    privy.setAuthStateChangeCallback { state in
-                        self.myAuthState = state
-                    }
-                }
             }
             .ignoresSafeArea(.keyboard)
             .padding(.top, 20)
@@ -270,7 +254,6 @@ struct RegisterView: View {
             .background(AppColors.darkBlueGradient)
         }
     }
-}
 
 #Preview {
     return RegisterView()
