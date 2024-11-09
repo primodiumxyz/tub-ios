@@ -16,6 +16,10 @@ const commonSchema = z.object({
   COINBASE_CDP_API_KEY_PRIVATE_KEY: z.string().default(""),
   PRIVY_APP_ID: z.string(),
   PRIVY_APP_SECRET: z.string(),
+  OCTANE_TRADE_FEE_RECIPIENT: z.string(),
+  OCTANE_BUY_FEE: z.number().default(100),
+  OCTANE_SELL_FEE: z.number().default(0),
+  OCTANE_MIN_TRADE_SIZE: z.number().default(15),
 });
 
 export function parseEnv<TSchema extends ZodTypeAny | undefined = undefined>(

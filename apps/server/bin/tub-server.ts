@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 import { AppRouter, createAppRouter } from "@/createAppRouter";
+import { OctaneService } from "@/OctaneService";
 import { TubService } from "@/TubService";
 import { parseEnv } from "@bin/parseEnv";
 import { Wallet } from "@coral-xyz/anchor";
 import fastifyWebsocket from "@fastify/websocket";
 import { PrivyClient } from "@privy-io/server-auth";
-import { clusterApiUrl, Connection, Keypair } from "@solana/web3.js";
+import { clusterApiUrl, Connection, Keypair, PublicKey } from "@solana/web3.js";
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import { applyWSSHandler } from "@trpc/server/adapters/ws";
 import { createClient as createGqlClient } from "@tub/gql";
@@ -43,6 +44,34 @@ const getBearerToken = (req: any) => {
 export const start = async () => {
   try {
     // const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+    const connection = new Connection(clusterApiUrl(env.NODE_ENV !== "production" ? "devnet" : "mainnet-beta"), "confirmed");
+
+    // Initialize cache for OctaneService
+    const cacheManager = require('cache-manager');
+    const cache = cacheManager.caching({ store: 'memory', max: 100, ttl: 10/*seconds*/ });
+
+
+    // Create fee payer keypair (you'll need to load this from env or elsewhere)
+    const feePayerKeypair = Keypair.fromSecretKey(/* !! TODO: load secret key */);
+
+    if (!feePayerKeypair) {
+      throw new Error("Fee payer keypair not found");
+    }
+
+    if (!env.OCTANE_TRADE_FEE_RECIPIENT) {
+      throw new Error("OCTANE_TRADE_FEE_RECIPIENT is not set");
+    }
+    
+    // Initialize OctaneService
+    const octaneService = new OctaneService(
+      connection,
+      feePayerKeypair,
+      new PublicKey(env.OCTANE_TRADE_FEE_RECIPIENT),
+      env.OCTANE_BUY_FEE,
+      env.OCTANE_SELL_FEE,
+      env.OCTANE_MIN_TRADE_SIZE,
+      cache
+    );
 
     if (!process.env.GRAPHQL_URL && env.NODE_ENV === "production") {
       throw new Error("GRAPHQL_URL is not set");
@@ -51,7 +80,7 @@ export const start = async () => {
 
     const privy = new PrivyClient(env.PRIVY_APP_ID, env.PRIVY_APP_SECRET);
 
-    const tubService = new TubService(gqlClient, privy);
+    const tubService = new TubService(gqlClient, privy, octaneService);
 
     // @see https://trpc.io/docs/server/adapters/fastify
     server.register(fastifyTRPCPlugin<AppRouter>, {

@@ -10,10 +10,11 @@ export class OctaneService {
     private tradeFeeRecipient: PublicKey,
     private buyFee: number,
     private sellFee: number,
+    private minTradeSize: number,
     private cache: Cache
   ) {}
 
-  async signBuyTransactionWithTokenFee(transaction: Transaction, tokenMint: PublicKey, tokenDecimals: number): Promise<string> {
+  async signTransactionWithTokenFee(transaction: Transaction, buyBool: boolean, tokenMint: PublicKey, tokenDecimals: number): Promise<string> {
     try {
       const { signature } = await signWithTokenFee(
         this.connection,
@@ -26,7 +27,7 @@ export class OctaneService {
                 mint: tokenMint.toString(),
                 account: this.tradeFeeRecipient.toString(),
                 decimals: tokenDecimals,
-                fee: this.buyFee
+                fee: buyBool ? this.buyFee : this.sellFee
             })
         ],
         this.cache,

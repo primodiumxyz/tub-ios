@@ -5,6 +5,7 @@ import { GqlClient } from "@tub/gql";
 import { config } from "dotenv";
 import jwt from "jsonwebtoken";
 import { parseEnv } from "../bin/parseEnv";
+import { OctaneService } from "./OctaneService";
 
 config({ path: "../../.env" });
 
@@ -13,10 +14,12 @@ const env = parseEnv();
 export class TubService {
   private privy: PrivyClient;
   private gql: GqlClient["db"];
+  private octane: OctaneService;
 
-  constructor(gqlClient: GqlClient["db"], privy: PrivyClient) {
+  constructor(gqlClient: GqlClient["db"], privy: PrivyClient, octane: OctaneService) {
     this.gql = gqlClient;
     this.privy = privy;
+    this.octane = octane;
   }
 
   private verifyJWT = async (token: string) => {
