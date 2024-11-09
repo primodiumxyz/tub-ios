@@ -22,7 +22,34 @@ struct TokenView : View {
     @State private var defaultAmount: Double = 50.0
     
     private var stats: [(String, String)] {
-        return tokenModel.getTokenStats(priceModel: priceModel)
+        var stats = [(String, String)]()
+        
+        if activeTab == "sell" {
+            // Calculate current value in lamports
+            let currentValueLamps = Int(Double(tokenModel.balanceLamps) / 1e9 * Double(tokenModel.prices.last?.price ?? 0))
+            
+            // Calculate profit
+            let initialValueUsd = priceModel.lamportsToUsd(lamports: tokenModel.amountBoughtLamps)
+            let currentValueUsd = priceModel.lamportsToUsd(lamports: currentValueLamps)
+            let gains = currentValueUsd - initialValueUsd
+            
+            stats += [
+                ("You Own", "\(priceModel.formatPrice(lamports: currentValueLamps, maxDecimals: 2, minDecimals: 2)) (\(priceModel.formatPrice(lamports: tokenModel.balanceLamps, showUnit: false)) \(tokenModel.token.symbol))")
+            ]
+            
+            // Add profit info if user has bought any
+            if tokenModel.amountBoughtLamps > 0 {
+                let percentageGain = gains / initialValueUsd * 100
+                stats += [
+                    ("All Time Gains", "\(priceModel.formatPrice(usd: gains, showSign: true)) (\(String(format: "%.2f", percentageGain))%)")
+                ]
+            }
+        }
+        
+        // Add original stats from tokenModel
+        stats += tokenModel.getTokenStats(priceModel: priceModel)
+        
+        return stats
     }
     
     enum Timespan: String, CaseIterable {
@@ -67,12 +94,12 @@ struct TokenView : View {
                 chartView
                 intervalButtons
                     .padding(.bottom,8)
-                if activeTab != "sell" {
+//                if activeTab != "sell" {
                     infoCardLowOpacity
                         .opacity(0.5) // Adjust opacity here
                         .padding(.horizontal, 8)
                         .padding(.bottom, -4)
-                }
+//                }
                 
                 BuySellForm(
                     tokenModel: tokenModel,
@@ -187,26 +214,52 @@ struct TokenView : View {
     
     private var infoCardLowOpacity: some View {
         VStack(alignment: .leading, spacing: 0) {
-            
             Text("Stats")
                 .font(.sfRounded(size: .xl, weight: .semibold))
                 .foregroundColor(AppColors.white)
                 .frame(maxWidth: .infinity, alignment: .topLeading)
-                .padding(.bottom,4)
+                .padding(.bottom, 4)
             
-            ForEach(0..<(stats.count + 1) / 2, id: \.self) { rowIndex in
+            // First show the single-column stats (You Own, Value, Profit)
+            if activeTab == "sell" {
+                ForEach(stats.prefix(3), id: \.0) { stat in
+                    VStack(spacing: 2) {
+                        HStack(spacing: 0) {
+                            Text(stat.0)
+                                .font(.sfRounded(size: .xs, weight: .regular))
+                                .foregroundColor(AppColors.gray)
+                                .fixedSize(horizontal: true, vertical: false)
+                            
+                            Text(stat.1)
+                                .font(.sfRounded(size: .base, weight: .semibold))
+                                .foregroundColor(AppColors.white)
+                                .frame(maxWidth: .infinity, alignment: .topTrailing)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        
+                        Rectangle()
+                            .foregroundColor(.clear)
+                            .frame(height: 0.5)
+                            .background(AppColors.gray.opacity(0.5))
+                            .padding(.top, 2)
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
+            
+            // Then show remaining stats in two columns
+            ForEach(0..<((stats.count - (activeTab == "sell" ? 3 : 0) + 1) / 2), id: \.self) { rowIndex in
                 HStack(spacing: 20) {
                     ForEach(0..<2) { columnIndex in
-                        let statIndex = rowIndex * 2 + columnIndex
+                        let statIndex = (activeTab == "sell" ? 3 : 0) + rowIndex * 2 + columnIndex
                         if statIndex < stats.count {
                             let stat = stats[statIndex]
-                            VStack(spacing: 2){
+                            VStack(spacing: 2) {
                                 HStack(spacing: 0) {
                                     Text(stat.0)
                                         .font(.sfRounded(size: .xs, weight: .regular))
                                         .foregroundColor(AppColors.gray)
                                         .fixedSize(horizontal: true, vertical: false)
-                                    //                                            .frame(maxWidth: .infinity, alignment: .topLeading)
                                     
                                     Text(stat.1)
                                         .font(.sfRounded(size: .base, weight: .semibold))
@@ -221,7 +274,6 @@ struct TokenView : View {
                                     .background(AppColors.gray.opacity(0.5))
                                     .padding(.top, 2)
                             }
-                            
                         }
                     }
                 }
@@ -253,7 +305,7 @@ struct TokenView : View {
                     }
                 VStack {
                     Spacer()
-                    TokenInfoCardView(tokenModel: tokenModel, isVisible: $showInfoCard)
+                    TokenInfoCardView(tokenModel: tokenModel, isVisible: $showInfoCard, activeTab: $activeTab)
                 }
                 .transition(.move(edge: .bottom))
                 .zIndex(1) // Ensure it stays on top
@@ -279,6 +331,16 @@ struct TokenView : View {
                     .offset(y:40)
                     .zIndex(2) // Ensure it stays on top
             }
+        }
+    }
+    
+    private func formatLargeNumber(_ number: Double) -> String {
+        if number >= 1_000_000 {
+            return String(format: "%.1fM", number / 1_000_000)
+        } else if number >= 1_000 {
+            return String(format: "%.1fK", number / 1_000)
+        } else {
+            return String(format: "%.2f", number)
         }
     }
 }

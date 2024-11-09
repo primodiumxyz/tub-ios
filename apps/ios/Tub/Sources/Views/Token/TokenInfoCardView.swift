@@ -9,6 +9,7 @@ import SwiftUI
 struct TokenInfoCardView: View {
     @ObservedObject var tokenModel: TokenModel
     @Binding var isVisible: Bool
+    @Binding var activeTab: String
     @EnvironmentObject var priceModel: SolPriceModel
     
     @State private var dragOffset: CGFloat = 0.0
@@ -16,7 +17,30 @@ struct TokenInfoCardView: View {
     @State private var isClosing: Bool = false
     
     private var stats: [(String, String)] {
-        return tokenModel.getTokenStats(priceModel: priceModel)
+        var stats = [(String, String)]()
+        
+        if activeTab == "sell" {
+            // Calculate token amount and value
+            let tokenAmount = Double(tokenModel.balanceLamps) / pow(10.0, Double(tokenModel.token.decimals))
+            let currentValueLamps = Int(Double(tokenModel.balanceLamps) / 1e9 * Double(tokenModel.prices.last?.price ?? 0))
+
+            // Calculate profit
+            let initialValueUsd = priceModel.lamportsToUsd(lamports: tokenModel.amountBoughtLamps)
+            let currentValueUsd = priceModel.lamportsToUsd(lamports: currentValueLamps)
+            let gains = currentValueUsd - initialValueUsd
+            _ = tokenModel.amountBoughtLamps > 0 ? gains / initialValueUsd * 100 : 0
+
+            // Add position stats first
+            stats += [
+                ("You Own", "\(formatLargeNumber(tokenAmount)) \(tokenModel.token.symbol)"),
+                ("Value", priceModel.formatPrice(lamports: currentValueLamps)),
+            ]
+        }
+        
+        // Add original stats from tokenModel
+        stats += tokenModel.getTokenStats(priceModel: priceModel)
+        
+        return stats
     }
     
     var body: some View {
