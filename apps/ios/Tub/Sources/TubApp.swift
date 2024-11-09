@@ -20,7 +20,6 @@ struct TubApp: App {
 
 struct AppContent : View {
     @StateObject private var errorHandler = ErrorHandler()
-    @State var isPrivySdkReady = false
     @State var myAuthState : AuthState = AuthState.notReady
     @State var userId : String = ""
     @State var walletState : EmbeddedWalletState = EmbeddedWalletState.notCreated
