@@ -1,0 +1,3 @@
+table:
+  name: analytics_client_event
+  schema: public
