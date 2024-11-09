@@ -12,6 +12,7 @@ struct HomeTabsView: View {
     @StateObject private var priceModel : SolPriceModel
     @StateObject private var userModel : UserModel
     @State private var selectedTab: Int = 0 // Track the selected tab
+    @State private var isKeyboardVisible = false
     
     init(userId: String) {
         _priceModel = StateObject(wrappedValue: SolPriceModel())
@@ -38,58 +39,78 @@ struct HomeTabsView: View {
                     .background(AppColors.black)
                     
                     // Custom Tab Bar
-                    HStack {
-                        Spacer()
-                        
-                        // Explore Tab
-                        Button(action: { selectedTab = 0 }) {
-                            VStack {
-                                Image(systemName: "safari")
-                                    .font(.system(size: 24))
-                                Text("Explore")
-                                    .font(.sfRounded(size: .xs, weight: .regular))
+                    if !isKeyboardVisible {  // Only show tab bar when keyboard is hidden
+                        HStack {
+                            Spacer()
+                            
+                            // Explore Tab
+                            Button(action: { selectedTab = 0 }) {
+                                VStack {
+                                    Image(systemName: "safari")
+                                        .font(.system(size: 24))
+                                    Text("Explore")
+                                        .font(.sfRounded(size: .xs, weight: .regular))
+                                }
+                                .foregroundColor(selectedTab == 0 ? color : AppColors.white.opacity(0.5))
                             }
-                            .foregroundColor(selectedTab == 0 ? color : AppColors.white.opacity(0.5))
-                        }
-                        
-                        Spacer()
-                        
-                        // History Tab
-                        Button(action: { selectedTab = 1 }) {
-                            VStack {
-                                Image(systemName: "clock")
-                                    .font(.system(size: 24))
-                                Text("History")
-                                    .font(.sfRounded(size: .xs, weight: .regular))
+                            
+                            Spacer()
+                            
+                            // History Tab
+                            Button(action: { selectedTab = 1 }) {
+                                VStack {
+                                    Image(systemName: "clock")
+                                        .font(.system(size: 24))
+                                    Text("History")
+                                        .font(.sfRounded(size: .xs, weight: .regular))
+                                }
+                                .foregroundColor(selectedTab == 1 ? color : AppColors.white.opacity(0.5))
                             }
-                            .foregroundColor(selectedTab == 1 ? color : AppColors.white.opacity(0.5))
-                        }
-                        
-                        Spacer()
-                        
-                        // Account Tab
-                        Button(action: { selectedTab = 2 }) {
-                            VStack {
-                                Image(systemName: "person")
-                                    .font(.system(size: 24))
-                                Text("Account")
-                                    .font(.sfRounded(size: .xs, weight: .regular))
+                            
+                            Spacer()
+                            
+                            // Account Tab
+                            Button(action: { selectedTab = 2 }) {
+                                VStack {
+                                    Image(systemName: "person")
+                                        .font(.system(size: 24))
+                                    Text("Account")
+                                        .font(.sfRounded(size: .xs, weight: .regular))
+                                }
+                                .foregroundColor(selectedTab == 2 ? color : AppColors.white.opacity(0.5))
                             }
-                            .foregroundColor(selectedTab == 2 ? color : AppColors.white.opacity(0.5))
+                            
+                            Spacer()
                         }
-                        
-                        Spacer()
+                        .background(AppColors.black)
+                        .ignoresSafeArea(.keyboard)
                     }
-                    .background(AppColors.black)
                 }
                 .onAppear {
-                    UITabBar.appearance().unselectedItemTintColor = UIColor.white.withAlphaComponent(0.5)
-                    
+                    setupKeyboardNotifications()
+                }
+                .onDisappear {
+                    removeKeyboardNotifications()
                 }
             }
         }
         .environmentObject(userModel)
         .environmentObject(priceModel)
+    }
+    
+    private func setupKeyboardNotifications() {
+        NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { _ in
+            isKeyboardVisible = true
+        }
+        
+        NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { _ in
+            isKeyboardVisible = false
+        }
+    }
+    
+    private func removeKeyboardNotifications() {
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
     }
 }
 
