@@ -201,4 +201,31 @@ export class TubService {
       throw new Error("Coinbase Onramp API returned an error.");
     }
   }
+
+  async recordClientEvent(
+    event: {
+      userAgent: string;
+      eventName: string;
+      metadata?: Record<string, unknown>;
+      errorDetails?: string;
+      source?: string;
+    },
+    token: string,
+  ) {
+    const accountId = await this.verifyJWT(token);
+    const wallet = await this.getUserWallet(accountId);
+
+    if (!wallet) {
+      throw new Error("User does not have a wallet");
+    }
+
+    await this.gql.AddClientEventMutation({
+      user_agent: event.userAgent,
+      event_name: event.eventName,
+      metadata: event.metadata,
+      user_wallet: wallet,
+      error_details: event.errorDetails,
+      source: event.source,
+    });
+  }
 }

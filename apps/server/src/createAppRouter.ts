@@ -75,6 +75,19 @@ export function createAppRouter() {
     getCoinbaseSolanaOnrampUrl: t.procedure.mutation(async ({ ctx }) => {
       return await ctx.tubService.getCoinbaseSolanaOnrampUrl(ctx.jwtToken);
     }),
+    recordClientEvent: t.procedure
+      .input(
+        z.object({
+          userAgent: z.string(),
+          eventName: z.string(),
+          metadata: z.record(z.any()).optional(),
+          errorDetails: z.string().optional(),
+          source: z.string().optional(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        return await ctx.tubService.recordClientEvent(input, ctx.jwtToken);
+      }),
   });
 }
 

@@ -1,3 +1,16 @@
 table:
   name: analytics_client_event
   schema: public
+select_permissions:
+  - role: public
+    permission:
+      columns:
+        - error_details
+        - id
+        - metadata
+        - name
+        - source
+        - user
+        - user_agent
+      filter: {}
+    comment: ""
