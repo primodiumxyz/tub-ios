@@ -172,6 +172,7 @@ class TokenListModel: ObservableObject {
     
 
     func subscribeTokens() {
+        print("start subscription")
         subscription = Network.shared.apollo.subscribe(subscription: SubFilteredTokensIntervalSubscription(
             interval: .some(FILTER_INTERVAL),
             minTrades: .some(String(MIN_TRADES)),
@@ -180,17 +181,19 @@ class TokenListModel: ObservableObject {
             freezeBurnt: .some(FREEZE_BURNT),
             minDistinctPrices: .some(CHART_INTERVAL_MIN_TRADES),
             distinctPricesInterval: .some(CHART_INTERVAL)
-        )) { result in
-            DispatchQueue.main.async {
-                self.isLoading = false
-                switch result {
-                case .success(let graphQLResult):
-                    if let error = graphQLResult.errors {
-                        print(error)
-                        self.errorMessage = "Error: \(error)"
-                    }
-                    if let tokens = graphQLResult.data?.formatted_tokens_interval {
-                        self.availableTokens = tokens.map { elem in
+        )) { [weak self] result in
+            guard let self = self else { return }
+            
+            // Process data in background queue
+            DispatchQueue.global(qos: .userInitiated).async {
+                print("received result")
+                
+                // Prepare data in background
+                let processedData: ([Token], Token?) = {
+                    switch result {
+                    case .success(let graphQLResult):
+                        if let tokens = graphQLResult.data?.formatted_tokens_interval {
+                            let mappedTokens = tokens.map { elem in
                                 Token(
                                     id: elem.token_id,
                                     mint: elem.mint,
@@ -203,16 +206,26 @@ class TokenListModel: ObservableObject {
                                     volume: (elem.volume, FILTER_INTERVAL)
                                 )
                             }
-                        self.updateTokens()
-
-                         // Update current token model if the token exists in available tokens
-                        if let currentToken = self.availableTokens.first(where: { $0.id == self.currentTokenModel.tokenId }) {
-                            self.currentTokenModel.updateTokenDetails(from: currentToken)
+                            
+                            let currentToken = mappedTokens.first(where: { $0.id == self.currentTokenModel.tokenId })
+                            return (mappedTokens, currentToken)
                         }
+                        return ([], nil)
+                    case .failure(let error):
+                        print(error.localizedDescription)
+                        return ([], nil)
                     }
-                case .failure(let error):
-                    print(error.localizedDescription)
-                    self.errorMessage = "Error: \(error.localizedDescription)"
+                }()
+                
+                // Update UI on main thread
+                DispatchQueue.main.async {
+                    self.isLoading = false
+                    self.availableTokens = processedData.0
+                    self.updateTokens()
+                    
+                    if let currentToken = processedData.1 {
+                        self.currentTokenModel.updateTokenDetails(from: currentToken)
+                    }
                 }
             }
         }
