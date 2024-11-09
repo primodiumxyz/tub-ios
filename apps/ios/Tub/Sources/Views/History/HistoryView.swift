@@ -90,7 +90,7 @@ struct HistoryView : View {
     var body: some View {
         Group {
             if loading == true {
-                LoadingView()
+                LoadingView(identifier: "HistoryView - loading")
             } else if let error = error {
                 ErrorView(error: error)
             } else {
@@ -444,7 +444,7 @@ struct TransactionRow: View {
     @Previewable @StateObject var errorHandler = ErrorHandler()
     @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
     if !priceModel.isReady {
-        LoadingView()
+        LoadingView(identifier: "HistoryView - waiting for priceModel")
     } else {
         HistoryView(txs: dummyData).environmentObject(priceModel).environmentObject(errorHandler)
     }

@@ -33,7 +33,7 @@ struct AppContent : View {
                 CreateWalletView()
             } 
             else if myAuthState.toString != "authenticated" || walletState.toString != "connected" {
-                LoadingView()
+                LoadingView(identifier: "TubApp - waiting for authentication")
             }
             else {
                 HomeTabsView(userId: userId).font(.sfRounded())

@@ -121,7 +121,7 @@ struct AccountView: View {
     
     Group {
         if !priceModel.isReady || userId == nil {
-            LoadingView()
+            LoadingView(identifier: "AccountView - waiting for priceModel & userId")
         } else {
             AccountView()
                 .environmentObject(UserModel(userId: userId!))
