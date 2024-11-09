@@ -73,71 +73,71 @@ struct TokenInfoCardView: View {
             .padding()
             .frame(maxWidth: .infinity, minHeight: 22, maxHeight: 22, alignment: .center)
             
-            VStack(alignment: .leading, spacing: 0) {
-                
-                Text("Stats")
-                    .font(.sfRounded(size: .xl, weight: .semibold))
-                    .foregroundColor(AppColors.white)
-                    .frame(maxWidth: .infinity, alignment: .topLeading)
-                    .padding(.bottom,4)
-                
-                
-                ForEach(stats, id: \.0) { stat in
-                    VStack(spacing:4) {
-                        HStack(alignment: .center)  {
-                            Text(stat.0)
-                                .font(.sfRounded(size: .sm, weight: .regular))
-                                .foregroundColor(AppColors.gray)
-                                .fixedSize(horizontal: true, vertical: false)
-                            
-                            Text(stat.1.text)
-                                .font(.sfRounded(size: .base, weight: .semibold))
-                                .frame(maxWidth: .infinity, alignment: .topTrailing)
-                                .foregroundColor(stat.1.color ?? AppColors.white)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        
-                        //divider
-                        Rectangle()
-                            .foregroundColor(.clear)
-                            .frame(height: 0.5)
-                            .background(AppColors.gray.opacity(0.5))
-                    }
-                    .padding(.vertical, 6)
-                }
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("About")
+            ScrollView(.vertical, showsIndicators: true) {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("Stats")
                         .font(.sfRounded(size: .xl, weight: .semibold))
                         .foregroundColor(AppColors.white)
                         .frame(maxWidth: .infinity, alignment: .topLeading)
+                        .padding(.bottom,4)
                     
-                    Text("\(tokenModel.token.description)")
-                        .font(.sfRounded(size: .sm, weight: .regular))
-                        .foregroundColor(AppColors.lightGray)
-                        .multilineTextAlignment(.leading)
-                }
-                .padding(.vertical, 12)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    ForEach(stats, id: \.0) { stat in
+                        VStack(spacing:4) {
+                            HStack(alignment: .center)  {
+                                Text(stat.0)
+                                    .font(.sfRounded(size: .sm, weight: .regular))
+                                    .foregroundColor(AppColors.gray)
+                                    .fixedSize(horizontal: true, vertical: false)
+                                
+                                Text(stat.1.text)
+                                    .font(.sfRounded(size: .base, weight: .semibold))
+                                    .frame(maxWidth: .infinity, alignment: .topTrailing)
+                                    .foregroundColor(stat.1.color ?? AppColors.white)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            //divider
+                            Rectangle()
+                                .foregroundColor(.clear)
+                                .frame(height: 0.5)
+                                .background(AppColors.gray.opacity(0.5))
+                        }
+                        .padding(.vertical, 6)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("About")
+                            .font(.sfRounded(size: .xl, weight: .semibold))
+                            .foregroundColor(AppColors.white)
+                            .frame(maxWidth: .infinity, alignment: .topLeading)
+                        
+                        Text("\(tokenModel.token.description)")
+                            .font(.sfRounded(size: .sm, weight: .regular))
+                            .foregroundColor(AppColors.lightGray)
+                            .multilineTextAlignment(.leading)
+                    }
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    HStack(alignment: .center, spacing: 4) {
+                        Image("X-logo-white")
+                            .resizable()
+                            .frame(width: 20, height: 20)
+                        Text(" @ \(tokenModel.token.symbol)")
+                            .font(.sfRounded(size: .lg, weight: .semibold))
+                            .foregroundColor(AppColors.aquaGreen)
+                    }
+                    .padding(.top, 8.0)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 
-                HStack(alignment: .center, spacing: 4) {
-                    Image("X-logo-white")
-                        .resizable()
-                        .frame(width: 20, height: 20)
-                    Text(" @ \(tokenModel.token.symbol)")
-                        .font(.sfRounded(size: .lg, weight: .semibold))
-                        .foregroundColor(AppColors.aquaGreen)
                 }
-                .padding(.top, 8.0)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            
+                .padding(.horizontal,20)
+                .padding(.vertical, 16)
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+                .background(AppColors.darkGrayGradient)
+                .cornerRadius(20)
             }
-            .padding(.horizontal,20)
-            .padding(.vertical, 16)
-            .frame(maxWidth: .infinity, alignment: .topLeading)
-            .background(AppColors.darkGrayGradient)
-            .cornerRadius(20)
-
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 0)
