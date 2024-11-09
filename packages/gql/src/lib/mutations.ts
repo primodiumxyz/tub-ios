@@ -93,9 +93,23 @@ export const UpsertManyTokensAndPriceHistoryMutation = graphql(`
 `);
 
 export const AddClientEventMutation = graphql(`
-  mutation AddClientEvent($client: String!, $event_name: String!, $metadata: jsonb, $user_wallet: String) {
+  mutation AddClientEvent(
+    $user_agent: String!
+    $event_name: String!
+    $metadata: jsonb
+    $user_wallet: String
+    $error_details: String
+    $environment: String
+  ) {
     insert_analytics_client_event_one(
-      object: { client: $client, name: $event_name, metadata: $metadata, user: $user_wallet }
+      object: {
+        user_agent: $user_agent
+        name: $event_name
+        metadata: $metadata
+        user: $user_wallet
+        error_details: $error_details
+        environment: $environment
+      }
     ) {
       id
     }
