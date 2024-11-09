@@ -50,7 +50,7 @@ struct TokenView : View {
             if tokenModel.amountBoughtLamps > 0 {
                 let percentageGain = gains / initialValueUsd * 100
                 stats += [
-                    ("All Time Gains", StatValue(
+                    ("Gains", StatValue(
                         text: "\(priceModel.formatPrice(usd: gains, showSign: true)) (\(String(format: "%.2f", percentageGain))%)",
                         color: gains >= 0 ? AppColors.green : AppColors.red
                     ))
@@ -233,7 +233,7 @@ struct TokenView : View {
     
     private var infoCardLowOpacity: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("Stats")
+            Text(activeTab == "sell" ? "Position" : "Stats")
                 .font(.sfRounded(size: .xl, weight: .semibold))
                 .foregroundColor(AppColors.white)
                 .frame(maxWidth: .infinity, alignment: .topLeading)

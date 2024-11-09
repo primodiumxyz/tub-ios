@@ -44,7 +44,7 @@ struct TokenInfoCardView: View {
             if tokenModel.amountBoughtLamps > 0 {
                 let percentageGain = gains / initialValueUsd * 100
                 stats += [
-                    ("All Time Gains", StatValue(
+                    ("Gains", StatValue(
                         text: "\(priceModel.formatPrice(usd: gains, showSign: true)) (\(String(format: "%.2f", percentageGain))%)",
                         color: gains >= 0 ? AppColors.green : AppColors.red
                     ))
