@@ -119,18 +119,34 @@ struct BuyForm: View {
     }
     
     private var numberInput: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: 4) {
+            Spacer()
             Text("$")
                 .font(.sfRounded(size: .xl4, weight: .bold))
                 .foregroundColor(AppColors.white)
             
             TextField("", text: $buyAmountUsdString, prompt: Text("100", comment: "placeholder").foregroundColor(AppColors.white.opacity(0.3)))
                 .keyboardType(.decimalPad)
-                .multilineTextAlignment(.center)
+                .multilineTextAlignment(.leading)
                 .onChange(of: buyAmountUsdString) { newValue in
-                    if let amount = formatter.number(from:newValue)?.doubleValue {
+                    // Remove any existing commas
+                    let cleanedValue = newValue.replacingOccurrences(of: ",", with: "")
+                    
+                    // Allow empty string
+                    if cleanedValue.isEmpty {
+                        buyAmountUsd = 0
+                        buyAmountUsdString = ""
+                        isValidInput = true
+                        return
+                    }
+                    
+                    // Check if it's a valid decimal number
+                    if let amount = Double(cleanedValue) {
                         buyAmountUsd = amount
-                        buyAmountUsdString = priceModel.formatPrice(usd: amount, showSign: false, showUnit: false, formatLarge: false)
+                        // Only format if not currently editing
+                        if cleanedValue != newValue {
+                            buyAmountUsdString = priceModel.formatPrice(usd: amount, showSign: false, showUnit: false, formatLarge: false)
+                        }
                         isValidInput = true
                     } else {
                         buyAmountUsd = 0
@@ -139,12 +155,16 @@ struct BuyForm: View {
                 }
                 .font(.sfRounded(size: .xl5, weight: .bold))
                 .foregroundColor(isValidInput ? .white : .red)
-                .frame(width: 150)
+                .frame(minWidth: 50)
+                .fixedSize()
                 .onTapGesture {
                     isKeyboardActive = true
                     print("Keyboard Activated")
                 }
+            Spacer()
         }
+        .frame(maxWidth: 300)
+        .padding(.horizontal)
     }
     
     private var defaultToggle: some View {
