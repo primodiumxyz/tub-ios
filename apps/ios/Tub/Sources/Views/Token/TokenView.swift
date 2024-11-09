@@ -9,6 +9,17 @@ import SwiftUI
 import Combine
 import TubAPI
 
+enum TubError: LocalizedError {
+    case insufficientBalance
+    
+    var errorDescription: String? {
+        switch self {
+        case .insufficientBalance:
+            return "Insufficient Balance"
+        }
+    }
+}
+
 struct TokenView : View {
     @EnvironmentObject private var errorHandler: ErrorHandler
     @ObservedObject var tokenModel: TokenModel
@@ -44,6 +55,10 @@ struct TokenView : View {
     
     func handleBuy(amount: Double) {
         let buyAmountLamps = priceModel.usdToLamports(usd: amount)
+        if(buyAmountLamps > userModel.balanceLamps) {
+            errorHandler.show(TubError.insufficientBalance)
+            return
+        }
         tokenModel.buyTokens(buyAmountLamps: buyAmountLamps) { result in
             switch result {
             case .success:
@@ -107,9 +122,9 @@ struct TokenView : View {
                 } else {
                     Text(priceModel.formatPrice(lamports: tokenModel.prices.last?.price ?? 0, maxDecimals: 9, minDecimals: 2))
                         .font(.sfRounded(size: .xl4, weight: .bold))
+                    Image(systemName: "info.circle.fill")
+                        .frame(width: 16, height: 16)
                 }
-                Image(systemName: "info.circle.fill")
-                    .frame(width: 16, height: 16)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             
@@ -140,7 +155,7 @@ struct TokenView : View {
             if tokenModel.loading {
                 LoadingChart()
             } else if selectedTimespan == .live {
-                ChartView(prices: tokenModel.prices, timeframeSecs: 120.0, purchaseTime: tokenModel.purchaseTime, purchaseAmount: tokenModel.balanceLamps)
+                ChartView(prices: tokenModel.prices, timeframeSecs: 120.0, purchaseData: tokenModel.purchaseData)
             } else {
                 CandleChartView(prices: tokenModel.prices, intervalSecs: 90, timeframeMins: 30)
                     .id(tokenModel.prices.count)

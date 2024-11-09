@@ -25,6 +25,12 @@ struct Token: Identifiable {
     }
 }
 
+struct PurchaseData {
+    let timestamp: Date
+    let amount: Int
+    let price: Int
+}
+
 struct Price: Identifiable, Equatable {
     static func == (lhs: Price, rhs: Price) -> Bool {
         return lhs.timestamp == rhs.timestamp && lhs.price == rhs.price
