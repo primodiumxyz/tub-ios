@@ -8,32 +8,11 @@ export const RegisterNewTokenMutation = graphql(`
   }
 `);
 
-export const UpsertManyNewTokensMutation = graphql(`
-  mutation UpsertManyNewTokens($objects: [token_insert_input!]!) {
-    insert_token(
-      objects: $objects
-      on_conflict: {
-        constraint: token_mint_key
-        update_columns: [
-          name
-          symbol
-          description
-          uri
-          mint_burnt
-          freeze_burnt
-          supply
-          decimals
-          is_pump_token
-          updated_at
-        ]
-        where: { _or: [{ updated_at: { _is_null: true } }, { updated_at: { _lt: NOW } }] }
-      }
-    ) {
-      returning {
-        id
-        mint
-      }
-      affected_rows
+export const UpsertManyTokensAndPriceHistoriesMutation = graphql(`
+  mutation UpsertManyTokensAndPriceHistories($tokens: jsonb!, $price_histories: jsonb!) {
+    upsert_tokens_and_price_history(args: { tokens: $tokens, price_history: $price_histories }) {
+      id
+      mint
     }
   }
 `);
@@ -85,9 +64,35 @@ export const AddManyTokenPriceHistoryMutation = graphql(`
 `);
 
 export const UpsertManyTokensAndPriceHistoryMutation = graphql(`
-  mutation UpsertManyTokensAndPriceHistory($tokens: jsonb!, $priceHistory: jsonb!) {
-    upsert_tokens_and_price_history(args: { tokens: $tokens, price_history: $priceHistory }) {
-      id
+  mutation UpsertManyTokensAndPriceHistory($objects: [token_insert_input!]!) {
+    insert_token(
+      objects: $objects
+      on_conflict: {
+        constraint: token_mint_key
+        update_columns: [
+          name
+          symbol
+          description
+          uri
+          mint_burnt
+          freeze_burnt
+          supply
+          decimals
+          is_pump_token
+          updated_at
+        ]
+      }
+    ) {
+      returning {
+        id
+        mint
+        token_price_histories {
+          id
+          price
+          created_at
+        }
+      }
+      affected_rows
     }
   }
 `);
