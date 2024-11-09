@@ -209,6 +209,7 @@ export class TubService {
       metadata?: Record<string, unknown>;
       errorDetails?: string;
       source?: string;
+      build_version?: string;
     },
     token: string,
   ) {
@@ -226,6 +227,7 @@ export class TubService {
       user_wallet: wallet,
       error_details: event.errorDetails,
       source: event.source,
+      build: event.build_version,
     });
   }
 }

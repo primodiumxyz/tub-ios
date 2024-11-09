@@ -100,6 +100,7 @@ export const AddClientEventMutation = graphql(`
     $source: String
     $metadata: jsonb
     $error_details: String
+    $build: String
   ) {
     insert_analytics_client_event_one(
       object: {
@@ -109,6 +110,7 @@ export const AddClientEventMutation = graphql(`
         source: $source
         user: $user_wallet
         error_details: $error_details
+        build: $build
       }
     ) {
       id
