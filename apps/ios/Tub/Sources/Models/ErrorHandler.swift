@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Combine
+import os.log
 
 class ErrorHandler: ObservableObject {
     @Published var currentError: Error? 
@@ -19,6 +20,8 @@ class ErrorHandler: ObservableObject {
         
         currentError = error
         isShowingError = true
+        
+        os_log("Error: %{public}@", log: .default, type: .error, error.localizedDescription)
         
         let workItem = DispatchWorkItem { [weak self] in
             withAnimation {
