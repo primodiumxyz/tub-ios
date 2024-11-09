@@ -32,9 +32,6 @@ struct TokenView : View {
     @State private var showBuySheet: Bool = false
     @State private var defaultAmount: Double = 50.0
     
-    private var stats: [(String, String)] {
-        return tokenModel.getTokenStats(priceModel: priceModel)
-    }
     
     enum Timespan: String, CaseIterable {
         case live = "LIVE"
@@ -42,8 +39,8 @@ struct TokenView : View {
         
         var interval: Interval {
             switch self {
-                case .live: return CHART_INTERVAL
-                case .thirtyMin: return "30m"
+            case .live: return CHART_INTERVAL
+            case .thirtyMin: return "30m"
             }
         }
     }
@@ -81,14 +78,12 @@ struct TokenView : View {
                 tokenInfoView
                 chartView
                 intervalButtons
-                if activeTab != "sell" {
-                    infoCardLowOpacity
-                        .opacity(0.5) // Adjust opacity here
-                        .padding(.horizontal, 8)
-                        .padding(.bottom, -4)
-                }
+                    .padding(.bottom,8)
+                infoCardLowOpacity
+                    .opacity(0.8)
+                    .padding(.horizontal, 8)
+                    .padding(.bottom, -4)
                 
-
                 BuySellForm(
                     tokenModel: tokenModel,
                     activeTab: $activeTab,
@@ -163,10 +158,12 @@ struct TokenView : View {
         }
     }
     
+    /* ---------------------------- Interval Buttons ---------------------------- */
+    
     private var intervalButtons: some View {
         HStack {
             Spacer()
-            HStack {
+            HStack(spacing: 4) {
                 intervalButton(for: .live)
                 intervalButton(for: .thirtyMin)
             }
@@ -182,49 +179,131 @@ struct TokenView : View {
                 tokenModel.updateHistoryInterval(timespan.interval)
             }
         } label: {
-            HStack {
+            HStack(spacing: 4) {
                 if timespan == .live {
                     Circle()
                         .fill(AppColors.red)
-                        .frame(width: 10, height: 10)
+                        .frame(width: 7, height: 7)
                 }
                 Text(timespan.rawValue)
-                    .font(.sfRounded(size: .base, weight: .semibold))
+                    .font(.sfRounded(size: .sm, weight: .medium))
             }
-            .padding(.horizontal, 8)
+            .padding(.horizontal, 10)
             .padding(.vertical, 6)
+            .frame(width: 65)
             .background(selectedTimespan == timespan ? AppColors.aquaBlue : Color.clear)
             .foregroundColor(selectedTimespan == timespan ? AppColors.black : AppColors.white)
-            .cornerRadius(6)
+            .cornerRadius(20)
         }
     }
     
+    /* ------------------------------ Info Overlays ----------------------------- */
+    
+    private var stats: [(String, StatValue)] {
+        var stats = [(String, StatValue)]()
+        
+        if let purchaseData = tokenModel.purchaseData, activeTab == "sell" {
+            // Calculate current value in lamports
+            let currentValueLamps = Int(Double(tokenModel.balanceLamps) / 1e9 * Double(tokenModel.prices.last?.price ?? 0))
+            
+            // Calculate profit
+            let initialValueUsd = priceModel.lamportsToUsd(lamports: purchaseData.amount)
+            let currentValueUsd = priceModel.lamportsToUsd(lamports: currentValueLamps)
+            let gains = currentValueUsd - initialValueUsd
+            
+            
+            
+            if purchaseData.amount > 0 {
+                let percentageGain = gains / initialValueUsd * 100
+                stats += [
+                    ("Gains", StatValue(
+                        text: "\(priceModel.formatPrice(usd: gains, showSign: true)) (\(String(format: "%.2f", percentageGain))%)",
+                        color: gains >= 0 ? AppColors.green : AppColors.red
+                    ))
+                ]
+            }
+            
+            // Add position stats
+            stats += [
+                ("You Own", StatValue(
+                    text: "\(priceModel.formatPrice(lamports: currentValueLamps, maxDecimals: 2, minDecimals: 2)) (\(priceModel.formatPrice(lamports: tokenModel.balanceLamps, showUnit: false)) \(tokenModel.token.symbol))",
+                    color: nil
+                ))
+            ]
+        } else {
+            stats += tokenModel.getTokenStats(priceModel: priceModel).map {
+                ($0.0, StatValue(text: $0.1, color: nil))
+            }
+        }
+        
+        return stats
+    }
+
     private var infoCardLowOpacity: some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack(alignment: .top, spacing: 20) {
-                ForEach(0..<2) { index in
-                    let stat = stats[index]
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(stat.1)
-                            .font(.sfRounded(size: .base, weight: .semibold))
-                            .foregroundColor(AppColors.white)
+            if activeTab == "sell" {
+                ForEach(stats.prefix(3), id: \.0) { stat in
+                    VStack(spacing: 2) {
+                        HStack(spacing: 0) {
+                            Text(stat.0)
+                                .font(.sfRounded(size: .xs, weight: .regular))
+                                .foregroundColor(AppColors.white.opacity(0.7))
+                                .fixedSize(horizontal: true, vertical: false)
+                            
+                            Text(stat.1.text)
+                                .font(.sfRounded(size: .base, weight: .semibold))
+                                .foregroundColor(stat.1.color ?? AppColors.white)
+                                .frame(maxWidth: .infinity, alignment: .topTrailing)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                         
-                        Text(stat.0)
-                            .font(.sfRounded(size: .sm, weight: .regular))
-                            .foregroundColor(AppColors.gray)
-                            .fixedSize(horizontal: true, vertical: false)
+                        Rectangle()
+                            .foregroundColor(.clear)
+                            .frame(height: 0.5)
+                            .background(AppColors.gray.opacity(0.5))
+                            .padding(.top, 2)
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
-            .padding(.top, 8)
+            
+            // Then show remaining stats in two columns
+            ForEach(0..<((stats.count - (activeTab == "sell" ? 3 : 0) + 1) / 2), id: \.self) { rowIndex in
+                HStack(spacing: 20) {
+                    ForEach(0..<2) { columnIndex in
+                        let statIndex = (activeTab == "sell" ? 3 : 0) + rowIndex * 2 + columnIndex
+                        if statIndex < stats.count {
+                            let stat = stats[statIndex]
+                            VStack(spacing: 2) {
+                                HStack(spacing: 0) {
+                                    Text(stat.0)
+                                        .font(.sfRounded(size: .xs, weight: .regular))
+                                        .foregroundColor(AppColors.white.opacity(0.7))
+                                        .fixedSize(horizontal: true, vertical: false)
+                                    
+                                    Text(stat.1.text)
+                                        .font(.sfRounded(size: .base, weight: .semibold))
+                                        .foregroundColor(AppColors.white)
+                                        .frame(maxWidth: .infinity, alignment: .topTrailing)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                
+                                Rectangle()
+                                    .foregroundColor(.clear)
+                                    .frame(height: 0.5)
+                                    .background(AppColors.gray.opacity(0.5))
+                                    .padding(.top, 2)
+                            }
+                        }
+                    }
+                }
+                .padding(.vertical, 4)
+            }
         }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 16)
-        .frame(maxWidth: .infinity, maxHeight: 95, alignment: .topLeading)
-        .background(AppColors.darkGrayGradient)
-        .cornerRadius(12)
+        .padding(.horizontal, 16)
         .padding(.top, 16)
+        .frame(maxWidth: .infinity, maxHeight: 110, alignment: .topLeading)
+        .background(AppColors.darkGrayGradient)
+        .cornerRadius(16)
         .onTapGesture {
             withAnimation(.easeInOut) {
                 showInfoCard.toggle()
@@ -245,7 +324,7 @@ struct TokenView : View {
                     }
                 VStack {
                     Spacer()
-                    TokenInfoCardView(tokenModel: tokenModel, isVisible: $showInfoCard)
+                    TokenInfoCardView(tokenModel: tokenModel, isVisible: $showInfoCard, activeTab: $activeTab)
                 }
                 .transition(.move(edge: .bottom))
                 .zIndex(1) // Ensure it stays on top
@@ -261,7 +340,6 @@ struct TokenView : View {
                     .ignoresSafeArea()
                     .onTapGesture {
                         withAnimation(.easeInOut(duration: 0.3)) {
-                            print("CLOSING")
                             showBuySheet = false
                         }
                     }
@@ -274,73 +352,3 @@ struct TokenView : View {
         }
     }
 }
-
-struct LoadingPrice: View {
-    var body: some View {
-        RoundedRectangle(cornerRadius: 4)
-            .fill(Color.white.opacity(0.05))
-            .frame(width: 120, height: 32)
-            .shimmering(opacity: 0.1)
-    }
-}
-
-struct LoadingPriceChange: View {
-    var body: some View {
-        RoundedRectangle(cornerRadius: 4)
-            .fill(Color.white.opacity(0.05))
-            .frame(width: 80, height: 20)
-            .shimmering(opacity: 0.1)
-    }
-}
-
-struct LoadingChart: View {
-    var body: some View {
-        RoundedRectangle(cornerRadius: 8)
-            .fill(Color.white.opacity(0.03))
-            .frame(height: 350)
-            .shimmering(opacity: 0.08)
-    }
-}
-
-struct ShimmeringView: ViewModifier {
-    @State private var phase: CGFloat = 0
-    let opacity: Double
-    
-    init(opacity: Double = 0.1) {
-        self.opacity = opacity
-    }
-    
-    func body(content: Content) -> some View {
-        content
-            .overlay(
-                GeometryReader { geometry in
-                    Color.white
-                        .opacity(opacity)
-                        .mask(
-                            Rectangle()
-                                .fill(
-                                    LinearGradient(
-                                        gradient: Gradient(colors: [.clear, .white.opacity(0.3), .clear]),
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
-                                .frame(width: geometry.size.width * 2)
-                                .offset(x: -geometry.size.width + (phase * geometry.size.width * 2))
-                        )
-                }
-            )
-            .onAppear {
-                withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
-                    phase = 1
-                }
-            }
-    }
-}
-
-extension View {
-    func shimmering(opacity: Double = 0.1) -> some View {
-        modifier(ShimmeringView(opacity: opacity))
-    }
-}
-

@@ -53,3 +53,7 @@ struct Transaction: Identifiable, Equatable {
     let mint: String
 }
 
+    struct StatValue {
+        let text: String
+        let color: Color?
+    }
