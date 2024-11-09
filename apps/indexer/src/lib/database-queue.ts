@@ -13,7 +13,8 @@ type QueueItem = {
     decimals: number | null;
     is_pump_token: boolean | null;
   }>;
-  price_histories: Array<{
+  token_price_histories: Array<{
+    mint: string;
     price: string;
     amount_in: string | null;
     min_amount_out: string | null;
@@ -48,15 +49,13 @@ export class DatabaseQueue {
         try {
           const result = await item.gql.UpsertManyTokensAndPriceHistoriesMutation({
             tokens: item.tokens,
-            price_histories: item.price_histories,
+            price_histories: item.token_price_histories,
           });
 
-          if (result.error) {
-            throw new Error(result.error.message);
-          }
+          if (result.error) throw new Error(result.error.message);
+          console.log(`Processed ${item.tokens.length} tokens with ${item.token_price_histories.length} price points`);
+          console.log(`Time: ${item.token_price_histories[0]?.created_at}`);
 
-          console.log(`Processed ${item.tokens.length} tokens with ${item.price_histories.length} price points`);
-          console.log(`Time: ${item.price_histories[0]?.created_at}`);
           success = true;
           break;
         } catch (err) {

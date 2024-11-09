@@ -111,7 +111,8 @@ const handleSwapData = async <T extends SwapType = SwapType>(gql: GqlClient["db"
       decimals: token.decimals,
       is_pump_token: token.isPumpToken,
     })),
-    price_histories: _priceDataBatch.map(({ price, timestamp, swap }) => ({
+    token_price_histories: _priceDataBatch.map(({ mint, price, timestamp, swap }) => ({
+      mint,
       price: price.toString(),
       amount_in: "amountIn" in swap ? swap.amountIn.toString() : null,
       min_amount_out: "minimumAmountOut" in swap ? swap.minimumAmountOut.toString() : null,
