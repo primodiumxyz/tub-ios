@@ -1,5 +1,5 @@
 import { Connection, Keypair, PublicKey, Transaction } from "@solana/web3.js";
-import { core, signWithTokenFee, createAccountIfTokenFeePaid } from "@solana/octane-core";
+import { core, signWithTokenFee, createAccountIfTokenFeePaid } from "@primodiumxyz/octane-core";
 import { TokenFee } from "./tokenFee";
 import type { Cache } from 'cache-manager';
 
