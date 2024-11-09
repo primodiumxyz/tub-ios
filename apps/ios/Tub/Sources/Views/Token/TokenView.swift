@@ -155,7 +155,7 @@ struct TokenView : View {
             if tokenModel.loading {
                 LoadingChart()
             } else if selectedTimespan == .live {
-                ChartView(prices: tokenModel.prices, timeframeSecs: 120.0, purchaseTime: tokenModel.purchaseTime, purchaseAmount: tokenModel.balanceLamps)
+                ChartView(prices: tokenModel.prices, timeframeSecs: 120.0, purchaseData: tokenModel.purchaseData)
             } else {
                 CandleChartView(prices: tokenModel.prices, intervalSecs: 90, timeframeMins: 30)
                     .id(tokenModel.prices.count)

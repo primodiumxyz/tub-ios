@@ -11,7 +11,7 @@ struct SellForm: View {
     @EnvironmentObject var priceModel: SolPriceModel
     @ObservedObject var tokenModel: TokenModel
     var onSell : () -> ()
-
+    
     private var tokenAmountView: some View {
         let tokenAmount = Int(Double(tokenModel.balanceLamps) / 1e9 * Double(tokenModel.prices.last?.price ?? 0))
         
@@ -30,14 +30,18 @@ struct SellForm: View {
     }
     
     private var profitView: some View {
-        let initialValueUsd = priceModel.lamportsToUsd(lamports: tokenModel.amountBoughtLamps)
+        guard let purchaseData = tokenModel.purchaseData, purchaseData.amount > 0 else {
+            return AnyView(EmptyView())
+        }
+        
+        let initialValueUsd = priceModel.lamportsToUsd(lamports: purchaseData.amount)
         let currentValueLamps = Int(Double(tokenModel.balanceLamps) / 1e9 * Double(tokenModel.prices.last?.price ?? 0))
         let currentValueUsd = priceModel.lamportsToUsd(lamports: currentValueLamps)
         let gains = currentValueUsd - initialValueUsd
-        let percentageGain = tokenModel.amountBoughtLamps > 0 ? gains / initialValueUsd * 100 : 0
+        let percentageGain = purchaseData.amount > 0 ? gains / initialValueUsd * 100 : 0
         
-        return Group {
-            if tokenModel.amountBoughtLamps > 0 {
+        return AnyView(
+            Group {
                 VStack(alignment: .leading) {
                     Text("Profit")
                         .font(.sfRounded(size: .xs, weight: .semibold))
@@ -59,7 +63,7 @@ struct SellForm: View {
                 }
                 .frame(alignment: .leading)
             }
-        }
+        )
     }
     
     private var sellButton: some View {
