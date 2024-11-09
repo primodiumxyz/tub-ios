@@ -24,16 +24,26 @@ struct TokenInfoCardView: View {
     private var stats: [(String, StatValue)] {
         var stats = [(String, StatValue)]()
         
-        if activeTab == "sell" {
+        if let purchaseData = tokenModel.purchaseData, activeTab == "sell" {
             // Calculate current value in lamports
             let currentValueLamps = Int(Double(tokenModel.balanceLamps) / 1e9 * Double(tokenModel.prices.last?.price ?? 0))
             
             // Calculate profit
-            let initialValueUsd = priceModel.lamportsToUsd(lamports: tokenModel.amountBoughtLamps)
+            let initialValueUsd = priceModel.lamportsToUsd(lamports: purchaseData.price)
             let currentValueUsd = priceModel.lamportsToUsd(lamports: currentValueLamps)
             let gains = currentValueUsd - initialValueUsd
             
-            // Add position stats
+
+            if purchaseData.amount > 0 {
+                let percentageGain = gains / initialValueUsd * 100
+                stats += [
+                    ("Gains", StatValue(
+                        text: "\(priceModel.formatPrice(usd: gains, showSign: true)) (\(String(format: "%.2f", percentageGain))%)",
+                        color: gains >= 0 ? AppColors.green : AppColors.red
+                    ))
+                ]
+            }
+                        // Add position stats
             stats += [
                 ("You Own", StatValue(
                     text: "\(priceModel.formatPrice(lamports: currentValueLamps, maxDecimals: 2, minDecimals: 2)) (\(priceModel.formatPrice(lamports: tokenModel.balanceLamps, showUnit: false)) \(tokenModel.token.symbol))",
@@ -41,15 +51,6 @@ struct TokenInfoCardView: View {
                 ))
             ]
             
-            if tokenModel.amountBoughtLamps > 0 {
-                let percentageGain = gains / initialValueUsd * 100
-                stats += [
-                    ("All Time Gains", StatValue(
-                        text: "\(priceModel.formatPrice(usd: gains, showSign: true)) (\(String(format: "%.2f", percentageGain))%)",
-                        color: gains >= 0 ? AppColors.green : AppColors.red
-                    ))
-                ]
-            }
         }
         
         // Add original stats from tokenModel
@@ -139,11 +140,9 @@ struct TokenInfoCardView: View {
                 .cornerRadius(20)
             }
         }
-        .padding(.horizontal, 16)
         .padding(.vertical, 0)
         .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.44, alignment: .topLeading)
         .background(AppColors.black)
-        .cornerRadius(30)
         .overlay(
             RoundedRectangle(cornerRadius: 30)
                 .inset(by: 0.5)

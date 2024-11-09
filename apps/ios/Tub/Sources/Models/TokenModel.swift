@@ -22,8 +22,7 @@ class TokenModel: ObservableObject {
     @Published var loading = true
     @Published var balanceLamps: Int = 0
     
-    @Published var amountBoughtLamps: Int = 0
-    @Published var purchaseTime : Date? = nil
+    @Published var purchaseData : PurchaseData? = nil
     
     @Published var prices: [Price] = []
     @Published var priceChange: (amountLamps: Int, percentage: Double) = (0, 0)
@@ -171,8 +170,11 @@ class TokenModel: ObservableObject {
             ) { result in
                 switch result {
                 case .success:
-                    self.amountBoughtLamps = buyAmountLamps
-                    self.purchaseTime = Date()
+                    self.purchaseData = PurchaseData (
+                        timestamp: Date(),
+                        amount: buyAmountLamps,
+                        price: price
+                    )
                 case .failure(let error):
                     print("Error buying tokens: \(error)")
                 }
@@ -186,7 +188,7 @@ class TokenModel: ObservableObject {
         ) { result in
             switch result {
             case .success:
-                self.purchaseTime = nil
+                self.purchaseData = nil
             case .failure(let error):
                 print("Error selling tokens: \(error)")
             }

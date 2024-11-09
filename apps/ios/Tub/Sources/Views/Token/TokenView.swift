@@ -9,6 +9,17 @@ import SwiftUI
 import Combine
 import TubAPI
 
+enum TubError: LocalizedError {
+    case insufficientBalance
+    
+    var errorDescription: String? {
+        switch self {
+        case .insufficientBalance:
+            return "Insufficient Balance"
+        }
+    }
+}
+
 struct TokenView : View {
     @EnvironmentObject private var errorHandler: ErrorHandler
     @ObservedObject var tokenModel: TokenModel
@@ -21,50 +32,6 @@ struct TokenView : View {
     @State private var showBuySheet: Bool = false
     @State private var defaultAmount: Double = 50.0
     
-    // Add a type to handle colored text
-    private struct StatValue {
-        let text: String
-        let color: Color?
-    }
-    
-    private var stats: [(String, StatValue)] {
-        var stats = [(String, StatValue)]()
-        
-        if activeTab == "sell" {
-            // Calculate current value in lamports
-            let currentValueLamps = Int(Double(tokenModel.balanceLamps) / 1e9 * Double(tokenModel.prices.last?.price ?? 0))
-            
-            // Calculate profit
-            let initialValueUsd = priceModel.lamportsToUsd(lamports: tokenModel.amountBoughtLamps)
-            let currentValueUsd = priceModel.lamportsToUsd(lamports: currentValueLamps)
-            let gains = currentValueUsd - initialValueUsd
-            
-            // Add position stats
-            stats += [
-                ("You Own", StatValue(
-                    text: "\(priceModel.formatPrice(lamports: currentValueLamps, maxDecimals: 2, minDecimals: 2)) (\(priceModel.formatPrice(lamports: tokenModel.balanceLamps, showUnit: false)) \(tokenModel.token.symbol))",
-                    color: nil
-                ))
-            ]
-            
-            if tokenModel.amountBoughtLamps > 0 {
-                let percentageGain = gains / initialValueUsd * 100
-                stats += [
-                    ("All Time Gains", StatValue(
-                        text: "\(priceModel.formatPrice(usd: gains, showSign: true)) (\(String(format: "%.2f", percentageGain))%)",
-                        color: gains >= 0 ? AppColors.green : AppColors.red
-                    ))
-                ]
-            }
-        }
-        
-        // Convert original stats to new format
-        stats += tokenModel.getTokenStats(priceModel: priceModel).map { 
-            ($0.0, StatValue(text: $0.1, color: nil))
-        }
-        
-        return stats
-    }
     
     enum Timespan: String, CaseIterable {
         case live = "LIVE"
@@ -72,8 +39,8 @@ struct TokenView : View {
         
         var interval: Interval {
             switch self {
-                case .live: return CHART_INTERVAL
-                case .thirtyMin: return "30m"
+            case .live: return CHART_INTERVAL
+            case .thirtyMin: return "30m"
             }
         }
     }
@@ -85,6 +52,10 @@ struct TokenView : View {
     
     func handleBuy(amount: Double) {
         let buyAmountLamps = priceModel.usdToLamports(usd: amount)
+        if(buyAmountLamps > userModel.balanceLamps) {
+            errorHandler.show(TubError.insufficientBalance)
+            return
+        }
         tokenModel.buyTokens(buyAmountLamps: buyAmountLamps) { result in
             switch result {
             case .success:
@@ -108,17 +79,10 @@ struct TokenView : View {
                 chartView
                 intervalButtons
                     .padding(.bottom,8)
-                if activeTab == "sell" {
-                    infoCardLowOpacity
-                        .opacity(1) // Adjust opacity here
-                        .padding(.horizontal, 8)
-                        .padding(.bottom, -4)
-                }else{
-                    infoCardLowOpacity
-                        .opacity(0.5) // Adjust opacity here
-                        .padding(.horizontal, 8)
-                        .padding(.bottom, -4)
-                }
+                infoCardLowOpacity
+                    .opacity(0.8)
+                    .padding(.horizontal, 8)
+                    .padding(.bottom, -4)
                 
                 BuySellForm(
                     tokenModel: tokenModel,
@@ -153,9 +117,9 @@ struct TokenView : View {
                 } else {
                     Text(priceModel.formatPrice(lamports: tokenModel.prices.last?.price ?? 0, maxDecimals: 9, minDecimals: 2))
                         .font(.sfRounded(size: .xl4, weight: .bold))
+                    Image(systemName: "info.circle.fill")
+                        .frame(width: 16, height: 16)
                 }
-                Image(systemName: "info.circle.fill")
-                    .frame(width: 16, height: 16)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             
@@ -186,13 +150,15 @@ struct TokenView : View {
             if tokenModel.loading {
                 LoadingChart()
             } else if selectedTimespan == .live {
-                ChartView(prices: tokenModel.prices, timeframeSecs: 120.0, purchaseTime: tokenModel.purchaseTime, purchaseAmount: tokenModel.balanceLamps)
+                ChartView(prices: tokenModel.prices, timeframeSecs: 120.0, purchaseData: tokenModel.purchaseData)
             } else {
                 CandleChartView(prices: tokenModel.prices, intervalSecs: 90, timeframeMins: 30)
                     .id(tokenModel.prices.count)
             }
         }
     }
+    
+    /* ---------------------------- Interval Buttons ---------------------------- */
     
     private var intervalButtons: some View {
         HStack {
@@ -231,22 +197,57 @@ struct TokenView : View {
         }
     }
     
+    /* ------------------------------ Info Overlays ----------------------------- */
+    
+    private var stats: [(String, StatValue)] {
+        var stats = [(String, StatValue)]()
+        
+        if let purchaseData = tokenModel.purchaseData, activeTab == "sell" {
+            // Calculate current value in lamports
+            let currentValueLamps = Int(Double(tokenModel.balanceLamps) / 1e9 * Double(tokenModel.prices.last?.price ?? 0))
+            
+            // Calculate profit
+            let initialValueUsd = priceModel.lamportsToUsd(lamports: purchaseData.amount)
+            let currentValueUsd = priceModel.lamportsToUsd(lamports: currentValueLamps)
+            let gains = currentValueUsd - initialValueUsd
+            
+            
+            
+            if purchaseData.amount > 0 {
+                let percentageGain = gains / initialValueUsd * 100
+                stats += [
+                    ("Gains", StatValue(
+                        text: "\(priceModel.formatPrice(usd: gains, showSign: true)) (\(String(format: "%.2f", percentageGain))%)",
+                        color: gains >= 0 ? AppColors.green : AppColors.red
+                    ))
+                ]
+            }
+            
+            // Add position stats
+            stats += [
+                ("You Own", StatValue(
+                    text: "\(priceModel.formatPrice(lamports: currentValueLamps, maxDecimals: 2, minDecimals: 2)) (\(priceModel.formatPrice(lamports: tokenModel.balanceLamps, showUnit: false)) \(tokenModel.token.symbol))",
+                    color: nil
+                ))
+            ]
+        } else {
+            stats += tokenModel.getTokenStats(priceModel: priceModel).map {
+                ($0.0, StatValue(text: $0.1, color: nil))
+            }
+        }
+        
+        return stats
+    }
+
     private var infoCardLowOpacity: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("Stats")
-                .font(.sfRounded(size: .xl, weight: .semibold))
-                .foregroundColor(AppColors.white)
-                .frame(maxWidth: .infinity, alignment: .topLeading)
-                .padding(.bottom, 4)
-            
-            // First show the single-column stats (You Own, Value, Profit)
             if activeTab == "sell" {
                 ForEach(stats.prefix(3), id: \.0) { stat in
                     VStack(spacing: 2) {
                         HStack(spacing: 0) {
                             Text(stat.0)
                                 .font(.sfRounded(size: .xs, weight: .regular))
-                                .foregroundColor(AppColors.gray)
+                                .foregroundColor(AppColors.white.opacity(0.7))
                                 .fixedSize(horizontal: true, vertical: false)
                             
                             Text(stat.1.text)
@@ -262,7 +263,6 @@ struct TokenView : View {
                             .background(AppColors.gray.opacity(0.5))
                             .padding(.top, 2)
                     }
-                    .padding(.vertical, 4)
                 }
             }
             
@@ -277,7 +277,7 @@ struct TokenView : View {
                                 HStack(spacing: 0) {
                                     Text(stat.0)
                                         .font(.sfRounded(size: .xs, weight: .regular))
-                                        .foregroundColor(AppColors.gray)
+                                        .foregroundColor(AppColors.white.opacity(0.7))
                                         .fixedSize(horizontal: true, vertical: false)
                                     
                                     Text(stat.1.text)
@@ -340,7 +340,6 @@ struct TokenView : View {
                     .ignoresSafeArea()
                     .onTapGesture {
                         withAnimation(.easeInOut(duration: 0.3)) {
-                            print("CLOSING")
                             showBuySheet = false
                         }
                     }
@@ -351,84 +350,5 @@ struct TokenView : View {
                     .zIndex(2) // Ensure it stays on top
             }
         }
-    }
-    
-    private func formatLargeNumber(_ number: Double) -> String {
-        if number >= 1_000_000 {
-            return String(format: "%.1fM", number / 1_000_000)
-        } else if number >= 1_000 {
-            return String(format: "%.1fK", number / 1_000)
-        } else {
-            return String(format: "%.2f", number)
-        }
-    }
-}
-
-struct LoadingPrice: View {
-    var body: some View {
-        RoundedRectangle(cornerRadius: 4)
-            .fill(Color.white.opacity(0.05))
-            .frame(width: 120, height: 32)
-            .shimmering(opacity: 0.1)
-    }
-}
-
-struct LoadingPriceChange: View {
-    var body: some View {
-        RoundedRectangle(cornerRadius: 4)
-            .fill(Color.white.opacity(0.05))
-            .frame(width: 80, height: 20)
-            .shimmering(opacity: 0.1)
-    }
-}
-
-struct LoadingChart: View {
-    var body: some View {
-        RoundedRectangle(cornerRadius: 8)
-            .fill(Color.white.opacity(0.03))
-            .frame(height: 350)
-            .shimmering(opacity: 0.08)
-    }
-}
-
-struct ShimmeringView: ViewModifier {
-    @State private var phase: CGFloat = 0
-    let opacity: Double
-    
-    init(opacity: Double = 0.1) {
-        self.opacity = opacity
-    }
-    
-    func body(content: Content) -> some View {
-        content
-            .overlay(
-                GeometryReader { geometry in
-                    Color.white
-                        .opacity(opacity)
-                        .mask(
-                            Rectangle()
-                                .fill(
-                                    LinearGradient(
-                                        gradient: Gradient(colors: [.clear, .white.opacity(0.3), .clear]),
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
-                                .frame(width: geometry.size.width * 2)
-                                .offset(x: -geometry.size.width + (phase * geometry.size.width * 2))
-                        )
-                }
-            )
-            .onAppear {
-                withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
-                    phase = 1
-                }
-            }
-    }
-}
-
-extension View {
-    func shimmering(opacity: Double = 0.1) -> some View {
-        modifier(ShimmeringView(opacity: opacity))
     }
 }
