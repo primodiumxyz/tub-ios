@@ -79,6 +79,7 @@ struct BuyForm: View {
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
             isKeyboardActive = false
         }
+        .dismissKeyboardOnTap()
     }
     
     private var formContent: some View {
