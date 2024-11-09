@@ -24,6 +24,7 @@ struct HistoryDetailsView: View {
                         .foregroundColor(AppColors.gray)
                         .font(.sfRounded(size: .sm, weight: .medium))
                     HStack {
+                        let _ = print(transaction.imageUri)
                         ImageView(imageUri: transaction.imageUri, size: 40)
                             .cornerRadius(8)
                         
