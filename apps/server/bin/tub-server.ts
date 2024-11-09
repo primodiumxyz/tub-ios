@@ -51,8 +51,8 @@ export const start = async () => {
     const cache = cacheManager.caching({ store: 'memory', max: 100, ttl: 10/*seconds*/ });
 
 
-    // Create fee payer keypair (you'll need to load this from env or elsewhere)
-    const feePayerKeypair = Keypair.fromSecretKey(/* !! TODO: load secret key */);
+    // Create fee payer keypair (!! TODO: implement more robust keypair management)
+    const feePayerKeypair = Keypair.fromSecretKey(new Uint8Array(Buffer.from(env.PRIVATE_KEY, "base64")));
 
     if (!feePayerKeypair) {
       throw new Error("Fee payer keypair not found");
