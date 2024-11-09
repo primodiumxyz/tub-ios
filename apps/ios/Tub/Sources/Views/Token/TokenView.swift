@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Combine
+import TubAPI
 
 struct TokenView : View {
     @EnvironmentObject private var errorHandler: ErrorHandler
@@ -20,25 +21,18 @@ struct TokenView : View {
     @State private var showBuySheet: Bool = false
     @State private var defaultAmount: Double = 50.0
     
-    @State private var priceChangeInterval: TimeInterval = 0
-    @State private var priceChangeTimer: Timer?
+    private var stats: [(String, String)] {
+        return tokenModel.getTokenStats(priceModel: priceModel)
+    }
     
-    //placeholder
-    let stats = [
-            ("Market Cap", "$144M"),
-            ("Volume", "1.52M"),
-            ("Holders", "53.3K"),
-            ("Supply", "989M")
-    ]
-    
-    enum Timespan: String {
+    enum Timespan: String, CaseIterable {
         case live = "LIVE"
         case thirtyMin = "30M"
         
-        var interval: Double {
+        var interval: Interval {
             switch self {
-            case .live: return 120.0
-            case .thirtyMin: return 30.0 * 60.0
+                case .live: return CHART_INTERVAL
+                case .thirtyMin: return "30m"
             }
         }
     }
@@ -65,26 +59,20 @@ struct TokenView : View {
         }
     }
     
-    private func startPriceChangeTimer() {
-        priceChangeTimer?.invalidate()
-        priceChangeTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-            if let refTime = self.tokenModel.priceRef?.timestamp {
-                self.priceChangeInterval = Date().timeIntervalSince(refTime)
-            }
-        }
-    }
-    
     var body: some View {
         ZStack {
             // Main content
             VStack(alignment: .leading, spacing: 4) {
                 tokenInfoView
                 chartView
-                timespanButtons
-                infoCardLowOpacity
-                    .opacity(0.5) // Adjust opacity here
-                    .padding(.horizontal, 8)
-                    .padding(.bottom, -4)
+                intervalButtons
+                if activeTab != "sell" {
+                    infoCardLowOpacity
+                        .opacity(0.5) // Adjust opacity here
+                        .padding(.horizontal, 8)
+                        .padding(.bottom, -4)
+                }
+                
 
                 BuySellForm(
                     tokenModel: tokenModel,
@@ -102,40 +90,41 @@ struct TokenView : View {
             buySheetOverlay
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .onAppear {
-            startPriceChangeTimer()
-        }
-        .onDisappear {
-            priceChangeTimer?.invalidate()
-            priceChangeTimer = nil
-        }
     }
     
     private var tokenInfoView: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
-                if tokenModel.token.imageUri != nil {
-                    ImageView(imageUri: tokenModel.token.imageUri!, size: 20)
+                if tokenModel.token.imageUri != "" {
+                    ImageView(imageUri: tokenModel.token.imageUri, size: 20)
                 }
-                Text("$\(tokenModel.token.symbol ?? "")")
+                Text("$\(tokenModel.token.symbol)")
                     .font(.sfRounded(size: .lg, weight: .semibold))
             }
             HStack(alignment: .center, spacing: 6) {
-                Text(priceModel.formatPrice(lamports: tokenModel.prices.last?.price ?? 0, maxDecimals: 9, minDecimals: 2))
-                    .font(.sfRounded(size: .xl4, weight: .bold))
+                if tokenModel.loading {
+                    LoadingPrice()
+                } else {
+                    Text(priceModel.formatPrice(lamports: tokenModel.prices.last?.price ?? 0, maxDecimals: 9, minDecimals: 2))
+                        .font(.sfRounded(size: .xl4, weight: .bold))
+                }
                 Image(systemName: "info.circle.fill")
                     .frame(width: 16, height: 16)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             
-            HStack {
-                Text(priceModel.formatPrice(lamports: tokenModel.priceChange.amountLamps, showSign: true))
-                Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
-                
-                Text(formatTimeElapsed(self.priceChangeInterval)).foregroundColor(.gray)
+            if tokenModel.loading {
+                LoadingPriceChange()
+            } else {
+                HStack {
+                    Text(priceModel.formatPrice(lamports: tokenModel.priceChange.amountLamps, showSign: true))
+                    Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
+                    
+                    Text(tokenModel.interval).foregroundColor(.gray)
+                }
+                .font(.sfRounded(size: .sm, weight: .semibold))
+                .foregroundColor(tokenModel.priceChange.amountLamps >= 0 ? .green : .red)
             }
-            .font(.sfRounded(size: .sm, weight: .semibold))
-            .foregroundColor(tokenModel.priceChange.amountLamps >= 0 ? .green : .red)
         }
         .padding(.horizontal)
         .onTapGesture {
@@ -148,8 +137,10 @@ struct TokenView : View {
     
     private var chartView: some View {
         Group {
-            if selectedTimespan == .live {
-                ChartView(prices: tokenModel.prices, timeframeSecs: 90.0, purchaseTime: tokenModel.purchaseTime, purchaseAmount: tokenModel.balanceLamps)
+            if tokenModel.loading {
+                LoadingChart()
+            } else if selectedTimespan == .live {
+                ChartView(prices: tokenModel.prices, timeframeSecs: 120.0, purchaseTime: tokenModel.purchaseTime, purchaseAmount: tokenModel.balanceLamps)
             } else {
                 CandleChartView(prices: tokenModel.prices, intervalSecs: 90, timeframeMins: 30)
                     .id(tokenModel.prices.count)
@@ -157,82 +148,68 @@ struct TokenView : View {
         }
     }
     
-    private var timespanButtons: some View {
+    private var intervalButtons: some View {
         HStack {
             Spacer()
             HStack {
-                ForEach([Timespan.live, Timespan.thirtyMin], id: \.self) { timespan in
-                    Button(action: {
-                        selectedTimespan = timespan
-                        tokenModel.updateHistoryTimeframe(timespan.interval)
-                    }) {
-                        HStack(spacing: 4) {
-                            if timespan == Timespan.live {
-                                Circle()
-                                    .fill(AppColors.red)
-                                    .frame(width: 7, height: 7)
-                            }
-                            Text(timespan.rawValue)
-                                .font(.sfRounded(size: .sm, weight: .semibold))
-                        }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(selectedTimespan == timespan ? AppColors.aquaBlue : Color.clear)
-                        .foregroundColor(selectedTimespan == timespan ? AppColors.black : AppColors.white)
-                        .cornerRadius(20)
-                    }
-                }
+                intervalButton(for: .live)
+                intervalButton(for: .thirtyMin)
             }
             Spacer()
         }
         .padding(.horizontal)
     }
     
-    private var infoCardLowOpacity: some View {
-        
-        VStack(alignment: .leading, spacing: 0) {
-            
-            Text("Stats")
-                .font(.sfRounded(size: .xl, weight: .semibold))
-                .foregroundColor(AppColors.white)
-                .frame(maxWidth: .infinity, alignment: .topLeading)
-            
-            // grid
-            ForEach(0..<stats.count/2, id: \.self) { index in
-                HStack(alignment: .top, spacing: 20) {
-                    ForEach(0..<2) { subIndex in
-                        let stat = stats[index * 2 + subIndex]
-                        VStack {
-                            HStack(alignment: .center)  {
-                                Text(stat.0)
-                                    .font(.sfRounded(size: .sm, weight: .regular))
-                                    .foregroundColor(AppColors.gray)
-                                    .fixedSize(horizontal: true, vertical: false)
-                                
-                                Text(stat.1)
-                                    .font(.sfRounded(size: .base, weight: .semibold))
-                                    .frame(maxWidth: .infinity, alignment: .topTrailing)
-                                    .foregroundColor(AppColors.white)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            
-                            //divider
-                            Rectangle()
-                                .foregroundColor(.clear)
-                                .frame(height: 0.5)
-                                .background(AppColors.gray.opacity(0.5))
-                        }
-                    }
-                }
-                .padding(.top,8)
-                .padding(.horizontal,8)
+    private func intervalButton(for timespan: Timespan) -> some View {
+        Button {
+            withAnimation {
+                selectedTimespan = timespan
+                tokenModel.updateHistoryInterval(timespan.interval)
             }
+        } label: {
+            HStack {
+                if timespan == .live {
+                    Circle()
+                        .fill(AppColors.red)
+                        .frame(width: 10, height: 10)
+                }
+                Text(timespan.rawValue)
+                    .font(.sfRounded(size: .base, weight: .semibold))
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+            .background(selectedTimespan == timespan ? AppColors.aquaBlue : Color.clear)
+            .foregroundColor(selectedTimespan == timespan ? AppColors.black : AppColors.white)
+            .cornerRadius(6)
         }
-        .padding(.horizontal,24)
-        .padding(.vertical,16)
-        .frame(maxWidth: .infinity, maxHeight: 95 ,alignment: .topLeading)
+    }
+    
+    private var infoCardLowOpacity: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .top, spacing: 20) {
+                ForEach(0..<2) { index in
+                    let stat = stats[index]
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(stat.1)
+                            .font(.sfRounded(size: .base, weight: .semibold))
+                            .foregroundColor(AppColors.white)
+                        
+                        Text(stat.0)
+                            .font(.sfRounded(size: .sm, weight: .regular))
+                            .foregroundColor(AppColors.gray)
+                            .fixedSize(horizontal: true, vertical: false)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+            .padding(.top, 8)
+        }
+        .padding(.horizontal, 24)
+        .padding(.vertical, 16)
+        .frame(maxWidth: .infinity, maxHeight: 95, alignment: .topLeading)
         .background(AppColors.darkGrayGradient)
         .cornerRadius(12)
+        .padding(.top, 16)
         .onTapGesture {
             withAnimation(.easeInOut) {
                 showInfoCard.toggle()
@@ -281,21 +258,74 @@ struct TokenView : View {
             }
         }
     }
+}
+
+struct LoadingPrice: View {
+    var body: some View {
+        RoundedRectangle(cornerRadius: 4)
+            .fill(Color.white.opacity(0.05))
+            .frame(width: 120, height: 32)
+            .shimmering(opacity: 0.1)
+    }
+}
+
+struct LoadingPriceChange: View {
+    var body: some View {
+        RoundedRectangle(cornerRadius: 4)
+            .fill(Color.white.opacity(0.05))
+            .frame(width: 80, height: 20)
+            .shimmering(opacity: 0.1)
+    }
+}
+
+struct LoadingChart: View {
+    var body: some View {
+        RoundedRectangle(cornerRadius: 8)
+            .fill(Color.white.opacity(0.03))
+            .frame(height: 350)
+            .shimmering(opacity: 0.08)
+    }
+}
+
+struct ShimmeringView: ViewModifier {
+    @State private var phase: CGFloat = 0
+    let opacity: Double
     
-    private func formatTimeElapsed(_ timeInterval: TimeInterval) -> String {
-        let hours = Int(timeInterval) / 3600
-        let minutes = (Int(timeInterval) % 3600) / 60
-        let seconds = Int(timeInterval) % 60
-        
-        if hours > 1 {
-            return "\(hours)h"
-        } else if hours > 0 {
-            return "\(hours)h"
-        } else if minutes > 1 {
-            return "\(minutes)m"
-        } else  {
-            return "\(seconds)s"
-        }
+    init(opacity: Double = 0.1) {
+        self.opacity = opacity
+    }
+    
+    func body(content: Content) -> some View {
+        content
+            .overlay(
+                GeometryReader { geometry in
+                    Color.white
+                        .opacity(opacity)
+                        .mask(
+                            Rectangle()
+                                .fill(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [.clear, .white.opacity(0.3), .clear]),
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .frame(width: geometry.size.width * 2)
+                                .offset(x: -geometry.size.width + (phase * geometry.size.width * 2))
+                        )
+                }
+            )
+            .onAppear {
+                withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
+                    phase = 1
+                }
+            }
+    }
+}
+
+extension View {
+    func shimmering(opacity: Double = 0.1) -> some View {
+        modifier(ShimmeringView(opacity: opacity))
     }
 }
 

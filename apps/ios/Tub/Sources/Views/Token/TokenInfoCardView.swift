@@ -16,12 +16,7 @@ struct TokenInfoCardView: View {
     @State private var isClosing: Bool = false
     
     private var stats: [(String, String)] {
-        [
-            ("Market Cap", priceModel.formatPrice(lamports: (tokenModel.prices.last?.price ?? 0) * (tokenModel.token.supply ?? 0) / Int(pow(10.0, Double(tokenModel.token.decimals ?? 0))))),
-            ("Volume (\(String(tokenModel.token.volume?.interval ?? "30s")))", formatLargeNumber(Double(tokenModel.token.volume?.value ?? 0) / 1e9)), // TODO: fix volume calculation
-            ("Holders", "53.3K"), // TODO: Add holders data?
-            ("Supply", formatLargeNumber(Double(tokenModel.token.supply ?? 0) / pow(10.0, Double(tokenModel.token.decimals ?? 0))))
-        ]
+        return tokenModel.getTokenStats(priceModel: priceModel)
     }
     
     var body: some View {
@@ -43,34 +38,29 @@ struct TokenInfoCardView: View {
                     .foregroundColor(AppColors.white)
                     .frame(maxWidth: .infinity, alignment: .topLeading)
                 
-                // grid
-                ForEach(0..<stats.count/2, id: \.self) { index in
-                    HStack(alignment: .top, spacing: 20) {
-                        ForEach(0..<2) { subIndex in
-                            let stat = stats[index * 2 + subIndex]
-                            VStack {
-                                HStack(alignment: .center)  {
-                                    Text(stat.0)
-                                        .font(.sfRounded(size: .sm, weight: .regular))
-                                        .foregroundColor(AppColors.gray)
-                                        .fixedSize(horizontal: true, vertical: false)
-                                    
-                                    Text(stat.1)
-                                        .font(.sfRounded(size: .base, weight: .semibold))
-                                        .frame(maxWidth: .infinity, alignment: .topTrailing)
-                                        .foregroundColor(AppColors.white)
-                                }
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                
-                                //divider
-                                Rectangle()
-                                    .foregroundColor(.clear)
-                                    .frame(height: 0.5)
-                                    .background(AppColors.gray.opacity(0.5))
-                            }
+                // Replace the grid ForEach with a vertical stack
+                ForEach(stats, id: \.0) { stat in
+                    VStack {
+                        HStack(alignment: .center)  {
+                            Text(stat.0)
+                                .font(.sfRounded(size: .sm, weight: .regular))
+                                .foregroundColor(AppColors.gray)
+                                .fixedSize(horizontal: true, vertical: false)
+                            
+                            Text(stat.1)
+                                .font(.sfRounded(size: .base, weight: .semibold))
+                                .frame(maxWidth: .infinity, alignment: .topTrailing)
+                                .foregroundColor(AppColors.white)
                         }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        
+                        //divider
+                        Rectangle()
+                            .foregroundColor(.clear)
+                            .frame(height: 0.5)
+                            .background(AppColors.gray.opacity(0.5))
                     }
-                    .padding(8)
+                    .padding(.vertical, 4)
                 }
                 
                 VStack(alignment: .leading, spacing: 8) {
@@ -79,10 +69,9 @@ struct TokenInfoCardView: View {
                         .foregroundColor(AppColors.white)
                         .frame(maxWidth: .infinity, alignment: .topLeading)
                     
-                    Text("\(tokenModel.token.description ?? "")")
+                    Text("\(tokenModel.token.description)")
                         .font(.sfRounded(size: .sm, weight: .regular))
                         .foregroundColor(AppColors.lightGray)
-                        .padding(.horizontal, 8)
                 }
                 .padding(.vertical, 16)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -160,14 +149,3 @@ struct TokenInfoCardView: View {
     }
 }
 
-#Preview {
-    @Previewable @AppStorage("userId") var userId: String = ""
-    @Previewable @State var isVisible = true
-    @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
-    
-    TokenInfoCardView(
-        tokenModel: TokenModel(walletAddress: "", tokenId: mockTokenId),
-        isVisible: $isVisible
-    )
-    .environmentObject(priceModel)
-}

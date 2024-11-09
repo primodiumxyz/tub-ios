@@ -279,7 +279,13 @@ input formatted_tokens_bool_exp {
 """formatted_tokens_intervalNative Query Arguments"""
 input formatted_tokens_interval_arguments {
   """"""
+  distinct_prices_interval: interval!
+
+  """"""
   interval: interval!
+
+  """"""
+  min_distinct_prices: Int!
 }
 
 """aggregate max on columns"""

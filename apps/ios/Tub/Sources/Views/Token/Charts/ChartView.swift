@@ -15,7 +15,7 @@ struct ChartView: View {
     let purchaseTime: Date?
     let purchaseAmount: Int
     
-    init(prices: [Price], timeframeSecs: Double, purchaseTime: Date? = nil, purchaseAmount: Int? = nil) {
+    init(prices: [Price], timeframeSecs: Double = 90.0, purchaseTime: Date? = nil, purchaseAmount: Int? = nil) {
         self.prices = prices
         self.timeframeSecs = timeframeSecs
         self.purchaseTime = purchaseTime
@@ -44,59 +44,20 @@ struct ChartView: View {
         return prices.min(by: { abs($0.timestamp.timeIntervalSince(purchaseTime)) < abs($1.timestamp.timeIntervalSince(purchaseTime)) })
     }
     
-    private var filteredPrices: [Price] {
-        // Use currentTime in the calculation to trigger updates
-        let filteredPrices = filterPrices(prices: prices, timeframeSecs: timeframeSecs, currentTime: currentTime)
-        return filteredPrices
-    }
-    
-    private func interpolatePrice(firstPoint: Price, secondPoint: Price, atTimestamp timestamp: TimeInterval) -> Price {
-        let timeSpan = secondPoint.timestamp.timeIntervalSince(firstPoint.timestamp)
-        let priceSpan = Double(secondPoint.price - firstPoint.price)
-        let slope = priceSpan / timeSpan
+    private var yDomain: ClosedRange<Int> {
+        if prices.isEmpty { return 0...100 }
         
-        let timeDiff = timestamp - firstPoint.timestamp.timeIntervalSince1970
-        let interpolatedPrice = Int(Double(firstPoint.price) + slope * timeDiff)
+        let minPrice = prices.min { $0.price < $1.price }?.price ?? 0
+        let maxPrice = prices.max { $0.price < $1.price }?.price ?? 100
+        let range = maxPrice - minPrice
+        let padding = Int(Double(range) * 0.25)
         
-        return Price(timestamp: Date(timeIntervalSince1970: timestamp), price: interpolatedPrice)
-    }
-    
-    private func filterPrices(prices: [Price], timeframeSecs: Double, currentTime: TimeInterval) -> [Price] {
-        if(prices.count < 2) {
-           return prices 
-        }
-        let cutoffDate = currentTime - timeframeSecs
-        var filteredPrices = prices.filter { $0.timestamp.timeIntervalSince1970 >= cutoffDate }
-        
-        if filteredPrices.count < 2 {
-            filteredPrices = Array(prices.suffix(2))
-        } else if filteredPrices.count >= 2 {
-            // Find the final filtered point and first unfiltered point
-            let firstUnfilteredPoint = filteredPrices.first!
-            if let firstUnfilteredIndex = prices.firstIndex(where: { $0.timestamp.timeIntervalSince1970 >= cutoffDate }), firstUnfilteredIndex > 0
-            {
-                // Interpolate the price at the cutoff date
-                let interpolatedPoint = interpolatePrice(firstPoint: firstUnfilteredPoint,
-                                                         secondPoint: prices[firstUnfilteredIndex - 1],
-                                                         atTimestamp: cutoffDate)
-                filteredPrices.insert(interpolatedPoint, at: 0)
-            } else {
-                filteredPrices.insert(firstUnfilteredPoint, at: 0)
-            }
-        }
-        
-        // Append a price at the current time with the most recent price value
-        if let lastPrice = prices.last {
-            let currentPrice = Price(timestamp: Date(timeIntervalSince1970: currentTime), price: lastPrice.price)
-            filteredPrices.append(currentPrice)
-        }
-        
-        return filteredPrices
+        return (minPrice - padding)...(maxPrice + padding)
     }
     
     var body: some View {
         Chart {
-            ForEach(filteredPrices) { price in
+            ForEach(prices) { price in
                 LineMark(
                     x: .value("Date", price.timestamp),
                     y: .value("Price", price.price)
@@ -104,10 +65,10 @@ struct ChartView: View {
                 .foregroundStyle(AppColors.aquaBlue.opacity(0.8))
                 .shadow(color: AppColors.aquaBlue, radius: 3, x: 2, y: 2)
                 .lineStyle(StrokeStyle(lineWidth: 3))
-                .interpolationMethod(.catmullRom) 
+//                .interpolationMethod(.catmullRom) 
             }
             
-            if let currentPrice = filteredPrices.last, filteredPrices.count >= 2 {
+            if let currentPrice = prices.last, prices.count >= 2 {
                 PointMark(
                     x: .value("Date", currentPrice.timestamp),
                     y: .value("Price", currentPrice.price)
@@ -123,10 +84,11 @@ struct ChartView: View {
                     if closestPurchasePrice?.timestamp == currentPrice.timestamp {
                         EmptyView()
                     } else {
-                    PillView(value:
-                                "\(priceModel.formatPrice(lamports: abs(currentPrice.price)))",
+                        PillView(
+                            value: "\(priceModel.formatPrice(lamports: abs(currentPrice.price)))",
                              color: dashedLineColor,
-                             foregroundColor: AppColors.black)
+                             foregroundColor: AppColors.black
+                        )
                     }
                 }
             }
@@ -152,28 +114,9 @@ struct ChartView: View {
                 }
             }
         }
-//        .chartXAxis {
-//            AxisMarks(values: .stride(by: .second, count: Int(floor(timeframeSecs / 2)))) { value in
-//                AxisValueLabel(format: .dateTime.hour().minute())
-//                    .foregroundStyle(.white.opacity(0.5))
-//            }
-//        }
-//        .chartYAxis {
-//            AxisMarks(position: .leading) { value in
-//                AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
-//                    .foregroundStyle(.white.opacity(0.2))
-//                AxisValueLabel()
-//                AxisValueLabel {
-//                    if let intValue = value.as(Int.self) {
-//                        Text(priceModel.formatPrice(lamports: intValue))
-//                            .foregroundStyle(.white)
-//                            .font(.sfRounded(size: .xs, weight: .regular))
-//                    }
-//                }
-//                .foregroundStyle(.white.opacity(0.5))
-//            }
-//        }
-        .chartYScale(domain: .automatic)
+        .chartYScale(domain: yDomain)
+        .chartYAxis(.hidden)
+        .chartXAxis(.hidden)
         .frame(width: .infinity, height: 330)
         .onReceive(Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()) { _ in
             currentTime = Date().timeIntervalSince1970

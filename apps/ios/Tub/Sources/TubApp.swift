@@ -20,21 +20,21 @@ struct TubApp: App {
 
 struct AppContent : View {
     @StateObject private var errorHandler = ErrorHandler()
-    @State var isPrivySdkReady = false
     @State var myAuthState : AuthState = AuthState.notReady
     @State var userId : String = ""
     @State var walletState : EmbeddedWalletState = EmbeddedWalletState.notCreated
     
     var body: some View {
         Group{
-            if myAuthState.toString == "notReady" || walletState == .connecting {
-                LoadingView()
-            }
-            else if myAuthState.toString != "authenticated" {
+            if myAuthState == .unauthenticated {
                 RegisterView()
             } else if walletState == EmbeddedWalletState.notCreated {
                 CreateWalletView()
-            } else {
+            } 
+            else if myAuthState.toString != "authenticated" || walletState.toString != "connected" {
+                LoadingView()
+            }
+            else {
                 HomeTabsView(userId: userId).font(.sfRounded())
             }
         }.onAppear(perform: {
