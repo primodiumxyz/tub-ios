@@ -6,6 +6,7 @@ import { WebSocket } from "ws";
 import { createClient as createGqlClient, GqlClient } from "@tub/gql";
 import { parseEnv } from "@bin/parseEnv";
 import { CLOSE_CODES, FETCH_DATA_BATCH_SIZE, FETCH_HELIUS_WRITE_GQL_BATCH_SIZE } from "@/lib/constants";
+import { DatabaseQueue } from "@/lib/database-queue";
 import { RaydiumAmmParser } from "@/lib/parsers/raydium-amm-parser";
 import { connection, helius, ixParser, txFormatter } from "@/lib/setup";
 import { PriceData, Swap, SwapType, TokenMetadata, TransactionSubscriptionResult } from "@/lib/types";
@@ -35,6 +36,9 @@ let swapsBatch: Swap<SwapType>[] = []; // batch of swaps we need to process
 let uniqueVaultPairsBatch: PublicKey[][] = []; // batch of unique vault pairs inside `swapsBatch` we need to fetch metadata and price for
 let tokensDataBatch: TokenMetadata[] = []; // tokens metadata we need to save to the DB
 let priceDataBatch: PriceData[] = []; // price data based on swaps we need to save to the DB
+
+// Create a single instance of the queue
+const dbQueue = new DatabaseQueue();
 
 // TODO: Problem here is that since we fetch prices in batches, when we get the price of a token for a trade, the price will be too recent.
 // Meaning that the price at this timestamp will be wrong, as well as the volume.
@@ -91,44 +95,33 @@ const handleSwapData = async <T extends SwapType = SwapType>(gql: GqlClient["db"
   tokensDataBatch = [];
   priceDataBatch = [];
 
-  try {
-    const uniqueTokens = Array.from(new Map(_tokensDataBatch.map((token) => [token.mint, token])).values());
+  const uniqueTokens = Array.from(new Map(_tokensDataBatch.map((token) => [token.mint, token])).values());
 
-    const result = await gql.UpsertManyTokensAndPriceHistoryMutation({
-      tokens: uniqueTokens.map((token) => ({
-        mint: token.mint,
-        name: token.metadata.name,
-        symbol: token.metadata.symbol,
-        description: token.metadata.description,
-        uri: token.metadata.imageUri,
-        mint_burnt: token.mintBurnt,
-        freeze_burnt: token.freezeBurnt,
-        supply: token.supply?.toString(),
-        decimals: token.decimals,
-        is_pump_token: token.isPumpToken,
-      })),
-      priceHistory: _priceDataBatch.map(({ mint, price, timestamp, swap }) => ({
-        mint,
-        price: price.toString(),
-        amount_in: "amountIn" in swap ? swap.amountIn.toString() : undefined,
-        min_amount_out: "minimumAmountOut" in swap ? swap.minimumAmountOut.toString() : undefined,
-        max_amount_in: "maxAmountIn" in swap ? swap.maxAmountIn.toString() : undefined,
-        amount_out: "amountOut" in swap ? swap.amountOut.toString() : undefined,
-        created_at: new Date(timestamp),
-      })),
-    });
-
-    if (result.error) {
-      console.error("Unexpected error in UpsertManyTokensAndPriceHistoryMutation:", result.error);
-      priceDataBatch.push(..._priceDataBatch);
-    } else {
-      console.log(`Upserted ${uniqueTokens.length} tokens`);
-      console.log(`Saved ${_priceDataBatch.length} price data points`);
-    }
-  } catch (err) {
-    console.error("Unexpected error in handleSwapData:", err);
-    priceDataBatch.push(..._priceDataBatch);
-  }
+  // Add to queue
+  await dbQueue.add({
+    tokens: uniqueTokens.map((token) => ({
+      mint: token.mint,
+      name: token.metadata.name,
+      symbol: token.metadata.symbol,
+      description: token.metadata.description,
+      uri: token.metadata.imageUri,
+      mint_burnt: token.mintBurnt,
+      freeze_burnt: token.freezeBurnt,
+      supply: token.supply?.toString() ?? null,
+      decimals: token.decimals,
+      is_pump_token: token.isPumpToken,
+    })),
+    token_price_histories: _priceDataBatch.map(({ mint, price, timestamp, swap }) => ({
+      mint,
+      price: price.toString(),
+      amount_in: "amountIn" in swap ? swap.amountIn.toString() : null,
+      min_amount_out: "minimumAmountOut" in swap ? swap.minimumAmountOut.toString() : null,
+      max_amount_in: "maxAmountIn" in swap ? swap.maxAmountIn.toString() : null,
+      amount_out: "amountOut" in swap ? swap.amountOut.toString() : null,
+      created_at: new Date(timestamp),
+    })),
+    gql,
+  });
 };
 
 /* -------------------------------- WEBSOCKET ------------------------------- */
