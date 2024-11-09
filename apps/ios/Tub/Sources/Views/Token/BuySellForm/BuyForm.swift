@@ -93,7 +93,7 @@ struct BuyForm: View {
             }
         }
         .padding(8)
-        .frame(height: 230)
+        .frame(height: 300)
     }
     
     private var buyButton: some View {

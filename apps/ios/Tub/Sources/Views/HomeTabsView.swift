@@ -12,7 +12,6 @@ struct HomeTabsView: View {
     @StateObject private var priceModel : SolPriceModel
     @StateObject private var userModel : UserModel
     @State private var selectedTab: Int = 0 // Track the selected tab
-    @State private var isKeyboardVisible = false
     
     init(userId: String) {
         _priceModel = StateObject(wrappedValue: SolPriceModel())
@@ -39,7 +38,6 @@ struct HomeTabsView: View {
                     .background(AppColors.black)
                     
                     // Custom Tab Bar
-                    if !isKeyboardVisible {  // Only show tab bar when keyboard is hidden
                         HStack {
                             Spacer()
                             
@@ -84,33 +82,12 @@ struct HomeTabsView: View {
                         }
                         .background(AppColors.black)
                         .ignoresSafeArea(.keyboard)
-                    }
-                }
-                .onAppear {
-                    setupKeyboardNotifications()
-                }
-                .onDisappear {
-                    removeKeyboardNotifications()
                 }
             }
         }
+        .ignoresSafeArea(.keyboard)
         .environmentObject(userModel)
         .environmentObject(priceModel)
-    }
-    
-    private func setupKeyboardNotifications() {
-        NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { _ in
-            isKeyboardVisible = true
-        }
-        
-        NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { _ in
-            isKeyboardVisible = false
-        }
-    }
-    
-    private func removeKeyboardNotifications() {
-        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
-        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
     }
 }
 
