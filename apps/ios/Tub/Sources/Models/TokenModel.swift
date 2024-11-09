@@ -68,7 +68,7 @@ class TokenModel: ObservableObject {
     private func fetchTokenDetails() async throws {
         let query = GetTokenDataQuery(tokenId: tokenId)
         return try await withCheckedThrowingContinuation { continuation in
-            Network.shared.apollo.fetch(query: query) { [weak self] result in
+            Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { [weak self] result in
                 guard let self = self else {
                     continuation.resume(
                         throwing: NSError(
