@@ -32,6 +32,7 @@
 		99856DA82CD27F5B004B9D40 /* SignInWithApple.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99856DA72CD27F58004B9D40 /* SignInWithApple.swift */; };
 		999F59562CA6F97100E7AE9F /* TokenModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999F59552CA6F96D00E7AE9F /* TokenModel.swift */; };
 		999F595B2CA754FB00E7AE9F /* ChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999F595A2CA754F900E7AE9F /* ChartView.swift */; };
+		99B147FE2CDFE5B200DFDB96 /* ShimmeringView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B147FD2CDFE5B200DFDB96 /* ShimmeringView.swift */; };
 		99BB98562CC1798600658059 /* CandleChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99BB98552CC1798400658059 /* CandleChartView.swift */; };
 		99C26C1C2CAEE263004807A2 /* ApolloAPI in Frameworks */ = {isa = PBXBuildFile; productRef = 99C26C1B2CAEE263004807A2 /* ApolloAPI */; };
 		99C26C1E2CAEE38B004807A2 /* ApolloWebSocket in Frameworks */ = {isa = PBXBuildFile; productRef = 99C26C1D2CAEE38B004807A2 /* ApolloWebSocket */; };
@@ -55,7 +56,6 @@
 		DF1FE3C82CD568F700594C63 /* CountryCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF1FE3C72CD568F700594C63 /* CountryCode.swift */; };
 		DF5A2FC32CAF165D00508A56 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5A2FC22CAF165D00508A56 /* HistoryView.swift */; };
 		DF5A2FC52CAF2DEF00508A56 /* HistoryDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5A2FC42CAF2DEF00508A56 /* HistoryDetailsView.swift */; };
-		DF6342D52CDEAB0D009859C2 /* TokenStatsGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF6342D42CDEAB0D009859C2 /* TokenStatsGridView.swift */; };
 		DFA36D562CB4278C00F63D2D /* DummyData.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFA36D552CB4278C00F63D2D /* DummyData.swift */; };
 		DFA4D6512CAC500B00AEDC73 /* Apollo in Frameworks */ = {isa = PBXBuildFile; productRef = DFA4D6502CAC500B00AEDC73 /* Apollo */; };
 		DFC723E32CB9A86C003A915C /* TokenInfoCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFC723E22CB9A86C003A915C /* TokenInfoCardView.swift */; };
@@ -105,6 +105,7 @@
 		99856DCA2CD29201004B9D40 /* TubRelease.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TubRelease.entitlements; sourceTree = "<group>"; };
 		999F59552CA6F96D00E7AE9F /* TokenModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenModel.swift; sourceTree = "<group>"; };
 		999F595A2CA754F900E7AE9F /* ChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartView.swift; sourceTree = "<group>"; };
+		99B147FD2CDFE5B200DFDB96 /* ShimmeringView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShimmeringView.swift; sourceTree = "<group>"; };
 		99BB98552CC1798400658059 /* CandleChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CandleChartView.swift; sourceTree = "<group>"; };
 		99DDF62C2CB0280D000234DA /* AccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountView.swift; sourceTree = "<group>"; };
 		99DED24D2CAF28BD0055FC60 /* UserModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserModel.swift; sourceTree = "<group>"; };
@@ -129,7 +130,6 @@
 		DF1FE3C72CD568F700594C63 /* CountryCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CountryCode.swift; path = Tub/Sources/CountryCode.swift; sourceTree = SOURCE_ROOT; };
 		DF5A2FC22CAF165D00508A56 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		DF5A2FC42CAF2DEF00508A56 /* HistoryDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryDetailsView.swift; sourceTree = "<group>"; };
-		DF6342D42CDEAB0D009859C2 /* TokenStatsGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenStatsGridView.swift; sourceTree = "<group>"; };
 		DF7C361B2CD941FD00A4B27A /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		DFA36D552CB4278C00F63D2D /* DummyData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DummyData.swift; path = Tub/Sources/Utils/DummyData.swift; sourceTree = SOURCE_ROOT; };
 		DFC723E22CB9A86C003A915C /* TokenInfoCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenInfoCardView.swift; sourceTree = "<group>"; };
@@ -272,7 +272,6 @@
 			children = (
 				99FBEEA72CCA882300BC6392 /* Charts */,
 				991361A02CADE3AA00E5D656 /* TokenListView.swift */,
-				DF6342D42CDEAB0D009859C2 /* TokenStatsGridView.swift */,
 				DB10A95C2CA5AA1B00B1E4F3 /* TokenView.swift */,
 				DFC723E22CB9A86C003A915C /* TokenInfoCardView.swift */,
 				99DDF62E2CB0333D000234DA /* BuySellForm */,
@@ -283,6 +282,7 @@
 		99DD66022CB80D5B00B56450 /* Common */ = {
 			isa = PBXGroup;
 			children = (
+				99B147FD2CDFE5B200DFDB96 /* ShimmeringView.swift */,
 				992875662CCACD47004B48BE /* ErrorView.swift */,
 				99E789482CC147BD00C3CEEB /* ImageView.swift */,
 				99FB68332CC003FC00070D2A /* LoadingView.swift */,
@@ -533,6 +533,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				991361A12CADE3B300E5D656 /* TokenListView.swift in Sources */,
+				99B147FE2CDFE5B200DFDB96 /* ShimmeringView.swift in Sources */,
 				DFC723E32CB9A86C003A915C /* TokenInfoCardView.swift in Sources */,
 				99784EEC2CD3DE93009AEA45 /* OtpModifier.swift in Sources */,
 				9910F1B62CAAE302005DEE6B /* SFRounded.swift in Sources */,
@@ -561,7 +562,6 @@
 				DB10A95D2CA5AA1B00B1E4F3 /* TokenView.swift in Sources */,
 				DB6D29052CA1C8F70099951A /* TubApp.swift in Sources */,
 				990337052CC94175002D3A25 /* AccountBalance.swift in Sources */,
-				DF6342D52CDEAB0D009859C2 /* TokenStatsGridView.swift in Sources */,
 				9941CD6F2CCAA30D0009E5ED /* FormatPrice.swift in Sources */,
 				99FB68342CC003FC00070D2A /* LoadingView.swift in Sources */,
 				999F59562CA6F97100E7AE9F /* TokenModel.swift in Sources */,

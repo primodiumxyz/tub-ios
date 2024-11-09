@@ -139,11 +139,9 @@ struct TokenInfoCardView: View {
                 .cornerRadius(20)
             }
         }
-        .padding(.horizontal, 16)
         .padding(.vertical, 0)
         .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.44, alignment: .topLeading)
         .background(AppColors.black)
-        .cornerRadius(30)
         .overlay(
             RoundedRectangle(cornerRadius: 30)
                 .inset(by: 0.5)
