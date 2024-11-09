@@ -14,7 +14,7 @@ import { TrackerParamsProvider } from "@/providers/tracker-params-provider";
 
 import "@/App.css";
 
-const dev = (import.meta.env.VITE_NODE_ENV ?? "local") === "local";
+const dev = import.meta.env.VITE_USER_NODE_ENV !== "production";
 const gqlClientUrl = dev ? "http://localhost:8080/v1/graphql" : (import.meta.env.VITE_GRAPHQL_URL! as string);
 
 function App() {
