@@ -159,7 +159,7 @@ query GetTokenPriceHistorySince($tokenId: uuid!, $since: timestamptz!) {
 }
 
 query GetFilteredTokens(
-  $interval: interval!
+  $interval: interval = "30s"
   $minTrades: bigint = "0"
   $minVolume: numeric = 0
   $mintBurnt: Boolean = false
