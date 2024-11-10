@@ -21,7 +21,7 @@ struct HomeTabsView: View {
     var body: some View {
         Group {
             if userModel.isLoading || !priceModel.isReady {
-                LoadingView()
+                LoadingView(identifier: "HomeTabsView - waiting for userModel & priceModel")
             } else {
                 ZStack(alignment: .bottom) {
                     // Main content view
@@ -98,7 +98,7 @@ struct HomeTabsView: View {
     @Previewable @State var userId : String? = nil
     Group {
         if userId == nil {
-            LoadingView()
+            LoadingView(identifier: "HomeTabsView - no userId")
         } else {
             HomeTabsView(userId: userId!)
         }

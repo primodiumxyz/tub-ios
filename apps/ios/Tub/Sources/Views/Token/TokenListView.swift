@@ -68,7 +68,7 @@ struct TokenListView: View {
     var body: some View {
         Group {
             if viewModel.isLoading {
-                LoadingView()
+                LoadingView(identifier: "TokenListView - loading")
             } else {
                 ZStack {
                     (activeTab == "sell" ? 
