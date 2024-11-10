@@ -139,6 +139,24 @@ struct BuyForm: View {
                         let cleanedValue = newValue.replacingOccurrences(of: ",", with: ".")
                             .replacingOccurrences(of: " ", with: "")
                         
+                        // Check for multiple decimal points
+                        let components = cleanedValue.components(separatedBy: ".")
+                        if components.count > 2 {
+                            // Keep only the first decimal point
+                            if let firstPart = components.first {
+                                let remainingParts = components.dropFirst().joined()
+                                buyAmountUsdString = firstPart + "." + remainingParts
+                            }
+                            return
+                        }
+                        
+                        // Handle leading zeros
+                        if cleanedValue.hasPrefix("0") && cleanedValue.count > 1 && !cleanedValue.hasPrefix("0.") {
+                            // Remove leading zeros
+                            buyAmountUsdString = String(cleanedValue.drop(while: { $0 == "0" }))
+                            return
+                        }
+                        
                         // Limit to 13 characters to prevent overflow
                         if cleanedValue.count > 13 {
                             buyAmountUsdString = String(cleanedValue.prefix(13))
