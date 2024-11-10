@@ -22,7 +22,7 @@ struct AccountView: View {
         isAirdropping = true
         airdropResult = nil
         
-        Network.shared.airdropNativeToUser(amount: 100 * Int(1e9)) { result in
+        Network.shared.airdropNativeToUser(amount: 1 * Int(1e9)) { result in
             DispatchQueue.main.async {
                 isAirdropping = false
                 switch result {
@@ -137,7 +137,7 @@ struct AccountView: View {
     
     Group {
         if !priceModel.isReady || userId == nil {
-            LoadingView()
+            LoadingView(identifier: "AccountView - waiting for priceModel & userId")
         } else {
             AccountView()
                 .environmentObject(UserModel(userId: userId!))

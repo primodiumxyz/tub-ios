@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import TubAPI
 
 // Check the installation source of the app and always use remote if an external source (testFlight, appStore)
 
@@ -86,3 +87,13 @@ public let serverBaseUrl: String = {
         return "https://\(serverUrlHost)/trpc"
     #endif
 }()
+
+// Filtered tokens and chart
+public let FILTER_INTERVAL: Interval = "30m"
+public let MIN_TRADES: Int = 0
+public let MIN_VOLUME: Int = 0
+public let MINT_BURNT: Bool = true
+public let FREEZE_BURNT: Bool = true
+    
+public let CHART_INTERVAL: Interval = "1m"
+public let CHART_INTERVAL_MIN_TRADES: Int = 15

@@ -1,0 +1,1 @@
+DROP FUNCTION public.upsert_tokens_and_price_history;
