@@ -31,6 +31,8 @@ class TokenListModel: ObservableObject {
     private let TOKEN_COOLDOWN: TimeInterval = 60 // 60 seconds cooldown
     private var recentlyShownTokens: [(id: String, timestamp: Date)] = []
     
+    private var timer: Timer?
+
     init(walletAddress: String) {
         self.walletAddress = walletAddress
         self.currentTokenModel = TokenModel(walletAddress: walletAddress)
@@ -172,8 +174,17 @@ class TokenListModel: ObservableObject {
     
 
     func subscribeTokens() {
-        print("start subscription")
-        subscription = Network.shared.apollo.subscribe(subscription: SubFilteredTokensIntervalSubscription(
+        // Initial fetch
+        fetchTokens()
+        
+        // Set up timer for 1-second updates
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            self?.fetchTokens()
+        }
+    }
+
+    private func fetchTokens() {
+        Network.shared.apollo.fetch(query: GetFilteredTokensQuery(
             interval: .some(FILTER_INTERVAL),
             minTrades: .some(String(MIN_TRADES)),
             minVolume: .some(MIN_VOLUME),
@@ -181,13 +192,11 @@ class TokenListModel: ObservableObject {
             freezeBurnt: .some(FREEZE_BURNT),
             minDistinctPrices: .some(CHART_INTERVAL_MIN_TRADES),
             distinctPricesInterval: .some(CHART_INTERVAL)
-        )) { [weak self] result in
+        ), cachePolicy: .fetchIgnoringCacheData) { [weak self] result in
             guard let self = self else { return }
             
             // Process data in background queue
             DispatchQueue.global(qos: .userInitiated).async {
-                print("received result")
-                
                 // Prepare data in background
                 let processedData: ([Token], Token?) = {
                     switch result {
@@ -212,7 +221,7 @@ class TokenListModel: ObservableObject {
                         }
                         return ([], nil)
                     case .failure(let error):
-                        print(error.localizedDescription)
+                        print("Error fetching tokens: \(error.localizedDescription)")
                         return ([], nil)
                     }
                 }()
@@ -229,6 +238,17 @@ class TokenListModel: ObservableObject {
                 }
             }
         }
+    }
+
+    // Add cleanup method
+    func cleanup() {
+        timer?.invalidate()
+        timer = nil
+    }
+
+    // Make sure to call cleanup when appropriate
+    deinit {
+        cleanup()
     }
 
     func formatTimeElapsed(_ timeInterval: TimeInterval) -> String {
