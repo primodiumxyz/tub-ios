@@ -48,7 +48,8 @@ struct HistoryView : View {
                             let symbol = transaction.token_data.symbol
                             let name = transaction.token_data.name
                             let mint = transaction.token_data.mint
-                            let imageUri = transaction.token_data.uri ?? ""
+                            
+                            let imageUri = transaction.token_data.uri?.replacingOccurrences(of: "https://cdn.helius-rpc.com/cdn-cgi/image//", with: "").replacingOccurrences(of: "cf-ipfs.com", with: "ipfs.io") ?? "" // Helius cdn link doesn't work out for now
                             let price = transaction.token_price?.price ?? 0
                             
                             var valueLamps = 0

@@ -71,7 +71,12 @@ struct TokenListView: View {
                 LoadingView(identifier: "TokenListView - loading")
             } else {
                 ZStack {
-                   
+                    (activeTab == "sell" ? 
+                        AppColors.primaryPinkGradient :
+                        LinearGradient(colors: [.clear], startPoint: .top, endPoint: .bottom))
+                        .ignoresSafeArea()
+
+                    
                     VStack(spacing: 0) {
                         AccountBalanceView(
                             userModel: userModel,

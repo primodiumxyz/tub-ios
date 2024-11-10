@@ -6,7 +6,7 @@ import TubAPI
 class TokenModel: ObservableObject {
     var tokenId: String = ""
     var walletAddress: String = ""
-    var errorHandler: ErrorHandler? = nil
+    @EnvironmentObject private var errorHandler: ErrorHandler
     
     @Published var token: Token = Token(
         id: "",
@@ -22,8 +22,7 @@ class TokenModel: ObservableObject {
     @Published var loading = true
     @Published var balanceLamps: Int = 0
     
-    @Published var amountBoughtLamps: Int = 0
-    @Published var purchaseTime : Date? = nil
+    @Published var purchaseData : PurchaseData? = nil
     
     @Published var prices: [Price] = []
     @Published var priceChange: (amountLamps: Int, percentage: Double) = (0, 0)
@@ -70,10 +69,13 @@ class TokenModel: ObservableObject {
         return try await withCheckedThrowingContinuation { continuation in
             Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { [weak self] result in
                 guard let self = self else {
-                    continuation.resume(
-                        throwing: NSError(
-                            domain: "TokenModel", code: 0,
-                            userInfo: [NSLocalizedDescriptionKey: "Self is nil"]))
+                    let error = NSError(
+                        domain: "TokenModel",
+                        code: 0,
+                        userInfo: [NSLocalizedDescriptionKey: "Self is nil"]
+                    )
+                    self?.errorHandler.show(error)
+                    continuation.resume(throwing: error)
                     return
                 }
                 
@@ -95,18 +97,16 @@ class TokenModel: ObservableObject {
                         }
                         continuation.resume()
                     } else {
-                        continuation.resume(
-                            throwing:
-                                NSError(
-                                    domain: "TokenModel",
-                                    code: 1,
-                                    userInfo: [
-                                        NSLocalizedDescriptionKey: "Token not found"
-                                    ]
-                                )
+                        let error = NSError(
+                            domain: "TokenModel",
+                            code: 1,
+                            userInfo: [NSLocalizedDescriptionKey: "Token not found"]
                         )
+                        errorHandler.show(error)
+                        continuation.resume(throwing: error)
                     }
                 case .failure(let error):
+                    errorHandler.show(error)
                     continuation.resume(throwing: error)
                 }
             }
@@ -170,8 +170,11 @@ class TokenModel: ObservableObject {
             ) { result in
                 switch result {
                 case .success:
-                    self.amountBoughtLamps = buyAmountLamps
-                    self.purchaseTime = Date()
+                    self.purchaseData = PurchaseData (
+                        timestamp: Date(),
+                        amount: buyAmountLamps,
+                        price: price
+                    )
                 case .failure(let error):
                     print("Error buying tokens: \(error)")
                 }
@@ -185,7 +188,7 @@ class TokenModel: ObservableObject {
         ) { result in
             switch result {
             case .success:
-                self.purchaseTime = nil
+                self.purchaseData = nil
             case .failure(let error):
                 print("Error selling tokens: \(error)")
             }
