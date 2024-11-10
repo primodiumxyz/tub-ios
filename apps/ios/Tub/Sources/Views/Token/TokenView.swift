@@ -145,14 +145,26 @@ struct TokenView : View {
         }
     }
     
+    let height = UIScreen.main.bounds.height * 0.3  // 40% of screen height
+    
     private var chartView: some View {
         Group {
             if tokenModel.loading {
                 LoadingChart()
             } else if selectedTimespan == .live {
-                ChartView(prices: tokenModel.prices, timeframeSecs: 120.0, purchaseData: tokenModel.purchaseData)
+                ChartView(
+                    prices: tokenModel.prices, 
+                    timeframeSecs: 120.0, 
+                    purchaseData: tokenModel.purchaseData,
+                    height: height
+                )
             } else {
-                CandleChartView(prices: tokenModel.prices, intervalSecs: 90, timeframeMins: 30)
+                CandleChartView(
+                    prices: tokenModel.prices, 
+                    intervalSecs: 90, 
+                    timeframeMins: 30,
+                    height: height
+                )
                     .id(tokenModel.prices.count)
             }
         }

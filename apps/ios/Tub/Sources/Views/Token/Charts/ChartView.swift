@@ -13,11 +13,13 @@ struct ChartView: View {
     let prices: [Price]
     let timeframeSecs: Double
     let purchaseData: PurchaseData?
+    let height: CGFloat
     
-    init(prices: [Price], timeframeSecs: Double = 90.0, purchaseData: PurchaseData? = nil) {
+    init(prices: [Price], timeframeSecs: Double = 90.0, purchaseData: PurchaseData? = nil, height: CGFloat = 330) {
         self.prices = prices
         self.timeframeSecs = timeframeSecs
         self.purchaseData = purchaseData
+        self.height = height
     }
     
     @State private var currentTime = Date().timeIntervalSince1970
@@ -122,7 +124,7 @@ struct ChartView: View {
         .chartYScale(domain: yDomain)
         .chartYAxis(.hidden)
         .chartXAxis(.hidden)
-        .frame(width: .infinity, height: 330)
+        .frame(width: .infinity, height: height)
         .onReceive(Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()) { _ in
             currentTime = Date().timeIntervalSince1970
         }
