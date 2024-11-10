@@ -1,9 +1,6 @@
-import crypto from "crypto";
 import { PrivyClient } from "@privy-io/server-auth";
-import web3 from "@solana/web3.js";
 import { GqlClient } from "@tub/gql";
 import { config } from "dotenv";
-import jwt from "jsonwebtoken";
 import { parseEnv } from "../bin/parseEnv";
 
 config({ path: "../../.env" });
@@ -116,4 +113,3 @@ export class TubService {
     return result.data;
   }
 }
-
