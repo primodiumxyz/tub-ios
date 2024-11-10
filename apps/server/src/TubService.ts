@@ -5,8 +5,6 @@ import { parseEnv } from "../bin/parseEnv";
 
 config({ path: "../../.env" });
 
-const env = parseEnv();
-
 export class TubService {
   private privy: PrivyClient;
   private gql: GqlClient["db"];
