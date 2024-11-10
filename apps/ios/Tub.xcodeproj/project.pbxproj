@@ -23,6 +23,7 @@
 		993E5D942CAEF33B000E23A9 /* queries.graphql in Resources */ = {isa = PBXBuildFile; fileRef = 993E5D912CAEF33B000E23A9 /* queries.graphql */; };
 		9941CD6F2CCAA30D0009E5ED /* FormatPrice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9941CD6E2CCAA30B0009E5ED /* FormatPrice.swift */; };
 		994AE5F72CD2AB3F00553A32 /* GoogleLogoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994AE5F62CD2AB3F00553A32 /* GoogleLogoView.swift */; };
+		995FCA1F2CDA5ED70018A76D /* CoinbaseOnrampView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995FCA1E2CDA5ED20018A76D /* CoinbaseOnrampView.swift */; };
 		99784EE82CD3DB5B009AEA45 /* SignInWithEmailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99784EE72CD3DB55009AEA45 /* SignInWithEmailView.swift */; };
 		99784EEA2CD3DC7D009AEA45 /* SignInWithPhoneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99784EE92CD3DC75009AEA45 /* SignInWithPhoneView.swift */; };
 		99784EEC2CD3DE93009AEA45 /* OtpModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99784EEB2CD3DE90009AEA45 /* OtpModifier.swift */; };
@@ -96,6 +97,7 @@
 		993E5D922CAEF33B000E23A9 /* subscriptions.graphql */ = {isa = PBXFileReference; lastKnownFileType = text; path = subscriptions.graphql; sourceTree = "<group>"; };
 		9941CD6E2CCAA30B0009E5ED /* FormatPrice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatPrice.swift; sourceTree = "<group>"; };
 		994AE5F62CD2AB3F00553A32 /* GoogleLogoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleLogoView.swift; sourceTree = "<group>"; };
+		995FCA1E2CDA5ED20018A76D /* CoinbaseOnrampView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoinbaseOnrampView.swift; sourceTree = "<group>"; };
 		99784EE72CD3DB55009AEA45 /* SignInWithEmailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInWithEmailView.swift; sourceTree = "<group>"; };
 		99784EE92CD3DC75009AEA45 /* SignInWithPhoneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInWithPhoneView.swift; sourceTree = "<group>"; };
 		99784EEB2CD3DE90009AEA45 /* OtpModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OtpModifier.swift; sourceTree = "<group>"; };
@@ -191,6 +193,14 @@
 			path = Fonts;
 			sourceTree = "<group>";
 		};
+		995FCA1D2CDA5ECB0018A76D /* Onramp */ = {
+			isa = PBXGroup;
+			children = (
+				995FCA1E2CDA5ED20018A76D /* CoinbaseOnrampView.swift */,
+			);
+			path = Onramp;
+			sourceTree = "<group>";
+		};
 		9979D2F02CB57B840040DF41 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
@@ -212,6 +222,7 @@
 				99DD65FF2CB80D1100B56450 /* History */,
 				99DD65FE2CB80D0300B56450 /* Account */,
 				DB675A322CA2B73D006FC9B3 /* HomeTabsView.swift */,
+				995FCA1D2CDA5ECB0018A76D /* Onramp */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -540,6 +551,7 @@
 				DFC723E32CB9A86C003A915C /* TokenInfoCardView.swift in Sources */,
 				99784EEC2CD3DE93009AEA45 /* OtpModifier.swift in Sources */,
 				9910F1B62CAAE302005DEE6B /* SFRounded.swift in Sources */,
+				995FCA1F2CDA5ED70018A76D /* CoinbaseOnrampView.swift in Sources */,
 				99856DA82CD27F5B004B9D40 /* SignInWithApple.swift in Sources */,
 				991D60812CD5211600A7245F /* CreateWalletView.swift in Sources */,
 				99DDF62D2CB02816000234DA /* AccountView.swift in Sources */,
