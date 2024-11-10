@@ -135,20 +135,24 @@ struct BuyForm: View {
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.leading)
                     .onChange(of: buyAmountUsdString) { newValue in
-                        // Remove any existing thousands separators
-                        let cleanedValue = newValue.replacingOccurrences(of: ",", with: ".")
-                            .replacingOccurrences(of: " ", with: "")
+                        // First replace any dots with commas to standardize the input
+                        var cleanedValue = newValue.replacingOccurrences(of: " ", with: "")
                         
-                        // Check for multiple decimal points
-                        let components = cleanedValue.components(separatedBy: ".")
-                        if components.count > 2 {
-                            // Keep only the first decimal point
-                            if let firstPart = components.first {
-                                let remainingParts = components.dropFirst().joined()
+                        // Check for multiple decimal separators (both . and ,)
+                        let dotComponents = cleanedValue.components(separatedBy: ".")
+                        let commaComponents = cleanedValue.components(separatedBy: ",")
+                        
+                        if dotComponents.count > 2 || commaComponents.count > 2 {
+                            // Keep only the first decimal separator
+                            if let firstPart = cleanedValue.components(separatedBy: CharacterSet(charactersIn: ".,")).first {
+                                let remainingParts = cleanedValue.components(separatedBy: CharacterSet(charactersIn: ".,")).dropFirst().joined()
                                 buyAmountUsdString = firstPart + "." + remainingParts
                             }
                             return
                         }
+                        
+                        // Convert any comma to dot for internal processing
+                        cleanedValue = cleanedValue.replacingOccurrences(of: ",", with: ".")
                         
                         // Handle leading zeros
                         if cleanedValue.hasPrefix("0") && cleanedValue.count > 1 && !cleanedValue.hasPrefix("0.") {
