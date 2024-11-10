@@ -1,7 +1,6 @@
 import { PrivyClient } from "@privy-io/server-auth";
 import { GqlClient } from "@tub/gql";
 import { config } from "dotenv";
-import { parseEnv } from "../bin/parseEnv";
 
 config({ path: "../../.env" });
 
