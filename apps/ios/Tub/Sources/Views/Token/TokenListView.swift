@@ -68,7 +68,7 @@ struct TokenListView: View {
     var body: some View {
         Group {
             if viewModel.isLoading {
-                LoadingView()
+                LoadingView(identifier: "TokenListView - loading")
             } else {
                 ZStack {
                     (activeTab == "sell" ? 
@@ -89,7 +89,9 @@ struct TokenListView: View {
                         // Rest of the content
                         if viewModel.tokens.count == 0 {
                             Spacer()
-                            Text("No tokens found").foregroundColor(.red)
+                            Text("An unexpected error occurred. Please come back later.")
+                                .foregroundColor(AppColors.lightYellow)
+                                .multilineTextAlignment(.center)
                             Spacer()
                         } else {
                             GeometryReader { geometry in

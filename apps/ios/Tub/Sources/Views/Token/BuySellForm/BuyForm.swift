@@ -30,17 +30,21 @@ struct BuyForm: View {
     
     @State private var isDefaultOn: Bool = true //by default is on
     
+    @State private var showInsufficientBalance: Bool = false
+    
     private func handleBuy() {
-        let buyAmountLamps = priceModel.usdToLamports(usd: buyAmountUsd)
+        // Use 10 as default if no amount is entered
+        let amountToUse = buyAmountUsdString.isEmpty ? 10.0 : buyAmountUsd
+        let buyAmountLamps = priceModel.usdToLamports(usd: amountToUse)
             
         // Check if the user has enough balance
         if userModel.balanceLamps >= buyAmountLamps {
             if isDefaultOn {
-                defaultAmount = buyAmountUsd
+                defaultAmount = amountToUse
             }
-            onBuy(buyAmountUsd)
+            onBuy(amountToUse)
         } else {
-            print("Insufficient balance to complete the purchase.")
+            showInsufficientBalance = true
         }
     }
     
@@ -61,6 +65,7 @@ struct BuyForm: View {
         isValidInput = true
         animatingSwipe = false
         isDefaultOn = true
+        showInsufficientBalance = false
     }
     
     var body: some View {
@@ -120,31 +125,104 @@ struct BuyForm: View {
     }
     
     private var numberInput: some View {
-        HStack(spacing: 0) {
-            Text("$")
-                .font(.sfRounded(size: .xl4, weight: .bold))
-                .foregroundColor(AppColors.white)
-            
-            TextField("", text: $buyAmountUsdString, prompt: Text("100", comment: "placeholder").foregroundColor(AppColors.white.opacity(0.3)))
-                .keyboardType(.decimalPad)
-                .multilineTextAlignment(.center)
-                .onChange(of: buyAmountUsdString) { newValue in
-                    if let amount = formatter.number(from:newValue)?.doubleValue {
-                        buyAmountUsd = amount
-                        buyAmountUsdString = priceModel.formatPrice(usd: amount, showSign: false, showUnit: false, formatLarge: false)
-                        isValidInput = true
-                    } else {
-                        buyAmountUsd = 0
-                        isValidInput = false
+        VStack(alignment: .center, spacing: 4) {
+            HStack(spacing: 4) {
+                Spacer()
+                Text("$")
+                    .font(.sfRounded(size: .xl4, weight: .bold))
+                    .foregroundColor(AppColors.white)
+                
+                TextField("", text: $buyAmountUsdString, prompt: Text("10", comment: "placeholder").foregroundColor(AppColors.white.opacity(0.3)))
+                    .keyboardType(.decimalPad)
+                    .multilineTextAlignment(.leading)
+                    .onChange(of: buyAmountUsdString) { newValue in
+                        // First replace any dots with commas to standardize the input
+                        var cleanedValue = newValue.replacingOccurrences(of: " ", with: "")
+                        
+                        // Check for multiple decimal separators (both . and ,)
+                        let dotComponents = cleanedValue.components(separatedBy: ".")
+                        let commaComponents = cleanedValue.components(separatedBy: ",")
+                        
+                        if dotComponents.count > 2 || commaComponents.count > 2 {
+                            // Keep only the first decimal separator
+                            if let firstPart = cleanedValue.components(separatedBy: CharacterSet(charactersIn: ".,")).first {
+                                let remainingParts = cleanedValue.components(separatedBy: CharacterSet(charactersIn: ".,")).dropFirst().joined()
+                                buyAmountUsdString = firstPart + "." + remainingParts
+                            }
+                            return
+                        }
+                        
+                        // Convert any comma to dot for internal processing
+                        cleanedValue = cleanedValue.replacingOccurrences(of: ",", with: ".")
+                        
+                        // Handle leading zeros
+                        if cleanedValue.hasPrefix("0") && cleanedValue.count > 1 && !cleanedValue.hasPrefix("0.") {
+                            // Remove leading zeros
+                            buyAmountUsdString = String(cleanedValue.drop(while: { $0 == "0" }))
+                            return
+                        }
+                        
+                        // Limit to 13 characters to prevent overflow
+                        if cleanedValue.count > 13 {
+                            buyAmountUsdString = String(cleanedValue.prefix(13))
+                            return
+                        }
+                        
+                        // Allow empty string when user is typing
+                        if cleanedValue.isEmpty {
+                            buyAmountUsd = 0
+                            isValidInput = true
+                            return
+                        }
+                        
+                        // Check if it's a valid decimal number
+                        if let amount = Double(cleanedValue) {
+                            buyAmountUsd = amount
+                            // Only format if not currently editing
+                            if cleanedValue != newValue {
+                                buyAmountUsdString = priceModel.formatPrice(usd: amount, showSign: false, showUnit: false, formatLarge: false)
+                            }
+                            isValidInput = true
+                        } else {
+                            buyAmountUsd = 0
+                            isValidInput = false
+                        }
+                        
+                        // Check balance and update error state
+                        if let amount = Double(cleanedValue) {
+                            showInsufficientBalance = userModel.balanceLamps < priceModel.usdToLamports(usd: amount)
+                        } else {
+                            showInsufficientBalance = false
+                        }
                     }
+                    .font(.sfRounded(size: .xl5, weight: .bold))
+                    .foregroundColor(isValidInput ? .white : .red)
+                    .frame(minWidth: 50)
+                    .fixedSize()
+                    .onTapGesture {
+                        isKeyboardActive = true
+                        print("Keyboard Activated")
+                    }
+                Spacer()
+            }
+            .frame(maxWidth: 300)
+            .padding(.horizontal)
+            
+            // Fixed height container with error message
+            HStack {
+                if showInsufficientBalance {
+                    Text("Insufficient balance")
+                        .font(.caption)
+                        .foregroundColor(.red)
+                        .transition(.opacity)
+                } else {
+                    // Empty text to maintain height
+                    Text(" ")
+                        .font(.caption)
                 }
-                .font(.sfRounded(size: .xl5, weight: .bold))
-                .foregroundColor(isValidInput ? .white : .red)
-                .frame(width: 150)
-                .onTapGesture {
-                    isKeyboardActive = true
-                    print("Keyboard Activated")
-                }
+            }
+            .frame(height: 8)
+            .padding(.top, -4)
         }
     }
     
@@ -155,7 +233,7 @@ struct BuyForm: View {
                 isDefaultOn.toggle()
             }) {
                 HStack(spacing: 4) {
-                    Text("Default")
+                    Text("Set Default")
                         .font(.sfRounded(size: .base, weight: .regular))
                         .foregroundColor(isDefaultOn ? AppColors.white : AppColors.gray)
                     

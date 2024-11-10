@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		4619A8182CCA4E25003CD119 /* TokenListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4619A8172CCA4E25003CD119 /* TokenListModel.swift */; };
 		46442B952CDD7380009A6F0B /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46442B942CDD737D009A6F0B /* Constants.swift */; };
+		466945ED2CDFDB1F008E8B99 /* LoadingTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 466945EC2CDFDB1C008E8B99 /* LoadingTracker.swift */; };
 		990337052CC94175002D3A25 /* AccountBalance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990337042CC9416B002D3A25 /* AccountBalance.swift */; };
 		9906661F2CC94B110068EA06 /* SolPriceModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9906661E2CC94B0D0068EA06 /* SolPriceModel.swift */; };
 		9910F1B62CAAE302005DEE6B /* SFRounded.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9910F1B52CAAE2FD005DEE6B /* SFRounded.swift */; };
@@ -22,6 +23,7 @@
 		993E5D942CAEF33B000E23A9 /* queries.graphql in Resources */ = {isa = PBXBuildFile; fileRef = 993E5D912CAEF33B000E23A9 /* queries.graphql */; };
 		9941CD6F2CCAA30D0009E5ED /* FormatPrice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9941CD6E2CCAA30B0009E5ED /* FormatPrice.swift */; };
 		994AE5F72CD2AB3F00553A32 /* GoogleLogoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994AE5F62CD2AB3F00553A32 /* GoogleLogoView.swift */; };
+		995FCA1F2CDA5ED70018A76D /* CoinbaseOnrampView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995FCA1E2CDA5ED20018A76D /* CoinbaseOnrampView.swift */; };
 		99784EE82CD3DB5B009AEA45 /* SignInWithEmailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99784EE72CD3DB55009AEA45 /* SignInWithEmailView.swift */; };
 		99784EEA2CD3DC7D009AEA45 /* SignInWithPhoneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99784EE92CD3DC75009AEA45 /* SignInWithPhoneView.swift */; };
 		99784EEC2CD3DE93009AEA45 /* OtpModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99784EEB2CD3DE90009AEA45 /* OtpModifier.swift */; };
@@ -83,6 +85,7 @@
 /* Begin PBXFileReference section */
 		4619A8172CCA4E25003CD119 /* TokenListModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenListModel.swift; sourceTree = "<group>"; };
 		46442B942CDD737D009A6F0B /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		466945EC2CDFDB1C008E8B99 /* LoadingTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingTracker.swift; sourceTree = "<group>"; };
 		990337042CC9416B002D3A25 /* AccountBalance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountBalance.swift; sourceTree = "<group>"; };
 		9906661E2CC94B0D0068EA06 /* SolPriceModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SolPriceModel.swift; sourceTree = "<group>"; };
 		9910F1B52CAAE2FD005DEE6B /* SFRounded.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SFRounded.swift; sourceTree = "<group>"; };
@@ -95,6 +98,7 @@
 		993E5D922CAEF33B000E23A9 /* subscriptions.graphql */ = {isa = PBXFileReference; lastKnownFileType = text; path = subscriptions.graphql; sourceTree = "<group>"; };
 		9941CD6E2CCAA30B0009E5ED /* FormatPrice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatPrice.swift; sourceTree = "<group>"; };
 		994AE5F62CD2AB3F00553A32 /* GoogleLogoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleLogoView.swift; sourceTree = "<group>"; };
+		995FCA1E2CDA5ED20018A76D /* CoinbaseOnrampView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoinbaseOnrampView.swift; sourceTree = "<group>"; };
 		99784EE72CD3DB55009AEA45 /* SignInWithEmailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInWithEmailView.swift; sourceTree = "<group>"; };
 		99784EE92CD3DC75009AEA45 /* SignInWithPhoneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInWithPhoneView.swift; sourceTree = "<group>"; };
 		99784EEB2CD3DE90009AEA45 /* OtpModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OtpModifier.swift; sourceTree = "<group>"; };
@@ -191,9 +195,18 @@
 			path = Fonts;
 			sourceTree = "<group>";
 		};
+		995FCA1D2CDA5ECB0018A76D /* Onramp */ = {
+			isa = PBXGroup;
+			children = (
+				995FCA1E2CDA5ED20018A76D /* CoinbaseOnrampView.swift */,
+			);
+			path = Onramp;
+			sourceTree = "<group>";
+		};
 		9979D2F02CB57B840040DF41 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				466945EC2CDFDB1C008E8B99 /* LoadingTracker.swift */,
 				46442B942CDD737D009A6F0B /* Constants.swift */,
 				9941CD6E2CCAA30B0009E5ED /* FormatPrice.swift */,
 				DF8C84EC2CDFDCA700E8FA7B /* DismissKeyboardModifier.swift */,
@@ -212,6 +225,7 @@
 				99DD65FF2CB80D1100B56450 /* History */,
 				99DD65FE2CB80D0300B56450 /* Account */,
 				DB675A322CA2B73D006FC9B3 /* HomeTabsView.swift */,
+				995FCA1D2CDA5ECB0018A76D /* Onramp */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -541,6 +555,7 @@
 				99784EEC2CD3DE93009AEA45 /* OtpModifier.swift in Sources */,
 				9910F1B62CAAE302005DEE6B /* SFRounded.swift in Sources */,
 				DF8C84ED2CDFDCA700E8FA7B /* DismissKeyboardModifier.swift in Sources */,
+				995FCA1F2CDA5ED70018A76D /* CoinbaseOnrampView.swift in Sources */,
 				99856DA82CD27F5B004B9D40 /* SignInWithApple.swift in Sources */,
 				991D60812CD5211600A7245F /* CreateWalletView.swift in Sources */,
 				99DDF62D2CB02816000234DA /* AccountView.swift in Sources */,
@@ -556,6 +571,7 @@
 				992875672CCACD4C004B48BE /* ErrorView.swift in Sources */,
 				997DE8F22CDAC84900164366 /* ErrorHandler.swift in Sources */,
 				99784EEA2CD3DC7D009AEA45 /* SignInWithPhoneView.swift in Sources */,
+				466945ED2CDFDB1F008E8B99 /* LoadingTracker.swift in Sources */,
 				DF5A2FC52CAF2DEF00508A56 /* HistoryDetailsView.swift in Sources */,
 				99856DA62CD27E2E004B9D40 /* Privy.swift in Sources */,
 				999F595B2CA754FB00E7AE9F /* ChartView.swift in Sources */,
