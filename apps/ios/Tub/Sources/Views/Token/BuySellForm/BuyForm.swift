@@ -135,8 +135,9 @@ struct BuyForm: View {
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.leading)
                     .onChange(of: buyAmountUsdString) { newValue in
-                        // Remove any existing commas
-                        let cleanedValue = newValue.replacingOccurrences(of: ",", with: "")
+                        // Remove any existing thousands separators
+                        let cleanedValue = newValue.replacingOccurrences(of: ",", with: ".")
+                            .replacingOccurrences(of: " ", with: "")
                         
                         // Limit to 13 characters to prevent overflow
                         if cleanedValue.count > 13 {
