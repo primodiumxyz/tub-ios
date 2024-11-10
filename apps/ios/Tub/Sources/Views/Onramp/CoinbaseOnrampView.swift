@@ -9,42 +9,14 @@ import SwiftUI
 import SafariServices
 
 struct CoinbaseOnrampView: View {
-    @State private var url: URL?
-    @State private var isLoading = true
-    @State private var error: String?
-    
-    func fetchCoinbaseUrl() {
-        Network.shared.getCoinbaseSolanaOnrampUrl { result in
-            DispatchQueue.main.async {
-                isLoading = false
-                switch result {
-                case .success(let response):
-                    if let url = URL(string: response.url) {
-                        self.url = url
-                    } else {
-                        self.error = "Invalid URL received"
-                    }
-                case .failure(let error):
-                    self.error = error.localizedDescription
-                }
-            }
-        }
-    }
+    @State private var url = URL(string: 
+        "https://pay.coinbase.com/buy?appId=70955045-7672-4640-b524-0a5aff9e074e&addresses={\"2KNF35JnG97K3oeeEY8BJv4SMfqMQhrZASbD58QQP8f7\":[\"solana\"]}&assets=[\"USDC\"]&presetFiatAmount=10"
+    )!
+
     
     var body: some View {
         Group {
-            if isLoading {
-                LoadingView()
-            } else if let error = error {
-                Text(error)
-                    .foregroundColor(.red)
-                    .padding()
-            } else if let url = url {
                 SafariView(url: url)
-            }
-        }
-        .onAppear {
-            fetchCoinbaseUrl()
         }
     }
 }

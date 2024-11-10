@@ -219,6 +219,11 @@ struct RegisterView: View {
                 SignInWithEmailView(email: $email)
                     .presentationDetents([.height(400)])
             }
+            .ignoresSafeArea(.keyboard)
+            .padding(.top, 20)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(AppColors.darkBlueGradient)
+            .dismissKeyboardOnTap()
         }
         .ignoresSafeArea(.keyboard)
         .padding(.top, 20)

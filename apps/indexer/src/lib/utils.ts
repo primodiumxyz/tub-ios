@@ -86,7 +86,8 @@ const getTokensMetadata = async (helius: Helius, mints: string[]): Promise<Token
   return tokensData.map((data) => {
     const metadata = data.content?.metadata;
     const tokenInfo = data.token_info;
-    const imageUri = data.content?.files?.[0]?.cdn_uri ?? data.content?.files?.[0]?.uri ?? data.content?.links?.image;
+    const imageUri =
+      data.content?.links?.image ?? data.content?.files?.find((file) => file.mime?.startsWith("image"))?.uri;
 
     // we need to explicitly cast to null to be able to insert null values in the DB
     return {

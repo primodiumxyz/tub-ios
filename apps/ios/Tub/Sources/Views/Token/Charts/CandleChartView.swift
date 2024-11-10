@@ -13,14 +13,16 @@ struct CandleChartView: View {
     let prices: [Price]
     let intervalSecs: Double
     var timeframeMins: Double = 30
+    let height: CGFloat
 
     @State private var candles: [CandleData] = []
     @State private var transparentCandle: CandleData?
 
-    init(prices: [Price], intervalSecs: Double, timeframeMins: Double? = 30, maxCandleWidth: CGFloat = 10) {
+    init(prices: [Price], intervalSecs: Double, timeframeMins: Double? = 30, maxCandleWidth: CGFloat = 10, height: CGFloat = 330) {
         self.prices = prices
         self.intervalSecs = intervalSecs > 0 ? intervalSecs : 1;
         self.timeframeMins = timeframeMins ?? 30
+        self.height = height
     }
 
     private var filteredPrices: [Price] {
@@ -103,7 +105,7 @@ struct CandleChartView: View {
         .chartYAxis(content: yAxisConfig)
         .chartXAxis(content: xAxisConfig)
         .chartYScale(domain: .automatic)
-        .frame(height: 330)
+        .frame(height: height)
         .onAppear(perform: updateCandles)
         .onChange(of: prices) { _ in updateCandles() }
     }

@@ -48,7 +48,8 @@ struct HistoryView : View {
                             let symbol = transaction.token_data.symbol
                             let name = transaction.token_data.name
                             let mint = transaction.token_data.mint
-                            let imageUri = transaction.token_data.uri ?? ""
+                            
+                            let imageUri = transaction.token_data.uri?.replacingOccurrences(of: "https://cdn.helius-rpc.com/cdn-cgi/image//", with: "").replacingOccurrences(of: "cf-ipfs.com", with: "ipfs.io") ?? "" // Helius cdn link doesn't work out for now
                             let price = transaction.token_price?.price ?? 0
                             
                             var valueLamps = 0
@@ -90,7 +91,7 @@ struct HistoryView : View {
     var body: some View {
         Group {
             if loading == true {
-                LoadingView()
+                LoadingView(identifier: "HistoryView - loading")
             } else if let error = error {
                 ErrorView(error: error)
             } else {
@@ -444,7 +445,7 @@ struct TransactionRow: View {
     @Previewable @StateObject var errorHandler = ErrorHandler()
     @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
     if !priceModel.isReady {
-        LoadingView()
+        LoadingView(identifier: "HistoryView - waiting for priceModel")
     } else {
         HistoryView(txs: dummyData).environmentObject(priceModel).environmentObject(errorHandler)
     }

@@ -12,20 +12,20 @@ struct ChartView: View {
     @EnvironmentObject var priceModel: SolPriceModel
     let prices: [Price]
     let timeframeSecs: Double
-    let purchaseTime: Date?
-    let purchaseAmount: Int
+    let purchaseData: PurchaseData?
+    let height: CGFloat
     
-    init(prices: [Price], timeframeSecs: Double = 90.0, purchaseTime: Date? = nil, purchaseAmount: Int? = nil) {
+    init(prices: [Price], timeframeSecs: Double = 90.0, purchaseData: PurchaseData? = nil, height: CGFloat = 330) {
         self.prices = prices
         self.timeframeSecs = timeframeSecs
-        self.purchaseTime = purchaseTime
-        self.purchaseAmount = purchaseAmount ?? 0
+        self.purchaseData = purchaseData
+        self.height = height
     }
     
     @State private var currentTime = Date().timeIntervalSince1970
     
     private var dashedLineColor: Color {
-        guard let purchasePrice = closestPurchasePrice?.price,
+        guard let purchasePrice = purchaseData?.price,
               let currentPrice = prices.last?.price else { return AppColors.white }
         if currentPrice == purchasePrice {
             return AppColors.white
@@ -34,21 +34,22 @@ struct ChartView: View {
     }
     
     private var change: Int? {
-        guard let purchasePrice = closestPurchasePrice?.price,
+        guard let purchasePrice = purchaseData?.price,
               let currentPrice = prices.last?.price else { return nil }
         return (currentPrice - purchasePrice)
     }
     
-    private var closestPurchasePrice: Price? {
-        guard let purchaseTime = purchaseTime else { return nil }
-        return prices.min(by: { abs($0.timestamp.timeIntervalSince(purchaseTime)) < abs($1.timestamp.timeIntervalSince(purchaseTime)) })
-    }
-    
     private var yDomain: ClosedRange<Int> {
         if prices.isEmpty { return 0...100 }
+
+        var pricesWithPurchase = prices
+        if let data = purchaseData {
+            let price = Price(timestamp: data.timestamp, price: data.price)
+            pricesWithPurchase.append(price)
+        }
         
-        let minPrice = prices.min { $0.price < $1.price }?.price ?? 0
-        let maxPrice = prices.max { $0.price < $1.price }?.price ?? 100
+        let minPrice = pricesWithPurchase.min { $0.price < $1.price }?.price ?? 0
+        let maxPrice = pricesWithPurchase.max { $0.price < $1.price }?.price ?? 100
         let range = maxPrice - minPrice
         let padding = Int(Double(range) * 0.25)
         
@@ -81,7 +82,7 @@ struct ChartView: View {
                     y: .value("Price", currentPrice.price)
                 )
                 .annotation(position: .top, spacing: 4) {
-                    if closestPurchasePrice?.timestamp == currentPrice.timestamp {
+                    if purchaseData?.timestamp == currentPrice.timestamp {
                         EmptyView()
                     } else {
                         PillView(
@@ -93,15 +94,21 @@ struct ChartView: View {
                 }
             }
             
-            if let purchasePrice = closestPurchasePrice {
+            if let data = purchaseData {
+                // Calculate x position as max of purchase time and earliest chart time
+                let xPosition = max(
+                    data.timestamp,
+                    prices.first?.timestamp ?? data.timestamp
+                )
+
                 // Add horizontal dashed line
-                RuleMark(y: .value("Purchase Price", purchasePrice.price))
+                RuleMark(y: .value("Purchase Price", data.price))
                     .foregroundStyle(AppColors.primaryPink.opacity(0.8))
                     .lineStyle(StrokeStyle(lineWidth: 2, dash: [5, 5]))
                 
                 PointMark(
-                    x: .value("Date", purchasePrice.timestamp),
-                    y: .value("Price", purchasePrice.price)
+                    x: .value("Date", xPosition),  // Updated x-value
+                    y: .value("Price", data.price)
                 )
                 .foregroundStyle(AppColors.primaryPink)
                 .symbolSize(100)
@@ -109,7 +116,7 @@ struct ChartView: View {
                 
                 .annotation(position: .bottom, spacing: 0) {
                     PillView(
-                        value: "\(priceModel.formatPrice(lamports: purchasePrice.price))",
+                        value: "\(priceModel.formatPrice(lamports: data.price))",
                         color: AppColors.primaryPink.opacity(0.8), foregroundColor: AppColors.white)
                 }
             }
@@ -117,7 +124,7 @@ struct ChartView: View {
         .chartYScale(domain: yDomain)
         .chartYAxis(.hidden)
         .chartXAxis(.hidden)
-        .frame(width: .infinity, height: 330)
+        .frame(width: .infinity, height: height)
         .onReceive(Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()) { _ in
             currentTime = Date().timeIntervalSince1970
         }

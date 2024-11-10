@@ -7,10 +7,10 @@ public class GetFilteredTokensQuery: GraphQLQuery {
   public static let operationName: String = "GetFilteredTokens"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetFilteredTokens($interval: interval!, $minTrades: bigint = "0", $minVolume: numeric = 0, $mintBurnt: Boolean = false, $freezeBurnt: Boolean = false, $minDistinctPrices: Int = 0, $distinctPricesInterval: interval = "1m") { formatted_tokens_interval( args: { interval: $interval min_distinct_prices: $minDistinctPrices distinct_prices_interval: $distinctPricesInterval } where: { is_pump_token: { _eq: true } trades: { _gte: $minTrades } volume: { _gte: $minVolume } _and: [ { _or: [{ _not: { mint_burnt: { _eq: $mintBurnt } } }, { mint_burnt: { _eq: true } }] } { _or: [ { _not: { freeze_burnt: { _eq: $freezeBurnt } } } { freeze_burnt: { _eq: true } } ] } ] } order_by: { volume: desc } ) { __typename token_id mint name symbol description uri supply decimals mint_burnt freeze_burnt is_pump_token increase_pct trades volume latest_price created_at } }"#
+      #"query GetFilteredTokens($interval: interval = "30s", $minTrades: bigint = "0", $minVolume: numeric = 0, $mintBurnt: Boolean = false, $freezeBurnt: Boolean = false, $minDistinctPrices: Int = 0, $distinctPricesInterval: interval = "1m") { formatted_tokens_interval( args: { interval: $interval min_distinct_prices: $minDistinctPrices distinct_prices_interval: $distinctPricesInterval } where: { is_pump_token: { _eq: true } trades: { _gte: $minTrades } volume: { _gte: $minVolume } _and: [ { _or: [{ _not: { mint_burnt: { _eq: $mintBurnt } } }, { mint_burnt: { _eq: true } }] } { _or: [ { _not: { freeze_burnt: { _eq: $freezeBurnt } } } { freeze_burnt: { _eq: true } } ] } ] } order_by: { volume: desc } ) { __typename token_id mint name symbol description uri supply decimals mint_burnt freeze_burnt is_pump_token increase_pct trades volume latest_price created_at } }"#
     ))
 
-  public var interval: Interval
+  public var interval: GraphQLNullable<Interval>
   public var minTrades: GraphQLNullable<Bigint>
   public var minVolume: GraphQLNullable<Numeric>
   public var mintBurnt: GraphQLNullable<Bool>
@@ -19,7 +19,7 @@ public class GetFilteredTokensQuery: GraphQLQuery {
   public var distinctPricesInterval: GraphQLNullable<Interval>
 
   public init(
-    interval: Interval,
+    interval: GraphQLNullable<Interval> = "30s",
     minTrades: GraphQLNullable<Bigint> = "0",
     minVolume: GraphQLNullable<Numeric> = 0,
     mintBurnt: GraphQLNullable<Bool> = false,

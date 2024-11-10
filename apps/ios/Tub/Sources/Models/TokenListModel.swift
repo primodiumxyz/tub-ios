@@ -31,6 +31,8 @@ class TokenListModel: ObservableObject {
     private let TOKEN_COOLDOWN: TimeInterval = 60 // 60 seconds cooldown
     private var recentlyShownTokens: [(id: String, timestamp: Date)] = []
     
+    private var timer: Timer?
+
     init(walletAddress: String) {
         self.walletAddress = walletAddress
         self.currentTokenModel = TokenModel(walletAddress: walletAddress)
@@ -172,7 +174,17 @@ class TokenListModel: ObservableObject {
     
 
     func subscribeTokens() {
-        subscription = Network.shared.apollo.subscribe(subscription: SubFilteredTokensIntervalSubscription(
+        // Initial fetch
+        fetchTokens()
+        
+        // Set up timer for 1-second updates
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            self?.fetchTokens()
+        }
+    }
+
+    private func fetchTokens() {
+        Network.shared.apollo.fetch(query: GetFilteredTokensQuery(
             interval: .some(FILTER_INTERVAL),
             minTrades: .some(String(MIN_TRADES)),
             minVolume: .some(MIN_VOLUME),
@@ -180,17 +192,17 @@ class TokenListModel: ObservableObject {
             freezeBurnt: .some(FREEZE_BURNT),
             minDistinctPrices: .some(CHART_INTERVAL_MIN_TRADES),
             distinctPricesInterval: .some(CHART_INTERVAL)
-        )) { result in
-            DispatchQueue.main.async {
-                self.isLoading = false
-                switch result {
-                case .success(let graphQLResult):
-                    if let error = graphQLResult.errors {
-                        print(error)
-                        self.errorMessage = "Error: \(error)"
-                    }
-                    if let tokens = graphQLResult.data?.formatted_tokens_interval {
-                        self.availableTokens = tokens.map { elem in
+        ), cachePolicy: .fetchIgnoringCacheData) { [weak self] result in
+            guard let self = self else { return }
+            
+            // Process data in background queue
+            DispatchQueue.global(qos: .userInitiated).async {
+                // Prepare data in background
+                let processedData: ([Token], Token?) = {
+                    switch result {
+                    case .success(let graphQLResult):
+                        if let tokens = graphQLResult.data?.formatted_tokens_interval {
+                            let mappedTokens = tokens.map { elem in
                                 Token(
                                     id: elem.token_id,
                                     mint: elem.mint,
@@ -203,19 +215,40 @@ class TokenListModel: ObservableObject {
                                     volume: (elem.volume, FILTER_INTERVAL)
                                 )
                             }
-                        self.updateTokens()
-
-                         // Update current token model if the token exists in available tokens
-                        if let currentToken = self.availableTokens.first(where: { $0.id == self.currentTokenModel.tokenId }) {
-                            self.currentTokenModel.updateTokenDetails(from: currentToken)
+                            
+                            let currentToken = mappedTokens.first(where: { $0.id == self.currentTokenModel.tokenId })
+                            return (mappedTokens, currentToken)
                         }
+                        return ([], nil)
+                    case .failure(let error):
+                        print("Error fetching tokens: \(error.localizedDescription)")
+                        return ([], nil)
                     }
-                case .failure(let error):
-                    print(error.localizedDescription)
-                    self.errorMessage = "Error: \(error.localizedDescription)"
+                }()
+                
+                // Update UI on main thread
+                DispatchQueue.main.async {
+                    self.isLoading = false
+                    self.availableTokens = processedData.0
+                    self.updateTokens()
+                    
+                    if let currentToken = processedData.1 {
+                        self.currentTokenModel.updateTokenDetails(from: currentToken)
+                    }
                 }
             }
         }
+    }
+
+    // Add cleanup method
+    func cleanup() {
+        timer?.invalidate()
+        timer = nil
+    }
+
+    // Make sure to call cleanup when appropriate
+    deinit {
+        cleanup()
     }
 
     func formatTimeElapsed(_ timeInterval: TimeInterval) -> String {
