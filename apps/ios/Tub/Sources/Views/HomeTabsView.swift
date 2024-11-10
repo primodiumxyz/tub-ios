@@ -38,56 +38,54 @@ struct HomeTabsView: View {
                     .background(AppColors.black)
                     
                     // Custom Tab Bar
-                    HStack {
-                        Spacer()
-                        
-                        // Explore Tab
-                        Button(action: { selectedTab = 0 }) {
-                            VStack {
-                                Image(systemName: "safari")
-                                    .font(.system(size: 24))
-                                Text("Explore")
-                                    .font(.sfRounded(size: .xs, weight: .regular))
+                        HStack {
+                            Spacer()
+                            
+                            // Explore Tab
+                            Button(action: { selectedTab = 0 }) {
+                                VStack {
+                                    Image(systemName: "safari")
+                                        .font(.system(size: 24))
+                                    Text("Explore")
+                                        .font(.sfRounded(size: .xs, weight: .regular))
+                                }
+                                .foregroundColor(selectedTab == 0 ? color : AppColors.white.opacity(0.5))
                             }
-                            .foregroundColor(selectedTab == 0 ? color : AppColors.white.opacity(0.5))
-                        }
-                        
-                        Spacer()
-                        
-                        // History Tab
-                        Button(action: { selectedTab = 1 }) {
-                            VStack {
-                                Image(systemName: "clock")
-                                    .font(.system(size: 24))
-                                Text("History")
-                                    .font(.sfRounded(size: .xs, weight: .regular))
+                            
+                            Spacer()
+                            
+                            // History Tab
+                            Button(action: { selectedTab = 1 }) {
+                                VStack {
+                                    Image(systemName: "clock")
+                                        .font(.system(size: 24))
+                                    Text("History")
+                                        .font(.sfRounded(size: .xs, weight: .regular))
+                                }
+                                .foregroundColor(selectedTab == 1 ? color : AppColors.white.opacity(0.5))
                             }
-                            .foregroundColor(selectedTab == 1 ? color : AppColors.white.opacity(0.5))
-                        }
-                        
-                        Spacer()
-                        
-                        // Account Tab
-                        Button(action: { selectedTab = 2 }) {
-                            VStack {
-                                Image(systemName: "person")
-                                    .font(.system(size: 24))
-                                Text("Account")
-                                    .font(.sfRounded(size: .xs, weight: .regular))
+                            
+                            Spacer()
+                            
+                            // Account Tab
+                            Button(action: { selectedTab = 2 }) {
+                                VStack {
+                                    Image(systemName: "person")
+                                        .font(.system(size: 24))
+                                    Text("Account")
+                                        .font(.sfRounded(size: .xs, weight: .regular))
+                                }
+                                .foregroundColor(selectedTab == 2 ? color : AppColors.white.opacity(0.5))
                             }
-                            .foregroundColor(selectedTab == 2 ? color : AppColors.white.opacity(0.5))
+                            
+                            Spacer()
                         }
-                        
-                        Spacer()
-                    }
-                    .background(AppColors.black)
-                }
-                .onAppear {
-                    UITabBar.appearance().unselectedItemTintColor = UIColor.white.withAlphaComponent(0.5)
-                    
+                        .background(AppColors.black)
+                        .ignoresSafeArea(.keyboard)
                 }
             }
         }
+        .ignoresSafeArea(.keyboard)
         .environmentObject(userModel)
         .environmentObject(priceModel)
     }

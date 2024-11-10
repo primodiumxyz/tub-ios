@@ -61,6 +61,20 @@ struct SignInWithPhoneView: View {
         }
     }
     
+    private func handlePaste(_ pastedText: String, for pin: Binding<String>) {
+        let cleaned = pastedText.filter { $0.isNumber }
+        if cleaned.count == 6 {
+            let chars = Array(cleaned)
+            pinOne = String(chars[0])
+            pinTwo = String(chars[1])
+            pinThree = String(chars[2])
+            pinFour = String(chars[3])
+            pinFive = String(chars[4])
+            pinSix = String(chars[5])
+            verifyOTP()
+        }
+    }
+    
     var body: some View {
         VStack(alignment:.leading, spacing: 12) {
             Text("Continue with Phone Number")
@@ -114,7 +128,9 @@ struct SignInWithPhoneView: View {
                     TextField("", text: $pinOne)
                         .modifier(OtpModifer(pin: $pinOne))
                         .onChange(of: pinOne) { newVal in
-                            if newVal.count == 1 {
+                            if newVal.count > 1 {
+                                handlePaste(newVal, for: $pinOne)
+                            } else if newVal.count == 1 {
                                 pinFocusState = .pinTwo
                             }
                         }
@@ -209,5 +225,6 @@ struct SignInWithPhoneView: View {
                 otpFlowState = state
             }
         }
+        .dismissKeyboardOnTap()
     }
 }

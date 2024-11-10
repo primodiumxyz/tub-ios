@@ -31,6 +31,7 @@ struct TokenView : View {
     @State private var selectedTimespan: Timespan = .live
     @State private var showBuySheet: Bool = false
     @State private var defaultAmount: Double = 50.0
+    @State private var keyboardHeight: CGFloat = 0
     
     
     enum Timespan: String, CaseIterable {
@@ -83,7 +84,6 @@ struct TokenView : View {
                     .opacity(0.8)
                     .padding(.horizontal, 8)
                     .padding(.bottom, -4)
-                
                 BuySellForm(
                     tokenModel: tokenModel,
                     activeTab: $activeTab,
@@ -91,7 +91,7 @@ struct TokenView : View {
                     defaultAmount: $defaultAmount,
                     handleBuy: handleBuy
                 )
-                .equatable() // Add this modifier
+                .equatable()
             }
             .frame(maxWidth: .infinity)
             .foregroundColor(AppColors.white)
@@ -100,6 +100,7 @@ struct TokenView : View {
             buySheetOverlay
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .dismissKeyboardOnTap()
     }
     
     private var tokenInfoView: some View {
@@ -250,7 +251,7 @@ struct TokenView : View {
         
         return stats
     }
-
+    
     private var infoCardLowOpacity: some View {
         VStack(alignment: .leading, spacing: 0) {
             if activeTab == "sell" {
@@ -346,8 +347,11 @@ struct TokenView : View {
     
     
     private var buySheetOverlay: some View {
-        Group {
-            if showBuySheet {
+            guard showBuySheet else {
+             return   AnyView(EmptyView())
+            }
+        return AnyView (
+            Group {
                 AppColors.black.opacity(0.4)
                     .ignoresSafeArea()
                     .onTapGesture {
@@ -358,9 +362,36 @@ struct TokenView : View {
                 
                 BuyForm(isVisible: $showBuySheet, defaultAmount: $defaultAmount, tokenModel: tokenModel, onBuy: handleBuy)
                     .transition(.move(edge: .bottom))
-                    .offset(y:40)
-                    .zIndex(2) // Ensure it stays on top
+                   .offset(y: -keyboardHeight)
+                    .zIndex(2)
+                    .onAppear {
+                        setupKeyboardNotifications()
+                    }
+                    .onDisappear {
+                        removeKeyboardNotifications()
+                    }
+            }
+        )
+    }
+    
+    private func setupKeyboardNotifications() {
+        NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { notification in
+            if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
+                withAnimation(.easeOut(duration: 0.16)) {
+                    self.keyboardHeight = keyboardFrame.height / 2
+                }
             }
         }
+        
+        NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { _ in
+            withAnimation(.easeOut(duration: 0.16)) {
+                self.keyboardHeight = 0
+            }
+        }
+    }
+    
+    private func removeKeyboardNotifications() {
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
     }
 }

@@ -84,6 +84,7 @@ struct BuyForm: View {
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
             isKeyboardActive = false
         }
+        .dismissKeyboardOnTap()
     }
     
     private var formContent: some View {
@@ -97,7 +98,7 @@ struct BuyForm: View {
             }
         }
         .padding(8)
-        .frame(height: 230)
+        .frame(height: 300)
     }
     
     private var buyButton: some View {

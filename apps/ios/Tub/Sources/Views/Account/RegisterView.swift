@@ -252,6 +252,7 @@ struct RegisterView: View {
             .padding(.top, 20)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(AppColors.darkBlueGradient)
+            .dismissKeyboardOnTap()
         }
     }
 
