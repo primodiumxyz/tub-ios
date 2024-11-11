@@ -103,7 +103,7 @@ struct CandleChartView: View {
         }
         .chartYAxis(content: yAxisConfig)
         .chartXAxis(content: xAxisConfig)
-        .chartYScale(domain: .automatic)
+        .chartYScale(domain: yDomain)
         .frame(height: height)
         .onAppear(perform: updateCandles)
         .onChange(of: prices) { _ in updateCandles() }
@@ -185,6 +185,19 @@ struct CandleChartView: View {
             AxisValueLabel(format: .dateTime.hour().minute())
                 .foregroundStyle(.white.opacity(0.5))
         }
+    }
+
+    private var yDomain: ClosedRange<Int> {
+        if prices.isEmpty { return 0...100 }
+
+        var pricesWithPurchase = prices
+        
+        let minPrice = pricesWithPurchase.min { $0.price < $1.price }?.price ?? 0
+        let maxPrice = pricesWithPurchase.max { $0.price < $1.price }?.price ?? 100
+        let range = maxPrice - minPrice
+        let padding = Int(Double(range) * 0.25)
+        
+        return (minPrice - padding)...(maxPrice + padding)
     }
 }
 

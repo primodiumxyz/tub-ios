@@ -131,7 +131,7 @@ struct TokenView : View {
                     Text(priceModel.formatPrice(lamports: tokenModel.priceChange.amountLamps, showSign: true))
                     Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
                     
-                    Text("\(Int(tokenModel.timeframeSecs))s").foregroundColor(.gray)
+                    Text("\(formatDuration(tokenModel.timeframeSecs))").foregroundColor(.gray)
                 }
                 .font(.sfRounded(size: .sm, weight: .semibold))
                 .foregroundColor(tokenModel.priceChange.amountLamps >= 0 ? .green : .red)

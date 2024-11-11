@@ -10,13 +10,13 @@ import Charts
 
 struct ChartView: View {
     @EnvironmentObject var priceModel: SolPriceModel
-    let prices: [Price]
+    let rawPrices: [Price]
     let timeframeSecs: Double
     let purchaseData: PurchaseData?
     let height: CGFloat
     
     init(prices: [Price], timeframeSecs: Double = 90.0, purchaseData: PurchaseData? = nil, height: CGFloat = 330) {
-        self.prices = prices
+        self.rawPrices = prices
         self.timeframeSecs = timeframeSecs
         self.purchaseData = purchaseData
         self.height = height
@@ -56,17 +56,17 @@ struct ChartView: View {
         return (minPrice - padding)...(maxPrice + padding)
     }
     
-    private var filteredPrices: [Price] {
+    private var prices: [Price] {
         let cutoffTime = currentTime - timeframeSecs
-        if let firstValidIndex = prices.firstIndex(where: { $0.timestamp.timeIntervalSince1970 >= cutoffTime }) {
-            return Array(prices[firstValidIndex...])
+        if let firstValidIndex = rawPrices.firstIndex(where: { $0.timestamp.timeIntervalSince1970 >= cutoffTime }) {
+            return Array(rawPrices[firstValidIndex...])
         }
-        return prices
+        return rawPrices
     }
     
     var body: some View {
         Chart {
-            ForEach(filteredPrices) { price in
+            ForEach(prices) { price in
                 LineMark(
                     x: .value("Date", price.timestamp),
                     y: .value("Price", price.price)
