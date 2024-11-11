@@ -20,6 +20,18 @@ enum TubError: LocalizedError {
     }
 }
 
+enum Timespan: String, CaseIterable {
+    case live = "LIVE"
+    case thirtyMin = "30M"
+    
+    var timeframeSecs: Double {
+        switch self {
+        case .live: return CHART_INTERVAL
+        case .thirtyMin: return 30 * 60
+        }
+    }
+}
+
 struct TokenView : View {
     @EnvironmentObject private var errorHandler: ErrorHandler
     @ObservedObject var tokenModel: TokenModel
@@ -34,17 +46,6 @@ struct TokenView : View {
     @State private var keyboardHeight: CGFloat = 0
     
     
-    enum Timespan: String, CaseIterable {
-        case live = "LIVE"
-        case thirtyMin = "30M"
-        
-        var timeframeSecs: Double {
-            switch self {
-            case .live: return CHART_INTERVAL
-            case .thirtyMin: return 30 * 60
-            }
-        }
-    }
     
     init(tokenModel: TokenModel, activeTab: Binding<String>) {
         self.tokenModel = tokenModel
@@ -131,7 +132,7 @@ struct TokenView : View {
                     Text(priceModel.formatPrice(lamports: tokenModel.priceChange.amountLamps, showSign: true))
                     Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
                     
-                    Text("\(formatDuration(tokenModel.timeframeSecs))").foregroundColor(.gray)
+                    Text("\(formatDuration(tokenModel.currentTimeframe.timeframeSecs))").foregroundColor(.gray)
                 }
                 .font(.sfRounded(size: .sm, weight: .semibold))
                 .foregroundColor(tokenModel.priceChange.amountLamps >= 0 ? .green : .red)
@@ -154,19 +155,19 @@ struct TokenView : View {
                 LoadingChart()
             } else if selectedTimespan == .live {
                 ChartView(
-                    prices: tokenModel.prices, 
+                    prices: tokenModel.prices,
                     timeframeSecs: selectedTimespan.timeframeSecs,
                     purchaseData: tokenModel.purchaseData,
                     height: height
                 )
             } else {
                 CandleChartView(
-                    prices: tokenModel.prices, 
-                    intervalSecs: 90, 
+                    prices: tokenModel.prices,
+                    intervalSecs: 90,
                     timeframeMins: 30,
                     height: height
                 )
-                    .id(tokenModel.prices.count)
+                .id(tokenModel.prices.count)
             }
         }
     }
@@ -189,7 +190,7 @@ struct TokenView : View {
         Button {
             withAnimation {
                 selectedTimespan = timespan
-                tokenModel.updateHistoryInterval(timespan.timeframeSecs)
+                tokenModel.updateHistoryInterval(timespan)
             }
         } label: {
             HStack(spacing: 4) {
@@ -347,9 +348,9 @@ struct TokenView : View {
     
     
     private var buySheetOverlay: some View {
-            guard showBuySheet else {
-             return   AnyView(EmptyView())
-            }
+        guard showBuySheet else {
+            return   AnyView(EmptyView())
+        }
         return AnyView (
             Group {
                 AppColors.black.opacity(0.4)
@@ -362,7 +363,7 @@ struct TokenView : View {
                 
                 BuyForm(isVisible: $showBuySheet, defaultAmount: $defaultAmount, tokenModel: tokenModel, onBuy: handleBuy)
                     .transition(.move(edge: .bottom))
-                   .offset(y: -keyboardHeight)
+                    .offset(y: -keyboardHeight)
                     .zIndex(2)
                     .onAppear {
                         setupKeyboardNotifications()

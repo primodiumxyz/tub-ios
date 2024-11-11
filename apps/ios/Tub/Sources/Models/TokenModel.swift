@@ -28,6 +28,7 @@ class TokenModel: ObservableObject {
     @Published var priceChange: (amountLamps: Int, percentage: Double) = (0, 0)
 
     @Published var timeframeSecs: Double = 30 * 60
+    @Published var currentTimeframe: Timespan = .live
     private var lastPriceTimestamp: Date?
  
     private var latestPriceSubscription: Apollo.Cancellable?
@@ -232,15 +233,19 @@ class TokenModel: ObservableObject {
 
 
     
-    func updateHistoryInterval(_ timeframeSecs: Double) {
-        print("updating history interval to \(timeframeSecs)")
-        if self.timeframeSecs >= timeframeSecs {
+    func updateHistoryInterval(_ timespan: Timespan) {
+        self.currentTimeframe = timespan
+        self.calculatePriceChange()
+        
+        if self.timeframeSecs >= timespan.timeframeSecs {
             return
         }
+        
+        
         latestPriceSubscription?.cancel()
         self.prices = []
         self.loading = true
-        self.timeframeSecs = timeframeSecs
+        self.timeframeSecs = timespan.timeframeSecs
         Task {
             do {
                 try await fetchInitialPrices(timeframeSecs)
@@ -254,7 +259,12 @@ class TokenModel: ObservableObject {
     
     private func calculatePriceChange() {
         let latestPrice = prices.last?.price ?? 0
-        let initialPrice = self.prices.first?.price ?? 0
+        
+        // Get timestamp for start of current timeframe
+        let startTime = Date().addingTimeInterval(-currentTimeframe.timeframeSecs)
+        
+        // Find first price after the start time
+        let initialPrice = prices.first(where: { $0.timestamp >= startTime })?.price ?? prices.first?.price ?? 0
         
         if latestPrice == 0 || initialPrice == 0 {
             print("Error: Cannot calculate price change. Prices are not available.")
