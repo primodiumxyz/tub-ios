@@ -7,39 +7,7 @@
 
 import SwiftUI
 
-private extension String {
-    static let numberFormatter: NumberFormatter = {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.usesGroupingSeparator = true
-        formatter.groupingSeparator = ","
-        return formatter
-    }()
-    
-    var doubleValue: Double {
-        // Special handling for 3 decimal places with comma
-        if self.components(separatedBy: CharacterSet(charactersIn: ",")).last?.count == 3 {
-            String.numberFormatter.decimalSeparator = ","
-            if let result = String.numberFormatter.number(from: self) {
-                return result.doubleValue
-            }
-        }
-        
-        // Try with dot as decimal separator
-        String.numberFormatter.decimalSeparator = "."
-        if let result = String.numberFormatter.number(from: self) {
-            return result.doubleValue
-        }
-        
-        // Try with comma as decimal separator
-        String.numberFormatter.decimalSeparator = ","
-        if let result = String.numberFormatter.number(from: self) {
-            return result.doubleValue
-        }
-        
-        return 0
-    }
-}
+
 
 struct BuyForm: View {
     @Binding var isVisible: Bool
@@ -91,7 +59,8 @@ struct BuyForm: View {
         // Add a tiny buffer for floating point precision
         let usdAmount = priceModel.lamportsToUsd(lamports: amountLamps)
         buyAmountUsd = usdAmount
-        buyAmountUsdString = priceModel.formatPrice(lamports: amountLamps, showSign: false, showUnit: false, formatLarge: false)
+        // Format to 2 decimal places, rounding down
+        buyAmountUsdString = String(format: "%.2f", floor(usdAmount * 100) / 100)
         isValidInput = true
         
         // Compare with a small epsilon to avoid floating point precision issues
@@ -175,40 +144,30 @@ struct BuyForm: View {
                 TextField("", text: $buyAmountUsdString, prompt: Text("10", comment: "placeholder").foregroundColor(AppColors.white.opacity(0.3)))
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.leading)
-                    .onChange(of: buyAmountUsdString) { newValue in
-                        // Remove whitespace
-                        let cleanedValue = newValue.replacingOccurrences(of: " ", with: "")
+                    .textFieldStyle(PlainTextFieldStyle())
+                    .onReceive(NotificationCenter.default.publisher(for: UITextField.textDidChangeNotification)) { obj in
+                        guard let textField = obj.object as? UITextField else { return }
                         
-                        // Limit to 10 characters to prevent overflow
-                        if cleanedValue.count > 10 {
-                            buyAmountUsdString = String(cleanedValue.prefix(10))
-                            return
-                        }
-                        
-                        // Check decimal places
-                        if cleanedValue.contains(".") || cleanedValue.contains(",") {
-                            let parts = cleanedValue.components(separatedBy: CharacterSet(charactersIn: ".,"))
-                            if parts.count == 2 && parts[1].count > 5 {
-                                // Truncate to 5 decimal places
-                                buyAmountUsdString = parts[0] + "." + String(parts[1].prefix(5))
-                                return
+                        if let text = textField.text {
+                            // Validate decimal places
+                            let components = text.components(separatedBy: ".")
+                            if components.count > 1 {
+                                let decimals = components[1]
+                                if decimals.count > 2 {
+                                    textField.text = String(text.dropLast())
+                                }
                             }
-                        }
-                        
-                        // Handle empty input
-                        if cleanedValue.isEmpty {
-                            buyAmountUsd = 0
-                            isValidInput = true
-                            return
-                        }
-                        
-                        // Convert to double using the formatter
-                        let amount = cleanedValue.doubleValue
-                        if amount > 0 {
-                            buyAmountUsd = amount
-                            // Only format if the value has changed
-                            if cleanedValue != newValue {
-                                buyAmountUsdString = priceModel.formatPrice(usd: amount, showSign: false, showUnit: false, formatLarge: false)
+                            
+                            // Validate if it's a decimal
+                            if !text.isEmpty && !text.isDecimal() {
+                                textField.text = String(text.dropLast())
+                            }
+                            
+                            let amount = text.doubleValue
+                            if amount > 0 {
+                                buyAmountUsd = amount
+                                // Only format if the value has changed
+                                buyAmountUsdString = text
                             }
                             isValidInput = true
                             showInsufficientBalance = userModel.balanceLamps < priceModel.usdToLamports(usd: amount)
@@ -371,4 +330,55 @@ struct BuyForm: View {
             }
         }
     }
+}
+func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+    guard !string.isEmpty else {
+        return true
+    }
+
+    let currentText = textField.text ?? ""
+    let replacementText = (currentText as NSString).replacingCharacters(in: range, with: string)
+
+    return replacementText.isDecimal()
+}
+
+
+extension String{
+   func isDecimal()->Bool{
+       let formatter = NumberFormatter()
+       formatter.allowsFloats = true
+       formatter.locale = Locale.current
+       return formatter.number(from: self) != nil
+   }
+        static let numberFormatter: NumberFormatter = {
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .decimal
+            formatter.usesGroupingSeparator = true
+            formatter.groupingSeparator = ","
+            return formatter
+        }()
+        
+        var doubleValue: Double {
+            // Special handling for 3 decimal places with comma
+            if self.components(separatedBy: CharacterSet(charactersIn: ",")).last?.count == 3 {
+                String.numberFormatter.decimalSeparator = ","
+                if let result = String.numberFormatter.number(from: self) {
+                    return result.doubleValue
+                }
+            }
+            
+            // Try with dot as decimal separator
+            String.numberFormatter.decimalSeparator = "."
+            if let result = String.numberFormatter.number(from: self) {
+                return result.doubleValue
+            }
+            
+            // Try with comma as decimal separator
+            String.numberFormatter.decimalSeparator = ","
+            if let result = String.numberFormatter.number(from: self) {
+                return result.doubleValue
+            }
+            
+            return 0
+        }
 }
