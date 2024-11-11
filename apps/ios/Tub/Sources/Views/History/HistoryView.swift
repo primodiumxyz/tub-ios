@@ -53,7 +53,7 @@ struct HistoryView : View {
                             let price = transaction.token_price?.price ?? 0
                             
                             var valueLamps = 0
-                            let maxSafeValue = Int.max / abs(transaction.amount)
+                            let maxSafeValue = transaction.amount > 0 ? Int.max / abs(transaction.amount) : 0
                             if Double(price) > Double(maxSafeValue) {
                                 valueLamps = maxSafeValue / Int(1e9)
                             } else {

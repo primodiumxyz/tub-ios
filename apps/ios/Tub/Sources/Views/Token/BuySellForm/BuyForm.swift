@@ -246,7 +246,7 @@ struct BuyForm: View {
     
     private var tokenConversionDisplay: some View {
         Group {
-            if let currentPrice = tokenModel.prices.last?.price {
+            if let currentPrice = tokenModel.prices.last?.price, currentPrice > 0 {
                 let buyAmountLamps = priceModel.usdToLamports(usd: buyAmountUsd)
                 let tokenAmount = Int(Double(buyAmountLamps) / Double(currentPrice) * 1e9)
 
