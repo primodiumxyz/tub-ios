@@ -26,7 +26,6 @@ struct AppContent : View {
             if userId == "" {
                 MockRegisterView(register: {
                     UserManager.shared.register(onRegister: { userId in
-                        print("userId: \(userId)")
                         self.userId = userId
                     })
                 })
