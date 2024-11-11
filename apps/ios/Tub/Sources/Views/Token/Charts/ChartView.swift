@@ -59,8 +59,19 @@ struct ChartView: View {
     private var prices: [Price] {
         let cutoffTime = currentTime - timeframeSecs
         if let firstValidIndex = rawPrices.firstIndex(where: { $0.timestamp.timeIntervalSince1970 >= cutoffTime }) {
-            return Array(rawPrices[firstValidIndex...])
+            let slice = Array(rawPrices[firstValidIndex...])
+            // If we have enough points in the time window, return them
+            if slice.count >= 2 {
+                return slice
+            }
         }
+        
+        // If we don't have enough points in the time window,
+        // return at least the last 2 points from rawPrices
+        if rawPrices.count >= 2 {
+            return Array(rawPrices.suffix(2))
+        }
+        
         return rawPrices
     }
     
