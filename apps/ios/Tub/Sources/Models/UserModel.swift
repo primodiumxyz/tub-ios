@@ -71,6 +71,7 @@ class UserModel: ObservableObject {
     }
 
     private func fetchInitialBalance() async throws {
+        print(self.walletAddress)
         let query = GetWalletBalanceQuery(wallet: self.walletAddress)
         
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in

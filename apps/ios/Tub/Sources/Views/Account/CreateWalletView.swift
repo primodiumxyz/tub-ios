@@ -7,7 +7,8 @@
 import SwiftUI
 
 struct CreateWalletView : View {
-    
+    @EnvironmentObject private var errorHandler: ErrorHandler
+
     func handleWalletCreation() {
         Task {
             do {
@@ -29,7 +30,7 @@ struct CreateWalletView : View {
                     print("Wallet state: \(walletState.toString)")
                 }
             } catch {
-                print("Error creating wallet: \(error.localizedDescription)")
+                errorHandler.show(error)
             }
         }
     }

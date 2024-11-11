@@ -24,7 +24,7 @@ struct SIWA: UIViewRepresentable {
 struct SignInWithApple: View {
     
     var body: some View {
-        SIWA().frame(maxWidth: 300, maxHeight: 60).cornerRadius(26)
+        SIWA()
     }
     
 }
