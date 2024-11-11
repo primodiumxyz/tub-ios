@@ -34,7 +34,7 @@ struct TokenInfoCardView: View {
             let gains = currentValueUsd - initialValueUsd
             
 
-            if purchaseData.amount > 0 {
+            if purchaseData.amount > 0, initialValueUsd > 0 {
                 let percentageGain = gains / initialValueUsd * 100
                 stats += [
                     ("Gains", StatValue(
@@ -43,7 +43,7 @@ struct TokenInfoCardView: View {
                     ))
                 ]
             }
-                        // Add position stats
+
             stats += [
                 ("You Own", StatValue(
                     text: "\(priceModel.formatPrice(lamports: currentValueLamps, maxDecimals: 2, minDecimals: 2)) (\(priceModel.formatPrice(lamports: tokenModel.balanceLamps, showUnit: false)) \(tokenModel.token.symbol))",
