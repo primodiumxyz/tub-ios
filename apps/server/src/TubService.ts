@@ -10,7 +10,7 @@ export class TubService {
   constructor(gqlClient: GqlClient["db"], privy: PrivyClient) {
     this.gql = gqlClient;
     /* tslint:disable:no-unused-variable */
-    const _ = privy;
+    const _privy = privy;
   }
 
   getStatus(): { status: number } {
