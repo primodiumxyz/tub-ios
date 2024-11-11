@@ -5,12 +5,11 @@ import { config } from "dotenv";
 config({ path: "../../.env" });
 
 export class TubService {
-  private privy: PrivyClient;
   private gql: GqlClient["db"];
 
   constructor(gqlClient: GqlClient["db"], privy: PrivyClient) {
     this.gql = gqlClient;
-    this.privy = privy;
+    const _ = privy;
   }
 
   getStatus(): { status: number } {
