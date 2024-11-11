@@ -26,7 +26,9 @@ class TokenModel: ObservableObject {
     
     @Published var prices: [Price] = []
     @Published var priceChange: (amountLamps: Int, percentage: Double) = (0, 0)
-    @Published var interval: Interval = CHART_INTERVAL
+
+    @Published var timeframeSecs: Double = 30 * 60
+    private var lastPriceTimestamp: Date?
  
     private var latestPriceSubscription: Apollo.Cancellable?
     private var tokenBalanceSubscription: Apollo.Cancellable?
@@ -38,7 +40,8 @@ class TokenModel: ObservableObject {
         }
     }
     
-    func initialize(with newTokenId: String, interval: Interval = CHART_INTERVAL) {
+    func initialize(with newTokenId: String, timeframeSecs: Double = 30 * 60) {
+        print("initializing token \(newTokenId) with timeframe \(timeframeSecs)")
         // Cancel all existing subscriptions
         latestPriceSubscription?.cancel()
         tokenBalanceSubscription?.cancel()
@@ -49,12 +52,13 @@ class TokenModel: ObservableObject {
         self.prices = []
         self.priceChange = (0, 0)
         self.balanceLamps = 0
-        self.interval = interval
+        self.timeframeSecs = timeframeSecs
 
         // Re-run the initialization logic
         Task {
             do {
                 try await fetchTokenDetails()
+                try await fetchInitialPrices(self.timeframeSecs)
             } catch {
                 print("Error fetching initial data: \(error)")
             }
@@ -64,6 +68,39 @@ class TokenModel: ObservableObject {
         }
     }
     
+    func fetchInitialPrices(_ timeframeSecs: Double) async throws {
+        let since = Date().addingTimeInterval(-timeframeSecs).ISO8601Format()
+
+        let query = GetTokenPriceHistorySinceQuery(tokenId: Uuid(tokenId), since: since)
+
+        return try await withCheckedThrowingContinuation { continuation in
+            Network.shared.apollo.fetch(query: query) { [weak self] result in
+                guard let self = self else {
+                    continuation.resume(throwing: NSError(domain: "TokenModel", code: 0, userInfo: [NSLocalizedDescriptionKey: "Self is nil"]))
+                    return
+                }
+
+                switch result {
+                case .success(let response):
+                    DispatchQueue.main.async {
+                        self.prices = response.data?.token_price_history.compactMap { history in
+                            if let date = formatDateString(history.created_at) {
+                                return Price(timestamp: date, price: history.price)
+                            }
+                            return nil
+                        } ?? []
+                        self.lastPriceTimestamp = self.prices.last?.timestamp
+                        self.loading = false
+                        self.calculatePriceChange()
+                    }
+                    continuation.resume()
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+
     private func fetchTokenDetails() async throws {
         let query = GetTokenDataQuery(tokenId: tokenId)
         return try await withCheckedThrowingContinuation { continuation in
@@ -82,6 +119,7 @@ class TokenModel: ObservableObject {
                 switch result {
                 case .success(let response):
                     if let token = response.data?.token.first(where: { $0.id == self.tokenId }) {
+                        print("got token \(token.name)")
                         DispatchQueue.main.async {
                             self.token = Token(
                                 id: token.id,
@@ -115,25 +153,21 @@ class TokenModel: ObservableObject {
 
     private func subscribeToLatestPrice() {
         latestPriceSubscription?.cancel()
-        let subscription = SubTokenPriceHistoryIntervalSubscription(token: Uuid(self.tokenId), interval: .some(self.interval))
+        let subscription = SubLatestTokenPriceSubscription(tokenId: Uuid(self.tokenId))
         
         latestPriceSubscription = Network.shared.apollo.subscribe(subscription: subscription) { [weak self] result in
             guard let self = self else { return }
             
             switch result {
             case .success(let graphQLResult):
-                if let priceHistory = graphQLResult.data?.token_price_history_offset {
-                    DispatchQueue.main.async {
-                        self.prices = priceHistory.compactMap { history in
-                            if let date = formatDateString(history.created_at) {
-                                return Price(timestamp: date, price: history.price)
-                            }
-                            return nil
-                        }
-                        
-                        self.loading = false
+                if let priceHistory = graphQLResult.data?.token_price_history.first, let date = formatDateString(priceHistory.created_at){
+                    let newPrice = Price(timestamp: date, price: priceHistory.price)
+                    if self.lastPriceTimestamp == nil || newPrice.timestamp > self.lastPriceTimestamp! {
+                        self.prices.append(newPrice)
+                        self.lastPriceTimestamp = newPrice.timestamp
                         self.calculatePriceChange()
                     }
+                   
                 }
             case .failure(let error):
                 print("Error in latest price subscription: \(error)")
@@ -198,12 +232,24 @@ class TokenModel: ObservableObject {
 
 
     
-    func updateHistoryInterval(_ interval: Interval) {
+    func updateHistoryInterval(_ timeframeSecs: Double) {
+        print("updating history interval to \(timeframeSecs)")
+        if self.timeframeSecs >= timeframeSecs {
+            return
+        }
         latestPriceSubscription?.cancel()
         self.prices = []
         self.loading = true
-        self.interval = interval
-        subscribeToLatestPrice()
+        self.timeframeSecs = timeframeSecs
+        Task {
+            do {
+                try await fetchInitialPrices(timeframeSecs)
+                subscribeToLatestPrice()
+            } catch {
+                print("error updating the history interval: \(error.localizedDescription)")
+            }
+            
+        }
     }
     
     private func calculatePriceChange() {

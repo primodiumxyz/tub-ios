@@ -38,10 +38,10 @@ struct TokenView : View {
         case live = "LIVE"
         case thirtyMin = "30M"
         
-        var interval: Interval {
+        var timeframeSecs: Double {
             switch self {
             case .live: return CHART_INTERVAL
-            case .thirtyMin: return "30m"
+            case .thirtyMin: return 30 * 60
             }
         }
     }
@@ -131,7 +131,7 @@ struct TokenView : View {
                     Text(priceModel.formatPrice(lamports: tokenModel.priceChange.amountLamps, showSign: true))
                     Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
                     
-                    Text(tokenModel.interval).foregroundColor(.gray)
+                    Text("\(Int(tokenModel.timeframeSecs))s").foregroundColor(.gray)
                 }
                 .font(.sfRounded(size: .sm, weight: .semibold))
                 .foregroundColor(tokenModel.priceChange.amountLamps >= 0 ? .green : .red)
@@ -155,7 +155,7 @@ struct TokenView : View {
             } else if selectedTimespan == .live {
                 ChartView(
                     prices: tokenModel.prices, 
-                    timeframeSecs: 120.0, 
+                    timeframeSecs: selectedTimespan.timeframeSecs,
                     purchaseData: tokenModel.purchaseData,
                     height: height
                 )
@@ -189,7 +189,7 @@ struct TokenView : View {
         Button {
             withAnimation {
                 selectedTimespan = timespan
-                tokenModel.updateHistoryInterval(timespan.interval)
+                tokenModel.updateHistoryInterval(timespan.timeframeSecs)
             }
         } label: {
             HStack(spacing: 4) {

@@ -32,13 +32,12 @@ struct CandleChartView: View {
     
     private func filterPrices(prices: [Price], timeframeSecs: Double) -> [Price] {
         let cutoffDate = Date().addingTimeInterval(-timeframeSecs)
-        let filteredPrices = prices.filter { $0.timestamp >= cutoffDate }
-        
-        if filteredPrices.count < 2 {
-            return Array(prices.suffix(2))
+        if let firstValidIndex = prices.firstIndex(where: { $0.timestamp >= cutoffDate }) {
+            return Array(prices[firstValidIndex...])
         }
         
-        return filteredPrices
+        // Fallback: return last 2 prices if no prices are within timeframe
+        return Array(prices.suffix(2))
     }
     private func updateCandles() {
         if prices.isEmpty { return }

@@ -56,9 +56,17 @@ struct ChartView: View {
         return (minPrice - padding)...(maxPrice + padding)
     }
     
+    private var filteredPrices: [Price] {
+        let cutoffTime = currentTime - timeframeSecs
+        if let firstValidIndex = prices.firstIndex(where: { $0.timestamp.timeIntervalSince1970 >= cutoffTime }) {
+            return Array(prices[firstValidIndex...])
+        }
+        return prices
+    }
+    
     var body: some View {
         Chart {
-            ForEach(prices) { price in
+            ForEach(filteredPrices) { price in
                 LineMark(
                     x: .value("Date", price.timestamp),
                     y: .value("Price", price.price)
