@@ -20,6 +20,10 @@ struct BuySellForm: View {
     var handleBuy: (Double) -> Void
     
     func handleSell() {
+        // Add haptic feedback
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.success)
+        
         tokenModel.sellTokens(completion: {result in
             switch result {
             case .success:
