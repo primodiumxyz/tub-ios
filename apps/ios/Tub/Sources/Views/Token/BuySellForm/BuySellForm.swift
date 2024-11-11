@@ -14,6 +14,8 @@ struct BuySellForm: View {
     @Binding var activeTab: String
     @Binding var showBuySheet: Bool
     @Binding var defaultAmount: Double
+    @State private var showBubbles = false
+    @StateObject private var animationState = TokenAnimationState.shared
     
     var handleBuy: (Double) -> Void
     
@@ -21,8 +23,9 @@ struct BuySellForm: View {
         tokenModel.sellTokens(completion: {result in
             switch result {
             case .success:
-                    activeTab = "buy"
-            case .failure (let error):
+                animationState.showSellBubbles = true
+                activeTab = "buy"
+            case .failure(let error):
                 errorHandler.show(error)
             }
         })
@@ -30,13 +33,13 @@ struct BuySellForm: View {
     
     var body: some View {
         VStack {
-        if userModel.userId == "" {
-            Text("Register to trade")
-                .font(.title)
-                .foregroundColor(.yellow)
-                .padding()
-                .frame(maxWidth: .infinity, alignment: .center)
-        } else if activeTab == "buy" {
+            if userModel.userId == "" {
+                Text("Register to trade")
+                    .font(.title)
+                    .foregroundColor(.yellow)
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .center)
+            } else if activeTab == "buy" {
                 // edit button
                 HStack(spacing: 16) {
                     Button(action: {
@@ -75,6 +78,11 @@ struct BuySellForm: View {
                     .padding(.horizontal,8)
             }
         }
+            
+            // if showBubbles {
+            //     BubbleEffect(isActive: $showBubbles)
+            //         .zIndex(999) // Make sure it's on top
+            // }
     }
 }
 

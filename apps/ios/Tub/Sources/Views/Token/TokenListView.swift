@@ -24,6 +24,8 @@ struct TokenListView: View {
     
     @State var activeTab: String = "buy"
     
+    @StateObject private var animationState = TokenAnimationState.shared
+    
     private func canSwipe(value: DragGesture.Value) -> Bool {
         return activeTab != "sell" &&
             // not trying to swipe up from the first token
@@ -135,6 +137,11 @@ struct TokenListView: View {
                                 ).zIndex(1)
                             }
                         }
+                    }
+                    
+                    if animationState.showSellBubbles {
+                        BubbleEffect(isActive: $animationState.showSellBubbles)
+                            .zIndex(999)
                     }
                 }
                 .foregroundColor(.white)
