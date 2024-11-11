@@ -17,6 +17,14 @@ private extension String {
     }()
     
     var doubleValue: Double {
+        // Special handling for 3 decimal places with comma
+        if self.components(separatedBy: CharacterSet(charactersIn: ",")).last?.count == 3 {
+            String.numberFormatter.decimalSeparator = ","
+            if let result = String.numberFormatter.number(from: self) {
+                return result.doubleValue
+            }
+        }
+        
         // Try with dot as decimal separator
         String.numberFormatter.decimalSeparator = "."
         if let result = String.numberFormatter.number(from: self) {
