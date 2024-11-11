@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+
+
 struct BuyForm: View {
     @Binding var isVisible: Bool
     @Binding var defaultAmount: Double
@@ -54,9 +56,16 @@ struct BuyForm: View {
             return
         }
         
-        buyAmountUsdString = priceModel.formatPrice(lamports: amountLamps, showSign: false, showUnit: false, formatLarge: false)
-        buyAmountUsd = priceModel.lamportsToUsd(lamports: amountLamps)
+        // Add a tiny buffer for floating point precision
+        let usdAmount = priceModel.lamportsToUsd(lamports: amountLamps)
+        buyAmountUsd = usdAmount
+        // Format to 2 decimal places, rounding down
+        buyAmountUsdString = String(format: "%.2f", floor(usdAmount * 100) / 100)
         isValidInput = true
+        
+        // Compare with a small epsilon to avoid floating point precision issues
+        let buyAmountLamps = priceModel.usdToLamports(usd: usdAmount)
+        showInsufficientBalance = buyAmountLamps > userModel.balanceLamps
     }
     
     func resetForm() {
@@ -135,63 +144,36 @@ struct BuyForm: View {
                 TextField("", text: $buyAmountUsdString, prompt: Text("10", comment: "placeholder").foregroundColor(AppColors.white.opacity(0.3)))
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.leading)
-                    .onChange(of: buyAmountUsdString) { newValue in
-                        // First replace any dots with commas to standardize the input
-                        var cleanedValue = newValue.replacingOccurrences(of: " ", with: "")
+                    .textFieldStyle(PlainTextFieldStyle())
+                    .onReceive(NotificationCenter.default.publisher(for: UITextField.textDidChangeNotification)) { obj in
+                        guard let textField = obj.object as? UITextField else { return }
                         
-                        // Check for multiple decimal separators (both . and ,)
-                        let dotComponents = cleanedValue.components(separatedBy: ".")
-                        let commaComponents = cleanedValue.components(separatedBy: ",")
-                        
-                        if dotComponents.count > 2 || commaComponents.count > 2 {
-                            // Keep only the first decimal separator
-                            if let firstPart = cleanedValue.components(separatedBy: CharacterSet(charactersIn: ".,")).first {
-                                let remainingParts = cleanedValue.components(separatedBy: CharacterSet(charactersIn: ".,")).dropFirst().joined()
-                                buyAmountUsdString = firstPart + "." + remainingParts
+                        if let text = textField.text {
+                            // Validate decimal places
+                            let components = text.components(separatedBy: ".")
+                            if components.count > 1 {
+                                let decimals = components[1]
+                                if decimals.count > 2 {
+                                    textField.text = String(text.dropLast())
+                                }
                             }
-                            return
-                        }
-                        
-                        // Convert any comma to dot for internal processing
-                        cleanedValue = cleanedValue.replacingOccurrences(of: ",", with: ".")
-                        
-                        // Handle leading zeros
-                        if cleanedValue.hasPrefix("0") && cleanedValue.count > 1 && !cleanedValue.hasPrefix("0.") {
-                            // Remove leading zeros
-                            buyAmountUsdString = String(cleanedValue.drop(while: { $0 == "0" }))
-                            return
-                        }
-                        
-                        // Limit to 13 characters to prevent overflow
-                        if cleanedValue.count > 13 {
-                            buyAmountUsdString = String(cleanedValue.prefix(13))
-                            return
-                        }
-                        
-                        // Allow empty string when user is typing
-                        if cleanedValue.isEmpty {
-                            buyAmountUsd = 0
-                            isValidInput = true
-                            return
-                        }
-                        
-                        // Check if it's a valid decimal number
-                        if let amount = Double(cleanedValue) {
-                            buyAmountUsd = amount
-                            // Only format if not currently editing
-                            if cleanedValue != newValue {
-                                buyAmountUsdString = priceModel.formatPrice(usd: amount, showSign: false, showUnit: false, formatLarge: false)
+                            
+                            // Validate if it's a decimal
+                            if !text.isEmpty && !text.isDecimal() {
+                                textField.text = String(text.dropLast())
+                            }
+                            
+                            let amount = text.doubleValue
+                            if amount > 0 {
+                                buyAmountUsd = amount
+                                // Only format if the value has changed
+                                buyAmountUsdString = text
                             }
                             isValidInput = true
+                            showInsufficientBalance = userModel.balanceLamps < priceModel.usdToLamports(usd: amount)
                         } else {
                             buyAmountUsd = 0
                             isValidInput = false
-                        }
-                        
-                        // Check balance and update error state
-                        if let amount = Double(cleanedValue) {
-                            showInsufficientBalance = userModel.balanceLamps < priceModel.usdToLamports(usd: amount)
-                        } else {
                             showInsufficientBalance = false
                         }
                     }
@@ -348,4 +330,55 @@ struct BuyForm: View {
             }
         }
     }
+}
+func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+    guard !string.isEmpty else {
+        return true
+    }
+
+    let currentText = textField.text ?? ""
+    let replacementText = (currentText as NSString).replacingCharacters(in: range, with: string)
+
+    return replacementText.isDecimal()
+}
+
+
+extension String{
+   func isDecimal()->Bool{
+       let formatter = NumberFormatter()
+       formatter.allowsFloats = true
+       formatter.locale = Locale.current
+       return formatter.number(from: self) != nil
+   }
+        static let numberFormatter: NumberFormatter = {
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .decimal
+            formatter.usesGroupingSeparator = true
+            formatter.groupingSeparator = ","
+            return formatter
+        }()
+        
+        var doubleValue: Double {
+            // Special handling for 3 decimal places with comma
+            if self.components(separatedBy: CharacterSet(charactersIn: ",")).last?.count == 3 {
+                String.numberFormatter.decimalSeparator = ","
+                if let result = String.numberFormatter.number(from: self) {
+                    return result.doubleValue
+                }
+            }
+            
+            // Try with dot as decimal separator
+            String.numberFormatter.decimalSeparator = "."
+            if let result = String.numberFormatter.number(from: self) {
+                return result.doubleValue
+            }
+            
+            // Try with comma as decimal separator
+            String.numberFormatter.decimalSeparator = ","
+            if let result = String.numberFormatter.number(from: self) {
+                return result.doubleValue
+            }
+            
+            return 0
+        }
 }
