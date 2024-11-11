@@ -27,7 +27,7 @@ class TokenModel: ObservableObject {
     @Published var prices: [Price] = []
     @Published var priceChange: (amountLamps: Int, percentage: Double) = (0, 0)
 
-    @Published var timeframeSecs: Double = 30 * 60
+    @Published var timeframeSecs: Double = 90
     @Published var currentTimeframe: Timespan = .live
     private var lastPriceTimestamp: Date?
  
@@ -41,7 +41,7 @@ class TokenModel: ObservableObject {
         }
     }
     
-    func initialize(with newTokenId: String, timeframeSecs: Double = 30 * 60) {
+    func initialize(with newTokenId: String, timeframeSecs: Double = 90) {
         print("initializing token \(newTokenId) with timeframe \(timeframeSecs)")
         // Cancel all existing subscriptions
         latestPriceSubscription?.cancel()
@@ -240,7 +240,6 @@ class TokenModel: ObservableObject {
         if self.timeframeSecs >= timespan.timeframeSecs {
             return
         }
-        
         
         latestPriceSubscription?.cancel()
         self.prices = []
