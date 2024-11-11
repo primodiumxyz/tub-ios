@@ -1,0 +1,30 @@
+table:
+  name: formatted_tokens_with_performance
+  schema: public
+select_permissions:
+  - role: public
+    permission:
+      columns:
+        - trades
+        - freeze_burnt
+        - is_pump_token
+        - mint_burnt
+        - name
+        - symbol
+        - increase_pct
+        - decimals
+        - latest_price
+        - supply
+        - volume
+        - description
+        - increase_pct_after
+        - mint
+        - trades_after
+        - uri
+        - volume_after
+        - created_at
+        - interval_start
+        - token_id
+      filter: {}
+      allow_aggregations: true
+    comment: ""

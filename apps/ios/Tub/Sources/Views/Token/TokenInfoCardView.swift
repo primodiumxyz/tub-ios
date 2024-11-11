@@ -7,124 +7,150 @@
 import SwiftUI
 
 struct TokenInfoCardView: View {
-    var tokenModel: TokenModel
+    @ObservedObject var tokenModel: TokenModel
     @Binding var isVisible: Bool
+    @Binding var activeTab: String
+    @EnvironmentObject var priceModel: SolPriceModel
     
     @State private var dragOffset: CGFloat = 0.0
     @State private var animatingSwipe: Bool = false
     @State private var isClosing: Bool = false
     
-    var body: some View {
-        VStack() {
-            //Coin
-            Capsule()
-                .fill(AppColors.white.opacity(0.3))
-                .frame(width: 60, height: 4)
-                .offset(y:-15)
+    private struct StatValue {
+        let text: String
+        let color: Color?
+    }
+    
+    private var stats: [(String, StatValue)] {
+        var stats = [(String, StatValue)]()
+        
+        if let purchaseData = tokenModel.purchaseData, activeTab == "sell" {
+            // Calculate current value in lamports
+            let currentValueLamps = Int(Double(tokenModel.balanceLamps) / 1e9 * Double(tokenModel.prices.last?.price ?? 0))
             
-            HStack {
-                if tokenModel.token.imageUri != nil {
-                    ImageView(imageUri: tokenModel.token.imageUri!, size: 20)
-                }
-                Text("\(tokenModel.token.name)")
-                    .font(.sfRounded(size: .xl, weight: .semibold))
-                    .foregroundColor(AppColors.lightYellow)
-            }
-            .offset(y:-8)
+            // Calculate profit
+            let initialValueUsd = priceModel.lamportsToUsd(lamports: purchaseData.price)
+            let currentValueUsd = priceModel.lamportsToUsd(lamports: currentValueLamps)
+            let gains = currentValueUsd - initialValueUsd
             
-            //Info
-            VStack(alignment: .leading) {
-                //inner rectangle
-                VStack(alignment: .leading) {
-                    HStack{
-                        VStack(alignment: .leading){
-                            VStack(alignment: .leading){
-                                Text("Market Cap")
-                                    .font(.sfRounded(size: .sm, weight: .medium))
-                                
-                                Text("$544M")
-                                    .font(.sfRounded(size: .xl2, weight: .semibold))
-                            }.padding(.vertical, 5.0)
-                            
-                            VStack(alignment: .leading){
-                                Text("Holders")
-                                    .font(.sfRounded(size: .sm, weight: .medium))
-                                Text("23.3K")
-                                    .font(.sfRounded(size: .xl2, weight: .semibold))
-                            }.padding(.vertical, 5.0)
-                        }
-                        
-                        Spacer()
-                        
-                        VStack(alignment: .leading){
-                            VStack(alignment: .leading){
-                                Text("Volume (24h)")
-                                    .font(.sfRounded(size: .sm, weight: .medium))
-                                Text("$29.0M")
-                                    .font(.sfRounded(size: .xl2, weight: .semibold))
-                            }.padding(.vertical, 5.0)
-                            
-                            VStack(alignment: .leading){
-                                Text("Circulating Supply")
-                                    .font(.sfRounded(size: .sm, weight: .medium))
-                                Text("900M")
-                                    .font(.sfRounded(size: .xl2, weight: .semibold))
-                            }.padding(.vertical, 5.0)
-                        }
-                        .offset(x:-15)
-                    }
-                    
-                    HStack(alignment: .bottom) {
-                        Text("Created")
-                            .font(.sfRounded(size: .sm, weight: .regular))
-                        Text("28d 20h")
-                            .font(.sfRounded(size: .sm, weight: .semibold))
-                            .offset(x:-3)
-                        Text("ago")
-                            .font(.sfRounded(size: .sm, weight: .regular))
-                            .offset(x:-8)
-                    }
-                }
-                .padding([.leading, .bottom, .trailing], 24.0)
-                .padding(.top, 20.0)
-                .foregroundColor(AppColors.white)
-                .cornerRadius(10)
-                .background(AppColors.darkBlue)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .inset(by: 0.5)
-                        .strokeBorder(AppColors.white)
-                )
-                
-                //About
-                VStack(alignment: .leading){
-                    Text("About")
-                        .font(.sfRounded(size: .xl2, weight: .bold))
-                    
-                    Text("This is what the coin is about. Norem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.")
-                        .font(.sfRounded(size: .sm, weight: .medium))
-                }
-                .foregroundColor(AppColors.white)
-                .padding(.vertical, 10.0)
-                
-                //Twitter Link
-                HStack(alignment: .center){
-                    Image("X-logo-white")
-                        .resizable()
-                        .frame(width: 20, height: 20)
-                    Text(" @ MONKAY")
-                        .font(.sfRounded(size: .lg, weight: .semibold))
-                }
-                .padding(.vertical, 10.0)
-                .foregroundColor(AppColors.white)
+
+            if purchaseData.amount > 0 {
+                let percentageGain = gains / initialValueUsd * 100
+                stats += [
+                    ("Gains", StatValue(
+                        text: "\(priceModel.formatPrice(usd: gains, showSign: true)) (\(String(format: "%.2f", percentageGain))%)",
+                        color: gains >= 0 ? AppColors.green : AppColors.red
+                    ))
+                ]
             }
-            .padding(.horizontal, 30.0)
+                        // Add position stats
+            stats += [
+                ("You Own", StatValue(
+                    text: "\(priceModel.formatPrice(lamports: currentValueLamps, maxDecimals: 2, minDecimals: 2)) (\(priceModel.formatPrice(lamports: tokenModel.balanceLamps, showUnit: false)) \(tokenModel.token.symbol))",
+                    color: nil
+                ))
+            ]
+            
         }
-        .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.53)
+        
+        // Add original stats from tokenModel
+        stats += tokenModel.getTokenStats(priceModel: priceModel).map { 
+            ($0.0, StatValue(text: $0.1, color: nil))
+        }
+        
+        return stats
+    }
+    
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .center, spacing: 0) {
+                Rectangle()
+                .foregroundColor(.clear)
+                .frame(width: 60, height: 3)
+                .background(AppColors.lightGray)
+                .cornerRadius(100)
+            }
+            .padding()
+            .frame(maxWidth: .infinity, minHeight: 22, maxHeight: 22, alignment: .center)
+            
+            ScrollView(.vertical, showsIndicators: true) {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("Stats")
+                        .font(.sfRounded(size: .xl, weight: .semibold))
+                        .foregroundColor(AppColors.white)
+                        .frame(maxWidth: .infinity, alignment: .topLeading)
+                        .padding(.bottom,4)
+                    
+                    
+                    ForEach(stats, id: \.0) { stat in
+                        VStack(spacing:4) {
+                            HStack(alignment: .center)  {
+                                Text(stat.0)
+                                    .font(.sfRounded(size: .sm, weight: .regular))
+                                    .foregroundColor(AppColors.gray)
+                                    .fixedSize(horizontal: true, vertical: false)
+                                
+                                Text(stat.1.text)
+                                    .font(.sfRounded(size: .base, weight: .semibold))
+                                    .frame(maxWidth: .infinity, alignment: .topTrailing)
+                                    .foregroundColor(stat.1.color ?? AppColors.white)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            //divider
+                            Rectangle()
+                                .foregroundColor(.clear)
+                                .frame(height: 0.5)
+                                .background(AppColors.gray.opacity(0.5))
+                        }
+                        .padding(.vertical, 6)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("About")
+                            .font(.sfRounded(size: .xl, weight: .semibold))
+                            .foregroundColor(AppColors.white)
+                            .frame(maxWidth: .infinity, alignment: .topLeading)
+                        
+                        Text("\(tokenModel.token.description)")
+                            .font(.sfRounded(size: .sm, weight: .regular))
+                            .foregroundColor(AppColors.lightGray)
+                            .multilineTextAlignment(.leading)
+                    }
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    HStack(alignment: .center, spacing: 4) {
+                        Image("X-logo-white")
+                            .resizable()
+                            .frame(width: 20, height: 20)
+                        Text(" @ \(tokenModel.token.symbol)")
+                            .font(.sfRounded(size: .lg, weight: .semibold))
+                            .foregroundColor(AppColors.aquaGreen)
+                    }
+                    .padding(.top, 8.0)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                
+                }
+                .padding(.horizontal,20)
+                .padding(.vertical, 16)
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+                .background(AppColors.darkGrayGradient)
+                .cornerRadius(20)
+            }
+        }
+        .padding(.vertical, 0)
+        .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.44, alignment: .topLeading)
+        .background(AppColors.black)
+        .overlay(
+            RoundedRectangle(cornerRadius: 30)
+                .inset(by: 0.5)
+                .stroke(AppColors.shadowGray, lineWidth: 1)
+        )
         .transition(.move(edge: .bottom))
-        .background(AppColors.darkBlueGradient)
-        .cornerRadius(20)
         .offset(y: dragOffset)
+        .ignoresSafeArea(edges: .horizontal)
         .gesture(
             DragGesture()
                 .onChanged { value in
@@ -165,10 +191,4 @@ struct TokenInfoCardView: View {
         }
         .transition(.move(edge: .bottom))
     }
-}
-
-#Preview {
-    @Previewable @AppStorage("userId") var userId: String = ""
-    @Previewable @State var isVisible = true
-    TokenInfoCardView(tokenModel: TokenModel(userId: userId, tokenId: mockTokenId), isVisible: $isVisible)
 }

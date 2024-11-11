@@ -1,0 +1,12 @@
+table:
+  name: hourly_new_tokens
+  schema: public
+select_permissions:
+  - role: public
+    permission:
+      columns:
+        - count
+        - hour
+      filter: {}
+      allow_aggregations: true
+    comment: ""

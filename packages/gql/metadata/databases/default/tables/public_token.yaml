@@ -20,13 +20,17 @@ select_permissions:
   - role: public
     permission:
       columns:
+        - freeze_burnt
+        - is_pump_token
+        - mint_burnt
         - name
         - symbol
         - decimals
         - supply
-        - platform
+        - description
         - uri
         - updated_at
+        - created_at
         - id
         - mint
       filter: {}

@@ -12,7 +12,7 @@ struct HistoryView : View {
     
     @EnvironmentObject private var userModel: UserModel
     @EnvironmentObject private var priceModel: SolPriceModel
-
+    
     
     @State private var txs: [Transaction]
     @State private var loading : Bool
@@ -27,9 +27,9 @@ struct HistoryView : View {
     func fetchUserTxs(_ userId: String) {
         loading = true
         error = nil // Reset error state
-        let query = GetAccountTransactionsQuery(accountId: userId)
+        let query = GetWalletTransactionsQuery(wallet: userModel.walletAddress)
         
-        Network.shared.apollo.fetch(query: query) { result in
+        Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { result in
             DispatchQueue.main.async {
                 self.loading = false
                 
@@ -37,31 +37,48 @@ struct HistoryView : View {
                 case .success(let graphQLResult):
                     if let tokenTransactions = graphQLResult.data?.token_transaction {
                         self.txs = tokenTransactions.reduce(into: []) { result, transaction in
-                            guard let date = formatDateString(transaction.account_transaction_data.created_at) else {
+                            guard let date = formatDateString(transaction.wallet_transaction_data.created_at) else {
+                                return
+                            }
+                            if (abs(transaction.amount) == 0) {
                                 return
                             }
                             
                             let isBuy = transaction.amount >= 0
                             let symbol = transaction.token_data.symbol
                             let name = transaction.token_data.name
-                            let imageUri = transaction.token_data.uri ?? ""
-                            let price = transaction.token_price?.price ?? 0
-                            let valueLamps = price * transaction.amount / Int(1e9)
+                            let mint = transaction.token_data.mint
                             
+                            let imageUri = transaction.token_data.uri?.replacingOccurrences(of: "https://cdn.helius-rpc.com/cdn-cgi/image//", with: "").replacingOccurrences(of: "cf-ipfs.com", with: "ipfs.io") ?? "" // Helius cdn link doesn't work out for now
+                            let price = transaction.token_price?.price ?? 0
+                            
+                            var valueLamps = 0
+                            let maxSafeValue = Int.max / abs(transaction.amount)
+                            if Double(price) > Double(maxSafeValue) {
+                                valueLamps = maxSafeValue / Int(1e9)
+                            } else {
+                                valueLamps = Int(Double(price) * Double(transaction.amount) / Double(1e9))
+                            }
+                                
                             let newTransaction = Transaction(
-                                name: name,
-                                symbol: symbol,
+                                name: name ?? "",
+                                symbol: symbol ?? "",
                                 imageUri: imageUri,
                                 date: date,
                                 valueUsd: priceModel.lamportsToUsd(lamports: -valueLamps),
+                                valueLamps: -valueLamps,
                                 quantityTokens: transaction.amount,
-                                isBuy: isBuy
+                                isBuy: isBuy,
+                                mint: mint
                             )
-                            
+                                
                             result.append(newTransaction)
                         }
+                    } else if let error = graphQLResult.errors?.first {
+                        print(error)
+                        self.error = error
                     } else {
-                        self.error = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "No transaction data found"])
+                        self.txs = []
                     }
                 case .failure(let error):
                     print("Error fetching transactions: \(error)")
@@ -74,16 +91,14 @@ struct HistoryView : View {
     var body: some View {
         Group {
             if loading == true {
-                LoadingView()
+                LoadingView(identifier: "HistoryView - loading")
             } else if let error = error {
-                ErrorView(error: error, retryAction: { fetchUserTxs(userModel.userId) })
+                ErrorView(error: error)
             } else {
                 HistoryViewContent(txs: txs)
             }
         }.onAppear {
-            if txs.isEmpty {
-                fetchUserTxs(userModel.userId)
-            }
+            fetchUserTxs(userModel.userId)
         }
     }
 }
@@ -141,7 +156,7 @@ struct HistoryViewContent: View {
                                 Image(systemName: isSearching ? "xmark.circle.fill" : "magnifyingglass")
                                     .foregroundColor(AppColors.white)
                                     .font(.sfRounded(size: .lg, weight: .semibold))
-
+                                
                             }
                             
                             if isSearching {
@@ -242,28 +257,34 @@ struct HistoryViewContent: View {
                 
                 
                 // Transaction List
-                List {
-                    ForEach(filteredTransactions(), id: \.id) { transaction in
-                        NavigationLink(destination: HistoryDetailsView(transaction: transaction)) {
-                            
-                            VStack {
-                                TransactionRow(transaction: transaction)
-                                    .padding(.bottom, 2.0)
-                                    .padding(.leading, 10.0)
+                if filteredTransactions().isEmpty {
+                    Text("No transactions found")
+                        .font(.sfRounded(size: .base, weight: .regular))
+                        .foregroundColor(AppColors.gray)
+                } else {
+                    List {
+                        ForEach(filteredTransactions(), id: \.id) { transaction in
+                            NavigationLink(destination: HistoryDetailsView(transaction: transaction)) {
                                 
-                                if transaction != txs.last  {
-                                    Divider()
-                                        .frame(width: 340.0, height: 1.0)
-                                        .background(Color(hue: 1.0, saturation: 0.0, brightness: 0.2))
+                                VStack {
+                                    TransactionRow(transaction: transaction)
+                                        .padding(.bottom, 2.0)
+                                        .padding(.leading, 10.0)
+                                    
+                                    if transaction != txs.last  {
+                                        Divider()
+                                            .frame(width: 340.0, height: 1.0)
+                                            .background(Color(hue: 1.0, saturation: 0.0, brightness: 0.2))
+                                    }
                                 }
                             }
+                            .listRowBackground(Color.black)
                         }
-                        .listRowBackground(Color.black)
                     }
+                    .listStyle(PlainListStyle())
                 }
-                .listStyle(PlainListStyle())
                 Spacer()
-                    
+                
             }
             .background(Color.black.edgesIgnoringSafeArea(.all))
         }
@@ -299,7 +320,7 @@ struct HistoryViewContent: View {
     // Helper function to filter transactions
     func filteredTransactions() -> [Transaction] {
         var filteredData = txs
-                
+        
         // Filter by search text
         if !searchText.isEmpty {
             filteredData = filteredData.filter { transaction in
@@ -332,7 +353,7 @@ struct HistoryViewContent: View {
                 break
             }
         }
-
+        
         // Filter by Status (checkboxes)
         if selectedFilled && !selectedUnfilled {
             filteredData = filteredData.filter { _ in true }
@@ -357,11 +378,11 @@ struct HistoryViewContent: View {
         return filteredData
     }
 }
-    
+
 struct TransactionRow: View {
     let transaction: Transaction
     @EnvironmentObject private var priceModel: SolPriceModel
-
+    
     var body: some View {
         HStack {
             ImageView(imageUri: transaction.imageUri, size: 40)
@@ -372,7 +393,7 @@ struct TransactionRow: View {
                     Text(transaction.isBuy ? "Buy" : "Sell")
                         .font(.sfRounded(size: .base, weight: .bold))
                         .foregroundColor(AppColors.white)
-                    Text(transaction.name)
+                    Text(transaction.name.isEmpty ? transaction.mint.truncatedAddress() : transaction.name)
                         .font(.sfRounded(size: .base, weight: .bold))
                         .foregroundColor(AppColors.lightYellow)
                         .offset(x:-2)
@@ -386,12 +407,14 @@ struct TransactionRow: View {
             }
             Spacer()
             VStack(alignment: .trailing) {
-                Text(priceModel.formatPrice(usd: transaction.valueUsd, showSign: true))
-                    .font(.sfRounded(size: .base, weight: .bold))
-                    .foregroundColor(transaction.isBuy ? AppColors.red: AppColors.green)
+                HStack {
+                    Text(priceModel.formatPrice(usd: transaction.valueUsd, showSign: true))
+                        .font(.sfRounded(size: .base, weight: .bold))
+                        .foregroundColor(transaction.isBuy ? AppColors.red: AppColors.green)
+                }
                 
                 HStack {
-                    Text(priceModel.formatPrice(lamports: transaction.quantityTokens, showUnit: false))
+                    Text(priceModel.formatPrice(lamports: abs(transaction.quantityTokens), showUnit: false))
                         .font(.sfRounded(size: .xs, weight: .regular))
                         .foregroundColor(AppColors.gray)
                         .offset(x:4, y:2)
@@ -419,11 +442,12 @@ struct TransactionRow: View {
 
 
 #Preview {
+    @Previewable @StateObject var errorHandler = ErrorHandler()
     @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
     if !priceModel.isReady {
-        LoadingView()
+        LoadingView(identifier: "HistoryView - waiting for priceModel")
     } else {
-        HistoryView(txs: dummyData).environmentObject(priceModel)
+        HistoryView(txs: dummyData).environmentObject(priceModel).environmentObject(errorHandler)
     }
 }
 

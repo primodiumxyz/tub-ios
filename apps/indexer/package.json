@@ -5,8 +5,7 @@
   "license": "MIT",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./constants": "./src/lib/constants.ts"
+    ".": "./src/index.ts"
   },
   "types": "src/index.ts",
   "files": [
@@ -30,10 +29,12 @@
     "@solana/codecs": "2.0.0-preview.2",
     "@solana/codecs-data-structures": "2.0.0-preview.2",
     "@solana/codecs-strings": "2.0.0-preview.2",
+    "@solana/spl-type-length-value": "^0.2.0",
     "@solana/web3.js": "^1.95.2",
     "@tub/gql": "workspace:*",
     "borsh": "^0.7.0",
     "dotenv": "^16.0.3",
+    "helius-sdk": "^1.4.0",
     "ws": "^8.18.0",
     "zod": "^3.21.4"
   },

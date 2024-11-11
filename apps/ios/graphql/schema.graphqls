@@ -37,82 +37,19 @@ directive @defer(
   label: String
 ) on FRAGMENT_SPREAD | INLINE_FRAGMENT
 
-type GetFormattedTokensResult {
-  created_at: timestamptz!
-  decimals: Int
-  increase_pct: float8!
-  latest_price: numeric!
-  mint: String!
-  name: String!
-  platform: String!
-  symbol: String!
-  token_id: uuid!
-  trades: bigint!
-}
-
 """
-Boolean expression to filter rows from the logical model for "GetFormattedTokensResult". All fields are combined with a logical 'AND'.
+Boolean expression to compare columns of type "Boolean". All fields are combined with logical 'AND'.
 """
-input GetFormattedTokensResult_bool_exp_bool_exp {
-  _and: [GetFormattedTokensResult_bool_exp_bool_exp!]
-  _not: GetFormattedTokensResult_bool_exp_bool_exp
-  _or: [GetFormattedTokensResult_bool_exp_bool_exp!]
-  created_at: timestamptz_comparison_exp
-  decimals: Int_comparison_exp
-  increase_pct: float8_comparison_exp
-  latest_price: numeric_comparison_exp
-  mint: String_comparison_exp
-  name: String_comparison_exp
-  platform: String_comparison_exp
-  symbol: String_comparison_exp
-  token_id: uuid_comparison_exp
-  trades: bigint_comparison_exp
-}
-
-enum GetFormattedTokensResult_enum_name {
-  """column name"""
-  created_at
-
-  """column name"""
-  decimals
-
-  """column name"""
-  increase_pct
-
-  """column name"""
-  latest_price
-
-  """column name"""
-  mint
-
-  """column name"""
-  name
-
-  """column name"""
-  platform
-
-  """column name"""
-  symbol
-
-  """column name"""
-  token_id
-
-  """column name"""
-  trades
-}
-
-"""Ordering options when selecting data from "GetFormattedTokensResult"."""
-input GetFormattedTokensResult_order_by {
-  created_at: order_by
-  decimals: order_by
-  increase_pct: order_by
-  latest_price: order_by
-  mint: order_by
-  name: order_by
-  platform: order_by
-  symbol: order_by
-  token_id: order_by
-  trades: order_by
+input Boolean_comparison_exp {
+  _eq: Boolean
+  _gt: Boolean
+  _gte: Boolean
+  _in: [Boolean!]
+  _is_null: Boolean
+  _lt: Boolean
+  _lte: Boolean
+  _neq: Boolean
+  _nin: [Boolean!]
 }
 
 """
@@ -183,712 +120,6 @@ input String_comparison_exp {
   _similar: String
 }
 
-"""
-columns and relationships of "account"
-"""
-type account {
-  """An array relationship"""
-  account_transactions(
-    """distinct select on columns"""
-    distinct_on: [account_transaction_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [account_transaction_order_by!]
-
-    """filter the rows returned"""
-    where: account_transaction_bool_exp
-  ): [account_transaction!]!
-
-  """An aggregate relationship"""
-  account_transactions_aggregate(
-    """distinct select on columns"""
-    distinct_on: [account_transaction_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [account_transaction_order_by!]
-
-    """filter the rows returned"""
-    where: account_transaction_bool_exp
-  ): account_transaction_aggregate!
-  created_at: timestamptz!
-  id: uuid!
-  username: String!
-}
-
-"""
-aggregated selection of "account"
-"""
-type account_aggregate {
-  aggregate: account_aggregate_fields
-  nodes: [account!]!
-}
-
-"""
-aggregate fields of "account"
-"""
-type account_aggregate_fields {
-  count(columns: [account_select_column!], distinct: Boolean): Int!
-  max: account_max_fields
-  min: account_min_fields
-}
-
-"""account_balance_ignore_intervalNative Query Arguments"""
-input account_balance_ignore_interval_arguments {
-  """"""
-  account: uuid!
-
-  """"""
-  interval: interval!
-
-  """"""
-  start: timestamptz!
-}
-
-"""
-Boolean expression to filter rows from the table "account". All fields are combined with a logical 'AND'.
-"""
-input account_bool_exp {
-  _and: [account_bool_exp!]
-  _not: account_bool_exp
-  _or: [account_bool_exp!]
-  account_transactions: account_transaction_bool_exp
-  account_transactions_aggregate: account_transaction_aggregate_bool_exp
-  created_at: timestamptz_comparison_exp
-  id: uuid_comparison_exp
-  username: String_comparison_exp
-}
-
-"""
-unique or primary key constraints on table "account"
-"""
-enum account_constraint {
-  """
-  unique or primary key constraint on columns "id"
-  """
-  account_pkey
-}
-
-"""
-input type for inserting data into table "account"
-"""
-input account_insert_input {
-  account_transactions: account_transaction_arr_rel_insert_input
-  created_at: timestamptz
-  id: uuid
-  username: String
-}
-
-"""aggregate max on columns"""
-type account_max_fields {
-  created_at: timestamptz
-  id: uuid
-  username: String
-}
-
-"""aggregate min on columns"""
-type account_min_fields {
-  created_at: timestamptz
-  id: uuid
-  username: String
-}
-
-"""
-response of any mutation on the table "account"
-"""
-type account_mutation_response {
-  """number of rows affected by the mutation"""
-  affected_rows: Int!
-
-  """data from the rows affected by the mutation"""
-  returning: [account!]!
-}
-
-"""
-input type for inserting object relation for remote table "account"
-"""
-input account_obj_rel_insert_input {
-  data: account_insert_input!
-
-  """upsert condition"""
-  on_conflict: account_on_conflict
-}
-
-"""
-on_conflict condition type for table "account"
-"""
-input account_on_conflict {
-  constraint: account_constraint!
-  update_columns: [account_update_column!]! = []
-  where: account_bool_exp
-}
-
-"""Ordering options when selecting data from "account"."""
-input account_order_by {
-  account_transactions_aggregate: account_transaction_aggregate_order_by
-  created_at: order_by
-  id: order_by
-  username: order_by
-}
-
-"""primary key columns input for table: account"""
-input account_pk_columns_input {
-  id: uuid!
-}
-
-"""
-select columns of table "account"
-"""
-enum account_select_column {
-  """column name"""
-  created_at
-
-  """column name"""
-  id
-
-  """column name"""
-  username
-}
-
-"""
-input type for updating data in table "account"
-"""
-input account_set_input {
-  created_at: timestamptz
-  id: uuid
-  username: String
-}
-
-"""
-Streaming cursor of the table "account"
-"""
-input account_stream_cursor_input {
-  """Stream column input with initial value"""
-  initial_value: account_stream_cursor_value_input!
-
-  """cursor ordering"""
-  ordering: cursor_ordering
-}
-
-"""Initial value of the column from where the streaming should start"""
-input account_stream_cursor_value_input {
-  created_at: timestamptz
-  id: uuid
-  username: String
-}
-
-"""account_token_balance_ignore_intervalNative Query Arguments"""
-input account_token_balance_ignore_interval_arguments {
-  """"""
-  account: uuid!
-
-  """"""
-  interval: interval!
-
-  """"""
-  start: timestamptz!
-
-  """"""
-  token: uuid!
-}
-
-"""
-columns and relationships of "account_transaction"
-"""
-type account_transaction {
-  account: uuid!
-
-  """An object relationship"""
-  account_data: account!
-  amount: numeric!
-  created_at: timestamptz!
-  id: uuid!
-
-  """An array relationship"""
-  token_transactions(
-    """distinct select on columns"""
-    distinct_on: [token_transaction_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [token_transaction_order_by!]
-
-    """filter the rows returned"""
-    where: token_transaction_bool_exp
-  ): [token_transaction!]!
-
-  """An aggregate relationship"""
-  token_transactions_aggregate(
-    """distinct select on columns"""
-    distinct_on: [token_transaction_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [token_transaction_order_by!]
-
-    """filter the rows returned"""
-    where: token_transaction_bool_exp
-  ): token_transaction_aggregate!
-}
-
-"""
-aggregated selection of "account_transaction"
-"""
-type account_transaction_aggregate {
-  aggregate: account_transaction_aggregate_fields
-  nodes: [account_transaction!]!
-}
-
-input account_transaction_aggregate_bool_exp {
-  count: account_transaction_aggregate_bool_exp_count
-}
-
-input account_transaction_aggregate_bool_exp_count {
-  arguments: [account_transaction_select_column!]
-  distinct: Boolean
-  filter: account_transaction_bool_exp
-  predicate: Int_comparison_exp!
-}
-
-"""
-aggregate fields of "account_transaction"
-"""
-type account_transaction_aggregate_fields {
-  avg: account_transaction_avg_fields
-  count(columns: [account_transaction_select_column!], distinct: Boolean): Int!
-  max: account_transaction_max_fields
-  min: account_transaction_min_fields
-  stddev: account_transaction_stddev_fields
-  stddev_pop: account_transaction_stddev_pop_fields
-  stddev_samp: account_transaction_stddev_samp_fields
-  sum: account_transaction_sum_fields
-  var_pop: account_transaction_var_pop_fields
-  var_samp: account_transaction_var_samp_fields
-  variance: account_transaction_variance_fields
-}
-
-"""
-order by aggregate values of table "account_transaction"
-"""
-input account_transaction_aggregate_order_by {
-  avg: account_transaction_avg_order_by
-  count: order_by
-  max: account_transaction_max_order_by
-  min: account_transaction_min_order_by
-  stddev: account_transaction_stddev_order_by
-  stddev_pop: account_transaction_stddev_pop_order_by
-  stddev_samp: account_transaction_stddev_samp_order_by
-  sum: account_transaction_sum_order_by
-  var_pop: account_transaction_var_pop_order_by
-  var_samp: account_transaction_var_samp_order_by
-  variance: account_transaction_variance_order_by
-}
-
-"""
-input type for inserting array relation for remote table "account_transaction"
-"""
-input account_transaction_arr_rel_insert_input {
-  data: [account_transaction_insert_input!]!
-
-  """upsert condition"""
-  on_conflict: account_transaction_on_conflict
-}
-
-"""aggregate avg on columns"""
-type account_transaction_avg_fields {
-  amount: Float
-}
-
-"""
-order by avg() on columns of table "account_transaction"
-"""
-input account_transaction_avg_order_by {
-  amount: order_by
-}
-
-"""
-Boolean expression to filter rows from the table "account_transaction". All fields are combined with a logical 'AND'.
-"""
-input account_transaction_bool_exp {
-  _and: [account_transaction_bool_exp!]
-  _not: account_transaction_bool_exp
-  _or: [account_transaction_bool_exp!]
-  account: uuid_comparison_exp
-  account_data: account_bool_exp
-  amount: numeric_comparison_exp
-  created_at: timestamptz_comparison_exp
-  id: uuid_comparison_exp
-  token_transactions: token_transaction_bool_exp
-  token_transactions_aggregate: token_transaction_aggregate_bool_exp
-}
-
-"""
-unique or primary key constraints on table "account_transaction"
-"""
-enum account_transaction_constraint {
-  """
-  unique or primary key constraint on columns "id"
-  """
-  account_transaction_pkey
-}
-
-"""
-input type for incrementing numeric columns in table "account_transaction"
-"""
-input account_transaction_inc_input {
-  amount: numeric
-}
-
-"""
-input type for inserting data into table "account_transaction"
-"""
-input account_transaction_insert_input {
-  account: uuid
-  account_data: account_obj_rel_insert_input
-  amount: numeric
-  created_at: timestamptz
-  id: uuid
-  token_transactions: token_transaction_arr_rel_insert_input
-}
-
-"""aggregate max on columns"""
-type account_transaction_max_fields {
-  account: uuid
-  amount: numeric
-  created_at: timestamptz
-  id: uuid
-}
-
-"""
-order by max() on columns of table "account_transaction"
-"""
-input account_transaction_max_order_by {
-  account: order_by
-  amount: order_by
-  created_at: order_by
-  id: order_by
-}
-
-"""aggregate min on columns"""
-type account_transaction_min_fields {
-  account: uuid
-  amount: numeric
-  created_at: timestamptz
-  id: uuid
-}
-
-"""
-order by min() on columns of table "account_transaction"
-"""
-input account_transaction_min_order_by {
-  account: order_by
-  amount: order_by
-  created_at: order_by
-  id: order_by
-}
-
-"""
-response of any mutation on the table "account_transaction"
-"""
-type account_transaction_mutation_response {
-  """number of rows affected by the mutation"""
-  affected_rows: Int!
-
-  """data from the rows affected by the mutation"""
-  returning: [account_transaction!]!
-}
-
-"""
-input type for inserting object relation for remote table "account_transaction"
-"""
-input account_transaction_obj_rel_insert_input {
-  data: account_transaction_insert_input!
-
-  """upsert condition"""
-  on_conflict: account_transaction_on_conflict
-}
-
-"""account_transaction_offsetNative Query Arguments"""
-input account_transaction_offset_arguments {
-  """"""
-  offset: interval!
-}
-
-type account_transaction_offset_model {
-  account: uuid!
-  amount: numeric!
-  created_at: timestamptz!
-  created_at_offset: timestamptz!
-  id: uuid!
-}
-
-"""
-Boolean expression to filter rows from the logical model for "account_transaction_offset_model". All fields are combined with a logical 'AND'.
-"""
-input account_transaction_offset_model_bool_exp_bool_exp {
-  _and: [account_transaction_offset_model_bool_exp_bool_exp!]
-  _not: account_transaction_offset_model_bool_exp_bool_exp
-  _or: [account_transaction_offset_model_bool_exp_bool_exp!]
-  account: uuid_comparison_exp
-  amount: numeric_comparison_exp
-  created_at: timestamptz_comparison_exp
-  created_at_offset: timestamptz_comparison_exp
-  id: uuid_comparison_exp
-}
-
-enum account_transaction_offset_model_enum_name {
-  """column name"""
-  account
-
-  """column name"""
-  amount
-
-  """column name"""
-  created_at
-
-  """column name"""
-  created_at_offset
-
-  """column name"""
-  id
-}
-
-"""
-Ordering options when selecting data from "account_transaction_offset_model".
-"""
-input account_transaction_offset_model_order_by {
-  account: order_by
-  amount: order_by
-  created_at: order_by
-  created_at_offset: order_by
-  id: order_by
-}
-
-"""
-on_conflict condition type for table "account_transaction"
-"""
-input account_transaction_on_conflict {
-  constraint: account_transaction_constraint!
-  update_columns: [account_transaction_update_column!]! = []
-  where: account_transaction_bool_exp
-}
-
-"""Ordering options when selecting data from "account_transaction"."""
-input account_transaction_order_by {
-  account: order_by
-  account_data: account_order_by
-  amount: order_by
-  created_at: order_by
-  id: order_by
-  token_transactions_aggregate: token_transaction_aggregate_order_by
-}
-
-"""primary key columns input for table: account_transaction"""
-input account_transaction_pk_columns_input {
-  id: uuid!
-}
-
-"""
-select columns of table "account_transaction"
-"""
-enum account_transaction_select_column {
-  """column name"""
-  account
-
-  """column name"""
-  amount
-
-  """column name"""
-  created_at
-
-  """column name"""
-  id
-}
-
-"""
-input type for updating data in table "account_transaction"
-"""
-input account_transaction_set_input {
-  account: uuid
-  amount: numeric
-  created_at: timestamptz
-  id: uuid
-}
-
-"""aggregate stddev on columns"""
-type account_transaction_stddev_fields {
-  amount: Float
-}
-
-"""
-order by stddev() on columns of table "account_transaction"
-"""
-input account_transaction_stddev_order_by {
-  amount: order_by
-}
-
-"""aggregate stddev_pop on columns"""
-type account_transaction_stddev_pop_fields {
-  amount: Float
-}
-
-"""
-order by stddev_pop() on columns of table "account_transaction"
-"""
-input account_transaction_stddev_pop_order_by {
-  amount: order_by
-}
-
-"""aggregate stddev_samp on columns"""
-type account_transaction_stddev_samp_fields {
-  amount: Float
-}
-
-"""
-order by stddev_samp() on columns of table "account_transaction"
-"""
-input account_transaction_stddev_samp_order_by {
-  amount: order_by
-}
-
-"""
-Streaming cursor of the table "account_transaction"
-"""
-input account_transaction_stream_cursor_input {
-  """Stream column input with initial value"""
-  initial_value: account_transaction_stream_cursor_value_input!
-
-  """cursor ordering"""
-  ordering: cursor_ordering
-}
-
-"""Initial value of the column from where the streaming should start"""
-input account_transaction_stream_cursor_value_input {
-  account: uuid
-  amount: numeric
-  created_at: timestamptz
-  id: uuid
-}
-
-"""aggregate sum on columns"""
-type account_transaction_sum_fields {
-  amount: numeric
-}
-
-"""
-order by sum() on columns of table "account_transaction"
-"""
-input account_transaction_sum_order_by {
-  amount: order_by
-}
-
-"""
-update columns of table "account_transaction"
-"""
-enum account_transaction_update_column {
-  """column name"""
-  account
-
-  """column name"""
-  amount
-
-  """column name"""
-  created_at
-
-  """column name"""
-  id
-}
-
-input account_transaction_updates {
-  """increments the numeric columns with given value of the filtered values"""
-  _inc: account_transaction_inc_input
-
-  """sets the columns of the filtered rows to the given values"""
-  _set: account_transaction_set_input
-
-  """filter the rows which have to be updated"""
-  where: account_transaction_bool_exp!
-}
-
-"""aggregate var_pop on columns"""
-type account_transaction_var_pop_fields {
-  amount: Float
-}
-
-"""
-order by var_pop() on columns of table "account_transaction"
-"""
-input account_transaction_var_pop_order_by {
-  amount: order_by
-}
-
-"""aggregate var_samp on columns"""
-type account_transaction_var_samp_fields {
-  amount: Float
-}
-
-"""
-order by var_samp() on columns of table "account_transaction"
-"""
-input account_transaction_var_samp_order_by {
-  amount: order_by
-}
-
-"""aggregate variance on columns"""
-type account_transaction_variance_fields {
-  amount: Float
-}
-
-"""
-order by variance() on columns of table "account_transaction"
-"""
-input account_transaction_variance_order_by {
-  amount: order_by
-}
-
-"""
-update columns of table "account"
-"""
-enum account_update_column {
-  """column name"""
-  created_at
-
-  """column name"""
-  id
-
-  """column name"""
-  username
-}
-
-input account_updates {
-  """sets the columns of the filtered rows to the given values"""
-  _set: account_set_input
-
-  """filter the rows which have to be updated"""
-  where: account_bool_exp!
-}
-
 type balance_offset_model {
   balance: numeric!
 }
@@ -931,10 +162,10 @@ input bigint_comparison_exp {
 }
 
 input buy_token_args {
-  account_id: uuid
   amount_to_buy: numeric
   token_cost: numeric
   token_id: uuid
+  user_wallet: String
 }
 
 """ordering argument of a cursor"""
@@ -969,14 +200,20 @@ columns and relationships of "formatted_tokens"
 type formatted_tokens {
   created_at: timestamptz
   decimals: Int
+  description: String
+  freeze_burnt: Boolean
   increase_pct: float8
+  is_pump_token: Boolean
   latest_price: numeric
   mint: String
+  mint_burnt: Boolean
   name: String
-  platform: String
+  supply: numeric
   symbol: String
   token_id: uuid
   trades: bigint
+  uri: String
+  volume: numeric
 }
 
 """
@@ -1009,7 +246,9 @@ type formatted_tokens_avg_fields {
   decimals: Float
   increase_pct: Float
   latest_price: Float
+  supply: Float
   trades: Float
+  volume: Float
 }
 
 """
@@ -1021,56 +260,200 @@ input formatted_tokens_bool_exp {
   _or: [formatted_tokens_bool_exp!]
   created_at: timestamptz_comparison_exp
   decimals: Int_comparison_exp
+  description: String_comparison_exp
+  freeze_burnt: Boolean_comparison_exp
   increase_pct: float8_comparison_exp
+  is_pump_token: Boolean_comparison_exp
   latest_price: numeric_comparison_exp
   mint: String_comparison_exp
+  mint_burnt: Boolean_comparison_exp
   name: String_comparison_exp
-  platform: String_comparison_exp
+  supply: numeric_comparison_exp
   symbol: String_comparison_exp
   token_id: uuid_comparison_exp
   trades: bigint_comparison_exp
+  uri: String_comparison_exp
+  volume: numeric_comparison_exp
+}
+
+"""formatted_tokens_intervalNative Query Arguments"""
+input formatted_tokens_interval_arguments {
+  """"""
+  distinct_prices_interval: interval!
+
+  """"""
+  interval: interval!
+
+  """"""
+  min_distinct_prices: Int!
 }
 
 """aggregate max on columns"""
 type formatted_tokens_max_fields {
   created_at: timestamptz
   decimals: Int
+  description: String
   increase_pct: float8
   latest_price: numeric
   mint: String
   name: String
-  platform: String
+  supply: numeric
   symbol: String
   token_id: uuid
   trades: bigint
+  uri: String
+  volume: numeric
 }
 
 """aggregate min on columns"""
 type formatted_tokens_min_fields {
   created_at: timestamptz
   decimals: Int
+  description: String
   increase_pct: float8
   latest_price: numeric
   mint: String
   name: String
-  platform: String
+  supply: numeric
   symbol: String
   token_id: uuid
   trades: bigint
+  uri: String
+  volume: numeric
+}
+
+type formatted_tokens_model {
+  created_at: timestamptz!
+  decimals: Int
+  description: String
+  freeze_burnt: Boolean
+  increase_pct: float8!
+  is_pump_token: Boolean
+  latest_price: numeric!
+  mint: String!
+  mint_burnt: Boolean
+  name: String
+  supply: numeric
+  symbol: String
+  token_id: uuid!
+  trades: bigint!
+  uri: String
+  volume: numeric!
+}
+
+"""
+Boolean expression to filter rows from the logical model for "formatted_tokens_model". All fields are combined with a logical 'AND'.
+"""
+input formatted_tokens_model_bool_exp_bool_exp {
+  _and: [formatted_tokens_model_bool_exp_bool_exp!]
+  _not: formatted_tokens_model_bool_exp_bool_exp
+  _or: [formatted_tokens_model_bool_exp_bool_exp!]
+  created_at: timestamptz_comparison_exp
+  decimals: Int_comparison_exp
+  description: String_comparison_exp
+  freeze_burnt: Boolean_comparison_exp
+  increase_pct: float8_comparison_exp
+  is_pump_token: Boolean_comparison_exp
+  latest_price: numeric_comparison_exp
+  mint: String_comparison_exp
+  mint_burnt: Boolean_comparison_exp
+  name: String_comparison_exp
+  supply: numeric_comparison_exp
+  symbol: String_comparison_exp
+  token_id: uuid_comparison_exp
+  trades: bigint_comparison_exp
+  uri: String_comparison_exp
+  volume: numeric_comparison_exp
+}
+
+enum formatted_tokens_model_enum_name {
+  """column name"""
+  created_at
+
+  """column name"""
+  decimals
+
+  """column name"""
+  description
+
+  """column name"""
+  freeze_burnt
+
+  """column name"""
+  increase_pct
+
+  """column name"""
+  is_pump_token
+
+  """column name"""
+  latest_price
+
+  """column name"""
+  mint
+
+  """column name"""
+  mint_burnt
+
+  """column name"""
+  name
+
+  """column name"""
+  supply
+
+  """column name"""
+  symbol
+
+  """column name"""
+  token_id
+
+  """column name"""
+  trades
+
+  """column name"""
+  uri
+
+  """column name"""
+  volume
+}
+
+"""Ordering options when selecting data from "formatted_tokens_model"."""
+input formatted_tokens_model_order_by {
+  created_at: order_by
+  decimals: order_by
+  description: order_by
+  freeze_burnt: order_by
+  increase_pct: order_by
+  is_pump_token: order_by
+  latest_price: order_by
+  mint: order_by
+  mint_burnt: order_by
+  name: order_by
+  supply: order_by
+  symbol: order_by
+  token_id: order_by
+  trades: order_by
+  uri: order_by
+  volume: order_by
 }
 
 """Ordering options when selecting data from "formatted_tokens"."""
 input formatted_tokens_order_by {
   created_at: order_by
   decimals: order_by
+  description: order_by
+  freeze_burnt: order_by
   increase_pct: order_by
+  is_pump_token: order_by
   latest_price: order_by
   mint: order_by
+  mint_burnt: order_by
   name: order_by
-  platform: order_by
+  supply: order_by
   symbol: order_by
   token_id: order_by
   trades: order_by
+  uri: order_by
+  volume: order_by
 }
 
 """
@@ -1084,7 +467,16 @@ enum formatted_tokens_select_column {
   decimals
 
   """column name"""
+  description
+
+  """column name"""
+  freeze_burnt
+
+  """column name"""
   increase_pct
+
+  """column name"""
+  is_pump_token
 
   """column name"""
   latest_price
@@ -1093,10 +485,13 @@ enum formatted_tokens_select_column {
   mint
 
   """column name"""
+  mint_burnt
+
+  """column name"""
   name
 
   """column name"""
-  platform
+  supply
 
   """column name"""
   symbol
@@ -1106,6 +501,12 @@ enum formatted_tokens_select_column {
 
   """column name"""
   trades
+
+  """column name"""
+  uri
+
+  """column name"""
+  volume
 }
 
 """aggregate stddev on columns"""
@@ -1113,7 +514,9 @@ type formatted_tokens_stddev_fields {
   decimals: Float
   increase_pct: Float
   latest_price: Float
+  supply: Float
   trades: Float
+  volume: Float
 }
 
 """aggregate stddev_pop on columns"""
@@ -1121,7 +524,9 @@ type formatted_tokens_stddev_pop_fields {
   decimals: Float
   increase_pct: Float
   latest_price: Float
+  supply: Float
   trades: Float
+  volume: Float
 }
 
 """aggregate stddev_samp on columns"""
@@ -1129,7 +534,9 @@ type formatted_tokens_stddev_samp_fields {
   decimals: Float
   increase_pct: Float
   latest_price: Float
+  supply: Float
   trades: Float
+  volume: Float
 }
 
 """
@@ -1147,14 +554,20 @@ input formatted_tokens_stream_cursor_input {
 input formatted_tokens_stream_cursor_value_input {
   created_at: timestamptz
   decimals: Int
+  description: String
+  freeze_burnt: Boolean
   increase_pct: float8
+  is_pump_token: Boolean
   latest_price: numeric
   mint: String
+  mint_burnt: Boolean
   name: String
-  platform: String
+  supply: numeric
   symbol: String
   token_id: uuid
   trades: bigint
+  uri: String
+  volume: numeric
 }
 
 """aggregate sum on columns"""
@@ -1162,7 +575,9 @@ type formatted_tokens_sum_fields {
   decimals: Int
   increase_pct: float8
   latest_price: numeric
+  supply: numeric
   trades: bigint
+  volume: numeric
 }
 
 """aggregate var_pop on columns"""
@@ -1170,7 +585,9 @@ type formatted_tokens_var_pop_fields {
   decimals: Float
   increase_pct: Float
   latest_price: Float
+  supply: Float
   trades: Float
+  volume: Float
 }
 
 """aggregate var_samp on columns"""
@@ -1178,7 +595,9 @@ type formatted_tokens_var_samp_fields {
   decimals: Float
   increase_pct: Float
   latest_price: Float
+  supply: Float
   trades: Float
+  volume: Float
 }
 
 """aggregate variance on columns"""
@@ -1186,26 +605,770 @@ type formatted_tokens_variance_fields {
   decimals: Float
   increase_pct: Float
   latest_price: Float
+  supply: Float
   trades: Float
+  volume: Float
 }
 
-input get_formatted_tokens_args {
-  p_since: timestamptz
+"""
+columns and relationships of "formatted_tokens_with_performance"
+"""
+type formatted_tokens_with_performance {
+  created_at: timestamptz
+  decimals: Int
+  description: String
+  freeze_burnt: Boolean
+  increase_pct: float8
+  increase_pct_after: String
+  interval_start: timestamptz
+  is_pump_token: Boolean
+  latest_price: numeric
+  mint: String
+  mint_burnt: Boolean
+  name: String
+  supply: numeric
+  symbol: String
+  token_id: uuid
+  trades: bigint
+  trades_after: String
+  uri: String
+  volume: numeric
+  volume_after: String
 }
 
-"""get_formatted_tokens_intervalNative Query Arguments"""
-input get_formatted_tokens_interval_arguments {
+"""
+aggregated selection of "formatted_tokens_with_performance"
+"""
+type formatted_tokens_with_performance_aggregate {
+  aggregate: formatted_tokens_with_performance_aggregate_fields
+  nodes: [formatted_tokens_with_performance!]!
+}
+
+"""
+aggregate fields of "formatted_tokens_with_performance"
+"""
+type formatted_tokens_with_performance_aggregate_fields {
+  avg: formatted_tokens_with_performance_avg_fields
+  count(columns: [formatted_tokens_with_performance_select_column!], distinct: Boolean): Int!
+  max: formatted_tokens_with_performance_max_fields
+  min: formatted_tokens_with_performance_min_fields
+  stddev: formatted_tokens_with_performance_stddev_fields
+  stddev_pop: formatted_tokens_with_performance_stddev_pop_fields
+  stddev_samp: formatted_tokens_with_performance_stddev_samp_fields
+  sum: formatted_tokens_with_performance_sum_fields
+  var_pop: formatted_tokens_with_performance_var_pop_fields
+  var_samp: formatted_tokens_with_performance_var_samp_fields
+  variance: formatted_tokens_with_performance_variance_fields
+}
+
+"""aggregate avg on columns"""
+type formatted_tokens_with_performance_avg_fields {
+  decimals: Float
+  increase_pct: Float
+  latest_price: Float
+  supply: Float
+  trades: Float
+  volume: Float
+}
+
+"""
+Boolean expression to filter rows from the table "formatted_tokens_with_performance". All fields are combined with a logical 'AND'.
+"""
+input formatted_tokens_with_performance_bool_exp {
+  _and: [formatted_tokens_with_performance_bool_exp!]
+  _not: formatted_tokens_with_performance_bool_exp
+  _or: [formatted_tokens_with_performance_bool_exp!]
+  created_at: timestamptz_comparison_exp
+  decimals: Int_comparison_exp
+  description: String_comparison_exp
+  freeze_burnt: Boolean_comparison_exp
+  increase_pct: float8_comparison_exp
+  increase_pct_after: String_comparison_exp
+  interval_start: timestamptz_comparison_exp
+  is_pump_token: Boolean_comparison_exp
+  latest_price: numeric_comparison_exp
+  mint: String_comparison_exp
+  mint_burnt: Boolean_comparison_exp
+  name: String_comparison_exp
+  supply: numeric_comparison_exp
+  symbol: String_comparison_exp
+  token_id: uuid_comparison_exp
+  trades: bigint_comparison_exp
+  trades_after: String_comparison_exp
+  uri: String_comparison_exp
+  volume: numeric_comparison_exp
+  volume_after: String_comparison_exp
+}
+
+"""
+formatted_tokens_with_performance_intervals_within_periodNative Query Arguments
+"""
+input formatted_tokens_with_performance_intervals_within_period_arguments {
+  """"""
+  after_intervals: String!
+
+  """"""
+  end: timestamptz!
+
   """"""
   interval: interval!
+
+  """"""
+  start: timestamptz!
 }
 
-"""get_formatted_tokens_sinceNative Query Arguments"""
-input get_formatted_tokens_since_arguments {
-  """"""
-  since: timestamptz!
+"""aggregate max on columns"""
+type formatted_tokens_with_performance_max_fields {
+  created_at: timestamptz
+  decimals: Int
+  description: String
+  increase_pct: float8
+  increase_pct_after: String
+  interval_start: timestamptz
+  latest_price: numeric
+  mint: String
+  name: String
+  supply: numeric
+  symbol: String
+  token_id: uuid
+  trades: bigint
+  trades_after: String
+  uri: String
+  volume: numeric
+  volume_after: String
+}
+
+"""aggregate min on columns"""
+type formatted_tokens_with_performance_min_fields {
+  created_at: timestamptz
+  decimals: Int
+  description: String
+  increase_pct: float8
+  increase_pct_after: String
+  interval_start: timestamptz
+  latest_price: numeric
+  mint: String
+  name: String
+  supply: numeric
+  symbol: String
+  token_id: uuid
+  trades: bigint
+  trades_after: String
+  uri: String
+  volume: numeric
+  volume_after: String
+}
+
+type formatted_tokens_with_performance_model {
+  created_at: timestamptz!
+  decimals: Int
+  description: String
+  freeze_burnt: Boolean
+  increase_pct: float8!
+  increase_pct_after: String!
+  interval_start: timestamptz!
+  is_pump_token: Boolean
+  latest_price: numeric!
+  mint: String!
+  mint_burnt: Boolean
+  name: String
+  supply: numeric
+  symbol: String
+  token_id: uuid!
+  trades: bigint!
+  trades_after: String!
+  uri: String
+  volume: numeric!
+  volume_after: String!
+}
+
+"""
+Boolean expression to filter rows from the logical model for "formatted_tokens_with_performance_model". All fields are combined with a logical 'AND'.
+"""
+input formatted_tokens_with_performance_model_bool_exp_bool_exp {
+  _and: [formatted_tokens_with_performance_model_bool_exp_bool_exp!]
+  _not: formatted_tokens_with_performance_model_bool_exp_bool_exp
+  _or: [formatted_tokens_with_performance_model_bool_exp_bool_exp!]
+  created_at: timestamptz_comparison_exp
+  decimals: Int_comparison_exp
+  description: String_comparison_exp
+  freeze_burnt: Boolean_comparison_exp
+  increase_pct: float8_comparison_exp
+  increase_pct_after: String_comparison_exp
+  interval_start: timestamptz_comparison_exp
+  is_pump_token: Boolean_comparison_exp
+  latest_price: numeric_comparison_exp
+  mint: String_comparison_exp
+  mint_burnt: Boolean_comparison_exp
+  name: String_comparison_exp
+  supply: numeric_comparison_exp
+  symbol: String_comparison_exp
+  token_id: uuid_comparison_exp
+  trades: bigint_comparison_exp
+  trades_after: String_comparison_exp
+  uri: String_comparison_exp
+  volume: numeric_comparison_exp
+  volume_after: String_comparison_exp
+}
+
+enum formatted_tokens_with_performance_model_enum_name {
+  """column name"""
+  created_at
+
+  """column name"""
+  decimals
+
+  """column name"""
+  description
+
+  """column name"""
+  freeze_burnt
+
+  """column name"""
+  increase_pct
+
+  """column name"""
+  increase_pct_after
+
+  """column name"""
+  interval_start
+
+  """column name"""
+  is_pump_token
+
+  """column name"""
+  latest_price
+
+  """column name"""
+  mint
+
+  """column name"""
+  mint_burnt
+
+  """column name"""
+  name
+
+  """column name"""
+  supply
+
+  """column name"""
+  symbol
+
+  """column name"""
+  token_id
+
+  """column name"""
+  trades
+
+  """column name"""
+  trades_after
+
+  """column name"""
+  uri
+
+  """column name"""
+  volume
+
+  """column name"""
+  volume_after
+}
+
+"""
+Ordering options when selecting data from "formatted_tokens_with_performance_model".
+"""
+input formatted_tokens_with_performance_model_order_by {
+  created_at: order_by
+  decimals: order_by
+  description: order_by
+  freeze_burnt: order_by
+  increase_pct: order_by
+  increase_pct_after: order_by
+  interval_start: order_by
+  is_pump_token: order_by
+  latest_price: order_by
+  mint: order_by
+  mint_burnt: order_by
+  name: order_by
+  supply: order_by
+  symbol: order_by
+  token_id: order_by
+  trades: order_by
+  trades_after: order_by
+  uri: order_by
+  volume: order_by
+  volume_after: order_by
+}
+
+"""
+Ordering options when selecting data from "formatted_tokens_with_performance".
+"""
+input formatted_tokens_with_performance_order_by {
+  created_at: order_by
+  decimals: order_by
+  description: order_by
+  freeze_burnt: order_by
+  increase_pct: order_by
+  increase_pct_after: order_by
+  interval_start: order_by
+  is_pump_token: order_by
+  latest_price: order_by
+  mint: order_by
+  mint_burnt: order_by
+  name: order_by
+  supply: order_by
+  symbol: order_by
+  token_id: order_by
+  trades: order_by
+  trades_after: order_by
+  uri: order_by
+  volume: order_by
+  volume_after: order_by
+}
+
+"""
+select columns of table "formatted_tokens_with_performance"
+"""
+enum formatted_tokens_with_performance_select_column {
+  """column name"""
+  created_at
+
+  """column name"""
+  decimals
+
+  """column name"""
+  description
+
+  """column name"""
+  freeze_burnt
+
+  """column name"""
+  increase_pct
+
+  """column name"""
+  increase_pct_after
+
+  """column name"""
+  interval_start
+
+  """column name"""
+  is_pump_token
+
+  """column name"""
+  latest_price
+
+  """column name"""
+  mint
+
+  """column name"""
+  mint_burnt
+
+  """column name"""
+  name
+
+  """column name"""
+  supply
+
+  """column name"""
+  symbol
+
+  """column name"""
+  token_id
+
+  """column name"""
+  trades
+
+  """column name"""
+  trades_after
+
+  """column name"""
+  uri
+
+  """column name"""
+  volume
+
+  """column name"""
+  volume_after
+}
+
+"""aggregate stddev on columns"""
+type formatted_tokens_with_performance_stddev_fields {
+  decimals: Float
+  increase_pct: Float
+  latest_price: Float
+  supply: Float
+  trades: Float
+  volume: Float
+}
+
+"""aggregate stddev_pop on columns"""
+type formatted_tokens_with_performance_stddev_pop_fields {
+  decimals: Float
+  increase_pct: Float
+  latest_price: Float
+  supply: Float
+  trades: Float
+  volume: Float
+}
+
+"""aggregate stddev_samp on columns"""
+type formatted_tokens_with_performance_stddev_samp_fields {
+  decimals: Float
+  increase_pct: Float
+  latest_price: Float
+  supply: Float
+  trades: Float
+  volume: Float
+}
+
+"""
+Streaming cursor of the table "formatted_tokens_with_performance"
+"""
+input formatted_tokens_with_performance_stream_cursor_input {
+  """Stream column input with initial value"""
+  initial_value: formatted_tokens_with_performance_stream_cursor_value_input!
+
+  """cursor ordering"""
+  ordering: cursor_ordering
+}
+
+"""Initial value of the column from where the streaming should start"""
+input formatted_tokens_with_performance_stream_cursor_value_input {
+  created_at: timestamptz
+  decimals: Int
+  description: String
+  freeze_burnt: Boolean
+  increase_pct: float8
+  increase_pct_after: String
+  interval_start: timestamptz
+  is_pump_token: Boolean
+  latest_price: numeric
+  mint: String
+  mint_burnt: Boolean
+  name: String
+  supply: numeric
+  symbol: String
+  token_id: uuid
+  trades: bigint
+  trades_after: String
+  uri: String
+  volume: numeric
+  volume_after: String
+}
+
+"""aggregate sum on columns"""
+type formatted_tokens_with_performance_sum_fields {
+  decimals: Int
+  increase_pct: float8
+  latest_price: numeric
+  supply: numeric
+  trades: bigint
+  volume: numeric
+}
+
+"""aggregate var_pop on columns"""
+type formatted_tokens_with_performance_var_pop_fields {
+  decimals: Float
+  increase_pct: Float
+  latest_price: Float
+  supply: Float
+  trades: Float
+  volume: Float
+}
+
+"""aggregate var_samp on columns"""
+type formatted_tokens_with_performance_var_samp_fields {
+  decimals: Float
+  increase_pct: Float
+  latest_price: Float
+  supply: Float
+  trades: Float
+  volume: Float
+}
+
+"""aggregate variance on columns"""
+type formatted_tokens_with_performance_variance_fields {
+  decimals: Float
+  increase_pct: Float
+  latest_price: Float
+  supply: Float
+  trades: Float
+  volume: Float
+}
+
+input get_formatted_tokens_interval_args {
+  interval_param: interval
+}
+
+input get_formatted_tokens_with_performance_intervals_within_period_args {
+  p_end: timestamptz
+  p_interval: interval
+  p_intervals: String
+  p_start: timestamptz
+}
+
+"""
+columns and relationships of "hourly_new_tokens"
+"""
+type hourly_new_tokens {
+  count: bigint
+  hour: timestamptz
+}
+
+"""
+aggregated selection of "hourly_new_tokens"
+"""
+type hourly_new_tokens_aggregate {
+  aggregate: hourly_new_tokens_aggregate_fields
+  nodes: [hourly_new_tokens!]!
+}
+
+"""
+aggregate fields of "hourly_new_tokens"
+"""
+type hourly_new_tokens_aggregate_fields {
+  avg: hourly_new_tokens_avg_fields
+  count(columns: [hourly_new_tokens_select_column!], distinct: Boolean): Int!
+  max: hourly_new_tokens_max_fields
+  min: hourly_new_tokens_min_fields
+  stddev: hourly_new_tokens_stddev_fields
+  stddev_pop: hourly_new_tokens_stddev_pop_fields
+  stddev_samp: hourly_new_tokens_stddev_samp_fields
+  sum: hourly_new_tokens_sum_fields
+  var_pop: hourly_new_tokens_var_pop_fields
+  var_samp: hourly_new_tokens_var_samp_fields
+  variance: hourly_new_tokens_variance_fields
+}
+
+"""aggregate avg on columns"""
+type hourly_new_tokens_avg_fields {
+  count: Float
+}
+
+"""
+Boolean expression to filter rows from the table "hourly_new_tokens". All fields are combined with a logical 'AND'.
+"""
+input hourly_new_tokens_bool_exp {
+  _and: [hourly_new_tokens_bool_exp!]
+  _not: hourly_new_tokens_bool_exp
+  _or: [hourly_new_tokens_bool_exp!]
+  count: bigint_comparison_exp
+  hour: timestamptz_comparison_exp
+}
+
+"""aggregate max on columns"""
+type hourly_new_tokens_max_fields {
+  count: bigint
+  hour: timestamptz
+}
+
+"""aggregate min on columns"""
+type hourly_new_tokens_min_fields {
+  count: bigint
+  hour: timestamptz
+}
+
+"""Ordering options when selecting data from "hourly_new_tokens"."""
+input hourly_new_tokens_order_by {
+  count: order_by
+  hour: order_by
+}
+
+"""
+select columns of table "hourly_new_tokens"
+"""
+enum hourly_new_tokens_select_column {
+  """column name"""
+  count
+
+  """column name"""
+  hour
+}
+
+"""aggregate stddev on columns"""
+type hourly_new_tokens_stddev_fields {
+  count: Float
+}
+
+"""aggregate stddev_pop on columns"""
+type hourly_new_tokens_stddev_pop_fields {
+  count: Float
+}
+
+"""aggregate stddev_samp on columns"""
+type hourly_new_tokens_stddev_samp_fields {
+  count: Float
+}
+
+"""
+Streaming cursor of the table "hourly_new_tokens"
+"""
+input hourly_new_tokens_stream_cursor_input {
+  """Stream column input with initial value"""
+  initial_value: hourly_new_tokens_stream_cursor_value_input!
+
+  """cursor ordering"""
+  ordering: cursor_ordering
+}
+
+"""Initial value of the column from where the streaming should start"""
+input hourly_new_tokens_stream_cursor_value_input {
+  count: bigint
+  hour: timestamptz
+}
+
+"""aggregate sum on columns"""
+type hourly_new_tokens_sum_fields {
+  count: bigint
+}
+
+"""aggregate var_pop on columns"""
+type hourly_new_tokens_var_pop_fields {
+  count: Float
+}
+
+"""aggregate var_samp on columns"""
+type hourly_new_tokens_var_samp_fields {
+  count: Float
+}
+
+"""aggregate variance on columns"""
+type hourly_new_tokens_variance_fields {
+  count: Float
+}
+
+"""
+columns and relationships of "hourly_swaps"
+"""
+type hourly_swaps {
+  count: bigint
+  hour: timestamptz
+}
+
+"""
+aggregated selection of "hourly_swaps"
+"""
+type hourly_swaps_aggregate {
+  aggregate: hourly_swaps_aggregate_fields
+  nodes: [hourly_swaps!]!
+}
+
+"""
+aggregate fields of "hourly_swaps"
+"""
+type hourly_swaps_aggregate_fields {
+  avg: hourly_swaps_avg_fields
+  count(columns: [hourly_swaps_select_column!], distinct: Boolean): Int!
+  max: hourly_swaps_max_fields
+  min: hourly_swaps_min_fields
+  stddev: hourly_swaps_stddev_fields
+  stddev_pop: hourly_swaps_stddev_pop_fields
+  stddev_samp: hourly_swaps_stddev_samp_fields
+  sum: hourly_swaps_sum_fields
+  var_pop: hourly_swaps_var_pop_fields
+  var_samp: hourly_swaps_var_samp_fields
+  variance: hourly_swaps_variance_fields
+}
+
+"""aggregate avg on columns"""
+type hourly_swaps_avg_fields {
+  count: Float
+}
+
+"""
+Boolean expression to filter rows from the table "hourly_swaps". All fields are combined with a logical 'AND'.
+"""
+input hourly_swaps_bool_exp {
+  _and: [hourly_swaps_bool_exp!]
+  _not: hourly_swaps_bool_exp
+  _or: [hourly_swaps_bool_exp!]
+  count: bigint_comparison_exp
+  hour: timestamptz_comparison_exp
+}
+
+"""aggregate max on columns"""
+type hourly_swaps_max_fields {
+  count: bigint
+  hour: timestamptz
+}
+
+"""aggregate min on columns"""
+type hourly_swaps_min_fields {
+  count: bigint
+  hour: timestamptz
+}
+
+"""Ordering options when selecting data from "hourly_swaps"."""
+input hourly_swaps_order_by {
+  count: order_by
+  hour: order_by
+}
+
+"""
+select columns of table "hourly_swaps"
+"""
+enum hourly_swaps_select_column {
+  """column name"""
+  count
+
+  """column name"""
+  hour
+}
+
+"""aggregate stddev on columns"""
+type hourly_swaps_stddev_fields {
+  count: Float
+}
+
+"""aggregate stddev_pop on columns"""
+type hourly_swaps_stddev_pop_fields {
+  count: Float
+}
+
+"""aggregate stddev_samp on columns"""
+type hourly_swaps_stddev_samp_fields {
+  count: Float
+}
+
+"""
+Streaming cursor of the table "hourly_swaps"
+"""
+input hourly_swaps_stream_cursor_input {
+  """Stream column input with initial value"""
+  initial_value: hourly_swaps_stream_cursor_value_input!
+
+  """cursor ordering"""
+  ordering: cursor_ordering
+}
+
+"""Initial value of the column from where the streaming should start"""
+input hourly_swaps_stream_cursor_value_input {
+  count: bigint
+  hour: timestamptz
+}
+
+"""aggregate sum on columns"""
+type hourly_swaps_sum_fields {
+  count: bigint
+}
+
+"""aggregate var_pop on columns"""
+type hourly_swaps_var_pop_fields {
+  count: Float
+}
+
+"""aggregate var_samp on columns"""
+type hourly_swaps_var_samp_fields {
+  count: Float
+}
+
+"""aggregate variance on columns"""
+type hourly_swaps_variance_fields {
+  count: Float
 }
 
 scalar interval
+
+scalar jsonb
 
 """mutation root"""
 type mutation_root {
@@ -1233,32 +1396,6 @@ type mutation_root {
     """filter the rows returned"""
     where: token_transaction_bool_exp
   ): token_transaction
-
-  """
-  delete data from the table: "account"
-  """
-  delete_account(
-    """filter the rows which have to be deleted"""
-    where: account_bool_exp!
-  ): account_mutation_response
-
-  """
-  delete single row from the table: "account"
-  """
-  delete_account_by_pk(id: uuid!): account
-
-  """
-  delete data from the table: "account_transaction"
-  """
-  delete_account_transaction(
-    """filter the rows which have to be deleted"""
-    where: account_transaction_bool_exp!
-  ): account_transaction_mutation_response
-
-  """
-  delete single row from the table: "account_transaction"
-  """
-  delete_account_transaction_by_pk(id: uuid!): account_transaction
 
   """
   delete data from the table: "token"
@@ -1300,13 +1437,26 @@ type mutation_root {
   delete_token_transaction_by_pk(id: uuid!): token_transaction
 
   """
-  execute VOLATILE function "get_formatted_tokens" which returns "formatted_tokens"
+  delete data from the table: "wallet_transaction"
   """
-  get_formatted_tokens(
+  delete_wallet_transaction(
+    """filter the rows which have to be deleted"""
+    where: wallet_transaction_bool_exp!
+  ): wallet_transaction_mutation_response
+
+  """
+  delete single row from the table: "wallet_transaction"
+  """
+  delete_wallet_transaction_by_pk(id: uuid!): wallet_transaction
+
+  """
+  execute VOLATILE function "get_formatted_tokens_interval" which returns "formatted_tokens"
+  """
+  get_formatted_tokens_interval(
     """
-    input parameters for function "get_formatted_tokens"
+    input parameters for function "get_formatted_tokens_interval"
     """
-    args: get_formatted_tokens_args!
+    args: get_formatted_tokens_interval_args!
 
     """distinct select on columns"""
     distinct_on: [formatted_tokens_select_column!]
@@ -1325,48 +1475,29 @@ type mutation_root {
   ): [formatted_tokens!]!
 
   """
-  insert data into the table: "account"
+  execute VOLATILE function "get_formatted_tokens_with_performance_intervals_within_period" which returns "formatted_tokens_with_performance"
   """
-  insert_account(
-    """the rows to be inserted"""
-    objects: [account_insert_input!]!
+  get_formatted_tokens_with_performance_intervals_within_period(
+    """
+    input parameters for function "get_formatted_tokens_with_performance_intervals_within_period"
+    """
+    args: get_formatted_tokens_with_performance_intervals_within_period_args!
 
-    """upsert condition"""
-    on_conflict: account_on_conflict
-  ): account_mutation_response
+    """distinct select on columns"""
+    distinct_on: [formatted_tokens_with_performance_select_column!]
 
-  """
-  insert a single row into the table: "account"
-  """
-  insert_account_one(
-    """the row to be inserted"""
-    object: account_insert_input!
+    """limit the number of rows returned"""
+    limit: Int
 
-    """upsert condition"""
-    on_conflict: account_on_conflict
-  ): account
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
 
-  """
-  insert data into the table: "account_transaction"
-  """
-  insert_account_transaction(
-    """the rows to be inserted"""
-    objects: [account_transaction_insert_input!]!
+    """sort the rows by one or more columns"""
+    order_by: [formatted_tokens_with_performance_order_by!]
 
-    """upsert condition"""
-    on_conflict: account_transaction_on_conflict
-  ): account_transaction_mutation_response
-
-  """
-  insert a single row into the table: "account_transaction"
-  """
-  insert_account_transaction_one(
-    """the row to be inserted"""
-    object: account_transaction_insert_input!
-
-    """upsert condition"""
-    on_conflict: account_transaction_on_conflict
-  ): account_transaction
+    """filter the rows returned"""
+    where: formatted_tokens_with_performance_bool_exp
+  ): [formatted_tokens_with_performance!]!
 
   """
   insert data into the table: "token"
@@ -1435,6 +1566,28 @@ type mutation_root {
   ): token_transaction
 
   """
+  insert data into the table: "wallet_transaction"
+  """
+  insert_wallet_transaction(
+    """the rows to be inserted"""
+    objects: [wallet_transaction_insert_input!]!
+
+    """upsert condition"""
+    on_conflict: wallet_transaction_on_conflict
+  ): wallet_transaction_mutation_response
+
+  """
+  insert a single row into the table: "wallet_transaction"
+  """
+  insert_wallet_transaction_one(
+    """the row to be inserted"""
+    object: wallet_transaction_insert_input!
+
+    """upsert condition"""
+    on_conflict: wallet_transaction_on_conflict
+  ): wallet_transaction
+
+  """
   execute VOLATILE function "sell_token" which returns "token_transaction"
   """
   sell_token(
@@ -1458,68 +1611,6 @@ type mutation_root {
     """filter the rows returned"""
     where: token_transaction_bool_exp
   ): token_transaction
-
-  """
-  update data of the table: "account"
-  """
-  update_account(
-    """sets the columns of the filtered rows to the given values"""
-    _set: account_set_input
-
-    """filter the rows which have to be updated"""
-    where: account_bool_exp!
-  ): account_mutation_response
-
-  """
-  update single row of the table: "account"
-  """
-  update_account_by_pk(
-    """sets the columns of the filtered rows to the given values"""
-    _set: account_set_input
-    pk_columns: account_pk_columns_input!
-  ): account
-
-  """
-  update multiples rows of table: "account"
-  """
-  update_account_many(
-    """updates to execute, in order"""
-    updates: [account_updates!]!
-  ): [account_mutation_response]
-
-  """
-  update data of the table: "account_transaction"
-  """
-  update_account_transaction(
-    """increments the numeric columns with given value of the filtered values"""
-    _inc: account_transaction_inc_input
-
-    """sets the columns of the filtered rows to the given values"""
-    _set: account_transaction_set_input
-
-    """filter the rows which have to be updated"""
-    where: account_transaction_bool_exp!
-  ): account_transaction_mutation_response
-
-  """
-  update single row of the table: "account_transaction"
-  """
-  update_account_transaction_by_pk(
-    """increments the numeric columns with given value of the filtered values"""
-    _inc: account_transaction_inc_input
-
-    """sets the columns of the filtered rows to the given values"""
-    _set: account_transaction_set_input
-    pk_columns: account_transaction_pk_columns_input!
-  ): account_transaction
-
-  """
-  update multiples rows of table: "account_transaction"
-  """
-  update_account_transaction_many(
-    """updates to execute, in order"""
-    updates: [account_transaction_updates!]!
-  ): [account_transaction_mutation_response]
 
   """
   update data of the table: "token"
@@ -1622,6 +1713,65 @@ type mutation_root {
     """updates to execute, in order"""
     updates: [token_transaction_updates!]!
   ): [token_transaction_mutation_response]
+
+  """
+  update data of the table: "wallet_transaction"
+  """
+  update_wallet_transaction(
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: wallet_transaction_inc_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: wallet_transaction_set_input
+
+    """filter the rows which have to be updated"""
+    where: wallet_transaction_bool_exp!
+  ): wallet_transaction_mutation_response
+
+  """
+  update single row of the table: "wallet_transaction"
+  """
+  update_wallet_transaction_by_pk(
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: wallet_transaction_inc_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: wallet_transaction_set_input
+    pk_columns: wallet_transaction_pk_columns_input!
+  ): wallet_transaction
+
+  """
+  update multiples rows of table: "wallet_transaction"
+  """
+  update_wallet_transaction_many(
+    """updates to execute, in order"""
+    updates: [wallet_transaction_updates!]!
+  ): [wallet_transaction_mutation_response]
+
+  """
+  execute VOLATILE function "upsert_tokens_and_price_history" which returns "token"
+  """
+  upsert_tokens_and_price_history(
+    """
+    input parameters for function "upsert_tokens_and_price_history"
+    """
+    args: upsert_tokens_and_price_history_args!
+
+    """distinct select on columns"""
+    distinct_on: [token_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_order_by!]
+
+    """filter the rows returned"""
+    where: token_bool_exp
+  ): [token!]!
 }
 
 scalar numeric
@@ -1664,151 +1814,6 @@ enum order_by {
 
 type query_root {
   """
-  fetch data from the table: "account"
-  """
-  account(
-    """distinct select on columns"""
-    distinct_on: [account_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [account_order_by!]
-
-    """filter the rows returned"""
-    where: account_bool_exp
-  ): [account!]!
-
-  """
-  fetch aggregated fields from the table: "account"
-  """
-  account_aggregate(
-    """distinct select on columns"""
-    distinct_on: [account_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [account_order_by!]
-
-    """filter the rows returned"""
-    where: account_bool_exp
-  ): account_aggregate!
-  account_balance_ignore_interval(
-    """account_balance_ignore_intervalNative Query Arguments"""
-    args: account_balance_ignore_interval_arguments!
-
-    """distinct select on columns"""
-    distinct_on: [balance_offset_model_enum_name!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [balance_offset_model_order_by!]
-
-    """filter the rows returned"""
-    where: balance_offset_model_bool_exp_bool_exp
-  ): [balance_offset_model!]!
-
-  """fetch data from the table: "account" using primary key columns"""
-  account_by_pk(id: uuid!): account
-  account_token_balance_ignore_interval(
-    """account_token_balance_ignore_intervalNative Query Arguments"""
-    args: account_token_balance_ignore_interval_arguments!
-
-    """distinct select on columns"""
-    distinct_on: [balance_offset_model_enum_name!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [balance_offset_model_order_by!]
-
-    """filter the rows returned"""
-    where: balance_offset_model_bool_exp_bool_exp
-  ): [balance_offset_model!]!
-
-  """
-  fetch data from the table: "account_transaction"
-  """
-  account_transaction(
-    """distinct select on columns"""
-    distinct_on: [account_transaction_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [account_transaction_order_by!]
-
-    """filter the rows returned"""
-    where: account_transaction_bool_exp
-  ): [account_transaction!]!
-
-  """
-  fetch aggregated fields from the table: "account_transaction"
-  """
-  account_transaction_aggregate(
-    """distinct select on columns"""
-    distinct_on: [account_transaction_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [account_transaction_order_by!]
-
-    """filter the rows returned"""
-    where: account_transaction_bool_exp
-  ): account_transaction_aggregate!
-
-  """
-  fetch data from the table: "account_transaction" using primary key columns
-  """
-  account_transaction_by_pk(id: uuid!): account_transaction
-  account_transaction_offset(
-    """account_transaction_offsetNative Query Arguments"""
-    args: account_transaction_offset_arguments!
-
-    """distinct select on columns"""
-    distinct_on: [account_transaction_offset_model_enum_name!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [account_transaction_offset_model_order_by!]
-
-    """filter the rows returned"""
-    where: account_transaction_offset_model_bool_exp_bool_exp
-  ): [account_transaction_offset_model!]!
-
-  """
   fetch data from the table: "formatted_tokens"
   """
   formatted_tokens(
@@ -1847,12 +1852,12 @@ type query_root {
     """filter the rows returned"""
     where: formatted_tokens_bool_exp
   ): formatted_tokens_aggregate!
-  get_formatted_tokens_interval(
-    """get_formatted_tokens_intervalNative Query Arguments"""
-    args: get_formatted_tokens_interval_arguments!
+  formatted_tokens_interval(
+    """formatted_tokens_intervalNative Query Arguments"""
+    args: formatted_tokens_interval_arguments!
 
     """distinct select on columns"""
-    distinct_on: [GetFormattedTokensResult_enum_name!]
+    distinct_on: [formatted_tokens_model_enum_name!]
 
     """limit the number of rows returned"""
     limit: Int
@@ -1861,17 +1866,18 @@ type query_root {
     offset: Int
 
     """sort the rows by one or more columns"""
-    order_by: [GetFormattedTokensResult_order_by!]
+    order_by: [formatted_tokens_model_order_by!]
 
     """filter the rows returned"""
-    where: GetFormattedTokensResult_bool_exp_bool_exp
-  ): [GetFormattedTokensResult!]!
-  get_formatted_tokens_since(
-    """get_formatted_tokens_sinceNative Query Arguments"""
-    args: get_formatted_tokens_since_arguments!
+    where: formatted_tokens_model_bool_exp_bool_exp
+  ): [formatted_tokens_model!]!
 
+  """
+  fetch data from the table: "formatted_tokens_with_performance"
+  """
+  formatted_tokens_with_performance(
     """distinct select on columns"""
-    distinct_on: [GetFormattedTokensResult_enum_name!]
+    distinct_on: [formatted_tokens_with_performance_select_column!]
 
     """limit the number of rows returned"""
     limit: Int
@@ -1880,11 +1886,132 @@ type query_root {
     offset: Int
 
     """sort the rows by one or more columns"""
-    order_by: [GetFormattedTokensResult_order_by!]
+    order_by: [formatted_tokens_with_performance_order_by!]
 
     """filter the rows returned"""
-    where: GetFormattedTokensResult_bool_exp_bool_exp
-  ): [GetFormattedTokensResult!]!
+    where: formatted_tokens_with_performance_bool_exp
+  ): [formatted_tokens_with_performance!]!
+
+  """
+  fetch aggregated fields from the table: "formatted_tokens_with_performance"
+  """
+  formatted_tokens_with_performance_aggregate(
+    """distinct select on columns"""
+    distinct_on: [formatted_tokens_with_performance_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [formatted_tokens_with_performance_order_by!]
+
+    """filter the rows returned"""
+    where: formatted_tokens_with_performance_bool_exp
+  ): formatted_tokens_with_performance_aggregate!
+  formatted_tokens_with_performance_intervals_within_period(
+    """
+    formatted_tokens_with_performance_intervals_within_periodNative Query Arguments
+    """
+    args: formatted_tokens_with_performance_intervals_within_period_arguments!
+
+    """distinct select on columns"""
+    distinct_on: [formatted_tokens_with_performance_model_enum_name!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [formatted_tokens_with_performance_model_order_by!]
+
+    """filter the rows returned"""
+    where: formatted_tokens_with_performance_model_bool_exp_bool_exp
+  ): [formatted_tokens_with_performance_model!]!
+
+  """
+  fetch data from the table: "hourly_new_tokens"
+  """
+  hourly_new_tokens(
+    """distinct select on columns"""
+    distinct_on: [hourly_new_tokens_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [hourly_new_tokens_order_by!]
+
+    """filter the rows returned"""
+    where: hourly_new_tokens_bool_exp
+  ): [hourly_new_tokens!]!
+
+  """
+  fetch aggregated fields from the table: "hourly_new_tokens"
+  """
+  hourly_new_tokens_aggregate(
+    """distinct select on columns"""
+    distinct_on: [hourly_new_tokens_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [hourly_new_tokens_order_by!]
+
+    """filter the rows returned"""
+    where: hourly_new_tokens_bool_exp
+  ): hourly_new_tokens_aggregate!
+
+  """
+  fetch data from the table: "hourly_swaps"
+  """
+  hourly_swaps(
+    """distinct select on columns"""
+    distinct_on: [hourly_swaps_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [hourly_swaps_order_by!]
+
+    """filter the rows returned"""
+    where: hourly_swaps_bool_exp
+  ): [hourly_swaps!]!
+
+  """
+  fetch aggregated fields from the table: "hourly_swaps"
+  """
+  hourly_swaps_aggregate(
+    """distinct select on columns"""
+    distinct_on: [hourly_swaps_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [hourly_swaps_order_by!]
+
+    """filter the rows returned"""
+    where: hourly_swaps_bool_exp
+  ): hourly_swaps_aggregate!
 
   """
   fetch data from the table: "token"
@@ -2056,189 +2183,137 @@ type query_root {
     """filter the rows returned"""
     where: token_transaction_offset_model_bool_exp_bool_exp
   ): [token_transaction_offset_model!]!
+  volume_intervals_within_period(
+    """volume_intervals_within_periodNative Query Arguments"""
+    args: volume_intervals_within_period_arguments!
+
+    """distinct select on columns"""
+    distinct_on: [volume_intervals_within_period_enum_name!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [volume_intervals_within_period_order_by!]
+
+    """filter the rows returned"""
+    where: volume_intervals_within_period_bool_exp_bool_exp
+  ): [volume_intervals_within_period!]!
+  wallet_balance_ignore_interval(
+    """wallet_balance_ignore_intervalNative Query Arguments"""
+    args: wallet_balance_ignore_interval_arguments!
+
+    """distinct select on columns"""
+    distinct_on: [balance_offset_model_enum_name!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [balance_offset_model_order_by!]
+
+    """filter the rows returned"""
+    where: balance_offset_model_bool_exp_bool_exp
+  ): [balance_offset_model!]!
+  wallet_token_balance_ignore_interval(
+    """wallet_token_balance_ignore_intervalNative Query Arguments"""
+    args: wallet_token_balance_ignore_interval_arguments!
+
+    """distinct select on columns"""
+    distinct_on: [balance_offset_model_enum_name!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [balance_offset_model_order_by!]
+
+    """filter the rows returned"""
+    where: balance_offset_model_bool_exp_bool_exp
+  ): [balance_offset_model!]!
+
+  """
+  fetch data from the table: "wallet_transaction"
+  """
+  wallet_transaction(
+    """distinct select on columns"""
+    distinct_on: [wallet_transaction_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [wallet_transaction_order_by!]
+
+    """filter the rows returned"""
+    where: wallet_transaction_bool_exp
+  ): [wallet_transaction!]!
+
+  """
+  fetch aggregated fields from the table: "wallet_transaction"
+  """
+  wallet_transaction_aggregate(
+    """distinct select on columns"""
+    distinct_on: [wallet_transaction_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [wallet_transaction_order_by!]
+
+    """filter the rows returned"""
+    where: wallet_transaction_bool_exp
+  ): wallet_transaction_aggregate!
+
+  """
+  fetch data from the table: "wallet_transaction" using primary key columns
+  """
+  wallet_transaction_by_pk(id: uuid!): wallet_transaction
+  wallet_transaction_offset(
+    """wallet_transaction_offsetNative Query Arguments"""
+    args: wallet_transaction_offset_arguments!
+
+    """distinct select on columns"""
+    distinct_on: [wallet_transaction_offset_model_enum_name!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [wallet_transaction_offset_model_order_by!]
+
+    """filter the rows returned"""
+    where: wallet_transaction_offset_model_bool_exp_bool_exp
+  ): [wallet_transaction_offset_model!]!
 }
 
 input sell_token_args {
-  account_id: uuid
   amount_to_sell: numeric
   token_cost: numeric
   token_id: uuid
+  user_wallet: String
 }
 
 type subscription_root {
-  """
-  fetch data from the table: "account"
-  """
-  account(
-    """distinct select on columns"""
-    distinct_on: [account_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [account_order_by!]
-
-    """filter the rows returned"""
-    where: account_bool_exp
-  ): [account!]!
-
-  """
-  fetch aggregated fields from the table: "account"
-  """
-  account_aggregate(
-    """distinct select on columns"""
-    distinct_on: [account_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [account_order_by!]
-
-    """filter the rows returned"""
-    where: account_bool_exp
-  ): account_aggregate!
-  account_balance_ignore_interval(
-    """account_balance_ignore_intervalNative Query Arguments"""
-    args: account_balance_ignore_interval_arguments!
-
-    """distinct select on columns"""
-    distinct_on: [balance_offset_model_enum_name!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [balance_offset_model_order_by!]
-
-    """filter the rows returned"""
-    where: balance_offset_model_bool_exp_bool_exp
-  ): [balance_offset_model!]!
-
-  """fetch data from the table: "account" using primary key columns"""
-  account_by_pk(id: uuid!): account
-
-  """
-  fetch data from the table in a streaming manner: "account"
-  """
-  account_stream(
-    """maximum number of rows returned in a single batch"""
-    batch_size: Int!
-
-    """cursor to stream the results returned by the query"""
-    cursor: [account_stream_cursor_input]!
-
-    """filter the rows returned"""
-    where: account_bool_exp
-  ): [account!]!
-  account_token_balance_ignore_interval(
-    """account_token_balance_ignore_intervalNative Query Arguments"""
-    args: account_token_balance_ignore_interval_arguments!
-
-    """distinct select on columns"""
-    distinct_on: [balance_offset_model_enum_name!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [balance_offset_model_order_by!]
-
-    """filter the rows returned"""
-    where: balance_offset_model_bool_exp_bool_exp
-  ): [balance_offset_model!]!
-
-  """
-  fetch data from the table: "account_transaction"
-  """
-  account_transaction(
-    """distinct select on columns"""
-    distinct_on: [account_transaction_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [account_transaction_order_by!]
-
-    """filter the rows returned"""
-    where: account_transaction_bool_exp
-  ): [account_transaction!]!
-
-  """
-  fetch aggregated fields from the table: "account_transaction"
-  """
-  account_transaction_aggregate(
-    """distinct select on columns"""
-    distinct_on: [account_transaction_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [account_transaction_order_by!]
-
-    """filter the rows returned"""
-    where: account_transaction_bool_exp
-  ): account_transaction_aggregate!
-
-  """
-  fetch data from the table: "account_transaction" using primary key columns
-  """
-  account_transaction_by_pk(id: uuid!): account_transaction
-  account_transaction_offset(
-    """account_transaction_offsetNative Query Arguments"""
-    args: account_transaction_offset_arguments!
-
-    """distinct select on columns"""
-    distinct_on: [account_transaction_offset_model_enum_name!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [account_transaction_offset_model_order_by!]
-
-    """filter the rows returned"""
-    where: account_transaction_offset_model_bool_exp_bool_exp
-  ): [account_transaction_offset_model!]!
-
-  """
-  fetch data from the table in a streaming manner: "account_transaction"
-  """
-  account_transaction_stream(
-    """maximum number of rows returned in a single batch"""
-    batch_size: Int!
-
-    """cursor to stream the results returned by the query"""
-    cursor: [account_transaction_stream_cursor_input]!
-
-    """filter the rows returned"""
-    where: account_transaction_bool_exp
-  ): [account_transaction!]!
-
   """
   fetch data from the table: "formatted_tokens"
   """
@@ -2278,6 +2353,25 @@ type subscription_root {
     """filter the rows returned"""
     where: formatted_tokens_bool_exp
   ): formatted_tokens_aggregate!
+  formatted_tokens_interval(
+    """formatted_tokens_intervalNative Query Arguments"""
+    args: formatted_tokens_interval_arguments!
+
+    """distinct select on columns"""
+    distinct_on: [formatted_tokens_model_enum_name!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [formatted_tokens_model_order_by!]
+
+    """filter the rows returned"""
+    where: formatted_tokens_model_bool_exp_bool_exp
+  ): [formatted_tokens_model!]!
 
   """
   fetch data from the table in a streaming manner: "formatted_tokens"
@@ -2292,12 +2386,13 @@ type subscription_root {
     """filter the rows returned"""
     where: formatted_tokens_bool_exp
   ): [formatted_tokens!]!
-  get_formatted_tokens_interval(
-    """get_formatted_tokens_intervalNative Query Arguments"""
-    args: get_formatted_tokens_interval_arguments!
 
+  """
+  fetch data from the table: "formatted_tokens_with_performance"
+  """
+  formatted_tokens_with_performance(
     """distinct select on columns"""
-    distinct_on: [GetFormattedTokensResult_enum_name!]
+    distinct_on: [formatted_tokens_with_performance_select_column!]
 
     """limit the number of rows returned"""
     limit: Int
@@ -2306,17 +2401,18 @@ type subscription_root {
     offset: Int
 
     """sort the rows by one or more columns"""
-    order_by: [GetFormattedTokensResult_order_by!]
+    order_by: [formatted_tokens_with_performance_order_by!]
 
     """filter the rows returned"""
-    where: GetFormattedTokensResult_bool_exp_bool_exp
-  ): [GetFormattedTokensResult!]!
-  get_formatted_tokens_since(
-    """get_formatted_tokens_sinceNative Query Arguments"""
-    args: get_formatted_tokens_since_arguments!
+    where: formatted_tokens_with_performance_bool_exp
+  ): [formatted_tokens_with_performance!]!
 
+  """
+  fetch aggregated fields from the table: "formatted_tokens_with_performance"
+  """
+  formatted_tokens_with_performance_aggregate(
     """distinct select on columns"""
-    distinct_on: [GetFormattedTokensResult_enum_name!]
+    distinct_on: [formatted_tokens_with_performance_select_column!]
 
     """limit the number of rows returned"""
     limit: Int
@@ -2325,11 +2421,154 @@ type subscription_root {
     offset: Int
 
     """sort the rows by one or more columns"""
-    order_by: [GetFormattedTokensResult_order_by!]
+    order_by: [formatted_tokens_with_performance_order_by!]
 
     """filter the rows returned"""
-    where: GetFormattedTokensResult_bool_exp_bool_exp
-  ): [GetFormattedTokensResult!]!
+    where: formatted_tokens_with_performance_bool_exp
+  ): formatted_tokens_with_performance_aggregate!
+  formatted_tokens_with_performance_intervals_within_period(
+    """
+    formatted_tokens_with_performance_intervals_within_periodNative Query Arguments
+    """
+    args: formatted_tokens_with_performance_intervals_within_period_arguments!
+
+    """distinct select on columns"""
+    distinct_on: [formatted_tokens_with_performance_model_enum_name!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [formatted_tokens_with_performance_model_order_by!]
+
+    """filter the rows returned"""
+    where: formatted_tokens_with_performance_model_bool_exp_bool_exp
+  ): [formatted_tokens_with_performance_model!]!
+
+  """
+  fetch data from the table in a streaming manner: "formatted_tokens_with_performance"
+  """
+  formatted_tokens_with_performance_stream(
+    """maximum number of rows returned in a single batch"""
+    batch_size: Int!
+
+    """cursor to stream the results returned by the query"""
+    cursor: [formatted_tokens_with_performance_stream_cursor_input]!
+
+    """filter the rows returned"""
+    where: formatted_tokens_with_performance_bool_exp
+  ): [formatted_tokens_with_performance!]!
+
+  """
+  fetch data from the table: "hourly_new_tokens"
+  """
+  hourly_new_tokens(
+    """distinct select on columns"""
+    distinct_on: [hourly_new_tokens_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [hourly_new_tokens_order_by!]
+
+    """filter the rows returned"""
+    where: hourly_new_tokens_bool_exp
+  ): [hourly_new_tokens!]!
+
+  """
+  fetch aggregated fields from the table: "hourly_new_tokens"
+  """
+  hourly_new_tokens_aggregate(
+    """distinct select on columns"""
+    distinct_on: [hourly_new_tokens_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [hourly_new_tokens_order_by!]
+
+    """filter the rows returned"""
+    where: hourly_new_tokens_bool_exp
+  ): hourly_new_tokens_aggregate!
+
+  """
+  fetch data from the table in a streaming manner: "hourly_new_tokens"
+  """
+  hourly_new_tokens_stream(
+    """maximum number of rows returned in a single batch"""
+    batch_size: Int!
+
+    """cursor to stream the results returned by the query"""
+    cursor: [hourly_new_tokens_stream_cursor_input]!
+
+    """filter the rows returned"""
+    where: hourly_new_tokens_bool_exp
+  ): [hourly_new_tokens!]!
+
+  """
+  fetch data from the table: "hourly_swaps"
+  """
+  hourly_swaps(
+    """distinct select on columns"""
+    distinct_on: [hourly_swaps_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [hourly_swaps_order_by!]
+
+    """filter the rows returned"""
+    where: hourly_swaps_bool_exp
+  ): [hourly_swaps!]!
+
+  """
+  fetch aggregated fields from the table: "hourly_swaps"
+  """
+  hourly_swaps_aggregate(
+    """distinct select on columns"""
+    distinct_on: [hourly_swaps_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [hourly_swaps_order_by!]
+
+    """filter the rows returned"""
+    where: hourly_swaps_bool_exp
+  ): hourly_swaps_aggregate!
+
+  """
+  fetch data from the table in a streaming manner: "hourly_swaps"
+  """
+  hourly_swaps_stream(
+    """maximum number of rows returned in a single batch"""
+    batch_size: Int!
+
+    """cursor to stream the results returned by the query"""
+    cursor: [hourly_swaps_stream_cursor_input]!
+
+    """filter the rows returned"""
+    where: hourly_swaps_bool_exp
+  ): [hourly_swaps!]!
 
   """
   fetch data from the table: "token"
@@ -2543,6 +2782,141 @@ type subscription_root {
     """filter the rows returned"""
     where: token_transaction_bool_exp
   ): [token_transaction!]!
+  volume_intervals_within_period(
+    """volume_intervals_within_periodNative Query Arguments"""
+    args: volume_intervals_within_period_arguments!
+
+    """distinct select on columns"""
+    distinct_on: [volume_intervals_within_period_enum_name!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [volume_intervals_within_period_order_by!]
+
+    """filter the rows returned"""
+    where: volume_intervals_within_period_bool_exp_bool_exp
+  ): [volume_intervals_within_period!]!
+  wallet_balance_ignore_interval(
+    """wallet_balance_ignore_intervalNative Query Arguments"""
+    args: wallet_balance_ignore_interval_arguments!
+
+    """distinct select on columns"""
+    distinct_on: [balance_offset_model_enum_name!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [balance_offset_model_order_by!]
+
+    """filter the rows returned"""
+    where: balance_offset_model_bool_exp_bool_exp
+  ): [balance_offset_model!]!
+  wallet_token_balance_ignore_interval(
+    """wallet_token_balance_ignore_intervalNative Query Arguments"""
+    args: wallet_token_balance_ignore_interval_arguments!
+
+    """distinct select on columns"""
+    distinct_on: [balance_offset_model_enum_name!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [balance_offset_model_order_by!]
+
+    """filter the rows returned"""
+    where: balance_offset_model_bool_exp_bool_exp
+  ): [balance_offset_model!]!
+
+  """
+  fetch data from the table: "wallet_transaction"
+  """
+  wallet_transaction(
+    """distinct select on columns"""
+    distinct_on: [wallet_transaction_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [wallet_transaction_order_by!]
+
+    """filter the rows returned"""
+    where: wallet_transaction_bool_exp
+  ): [wallet_transaction!]!
+
+  """
+  fetch aggregated fields from the table: "wallet_transaction"
+  """
+  wallet_transaction_aggregate(
+    """distinct select on columns"""
+    distinct_on: [wallet_transaction_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [wallet_transaction_order_by!]
+
+    """filter the rows returned"""
+    where: wallet_transaction_bool_exp
+  ): wallet_transaction_aggregate!
+
+  """
+  fetch data from the table: "wallet_transaction" using primary key columns
+  """
+  wallet_transaction_by_pk(id: uuid!): wallet_transaction
+  wallet_transaction_offset(
+    """wallet_transaction_offsetNative Query Arguments"""
+    args: wallet_transaction_offset_arguments!
+
+    """distinct select on columns"""
+    distinct_on: [wallet_transaction_offset_model_enum_name!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [wallet_transaction_offset_model_order_by!]
+
+    """filter the rows returned"""
+    where: wallet_transaction_offset_model_bool_exp_bool_exp
+  ): [wallet_transaction_offset_model!]!
+
+  """
+  fetch data from the table in a streaming manner: "wallet_transaction"
+  """
+  wallet_transaction_stream(
+    """maximum number of rows returned in a single batch"""
+    batch_size: Int!
+
+    """cursor to stream the results returned by the query"""
+    cursor: [wallet_transaction_stream_cursor_input]!
+
+    """filter the rows returned"""
+    where: wallet_transaction_bool_exp
+  ): [wallet_transaction!]!
 }
 
 scalar timestamptz
@@ -2566,15 +2940,20 @@ input timestamptz_comparison_exp {
 columns and relationships of "token"
 """
 type token {
+  created_at: timestamptz!
   decimals: Int
+  description: String
+  freeze_burnt: Boolean
   id: uuid!
+  is_pump_token: Boolean
 
   """token mint address (only for real tokens)"""
-  mint: String
-  name: String!
+  mint: String!
+  mint_burnt: Boolean
+  name: String
   platform: String
-  supply: numeric!
-  symbol: String!
+  supply: numeric
+  symbol: String
 
   """An array relationship"""
   token_price_histories(
@@ -2689,9 +3068,14 @@ input token_bool_exp {
   _and: [token_bool_exp!]
   _not: token_bool_exp
   _or: [token_bool_exp!]
+  created_at: timestamptz_comparison_exp
   decimals: Int_comparison_exp
+  description: String_comparison_exp
+  freeze_burnt: Boolean_comparison_exp
   id: uuid_comparison_exp
+  is_pump_token: Boolean_comparison_exp
   mint: String_comparison_exp
+  mint_burnt: Boolean_comparison_exp
   name: String_comparison_exp
   platform: String_comparison_exp
   supply: numeric_comparison_exp
@@ -2731,11 +3115,16 @@ input token_inc_input {
 input type for inserting data into table "token"
 """
 input token_insert_input {
+  created_at: timestamptz
   decimals: Int
+  description: String
+  freeze_burnt: Boolean
   id: uuid
+  is_pump_token: Boolean
 
   """token mint address (only for real tokens)"""
   mint: String
+  mint_burnt: Boolean
   name: String
   platform: String
   supply: numeric
@@ -2748,7 +3137,9 @@ input token_insert_input {
 
 """aggregate max on columns"""
 type token_max_fields {
+  created_at: timestamptz
   decimals: Int
+  description: String
   id: uuid
 
   """token mint address (only for real tokens)"""
@@ -2763,7 +3154,9 @@ type token_max_fields {
 
 """aggregate min on columns"""
 type token_min_fields {
+  created_at: timestamptz
   decimals: Int
+  description: String
   id: uuid
 
   """token mint address (only for real tokens)"""
@@ -2808,9 +3201,14 @@ input token_on_conflict {
 
 """Ordering options when selecting data from "token"."""
 input token_order_by {
+  created_at: order_by
   decimals: order_by
+  description: order_by
+  freeze_burnt: order_by
   id: order_by
+  is_pump_token: order_by
   mint: order_by
+  mint_burnt: order_by
   name: order_by
   platform: order_by
   supply: order_by
@@ -2830,9 +3228,13 @@ input token_pk_columns_input {
 columns and relationships of "token_price_history"
 """
 type token_price_history {
+  amount_in: numeric
+  amount_out: numeric
   created_at: timestamptz!
   id: uuid!
   internal_token_transaction_ref: uuid
+  max_amount_in: numeric
+  min_amount_out: numeric
   price: numeric!
   token: uuid!
 
@@ -2908,6 +3310,10 @@ input token_price_history_arr_rel_insert_input {
 
 """aggregate avg on columns"""
 type token_price_history_avg_fields {
+  amount_in: Float
+  amount_out: Float
+  max_amount_in: Float
+  min_amount_out: Float
   price: Float
 }
 
@@ -2915,6 +3321,10 @@ type token_price_history_avg_fields {
 order by avg() on columns of table "token_price_history"
 """
 input token_price_history_avg_order_by {
+  amount_in: order_by
+  amount_out: order_by
+  max_amount_in: order_by
+  min_amount_out: order_by
   price: order_by
 }
 
@@ -2925,9 +3335,13 @@ input token_price_history_bool_exp {
   _and: [token_price_history_bool_exp!]
   _not: token_price_history_bool_exp
   _or: [token_price_history_bool_exp!]
+  amount_in: numeric_comparison_exp
+  amount_out: numeric_comparison_exp
   created_at: timestamptz_comparison_exp
   id: uuid_comparison_exp
   internal_token_transaction_ref: uuid_comparison_exp
+  max_amount_in: numeric_comparison_exp
+  min_amount_out: numeric_comparison_exp
   price: numeric_comparison_exp
   token: uuid_comparison_exp
   token_relationship: token_bool_exp
@@ -2953,6 +3367,10 @@ enum token_price_history_constraint {
 input type for incrementing numeric columns in table "token_price_history"
 """
 input token_price_history_inc_input {
+  amount_in: numeric
+  amount_out: numeric
+  max_amount_in: numeric
+  min_amount_out: numeric
   price: numeric
 }
 
@@ -2960,9 +3378,13 @@ input token_price_history_inc_input {
 input type for inserting data into table "token_price_history"
 """
 input token_price_history_insert_input {
+  amount_in: numeric
+  amount_out: numeric
   created_at: timestamptz
   id: uuid
   internal_token_transaction_ref: uuid
+  max_amount_in: numeric
+  min_amount_out: numeric
   price: numeric
   token: uuid
   token_relationship: token_obj_rel_insert_input
@@ -2971,9 +3393,13 @@ input token_price_history_insert_input {
 
 """aggregate max on columns"""
 type token_price_history_max_fields {
+  amount_in: numeric
+  amount_out: numeric
   created_at: timestamptz
   id: uuid
   internal_token_transaction_ref: uuid
+  max_amount_in: numeric
+  min_amount_out: numeric
   price: numeric
   token: uuid
 }
@@ -2982,18 +3408,26 @@ type token_price_history_max_fields {
 order by max() on columns of table "token_price_history"
 """
 input token_price_history_max_order_by {
+  amount_in: order_by
+  amount_out: order_by
   created_at: order_by
   id: order_by
   internal_token_transaction_ref: order_by
+  max_amount_in: order_by
+  min_amount_out: order_by
   price: order_by
   token: order_by
 }
 
 """aggregate min on columns"""
 type token_price_history_min_fields {
+  amount_in: numeric
+  amount_out: numeric
   created_at: timestamptz
   id: uuid
   internal_token_transaction_ref: uuid
+  max_amount_in: numeric
+  min_amount_out: numeric
   price: numeric
   token: uuid
 }
@@ -3002,9 +3436,13 @@ type token_price_history_min_fields {
 order by min() on columns of table "token_price_history"
 """
 input token_price_history_min_order_by {
+  amount_in: order_by
+  amount_out: order_by
   created_at: order_by
   id: order_by
   internal_token_transaction_ref: order_by
+  max_amount_in: order_by
+  min_amount_out: order_by
   price: order_by
   token: order_by
 }
@@ -3103,9 +3541,13 @@ input token_price_history_on_conflict {
 
 """Ordering options when selecting data from "token_price_history"."""
 input token_price_history_order_by {
+  amount_in: order_by
+  amount_out: order_by
   created_at: order_by
   id: order_by
   internal_token_transaction_ref: order_by
+  max_amount_in: order_by
+  min_amount_out: order_by
   price: order_by
   token: order_by
   token_relationship: token_order_by
@@ -3122,6 +3564,12 @@ select columns of table "token_price_history"
 """
 enum token_price_history_select_column {
   """column name"""
+  amount_in
+
+  """column name"""
+  amount_out
+
+  """column name"""
   created_at
 
   """column name"""
@@ -3129,6 +3577,12 @@ enum token_price_history_select_column {
 
   """column name"""
   internal_token_transaction_ref
+
+  """column name"""
+  max_amount_in
+
+  """column name"""
+  min_amount_out
 
   """column name"""
   price
@@ -3141,15 +3595,23 @@ enum token_price_history_select_column {
 input type for updating data in table "token_price_history"
 """
 input token_price_history_set_input {
+  amount_in: numeric
+  amount_out: numeric
   created_at: timestamptz
   id: uuid
   internal_token_transaction_ref: uuid
+  max_amount_in: numeric
+  min_amount_out: numeric
   price: numeric
   token: uuid
 }
 
 """aggregate stddev on columns"""
 type token_price_history_stddev_fields {
+  amount_in: Float
+  amount_out: Float
+  max_amount_in: Float
+  min_amount_out: Float
   price: Float
 }
 
@@ -3157,11 +3619,19 @@ type token_price_history_stddev_fields {
 order by stddev() on columns of table "token_price_history"
 """
 input token_price_history_stddev_order_by {
+  amount_in: order_by
+  amount_out: order_by
+  max_amount_in: order_by
+  min_amount_out: order_by
   price: order_by
 }
 
 """aggregate stddev_pop on columns"""
 type token_price_history_stddev_pop_fields {
+  amount_in: Float
+  amount_out: Float
+  max_amount_in: Float
+  min_amount_out: Float
   price: Float
 }
 
@@ -3169,11 +3639,19 @@ type token_price_history_stddev_pop_fields {
 order by stddev_pop() on columns of table "token_price_history"
 """
 input token_price_history_stddev_pop_order_by {
+  amount_in: order_by
+  amount_out: order_by
+  max_amount_in: order_by
+  min_amount_out: order_by
   price: order_by
 }
 
 """aggregate stddev_samp on columns"""
 type token_price_history_stddev_samp_fields {
+  amount_in: Float
+  amount_out: Float
+  max_amount_in: Float
+  min_amount_out: Float
   price: Float
 }
 
@@ -3181,6 +3659,10 @@ type token_price_history_stddev_samp_fields {
 order by stddev_samp() on columns of table "token_price_history"
 """
 input token_price_history_stddev_samp_order_by {
+  amount_in: order_by
+  amount_out: order_by
+  max_amount_in: order_by
+  min_amount_out: order_by
   price: order_by
 }
 
@@ -3197,15 +3679,23 @@ input token_price_history_stream_cursor_input {
 
 """Initial value of the column from where the streaming should start"""
 input token_price_history_stream_cursor_value_input {
+  amount_in: numeric
+  amount_out: numeric
   created_at: timestamptz
   id: uuid
   internal_token_transaction_ref: uuid
+  max_amount_in: numeric
+  min_amount_out: numeric
   price: numeric
   token: uuid
 }
 
 """aggregate sum on columns"""
 type token_price_history_sum_fields {
+  amount_in: numeric
+  amount_out: numeric
+  max_amount_in: numeric
+  min_amount_out: numeric
   price: numeric
 }
 
@@ -3213,6 +3703,10 @@ type token_price_history_sum_fields {
 order by sum() on columns of table "token_price_history"
 """
 input token_price_history_sum_order_by {
+  amount_in: order_by
+  amount_out: order_by
+  max_amount_in: order_by
+  min_amount_out: order_by
   price: order_by
 }
 
@@ -3221,6 +3715,12 @@ update columns of table "token_price_history"
 """
 enum token_price_history_update_column {
   """column name"""
+  amount_in
+
+  """column name"""
+  amount_out
+
+  """column name"""
   created_at
 
   """column name"""
@@ -3228,6 +3728,12 @@ enum token_price_history_update_column {
 
   """column name"""
   internal_token_transaction_ref
+
+  """column name"""
+  max_amount_in
+
+  """column name"""
+  min_amount_out
 
   """column name"""
   price
@@ -3249,6 +3755,10 @@ input token_price_history_updates {
 
 """aggregate var_pop on columns"""
 type token_price_history_var_pop_fields {
+  amount_in: Float
+  amount_out: Float
+  max_amount_in: Float
+  min_amount_out: Float
   price: Float
 }
 
@@ -3256,11 +3766,19 @@ type token_price_history_var_pop_fields {
 order by var_pop() on columns of table "token_price_history"
 """
 input token_price_history_var_pop_order_by {
+  amount_in: order_by
+  amount_out: order_by
+  max_amount_in: order_by
+  min_amount_out: order_by
   price: order_by
 }
 
 """aggregate var_samp on columns"""
 type token_price_history_var_samp_fields {
+  amount_in: Float
+  amount_out: Float
+  max_amount_in: Float
+  min_amount_out: Float
   price: Float
 }
 
@@ -3268,11 +3786,19 @@ type token_price_history_var_samp_fields {
 order by var_samp() on columns of table "token_price_history"
 """
 input token_price_history_var_samp_order_by {
+  amount_in: order_by
+  amount_out: order_by
+  max_amount_in: order_by
+  min_amount_out: order_by
   price: order_by
 }
 
 """aggregate variance on columns"""
 type token_price_history_variance_fields {
+  amount_in: Float
+  amount_out: Float
+  max_amount_in: Float
+  min_amount_out: Float
   price: Float
 }
 
@@ -3280,6 +3806,10 @@ type token_price_history_variance_fields {
 order by variance() on columns of table "token_price_history"
 """
 input token_price_history_variance_order_by {
+  amount_in: order_by
+  amount_out: order_by
+  max_amount_in: order_by
+  min_amount_out: order_by
   price: order_by
 }
 
@@ -3288,13 +3818,28 @@ select columns of table "token"
 """
 enum token_select_column {
   """column name"""
+  created_at
+
+  """column name"""
   decimals
+
+  """column name"""
+  description
+
+  """column name"""
+  freeze_burnt
 
   """column name"""
   id
 
   """column name"""
+  is_pump_token
+
+  """column name"""
   mint
+
+  """column name"""
+  mint_burnt
 
   """column name"""
   name
@@ -3319,11 +3864,16 @@ enum token_select_column {
 input type for updating data in table "token"
 """
 input token_set_input {
+  created_at: timestamptz
   decimals: Int
+  description: String
+  freeze_burnt: Boolean
   id: uuid
+  is_pump_token: Boolean
 
   """token mint address (only for real tokens)"""
   mint: String
+  mint_burnt: Boolean
   name: String
   platform: String
   supply: numeric
@@ -3363,11 +3913,16 @@ input token_stream_cursor_input {
 
 """Initial value of the column from where the streaming should start"""
 input token_stream_cursor_value_input {
+  created_at: timestamptz
   decimals: Int
+  description: String
+  freeze_burnt: Boolean
   id: uuid
+  is_pump_token: Boolean
 
   """token mint address (only for real tokens)"""
   mint: String
+  mint_burnt: Boolean
   name: String
   platform: String
   supply: numeric
@@ -3386,10 +3941,6 @@ type token_sum_fields {
 columns and relationships of "token_transaction"
 """
 type token_transaction {
-  account_transaction: uuid!
-
-  """An object relationship"""
-  account_transaction_data: account_transaction!
   amount: numeric!
   id: uuid!
   token: uuid!
@@ -3399,6 +3950,10 @@ type token_transaction {
 
   """An object relationship"""
   token_price: token_price_history
+  wallet_transaction: uuid!
+
+  """An object relationship"""
+  wallet_transaction_data: wallet_transaction!
 }
 
 """
@@ -3483,13 +4038,13 @@ input token_transaction_bool_exp {
   _and: [token_transaction_bool_exp!]
   _not: token_transaction_bool_exp
   _or: [token_transaction_bool_exp!]
-  account_transaction: uuid_comparison_exp
-  account_transaction_data: account_transaction_bool_exp
   amount: numeric_comparison_exp
   id: uuid_comparison_exp
   token: uuid_comparison_exp
   token_data: token_bool_exp
   token_price: token_price_history_bool_exp
+  wallet_transaction: uuid_comparison_exp
+  wallet_transaction_data: wallet_transaction_bool_exp
 }
 
 """
@@ -3513,49 +4068,49 @@ input token_transaction_inc_input {
 input type for inserting data into table "token_transaction"
 """
 input token_transaction_insert_input {
-  account_transaction: uuid
-  account_transaction_data: account_transaction_obj_rel_insert_input
   amount: numeric
   id: uuid
   token: uuid
   token_data: token_obj_rel_insert_input
   token_price: token_price_history_obj_rel_insert_input
+  wallet_transaction: uuid
+  wallet_transaction_data: wallet_transaction_obj_rel_insert_input
 }
 
 """aggregate max on columns"""
 type token_transaction_max_fields {
-  account_transaction: uuid
   amount: numeric
   id: uuid
   token: uuid
+  wallet_transaction: uuid
 }
 
 """
 order by max() on columns of table "token_transaction"
 """
 input token_transaction_max_order_by {
-  account_transaction: order_by
   amount: order_by
   id: order_by
   token: order_by
+  wallet_transaction: order_by
 }
 
 """aggregate min on columns"""
 type token_transaction_min_fields {
-  account_transaction: uuid
   amount: numeric
   id: uuid
   token: uuid
+  wallet_transaction: uuid
 }
 
 """
 order by min() on columns of table "token_transaction"
 """
 input token_transaction_min_order_by {
-  account_transaction: order_by
   amount: order_by
   id: order_by
   token: order_by
+  wallet_transaction: order_by
 }
 
 """
@@ -3586,12 +4141,12 @@ input token_transaction_offset_arguments {
 }
 
 type token_transaction_offset_model {
-  account: uuid!
   amount: numeric!
   created_at: timestamptz!
   created_at_offset: timestamptz!
   id: uuid!
   token: uuid!
+  wallet: String!
 }
 
 """
@@ -3601,18 +4156,15 @@ input token_transaction_offset_model_bool_exp_bool_exp {
   _and: [token_transaction_offset_model_bool_exp_bool_exp!]
   _not: token_transaction_offset_model_bool_exp_bool_exp
   _or: [token_transaction_offset_model_bool_exp_bool_exp!]
-  account: uuid_comparison_exp
   amount: numeric_comparison_exp
   created_at: timestamptz_comparison_exp
   created_at_offset: timestamptz_comparison_exp
   id: uuid_comparison_exp
   token: uuid_comparison_exp
+  wallet: String_comparison_exp
 }
 
 enum token_transaction_offset_model_enum_name {
-  """column name"""
-  account
-
   """column name"""
   amount
 
@@ -3627,18 +4179,21 @@ enum token_transaction_offset_model_enum_name {
 
   """column name"""
   token
+
+  """column name"""
+  wallet
 }
 
 """
 Ordering options when selecting data from "token_transaction_offset_model".
 """
 input token_transaction_offset_model_order_by {
-  account: order_by
   amount: order_by
   created_at: order_by
   created_at_offset: order_by
   id: order_by
   token: order_by
+  wallet: order_by
 }
 
 """
@@ -3652,13 +4207,13 @@ input token_transaction_on_conflict {
 
 """Ordering options when selecting data from "token_transaction"."""
 input token_transaction_order_by {
-  account_transaction: order_by
-  account_transaction_data: account_transaction_order_by
   amount: order_by
   id: order_by
   token: order_by
   token_data: token_order_by
   token_price: token_price_history_order_by
+  wallet_transaction: order_by
+  wallet_transaction_data: wallet_transaction_order_by
 }
 
 """primary key columns input for table: token_transaction"""
@@ -3671,9 +4226,6 @@ select columns of table "token_transaction"
 """
 enum token_transaction_select_column {
   """column name"""
-  account_transaction
-
-  """column name"""
   amount
 
   """column name"""
@@ -3681,16 +4233,19 @@ enum token_transaction_select_column {
 
   """column name"""
   token
+
+  """column name"""
+  wallet_transaction
 }
 
 """
 input type for updating data in table "token_transaction"
 """
 input token_transaction_set_input {
-  account_transaction: uuid
   amount: numeric
   id: uuid
   token: uuid
+  wallet_transaction: uuid
 }
 
 """aggregate stddev on columns"""
@@ -3742,10 +4297,10 @@ input token_transaction_stream_cursor_input {
 
 """Initial value of the column from where the streaming should start"""
 input token_transaction_stream_cursor_value_input {
-  account_transaction: uuid
   amount: numeric
   id: uuid
   token: uuid
+  wallet_transaction: uuid
 }
 
 """aggregate sum on columns"""
@@ -3765,9 +4320,6 @@ update columns of table "token_transaction"
 """
 enum token_transaction_update_column {
   """column name"""
-  account_transaction
-
-  """column name"""
   amount
 
   """column name"""
@@ -3775,6 +4327,9 @@ enum token_transaction_update_column {
 
   """column name"""
   token
+
+  """column name"""
+  wallet_transaction
 }
 
 input token_transaction_updates {
@@ -3829,13 +4384,28 @@ update columns of table "token"
 """
 enum token_update_column {
   """column name"""
+  created_at
+
+  """column name"""
   decimals
+
+  """column name"""
+  description
+
+  """column name"""
+  freeze_burnt
 
   """column name"""
   id
 
   """column name"""
+  is_pump_token
+
+  """column name"""
   mint
+
+  """column name"""
+  mint_burnt
 
   """column name"""
   name
@@ -3885,6 +4455,11 @@ type token_variance_fields {
   supply: Float
 }
 
+input upsert_tokens_and_price_history_args {
+  price_history: jsonb
+  tokens: jsonb
+}
+
 scalar uuid
 
 """
@@ -3900,4 +4475,425 @@ input uuid_comparison_exp {
   _lte: uuid
   _neq: uuid
   _nin: [uuid!]
+}
+
+type volume_intervals_within_period {
+  interval_start: timestamptz!
+  token_count: bigint!
+  total_volume: numeric!
+}
+
+"""volume_intervals_within_periodNative Query Arguments"""
+input volume_intervals_within_period_arguments {
+  """"""
+  end: timestamptz!
+
+  """"""
+  interval: interval!
+
+  """"""
+  start: timestamptz!
+}
+
+"""
+Boolean expression to filter rows from the logical model for "volume_intervals_within_period". All fields are combined with a logical 'AND'.
+"""
+input volume_intervals_within_period_bool_exp_bool_exp {
+  _and: [volume_intervals_within_period_bool_exp_bool_exp!]
+  _not: volume_intervals_within_period_bool_exp_bool_exp
+  _or: [volume_intervals_within_period_bool_exp_bool_exp!]
+  interval_start: timestamptz_comparison_exp
+  token_count: bigint_comparison_exp
+  total_volume: numeric_comparison_exp
+}
+
+enum volume_intervals_within_period_enum_name {
+  """column name"""
+  interval_start
+
+  """column name"""
+  token_count
+
+  """column name"""
+  total_volume
+}
+
+"""
+Ordering options when selecting data from "volume_intervals_within_period".
+"""
+input volume_intervals_within_period_order_by {
+  interval_start: order_by
+  token_count: order_by
+  total_volume: order_by
+}
+
+"""wallet_balance_ignore_intervalNative Query Arguments"""
+input wallet_balance_ignore_interval_arguments {
+  """"""
+  interval: interval!
+
+  """"""
+  start: timestamptz!
+
+  """"""
+  wallet: String!
+}
+
+"""wallet_token_balance_ignore_intervalNative Query Arguments"""
+input wallet_token_balance_ignore_interval_arguments {
+  """"""
+  interval: interval!
+
+  """"""
+  start: timestamptz!
+
+  """"""
+  token: uuid!
+
+  """"""
+  wallet: String!
+}
+
+"""
+columns and relationships of "wallet_transaction"
+"""
+type wallet_transaction {
+  amount: numeric!
+  created_at: timestamptz!
+  id: uuid!
+
+  """An array relationship"""
+  token_transactions(
+    """distinct select on columns"""
+    distinct_on: [token_transaction_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_transaction_order_by!]
+
+    """filter the rows returned"""
+    where: token_transaction_bool_exp
+  ): [token_transaction!]!
+
+  """An aggregate relationship"""
+  token_transactions_aggregate(
+    """distinct select on columns"""
+    distinct_on: [token_transaction_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_transaction_order_by!]
+
+    """filter the rows returned"""
+    where: token_transaction_bool_exp
+  ): token_transaction_aggregate!
+  wallet: String!
+}
+
+"""
+aggregated selection of "wallet_transaction"
+"""
+type wallet_transaction_aggregate {
+  aggregate: wallet_transaction_aggregate_fields
+  nodes: [wallet_transaction!]!
+}
+
+"""
+aggregate fields of "wallet_transaction"
+"""
+type wallet_transaction_aggregate_fields {
+  avg: wallet_transaction_avg_fields
+  count(columns: [wallet_transaction_select_column!], distinct: Boolean): Int!
+  max: wallet_transaction_max_fields
+  min: wallet_transaction_min_fields
+  stddev: wallet_transaction_stddev_fields
+  stddev_pop: wallet_transaction_stddev_pop_fields
+  stddev_samp: wallet_transaction_stddev_samp_fields
+  sum: wallet_transaction_sum_fields
+  var_pop: wallet_transaction_var_pop_fields
+  var_samp: wallet_transaction_var_samp_fields
+  variance: wallet_transaction_variance_fields
+}
+
+"""aggregate avg on columns"""
+type wallet_transaction_avg_fields {
+  amount: Float
+}
+
+"""
+Boolean expression to filter rows from the table "wallet_transaction". All fields are combined with a logical 'AND'.
+"""
+input wallet_transaction_bool_exp {
+  _and: [wallet_transaction_bool_exp!]
+  _not: wallet_transaction_bool_exp
+  _or: [wallet_transaction_bool_exp!]
+  amount: numeric_comparison_exp
+  created_at: timestamptz_comparison_exp
+  id: uuid_comparison_exp
+  token_transactions: token_transaction_bool_exp
+  token_transactions_aggregate: token_transaction_aggregate_bool_exp
+  wallet: String_comparison_exp
+}
+
+"""
+unique or primary key constraints on table "wallet_transaction"
+"""
+enum wallet_transaction_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  account_transaction_pkey
+}
+
+"""
+input type for incrementing numeric columns in table "wallet_transaction"
+"""
+input wallet_transaction_inc_input {
+  amount: numeric
+}
+
+"""
+input type for inserting data into table "wallet_transaction"
+"""
+input wallet_transaction_insert_input {
+  amount: numeric
+  created_at: timestamptz
+  id: uuid
+  token_transactions: token_transaction_arr_rel_insert_input
+  wallet: String
+}
+
+"""aggregate max on columns"""
+type wallet_transaction_max_fields {
+  amount: numeric
+  created_at: timestamptz
+  id: uuid
+  wallet: String
+}
+
+"""aggregate min on columns"""
+type wallet_transaction_min_fields {
+  amount: numeric
+  created_at: timestamptz
+  id: uuid
+  wallet: String
+}
+
+"""
+response of any mutation on the table "wallet_transaction"
+"""
+type wallet_transaction_mutation_response {
+  """number of rows affected by the mutation"""
+  affected_rows: Int!
+
+  """data from the rows affected by the mutation"""
+  returning: [wallet_transaction!]!
+}
+
+"""
+input type for inserting object relation for remote table "wallet_transaction"
+"""
+input wallet_transaction_obj_rel_insert_input {
+  data: wallet_transaction_insert_input!
+
+  """upsert condition"""
+  on_conflict: wallet_transaction_on_conflict
+}
+
+"""wallet_transaction_offsetNative Query Arguments"""
+input wallet_transaction_offset_arguments {
+  """"""
+  offset: interval!
+}
+
+type wallet_transaction_offset_model {
+  amount: numeric!
+  created_at: timestamptz!
+  created_at_offset: timestamptz!
+  id: uuid!
+  wallet: String!
+}
+
+"""
+Boolean expression to filter rows from the logical model for "wallet_transaction_offset_model". All fields are combined with a logical 'AND'.
+"""
+input wallet_transaction_offset_model_bool_exp_bool_exp {
+  _and: [wallet_transaction_offset_model_bool_exp_bool_exp!]
+  _not: wallet_transaction_offset_model_bool_exp_bool_exp
+  _or: [wallet_transaction_offset_model_bool_exp_bool_exp!]
+  amount: numeric_comparison_exp
+  created_at: timestamptz_comparison_exp
+  created_at_offset: timestamptz_comparison_exp
+  id: uuid_comparison_exp
+  wallet: String_comparison_exp
+}
+
+enum wallet_transaction_offset_model_enum_name {
+  """column name"""
+  amount
+
+  """column name"""
+  created_at
+
+  """column name"""
+  created_at_offset
+
+  """column name"""
+  id
+
+  """column name"""
+  wallet
+}
+
+"""
+Ordering options when selecting data from "wallet_transaction_offset_model".
+"""
+input wallet_transaction_offset_model_order_by {
+  amount: order_by
+  created_at: order_by
+  created_at_offset: order_by
+  id: order_by
+  wallet: order_by
+}
+
+"""
+on_conflict condition type for table "wallet_transaction"
+"""
+input wallet_transaction_on_conflict {
+  constraint: wallet_transaction_constraint!
+  update_columns: [wallet_transaction_update_column!]! = []
+  where: wallet_transaction_bool_exp
+}
+
+"""Ordering options when selecting data from "wallet_transaction"."""
+input wallet_transaction_order_by {
+  amount: order_by
+  created_at: order_by
+  id: order_by
+  token_transactions_aggregate: token_transaction_aggregate_order_by
+  wallet: order_by
+}
+
+"""primary key columns input for table: wallet_transaction"""
+input wallet_transaction_pk_columns_input {
+  id: uuid!
+}
+
+"""
+select columns of table "wallet_transaction"
+"""
+enum wallet_transaction_select_column {
+  """column name"""
+  amount
+
+  """column name"""
+  created_at
+
+  """column name"""
+  id
+
+  """column name"""
+  wallet
+}
+
+"""
+input type for updating data in table "wallet_transaction"
+"""
+input wallet_transaction_set_input {
+  amount: numeric
+  created_at: timestamptz
+  id: uuid
+  wallet: String
+}
+
+"""aggregate stddev on columns"""
+type wallet_transaction_stddev_fields {
+  amount: Float
+}
+
+"""aggregate stddev_pop on columns"""
+type wallet_transaction_stddev_pop_fields {
+  amount: Float
+}
+
+"""aggregate stddev_samp on columns"""
+type wallet_transaction_stddev_samp_fields {
+  amount: Float
+}
+
+"""
+Streaming cursor of the table "wallet_transaction"
+"""
+input wallet_transaction_stream_cursor_input {
+  """Stream column input with initial value"""
+  initial_value: wallet_transaction_stream_cursor_value_input!
+
+  """cursor ordering"""
+  ordering: cursor_ordering
+}
+
+"""Initial value of the column from where the streaming should start"""
+input wallet_transaction_stream_cursor_value_input {
+  amount: numeric
+  created_at: timestamptz
+  id: uuid
+  wallet: String
+}
+
+"""aggregate sum on columns"""
+type wallet_transaction_sum_fields {
+  amount: numeric
+}
+
+"""
+update columns of table "wallet_transaction"
+"""
+enum wallet_transaction_update_column {
+  """column name"""
+  amount
+
+  """column name"""
+  created_at
+
+  """column name"""
+  id
+
+  """column name"""
+  wallet
+}
+
+input wallet_transaction_updates {
+  """increments the numeric columns with given value of the filtered values"""
+  _inc: wallet_transaction_inc_input
+
+  """sets the columns of the filtered rows to the given values"""
+  _set: wallet_transaction_set_input
+
+  """filter the rows which have to be updated"""
+  where: wallet_transaction_bool_exp!
+}
+
+"""aggregate var_pop on columns"""
+type wallet_transaction_var_pop_fields {
+  amount: Float
+}
+
+"""aggregate var_samp on columns"""
+type wallet_transaction_var_samp_fields {
+  amount: Float
+}
+
+"""aggregate variance on columns"""
+type wallet_transaction_variance_fields {
+  amount: Float
 }

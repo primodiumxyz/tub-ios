@@ -22,10 +22,8 @@ struct TokenListView: View {
     @State private var activeOffset: CGFloat = 0
     @State private var dragging = false
     
-    // show info card
-    @State private var showInfoCard = false
     @State var activeTab: String = "buy"
-
+    
     private func canSwipe(value: DragGesture.Value) -> Bool {
         return activeTab != "sell" &&
             // not trying to swipe up from the first token
@@ -34,8 +32,8 @@ struct TokenListView: View {
             !(value.translation.height < 0 && !viewModel.isNextTokenAvailable)
     }
     
-    init() {
-        self._viewModel = StateObject(wrappedValue: TokenListModel(userModel: UserModel(userId: UserDefaults.standard.string(forKey: "userId") ?? "")))
+    init(walletAddress: String) {
+        self._viewModel = StateObject(wrappedValue: TokenListModel(walletAddress: walletAddress))
     }
     
     private func loadToken(_ geometry: GeometryProxy, _ direction: String) {
@@ -50,7 +48,7 @@ struct TokenListView: View {
                 activeOffset -= geometry.size.height
             }
         }
-
+        
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             activeOffset = 0
         }
@@ -70,32 +68,30 @@ struct TokenListView: View {
     var body: some View {
         Group {
             if viewModel.isLoading {
-                LoadingView()
+                LoadingView(identifier: "TokenListView - loading")
             } else {
                 ZStack {
-                    // Background gradient
-                    LinearGradient(
-                        stops: activeTab == "buy" ? purpleStops : pinkStops,
-                        startPoint: UnitPoint(x: 0.5, y: activeTab == "buy" ? 1 : 0),
-                        endPoint: UnitPoint(x: 0.5, y: activeTab == "buy" ? 0 : 1)
-                    )
-                    .ignoresSafeArea()
+                    (activeTab == "sell" ? 
+                        AppColors.primaryPinkGradient :
+                        LinearGradient(colors: [.clear], startPoint: .top, endPoint: .bottom))
+                        .ignoresSafeArea()
+
                     
                     VStack(spacing: 0) {
                         AccountBalanceView(
                             userModel: userModel,
                             currentTokenModel: viewModel.currentTokenModel
                         )
-                        .padding(.top, 35)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 10)
                         .background(dragging ? AppColors.black : nil)
-                        .ignoresSafeArea()
                         .zIndex(2)
                         
                         // Rest of the content
                         if viewModel.tokens.count == 0 {
                             Spacer()
-                            Text("No tokens found").foregroundColor(.red)
+                            Text("An unexpected error occurred. Please come back later.")
+                                .foregroundColor(AppColors.lightYellow)
+                                .multilineTextAlignment(.center)
                             Spacer()
                         } else {
                             GeometryReader { geometry in
@@ -109,7 +105,6 @@ struct TokenListView: View {
                                         .frame(height: geometry.size.height)
                                         .opacity(dragging ? 0.2 : 0)
                                 }
-                                .padding(.horizontal)
                                 .zIndex(1)
                                 .offset(y: -geometry.size.height - 40 + offset + activeOffset)
                                 .gesture(
@@ -140,11 +135,6 @@ struct TokenListView: View {
                                 ).zIndex(1)
                             }
                         }
-                        
-                        if showInfoCard {
-                            TokenInfoCardView(tokenModel: viewModel.currentTokenModel, isVisible: $showInfoCard)
-                                .transition(.move(edge: .bottom))
-                        }
                     }
                 }
                 .foregroundColor(.white)
@@ -152,19 +142,8 @@ struct TokenListView: View {
                 
             }
         } .onAppear {
-            viewModel.fetchTokens()
+                viewModel.subscribeTokens()
         }
     }
 }
 
-#Preview {
-    @Previewable @AppStorage("userId") var userId: String = ""
-    @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
-    if !priceModel.isReady {
-        LoadingView()
-    } else {
-        TokenListView()
-            .environmentObject(UserModel(userId: userId))
-            .environmentObject(priceModel)
-    }
-}

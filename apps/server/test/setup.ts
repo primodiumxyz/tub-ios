@@ -1,14 +1,35 @@
-import { beforeAll, afterAll, afterEach } from 'vitest';
+import { start } from "@bin/tub-server";
+import type { GlobalSetupContext } from "vitest/node";
+import { AddressInfo } from "ws";
 
-beforeAll(() => {
-  // Add any global setup here
-});
+let teardownHappened = false;
 
-afterAll(() => {
-  // Add any global teardown here
-});
+declare module "vitest" {
+  export interface ProvidedContext {
+    port: number;
+    host: string;
+  }
+}
 
-afterEach(() => {
-  // Clean up after each test
-});
+export default async function ({ provide }: GlobalSetupContext) {
+  console.log("Setting up server for tests");
+  const server = await start();
 
+  const serverInfo = server.server.address();
+
+  if (!serverInfo || typeof serverInfo !== "object") {
+    throw new Error("Server info not found");
+  }
+
+  provide("port", serverInfo.port);
+  provide("host", serverInfo.address);
+
+  return async () => {
+    if (teardownHappened) {
+      throw new Error("teardown called twice");
+    }
+    teardownHappened = true;
+
+    await server.close();
+  };
+}

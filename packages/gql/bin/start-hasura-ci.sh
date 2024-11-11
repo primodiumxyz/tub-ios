@@ -27,7 +27,7 @@ echo "Waiting for the service to be healthy..."
 for ((i=1; i<=$RETRIES; i++)); do
   if check_health; then
     echo "Service is healthy!"
-    pnpm db:local:seed-apply
+     pnpm db:local:seed-apply
     break
   else
     echo "Health check failed. Retrying in $DELAY seconds..."

@@ -1,5 +1,5 @@
 {
-  "originHash" : "783e1632a0f8d8acde62c6952b6751be3e38d9530d0a6510e79efcac19912a2f",
+"originHash" : "a82f23c2b06af0eaf3189b9d4ae364656fee62fa993d71c7065fa85966033eeb",
   "pins" : [
     {
       "identity" : "apollo-ios",
@@ -44,6 +44,15 @@
       "state" : {
         "revision" : "d8cbcc04972690aaa5fc760a2b9ddb3e9f0decd7",
         "version" : "1.0.0"
+      }
+    },
+    {
+      "identity" : "privy-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/privy-io/privy-ios",
+      "state" : {
+        "revision" : "d485f08c1e29409526babb2748b0308239757c81",
+        "version" : "1.4.0"
       }
     },
     {

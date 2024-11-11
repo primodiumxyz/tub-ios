@@ -24,6 +24,7 @@ struct HistoryDetailsView: View {
                         .foregroundColor(AppColors.gray)
                         .font(.sfRounded(size: .sm, weight: .medium))
                     HStack {
+                        let _ = print(transaction.imageUri)
                         ImageView(imageUri: transaction.imageUri, size: 40)
                             .cornerRadius(8)
                         
@@ -86,15 +87,5 @@ struct HistoryDetailsView: View {
     
 
 
-}
-
-
-#Preview {
-    @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
-    if !priceModel.isReady {
-        LoadingView()
-    } else {
-        HistoryDetailsView(transaction: dummyData[0]).environmentObject(priceModel)
-    }
 }
 

@@ -12,9 +12,14 @@ public struct Token_insert_input: InputObject {
   }
 
   public init(
+    createdAt: GraphQLNullable<Timestamptz> = nil,
     decimals: GraphQLNullable<Int> = nil,
+    description: GraphQLNullable<String> = nil,
+    freezeBurnt: GraphQLNullable<Bool> = nil,
     id: GraphQLNullable<Uuid> = nil,
+    isPumpToken: GraphQLNullable<Bool> = nil,
     mint: GraphQLNullable<String> = nil,
+    mintBurnt: GraphQLNullable<Bool> = nil,
     name: GraphQLNullable<String> = nil,
     platform: GraphQLNullable<String> = nil,
     supply: GraphQLNullable<Numeric> = nil,
@@ -25,9 +30,14 @@ public struct Token_insert_input: InputObject {
     uri: GraphQLNullable<String> = nil
   ) {
     __data = InputDict([
+      "created_at": createdAt,
       "decimals": decimals,
+      "description": description,
+      "freeze_burnt": freezeBurnt,
       "id": id,
+      "is_pump_token": isPumpToken,
       "mint": mint,
+      "mint_burnt": mintBurnt,
       "name": name,
       "platform": platform,
       "supply": supply,
@@ -39,9 +49,24 @@ public struct Token_insert_input: InputObject {
     ])
   }
 
+  public var createdAt: GraphQLNullable<Timestamptz> {
+    get { __data["created_at"] }
+    set { __data["created_at"] = newValue }
+  }
+
   public var decimals: GraphQLNullable<Int> {
     get { __data["decimals"] }
     set { __data["decimals"] = newValue }
+  }
+
+  public var description: GraphQLNullable<String> {
+    get { __data["description"] }
+    set { __data["description"] = newValue }
+  }
+
+  public var freezeBurnt: GraphQLNullable<Bool> {
+    get { __data["freeze_burnt"] }
+    set { __data["freeze_burnt"] = newValue }
   }
 
   public var id: GraphQLNullable<Uuid> {
@@ -49,10 +74,20 @@ public struct Token_insert_input: InputObject {
     set { __data["id"] = newValue }
   }
 
+  public var isPumpToken: GraphQLNullable<Bool> {
+    get { __data["is_pump_token"] }
+    set { __data["is_pump_token"] = newValue }
+  }
+
   /// token mint address (only for real tokens)
   public var mint: GraphQLNullable<String> {
     get { __data["mint"] }
     set { __data["mint"] = newValue }
+  }
+
+  public var mintBurnt: GraphQLNullable<Bool> {
+    get { __data["mint_burnt"] }
+    set { __data["mint_burnt"] = newValue }
   }
 
   public var name: GraphQLNullable<String> {

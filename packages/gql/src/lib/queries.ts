@@ -1,25 +1,5 @@
 import { graphql } from "./init";
 
-export const GetAllAccountsQuery = graphql(`
-  query GetAllAccounts {
-    account {
-      id
-      username
-      created_at
-    }
-  }
-`);
-
-export const GetAccountDataQuery = graphql(`
-  query GetAccountData($accountId: uuid!) {
-    account(where: { id: { _eq: $accountId } }) {
-      username
-      id
-      created_at
-    }
-  }
-`);
-
 export const GetAllMockTokensQuery = graphql(`
   query GetAllTokens {
     token(where: { mint: { _is_null: true } }) {
@@ -37,9 +17,11 @@ export const GetTokenDataQuery = graphql(`
   query GetTokenData($tokenId: uuid!) {
     token(where: { id: { _eq: $tokenId } }) {
       id
+      mint
       name
       symbol
-      mint
+      description
+      supply
       decimals
       updated_at
       supply
@@ -57,42 +39,42 @@ export const GetTokensByMintsQuery = graphql(`
   }
 `);
 
-export const GetAccountTokenBalanceQuery = graphql(`
-  query GetAccountTokenBalance($account: uuid!, $token: uuid!, $start: timestamptz = "now()") {
-    balance: account_token_balance_ignore_interval(
-      args: { account: $account, interval: "0", start: $start, token: $token }
+export const GetWalletTokenBalanceQuery = graphql(`
+  query GetWalletTokenBalance($wallet: String!, $token: uuid!, $start: timestamptz = "now()") {
+    balance: wallet_token_balance_ignore_interval(
+      args: { wallet: $wallet, interval: "0", start: $start, token: $token }
     ) {
       value: balance
     }
   }
 `);
 
-export const GetAccountTokenBalanceIgnoreIntervalQuery = graphql(`
-  query GetAccountTokenBalanceIgnoreInterval(
-    $account: uuid!
+export const GetWalletTokenBalanceIgnoreIntervalQuery = graphql(`
+  query GetWalletTokenBalanceIgnoreInterval(
+    $wallet: String!
     $start: timestamptz = "now()"
     $interval: interval!
     $token: uuid!
   ) {
-    balance: account_token_balance_ignore_interval(
-      args: { account: $account, interval: $interval, start: $start, token: $token }
+    balance: wallet_token_balance_ignore_interval(
+      args: { wallet: $wallet, interval: $interval, start: $start, token: $token }
     ) {
       value: balance
     }
   }
 `);
 
-export const GetAccountBalanceQuery = graphql(`
-  query GetAccountBalance($account: uuid!, $start: timestamptz = "now()") {
-    balance: account_balance_ignore_interval(args: { account: $account, interval: "0", start: $start }) {
+export const GetWalletBalanceQuery = graphql(`
+  query GetWalletBalance($wallet: String!, $start: timestamptz = "now()") {
+    balance: wallet_balance_ignore_interval(args: { wallet: $wallet, interval: "0", start: $start }) {
       value: balance
     }
   }
 `);
 
-export const GetAccountBalanceIgnoreIntervalQuery = graphql(`
-  query GetAccountBalanceIgnoreInterval($account: uuid!, $start: timestamptz = "now()", $interval: interval!) {
-    balance: account_balance_ignore_interval(args: { account: $account, interval: $interval, start: $start }) {
+export const GetWalletBalanceIgnoreIntervalQuery = graphql(`
+  query GetWalletBalanceIgnoreInterval($wallet: String!, $start: timestamptz = "now()", $interval: interval!) {
+    balance: wallet_balance_ignore_interval(args: { wallet: $wallet, interval: $interval, start: $start }) {
       value: balance
     }
   }
@@ -135,13 +117,13 @@ export const GetLatestTokenPriceQuery = graphql(`
   }
 `);
 
-export const GetAccountTransactionsQuery = graphql(`
-  query GetAccountTransactions($accountId: uuid!) {
+export const GetWalletTransactionsQuery = graphql(`
+  query GetWalletTransactions($wallet: String!) {
     token_transaction(
-      order_by: { account_transaction_data: { created_at: desc } }
-      where: { account_transaction_data: { account_data: { id: { _eq: $accountId } } } }
+      order_by: { wallet_transaction_data: { created_at: desc } }
+      where: { wallet_transaction_data: { wallet: { _eq: $wallet } } }
     ) {
-      account_transaction
+      wallet_transaction
       amount
       id
       token
@@ -152,7 +134,7 @@ export const GetAccountTransactionsQuery = graphql(`
         symbol
         uri
       }
-      account_transaction_data {
+      wallet_transaction_data {
         created_at
       }
       token_price {
@@ -177,22 +159,129 @@ export const GetTokenPriceHistorySinceQuery = graphql(`
   }
 `);
 
-export const GetFilteredTokensQuery = graphql(`
-  query GetFilteredTokens($since: timestamptz!, $minTrades: bigint!, $minIncreasePct: float8!) {
-    get_formatted_tokens_since(
-      args: { since: $since }
-      where: { trades: { _gte: $minTrades }, increase_pct: { _gte: $minIncreasePct } }
+export const GetFilteredTokensIntervalQuery = graphql(`
+  query GetFilteredTokensInterval(
+    $interval: interval!
+    $minTrades: bigint = "0"
+    $minVolume: numeric = 0
+    $mintBurnt: Boolean = false
+    $freezeBurnt: Boolean = false
+  ) {
+    formatted_tokens_interval(
+      args: { interval: $interval }
+      where: {
+        is_pump_token: { _eq: true }
+        trades: { _gte: $minTrades }
+        volume: { _gte: $minVolume }
+        _and: [
+          { _or: [{ _not: { mint_burnt: { _eq: $mintBurnt } } }, { mint_burnt: { _eq: true } }] }
+          { _or: [{ _not: { freeze_burnt: { _eq: $freezeBurnt } } }, { freeze_burnt: { _eq: true } }] }
+        ]
+      }
+      order_by: { volume: desc }
     ) {
       token_id
       mint
-      decimals
       name
       symbol
-      platform
-      latest_price
+      description
+      uri
+      supply
+      decimals
+      mint_burnt
+      freeze_burnt
+      is_pump_token
       increase_pct
       trades
+      volume
+      latest_price
       created_at
+    }
+  }
+`);
+
+// Dashboard
+export const GetSwapsInPeriodCountQuery = graphql(`
+  query GetSwapsInPeriod($from: timestamptz!, $to: timestamptz!) {
+    swaps_total: token_price_history_aggregate(where: { created_at: { _gte: $from, _lte: $to } }) {
+      aggregate {
+        count
+      }
+    }
+    swaps_hourly: hourly_swaps(where: { hour: { _gte: $from, _lte: $to } }) {
+      hour
+      count
+    }
+  }
+`);
+
+export const GetNewTokensInPeriodCountQuery = graphql(`
+  query GetNewTokensInPeriod($from: timestamptz!, $to: timestamptz!) {
+    new_tokens_total: token_aggregate(where: { created_at: { _gte: $from, _lte: $to } }) {
+      aggregate {
+        count
+      }
+    }
+    new_tokens_hourly: hourly_new_tokens(where: { hour: { _gte: $from, _lte: $to } }) {
+      hour
+      count
+    }
+  }
+`);
+
+export const GetVolumeIntervalsWithinPeriodQuery = graphql(`
+  query GetVolumeIntervalsWithinPeriod($from: timestamptz!, $to: timestamptz!, $interval: interval!) {
+    volume_intervals_within_period(args: { start: $from, end: $to, interval: $interval }) {
+      interval_start
+      total_volume
+      token_count
+    }
+  }
+`);
+
+export const GetFormattedTokensWithPerformanceForIntervalsWithinPeriodQuery = graphql(`
+  query GetFormattedTokensWithPerformanceForIntervalsWithinPeriodQuery(
+    $from: timestamptz!
+    $to: timestamptz!
+    $interval: interval!
+    $afterIntervals: String!
+    $minTrades: bigint = "0"
+    $minVolume: numeric = 0
+    $mintBurnt: Boolean = false
+    $freezeBurnt: Boolean = false
+  ) {
+    formatted_tokens_with_performance_intervals_within_period(
+      args: { start: $from, end: $to, interval: $interval, after_intervals: $afterIntervals }
+      where: {
+        trades: { _gte: $minTrades }
+        volume: { _gte: $minVolume }
+        _and: [
+          { _or: [{ _not: { mint_burnt: { _eq: $mintBurnt } } }, { mint_burnt: { _eq: true } }] }
+          { _or: [{ _not: { freeze_burnt: { _eq: $freezeBurnt } } }, { freeze_burnt: { _eq: true } }] }
+        ]
+      }
+      order_by: { interval_start: asc }
+    ) {
+      token_id
+      mint
+      name
+      symbol
+      description
+      uri
+      supply
+      decimals
+      mint_burnt
+      freeze_burnt
+      is_pump_token
+      increase_pct
+      trades
+      volume
+      latest_price
+      created_at
+      increase_pct_after
+      trades_after
+      volume_after
+      interval_start
     }
   }
 `);

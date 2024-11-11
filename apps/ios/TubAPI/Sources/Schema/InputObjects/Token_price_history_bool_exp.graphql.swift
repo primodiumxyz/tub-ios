@@ -15,9 +15,13 @@ public struct Token_price_history_bool_exp: InputObject {
     _and: GraphQLNullable<[Token_price_history_bool_exp]> = nil,
     _not: GraphQLNullable<Token_price_history_bool_exp> = nil,
     _or: GraphQLNullable<[Token_price_history_bool_exp]> = nil,
+    amountIn: GraphQLNullable<Numeric_comparison_exp> = nil,
+    amountOut: GraphQLNullable<Numeric_comparison_exp> = nil,
     createdAt: GraphQLNullable<Timestamptz_comparison_exp> = nil,
     id: GraphQLNullable<Uuid_comparison_exp> = nil,
     internalTokenTransactionRef: GraphQLNullable<Uuid_comparison_exp> = nil,
+    maxAmountIn: GraphQLNullable<Numeric_comparison_exp> = nil,
+    minAmountOut: GraphQLNullable<Numeric_comparison_exp> = nil,
     price: GraphQLNullable<Numeric_comparison_exp> = nil,
     token: GraphQLNullable<Uuid_comparison_exp> = nil,
     tokenRelationship: GraphQLNullable<Token_bool_exp> = nil,
@@ -27,9 +31,13 @@ public struct Token_price_history_bool_exp: InputObject {
       "_and": _and,
       "_not": _not,
       "_or": _or,
+      "amount_in": amountIn,
+      "amount_out": amountOut,
       "created_at": createdAt,
       "id": id,
       "internal_token_transaction_ref": internalTokenTransactionRef,
+      "max_amount_in": maxAmountIn,
+      "min_amount_out": minAmountOut,
       "price": price,
       "token": token,
       "token_relationship": tokenRelationship,
@@ -52,6 +60,16 @@ public struct Token_price_history_bool_exp: InputObject {
     set { __data["_or"] = newValue }
   }
 
+  public var amountIn: GraphQLNullable<Numeric_comparison_exp> {
+    get { __data["amount_in"] }
+    set { __data["amount_in"] = newValue }
+  }
+
+  public var amountOut: GraphQLNullable<Numeric_comparison_exp> {
+    get { __data["amount_out"] }
+    set { __data["amount_out"] = newValue }
+  }
+
   public var createdAt: GraphQLNullable<Timestamptz_comparison_exp> {
     get { __data["created_at"] }
     set { __data["created_at"] = newValue }
@@ -65,6 +83,16 @@ public struct Token_price_history_bool_exp: InputObject {
   public var internalTokenTransactionRef: GraphQLNullable<Uuid_comparison_exp> {
     get { __data["internal_token_transaction_ref"] }
     set { __data["internal_token_transaction_ref"] = newValue }
+  }
+
+  public var maxAmountIn: GraphQLNullable<Numeric_comparison_exp> {
+    get { __data["max_amount_in"] }
+    set { __data["max_amount_in"] = newValue }
+  }
+
+  public var minAmountOut: GraphQLNullable<Numeric_comparison_exp> {
+    get { __data["min_amount_out"] }
+    set { __data["min_amount_out"] = newValue }
   }
 
   public var price: GraphQLNullable<Numeric_comparison_exp> {

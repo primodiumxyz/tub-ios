@@ -20,8 +20,7 @@ class UserModel: ObservableObject {
     
     @Published var userId: String
     @Published var username: String = ""
-    @AppStorage("userId") private var storedUserId: String?
-    @AppStorage("username") private var storedUsername: String?
+    @Published var walletAddress: String  = ""
 
     @Published var initialBalanceLamps: Int = 0
     @Published var balanceLamps: Int = 0
@@ -41,6 +40,8 @@ class UserModel: ObservableObject {
     init(userId: String, mock: Bool? = false) {
         self.userId = userId
         
+        self.updateWalletAddress()
+        
         if(mock == true) {
             self.balanceLamps = 1000
             isLoading = false
@@ -56,12 +57,6 @@ class UserModel: ObservableObject {
 
     private func fetchInitialData() async {
         do {
-            // Validate userId is a valid UUID
-            guard UUID(uuidString: userId) != nil else {
-                throw NSError(domain: "UserModel", code: 2, userInfo: [NSLocalizedDescriptionKey: "Invalid userId: Not a valid UUID"])
-            }
-            
-            try await fetchAccountData()
             try await fetchInitialBalance()
             DispatchQueue.main.async {
                 self.initialTime = Date()
@@ -69,43 +64,15 @@ class UserModel: ObservableObject {
             }
         } catch {
             print("Error fetching initial data: \(error)")
-            storedUserId = ""
-            storedUsername = ""
             DispatchQueue.main.async {
                 self.isLoading = false
             }
         }
     }
 
-    private func fetchAccountData() async throws {
-        let query = GetAccountDataQuery(accountId: Uuid(userId))
-        return try await withCheckedThrowingContinuation { continuation in
-            Network.shared.apollo.fetch(query: query) { [weak self] result in
-                guard let self = self else {
-                    continuation.resume(throwing: NSError(domain: "UserModel", code: 0, userInfo: [NSLocalizedDescriptionKey: "Self is nil"]))
-                    return
-                }
-                
-                switch result {
-                case .success(let response):
-                    if let account = response.data?.account.first {
-                        DispatchQueue.main.async {
-                            self.username = account.username
-                            // Add any other properties you want to set from the account data
-                        }
-                        continuation.resume()
-                    } else {
-                        continuation.resume(throwing: NSError(domain: "UserModel", code: 1, userInfo: [NSLocalizedDescriptionKey: "Account not found"]))
-                    }
-                case .failure(let error):
-                    continuation.resume(throwing: error)
-                }
-            }
-        }
-    }
-    
     private func fetchInitialBalance() async throws {
-        let query = GetAccountBalanceQuery(account: Uuid(userId))
+        print(self.walletAddress)
+        let query = GetWalletBalanceQuery(wallet: self.walletAddress)
         
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { [weak self] result in
@@ -132,8 +99,8 @@ class UserModel: ObservableObject {
         accountBalanceSubscription?.cancel()
         
         accountBalanceSubscription = Network.shared.apollo.subscribe(
-            subscription: SubAccountBalanceSubscription(
-                account: Uuid(self.userId))
+            subscription: SubWalletBalanceSubscription(
+                wallet: self.walletAddress)
         ) { [weak self] result in
             guard let self = self else { return }
             DispatchQueue.main.async {
@@ -160,12 +127,30 @@ class UserModel: ObservableObject {
             }
     }
 
+    private func updateWalletAddress() {
+        switch privy.embeddedWallet.embeddedWalletState {
+        case .connected(let wallets):
+            if let wallet = wallets.first {
+                DispatchQueue.main.async {
+                    self.walletAddress = wallet.address
+                }
+            } else {
+                DispatchQueue.main.async {
+                    self.walletAddress = ""
+                }
+                print("No wallet found in connected state")
+            }
+        default:
+            DispatchQueue.main.async {
+                self.walletAddress = ""
+            }
+            print("Wallet must be connected to initialize UserModel")
+        }
+    }
+
     func logout() {
-        // Clear the stored values
-        storedUserId = nil
-        storedUsername = nil
+        privy.logout()
         
-        // Reset the published properties
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             self.userId = ""
@@ -179,5 +164,6 @@ class UserModel: ObservableObject {
         cancellables.forEach { $0.cancel() }
         cancellables.removeAll()
         timerCancellable?.cancel()
+        
     }
 }
