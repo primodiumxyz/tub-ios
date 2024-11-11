@@ -12,6 +12,7 @@ enum FocusPin {
 }
 
 struct SignInWithPhoneView: View {
+    @EnvironmentObject private var errorHandler: ErrorHandler
     @State private var phoneNumber = ""
     @State private var showOTPInput = false
     @State private var otpFlowState: OtpFlowState = .initial
@@ -22,18 +23,32 @@ struct SignInWithPhoneView: View {
     @State private var pinFour = ""
     @State private var pinFive = ""
     @State private var pinSix = ""
+    @State private var showPhoneError = false
+    @State private var selectedCountryCode = countryCodes[0].code
     
     private var otpCode: String {
         pinOne + pinTwo + pinThree + pinFour + pinFive + pinSix
     }
     
     private func handlePhoneLogin() {
+        if phoneNumber.isEmpty || !isValidPhoneNumber(phoneNumber) {
+            showPhoneError = true
+            return
+        }
         Task {
             let otpSent = await privy.sms.sendCode(to: phoneNumber)
             if otpSent {
                 showOTPInput = true
+            }else {
+                debugPrint("Error: Failed to send OTP.")
+                showOTPInput = false
             }
         }
+    }
+    
+    private func isValidPhoneNumber(_ number: String) -> Bool {
+        let phoneRegex = "^[0-9]{10,15}$"
+        return NSPredicate(format: "SELF MATCHES %@", phoneRegex).evaluate(with: number)
     }
     
     private func verifyOTP() {
@@ -41,30 +56,81 @@ struct SignInWithPhoneView: View {
             do {
                 let _ = try await privy.sms.loginWithCode(otpCode, sentTo: phoneNumber)
             } catch {
-                debugPrint("OTP verification error: \(error)")
+                errorHandler.show(error)
             }
         }
     }
     
+    private func handlePaste(_ pastedText: String, for pin: Binding<String>) {
+        let cleaned = pastedText.filter { $0.isNumber }
+        if cleaned.count == 6 {
+            let chars = Array(cleaned)
+            pinOne = String(chars[0])
+            pinTwo = String(chars[1])
+            pinThree = String(chars[2])
+            pinFour = String(chars[3])
+            pinFive = String(chars[4])
+            pinSix = String(chars[5])
+            verifyOTP()
+        }
+    }
+    
     var body: some View {
-        VStack(spacing: 12) {
-            Text("Continue with Phone")
-                .foregroundStyle(.white)
-            TextField("Phone Number", text: $phoneNumber)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .padding(.horizontal)
-                .keyboardType(.phonePad)
+        VStack(alignment:.leading, spacing: 12) {
+            Text("Continue with Phone Number")
+                .font(.sfRounded(size: .lg, weight: .medium))
+                .foregroundColor(AppColors.white)
+                .padding(.horizontal,20)
+            
+            HStack {
+                Picker("Country Code", selection: $selectedCountryCode) {
+                    ForEach(countryCodes, id: \.code) { country in
+                        Text("\(country.name) \(country.code)").tag(country.code)
+                    }
+                }
+                .pickerStyle(MenuPickerStyle())
+                .frame(width: 100, height: 50)
+                .background(AppColors.white)
+                .cornerRadius(30)
+                
+                TextField("Enter your Phone Number", text: $phoneNumber)
+                    .keyboardType(.phonePad)
+                    .padding()
+                    .background(AppColors.white)
+                    .foregroundColor(.black)
+                    .frame(maxWidth: .infinity, maxHeight: 50, alignment: .leading)
+                    .cornerRadius(30)
+                    .onChange(of: phoneNumber) { newValue in
+                        showPhoneError = false
+                    }
+            }
+            .padding(.horizontal)
+            
+            
+            if showPhoneError {
+                Text("Please enter a valid phone number.")
+                    .foregroundColor(.red)
+                    .font(.caption)
+                    .padding(.top, -4)
+                    .padding(.horizontal,20)
+
+            }
             
             if showOTPInput {
-                Text("Enter verification code")
-                    .font(.sfRounded(size: .base, weight: .medium))
-                    .foregroundStyle(.white)
-
+                VStack(alignment:.leading) {
+                    Text("Enter verification code")
+                        .font(.sfRounded(size: .lg, weight: .medium))
+                        .foregroundColor(AppColors.white)
+                        .padding(.top,16)
+                        .padding(.horizontal,20)
+                }
                 HStack(spacing: 15) {
                     TextField("", text: $pinOne)
                         .modifier(OtpModifer(pin: $pinOne))
                         .onChange(of: pinOne) { newVal in
-                            if newVal.count == 1 {
+                            if newVal.count > 1 {
+                                handlePaste(newVal, for: $pinOne)
+                            } else if newVal.count == 1 {
                                 pinFocusState = .pinTwo
                             }
                         }
@@ -125,28 +191,31 @@ struct SignInWithPhoneView: View {
                         }
                         .focused($pinFocusState, equals: .pinSix)
                 }
-                .padding(.vertical)
-                .padding(.horizontal)
+                .foregroundColor(.black)
+                .padding(.vertical, 6)
+                .padding(.horizontal, 20)
                 
                 Button(action: verifyOTP) {
                     Text("Verify Code")
-                        .font(.sfRounded(size: .base, weight: .semibold))
+                        .font(.sfRounded(size: .lg, weight: .semibold))
                         .foregroundColor(AppColors.white)
                         .frame(maxWidth: .infinity)
-                        .padding(12)
+                        .padding(14)
                         .background(AppColors.primaryPurple)
                         .cornerRadius(26)
                 }.padding(.horizontal)
             } else {
                 Button(action: handlePhoneLogin) {
                     Text("Continue")
-                        .font(.sfRounded(size: .base, weight: .semibold))
+                        .font(.sfRounded(size: .lg, weight: .semibold))
                         .foregroundColor(AppColors.white)
                         .frame(maxWidth: .infinity)
-                        .padding(12)
+                        .padding(14)
                         .background(AppColors.primaryPurple)
                         .cornerRadius(26)
-                }.padding(.horizontal)
+                }
+                .padding(.horizontal)
+                .padding(.top, 5)
             }
         }
         .frame(maxHeight: .infinity)
@@ -156,5 +225,6 @@ struct SignInWithPhoneView: View {
                 otpFlowState = state
             }
         }
+        .dismissKeyboardOnTap()
     }
 }

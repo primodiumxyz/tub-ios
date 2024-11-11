@@ -63,9 +63,15 @@ export const GetFilteredTokensIntervalSubscription = graphql(`
     $minVolume: numeric = 0
     $mintBurnt: Boolean = false
     $freezeBurnt: Boolean = false
+    $minDistinctPrices: Int = 0
+    $distinctPricesInterval: interval = "1m"
   ) {
     formatted_tokens_interval(
-      args: { interval: $interval }
+      args: {
+        interval: $interval
+        min_distinct_prices: $minDistinctPrices
+        distinct_prices_interval: $distinctPricesInterval
+      }
       where: {
         is_pump_token: { _eq: true }
         trades: { _gte: $minTrades }

@@ -12,6 +12,11 @@ import Security
 
 class Network {
     static let shared = Network()
+    private var lastApiCallTime: Date = Date()
+
+    // privy sessions last one hour so we refresh session after 45 minutes to be safe
+    // https://docs.privy.io/guide/security/#refresh-token
+    private let sessionTimeout: TimeInterval = 60 * 45  // 45 minutes in seconds
 
     // graphql
     private let httpTransport: RequestChainNetworkTransport
@@ -70,61 +75,77 @@ class Network {
     private func callProcedure<T: Codable>(
         _ procedure: String, input: Codable? = nil, completion: @escaping (Result<T, Error>) -> Void
     ) {
-        let url = baseURL.appendingPathComponent(procedure)
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        // Add JWT token to the header
-
-        if let token = getStoredToken() {
-            request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
-
-        if let input = input {
-            do {
-                request.httpBody = try JSONEncoder().encode(input)
-            } catch {
-                completion(.failure(error))
-                return
-            }
-        }
-
-        let task = session.dataTask(with: request) { data, response, error in
-            if let error = error {
-                completion(.failure(error))
-                return
-            }
-
-            guard let data = data else {
-                completion(
-                    .failure(
-                        NSError(
-                            domain: "NetworkError", code: 0,
-                            userInfo: [NSLocalizedDescriptionKey: "No data received"])))
-                return
-            }
-
-            do {
-                // First, try to decode as an error response
-                if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
-                    let errorMessage = errorResponse.error.message
-                    completion(
-                        .failure(
-                            NSError(
-                                domain: "ServerError", code: errorResponse.error.code ?? -1,
-                                userInfo: [NSLocalizedDescriptionKey: errorMessage])))
+        // Check and refresh session if needed
+        Task {
+            if Date().timeIntervalSince(lastApiCallTime) > sessionTimeout {
+                do {
+                    _ = try await privy.refreshSession()
+                } catch {
+                    completion(.failure(error))
                     return
                 }
 
-                // If it's not an error, proceed with normal decoding
-                let decodedResponse = try JSONDecoder().decode(ResponseWrapper<T>.self, from: data)
-                completion(.success(decodedResponse.result.data))
-            } catch {
-                completion(.failure(error))
+                self.lastApiCallTime = Date()
             }
-        }
 
-        task.resume()
+            let url = baseURL.appendingPathComponent(procedure)
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            // Add JWT token to the header
+
+            if let token = getStoredToken() {
+                request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            }
+
+            if let input = input {
+                do {
+                    request.httpBody = try JSONEncoder().encode(input)
+                } catch {
+                    completion(.failure(error))
+                    return
+                }
+            }
+
+            let task = session.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    completion(.failure(error))
+                    return
+                }
+
+                guard let data = data else {
+                    completion(
+                        .failure(
+                            NSError(
+                                domain: "NetworkError", code: 0,
+                                userInfo: [NSLocalizedDescriptionKey: "No data received"])))
+                    return
+                }
+
+                do {
+                    // First, try to decode as an error response
+                    if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data)
+                    {
+                        let errorMessage = errorResponse.error.message
+                        completion(
+                            .failure(
+                                NSError(
+                                    domain: "ServerError", code: errorResponse.error.code ?? -1,
+                                    userInfo: [NSLocalizedDescriptionKey: errorMessage])))
+                        return
+                    }
+
+                    // If it's not an error, proceed with normal decoding
+                    let decodedResponse = try JSONDecoder().decode(
+                        ResponseWrapper<T>.self, from: data)
+                    completion(.success(decodedResponse.result.data))
+                } catch {
+                    completion(.failure(error))
+                }
+            }
+
+            task.resume()
+        }
     }
 
     // Updated procedure calls:
@@ -197,19 +218,6 @@ class Network {
         callProcedure("airdropNativeToUser", input: input, completion: completion)
     }
 
-    func getCoinbaseSolanaOnrampUrl(
-        completion: @escaping (Result<CoinbaseSolanaOnrampUrlResponse, Error>) -> Void
-    ) {
-        callProcedure("getCoinbaseSolanaOnrampUrl", completion: completion)
-    }
-
-    func recordClientEvent(
-        event: ClientEvent,
-        completion: @escaping (Result<ClientEventResponse, Error>) -> Void
-    ) {
-        let input: [String: ClientEvent] = ["event": event]
-        callProcedure("recordClientEvent", input: input, completion: completion)
-    }
 }
 
 struct ResponseWrapper<T: Codable>: Codable {
@@ -244,11 +252,6 @@ struct ClientEvent: Codable {
 
 struct ClientEventResponse: Codable {
     let id: String
-}
-
-struct CoinbaseSolanaOnrampUrlResponse: Codable {
-    let coinbaseToken: String
-    let url: String
 }
 
 extension Network {

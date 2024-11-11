@@ -11,7 +11,7 @@ import SwiftUI
 struct AppColors {
 
     static let primaryPurple = Color(red: 0.43, green: 0, blue: 1)
-    static let primaryPink = Color(red: 0.82, green: 0.31, blue: 0.6)
+    static let primaryPink = Color(red: 0.87, green: 0.26, blue: 0.61)
     static let white = Color.white
     static let black = Color.black
     static let gray = Color.gray
