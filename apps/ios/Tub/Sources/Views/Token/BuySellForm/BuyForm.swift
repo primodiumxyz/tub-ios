@@ -7,6 +7,32 @@
 
 import SwiftUI
 
+private extension String {
+    static let numberFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.usesGroupingSeparator = true
+        formatter.groupingSeparator = ","
+        return formatter
+    }()
+    
+    var doubleValue: Double {
+        // Try with dot as decimal separator
+        String.numberFormatter.decimalSeparator = "."
+        if let result = String.numberFormatter.number(from: self) {
+            return result.doubleValue
+        }
+        
+        // Try with comma as decimal separator
+        String.numberFormatter.decimalSeparator = ","
+        if let result = String.numberFormatter.number(from: self) {
+            return result.doubleValue
+        }
+        
+        return 0
+    }
+}
+
 struct BuyForm: View {
     @Binding var isVisible: Bool
     @Binding var defaultAmount: Double
@@ -54,9 +80,15 @@ struct BuyForm: View {
             return
         }
         
+        // Add a tiny buffer for floating point precision
+        let usdAmount = priceModel.lamportsToUsd(lamports: amountLamps)
+        buyAmountUsd = usdAmount
         buyAmountUsdString = priceModel.formatPrice(lamports: amountLamps, showSign: false, showUnit: false, formatLarge: false)
-        buyAmountUsd = priceModel.lamportsToUsd(lamports: amountLamps)
         isValidInput = true
+        
+        // Compare with a small epsilon to avoid floating point precision issues
+        let buyAmountLamps = priceModel.usdToLamports(usd: usdAmount)
+        showInsufficientBalance = buyAmountLamps > userModel.balanceLamps
     }
     
     func resetForm() {
@@ -136,62 +168,45 @@ struct BuyForm: View {
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.leading)
                     .onChange(of: buyAmountUsdString) { newValue in
-                        // First replace any dots with commas to standardize the input
-                        var cleanedValue = newValue.replacingOccurrences(of: " ", with: "")
+                        // Remove whitespace
+                        let cleanedValue = newValue.replacingOccurrences(of: " ", with: "")
                         
-                        // Check for multiple decimal separators (both . and ,)
-                        let dotComponents = cleanedValue.components(separatedBy: ".")
-                        let commaComponents = cleanedValue.components(separatedBy: ",")
+                        // Limit to 10 characters to prevent overflow
+                        if cleanedValue.count > 10 {
+                            buyAmountUsdString = String(cleanedValue.prefix(10))
+                            return
+                        }
                         
-                        if dotComponents.count > 2 || commaComponents.count > 2 {
-                            // Keep only the first decimal separator
-                            if let firstPart = cleanedValue.components(separatedBy: CharacterSet(charactersIn: ".,")).first {
-                                let remainingParts = cleanedValue.components(separatedBy: CharacterSet(charactersIn: ".,")).dropFirst().joined()
-                                buyAmountUsdString = firstPart + "." + remainingParts
+                        // Check decimal places
+                        if cleanedValue.contains(".") || cleanedValue.contains(",") {
+                            let parts = cleanedValue.components(separatedBy: CharacterSet(charactersIn: ".,"))
+                            if parts.count == 2 && parts[1].count > 5 {
+                                // Truncate to 5 decimal places
+                                buyAmountUsdString = parts[0] + "." + String(parts[1].prefix(5))
+                                return
                             }
-                            return
                         }
                         
-                        // Convert any comma to dot for internal processing
-                        cleanedValue = cleanedValue.replacingOccurrences(of: ",", with: ".")
-                        
-                        // Handle leading zeros
-                        if cleanedValue.hasPrefix("0") && cleanedValue.count > 1 && !cleanedValue.hasPrefix("0.") {
-                            // Remove leading zeros
-                            buyAmountUsdString = String(cleanedValue.drop(while: { $0 == "0" }))
-                            return
-                        }
-                        
-                        // Limit to 13 characters to prevent overflow
-                        if cleanedValue.count > 13 {
-                            buyAmountUsdString = String(cleanedValue.prefix(13))
-                            return
-                        }
-                        
-                        // Allow empty string when user is typing
+                        // Handle empty input
                         if cleanedValue.isEmpty {
                             buyAmountUsd = 0
                             isValidInput = true
                             return
                         }
                         
-                        // Check if it's a valid decimal number
-                        if let amount = Double(cleanedValue) {
+                        // Convert to double using the formatter
+                        let amount = cleanedValue.doubleValue
+                        if amount > 0 {
                             buyAmountUsd = amount
-                            // Only format if not currently editing
+                            // Only format if the value has changed
                             if cleanedValue != newValue {
                                 buyAmountUsdString = priceModel.formatPrice(usd: amount, showSign: false, showUnit: false, formatLarge: false)
                             }
                             isValidInput = true
+                            showInsufficientBalance = userModel.balanceLamps < priceModel.usdToLamports(usd: amount)
                         } else {
                             buyAmountUsd = 0
                             isValidInput = false
-                        }
-                        
-                        // Check balance and update error state
-                        if let amount = Double(cleanedValue) {
-                            showInsufficientBalance = userModel.balanceLamps < priceModel.usdToLamports(usd: amount)
-                        } else {
                             showInsufficientBalance = false
                         }
                     }
