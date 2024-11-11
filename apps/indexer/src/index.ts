@@ -101,8 +101,8 @@ const handleSwapData = async <T extends SwapType = SwapType>(gql: GqlClient["db"
   await dbQueue.add({
     tokens: uniqueTokens.map((token) => ({
       mint: token.mint,
-      name: token.metadata.name,
-      symbol: token.metadata.symbol,
+      name: token.metadata.name?.slice(0, 255) ?? null, // VARCHAR(255)
+      symbol: token.metadata.symbol?.slice(0, 10) ?? null, // VARCHAR(10)
       description: token.metadata.description,
       uri: token.metadata.imageUri,
       mint_burnt: token.mintBurnt,
