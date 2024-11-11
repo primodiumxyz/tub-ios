@@ -7,10 +7,8 @@ config({ path: "../../.env" });
 export class TubService {
   private gql: GqlClient["db"];
 
-  constructor(gqlClient: GqlClient["db"], privy: PrivyClient) {
+  constructor(gqlClient: GqlClient["db"], _: PrivyClient) {
     this.gql = gqlClient;
-    /* tslint:disable:no-unused-variable */
-    const _privy = privy;
   }
 
   getStatus(): { status: number } {
