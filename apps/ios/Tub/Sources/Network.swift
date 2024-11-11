@@ -14,10 +14,6 @@ class Network {
     static let shared = Network()
     private var lastApiCallTime: Date = Date()
     
-    // privy sessions last one hour so we refresh session after 45 minutes to be safe
-    // https://docs.privy.io/guide/security/#refresh-token
-    private let sessionTimeout: TimeInterval = 60 * 45 // 45 minutes in seconds
-    
     // graphql
     private let httpTransport: RequestChainNetworkTransport
     private let webSocketTransport: WebSocketTransport
@@ -75,26 +71,11 @@ class Network {
     private func callProcedure<T: Codable>(_ procedure: String, input: Codable? = nil, completion: @escaping (Result<T, Error>) -> Void) {
         // Check and refresh session if needed
         Task {
-            if Date().timeIntervalSince(lastApiCallTime) > sessionTimeout {
-                do {
-                    _ = try await privy.refreshSession()
-                } catch {
-                    completion(.failure(error))
-                    return
-                }
-                
-                self.lastApiCallTime = Date()
-            }
             
             let url = baseURL.appendingPathComponent(procedure)
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-            // Add JWT token to the header
-            
-            if let token = getStoredToken() {
-                request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-            }
             
             if let input = input {
                 do {
@@ -142,52 +123,37 @@ class Network {
     }
     
     @available(*, deprecated)
-    func registerNewUser(username: String, airdropAmount: String? = nil, completion: @escaping (Result<UserResponse, Error>) -> Void) {
-        let input = ["username": username, "airdropAmount": airdropAmount].compactMapValues { $0 }
-        callProcedure("registerNewUser", input: input) { (result: Result<UserResponse, Error>) in
-            switch result {
-            case .success(let userResponse):
-                self.storeToken(userResponse.token)
-                completion(.success(userResponse))
-            case .failure(let error):
-                completion(.failure(error))
-            }
-        }
-    }
-    
-    private func storeToken(_ token: String) {
-        let data = Data(token.utf8)
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: "userToken",
-            kSecValueData as String: data
-        ]
-        SecItemDelete(query as CFDictionary)
-        SecItemAdd(query as CFDictionary, nil)
-    }
-    
-    @available(*, deprecated)
     func incrementCall(completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
         callProcedure("incrementCall", completion: completion)
     }
     
     func buyToken(tokenId: String, amount: String, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
-        let input = ["tokenId": tokenId, "amount": amount]
+        let userId = UserManager.shared.userId
+        if(userId == ""){
+            completion(.failure(NSError(domain: "ServerError", code: -1, userInfo: [NSLocalizedDescriptionKey: "User not logged in"])))
+            return
+        }
+        let input = ["userId": userId, "tokenId": tokenId, "amount": amount]
         callProcedure("buyToken", input: input, completion: completion)
     }
     
     func sellToken(tokenId: String, amount: String, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
-        let input = ["tokenId": tokenId, "amount": amount]
+        let userId = UserManager.shared.userId
+        if(userId == ""){
+            completion(.failure(NSError(domain: "ServerError", code: -1, userInfo: [NSLocalizedDescriptionKey: "User not logged in"])))
+            return
+        }
+        let input = ["userId": userId, "tokenId": tokenId, "amount": amount]
         callProcedure("sellToken", input: input, completion: completion)
     }
     
-    func registerNewToken(name: String, symbol: String, supply: String? = nil, uri: String? = nil, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
-        let input = ["name": name, "symbol": symbol, "supply": supply, "uri": uri].compactMapValues { $0 }
-        callProcedure("registerNewToken", input: input, completion: completion)
-    }
-    
     func airdropNativeToUser(amount: Int, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
-        let input = ["amount": String(amount)]
+        let userId = UserManager.shared.userId
+        if(userId == ""){
+            completion(.failure(NSError(domain: "ServerError", code: -1, userInfo: [NSLocalizedDescriptionKey: "User not logged in"])))
+            return
+        }
+        let input = ["tokenId": "native", "userId": userId, "amount": String(amount)]
         callProcedure("airdropNativeToUser", input: input, completion: completion)
     }
 
@@ -216,15 +182,6 @@ struct StatusResponse: Codable {
 }
 
 extension Network {
-    func getStoredToken() -> String? {
-        switch privy.authState {
-        case .authenticated(let authSession):
-            return authSession.authToken
-        default:
-            return nil
-        }
-    }
-    
     func fetchSolPrice(completion: @escaping (Result<Double, Error>) -> Void) {
         let url = URL(string: "https://min-api.cryptocompare.com/data/price?fsym=SOL&tsyms=Usd")!
         let task = session.dataTask(with: url) { data, response, error in

@@ -17,6 +17,7 @@ export function createAppRouter() {
     buyToken: t.procedure
       .input(
         z.object({
+          userId: z.string(),
           tokenId: z.string(),
           amount: z.string(),
           overridePrice: z.string().optional(),
@@ -24,7 +25,7 @@ export function createAppRouter() {
       )
       .mutation(async ({ ctx, input }) => {
         return await ctx.tubService.buyToken(
-          ctx.jwtToken,
+          input.userId,
           input.tokenId,
           BigInt(input.amount),
           input.overridePrice ? BigInt(input.overridePrice) : undefined,
@@ -33,6 +34,7 @@ export function createAppRouter() {
     sellToken: t.procedure
       .input(
         z.object({
+          userId: z.string(),
           tokenId: z.string(),
           amount: z.string(),
           overridePrice: z.string().optional(),
@@ -40,37 +42,22 @@ export function createAppRouter() {
       )
       .mutation(async ({ ctx, input }) => {
         return await ctx.tubService.sellToken(
-          ctx.jwtToken,
+          input.userId,
           input.tokenId,
           BigInt(input.amount),
           input.overridePrice ? BigInt(input.overridePrice) : undefined,
         );
       }),
-    registerNewToken: t.procedure
-      .input(
-        z.object({
-          name: z.string(),
-          symbol: z.string(),
-          supply: z.string().optional(),
-          uri: z.string().optional(),
-        }),
-      )
-      .mutation(async ({ ctx, input }) => {
-        return await ctx.tubService.registerNewToken(
-          input.name,
-          input.symbol,
-          input.supply ? BigInt(input.supply) : undefined,
-          input.uri,
-        );
-      }),
+   
     airdropNativeToUser: t.procedure
       .input(
         z.object({
+          userId: z.string(),
           amount: z.string(),
         }),
       )
       .mutation(async ({ ctx, input }) => {
-        return await ctx.tubService.airdropNativeToUser(ctx.jwtToken, BigInt(input.amount));
+        return await ctx.tubService.airdropNativeToUser(input.userId, BigInt(input.amount));
       }),
   });
 }
