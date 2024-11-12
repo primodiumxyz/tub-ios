@@ -141,10 +141,15 @@ class UserModel: ObservableObject {
             self.isLoading = true
         }
         
-        // Cancel any ongoing network requests or timers
+        
+    }
+
+    deinit {
+    // Cancel any ongoing network requests or timers
         cancellables.forEach { $0.cancel() }
         cancellables.removeAll()
         timerCancellable?.cancel()
-        
+        accountBalanceSubscription?.cancel()
+
     }
 }
