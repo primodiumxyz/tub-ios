@@ -1,4 +1,5 @@
 import { GqlClient } from "@tub/gql";
+import { MAX_QUEUE_DELAY_MS } from "@/lib/constants";
 
 type QueueItem = {
   tokens: Array<{
@@ -30,11 +31,31 @@ export class DatabaseQueue {
   private processing = false;
 
   async add(item: QueueItem) {
-    this.queue.push(item);
+    const oldestTime = this.getOldestTimestamp();
+    if (oldestTime && Date.now() - oldestTime.getTime() > MAX_QUEUE_DELAY_MS) {
+      console.warn(`Queue delay exceeded ${MAX_QUEUE_DELAY_MS}ms, dropping ${this.queue.length} items`);
+      this.queue = [item];
+    } else {
+      this.queue.push(item);
+    }
 
     if (!this.processing) {
       await this.process();
     }
+  }
+
+  private getOldestTimestamp(): Date | null {
+    if (this.queue.length === 0) return null;
+
+    let oldestTime: Date | null = null;
+    for (const item of this.queue) {
+      for (const priceHistory of item.token_price_histories) {
+        if (!oldestTime || priceHistory.created_at < oldestTime) {
+          oldestTime = priceHistory.created_at;
+        }
+      }
+    }
+    return oldestTime;
   }
 
   private async process() {
