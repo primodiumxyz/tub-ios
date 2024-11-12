@@ -10,13 +10,13 @@ import Charts
 
 struct ChartView: View {
     @EnvironmentObject var priceModel: SolPriceModel
-    let prices: [Price]
+    let rawPrices: [Price]
     let timeframeSecs: Double
     let purchaseData: PurchaseData?
     let height: CGFloat
     
     init(prices: [Price], timeframeSecs: Double = 90.0, purchaseData: PurchaseData? = nil, height: CGFloat = 330) {
-        self.prices = prices
+        self.rawPrices = prices
         self.timeframeSecs = timeframeSecs
         self.purchaseData = purchaseData
         self.height = height
@@ -54,6 +54,25 @@ struct ChartView: View {
         let padding = Int(Double(range) * 0.25)
         
         return (minPrice - padding)...(maxPrice + padding)
+    }
+    
+    private var prices: [Price] {
+        let cutoffTime = currentTime - timeframeSecs
+        if let firstValidIndex = rawPrices.firstIndex(where: { $0.timestamp.timeIntervalSince1970 >= cutoffTime }) {
+            let slice = Array(rawPrices[firstValidIndex...])
+            // If we have enough points in the time window, return them
+            if slice.count >= 2 {
+                return slice
+            }
+        }
+        
+        // If we don't have enough points in the time window,
+        // return at least the last 2 points from rawPrices
+        if rawPrices.count >= 2 {
+            return Array(rawPrices.suffix(2))
+        }
+        
+        return rawPrices
     }
     
     var body: some View {

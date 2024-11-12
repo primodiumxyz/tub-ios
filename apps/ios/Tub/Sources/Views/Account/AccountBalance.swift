@@ -14,6 +14,11 @@ struct AccountBalanceView: View {
     
     @State private var isExpanded: Bool = false
     
+    var accountBalance: Int {
+        let tokenValue = currentTokenModel.balanceLamps * (currentTokenModel.prices.last?.price ?? 0) / Int(1e9)
+        return tokenValue + userModel.balanceLamps
+    }
+    
     var body: some View {
         VStack(alignment: .center) {
             
@@ -88,7 +93,7 @@ struct AccountBalanceView: View {
                         .onTapGesture {
                             withAnimation {
                                 isExpanded.toggle()
-                            }
+                            }                        
                         }
                         Spacer()
                         
@@ -118,19 +123,6 @@ struct AccountBalanceView: View {
         }
     }
     
-    private func formatTimeElapsed(_ timeInterval: TimeInterval) -> String {
-        let hours = Int(timeInterval) / 3600
-        let minutes = (Int(timeInterval) % 3600) / 60
 
-        if hours > 1 {
-            return "past \(hours) hours"
-        } else if hours > 0 {
-            return "past hour"
-        } else if minutes > 1 {
-            return "past \(minutes) minutes"
-        } else  {
-            return "past minute"
-        }
-    }
 }
 

@@ -17,6 +17,7 @@ class LoadingTracker: ObservableObject {
         var isLoading: Bool = false
     }
     
+    private var show = false
     private var metrics: [String: LoadingMetrics] = [:]
     
     func startLoading(_ identifier: String) {
@@ -29,7 +30,9 @@ class LoadingTracker: ObservableObject {
             current.count += 1
             metrics[identifier] = current
             
-            print("⏳ Started loading: \(identifier) (Attempt #\(current.count))")
+            if show {
+                print("⏳ Started loading: \(identifier) (Attempt #\(current.count))")
+            }
         }
     }
     
@@ -37,7 +40,8 @@ class LoadingTracker: ObservableObject {
         guard var current = metrics[identifier],
               current.isLoading,
               let startTime = current.startTime else {
-            print("⚠️ No start time found for: \(identifier)")
+            if show {print("⚠️ No start time found for: \(identifier)")
+            }
             return
         }
         
@@ -47,10 +51,12 @@ class LoadingTracker: ObservableObject {
         current.startTime = nil
         metrics[identifier] = current
         
-        print("✅ Finished loading: \(identifier)")
-        print("   Time elapsed: \(String(format: "%.2f", timeElapsed))s")
-        print("   Total attempts: \(current.count)")
-        print("   Total time: \(String(format: "%.2f", current.totalTime))s")
-        print("   Average time: \(String(format: "%.2f", current.totalTime/Double(current.count)))s")
+        if show {
+       print("✅ Finished loading: \(identifier)")
+       print("   Time elapsed: \(String(format: "%.2f", timeElapsed))s")
+       print("   Total attempts: \(current.count)")
+       print("   Total time: \(String(format: "%.2f", current.totalTime))s")
+       print("   Average time: \(String(format: "%.2f", current.totalTime/Double(current.count)))s")
+}
     }
 }
