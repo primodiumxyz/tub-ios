@@ -43,7 +43,7 @@ struct TokenInfoCardView: View {
                     ))
                 ]
             }
-                        // Add position stats
+            // Add position stats
             stats += [
                 ("You Own", StatValue(
                     text: "\(priceModel.formatPrice(lamports: currentValueLamps, maxDecimals: 2, minDecimals: 2)) (\(priceModel.formatPrice(lamports: tokenModel.balanceLamps, showUnit: false)) \(tokenModel.token.symbol))",
@@ -141,6 +141,7 @@ struct TokenInfoCardView: View {
             }
         }
         .padding(.vertical, 0)
+        .padding(.horizontal,20)
         .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.44, alignment: .topLeading)
         .background(AppColors.black)
         .overlay(
