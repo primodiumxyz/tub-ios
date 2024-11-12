@@ -290,10 +290,10 @@ class TokenModel: ObservableObject {
         let supplyValue = Double(token.supply) / pow(10.0, Double(token.decimals))
         
         return [
-            ("Market Cap", priceModel.formatPrice(lamports: Int(marketCap))),
-            ("Volume (\(formatDuration(token.volume.interval)))", priceModel.formatPrice(lamports: token.volume.value, formatLarge: true)),
-            ("Holders", "53.3K"), // TODO: Add holders data
-            ("Supply", formatLargeNumber(supplyValue))
+            ("Market Cap", loading ? "..." : priceModel.formatPrice(lamports: Int(marketCap))),
+            ("Volume (\(formatDuration(token.volume.interval)))", loading ? "..." : priceModel.formatPrice(lamports: token.volume.value, formatLarge: true)),
+            ("Holders", loading ? "..." : "53.3K"), // TODO: Add holders data
+            ("Supply", loading ? "..." : formatLargeNumber(supplyValue))
         ]
     }
 
