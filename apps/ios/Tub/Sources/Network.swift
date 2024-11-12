@@ -12,6 +12,7 @@ import Security
 
 class Network {
     static let shared = Network()
+    private var lastApiCallTime: Date = Date()
     
     // graphql
     private let httpTransport: RequestChainNetworkTransport
@@ -68,53 +69,52 @@ class Network {
     }
     
     private func callProcedure<T: Codable>(_ procedure: String, input: Codable? = nil, completion: @escaping (Result<T, Error>) -> Void) {
-        let url = baseURL.appendingPathComponent(procedure)
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        // Add JWT token to the header
-        
-        if let token = getStoredToken() {
-            request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
-        
-        if let input = input {
-            do {
-                request.httpBody = try JSONEncoder().encode(input)
-            } catch {
-                completion(.failure(error))
-                return
-            }
-        }
-        
-        let task = session.dataTask(with: request) { data, response, error in
-            if let error = error {
-                completion(.failure(error))
-                return
+        // Check and refresh session if needed
+        Task {
+            
+            let url = baseURL.appendingPathComponent(procedure)
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            
+            if let input = input {
+                do {
+                    request.httpBody = try JSONEncoder().encode(input)
+                } catch {
+                    completion(.failure(error))
+                    return
+                }
             }
             
-            guard let data = data else {
-                completion(.failure(NSError(domain: "NetworkError", code: 0, userInfo: [NSLocalizedDescriptionKey: "No data received"])))
-                return
-            }
-            
-            do {
-                // First, try to decode as an error response
-                if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
-                    let errorMessage = errorResponse.error.message
-                    completion(.failure(NSError(domain: "ServerError", code: errorResponse.error.code ?? -1, userInfo: [NSLocalizedDescriptionKey: errorMessage])))
+            let task = session.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    completion(.failure(error))
                     return
                 }
                 
-                // If it's not an error, proceed with normal decoding
-                let decodedResponse = try JSONDecoder().decode(ResponseWrapper<T>.self, from: data)
-                completion(.success(decodedResponse.result.data))
-            } catch {
-                completion(.failure(error))
+                guard let data = data else {
+                    completion(.failure(NSError(domain: "NetworkError", code: 0, userInfo: [NSLocalizedDescriptionKey: "No data received"])))
+                    return
+                }
+                
+                do {
+                    // First, try to decode as an error response
+                    if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
+                        let errorMessage = errorResponse.error.message
+                        completion(.failure(NSError(domain: "ServerError", code: errorResponse.error.code ?? -1, userInfo: [NSLocalizedDescriptionKey: errorMessage])))
+                        return
+                    }
+                    
+                    // If it's not an error, proceed with normal decoding
+                    let decodedResponse = try JSONDecoder().decode(ResponseWrapper<T>.self, from: data)
+                    completion(.success(decodedResponse.result.data))
+                } catch {
+                    completion(.failure(error))
+                }
             }
+            
+            task.resume()
         }
-        
-        task.resume()
     }
     
     // Updated procedure calls:
@@ -123,58 +123,40 @@ class Network {
     }
     
     @available(*, deprecated)
-    func registerNewUser(username: String, airdropAmount: String? = nil, completion: @escaping (Result<UserResponse, Error>) -> Void) {
-        let input = ["username": username, "airdropAmount": airdropAmount].compactMapValues { $0 }
-        callProcedure("registerNewUser", input: input) { (result: Result<UserResponse, Error>) in
-            switch result {
-            case .success(let userResponse):
-                self.storeToken(userResponse.token)
-                completion(.success(userResponse))
-            case .failure(let error):
-                completion(.failure(error))
-            }
-        }
-    }
-    
-    private func storeToken(_ token: String) {
-        let data = Data(token.utf8)
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: "userToken",
-            kSecValueData as String: data
-        ]
-        SecItemDelete(query as CFDictionary)
-        SecItemAdd(query as CFDictionary, nil)
-    }
-    
-    @available(*, deprecated)
     func incrementCall(completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
         callProcedure("incrementCall", completion: completion)
     }
     
     func buyToken(tokenId: String, amount: String, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
-        let input = ["tokenId": tokenId, "amount": amount]
+        let userId = UserManager.shared.userId
+        if(userId == ""){
+            completion(.failure(NSError(domain: "ServerError", code: -1, userInfo: [NSLocalizedDescriptionKey: "User not logged in"])))
+            return
+        }
+        let input = ["userId": userId, "tokenId": tokenId, "amount": amount]
         callProcedure("buyToken", input: input, completion: completion)
     }
     
     func sellToken(tokenId: String, amount: String, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
-        let input = ["tokenId": tokenId, "amount": amount]
+        let userId = UserManager.shared.userId
+        if(userId == ""){
+            completion(.failure(NSError(domain: "ServerError", code: -1, userInfo: [NSLocalizedDescriptionKey: "User not logged in"])))
+            return
+        }
+        let input = ["userId": userId, "tokenId": tokenId, "amount": amount]
         callProcedure("sellToken", input: input, completion: completion)
     }
     
-    func registerNewToken(name: String, symbol: String, supply: String? = nil, uri: String? = nil, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
-        let input = ["name": name, "symbol": symbol, "supply": supply, "uri": uri].compactMapValues { $0 }
-        callProcedure("registerNewToken", input: input, completion: completion)
-    }
-    
     func airdropNativeToUser(amount: Int, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
-        let input = ["amount": String(amount)]
+        let userId = UserManager.shared.userId
+        if(userId == ""){
+            completion(.failure(NSError(domain: "ServerError", code: -1, userInfo: [NSLocalizedDescriptionKey: "User not logged in"])))
+            return
+        }
+        let input = ["tokenId": "native", "userId": userId, "amount": String(amount)]
         callProcedure("airdropNativeToUser", input: input, completion: completion)
     }
-    
-    func getCoinbaseSolanaOnrampUrl(completion: @escaping (Result<CoinbaseSolanaOnrampUrlResponse, Error>) -> Void) {
-        callProcedure("getCoinbaseSolanaOnrampUrl", completion: completion)
-    }
+
 }
 
 struct ResponseWrapper<T: Codable>: Codable {
@@ -199,21 +181,7 @@ struct StatusResponse: Codable {
     let status: Int
 }
 
-struct CoinbaseSolanaOnrampUrlResponse: Codable {
-    let coinbaseToken: String
-    let url: String
-}
-
 extension Network {
-    func getStoredToken() -> String? {
-        switch privy.authState {
-        case .authenticated(let authSession):
-            return authSession.authToken
-        default:
-            return nil
-        }
-    }
-    
     func fetchSolPrice(completion: @escaping (Result<Double, Error>) -> Void) {
         let url = URL(string: "https://min-api.cryptocompare.com/data/price?fsym=SOL&tsyms=Usd")!
         let task = session.dataTask(with: url) { data, response, error in

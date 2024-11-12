@@ -90,7 +90,7 @@ class SolPriceModel: ObservableObject {
     }
     
     func usdToLamports(usd: Double) -> Int {
-        if let price = currentPrice {
+        if let price = currentPrice, price > 0 {
             return Int(usd * 1e9 / price)
         } else {
             return 0
@@ -98,7 +98,7 @@ class SolPriceModel: ObservableObject {
     }
     
     func lamportsToUsd(lamports: Int) -> Double {
-        if let price = currentPrice {
+        if let price = currentPrice, price > 0 {
             return Double(lamports) * price / 1e9
         } else {
             return 0

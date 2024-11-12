@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+
+
 struct BuyForm: View {
     @Binding var isVisible: Bool
     @Binding var defaultAmount: Double
@@ -30,17 +32,21 @@ struct BuyForm: View {
     
     @State private var isDefaultOn: Bool = true //by default is on
     
+    @State private var showInsufficientBalance: Bool = false
+    
     private func handleBuy() {
-        let buyAmountLamps = priceModel.usdToLamports(usd: buyAmountUsd)
+        // Use 10 as default if no amount is entered
+        let amountToUse = buyAmountUsdString.isEmpty ? 10.0 : buyAmountUsd
+        let buyAmountLamps = priceModel.usdToLamports(usd: amountToUse)
             
         // Check if the user has enough balance
         if userModel.balanceLamps >= buyAmountLamps {
             if isDefaultOn {
-                defaultAmount = buyAmountUsd
+                defaultAmount = amountToUse
             }
-            onBuy(buyAmountUsd)
+            onBuy(amountToUse)
         } else {
-            print("Insufficient balance to complete the purchase.")
+            showInsufficientBalance = true
         }
     }
     
@@ -50,9 +56,16 @@ struct BuyForm: View {
             return
         }
         
-        buyAmountUsdString = priceModel.formatPrice(lamports: amountLamps, showSign: false, showUnit: false, formatLarge: false)
-        buyAmountUsd = priceModel.lamportsToUsd(lamports: amountLamps)
+        // Add a tiny buffer for floating point precision
+        let usdAmount = priceModel.lamportsToUsd(lamports: amountLamps)
+        buyAmountUsd = usdAmount
+        // Format to 2 decimal places, rounding down
+        buyAmountUsdString = String(format: "%.2f", floor(usdAmount * 100) / 100)
         isValidInput = true
+        
+        // Compare with a small epsilon to avoid floating point precision issues
+        let buyAmountLamps = priceModel.usdToLamports(usd: usdAmount)
+        showInsufficientBalance = buyAmountLamps > userModel.balanceLamps
     }
     
     func resetForm() {
@@ -61,6 +74,7 @@ struct BuyForm: View {
         isValidInput = true
         animatingSwipe = false
         isDefaultOn = true
+        showInsufficientBalance = false
     }
     
     var body: some View {
@@ -71,7 +85,6 @@ struct BuyForm: View {
         .padding(.vertical, 20)
         .background(AppColors.darkGreenGradient)
         .cornerRadius(26)
-        .frame(height: 250)
         .offset(y: max(dragOffset, slideOffset - keyboardHeight + (isKeyboardActive ? keyboardAdjustment : 0)))
         .gesture(dragGesture)
         .onAppear(perform: animateAppearance)
@@ -79,6 +92,7 @@ struct BuyForm: View {
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
             isKeyboardActive = false
         }
+        .dismissKeyboardOnTap()
     }
     
     private var formContent: some View {
@@ -92,7 +106,7 @@ struct BuyForm: View {
             }
         }
         .padding(8)
-        .frame(height: 230)
+        .frame(height: 300)
     }
     
     private var buyButton: some View {
@@ -119,31 +133,77 @@ struct BuyForm: View {
     }
     
     private var numberInput: some View {
-        HStack(spacing: 0) {
-            Text("$")
-                .font(.sfRounded(size: .xl4, weight: .bold))
-                .foregroundColor(AppColors.white)
-            
-            TextField("", text: $buyAmountUsdString, prompt: Text("100", comment: "placeholder").foregroundColor(AppColors.white.opacity(0.3)))
-                .keyboardType(.decimalPad)
-                .multilineTextAlignment(.center)
-                .onChange(of: buyAmountUsdString) { newValue in
-                    if let amount = formatter.number(from:newValue)?.doubleValue {
-                        buyAmountUsd = amount
-                        buyAmountUsdString = priceModel.formatPrice(usd: amount, showSign: false, showUnit: false, formatLarge: false)
-                        isValidInput = true
-                    } else {
-                        buyAmountUsd = 0
-                        isValidInput = false
+        VStack(alignment: .center, spacing: 4) {
+            HStack(spacing: 4) {
+                Spacer()
+                Text("$")
+                    .font(.sfRounded(size: .xl4, weight: .bold))
+                    .foregroundColor(AppColors.white)
+                
+                TextField("", text: $buyAmountUsdString, prompt: Text("10", comment: "placeholder").foregroundColor(AppColors.white.opacity(0.3)))
+                    .keyboardType(.decimalPad)
+                    .multilineTextAlignment(.leading)
+                    .textFieldStyle(PlainTextFieldStyle())
+                    .onReceive(NotificationCenter.default.publisher(for: UITextField.textDidChangeNotification)) { obj in
+                        guard let textField = obj.object as? UITextField else { return }
+                        
+                        if let text = textField.text {
+                            // Validate decimal places
+                            let components = text.components(separatedBy: ".")
+                            if components.count > 1 {
+                                let decimals = components[1]
+                                if decimals.count > 2 {
+                                    textField.text = String(text.dropLast())
+                                }
+                            }
+                            
+                            // Validate if it's a decimal
+                            if !text.isEmpty && !text.isDecimal() {
+                                textField.text = String(text.dropLast())
+                            }
+                            
+                            let amount = text.doubleValue
+                            if amount > 0 {
+                                buyAmountUsd = amount
+                                // Only format if the value has changed
+                                buyAmountUsdString = text
+                            }
+                            isValidInput = true
+                            showInsufficientBalance = userModel.balanceLamps < priceModel.usdToLamports(usd: amount)
+                        } else {
+                            buyAmountUsd = 0
+                            isValidInput = false
+                            showInsufficientBalance = false
+                        }
                     }
+                    .font(.sfRounded(size: .xl5, weight: .bold))
+                    .foregroundColor(isValidInput ? .white : .red)
+                    .frame(minWidth: 50)
+                    .fixedSize()
+                    .onTapGesture {
+                        isKeyboardActive = true
+                        print("Keyboard Activated")
+                    }
+                Spacer()
+            }
+            .frame(maxWidth: 300)
+            .padding(.horizontal)
+            
+            // Fixed height container with error message
+            HStack {
+                if showInsufficientBalance {
+                    Text("Insufficient balance")
+                        .font(.caption)
+                        .foregroundColor(.red)
+                        .transition(.opacity)
+                } else {
+                    // Empty text to maintain height
+                    Text(" ")
+                        .font(.caption)
                 }
-                .font(.sfRounded(size: .xl5, weight: .bold))
-                .foregroundColor(isValidInput ? .white : .red)
-                .frame(width: 150)
-                .onTapGesture {
-                    isKeyboardActive = true
-                    print("Keyboard Activated")
-                }
+            }
+            .frame(height: 8)
+            .padding(.top, -4)
         }
     }
     
@@ -154,7 +214,7 @@ struct BuyForm: View {
                 isDefaultOn.toggle()
             }) {
                 HStack(spacing: 4) {
-                    Text("Default")
+                    Text("Set Default")
                         .font(.sfRounded(size: .base, weight: .regular))
                         .foregroundColor(isDefaultOn ? AppColors.white : AppColors.gray)
                     
@@ -167,7 +227,7 @@ struct BuyForm: View {
     
     private var tokenConversionDisplay: some View {
         Group {
-            if let currentPrice = tokenModel.prices.last?.price {
+            if let currentPrice = tokenModel.prices.last?.price, currentPrice > 0 {
                 let buyAmountLamps = priceModel.usdToLamports(usd: buyAmountUsd)
                 let tokenAmount = Int(Double(buyAmountLamps) / Double(currentPrice) * 1e9)
 
@@ -269,4 +329,55 @@ struct BuyForm: View {
             }
         }
     }
+}
+func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+    guard !string.isEmpty else {
+        return true
+    }
+
+    let currentText = textField.text ?? ""
+    let replacementText = (currentText as NSString).replacingCharacters(in: range, with: string)
+
+    return replacementText.isDecimal()
+}
+
+
+extension String{
+   func isDecimal()->Bool{
+       let formatter = NumberFormatter()
+       formatter.allowsFloats = true
+       formatter.locale = Locale.current
+       return formatter.number(from: self) != nil
+   }
+        static let numberFormatter: NumberFormatter = {
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .decimal
+            formatter.usesGroupingSeparator = true
+            formatter.groupingSeparator = ","
+            return formatter
+        }()
+        
+        var doubleValue: Double {
+            // Special handling for 3 decimal places with comma
+            if self.components(separatedBy: CharacterSet(charactersIn: ",")).last?.count == 3 {
+                String.numberFormatter.decimalSeparator = ","
+                if let result = String.numberFormatter.number(from: self) {
+                    return result.doubleValue
+                }
+            }
+            
+            // Try with dot as decimal separator
+            String.numberFormatter.decimalSeparator = "."
+            if let result = String.numberFormatter.number(from: self) {
+                return result.doubleValue
+            }
+            
+            // Try with comma as decimal separator
+            String.numberFormatter.decimalSeparator = ","
+            if let result = String.numberFormatter.number(from: self) {
+                return result.doubleValue
+            }
+            
+            return 0
+        }
 }

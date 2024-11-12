@@ -6,53 +6,38 @@
 //
 
 import SwiftUI
-import PrivySDK
 
 @main
 struct TubApp: App {
-    var body : some Scene {
+    
+    var body: some Scene {
         WindowGroup {
             AppContent()
         }
     }
-    
 }
 
 struct AppContent : View {
-    @State var isPrivySdkReady = false
-    @State var myAuthState : AuthState = AuthState.notReady
+    @StateObject private var errorHandler = ErrorHandler()
     @State var userId : String = ""
-    @State var walletState : EmbeddedWalletState = EmbeddedWalletState.notCreated
     
     var body: some View {
         Group{
-            if myAuthState.toString == "notReady" || walletState == .connecting {
-                LoadingView()
-            }
-            else if myAuthState.toString != "authenticated" {
-                RegisterView()
-            } else if walletState == EmbeddedWalletState.notCreated {
-                CreateWalletView()
+            if userId == "" {
+                MockRegisterView(register: {
+                    UserManager.shared.register(onRegister: {_ in })
+                })
             } else {
                 HomeTabsView(userId: userId).font(.sfRounded())
             }
-        }.onAppear(perform: {
-            privy.embeddedWallet.setEmbeddedWalletStateChangeCallback({
-                state in walletState = state
-            })
-            
-            privy.setAuthStateChangeCallback { state in
-                self.myAuthState = state
-                switch state {
-                    case .authenticated(let session):
-                        userId = session.user.id
-                case .unauthenticated :
-                    userId = ""
-                default:
-                   break
-                }
+        }.onAppear{
+
+            UserManager.shared.onUserUpdate { userId in
+                self.userId = userId
             }
-        })
+        }
+        .withErrorHandling()
+        .environmentObject(errorHandler)
     }
 }
 
@@ -60,3 +45,48 @@ struct AppContent : View {
     AppContent()
 }
 
+extension View {
+    func withErrorHandling() -> some View {
+        modifier(ErrorOverlay())
+    }
+}
+
+
+struct MockRegisterView : View {
+    var register: () -> Void
+    var body: some View {
+        GeometryReader { geometry in
+            VStack(alignment: .leading, spacing: 12){
+                Spacer()
+                    .frame(height: geometry.size.height * 0.25)
+                Image("Logo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 100, height: 100)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .padding(.horizontal,10)
+                
+                Text("Welcome to tub")
+                    .font(.sfRounded(size: .xl2, weight: .semibold))
+                    .foregroundColor(AppColors.white)
+                    .padding(.horizontal,10)
+                VStack(alignment: .center){
+                    Button(action: register) {
+                        Text("Register")
+                            .font(.sfRounded(size: .lg, weight: .semibold))
+                            .padding(18)
+                    }
+                    .background(AppColors.darkGreenGradient)
+                    .foregroundStyle(AppColors.white)
+                    .cornerRadius(15)
+                    
+                }.frame(maxWidth: .infinity).padding(.top)
+            }
+            .padding(.horizontal)
+        }
+        .padding(.top, 20)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(AppColors.darkBlueGradient)
+        
+    }
+}

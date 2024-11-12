@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct AccountView: View {
+    @EnvironmentObject private var errorHandler: ErrorHandler
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject private var userModel: UserModel
     @State private var isNavigatingToRegister = false
@@ -15,26 +16,29 @@ struct AccountView: View {
     @State private var airdropResult: String?
     @State private var errorMessage: String?
     @Environment(\.presentationMode) var presentationMode
-    
-    func handleAirdrop () {
+    @State private var showOnrampView = false
+       
+    func performAirdrop() {
+        isAirdropping = true
+        airdropResult = nil
         
-        Network.shared.airdropNativeToUser(amount: Int(1e9), completion: {result in
-            switch result {
-            case .success:
-                airdropResult = "Airdrop successful!"
-                errorMessage = nil
-                
-            case .failure(let error):
-                errorMessage = "Airdrop failed!"
-                print(error)
-                airdropResult = nil
+        Network.shared.airdropNativeToUser(amount: 1 * Int(1e9)) { result in
+            DispatchQueue.main.async {
+                isAirdropping = false
+                switch result {
+                case .success:
+                    airdropResult = "Airdrop successful!"
+                case .failure(let error):
+                    errorHandler.show(error)
+                }
             }
-        })
+        }
     }
     
     var body: some View {
         NavigationStack {
             VStack() {
+                Text(serverBaseUrl).foregroundStyle(.white)
                 if userModel.userId.isEmpty {
                     Text("Please register to view your account details.")
                         .font(.sfRounded(size: .lg, weight: .medium))
@@ -64,16 +68,13 @@ struct AccountView: View {
                         Text("Balance: \(priceModel.formatPrice(lamports: userModel.balanceLamps, minDecimals: 2))")
                             .font(.sfRounded(size: .lg, weight: .medium))
                             .padding(.bottom)
-                        if let error = errorMessage {
-                            Text(error).foregroundColor(AppColors.red)
-                        }
                         if let result = airdropResult {
                             Text(result).foregroundColor(AppColors.green).padding()
                         }
                         if isAirdropping {
                             ProgressView()
                         }
-                        else if userModel.balanceLamps > 1 {
+                        else  {
                             Button(action: performAirdrop) {
                                 Text("Request Airdrop")
                                     .font(.sfRounded(size: .base, weight: .semibold))
@@ -87,10 +88,8 @@ struct AccountView: View {
                             .padding(.bottom, 5.0)
                         }
                         
-                        Button(action:
-                                handleAirdrop
-                        ) {
-                            Text("Airdrop 1 SOL")
+                        Button(action: { showOnrampView = true }) {
+                            Text("Buy SOL")
                                 .font(.sfRounded(size: .base, weight: .semibold))
                                 .foregroundColor(AppColors.white)
                                 .frame(maxWidth: .infinity)
@@ -98,7 +97,6 @@ struct AccountView: View {
                                 .background(AppColors.primaryPurple)
                                 .cornerRadius(26)
                         }
-                        .foregroundColor(AppColors.white)
                         .padding(.bottom, 5.0)
                         
                         Button(action: userModel.logout) {
@@ -124,48 +122,27 @@ struct AccountView: View {
                     presentationMode.wrappedValue.dismiss()
                 }
             }
-        }
-    }
-    
-    private func performAirdrop() {
-        isAirdropping = true
-        airdropResult = nil
-        
-        Network.shared.airdropNativeToUser(amount: 100 * Int(1e9)) { result in
-            DispatchQueue.main.async {
-                isAirdropping = false
-                switch result {
-                case .success(_):
-                    airdropResult = "Airdrop successful!"
-                    errorMessage = nil
-                case .failure(let error):
-                    errorMessage = "Airdrop failed: \(error.localizedDescription)"
-                }
+            .sheet(isPresented: $showOnrampView) {
+                CoinbaseOnrampView()
             }
         }
     }
+ 
 }
 
 #Preview {
     @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
     @Previewable @State var userId : String? = nil
+    @StateObject var errorHandler = ErrorHandler()
     
     Group {
         if !priceModel.isReady || userId == nil {
-            LoadingView()
+            LoadingView(identifier: "AccountView - waiting for priceModel & userId")
         } else {
             AccountView()
                 .environmentObject(UserModel(userId: userId!))
                 .environmentObject(priceModel)
         }
-    }.onAppear {
-        Task {
-            do {
-                userId = try await privy.refreshSession().user.id
-                print(userId)
-            } catch {
-                print("error in preview: \(error)")
-            }
-        }
     }
+    .environmentObject(errorHandler)
 }
