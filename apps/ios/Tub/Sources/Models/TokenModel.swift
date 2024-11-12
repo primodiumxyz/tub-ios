@@ -120,7 +120,6 @@ class TokenModel: ObservableObject {
                 switch result {
                 case .success(let response):
                     if let token = response.data?.token.first(where: { $0.id == self.tokenId }) {
-                        print("got token \(token.name)")
                         DispatchQueue.main.async {
                             self.token = Token(
                                 id: token.id,
@@ -295,18 +294,5 @@ class TokenModel: ObservableObject {
             ("Holders", loading ? "..." : "53.3K"), // TODO: Add holders data
             ("Supply", loading ? "..." : formatLargeNumber(supplyValue))
         ]
-    }
-
-    // Helper function to format large numbers
-    private func formatLargeNumber(_ number: Double) -> String {
-        if number >= 1_000_000_000 {
-            return String(format: "%.1fB", number / 1_000_000_000)
-        } else if number >= 1_000_000 {
-            return String(format: "%.1fM", number / 1_000_000)
-        } else if number >= 1_000 {
-            return String(format: "%.1fK", number / 1_000)
-        } else {
-            return String(format: "%.1f", number)
-        }
     }
 }
