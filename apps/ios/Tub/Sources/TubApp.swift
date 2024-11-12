@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import PrivySDK
 
 @main
 struct TubApp: App {
@@ -20,49 +19,23 @@ struct TubApp: App {
 
 struct AppContent : View {
     @StateObject private var errorHandler = ErrorHandler()
-    @State var myAuthState : AuthState = AuthState.notReady
     @State var userId : String = ""
-    @State var walletState : EmbeddedWalletState = EmbeddedWalletState.notCreated
     
     var body: some View {
         Group{
-            if myAuthState.toString == "error" {
-                VStack {
-                    Text("Error connecting wallet. Please Try Again.")
-                    Button(action: privy.logout) {
-                        Text("Logout")
-                    }
-                }.frame(maxWidth: .infinity, maxHeight: .infinity).background(Color.black).foregroundColor(.white)
-            }
-            else if myAuthState == .unauthenticated {
-                RegisterView()
-            } else if walletState == EmbeddedWalletState.notCreated {
-                CreateWalletView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity).background(Color.black).foregroundColor(.white)
-            }
-            else if myAuthState.toString != "authenticated" || walletState.toString != "connected" {
-                LoadingView(identifier: "TubApp - waiting for authentication")
-            }
-            else {
+            if userId == "" {
+                MockRegisterView(register: {
+                    UserManager.shared.register(onRegister: {_ in })
+                })
+            } else {
                 HomeTabsView(userId: userId).font(.sfRounded())
             }
-        }.onAppear(perform: {
-            privy.embeddedWallet.setEmbeddedWalletStateChangeCallback({
-                state in walletState = state
-            })
-            
-            privy.setAuthStateChangeCallback { state in
-                self.myAuthState = state
-                switch state {
-                case .authenticated(let session):
-                    userId = session.user.id
-                case .unauthenticated :
-                    userId = ""
-                default:
-                    break
-                }
+        }.onAppear{
+
+            UserManager.shared.onUserUpdate { userId in
+                self.userId = userId
             }
-        })
+        }
         .withErrorHandling()
         .environmentObject(errorHandler)
     }
@@ -78,3 +51,42 @@ extension View {
     }
 }
 
+
+struct MockRegisterView : View {
+    var register: () -> Void
+    var body: some View {
+        GeometryReader { geometry in
+            VStack(alignment: .leading, spacing: 12){
+                Spacer()
+                    .frame(height: geometry.size.height * 0.25)
+                Image("Logo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 100, height: 100)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .padding(.horizontal,10)
+                
+                Text("Welcome to tub")
+                    .font(.sfRounded(size: .xl2, weight: .semibold))
+                    .foregroundColor(AppColors.white)
+                    .padding(.horizontal,10)
+                VStack(alignment: .center){
+                    Button(action: register) {
+                        Text("Register")
+                            .font(.sfRounded(size: .lg, weight: .semibold))
+                            .padding(18)
+                    }
+                    .background(AppColors.darkGreenGradient)
+                    .foregroundStyle(AppColors.white)
+                    .cornerRadius(15)
+                    
+                }.frame(maxWidth: .infinity).padding(.top)
+            }
+            .padding(.horizontal)
+        }
+        .padding(.top, 20)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(AppColors.darkBlueGradient)
+        
+    }
+}

@@ -219,9 +219,9 @@ struct TokenView : View {
     private var stats: [(String, StatValue)] {
         var stats = [(String, StatValue)]()
         
-        if let purchaseData = tokenModel.purchaseData, activeTab == "sell" {
+        if let purchaseData = tokenModel.purchaseData, let price = tokenModel.prices.last?.price, price > 0, activeTab == "sell" {
             // Calculate current value in lamports
-            let currentValueLamps = Int(Double(tokenModel.balanceLamps) / 1e9 * Double(tokenModel.prices.last?.price ?? 0))
+            let currentValueLamps = Int(Double(tokenModel.balanceLamps) / 1e9 * Double(price))
             
             // Calculate profit
             let initialValueUsd = priceModel.lamportsToUsd(lamports: purchaseData.amount)
@@ -230,7 +230,7 @@ struct TokenView : View {
             
             
             
-            if purchaseData.amount > 0 {
+            if purchaseData.amount > 0, initialValueUsd > 0 {
                 let percentageGain = gains / initialValueUsd * 100
                 stats += [
                     ("Gains", StatValue(
