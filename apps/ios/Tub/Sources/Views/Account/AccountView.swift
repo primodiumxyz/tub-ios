@@ -33,6 +33,22 @@ struct AccountView: View {
                 }
             }
         }
+        
+        Network.shared.recordClientEvent(
+            event: ClientEvent(
+                eventName: "airdrop",
+                source: "account_view",
+                metadata: [
+                    ["airdrop_amount": 1 * Int(1e9)]
+                ])
+        ) { result in
+            switch result {
+            case .success:
+                print("Successfully recorded buy event")
+            case .failure(let error):
+                print("Failed to record buy event: \(error)")
+            }
+        }
     }
     
     var body: some View {

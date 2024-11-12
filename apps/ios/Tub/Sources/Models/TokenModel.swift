@@ -237,8 +237,6 @@ class TokenModel: ObservableObject {
                 print("Failed to record buy event: \(error)")
             }
         }
-        
-        
     }
 
     func updateHistoryInterval(_ interval: Interval) {
