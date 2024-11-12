@@ -145,14 +145,4 @@ struct AccountView: View {
         }
     }
     .environmentObject(errorHandler)
-    .onAppear {
-        Task {
-            do {
-                userId = try await privy.refreshSession().user.id
-                print(userId)
-            } catch {
-                print("error in preview: \(error)")
-            }
-        }
-    }
 }

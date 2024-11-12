@@ -6,6 +6,7 @@ import TubAPI
 class TokenModel: ObservableObject {
     var tokenId: String = ""
     var walletAddress: String = ""
+    
     @EnvironmentObject private var errorHandler: ErrorHandler
     
     @Published var token: Token = Token(
@@ -291,7 +292,6 @@ class TokenModel: ObservableObject {
         return [
             ("Market Cap", loading ? "..." : priceModel.formatPrice(lamports: Int(marketCap))),
             ("Volume (\(formatDuration(token.volume.interval)))", loading ? "..." : priceModel.formatPrice(lamports: token.volume.value, formatLarge: true)),
-            ("Holders", loading ? "..." : "53.3K"), // TODO: Add holders data
             ("Supply", loading ? "..." : formatLargeNumber(supplyValue))
         ]
     }

@@ -36,6 +36,7 @@
 		999F595B2CA754FB00E7AE9F /* ChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999F595A2CA754F900E7AE9F /* ChartView.swift */; };
 		99B147FE2CDFE5B200DFDB96 /* ShimmeringView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B147FD2CDFE5B200DFDB96 /* ShimmeringView.swift */; };
 		99BB98562CC1798600658059 /* CandleChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99BB98552CC1798400658059 /* CandleChartView.swift */; };
+		99BD9A2D2CE2869700293F97 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99BD9A2C2CE2869700293F97 /* User.swift */; };
 		99C26C1C2CAEE263004807A2 /* ApolloAPI in Frameworks */ = {isa = PBXBuildFile; productRef = 99C26C1B2CAEE263004807A2 /* ApolloAPI */; };
 		99C26C1E2CAEE38B004807A2 /* ApolloWebSocket in Frameworks */ = {isa = PBXBuildFile; productRef = 99C26C1D2CAEE38B004807A2 /* ApolloWebSocket */; };
 		99DDF62D2CB02816000234DA /* AccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99DDF62C2CB0280D000234DA /* AccountView.swift */; };
@@ -112,6 +113,7 @@
 		999F595A2CA754F900E7AE9F /* ChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartView.swift; sourceTree = "<group>"; };
 		99B147FD2CDFE5B200DFDB96 /* ShimmeringView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShimmeringView.swift; sourceTree = "<group>"; };
 		99BB98552CC1798400658059 /* CandleChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CandleChartView.swift; sourceTree = "<group>"; };
+		99BD9A2C2CE2869700293F97 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		99DDF62C2CB0280D000234DA /* AccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountView.swift; sourceTree = "<group>"; };
 		99DED24D2CAF28BD0055FC60 /* UserModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserModel.swift; sourceTree = "<group>"; };
 		99DED2522CAF2C6D0055FC60 /* RegisterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegisterView.swift; sourceTree = "<group>"; };
@@ -255,6 +257,7 @@
 				DB6D29042CA1C8F70099951A /* TubApp.swift */,
 				9979D2F02CB57B840040DF41 /* Utils */,
 				99856DA52CD27E27004B9D40 /* Privy.swift */,
+				99BD9A2C2CE2869700293F97 /* User.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -587,6 +590,7 @@
 				999F59562CA6F97100E7AE9F /* TokenModel.swift in Sources */,
 				9906661F2CC94B110068EA06 /* SolPriceModel.swift in Sources */,
 				99784EE82CD3DB5B009AEA45 /* SignInWithEmailView.swift in Sources */,
+				99BD9A2D2CE2869700293F97 /* User.swift in Sources */,
 				99BB98562CC1798600658059 /* CandleChartView.swift in Sources */,
 				99E789492CC147C000C3CEEB /* ImageView.swift in Sources */,
 				DFA36D562CB4278C00F63D2D /* DummyData.swift in Sources */,
@@ -751,7 +755,7 @@
 				CODE_SIGN_ENTITLEMENTS = Tub/Tub.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 1.4.0;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Tub/Preview Content\"";
 				DEVELOPMENT_TEAM = YQ22J47VA8;
@@ -775,7 +779,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.2;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.primodium.tub;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
@@ -796,7 +800,7 @@
 				CODE_SIGN_ENTITLEMENTS = Tub/TubRelease.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 1.4.0;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Tub/Preview Content\"";
 				DEVELOPMENT_TEAM = YQ22J47VA8;
@@ -820,7 +824,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.2;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.primodium.tub;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;

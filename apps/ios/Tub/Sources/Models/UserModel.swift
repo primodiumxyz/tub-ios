@@ -39,8 +39,8 @@ class UserModel: ObservableObject {
 
     init(userId: String, mock: Bool? = false) {
         self.userId = userId
-        
-        self.updateWalletAddress()
+        self.walletAddress = userId
+
         
         if(mock == true) {
             self.balanceLamps = 1000
@@ -129,29 +129,8 @@ class UserModel: ObservableObject {
             }
     }
 
-    private func updateWalletAddress() {
-        switch privy.embeddedWallet.embeddedWalletState {
-        case .connected(let wallets):
-            if let wallet = wallets.first {
-                DispatchQueue.main.async {
-                    self.walletAddress = wallet.address
-                }
-            } else {
-                DispatchQueue.main.async {
-                    self.walletAddress = ""
-                }
-                print("No wallet found in connected state")
-            }
-        default:
-            DispatchQueue.main.async {
-                self.walletAddress = ""
-            }
-            print("Wallet must be connected to initialize UserModel")
-        }
-    }
-
     func logout() {
-        privy.logout()
+        UserManager.shared.logout(onLogout: {})
         
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
