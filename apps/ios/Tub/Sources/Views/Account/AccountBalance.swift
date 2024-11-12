@@ -81,7 +81,7 @@ struct AccountBalanceView: View {
                                 Text("(\(abs(adjustedPercentage), specifier: "%.1f")%)")
                                 
                                 // Format time elapsed
-                                Text("\(formatTimeElapsed(userModel.timeElapsed))")
+                                Text("\(formatDuration(userModel.timeElapsed))")
                                     .foregroundColor(.gray)
                                     .font(.sfRounded(size: .sm, weight: .regular))
                             }
