@@ -189,11 +189,13 @@ class TokenModel: ObservableObject {
 
             Network.shared.recordClientEvent(
                 event: ClientEvent(
-                    eventName: "buy_tokens", source: "token_model",
+                    eventName: "buy_tokens",
+                    source: "token_model",
                     metadata: [
                         ["token_amount": tokenAmount],
                         ["buy_amount": buyAmountLamps],
                         ["price": price],
+                        ["token_id": tokenId],
                     ])
             ) { result in
                 switch result {
