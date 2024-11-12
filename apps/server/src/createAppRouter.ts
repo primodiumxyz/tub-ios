@@ -78,7 +78,7 @@ export function createAppRouter() {
           userAgent: z.string(),
           eventName: z.string(),
           buildVersion: z.string().optional(),
-          metadata: z.record(z.any()).optional(),
+          metadata: z.string().optional(),
           errorDetails: z.string().optional(),
           source: z.string().optional(),
         }),

@@ -9,6 +9,7 @@ import Apollo
 import ApolloWebSocket
 import Foundation
 import Security
+import UIKit
 
 class Network {
     static let shared = Network()
@@ -30,7 +31,6 @@ class Network {
 
         let store = ApolloStore()
         return ApolloClient(networkTransport: splitNetworkTransport, store: store)
-
     }()
 
     private struct ErrorResponse: Codable {
@@ -72,10 +72,11 @@ class Network {
         session = URLSession(configuration: .default)
     }
 
-    private func callProcedure<T: Codable>(
-        _ procedure: String, input: Codable? = nil, completion: @escaping (Result<T, Error>) -> Void
+    private func callProcedure<T: Codable, I: Codable>(
+        _ procedure: String,
+        input: I? = nil,
+        completion: @escaping (Result<T, Error>) -> Void
     ) {
-        // Check and refresh session if needed
         Task {
             if Date().timeIntervalSince(lastApiCallTime) > sessionTimeout {
                 do {
@@ -92,7 +93,6 @@ class Network {
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-            // Add JWT token to the header
 
             if let token = getStoredToken() {
                 request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -100,7 +100,14 @@ class Network {
 
             if let input = input {
                 do {
-                    request.httpBody = try JSONEncoder().encode(input)
+                    let encoder = JSONEncoder()
+                    let data = try encoder.encode(input)
+                    request.httpBody = data
+
+                    // Debug print the actual JSON being sent
+                    if let jsonString = String(data: data, encoding: .utf8) {
+                        print("Sending JSON for \(procedure): \(jsonString)")
+                    }
                 } catch {
                     completion(.failure(error))
                     return
@@ -148,26 +155,15 @@ class Network {
         }
     }
 
-    // Updated procedure calls:
-    func getStatus(completion: @escaping (Result<StatusResponse, Error>) -> Void) {
-        callProcedure("getStatus", completion: completion)
+    private func callProcedure<T: Codable>(
+        _ procedure: String,
+        completion: @escaping (Result<T, Error>) -> Void
+    ) {
+        callProcedure(procedure, input: Optional<EmptyInput>.none, completion: completion)
     }
 
-    @available(*, deprecated)
-    func registerNewUser(
-        username: String, airdropAmount: String? = nil,
-        completion: @escaping (Result<UserResponse, Error>) -> Void
-    ) {
-        let input = ["username": username, "airdropAmount": airdropAmount].compactMapValues { $0 }
-        callProcedure("registerNewUser", input: input) { (result: Result<UserResponse, Error>) in
-            switch result {
-            case .success(let userResponse):
-                self.storeToken(userResponse.token)
-                completion(.success(userResponse))
-            case .failure(let error):
-                completion(.failure(error))
-            }
-        }
+    func getStatus(completion: @escaping (Result<StatusResponse, Error>) -> Void) {
+        callProcedure<StatusResponse, EmptyInput>("getStatus", completion: completion)
     }
 
     private func storeToken(_ token: String) {
@@ -181,16 +177,11 @@ class Network {
         SecItemAdd(query as CFDictionary, nil)
     }
 
-    @available(*, deprecated)
-    func incrementCall(completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
-        callProcedure("incrementCall", completion: completion)
-    }
-
     func buyToken(
         tokenId: String, amount: String,
         completion: @escaping (Result<EmptyResponse, Error>) -> Void
     ) {
-        let input = ["tokenId": tokenId, "amount": amount]
+        let input = TokenActionInput(tokenId: tokenId, amount: amount)
         callProcedure("buyToken", input: input, completion: completion)
     }
 
@@ -198,7 +189,7 @@ class Network {
         tokenId: String, amount: String,
         completion: @escaping (Result<EmptyResponse, Error>) -> Void
     ) {
-        let input = ["tokenId": tokenId, "amount": amount]
+        let input = TokenActionInput(tokenId: tokenId, amount: amount)
         callProcedure("sellToken", input: input, completion: completion)
     }
 
@@ -206,20 +197,26 @@ class Network {
         name: String, symbol: String, supply: String? = nil, uri: String? = nil,
         completion: @escaping (Result<EmptyResponse, Error>) -> Void
     ) {
-        let input = ["name": name, "symbol": symbol, "supply": supply, "uri": uri].compactMapValues
-        { $0 }
+        let input = RegisterTokenInput(name: name, symbol: symbol, supply: supply, uri: uri)
         callProcedure("registerNewToken", input: input, completion: completion)
     }
 
     func airdropNativeToUser(
         amount: Int, completion: @escaping (Result<EmptyResponse, Error>) -> Void
     ) {
-        let input = ["amount": String(amount)]
+        let input = AirdropInput(amount: String(amount))
         callProcedure("airdropNativeToUser", input: input, completion: completion)
     }
 
+    func recordClientEvent(
+        event: ClientEvent, completion: @escaping (Result<EmptyResponse, Error>) -> Void
+    ) {
+        let input = EventInput(event: event)
+        callProcedure("recordClientEvent", input: input, completion: completion)
+    }
 }
 
+// MARK: - Response Types
 struct ResponseWrapper<T: Codable>: Codable {
     struct ResultWrapper: Codable {
         let data: T
@@ -242,18 +239,114 @@ struct StatusResponse: Codable {
     let status: Int
 }
 
-struct ClientEvent: Codable {
-    let userAgent: String
+struct ClientEvent {
     let eventName: String
-    let errorDetails: String?
-    let source: String?
+    let source: String
+    var errorDetails: String? = nil
+    var metadata: [[String: Any]]? = nil
+
+    init(
+        eventName: String, source: String, metadata: [[String: Any]]? = nil,
+        errorDetails: String? = nil
+    ) {
+        self.eventName = eventName
+        self.source = source
+        self.metadata = metadata
+        self.errorDetails = errorDetails
+    }
+}
+
+// MARK: - Input Types
+struct RegisterUserInput: Codable {
+    let username: String
+    let airdropAmount: String?
+}
+
+struct TokenActionInput: Codable {
+    // Wrap in a dictionary structure that matches server expectation
+    private enum CodingKeys: String, CodingKey {
+        case tokenId, amount
+    }
+
+    let tokenId: String
+    let amount: String
+}
+
+struct RegisterTokenInput: Codable {
+    let name: String
+    let symbol: String
+    let supply: String?
+    let uri: String?
+}
+
+struct AirdropInput: Codable {
+    let amount: String
+}
+
+struct EventInput: Codable {
+    let userAgent: String
     let buildVersion: String?
+    let errorDetails: String?
+    let eventName: String
+    let source: String
+    let metadata: String?  // JSON string
+
+    init(event: ClientEvent) {
+        let device = UIDevice.current
+        let userAgent = "\(device.systemName)-\(device.systemVersion)-\(device.name)"
+
+        self.userAgent = userAgent
+        self.source = event.source
+        self.eventName = event.eventName
+        self.errorDetails = event.errorDetails
+
+        // Convert metadata - take first item from array if it exists
+        if let metadata = event.metadata?.first,  // Get first item from array
+            let jsonData = try? JSONSerialization.data(withJSONObject: metadata),
+            let jsonString = String(data: jsonData, encoding: .utf8)
+        {
+            self.metadata = jsonString
+        } else {
+            self.metadata = nil
+        }
+
+        if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
+            self.buildVersion = version
+        } else {
+            self.buildVersion = nil
+        }
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+
+        try container.encode(userAgent, forKey: .userAgent)
+        try container.encode(eventName, forKey: .eventName)
+        try container.encode(source, forKey: .source)
+        if let errorDetails = errorDetails {
+            try container.encode(errorDetails, forKey: .errorDetails)
+        }
+        if let buildVersion = buildVersion {
+            try container.encode(buildVersion, forKey: .buildVersion)
+        }
+        if let metadata = metadata {
+            try container.encode(metadata, forKey: .metadata)
+        }
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case userAgent
+        case eventName
+        case errorDetails
+        case source
+        case buildVersion
+        case metadata
+    }
 }
 
-struct ClientEventResponse: Codable {
-    let id: String
-}
+private struct EmptyInput: Codable {}
 
+// MARK: - Extensions
 extension Network {
     func getStoredToken() -> String? {
         switch privy.authState {
@@ -265,7 +358,7 @@ extension Network {
     }
 
     func fetchSolPrice(completion: @escaping (Result<Double, Error>) -> Void) {
-        let url = URL(string: "https://min-api.cryptocompare.com/data/price?fsym=SOL&tsyms=Usd")!
+        let url = URL(string: "https://min-api.cryptocompare.com/data/price?fsym=SOL&tsyms=USD")!
         let task = session.dataTask(with: url) { data, response, error in
             if let error = error {
                 completion(.failure(error))
