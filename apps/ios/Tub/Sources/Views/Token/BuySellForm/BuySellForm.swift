@@ -18,6 +18,7 @@ struct BuySellForm: View {
     @StateObject private var animationState = TokenAnimationState.shared
     
     var handleBuy: (Double) -> Void
+    var onSellSuccess: () -> Void
     
     func handleSell() {
         // Add haptic feedback
@@ -29,6 +30,7 @@ struct BuySellForm: View {
             case .success:
                 animationState.showSellBubbles = true
                 activeTab = "buy"
+                onSellSuccess()
             case .failure(let error):
                 errorHandler.show(error)
             }
@@ -82,11 +84,6 @@ struct BuySellForm: View {
                     .padding(.horizontal,8)
             }
         }
-            
-            // if showBubbles {
-            //     BubbleEffect(isActive: $showBubbles)
-            //         .zIndex(999) // Make sure it's on top
-            // }
     }
 }
 

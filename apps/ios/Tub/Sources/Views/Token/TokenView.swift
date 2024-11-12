@@ -26,6 +26,7 @@ struct TokenView : View {
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject private var userModel: UserModel
     @Binding var activeTab: String
+    var onSellSuccess: () -> Void
     
     @State private var showInfoCard = false
     @State private var selectedTimespan: Timespan = .live
@@ -46,9 +47,10 @@ struct TokenView : View {
         }
     }
     
-    init(tokenModel: TokenModel, activeTab: Binding<String>) {
+    init(tokenModel: TokenModel, activeTab: Binding<String>, onSellSuccess: @escaping () -> Void) {
         self.tokenModel = tokenModel
         self._activeTab = activeTab
+        self.onSellSuccess = onSellSuccess
     }
     
     func handleBuy(amount: Double) {
@@ -83,13 +85,13 @@ struct TokenView : View {
                 infoCardLowOpacity
                     .opacity(0.8)
                     .padding(.horizontal, 8)
-                    .padding(.bottom, -4)
                 BuySellForm(
                     tokenModel: tokenModel,
                     activeTab: $activeTab,
                     showBuySheet: $showBuySheet,
                     defaultAmount: $defaultAmount,
-                    handleBuy: handleBuy
+                    handleBuy: handleBuy,
+                    onSellSuccess: onSellSuccess
                 )
                 .equatable()
             }
@@ -107,7 +109,7 @@ struct TokenView : View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 if tokenModel.token.imageUri != "" {
-                    ImageView(imageUri: tokenModel.token.imageUri, size: 20)
+                    ImageView(imageUri: tokenModel.token.imageUri, size: 28)
                 }
                 Text("$\(tokenModel.token.symbol)")
                     .font(.sfRounded(size: .lg, weight: .semibold))
@@ -146,7 +148,7 @@ struct TokenView : View {
         }
     }
     
-    let height = UIScreen.main.bounds.height * 0.33
+    let height = UIScreen.main.bounds.height * 0.4
     
     private var chartView: some View {
         Group {
@@ -314,7 +316,7 @@ struct TokenView : View {
         }
         .padding(.horizontal, 16)
         .padding(.top, 16)
-        .frame(maxWidth: .infinity, maxHeight: 110, alignment: .topLeading)
+        .frame(maxWidth: .infinity, maxHeight: 90, alignment: .topLeading)
         .background(AppColors.darkGrayGradient)
         .cornerRadius(16)
         .onTapGesture {

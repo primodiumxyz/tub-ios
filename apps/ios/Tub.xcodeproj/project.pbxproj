@@ -59,7 +59,6 @@
 		DF5A2FC32CAF165D00508A56 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5A2FC22CAF165D00508A56 /* HistoryView.swift */; };
 		DF5A2FC52CAF2DEF00508A56 /* HistoryDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5A2FC42CAF2DEF00508A56 /* HistoryDetailsView.swift */; };
 		DF8C84ED2CDFDCA700E8FA7B /* DismissKeyboardModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF8C84EC2CDFDCA700E8FA7B /* DismissKeyboardModifier.swift */; };
-		DF99EC1F2CE28CC50065F390 /* BubbleEffect.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF99EC1E2CE28CC50065F390 /* BubbleEffect.swift */; };
 		DF99EC212CE294B40065F390 /* TokenAnimationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF99EC202CE294B40065F390 /* TokenAnimationState.swift */; };
 		DFA36D562CB4278C00F63D2D /* DummyData.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFA36D552CB4278C00F63D2D /* DummyData.swift */; };
 		DFA4D6512CAC500B00AEDC73 /* Apollo in Frameworks */ = {isa = PBXBuildFile; productRef = DFA4D6502CAC500B00AEDC73 /* Apollo */; };
@@ -139,7 +138,6 @@
 		DF5A2FC42CAF2DEF00508A56 /* HistoryDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryDetailsView.swift; sourceTree = "<group>"; };
 		DF7C361B2CD941FD00A4B27A /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		DF8C84EC2CDFDCA700E8FA7B /* DismissKeyboardModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DismissKeyboardModifier.swift; sourceTree = "<group>"; };
-		DF99EC1E2CE28CC50065F390 /* BubbleEffect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BubbleEffect.swift; sourceTree = "<group>"; };
 		DF99EC202CE294B40065F390 /* TokenAnimationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenAnimationState.swift; sourceTree = "<group>"; };
 		DFA36D552CB4278C00F63D2D /* DummyData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DummyData.swift; path = Tub/Sources/Utils/DummyData.swift; sourceTree = SOURCE_ROOT; };
 		DFC723E22CB9A86C003A915C /* TokenInfoCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenInfoCardView.swift; sourceTree = "<group>"; };
@@ -149,6 +147,7 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		46B4B4532CD542DB00D8175A /* Extensions */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Extensions; sourceTree = "<group>"; };
 		99DDF62E2CB0333D000234DA /* BuySellForm */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = BuySellForm; sourceTree = "<group>"; };
+		DFEBC3A32CE2BE6000EA4C84 /* Components */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Components; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -224,7 +223,7 @@
 			isa = PBXGroup;
 			children = (
 				997DE8F32CDAC86000164366 /* ErrorOverlay.swift */,
-				DF99EC1E2CE28CC50065F390 /* BubbleEffect.swift */,
+				DFEBC3A32CE2BE6000EA4C84 /* Components */,
 				99DD66022CB80D5B00B56450 /* Common */,
 				99DD66012CB80D3D00B56450 /* Token */,
 				99DD65FF2CB80D1100B56450 /* History */,
@@ -420,6 +419,7 @@
 			fileSystemSynchronizedGroups = (
 				46B4B4532CD542DB00D8175A /* Extensions */,
 				99DDF62E2CB0333D000234DA /* BuySellForm */,
+				DFEBC3A32CE2BE6000EA4C84 /* Components */,
 			);
 			name = Tub;
 			packageProductDependencies = (
@@ -576,7 +576,6 @@
 				DF5A2FC32CAF165D00508A56 /* HistoryView.swift in Sources */,
 				994AE5F72CD2AB3F00553A32 /* GoogleLogoView.swift in Sources */,
 				992875672CCACD4C004B48BE /* ErrorView.swift in Sources */,
-				DF99EC1F2CE28CC50065F390 /* BubbleEffect.swift in Sources */,
 				997DE8F22CDAC84900164366 /* ErrorHandler.swift in Sources */,
 				99784EEA2CD3DC7D009AEA45 /* SignInWithPhoneView.swift in Sources */,
 				466945ED2CDFDB1F008E8B99 /* LoadingTracker.swift in Sources */,
