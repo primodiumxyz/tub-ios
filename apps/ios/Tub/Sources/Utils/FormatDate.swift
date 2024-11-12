@@ -44,10 +44,7 @@ func formatDuration(_ seconds: TimeInterval) -> String {
     if seconds < 3600 {
         let minutes = floor(seconds / 60)
         let remainingSeconds = seconds.truncatingRemainder(dividingBy: 60)
-        if remainingSeconds == 0 {
-            return String(format: "%.0fm", minutes)
-        }
-        return String(format: "%.0fm %.0fs", minutes, remainingSeconds)
+        return String(format: "%.0fm", minutes)
     }
     
     let hours = floor(seconds / 3600)

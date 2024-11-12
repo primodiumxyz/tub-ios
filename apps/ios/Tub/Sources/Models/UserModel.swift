@@ -71,7 +71,8 @@ class UserModel: ObservableObject {
     }
 
     private func fetchInitialBalance() async throws {
-        print(self.walletAddress)
+        let start = self.initialTime.ISO8601Format()
+        print("wallet address:", self.walletAddress)
         let query = GetWalletBalanceQuery(wallet: self.walletAddress)
         
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
@@ -84,6 +85,7 @@ class UserModel: ObservableObject {
                 switch result {
                 case .success(let response):
                     DispatchQueue.main.async {
+                        print(response.data?.balance)
                         self.initialBalanceLamps = response.data?.balance.first?.value ?? 0
                     }
                     continuation.resume()
