@@ -28,6 +28,8 @@ The server can be configured with the following environment variables (in root .
 | `HASURA_ADMIN_SECRET` | Hasura admin secret             | `password`                                    |
 | `GRAPHQL_URL`         | GraphQL URL                     | `https://tub-graphql.primodium.ai/v1/graphql` |
 | `HELIUS_API_KEY`      | Helius API key                  |                                               |
+| `QUICKNODE_ENDPOINT`  | Quicknode endpoint              |                                               |
+| `QUICKNODE_TOKEN`     | Quicknode token                 |                                               |
 
 ## Adding a parser
 
