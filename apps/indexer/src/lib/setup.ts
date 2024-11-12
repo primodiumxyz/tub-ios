@@ -33,7 +33,7 @@ const fetchWithRetry = async (input: RequestInfo | URL, init?: RequestInit): Pro
 };
 
 export const helius = new Helius(env.HELIUS_API_KEY);
-export const connection = new Connection(`https://mainnet.helius-rpc.com/?api-key=${env.HELIUS_API_KEY}`, {
+export const connection = new Connection(`${env.QUICKNODE_ENDPOINT}/${env.QUICKNODE_TOKEN}`, {
   commitment: "confirmed",
   // @ts-expect-error Property 'referrer' is missing in type 'import("undici-types/fetch").Request'
   fetch: fetchWithRetry,
