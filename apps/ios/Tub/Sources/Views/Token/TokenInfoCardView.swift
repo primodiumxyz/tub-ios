@@ -120,18 +120,6 @@ struct TokenInfoCardView: View {
                     }
                     .padding(.vertical, 12)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    
-                    HStack(alignment: .center, spacing: 4) {
-                        Image("X-logo-white")
-                            .resizable()
-                            .frame(width: 20, height: 20)
-                        Text(" @ \(tokenModel.token.symbol)")
-                            .font(.sfRounded(size: .lg, weight: .semibold))
-                            .foregroundColor(AppColors.aquaGreen)
-                    }
-                    .padding(.top, 8.0)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                
                 }
                 .padding(.horizontal,20)
                 .padding(.vertical, 16)
