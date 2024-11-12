@@ -220,6 +220,25 @@ class TokenModel: ObservableObject {
             }
             completion(result)
         }
+        
+        Network.shared.recordClientEvent(
+            event: ClientEvent(
+                eventName: "sell_tokens",
+                source: "token_model",
+                metadata: [
+                    ["sell_amount": self.balanceLamps],
+                    ["token_id": tokenId],
+                ])
+        ) { result in
+            switch result {
+            case .success:
+                print("Successfully recorded buy event")
+            case .failure(let error):
+                print("Failed to record buy event: \(error)")
+            }
+        }
+        
+        
     }
 
     func updateHistoryInterval(_ interval: Interval) {
