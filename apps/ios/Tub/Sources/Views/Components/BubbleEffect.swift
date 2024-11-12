@@ -77,7 +77,7 @@ struct BubbleEffect: View {
             }
         }
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             isActive = false
             bubbles = []
         }
