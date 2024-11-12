@@ -40,9 +40,7 @@ class UserModel: ObservableObject {
     init(userId: String, mock: Bool? = false) {
         self.userId = userId
         self.walletAddress = userId
-        
-        
-//        self.updateWalletAddress()
+
         
         if(mock == true) {
             self.balanceLamps = 1000
@@ -131,7 +129,6 @@ class UserModel: ObservableObject {
 
     func logout() {
         UserManager.shared.logout(onLogout: {})
-//        privy.logout()
         
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }

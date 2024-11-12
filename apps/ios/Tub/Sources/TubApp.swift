@@ -25,9 +25,7 @@ struct AppContent : View {
         Group{
             if userId == "" {
                 MockRegisterView(register: {
-                    UserManager.shared.register(onRegister: { userId in
-                        self.userId = userId
-                    })
+                    UserManager.shared.register(onRegister: {_ in })
                 })
             } else {
                 HomeTabsView(userId: userId).font(.sfRounded())

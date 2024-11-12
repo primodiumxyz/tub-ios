@@ -1,5 +1,5 @@
 //
-//  Privy.swift
+//  User.swift
 //  Tub
 //
 //  Created by Henry on 10/30/24.
@@ -18,10 +18,9 @@ final class UserManager {
     
     private init() {}
     
-    func onUserUpdate(_ callback: @escaping (String) -> Void) {
+    func onUserUpdate(_ callback: ((String) -> Void)? = nil) {
         userUpdateCallback = callback
-        // Trigger initial callback with current value
-        callback(userId)
+        callback?(userId)
     }
     
     func register(onRegister: ( (String) -> Void)?) {
@@ -29,7 +28,7 @@ final class UserManager {
         onRegister?(userId)
     }
     
-    func logout(onLogout: (() -> Void)?) {
+    func logout(onLogout: (() -> Void)? = nil) {
         userId = ""
         onLogout?()
     }
