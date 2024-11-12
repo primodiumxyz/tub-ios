@@ -63,11 +63,11 @@ struct AccountBalanceView: View {
                         let adjustedChange = userModel.balanceChangeLamps + tokenValue
                         
                         HStack {
-                            Text("\(priceModel.formatPrice(lamports: adjustedChange, showSign: true, maxDecimals: 2))")
+                            Text("\(priceModel.formatPrice(lamports: adjustedChange, showSign: true, maxDecimals: 2, minDecimals: 2 ))")
                             
-                            let adjustedPercentage = userModel.initialBalanceLamps != 0  ? 100 - (Double(userModel.balanceLamps) / Double(userModel.initialBalanceLamps)) * 100 : nil;
+                            let adjustedPercentage = userModel.initialBalanceLamps != 0  ? (Double(adjustedChange) / Double(accountBalance)) * 100 : nil;
                             
-                            if let pct = adjustedPercentage {
+                            if let pct = adjustedPercentage, abs(pct) > 0.1 {
                                 Text("(\(abs(pct), specifier: "%.1f")%)")
                             }
                             
@@ -77,7 +77,7 @@ struct AccountBalanceView: View {
                                 .font(.sfRounded(size: .sm, weight: .regular))
                         }
                         .font(.sfRounded(size: .sm, weight: .semibold))
-                        .foregroundColor(adjustedChange >= 0 ? AppColors.green : AppColors.red)
+                        .foregroundColor(adjustedChange >= -5 ? AppColors.green : AppColors.red)
                     }
                     .padding()
                     .onTapGesture {
