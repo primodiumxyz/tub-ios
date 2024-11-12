@@ -19,7 +19,7 @@ struct BubbleEffect: View {
     @State private var bubbles: [Bubble] = []
     @Binding var isActive: Bool
     
-    let bubbleCount = 40
+    let bubbleCount = 50
     
     var body: some View {
         GeometryReader { geometry in

@@ -80,8 +80,10 @@ struct TokenView : View {
             VStack(alignment: .leading, spacing: 4) {
                 tokenInfoView
                 chartView
+                    .padding(.top,5)
                 intervalButtons
                     .padding(.bottom,8)
+                    .padding(.top,5)
                 infoCardLowOpacity
                     .opacity(0.8)
                     .padding(.horizontal, 8)
@@ -109,7 +111,7 @@ struct TokenView : View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 if tokenModel.token.imageUri != "" {
-                    ImageView(imageUri: tokenModel.token.imageUri, size: 28)
+                    ImageView(imageUri: tokenModel.token.imageUri, size: 20)
                 }
                 Text("$\(tokenModel.token.symbol)")
                     .font(.sfRounded(size: .lg, weight: .semibold))
@@ -148,7 +150,7 @@ struct TokenView : View {
         }
     }
     
-    let height = UIScreen.main.bounds.height * 0.4
+    let height = UIScreen.main.bounds.height * 0.38
     
     private var chartView: some View {
         Group {
@@ -278,6 +280,7 @@ struct TokenView : View {
                             .background(AppColors.gray.opacity(0.5))
                             .padding(.top, 2)
                     }
+                    .padding(.vertical, 4)
                 }
             }
             
@@ -316,7 +319,7 @@ struct TokenView : View {
         }
         .padding(.horizontal, 16)
         .padding(.top, 16)
-        .frame(maxWidth: .infinity, maxHeight: 90, alignment: .topLeading)
+        .frame(maxWidth: .infinity, maxHeight: 110, alignment: .topLeading)
         .background(AppColors.darkGrayGradient)
         .cornerRadius(16)
         .onTapGesture {

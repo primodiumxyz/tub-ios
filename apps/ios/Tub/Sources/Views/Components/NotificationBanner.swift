@@ -38,14 +38,21 @@ struct NotificationBanner: View {
             .background(type.backgroundColor)
             .cornerRadius(12)
             .padding(.horizontal)
-        }
-        .transition(.move(edge: .top).combined(with: .opacity))
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            .onTapGesture {
                 withAnimation {
                     isPresented = false
                 }
             }
         }
+        .transition(.move(edge: .top).combined(with: .opacity))
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                if isPresented { // Only dismiss if still presented
+                    withAnimation {
+                        isPresented = false
+                    }
+                }
+            }
+        }
     }
-} 
+}

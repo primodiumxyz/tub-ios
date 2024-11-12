@@ -84,7 +84,7 @@ struct TokenInfoCardView: View {
                     
                     
                     ForEach(stats, id: \.0) { stat in
-                        VStack(spacing:4) {
+                        VStack(spacing:10) {
                             HStack(alignment: .center)  {
                                 Text(stat.0)
                                     .font(.sfRounded(size: .sm, weight: .regular))
