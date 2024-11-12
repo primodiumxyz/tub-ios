@@ -289,23 +289,30 @@ struct EventInput: Codable {
     let errorDetails: String?
     let eventName: String
     let source: String
-    let metadata: String?  // JSON string
+    let metadata: String?  // Keep as string internally
 
     init(event: ClientEvent) {
         let device = UIDevice.current
-        let userAgent = "\(device.systemName)-\(device.systemVersion)-\(device.name)"
+        let userAgent = "\(device.systemName) \(device.systemVersion) \(device.name)"
 
         self.userAgent = userAgent
         self.source = event.source
         self.eventName = event.eventName
         self.errorDetails = event.errorDetails
 
-        // Convert metadata - take first item from array if it exists
-        if let metadata = event.metadata?.first,  // Get first item from array
-            let jsonData = try? JSONSerialization.data(withJSONObject: metadata),
-            let jsonString = String(data: jsonData, encoding: .utf8)
-        {
-            self.metadata = jsonString
+        // Merge all metadata dictionaries into one
+        if let metadata = event.metadata {
+            var mergedMetadata: [String: Any] = [:]
+            for dict in metadata {
+                mergedMetadata.merge(dict) { current, _ in current }
+            }
+            if let jsonData = try? JSONSerialization.data(withJSONObject: mergedMetadata),
+                let jsonString = String(data: jsonData, encoding: .utf8)
+            {
+                self.metadata = jsonString
+            } else {
+                self.metadata = nil
+            }
         } else {
             self.metadata = nil
         }
