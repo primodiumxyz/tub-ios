@@ -185,13 +185,13 @@ class TokenListModel: ObservableObject {
 
     private func fetchTokens() {
         Network.shared.apollo.fetch(query: GetFilteredTokensQuery(
-            interval: .some(FILTER_INTERVAL),
+            interval: .some("\(FILTER_INTERVAL)s"),
             minTrades: .some(String(MIN_TRADES)),
             minVolume: .some(MIN_VOLUME),
             mintBurnt: .some(MINT_BURNT),
             freezeBurnt: .some(FREEZE_BURNT),
             minDistinctPrices: .some(CHART_INTERVAL_MIN_TRADES),
-            distinctPricesInterval: .some(CHART_INTERVAL)
+            distinctPricesInterval: .some("\(CHART_INTERVAL)s")
         ), cachePolicy: .fetchIgnoringCacheData) { [weak self] result in
             guard let self = self else { return }
             
