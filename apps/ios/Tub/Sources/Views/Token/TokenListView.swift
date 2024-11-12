@@ -96,14 +96,14 @@ struct TokenListView: View {
                         } else {
                             GeometryReader { geometry in
                                 VStack(spacing: 10) {
-                                    TokenView(tokenModel: viewModel.previousTokenModel ?? viewModel.createTokenModel(), activeTab: $activeTab)
+                                    DummyTokenView(height: geometry.size.height)
                                         .frame(height: geometry.size.height)
-                                        .opacity(dragging ? 0.2 : 0)
+                                        .opacity(dragging ? 0.4 : 0)
                                     TokenView(tokenModel: viewModel.currentTokenModel, activeTab: $activeTab)
                                         .frame(height: geometry.size.height)
-                                    TokenView(tokenModel: viewModel.nextTokenModel ?? viewModel.createTokenModel(), activeTab: Binding.constant("buy"))
+                                    DummyTokenView(height: geometry.size.height)
                                         .frame(height: geometry.size.height)
-                                        .opacity(dragging ? 0.2 : 0)
+                                        .opacity(dragging ? 0.4 : 0)
                                 }
                                 .zIndex(1)
                                 .offset(y: -geometry.size.height - 40 + offset + activeOffset)
