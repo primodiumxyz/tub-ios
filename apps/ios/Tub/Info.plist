@@ -9,6 +9,10 @@
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
 			<string>com.primodium.tub</string>
+			<key>CFBundleShortVersionString</key>
+			<string>1.4.0</string>
+			<key>CFBundleVersion</key>
+			<string>1.4.0</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>tub</string>
