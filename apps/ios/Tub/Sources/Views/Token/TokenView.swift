@@ -38,6 +38,7 @@ struct TokenView : View {
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject private var userModel: UserModel
     @Binding var activeTab: String
+    var onSellSuccess: () -> Void
     
     @State private var showInfoCard = false
     @State private var selectedTimespan: Timespan = .live
@@ -47,9 +48,10 @@ struct TokenView : View {
     
     
     
-    init(tokenModel: TokenModel, activeTab: Binding<String>) {
+    init(tokenModel: TokenModel, activeTab: Binding<String>, onSellSuccess: @escaping () -> Void) {
         self.tokenModel = tokenModel
         self._activeTab = activeTab
+        self.onSellSuccess = onSellSuccess
     }
     
     func handleBuy(amount: Double) {
@@ -79,18 +81,20 @@ struct TokenView : View {
             VStack(alignment: .leading, spacing: 4) {
                 tokenInfoView
                 chartView
+                    .padding(.top,5)
                 intervalButtons
                     .padding(.bottom,8)
+                    .padding(.top,5)
                 infoCardLowOpacity
                     .opacity(0.8)
                     .padding(.horizontal, 8)
-                    .padding(.bottom, -4)
                 BuySellForm(
                     tokenModel: tokenModel,
                     activeTab: $activeTab,
                     showBuySheet: $showBuySheet,
                     defaultAmount: $defaultAmount,
-                    handleBuy: handleBuy
+                    handleBuy: handleBuy,
+                    onSellSuccess: onSellSuccess
                 )
                 .equatable()
             }
@@ -147,7 +151,7 @@ struct TokenView : View {
         }
     }
     
-    let height = UIScreen.main.bounds.height * 0.33
+    let height = UIScreen.main.bounds.height * 0.38
     
     private var chartView: some View {
         Group {
@@ -277,6 +281,7 @@ struct TokenView : View {
                             .background(AppColors.gray.opacity(0.5))
                             .padding(.top, 2)
                     }
+                    .padding(.vertical, 4)
                 }
             }
             
