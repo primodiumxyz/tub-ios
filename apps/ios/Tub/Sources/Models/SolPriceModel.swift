@@ -12,8 +12,6 @@ class SolPriceModel: ObservableObject {
     @Published var isReady: Bool = false
     @Published var error: String?
     
-    private var timer: Timer?
-    
     init(mock: Bool = false) {
         if mock {
             self.currentPrice = 175

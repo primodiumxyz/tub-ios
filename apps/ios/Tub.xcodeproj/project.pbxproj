@@ -39,6 +39,7 @@
 		99BD9A2D2CE2869700293F97 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99BD9A2C2CE2869700293F97 /* User.swift */; };
 		99C26C1C2CAEE263004807A2 /* ApolloAPI in Frameworks */ = {isa = PBXBuildFile; productRef = 99C26C1B2CAEE263004807A2 /* ApolloAPI */; };
 		99C26C1E2CAEE38B004807A2 /* ApolloWebSocket in Frameworks */ = {isa = PBXBuildFile; productRef = 99C26C1D2CAEE38B004807A2 /* ApolloWebSocket */; };
+		99C79A182CE2F1BD00D0E697 /* DummyTokenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C79A172CE2F1BA00D0E697 /* DummyTokenView.swift */; };
 		99DDF62D2CB02816000234DA /* AccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99DDF62C2CB0280D000234DA /* AccountView.swift */; };
 		99DED24E2CAF28C10055FC60 /* UserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99DED24D2CAF28BD0055FC60 /* UserModel.swift */; };
 		99DED2512CAF2A6B0055FC60 /* ApolloCombine in Frameworks */ = {isa = PBXBuildFile; productRef = 99DED2502CAF2A6B0055FC60 /* ApolloCombine */; };
@@ -115,6 +116,7 @@
 		99B147FD2CDFE5B200DFDB96 /* ShimmeringView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShimmeringView.swift; sourceTree = "<group>"; };
 		99BB98552CC1798400658059 /* CandleChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CandleChartView.swift; sourceTree = "<group>"; };
 		99BD9A2C2CE2869700293F97 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
+		99C79A172CE2F1BA00D0E697 /* DummyTokenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DummyTokenView.swift; sourceTree = "<group>"; };
 		99DDF62C2CB0280D000234DA /* AccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountView.swift; sourceTree = "<group>"; };
 		99DED24D2CAF28BD0055FC60 /* UserModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserModel.swift; sourceTree = "<group>"; };
 		99DED2522CAF2C6D0055FC60 /* RegisterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegisterView.swift; sourceTree = "<group>"; };
@@ -294,6 +296,7 @@
 		99DD66012CB80D3D00B56450 /* Token */ = {
 			isa = PBXGroup;
 			children = (
+				99C79A172CE2F1BA00D0E697 /* DummyTokenView.swift */,
 				99FBEEA72CCA882300BC6392 /* Charts */,
 				991361A02CADE3AA00E5D656 /* TokenListView.swift */,
 				DB10A95C2CA5AA1B00B1E4F3 /* TokenView.swift */,
@@ -581,6 +584,7 @@
 				992875672CCACD4C004B48BE /* ErrorView.swift in Sources */,
 				997DE8F22CDAC84900164366 /* ErrorHandler.swift in Sources */,
 				99784EEA2CD3DC7D009AEA45 /* SignInWithPhoneView.swift in Sources */,
+				99C79A182CE2F1BD00D0E697 /* DummyTokenView.swift in Sources */,
 				466945ED2CDFDB1F008E8B99 /* LoadingTracker.swift in Sources */,
 				DF5A2FC52CAF2DEF00508A56 /* HistoryDetailsView.swift in Sources */,
 				99856DA62CD27E2E004B9D40 /* Privy.swift in Sources */,
