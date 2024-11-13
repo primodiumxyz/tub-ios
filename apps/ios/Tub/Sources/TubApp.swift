@@ -5,58 +5,70 @@
 //  Created by Emerson Hsieh on 2024/9/24.
 //
 
-import SwiftUI
 import PrivySDK
+import SwiftUI
 
 @main
 struct TubApp: App {
-    
+    @Environment(\.scenePhase) private var scenePhase
+    private let dwellTimeTracker = AppDwellTimeTracker.shared
+
     var body: some Scene {
         WindowGroup {
             AppContent()
         }
+        .onChange(of: scenePhase) { phase in
+            switch phase {
+            case .active:
+                dwellTimeTracker.startTracking()
+            case .background, .inactive:
+                dwellTimeTracker.endTracking()
+            @unknown default:
+                break
+            }
+        }
     }
 }
 
-struct AppContent : View {
+struct AppContent: View {
     @StateObject private var errorHandler = ErrorHandler()
-    @State var myAuthState : AuthState = AuthState.notReady
-    @State var userId : String = ""
-    @State var walletState : EmbeddedWalletState = EmbeddedWalletState.notCreated
-    
+    @State var myAuthState: AuthState = AuthState.notReady
+    @State var userId: String = ""
+    @State var walletState: EmbeddedWalletState = EmbeddedWalletState.notCreated
+
     var body: some View {
-        Group{
+        Group {
             if myAuthState.toString == "error" {
                 VStack {
                     Text("Error connecting wallet. Please Try Again.")
                     Button(action: privy.logout) {
                         Text("Logout")
                     }
-                }.frame(maxWidth: .infinity, maxHeight: .infinity).background(Color.black).foregroundColor(.white)
-            }
-            else if myAuthState == .unauthenticated {
+                }.frame(maxWidth: .infinity, maxHeight: .infinity).background(Color.black)
+                    .foregroundColor(.white)
+            } else if myAuthState == .unauthenticated {
                 RegisterView()
             } else if walletState == EmbeddedWalletState.notCreated {
                 CreateWalletView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity).background(Color.black).foregroundColor(.white)
-            }
-            else if myAuthState.toString != "authenticated" || walletState.toString != "connected" {
+                    .frame(maxWidth: .infinity, maxHeight: .infinity).background(Color.black)
+                    .foregroundColor(.white)
+            } else if myAuthState.toString != "authenticated" || walletState.toString != "connected"
+            {
                 LoadingView(identifier: "TubApp - waiting for authentication")
-            }
-            else {
+            } else {
                 HomeTabsView(userId: userId).font(.sfRounded())
             }
         }.onAppear(perform: {
             privy.embeddedWallet.setEmbeddedWalletStateChangeCallback({
                 state in walletState = state
             })
-            
+
             privy.setAuthStateChangeCallback { state in
                 self.myAuthState = state
                 switch state {
                 case .authenticated(let session):
                     userId = session.user.id
-                case .unauthenticated :
+                case .unauthenticated:
                     userId = ""
                 default:
                     break
@@ -77,4 +89,3 @@ extension View {
         modifier(ErrorOverlay())
     }
 }
-

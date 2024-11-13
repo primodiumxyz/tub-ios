@@ -10,6 +10,7 @@
 		4619A8182CCA4E25003CD119 /* TokenListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4619A8172CCA4E25003CD119 /* TokenListModel.swift */; };
 		46442B952CDD7380009A6F0B /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46442B942CDD737D009A6F0B /* Constants.swift */; };
 		466945ED2CDFDB1F008E8B99 /* LoadingTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 466945EC2CDFDB1C008E8B99 /* LoadingTracker.swift */; };
+		5D8EFC2C2CE529BB002D8210 /* AppDwellTimeTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D8EFC2B2CE529AC002D8210 /* AppDwellTimeTracker.swift */; };
 		990337052CC94175002D3A25 /* AccountBalance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990337042CC9416B002D3A25 /* AccountBalance.swift */; };
 		9906661F2CC94B110068EA06 /* SolPriceModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9906661E2CC94B0D0068EA06 /* SolPriceModel.swift */; };
 		9910F1B62CAAE302005DEE6B /* SFRounded.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9910F1B52CAAE2FD005DEE6B /* SFRounded.swift */; };
@@ -86,6 +87,7 @@
 		4619A8172CCA4E25003CD119 /* TokenListModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenListModel.swift; sourceTree = "<group>"; };
 		46442B942CDD737D009A6F0B /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		466945EC2CDFDB1C008E8B99 /* LoadingTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingTracker.swift; sourceTree = "<group>"; };
+		5D8EFC2B2CE529AC002D8210 /* AppDwellTimeTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDwellTimeTracker.swift; sourceTree = "<group>"; };
 		990337042CC9416B002D3A25 /* AccountBalance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountBalance.swift; sourceTree = "<group>"; };
 		9906661E2CC94B0D0068EA06 /* SolPriceModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SolPriceModel.swift; sourceTree = "<group>"; };
 		9910F1B52CAAE2FD005DEE6B /* SFRounded.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SFRounded.swift; sourceTree = "<group>"; };
@@ -206,6 +208,7 @@
 		9979D2F02CB57B840040DF41 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				5D8EFC2B2CE529AC002D8210 /* AppDwellTimeTracker.swift */,
 				466945EC2CDFDB1C008E8B99 /* LoadingTracker.swift */,
 				46442B942CDD737D009A6F0B /* Constants.swift */,
 				9941CD6E2CCAA30B0009E5ED /* FormatPrice.swift */,
@@ -577,6 +580,7 @@
 				999F595B2CA754FB00E7AE9F /* ChartView.swift in Sources */,
 				DFF5292B2CC0121B007DC43F /* AppColors.swift in Sources */,
 				99DED24E2CAF28C10055FC60 /* UserModel.swift in Sources */,
+				5D8EFC2C2CE529BB002D8210 /* AppDwellTimeTracker.swift in Sources */,
 				99290EC02CB7110C003E740A /* FormatDate.swift in Sources */,
 				DF1FE3C82CD568F700594C63 /* CountryCode.swift in Sources */,
 				DB10A95D2CA5AA1B00B1E4F3 /* TokenView.swift in Sources */,

@@ -169,6 +169,7 @@ class TokenModel: ObservableObject {
     ) {
         if let price = self.prices.last?.price, price > 0 {
             let tokenAmount = Int(Double(buyAmountLamps) / Double(price) * 1e9)
+            var errorMessage: String? = nil
             print("token amount:", tokenAmount)
 
             Network.shared.buyToken(
@@ -182,6 +183,7 @@ class TokenModel: ObservableObject {
                         price: price
                     )
                 case .failure(let error):
+                    errorMessage = error.localizedDescription
                     print("Error buying tokens: \(error)")
                 }
                 completion(result)
@@ -196,7 +198,9 @@ class TokenModel: ObservableObject {
                         ["buy_amount": buyAmountLamps],
                         ["price": price],
                         ["token_id": tokenId],
-                    ])
+                    ],
+                    errorDetails: errorMessage
+                )
             ) { result in
                 switch result {
                 case .success:
@@ -209,6 +213,7 @@ class TokenModel: ObservableObject {
     }
 
     func sellTokens(completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
+        var errorMessage: String? = nil
         Network.shared.sellToken(
             tokenId: self.tokenId, amount: String(self.balanceLamps)
         ) { result in
@@ -228,7 +233,9 @@ class TokenModel: ObservableObject {
                 metadata: [
                     ["sell_amount": self.balanceLamps],
                     ["token_id": tokenId],
-                ])
+                ],
+                errorDetails: errorMessage
+            )
         ) { result in
             switch result {
             case .success:
