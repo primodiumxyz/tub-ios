@@ -5,7 +5,12 @@ import { WebSocket } from "ws";
 
 import { createClient as createGqlClient, GqlClient } from "@tub/gql";
 import { parseEnv } from "@bin/parseEnv";
-import { CLOSE_CODES, FETCH_DATA_BATCH_SIZE, FETCH_HELIUS_WRITE_GQL_BATCH_SIZE } from "@/lib/constants";
+import {
+  CLOSE_CODES,
+  FETCH_DATA_BATCH_SIZE,
+  FETCH_HELIUS_WRITE_GQL_BATCH_SIZE,
+  WRAPPED_SOL_MINT,
+} from "@/lib/constants";
 import { RaydiumAmmParser } from "@/lib/parsers/raydium-amm-parser";
 import { connection, helius, ixParser, txFormatter } from "@/lib/setup";
 import { PriceData, Swap, SwapType, TokenMetadata, TransactionSubscriptionResult } from "@/lib/types";
@@ -93,7 +98,9 @@ const handleSwapData = async <T extends SwapType = SwapType>(gql: GqlClient["db"
   priceDataBatch = [];
 
   try {
-    const uniqueTokens = Array.from(new Map(_tokensDataBatch.map((token) => [token.mint, token])).values());
+    const uniqueTokens = Array.from(new Map(_tokensDataBatch.map((token) => [token.mint, token])).values()).filter(
+      (token) => token.mint !== WRAPPED_SOL_MINT.toString(),
+    );
 
     const result = await gql.UpsertManyTokensAndPriceHistoriesMutation({
       tokens: uniqueTokens.map((token) => ({
