@@ -216,6 +216,7 @@ class TokenModel: ObservableObject {
     ) {
         if let price = self.prices.last?.price, price > 0 {
             let tokenAmount = Int(Double(buyAmountLamps) / Double(price) * 1e9)
+            var errorMessage: String? = nil
 
             Network.shared.buyToken(
                 tokenId: self.tokenId, amount: String(tokenAmount)
