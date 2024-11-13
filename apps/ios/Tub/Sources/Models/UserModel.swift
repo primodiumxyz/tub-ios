@@ -37,9 +37,9 @@ class UserModel: ObservableObject {
     
     @Published var isLoading: Bool = true
 
-    init(userId: String, mock: Bool? = false) {
+    init(userId: String, walletAddress: String, mock: Bool? = false) {
         self.userId = userId
-        self.walletAddress = userId
+        self.walletAddress = walletAddress
 
         
         if(mock == true) {
@@ -72,7 +72,6 @@ class UserModel: ObservableObject {
 
     private func fetchInitialBalance() async throws {
         let start = self.initialTime.ISO8601Format()
-        print("wallet address:", self.walletAddress)
         let query = GetWalletBalanceQuery(wallet: self.walletAddress)
         
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
@@ -85,7 +84,6 @@ class UserModel: ObservableObject {
                 switch result {
                 case .success(let response):
                     DispatchQueue.main.async {
-                        print(response.data?.balance)
                         self.initialBalanceLamps = response.data?.balance.first?.value ?? 0
                     }
                     continuation.resume()
@@ -130,7 +128,7 @@ class UserModel: ObservableObject {
     }
 
     func logout() {
-        UserManager.shared.logout(onLogout: {})
+        privy.logout()
         
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
@@ -141,10 +139,15 @@ class UserModel: ObservableObject {
             self.isLoading = true
         }
         
-        // Cancel any ongoing network requests or timers
+        
+    }
+
+    deinit {
+    // Cancel any ongoing network requests or timers
         cancellables.forEach { $0.cancel() }
         cancellables.removeAll()
         timerCancellable?.cancel()
-        
+        accountBalanceSubscription?.cancel()
+
     }
 }

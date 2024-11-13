@@ -17,7 +17,6 @@ export function createAppRouter() {
     buyToken: t.procedure
       .input(
         z.object({
-          userId: z.string(),
           tokenId: z.string(),
           amount: z.string(),
           overridePrice: z.string().optional(),
@@ -25,7 +24,7 @@ export function createAppRouter() {
       )
       .mutation(async ({ ctx, input }) => {
         return await ctx.tubService.buyToken(
-          input.userId,
+          ctx.jwtToken,
           input.tokenId,
           BigInt(input.amount),
           input.overridePrice ? BigInt(input.overridePrice) : undefined,
@@ -34,7 +33,6 @@ export function createAppRouter() {
     sellToken: t.procedure
       .input(
         z.object({
-          userId: z.string(),
           tokenId: z.string(),
           amount: z.string(),
           overridePrice: z.string().optional(),
@@ -42,7 +40,7 @@ export function createAppRouter() {
       )
       .mutation(async ({ ctx, input }) => {
         return await ctx.tubService.sellToken(
-          input.userId,
+          ctx.jwtToken,
           input.tokenId,
           BigInt(input.amount),
           input.overridePrice ? BigInt(input.overridePrice) : undefined,
@@ -52,12 +50,11 @@ export function createAppRouter() {
     airdropNativeToUser: t.procedure
       .input(
         z.object({
-          userId: z.string(),
           amount: z.string(),
         }),
       )
       .mutation(async ({ ctx, input }) => {
-        return await ctx.tubService.airdropNativeToUser(input.userId, BigInt(input.amount));
+        return await ctx.tubService.airdropNativeToUser(ctx.jwtToken, BigInt(input.amount));
       }),
   });
 }

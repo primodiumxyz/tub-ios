@@ -444,10 +444,6 @@ struct TransactionRow: View {
 #Preview {
     @Previewable @StateObject var errorHandler = ErrorHandler()
     @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
-    if !priceModel.isReady {
-        LoadingView(identifier: "HistoryView - waiting for priceModel")
-    } else {
-        HistoryView(txs: dummyData).environmentObject(priceModel).environmentObject(errorHandler)
-    }
+    HistoryView(txs: dummyData).environmentObject(priceModel).environmentObject(errorHandler)
 }
 

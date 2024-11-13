@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Charts
+import Combine
 
 struct ChartView: View {
     @EnvironmentObject var priceModel: SolPriceModel
