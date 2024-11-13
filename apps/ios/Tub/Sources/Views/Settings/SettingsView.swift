@@ -86,15 +86,34 @@ struct SettingsView: View {
                         title: "Set Default Buy Value",
                         value: ""
                     ) {
-                        HStack(spacing: 4) {                            
+                        HStack(spacing: 4) {    
+                            Text("$")
+                                .font(.sfRounded(size: .lg, weight: .semibold))
+                                .foregroundColor(AppColors.white.opacity(0.5))
                             TextField("", text: $tempDefaultValue)
                                 .focused($isEditing)
                                 .keyboardType(.decimalPad)
                                 .font(.sfRounded(size: .lg, weight: .semibold))
                                 .multilineTextAlignment(.trailing)
                                 .foregroundColor(AppColors.white)
+                                .frame(width: textWidth(for: tempDefaultValue))
+                                .onChange(of: tempDefaultValue) { newValue in
+                                    // Remove any non-numeric characters except decimal point
+                                    let filtered = newValue.filter { "0123456789.".contains($0) }
+                                    
+                                    // Ensure only one decimal point
+                                    let components = filtered.components(separatedBy: ".")
+                                    if components.count > 2 {
+                                        tempDefaultValue = components[0] + "." + components[1]
+                                    } else if components.count == 2 {
+                                        // Limit to 2 decimal places
+                                        let decimals = components[1].prefix(2)
+                                        tempDefaultValue = components[0] + "." + String(decimals)
+                                    } else {
+                                        tempDefaultValue = filtered
+                                    }
+                                }
                                 .onAppear {
-                                    // Initialize with current value
                                     tempDefaultValue = String(format: "%.2f", settingsManager.defaultBuyValue)
                                 }
                                 .onSubmit {
@@ -164,6 +183,13 @@ struct SettingsView: View {
             let rounded = (newValue * 100).rounded() / 100
             settingsManager.defaultBuyValue = max(0, rounded)
         }
+    }
+    
+    private func textWidth(for text: String) -> CGFloat {
+        let font = UIFont.systemFont(ofSize: 17, weight: .semibold)  
+        let attributes = [NSAttributedString.Key.font: font]
+        let size = (text as NSString).size(withAttributes: attributes)
+        return size.width + 10 
     }
 }
 
