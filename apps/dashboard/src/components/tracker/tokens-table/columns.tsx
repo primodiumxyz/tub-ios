@@ -3,7 +3,6 @@ import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Token } from "@/hooks/use-tokens";
-import { PRICE_PRECISION } from "@/lib/constants";
 import { formatLargeNumber } from "@/lib/utils";
 
 export const getColumns = (solToUsd: (solAmount: number) => string): ColumnDef<Token>[] => [
@@ -81,10 +80,8 @@ export const getColumns = (solToUsd: (solAmount: number) => string): ColumnDef<T
     cell: ({ row }) => {
       return (
         <div className="flex flex-col gap-1">
-          <span>{solToUsd(row.original.volume / PRICE_PRECISION)}</span>
-          <span className="text-xs text-muted-foreground">
-            ({formatLargeNumber(row.original.volume / PRICE_PRECISION)} SOL)
-          </span>
+          <span>{solToUsd(row.original.volume)}</span>
+          <span className="text-xs text-muted-foreground">({formatLargeNumber(row.original.volume)} SOL)</span>
         </div>
       );
     },
@@ -116,10 +113,8 @@ export const getColumns = (solToUsd: (solAmount: number) => string): ColumnDef<T
     cell: ({ row }) => {
       return (
         <div className="flex flex-col gap-1">
-          <span>{solToUsd(row.original.latestPrice / PRICE_PRECISION)}</span>
-          <span className="text-xs text-muted-foreground">
-            ({(row.original.latestPrice / PRICE_PRECISION).toFixed(9)} SOL)
-          </span>
+          <span>{solToUsd(row.original.latestPrice)}</span>
+          <span className="text-xs text-muted-foreground">({row.original.latestPrice.toFixed(9)} SOL)</span>
         </div>
       );
     },

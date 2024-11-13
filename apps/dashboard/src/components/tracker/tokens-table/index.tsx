@@ -6,11 +6,9 @@ import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import { useSolPrice } from "@/hooks/use-sol-price";
 import { Token, useTokens } from "@/hooks/use-tokens";
-import { useTrackerParams } from "@/hooks/use-tracker-params";
 
 export const TokensTable = () => {
   const { tokens, fetching, error } = useTokens();
-  const { timespan, minTrades, minVolume } = useTrackerParams();
   const { solToUsd } = useSolPrice();
   const [globalFilter, setGlobalFilter] = useState<string>("");
   const [frozen, setFrozen] = useState(false);
@@ -56,7 +54,7 @@ export const TokensTable = () => {
       <DataTable
         columns={getColumns(solToUsd)}
         data={filteredTokens}
-        caption={`List of tokens with at least ${minVolume} volume and at least ${minTrades} trades in the last ${timespan}`}
+        caption={`List of the first 50 trending tokens during the last hour.`}
         loading={fetching}
         pagination={true}
         defaultSorting={[{ id: "increasePct", desc: true }]}
