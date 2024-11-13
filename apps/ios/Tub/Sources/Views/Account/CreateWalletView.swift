@@ -14,8 +14,12 @@ struct CreateWalletView : View {
     func createEmbeddedWallet() {
         Task {
             do {
+                isLoading = true
                 // Ensure we're authenticated first
-                guard case .authenticated = privy.authState else { return }
+                guard case .authenticated = privy.authState else {
+                    isLoading = false
+                    return
+                }
                 
                 // Get the current embedded wallet state
                 let walletState = privy.embeddedWallet.embeddedWalletState
@@ -35,17 +39,19 @@ struct CreateWalletView : View {
                 default:
                     print("Wallet state: \(walletState.toString)")
                 }
+                isLoading = false
             } catch {
+                isLoading = false
                 errorHandler.show(error)
             }
         }
     }
-
+    
     
     var body: some View {
         VStack {
             if isLoading {
-               Text("Creating Tub Wallet...")
+                Text("Creating Tub Wallet...")
             } else if hasFailed {
                 VStack(spacing: 16) {
                     Text("Failed to create wallet")
@@ -84,17 +90,6 @@ struct CreateWalletView : View {
         .onAppear {
             createEmbeddedWallet()
         }
-        .task {
-            isLoading = true
-            do {
-                try await createEmbeddedWallet()
-                isLoading = false
-            } catch {
-                isLoading = false
-                hasFailed = true
-                errorHandler.show(error)
-            }
-//        }
     }
     
 }
