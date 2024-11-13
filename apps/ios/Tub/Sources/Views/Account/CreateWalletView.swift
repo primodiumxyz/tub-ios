@@ -53,34 +53,10 @@ struct CreateWalletView : View {
             if isLoading {
                 Text("Creating Tub Wallet...")
             } else if hasFailed {
-                VStack(spacing: 16) {
-                    Text("Failed to create wallet")
-                        .foregroundColor(.red)
-                    
-                    Button(action: createEmbeddedWallet) {
-                        Text("Retry")
-                            .font(.sfRounded(size: .lg, weight: .semibold))
-                            .foregroundColor(AppColors.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(14)
-                            .background(AppColors.primaryPurple)
-                            .cornerRadius(26)
-                    }
-                    .padding(.horizontal)
-                    
-                    Button(action: {
-                        privy.logout()
-                    }) {
-                        Text("Logout")
-                            .font(.sfRounded(size: .lg, weight: .semibold))
-                            .foregroundColor(AppColors.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(14)
-                            .background(AppColors.red)
-                            .cornerRadius(26)
-                    }
-                    .padding(.horizontal)
-                }
+                LoginErrorView(
+                    errorMessage: "Failed to create your Tub wallet. Please try again.",
+                    retryAction: createEmbeddedWallet
+                )
             } else {
                 ProgressView()
             }
