@@ -46,23 +46,7 @@ export function createAppRouter() {
           input.overridePrice ? BigInt(input.overridePrice) : undefined,
         );
       }),
-    registerNewToken: t.procedure
-      .input(
-        z.object({
-          name: z.string(),
-          symbol: z.string(),
-          supply: z.string().optional(),
-          uri: z.string().optional(),
-        }),
-      )
-      .mutation(async ({ ctx, input }) => {
-        return await ctx.tubService.registerNewToken(
-          input.name,
-          input.symbol,
-          input.supply ? BigInt(input.supply) : undefined,
-          input.uri,
-        );
-      }),
+
     airdropNativeToUser: t.procedure
       .input(
         z.object({
@@ -72,9 +56,6 @@ export function createAppRouter() {
       .mutation(async ({ ctx, input }) => {
         return await ctx.tubService.airdropNativeToUser(ctx.jwtToken, BigInt(input.amount));
       }),
-    getCoinbaseSolanaOnrampUrl: t.procedure.mutation(async ({ ctx }) => {
-      return await ctx.tubService.getCoinbaseSolanaOnrampUrl(ctx.jwtToken);
-    }),
     recordClientEvent: t.procedure
       .input(
         z.object({

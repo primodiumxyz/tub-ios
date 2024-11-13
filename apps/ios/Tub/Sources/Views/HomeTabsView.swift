@@ -13,21 +13,21 @@ struct HomeTabsView: View {
     @StateObject private var userModel : UserModel
     @State private var selectedTab: Int = 0 // Track the selected tab
     
-    init(userId: String) {
+    init(userId: String, walletAddress: String) {
         _priceModel = StateObject(wrappedValue: SolPriceModel())
-        _userModel = StateObject(wrappedValue: UserModel(userId: userId))
+        _userModel = StateObject(wrappedValue: UserModel(userId: userId, walletAddress: walletAddress))
     }
     
     var body: some View {
         Group {
-            if userModel.isLoading || !priceModel.isReady {
-                LoadingView()
+            if userModel.isLoading  {
+                LoadingView(identifier: "HomeTabsView - waiting for userModel & priceModel", message: "loading player data")
             } else {
                 ZStack(alignment: .bottom) {
                     // Main content view
                     Group {
                         if selectedTab == 0 {
-                            TokenListView()
+                            TokenListView(walletAddress: userModel.walletAddress)
                         } else if selectedTab == 1 {
                             HistoryView()
                         } else if selectedTab == 2 {
@@ -38,77 +38,56 @@ struct HomeTabsView: View {
                     .background(AppColors.black)
                     
                     // Custom Tab Bar
-                    HStack {
-                        Spacer()
-                        
-                        // Explore Tab
-                        Button(action: { selectedTab = 0 }) {
-                            VStack {
-                                Image(systemName: "safari")
-                                    .font(.system(size: 24))
-                                Text("Explore")
-                                    .font(.sfRounded(size: .xs, weight: .regular))
+                        HStack {
+                            Spacer()
+                            
+                            // Explore Tab
+                            Button(action: { selectedTab = 0 }) {
+                                VStack {
+                                    Image(systemName: "safari")
+                                        .font(.system(size: 24))
+                                    Text("Explore")
+                                        .font(.sfRounded(size: .xs, weight: .regular))
+                                }
+                                .foregroundColor(selectedTab == 0 ? color : AppColors.white.opacity(0.5))
                             }
-                            .foregroundColor(selectedTab == 0 ? color : AppColors.white.opacity(0.5))
-                        }
-                        
-                        Spacer()
-                        
-                        // History Tab
-                        Button(action: { selectedTab = 1 }) {
-                            VStack {
-                                Image(systemName: "clock")
-                                    .font(.system(size: 24))
-                                Text("History")
-                                    .font(.sfRounded(size: .xs, weight: .regular))
+                            
+                            Spacer()
+                            
+                            // History Tab
+                            Button(action: { selectedTab = 1 }) {
+                                VStack {
+                                    Image(systemName: "clock")
+                                        .font(.system(size: 24))
+                                    Text("History")
+                                        .font(.sfRounded(size: .xs, weight: .regular))
+                                }
+                                .foregroundColor(selectedTab == 1 ? color : AppColors.white.opacity(0.5))
                             }
-                            .foregroundColor(selectedTab == 1 ? color : AppColors.white.opacity(0.5))
-                        }
-                        
-                        Spacer()
-                        
-                        // Account Tab
-                        Button(action: { selectedTab = 2 }) {
-                            VStack {
-                                Image(systemName: "person")
-                                    .font(.system(size: 24))
-                                Text("Account")
-                                    .font(.sfRounded(size: .xs, weight: .regular))
+                            
+                            Spacer()
+                            
+                            // Account Tab
+                            Button(action: { selectedTab = 2 }) {
+                                VStack {
+                                    Image(systemName: "person")
+                                        .font(.system(size: 24))
+                                    Text("Account")
+                                        .font(.sfRounded(size: .xs, weight: .regular))
+                                }
+                                .foregroundColor(selectedTab == 2 ? color : AppColors.white.opacity(0.5))
                             }
-                            .foregroundColor(selectedTab == 2 ? color : AppColors.white.opacity(0.5))
+                            
+                            Spacer()
                         }
-                        
-                        Spacer()
-                    }
-                    .background(AppColors.black)
-                }
-                .onAppear {
-                    UITabBar.appearance().unselectedItemTintColor = UIColor.white.withAlphaComponent(0.5)
-                    
+                        .background(AppColors.black)
+                        .ignoresSafeArea(.keyboard)
                 }
             }
         }
+        .ignoresSafeArea(.keyboard)
         .environmentObject(userModel)
         .environmentObject(priceModel)
     }
 }
 
-#Preview {
-    @Previewable @State var userId : String? = nil
-    Group {
-        if userId == nil {
-            LoadingView()
-        } else {
-            HomeTabsView(userId: userId!)
-        }
-    }.onAppear {
-        Task {
-            do {
-                userId = try await privy.refreshSession().user.id
-                print(userId)
-            } catch {
-                print("error in preview: \(error)")
-            }
-        }
-    }
-}

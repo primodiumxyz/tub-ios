@@ -7,63 +7,70 @@
 
 import SwiftUI
 import Combine
+import TubAPI
+
+enum TubError: LocalizedError {
+    case insufficientBalance
+    
+    var errorDescription: String? {
+        switch self {
+        case .insufficientBalance:
+            return "Insufficient Balance"
+        }
+    }
+}
+
+enum Timespan: String, CaseIterable {
+    case live = "LIVE"
+    case thirtyMin = "30M"
+    
+    var timeframeSecs: Double {
+        switch self {
+        case .live: return CHART_INTERVAL
+        case .thirtyMin: return 30 * 60
+        }
+    }
+}
 
 struct TokenView : View {
+    @EnvironmentObject private var errorHandler: ErrorHandler
     @ObservedObject var tokenModel: TokenModel
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject private var userModel: UserModel
     @Binding var activeTab: String
+    var onSellSuccess: () -> Void
     
     @State private var showInfoCard = false
     @State private var selectedTimespan: Timespan = .live
     @State private var showBuySheet: Bool = false
     @State private var defaultAmount: Double = 50.0
-
-    @State private var priceChangeInterval: TimeInterval = 0
-    @State private var priceChangeTimer: Timer?
+    @State private var keyboardHeight: CGFloat = 0
     
-    //placeholder
-    let stats = [
-            ("Market Cap", "$144M"),
-            ("Volume", "1.52M"),
-            ("Holders", "53.3K"),
-            ("Supply", "989M")
-    ]
     
-    enum Timespan: String {
-        case live = "LIVE"
-        case thirtyMin = "30M"
-        
-        var interval: Double {
-            switch self {
-                case .live: return 120.0
-                case .thirtyMin: return 30.0 * 60.0
-            }
-        }
-    }
     
-    init(tokenModel: TokenModel, activeTab: Binding<String>) {
+    init(tokenModel: TokenModel, activeTab: Binding<String>, onSellSuccess: @escaping () -> Void) {
         self.tokenModel = tokenModel
         self._activeTab = activeTab
+        self.onSellSuccess = onSellSuccess
     }
     
     func handleBuy(amount: Double) {
         let buyAmountLamps = priceModel.usdToLamports(usd: amount)
-        tokenModel.buyTokens(buyAmountLamps: buyAmountLamps) { success in
-            if success {
+        if(buyAmountLamps > userModel.balanceLamps) {
+            errorHandler.show(TubError.insufficientBalance)
+            return
+        }
+        tokenModel.buyTokens(buyAmountLamps: buyAmountLamps) { result in
+            switch result {
+            case .success:
                 withAnimation(.easeInOut(duration: 0.3)) {
                     showBuySheet = false
                     activeTab = "sell" //  Switch tab after successful buy
                 }
-            }
-        }
-    }
-
-    private func startPriceChangeTimer() {
-        priceChangeTimer?.invalidate()
-        priceChangeTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-            if let refTime = self.tokenModel.priceRef?.timestamp {
-                self.priceChangeInterval = Date().timeIntervalSince(refTime)
+            case .failure(let error):
+                print("failed to buy")
+                print(error)
+                errorHandler.show(error)
             }
         }
     }
@@ -74,19 +81,22 @@ struct TokenView : View {
             VStack(alignment: .leading, spacing: 4) {
                 tokenInfoView
                 chartView
-                timespanButtons
+                    .padding(.top,5)
+                intervalButtons
+                    .padding(.bottom,8)
+                    .padding(.top,5)
                 infoCardLowOpacity
-                    .opacity(0.5) // Adjust opacity here
+                    .opacity(0.8)
                     .padding(.horizontal, 8)
-                    .padding(.bottom, -4)
-
                 BuySellForm(
                     tokenModel: tokenModel,
                     activeTab: $activeTab,
                     showBuySheet: $showBuySheet,
-                    defaultAmount: $defaultAmount
+                    defaultAmount: $defaultAmount,
+                    handleBuy: handleBuy,
+                    onSellSuccess: onSellSuccess
                 )
-                .equatable() // Add this modifier
+                .equatable()
             }
             .frame(maxWidth: .infinity)
             .foregroundColor(AppColors.white)
@@ -95,40 +105,42 @@ struct TokenView : View {
             buySheetOverlay
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .onAppear {
-            startPriceChangeTimer()
-        }
-        .onDisappear {
-            priceChangeTimer?.invalidate()
-            priceChangeTimer = nil
-        }
+        .dismissKeyboardOnTap()
     }
     
     private var tokenInfoView: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
-                if tokenModel.token.imageUri != nil {
-                    ImageView(imageUri: tokenModel.token.imageUri!, size: 20)
+                if tokenModel.token.imageUri != "" {
+                    ImageView(imageUri: tokenModel.token.imageUri, size: 20)
                 }
-                Text("$\(tokenModel.token.symbol ?? "")")
+                Text("$\(tokenModel.token.symbol)")
                     .font(.sfRounded(size: .lg, weight: .semibold))
             }
             HStack(alignment: .center, spacing: 6) {
-                Text(priceModel.formatPrice(lamports: tokenModel.prices.last?.price ?? 0, maxDecimals: 9, minDecimals: 2))
-                    .font(.sfRounded(size: .xl4, weight: .bold))
-                Image(systemName: "info.circle.fill")
-                    .frame(width: 16, height: 16)
+                if tokenModel.loading {
+                    LoadingPrice()
+                } else {
+                    Text(priceModel.formatPrice(lamports: tokenModel.prices.last?.price ?? 0, maxDecimals: 9, minDecimals: 2))
+                        .font(.sfRounded(size: .xl4, weight: .bold))
+                    Image(systemName: "info.circle.fill")
+                        .frame(width: 16, height: 16)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             
-            HStack {
-                Text(priceModel.formatPrice(lamports: tokenModel.priceChange.amountLamps, showSign: true))
-                Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
-                
-                Text(formatTimeElapsed(self.priceChangeInterval)).foregroundColor(.gray)
+            if tokenModel.loading {
+                LoadingPriceChange()
+            } else {
+                HStack {
+                    Text(priceModel.formatPrice(lamports: tokenModel.priceChange.amountLamps, showSign: true))
+                    Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
+                    
+                    Text("\(formatDuration(tokenModel.currentTimeframe.timeframeSecs))").foregroundColor(.gray)
+                }
+                .font(.sfRounded(size: .sm, weight: .semibold))
+                .foregroundColor(tokenModel.priceChange.amountLamps >= 0 ? .green : .red)
             }
-            .font(.sfRounded(size: .sm, weight: .semibold))
-            .foregroundColor(tokenModel.priceChange.amountLamps >= 0 ? .green : .red)
         }
         .padding(.horizontal)
         .onTapGesture {
@@ -139,93 +151,178 @@ struct TokenView : View {
         }
     }
     
+    let height = UIScreen.main.bounds.height * 0.38
+    
     private var chartView: some View {
         Group {
-            if selectedTimespan == .live {
-                ChartView(prices: tokenModel.prices, timeframeSecs: 90.0, purchaseTime: tokenModel.purchaseTime, purchaseAmount: tokenModel.balanceLamps)
+            if tokenModel.loading {
+                LoadingChart()
+            } else if selectedTimespan == .live {
+                ChartView(
+                    prices: tokenModel.prices,
+                    timeframeSecs: selectedTimespan.timeframeSecs,
+                    purchaseData: tokenModel.purchaseData,
+                    height: height
+                )
             } else {
-                CandleChartView(prices: tokenModel.prices, intervalSecs: 90, timeframeMins: 30)
-                    .id(tokenModel.prices.count)
+                CandleChartView(
+                    prices: tokenModel.prices,
+                    intervalSecs: 90,
+                    timeframeMins: 30,
+                    height: height
+                )
+                .id(tokenModel.prices.count)
             }
         }
     }
     
-    private var timespanButtons: some View {
+    /* ---------------------------- Interval Buttons ---------------------------- */
+    
+    private var intervalButtons: some View {
         HStack {
             Spacer()
-            HStack {
-                ForEach([Timespan.live, Timespan.thirtyMin], id: \.self) { timespan in
-                    Button(action: {
-                        selectedTimespan = timespan
-                        tokenModel.updateHistoryTimeframe(timespan.interval)
-                    }) {
-                        HStack(spacing: 4) {
-                            if timespan == Timespan.live {
-                                Circle()
-                                    .fill(AppColors.red)
-                                    .frame(width: 7, height: 7)
-                            }
-                            Text(timespan.rawValue)
-                                .font(.sfRounded(size: .sm, weight: .semibold))
-                        }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(selectedTimespan == timespan ? AppColors.aquaBlue : Color.clear)
-                        .foregroundColor(selectedTimespan == timespan ? AppColors.black : AppColors.white)
-                        .cornerRadius(20)
-                    }
-                }
+            HStack(spacing: 4) {
+                intervalButton(for: .live)
+                intervalButton(for: .thirtyMin)
             }
             Spacer()
         }
         .padding(.horizontal)
     }
     
-    private var infoCardLowOpacity: some View {
+    private func intervalButton(for timespan: Timespan) -> some View {
+        Button {
+            withAnimation {
+                selectedTimespan = timespan
+                tokenModel.updateHistoryInterval(timespan)
+            }
+        } label: {
+            HStack(spacing: 4) {
+                if timespan == .live {
+                    Circle()
+                        .fill(AppColors.red)
+                        .frame(width: 7, height: 7)
+                }
+                Text(timespan.rawValue)
+                    .font(.sfRounded(size: .sm, weight: .medium))
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .frame(width: 65)
+            .background(selectedTimespan == timespan ? AppColors.aquaBlue : Color.clear)
+            .foregroundColor(selectedTimespan == timespan ? AppColors.black : AppColors.white)
+            .cornerRadius(20)
+        }
+    }
+    
+    /* ------------------------------ Info Overlays ----------------------------- */
+    
+    private var stats: [(String, StatValue)] {
+        var stats = [(String, StatValue)]()
         
+        if let purchaseData = tokenModel.purchaseData, let price = tokenModel.prices.last?.price, price > 0, activeTab == "sell" {
+            // Calculate current value in lamports
+            let currentValueLamps = Int(Double(tokenModel.balanceLamps) / 1e9 * Double(price))
+            
+            // Calculate profit
+            let initialValueUsd = priceModel.lamportsToUsd(lamports: purchaseData.amount)
+            let currentValueUsd = priceModel.lamportsToUsd(lamports: currentValueLamps)
+            let gains = currentValueUsd - initialValueUsd
+            
+            
+            
+            if purchaseData.amount > 0, initialValueUsd > 0 {
+                let percentageGain = gains / initialValueUsd * 100
+                stats += [
+                    ("Gains", StatValue(
+                        text: "\(priceModel.formatPrice(usd: gains, showSign: true)) (\(String(format: "%.2f", percentageGain))%)",
+                        color: gains >= 0 ? AppColors.green : AppColors.red
+                    ))
+                ]
+            }
+            
+            // Add position stats
+            stats += [
+                ("You Own", StatValue(
+                    text: "\(priceModel.formatPrice(lamports: currentValueLamps, maxDecimals: 2, minDecimals: 2)) (\(priceModel.formatPrice(lamports: tokenModel.balanceLamps, showUnit: false)) \(tokenModel.token.symbol))",
+                    color: nil
+                ))
+            ]
+        } else {
+            stats += tokenModel.getTokenStats(priceModel: priceModel).map {
+                ($0.0, StatValue(text: $0.1, color: nil))
+            }
+        }
+        
+        return stats
+    }
+    
+    private var infoCardLowOpacity: some View {
         VStack(alignment: .leading, spacing: 0) {
-            
-            Text("Stats")
-                .font(.sfRounded(size: .xl, weight: .semibold))
-                .foregroundColor(AppColors.white)
-                .frame(maxWidth: .infinity, alignment: .topLeading)
-            
-            // grid
-            ForEach(0..<stats.count/2, id: \.self) { index in
-                HStack(alignment: .top, spacing: 20) {
-                    ForEach(0..<2) { subIndex in
-                        let stat = stats[index * 2 + subIndex]
-                        VStack {
-                            HStack(alignment: .center)  {
-                                Text(stat.0)
-                                    .font(.sfRounded(size: .sm, weight: .regular))
-                                    .foregroundColor(AppColors.gray)
-                                    .fixedSize(horizontal: true, vertical: false)
-                                
-                                Text(stat.1)
-                                    .font(.sfRounded(size: .base, weight: .semibold))
-                                    .frame(maxWidth: .infinity, alignment: .topTrailing)
-                                    .foregroundColor(AppColors.white)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
+            if activeTab == "sell" {
+                ForEach(stats.prefix(3), id: \.0) { stat in
+                    VStack(spacing: 2) {
+                        HStack(spacing: 0) {
+                            Text(stat.0)
+                                .font(.sfRounded(size: .xs, weight: .regular))
+                                .foregroundColor(AppColors.white.opacity(0.7))
+                                .fixedSize(horizontal: true, vertical: false)
                             
-                            //divider
-                            Rectangle()
-                                .foregroundColor(.clear)
-                                .frame(height: 0.5)
-                                .background(AppColors.gray.opacity(0.5))
+                            Text(stat.1.text)
+                                .font(.sfRounded(size: .base, weight: .semibold))
+                                .foregroundColor(stat.1.color ?? AppColors.white)
+                                .frame(maxWidth: .infinity, alignment: .topTrailing)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        
+                        Rectangle()
+                            .foregroundColor(.clear)
+                            .frame(height: 0.5)
+                            .background(AppColors.gray.opacity(0.5))
+                            .padding(.top, 2)
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
+            
+            // Then show remaining stats in two columns
+            ForEach(0..<((stats.count - (activeTab == "sell" ? 3 : 0) + 1) / 2), id: \.self) { rowIndex in
+                HStack(spacing: 20) {
+                    ForEach(0..<2) { columnIndex in
+                        let statIndex = (activeTab == "sell" ? 3 : 0) + rowIndex * 2 + columnIndex
+                        if statIndex < stats.count {
+                            let stat = stats[statIndex]
+                            VStack(spacing: 2) {
+                                HStack(spacing: 0) {
+                                    Text(stat.0)
+                                        .font(.sfRounded(size: .xs, weight: .regular))
+                                        .foregroundColor(AppColors.white.opacity(0.7))
+                                        .fixedSize(horizontal: true, vertical: false)
+                                    
+                                    Text(stat.1.text)
+                                        .font(.sfRounded(size: .base, weight: .semibold))
+                                        .foregroundColor(AppColors.white)
+                                        .frame(maxWidth: .infinity, alignment: .topTrailing)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                
+                                Rectangle()
+                                    .foregroundColor(.clear)
+                                    .frame(height: 0.5)
+                                    .background(AppColors.gray.opacity(0.5))
+                                    .padding(.top, 2)
+                            }
                         }
                     }
                 }
-                .padding(.top,8)
-                .padding(.horizontal,8)
+                .padding(.vertical, 4)
             }
         }
-        .padding(.horizontal,24)
-        .padding(.vertical,16)
-        .frame(maxWidth: .infinity, maxHeight: 95 ,alignment: .topLeading)
+        .padding(.horizontal, 16)
+        .padding(.top, 16)
+        .frame(maxWidth: .infinity, maxHeight: 110, alignment: .topLeading)
         .background(AppColors.darkGrayGradient)
-        .cornerRadius(12)
+        .cornerRadius(16)
         .onTapGesture {
             withAnimation(.easeInOut) {
                 showInfoCard.toggle()
@@ -246,7 +343,7 @@ struct TokenView : View {
                     }
                 VStack {
                     Spacer()
-                    TokenInfoCardView(tokenModel: tokenModel, isVisible: $showInfoCard)
+                    TokenInfoCardView(tokenModel: tokenModel, isVisible: $showInfoCard, activeTab: $activeTab)
                 }
                 .transition(.move(edge: .bottom))
                 .zIndex(1) // Ensure it stays on top
@@ -256,39 +353,51 @@ struct TokenView : View {
     
     
     private var buySheetOverlay: some View {
-        Group {
-            if showBuySheet {
+        guard showBuySheet else {
+            return   AnyView(EmptyView())
+        }
+        return AnyView (
+            Group {
                 AppColors.black.opacity(0.4)
                     .ignoresSafeArea()
                     .onTapGesture {
                         withAnimation(.easeInOut(duration: 0.3)) {
-                            print("CLOSING")
                             showBuySheet = false
                         }
                     }
                 
                 BuyForm(isVisible: $showBuySheet, defaultAmount: $defaultAmount, tokenModel: tokenModel, onBuy: handleBuy)
                     .transition(.move(edge: .bottom))
-                    .offset(y:40)
-                    .zIndex(2) // Ensure it stays on top
+                    .offset(y: -keyboardHeight)
+                    .zIndex(2)
+                    .onAppear {
+                        setupKeyboardNotifications()
+                    }
+                    .onDisappear {
+                        removeKeyboardNotifications()
+                    }
+            }
+        )
+    }
+    
+    private func setupKeyboardNotifications() {
+        NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { notification in
+            if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
+                withAnimation(.easeOut(duration: 0.16)) {
+                    self.keyboardHeight = keyboardFrame.height / 2
+                }
+            }
+        }
+        
+        NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { _ in
+            withAnimation(.easeOut(duration: 0.16)) {
+                self.keyboardHeight = 0
             }
         }
     }
-
-    private func formatTimeElapsed(_ timeInterval: TimeInterval) -> String {
-        let hours = Int(timeInterval) / 3600
-        let minutes = (Int(timeInterval) % 3600) / 60
-        let seconds = Int(timeInterval) % 60
-
-        if hours > 1 {
-            return "\(hours)h"
-        } else if hours > 0 {
-            return "\(hours)h"
-        } else if minutes > 1 {
-            return "\(minutes)m"
-        } else  {
-            return "\(seconds)s"
-        }
+    
+    private func removeKeyboardNotifications() {
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
     }
 }
-

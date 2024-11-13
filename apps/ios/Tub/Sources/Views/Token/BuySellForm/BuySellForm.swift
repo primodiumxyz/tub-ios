@@ -7,45 +7,45 @@
 import SwiftUI
 
 struct BuySellForm: View {
+    @EnvironmentObject private var errorHandler: ErrorHandler
     @EnvironmentObject var userModel: UserModel
     @EnvironmentObject var priceModel: SolPriceModel
     @ObservedObject var tokenModel: TokenModel
     @Binding var activeTab: String
     @Binding var showBuySheet: Bool
     @Binding var defaultAmount: Double
+    @State private var showBubbles = false
+    @StateObject private var animationState = TokenAnimationState.shared
     
-    func handleSell(completion: ((Bool) -> Void)?) {
-        tokenModel.sellTokens(completion: {success in
-            if success {
-                activeTab = "buy"
-            }
-            completion?(success)
-        })
-    }
+    var handleBuy: (Double) -> Void
+    var onSellSuccess: () -> Void
     
-    func handleBuy(amount: Double) {
-        let buyAmountLamps = priceModel.usdToLamports(usd: amount)
+    func handleSell() {
+        // Add haptic feedback
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.success)
         
-        if userModel.balanceLamps >= buyAmountLamps {
-            tokenModel.buyTokens(buyAmountLamps: buyAmountLamps) { success in
-                if success {
-                    activeTab = "sell" // Switch tab after successful buy
-                }
+        tokenModel.sellTokens(completion: {result in
+            switch result {
+            case .success:
+                animationState.showSellBubbles = true
+                activeTab = "buy"
+                onSellSuccess()
+            case .failure(let error):
+                errorHandler.show(error)
             }
-        } else {
-            print("Insufficient balance to complete the purchase.")
-        }
+        })
     }
     
     var body: some View {
         VStack {
-        if userModel.userId == "" {
-            Text("Register to trade")
-                .font(.title)
-                .foregroundColor(.yellow)
-                .padding()
-                .frame(maxWidth: .infinity, alignment: .center)
-        } else if activeTab == "buy" {
+            if userModel.userId == "" {
+                Text("Register to trade")
+                    .font(.title)
+                    .foregroundColor(.yellow)
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .center)
+            } else if activeTab == "buy" {
                 // edit button
                 HStack(spacing: 16) {
                     Button(action: {
@@ -59,7 +59,7 @@ struct BuySellForm: View {
                     }
                     
                     Button(action: {
-                        handleBuy(amount: defaultAmount)
+                        handleBuy(defaultAmount)
                     }) {
                         HStack(alignment: .center, spacing: 8) {
                             Text("Buy \(priceModel.formatPrice(usd: defaultAmount))")
@@ -78,9 +78,10 @@ struct BuySellForm: View {
                                 .stroke(AppColors.aquaGreen, lineWidth: 1)
                         )
                     }
-                }.padding(.horizontal,16)
+                }.padding(.horizontal,8)
             } else {
-                SellForm(tokenModel: tokenModel, onSell: handleSell)
+                SellForm(tokenModel: tokenModel, showBuySheet: $showBuySheet, onSell: handleSell)
+                    .padding(.horizontal,8)
             }
         }
     }

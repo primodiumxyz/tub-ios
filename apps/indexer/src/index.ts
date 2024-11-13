@@ -5,7 +5,12 @@ import { WebSocket } from "ws";
 
 import { createClient as createGqlClient, GqlClient } from "@tub/gql";
 import { parseEnv } from "@bin/parseEnv";
-import { CLOSE_CODES, FETCH_DATA_BATCH_SIZE, FETCH_HELIUS_WRITE_GQL_BATCH_SIZE } from "@/lib/constants";
+import {
+  CLOSE_CODES,
+  FETCH_DATA_BATCH_SIZE,
+  FETCH_HELIUS_WRITE_GQL_BATCH_SIZE,
+  WRAPPED_SOL_MINT,
+} from "@/lib/constants";
 import { RaydiumAmmParser } from "@/lib/parsers/raydium-amm-parser";
 import { connection, helius, ixParser, txFormatter } from "@/lib/setup";
 import { PriceData, Swap, SwapType, TokenMetadata, TransactionSubscriptionResult } from "@/lib/types";
@@ -87,14 +92,17 @@ const handleSwapData = async <T extends SwapType = SwapType>(gql: GqlClient["db"
   if (priceDataBatch.length < FETCH_HELIUS_WRITE_GQL_BATCH_SIZE) return;
   const _tokensDataBatch = tokensDataBatch;
   const _priceDataBatch = priceDataBatch;
+
   // clear batches before all async calls for the same reason as above
   tokensDataBatch = [];
   priceDataBatch = [];
 
   try {
-    const uniqueTokens = Array.from(new Map(_tokensDataBatch.map((token) => [token.mint, token])).values());
+    const uniqueTokens = Array.from(new Map(_tokensDataBatch.map((token) => [token.mint, token])).values()).filter(
+      (token) => token.mint !== WRAPPED_SOL_MINT.toString(),
+    );
 
-    const result = await gql.UpsertManyTokensAndPriceHistoryMutation({
+    const result = await gql.UpsertManyTokensAndPriceHistoriesMutation({
       tokens: uniqueTokens.map((token) => ({
         mint: token.mint,
         name: token.metadata.name,
@@ -107,7 +115,7 @@ const handleSwapData = async <T extends SwapType = SwapType>(gql: GqlClient["db"
         decimals: token.decimals,
         is_pump_token: token.isPumpToken,
       })),
-      priceHistory: _priceDataBatch.map(({ mint, price, timestamp, swap }) => ({
+      price_histories: _priceDataBatch.map(({ mint, price, timestamp, swap }) => ({
         mint,
         price: price.toString(),
         amount_in: "amountIn" in swap ? swap.amountIn.toString() : undefined,
@@ -124,6 +132,11 @@ const handleSwapData = async <T extends SwapType = SwapType>(gql: GqlClient["db"
     } else {
       console.log(`Upserted ${uniqueTokens.length} tokens`);
       console.log(`Saved ${_priceDataBatch.length} price data points`);
+      const oldestTimestamp = Math.min(..._priceDataBatch.map((data) => data.timestamp));
+      console.log(
+        `Oldest data point from ${new Date(oldestTimestamp).toISOString()} (${(Date.now() - oldestTimestamp) / 1000}s ago)`,
+      );
+      console.log("---");
     }
   } catch (err) {
     console.error("Unexpected error in handleSwapData:", err);
@@ -198,7 +211,7 @@ const setup = async (ws: WebSocket, gql: GqlClient["db"], connectionId: string) 
       );
     };
 
-    ws.onmessage = (event) => {
+    ws.onmessage = async (event) => {
       lastMessageTime = Date.now();
 
       const obj = JSON.parse(event.data.toString());
@@ -206,7 +219,7 @@ const setup = async (ws: WebSocket, gql: GqlClient["db"], connectionId: string) 
 
       if (result) {
         const swapAccounts = handleLogs(result);
-        handleSwapData(gql, swapAccounts);
+        await handleSwapData(gql, swapAccounts);
       } else {
         // Log other types of messages (like subscription confirmations)
         console.log(`Received non-swap message: ${JSON.stringify(obj).slice(0, 200)}...`);
