@@ -97,10 +97,10 @@ export class TubService {
     event: {
       userAgent: string;
       eventName: string;
-      metadata?: Record<string, unknown>;
+      metadata?: string;
       errorDetails?: string;
       source?: string;
-      build_version?: string;
+      buildVersion?: string;
     },
     token: string,
   ) {
@@ -111,14 +111,26 @@ export class TubService {
       throw new Error("User does not have a wallet");
     }
 
-    await this.gql.AddClientEventMutation({
+    const result = await this.gql.AddClientEventMutation({
       user_agent: event.userAgent,
       event_name: event.eventName,
       metadata: event.metadata,
       user_wallet: wallet,
       error_details: event.errorDetails,
       source: event.source,
-      build: event.build_version,
+      build: event.buildVersion,
     });
+
+    const id = result.data?.insert_analytics_client_event_one?.id;
+
+    if (!id) {
+      throw new Error("Failed to record client event. Missing ID.");
+    }
+
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+
+    return id;
   }
 }
