@@ -34,7 +34,13 @@ class TokenModel: ObservableObject {
  
     private var latestPriceSubscription: Apollo.Cancellable?
     private var tokenBalanceSubscription: Apollo.Cancellable?
-        
+    
+    deinit {
+        // Clean up subscriptions when the object is deallocated
+        latestPriceSubscription?.cancel()
+        tokenBalanceSubscription?.cancel()
+    }
+    
     init(walletAddress: String, tokenId: String? = nil) {
         self.walletAddress = walletAddress
         if tokenId != nil {

@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Charts
+import Combine
 
 struct ChartView: View {
     @EnvironmentObject var priceModel: SolPriceModel
@@ -23,6 +24,9 @@ struct ChartView: View {
     }
     
     @State private var currentTime = Date().timeIntervalSince1970
+    
+    @State private var timerCancellable: Cancellable?
+    @State private var timer: Timer.TimerPublisher = Timer.publish(every: 0.1, on: .main, in: .common)
     
     private var dashedLineColor: Color {
         guard let purchasePrice = purchaseData?.price,
@@ -144,7 +148,13 @@ struct ChartView: View {
         .chartYAxis(.hidden)
         .chartXAxis(.hidden)
         .frame(width: .infinity, height: height)
-        .onReceive(Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()) { _ in
+        .onAppear {
+            timerCancellable = timer.connect()
+        }
+        .onDisappear {
+            timerCancellable?.cancel()
+        }
+        .onReceive(timer) { _ in
             currentTime = Date().timeIntervalSince1970
         }
     }

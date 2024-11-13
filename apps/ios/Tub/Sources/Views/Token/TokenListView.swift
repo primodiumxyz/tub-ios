@@ -30,10 +30,10 @@ struct TokenListView: View {
     
     private func canSwipe(value: DragGesture.Value) -> Bool {
         return activeTab != "sell" &&
-            // not trying to swipe up from the first token
-            !(value.translation.height > 0 && viewModel.currentTokenIndex == 0) &&
-            // not trying to swipe down when there is only one token available (the current one)
-            !(value.translation.height < 0 && !viewModel.isNextTokenAvailable)
+        // not trying to swipe up from the first token
+        !(value.translation.height > 0 && viewModel.currentTokenIndex == 0) &&
+        // not trying to swipe down when there is only one token available (the current one)
+        !(value.translation.height < 0 && !viewModel.isNextTokenAvailable)
     }
     
     init(walletAddress: String) {
@@ -62,16 +62,26 @@ struct TokenListView: View {
     var body: some View {
         Group {
             if viewModel.isLoading {
-                // TODO: replace this with dummy token view
-                LoadingView(identifier: "TokenListView - loading", message: "loading view model")
+                VStack(spacing: 0) {
+                    AccountBalanceView(
+                        userModel: userModel,
+                        currentTokenModel: viewModel.currentTokenModel
+                    )
+                    .padding(.horizontal, 10)
+                    .background(dragging ? AppColors.black : nil)
+                    .zIndex(2)
+                    DummyTokenView(height: 400)
+                        .frame(height: .infinity)
+                }
+                
             } else {
                 ZStack(alignment: .top) {
                     // Main content
                     ZStack {
-                        (activeTab == "sell" ? 
-                            AppColors.primaryPinkGradient :
+                        (activeTab == "sell" ?
+                         AppColors.primaryPinkGradient :
                             LinearGradient(colors: [.clear], startPoint: .top, endPoint: .bottom))
-                            .ignoresSafeArea()
+                        .ignoresSafeArea()
                         
                         VStack(spacing: 0) {
                             AccountBalanceView(
@@ -92,9 +102,9 @@ struct TokenListView: View {
                             } else {
                                 GeometryReader { geometry in
                                     VStack(spacing: 10) {
-                                        TokenView(tokenModel: viewModel.previousTokenModel ?? viewModel.createTokenModel(), activeTab: $activeTab, onSellSuccess: {})
+                                        DummyTokenView(height: geometry.size.height)
                                             .frame(height: geometry.size.height)
-                                            .opacity(dragging ? 0.2 : 0)
+                                            .opacity(dragging ? 0.8 : 0)
                                         TokenView(
                                             tokenModel: viewModel.currentTokenModel,
                                             activeTab: $activeTab,
@@ -104,14 +114,12 @@ struct TokenListView: View {
                                                 }
                                             }
                                         )
+                                        .frame(height: geometry.size.height)
+                                        DummyTokenView(height: geometry.size.height)
                                             .frame(height: geometry.size.height)
-                                        TokenView(
-                                            tokenModel: viewModel.nextTokenModel ?? viewModel.createTokenModel(),
-                                            activeTab: Binding.constant("buy"),
-                                            onSellSuccess: {}
-                                        )
-                                            .frame(height: geometry.size.height)
-                                            .opacity(dragging ? 0.2 : 0)
+                                            .opacity(dragging ? 0.8 : 0)
+                                        
+                                        
                                     }
                                     .zIndex(1)
                                     .offset(y: -geometry.size.height - 35 + offset + activeOffset)
@@ -166,7 +174,7 @@ struct TokenListView: View {
                 .background(Color.black)
             }
         } .onAppear {
-                viewModel.subscribeTokens()
+            viewModel.subscribeTokens()
         }
     }
 }
