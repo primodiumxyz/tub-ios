@@ -43,7 +43,7 @@ struct TokenInfoCardView: View {
                     ))
                 ]
             }
-
+          
             stats += [
                 ("You Own", StatValue(
                     text: "\(priceModel.formatPrice(lamports: currentValueLamps, maxDecimals: 2, minDecimals: 2)) (\(priceModel.formatPrice(lamports: tokenModel.balanceLamps, showUnit: false)) \(tokenModel.token.symbol))",
@@ -84,7 +84,7 @@ struct TokenInfoCardView: View {
                     
                     
                     ForEach(stats, id: \.0) { stat in
-                        VStack(spacing:4) {
+                        VStack(spacing:10) {
                             HStack(alignment: .center)  {
                                 Text(stat.0)
                                     .font(.sfRounded(size: .sm, weight: .regular))
@@ -129,6 +129,7 @@ struct TokenInfoCardView: View {
             }
         }
         .padding(.vertical, 0)
+        .padding(.horizontal,20)
         .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.44, alignment: .topLeading)
         .background(AppColors.black)
         .overlay(

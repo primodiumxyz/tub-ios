@@ -85,7 +85,6 @@ struct BuyForm: View {
         .padding(.vertical, 20)
         .background(AppColors.darkGreenGradient)
         .cornerRadius(26)
-        .frame(height: 250)
         .offset(y: max(dragOffset, slideOffset - keyboardHeight + (isKeyboardActive ? keyboardAdjustment : 0)))
         .gesture(dragGesture)
         .onAppear(perform: animateAppearance)

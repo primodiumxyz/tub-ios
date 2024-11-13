@@ -14,15 +14,24 @@ struct BuySellForm: View {
     @Binding var activeTab: String
     @Binding var showBuySheet: Bool
     @Binding var defaultAmount: Double
+    @State private var showBubbles = false
+    @StateObject private var animationState = TokenAnimationState.shared
     
     var handleBuy: (Double) -> Void
+    var onSellSuccess: () -> Void
     
     func handleSell() {
+        // Add haptic feedback
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.success)
+        
         tokenModel.sellTokens(completion: {result in
             switch result {
             case .success:
-                    activeTab = "buy"
-            case .failure (let error):
+                animationState.showSellBubbles = true
+                activeTab = "buy"
+                onSellSuccess()
+            case .failure(let error):
                 errorHandler.show(error)
             }
         })
@@ -30,13 +39,13 @@ struct BuySellForm: View {
     
     var body: some View {
         VStack {
-        if userModel.userId == "" {
-            Text("Register to trade")
-                .font(.title)
-                .foregroundColor(.yellow)
-                .padding()
-                .frame(maxWidth: .infinity, alignment: .center)
-        } else if activeTab == "buy" {
+            if userModel.userId == "" {
+                Text("Register to trade")
+                    .font(.title)
+                    .foregroundColor(.yellow)
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .center)
+            } else if activeTab == "buy" {
                 // edit button
                 HStack(spacing: 16) {
                     Button(action: {
