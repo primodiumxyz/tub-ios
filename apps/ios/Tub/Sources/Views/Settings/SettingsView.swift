@@ -51,18 +51,60 @@ struct CustomToggleStyle: ToggleStyle {
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var defaultBuyValue: Double = 10.00
     @StateObject private var settingsManager = SettingsManager.shared
+    // Add temporary state for editing
+    @State private var tempDefaultValue: String = ""
+    @FocusState private var isEditing: Bool
+    
+    private let currencyFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.maximumFractionDigits = 2
+        formatter.minimumFractionDigits = 2
+        formatter.currencyCode = "USD"
+        formatter.currencySymbol = "$"
+        return formatter
+    }()
+    
+    // Create a computed binding to handle validation
+    private var validatedDefaultBuyValue: Binding<Double> {
+        Binding(
+            get: { settingsManager.defaultBuyValue },
+            set: { newValue in
+                // Round to 2 decimal places
+                let rounded = (newValue * 100).rounded() / 100
+                settingsManager.defaultBuyValue = max(0, rounded)
+            }
+        )
+    }
     
     var body: some View {
         NavigationStack {
             VStack {
                 VStack(spacing: 24) {
-                    // Default Buy Value
                     DetailRow(
                         title: "Set Default Buy Value",
-                        value: String(format: "$%.2f", defaultBuyValue)
-                    )
+                        value: ""
+                    ) {
+                        HStack(spacing: 4) {                            
+                            TextField("", text: $tempDefaultValue)
+                                .focused($isEditing)
+                                .keyboardType(.decimalPad)
+                                .font(.sfRounded(size: .lg, weight: .semibold))
+                                .multilineTextAlignment(.trailing)
+                                .foregroundColor(AppColors.white)
+                                .onAppear {
+                                    // Initialize with current value
+                                    tempDefaultValue = String(format: "%.2f", settingsManager.defaultBuyValue)
+                                }
+                                .onSubmit {
+                                    updateDefaultValue()
+                                }
+                            Image(systemName: "pencil")
+                                .foregroundColor(AppColors.white)
+                                .font(.system(size: 20))
+                        }
+                    }
                     
                     // Commented out for now
                     // Push Notifications Toggle
@@ -106,6 +148,21 @@ struct SettingsView: View {
                 }
             }
             .background(AppColors.black)
+        }
+        .toolbar {
+            ToolbarItem(placement: .keyboard) {
+                Button("Done") {
+                    isEditing = false
+                    updateDefaultValue()
+                }
+            }
+        }
+    }
+    
+    private func updateDefaultValue() {
+        if let newValue = Double(tempDefaultValue) {
+            let rounded = (newValue * 100).rounded() / 100
+            settingsManager.defaultBuyValue = max(0, rounded)
         }
     }
 }

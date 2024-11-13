@@ -65,10 +65,10 @@ struct BuySellForm: View {
                     }
                     
                     Button(action: {
-                        handleBuy(defaultAmount)
+                        handleBuy(settingsManager.defaultBuyValue)
                     }) {
                         HStack(alignment: .center, spacing: 8) {
-                            Text("Buy \(priceModel.formatPrice(usd: defaultAmount))")
+                            Text("Buy \(priceModel.formatPrice(usd: settingsManager.defaultBuyValue))")
                                 .font(.sfRounded(size: .xl, weight: .semibold))
                                 .foregroundColor(AppColors.black)
                                 .multilineTextAlignment(.center)
