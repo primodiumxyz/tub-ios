@@ -1,4 +1,4 @@
-import { PrivyClient } from "@privy-io/server-auth";
+import { PrivyClient, WalletWithMetadata } from "@privy-io/server-auth";
 import { GqlClient } from "@tub/gql";
 import { config } from "dotenv";
 
@@ -6,18 +6,42 @@ config({ path: "../../.env" });
 
 export class TubService {
   private gql: GqlClient["db"];
+  private privy: PrivyClient;
 
-  constructor(gqlClient: GqlClient["db"], _: PrivyClient) {
+  constructor(gqlClient: GqlClient["db"], privy: PrivyClient) {
     this.gql = gqlClient;
+    this.privy = privy;
+  }
+
+  private verifyJWT = async (token: string) => {
+    try {
+      const verifiedClaims = await this.privy.verifyAuthToken(token);
+      return verifiedClaims.userId;
+    } catch (e: any) {
+      throw new Error(`Invalid JWT: ${e.message}`);
+    }
+  };
+
+  private async getUserWallet(userId: string) {
+    const user = await this.privy.getUserById(userId);
+
+    const solanaWallet = user.linkedAccounts.find((account) => account.type === "wallet" && account.chainType === "solana") as WalletWithMetadata | undefined;
+    console.log(solanaWallet);
+    return solanaWallet?.address;
   }
 
   getStatus(): { status: number } {
     return { status: 200 };
   }
 
-  async sellToken(userId: string, tokenId: string, amount: bigint, overridePrice?: bigint) {
+  async sellToken(jwtToken: string, tokenId: string, amount: bigint, overridePrice?: bigint) {
+    const accountId = await this.verifyJWT(jwtToken);
+    const wallet = await this.getUserWallet(accountId);
+    if (!wallet) {
+      throw new Error("User does not have a wallet");
+    }
     const result = await this.gql.SellTokenMutation({
-      wallet: userId,
+      wallet,
       token: tokenId,
       amount: amount.toString(),
       override_token_price: overridePrice?.toString(),
@@ -30,9 +54,14 @@ export class TubService {
     return result.data;
   }
 
-  async buyToken(userId: string, tokenId: string, amount: bigint, overridePrice?: bigint) {
+  async buyToken(jwtToken: string, tokenId: string, amount: bigint, overridePrice?: bigint) {
+    const accountId = await this.verifyJWT(jwtToken);
+    const wallet = await this.getUserWallet(accountId);
+    if (!wallet) {
+      throw new Error("User does not have a wallet");
+    }
     const result = await this.gql.BuyTokenMutation({
-      wallet: userId,
+      wallet,
       token: tokenId,
       amount: amount.toString(),
       override_token_price: overridePrice?.toString(),
@@ -41,13 +70,17 @@ export class TubService {
     if (result.error) {
       throw new Error(result.error.message);
     }
-
     return result.data;
   }
 
-  async airdropNativeToUser(userId: string, amount: bigint) {
+  async airdropNativeToUser(jwtToken: string, amount: bigint) {
+    const accountId = await this.verifyJWT(jwtToken);
+    const wallet = await this.getUserWallet(accountId);
+    if (!wallet) {
+      throw new Error("User does not have a wallet");
+    }
     const result = await this.gql.AirdropNativeToWalletMutation({
-      wallet: userId,
+      wallet,
       amount: amount.toString(),
     });
 

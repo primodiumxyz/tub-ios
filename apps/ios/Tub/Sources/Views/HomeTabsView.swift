@@ -13,15 +13,15 @@ struct HomeTabsView: View {
     @StateObject private var userModel : UserModel
     @State private var selectedTab: Int = 0 // Track the selected tab
     
-    init(userId: String) {
+    init(userId: String, walletAddress: String) {
         _priceModel = StateObject(wrappedValue: SolPriceModel())
-        _userModel = StateObject(wrappedValue: UserModel(userId: userId))
+        _userModel = StateObject(wrappedValue: UserModel(userId: userId, walletAddress: walletAddress))
     }
     
     var body: some View {
         Group {
-            if userModel.isLoading || !priceModel.isReady {
-                LoadingView(identifier: "HomeTabsView - waiting for userModel & priceModel")
+            if userModel.isLoading  {
+                LoadingView(identifier: "HomeTabsView - waiting for userModel & priceModel", message: "loading player data")
             } else {
                 ZStack(alignment: .bottom) {
                     // Main content view
@@ -91,15 +91,3 @@ struct HomeTabsView: View {
     }
 }
 
-#Preview {
-    @Previewable @StateObject var errorHandler = ErrorHandler()
-    @Previewable @State var userId : String? = nil
-    Group {
-        if userId == nil {
-            LoadingView(identifier: "HomeTabsView - no userId")
-        } else {
-            HomeTabsView(userId: userId!)
-        }
-    }
-        .environmentObject(errorHandler)
-}

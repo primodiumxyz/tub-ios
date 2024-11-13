@@ -69,10 +69,9 @@ public let graphqlWsUrl: String = {
 
 // Server URLs
 private let serverUrlHost: String = {
-    print(ProcessInfo.processInfo.environment["NGROK_SERVER_URL_HOST"])
-//    if installationSource == .appStore || installationSource == .testFlight {
-//        return "tub-server.primodium.ai"
-//    }
+   if installationSource == .appStore || installationSource == .testFlight {
+       return "tub-server.primodium.ai"
+   }
     if let ngrokUrl = ProcessInfo.processInfo.environment["NGROK_SERVER_URL_HOST"] {
         return ngrokUrl
     } else {
