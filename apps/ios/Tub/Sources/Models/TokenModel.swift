@@ -43,7 +43,6 @@ class TokenModel: ObservableObject {
     }
     
     func initialize(with newTokenId: String, timeframeSecs: Double = 90) {
-        print("initializing token \(newTokenId) with timeframe \(timeframeSecs)")
         // Cancel all existing subscriptions
         latestPriceSubscription?.cancel()
         tokenBalanceSubscription?.cancel()
@@ -199,7 +198,6 @@ class TokenModel: ObservableObject {
     func buyTokens(buyAmountLamps: Int, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
         if let price = self.prices.last?.price, price > 0 {
             let tokenAmount = Int(Double(buyAmountLamps) / Double(price) * 1e9)
-            print("token amount:", tokenAmount)
             
             Network.shared.buyToken(tokenId: self.tokenId, amount: String(tokenAmount)
             ) { result in

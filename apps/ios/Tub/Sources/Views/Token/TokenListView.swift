@@ -62,7 +62,8 @@ struct TokenListView: View {
     var body: some View {
         Group {
             if viewModel.isLoading {
-                LoadingView(identifier: "TokenListView - loading")
+                // TODO: replace this with dummy token view
+                LoadingView(identifier: "TokenListView - loading", message: "loading view model")
             } else {
                 ZStack(alignment: .top) {
                     // Main content

@@ -136,7 +136,7 @@ struct AccountView: View {
     @StateObject var errorHandler = ErrorHandler()
     
     Group {
-        if !priceModel.isReady || userId == nil {
+        if userId == nil {
             LoadingView(identifier: "AccountView - waiting for priceModel & userId")
         } else {
             AccountView()

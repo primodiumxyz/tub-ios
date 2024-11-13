@@ -128,7 +128,7 @@ class Network {
     }
     
     func buyToken(tokenId: String, amount: String, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
-        let userId = UserManager.shared.userId
+        let userId = ""
         if(userId == ""){
             completion(.failure(NSError(domain: "ServerError", code: -1, userInfo: [NSLocalizedDescriptionKey: "User not logged in"])))
             return
@@ -138,7 +138,7 @@ class Network {
     }
     
     func sellToken(tokenId: String, amount: String, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
-        let userId = UserManager.shared.userId
+        let userId = ""
         if(userId == ""){
             completion(.failure(NSError(domain: "ServerError", code: -1, userInfo: [NSLocalizedDescriptionKey: "User not logged in"])))
             return
@@ -148,7 +148,7 @@ class Network {
     }
     
     func airdropNativeToUser(amount: Int, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
-        let userId = UserManager.shared.userId
+        let userId = ""
         if(userId == ""){
             completion(.failure(NSError(domain: "ServerError", code: -1, userInfo: [NSLocalizedDescriptionKey: "User not logged in"])))
             return

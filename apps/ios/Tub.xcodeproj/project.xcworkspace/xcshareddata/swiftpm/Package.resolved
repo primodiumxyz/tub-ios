@@ -1,13 +1,13 @@
 {
-"originHash" : "a82f23c2b06af0eaf3189b9d4ae364656fee62fa993d71c7065fa85966033eeb",
+  "originHash" : "74d18fa7e49afc21572b86306b233bb9f7e2d5ddb82b3ffcf3b10b12060fd336",
   "pins" : [
     {
       "identity" : "apollo-ios",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apollographql/apollo-ios",
       "state" : {
-        "revision" : "7122421c2ba9ce2d252943cef055c74ef56ea431",
-        "version" : "1.15.2"
+        "revision" : "c3f48d45ec1300bc95243bf19f67284f9dc0d14a",
+        "version" : "1.15.3"
       }
     },
     {
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apollographql/apollo-ios-codegen",
       "state" : {
-        "revision" : "9d18632ce7033490ee46a3f1e14d51c1c65fbb66",
-        "version" : "1.15.2"
+        "revision" : "54a51f43ba2dde6edc2fd11834cf894a2193f281",
+        "version" : "1.15.3"
       }
     },
     {
@@ -51,8 +51,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/privy-io/privy-ios",
       "state" : {
-        "revision" : "d485f08c1e29409526babb2748b0308239757c81",
-        "version" : "1.4.0"
+        "revision" : "5aa5b6bfbd38a4f852b13de8ba3b29f58d199d98",
+        "version" : "1.5.0"
       }
     },
     {

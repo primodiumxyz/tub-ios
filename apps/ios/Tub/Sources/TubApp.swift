@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import PrivySDK
 
 @main
 struct TubApp: App {
@@ -20,20 +21,60 @@ struct TubApp: App {
 struct AppContent : View {
     @StateObject private var errorHandler = ErrorHandler()
     @State var userId : String = ""
-    
-    var body: some View {
-        Group{
-            if userId == "" {
-                MockRegisterView(register: {
-                    UserManager.shared.register(onRegister: {_ in })
-                })
-            } else {
-                HomeTabsView(userId: userId).font(.sfRounded())
-            }
-        }.onAppear{
+    @State var authState: PrivySDK.AuthState = .unauthenticated
+    @State var embeddedWalletState: PrivySDK.EmbeddedWalletState = .notCreated
+    @State var embeddedWalletAddress: String = ""
 
-            UserManager.shared.onUserUpdate { userId in
-                self.userId = userId
+    var body: some View {
+        ZStack {
+            VStack {
+                Text("Auth state: \(authState.toString)")
+                Text("Embedded wallet state: \(embeddedWalletState.toString)")
+                Text("userId: \(userId)")
+            }
+            .backgroundStyle(.black)
+            .foregroundStyle(.white)
+            .frame(maxHeight: .infinity, alignment: .top)
+            .padding(.top)
+            .zIndex(1)
+            
+            Group {
+                if userId == "" {
+                    RegisterView()
+                } else if authState == .notReady || embeddedWalletState.toString == "connecting" {
+                    LoadingView(message: "Connecting user account...")
+                }
+                else if embeddedWalletAddress == "" {
+                    CreateWalletView()
+                }
+                else     {
+                    HomeTabsView(userId: userId).font(.sfRounded())
+                }
+            }
+            .zIndex(0)
+        }.onAppear{
+            privy.setAuthStateChangeCallback { state in
+                // Logic to execute after there is an auth change.
+                self.authState = state
+                switch state {
+                case .authenticated(let authSession):
+                    self.userId = authSession.user.id
+                default:
+                    self.userId = ""
+                }
+            }
+            privy.embeddedWallet.setEmbeddedWalletStateChangeCallback { state in
+                // Logic to execute after there is an auth change.
+                self.embeddedWalletState = state
+                switch state {
+                case .connected(let wallets):
+                    print("Embedded wallets : \(wallets.map { $0.address })")
+                    if let solanaWallet = wallets.first(where: { $0.chainType == .solana }) {
+                        self.embeddedWalletAddress = solanaWallet.address
+                    }
+                default:
+                    break
+                }
             }
         }
         .withErrorHandling()
@@ -48,45 +89,5 @@ struct AppContent : View {
 extension View {
     func withErrorHandling() -> some View {
         modifier(ErrorOverlay())
-    }
-}
-
-
-struct MockRegisterView : View {
-    var register: () -> Void
-    var body: some View {
-        GeometryReader { geometry in
-            VStack(alignment: .leading, spacing: 12){
-                Spacer()
-                    .frame(height: geometry.size.height * 0.25)
-                Image("Logo")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 100, height: 100)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .padding(.horizontal,10)
-                
-                Text("Welcome to tub")
-                    .font(.sfRounded(size: .xl2, weight: .semibold))
-                    .foregroundColor(AppColors.white)
-                    .padding(.horizontal,10)
-                VStack(alignment: .center){
-                    Button(action: register) {
-                        Text("Register")
-                            .font(.sfRounded(size: .lg, weight: .semibold))
-                            .padding(18)
-                    }
-                    .background(AppColors.darkGreenGradient)
-                    .foregroundStyle(AppColors.white)
-                    .cornerRadius(15)
-                    
-                }.frame(maxWidth: .infinity).padding(.top)
-            }
-            .padding(.horizontal)
-        }
-        .padding(.top, 20)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(AppColors.darkBlueGradient)
-        
     }
 }
