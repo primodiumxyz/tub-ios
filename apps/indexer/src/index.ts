@@ -87,6 +87,7 @@ const handleSwapData = async <T extends SwapType = SwapType>(gql: GqlClient["db"
   if (priceDataBatch.length < FETCH_HELIUS_WRITE_GQL_BATCH_SIZE) return;
   const _tokensDataBatch = tokensDataBatch;
   const _priceDataBatch = priceDataBatch;
+
   // clear batches before all async calls for the same reason as above
   tokensDataBatch = [];
   priceDataBatch = [];
@@ -124,6 +125,11 @@ const handleSwapData = async <T extends SwapType = SwapType>(gql: GqlClient["db"
     } else {
       console.log(`Upserted ${uniqueTokens.length} tokens`);
       console.log(`Saved ${_priceDataBatch.length} price data points`);
+      const oldestTimestamp = Math.min(..._priceDataBatch.map((data) => data.timestamp));
+      console.log(
+        `Oldest data point from ${new Date(oldestTimestamp).toISOString()} (${(Date.now() - oldestTimestamp) / 1000}s ago)`,
+      );
+      console.log("---");
     }
   } catch (err) {
     console.error("Unexpected error in handleSwapData:", err);
