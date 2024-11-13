@@ -178,7 +178,7 @@ struct AccountView: View {
                             .foregroundColor(.white)
                         }
                         
-                        NavigationLink(destination: Text("Settings")) {
+                        NavigationLink(destination: SettingsView()) {
                             HStack(spacing: 16) {
                                 Image(systemName: "gear")
                                     .resizable()

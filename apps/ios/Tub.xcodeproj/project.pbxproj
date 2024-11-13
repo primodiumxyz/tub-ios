@@ -65,6 +65,8 @@
 		DFA4D6512CAC500B00AEDC73 /* Apollo in Frameworks */ = {isa = PBXBuildFile; productRef = DFA4D6502CAC500B00AEDC73 /* Apollo */; };
 		DFC723E32CB9A86C003A915C /* TokenInfoCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFC723E22CB9A86C003A915C /* TokenInfoCardView.swift */; };
 		DFEBC3DD2CE443CA00EA4C84 /* AccountDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFEBC3DC2CE443CA00EA4C84 /* AccountDetailsView.swift */; };
+		DFEBC3E82CE44D1100EA4C84 /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFEBC3E52CE44D1100EA4C84 /* SettingsManager.swift */; };
+		DFEBC3E92CE44D1100EA4C84 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFEBC3E62CE44D1100EA4C84 /* SettingsView.swift */; };
 		DFF5292B2CC0121B007DC43F /* AppColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFF5292A2CC0121B007DC43F /* AppColors.swift */; };
 /* End PBXBuildFile section */
 
@@ -145,6 +147,8 @@
 		DFA36D552CB4278C00F63D2D /* DummyData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DummyData.swift; path = Tub/Sources/Utils/DummyData.swift; sourceTree = SOURCE_ROOT; };
 		DFC723E22CB9A86C003A915C /* TokenInfoCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenInfoCardView.swift; sourceTree = "<group>"; };
 		DFEBC3DC2CE443CA00EA4C84 /* AccountDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountDetailsView.swift; sourceTree = "<group>"; };
+		DFEBC3E52CE44D1100EA4C84 /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsManager.swift; sourceTree = "<group>"; };
+		DFEBC3E62CE44D1100EA4C84 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		DFF5292A2CC0121B007DC43F /* AppColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppColors.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -233,6 +237,7 @@
 				99DD65FF2CB80D1100B56450 /* History */,
 				99DD65FE2CB80D0300B56450 /* Account */,
 				DB675A322CA2B73D006FC9B3 /* HomeTabsView.swift */,
+				DFEBC3E72CE44D1100EA4C84 /* Settings */,
 				995FCA1D2CDA5ECB0018A76D /* Onramp */,
 			);
 			path = Views;
@@ -405,6 +410,15 @@
 				DB6D29222CA1C8F80099951A /* TubUITestsLaunchTests.swift */,
 			);
 			path = TubUITests;
+			sourceTree = "<group>";
+		};
+		DFEBC3E72CE44D1100EA4C84 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				DFEBC3E52CE44D1100EA4C84 /* SettingsManager.swift */,
+				DFEBC3E62CE44D1100EA4C84 /* SettingsView.swift */,
+			);
+			path = Settings;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -592,6 +606,8 @@
 				99DED24E2CAF28C10055FC60 /* UserModel.swift in Sources */,
 				99290EC02CB7110C003E740A /* FormatDate.swift in Sources */,
 				DF1FE3C82CD568F700594C63 /* CountryCode.swift in Sources */,
+				DFEBC3E82CE44D1100EA4C84 /* SettingsManager.swift in Sources */,
+				DFEBC3E92CE44D1100EA4C84 /* SettingsView.swift in Sources */,
 				DB10A95D2CA5AA1B00B1E4F3 /* TokenView.swift in Sources */,
 				DB6D29052CA1C8F70099951A /* TubApp.swift in Sources */,
 				990337052CC94175002D3A25 /* AccountBalance.swift in Sources */,
