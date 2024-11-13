@@ -37,8 +37,8 @@ struct AccountView: View {
     
     var body: some View {
         NavigationStack {
-            VStack() {
-                Text(serverBaseUrl).foregroundStyle(.white)
+            VStack(spacing: 24) {
+                
                 if userModel.userId.isEmpty {
                     Text("Please register to view your account details.")
                         .font(.sfRounded(size: .lg, weight: .medium))
@@ -54,74 +54,179 @@ struct AccountView: View {
                             .background(AppColors.primaryPurple)
                             .cornerRadius(26)
                     }
-                } else {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Account Information")
-                            .font(.sfRounded(size: .xl2, weight: .medium))
-                            .foregroundColor(AppColors.white)
-                            .padding(.vertical)
-                        Text("User id: \(userModel.userId)")
-                            .font(.sfRounded(size: .lg, weight: .medium))
-                        Text("Wallet address: \(userModel.walletAddress)")
-                            .font(.sfRounded(size: .lg, weight: .medium))
+                    Text(serverBaseUrl).foregroundStyle(.white)
+                        .font(.caption)
+                }
+                else{
+                    // User Name Placeholder
+                    Text("Account")
+                        .font(.sfRounded(size: .xl2, weight: .semibold))
+                        .foregroundColor(AppColors.white)
+                    
+                    // Balance Section
+                    VStack(spacing: 8) {
+                        Text("Account Balance")
+                            .font(.sfRounded(size: .lg, weight: .regular))
+                            .foregroundColor(AppColors.lightGray.opacity(0.7))
                         
-                        Text("Balance: \(priceModel.formatPrice(lamports: userModel.balanceLamps, minDecimals: 2))")
-                            .font(.sfRounded(size: .lg, weight: .medium))
-                            .padding(.bottom)
-                        if let result = airdropResult {
-                            Text(result).foregroundColor(AppColors.green).padding()
-                        }
-                        if isAirdropping {
-                            ProgressView()
-                        }
-                        else  {
-                            Button(action: performAirdrop) {
-                                Text("Request Airdrop")
-                                    .font(.sfRounded(size: .base, weight: .semibold))
-                                    .foregroundColor(AppColors.white)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(12)
-                                    .background(AppColors.primaryPurple)
-                                    .cornerRadius(26)
-                            }
-                            .disabled(isAirdropping)
-                            .padding(.bottom, 5.0)
-                        }
+                        Text("\(priceModel.formatPrice(lamports: userModel.balanceLamps, maxDecimals: 2, minDecimals: 2))")
+                            .font(.sfRounded(size: .xl5, weight: .bold))
+                            .foregroundColor(.white)
                         
-                        Button(action: { showOnrampView = true }) {
-                            Text("Buy SOL")
-                                .font(.sfRounded(size: .base, weight: .semibold))
-                                .foregroundColor(AppColors.white)
-                                .frame(maxWidth: .infinity)
-                                .padding(12)
-                                .background(AppColors.primaryPurple)
-                                .cornerRadius(26)
-                        }
-                        .padding(.bottom, 5.0)
+                        let adjustedPercentage = userModel.initialBalanceLamps != 0 ? 100 - (Double(userModel.balanceLamps) / Double(userModel.initialBalanceLamps)) * 100 : 100
                         
-                        Button(action: userModel.logout) {
-                            Text("Logout")
-                                .font(.sfRounded(size: .base, weight: .semibold))
-                                .foregroundColor(AppColors.white)
-                                .frame(maxWidth: .infinity)
-                                .padding(12)
-                                .background(AppColors.red)
-                                .cornerRadius(26)
+                        HStack {
+                            Image(systemName: "arrow.up.right")
+                                .foregroundColor(.green)
+                            Text("\(abs(adjustedPercentage), specifier: "%.1f")% All Time")
+                                .foregroundColor(.green)
                         }
                     }
-                    .foregroundColor(AppColors.white)
-                    .padding(20.0)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .cornerRadius(10)
+                    .padding(.top,16)
+                    .padding(.bottom,12)
+                    
+                    // Action Buttons
+                    HStack(spacing: 16) {
+                        Spacer()
+                        Button(action: performAirdrop) {
+                            HStack {
+                                if isAirdropping {
+                                    ProgressView()
+                                }
+                                Text("Request Airdrop")
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 12)
+                                    .foregroundColor(AppColors.primaryPink)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 30)
+                                            .inset(by: 0.5)
+                                            .stroke(AppColors.primaryPink, lineWidth: 1)
+                                    )
+                            }
+                        }.disabled(isAirdropping)
+                        
+                        Button(action: { showOnrampView = true }) {
+                            Text("Add Funds")
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 12)
+                                .foregroundColor(AppColors.aquaGreen)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 30)
+                                        .inset(by: 0.5)
+                                        .stroke(AppColors.aquaGreen, lineWidth: 1)
+                                )
+                        }
+                        Spacer()
+                    }
+                    .padding(.horizontal)
+                    
+                    if let result = airdropResult {
+                        Text(result).foregroundColor(AppColors.green).padding()
+                            .font(.caption)
+                            .padding(-24)
+                    }
+                    
+                    // Available Cash
+                    VStack(spacing:24) {
+                        Divider()
+                            .frame(width: 370, height: 1)
+                            .overlay(
+                                Rectangle()
+                                    .stroke(AppColors.lightGray.opacity(0.5), lineWidth: 0.5)
+                            )
+                        HStack() {
+                            Text("Available Cash")
+                                .foregroundColor(AppColors.lightGray)
+                                .font(.sfRounded(size: .lg, weight: .medium))
+                            
+                            Spacer()
+                            
+                            Text("$0.00")
+                                .multilineTextAlignment(.trailing)
+                                .padding(.horizontal,8)
+                                .foregroundColor(.white)
+                                .font(.sfRounded(size: .lg, weight: .medium))
+                            
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal)
+                        
+                        Divider()
+                            .frame(width: 370, height: 1)
+                            .overlay(
+                                Rectangle()
+                                    .stroke(AppColors.lightGray.opacity(0.5), lineWidth: 0.5)
+                            )
+                    }
+                    
+                    // Account Settings Section
+                    VStack(alignment: .leading, spacing: 24) {
+                        Text("Account Settings")
+                            .font(.sfRounded(size: .xl, weight: .medium))
+                            .foregroundColor(.white)
+                        
+                        NavigationLink(destination: Text("Account Details")) {
+                            HStack(spacing: 16) {
+                                Image(systemName: "person.circle")
+                                    .resizable()
+                                    .frame(width: 24, height: 24, alignment: .center)
+                                Text("Account Details")
+                                    .font(.sfRounded(size: .lg, weight: .regular))
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                            }
+                            .foregroundColor(.white)
+                        }
+                        
+                        NavigationLink(destination: Text("Settings")) {
+                            HStack(spacing: 16) {
+                                Image(systemName: "gear")
+                                    .resizable()
+                                    .frame(width: 24, height: 24, alignment: .center)
+                                Text("Settings")
+                                    .font(.sfRounded(size: .lg, weight: .regular))
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                            }
+                            .foregroundColor(.white)
+                        }
+                        
+                        HStack(spacing: 16) {
+                            Image(systemName: "questionmark.circle")
+                                .resizable()
+                                .frame(width: 24, height: 24, alignment: .center)
+                            Text("Support")
+                                .font(.sfRounded(size: .lg, weight: .regular))
+                            Spacer()
+                            Image("discord")
+                                .resizable()
+                                .frame(width: 32, height: 32, alignment: .center)
+                                .cornerRadius(8)
+                            Text("@Discord Link")
+                                .foregroundColor(AppColors.aquaGreen)
+                                .font(.sfRounded(size: .lg, weight: .medium))
+                        }
+                        .foregroundColor(.white)
+                        
+                        // Logout Button
+                        Button(action: userModel.logout) {
+                            Text("Logout")
+                                .font(.sfRounded(size: .lg, weight: .medium))
+                                .foregroundColor(AppColors.red)
+                                .padding(.bottom, 40)
+                        }
+                        
+                        Text(serverBaseUrl).foregroundStyle(.white)
+                            .font(.caption)
+                    }
+                    .padding()
+                    
+                    Spacer()
+                    
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(AppColors.black)
-            .onChange(of: userModel.userId) { newValue in
-                if newValue.isEmpty {
-                    presentationMode.wrappedValue.dismiss()
-                }
-            }
             .sheet(isPresented: $showOnrampView) {
                 CoinbaseOnrampView()
             }
