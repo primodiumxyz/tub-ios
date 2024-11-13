@@ -32,13 +32,12 @@ struct CandleChartView: View {
     
     private func filterPrices(prices: [Price], timeframeSecs: Double) -> [Price] {
         let cutoffDate = Date().addingTimeInterval(-timeframeSecs)
-        let filteredPrices = prices.filter { $0.timestamp >= cutoffDate }
-        
-        if filteredPrices.count < 2 {
-            return Array(prices.suffix(2))
+        if let firstValidIndex = prices.firstIndex(where: { $0.timestamp >= cutoffDate }) {
+            return Array(prices[firstValidIndex...])
         }
         
-        return filteredPrices
+        // Fallback: return last 2 prices if no prices are within timeframe
+        return Array(prices.suffix(2))
     }
     private func updateCandles() {
         if prices.isEmpty { return }
@@ -104,7 +103,7 @@ struct CandleChartView: View {
         }
         .chartYAxis(content: yAxisConfig)
         .chartXAxis(content: xAxisConfig)
-        .chartYScale(domain: .automatic)
+        .chartYScale(domain: yDomain)
         .frame(height: height)
         .onAppear(perform: updateCandles)
         .onChange(of: prices) { _ in updateCandles() }
@@ -186,6 +185,19 @@ struct CandleChartView: View {
             AxisValueLabel(format: .dateTime.hour().minute())
                 .foregroundStyle(.white.opacity(0.5))
         }
+    }
+
+    private var yDomain: ClosedRange<Int> {
+        if prices.isEmpty { return 0...100 }
+
+        var pricesWithPurchase = prices
+        
+        let minPrice = pricesWithPurchase.min { $0.price < $1.price }?.price ?? 0
+        let maxPrice = pricesWithPurchase.max { $0.price < $1.price }?.price ?? 100
+        let range = maxPrice - minPrice
+        let padding = Int(Double(range) * 0.25)
+        
+        return (minPrice - padding)...(maxPrice + padding)
     }
 }
 

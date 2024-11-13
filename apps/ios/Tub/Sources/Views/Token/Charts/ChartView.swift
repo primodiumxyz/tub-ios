@@ -7,22 +7,26 @@
 
 import SwiftUI
 import Charts
+import Combine
 
 struct ChartView: View {
     @EnvironmentObject var priceModel: SolPriceModel
-    let prices: [Price]
+    let rawPrices: [Price]
     let timeframeSecs: Double
     let purchaseData: PurchaseData?
     let height: CGFloat
     
     init(prices: [Price], timeframeSecs: Double = 90.0, purchaseData: PurchaseData? = nil, height: CGFloat = 330) {
-        self.prices = prices
+        self.rawPrices = prices
         self.timeframeSecs = timeframeSecs
         self.purchaseData = purchaseData
         self.height = height
     }
     
     @State private var currentTime = Date().timeIntervalSince1970
+    
+    @State private var timerCancellable: Cancellable?
+    @State private var timer: Timer.TimerPublisher = Timer.publish(every: 0.1, on: .main, in: .common)
     
     private var dashedLineColor: Color {
         guard let purchasePrice = purchaseData?.price,
@@ -54,6 +58,25 @@ struct ChartView: View {
         let padding = Int(Double(range) * 0.25)
         
         return (minPrice - padding)...(maxPrice + padding)
+    }
+    
+    private var prices: [Price] {
+        let cutoffTime = currentTime - timeframeSecs
+        if let firstValidIndex = rawPrices.firstIndex(where: { $0.timestamp.timeIntervalSince1970 >= cutoffTime }) {
+            let slice = Array(rawPrices[firstValidIndex...])
+            // If we have enough points in the time window, return them
+            if slice.count >= 2 {
+                return slice
+            }
+        }
+        
+        // If we don't have enough points in the time window,
+        // return at least the last 2 points from rawPrices
+        if rawPrices.count >= 2 {
+            return Array(rawPrices.suffix(2))
+        }
+        
+        return rawPrices
     }
     
     var body: some View {
@@ -125,7 +148,13 @@ struct ChartView: View {
         .chartYAxis(.hidden)
         .chartXAxis(.hidden)
         .frame(width: .infinity, height: height)
-        .onReceive(Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()) { _ in
+        .onAppear {
+            timerCancellable = timer.connect()
+        }
+        .onDisappear {
+            timerCancellable?.cancel()
+        }
+        .onReceive(timer) { _ in
             currentTime = Date().timeIntervalSince1970
         }
     }

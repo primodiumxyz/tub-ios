@@ -37,10 +37,10 @@ class UserModel: ObservableObject {
     
     @Published var isLoading: Bool = true
 
-    init(userId: String, mock: Bool? = false) {
+    init(userId: String, walletAddress: String, mock: Bool? = false) {
         self.userId = userId
-        
-        self.updateWalletAddress()
+        self.walletAddress = walletAddress
+
         
         if(mock == true) {
             self.balanceLamps = 1000
@@ -71,7 +71,7 @@ class UserModel: ObservableObject {
     }
 
     private func fetchInitialBalance() async throws {
-        print(self.walletAddress)
+        let start = self.initialTime.ISO8601Format()
         let query = GetWalletBalanceQuery(wallet: self.walletAddress)
         
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
@@ -127,27 +127,6 @@ class UserModel: ObservableObject {
             }
     }
 
-    private func updateWalletAddress() {
-        switch privy.embeddedWallet.embeddedWalletState {
-        case .connected(let wallets):
-            if let wallet = wallets.first {
-                DispatchQueue.main.async {
-                    self.walletAddress = wallet.address
-                }
-            } else {
-                DispatchQueue.main.async {
-                    self.walletAddress = ""
-                }
-                print("No wallet found in connected state")
-            }
-        default:
-            DispatchQueue.main.async {
-                self.walletAddress = ""
-            }
-            print("Wallet must be connected to initialize UserModel")
-        }
-    }
-
     func logout() {
         privy.logout()
         
@@ -160,10 +139,15 @@ class UserModel: ObservableObject {
             self.isLoading = true
         }
         
-        // Cancel any ongoing network requests or timers
+        
+    }
+
+    deinit {
+    // Cancel any ongoing network requests or timers
         cancellables.forEach { $0.cancel() }
         cancellables.removeAll()
         timerCancellable?.cancel()
-        
+        accountBalanceSubscription?.cancel()
+
     }
 }

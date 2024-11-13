@@ -15,10 +15,6 @@ class Network {
     static let shared = Network()
     private var lastApiCallTime: Date = Date()
 
-    // privy sessions last one hour so we refresh session after 45 minutes to be safe
-    // https://docs.privy.io/guide/security/#refresh-token
-    private let sessionTimeout: TimeInterval = 60 * 45  // 45 minutes in seconds
-
     // graphql
     private let httpTransport: RequestChainNetworkTransport
     private let webSocketTransport: WebSocketTransport
@@ -78,23 +74,15 @@ class Network {
         completion: @escaping (Result<T, Error>) -> Void
     ) {
         Task {
-            if Date().timeIntervalSince(lastApiCallTime) > sessionTimeout {
-                do {
-                    _ = try await privy.refreshSession()
-                } catch {
-                    completion(.failure(error))
-                    return
-                }
-
-                self.lastApiCallTime = Date()
-            }
+            // Get token asynchronously
+            let token = await getStoredToken()
 
             let url = baseURL.appendingPathComponent(procedure)
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
 
-            if let token = getStoredToken() {
+            if let token = token {
                 request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
             }
 
@@ -213,6 +201,52 @@ class Network {
     ) {
         let input = EventInput(event: event)
         callProcedure("recordClientEvent", input: input, completion: completion)
+    }
+
+    private func getStoredToken() async -> String? {
+        switch privy.authState {
+        case .authenticated(let authSession):
+            let token = authSession.authToken
+            // Check if token is expired
+            if let decodedToken = decodeJWT(token),
+                let exp = decodedToken["exp"] as? TimeInterval
+            {
+                let expirationDate = Date(timeIntervalSince1970: exp)
+                if expirationDate > Date() {
+                    return token
+                } else {
+                    do {
+                        print("Token expired, refreshing session")
+                        let newSession = try await privy.refreshSession()
+                        return newSession.authToken
+                    } catch {
+                        print("Failed to refresh session: \(error)")
+                        return nil
+                    }
+                }
+            }
+            return nil
+        default:
+            return nil
+        }
+    }
+
+    private func decodeJWT(_ token: String) -> [String: Any]? {
+        let segments = token.components(separatedBy: ".")
+        guard segments.count > 1 else { return nil }
+
+        let base64String = segments[1]
+            .replacingOccurrences(of: "-", with: "+")
+            .replacingOccurrences(of: "_", with: "/")
+
+        let padded = base64String.padding(
+            toLength: ((base64String.count + 3) / 4) * 4,
+            withPad: "=",
+            startingAt: 0)
+
+        guard let data = Data(base64Encoded: padded) else { return nil }
+
+        return try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
     }
 }
 
@@ -357,15 +391,6 @@ private struct EmptyInput: Codable {}
 
 // MARK: - Extensions
 extension Network {
-    func getStoredToken() -> String? {
-        switch privy.authState {
-        case .authenticated(let authSession):
-            return authSession.authToken
-        default:
-            return nil
-        }
-    }
-
     func fetchSolPrice(completion: @escaping (Result<Double, Error>) -> Void) {
         let url = URL(string: "https://min-api.cryptocompare.com/data/price?fsym=SOL&tsyms=USD")!
         let task = session.dataTask(with: url) { data, response, error in

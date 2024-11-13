@@ -21,7 +21,7 @@ struct AccountView: View {
     func performAirdrop() {
         isAirdropping = true
         airdropResult = nil
-        var errorMessage : String? = nil
+        var errorMessage: String? = nil
 
         Network.shared.airdropNativeToUser(amount: 1 * Int(1e9)) { result in
             DispatchQueue.main.async {
@@ -30,7 +30,7 @@ struct AccountView: View {
                 case .success:
                     airdropResult = "Airdrop successful!"
                 case .failure(let error):
-                    errorMessage = error.localizedDescription;
+                    errorMessage = error.localizedDescription
                     errorHandler.show(error)
                 }
             }
@@ -149,31 +149,4 @@ struct AccountView: View {
         }
     }
 
-}
-
-#Preview {
-    @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
-    @Previewable @State var userId: String? = nil
-    @StateObject var errorHandler = ErrorHandler()
-
-    Group {
-        if !priceModel.isReady || userId == nil {
-            LoadingView(identifier: "AccountView - waiting for priceModel & userId")
-        } else {
-            AccountView()
-                .environmentObject(UserModel(userId: userId!))
-                .environmentObject(priceModel)
-        }
-    }
-    .environmentObject(errorHandler)
-    .onAppear {
-        Task {
-            do {
-                userId = try await privy.refreshSession().user.id
-                print(userId)
-            } catch {
-                print("error in preview: \(error)")
-            }
-        }
-    }
 }
