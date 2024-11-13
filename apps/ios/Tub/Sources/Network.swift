@@ -14,10 +14,6 @@ class Network {
     static let shared = Network()
     private var lastApiCallTime: Date = Date()
     
-    // privy sessions last one hour so we refresh session after 45 minutes to be safe
-    // https://docs.privy.io/guide/security/#refresh-token
-    private let sessionTimeout: TimeInterval = 60 * 45 // 45 minutes in seconds
-    
     // graphql
     private let httpTransport: RequestChainNetworkTransport
     private let webSocketTransport: WebSocketTransport
@@ -73,26 +69,16 @@ class Network {
     }
     
     private func callProcedure<T: Codable>(_ procedure: String, input: Codable? = nil, completion: @escaping (Result<T, Error>) -> Void) {
-        // Check and refresh session if needed
         Task {
-            if Date().timeIntervalSince(lastApiCallTime) > sessionTimeout {
-                do {
-                    _ = try await privy.refreshSession()
-                } catch {
-                    completion(.failure(error))
-                    return
-                }
-                
-                self.lastApiCallTime = Date()
-            }
+            // Get token asynchronously
+            let token = await getStoredToken()
             
             let url = baseURL.appendingPathComponent(procedure)
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-            // Add JWT token to the header
             
-            if let token = getStoredToken() {
+            if let token = token {
                 request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
             }
             
@@ -135,26 +121,6 @@ class Network {
             task.resume()
         }
     }
-    
-    // Updated procedure calls:
-    func getStatus(completion: @escaping (Result<StatusResponse, Error>) -> Void) {
-        callProcedure("getStatus", completion: completion)
-    }
-    
-    @available(*, deprecated)
-    func registerNewUser(username: String, airdropAmount: String? = nil, completion: @escaping (Result<UserResponse, Error>) -> Void) {
-        let input = ["username": username, "airdropAmount": airdropAmount].compactMapValues { $0 }
-        callProcedure("registerNewUser", input: input) { (result: Result<UserResponse, Error>) in
-            switch result {
-            case .success(let userResponse):
-                self.storeToken(userResponse.token)
-                completion(.success(userResponse))
-            case .failure(let error):
-                completion(.failure(error))
-            }
-        }
-    }
-    
     private func storeToken(_ token: String) {
         let data = Data(token.utf8)
         let query: [String: Any] = [
@@ -166,31 +132,80 @@ class Network {
         SecItemAdd(query as CFDictionary, nil)
     }
     
+    private func getStoredToken() async -> String? {
+        switch privy.authState {
+        case .authenticated(let authSession):
+            let token = authSession.authToken
+            // Check if token is expired
+            if let decodedToken = decodeJWT(token),
+               let exp = decodedToken["exp"] as? TimeInterval {
+                let expirationDate = Date(timeIntervalSince1970: exp)
+                if expirationDate > Date() {
+                    return token
+                } else {
+                    do {
+                        print("Token expired, refreshing session")
+                        let newSession = try await privy.refreshSession()
+                        return newSession.authToken
+                    } catch {
+                        print("Failed to refresh session: \(error)")
+                        return nil
+                    }
+                }
+            }
+            return nil
+        default:
+            return nil
+        }
+    }
+    
+    private func decodeJWT(_ token: String) -> [String: Any]? {
+        let segments = token.components(separatedBy: ".")
+        guard segments.count > 1 else { return nil }
+        
+        let base64String = segments[1]
+            .replacingOccurrences(of: "-", with: "+")
+            .replacingOccurrences(of: "_", with: "/")
+        
+        let padded = base64String.padding(
+            toLength: ((base64String.count + 3) / 4) * 4,
+            withPad: "=",
+            startingAt: 0)
+        
+        guard let data = Data(base64Encoded: padded) else { return nil }
+        
+        return try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
+    }
+    
+   
+    // Updated procedure calls:
+    func getStatus(completion: @escaping (Result<StatusResponse, Error>) -> Void) {
+        callProcedure("getStatus", completion: completion)
+    }
+    
     @available(*, deprecated)
     func incrementCall(completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
         callProcedure("incrementCall", completion: completion)
     }
     
     func buyToken(tokenId: String, amount: String, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
+      
         let input = ["tokenId": tokenId, "amount": amount]
         callProcedure("buyToken", input: input, completion: completion)
     }
     
     func sellToken(tokenId: String, amount: String, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
+        
         let input = ["tokenId": tokenId, "amount": amount]
         callProcedure("sellToken", input: input, completion: completion)
     }
     
-    func registerNewToken(name: String, symbol: String, supply: String? = nil, uri: String? = nil, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
-        let input = ["name": name, "symbol": symbol, "supply": supply, "uri": uri].compactMapValues { $0 }
-        callProcedure("registerNewToken", input: input, completion: completion)
-    }
-    
     func airdropNativeToUser(amount: Int, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
-        let input = ["amount": String(amount)]
+        
+        let input = ["tokenId": "native", "amount": String(amount)]
         callProcedure("airdropNativeToUser", input: input, completion: completion)
     }
-
+    
 }
 
 struct ResponseWrapper<T: Codable>: Codable {
@@ -216,15 +231,6 @@ struct StatusResponse: Codable {
 }
 
 extension Network {
-    func getStoredToken() -> String? {
-        switch privy.authState {
-        case .authenticated(let authSession):
-            return authSession.authToken
-        default:
-            return nil
-        }
-    }
-    
     func fetchSolPrice(completion: @escaping (Result<Double, Error>) -> Void) {
         let url = URL(string: "https://min-api.cryptocompare.com/data/price?fsym=SOL&tsyms=Usd")!
         let task = session.dataTask(with: url) { data, response, error in

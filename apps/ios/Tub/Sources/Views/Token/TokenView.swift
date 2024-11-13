@@ -20,12 +20,25 @@ enum TubError: LocalizedError {
     }
 }
 
+enum Timespan: String, CaseIterable {
+    case live = "LIVE"
+    case thirtyMin = "30M"
+    
+    var timeframeSecs: Double {
+        switch self {
+        case .live: return CHART_INTERVAL
+        case .thirtyMin: return 30 * 60
+        }
+    }
+}
+
 struct TokenView : View {
     @EnvironmentObject private var errorHandler: ErrorHandler
     @ObservedObject var tokenModel: TokenModel
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject private var userModel: UserModel
     @Binding var activeTab: String
+    var onSellSuccess: () -> Void
     
     @State private var showInfoCard = false
     @State private var selectedTimespan: Timespan = .live
@@ -34,21 +47,11 @@ struct TokenView : View {
     @State private var keyboardHeight: CGFloat = 0
     
     
-    enum Timespan: String, CaseIterable {
-        case live = "LIVE"
-        case thirtyMin = "30M"
-        
-        var interval: Interval {
-            switch self {
-            case .live: return CHART_INTERVAL
-            case .thirtyMin: return "30m"
-            }
-        }
-    }
     
-    init(tokenModel: TokenModel, activeTab: Binding<String>) {
+    init(tokenModel: TokenModel, activeTab: Binding<String>, onSellSuccess: @escaping () -> Void) {
         self.tokenModel = tokenModel
         self._activeTab = activeTab
+        self.onSellSuccess = onSellSuccess
     }
     
     func handleBuy(amount: Double) {
@@ -78,18 +81,20 @@ struct TokenView : View {
             VStack(alignment: .leading, spacing: 4) {
                 tokenInfoView
                 chartView
+                    .padding(.top,5)
                 intervalButtons
                     .padding(.bottom,8)
+                    .padding(.top,5)
                 infoCardLowOpacity
                     .opacity(0.8)
                     .padding(.horizontal, 8)
-                    .padding(.bottom, -4)
                 BuySellForm(
                     tokenModel: tokenModel,
                     activeTab: $activeTab,
                     showBuySheet: $showBuySheet,
                     defaultAmount: $defaultAmount,
-                    handleBuy: handleBuy
+                    handleBuy: handleBuy,
+                    onSellSuccess: onSellSuccess
                 )
                 .equatable()
             }
@@ -131,7 +136,7 @@ struct TokenView : View {
                     Text(priceModel.formatPrice(lamports: tokenModel.priceChange.amountLamps, showSign: true))
                     Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
                     
-                    Text(tokenModel.interval).foregroundColor(.gray)
+                    Text("\(formatDuration(tokenModel.currentTimeframe.timeframeSecs))").foregroundColor(.gray)
                 }
                 .font(.sfRounded(size: .sm, weight: .semibold))
                 .foregroundColor(tokenModel.priceChange.amountLamps >= 0 ? .green : .red)
@@ -146,7 +151,7 @@ struct TokenView : View {
         }
     }
     
-    let height = UIScreen.main.bounds.height * 0.33
+    let height = UIScreen.main.bounds.height * 0.38
     
     private var chartView: some View {
         Group {
@@ -154,19 +159,19 @@ struct TokenView : View {
                 LoadingChart()
             } else if selectedTimespan == .live {
                 ChartView(
-                    prices: tokenModel.prices, 
-                    timeframeSecs: 120.0, 
+                    prices: tokenModel.prices,
+                    timeframeSecs: selectedTimespan.timeframeSecs,
                     purchaseData: tokenModel.purchaseData,
                     height: height
                 )
             } else {
                 CandleChartView(
-                    prices: tokenModel.prices, 
-                    intervalSecs: 90, 
+                    prices: tokenModel.prices,
+                    intervalSecs: 90,
                     timeframeMins: 30,
                     height: height
                 )
-                    .id(tokenModel.prices.count)
+                .id(tokenModel.prices.count)
             }
         }
     }
@@ -189,7 +194,7 @@ struct TokenView : View {
         Button {
             withAnimation {
                 selectedTimespan = timespan
-                tokenModel.updateHistoryInterval(timespan.interval)
+                tokenModel.updateHistoryInterval(timespan)
             }
         } label: {
             HStack(spacing: 4) {
@@ -215,9 +220,9 @@ struct TokenView : View {
     private var stats: [(String, StatValue)] {
         var stats = [(String, StatValue)]()
         
-        if let purchaseData = tokenModel.purchaseData, activeTab == "sell" {
+        if let purchaseData = tokenModel.purchaseData, let price = tokenModel.prices.last?.price, price > 0, activeTab == "sell" {
             // Calculate current value in lamports
-            let currentValueLamps = Int(Double(tokenModel.balanceLamps) / 1e9 * Double(tokenModel.prices.last?.price ?? 0))
+            let currentValueLamps = Int(Double(tokenModel.balanceLamps) / 1e9 * Double(price))
             
             // Calculate profit
             let initialValueUsd = priceModel.lamportsToUsd(lamports: purchaseData.amount)
@@ -226,7 +231,7 @@ struct TokenView : View {
             
             
             
-            if purchaseData.amount > 0 {
+            if purchaseData.amount > 0, initialValueUsd > 0 {
                 let percentageGain = gains / initialValueUsd * 100
                 stats += [
                     ("Gains", StatValue(
@@ -276,6 +281,7 @@ struct TokenView : View {
                             .background(AppColors.gray.opacity(0.5))
                             .padding(.top, 2)
                     }
+                    .padding(.vertical, 4)
                 }
             }
             
@@ -347,9 +353,9 @@ struct TokenView : View {
     
     
     private var buySheetOverlay: some View {
-            guard showBuySheet else {
-             return   AnyView(EmptyView())
-            }
+        guard showBuySheet else {
+            return   AnyView(EmptyView())
+        }
         return AnyView (
             Group {
                 AppColors.black.opacity(0.4)
@@ -362,7 +368,7 @@ struct TokenView : View {
                 
                 BuyForm(isVisible: $showBuySheet, defaultAmount: $defaultAmount, tokenModel: tokenModel, onBuy: handleBuy)
                     .transition(.move(edge: .bottom))
-                   .offset(y: -keyboardHeight)
+                    .offset(y: -keyboardHeight)
                     .zIndex(2)
                     .onAppear {
                         setupKeyboardNotifications()

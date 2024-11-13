@@ -10,9 +10,9 @@ struct Token: Identifiable {
     var supply: Int
     var decimals: Int
     var imageUri: String
-    var volume: (value: Int, interval: String)
+    var volume: (value: Int, interval: Double)
     
-    init(id: String, mint: String, name: String?, symbol: String?, description: String?, supply: Int?, decimals: Int?, imageUri: String?, volume: (value: Int, interval: String)? = nil) {
+    init(id: String, mint: String, name: String?, symbol: String?, description: String?, supply: Int?, decimals: Int?, imageUri: String?, volume: (value: Int, interval: Double)? = nil) {
         self.id = id
         self.mint = mint
         self.name = name ?? "COIN"

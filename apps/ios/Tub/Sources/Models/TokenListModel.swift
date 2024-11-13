@@ -24,7 +24,6 @@ class TokenListModel: ObservableObject {
     @Published var isLoading = true
     @Published var errorMessage: String?
     
-    private var subscription: Cancellable?
     private var walletAddress: String
 
     // Cooldown for not showing the same token too often
@@ -32,6 +31,7 @@ class TokenListModel: ObservableObject {
     private var recentlyShownTokens: [(id: String, timestamp: Date)] = []
     
     private var timer: Timer?
+    private var tokenSubscription: Cancellable?
 
     init(walletAddress: String) {
         self.walletAddress = walletAddress
@@ -185,13 +185,13 @@ class TokenListModel: ObservableObject {
 
     private func fetchTokens() {
         Network.shared.apollo.fetch(query: GetFilteredTokensQuery(
-            interval: .some(FILTER_INTERVAL),
+            interval: .some("\(FILTER_INTERVAL)s"),
             minTrades: .some(String(MIN_TRADES)),
             minVolume: .some(MIN_VOLUME),
             mintBurnt: .some(MINT_BURNT),
             freezeBurnt: .some(FREEZE_BURNT),
             minDistinctPrices: .some(CHART_INTERVAL_MIN_TRADES),
-            distinctPricesInterval: .some(CHART_INTERVAL)
+            distinctPricesInterval: .some("\(CHART_INTERVAL)s")
         ), cachePolicy: .fetchIgnoringCacheData) { [weak self] result in
             guard let self = self else { return }
             
@@ -244,6 +244,8 @@ class TokenListModel: ObservableObject {
     func cleanup() {
         timer?.invalidate()
         timer = nil
+        tokenSubscription?.cancel()
+        tokenSubscription = nil
     }
 
     // Make sure to call cleanup when appropriate

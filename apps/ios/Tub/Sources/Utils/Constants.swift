@@ -69,10 +69,9 @@ public let graphqlWsUrl: String = {
 
 // Server URLs
 private let serverUrlHost: String = {
-    print(ProcessInfo.processInfo.environment["NGROK_SERVER_URL_HOST"])
-//    if installationSource == .appStore || installationSource == .testFlight {
-//        return "tub-server.primodium.ai"
-//    }
+   if installationSource == .appStore || installationSource == .testFlight {
+       return "tub-server.primodium.ai"
+   }
     if let ngrokUrl = ProcessInfo.processInfo.environment["NGROK_SERVER_URL_HOST"] {
         return ngrokUrl
     } else {
@@ -89,11 +88,11 @@ public let serverBaseUrl: String = {
 }()
 
 // Filtered tokens and chart
-public let FILTER_INTERVAL: Interval = "30m"
+public let FILTER_INTERVAL: Double = 30 * 60
 public let MIN_TRADES: Int = 0
 public let MIN_VOLUME: Int = 0
 public let MINT_BURNT: Bool = true
 public let FREEZE_BURNT: Bool = true
     
-public let CHART_INTERVAL: Interval = "1m"
+public let CHART_INTERVAL: Double = 120
 public let CHART_INTERVAL_MIN_TRADES: Int = 15
