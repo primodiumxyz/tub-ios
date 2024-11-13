@@ -204,7 +204,7 @@ const setup = async (ws: WebSocket, gql: GqlClient["db"], connectionId: string) 
       );
     };
 
-    ws.onmessage = (event) => {
+    ws.onmessage = async (event) => {
       lastMessageTime = Date.now();
 
       const obj = JSON.parse(event.data.toString());
@@ -212,7 +212,7 @@ const setup = async (ws: WebSocket, gql: GqlClient["db"], connectionId: string) 
 
       if (result) {
         const swapAccounts = handleLogs(result);
-        handleSwapData(gql, swapAccounts);
+        await handleSwapData(gql, swapAccounts);
       } else {
         // Log other types of messages (like subscription confirmations)
         console.log(`Received non-swap message: ${JSON.stringify(obj).slice(0, 200)}...`);
