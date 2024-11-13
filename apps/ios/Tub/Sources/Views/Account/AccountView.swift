@@ -165,7 +165,7 @@ struct AccountView: View {
                             .font(.sfRounded(size: .xl, weight: .medium))
                             .foregroundColor(.white)
                         
-                        NavigationLink(destination: Text("Account Details")) {
+                        NavigationLink(destination: AccountDetailsView()) {
                             HStack(spacing: 16) {
                                 Image(systemName: "person.circle")
                                     .resizable()
