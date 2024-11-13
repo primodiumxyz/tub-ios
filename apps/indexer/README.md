@@ -21,15 +21,13 @@ pnpm dev:web-dashboard # this will also run an explorer
 The server can be configured with the following environment variables (in root .env file):
 
 | Variable              | Description                     | Default                                       |
-| --------------------- | ------------------------------- | --------------------------------------------- |
+| --------------------- | ------------------------------- | --------------------------------------------- | --- |
 | `NODE_ENV`            | Environment                     | `local`                                       |
 | `SERVER_HOST`         | Host that the server listens on | `0.0.0.0`                                     |
 | `SERVER_PORT`         | Port that the server listens on | `8888`                                        |
 | `HASURA_ADMIN_SECRET` | Hasura admin secret             | `password`                                    |
 | `GRAPHQL_URL`         | GraphQL URL                     | `https://tub-graphql.primodium.ai/v1/graphql` |
-| `HELIUS_API_KEY`      | Helius API key                  |                                               |
-| `QUICKNODE_ENDPOINT`  | Quicknode endpoint              |                                               |
-| `QUICKNODE_TOKEN`     | Quicknode token                 |                                               |
+| `HELIUS_API_KEY`      | Helius API key                  |                                               |     |
 
 ## Adding a parser
 
