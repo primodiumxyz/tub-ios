@@ -91,11 +91,6 @@ class Network {
                     let encoder = JSONEncoder()
                     let data = try encoder.encode(input)
                     request.httpBody = data
-
-                    // Debug print the actual JSON being sent
-                    if let jsonString = String(data: data, encoding: .utf8) {
-                        print("Sending JSON for \(procedure): \(jsonString)")
-                    }
                 } catch {
                     completion(.failure(error))
                     return
