@@ -4,15 +4,16 @@ import { getColumns } from "@/components/tracker/tokens-table/columns";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
-import { useSolPrice } from "@/hooks/use-sol-price";
-import { Token, useTokens } from "@/hooks/use-tokens";
+import { useTokens } from "@/hooks/use-tokens";
+import { INTERVALS } from "@/lib/constants";
+import { Interval, Token } from "@/lib/types";
 
 export const TokensTable = () => {
   const { tokens, fetching, error } = useTokens();
-  const { solToUsd } = useSolPrice();
   const [globalFilter, setGlobalFilter] = useState<string>("");
   const [frozen, setFrozen] = useState(false);
   const [frozenTokens, setFrozenTokens] = useState<Token[]>([]);
+  const [selectedInterval, setSelectedInterval] = useState<Interval>(60);
 
   useEffect(() => {
     if (frozen) setFrozenTokens(tokens);
@@ -25,8 +26,7 @@ export const TokensTable = () => {
       (token) =>
         token.name.toLowerCase().includes(globalFilter.toLowerCase()) ||
         token.symbol.toLowerCase().includes(globalFilter.toLowerCase()) ||
-        token.mint.toLowerCase().includes(globalFilter.toLowerCase()) ||
-        token.id.toLowerCase().includes(globalFilter.toLowerCase()),
+        token.mint.toLowerCase().includes(globalFilter.toLowerCase()),
     );
   }, [tokens, frozenTokens, frozen, globalFilter]);
 
@@ -43,6 +43,15 @@ export const TokensTable = () => {
           <span className="text-sm text-muted-foreground">
             {tokens.length} tokens {frozen && `(frozen at ${frozenTokens.length})`}
           </span>
+          <select
+            value={selectedInterval}
+            onChange={(e) => setSelectedInterval(Number(e.target.value) as Interval)}
+            className="rounded-md border p-2"
+          >
+            {INTERVALS.map((interval) => (
+              <option value={interval}>{interval}m</option>
+            ))}
+          </select>
         </div>
         <Input
           placeholder="Search"
@@ -52,12 +61,12 @@ export const TokensTable = () => {
         />
       </div>
       <DataTable
-        columns={getColumns(solToUsd)}
+        columns={getColumns(selectedInterval)}
         data={filteredTokens}
         caption={`List of the first 50 trending tokens during the last hour.`}
         loading={fetching}
         pagination={true}
-        defaultSorting={[{ id: "increasePct", desc: true }]}
+        defaultSorting={[{ id: "volume", desc: true }]}
       />
     </div>
   );
