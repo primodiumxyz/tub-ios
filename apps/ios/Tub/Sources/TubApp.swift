@@ -36,7 +36,7 @@ struct AppContent : View {
                 CreateWalletView()
             }
             else     {
-                HomeTabsView(userId: userId).font(.sfRounded())
+                HomeTabsView(userId: userId, walletAddress: embeddedWalletAddress).font(.sfRounded())
             }
         }
         .zIndex(0)
@@ -79,3 +79,4 @@ extension View {
         modifier(ErrorOverlay())
     }
 }
+

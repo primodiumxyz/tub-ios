@@ -37,9 +37,9 @@ class UserModel: ObservableObject {
     
     @Published var isLoading: Bool = true
 
-    init(userId: String, mock: Bool? = false) {
+    init(userId: String, walletAddress: String, mock: Bool? = false) {
         self.userId = userId
-        self.walletAddress = userId
+        self.walletAddress = walletAddress
 
         
         if(mock == true) {

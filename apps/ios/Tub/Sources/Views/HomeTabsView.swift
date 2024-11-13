@@ -13,9 +13,9 @@ struct HomeTabsView: View {
     @StateObject private var userModel : UserModel
     @State private var selectedTab: Int = 0 // Track the selected tab
     
-    init(userId: String) {
+    init(userId: String, walletAddress: String) {
         _priceModel = StateObject(wrappedValue: SolPriceModel())
-        _userModel = StateObject(wrappedValue: UserModel(userId: userId))
+        _userModel = StateObject(wrappedValue: UserModel(userId: userId, walletAddress: walletAddress))
     }
     
     var body: some View {
@@ -91,15 +91,3 @@ struct HomeTabsView: View {
     }
 }
 
-#Preview {
-    @Previewable @StateObject var errorHandler = ErrorHandler()
-    @Previewable @State var userId : String? = nil
-    Group {
-        if userId == nil {
-            LoadingView(identifier: "HomeTabsView - no userId")
-        } else {
-            HomeTabsView(userId: userId!)
-        }
-    }
-        .environmentObject(errorHandler)
-}
