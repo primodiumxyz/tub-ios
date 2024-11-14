@@ -11,7 +11,7 @@ struct RegisterView: View {
     @State private var isEmailValid = false
     @State private var showEmailError = false
     
-
+    
     // Email validation function using regex
     func validateEmail(_ email: String) -> Bool {
         let emailRegex = "^[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}$"
@@ -19,86 +19,76 @@ struct RegisterView: View {
     }
     
     var body: some View {
-        VStack(spacing: 10) {
-            GeometryReader { geometry in
-                ScrollView(showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 12){
-                        Spacer()
-                            .frame(height: geometry.size.height * 0.25)
-                        Image("Logo")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 100, height: 100)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .padding(.horizontal,10)
-                        
-                        Text("Welcome to tub")
-                            .font(.sfRounded(size: .xl2, weight: .semibold))
-                            .foregroundColor(AppColors.white)
-                            .padding(.horizontal,10)
-                        
-                        VStack(alignment: .leading, spacing: 10) {
-                            TextField("Enter your email", text: $email)
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 10)
-                                .frame(maxWidth: .infinity, minHeight: 50, alignment: .leading)
-                                .background(AppColors.white)
-                                .cornerRadius(30)
-                                .keyboardType(.emailAddress)
-                                .foregroundColor(.black)
-                                .onChange(of: email) { newValue in
-                                    isEmailValid = validateEmail(newValue)
-                                    showEmailError = false
-                                }
-                            
-                            // if email invalid
-                            if showEmailError {
-                                Text("Please enter a valid email address.")
-                                    .font(.caption)
-                                    .foregroundColor(.red)
-                                    .padding(.top, -4)
-                                    .padding(.horizontal, 20)
-                            } else {
-                                // Invisible placeholder to maintain spacing
-                                Text("")
-                                    .font(.caption)
-                                    .padding(.top, -4)
-                                    .padding(.horizontal, 20)
-                            }
-                        }
-                        .frame(height: 80) // Adjust this value to accommodate both states
-                        
-                        Spacer()
-                            .frame(height: 30)
-                        
-                        Button(action: {
-                            if isEmailValid {
-                                showEmailModal = true
-                            } else {
-                                showEmailError = true
-                            }
-                        }) {
-                            Text("Continue")
-                                .font(.sfRounded(size: .lg, weight: .semibold))
-                                .foregroundColor(AppColors.white)
-                                .frame(maxWidth: .infinity)
-                                .padding(14)
-                        }
-                        .background(AppColors.primaryPurple)
+        ScrollView(showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 12){
+                Image("Logo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 100, height: 100)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .padding(.horizontal,10)
+                
+                Text("Welcome to tub")
+                    .font(.sfRounded(size: .xl2, weight: .semibold))
+                    .foregroundColor(AppColors.white)
+                    .padding(.horizontal,10)
+                
+                VStack(alignment: .leading, spacing: 10) {
+                    TextField("Enter your email", text: $email)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
+                        .frame(maxWidth: .infinity, minHeight: 50, alignment: .leading)
+                        .background(AppColors.white)
                         .cornerRadius(30)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 30)
-                                .inset(by: 0.5)
-                                .stroke(AppColors.primaryPurple, lineWidth: 1)
-                        )
+                        .keyboardType(.emailAddress)
+                        .foregroundColor(.black)
+                        .onChange(of: email) { _, newValue in
+                            isEmailValid = validateEmail(newValue)
+                            showEmailError = false
+                        }
+                    
+                    // if email invalid
+                    if showEmailError {
+                        Text("Please enter a valid email address.")
+                            .font(.caption)
+                            .foregroundColor(.red)
+                            .padding(.top, -4)
+                            .padding(.horizontal, 20)
+                    } else {
+                        // Invisible placeholder to maintain spacing
+                        Text("")
+                            .font(.caption)
+                            .padding(.top, -4)
+                            .padding(.horizontal, 20)
                     }
-                    .padding(.horizontal)
                 }
-            }
-            // .frame(maxHeight: .infinity)
-            
-            VStack(spacing: 15) {
+                .padding()
+                .frame(height: 65) // Adjust this value to accommodate both states
+                
+                Button(action: {
+                    if isEmailValid {
+                        showEmailModal = true
+                    } else {
+                        showEmailError = true
+                    }
+                }) {
+                    Text("Continue")
+                        .font(.sfRounded(size: .lg, weight: .semibold))
+                        .foregroundColor(AppColors.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(14)
+                }
+                .background(AppColors.primaryPurple)
+                .cornerRadius(30)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 30)
+                        .inset(by: 0.5)
+                        .stroke(AppColors.primaryPurple, lineWidth: 1)
+                )
+                
+                .padding(.horizontal)
                 // or divider line
+                Spacer().frame(height: 30)
                 HStack(alignment: .center, spacing: 12) {
                     Divider()
                         .frame(width: 153, height: 1)
@@ -117,24 +107,24 @@ struct RegisterView: View {
                             Rectangle()
                                 .stroke(AppColors.lightGray, lineWidth: 1)
                         )
-                }
+                }.frame(maxWidth: .infinity )
                 
                 // Apple Login
                 SignInWithApple()
-                    .frame(maxWidth: .infinity, maxHeight: 50, alignment: .center)
+                    .frame(width: .infinity, height: 50, alignment: .center)
                     .cornerRadius(30)
                     .padding(.horizontal,10)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 30)
-                            .inset(by: 0.5)
-                            .stroke(.white, lineWidth: 1)
-                            .padding(.horizontal,10)
-                    )
+                     .overlay(
+                    RoundedRectangle(cornerRadius: 30)
+                        .inset(by: 0.5)
+                        .stroke(.white, lineWidth: 1)
+                        .padding(.horizontal,10)
+                )
                     .onTapGesture {
                         // Ideally this is called in a view model, but showcasinlug logic here for brevity
                         Task {
                             do {
-                                let authSession = try await privy.oAuth.login(with: OAuthProvider.apple)
+                                let _ = try await privy.oAuth.login(with: OAuthProvider.apple)
                             } catch {
                                 errorHandler.show(error)
                             }
@@ -199,7 +189,7 @@ struct RegisterView: View {
                     HStack() {
                         Image(systemName: "ladybug.fill")
                             .frame(width: 24, height: 24)
-
+                        
                         Text("Dev Login")
                             .font(.sfRounded(size: .base, weight: .semibold))
                     }
@@ -209,22 +199,19 @@ struct RegisterView: View {
                 .padding(.vertical, 5)
             }.sheet(isPresented: $showPhoneModal) {
                 SignInWithPhoneView()
-                    .presentationDetents([.height(500)])
+                    .presentationDetents([.height(300)])
             }
             .sheet(isPresented: $showEmailModal) {
                 SignInWithEmailView(email: $email)
-                    .presentationDetents([.height(400)])
+                    .presentationDetents([.height(300)])
             }
-            .ignoresSafeArea(.keyboard)
-            .padding(.top, 20)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(AppColors.darkBlueGradient)
-            .dismissKeyboardOnTap()
+            .padding(.top, 100)
         }
         .ignoresSafeArea(.keyboard)
-        .padding(.top, 20)
+        .padding(.vertical)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.darkBlueGradient)
+        
     }
 }
 
