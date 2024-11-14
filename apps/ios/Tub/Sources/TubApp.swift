@@ -5,29 +5,41 @@
 //  Created by Emerson Hsieh on 2024/9/24.
 //
 
-import SwiftUI
 import PrivySDK
+import SwiftUI
 
 @main
 struct TubApp: App {
-    
+    @Environment(\.scenePhase) private var scenePhase
+    private let dwellTimeTracker = AppDwellTimeTracker.shared
+
     var body: some Scene {
         WindowGroup {
             AppContent()
         }
+        .onChange(of: scenePhase) { phase in
+            switch phase {
+            case .active:
+                dwellTimeTracker.startTracking()
+            case .background, .inactive:
+                dwellTimeTracker.endTracking()
+            @unknown default:
+                break
+            }
+        }
     }
 }
 
-struct AppContent : View {
+struct AppContent: View {
     @StateObject private var errorHandler = ErrorHandler()
-    @State var userId : String = ""
+    @State var userId: String = ""
     @State var authState: PrivySDK.AuthState = .unauthenticated
     @State var embeddedWalletState: PrivySDK.EmbeddedWalletState = .notCreated
     @State var embeddedWalletAddress: String = ""
     @State var authError: Error? = nil
     @State var walletError: Error? = nil
     @State var linkedAccounts: [PrivySDK.LinkedAccount]? = nil
-    
+   
     var body: some View {
         Group {
             if let error = authError ?? walletError {
@@ -39,7 +51,7 @@ struct AppContent : View {
                             walletError = nil
                             // Retry connection
                             do {
-                               let _ = try await privy.refreshSession()
+                                let _ = try await privy.refreshSession()
                             } catch {
                                 errorHandler.show(error)
                             }
@@ -50,8 +62,7 @@ struct AppContent : View {
                 RegisterView()
             } else if authState == .notReady || embeddedWalletState.toString == "connecting" {
                 LoadingView(message: "Connecting user account...")
-            }
-            else if embeddedWalletAddress == "" {
+            } else if embeddedWalletAddress == "" {
                 CreateWalletView()
             }
             else     {
@@ -59,7 +70,7 @@ struct AppContent : View {
             }
         }
         .zIndex(0)
-        .onAppear{
+        .onAppear {
             privy.setAuthStateChangeCallback { state in
                 switch state {
                 case .error(let error):
@@ -74,11 +85,13 @@ struct AppContent : View {
                 }
                 self.authState = state
             }
-            
+
             privy.embeddedWallet.setEmbeddedWalletStateChangeCallback { state in
                 switch state {
                 case .error:
-                    self.walletError = NSError(domain: "com.tubapp.wallet", code: 1001, userInfo: [NSLocalizedDescriptionKey: "Failed to connect wallet."])
+                    self.walletError = NSError(
+                        domain: "com.tubapp.wallet", code: 1001,
+                        userInfo: [NSLocalizedDescriptionKey: "Failed to connect wallet."])
                 case .connected(let wallets):
                     self.walletError = nil
                     if let solanaWallet = wallets.first(where: { $0.chainType == .solana }) {
@@ -104,4 +117,3 @@ extension View {
         modifier(ErrorOverlay())
     }
 }
-

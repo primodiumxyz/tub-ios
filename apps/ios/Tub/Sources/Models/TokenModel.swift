@@ -6,9 +6,9 @@ import TubAPI
 class TokenModel: ObservableObject {
     var tokenId: String = ""
     var walletAddress: String = ""
-    
+
     @EnvironmentObject private var errorHandler: ErrorHandler
-    
+
     @Published var token: Token = Token(
         id: "",
         mint: "",
@@ -22,32 +22,32 @@ class TokenModel: ObservableObject {
     )
     @Published var loading = true
     @Published var balanceLamps: Int = 0
-    
-    @Published var purchaseData : PurchaseData? = nil
-    
+
+    @Published var purchaseData: PurchaseData? = nil
+
     @Published var prices: [Price] = []
     @Published var priceChange: (amountLamps: Int, percentage: Double) = (0, 0)
 
     @Published var timeframeSecs: Double = 90
     @Published var currentTimeframe: Timespan = .live
     private var lastPriceTimestamp: Date?
- 
+
     private var latestPriceSubscription: Apollo.Cancellable?
     private var tokenBalanceSubscription: Apollo.Cancellable?
-    
+
     deinit {
         // Clean up subscriptions when the object is deallocated
         latestPriceSubscription?.cancel()
         tokenBalanceSubscription?.cancel()
     }
-    
+
     init(walletAddress: String, tokenId: String? = nil) {
         self.walletAddress = walletAddress
         if tokenId != nil {
             self.initialize(with: tokenId!)
         }
     }
-    
+
     func initialize(with newTokenId: String, timeframeSecs: Double = 90) {
         // Cancel all existing subscriptions
         latestPriceSubscription?.cancel()
@@ -69,12 +69,12 @@ class TokenModel: ObservableObject {
             } catch {
                 print("Error fetching initial data: \(error)")
             }
-            
+
             subscribeToLatestPrice()
             subscribeToTokenBalance()
         }
     }
-    
+
     func fetchInitialPrices(_ timeframeSecs: Double) async throws {
         let since = Date().addingTimeInterval(-timeframeSecs).ISO8601Format()
 
@@ -83,19 +83,23 @@ class TokenModel: ObservableObject {
         return try await withCheckedThrowingContinuation { continuation in
             Network.shared.apollo.fetch(query: query) { [weak self] result in
                 guard let self = self else {
-                    continuation.resume(throwing: NSError(domain: "TokenModel", code: 0, userInfo: [NSLocalizedDescriptionKey: "Self is nil"]))
+                    continuation.resume(
+                        throwing: NSError(
+                            domain: "TokenModel", code: 0,
+                            userInfo: [NSLocalizedDescriptionKey: "Self is nil"]))
                     return
                 }
 
                 switch result {
                 case .success(let response):
                     DispatchQueue.main.async {
-                        self.prices = response.data?.token_price_history.compactMap { history in
-                            if let date = formatDateString(history.created_at) {
-                                return Price(timestamp: date, price: history.price)
-                            }
-                            return nil
-                        } ?? []
+                        self.prices =
+                            response.data?.token_price_history.compactMap { history in
+                                if let date = formatDateString(history.created_at) {
+                                    return Price(timestamp: date, price: history.price)
+                                }
+                                return nil
+                            } ?? []
                         self.lastPriceTimestamp = self.prices.last?.timestamp
                         self.loading = false
                         self.calculatePriceChange()
@@ -111,7 +115,8 @@ class TokenModel: ObservableObject {
     private func fetchTokenDetails() async throws {
         let query = GetTokenDataQuery(tokenId: tokenId)
         return try await withCheckedThrowingContinuation { continuation in
-            Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { [weak self] result in
+            Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) {
+                [weak self] result in
                 guard let self = self else {
                     let error = NSError(
                         domain: "TokenModel",
@@ -122,7 +127,7 @@ class TokenModel: ObservableObject {
                     continuation.resume(throwing: error)
                     return
                 }
-                
+
                 switch result {
                 case .success(let response):
                     if let token = response.data?.token.first(where: { $0.id == self.tokenId }) {
@@ -160,30 +165,35 @@ class TokenModel: ObservableObject {
     private func subscribeToLatestPrice() {
         latestPriceSubscription?.cancel()
         let subscription = SubLatestTokenPriceSubscription(tokenId: Uuid(self.tokenId))
-        
-        latestPriceSubscription = Network.shared.apollo.subscribe(subscription: subscription) { [weak self] result in
+
+        latestPriceSubscription = Network.shared.apollo.subscribe(subscription: subscription) {
+            [weak self] result in
             guard let self = self else { return }
-            
+
             switch result {
             case .success(let graphQLResult):
-                if let priceHistory = graphQLResult.data?.token_price_history.first, let date = formatDateString(priceHistory.created_at){
+                if let priceHistory = graphQLResult.data?.token_price_history.first,
+                    let date = formatDateString(priceHistory.created_at)
+                {
                     let newPrice = Price(timestamp: date, price: priceHistory.price)
-                    if self.lastPriceTimestamp == nil || newPrice.timestamp > self.lastPriceTimestamp! {
+                    if self.lastPriceTimestamp == nil
+                        || newPrice.timestamp > self.lastPriceTimestamp!
+                    {
                         self.prices.append(newPrice)
                         self.lastPriceTimestamp = newPrice.timestamp
                         self.calculatePriceChange()
                     }
-                   
+
                 }
             case .failure(let error):
                 print("Error in latest price subscription: \(error)")
             }
         }
     }
-    
+
     private func subscribeToTokenBalance() {
         tokenBalanceSubscription?.cancel()
-        
+
         tokenBalanceSubscription = Network.shared.apollo.subscribe(
             subscription: SubWalletTokenBalanceSubscription(
                 wallet: self.walletAddress, token: self.tokenId)
@@ -193,7 +203,7 @@ class TokenModel: ObservableObject {
                 switch result {
                 case .success(let graphQLResult):
                     self.balanceLamps =
-                    graphQLResult.data?.balance.first?.value ?? 0
+                        graphQLResult.data?.balance.first?.value ?? 0
                 case .failure(let error):
                     print("Error updating token balance: \(error.localizedDescription)")
                 }
@@ -201,29 +211,57 @@ class TokenModel: ObservableObject {
         }
     }
 
-    func buyTokens(buyAmountLamps: Int, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
+    func buyTokens(
+        buyAmountLamps: Int, completion: @escaping (Result<EmptyResponse, Error>) -> Void
+    ) {
         if let price = self.prices.last?.price, price > 0 {
             let tokenAmount = Int(Double(buyAmountLamps) / Double(price) * 1e9)
-            
-            Network.shared.buyToken(tokenId: self.tokenId, amount: String(tokenAmount)
+            var errorMessage: String? = nil
+
+            Network.shared.buyToken(
+                tokenId: self.tokenId, amount: String(tokenAmount)
             ) { result in
                 switch result {
                 case .success:
-                    self.purchaseData = PurchaseData (
+                    self.purchaseData = PurchaseData(
                         timestamp: Date(),
                         amount: buyAmountLamps,
                         price: price
                     )
                 case .failure(let error):
+                    errorMessage = error.localizedDescription
                     print("Error buying tokens: \(error)")
                 }
                 completion(result)
             }
+
+            Network.shared.recordClientEvent(
+                event: ClientEvent(
+                    eventName: "buy_tokens",
+                    source: "token_model",
+                    metadata: [
+                        ["token_amount": tokenAmount],
+                        ["buy_amount": buyAmountLamps],
+                        ["price": price],
+                        ["token_id": tokenId],
+                    ],
+                    errorDetails: errorMessage
+                )
+            ) { result in
+                switch result {
+                case .success:
+                    print("Successfully recorded buy event")
+                case .failure(let error):
+                    print("Failed to record buy event: \(error)")
+                }
+            }
         }
     }
-    
+
     func sellTokens(completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
-        Network.shared.sellToken(tokenId: self.tokenId, amount: String(self.balanceLamps)
+        var errorMessage: String? = nil
+        Network.shared.sellToken(
+            tokenId: self.tokenId, amount: String(self.balanceLamps)
         ) { result in
             switch result {
             case .success:
@@ -233,18 +271,35 @@ class TokenModel: ObservableObject {
             }
             completion(result)
         }
+
+        Network.shared.recordClientEvent(
+            event: ClientEvent(
+                eventName: "sell_tokens",
+                source: "token_model",
+                metadata: [
+                    ["sell_amount": self.balanceLamps],
+                    ["token_id": tokenId],
+                ],
+                errorDetails: errorMessage
+            )
+        ) { result in
+            switch result {
+            case .success:
+                print("Successfully recorded buy event")
+            case .failure(let error):
+                print("Failed to record buy event: \(error)")
+            }
+        }
     }
 
-
-    
     func updateHistoryInterval(_ timespan: Timespan) {
         self.currentTimeframe = timespan
         self.calculatePriceChange()
-        
+
         if self.timeframeSecs >= timespan.timeframeSecs {
             return
         }
-        
+
         latestPriceSubscription?.cancel()
         self.prices = []
         self.loading = true
@@ -256,27 +311,28 @@ class TokenModel: ObservableObject {
             } catch {
                 print("error updating the history interval: \(error.localizedDescription)")
             }
-            
+
         }
     }
-    
+
     private func calculatePriceChange() {
         let latestPrice = prices.last?.price ?? 0
-        
+
         // Get timestamp for start of current timeframe
         let startTime = Date().addingTimeInterval(-currentTimeframe.timeframeSecs)
-        
+
         // Find first price after the start time
-        let initialPrice = prices.first(where: { $0.timestamp >= startTime })?.price ?? prices.first?.price ?? 0
-        
+        let initialPrice =
+            prices.first(where: { $0.timestamp >= startTime })?.price ?? prices.first?.price ?? 0
+
         if latestPrice == 0 || initialPrice == 0 {
             print("Error: Cannot calculate price change. Prices are not available.")
             return
         }
-        
+
         let priceChangeAmount = latestPrice - initialPrice
         let priceChangePercentage = Double(priceChangeAmount) / Double(initialPrice) * 100
-        
+
         DispatchQueue.main.async {
             self.priceChange = (priceChangeAmount, priceChangePercentage)
         }
@@ -290,13 +346,19 @@ class TokenModel: ObservableObject {
 
     func getTokenStats(priceModel: SolPriceModel) -> [(String, String)] {
         let currentPrice = prices.last?.price ?? 0
-        let marketCap = Double(token.supply) / pow(10.0, Double(token.decimals)) * Double(currentPrice) // we're dividing first otherwise it will overflow...
+        let marketCap =
+            Double(token.supply) / pow(10.0, Double(token.decimals)) * Double(currentPrice)  // we're dividing first otherwise it will overflow...
         let supplyValue = Double(token.supply) / pow(10.0, Double(token.decimals))
-        
+
         return [
             ("Market Cap", loading ? "..." : priceModel.formatPrice(lamports: Int(marketCap))),
-            ("Volume (\(formatDuration(token.volume.interval)))", loading ? "..." : priceModel.formatPrice(lamports: token.volume.value, formatLarge: true)),
-            ("Supply", loading ? "..." : formatLargeNumber(supplyValue))
+            (
+                "Volume (\(formatDuration(token.volume.interval)))",
+                loading
+                    ? "..."
+                    : priceModel.formatPrice(lamports: token.volume.value, formatLarge: true)
+            ),
+            ("Supply", loading ? "..." : formatLargeNumber(supplyValue)),
         ]
     }
 }

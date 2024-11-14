@@ -15,7 +15,7 @@ struct AccountView: View {
     @State private var isAirdropping = false
     @Environment(\.presentationMode) var presentationMode
     @State private var showOnrampView = false
-       
+
     func performAirdrop() {
         isAirdropping = true
         
@@ -26,16 +26,34 @@ struct AccountView: View {
                 case .success:
                     errorHandler.showSuccess("Airdrop successful!")
                 case .failure(let error):
+                    errorMessage = error.localizedDescription
                     errorHandler.show(error)
                 }
             }
         }
+
+        Network.shared.recordClientEvent(
+            event: ClientEvent(
+                eventName: "airdrop",
+                source: "account_view",
+                metadata: [
+                    ["airdrop_amount": 1 * Int(1e9)]
+                ],
+                errorDetails: errorMessage
+            )
+        ) { result in
+            switch result {
+            case .success:
+                print("Successfully recorded buy event")
+            case .failure(let error):
+                print("Failed to record buy event: \(error)")
+            }
+        }
     }
-    
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 24) {
-                
                 if userModel.userId.isEmpty {
                     Text("Please register to view your account details.")
                         .font(.sfRounded(size: .lg, weight: .medium))
@@ -241,6 +259,5 @@ struct AccountView: View {
             }
         }
     }
- 
-}
 
+}
