@@ -8,6 +8,7 @@
 import SwiftUI
 import Foundation
 
+
 struct AccountDetailsView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var userModel: UserModel
@@ -41,8 +42,13 @@ struct AccountDetailsView: View {
                         }
                     }
                     
-                    DetailRow(title: "Email", value: "rhino@primodium.com")
-                    DetailRow(title: "Phone", value: "+1 (213)-345-5678")
+                    if let email = userModel.email {
+                        DetailRow(title: "Email", value: email)
+                    }
+                    
+                    if let phone = userModel.phone {
+                        DetailRow(title: "Phone", value: phone)
+                    }
                     
                     Divider()
                         .frame(height: 1)
@@ -129,8 +135,3 @@ struct DetailRow: View {
         }
     }
 }
-
-#Preview {
-    AccountDetailsView()
-        .environmentObject(UserModel(userId: "preview"))
-} 

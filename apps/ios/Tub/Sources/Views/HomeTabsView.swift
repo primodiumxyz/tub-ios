@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import PrivySDK
 
 struct HomeTabsView: View {
     var color = Color(red: 0.43, green: 0.97, blue: 0.98)
@@ -13,9 +14,9 @@ struct HomeTabsView: View {
     @StateObject private var userModel : UserModel
     @State private var selectedTab: Int = 0 // Track the selected tab
     
-    init(userId: String, walletAddress: String) {
+    init(userId: String, walletAddress: String, linkedAccounts: [PrivySDK.LinkedAccount]?) {
         _priceModel = StateObject(wrappedValue: SolPriceModel())
-        _userModel = StateObject(wrappedValue: UserModel(userId: userId, walletAddress: walletAddress))
+        _userModel = StateObject(wrappedValue: UserModel(userId: userId, walletAddress: walletAddress, linkedAccounts: linkedAccounts))
     }
     
     var body: some View {
