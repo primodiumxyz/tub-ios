@@ -47,7 +47,7 @@ struct CoinbaseOnrampView: View {
                     .font(.sfRounded(size: .xl4, weight: .bold))
                     .foregroundColor(AppColors.white)
                 
-                TextField("", text: $amountString, prompt: Text("10").foregroundColor(AppColors.white.opacity(0.3)))
+                TextField("", text: $amountString, prompt: Text("100").foregroundColor(AppColors.white.opacity(0.3)))
                     .focused($isAmountFocused)
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.leading)
