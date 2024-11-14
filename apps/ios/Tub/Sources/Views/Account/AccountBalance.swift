@@ -115,6 +115,7 @@ struct AccountBalanceView: View {
         }
         .background(Color.clear)
         .cornerRadius(30)
+        .padding(.horizontal, 10)
         .contentShape(Rectangle())
         .onTapGesture {
             withAnimation {

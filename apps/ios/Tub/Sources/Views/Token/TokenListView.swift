@@ -60,19 +60,18 @@ struct TokenListView: View {
     
     
     var body: some View {
-        Group {
+        VStack {
+            AccountBalanceView(
+                userModel: userModel,
+                currentTokenModel: viewModel.currentTokenModel
+            )
+            .background(AppColors.black)
+            .zIndex(2)
+            .padding(.top, 40)
+            
             if viewModel.isLoading {
-                VStack(spacing: 0) {
-                    AccountBalanceView(
-                        userModel: userModel,
-                        currentTokenModel: viewModel.currentTokenModel
-                    )
-                    .padding(.horizontal, 10)
-                    .background(dragging ? AppColors.black : nil)
-                    .zIndex(2)
                     DummyTokenView(height: 400)
                         .frame(height: .infinity)
-                }
                 
             } else {
                 ZStack(alignment: .top) {
@@ -84,14 +83,6 @@ struct TokenListView: View {
                         .ignoresSafeArea()
                         
                         VStack(spacing: 0) {
-                            AccountBalanceView(
-                                userModel: userModel,
-                                currentTokenModel: viewModel.currentTokenModel
-                            )
-                            .padding(.horizontal, 10)
-                            .background(dragging ? AppColors.black : nil)
-                            .zIndex(2)
-                            
                             // Rest of the content
                             if viewModel.tokens.count == 0 {
                                 Spacer()
@@ -180,7 +171,7 @@ struct TokenListView: View {
             }
         } .onAppear {
             viewModel.subscribeTokens()
-        }
+        }.ignoresSafeArea()
     }
 }
 
