@@ -38,22 +38,9 @@ struct AccountBalanceView: View {
                             .fontWeight(.bold)
                             .foregroundColor(AppColors.green)
                             .padding(.trailing)
-                        
-                        Image("Vector")
-                            .resizable()
-                            .frame(width: 24, height: 24)
-                            .padding(.trailing)
                     }
                     .padding(.horizontal,10)
-                    .padding(.vertical,8)
                     .frame(maxWidth: .infinity, alignment: .topLeading)
-                
-                Divider()
-                    .frame(width: 300, height: 1)
-                    .overlay(
-                        Rectangle()
-                            .stroke(AppColors.lightGray.opacity(0.3), lineWidth: 0.5)
-                    )
                 }
             }
             
@@ -90,34 +77,21 @@ struct AccountBalanceView: View {
                             .foregroundColor(adjustedChange >= 0 ? AppColors.green : AppColors.red)
                         }
                         .padding(.horizontal,5)
-                        .padding(.top,5)
                         .onTapGesture {
                             withAnimation {
                                 isExpanded.toggle()
                             }                        
                         }
                         Spacer()
-                        
-                        Image("Vector")
-                            .resizable()
-                            .frame(width: 44, height: 36)
-                            .padding(.trailing)
+                      
                     }
                     .frame(maxWidth: .infinity, alignment: .topLeading)
                     
-                    Divider()
-                        .frame(width: 300, height: 1)
-                        .overlay(
-                            Rectangle()
-                                .stroke(AppColors.lightGray.opacity(0.3), lineWidth: 0.5)
-                        )
-                        .offset(y:-3)
+                 
                 }
             }
         }
-        .background(Color.clear)
-        .cornerRadius(30)
-        .contentShape(Rectangle())
+        .padding(.horizontal, 10)
         .onTapGesture {
             withAnimation {
                 isExpanded.toggle()

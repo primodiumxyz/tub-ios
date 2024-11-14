@@ -38,6 +38,7 @@ class UserModel: ObservableObject {
     private var timerCancellable: AnyCancellable?
     
     @Published var isLoading: Bool = true
+    @Published var error: String?
 
     init(userId: String, walletAddress: String, linkedAccounts: [PrivySDK.LinkedAccount]? = nil, mock: Bool? = false) {
         self.userId = userId
@@ -57,23 +58,38 @@ class UserModel: ObservableObject {
         }
     }
 
-    private func fetchInitialData() async {
+    func fetchInitialData() async {
+        let timeoutTask = Task {
+            self.error = nil
+            self.isLoading = true
+            try await Task.sleep(nanoseconds: 10 * 1_000_000_000) // 10 seconds
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                if self.isLoading {
+                    self.error = "User data fetch timed out"
+                    self.isLoading = false
+                }
+            }
+        }
+
         do {
             try await fetchInitialBalance()
+            timeoutTask.cancel() // Cancel timeout if successful
             DispatchQueue.main.async {
                 self.initialTime = Date()
                 self.isLoading = false
+                self.error = nil
             }
         } catch {
-            print("Error fetching initial data: \(error)")
+            timeoutTask.cancel() // Cancel timeout if there's an error
             DispatchQueue.main.async {
+                self.error = error.localizedDescription
                 self.isLoading = false
             }
         }
     }
 
     private func fetchInitialBalance() async throws {
-        let start = self.initialTime.ISO8601Format()
         let query = GetWalletBalanceQuery(wallet: self.walletAddress)
         
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in

@@ -259,5 +259,4 @@ struct AccountView: View {
             }
         }
     }
-
 }
