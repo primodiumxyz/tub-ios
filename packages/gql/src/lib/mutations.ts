@@ -96,3 +96,29 @@ export const UpsertManyTokensAndPriceHistoryMutation = graphql(`
     }
   }
 `);
+
+export const AddClientEventMutation = graphql(`
+  mutation AddClientEvent(
+    $user_agent: String!
+    $event_name: String!
+    $user_wallet: String!
+    $source: String
+    $metadata: jsonb
+    $error_details: String
+    $build: String
+  ) {
+    insert_analytics_client_event_one(
+      object: {
+        user_agent: $user_agent
+        name: $event_name
+        metadata: $metadata
+        source: $source
+        user: $user_wallet
+        error_details: $error_details
+        build: $build
+      }
+    ) {
+      id
+    }
+  }
+`);

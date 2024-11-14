@@ -10,6 +10,7 @@ import Combine
 import Apollo
 import TubAPI
 import ApolloCombine
+import PrivySDK
 
 class UserModel: ObservableObject {
     private lazy var iso8601Formatter: ISO8601DateFormatter = {
@@ -21,6 +22,7 @@ class UserModel: ObservableObject {
     @Published var userId: String
     @Published var username: String = ""
     @Published var walletAddress: String  = ""
+    @Published var linkedAccounts: [PrivySDK.LinkedAccount]? = nil
 
     @Published var initialBalanceLamps: Int = 0
     @Published var balanceLamps: Int = 0
@@ -38,10 +40,10 @@ class UserModel: ObservableObject {
     @Published var isLoading: Bool = true
     @Published var error: String?
 
-    init(userId: String, walletAddress: String, mock: Bool? = false) {
+    init(userId: String, walletAddress: String, linkedAccounts: [PrivySDK.LinkedAccount]? = nil, mock: Bool? = false) {
         self.userId = userId
         self.walletAddress = walletAddress
-
+        self.linkedAccounts = linkedAccounts
         
         if(mock == true) {
             self.balanceLamps = 1000
@@ -165,5 +167,42 @@ class UserModel: ObservableObject {
         timerCancellable?.cancel()
         accountBalanceSubscription?.cancel()
 
+    }
+
+    var email: String? {
+        linkedAccounts?.first { account in
+            if case .email(let emailAccount) = account {
+                return true
+            }
+            return false
+        }.flatMap { account in
+            if case .email(let emailAccount) = account {
+                return emailAccount.email
+            }
+            return nil
+        }
+    }
+    
+    var phone: String? {
+        linkedAccounts?.first { account in
+            if case .phone = account {
+                return true
+            }
+            return false
+        }.flatMap { account in
+            if case .phone(let phoneAccount) = account {
+                return phoneAccount.phoneNumber
+            }
+            return nil
+        }
+    }
+    
+    var embeddedWallets: [PrivySDK.EmbeddedWallet] {
+        linkedAccounts?.compactMap { account in
+            if case .embeddedWallet(let wallet) = account {
+                return wallet
+            }
+            return nil
+        } ?? []
     }
 }

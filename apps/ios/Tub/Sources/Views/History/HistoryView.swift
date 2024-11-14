@@ -392,10 +392,10 @@ struct TransactionRow: View {
                 HStack {
                     Text(transaction.isBuy ? "Buy" : "Sell")
                         .font(.sfRounded(size: .base, weight: .bold))
-                        .foregroundColor(AppColors.white)
+                        .foregroundColor(AppColors.lightGray)
                     Text(transaction.name.isEmpty ? transaction.mint.truncatedAddress() : transaction.name)
                         .font(.sfRounded(size: .base, weight: .bold))
-                        .foregroundColor(AppColors.lightYellow)
+                        .foregroundColor(AppColors.white)
                         .offset(x:-2)
                 }
                 
