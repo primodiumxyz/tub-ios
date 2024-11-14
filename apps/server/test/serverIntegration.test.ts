@@ -77,9 +77,9 @@ describe("Server Integration Tests", () => {
       userAgent: "test",
       eventName: "test",
       source: "test",
-      metadata: {
+      metadata: JSON.stringify({
         test: "test",
-      },
+      }),
       errorDetails: "test",
     });
 
