@@ -7,7 +7,7 @@ public class GetTokenMetadataQuery: GraphQLQuery {
   public static let operationName: String = "GetTokenMetadata"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetTokenMetadata($address: String!, $networkId: Int = 1399811149) { token(input: { address: $address, networkId: $networkId }) { __typename createdAt info { __typename name symbol description } socialLinks { __typename discord instagram telegram twitter website } } }"#
+      #"query GetTokenMetadata($address: String!, $networkId: Int = 1399811149) { token(input: { address: $address, networkId: $networkId }) { __typename info { __typename name description symbol } socialLinks { __typename discord instagram telegram twitter website } } }"#
     ))
 
   public var address: String
@@ -51,13 +51,10 @@ public class GetTokenMetadataQuery: GraphQLQuery {
       public static var __parentType: any ApolloAPI.ParentType { CodexAPI.Objects.EnhancedToken }
       public static var __selections: [ApolloAPI.Selection] { [
         .field("__typename", String.self),
-        .field("createdAt", Int?.self),
         .field("info", Info?.self),
         .field("socialLinks", SocialLinks?.self),
       ] }
 
-      /// The unix timestamp for the creation of the token.
-      public var createdAt: Int? { __data["createdAt"] }
       /// More metadata about the token.
       public var info: Info? { __data["info"] }
       /// Community gathered links for the socials of this token.
@@ -74,16 +71,16 @@ public class GetTokenMetadataQuery: GraphQLQuery {
         public static var __selections: [ApolloAPI.Selection] { [
           .field("__typename", String.self),
           .field("name", String?.self),
-          .field("symbol", String.self),
           .field("description", String?.self),
+          .field("symbol", String.self),
         ] }
 
         /// The token name. For example, `ApeCoin`.
         public var name: String? { __data["name"] }
-        /// The token symbol. For example, `APE`.
-        public var symbol: String { __data["symbol"] }
         /// A description of the token.
         public var description: String? { __data["description"] }
+        /// The token symbol. For example, `APE`.
+        public var symbol: String { __data["symbol"] }
       }
 
       /// Token.SocialLinks

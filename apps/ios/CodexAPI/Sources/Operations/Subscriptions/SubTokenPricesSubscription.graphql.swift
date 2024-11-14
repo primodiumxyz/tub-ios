@@ -7,24 +7,16 @@ public class SubTokenPricesSubscription: GraphQLSubscription {
   public static let operationName: String = "SubTokenPrices"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"subscription SubTokenPrices($tokenAddress: String!, $networkId: Int = 1399811149) { onTokenEventsCreated( input: { tokenAddress: $tokenAddress, networkId: $networkId } ) { __typename events { __typename eventType timestamp token0PoolValueUsd token1PoolValueUsd quoteToken } } }"#
+      #"subscription SubTokenPrices($pairId: String!) { onEventsCreated(id: $pairId) { __typename events { __typename eventType timestamp token0PoolValueUsd token1PoolValueUsd quoteToken } } }"#
     ))
 
-  public var tokenAddress: String
-  public var networkId: GraphQLNullable<Int>
+  public var pairId: String
 
-  public init(
-    tokenAddress: String,
-    networkId: GraphQLNullable<Int> = 1399811149
-  ) {
-    self.tokenAddress = tokenAddress
-    self.networkId = networkId
+  public init(pairId: String) {
+    self.pairId = pairId
   }
 
-  public var __variables: Variables? { [
-    "tokenAddress": tokenAddress,
-    "networkId": networkId
-  ] }
+  public var __variables: Variables? { ["pairId": pairId] }
 
   public struct Data: CodexAPI.SelectionSet {
     public let __data: DataDict
@@ -32,31 +24,29 @@ public class SubTokenPricesSubscription: GraphQLSubscription {
 
     public static var __parentType: any ApolloAPI.ParentType { CodexAPI.Objects.Subscription }
     public static var __selections: [ApolloAPI.Selection] { [
-      .field("onTokenEventsCreated", OnTokenEventsCreated.self, arguments: ["input": [
-        "tokenAddress": .variable("tokenAddress"),
-        "networkId": .variable("networkId")
-      ]]),
+      .field("onEventsCreated", OnEventsCreated?.self, arguments: ["id": .variable("pairId")]),
     ] }
 
-    /// Live streamed events for a given token across all it's pools
-    public var onTokenEventsCreated: OnTokenEventsCreated { __data["onTokenEventsCreated"] }
+    /// Live-streamed transactions for a token.
+    public var onEventsCreated: OnEventsCreated? { __data["onEventsCreated"] }
 
-    /// OnTokenEventsCreated
+    /// OnEventsCreated
     ///
-    /// Parent Type: `AddTokenEventsOutput`
-    public struct OnTokenEventsCreated: CodexAPI.SelectionSet {
+    /// Parent Type: `AddEventsOutput`
+    public struct OnEventsCreated: CodexAPI.SelectionSet {
       public let __data: DataDict
       public init(_dataDict: DataDict) { __data = _dataDict }
 
-      public static var __parentType: any ApolloAPI.ParentType { CodexAPI.Objects.AddTokenEventsOutput }
+      public static var __parentType: any ApolloAPI.ParentType { CodexAPI.Objects.AddEventsOutput }
       public static var __selections: [ApolloAPI.Selection] { [
         .field("__typename", String.self),
-        .field("events", [Event].self),
+        .field("events", [Event?].self),
       ] }
 
-      public var events: [Event] { __data["events"] }
+      /// A list of transactions for the token.
+      public var events: [Event?] { __data["events"] }
 
-      /// OnTokenEventsCreated.Event
+      /// OnEventsCreated.Event
       ///
       /// Parent Type: `Event`
       public struct Event: CodexAPI.SelectionSet {

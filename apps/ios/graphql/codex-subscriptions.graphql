@@ -1,10 +1,5 @@
-subscription SubTokenPrices(
-  $tokenAddress: String!
-  $networkId: Int = 1399811149
-) {
-  onTokenEventsCreated(
-    input: { tokenAddress: $tokenAddress, networkId: $networkId }
-  ) {
+subscription SubTokenPrices($pairId: String!) {
+  onEventsCreated(id: $pairId) {
     events {
       eventType
       timestamp

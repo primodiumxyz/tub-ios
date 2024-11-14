@@ -121,7 +121,7 @@ struct TokenView : View {
                 if tokenModel.loading {
                     LoadingPrice()
                 } else {
-                    Text(priceModel.formatPrice(lamports: tokenModel.prices.last?.price ?? 0, maxDecimals: 9, minDecimals: 2))
+                    Text(priceModel.formatPrice(usd: tokenModel.prices.last?.priceUsd ?? 0, maxDecimals: 9, minDecimals: 2))
                         .font(.sfRounded(size: .xl4, weight: .bold))
                     Image(systemName: "info.circle.fill")
                         .frame(width: 16, height: 16)
@@ -133,13 +133,13 @@ struct TokenView : View {
                 LoadingPriceChange()
             } else {
                 HStack {
-                    Text(priceModel.formatPrice(lamports: tokenModel.priceChange.amountLamps, showSign: true))
+                    Text(priceModel.formatPrice(usd: tokenModel.priceChange.amountUsd, showSign: true))
                     Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
                     
                     Text("\(formatDuration(tokenModel.currentTimeframe.timeframeSecs))").foregroundColor(.gray)
                 }
                 .font(.sfRounded(size: .sm, weight: .semibold))
-                .foregroundColor(tokenModel.priceChange.amountLamps >= 0 ? .green : .red)
+                .foregroundColor(tokenModel.priceChange.amountUsd >= 0 ? .green : .red)
             }
         }
         .padding(.horizontal)
@@ -166,8 +166,7 @@ struct TokenView : View {
                 )
             } else {
                 CandleChartView(
-                    prices: tokenModel.prices,
-                    intervalSecs: 90,
+                    candles: tokenModel.candles,
                     timeframeMins: 30,
                     height: height
                 )
@@ -220,7 +219,7 @@ struct TokenView : View {
     private var stats: [(String, StatValue)] {
         var stats = [(String, StatValue)]()
         
-        if let purchaseData = tokenModel.purchaseData, let price = tokenModel.prices.last?.price, price > 0, activeTab == "sell" {
+        if let purchaseData = tokenModel.purchaseData, let price = tokenModel.prices.last?.priceUsd, price > 0, activeTab == "sell" {
             // Calculate current value in lamports
             let currentValueLamps = Int(Double(tokenModel.balanceLamps) / 1e9 * Double(price))
             

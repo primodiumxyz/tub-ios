@@ -19,22 +19,6 @@ query GetTopTokens(
     marketCap
     volume
     topPairId
-    priceChange1
-    priceChange4
-    priceChange12
-    priceChange24
-    txnCount1
-    txnCount4
-    txnCount12
-    txnCount24
-    uniqueBuys1
-    uniqueBuys4
-    uniqueBuys12
-    uniqueBuys24
-    uniqueSells1
-    uniqueSells4
-    uniqueSells12
-    uniqueSells24
     exchanges {
       address
     }
@@ -43,9 +27,10 @@ query GetTopTokens(
 
 query GetTokenMetadata($address: String!, $networkId: Int = 1399811149) {
   token(input: { address: $address, networkId: $networkId }) {
-    createdAt
     info {
+      name
       description
+      symbol
     }
     socialLinks {
       discord

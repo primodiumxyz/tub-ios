@@ -26,16 +26,15 @@ struct TokenInfoCardView: View {
         
         if let purchaseData = tokenModel.purchaseData, activeTab == "sell" {
             // Calculate current value in lamports
-            let currentValueLamps = Int(Double(tokenModel.balanceLamps) / 1e9 * Double(tokenModel.prices.last?.price ?? 0))
+            let currentBalanceLamps = Int(Double(tokenModel.balanceLamps) / 1e9)
             
             // Calculate profit
-            let initialValueUsd = priceModel.lamportsToUsd(lamports: purchaseData.price)
-            let currentValueUsd = priceModel.lamportsToUsd(lamports: currentValueLamps)
-            let gains = currentValueUsd - initialValueUsd
+            let currentValueUsd = priceModel.lamportsToUsd(lamports: currentBalanceLamps) + (tokenModel.prices.last?.priceUsd ?? 0)
+            let gains = currentValueUsd - purchaseData.priceUsd
             
 
-            if purchaseData.amount > 0, initialValueUsd > 0 {
-                let percentageGain = gains / initialValueUsd * 100
+            if purchaseData.amount > 0, purchaseData.priceUsd > 0 {
+                let percentageGain = gains / purchaseData.priceUsd * 100
                 stats += [
                     ("Gains", StatValue(
                         text: "\(priceModel.formatPrice(usd: gains, showSign: true)) (\(String(format: "%.2f", percentageGain))%)",
@@ -46,7 +45,7 @@ struct TokenInfoCardView: View {
           
             stats += [
                 ("You Own", StatValue(
-                    text: "\(priceModel.formatPrice(lamports: currentValueLamps, maxDecimals: 2, minDecimals: 2)) (\(priceModel.formatPrice(lamports: tokenModel.balanceLamps, showUnit: false)) \(tokenModel.token.symbol))",
+                    text: "\(priceModel.formatPrice(usd: currentValueUsd, maxDecimals: 2, minDecimals: 2)) (\(priceModel.formatPrice(lamports: tokenModel.balanceLamps, showUnit: false)) \(tokenModel.token.symbol))",
                     color: nil
                 ))
             ]

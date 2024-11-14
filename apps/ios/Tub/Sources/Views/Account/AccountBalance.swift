@@ -14,11 +14,6 @@ struct AccountBalanceView: View {
     
     @State private var isExpanded: Bool = false
     
-    var accountBalance: Int {
-        let tokenValue = currentTokenModel.balanceLamps * (currentTokenModel.prices.last?.price ?? 0) / Int(1e9)
-        return tokenValue + userModel.balanceLamps
-    }
-    
     var body: some View {
         VStack(alignment: .center) {
             

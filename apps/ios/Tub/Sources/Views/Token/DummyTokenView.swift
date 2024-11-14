@@ -13,11 +13,11 @@ struct DummyTokenView: View {
     var prices: [Price] = {
         let now = Date()
         return [
-            Price(timestamp: now.addingTimeInterval(-60), price: Int(1)),
-            Price(timestamp: now.addingTimeInterval(-45), price: Int(4)),
-            Price(timestamp: now.addingTimeInterval(-30), price: Int(3)),
-            Price(timestamp: now.addingTimeInterval(-15), price: Int(6)),
-            Price(timestamp: now, price: Int(10)),
+            Price(timestamp: now.addingTimeInterval(-60), priceUsd: 1.0),
+            Price(timestamp: now.addingTimeInterval(-45), priceUsd: 4.0),
+            Price(timestamp: now.addingTimeInterval(-30), priceUsd: 3.0),
+            Price(timestamp: now.addingTimeInterval(-15), priceUsd: 6.0),
+            Price(timestamp: now, priceUsd: 10.0),
         ]
     }()
     

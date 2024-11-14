@@ -87,8 +87,11 @@ public let serverBaseUrl: String = {
     #endif
 }()
 
-// Filtered tokens and chart
+// Codex
 public let RESOLUTION: String = "60" // base top tokens on 1 hour resolution
+public let NETWORK_FILTER: Int = 1399811149
+
+// Filtered tokens and chart
 public let FILTER_INTERVAL: Double = 30 * 60
 public let MIN_TRADES: Int = 0
 public let MIN_VOLUME: Int = 0

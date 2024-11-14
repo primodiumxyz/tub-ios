@@ -30,16 +30,38 @@ struct Token: Identifiable {
 struct PurchaseData {
     let timestamp: Date
     let amount: Int
-    let price: Int
+    let priceUsd: Double
 }
 
 struct Price: Identifiable, Equatable {
     static func == (lhs: Price, rhs: Price) -> Bool {
-        return lhs.timestamp == rhs.timestamp && lhs.price == rhs.price
+        return lhs.timestamp == rhs.timestamp && lhs.priceUsd == rhs.priceUsd
     }
     var id = UUID()
     var timestamp: Date
-    var price: Int
+    var priceUsd: Double
+}
+
+struct CandleData: Identifiable {
+    let id: Date
+    let start: Date
+    let end: Date
+    let open: Double
+    let close: Double
+    let high: Double
+    let low: Double
+    var volume: Int?
+    
+    init(start: Date, end: Date, open: Double, close: Double, high: Double, low: Double, volume: Int? = nil) {
+        self.id = start
+        self.start = start
+        self.end = end
+        self.open = open
+        self.close = close
+        self.high = high
+        self.low = low
+        self.volume = volume
+    }
 }
 
 struct Transaction: Identifiable, Equatable {
