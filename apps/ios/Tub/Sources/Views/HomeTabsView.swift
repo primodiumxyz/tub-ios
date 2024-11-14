@@ -23,9 +23,9 @@ struct HomeTabsView: View {
 
     private func recordTabDwellTime(_ previousTab: String) {
         guard let startTime = tabStartTime else { return }
-
+        
         let dwellTimeMs = Int(Date().timeIntervalSince(startTime) * 1000)
-
+        
         Network.shared.recordClientEvent(
             event: ClientEvent(
                 eventName: "tab_dwell_time",
@@ -43,7 +43,7 @@ struct HomeTabsView: View {
                 print("Failed to record tab dwell time: \(error)")
             }
         }
-
+    }
 
     private func recordTabSelection(_ tabName: String) {
         // Record dwell time for previous tab

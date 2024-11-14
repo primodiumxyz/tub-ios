@@ -15,6 +15,7 @@ struct AccountView: View {
     @State private var isAirdropping = false
     @Environment(\.presentationMode) var presentationMode
     @State private var showOnrampView = false
+    @State private var errorMessage: String = ""
 
     func performAirdrop() {
         isAirdropping = true
