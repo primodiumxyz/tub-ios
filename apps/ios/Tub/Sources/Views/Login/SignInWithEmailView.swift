@@ -21,7 +21,6 @@ struct SignInWithEmailView: View {
             do {
                 if self.loggingIn { return }
                 self.loggingIn = true
-                print("verifying otp: \(otpCode)")
                 let _ = try await privy.email.loginWithCode(otpCode, sentTo: email)
                 
                 self.loggingIn = false

@@ -40,7 +40,6 @@ struct SignInWithPhoneView: View {
         Binding(
             get: { phoneNumber },
             set: { newValue in
-                print("new value", newValue)
                 let formatted = format(with: "(XXX) XXX-XXXX", phone: newValue)
                 phoneNumber = formatted
             }
