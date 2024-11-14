@@ -10,12 +10,29 @@ struct RegisterView: View {
     @EnvironmentObject private var errorHandler: ErrorHandler
     @State private var isEmailValid = false
     @State private var showEmailError = false
+    @State private var sendingEmailOtp = false
     
     
     // Email validation function using regex
     func validateEmail(_ email: String) -> Bool {
         let emailRegex = "^[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}$"
         return NSPredicate(format: "SELF MATCHES %@", emailRegex).evaluate(with: email)
+    }
+    
+    private func sendEmailOtp(email: String) {
+        Task {
+            if sendingEmailOtp { return }
+            sendingEmailOtp = true
+            let otpSent = await privy.email.sendCode(to: email)
+            sendingEmailOtp = false
+            if otpSent {
+                showEmailError = false
+                showEmailModal = true
+            } else {
+                showEmailError = true
+                showEmailModal = false
+            }
+        }
     }
     
     var body: some View {
@@ -59,9 +76,8 @@ struct RegisterView: View {
                     
                     Button(action: {
                         if isEmailValid {
-                            showEmailModal = true
+                            sendEmailOtp(email: email)
                         } else {
-                            showEmailError = true
                         }
                     }) {
                         Text("Continue")
@@ -70,6 +86,8 @@ struct RegisterView: View {
                             .frame(maxWidth: .infinity)
                             .padding(14)
                     }
+                    .disabled(!isEmailValid || sendingEmailOtp)
+                    .opacity(!isEmailValid || sendingEmailOtp ? 0.5 : 1.0)
                     .background(AppColors.primaryPurple)
                     .cornerRadius(30)
                     .overlay(
@@ -204,7 +222,6 @@ struct RegisterView: View {
         .padding(.vertical)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.darkBlueGradient)
-        
     }
 }
 
