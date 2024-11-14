@@ -18,7 +18,8 @@ class TokenModel: ObservableObject {
         marketCap: 0.0,
         volume: 0.0,
         pairId: "",
-        socials: (discord: "", instagram: "", telegram: "", twitter: "", website: "")
+        socials: (discord: "", instagram: "", telegram: "", twitter: "", website: ""),
+        uniqueHolders: 0
     )
     @Published var loading = true
     @Published var balanceLamps: Int = 0
@@ -73,6 +74,7 @@ class TokenModel: ObservableObject {
         Task {
             do {
                 try await fetchTokenDetails()
+                try await fetchUniqueHolders()
                 if currentTimeframe == .live {
                     try await fetchInitialPrices(self.timeframeSecs)
                     subscribeToTokenPrices()
@@ -179,7 +181,8 @@ class TokenModel: ObservableObject {
                                     telegram: metadata.socialLinks?.telegram,
                                     twitter: metadata.socialLinks?.twitter,
                                     website: metadata.socialLinks?.website
-                                )
+                                ),
+                                uniqueHolders: self.token.uniqueHolders
                             )
                         }
                         continuation.resume()
@@ -311,7 +314,9 @@ class TokenModel: ObservableObject {
 
     func updateTokenDetails(from token: Token) {
         DispatchQueue.main.async {
-            self.token = token
+            self.token.liquidity = token.liquidity
+            self.token.marketCap = token.marketCap
+            self.token.volume = token.volume
         }
     }
 
@@ -319,7 +324,8 @@ class TokenModel: ObservableObject {
         return [
             ("Market Cap", loading ? "..." : priceModel.formatPrice(usd: token.marketCap, formatLarge: true)),
             ("Volume (\((Int(RESOLUTION) ?? Int(60)) / 60)h)", loading ? "..." : priceModel.formatPrice(usd: token.volume, formatLarge: true)),
-            ("Liquidity", loading ? "..." : priceModel.formatPrice(usd: token.liquidity, formatLarge: true))
+            ("Liquidity", loading ? "..." : priceModel.formatPrice(usd: token.liquidity, formatLarge: true)),
+            ("Unique holders", loading ? "..." : formatLargeNumber(Double(token.uniqueHolders)))
         ]
     }
 
@@ -446,7 +452,37 @@ class TokenModel: ObservableObject {
                     }
                 }
             case .failure(let error):
-                print("Error in candle subscription: \(error)")
+                print("Error in candle subscription: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    private func fetchUniqueHolders() async throws {
+        return try await withCheckedThrowingContinuation { continuation in
+            CodexNetwork.shared.apollo.fetch(query: GetUniqueHoldersQuery(
+                pairId: "\(tokenId):\(NETWORK_FILTER)"
+            )) { [weak self] result in
+                guard let self = self else {
+                    let error = NSError(
+                        domain: "TokenModel",
+                        code: 0,
+                        userInfo: [NSLocalizedDescriptionKey: "Self is nil"]
+                    )
+                    continuation.resume(throwing: error)
+                    return
+                }
+                
+                switch result {
+                case .success(let response):
+                    if let holders = response.data?.holders.count {
+                        DispatchQueue.main.async {
+                            self.token.uniqueHolders = holders
+                        }
+                    }
+                    continuation.resume()
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
             }
         }
     }

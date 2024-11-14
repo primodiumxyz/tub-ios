@@ -133,7 +133,7 @@ struct TokenView : View {
                 LoadingPriceChange()
             } else {
                 HStack {
-                    Text(priceModel.formatPrice(usd: tokenModel.priceChange.amountUsd, showSign: true))
+                    Text(priceModel.formatPrice(usd: tokenModel.priceChange.amountUsd, maxDecimals: 9, minDecimals: 2))
                     Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
                     
                     Text("\(formatDuration(tokenModel.currentTimeframe.timeframeSecs))").foregroundColor(.gray)

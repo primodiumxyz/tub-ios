@@ -26,6 +26,7 @@ public enum SchemaMetadata: ApolloAPI.SchemaMetadata {
     case "EnhancedToken": return CodexAPI.Objects.EnhancedToken
     case "TokenInfo": return CodexAPI.Objects.TokenInfo
     case "SocialLinks": return CodexAPI.Objects.SocialLinks
+    case "HoldersResponse": return CodexAPI.Objects.HoldersResponse
     case "Price": return CodexAPI.Objects.Price
     case "BarsResponse": return CodexAPI.Objects.BarsResponse
     case "Subscription": return CodexAPI.Objects.Subscription

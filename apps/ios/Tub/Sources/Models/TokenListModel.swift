@@ -208,7 +208,8 @@ class TokenListModel: ObservableObject {
                                     marketCap: Double(elem.marketCap ?? "0") ?? 0.0,
                                     volume: Double(elem.volume) ?? 0.0,
                                     pairId: elem.topPairId,
-                                    socials: (discord: nil, instagram: nil, telegram: nil, twitter: nil, website: nil)
+                                    socials: (discord: nil, instagram: nil, telegram: nil, twitter: nil, website: nil),
+                                    uniqueHolders: nil
                                 )
                             }
                             

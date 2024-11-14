@@ -42,6 +42,12 @@ query GetTokenMetadata($address: String!, $networkId: Int = 1399811149) {
   }
 }
 
+query GetUniqueHolders($pairId: String!) {
+  holders(input: { tokenId: $pairId }) {
+    count
+  }
+}
+
 query GetTokenPrices($inputs: [GetPriceInput!]!) {
   getTokenPrices(inputs: $inputs) {
     timestamp

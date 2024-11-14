@@ -12,8 +12,9 @@ struct Token: Identifiable {
     var volume: Double
     var pairId: String
     var socials: (discord: String?, instagram: String?, telegram: String?, twitter: String?, website: String?)
+    var uniqueHolders: Int
     
-    init(id: String, name: String, symbol: String, description: String?, imageUri: String?, liquidity: Double, marketCap: Double?, volume: Double, pairId: String, socials: (discord: String?, instagram: String?, telegram: String?, twitter: String?, website: String?)) {
+    init(id: String, name: String, symbol: String, description: String?, imageUri: String?, liquidity: Double, marketCap: Double?, volume: Double, pairId: String, socials: (discord: String?, instagram: String?, telegram: String?, twitter: String?, website: String?), uniqueHolders: Int?) {
         self.id = id
         self.name = name
         self.symbol = symbol
@@ -24,6 +25,7 @@ struct Token: Identifiable {
         self.volume = volume
         self.pairId = pairId
         self.socials = socials
+        self.uniqueHolders = uniqueHolders ?? 0
     }
 }
 
