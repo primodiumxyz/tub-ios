@@ -8,6 +8,7 @@
 import SwiftUI
 import Apollo
 import TubAPI
+import CodexAPI
 
 // Logic for keeping an array of tokens and enabling swiping up (to previously visited tokens) and down (new pumping tokens)
 // - The current index in the tokens array is always "last - 1", so we can update "last" to a new random token anytime the subscription is triggered (`updateTokens`)
@@ -184,14 +185,8 @@ class TokenListModel: ObservableObject {
     }
 
     private func fetchTokens() {
-        Network.shared.apollo.fetch(query: GetFilteredTokensQuery(
-            interval: .some("\(FILTER_INTERVAL)s"),
-            minTrades: .some(String(MIN_TRADES)),
-            minVolume: .some(MIN_VOLUME),
-            mintBurnt: .some(MINT_BURNT),
-            freezeBurnt: .some(FREEZE_BURNT),
-            minDistinctPrices: .some(CHART_INTERVAL_MIN_TRADES),
-            distinctPricesInterval: .some("\(CHART_INTERVAL)s")
+        CodexNetwork.shared.apollo.fetch(query: GetTopTokensQuery(
+            resolution: .some(RESOLUTION)
         ), cachePolicy: .fetchIgnoringCacheData) { [weak self] result in
             guard let self = self else { return }
             
@@ -201,18 +196,18 @@ class TokenListModel: ObservableObject {
                 let processedData: ([Token], Token?) = {
                     switch result {
                     case .success(let graphQLResult):
-                        if let tokens = graphQLResult.data?.formatted_tokens_interval {
+                        if let tokens = graphQLResult.data?.listTopTokens {
                             let mappedTokens = tokens.map { elem in
                                 Token(
-                                    id: elem.token_id,
-                                    mint: elem.mint,
-                                    name: elem.name ?? "",
-                                    symbol: elem.symbol ?? "",
-                                    description: elem.description ?? "",
-                                    supply: elem.supply ?? 0,
-                                    decimals: elem.decimals ?? 6,
-                                    imageUri: elem.uri ?? "",
-                                    volume: (elem.volume, FILTER_INTERVAL)
+                                    id: elem.address,
+                                    name: elem.name,
+                                    symbol: elem.symbol,
+                                    description: nil,
+                                    imageUri: elem.imageLargeUrl ?? elem.imageSmallUrl ?? elem.imageThumbUrl,
+                                    liquidity: elem.liquidity,
+                                    marketCap: elem.marketCap,
+                                    volume: elem.volume,
+                                    pairId: elem.topPairId
                                 )
                             }
                             

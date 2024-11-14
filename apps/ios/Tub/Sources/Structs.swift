@@ -2,26 +2,26 @@ import Foundation
 import SwiftUI
 
 struct Token: Identifiable {
-    var id: String
-    var mint: String
+    var id: String // also mint
     var name: String
     var symbol: String
     var description: String
-    var supply: Int
-    var decimals: Int
     var imageUri: String
-    var volume: (value: Int, interval: Double)
+    var liquidity: Double
+    var marketCap: Double
+    var volume: Double
+    var pairId: String
     
-    init(id: String, mint: String, name: String?, symbol: String?, description: String?, supply: Int?, decimals: Int?, imageUri: String?, volume: (value: Int, interval: Double)? = nil) {
+    init(id: String, name: String, symbol: String, description: String?, imageUri: String?, liquidity: String, marketCap: String?, volume: String, pairId: String) {
         self.id = id
-        self.mint = mint
-        self.name = name ?? "COIN"
-        self.symbol = symbol ?? "SYMBOL"
+        self.name = name
+        self.symbol = symbol
         self.description = description ?? "DESCRIPTION"
-        self.supply = supply ?? 0
-        self.decimals = decimals ?? 6
         self.imageUri = imageUri?.replacingOccurrences(of: "cf-ipfs.com", with: "ipfs.io") ?? "" // sometimes this prefix gets added and it bricks it
-        self.volume = volume ?? (0, CHART_INTERVAL)
+        self.liquidity = Double(liquidity) ?? 0
+        self.marketCap = Double(marketCap ?? "0") ?? 0
+        self.volume = Double(volume) ?? 0
+        self.pairId = pairId
     }
 }
 

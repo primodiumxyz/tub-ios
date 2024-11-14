@@ -88,6 +88,7 @@ public let serverBaseUrl: String = {
 }()
 
 // Filtered tokens and chart
+public let RESOLUTION: String = "60" // base top tokens on 1 hour resolution
 public let FILTER_INTERVAL: Double = 30 * 60
 public let MIN_TRADES: Int = 0
 public let MIN_VOLUME: Int = 0
