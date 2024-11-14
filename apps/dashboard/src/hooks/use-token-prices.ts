@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { EventType, QuoteToken } from "@codex-data/sdk/dist/sdk/generated/graphql";
 
 import { CODEX_SDK, NETWORK_FILTER } from "@/lib/constants";
 import { Token, TokenPrice } from "@/lib/types";
@@ -11,6 +12,7 @@ export const useTokenPrices = (
   const [tokenPrices, setTokenPrices] = useState<TokenPrice[]>([]);
   const [fetching, setFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const lastTimestamp = useRef(0);
 
   const fetchChartData = async () => {
     try {
@@ -55,6 +57,7 @@ export const useTokenPrices = (
 
       setTokenPrices(combinedPrices);
       setFetching(false);
+      lastTimestamp.current = combinedPrices[combinedPrices.length - 1]?.timestamp ?? 0;
     } catch (err) {
       setError((err as Error).message);
       setFetching(false);
@@ -62,10 +65,12 @@ export const useTokenPrices = (
   };
 
   const subscribeToChartData = async () => {
-    CODEX_SDK.subscriptions.onPriceUpdated(
+    CODEX_SDK.subscriptions.onTokenEventsCreated(
       {
-        address: token.mint,
-        networkId: NETWORK_FILTER[0],
+        input: {
+          tokenAddress: token.mint,
+          networkId: NETWORK_FILTER[0],
+        },
       },
       {
         next(value) {
@@ -74,15 +79,28 @@ export const useTokenPrices = (
             return;
           }
 
-          onUpdate({
-            timestamp: value.data?.onPriceUpdated?.timestamp ?? 0,
-            price: value.data?.onPriceUpdated?.priceUsd ?? 0,
+          const swaps = value.data?.onTokenEventsCreated.events
+            .filter((e) => e.eventType === EventType.Swap)
+            .sort((a, b) => a.timestamp - b.timestamp);
+          swaps?.forEach((swap) => {
+            if (swap.timestamp <= lastTimestamp.current) return;
+
+            onUpdate({
+              timestamp: swap.timestamp,
+              price:
+                swap.quoteToken === QuoteToken.Token0
+                  ? Number(swap.token0PoolValueUsd ?? 0)
+                  : Number(swap.token1PoolValueUsd ?? 0),
+            });
+
+            lastTimestamp.current = swap.timestamp;
           });
         },
         complete() {
           console.log("Price subscription completed");
         },
         error(err) {
+          console.error(err);
           setError(String(err));
         },
       },
