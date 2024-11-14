@@ -12,7 +12,6 @@ let package = Package(
   ],
   products: [
     .library(name: "TubAPI", targets: ["TubAPI"]),
-    .library(name: "CodexAPI", targets: ["CodexAPI"]),
   ],
   dependencies: [
     .package(url: "https://github.com/apollographql/apollo-ios.git", from: "1.0.0"),
@@ -20,13 +19,6 @@ let package = Package(
   targets: [
     .target(
       name: "TubAPI",
-      dependencies: [
-        .product(name: "ApolloAPI", package: "apollo-ios"),
-      ],
-      path: "./Sources"
-    ),
-    .target(
-      name: "CodexAPI",
       dependencies: [
         .product(name: "ApolloAPI", package: "apollo-ios"),
       ],
