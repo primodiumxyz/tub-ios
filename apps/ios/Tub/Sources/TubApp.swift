@@ -36,13 +36,19 @@ struct AppContent: View {
     @State var authState: PrivySDK.AuthState = .unauthenticated
     @State var embeddedWalletState: PrivySDK.EmbeddedWalletState = .notCreated
     @State var embeddedWalletAddress: String = ""
-    @State var authError: Error? = nil
+    @State var authError: Error? = nil {
+        didSet {
+            if let error = authError {
+                errorHandler.show(error)
+            }
+        }
+    }
     @State var walletError: Error? = nil
     @State var linkedAccounts: [PrivySDK.LinkedAccount]? = nil
    
     var body: some View {
         Group {
-            if let error = authError ?? walletError {
+            if let error = walletError {
                 LoginErrorView(
                     errorMessage: error.localizedDescription,
                     retryAction: {
@@ -58,11 +64,12 @@ struct AppContent: View {
                         }
                     }
                 )
-            } else if userId == "" {
+            } else if userId == "" || authError != nil {
                 RegisterView()
             } else if authState == .notReady || embeddedWalletState.toString == "connecting" {
-                LoadingView(message: "Connecting user account...")
-            } else if embeddedWalletAddress == "" {
+                LoadingView(message: "Connecting wallet")
+            }
+            else if embeddedWalletAddress == "" {
                 CreateWalletView()
             }
             else     {
