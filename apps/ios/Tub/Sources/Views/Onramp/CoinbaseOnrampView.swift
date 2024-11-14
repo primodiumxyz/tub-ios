@@ -10,6 +10,7 @@ import WebKit
 
 struct CoinbaseOnrampView: View {
     @State private var url: URL? = nil
+    @EnvironmentObject private var userModel: UserModel
     @State private var amountString: String = ""
     @State private var amount: Double = 100.0  // Default amount
     @State private var isValidInput: Bool = true
@@ -88,8 +89,9 @@ struct CoinbaseOnrampView: View {
     
     private var continueButton: some View {
         Button(action: {
-            let walletAddress = "FEPj3d1fRypdTwU2t7KM5uVwS2BoASR9zB8Fkk9doYwi"
+            let walletAddress = userModel.walletAddress
             let urlStr = "https://pay.coinbase.com/buy?appId=70955045-7672-4640-b524-0a5aff9e074e&addresses={\"\(walletAddress)\":[\"solana\"]}&assets=[\"USDC\"]&presetFiatAmount=\(amount)"
+            print(urlStr)
             url = URL(string: urlStr)
             showInput = false
         }) {
@@ -152,6 +154,3 @@ struct WebView: UIViewRepresentable {
     }
 }
 
-#Preview {
-    CoinbaseOnrampView()
-}
