@@ -38,8 +38,8 @@
 		99BB98562CC1798600658059 /* CandleChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99BB98552CC1798400658059 /* CandleChartView.swift */; };
 		99C26C1C2CAEE263004807A2 /* ApolloAPI in Frameworks */ = {isa = PBXBuildFile; productRef = 99C26C1B2CAEE263004807A2 /* ApolloAPI */; };
 		99C26C1E2CAEE38B004807A2 /* ApolloWebSocket in Frameworks */ = {isa = PBXBuildFile; productRef = 99C26C1D2CAEE38B004807A2 /* ApolloWebSocket */; };
-		99C79A3D2CE43B4C00D0E697 /* LoginErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C79A3C2CE43B4200D0E697 /* LoginErrorView.swift */; };
 		99C79A182CE2F1BD00D0E697 /* DummyTokenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C79A172CE2F1BA00D0E697 /* DummyTokenView.swift */; };
+		99C79A3D2CE43B4C00D0E697 /* LoginErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C79A3C2CE43B4200D0E697 /* LoginErrorView.swift */; };
 		99DDF62D2CB02816000234DA /* AccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99DDF62C2CB0280D000234DA /* AccountView.swift */; };
 		99DED24E2CAF28C10055FC60 /* UserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99DED24D2CAF28BD0055FC60 /* UserModel.swift */; };
 		99DED2512CAF2A6B0055FC60 /* ApolloCombine in Frameworks */ = {isa = PBXBuildFile; productRef = 99DED2502CAF2A6B0055FC60 /* ApolloCombine */; };
@@ -118,9 +118,8 @@
 		999F595A2CA754F900E7AE9F /* ChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartView.swift; sourceTree = "<group>"; };
 		99B147FD2CDFE5B200DFDB96 /* ShimmeringView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShimmeringView.swift; sourceTree = "<group>"; };
 		99BB98552CC1798400658059 /* CandleChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CandleChartView.swift; sourceTree = "<group>"; };
-		99C79A3C2CE43B4200D0E697 /* LoginErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginErrorView.swift; sourceTree = "<group>"; };
-		99BD9A2C2CE2869700293F97 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		99C79A172CE2F1BA00D0E697 /* DummyTokenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DummyTokenView.swift; sourceTree = "<group>"; };
+		99C79A3C2CE43B4200D0E697 /* LoginErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginErrorView.swift; sourceTree = "<group>"; };
 		99DDF62C2CB0280D000234DA /* AccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountView.swift; sourceTree = "<group>"; };
 		99DED24D2CAF28BD0055FC60 /* UserModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserModel.swift; sourceTree = "<group>"; };
 		99DED2522CAF2C6D0055FC60 /* RegisterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegisterView.swift; sourceTree = "<group>"; };

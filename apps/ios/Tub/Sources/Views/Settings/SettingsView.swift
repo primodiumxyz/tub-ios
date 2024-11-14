@@ -83,7 +83,7 @@ struct SettingsView: View {
             VStack {
                 VStack(spacing: 24) {
                     DetailRow(
-                        title: "Set Default Buy Value",
+                        title: "Default Buy Value",
                         value: ""
                     ) {
                         HStack(spacing: 4) {    
@@ -174,7 +174,8 @@ struct SettingsView: View {
                     isEditing = false
                     updateDefaultValue()
                 }
-                .foregroundColor(AppColors.aquaGreen)
+                .foregroundColor(AppColors.primaryPink)
+                .font(.system(size: 20))
             }
         }
     }

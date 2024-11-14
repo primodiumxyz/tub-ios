@@ -98,58 +98,59 @@ struct AccountView: View {
                                     if isAirdropping {
                                         ProgressView()
                                     } else {
-                                        Image(systemName: "paperplane.circle.fill")
+                                        Image(systemName: "paperplane")
                                             .foregroundColor(AppColors.primaryPink)
                                             .font(.system(size: 24))
                                     }
                                 }
                             }.disabled(isAirdropping)
                             
-                            Text("Request\nAirdrop")
-                                .font(.sfRounded(size: .xs, weight: .medium))
+                            Text("Get Test Funds")
+                                .font(.sfRounded(size: .sm, weight: .medium))
                                 .foregroundColor(AppColors.primaryPink)
                                 .multilineTextAlignment(.center)
                         }
                         
-                        // Add Transfer Button
-                        VStack(spacing: 8) {
-                            Button() {
-                                ZStack {
-                                    Circle()
-                                        .stroke(AppColors.aquaGreen, lineWidth: 1)
-                                        .frame(width: 50, height: 50)
-                                    
-                                    Image(systemName: "arrow.left.arrow.right.circle.fill")
-                                        .foregroundColor(AppColors.aquaGreen)
-                                        .font(.system(size: 24))
-                                }
-                            }
-                            
-                            Text("Transfer")
-                                .font(.sfRounded(size: .xs, weight: .medium))
-                                .foregroundColor(AppColors.aquaGreen)
-                                .multilineTextAlignment(.center)
-                        }
+                        // Commented out for now
+//                      // Add Transfer Button
+//                        VStack(spacing: 8) {
+//                            //Button() {
+//                                ZStack {
+//                                    Circle()
+//                                        .stroke(AppColors.aquaGreen, lineWidth: 1)
+//                                        .frame(width: 50, height: 50)
+//                                    
+//                                    Image(systemName: "arrow.left.arrow.right")
+//                                        .foregroundColor(AppColors.aquaGreen)
+//                                        .font(.system(size: 22))
+//                                }
+//                            //}
+//                            
+//                            Text("Transfer")
+//                                .font(.sfRounded(size: .sm, weight: .medium))
+//                                .foregroundColor(AppColors.aquaGreen)
+//                                .multilineTextAlignment(.center)
+//                        }
 
                         // Add Funds Button
-                        VStack(spacing: 8) {
-                            Button(action: { showOnrampView = true }) {
-                                ZStack {
-                                    Circle()
-                                        .stroke(AppColors.aquaGreen, lineWidth: 1)
-                                        .frame(width: 50, height: 50)
-                                    
-                                    Image(systemName: "plus.circle.fill")
-                                        .foregroundColor(AppColors.aquaGreen)
-                                        .font(.system(size: 24))
-                                }
-                            }
-                            
-                            Text("Add\nFunds")
-                                .font(.sfRounded(size: .xs, weight: .medium))
-                                .foregroundColor(AppColors.aquaGreen)
-                                .multilineTextAlignment(.center)
-                        }
+//                        VStack(spacing: 8) {
+//                            Button(action: { showOnrampView = true }) {
+//                                ZStack {
+//                                    Circle()
+//                                        .stroke(AppColors.aquaGreen, lineWidth: 1)
+//                                        .frame(width: 50, height: 50)
+//                                    
+//                                    Image(systemName: "plus")
+//                                        .foregroundColor(AppColors.aquaGreen)
+//                                        .font(.system(size: 24))
+//                                }
+//                            }
+//                            
+//                            Text("Add Funds")
+//                                .font(.sfRounded(size: .sm, weight: .medium))
+//                                .foregroundColor(AppColors.aquaGreen)
+//                                .multilineTextAlignment(.center)
+//                        }
                         
                         Spacer()
                     }
@@ -198,6 +199,7 @@ struct AccountView: View {
                                 .resizable()
                                 .frame(width: 32, height: 32, alignment: .center)
                                 .cornerRadius(8)
+                                .padding(.trailing, -4)
                             Text("@Discord Link")
                                 .foregroundColor(AppColors.aquaGreen)
                                 .font(.sfRounded(size: .lg, weight: .medium))
@@ -206,16 +208,21 @@ struct AccountView: View {
                         
                         // Logout Button
                         Button(action: userModel.logout) {
-                            Image(systemName: "rectangle.portrait.and.arrow.right")
-                                .resizable()
-                                .frame(width: 24, height: 24, alignment: .center)
-                                .foregroundColor(AppColors.red)
-                                .padding(.bottom, 40)
+                            HStack(spacing: 16) {
+                                Image(systemName: "rectangle.portrait.and.arrow.right")
+                                    .resizable()
+                                    .frame(width: 22, height: 22, alignment: .center)
+                                    .foregroundColor(AppColors.red)
+                                    .padding(.bottom, 40)
+                                    .padding(.leading, 4)
+                                    .padding(.trailing, 2)
 
-                            Text("Logout")
-                                .font(.sfRounded(size: .lg, weight: .medium))
-                                .foregroundColor(AppColors.red)
-                                .padding(.bottom, 40)
+                                
+                                Text("Logout")
+                                    .font(.sfRounded(size: .lg, weight: .medium))
+                                    .foregroundColor(AppColors.red)
+                                    .padding(.bottom, 40)
+                            }
                         }
                         
                         Text(serverBaseUrl).foregroundStyle(.white)
