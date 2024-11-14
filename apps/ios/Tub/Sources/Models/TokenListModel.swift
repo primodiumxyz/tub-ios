@@ -204,10 +204,11 @@ class TokenListModel: ObservableObject {
                                     symbol: elem.symbol,
                                     description: nil,
                                     imageUri: elem.imageLargeUrl ?? elem.imageSmallUrl ?? elem.imageThumbUrl,
-                                    liquidity: elem.liquidity,
-                                    marketCap: elem.marketCap,
-                                    volume: elem.volume,
-                                    pairId: elem.topPairId
+                                    liquidity: Double(elem.liquidity) ?? 0.0,
+                                    marketCap: Double(elem.marketCap ?? "0") ?? 0.0,
+                                    volume: Double(elem.volume) ?? 0.0,
+                                    pairId: elem.topPairId,
+                                    socials: (discord: nil, instagram: nil, telegram: nil, twitter: nil, website: nil)
                                 )
                             }
                             

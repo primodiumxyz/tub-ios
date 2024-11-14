@@ -2,6 +2,7 @@ import Apollo
 import Combine
 import SwiftUI
 import TubAPI
+import CodexAPI
 
 class TokenModel: ObservableObject {
     var tokenId: String = ""
@@ -11,14 +12,15 @@ class TokenModel: ObservableObject {
     
     @Published var token: Token = Token(
         id: "",
-        mint: "",
         name: "COIN",
         symbol: "SYMBOL",
         description: "DESCRIPTION",
-        supply: 0,
-        decimals: 6,
         imageUri: "",
-        volume: (0, FILTER_INTERVAL)
+        liquidity: 0.0,
+        marketCap: 0.0,
+        volume: 0.0,
+        pairId: "",
+        socials: (discord: "", instagram: "", telegram: "", twitter: "", website: "")
     )
     @Published var loading = true
     @Published var balanceLamps: Int = 0
@@ -109,9 +111,10 @@ class TokenModel: ObservableObject {
     }
 
     private func fetchTokenDetails() async throws {
-        let query = GetTokenDataQuery(tokenId: tokenId)
         return try await withCheckedThrowingContinuation { continuation in
-            Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { [weak self] result in
+            CodexNetwork.shared.apollo.fetch(query: GetTokenMetadataQuery(
+                address: token.id
+            ), cachePolicy: .fetchIgnoringCacheData) { [weak self] result in
                 guard let self = self else {
                     let error = NSError(
                         domain: "TokenModel",
@@ -125,18 +128,25 @@ class TokenModel: ObservableObject {
                 
                 switch result {
                 case .success(let response):
-                    if let token = response.data?.token.first(where: { $0.id == self.tokenId }) {
+                    if let metadata = response.data?.token {
                         DispatchQueue.main.async {
                             self.token = Token(
-                                id: token.id,
-                                mint: token.mint,
-                                name: token.name,
-                                symbol: token.symbol,
-                                description: token.description,
-                                supply: token.supply,
-                                decimals: token.decimals,
-                                imageUri: token.uri,
-                                volume: (0, FILTER_INTERVAL)
+                                id: self.token.id,
+                                name: self.token.name,
+                                symbol: self.token.symbol,
+                                description: metadata.info?.description,
+                                imageUri: self.token.imageUri,
+                                liquidity: self.token.liquidity,
+                                marketCap: self.token.marketCap,
+                                volume: self.token.volume,
+                                pairId: self.token.pairId,
+                                socials: (
+                                    discord: metadata.socialLinks?.discord,
+                                    instagram: metadata.socialLinks?.instagram,
+                                    telegram: metadata.socialLinks?.telegram,
+                                    twitter: metadata.socialLinks?.twitter,
+                                    website: metadata.socialLinks?.website
+                                )
                             )
                         }
                         continuation.resume()
@@ -290,13 +300,11 @@ class TokenModel: ObservableObject {
 
     func getTokenStats(priceModel: SolPriceModel) -> [(String, String)] {
         let currentPrice = prices.last?.price ?? 0
-        let marketCap = Double(token.supply) / pow(10.0, Double(token.decimals)) * Double(currentPrice) // we're dividing first otherwise it will overflow...
-        let supplyValue = Double(token.supply) / pow(10.0, Double(token.decimals))
         
         return [
-            ("Market Cap", loading ? "..." : priceModel.formatPrice(lamports: Int(marketCap))),
-            ("Volume (\(formatDuration(token.volume.interval)))", loading ? "..." : priceModel.formatPrice(lamports: token.volume.value, formatLarge: true)),
-            ("Supply", loading ? "..." : formatLargeNumber(supplyValue))
+            ("Market Cap", loading ? "..." : priceModel.formatPrice(usd: token.marketCap, formatLarge: true)),
+            ("Volume (\((Int(RESOLUTION) ?? Int(60)) / 60)h)", loading ? "..." : priceModel.formatPrice(usd: token.volume, formatLarge: true)),
+            ("Liquidity", loading ? "..." : priceModel.formatPrice(usd: token.liquidity, formatLarge: true))
         ]
     }
 }

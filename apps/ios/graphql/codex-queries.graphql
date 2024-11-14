@@ -41,6 +41,22 @@ query GetTopTokens(
   }
 }
 
+query GetTokenMetadata($address: String!, $networkId: Int = 1399811149) {
+  token(input: { address: $address, networkId: $networkId }) {
+    createdAt
+    info {
+      description
+    }
+    socialLinks {
+      discord
+      instagram
+      telegram
+      twitter
+      website
+    }
+  }
+}
+
 query GetTokenPrices($inputs: [GetPriceInput!]!) {
   getTokenPrices(inputs: $inputs) {
     timestamp
