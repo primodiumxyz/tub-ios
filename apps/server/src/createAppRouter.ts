@@ -7,7 +7,6 @@ import { PublicKey, Transaction } from "@solana/web3.js";
 export type AppContext = {
   tubService: TubService;
   jwtToken: string;
-  userId: string;
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -96,9 +95,9 @@ export function createAppRouter() {
         return observable((emit) => {
           let subscription: any;
           
-          ctx.tubService.startSwapStream(ctx.userId, {
-            userId: ctx.userId,
+          ctx.tubService.startSwapStream(ctx.jwtToken, {
             ...input,
+            userId: ctx.jwtToken,
             userPublicKey: new PublicKey(input.userPublicKey)
           }).then(subject => {
             subscription = subject.subscribe({
@@ -117,7 +116,7 @@ export function createAppRouter() {
 
           return () => {
             if (subscription) subscription.unsubscribe();
-            ctx.tubService.stopSwapStream(ctx.userId);
+            ctx.tubService.stopSwapStream(ctx.jwtToken);
           };
         });
       }),
@@ -128,15 +127,19 @@ export function createAppRouter() {
         sellQuantity: z.number().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        await ctx.tubService.updateSwapRequest(ctx.userId, input);
+        await ctx.tubService.updateSwapRequest(ctx.jwtToken, input);
       }),
     submitSignedTransaction: t.procedure
       .input(z.object({
-        serializedTransaction: z.string(),
+        signature: z.string(),
+        base64Transaction: z.string(),
       }))
       .mutation(async ({ ctx, input }) => {
-        const transaction = Transaction.from(Buffer.from(input.serializedTransaction, 'base64'));
-        await ctx.tubService.signAndSendTransaction(ctx.userId, transaction);
+        await ctx.tubService.signAndSendTransaction(
+          ctx.jwtToken,
+          input.signature,
+          input.base64Transaction
+        );
       }),
   });
 }

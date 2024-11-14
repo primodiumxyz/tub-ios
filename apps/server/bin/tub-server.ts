@@ -105,7 +105,10 @@ export const start = async () => {
       useWSS: true,
       trpcOptions: {
         router: createAppRouter(),
-        createContext: async (opt) => ({ tubService, jwtToken: getBearerToken(opt.req) }),
+        createContext: async (opt) => ({ 
+          tubService, 
+          jwtToken: getBearerToken(opt.req) ?? '' 
+        }),
       },
     });
     await server.listen({ host: env.SERVER_HOST, port: env.SERVER_PORT });
@@ -115,7 +118,10 @@ export const start = async () => {
     applyWSSHandler({
       wss: server.websocketServer,
       router: createAppRouter(),
-      createContext: async (opt) => ({ tubService, jwtToken: getBearerToken(opt.req) }),
+      createContext: async (opt) => ({ 
+        tubService, 
+        jwtToken: getBearerToken(opt.req) ?? '' 
+      }),
     });
 
     return server;
