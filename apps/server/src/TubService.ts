@@ -24,13 +24,30 @@ export class TubService {
   private privy: PrivyClient;
   private activeSwapRequests: Map<string, ActiveSwapRequest> = new Map();
   private swapSubjects: Map<string, Subject<Transaction>> = new Map();
-  // !! TODO: add timestamp to registry and a timeout to delete old entries
-  private swapRegistry: Map<string, { hasFee: boolean, transaction: Transaction }> = new Map();
+  private swapRegistry: Map<string, { 
+    hasFee: boolean, 
+    transaction: Transaction,
+    timestamp: number 
+  }> = new Map();
+
+  private readonly REGISTRY_TIMEOUT = 5 * 60 * 1000; // 5 minutes in milliseconds
 
   constructor(gqlClient: GqlClient["db"], privy: PrivyClient, octane: OctaneService) {
     this.gql = gqlClient;
     this.octane = octane;
     this.privy = privy;
+    
+    // Start cleanup interval
+    setInterval(() => this.cleanupRegistry(), 60 * 1000); // Run cleanup every minute
+  }
+
+  private cleanupRegistry() {
+    const now = Date.now();
+    for (const [key, value] of this.swapRegistry.entries()) {
+      if (now - value.timestamp > this.REGISTRY_TIMEOUT) {
+        this.swapRegistry.delete(key);
+      }
+    }
   }
 
   private verifyJWT = async (token: string) => {
@@ -232,7 +249,11 @@ export class TubService {
               // Store in registry with fee information
               this.swapRegistry.set(
                 transactionBase64,
-                { hasFee: feeAmount > 0, transaction }
+                { 
+                  hasFee: feeAmount > 0, 
+                  transaction,
+                  timestamp: Date.now()
+                }
               );
             }
 
@@ -291,7 +312,7 @@ export class TubService {
       const transaction = registryEntry.transaction;
       const walletAddress = await this.getUserWallet(userId);
       if (!walletAddress) {
-        throw new Error("User does not have a wallet");
+        throw new Error("User does not have a wallet registered with Privy");
       }
       const userPublicKey = new PublicKey(walletAddress);
       transaction.addSignature(userPublicKey, Buffer.from(userSignature));

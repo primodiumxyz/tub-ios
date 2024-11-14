@@ -73,10 +73,10 @@ export const start = async () => {
     }
 
     const jupiterConfig: ConfigurationParameters = {
-      basePath: env.JUPITER_URL, // we can change this to our self-hosted API later
+      basePath: env.JUPITER_URL,
     };
 
-    const jupiterQuoteApi = createJupiterApiClient(jupiterConfig); // config is optional
+    const jupiterQuoteApi = createJupiterApiClient(jupiterConfig);
     
     // Initialize OctaneService
     const octaneService = new OctaneService(

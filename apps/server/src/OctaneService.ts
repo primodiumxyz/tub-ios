@@ -131,7 +131,7 @@ export class OctaneService {
   }
 
   async buildCompleteSwap(swapInstructions: SwapInstructionsResponse | null, feeTransferInstruction: TransactionInstruction | null) {
-    // !! TODO: add genesis hash checks et al. from buildWhirlpoolsSwapToSOL
+    // !! TODO: add genesis hash checks et al. from buildWhirlpoolsSwapToSOL if we don't trust Jupiter API
     if (!swapInstructions) {
         throw new Error("Swap instructions not found");
     }
