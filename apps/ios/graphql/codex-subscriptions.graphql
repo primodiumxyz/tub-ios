@@ -1,7 +1,17 @@
-subscription SubTokenPrices($address: String!, $networkId: Int = 1399811149) {
-  onPriceUpdated(address: $address, networkId: $networkId) {
-    timestamp
-    priceUsd
+subscription SubTokenPrices(
+  $tokenAddress: String!
+  $networkId: Int = 1399811149
+) {
+  onTokenEventsCreated(
+    input: { tokenAddress: $tokenAddress, networkId: $networkId }
+  ) {
+    events {
+      eventType
+      timestamp
+      token0PoolValueUsd
+      token1PoolValueUsd
+      quoteToken
+    }
   }
 }
 
