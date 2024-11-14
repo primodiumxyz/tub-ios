@@ -124,52 +124,51 @@ struct AccountView: View {
                                 }
                             }.disabled(isAirdropping)
                             
-                            Text("Get Test Funds")
+                            Text("[DEV] Airdrop")
                                 .font(.sfRounded(size: .sm, weight: .medium))
                                 .foregroundColor(AppColors.primaryPink)
                                 .multilineTextAlignment(.center)
-                        }
+                        }.frame(width: 90)
                         
-                        // Commented out for now
-//                      // Add Transfer Button
-//                        VStack(spacing: 8) {
-//                            //Button() {
-//                                ZStack {
-//                                    Circle()
-//                                        .stroke(AppColors.aquaGreen, lineWidth: 1)
-//                                        .frame(width: 50, height: 50)
-//                                    
-//                                    Image(systemName: "arrow.left.arrow.right")
-//                                        .foregroundColor(AppColors.aquaGreen)
-//                                        .font(.system(size: 22))
-//                                }
-//                            //}
-//                            
-//                            Text("Transfer")
-//                                .font(.sfRounded(size: .sm, weight: .medium))
-//                                .foregroundColor(AppColors.aquaGreen)
-//                                .multilineTextAlignment(.center)
-//                        }
+                      // Add Transfer Button
+                        VStack(spacing: 8) {
+                            Button(action: {} ) {
+                                ZStack {
+                                    Circle()
+                                        .stroke(AppColors.aquaGreen, lineWidth: 1)
+                                        .frame(width: 50, height: 50)
+                                    
+                                    Image(systemName: "arrow.left.arrow.right")
+                                        .foregroundColor(AppColors.aquaGreen)
+                                        .font(.system(size: 22))
+                                }
+                            }.disabled(true)
+                            
+                            Text("Transfer")
+                                .font(.sfRounded(size: .sm, weight: .medium))
+                                .foregroundColor(AppColors.aquaGreen)
+                                .multilineTextAlignment(.center)
+                        }.frame(width: 90).opacity(0.5)
 
                         // Add Funds Button
-//                        VStack(spacing: 8) {
-//                            Button(action: { showOnrampView = true }) {
-//                                ZStack {
-//                                    Circle()
-//                                        .stroke(AppColors.aquaGreen, lineWidth: 1)
-//                                        .frame(width: 50, height: 50)
-//                                    
-//                                    Image(systemName: "plus")
-//                                        .foregroundColor(AppColors.aquaGreen)
-//                                        .font(.system(size: 24))
-//                                }
-//                            }
-//                            
-//                            Text("Add Funds")
-//                                .font(.sfRounded(size: .sm, weight: .medium))
-//                                .foregroundColor(AppColors.aquaGreen)
-//                                .multilineTextAlignment(.center)
-//                        }
+                        VStack(spacing: 8) {
+                            Button(action: { showOnrampView = true }) {
+                                ZStack {
+                                    Circle()
+                                        .stroke(AppColors.aquaGreen, lineWidth: 1)
+                                        .frame(width: 50, height: 50)
+                                    
+                                    Image(systemName: "plus")
+                                        .foregroundColor(AppColors.aquaGreen)
+                                        .font(.system(size: 24))
+                                }
+                            }
+                            
+                            Text("Add Funds")
+                                .font(.sfRounded(size: .sm, weight: .medium))
+                                .foregroundColor(AppColors.aquaGreen)
+                                .multilineTextAlignment(.center)
+                        }.frame(width: 90).opacity(0.5)
                         
                         Spacer()
                     }
