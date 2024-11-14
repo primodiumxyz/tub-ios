@@ -1,0 +1,23 @@
+subscription SubTokenPrices($address: String!, $networkId: Int = 1399811149) {
+  onPriceUpdated(address: $address, networkId: $networkId) {
+    timestamp
+    priceUsd
+  }
+}
+
+subscription SubTokenCandles($pairId: String!) {
+  onBarsUpdated(pairId: $pairId) {
+    aggregates {
+      r1 {
+        token {
+          o
+          h
+          l
+          c
+          v
+          t
+        }
+      }
+    }
+  }
+}

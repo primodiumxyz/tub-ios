@@ -68,18 +68,14 @@ See `Tub/Models` for examples of GraphQL query and subscription fetching.
 
 ### Codex
 
-The same can be done for Codex. To fetch the Codex schema, run the following:
-
-```
-./apollo-ios-cli fetch-schema --config ./codex-apollo-codegen-config.json
-```
+The same can be done to generate Codex Swift types, but we can't fetch the schema currently. Instead, we can just download it from "https://graph.codex.io/schema/latest.graphql" and place it in `./graphql/codex-schema.graphql`.
 
 Then, write a new query in `./graphql/codex-queries.graphql`, or a new subscription in `./graphql/codex-subscriptions.graphql`.
 
 Generate Codex Swift types with the following:
 
 ```
-./apollo-ios-cli generate --config ./codex-apollo-codegen-config.json
+./apollo-ios-cli generate --path ./codex-apollo-codegen-config.json
 ```
 
 ## Distribution

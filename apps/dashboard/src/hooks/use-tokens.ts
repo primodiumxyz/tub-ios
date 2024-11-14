@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from "react";
 import { CODEX_SDK, NETWORK_FILTER, PUMP_FUN_ADDRESS, RESOLUTION } from "@/lib/constants";
 import { Token } from "@/lib/types";
 
-// TODO: filter only pump.fun tokens
 export const useTokens = (): {
   tokens: Token[];
   fetching: boolean;
