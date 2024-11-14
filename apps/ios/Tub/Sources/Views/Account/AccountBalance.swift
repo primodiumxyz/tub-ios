@@ -42,6 +42,7 @@ struct AccountBalanceView: View {
                         Image("Vector")
                             .resizable()
                             .frame(width: 24, height: 24)
+                            .padding(.trailing)
                     }
                     .padding(.horizontal,10)
                     .padding(.vertical,8)
@@ -100,6 +101,7 @@ struct AccountBalanceView: View {
                         Image("Vector")
                             .resizable()
                             .frame(width: 44, height: 36)
+                            .padding(.trailing)
                     }
                     .frame(maxWidth: .infinity, alignment: .topLeading)
                     
