@@ -5,35 +5,100 @@
 //  Created by Emerson Hsieh on 2024/9/24.
 //
 
+import PrivySDK
 import SwiftUI
 
 @main
 struct TubApp: App {
-    
+    @Environment(\.scenePhase) private var scenePhase
+    private let dwellTimeTracker = AppDwellTimeTracker.shared
+
     var body: some Scene {
         WindowGroup {
             AppContent()
         }
+        .onChange(of: scenePhase) { phase in
+            switch phase {
+            case .active:
+                dwellTimeTracker.startTracking()
+            case .background, .inactive:
+                dwellTimeTracker.endTracking()
+            @unknown default:
+                break
+            }
+        }
     }
 }
 
-struct AppContent : View {
+struct AppContent: View {
     @StateObject private var errorHandler = ErrorHandler()
-    @State var userId : String = ""
-    
-    var body: some View {
-        Group{
-            if userId == "" {
-                MockRegisterView(register: {
-                    UserManager.shared.register(onRegister: {_ in })
-                })
-            } else {
-                HomeTabsView(userId: userId).font(.sfRounded())
-            }
-        }.onAppear{
+    @State var userId: String = ""
+    @State var authState: PrivySDK.AuthState = .unauthenticated
+    @State var embeddedWalletState: PrivySDK.EmbeddedWalletState = .notCreated
+    @State var embeddedWalletAddress: String = ""
+    @State var authError: Error? = nil
+    @State var walletError: Error? = nil
 
-            UserManager.shared.onUserUpdate { userId in
-                self.userId = userId
+    var body: some View {
+        Group {
+            if let error = authError ?? walletError {
+                LoginErrorView(
+                    errorMessage: error.localizedDescription,
+                    retryAction: {
+                        Task {
+                            authError = nil
+                            walletError = nil
+                            // Retry connection
+                            do {
+                                let _ = try await privy.refreshSession()
+                            } catch {
+                                errorHandler.show(error)
+                            }
+                        }
+                    }
+                )
+            } else if userId == "" {
+                RegisterView()
+            } else if authState == .notReady || embeddedWalletState.toString == "connecting" {
+                LoadingView(message: "Connecting user account...")
+            } else if embeddedWalletAddress == "" {
+                CreateWalletView()
+            } else {
+                HomeTabsView(userId: userId, walletAddress: embeddedWalletAddress).font(
+                    .sfRounded())
+            }
+        }
+        .zIndex(0)
+        .onAppear {
+            privy.setAuthStateChangeCallback { state in
+                switch state {
+                case .error(let error):
+                    self.authError = error
+                case .authenticated(let authSession):
+                    self.authError = nil
+                    self.userId = authSession.user.id
+                default:
+                    self.authError = nil
+                    self.userId = ""
+                }
+                self.authState = state
+            }
+
+            privy.embeddedWallet.setEmbeddedWalletStateChangeCallback { state in
+                switch state {
+                case .error:
+                    self.walletError = NSError(
+                        domain: "com.tubapp.wallet", code: 1001,
+                        userInfo: [NSLocalizedDescriptionKey: "Failed to connect wallet."])
+                case .connected(let wallets):
+                    self.walletError = nil
+                    if let solanaWallet = wallets.first(where: { $0.chainType == .solana }) {
+                        self.embeddedWalletAddress = solanaWallet.address
+                    }
+                default:
+                    break
+                }
+                self.embeddedWalletState = state
             }
         }
         .withErrorHandling()
@@ -48,45 +113,5 @@ struct AppContent : View {
 extension View {
     func withErrorHandling() -> some View {
         modifier(ErrorOverlay())
-    }
-}
-
-
-struct MockRegisterView : View {
-    var register: () -> Void
-    var body: some View {
-        GeometryReader { geometry in
-            VStack(alignment: .leading, spacing: 12){
-                Spacer()
-                    .frame(height: geometry.size.height * 0.25)
-                Image("Logo")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 100, height: 100)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .padding(.horizontal,10)
-                
-                Text("Welcome to tub")
-                    .font(.sfRounded(size: .xl2, weight: .semibold))
-                    .foregroundColor(AppColors.white)
-                    .padding(.horizontal,10)
-                VStack(alignment: .center){
-                    Button(action: register) {
-                        Text("Register")
-                            .font(.sfRounded(size: .lg, weight: .semibold))
-                            .padding(18)
-                    }
-                    .background(AppColors.darkGreenGradient)
-                    .foregroundStyle(AppColors.white)
-                    .cornerRadius(15)
-                    
-                }.frame(maxWidth: .infinity).padding(.top)
-            }
-            .padding(.horizontal)
-        }
-        .padding(.top, 20)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(AppColors.darkBlueGradient)
-        
     }
 }

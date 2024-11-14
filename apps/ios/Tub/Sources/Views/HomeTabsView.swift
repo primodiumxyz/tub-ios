@@ -9,19 +9,83 @@ import SwiftUI
 
 struct HomeTabsView: View {
     var color = Color(red: 0.43, green: 0.97, blue: 0.98)
-    @StateObject private var priceModel : SolPriceModel
-    @StateObject private var userModel : UserModel
-    @State private var selectedTab: Int = 0 // Track the selected tab
-    
-    init(userId: String) {
+    @StateObject private var priceModel: SolPriceModel
+    @StateObject private var userModel: UserModel
+    @State private var selectedTab: Int = 0  // Track the selected tab
+    @State private var tabStartTime: Date? = nil
+
+    init(userId: String, walletAddress: String) {
         _priceModel = StateObject(wrappedValue: SolPriceModel())
-        _userModel = StateObject(wrappedValue: UserModel(userId: userId))
+        _userModel = StateObject(
+            wrappedValue: UserModel(userId: userId, walletAddress: walletAddress))
     }
-    
+
+    private func recordTabDwellTime(_ previousTab: String) {
+        guard let startTime = tabStartTime else { return }
+
+        let dwellTimeMs = Int(Date().timeIntervalSince(startTime) * 1000)
+
+        Network.shared.recordClientEvent(
+            event: ClientEvent(
+                eventName: "tab_dwell_time",
+                source: "home_tabs_view",
+                metadata: [
+                    ["tab_name": previousTab],
+                    ["dwell_time_ms": dwellTimeMs],
+                ]
+            )
+        ) { result in
+            switch result {
+            case .success:
+                print("Successfully recorded tab dwell time")
+            case .failure(let error):
+                print("Failed to record tab dwell time: \(error)")
+            }
+        }
+    }
+
+    private func recordTabSelection(_ tabName: String) {
+        // Record dwell time for previous tab
+        let previousTab: String
+        switch selectedTab {
+        case 0: previousTab = "explore"
+        case 1: previousTab = "history"
+        case 2: previousTab = "account"
+        default: previousTab = "unknown"
+        }
+
+        if tabStartTime != nil {
+            recordTabDwellTime(previousTab)
+        }
+
+        // Record selection of new tab
+        Network.shared.recordClientEvent(
+            event: ClientEvent(
+                eventName: "tab_selected",
+                source: "home_tabs_view",
+                metadata: [
+                    ["tab_name": tabName]
+                ]
+            )
+        ) { result in
+            switch result {
+            case .success:
+                print("Successfully recorded tab selection")
+            case .failure(let error):
+                print("Failed to record tab selection: \(error)")
+            }
+        }
+
+        // Start timing for new tab
+        tabStartTime = Date()
+    }
+
     var body: some View {
         Group {
-            if userModel.isLoading || !priceModel.isReady {
-                LoadingView(identifier: "HomeTabsView - waiting for userModel & priceModel")
+            if userModel.isLoading {
+                LoadingView(
+                    identifier: "HomeTabsView - waiting for userModel & priceModel",
+                    message: "loading player data")
             } else {
                 ZStack(alignment: .bottom) {
                     // Main content view
@@ -36,52 +100,64 @@ struct HomeTabsView: View {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(AppColors.black)
-                    
+
                     // Custom Tab Bar
-                        HStack {
-                            Spacer()
-                            
-                            // Explore Tab
-                            Button(action: { selectedTab = 0 }) {
-                                VStack {
-                                    Image(systemName: "safari")
-                                        .font(.system(size: 24))
-                                    Text("Explore")
-                                        .font(.sfRounded(size: .xs, weight: .regular))
-                                }
-                                .foregroundColor(selectedTab == 0 ? color : AppColors.white.opacity(0.5))
+                    HStack {
+                        Spacer()
+
+                        // Explore Tab
+                        Button(action: {
+                            selectedTab = 0
+                            recordTabSelection("explore")
+                        }) {
+                            VStack {
+                                Image(systemName: "safari")
+                                    .font(.system(size: 24))
+                                Text("Explore")
+                                    .font(.sfRounded(size: .xs, weight: .regular))
                             }
-                            
-                            Spacer()
-                            
-                            // History Tab
-                            Button(action: { selectedTab = 1 }) {
-                                VStack {
-                                    Image(systemName: "clock")
-                                        .font(.system(size: 24))
-                                    Text("History")
-                                        .font(.sfRounded(size: .xs, weight: .regular))
-                                }
-                                .foregroundColor(selectedTab == 1 ? color : AppColors.white.opacity(0.5))
-                            }
-                            
-                            Spacer()
-                            
-                            // Account Tab
-                            Button(action: { selectedTab = 2 }) {
-                                VStack {
-                                    Image(systemName: "person")
-                                        .font(.system(size: 24))
-                                    Text("Account")
-                                        .font(.sfRounded(size: .xs, weight: .regular))
-                                }
-                                .foregroundColor(selectedTab == 2 ? color : AppColors.white.opacity(0.5))
-                            }
-                            
-                            Spacer()
+                            .foregroundColor(
+                                selectedTab == 0 ? color : AppColors.white.opacity(0.5))
                         }
-                        .background(AppColors.black)
-                        .ignoresSafeArea(.keyboard)
+
+                        Spacer()
+
+                        // History Tab
+                        Button(action: {
+                            selectedTab = 1
+                            recordTabSelection("history")
+                        }) {
+                            VStack {
+                                Image(systemName: "clock")
+                                    .font(.system(size: 24))
+                                Text("History")
+                                    .font(.sfRounded(size: .xs, weight: .regular))
+                            }
+                            .foregroundColor(
+                                selectedTab == 1 ? color : AppColors.white.opacity(0.5))
+                        }
+
+                        Spacer()
+
+                        // Account Tab
+                        Button(action: {
+                            selectedTab = 2
+                            recordTabSelection("account")
+                        }) {
+                            VStack {
+                                Image(systemName: "person")
+                                    .font(.system(size: 24))
+                                Text("Account")
+                                    .font(.sfRounded(size: .xs, weight: .regular))
+                            }
+                            .foregroundColor(
+                                selectedTab == 2 ? color : AppColors.white.opacity(0.5))
+                        }
+
+                        Spacer()
+                    }
+                    .background(AppColors.black)
+                    .ignoresSafeArea(.keyboard)
                 }
             }
         }
@@ -89,17 +165,4 @@ struct HomeTabsView: View {
         .environmentObject(userModel)
         .environmentObject(priceModel)
     }
-}
-
-#Preview {
-    @Previewable @StateObject var errorHandler = ErrorHandler()
-    @Previewable @State var userId : String? = nil
-    Group {
-        if userId == nil {
-            LoadingView(identifier: "HomeTabsView - no userId")
-        } else {
-            HomeTabsView(userId: userId!)
-        }
-    }
-        .environmentObject(errorHandler)
 }

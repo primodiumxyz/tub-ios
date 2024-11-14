@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from "vitest";
-import { createClient, GqlClient } from "../src/index"
+
+import { createClient, GqlClient } from "../src/index";
 import { createWallet } from "./lib/common";
 
 const token_id = "722e8490-e852-4298-a250-7b0a399fec57";
@@ -26,10 +27,8 @@ describe("mutation tests", () => {
       wallet: wallet,
       amount: "200",
       override_token_price: "1000000000",
-      token: token_id
-    })
-
-    console.log(buy_result.error);
+      token: token_id,
+    });
 
     expect(buy_result.data?.buy_token?.id).toBeDefined();
 
@@ -37,12 +36,13 @@ describe("mutation tests", () => {
       wallet: wallet,
       amount: "100",
       override_token_price: "1000000000",
-      token: token_id
-    })
+      token: token_id,
+    });
 
     expect(sell_result.data?.sell_token?.id).toBeDefined();
 
-    const balance = (await gql.db.GetWalletTokenBalanceQuery({ wallet: wallet, token: token_id })).data?.balance[0].value;
+    const balance = (await gql.db.GetWalletTokenBalanceQuery({ wallet: wallet, token: token_id })).data?.balance[0]
+      .value;
 
     expect(balance).toEqual(100);
   });
@@ -56,8 +56,8 @@ describe("mutation tests", () => {
       wallet: wallet,
       amount: "150",
       override_token_price: "1000000000",
-      token: token_id
-    })
+      token: token_id,
+    });
 
     expect(buy_result.data?.buy_token?.id).toBeDefined();
 
@@ -65,12 +65,13 @@ describe("mutation tests", () => {
       wallet: wallet,
       amount: "100",
       override_token_price: "1000000000",
-      token: token_id
-    })
+      token: token_id,
+    });
 
     expect(sell_result.data?.sell_token?.id).toBeDefined();
 
-    const balance = (await gql.db.GetWalletTokenBalanceQuery({ wallet: wallet, token: token_id })).data?.balance[0].value;
+    const balance = (await gql.db.GetWalletTokenBalanceQuery({ wallet: wallet, token: token_id })).data?.balance[0]
+      .value;
 
     expect(balance).toEqual(50);
   });
@@ -84,8 +85,8 @@ describe("mutation tests", () => {
       wallet: wallet,
       amount: "200",
       override_token_price: "1000000000",
-      token: token_id
-    })
+      token: token_id,
+    });
 
     expect(buy_result.error).toBeDefined();
   });
@@ -99,8 +100,8 @@ describe("mutation tests", () => {
       wallet: wallet,
       amount: "100",
       override_token_price: "1000000000",
-      token: token_id
-    })
+      token: token_id,
+    });
 
     expect(buy_result.data?.buy_token?.id).toBeDefined();
 
@@ -108,8 +109,8 @@ describe("mutation tests", () => {
       wallet: wallet,
       amount: "150",
       override_token_price: "1000000000",
-      token: token_id
-    })
+      token: token_id,
+    });
 
     expect(sell_result.error).toBeDefined();
   });

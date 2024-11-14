@@ -44,7 +44,6 @@ struct BubbleEffect: View {
             }
             .onChange(of: isActive) { newValue in
                 if newValue {
-                    print("Creating bubbles")
                     createBubbles(in: geometry)
                 }
             }

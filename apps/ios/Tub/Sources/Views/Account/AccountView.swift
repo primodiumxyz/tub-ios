@@ -17,11 +17,12 @@ struct AccountView: View {
     @State private var errorMessage: String?
     @Environment(\.presentationMode) var presentationMode
     @State private var showOnrampView = false
-       
+
     func performAirdrop() {
         isAirdropping = true
         airdropResult = nil
-        
+        var errorMessage: String? = nil
+
         Network.shared.airdropNativeToUser(amount: 1 * Int(1e9)) { result in
             DispatchQueue.main.async {
                 isAirdropping = false
@@ -29,15 +30,34 @@ struct AccountView: View {
                 case .success:
                     airdropResult = "Airdrop successful!"
                 case .failure(let error):
+                    errorMessage = error.localizedDescription
                     errorHandler.show(error)
                 }
             }
         }
+
+        Network.shared.recordClientEvent(
+            event: ClientEvent(
+                eventName: "airdrop",
+                source: "account_view",
+                metadata: [
+                    ["airdrop_amount": 1 * Int(1e9)]
+                ],
+                errorDetails: errorMessage
+            )
+        ) { result in
+            switch result {
+            case .success:
+                print("Successfully recorded buy event")
+            case .failure(let error):
+                print("Failed to record buy event: \(error)")
+            }
+        }
     }
-    
+
     var body: some View {
         NavigationStack {
-            VStack() {
+            VStack {
                 Text(serverBaseUrl).foregroundStyle(.white)
                 if userModel.userId.isEmpty {
                     Text("Please register to view your account details.")
@@ -64,17 +84,18 @@ struct AccountView: View {
                             .font(.sfRounded(size: .lg, weight: .medium))
                         Text("Wallet address: \(userModel.walletAddress)")
                             .font(.sfRounded(size: .lg, weight: .medium))
-                        
-                        Text("Balance: \(priceModel.formatPrice(lamports: userModel.balanceLamps, minDecimals: 2))")
-                            .font(.sfRounded(size: .lg, weight: .medium))
-                            .padding(.bottom)
+
+                        Text(
+                            "Balance: \(priceModel.formatPrice(lamports: userModel.balanceLamps, minDecimals: 2))"
+                        )
+                        .font(.sfRounded(size: .lg, weight: .medium))
+                        .padding(.bottom)
                         if let result = airdropResult {
                             Text(result).foregroundColor(AppColors.green).padding()
                         }
                         if isAirdropping {
                             ProgressView()
-                        }
-                        else  {
+                        } else {
                             Button(action: performAirdrop) {
                                 Text("Request Airdrop")
                                     .font(.sfRounded(size: .base, weight: .semibold))
@@ -87,7 +108,7 @@ struct AccountView: View {
                             .disabled(isAirdropping)
                             .padding(.bottom, 5.0)
                         }
-                        
+
                         Button(action: { showOnrampView = true }) {
                             Text("Buy SOL")
                                 .font(.sfRounded(size: .base, weight: .semibold))
@@ -98,7 +119,7 @@ struct AccountView: View {
                                 .cornerRadius(26)
                         }
                         .padding(.bottom, 5.0)
-                        
+
                         Button(action: userModel.logout) {
                             Text("Logout")
                                 .font(.sfRounded(size: .base, weight: .semibold))
@@ -127,22 +148,5 @@ struct AccountView: View {
             }
         }
     }
- 
-}
 
-#Preview {
-    @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
-    @Previewable @State var userId : String? = nil
-    @StateObject var errorHandler = ErrorHandler()
-    
-    Group {
-        if !priceModel.isReady || userId == nil {
-            LoadingView(identifier: "AccountView - waiting for priceModel & userId")
-        } else {
-            AccountView()
-                .environmentObject(UserModel(userId: userId!))
-                .environmentObject(priceModel)
-        }
-    }
-    .environmentObject(errorHandler)
 }
