@@ -1,0 +1,21 @@
+{
+  "schemaNamespace": "CodexAPI",
+  "input": {
+    "operationSearchPaths": ["**/graphql/codex-*.graphql"],
+    "schemaSearchPaths": ["**/graphql/codex-*.graphqls"]
+  },
+  "output": {
+    "testMocks": {
+      "none": {}
+    },
+    "schemaTypes": {
+      "path": "./Sources",
+      "moduleType": {
+        "swiftPackageManager": {}
+      }
+    },
+    "operations": {
+      "inSchemaModule": {}
+    }
+  }
+}

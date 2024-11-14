@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		4619A8182CCA4E25003CD119 /* TokenListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4619A8172CCA4E25003CD119 /* TokenListModel.swift */; };
+		462B09862CE65C8600730068 /* CodexNetwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 462B09852CE65C8200730068 /* CodexNetwork.swift */; };
 		46442B952CDD7380009A6F0B /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46442B942CDD737D009A6F0B /* Constants.swift */; };
 		466945ED2CDFDB1F008E8B99 /* LoadingTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 466945EC2CDFDB1C008E8B99 /* LoadingTracker.swift */; };
 		990337052CC94175002D3A25 /* AccountBalance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990337042CC9416B002D3A25 /* AccountBalance.swift */; };
@@ -38,8 +39,8 @@
 		99BB98562CC1798600658059 /* CandleChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99BB98552CC1798400658059 /* CandleChartView.swift */; };
 		99C26C1C2CAEE263004807A2 /* ApolloAPI in Frameworks */ = {isa = PBXBuildFile; productRef = 99C26C1B2CAEE263004807A2 /* ApolloAPI */; };
 		99C26C1E2CAEE38B004807A2 /* ApolloWebSocket in Frameworks */ = {isa = PBXBuildFile; productRef = 99C26C1D2CAEE38B004807A2 /* ApolloWebSocket */; };
-		99C79A3D2CE43B4C00D0E697 /* LoginErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C79A3C2CE43B4200D0E697 /* LoginErrorView.swift */; };
 		99C79A182CE2F1BD00D0E697 /* DummyTokenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C79A172CE2F1BA00D0E697 /* DummyTokenView.swift */; };
+		99C79A3D2CE43B4C00D0E697 /* LoginErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C79A3C2CE43B4200D0E697 /* LoginErrorView.swift */; };
 		99DDF62D2CB02816000234DA /* AccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99DDF62C2CB0280D000234DA /* AccountView.swift */; };
 		99DED24E2CAF28C10055FC60 /* UserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99DED24D2CAF28BD0055FC60 /* UserModel.swift */; };
 		99DED2512CAF2A6B0055FC60 /* ApolloCombine in Frameworks */ = {isa = PBXBuildFile; productRef = 99DED2502CAF2A6B0055FC60 /* ApolloCombine */; };
@@ -87,6 +88,7 @@
 
 /* Begin PBXFileReference section */
 		4619A8172CCA4E25003CD119 /* TokenListModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenListModel.swift; sourceTree = "<group>"; };
+		462B09852CE65C8200730068 /* CodexNetwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexNetwork.swift; sourceTree = "<group>"; };
 		46442B942CDD737D009A6F0B /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		466945EC2CDFDB1C008E8B99 /* LoadingTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingTracker.swift; sourceTree = "<group>"; };
 		990337042CC9416B002D3A25 /* AccountBalance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountBalance.swift; sourceTree = "<group>"; };
@@ -115,9 +117,8 @@
 		999F595A2CA754F900E7AE9F /* ChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartView.swift; sourceTree = "<group>"; };
 		99B147FD2CDFE5B200DFDB96 /* ShimmeringView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShimmeringView.swift; sourceTree = "<group>"; };
 		99BB98552CC1798400658059 /* CandleChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CandleChartView.swift; sourceTree = "<group>"; };
-		99C79A3C2CE43B4200D0E697 /* LoginErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginErrorView.swift; sourceTree = "<group>"; };
-		99BD9A2C2CE2869700293F97 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		99C79A172CE2F1BA00D0E697 /* DummyTokenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DummyTokenView.swift; sourceTree = "<group>"; };
+		99C79A3C2CE43B4200D0E697 /* LoginErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginErrorView.swift; sourceTree = "<group>"; };
 		99DDF62C2CB0280D000234DA /* AccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountView.swift; sourceTree = "<group>"; };
 		99DED24D2CAF28BD0055FC60 /* UserModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserModel.swift; sourceTree = "<group>"; };
 		99DED2522CAF2C6D0055FC60 /* RegisterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegisterView.swift; sourceTree = "<group>"; };
@@ -261,6 +262,7 @@
 				DF1FE3C72CD568F700594C63 /* CountryCode.swift */,
 				DFF5292A2CC0121B007DC43F /* AppColors.swift */,
 				DB458DB32CAC827A00C5EC18 /* Network.swift */,
+				462B09852CE65C8200730068 /* CodexNetwork.swift */,
 				DB6D29042CA1C8F70099951A /* TubApp.swift */,
 				9979D2F02CB57B840040DF41 /* Utils */,
 				99856DA52CD27E27004B9D40 /* Privy.swift */,
@@ -593,6 +595,7 @@
 				DFF5292B2CC0121B007DC43F /* AppColors.swift in Sources */,
 				99DED24E2CAF28C10055FC60 /* UserModel.swift in Sources */,
 				99290EC02CB7110C003E740A /* FormatDate.swift in Sources */,
+				462B09862CE65C8600730068 /* CodexNetwork.swift in Sources */,
 				DF1FE3C82CD568F700594C63 /* CountryCode.swift in Sources */,
 				DB10A95D2CA5AA1B00B1E4F3 /* TokenView.swift in Sources */,
 				DB6D29052CA1C8F70099951A /* TubApp.swift in Sources */,
