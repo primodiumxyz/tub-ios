@@ -4,9 +4,11 @@ import { OctaneService } from "@/OctaneService";
 import { TubService } from "@/TubService";
 import { parseEnv } from "@bin/parseEnv";
 import { Wallet } from "@coral-xyz/anchor";
+import { createTransferInstruction } from "@solana/spl-token";
 import fastifyWebsocket from "@fastify/websocket";
 import { PrivyClient } from "@privy-io/server-auth";
 import { clusterApiUrl, Connection, Keypair, PublicKey } from "@solana/web3.js";
+import { createJupiterApiClient, ConfigurationParameters } from '@jup-ag/api';
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import { applyWSSHandler } from "@trpc/server/adapters/ws";
 import { createClient as createGqlClient } from "@tub/gql";
@@ -22,6 +24,12 @@ export const server = fastify({
   maxParamLength: 5000,
   logger: true,
 });
+
+export type FeeOptions = {
+  amount: number,
+  sourceAccount: PublicKey,
+  destinationAccount: PublicKey,
+};
 
 await server.register(import("@fastify/compress"));
 await server.register(import("@fastify/cors"));
@@ -43,8 +51,12 @@ const getBearerToken = (req: any) => {
 
 export const start = async () => {
   try {
-    // const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
-    const connection = new Connection(clusterApiUrl(env.NODE_ENV !== "production" ? "devnet" : "mainnet-beta"), "confirmed");
+    const connection = new Connection(
+      env.NODE_ENV === "production" 
+        ? env.QUICKNODE_MAINNET_URL 
+        : clusterApiUrl("devnet"),
+      "confirmed"
+    );
 
     // Initialize cache for OctaneService
     const cacheManager = require('cache-manager');
@@ -61,10 +73,17 @@ export const start = async () => {
     if (!env.OCTANE_TRADE_FEE_RECIPIENT) {
       throw new Error("OCTANE_TRADE_FEE_RECIPIENT is not set");
     }
+
+    const jupiterConfig: ConfigurationParameters = {
+      basePath: env.JUPITER_URL, // we can change this to our self-hosted API later
+    };
+
+    const jupiterQuoteApi = createJupiterApiClient(jupiterConfig); // config is optional
     
     // Initialize OctaneService
     const octaneService = new OctaneService(
       connection,
+      jupiterQuoteApi,
       feePayerKeypair,
       new PublicKey(env.OCTANE_TRADE_FEE_RECIPIENT),
       env.OCTANE_BUY_FEE,

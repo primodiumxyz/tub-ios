@@ -4,6 +4,9 @@ const commonSchema = z.object({
   NODE_ENV: z.enum(["local", "dev", "test", "production"]).default("local"),
   SERVER_HOST: z.string().default("0.0.0.0"),
   SERVER_PORT: z.coerce.number().positive().default(8888),
+  QUICKNODE_MAINNET_URL: z.string(),
+  GEYSER_URL: z.string(),
+  JUPITER_URL: z.string(),
   HASURA_ADMIN_SECRET: z.string().default("password"),
   GRAPHQL_URL: z.string().default("http://localhost:8080/v1/graphql"),
   PRIVATE_KEY: z

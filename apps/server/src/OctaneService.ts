@@ -1,11 +1,37 @@
-import { Connection, Keypair, PublicKey, Transaction } from "@solana/web3.js";
-import { core, signWithTokenFee, createAccountIfTokenFeePaid } from "@primodiumxyz/octane-core";
-import { TokenFee } from "./tokenFee";
+import { Connection, Keypair, PublicKey, Transaction, TransactionInstruction, VersionedTransaction } from "@solana/web3.js";
+import { core, signWithTokenFee, createAccountIfTokenFeePaid, FeeOptions } from "@primodiumxyz/octane-core";
+import { QuoteGetRequest, QuoteResponse, SwapInstructionsPostRequest, SwapInstructionsResponse, SwapInstructionsResponseFromJSON, SwapRequest } from '@jup-ag/api';
+import { Wallet } from "@coral-xyz/anchor";
+import bs58 from "bs58";
 import type { Cache } from 'cache-manager';
+import { DefaultApi } from "@jup-ag/api";
+
+const testParams: QuoteGetRequest = {
+    inputMint: "So11111111111111111111111111111111111111112",
+    outputMint: "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm", // $WIF
+    amount: 100000000, // 0.1 SOL
+    autoSlippage: true,
+    autoSlippageCollisionUsdValue: 1_000,
+    maxAutoSlippageBps: 1000, // 10%
+    minimizeSlippage: true,
+    onlyDirectRoutes: false,
+    asLegacyTransaction: false,
+};
+
+export type OctaneSettings = {
+  feePayerPublicKey: PublicKey;
+  tradeFeeRecipient: PublicKey;
+  buyFee: number;
+  sellFee: number;
+  minTradeSize: number;
+  connection: Connection;
+  jupiterQuoteApi: DefaultApi;
+};
 
 export class OctaneService {
   constructor(
     private connection: Connection,
+    private jupiterQuoteApi: DefaultApi,
     private feePayerKeypair: Keypair,
     private tradeFeeRecipient: PublicKey,
     private buyFee: number,
@@ -14,7 +40,120 @@ export class OctaneService {
     private cache: Cache
   ) {}
 
-  async signTransactionWithTokenFee(transaction: Transaction, buyBool: boolean, tokenMint: PublicKey, tokenDecimals: number): Promise<string> {
+  getSettings(): OctaneSettings {
+    return {
+      feePayerPublicKey: this.feePayerKeypair.publicKey,
+      tradeFeeRecipient: this.tradeFeeRecipient,
+      buyFee: this.buyFee,
+      sellFee: this.sellFee,
+      minTradeSize: this.minTradeSize,
+      connection: this.connection,
+      jupiterQuoteApi: this.jupiterQuoteApi,
+    };
+  }
+
+  async getQuote(params: QuoteGetRequest) {
+    // basic params
+    // const params: QuoteGetRequest = {
+    //   inputMint: "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn",
+    //   outputMint: "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So",
+    //   amount: 35281,
+    //   slippageBps: 50,
+    //   onlyDirectRoutes: false,
+    //   asLegacyTransaction: false,
+    // }
+  
+    // // auto slippage w/ minimizeSlippage params
+    // const params: QuoteGetRequest = {
+    //   inputMint: "So11111111111111111111111111111111111111112",
+    //   outputMint: "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm", // $WIF
+    //   amount: 100000000, // 0.1 SOL
+    //   autoSlippage: true,
+    //   autoSlippageCollisionUsdValue: 1_000,
+    //   maxAutoSlippageBps: 1000, // 10%
+    //   minimizeSlippage: true,
+    //   onlyDirectRoutes: false,
+    //   asLegacyTransaction: false,
+    // };
+  
+    // get quote
+    const quote = await this.jupiterQuoteApi.quoteGet(params);
+  
+    if (!quote) {
+      throw new Error("unable to quote");
+    }
+    return quote;
+  }
+  
+  async getSwapObj(wallet: Wallet, quote: QuoteResponse) {
+    // Get serialized transaction
+    const swapObj = await this.jupiterQuoteApi.swapPost({
+      swapRequest: {
+        quoteResponse: quote,
+        userPublicKey: wallet.publicKey.toBase58(),
+        dynamicComputeUnitLimit: true,
+        prioritizationFeeLamports: "auto",
+      },
+    });
+    return swapObj;
+  }
+  
+  async flowQuote(quoteParams: QuoteGetRequest) {
+    const quote = await this.getQuote(quoteParams);
+    console.dir(quote, { depth: null });
+  }
+  
+  async getQuoteAndSwapInstructions(quoteAndSwapParams: QuoteGetRequest, userPublicKey: PublicKey) {  
+    const quote = await this.getQuote(quoteAndSwapParams);
+    console.dir(quote, { depth: null });
+
+    const swapInstructionsRequest: SwapInstructionsPostRequest = {
+        "swapRequest": {
+            "userPublicKey": userPublicKey.toBase58(),
+            "wrapAndUnwrapSol": true,
+            "useSharedAccounts": true,
+            "computeUnitPriceMicroLamports": 0,
+            "prioritizationFeeLamports": "auto",
+            "asLegacyTransaction": false,
+            "useTokenLedger": false,
+            "dynamicComputeUnitLimit": true,
+            "skipUserAccountsRpcCalls": false,
+            "dynamicSlippage": {
+                "minBps": 0,
+                "maxBps": 0
+            },
+            "quoteResponse": quote,
+        }
+      };
+
+    const swapInstructions = await this.jupiterQuoteApi.swapInstructionsPost(swapInstructionsRequest);
+    return swapInstructions;
+  }
+
+  async buildCompleteSwap(swapInstructions: SwapInstructionsResponse | null, feeTransferInstruction: TransactionInstruction | null) {
+    // !! TODO: add genesis hash checks et al. from buildWhirlpoolsSwapToSOL
+    if (!swapInstructions) {
+        throw new Error("Swap instructions not found");
+    }
+
+    const allInstructions = [
+        ...(feeTransferInstruction ? [feeTransferInstruction] : []),
+        ...(swapInstructions.setupInstructions ?? []),
+        swapInstructions.swapInstruction
+    ].filter((instruction): instruction is TransactionInstruction => instruction !== undefined);
+
+    const transaction = new Transaction();
+    if (allInstructions.length > 0) {
+        transaction.add(...allInstructions);
+    }
+    transaction.feePayer = this.feePayerKeypair.publicKey;
+    
+    transaction.recentBlockhash = (await this.connection.getLatestBlockhash()).blockhash;
+
+    return transaction;
+  }
+
+  async signTransactionWithTokenFee(transaction: Transaction, buyWithUSDCBool: boolean, tokenMint: PublicKey, tokenDecimals: number): Promise<string> {
     try {
       const { signature } = await signWithTokenFee(
         this.connection,
@@ -23,11 +162,11 @@ export class OctaneService {
         2, // maxSignatures
         5000, // lamportsPerSignature
         [
-            TokenFee.fromSerializable({
+            core.TokenFee.fromSerializable({
                 mint: tokenMint.toString(),
                 account: this.tradeFeeRecipient.toString(),
                 decimals: tokenDecimals,
-                fee: buyBool ? this.buyFee : this.sellFee
+                fee: buyWithUSDCBool ? this.buyFee : this.sellFee
             })
         ],
         this.cache,
@@ -50,7 +189,7 @@ export class OctaneService {
         2, // maxSignatures
         5000, // lamportsPerSignature
         [
-            TokenFee.fromSerializable({
+            core.TokenFee.fromSerializable({
                 mint: tokenMint.toString(),
                 account: this.tradeFeeRecipient.toString(),
                 decimals: tokenDecimals,
@@ -74,6 +213,16 @@ export class OctaneService {
     } catch (e) {
       console.error("Error validating transaction instructions:", e);
       throw new Error("Invalid transaction instructions");
+    }
+  }
+
+  async signTransactionWithoutTokenFee(transaction: Transaction): Promise<string> {
+    try {
+      transaction.partialSign(this.feePayerKeypair);
+      return bs58.encode(transaction.signature!);
+    } catch (e) {
+      console.error("Error signing transaction without token fee:", e);
+      throw new Error("Failed to sign transaction without token fee");
     }
   }
 } 

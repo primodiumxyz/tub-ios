@@ -2,13 +2,32 @@ import { PrivyClient, WalletWithMetadata } from "@privy-io/server-auth";
 import { GqlClient } from "@tub/gql";
 import { config } from "dotenv";
 import { OctaneService } from "./OctaneService";
+import { Subject, interval, switchMap } from 'rxjs';
+import { PublicKey, Transaction } from "@solana/web3.js";
+import { createTransferInstruction } from "@solana/spl-token";
+import { UserPrebuildSwapRequest } from "../types/PrebuildSwapRequest";
+import { getAssociatedTokenAddress } from "@solana/spl-token";
+import { createHash } from 'crypto';
 
 config({ path: "../../.env" });
+
+const USDC_DEV_PUBLIC_KEY = new PublicKey("4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"); // The address of the USDC token on Solana Devnet
+const USDC_MAINNET_PUBLIC_KEY = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"); // The address of the USDC token on Solana Mainnet
+
+// Internal type that extends UserPrebuildSwapRequest with derived addresses
+type ActiveSwapRequest = UserPrebuildSwapRequest & {
+  buyTokenAccount?: PublicKey;
+  sellTokenAccount?: PublicKey;
+};
 
 export class TubService {
   private gql: GqlClient["db"];
   private octane: OctaneService;
   private privy: PrivyClient;
+  private activeSwapRequests: Map<string, ActiveSwapRequest> = new Map();
+  private swapSubjects: Map<string, Subject<Transaction>> = new Map();
+  // !! TODO: add timestamp to registry and a timeout to delete old entries
+  private swapRegistry: Map<string, { hasFee: boolean, transaction: Transaction }> = new Map();
 
   constructor(gqlClient: GqlClient["db"], privy: PrivyClient, octane: OctaneService) {
     this.gql = gqlClient;
@@ -135,5 +154,208 @@ export class TubService {
     }
 
     return id;
+  }
+
+  async startSwapStream(userId: string, request: UserPrebuildSwapRequest) {
+    // Derive token accounts
+    const derivedAccounts = await this.deriveTokenAccounts(
+      request.userPublicKey,
+      request.buyTokenId,
+      request.sellTokenId
+    );
+    
+    // Store the enhanced request
+    this.activeSwapRequests.set(userId, {
+      ...request,
+      ...derivedAccounts
+    });
+    
+    if (!this.swapSubjects.has(userId)) {
+      const subject = new Subject<Transaction>();
+      this.swapSubjects.set(userId, subject);
+
+      // Create 1-second interval stream
+      interval(1000)
+        .pipe(
+          switchMap(async () => {
+            const currentRequest = this.activeSwapRequests.get(userId);
+            if (!currentRequest || !currentRequest.sellTokenAccount) return null;
+
+            // if sell token is either USDC Devnet or Mainnet, use the buy fee amount. otherwise use 0
+            const feeAmount = currentRequest.sellTokenId === USDC_DEV_PUBLIC_KEY.toString() || currentRequest.sellTokenId === USDC_MAINNET_PUBLIC_KEY.toString()
+              ? this.octane.getSettings().buyFee
+              : 0;
+
+            let transaction: Transaction | null = null;
+            if (feeAmount === 0) {
+              const swapInstructions = await this.octane.getQuoteAndSwapInstructions({
+                inputMint: currentRequest.sellTokenId!,
+                outputMint: currentRequest.buyTokenId!,
+                amount: currentRequest.sellQuantity || 0,
+                autoSlippage: true,
+                minimizeSlippage: true,
+                onlyDirectRoutes: false,
+                asLegacyTransaction: false,
+              }, currentRequest.userPublicKey);
+              transaction = await this.octane.buildCompleteSwap(swapInstructions, null);
+            } else {
+              const feeOptions = {
+                sourceAccount: currentRequest.sellTokenAccount,
+                  destinationAccount: this.octane.getSettings().tradeFeeRecipient,
+                  amount: feeAmount,
+                };
+
+              const feeTransferInstruction = createTransferInstruction(
+                  feeOptions.sourceAccount,
+                  feeOptions.destinationAccount,
+                  currentRequest.userPublicKey,
+                  feeOptions.amount,
+              );
+
+              const swapInstructions = await this.octane.getQuoteAndSwapInstructions({
+                inputMint: currentRequest.sellTokenId!,
+                outputMint: currentRequest.buyTokenId!,
+                amount: currentRequest.sellQuantity || 0,
+                autoSlippage: true,
+                minimizeSlippage: true,
+                onlyDirectRoutes: false,
+                asLegacyTransaction: false,
+              }, currentRequest.userPublicKey);
+              transaction = await this.octane.buildCompleteSwap(swapInstructions, feeTransferInstruction);
+            }
+
+            if (transaction) {
+              // Store in registry with fee information
+              this.swapRegistry.set(
+                this.getBuiltTransactionId(transaction),
+                { hasFee: feeAmount > 0, transaction }
+              );
+            }
+
+            return transaction;
+          })
+        )
+        .subscribe((transaction: Transaction | null) => {
+          if (transaction) {
+            subject.next(transaction);
+          }
+        });
+    }
+
+    return this.swapSubjects.get(userId)!;
+  }
+
+  async updateSwapRequest(userId: string, updates: Partial<UserPrebuildSwapRequest>) {
+    const current = this.activeSwapRequests.get(userId);
+    if (current) {
+      // Re-derive accounts if tokens changed
+      const needsNewDerivedAccounts = 
+        (updates.buyTokenId && updates.buyTokenId !== current.buyTokenId) ||
+        (updates.sellTokenId && updates.sellTokenId !== current.sellTokenId);
+
+      const derivedAccounts = needsNewDerivedAccounts 
+        ? await this.deriveTokenAccounts(
+            current.userPublicKey,
+            updates.buyTokenId ?? current.buyTokenId,
+            updates.sellTokenId ?? current.sellTokenId
+          )
+        : {};
+
+      this.activeSwapRequests.set(userId, { 
+        ...current, 
+        ...updates,
+        ...derivedAccounts 
+      });
+    }
+  }
+
+  async stopSwapStream(userId: string) {
+    this.activeSwapRequests.delete(userId);
+    const subject = this.swapSubjects.get(userId);
+    if (subject) {
+      subject.complete();
+      this.swapSubjects.delete(userId);
+    }
+  }
+
+  private getBuiltTransactionId(transaction: Transaction): string {
+    const instructionsData = transaction.instructions
+      .map(ix => [...ix.programId.toBytes(), ...ix.data])
+      .flat();
+    return createHash('sha256')
+      .update(Buffer.from(instructionsData))
+      .digest('hex');
+  }
+
+  async signAndSendTransaction(userId: string, partiallySignedTx: Transaction) {
+    try {
+      const registryEntry = this.swapRegistry.get(this.getBuiltTransactionId(partiallySignedTx));
+      if (!registryEntry) {
+        throw new Error("Transaction not found in registry");
+      }
+
+      let feePayerSignature;
+      if (registryEntry.hasFee) {
+        feePayerSignature = await this.octane.signTransactionWithTokenFee(
+          partiallySignedTx,
+          true, // buyWithUSDCBool
+          USDC_MAINNET_PUBLIC_KEY,
+          6 // tokenDecimals, note that other tokens besides USDC may have different decimals
+        );
+      } else {
+        feePayerSignature = await this.octane.signTransactionWithoutTokenFee(partiallySignedTx);
+      }
+
+      partiallySignedTx.addSignature(this.octane.getSettings().feePayerPublicKey, Buffer.from(feePayerSignature));
+
+      // Send the fully signed transaction with signature
+      const txid = await this.octane.getSettings().connection.sendRawTransaction(
+        partiallySignedTx.serialize(),
+        { skipPreflight: false }
+      );
+
+      // Wait for confirmation
+      const confirmation = await this.octane.getSettings().connection.confirmTransaction(txid);
+      
+      if (confirmation.value.err) {
+        throw new Error(`Transaction failed: ${confirmation.value.err}`);
+      }
+
+      // Clean up registry
+      this.swapRegistry.delete(this.getBuiltTransactionId(partiallySignedTx));
+
+      return { signature: txid };
+
+    } catch (error: unknown) {
+      console.error("Error processing transaction:", error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      throw new Error(`Failed to process transaction: ${errorMessage}`);
+    }
+  }
+
+  private async deriveTokenAccounts(
+    userPublicKey: PublicKey,
+    buyTokenId?: string,
+    sellTokenId?: string
+  ): Promise<{ buyTokenAccount?: PublicKey; sellTokenAccount?: PublicKey }> {
+    const accounts: { buyTokenAccount?: PublicKey; sellTokenAccount?: PublicKey } = {};
+    
+    if (buyTokenId) {
+      accounts.buyTokenAccount = await getAssociatedTokenAddress(
+        new PublicKey(buyTokenId),
+        userPublicKey,
+        false
+      );
+    }
+    
+    if (sellTokenId) {
+      accounts.sellTokenAccount = await getAssociatedTokenAddress(
+        new PublicKey(sellTokenId),
+        userPublicKey,
+        false
+      );
+    }
+    
+    return accounts;
   }
 }
