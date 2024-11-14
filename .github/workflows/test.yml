@@ -3,7 +3,7 @@ name: Run Tests
 on: [push]
 
 jobs:
-  setup:
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -21,16 +21,11 @@ jobs:
       - name: Run Hasura DB
         run: pnpm dev:db:ci
 
-  gql-test:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - name: Run GQL Tests
-        run: pnpm --filter gql test
+      - name: Run Tests
+        run: |
+          pnpm --filter gql test &
+          pnpm --filter server test &
+          wait
 
-  server-test:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - name: Run Server Tests
-        run: pnpm --filter server test
+      - name: Teardown
+        run: pnpm dev:teardown
