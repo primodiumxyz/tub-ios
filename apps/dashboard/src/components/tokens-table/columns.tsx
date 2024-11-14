@@ -34,7 +34,7 @@ export const getColumns = (selectedInterval: Interval): ColumnDef<Token>[] => [
     accessorKey: "volume",
     header: ({ column }) => (
       <div className="flex items-center gap-2">
-        Volume ({selectedInterval}m)
+        Volume ({selectedInterval / 60}h)
         <Button
           className="w-7 h-7 p-0"
           variant="ghost"
@@ -108,7 +108,7 @@ export const getColumns = (selectedInterval: Interval): ColumnDef<Token>[] => [
     accessorKey: "transactions",
     header: ({ column }) => (
       <div className="flex items-center gap-2">
-        Transactions ({selectedInterval}m)
+        Transactions ({selectedInterval / 60}h)
         <Button
           className="w-7 h-7 p-0"
           variant="ghost"
@@ -132,7 +132,7 @@ export const getColumns = (selectedInterval: Interval): ColumnDef<Token>[] => [
     accessorKey: "priceChange",
     header: ({ column }) => (
       <div className="flex items-center gap-2">
-        Price Change ({selectedInterval}m)
+        Price Change ({selectedInterval / 60}h)
         <Button
           className="w-7 h-7 p-0"
           variant="ghost"
@@ -164,7 +164,7 @@ export const getColumns = (selectedInterval: Interval): ColumnDef<Token>[] => [
     accessorKey: "uniqueBuys",
     header: ({ column }) => (
       <div className="flex items-center gap-2">
-        Unique Buys ({selectedInterval}m)
+        Unique Buys ({selectedInterval / 60}h)
         <Button
           className="w-7 h-7 p-0"
           variant="ghost"
@@ -188,7 +188,7 @@ export const getColumns = (selectedInterval: Interval): ColumnDef<Token>[] => [
     accessorKey: "uniqueSells",
     header: ({ column }) => (
       <div className="flex items-center gap-2">
-        Unique Sells ({selectedInterval}m)
+        Unique Sells ({selectedInterval / 60}h)
         <Button
           className="w-7 h-7 p-0"
           variant="ghost"

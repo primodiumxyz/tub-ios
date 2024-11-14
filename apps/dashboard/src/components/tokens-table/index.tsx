@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
+import { Row } from "@tanstack/react-table";
 
-import { getColumns } from "@/components/tracker/tokens-table/columns";
+import { getColumns } from "@/components/tokens-table/columns";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
@@ -8,7 +9,7 @@ import { useTokens } from "@/hooks/use-tokens";
 import { INTERVALS } from "@/lib/constants";
 import { Interval, Token } from "@/lib/types";
 
-export const TokensTable = () => {
+export const TokensTable = ({ onRowClick }: { onRowClick?: (row: Row<Token>) => void }) => {
   const { tokens, fetching, error } = useTokens();
   const [globalFilter, setGlobalFilter] = useState<string>("");
   const [frozen, setFrozen] = useState(false);
@@ -66,6 +67,7 @@ export const TokensTable = () => {
         loading={fetching}
         pagination={true}
         defaultSorting={[{ id: "volume", desc: true }]}
+        onRowClick={onRowClick}
       />
     </div>
   );

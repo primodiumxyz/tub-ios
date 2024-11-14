@@ -21,7 +21,6 @@ export const useTokens = (): {
         resolution: RESOLUTION, // time frame for trending results,
         limit: 50, // max limit
       });
-      console.log(res);
 
       const formattedTokens =
         res.listTopTokens
