@@ -34,37 +34,65 @@ struct AppContent : View {
     @State var walletError: Error? = nil
     
     var body: some View {
-        ZStack {
-            Group {
-                if let error = walletError {
-                    LoginErrorView(
-                        errorMessage: error.localizedDescription,
-                        retryAction: {
-                            Task {
-                                authError = nil
-                                walletError = nil
-                                // Retry connection
-                                do {
-                                   let _ = try await privy.refreshSession()
-                                } catch {
-                                    errorHandler.show(error)
-                                }
+        Group {
+            if let error = walletError {
+                LoginErrorView(
+                    errorMessage: error.localizedDescription,
+                    retryAction: {
+                        Task {
+                            authError = nil
+                            walletError = nil
+                            // Retry connection
+                            do {
+                               let _ = try await privy.refreshSession()
+                            } catch {
+                                errorHandler.show(error)
                             }
                         }
-                    )
-                } else if userId == "" || authError != nil {
-                    RegisterView()
-                } else if authState == .notReady || embeddedWalletState.toString == "connecting" {
-                    LoadingView(message: "Connecting wallet")
-                }
-                else if embeddedWalletAddress == "" {
-                    CreateWalletView()
-                }
-                else     {
-                    HomeTabsView(userId: userId, walletAddress: embeddedWalletAddress).font(.sfRounded())
-                }
+                    }
+                )
+            } else if userId == "" || authError != nil {
+                RegisterView()
+            } else if authState == .notReady || embeddedWalletState.toString == "connecting" {
+                LoadingView(message: "Connecting wallet")
             }
-            .zIndex(0)
+            else if embeddedWalletAddress == "" {
+                CreateWalletView()
+            }
+            else     {
+                HomeTabsView(userId: userId, walletAddress: embeddedWalletAddress).font(.sfRounded())
+            }
+        }
+        .zIndex(0)
+        .onAppear{
+            privy.setAuthStateChangeCallback { state in
+                switch state {
+                case .error(let error):
+                    self.authError = error
+                case .authenticated(let authSession):
+                    self.authError = nil
+                    self.userId = authSession.user.id
+                default:
+                    self.authError = nil
+                    self.userId = ""
+                }
+                self.authState = state
+            }
+            
+            privy.embeddedWallet.setEmbeddedWalletStateChangeCallback { state in
+                switch state {
+                case .error:
+                    self.walletError = NSError(domain: "com.tubapp.wallet", code: 1001, userInfo: [NSLocalizedDescriptionKey: "Failed to connect wallet."])
+                case .connected(let wallets):
+                    self.walletError = nil
+                    if let solanaWallet = wallets.first(where: { $0.chainType == .solana }) {
+                        self.embeddedWalletAddress = solanaWallet.address
+                    }
+                default:
+                    break
+                }
+                self.embeddedWalletState = state
+            }
         }
         .withErrorHandling()
         .environmentObject(errorHandler)
