@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-"type": "module",
+  "type": "module",
   "exports": {
     ".": "./src/index.ts",
     "./react": "./src/react/index.ts"
@@ -11,9 +11,6 @@
   "files": [
     "src"
   ],
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "keywords": [],
   "author": "",
   "license": "ISC",

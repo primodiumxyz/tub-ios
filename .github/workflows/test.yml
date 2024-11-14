@@ -22,10 +22,7 @@ jobs:
         run: pnpm dev:db:ci
 
       - name: Run Tests
-        run: |
-          pnpm --filter gql test &
-          pnpm --filter server test &
-          wait
+        run: pnpm test
 
       - name: Teardown
         run: pnpm dev:teardown
