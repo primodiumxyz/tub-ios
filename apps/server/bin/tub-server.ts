@@ -3,8 +3,6 @@ import { AppRouter, createAppRouter } from "@/createAppRouter";
 import { OctaneService } from "@/OctaneService";
 import { TubService } from "@/TubService";
 import { parseEnv } from "@bin/parseEnv";
-import { Wallet } from "@coral-xyz/anchor";
-import { createTransferInstruction } from "@solana/spl-token";
 import fastifyWebsocket from "@fastify/websocket";
 import { PrivyClient } from "@privy-io/server-auth";
 import { clusterApiUrl, Connection, Keypair, PublicKey } from "@solana/web3.js";
