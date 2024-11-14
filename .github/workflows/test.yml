@@ -25,8 +25,8 @@ jobs:
       - name: Run Tests
         run: PRIVY_APP_ID=${{ secrets.PRIVY_APP_ID }} PRIVY_APP_SECRET=${{ secrets.PRIVY_APP_SECRET }} pnpm test
         env:
-          - PRIVY_APP_ID: ${{ secrets.PRIVY_APP_ID }}
-          - PRIVY_APP_SECRET: ${{ secrets.PRIVY_APP_SECRET }}
+          PRIVY_APP_ID: ${{ secrets.PRIVY_APP_ID }}
+          PRIVY_APP_SECRET: ${{ secrets.PRIVY_APP_SECRET }}
 
       - name: Teardown
         run: pnpm dev:teardown
