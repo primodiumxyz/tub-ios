@@ -55,6 +55,17 @@ struct AppColors {
         endPoint: UnitPoint(x: 0.5, y: 1)
     )
     
+    // login modal bg
+    
+    static let pinkGradient = LinearGradient(
+        stops: [
+        Gradient.Stop(color: Color(red: 0.77, green: 0.38, blue: 0.6).opacity(0.4), location: 0.00),
+        Gradient.Stop(color: Color(red: 0.77, green: 0.38, blue: 0.6).opacity(0.1), location: 1.00),
+        ],
+        startPoint: UnitPoint(x: 0.5, y: 0),
+        endPoint: UnitPoint(x: 0.5, y: 1)
+    )
+    
     // card bg
     static let darkBlueGradient = LinearGradient(
         stops: [

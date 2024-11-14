@@ -32,7 +32,7 @@ struct RegisterView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                             .padding(.horizontal,10)
                         
-                        Text("Welcome to tub")
+                        Text("Welcome to Tub")
                             .font(.sfRounded(size: .xl2, weight: .semibold))
                             .foregroundColor(AppColors.white)
                             .padding(.horizontal,10)
