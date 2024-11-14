@@ -10,12 +10,29 @@ struct RegisterView: View {
     @EnvironmentObject private var errorHandler: ErrorHandler
     @State private var isEmailValid = false
     @State private var showEmailError = false
+    @State private var sendingEmailOtp = false
     
     
     // Email validation function using regex
     func validateEmail(_ email: String) -> Bool {
         let emailRegex = "^[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}$"
         return NSPredicate(format: "SELF MATCHES %@", emailRegex).evaluate(with: email)
+    }
+    
+    private func sendEmailOtp(email: String) {
+        Task {
+            if sendingEmailOtp { return }
+            sendingEmailOtp = true
+            let otpSent = await privy.email.sendCode(to: email)
+            sendingEmailOtp = false
+            if otpSent {
+                showEmailError = false
+                showEmailModal = true
+            } else {
+                showEmailError = true
+                showEmailModal = false
+            }
+        }
     }
     
     var body: some View {
@@ -47,48 +64,42 @@ struct RegisterView: View {
                             showEmailError = false
                         }
                     
+                    
                     // if email invalid
-                    if showEmailError {
-                        Text("Please enter a valid email address.")
-                            .font(.caption)
-                            .foregroundColor(.red)
-                            .padding(.top, -4)
-                            .padding(.horizontal, 20)
-                    } else {
-                        // Invisible placeholder to maintain spacing
-                        Text("")
-                            .font(.caption)
-                            .padding(.top, -4)
-                            .padding(.horizontal, 20)
+                    Text(showEmailError ? "Please enter a valid email address." : "")
+                        .font(.caption)
+                        .foregroundColor(.red)
+                        .padding(.top, -4)
+                        .padding(.horizontal, 20)
+                    
+                    Spacer().frame(height: 20)
+                    
+                    Button(action: {
+                        if isEmailValid {
+                            sendEmailOtp(email: email)
+                        } else {
+                        }
+                    }) {
+                        Text("Continue")
+                            .font(.sfRounded(size: .lg, weight: .semibold))
+                            .foregroundColor(AppColors.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(14)
                     }
+                    .disabled(!isEmailValid || sendingEmailOtp)
+                    .opacity(!isEmailValid || sendingEmailOtp ? 0.5 : 1.0)
+                    .background(AppColors.primaryPurple)
+                    .cornerRadius(30)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 30)
+                            .inset(by: 0.5)
+                            .stroke(AppColors.primaryPurple, lineWidth: 1)
+                    )
+                    
+                    
                 }
-                .padding()
-                .frame(height: 65) // Adjust this value to accommodate both states
-                
-                Button(action: {
-                    if isEmailValid {
-                        showEmailModal = true
-                    } else {
-                        showEmailError = true
-                    }
-                }) {
-                    Text("Continue")
-                        .font(.sfRounded(size: .lg, weight: .semibold))
-                        .foregroundColor(AppColors.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(14)
-                }
-                .background(AppColors.primaryPurple)
-                .cornerRadius(30)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 30)
-                        .inset(by: 0.5)
-                        .stroke(AppColors.primaryPurple, lineWidth: 1)
-                )
-                
                 .padding(.horizontal)
                 // or divider line
-                Spacer().frame(height: 30)
                 HStack(alignment: .center, spacing: 12) {
                     Divider()
                         .frame(width: 153, height: 1)
@@ -114,12 +125,12 @@ struct RegisterView: View {
                     .frame(width: .infinity, height: 50, alignment: .center)
                     .cornerRadius(30)
                     .padding(.horizontal,10)
-                     .overlay(
-                    RoundedRectangle(cornerRadius: 30)
-                        .inset(by: 0.5)
-                        .stroke(.white, lineWidth: 1)
-                        .padding(.horizontal,10)
-                )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 30)
+                            .inset(by: 0.5)
+                            .stroke(.white, lineWidth: 1)
+                            .padding(.horizontal,10)
+                    )
                     .onTapGesture {
                         // Ideally this is called in a view model, but showcasinlug logic here for brevity
                         Task {
@@ -211,7 +222,6 @@ struct RegisterView: View {
         .padding(.vertical)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.darkBlueGradient)
-        
     }
 }
 

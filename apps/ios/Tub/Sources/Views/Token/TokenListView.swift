@@ -65,10 +65,13 @@ struct TokenListView: View {
                 userModel: userModel,
                 currentTokenModel: viewModel.currentTokenModel
             )
-            .background(AppColors.black)
             .zIndex(2)
-            .padding(.top, 40)
-            
+               Divider()
+                        .frame(width: 300, height: 1)
+                        .overlay(
+                            Rectangle()
+                                .stroke(AppColors.lightGray.opacity(0.3), lineWidth: 0.5)
+                        )
             if viewModel.isLoading {
                     DummyTokenView(height: 400)
                         .frame(height: .infinity)
@@ -110,11 +113,11 @@ struct TokenListView: View {
                                                 }
                                             }
                                         )
-                                        .frame(height: geometry.size.height)
+                                        .frame(height: geometry.size.height - 25)
                                         DummyTokenView(height: geometry.size.height)
                                             .frame(height: geometry.size.height)
                                             .opacity(dragging ? 0.8 : 0)
-                                        
+
                                         
                                     }
                                     .zIndex(1)
@@ -167,11 +170,10 @@ struct TokenListView: View {
                     }
                 }
                 .foregroundColor(.white)
-                .background(Color.black)
             }
         } .onAppear {
             viewModel.subscribeTokens()
-        }.ignoresSafeArea()
+        }
     }
 }
 

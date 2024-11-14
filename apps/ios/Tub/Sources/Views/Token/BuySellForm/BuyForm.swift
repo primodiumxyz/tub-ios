@@ -34,6 +34,8 @@ struct BuyForm: View {
     
     @State private var showInsufficientBalance: Bool = false
     
+    @ObservedObject private var settingsManager = SettingsManager.shared
+    
     private func handleBuy() {
         // Use 10 as default if no amount is entered
         let amountToUse = buyAmountUsdString.isEmpty ? 10.0 : buyAmountUsd
@@ -43,6 +45,7 @@ struct BuyForm: View {
         if userModel.balanceLamps >= buyAmountLamps {
             if isDefaultOn {
                 defaultAmount = amountToUse
+                settingsManager.defaultBuyValue = amountToUse
             }
             onBuy(amountToUse)
         } else {
