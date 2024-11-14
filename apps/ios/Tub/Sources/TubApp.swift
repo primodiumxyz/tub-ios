@@ -21,16 +21,11 @@ struct TubApp: App {
 struct AppContent : View {
     @StateObject private var errorHandler = ErrorHandler()
     @State var userId : String = ""
-    @State var authState: PrivySDK.AuthState = .unauthenticated
+    @State var authState: PrivySDK.AuthState = .notReady 
+    
     @State var embeddedWalletState: PrivySDK.EmbeddedWalletState = .notCreated
     @State var embeddedWalletAddress: String = ""
-    @State var authError: Error? = nil {
-        didSet {
-            if let error = authError {
-                errorHandler.show(error)
-            }
-        }
-    }
+    @State var authError: Error? = nil
     @State var walletError: Error? = nil
     
     var body: some View {
@@ -50,13 +45,17 @@ struct AppContent : View {
                             }
                         }
                     }
+                    ,
+                    logoutAction: {
+                        authError = nil
+                        walletError = nil
+                    }
                 )
-            } else if userId == "" || authError != nil {
-                RegisterView()
             } else if authState == .notReady || embeddedWalletState.toString == "connecting" {
                 LoadingView(message: "Connecting wallet")
-            }
-            else if embeddedWalletAddress == "" {
+            } else if userId == "" || authState == .unauthenticated {
+                RegisterView()
+            } else if embeddedWalletAddress == "" {
                 CreateWalletView()
             }
             else     {
