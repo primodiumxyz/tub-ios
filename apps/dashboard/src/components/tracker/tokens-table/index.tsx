@@ -34,25 +34,24 @@ export const TokensTable = () => {
   return (
     <div className="flex flex-col gap-2 mt-2 w-full">
       <div className="flex items-center justify-between gap-4">
-        <div className="flex gap-2 items-center">
-          <div className="flex items-center gap-2">
-            <Button onClick={() => setFrozen(!frozen)} variant={frozen ? "destructive" : "ghost"}>
-              {frozen ? "Unfreeze" : "Freeze"}
-            </Button>
-          </div>
-          <span className="text-sm text-muted-foreground">
-            {tokens.length} tokens {frozen && `(frozen at ${frozenTokens.length})`}
-          </span>
-          <select
-            value={selectedInterval}
-            onChange={(e) => setSelectedInterval(Number(e.target.value) as Interval)}
-            className="rounded-md border p-2"
-          >
-            {INTERVALS.map((interval) => (
-              <option value={interval}>{interval}m</option>
-            ))}
-          </select>
+        <div className="flex items-center gap-2">
+          <Button onClick={() => setFrozen(!frozen)} variant={frozen ? "destructive" : "ghost"}>
+            {frozen ? "Unfreeze" : "Freeze"}
+          </Button>
         </div>
+        <span className="text-sm text-muted-foreground">
+          {tokens.length} tokens {frozen && `(frozen at ${frozenTokens.length})`}
+        </span>
+        <span className="grow" />
+        <select
+          value={selectedInterval}
+          onChange={(e) => setSelectedInterval(Number(e.target.value) as Interval)}
+          className="rounded-md border p-2"
+        >
+          {INTERVALS.map((interval) => (
+            <option value={interval}>{interval / 60}h</option>
+          ))}
+        </select>
         <Input
           placeholder="Search"
           value={globalFilter}
