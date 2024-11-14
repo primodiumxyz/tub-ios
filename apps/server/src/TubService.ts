@@ -224,9 +224,13 @@ export class TubService {
             }
 
             if (transaction) {
+              const transactionBase64 = Buffer.from(
+                transaction.serialize()
+              ).toString('base64');
+              
               // Store in registry with fee information
               this.swapRegistry.set(
-                this.getBuiltTransactionId(transaction),
+                transactionBase64,
                 { hasFee: feeAmount > 0, transaction }
               );
             }
@@ -277,39 +281,37 @@ export class TubService {
     }
   }
 
-  private getBuiltTransactionId(transaction: Transaction): string {
-    const instructionsData = transaction.instructions
-      .map(ix => [...ix.programId.toBytes(), ...ix.data])
-      .flat();
-    return createHash('sha256')
-      .update(Buffer.from(instructionsData))
-      .digest('hex');
-  }
-
-  async signAndSendTransaction(userId: string, partiallySignedTx: Transaction) {
+  async signAndSendTransaction(userId: string, userSignature: string, base64Transaction: string) {
     try {
-      const registryEntry = this.swapRegistry.get(this.getBuiltTransactionId(partiallySignedTx));
+      const registryEntry = this.swapRegistry.get(base64Transaction);
       if (!registryEntry) {
         throw new Error("Transaction not found in registry");
       }
+      const transaction = registryEntry.transaction;
+      const walletAddress = await this.getUserWallet(userId);
+      if (!walletAddress) {
+        throw new Error("User does not have a wallet");
+      }
+      const userPublicKey = new PublicKey(walletAddress);
+      transaction.addSignature(userPublicKey, Buffer.from(userSignature));
 
       let feePayerSignature;
       if (registryEntry.hasFee) {
         feePayerSignature = await this.octane.signTransactionWithTokenFee(
-          partiallySignedTx,
+          transaction,
           true, // buyWithUSDCBool
           USDC_MAINNET_PUBLIC_KEY,
           6 // tokenDecimals, note that other tokens besides USDC may have different decimals
         );
       } else {
-        feePayerSignature = await this.octane.signTransactionWithoutTokenFee(partiallySignedTx);
+        feePayerSignature = await this.octane.signTransactionWithoutTokenFee(transaction);
       }
 
-      partiallySignedTx.addSignature(this.octane.getSettings().feePayerPublicKey, Buffer.from(feePayerSignature));
+      transaction.addSignature(this.octane.getSettings().feePayerPublicKey, Buffer.from(feePayerSignature));
 
       // Send the fully signed transaction with signature
       const txid = await this.octane.getSettings().connection.sendRawTransaction(
-        partiallySignedTx.serialize(),
+        transaction.serialize(),
         { skipPreflight: false }
       );
 
@@ -321,7 +323,7 @@ export class TubService {
       }
 
       // Clean up registry
-      this.swapRegistry.delete(this.getBuiltTransactionId(partiallySignedTx));
+      this.swapRegistry.delete(base64Transaction);
 
       return { signature: txid };
 
