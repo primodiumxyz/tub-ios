@@ -18,7 +18,10 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "paths": {
+      "@solana/spl-token": ["./node_modules/@solana/spl-token"]
+    }
   },
   "include": ["src"]
 }

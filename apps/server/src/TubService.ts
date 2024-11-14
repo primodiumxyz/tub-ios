@@ -4,9 +4,8 @@ import { config } from "dotenv";
 import { OctaneService } from "./OctaneService";
 import { Subject, interval, switchMap } from 'rxjs';
 import { PublicKey, Transaction } from "@solana/web3.js";
-import { createTransferInstruction } from "@solana/spl-token";
+import { createTransferInstruction, getAssociatedTokenAddress } from "@solana/spl-token";
 import { UserPrebuildSwapRequest } from "../types/PrebuildSwapRequest";
-import { getAssociatedTokenAddress } from "@solana/spl-token";
 import { createHash } from 'crypto';
 
 config({ path: "../../.env" });
