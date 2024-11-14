@@ -6,7 +6,6 @@ import { Subject, interval, switchMap } from 'rxjs';
 import { PublicKey, Transaction } from "@solana/web3.js";
 import { createTransferInstruction, getAssociatedTokenAddress } from "@solana/spl-token";
 import { UserPrebuildSwapRequest } from "../types/PrebuildSwapRequest";
-import { createHash } from 'crypto';
 
 config({ path: "../../.env" });
 
@@ -57,6 +56,7 @@ export class TubService {
     return { status: 200 };
   }
 
+  // !! TODO: implement this after transaction success
   async sellToken(jwtToken: string, tokenId: string, amount: bigint, overridePrice?: bigint) {
     const accountId = await this.verifyJWT(jwtToken);
     const wallet = await this.getUserWallet(accountId);
@@ -77,6 +77,7 @@ export class TubService {
     return result.data;
   }
 
+  // !! TODO: implement this after transaction success
   async buyToken(jwtToken: string, tokenId: string, amount: bigint, overridePrice?: bigint) {
     const accountId = await this.verifyJWT(jwtToken);
     const wallet = await this.getUserWallet(accountId);
