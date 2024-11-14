@@ -14,7 +14,11 @@ export const getColumns = (selectedInterval: Interval): ColumnDef<Token>[] => [
       return (
         <div className="flex items-center gap-2">
           {token.imageUri && <img src={token.imageUri} alt={token.name} className="w-6 h-6 rounded-full" />}
-          <a href={`https://photon-sol.tinyastro.io/en/lp/${token.mint}`} target="_blank">
+          <a
+            href={`https://photon-sol.tinyastro.io/en/lp/${token.mint}`}
+            target="_blank"
+            onClick={(e) => e.stopPropagation()}
+          >
             {token.mint.slice(0, 6)}...{token.mint.slice(-6)}
           </a>
         </div>

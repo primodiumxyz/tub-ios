@@ -24,3 +24,8 @@ export type Token = {
     [key in Interval]: number;
   };
 };
+
+export type TokenPrice = {
+  timestamp: number;
+  price: number;
+};
