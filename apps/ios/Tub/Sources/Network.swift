@@ -69,13 +69,18 @@ class Network {
     }
     
     private func callProcedure<T: Codable>(_ procedure: String, input: Codable? = nil, completion: @escaping (Result<T, Error>) -> Void) {
-        // Check and refresh session if needed
         Task {
+            // Get token asynchronously
+            let token = await getStoredToken()
             
             let url = baseURL.appendingPathComponent(procedure)
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            
+            if let token = token {
+                request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            }
             
             if let input = input {
                 do {
@@ -116,7 +121,63 @@ class Network {
             task.resume()
         }
     }
+    private func storeToken(_ token: String) {
+        let data = Data(token.utf8)
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: "userToken",
+            kSecValueData as String: data
+        ]
+        SecItemDelete(query as CFDictionary)
+        SecItemAdd(query as CFDictionary, nil)
+    }
     
+    private func getStoredToken() async -> String? {
+        switch privy.authState {
+        case .authenticated(let authSession):
+            let token = authSession.authToken
+            // Check if token is expired
+            if let decodedToken = decodeJWT(token),
+               let exp = decodedToken["exp"] as? TimeInterval {
+                let expirationDate = Date(timeIntervalSince1970: exp)
+                if expirationDate > Date() {
+                    return token
+                } else {
+                    do {
+                        print("Token expired, refreshing session")
+                        let newSession = try await privy.refreshSession()
+                        return newSession.authToken
+                    } catch {
+                        print("Failed to refresh session: \(error)")
+                        return nil
+                    }
+                }
+            }
+            return nil
+        default:
+            return nil
+        }
+    }
+    
+    private func decodeJWT(_ token: String) -> [String: Any]? {
+        let segments = token.components(separatedBy: ".")
+        guard segments.count > 1 else { return nil }
+        
+        let base64String = segments[1]
+            .replacingOccurrences(of: "-", with: "+")
+            .replacingOccurrences(of: "_", with: "/")
+        
+        let padded = base64String.padding(
+            toLength: ((base64String.count + 3) / 4) * 4,
+            withPad: "=",
+            startingAt: 0)
+        
+        guard let data = Data(base64Encoded: padded) else { return nil }
+        
+        return try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
+    }
+    
+   
     // Updated procedure calls:
     func getStatus(completion: @escaping (Result<StatusResponse, Error>) -> Void) {
         callProcedure("getStatus", completion: completion)
@@ -128,35 +189,23 @@ class Network {
     }
     
     func buyToken(tokenId: String, amount: String, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
-        let userId = UserManager.shared.userId
-        if(userId == ""){
-            completion(.failure(NSError(domain: "ServerError", code: -1, userInfo: [NSLocalizedDescriptionKey: "User not logged in"])))
-            return
-        }
-        let input = ["userId": userId, "tokenId": tokenId, "amount": amount]
+      
+        let input = ["tokenId": tokenId, "amount": amount]
         callProcedure("buyToken", input: input, completion: completion)
     }
     
     func sellToken(tokenId: String, amount: String, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
-        let userId = UserManager.shared.userId
-        if(userId == ""){
-            completion(.failure(NSError(domain: "ServerError", code: -1, userInfo: [NSLocalizedDescriptionKey: "User not logged in"])))
-            return
-        }
-        let input = ["userId": userId, "tokenId": tokenId, "amount": amount]
+        
+        let input = ["tokenId": tokenId, "amount": amount]
         callProcedure("sellToken", input: input, completion: completion)
     }
     
     func airdropNativeToUser(amount: Int, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
-        let userId = UserManager.shared.userId
-        if(userId == ""){
-            completion(.failure(NSError(domain: "ServerError", code: -1, userInfo: [NSLocalizedDescriptionKey: "User not logged in"])))
-            return
-        }
-        let input = ["tokenId": "native", "userId": userId, "amount": String(amount)]
+        
+        let input = ["tokenId": "native", "amount": String(amount)]
         callProcedure("airdropNativeToUser", input: input, completion: completion)
     }
-
+    
 }
 
 struct ResponseWrapper<T: Codable>: Codable {

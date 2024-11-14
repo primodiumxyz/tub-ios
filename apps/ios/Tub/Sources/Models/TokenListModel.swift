@@ -24,7 +24,6 @@ class TokenListModel: ObservableObject {
     @Published var isLoading = true
     @Published var errorMessage: String?
     
-    private var subscription: Cancellable?
     private var walletAddress: String
 
     // Cooldown for not showing the same token too often
@@ -32,6 +31,7 @@ class TokenListModel: ObservableObject {
     private var recentlyShownTokens: [(id: String, timestamp: Date)] = []
     
     private var timer: Timer?
+    private var tokenSubscription: Cancellable?
 
     init(walletAddress: String) {
         self.walletAddress = walletAddress
@@ -244,6 +244,8 @@ class TokenListModel: ObservableObject {
     func cleanup() {
         timer?.invalidate()
         timer = nil
+        tokenSubscription?.cancel()
+        tokenSubscription = nil
     }
 
     // Make sure to call cleanup when appropriate

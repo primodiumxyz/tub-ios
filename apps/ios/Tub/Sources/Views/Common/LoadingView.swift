@@ -8,15 +8,21 @@ import SwiftUI
 
 struct LoadingView: View {
     let identifier: String
+    let message: String?
     
-    init(identifier: String = "Unknown") {
+    init(identifier: String = "", message: String? = nil) {
         self.identifier = identifier
+        self.message  = message
         LoadingTracker.shared.startLoading(identifier)
     }
     
     var body: some View {
-        
-        ProgressView()
+        VStack {
+            if let message = message {
+                Text(message).opacity(0.5)
+            }
+            ProgressView()
+        }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.black)
         .foregroundColor(.white)

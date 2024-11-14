@@ -34,7 +34,13 @@ class TokenModel: ObservableObject {
  
     private var latestPriceSubscription: Apollo.Cancellable?
     private var tokenBalanceSubscription: Apollo.Cancellable?
-        
+    
+    deinit {
+        // Clean up subscriptions when the object is deallocated
+        latestPriceSubscription?.cancel()
+        tokenBalanceSubscription?.cancel()
+    }
+    
     init(walletAddress: String, tokenId: String? = nil) {
         self.walletAddress = walletAddress
         if tokenId != nil {
@@ -43,7 +49,6 @@ class TokenModel: ObservableObject {
     }
     
     func initialize(with newTokenId: String, timeframeSecs: Double = 90) {
-        print("initializing token \(newTokenId) with timeframe \(timeframeSecs)")
         // Cancel all existing subscriptions
         latestPriceSubscription?.cancel()
         tokenBalanceSubscription?.cancel()
@@ -199,7 +204,6 @@ class TokenModel: ObservableObject {
     func buyTokens(buyAmountLamps: Int, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
         if let price = self.prices.last?.price, price > 0 {
             let tokenAmount = Int(Double(buyAmountLamps) / Double(price) * 1e9)
-            print("token amount:", tokenAmount)
             
             Network.shared.buyToken(tokenId: self.tokenId, amount: String(tokenAmount)
             ) { result in
