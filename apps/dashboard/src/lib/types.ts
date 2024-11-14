@@ -11,6 +11,7 @@ export type Token = {
   liquidity: string;
   marketCap: string | null;
   volume: string;
+  pairId: string;
   priceChange: {
     [key in Interval]: number;
   };
@@ -28,4 +29,22 @@ export type Token = {
 export type TokenPrice = {
   timestamp: number;
   price: number;
+};
+
+export type TokenCandle = {
+  o: number;
+  h: number;
+  l: number;
+  c: number;
+  v: number | null;
+  t: number;
+};
+
+export type TokenCandles = {
+  o: (number | null)[];
+  h: (number | null)[];
+  l: (number | null)[];
+  c: (number | null)[];
+  v: (number | null)[];
+  t: (number | null)[];
 };

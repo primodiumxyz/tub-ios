@@ -34,6 +34,7 @@ export const useTokens = (): {
             liquidity: t.liquidity,
             marketCap: t.marketCap ?? null,
             volume: t.volume,
+            pairId: t.topPairId,
             priceChange: {
               60: t.priceChange1 ?? 0,
               240: t.priceChange4 ?? 0,
