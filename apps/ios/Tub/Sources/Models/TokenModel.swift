@@ -28,7 +28,7 @@ class TokenModel: ObservableObject {
     @Published var prices: [Price] = []
     @Published var priceChange: (amountLamps: Int, percentage: Double) = (0, 0)
 
-    @Published var timeframeSecs: Double = 90
+    @Published var timeframeSecs: Double = CHART_INTERVAL
     @Published var currentTimeframe: Timespan = .live
     private var lastPriceTimestamp: Date?
 
@@ -47,8 +47,8 @@ class TokenModel: ObservableObject {
             self.initialize(with: tokenId!)
         }
     }
-
-    func initialize(with newTokenId: String, timeframeSecs: Double = 90) {
+    
+    func initialize(with newTokenId: String, timeframeSecs: Double = CHART_INTERVAL) {
         // Cancel all existing subscriptions
         latestPriceSubscription?.cancel()
         tokenBalanceSubscription?.cancel()
