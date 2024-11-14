@@ -127,6 +127,5 @@ struct AccountView: View {
             }
         }
     }
- 
 }
 

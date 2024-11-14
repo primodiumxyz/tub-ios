@@ -20,8 +20,18 @@ struct HomeTabsView: View {
     
     var body: some View {
         Group {
-            if userModel.isLoading  {
-                LoadingView(identifier: "HomeTabsView - waiting for userModel & priceModel", message: "loading player data")
+            if let error = userModel.error {
+                LoginErrorView(
+                    errorMessage: error,
+                    retryAction: {
+                        Task {
+                            await userModel.fetchInitialData()
+                        }
+                    }
+                )
+            } 
+            else if userModel.isLoading  {
+                LoadingView(identifier: "HomeTabsView - waiting for userModel & priceModel", message: "Loading user data")
             } else {
                 ZStack(alignment: .bottom) {
                     // Main content view

@@ -40,7 +40,10 @@ struct SignInWithPhoneView: View {
             if otpSent {
                 showOTPInput = true
             }else {
+                let error = NSError(domain: "PrivyError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to send OTP"])
+                errorHandler.show(error)
                 debugPrint("Error: Failed to send OTP.")
+                
                 showOTPInput = false
             }
         }

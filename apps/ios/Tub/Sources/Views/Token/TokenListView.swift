@@ -95,9 +95,14 @@ struct TokenListView: View {
                             // Rest of the content
                             if viewModel.tokens.count == 0 {
                                 Spacer()
-                                Text("An unexpected error occurred. Please come back later.")
+                                Text("Failed to load tokens.")
                                     .foregroundColor(AppColors.lightYellow)
                                     .multilineTextAlignment(.center)
+                                Button(action: {
+                                    viewModel.fetchTokens(setLoading: true)
+                                }) {
+                                    Text("Retry")
+                                }
                                 Spacer()
                             } else {
                                 GeometryReader { geometry in

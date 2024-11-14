@@ -24,69 +24,47 @@ struct AppContent : View {
     @State var authState: PrivySDK.AuthState = .unauthenticated
     @State var embeddedWalletState: PrivySDK.EmbeddedWalletState = .notCreated
     @State var embeddedWalletAddress: String = ""
-    @State var authError: Error? = nil
+    @State var authError: Error? = nil {
+        didSet {
+            if let error = authError {
+                errorHandler.show(error)
+            }
+        }
+    }
     @State var walletError: Error? = nil
     
     var body: some View {
-        Group {
-            if let error = authError ?? walletError {
-                LoginErrorView(
-                    errorMessage: error.localizedDescription,
-                    retryAction: {
-                        Task {
-                            authError = nil
-                            walletError = nil
-                            // Retry connection
-                            do {
-                               let _ = try await privy.refreshSession()
-                            } catch {
-                                errorHandler.show(error)
+        ZStack {
+            Group {
+                if let error = walletError {
+                    LoginErrorView(
+                        errorMessage: error.localizedDescription,
+                        retryAction: {
+                            Task {
+                                authError = nil
+                                walletError = nil
+                                // Retry connection
+                                do {
+                                   let _ = try await privy.refreshSession()
+                                } catch {
+                                    errorHandler.show(error)
+                                }
                             }
                         }
-                    }
-                )
-            } else if userId == "" {
-                RegisterView()
-            } else if authState == .notReady || embeddedWalletState.toString == "connecting" {
-                LoadingView(message: "Connecting user account...")
-            }
-            else if embeddedWalletAddress == "" {
-                CreateWalletView()
-            }
-            else     {
-                HomeTabsView(userId: userId, walletAddress: embeddedWalletAddress).font(.sfRounded())
-            }
-        }
-        .zIndex(0)
-        .onAppear{
-            privy.setAuthStateChangeCallback { state in
-                switch state {
-                case .error(let error):
-                    self.authError = error
-                case .authenticated(let authSession):
-                    self.authError = nil
-                    self.userId = authSession.user.id
-                default:
-                    self.authError = nil
-                    self.userId = ""
+                    )
+                } else if userId == "" || authError != nil {
+                    RegisterView()
+                } else if authState == .notReady || embeddedWalletState.toString == "connecting" {
+                    LoadingView(message: "Connecting wallet")
                 }
-                self.authState = state
-            }
-            
-            privy.embeddedWallet.setEmbeddedWalletStateChangeCallback { state in
-                switch state {
-                case .error:
-                    self.walletError = NSError(domain: "com.tubapp.wallet", code: 1001, userInfo: [NSLocalizedDescriptionKey: "Failed to connect wallet."])
-                case .connected(let wallets):
-                    self.walletError = nil
-                    if let solanaWallet = wallets.first(where: { $0.chainType == .solana }) {
-                        self.embeddedWalletAddress = solanaWallet.address
-                    }
-                default:
-                    break
+                else if embeddedWalletAddress == "" {
+                    CreateWalletView()
                 }
-                self.embeddedWalletState = state
+                else     {
+                    HomeTabsView(userId: userId, walletAddress: embeddedWalletAddress).font(.sfRounded())
+                }
             }
+            .zIndex(0)
         }
         .withErrorHandling()
         .environmentObject(errorHandler)
