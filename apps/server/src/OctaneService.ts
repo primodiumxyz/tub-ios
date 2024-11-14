@@ -1,22 +1,22 @@
-import { Connection, Keypair, PublicKey, Transaction, TransactionInstruction, VersionedTransaction } from "@solana/web3.js";
-import { core, signWithTokenFee, createAccountIfTokenFeePaid, FeeOptions } from "@primodiumxyz/octane-core";
-import { QuoteGetRequest, QuoteResponse, SwapInstructionsPostRequest, SwapInstructionsResponse, SwapInstructionsResponseFromJSON, SwapRequest } from '@jup-ag/api';
+import { Connection, Keypair, PublicKey, Transaction, TransactionInstruction } from "@solana/web3.js";
+import { core, signWithTokenFee, createAccountIfTokenFeePaid } from "@primodiumxyz/octane-core";
+import { QuoteGetRequest, QuoteResponse, SwapInstructionsPostRequest, SwapInstructionsResponse } from '@jup-ag/api';
 import { Wallet } from "@coral-xyz/anchor";
 import bs58 from "bs58";
 import type { Cache } from 'cache-manager';
 import { DefaultApi } from "@jup-ag/api";
 
-const testParams: QuoteGetRequest = {
-    inputMint: "So11111111111111111111111111111111111111112",
-    outputMint: "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm", // $WIF
-    amount: 100000000, // 0.1 SOL
-    autoSlippage: true,
-    autoSlippageCollisionUsdValue: 1_000,
-    maxAutoSlippageBps: 1000, // 10%
-    minimizeSlippage: true,
-    onlyDirectRoutes: false,
-    asLegacyTransaction: false,
-};
+// const testParams: QuoteGetRequest = {
+//     inputMint: "So11111111111111111111111111111111111111112",
+//     outputMint: "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm", // $WIF
+//     amount: 100000000, // 0.1 SOL
+//     autoSlippage: true,
+//     autoSlippageCollisionUsdValue: 1_000,
+//     maxAutoSlippageBps: 1000, // 10%
+//     minimizeSlippage: true,
+//     onlyDirectRoutes: false,
+//     asLegacyTransaction: false,
+// };
 
 export type OctaneSettings = {
   feePayerPublicKey: PublicKey;
