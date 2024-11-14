@@ -71,4 +71,18 @@ describe("Server Integration Tests", () => {
 
     expect(result).toBeDefined();
   });
+
+  it("should record client events", async () => {
+    const result = await client.recordClientEvent.mutate({
+      userAgent: "test",
+      eventName: "test",
+      source: "test",
+      metadata: {
+        test: "test",
+      },
+      errorDetails: "test",
+    });
+
+    expect(result).toBeDefined();
+  });
 });
