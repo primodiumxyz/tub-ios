@@ -47,6 +47,30 @@ struct RegisterView: View {
                             showEmailError = false
                         }
                     
+                    
+                    
+                    
+                    Button(action: {
+                        if isEmailValid {
+                            showEmailModal = true
+                        } else {
+                            showEmailError = true
+                        }
+                    }) {
+                        Text("Continue")
+                            .font(.sfRounded(size: .lg, weight: .semibold))
+                            .foregroundColor(AppColors.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(14)
+                    }
+                    .background(AppColors.primaryPurple)
+                    .cornerRadius(30)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 30)
+                            .inset(by: 0.5)
+                            .stroke(AppColors.primaryPurple, lineWidth: 1)
+                    )
+                    
                     // if email invalid
                     if showEmailError {
                         Text("Please enter a valid email address.")
@@ -62,33 +86,8 @@ struct RegisterView: View {
                             .padding(.horizontal, 20)
                     }
                 }
-                .padding()
-                .frame(height: 65) // Adjust this value to accommodate both states
-                
-                Button(action: {
-                    if isEmailValid {
-                        showEmailModal = true
-                    } else {
-                        showEmailError = true
-                    }
-                }) {
-                    Text("Continue")
-                        .font(.sfRounded(size: .lg, weight: .semibold))
-                        .foregroundColor(AppColors.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(14)
-                }
-                .background(AppColors.primaryPurple)
-                .cornerRadius(30)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 30)
-                        .inset(by: 0.5)
-                        .stroke(AppColors.primaryPurple, lineWidth: 1)
-                )
-                
                 .padding(.horizontal)
                 // or divider line
-                Spacer().frame(height: 30)
                 HStack(alignment: .center, spacing: 12) {
                     Divider()
                         .frame(width: 153, height: 1)
@@ -114,12 +113,12 @@ struct RegisterView: View {
                     .frame(width: .infinity, height: 50, alignment: .center)
                     .cornerRadius(30)
                     .padding(.horizontal,10)
-                     .overlay(
-                    RoundedRectangle(cornerRadius: 30)
-                        .inset(by: 0.5)
-                        .stroke(.white, lineWidth: 1)
-                        .padding(.horizontal,10)
-                )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 30)
+                            .inset(by: 0.5)
+                            .stroke(.white, lineWidth: 1)
+                            .padding(.horizontal,10)
+                    )
                     .onTapGesture {
                         // Ideally this is called in a view model, but showcasinlug logic here for brevity
                         Task {
