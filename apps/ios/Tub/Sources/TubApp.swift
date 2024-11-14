@@ -38,7 +38,8 @@ struct AppContent: View {
     @State var embeddedWalletAddress: String = ""
     @State var authError: Error? = nil
     @State var walletError: Error? = nil
-
+    @State var linkedAccounts: [PrivySDK.LinkedAccount]? = nil
+   
     var body: some View {
         Group {
             if let error = authError ?? walletError {
@@ -63,9 +64,9 @@ struct AppContent: View {
                 LoadingView(message: "Connecting user account...")
             } else if embeddedWalletAddress == "" {
                 CreateWalletView()
-            } else {
-                HomeTabsView(userId: userId, walletAddress: embeddedWalletAddress).font(
-                    .sfRounded())
+            }
+            else     {
+                HomeTabsView(userId: userId, walletAddress: embeddedWalletAddress, linkedAccounts: self.linkedAccounts).font(.sfRounded())
             }
         }
         .zIndex(0)
@@ -77,6 +78,7 @@ struct AppContent: View {
                 case .authenticated(let authSession):
                     self.authError = nil
                     self.userId = authSession.user.id
+                    self.linkedAccounts = authSession.user.linkedAccounts
                 default:
                     self.authError = nil
                     self.userId = ""
