@@ -170,10 +170,11 @@ struct SettingsView: View {
         }
         .toolbar {
             ToolbarItem(placement: .keyboard) {
-                Button("Done") {
+                Button("Save") {
                     isEditing = false
                     updateDefaultValue()
                 }
+                .foregroundColor(AppColors.aquaGreen)
             }
         }
     }

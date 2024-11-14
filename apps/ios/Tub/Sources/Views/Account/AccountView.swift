@@ -13,21 +13,18 @@ struct AccountView: View {
     @EnvironmentObject private var userModel: UserModel
     @State private var isNavigatingToRegister = false
     @State private var isAirdropping = false
-    @State private var airdropResult: String?
-    @State private var errorMessage: String?
     @Environment(\.presentationMode) var presentationMode
     @State private var showOnrampView = false
        
     func performAirdrop() {
         isAirdropping = true
-        airdropResult = nil
         
         Network.shared.airdropNativeToUser(amount: 1 * Int(1e9)) { result in
             DispatchQueue.main.async {
                 isAirdropping = false
                 switch result {
                 case .success:
-                    airdropResult = "Airdrop successful!"
+                    errorHandler.showSuccess("Airdrop successful!")
                 case .failure(let error):
                     errorHandler.show(error)
                 }
@@ -76,88 +73,87 @@ struct AccountView: View {
                         let adjustedPercentage = userModel.initialBalanceLamps != 0 ? 100 - (Double(userModel.balanceLamps) / Double(userModel.initialBalanceLamps)) * 100 : 100
                         
                         HStack {
-                            Image(systemName: "arrow.up.right")
-                                .foregroundColor(.green)
-                            Text("\(abs(adjustedPercentage), specifier: "%.1f")% All Time")
-                                .foregroundColor(.green)
+                            Image(systemName: adjustedPercentage < 0 ? "arrow.down.right" : "arrow.up.right")
+                            Text("\(abs(adjustedPercentage), specifier: "%.1f")%")
+                            Text("\(formatDuration(userModel.timeElapsed))")
                         }
+                        .foregroundColor(.green)
+
                     }
                     .padding(.top,16)
                     .padding(.bottom,12)
                     
                     // Action Buttons
-                    HStack(spacing: 16) {
+                    HStack(spacing: 24) {
                         Spacer()
-                        Button(action: performAirdrop) {
-                            HStack {
-                                if isAirdropping {
-                                    ProgressView()
-                                }
-                                Text("Request Airdrop")
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 12)
-                                    .foregroundColor(AppColors.primaryPink)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 30)
-                                            .inset(by: 0.5)
-                                            .stroke(AppColors.primaryPink, lineWidth: 1)
-                                    )
-                            }
-                        }.disabled(isAirdropping)
                         
-                        Button(action: { showOnrampView = true }) {
-                            Text("Add Funds")
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 12)
-                                .foregroundColor(AppColors.aquaGreen)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 30)
-                                        .inset(by: 0.5)
-                                        .stroke(AppColors.aquaGreen, lineWidth: 1)
-                                )
+                        // Airdrop Button
+                        VStack(spacing: 8) {
+                            Button(action: performAirdrop) {
+                                ZStack {
+                                    Circle()
+                                        .stroke(AppColors.primaryPink, lineWidth: 1)
+                                        .frame(width: 50, height: 50)
+                                    
+                                    if isAirdropping {
+                                        ProgressView()
+                                    } else {
+                                        Image(systemName: "paperplane.circle.fill")
+                                            .foregroundColor(AppColors.primaryPink)
+                                            .font(.system(size: 24))
+                                    }
+                                }
+                            }.disabled(isAirdropping)
+                            
+                            Text("Request\nAirdrop")
+                                .font(.sfRounded(size: .xs, weight: .medium))
+                                .foregroundColor(AppColors.primaryPink)
+                                .multilineTextAlignment(.center)
                         }
+                        
+                        // Add Transfer Button
+                        VStack(spacing: 8) {
+                            Button() {
+                                ZStack {
+                                    Circle()
+                                        .stroke(AppColors.aquaGreen, lineWidth: 1)
+                                        .frame(width: 50, height: 50)
+                                    
+                                    Image(systemName: "arrow.left.arrow.right.circle.fill")
+                                        .foregroundColor(AppColors.aquaGreen)
+                                        .font(.system(size: 24))
+                                }
+                            }
+                            
+                            Text("Transfer")
+                                .font(.sfRounded(size: .xs, weight: .medium))
+                                .foregroundColor(AppColors.aquaGreen)
+                                .multilineTextAlignment(.center)
+                        }
+
+                        // Add Funds Button
+                        VStack(spacing: 8) {
+                            Button(action: { showOnrampView = true }) {
+                                ZStack {
+                                    Circle()
+                                        .stroke(AppColors.aquaGreen, lineWidth: 1)
+                                        .frame(width: 50, height: 50)
+                                    
+                                    Image(systemName: "plus.circle.fill")
+                                        .foregroundColor(AppColors.aquaGreen)
+                                        .font(.system(size: 24))
+                                }
+                            }
+                            
+                            Text("Add\nFunds")
+                                .font(.sfRounded(size: .xs, weight: .medium))
+                                .foregroundColor(AppColors.aquaGreen)
+                                .multilineTextAlignment(.center)
+                        }
+                        
                         Spacer()
                     }
                     .padding(.horizontal)
-                    
-                    if let result = airdropResult {
-                        Text(result).foregroundColor(AppColors.green).padding()
-                            .font(.caption)
-                            .padding(-24)
-                    }
-                    
-                    // Available Cash
-                    VStack(spacing:24) {
-                        Divider()
-                            .frame(width: 370, height: 1)
-                            .overlay(
-                                Rectangle()
-                                    .stroke(AppColors.lightGray.opacity(0.5), lineWidth: 0.5)
-                            )
-                        HStack() {
-                            Text("Available Cash")
-                                .foregroundColor(AppColors.lightGray)
-                                .font(.sfRounded(size: .lg, weight: .medium))
-                            
-                            Spacer()
-                            
-                            Text("$0.00")
-                                .multilineTextAlignment(.trailing)
-                                .padding(.horizontal,8)
-                                .foregroundColor(.white)
-                                .font(.sfRounded(size: .lg, weight: .medium))
-                            
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal)
-                        
-                        Divider()
-                            .frame(width: 370, height: 1)
-                            .overlay(
-                                Rectangle()
-                                    .stroke(AppColors.lightGray.opacity(0.5), lineWidth: 0.5)
-                            )
-                    }
                     
                     // Account Settings Section
                     VStack(alignment: .leading, spacing: 24) {
@@ -210,6 +206,12 @@ struct AccountView: View {
                         
                         // Logout Button
                         Button(action: userModel.logout) {
+                            Image(systemName: "rectangle.portrait.and.arrow.right")
+                                .resizable()
+                                .frame(width: 24, height: 24, alignment: .center)
+                                .foregroundColor(AppColors.red)
+                                .padding(.bottom, 40)
+
                             Text("Logout")
                                 .font(.sfRounded(size: .lg, weight: .medium))
                                 .foregroundColor(AppColors.red)
