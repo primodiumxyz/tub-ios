@@ -19,7 +19,7 @@ export function createAppRouter() {
         z.object({
           tokenId: z.string(),
           amount: z.string(),
-          overridePrice: z.string().optional(),
+          tokenPrice: z.string(),
         }),
       )
       .mutation(async ({ ctx, input }) => {
@@ -27,7 +27,7 @@ export function createAppRouter() {
           ctx.jwtToken,
           input.tokenId,
           BigInt(input.amount),
-          input.overridePrice ? BigInt(input.overridePrice) : undefined,
+          Number(input.tokenPrice),
         );
       }),
     sellToken: t.procedure
@@ -35,7 +35,7 @@ export function createAppRouter() {
         z.object({
           tokenId: z.string(),
           amount: z.string(),
-          overridePrice: z.string().optional(),
+          tokenPrice: z.string(),
         }),
       )
       .mutation(async ({ ctx, input }) => {
@@ -43,10 +43,10 @@ export function createAppRouter() {
           ctx.jwtToken,
           input.tokenId,
           BigInt(input.amount),
-          input.overridePrice ? BigInt(input.overridePrice) : undefined,
+          Number(input.tokenPrice),
         );
       }),
-   
+
     airdropNativeToUser: t.procedure
       .input(
         z.object({

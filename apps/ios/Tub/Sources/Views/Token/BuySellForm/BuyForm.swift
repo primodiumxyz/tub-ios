@@ -14,7 +14,7 @@ struct BuyForm: View {
     @Binding var defaultAmount: Double
     @EnvironmentObject var priceModel: SolPriceModel
     @ObservedObject var tokenModel: TokenModel
-    var onBuy: (Double) -> Void
+    var onBuy: (Double, SolPriceModel) -> Void
     
     @EnvironmentObject private var userModel: UserModel
     @State private var buyAmountUsdString: String = ""
@@ -44,7 +44,7 @@ struct BuyForm: View {
             if isDefaultOn {
                 defaultAmount = amountToUse
             }
-            onBuy(amountToUse)
+            onBuy(amountToUse, priceModel)
         } else {
             showInsufficientBalance = true
         }
@@ -229,7 +229,7 @@ struct BuyForm: View {
         Group {
             if let currentPrice = tokenModel.prices.last?.priceUsd, currentPrice > 0 {
                 let buyAmountLamps = priceModel.usdToLamports(usd: buyAmountUsd)
-                let tokenAmount = Int(Double(buyAmountLamps) / Double(priceModel.usdToLamports(usd: currentPrice)) * 1e9)
+                let tokenAmount = Int(Double(buyAmountLamps) / Double(priceModel.usdToLamports(usd: currentPrice)))
 
                 Text("\(priceModel.formatPrice(lamports: tokenAmount, showUnit: false)) \(tokenModel.token.symbol)")
                     .font(.sfRounded(size: .base, weight: .bold))

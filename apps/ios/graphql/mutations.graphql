@@ -2,14 +2,14 @@ mutation BuyToken(
   $wallet: String!
   $token: String!
   $amount: numeric!
-  $override_token_price: numeric
+  $token_price: float8!
 ) {
   buy_token(
     args: {
       user_wallet: $wallet
-      token: $token
+      token_address: $token
       amount_to_buy: $amount
-      token_cost: $override_token_price
+      token_price: $token_price
     }
   ) {
     id
@@ -20,14 +20,14 @@ mutation SellToken(
   $wallet: String!
   $token: String!
   $amount: numeric!
-  $override_token_price: numeric
+  $token_price: float8!
 ) {
   sell_token(
     args: {
       user_wallet: $wallet
-      token: $token
+      token_address: $token
       amount_to_sell: $amount
-      token_cost: $override_token_price
+      token_price: $token_price
     }
   ) {
     id

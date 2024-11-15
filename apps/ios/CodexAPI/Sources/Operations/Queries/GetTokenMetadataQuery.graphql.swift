@@ -7,7 +7,7 @@ public class GetTokenMetadataQuery: GraphQLQuery {
   public static let operationName: String = "GetTokenMetadata"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetTokenMetadata($address: String!, $networkId: Int = 1399811149) { token(input: { address: $address, networkId: $networkId }) { __typename info { __typename name description symbol } socialLinks { __typename discord instagram telegram twitter website } } }"#
+      #"query GetTokenMetadata($address: String!, $networkId: Int = 1399811149) { token(input: { address: $address, networkId: $networkId }) { __typename info { __typename name description symbol imageLargeUrl imageSmallUrl imageThumbUrl } socialLinks { __typename discord instagram telegram twitter website } } }"#
     ))
 
   public var address: String
@@ -73,6 +73,9 @@ public class GetTokenMetadataQuery: GraphQLQuery {
           .field("name", String?.self),
           .field("description", String?.self),
           .field("symbol", String.self),
+          .field("imageLargeUrl", String?.self),
+          .field("imageSmallUrl", String?.self),
+          .field("imageThumbUrl", String?.self),
         ] }
 
         /// The token name. For example, `ApeCoin`.
@@ -81,6 +84,12 @@ public class GetTokenMetadataQuery: GraphQLQuery {
         public var description: String? { __data["description"] }
         /// The token symbol. For example, `APE`.
         public var symbol: String { __data["symbol"] }
+        /// The large token logo URL.
+        public var imageLargeUrl: String? { __data["imageLargeUrl"] }
+        /// The small token logo URL.
+        public var imageSmallUrl: String? { __data["imageSmallUrl"] }
+        /// The thumbnail token logo URL.
+        public var imageThumbUrl: String? { __data["imageThumbUrl"] }
       }
 
       /// Token.SocialLinks

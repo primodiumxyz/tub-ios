@@ -188,15 +188,15 @@ class Network {
         callProcedure("incrementCall", completion: completion)
     }
     
-    func buyToken(tokenId: String, amount: String, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
+    func buyToken(tokenId: String, amount: String, tokenPrice: String, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
       
-        let input = ["tokenId": tokenId, "amount": amount]
+        let input = ["tokenId": tokenId, "amount": amount, "tokenPrice": tokenPrice]
         callProcedure("buyToken", input: input, completion: completion)
     }
     
-    func sellToken(tokenId: String, amount: String, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
+    func sellToken(tokenId: String, amount: String, tokenPrice: String, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
         
-        let input = ["tokenId": tokenId, "amount": amount]
+        let input = ["tokenId": tokenId, "amount": amount, "tokenPrice": tokenPrice]
         callProcedure("sellToken", input: input, completion: completion)
     }
     
@@ -214,7 +214,7 @@ struct ResponseWrapper<T: Codable>: Codable {
     }
     let result: ResultWrapper
 }
-
+ 
 struct EmptyResponse: Codable {}
 
 struct UserResponse: Codable {

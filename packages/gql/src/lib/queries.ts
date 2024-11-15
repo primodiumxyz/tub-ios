@@ -51,6 +51,7 @@ export const GetWalletTransactionsQuery = graphql(`
       amount
       id
       token
+      token_price
       wallet_transaction_data {
         created_at
       }

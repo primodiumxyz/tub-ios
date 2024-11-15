@@ -31,6 +31,9 @@ query GetTokenMetadata($address: String!, $networkId: Int = 1399811149) {
       name
       description
       symbol
+      imageLargeUrl
+      imageSmallUrl
+      imageThumbUrl
     }
     socialLinks {
       discord

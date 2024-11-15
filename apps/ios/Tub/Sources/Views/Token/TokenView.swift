@@ -54,13 +54,13 @@ struct TokenView : View {
         self.onSellSuccess = onSellSuccess
     }
     
-    func handleBuy(amount: Double) {
+    func handleBuy(amount: Double, priceModel: SolPriceModel) {
         let buyAmountLamps = priceModel.usdToLamports(usd: amount)
         if(buyAmountLamps > userModel.balanceLamps) {
             errorHandler.show(TubError.insufficientBalance)
             return
         }
-        tokenModel.buyTokens(buyAmountLamps: buyAmountLamps) { result in
+        tokenModel.buyTokens(buyAmountLamps: buyAmountLamps, priceModel: priceModel) { result in
             switch result {
             case .success:
                 withAnimation(.easeInOut(duration: 0.3)) {

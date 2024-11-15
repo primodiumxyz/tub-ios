@@ -25,7 +25,9 @@ export class TubService {
   private async getUserWallet(userId: string) {
     const user = await this.privy.getUserById(userId);
 
-    const solanaWallet = user.linkedAccounts.find((account) => account.type === "wallet" && account.chainType === "solana") as WalletWithMetadata | undefined;
+    const solanaWallet = user.linkedAccounts.find(
+      (account) => account.type === "wallet" && account.chainType === "solana",
+    ) as WalletWithMetadata | undefined;
     console.log(solanaWallet);
     return solanaWallet?.address;
   }
@@ -34,7 +36,7 @@ export class TubService {
     return { status: 200 };
   }
 
-  async sellToken(jwtToken: string, tokenId: string, amount: bigint, overridePrice?: bigint) {
+  async sellToken(jwtToken: string, tokenId: string, amount: bigint, tokenPrice: number) {
     const accountId = await this.verifyJWT(jwtToken);
     const wallet = await this.getUserWallet(accountId);
     if (!wallet) {
@@ -44,7 +46,7 @@ export class TubService {
       wallet,
       token: tokenId,
       amount: amount.toString(),
-      override_token_price: overridePrice?.toString(),
+      token_price: tokenPrice.toString(),
     });
 
     if (result.error) {
@@ -54,7 +56,7 @@ export class TubService {
     return result.data;
   }
 
-  async buyToken(jwtToken: string, tokenId: string, amount: bigint, overridePrice?: bigint) {
+  async buyToken(jwtToken: string, tokenId: string, amount: bigint, tokenPrice: number) {
     const accountId = await this.verifyJWT(jwtToken);
     const wallet = await this.getUserWallet(accountId);
     if (!wallet) {
@@ -64,7 +66,7 @@ export class TubService {
       wallet,
       token: tokenId,
       amount: amount.toString(),
-      override_token_price: overridePrice?.toString(),
+      token_price: tokenPrice.toString(),
     });
 
     if (result.error) {

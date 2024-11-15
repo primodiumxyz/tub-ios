@@ -52,6 +52,7 @@ query GetWalletTransactions($wallet: String!) {
     amount
     id
     token
+    token_price
     wallet_transaction_data {
       created_at
     }

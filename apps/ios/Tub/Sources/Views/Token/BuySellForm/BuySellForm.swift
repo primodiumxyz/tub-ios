@@ -17,7 +17,7 @@ struct BuySellForm: View {
     @State private var showBubbles = false
     @StateObject private var animationState = TokenAnimationState.shared
     
-    var handleBuy: (Double) -> Void
+    var handleBuy: (Double, SolPriceModel) -> Void
     var onSellSuccess: () -> Void
     
     func handleSell() {
@@ -59,7 +59,7 @@ struct BuySellForm: View {
                     }
                     
                     Button(action: {
-                        handleBuy(defaultAmount)
+                        handleBuy(defaultAmount, priceModel)
                     }) {
                         HStack(alignment: .center, spacing: 8) {
                             Text("Buy \(priceModel.formatPrice(usd: defaultAmount))")

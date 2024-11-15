@@ -131,8 +131,8 @@ input balance_offset_model_order_by {
 
 input buy_token_args {
   amount_to_buy: numeric
-  token: String
-  token_cost: numeric
+  token_address: String
+  token_price: float8
   user_wallet: String
 }
 
@@ -143,6 +143,23 @@ enum cursor_ordering {
 
   """descending ordering of the cursor"""
   DESC
+}
+
+scalar float8
+
+"""
+Boolean expression to compare columns of type "float8". All fields are combined with logical 'AND'.
+"""
+input float8_comparison_exp {
+  _eq: float8
+  _gt: float8
+  _gte: float8
+  _in: [float8!]
+  _is_null: Boolean
+  _lt: float8
+  _lte: float8
+  _neq: float8
+  _nin: [float8!]
 }
 
 scalar interval
@@ -546,8 +563,8 @@ type query_root {
 
 input sell_token_args {
   amount_to_sell: numeric
-  token: String
-  token_cost: numeric
+  token_address: String
+  token_price: float8
   user_wallet: String
 }
 
@@ -771,6 +788,7 @@ type token_transaction {
   amount: numeric!
   id: uuid!
   token: String!
+  token_price: float8!
   wallet_transaction: uuid!
 
   """An object relationship"""
@@ -786,7 +804,34 @@ type token_transaction_aggregate {
 }
 
 input token_transaction_aggregate_bool_exp {
+  avg: token_transaction_aggregate_bool_exp_avg
+  corr: token_transaction_aggregate_bool_exp_corr
   count: token_transaction_aggregate_bool_exp_count
+  covar_samp: token_transaction_aggregate_bool_exp_covar_samp
+  max: token_transaction_aggregate_bool_exp_max
+  min: token_transaction_aggregate_bool_exp_min
+  stddev_samp: token_transaction_aggregate_bool_exp_stddev_samp
+  sum: token_transaction_aggregate_bool_exp_sum
+  var_samp: token_transaction_aggregate_bool_exp_var_samp
+}
+
+input token_transaction_aggregate_bool_exp_avg {
+  arguments: token_transaction_select_column_token_transaction_aggregate_bool_exp_avg_arguments_columns!
+  distinct: Boolean
+  filter: token_transaction_bool_exp
+  predicate: float8_comparison_exp!
+}
+
+input token_transaction_aggregate_bool_exp_corr {
+  arguments: token_transaction_aggregate_bool_exp_corr_arguments!
+  distinct: Boolean
+  filter: token_transaction_bool_exp
+  predicate: float8_comparison_exp!
+}
+
+input token_transaction_aggregate_bool_exp_corr_arguments {
+  X: token_transaction_select_column_token_transaction_aggregate_bool_exp_corr_arguments_columns!
+  Y: token_transaction_select_column_token_transaction_aggregate_bool_exp_corr_arguments_columns!
 }
 
 input token_transaction_aggregate_bool_exp_count {
@@ -794,6 +839,53 @@ input token_transaction_aggregate_bool_exp_count {
   distinct: Boolean
   filter: token_transaction_bool_exp
   predicate: Int_comparison_exp!
+}
+
+input token_transaction_aggregate_bool_exp_covar_samp {
+  arguments: token_transaction_aggregate_bool_exp_covar_samp_arguments!
+  distinct: Boolean
+  filter: token_transaction_bool_exp
+  predicate: float8_comparison_exp!
+}
+
+input token_transaction_aggregate_bool_exp_covar_samp_arguments {
+  X: token_transaction_select_column_token_transaction_aggregate_bool_exp_covar_samp_arguments_columns!
+  Y: token_transaction_select_column_token_transaction_aggregate_bool_exp_covar_samp_arguments_columns!
+}
+
+input token_transaction_aggregate_bool_exp_max {
+  arguments: token_transaction_select_column_token_transaction_aggregate_bool_exp_max_arguments_columns!
+  distinct: Boolean
+  filter: token_transaction_bool_exp
+  predicate: float8_comparison_exp!
+}
+
+input token_transaction_aggregate_bool_exp_min {
+  arguments: token_transaction_select_column_token_transaction_aggregate_bool_exp_min_arguments_columns!
+  distinct: Boolean
+  filter: token_transaction_bool_exp
+  predicate: float8_comparison_exp!
+}
+
+input token_transaction_aggregate_bool_exp_stddev_samp {
+  arguments: token_transaction_select_column_token_transaction_aggregate_bool_exp_stddev_samp_arguments_columns!
+  distinct: Boolean
+  filter: token_transaction_bool_exp
+  predicate: float8_comparison_exp!
+}
+
+input token_transaction_aggregate_bool_exp_sum {
+  arguments: token_transaction_select_column_token_transaction_aggregate_bool_exp_sum_arguments_columns!
+  distinct: Boolean
+  filter: token_transaction_bool_exp
+  predicate: float8_comparison_exp!
+}
+
+input token_transaction_aggregate_bool_exp_var_samp {
+  arguments: token_transaction_select_column_token_transaction_aggregate_bool_exp_var_samp_arguments_columns!
+  distinct: Boolean
+  filter: token_transaction_bool_exp
+  predicate: float8_comparison_exp!
 }
 
 """
@@ -843,6 +935,7 @@ input token_transaction_arr_rel_insert_input {
 """aggregate avg on columns"""
 type token_transaction_avg_fields {
   amount: Float
+  token_price: Float
 }
 
 """
@@ -850,6 +943,7 @@ order by avg() on columns of table "token_transaction"
 """
 input token_transaction_avg_order_by {
   amount: order_by
+  token_price: order_by
 }
 
 """
@@ -862,6 +956,7 @@ input token_transaction_bool_exp {
   amount: numeric_comparison_exp
   id: uuid_comparison_exp
   token: String_comparison_exp
+  token_price: float8_comparison_exp
   wallet_transaction: uuid_comparison_exp
   wallet_transaction_data: wallet_transaction_bool_exp
 }
@@ -881,6 +976,7 @@ input type for incrementing numeric columns in table "token_transaction"
 """
 input token_transaction_inc_input {
   amount: numeric
+  token_price: float8
 }
 
 """
@@ -890,6 +986,7 @@ input token_transaction_insert_input {
   amount: numeric
   id: uuid
   token: String
+  token_price: float8
   wallet_transaction: uuid
   wallet_transaction_data: wallet_transaction_obj_rel_insert_input
 }
@@ -899,6 +996,7 @@ type token_transaction_max_fields {
   amount: numeric
   id: uuid
   token: String
+  token_price: float8
   wallet_transaction: uuid
 }
 
@@ -909,6 +1007,7 @@ input token_transaction_max_order_by {
   amount: order_by
   id: order_by
   token: order_by
+  token_price: order_by
   wallet_transaction: order_by
 }
 
@@ -917,6 +1016,7 @@ type token_transaction_min_fields {
   amount: numeric
   id: uuid
   token: String
+  token_price: float8
   wallet_transaction: uuid
 }
 
@@ -927,6 +1027,7 @@ input token_transaction_min_order_by {
   amount: order_by
   id: order_by
   token: order_by
+  token_price: order_by
   wallet_transaction: order_by
 }
 
@@ -1017,6 +1118,7 @@ input token_transaction_order_by {
   amount: order_by
   id: order_by
   token: order_by
+  token_price: order_by
   wallet_transaction: order_by
   wallet_transaction_data: wallet_transaction_order_by
 }
@@ -1040,7 +1142,74 @@ enum token_transaction_select_column {
   token
 
   """column name"""
+  token_price
+
+  """column name"""
   wallet_transaction
+}
+
+"""
+select "token_transaction_aggregate_bool_exp_avg_arguments_columns" columns of table "token_transaction"
+"""
+enum token_transaction_select_column_token_transaction_aggregate_bool_exp_avg_arguments_columns {
+  """column name"""
+  token_price
+}
+
+"""
+select "token_transaction_aggregate_bool_exp_corr_arguments_columns" columns of table "token_transaction"
+"""
+enum token_transaction_select_column_token_transaction_aggregate_bool_exp_corr_arguments_columns {
+  """column name"""
+  token_price
+}
+
+"""
+select "token_transaction_aggregate_bool_exp_covar_samp_arguments_columns" columns of table "token_transaction"
+"""
+enum token_transaction_select_column_token_transaction_aggregate_bool_exp_covar_samp_arguments_columns {
+  """column name"""
+  token_price
+}
+
+"""
+select "token_transaction_aggregate_bool_exp_max_arguments_columns" columns of table "token_transaction"
+"""
+enum token_transaction_select_column_token_transaction_aggregate_bool_exp_max_arguments_columns {
+  """column name"""
+  token_price
+}
+
+"""
+select "token_transaction_aggregate_bool_exp_min_arguments_columns" columns of table "token_transaction"
+"""
+enum token_transaction_select_column_token_transaction_aggregate_bool_exp_min_arguments_columns {
+  """column name"""
+  token_price
+}
+
+"""
+select "token_transaction_aggregate_bool_exp_stddev_samp_arguments_columns" columns of table "token_transaction"
+"""
+enum token_transaction_select_column_token_transaction_aggregate_bool_exp_stddev_samp_arguments_columns {
+  """column name"""
+  token_price
+}
+
+"""
+select "token_transaction_aggregate_bool_exp_sum_arguments_columns" columns of table "token_transaction"
+"""
+enum token_transaction_select_column_token_transaction_aggregate_bool_exp_sum_arguments_columns {
+  """column name"""
+  token_price
+}
+
+"""
+select "token_transaction_aggregate_bool_exp_var_samp_arguments_columns" columns of table "token_transaction"
+"""
+enum token_transaction_select_column_token_transaction_aggregate_bool_exp_var_samp_arguments_columns {
+  """column name"""
+  token_price
 }
 
 """
@@ -1050,12 +1219,14 @@ input token_transaction_set_input {
   amount: numeric
   id: uuid
   token: String
+  token_price: float8
   wallet_transaction: uuid
 }
 
 """aggregate stddev on columns"""
 type token_transaction_stddev_fields {
   amount: Float
+  token_price: Float
 }
 
 """
@@ -1063,11 +1234,13 @@ order by stddev() on columns of table "token_transaction"
 """
 input token_transaction_stddev_order_by {
   amount: order_by
+  token_price: order_by
 }
 
 """aggregate stddev_pop on columns"""
 type token_transaction_stddev_pop_fields {
   amount: Float
+  token_price: Float
 }
 
 """
@@ -1075,11 +1248,13 @@ order by stddev_pop() on columns of table "token_transaction"
 """
 input token_transaction_stddev_pop_order_by {
   amount: order_by
+  token_price: order_by
 }
 
 """aggregate stddev_samp on columns"""
 type token_transaction_stddev_samp_fields {
   amount: Float
+  token_price: Float
 }
 
 """
@@ -1087,6 +1262,7 @@ order by stddev_samp() on columns of table "token_transaction"
 """
 input token_transaction_stddev_samp_order_by {
   amount: order_by
+  token_price: order_by
 }
 
 """
@@ -1105,12 +1281,14 @@ input token_transaction_stream_cursor_value_input {
   amount: numeric
   id: uuid
   token: String
+  token_price: float8
   wallet_transaction: uuid
 }
 
 """aggregate sum on columns"""
 type token_transaction_sum_fields {
   amount: numeric
+  token_price: float8
 }
 
 """
@@ -1118,6 +1296,7 @@ order by sum() on columns of table "token_transaction"
 """
 input token_transaction_sum_order_by {
   amount: order_by
+  token_price: order_by
 }
 
 """
@@ -1132,6 +1311,9 @@ enum token_transaction_update_column {
 
   """column name"""
   token
+
+  """column name"""
+  token_price
 
   """column name"""
   wallet_transaction
@@ -1151,6 +1333,7 @@ input token_transaction_updates {
 """aggregate var_pop on columns"""
 type token_transaction_var_pop_fields {
   amount: Float
+  token_price: Float
 }
 
 """
@@ -1158,11 +1341,13 @@ order by var_pop() on columns of table "token_transaction"
 """
 input token_transaction_var_pop_order_by {
   amount: order_by
+  token_price: order_by
 }
 
 """aggregate var_samp on columns"""
 type token_transaction_var_samp_fields {
   amount: Float
+  token_price: Float
 }
 
 """
@@ -1170,11 +1355,13 @@ order by var_samp() on columns of table "token_transaction"
 """
 input token_transaction_var_samp_order_by {
   amount: order_by
+  token_price: order_by
 }
 
 """aggregate variance on columns"""
 type token_transaction_variance_fields {
   amount: Float
+  token_price: Float
 }
 
 """
@@ -1182,6 +1369,7 @@ order by variance() on columns of table "token_transaction"
 """
 input token_transaction_variance_order_by {
   amount: order_by
+  token_price: order_by
 }
 
 scalar uuid
