@@ -9,10 +9,11 @@ select_permissions:
   - role: public
     permission:
       columns:
-        - wallet_transaction
+        - token_price
         - amount
-        - id
         - token
+        - id
+        - wallet_transaction
       filter: {}
       allow_aggregations: true
     comment: ""

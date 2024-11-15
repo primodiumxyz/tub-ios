@@ -91,7 +91,7 @@ struct HistoryView : View {
                                 let mint = transaction.token
                                 let priceUsd = transaction.token_price
                                 
-                                let valueUsd = Double(transaction.amount) * priceUsd
+                                let valueUsd = Double(transaction.amount) * priceUsd / 1e9
                                 
                                 let newTransaction = Transaction(
                                     name: metadata?.name ?? "",
