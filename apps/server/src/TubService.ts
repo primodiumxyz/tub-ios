@@ -201,11 +201,13 @@ export class TubService {
 
   /**
    * Starts a stream of built swap transactions for a user to sign
-   * @param userId - The user's ID
+   * @param jwtToken - The user's JWT token
    * @param request - The swap request parameters
    * @returns A Subject that emits base64-encoded transactions
    */
-  async startSwapStream(userId: string, request: UserPrebuildSwapRequest) {
+  async startSwapStream(jwtToken: string, request: UserPrebuildSwapRequest) {
+    const userId = await this.verifyJWT(jwtToken);
+
     // Derive token accounts
     const derivedAccounts = await this.deriveTokenAccounts(
       request.userPublicKey,
@@ -302,10 +304,11 @@ export class TubService {
 
   /**
    * Updates parameters for an active swap request
-   * @param userId - The user's ID
+   * @param jwtToken - The user's JWT token
    * @param updates - New parameters to update
    */
-  async updateSwapRequest(userId: string, updates: Partial<UserPrebuildSwapRequest>) {
+  async updateSwapRequest(jwtToken: string, updates: Partial<UserPrebuildSwapRequest>) {
+    const userId = await this.verifyJWT(jwtToken);
     const current = this.activeSwapRequests.get(userId);
     if (current) {
       // Re-derive accounts if tokens changed
@@ -331,9 +334,10 @@ export class TubService {
 
   /**
    * Stops an active swap stream for a user
-   * @param userId - The user's ID
+   * @param jwtToken - The user's JWT token
    */
-  async stopSwapStream(userId: string) {
+  async stopSwapStream(jwtToken: string) {
+    const userId = await this.verifyJWT(jwtToken);
     this.activeSwapRequests.delete(userId);
     const subject = this.swapSubjects.get(userId);
     if (subject) {
@@ -344,14 +348,15 @@ export class TubService {
 
   /**
    * Validates, signs, and sends a transaction with user and fee payer signatures
-   * @param userId - The user's ID
+   * @param jwtToken - The user's JWT token
    * @param userSignature - The user's signature for the transaction
    * @param base64Transaction - The base64-encoded transaction (before signing) to submit. Came from swapStream
    * @returns Object containing the transaction signature
    * @throws Error if transaction processing fails
    */
-  async signAndSendTransaction(userId: string, userSignature: string, base64Transaction: string) {
+  async signAndSendTransaction(jwtToken: string, userSignature: string, base64Transaction: string) {
     try {
+      const userId = await this.verifyJWT(jwtToken);
       const registryEntry = this.swapRegistry.get(base64Transaction);
       if (!registryEntry) {
         throw new Error("Transaction not found in registry");
@@ -390,6 +395,8 @@ export class TubService {
       if (confirmation.value.err) {
         throw new Error(`Transaction failed: ${confirmation.value.err}`);
       }
+
+
 
       // Clean up registry
       this.swapRegistry.delete(base64Transaction);
