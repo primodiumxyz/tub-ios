@@ -48,7 +48,7 @@ struct BuySellForm: View {
     var body: some View {
         VStack {
             if userModel.userId == nil {
-                NavigationLink(destination: LoginModalView()
+                NavigationLink(destination: RegisterView(isRedirected: true)
                     .background(.black)
                 , isActive: $navigateToLogin) {
                     EmptyView()
@@ -58,7 +58,7 @@ struct BuySellForm: View {
                     navigateToLogin = true
                 }) {
                     HStack(alignment: .center, spacing: 8) {
-                        Text("Buy")
+                        Text("Login to Buy")
                             .font(.sfRounded(size: .xl, weight: .semibold))
                             .foregroundColor(AppColors.black)
                             .multilineTextAlignment(.center)
@@ -80,7 +80,7 @@ struct BuySellForm: View {
                         showOnrampView = true
                     }) {
                         HStack(alignment: .center, spacing: 8) {
-                            Text("Buy")
+                            Text("Deposit")
                                 .font(.sfRounded(size: .xl, weight: .semibold))
                                 .foregroundColor(AppColors.black)
                                 .multilineTextAlignment(.center)
@@ -138,7 +138,7 @@ struct BuySellForm: View {
                 SellForm(tokenModel: tokenModel, showBuySheet: $showBuySheet, onSell: handleSell)
                     .padding(.horizontal,8)
             }
-        }
+        }.padding(.bottom, 8)
     }
 }
 

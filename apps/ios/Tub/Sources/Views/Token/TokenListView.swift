@@ -96,6 +96,18 @@ struct TokenListView: View {
                                     viewModel.fetchTokens(setLoading: true)
                                 }) {
                                     Text("Retry")
+                                        .font(.sfRounded(size: .lg, weight: .semibold))
+                                        .foregroundColor(AppColors.white)
+                                        .frame(maxWidth: 300)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 12)
+                                        .background(AppColors.primaryPurple)
+                                        .cornerRadius(30)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 30)
+                                                .inset(by: 0.5)
+                                                .stroke(AppColors.primaryPurple, lineWidth: 1)
+                                        )
                                 }
                                 Spacer()
                             } else {

@@ -312,7 +312,7 @@ private struct AccountSettingsView: View {
 // New component for unregistered users
 private struct UnregisteredAccountView: View {
     var body: some View {
-            LoginModalView().frame(maxWidth: .infinity, maxHeight: .infinity)
+            RegisterView().frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
