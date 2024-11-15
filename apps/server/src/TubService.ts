@@ -18,6 +18,9 @@ type ActiveSwapRequest = UserPrebuildSwapRequest & {
   sellTokenAccount?: PublicKey;
 };
 
+/**
+ * Service class handling token trading, swaps, and user operations
+ */
 export class TubService {
   private gql: GqlClient["db"];
   private octane: OctaneService;
@@ -32,6 +35,12 @@ export class TubService {
 
   private readonly REGISTRY_TIMEOUT = 5 * 60 * 1000; // 5 minutes in milliseconds
 
+  /**
+   * Creates a new instance of TubService
+   * @param gqlClient - GraphQL client for database operations
+   * @param privy - Privy client for authentication
+   * @param octane - OctaneService instance for transaction handling
+   */
   constructor(gqlClient: GqlClient["db"], privy: PrivyClient, octane: OctaneService) {
     this.gql = gqlClient;
     this.octane = octane;
@@ -50,6 +59,12 @@ export class TubService {
     }
   }
 
+  /**
+   * Verifies a JWT token and returns the associated user ID
+   * @param token - JWT token to verify
+   * @returns The verified user ID
+   * @throws Error if JWT is invalid
+   */
   private verifyJWT = async (token: string) => {
     try {
       const verifiedClaims = await this.privy.verifyAuthToken(token);
@@ -59,6 +74,11 @@ export class TubService {
     }
   };
 
+  /**
+   * Retrieves a user's Solana wallet address
+   * @param userId - The user's ID
+   * @returns The user's Solana wallet address or undefined if not found
+   */
   private async getUserWallet(userId: string) {
     const user = await this.privy.getUserById(userId);
 
@@ -132,6 +152,13 @@ export class TubService {
     return result.data;
   }
 
+  /**
+   * Records a client event in the database
+   * @param event - Event details to record
+   * @param token - JWT token for authentication
+   * @returns ID of the recorded event
+   * @throws Error if recording fails
+   */
   async recordClientEvent(
     event: {
       userAgent: string;
@@ -173,6 +200,12 @@ export class TubService {
     return id;
   }
 
+  /**
+   * Starts a stream of built swap transactions for a user to sign
+   * @param userId - The user's ID
+   * @param request - The swap request parameters
+   * @returns A Subject that emits base64-encoded transactions
+   */
   async startSwapStream(userId: string, request: UserPrebuildSwapRequest) {
     // Derive token accounts
     const derivedAccounts = await this.deriveTokenAccounts(
@@ -268,6 +301,11 @@ export class TubService {
     return this.swapSubjects.get(userId)!;
   }
 
+  /**
+   * Updates parameters for an active swap request
+   * @param userId - The user's ID
+   * @param updates - New parameters to update
+   */
   async updateSwapRequest(userId: string, updates: Partial<UserPrebuildSwapRequest>) {
     const current = this.activeSwapRequests.get(userId);
     if (current) {
@@ -292,6 +330,10 @@ export class TubService {
     }
   }
 
+  /**
+   * Stops an active swap stream for a user
+   * @param userId - The user's ID
+   */
   async stopSwapStream(userId: string) {
     this.activeSwapRequests.delete(userId);
     const subject = this.swapSubjects.get(userId);
@@ -301,6 +343,14 @@ export class TubService {
     }
   }
 
+  /**
+   * Validates, signs, and sends a transaction with user and fee payer signatures
+   * @param userId - The user's ID
+   * @param userSignature - The user's signature for the transaction
+   * @param base64Transaction - The base64-encoded transaction (before signing) to submit. Came from swapStream
+   * @returns Object containing the transaction signature
+   * @throws Error if transaction processing fails
+   */
   async signAndSendTransaction(userId: string, userSignature: string, base64Transaction: string) {
     try {
       const registryEntry = this.swapRegistry.get(base64Transaction);
@@ -354,6 +404,13 @@ export class TubService {
     }
   }
 
+  /**
+   * Derives associated token accounts for buy and sell tokens
+   * @param userPublicKey - The user's public key
+   * @param buyTokenId - Optional ID of token to buy
+   * @param sellTokenId - Optional ID of token to sell
+   * @returns Object containing derived token account addresses
+   */
   private async deriveTokenAccounts(
     userPublicKey: PublicKey,
     buyTokenId?: string,

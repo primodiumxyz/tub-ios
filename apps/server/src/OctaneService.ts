@@ -28,7 +28,21 @@ export type OctaneSettings = {
   jupiterQuoteApi: DefaultApi;
 };
 
+/**
+ * Service handling Solana transaction building and signing with Jupiter integration
+ */
 export class OctaneService {
+  /**
+   * Creates a new instance of OctaneService
+   * @param connection - Solana RPC connection
+   * @param jupiterQuoteApi - Jupiter API client
+   * @param feePayerKeypair - Keypair for the fee payer
+   * @param tradeFeeRecipient - Public key to receive (USDC) trade fees
+   * @param buyFee - Fee amount for buy operations
+   * @param sellFee - Fee amount for sell operations (not utilized yet, should be 0)
+   * @param minTradeSize - Minimum allowed trade size
+   * @param cache - Cache manager instance
+   */
   constructor(
     private connection: Connection,
     private jupiterQuoteApi: DefaultApi,
@@ -52,6 +66,12 @@ export class OctaneService {
     };
   }
 
+  /**
+   * Gets a quote for a token swap from Jupiter
+   * @param params - Quote request parameters
+   * @returns Quote response from Jupiter
+   * @throws Error if quote cannot be obtained
+   */
   async getQuote(params: QuoteGetRequest) {
     // basic params
     // const params: QuoteGetRequest = {
@@ -103,6 +123,12 @@ export class OctaneService {
     console.dir(quote, { depth: null });
   }
   
+  /**
+   * Gets swap instructions for a quoted trade
+   * @param quoteAndSwapParams - Parameters for quote and swap
+   * @param userPublicKey - User's public key
+   * @returns Swap instructions from Jupiter
+   */
   async getQuoteAndSwapInstructions(quoteAndSwapParams: QuoteGetRequest, userPublicKey: PublicKey) {  
     const quote = await this.getQuote(quoteAndSwapParams);
     console.dir(quote, { depth: null });
@@ -130,6 +156,13 @@ export class OctaneService {
     return swapInstructions;
   }
 
+  /**
+   * Builds a complete swap transaction. Can optionally include a fee transfer instruction.
+   * @param swapInstructions - Swap instructions from Jupiter
+   * @param feeTransferInstruction - Optional fee transfer instruction
+   * @returns Built transaction ready for signing
+   * @throws Error if swap instructions are missing
+   */
   async buildCompleteSwap(swapInstructions: SwapInstructionsResponse | null, feeTransferInstruction: TransactionInstruction | null) {
     // !! TODO: add genesis hash checks et al. from buildWhirlpoolsSwapToSOL if we don't trust Jupiter API
     if (!swapInstructions) {
@@ -153,6 +186,15 @@ export class OctaneService {
     return transaction;
   }
 
+  /**
+   * Signs a transaction with token fee handling. Validates the transaction before signing.
+   * @param transaction - Transaction to sign
+   * @param buyWithUSDCBool - Whether this is a USDC buy transaction
+   * @param tokenMint - Mint address of the fee token
+   * @param tokenDecimals - Decimals of the fee token
+   * @returns Signature as a string
+   * @throws Error if signing fails
+   */
   async signTransactionWithTokenFee(transaction: Transaction, buyWithUSDCBool: boolean, tokenMint: PublicKey, tokenDecimals: number): Promise<string> {
     try {
       const { signature } = await signWithTokenFee(
@@ -216,6 +258,13 @@ export class OctaneService {
     }
   }
 
+  /**
+   * Signs a transaction that does not include token fee handling
+   * @param transaction - Transaction to sign
+   * @returns Signature as a string
+   * @throws Error if signing fails
+   */
+  // !! TODO: validate transaction before signing
   async signTransactionWithoutTokenFee(transaction: Transaction): Promise<string> {
     try {
       transaction.partialSign(this.feePayerKeypair);

@@ -10,12 +10,28 @@ export type AppContext = {
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+/**
+ * Creates and configures the main tRPC router with all API endpoints.
+ * @returns A configured tRPC router with all procedures
+ */
 export function createAppRouter() {
   const t = initTRPC.context<AppContext>().create();
   return t.router({
+    /**
+     * Health check endpoint that returns server status
+     * @returns Object containing status code 200 if server is healthy
+     */
     getStatus: t.procedure.query(({ ctx }) => {
       return ctx.tubService.getStatus();
     }),
+
+    /**
+     * Purchases a specified amount of tokens
+     * @param tokenId - The unique identifier of the token to buy
+     * @param amount - The amount of tokens to purchase as a string (will be converted to BigInt)
+     * @param overridePrice - Optional override price for the token purchase
+     * @returns Result of the token purchase operation
+     */
     buyToken: t.procedure
       .input(
         z.object({
@@ -32,6 +48,14 @@ export function createAppRouter() {
           input.overridePrice ? BigInt(input.overridePrice) : undefined,
         );
       }),
+
+    /**
+     * Sells a specified amount of tokens
+     * @param tokenId - The unique identifier of the token to sell
+     * @param amount - The amount of tokens to sell as a string (will be converted to BigInt)
+     * @param overridePrice - Optional override price for the token sale
+     * @returns Result of the token sale operation
+     */
     sellToken: t.procedure
       .input(
         z.object({
@@ -72,6 +96,15 @@ export function createAppRouter() {
       .mutation(async ({ ctx, input }) => {
         return await ctx.tubService.recordClientEvent(input, ctx.jwtToken);
       }),
+    /**
+     * Creates a subscription stream for token swaps
+     * @param buyTokenId - The token ID to buy
+     * @param sellTokenId - The token ID to sell
+     * @param sellQuantity - The amount of tokens to sell
+     * @param userPublicKey - The user's Solana public key
+     * @returns Observable stream of base64-encoded transactions
+     * @throws Error if public key is invalid or token IDs are missing
+     */
     swapStream: t.procedure
       .input(z.object({
         buyTokenId: z.string().optional(),
@@ -120,6 +153,13 @@ export function createAppRouter() {
           };
         });
       }),
+
+    /**
+     * Updates an existing swap request with new parameters
+     * @param buyTokenId - Optional new token ID to buy
+     * @param sellTokenId - Optional new token ID to sell
+     * @param sellQuantity - Optional new quantity to sell
+     */
     updateSwapRequest: t.procedure
       .input(z.object({
         buyTokenId: z.string().optional(),
@@ -129,6 +169,14 @@ export function createAppRouter() {
       .mutation(async ({ ctx, input }) => {
         await ctx.tubService.updateSwapRequest(ctx.jwtToken, input);
       }),
+
+    /**
+     * Submits a signed transaction for processing
+     * @param signature - The user's signature for the transaction
+     * @param base64Transaction - The base64-encoded transaction (before signing) to submit. Came from swapStream
+     * @returns Object containing the transaction signature if successful
+     * @throws Error if transaction processing fails
+     */
     submitSignedTransaction: t.procedure
       .input(z.object({
         signature: z.string(),
