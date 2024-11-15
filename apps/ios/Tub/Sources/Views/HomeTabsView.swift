@@ -6,25 +6,26 @@
 //
 
 import SwiftUI
+import PrivySDK
 
 struct HomeTabsView: View {
     var color = Color(red: 0.43, green: 0.97, blue: 0.98)
-    @StateObject private var priceModel: SolPriceModel
-    @StateObject private var userModel: UserModel
-    @State private var selectedTab: Int = 0  // Track the selected tab
+    @StateObject private var priceModel : SolPriceModel
+    @StateObject private var userModel : UserModel
+    @State private var selectedTab: Int = 0 // Track the selected tab
     @State private var tabStartTime: Date? = nil
-
-    init(userId: String, walletAddress: String) {
+  
+  
+    init(userId: String, walletAddress: String, linkedAccounts: [PrivySDK.LinkedAccount]?) {
         _priceModel = StateObject(wrappedValue: SolPriceModel())
-        _userModel = StateObject(
-            wrappedValue: UserModel(userId: userId, walletAddress: walletAddress))
+        _userModel = StateObject(wrappedValue: UserModel(userId: userId, walletAddress: walletAddress, linkedAccounts: linkedAccounts))
     }
 
     private func recordTabDwellTime(_ previousTab: String) {
         guard let startTime = tabStartTime else { return }
-
+        
         let dwellTimeMs = Int(Date().timeIntervalSince(startTime) * 1000)
-
+        
         Network.shared.recordClientEvent(
             event: ClientEvent(
                 eventName: "tab_dwell_time",
@@ -82,10 +83,18 @@ struct HomeTabsView: View {
 
     var body: some View {
         Group {
-            if userModel.isLoading {
-                LoadingView(
-                    identifier: "HomeTabsView - waiting for userModel & priceModel",
-                    message: "loading player data")
+            if let error = userModel.error {
+                LoginErrorView(
+                    errorMessage: error,
+                    retryAction: {
+                        Task {
+                            await userModel.fetchInitialData()
+                        }
+                    }
+                )
+            } 
+            else if userModel.isLoading  {
+                LoadingView(identifier: "HomeTabsView - waiting for userModel & priceModel", message: "Loading user data")
             } else {
                 ZStack(alignment: .bottom) {
                     // Main content view

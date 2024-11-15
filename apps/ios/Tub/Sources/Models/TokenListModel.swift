@@ -196,24 +196,29 @@ class TokenListModel: ObservableObject {
 
         // Set up timer for 1-second updates
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            self?.fetchTokens()
+                guard let self = self else { return }
+                if !self.fetching { self.fetchTokens() }
         }
     }
 
-    private func fetchTokens() {
-        Network.shared.apollo.fetch(
-            query: GetFilteredTokensQuery(
-                interval: .some("\(FILTER_INTERVAL)s"),
-                minTrades: .some(String(MIN_TRADES)),
-                minVolume: .some(MIN_VOLUME),
-                mintBurnt: .some(MINT_BURNT),
-                freezeBurnt: .some(FREEZE_BURNT),
-                minDistinctPrices: .some(CHART_INTERVAL_MIN_TRADES),
-                distinctPricesInterval: .some("\(CHART_INTERVAL)s")
-            ), cachePolicy: .fetchIgnoringCacheData
-        ) { [weak self] result in
+    private var fetching = false
+    
+    func fetchTokens(setLoading: Bool? = false) {
+        Network.shared.apollo.fetch(query: GetFilteredTokensQuery(
+            interval: .some("\(FILTER_INTERVAL)s"),
+            minTrades: .some(String(MIN_TRADES)),
+            minVolume: .some(MIN_VOLUME),
+            mintBurnt: .some(MINT_BURNT),
+            freezeBurnt: .some(FREEZE_BURNT),
+            minDistinctPrices: .some(CHART_INTERVAL_MIN_TRADES),
+            distinctPricesInterval: .some("\(CHART_INTERVAL)s")
+        ), cachePolicy: .fetchIgnoringCacheData) { [weak self] result in
             guard let self = self else { return }
-
+            if let setLoading = setLoading, setLoading {
+                self.isLoading = true
+            }
+            
+            self.fetching = true
             // Process data in background queue
             DispatchQueue.global(qos: .userInitiated).async {
                 // Prepare data in background
@@ -245,6 +250,7 @@ class TokenListModel: ObservableObject {
                         print("Error fetching tokens: \(error.localizedDescription)")
                         return ([], nil)
                     }
+                    self.fetching = false
                 }()
 
                 // Update UI on main thread

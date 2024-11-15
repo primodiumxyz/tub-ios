@@ -16,7 +16,6 @@
     "start": "tsx bin/index",
     "types:dev": "tsc --watch",
     "types:test": "tsc --noEmit --skipLibCheck",
-    "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
   },

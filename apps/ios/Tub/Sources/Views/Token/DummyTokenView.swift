@@ -10,17 +10,6 @@ import SwiftUI
 struct DummyTokenView: View {
     let height: CGFloat
     
-    var prices: [Price] = {
-        let now = Date()
-        return [
-            Price(timestamp: now.addingTimeInterval(-60), price: Int(1)),
-            Price(timestamp: now.addingTimeInterval(-45), price: Int(4)),
-            Price(timestamp: now.addingTimeInterval(-30), price: Int(3)),
-            Price(timestamp: now.addingTimeInterval(-15), price: Int(6)),
-            Price(timestamp: now, price: Int(10)),
-        ]
-    }()
-    
     var body: some View {
         // Token Info
         VStack(alignment: .leading, spacing: 4) {

@@ -85,7 +85,6 @@ export class TubService {
     const solanaWallet = user.linkedAccounts.find(
       (account) => account.type === "wallet" && account.chainType === "solana",
     ) as WalletWithMetadata | undefined;
-    console.log(solanaWallet);
     return solanaWallet?.address;
   }
 
