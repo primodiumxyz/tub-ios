@@ -10,6 +10,7 @@ import Foundation
 final class SolPriceModel: ObservableObject {
     static let shared = SolPriceModel()
     
+    @Published var loading = true
     @Published var price: Double = 200
     @Published var error: String?
     
@@ -19,16 +20,19 @@ final class SolPriceModel: ObservableObject {
     
     func fetchCurrentPrice() {
         error = nil
+        loading = true
         
         Network.shared.fetchSolPrice { [weak self] result in
             DispatchQueue.main.async {
+                guard var self = self else { return }
                 switch result {
                 case .success(let price):
-                    self?.price = price
+                    self.price = price
                 case .failure(let fetchError):
-                    self?.error = fetchError.localizedDescription
+                    self.error = fetchError.localizedDescription
                     print("Error fetching SOL price: \(fetchError.localizedDescription)")
                 }
+                self.loading = false
             }
         }
     }

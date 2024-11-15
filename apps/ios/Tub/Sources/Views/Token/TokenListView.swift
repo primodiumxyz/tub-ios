@@ -36,8 +36,8 @@ struct TokenListView: View {
         !(value.translation.height < 0 && !viewModel.isNextTokenAvailable)
     }
     
-    init(walletAddress: String) {
-        self._viewModel = StateObject(wrappedValue: TokenListModel(walletAddress: walletAddress))
+    init() {
+        self._viewModel = StateObject(wrappedValue: TokenListModel())
     }
     
     private func loadToken(_ geometry: GeometryProxy, _ direction: String) {

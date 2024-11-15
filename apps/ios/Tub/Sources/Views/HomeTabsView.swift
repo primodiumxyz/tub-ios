@@ -14,6 +14,15 @@ struct HomeTabsView: View {
     @State private var selectedTab: Int = 0 // Track the selected tab
     @State private var tabStartTime: Date? = nil
   
+    // Add this to watch for userModel changes
+    private var userId: String? {
+        didSet {
+            if userModel.userId != nil {
+                selectedTab = 0  // Force switch to explore tab
+                recordTabSelection("explore")
+            }
+        }
+    }
 
     private func recordTabDwellTime(_ previousTab: String) {
         guard let startTime = tabStartTime else { return }
@@ -76,15 +85,15 @@ struct HomeTabsView: View {
     }
 
     var body: some View {
-//        Group {
+        Group {
             if userModel.isLoading  {
                 LoadingView(identifier: "HomeTabsView - waiting for userModel & priceModel", message: "Loading user data")
-            } else if let wallet = userModel.walletAddress {
+            } else  {
                 ZStack(alignment: .bottom) {
                     // Main content view
                     Group {
                         if selectedTab == 0 {
-                            TokenListView(walletAddress: wallet)
+                            TokenListView()
                         } else if selectedTab == 1 {
                             HistoryView()
                         } else if selectedTab == 2 {
@@ -153,7 +162,13 @@ struct HomeTabsView: View {
                     .ignoresSafeArea(.keyboard)
                 }
             }
-//        }
-//        .ignoresSafeArea(.keyboard)
+        }.frame(maxWidth: .infinity, maxHeight: .infinity)
+        .ignoresSafeArea(.keyboard)
+        .onChange(of: userModel.userId) { newUserId in
+            if newUserId != nil {
+                selectedTab = 0  // Force switch to explore tab
+                recordTabSelection("explore")
+            }
+        }
     }
 }

@@ -11,9 +11,9 @@ class TokenModel: ObservableObject {
     @Published var token: Token = Token(
         id: "",
         mint: "",
-        name: "COIN",
-        symbol: "SYMBOL",
-        description: "DESCRIPTION",
+        name: "",
+        symbol: "",
+        description: "",
         supply: 0,
         decimals: 6,
         imageUri: "",

@@ -63,8 +63,11 @@ final class UserModel: ObservableObject {
                     userInfo: [NSLocalizedDescriptionKey: "Failed to connect wallet."])
                 errorHandler.show(walletError)
             case .connected(let wallets):
-                if let solanaWallet = wallets.first(where: { $0.chainType == .solana }) {
+                if let solanaWallet = wallets.first(where: { $0.chainType == .solana }), walletAddress == nil {
                     self.walletAddress = solanaWallet.address
+                    Task {
+                            await self.initializeUser()
+                    }
                 }
             default:
                 break
@@ -73,7 +76,7 @@ final class UserModel: ObservableObject {
         }
     }
     
-    func fetchInitialData() async {
+    func initializeUser() async {
         let timeoutTask = Task {
             self.isLoading = true
             try await Task.sleep(nanoseconds: 10 * 1_000_000_000) // 10 seconds
@@ -87,6 +90,7 @@ final class UserModel: ObservableObject {
         
         do {
             try await fetchInitialBalance()
+            subscribeToAccountBalance()
             timeoutTask.cancel() // Cancel timeout if successful
             DispatchQueue.main.async {
                 self.initialTime = Date()
@@ -129,7 +133,7 @@ final class UserModel: ObservableObject {
     
     private func subscribeToAccountBalance() {
         guard let walletAddress = self.walletAddress else { return }
-        accountBalanceSubscription?.cancel()
+        if let sub = accountBalanceSubscription { sub.cancel() }
         
         accountBalanceSubscription = Network.shared.apollo.subscribe(
             subscription: SubWalletBalanceSubscription(

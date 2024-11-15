@@ -24,8 +24,6 @@ class TokenListModel: ObservableObject {
     @Published var isLoading = true
     @Published var errorMessage: String?
 
-    private var walletAddress: String
-
     // Cooldown for not showing the same token too often
     private let TOKEN_COOLDOWN: TimeInterval = 60  // 60 seconds cooldown
     private var recentlyShownTokens: [(id: String, timestamp: Date)] = []
@@ -34,8 +32,7 @@ class TokenListModel: ObservableObject {
     private var currentTokenStartTime: Date?
     private var tokenSubscription: Cancellable?
 
-    init(walletAddress: String) {
-        self.walletAddress = walletAddress
+    init() {
         self.currentTokenModel = TokenModel()
     }
 

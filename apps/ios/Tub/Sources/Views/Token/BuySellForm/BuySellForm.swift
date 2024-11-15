@@ -17,6 +17,8 @@ struct BuySellForm: View {
     @State private var showBubbles = false
     @StateObject private var animationState = TokenAnimationState.shared
     @StateObject private var settingsManager = SettingsManager.shared
+    @State private var navigateToLogin = false
+    @State private var showOnrampView = false
     
     var handleBuy: (Double) -> Void
     var onSellSuccess: () -> Void
@@ -45,13 +47,59 @@ struct BuySellForm: View {
     
     var body: some View {
         VStack {
-            if userModel.userId == "" {
-                Text("Register to trade")
-                    .font(.title)
-                    .foregroundColor(.yellow)
-                    .padding()
-                    .frame(maxWidth: .infinity, alignment: .center)
+            if userModel.userId == nil {
+                NavigationLink(destination: LoginModalView()
+                    .background(.black)
+                , isActive: $navigateToLogin) {
+                    EmptyView()
+                }
+                
+                Button(action: {
+                    navigateToLogin = true
+                }) {
+                    HStack(alignment: .center, spacing: 8) {
+                        Text("Buy")
+                            .font(.sfRounded(size: .xl, weight: .semibold))
+                            .foregroundColor(AppColors.black)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: 300)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(AppColors.aquaGreen)
+                    .cornerRadius(30)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 30)
+                            .inset(by: 0.5)
+                            .stroke(AppColors.aquaGreen, lineWidth: 1)
+                    )
+                }
             } else if activeTab == "buy" {
+                if userModel.balanceLamps == 0 {
+                    Button(action: {
+                        showOnrampView = true
+                    }) {
+                        HStack(alignment: .center, spacing: 8) {
+                            Text("Buy")
+                                .font(.sfRounded(size: .xl, weight: .semibold))
+                                .foregroundColor(AppColors.black)
+                                .multilineTextAlignment(.center)
+                        }
+                        .frame(maxWidth: 300)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background(AppColors.aquaGreen)
+                        .cornerRadius(30)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 30)
+                                .inset(by: 0.5)
+                                .stroke(AppColors.aquaGreen, lineWidth: 1)
+                        )
+                    }
+                    .sheet(isPresented: $showOnrampView) {
+                        CoinbaseOnrampView()
+                    }
+                } else {
                 // edit button
                 HStack(spacing: 16) {
                     Button(action: {
@@ -84,7 +132,8 @@ struct BuySellForm: View {
                                 .stroke(AppColors.aquaGreen, lineWidth: 1)
                         )
                     }
-                }.padding(.horizontal,8)
+                    }.padding(.horizontal,8)
+                }
             } else {
                 SellForm(tokenModel: tokenModel, showBuySheet: $showBuySheet, onSell: handleSell)
                     .padding(.horizontal,8)

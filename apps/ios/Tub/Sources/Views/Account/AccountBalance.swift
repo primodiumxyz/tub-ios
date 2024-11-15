@@ -39,11 +39,16 @@ struct AccountBalanceView: View {
                                 .foregroundColor(AppColors.white)
                             
                             Spacer()
-                            Text("\(priceModel.formatPrice(lamports: accountBalance.balance, maxDecimals: 2, minDecimals: 2))")
-                                .font(.sfRounded(size: .lg))
-                                .fontWeight(.bold)
-                                .foregroundColor(AppColors.green)
-                                .padding(.trailing)
+                            if priceModel.loading {
+                                ProgressView()
+                                
+                            } else {
+                                Text("\(priceModel.formatPrice(lamports: accountBalance.balance, maxDecimals: 2, minDecimals: 2))")
+                                    .font(.sfRounded(size: .lg))
+                                    .fontWeight(.bold)
+                                    .foregroundColor(AppColors.green)
+                                    .padding(.trailing)
+                            }
                         }
                     }
                 }

@@ -10,6 +10,8 @@ import PrivySDK
 import AuthenticationServices
 
 struct LoginModalView: View {
+    @Environment(\.dismiss) var dismiss  // Add this line
+
     @State private var email = ""
     @State private var showPhoneModal = false
     @State private var showEmailModal = false
@@ -17,6 +19,7 @@ struct LoginModalView: View {
     @State private var showEmailError = false
     @State private var showMoreOptions = false
     @EnvironmentObject private var errorHandler: ErrorHandler
+    @EnvironmentObject private var userModel: UserModel
     @State private var sendingEmailOtp = false
     
     // Email validation function using regex
@@ -254,7 +257,7 @@ struct LoginModalView: View {
             }
         }
         .padding()
-        .frame(maxWidth: 400)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea(.keyboard)
         .sheet(isPresented: $showPhoneModal) {
             SignInWithPhoneView()
@@ -264,11 +267,18 @@ struct LoginModalView: View {
             SignInWithEmailView(email: $email)
                 .presentationDetents([.height(300)])
         }
+        .onChange(of: userModel.userId) { _, newUserId in
+            if newUserId != nil {
+                dismiss()
+            }
+        }
         .dismissKeyboardOnTap()
         .background(AppColors.pinkGradient)
         .background(AppColors.black)
         .cornerRadius(30)
         .shadow(radius: 10)
+        .ignoresSafeArea(.keyboard)
+        .environment(\.colorScheme, .dark)
     }
 }
 

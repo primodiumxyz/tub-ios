@@ -38,14 +38,13 @@ struct AppContent: View {
     @StateObject private var priceModel = SolPriceModel.shared
     
     var body: some View {
-        Group {
-                HomeTabsView().font(.sfRounded())
-        }
-        .zIndex(0)
-        .withErrorHandling()
-        .environmentObject(errorHandler)
-        .environmentObject(userModel)
-        .environmentObject(priceModel)
+        HomeTabsView().font(.sfRounded())
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(.black)
+            .withErrorHandling()
+            .environmentObject(errorHandler)
+            .environmentObject(userModel)
+            .environmentObject(priceModel)
     }
 }
 
