@@ -10,6 +10,13 @@ import SwiftUI
 struct LoginErrorView: View {
     let errorMessage: String
     let retryAction: () -> Void
+    let logoutAction : (() -> Void)?
+    
+    init(errorMessage: String, retryAction: @escaping () -> Void, logoutAction: (() -> Void)? = nil) {
+        self.errorMessage = errorMessage
+        self.retryAction = retryAction
+        self.logoutAction = logoutAction
+    }
     
     var body: some View {
         VStack(spacing: 24) {
@@ -37,6 +44,7 @@ struct LoginErrorView: View {
                 }
                 
                 Button(action: {
+                    logoutAction?()
                     privy.logout()
                 }) {
                     Text("Logout")

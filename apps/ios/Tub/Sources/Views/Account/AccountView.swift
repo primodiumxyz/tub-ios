@@ -266,8 +266,25 @@ struct AccountView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(AppColors.black)
             .sheet(isPresented: $showOnrampView) {
-                CoinbaseOnrampView()
+                    
+                    VStack {
+                        HStack {
+                            Text("Deposit")
+                                .font(.sfRounded(size: .xl, weight: .semibold))
+                                .foregroundColor(AppColors.white)
+                            Spacer()
+                            Button(action: { showOnrampView = false }) {
+                                Image(systemName: "xmark")
+                                    .foregroundColor(AppColors.white)
+                                    .font(.system(size: 16, weight: .medium))
+                            }
+                        }.padding(24)
+                        
+                        CoinbaseOnrampView()
+                    }.background(AppColors.black)
             }
+            .presentationDragIndicator(.visible)
+            .presentationBackground(.black)
         }
     }
 }
