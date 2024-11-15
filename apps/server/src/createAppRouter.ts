@@ -2,7 +2,7 @@ import { initTRPC } from "@trpc/server";
 import { z } from "zod";
 import { TubService } from "./TubService";
 import { observable } from '@trpc/server/observable';
-import { PublicKey, Transaction } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 
 export type AppContext = {
   tubService: TubService;
