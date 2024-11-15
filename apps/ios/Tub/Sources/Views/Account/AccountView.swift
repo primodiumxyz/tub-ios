@@ -16,7 +16,15 @@ struct AccountView: View {
     @Environment(\.presentationMode) var presentationMode
     @State private var showOnrampView = false
     @State private var errorMessage: String = ""
-
+    
+    var accountBalance: (Int, Int) {
+        let balance = userModel.balanceLamps
+        
+        let adjustedChange = userModel.balanceChangeLamps
+        
+        return (balance, adjustedChange)
+    }
+    
     func performAirdrop() {
         isAirdropping = true
         
@@ -84,19 +92,22 @@ struct AccountView: View {
                         Text("Account Balance")
                             .font(.sfRounded(size: .lg, weight: .regular))
                             .foregroundColor(AppColors.lightGray.opacity(0.7))
+                         
                         
                         Text("\(priceModel.formatPrice(lamports: userModel.balanceLamps, maxDecimals: 2, minDecimals: 2))")
                             .font(.sfRounded(size: .xl5, weight: .bold))
                             .foregroundColor(.white)
                         
-                        let adjustedPercentage = userModel.initialBalanceLamps != 0 ? 100 - (Double(userModel.balanceLamps) / Double(userModel.initialBalanceLamps)) * 100 : 100
-                        
                         HStack {
-                            Image(systemName: adjustedPercentage < 0 ? "arrow.down.right" : "arrow.up.right")
-                            Text("\(abs(adjustedPercentage), specifier: "%.1f")%")
-                            Text("\(formatDuration(userModel.timeElapsed))")
+                            Image(systemName: accountBalance.1 < 0 ? "arrow.down.right" : accountBalance.1 > 0 ? "arrow.up.right" : "arrow.right")
+                                Text("\(priceModel.formatPrice(lamports: accountBalance.1,  maxDecimals: 2))")
+                                   
+                                    // Format time elapsed
+                                    Text("\(formatDuration(userModel.timeElapsed))")
+                                        .foregroundColor(.gray)
                         }
-                        .foregroundColor(.green)
+                        .font(.sfRounded(size: .base, weight: .semibold))
+                        .foregroundColor(accountBalance.1 < 0 ? .red : accountBalance.1 > 0 ? .green : AppColors.lightGray)
 
                     }
                     .padding(.top,16)

@@ -14,9 +14,13 @@ struct AccountBalanceView: View {
     
     @State private var isExpanded: Bool = false
     
-    var accountBalance: Int {
+    var accountBalance: (Int, Int, Int) {
         let tokenValue = currentTokenModel.balanceLamps * (currentTokenModel.prices.last?.price ?? 0) / Int(1e9)
-        return tokenValue + userModel.balanceLamps
+        let balance = tokenValue + userModel.balanceLamps
+        
+        let adjustedChange = userModel.balanceChangeLamps + tokenValue
+        
+        return (tokenValue, balance, adjustedChange)
     }
     
     var body: some View {
@@ -53,37 +57,31 @@ struct AccountBalanceView: View {
                                 .font(.sfRounded(size: .sm, weight: .semibold))
                                 .foregroundColor(AppColors.white)
                             
-                            //    let tokenValue = currentTokenModel.balanceLamps * (currentTokenModel.prices.last?.price ?? 0) / Int(1e9)
-                            let tokenValue = 0
-                            Text("\(priceModel.formatPrice(lamports: userModel.balanceLamps + tokenValue, maxDecimals: 2, minDecimals: 2))")
-                                .font(.sfRounded(size: .xl2))
-                                .fontWeight(.bold)
-                                .foregroundColor(AppColors.white)
-                            
-                            let adjustedChange = userModel.balanceChangeLamps + tokenValue
-                            
                             HStack {
-                                Text("\(priceModel.formatPrice(lamports: adjustedChange, showSign: true, maxDecimals: 2))")
+                                Text("\(priceModel.formatPrice(lamports: accountBalance.1, maxDecimals: 2, minDecimals: 2))")
+                                    .font(.sfRounded(size: .xl2))
+                                    .fontWeight(.bold)
+                                    .foregroundColor(AppColors.white)
                                 
-                                let adjustedPercentage = userModel.initialBalanceLamps != 0  ? 100 - (Double(userModel.balanceLamps) / Double(userModel.initialBalanceLamps)) * 100 : 100;
-                                Text("(\(abs(adjustedPercentage), specifier: "%.1f")%)")
-                                
-                                // Format time elapsed
-                                Text("\(formatDuration(userModel.timeElapsed))")
-                                    .foregroundColor(.gray)
-                                    .font(.sfRounded(size: .sm, weight: .regular))
+                                    
+                                    Text("\(priceModel.formatPrice(lamports: accountBalance.2, showSign: true, maxDecimals: 2))")
+                                    
+                                    
+                                    // Format time elapsed
+                                    Text("\(formatDuration(userModel.timeElapsed))")
+                                        .foregroundColor(.gray)
+                                        .font(.sfRounded(size: .sm, weight: .regular))
                             }
                             .font(.sfRounded(size: .sm, weight: .semibold))
-                            .foregroundColor(adjustedChange >= 0 ? AppColors.green : AppColors.red)
+                            .foregroundColor(accountBalance.2 >= -10 ? AppColors.green : AppColors.red)
                         }
                         .padding(.horizontal,5)
                         .onTapGesture {
                             withAnimation {
-                                isExpanded.toggle()
-                            }                        
+                                    isExpanded.toggle()
+                            }
                         }
-                        Spacer()
-                      
+                        
                     }
                     .frame(maxWidth: .infinity, alignment: .topLeading)
                     
@@ -94,11 +92,11 @@ struct AccountBalanceView: View {
         .padding(.horizontal, 10)
         .onTapGesture {
             withAnimation {
-                isExpanded.toggle()
+                    isExpanded.toggle()
             }
         }
     }
     
-
+    
 }
 
