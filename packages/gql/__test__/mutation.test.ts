@@ -1,8 +1,9 @@
 import { beforeAll, describe, expect, it } from "vitest";
-import { createClient, GqlClient } from "../src/index"
+
+import { createClient, GqlClient } from "../src/index";
 import { createWallet } from "./lib/common";
 
-const token_id = "722e8490-e852-4298-a250-7b0a399fec57";
+const tokenAddress = "EeP7gjHGjHTMEShEA8YgPXmYp6S3XvCDfQvkc8gy2kcL";
 
 describe("mutation tests", () => {
   let gql: GqlClient;
@@ -25,9 +26,9 @@ describe("mutation tests", () => {
     const buy_result = await gql.db.BuyTokenMutation({
       wallet: wallet,
       amount: "200",
-      override_token_price: "1000000000",
-      token: token_id
-    })
+      token_price: "1000000000",
+      token: tokenAddress,
+    });
 
     console.log(buy_result.error);
 
@@ -36,13 +37,14 @@ describe("mutation tests", () => {
     const sell_result = await gql.db.SellTokenMutation({
       wallet: wallet,
       amount: "100",
-      override_token_price: "1000000000",
-      token: token_id
-    })
+      token_price: "1000000000",
+      token: tokenAddress,
+    });
 
     expect(sell_result.data?.sell_token?.id).toBeDefined();
 
-    const balance = (await gql.db.GetWalletTokenBalanceQuery({ wallet: wallet, token: token_id })).data?.balance[0].value;
+    const balance = (await gql.db.GetWalletTokenBalanceQuery({ wallet: wallet, token: tokenAddress })).data?.balance[0]
+      .value;
 
     expect(balance).toEqual(100);
   });
@@ -55,22 +57,23 @@ describe("mutation tests", () => {
     const buy_result = await gql.db.BuyTokenMutation({
       wallet: wallet,
       amount: "150",
-      override_token_price: "1000000000",
-      token: token_id
-    })
+      token_price: "1000000000",
+      token: tokenAddress,
+    });
 
     expect(buy_result.data?.buy_token?.id).toBeDefined();
 
     const sell_result = await gql.db.SellTokenMutation({
       wallet: wallet,
       amount: "100",
-      override_token_price: "1000000000",
-      token: token_id
-    })
+      token_price: "1000000000",
+      token: tokenAddress,
+    });
 
     expect(sell_result.data?.sell_token?.id).toBeDefined();
 
-    const balance = (await gql.db.GetWalletTokenBalanceQuery({ wallet: wallet, token: token_id })).data?.balance[0].value;
+    const balance = (await gql.db.GetWalletTokenBalanceQuery({ wallet: wallet, token: tokenAddress })).data?.balance[0]
+      .value;
 
     expect(balance).toEqual(50);
   });
@@ -83,9 +86,9 @@ describe("mutation tests", () => {
     const buy_result = await gql.db.BuyTokenMutation({
       wallet: wallet,
       amount: "200",
-      override_token_price: "1000000000",
-      token: token_id
-    })
+      token_price: "1000000000",
+      token: tokenAddress,
+    });
 
     expect(buy_result.error).toBeDefined();
   });
@@ -98,18 +101,18 @@ describe("mutation tests", () => {
     const buy_result = await gql.db.BuyTokenMutation({
       wallet: wallet,
       amount: "100",
-      override_token_price: "1000000000",
-      token: token_id
-    })
+      token_price: "1000000000",
+      token: tokenAddress,
+    });
 
     expect(buy_result.data?.buy_token?.id).toBeDefined();
 
     const sell_result = await gql.db.SellTokenMutation({
       wallet: wallet,
       amount: "150",
-      override_token_price: "1000000000",
-      token: token_id
-    })
+      token_price: "1000000000",
+      token: tokenAddress,
+    });
 
     expect(sell_result.error).toBeDefined();
   });
