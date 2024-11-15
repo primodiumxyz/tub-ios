@@ -14,10 +14,13 @@ struct AccountBalanceView: View {
     
     @State private var isExpanded: Bool = false
     
-    var accountBalance: (tokens: Int, balance: Int, change: Int) {
+    var accountBalance: (tokens: Int, balance: Int?, change: Int) {
         //        let tokenValue = currentTokenModel.balanceLamps * (currentTokenModel.prices.last?.price ?? 0) / Int(1e9)
         let tokenValue = 0
-        let balance = tokenValue + userModel.balanceLamps
+        var balance : Int? = nil
+        if let bal = userModel.balanceLamps {
+            balance = bal + tokenValue
+        }
         
         let adjustedChange = userModel.balanceChangeLamps + tokenValue
         
@@ -39,15 +42,15 @@ struct AccountBalanceView: View {
                                 .foregroundColor(AppColors.white)
                             
                             Spacer()
-                            if priceModel.loading {
-                                ProgressView()
-                                
-                            } else {
-                                Text("\(priceModel.formatPrice(lamports: accountBalance.balance, maxDecimals: 2, minDecimals: 2))")
+                            if let balance = accountBalance.balance, !priceModel.loading {
+                                Text("\(priceModel.formatPrice(lamports: balance, maxDecimals: 2, minDecimals: 2))")
                                     .font(.sfRounded(size: .lg))
                                     .fontWeight(.bold)
                                     .foregroundColor(AppColors.green)
                                     .padding(.trailing)
+                                
+                            } else {
+                                ProgressView()
                             }
                         }
                     }
@@ -64,13 +67,17 @@ struct AccountBalanceView: View {
                                 .foregroundColor(AppColors.white)
                             
                             HStack {
-                                Text("\(priceModel.formatPrice(lamports: accountBalance.1, maxDecimals: 2, minDecimals: 2))")
-                                    .font(.sfRounded(size: .xl2))
-                                    .fontWeight(.bold)
-                                    .foregroundColor(AppColors.white)
+                                if let balance = accountBalance.balance, !priceModel.loading {
+                                    Text("\(priceModel.formatPrice(lamports: balance, maxDecimals: 2, minDecimals: 2))")
+                                        .font(.sfRounded(size: .xl2))
+                                        .fontWeight(.bold)
+                                        .foregroundColor(AppColors.white)
+                                } else {
+                                    ProgressView()
+                                }
                                 
                                 
-                                Text("\(priceModel.formatPrice(lamports: accountBalance.2, showSign: true, maxDecimals: 2))")
+                                Text("\(priceModel.formatPrice(lamports: accountBalance.change, showSign: true, maxDecimals: 2))")
                                 
                                 
                                 // Format time elapsed

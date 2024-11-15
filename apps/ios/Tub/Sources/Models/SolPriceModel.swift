@@ -11,7 +11,7 @@ final class SolPriceModel: ObservableObject {
     static let shared = SolPriceModel()
     
     @Published var loading = true
-    @Published var price: Double = 200
+    @Published var price: Double? = nil
     @Published var error: String?
     
     init() {
@@ -24,7 +24,7 @@ final class SolPriceModel: ObservableObject {
         
         Network.shared.fetchSolPrice { [weak self] result in
             DispatchQueue.main.async {
-                guard var self = self else { return }
+                guard let self = self else { return }
                 switch result {
                 case .success(let price):
                     self.price = price
@@ -38,6 +38,7 @@ final class SolPriceModel: ObservableObject {
     }
     
     func formatPrice(sol: Double, showSign: Bool = false, showUnit: Bool = true, maxDecimals: Int = 9, minDecimals: Int = 0, formatLarge: Bool = true) -> String {
+        guard let price = self.price else { return "..." }
         if price > 0 {
             if sol.isNaN || sol.isInfinite || sol == 0 {
                 return showUnit ? "$0.00" : "0.00"
@@ -78,6 +79,7 @@ final class SolPriceModel: ObservableObject {
     }
     
     func formatPrice(usd: Double, showSign: Bool = false, showUnit: Bool = true, maxDecimals: Int = 2, minDecimals: Int = 0, formatLarge: Bool = true) -> String {
+        guard let price = self.price else { return "..." }
         if price > 0 {
             return formatPrice(sol: usd / price, showSign: showSign, showUnit: showUnit, maxDecimals: maxDecimals, minDecimals: minDecimals, formatLarge: formatLarge)
         } else {
@@ -86,7 +88,7 @@ final class SolPriceModel: ObservableObject {
     }
     
     func usdToLamports(usd: Double) -> Int {
-        if  price > 0 {
+        if  let price = self.price, price > 0 {
             return Int(usd * 1e9 / price)
         } else {
             return 0
@@ -94,7 +96,7 @@ final class SolPriceModel: ObservableObject {
     }
     
     func lamportsToUsd(lamports: Int) -> Double {
-        if price > 0 {
+        if  let price = self.price, price > 0 {
             return Double(lamports) * price / 1e9
         } else {
             return 0

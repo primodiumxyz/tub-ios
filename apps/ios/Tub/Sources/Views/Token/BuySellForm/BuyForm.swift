@@ -37,12 +37,13 @@ struct BuyForm: View {
     @ObservedObject private var settingsManager = SettingsManager.shared
     
     private func handleBuy() {
+        guard let balance = userModel.balanceLamps else { return }
         // Use 10 as default if no amount is entered
         let amountToUse = buyAmountUsdString.isEmpty ? 10.0 : buyAmountUsd
         let buyAmountLamps = priceModel.usdToLamports(usd: amountToUse)
             
         // Check if the user has enough balance
-        if userModel.balanceLamps >= buyAmountLamps {
+        if balance >= buyAmountLamps {
             if isDefaultOn {
                 defaultAmount = amountToUse
                 settingsManager.defaultBuyValue = amountToUse
@@ -54,6 +55,7 @@ struct BuyForm: View {
     }
     
     func updateBuyAmount(_ amountLamps: Int) {
+        guard let balance = userModel.balanceLamps else { return }
         if amountLamps == 0 {
             isValidInput = false
             return
@@ -68,7 +70,7 @@ struct BuyForm: View {
         
         // Compare with a small epsilon to avoid floating point precision issues
         let buyAmountLamps = priceModel.usdToLamports(usd: usdAmount)
-        showInsufficientBalance = buyAmountLamps > userModel.balanceLamps
+        showInsufficientBalance = buyAmountLamps > balance
     }
     
     func resetForm() {
@@ -122,7 +124,7 @@ struct BuyForm: View {
                     .foregroundColor(AppColors.aquaGreen)
                     .multilineTextAlignment(.center)
             }
-            .disabled(userModel.balanceLamps < priceModel.usdToLamports(usd: buyAmountUsd))
+            .disabled((userModel.balanceLamps) ?? 0 < priceModel.usdToLamports(usd: buyAmountUsd))
             .frame(maxWidth: .infinity)
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
@@ -172,7 +174,7 @@ struct BuyForm: View {
                                 buyAmountUsdString = text
                             }
                             isValidInput = true
-                            showInsufficientBalance = userModel.balanceLamps < priceModel.usdToLamports(usd: amount)
+                            showInsufficientBalance = (userModel.balanceLamps ?? 0) < priceModel.usdToLamports(usd: amount)
                         } else {
                             buyAmountUsd = 0
                             isValidInput = false
@@ -270,7 +272,9 @@ struct BuyForm: View {
     
     private func amountButton(for pct: Int) -> some View {
         Button(action: {
-            updateBuyAmount(userModel.balanceLamps * pct / 100)
+            guard let balance = userModel.balanceLamps else { return }
+            
+            updateBuyAmount(balance * pct / 100)
         }) {
             Text(pct == 100 ? "MAX" : "\(pct)%")
                 .font(.sfRounded(size: .base, weight: .bold))

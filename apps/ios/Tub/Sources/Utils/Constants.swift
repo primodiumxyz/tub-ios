@@ -40,9 +40,10 @@ private var installationSource: InstallationSource {
 // Accessing environment variables happens at runtime, so cannot use a compiler directive conditional for graphqlUrlHost
 // (See the next conditional, graphqlHttpUrl, for a compiler directive example.)
 private let graphqlUrlHost: String = {
-    if installationSource == .appStore || installationSource == .testFlight {
-        return "tub-graphql.primodium.ai"
-    } else if let ngrokUrl = ProcessInfo.processInfo.environment["NGROK_GRAPHQL_URL_HOST"] {
+//    if installationSource == .appStore || installationSource == .testFlight {
+//        return "tub-graphql.primodium.ai"
+//    }
+    if let ngrokUrl = ProcessInfo.processInfo.environment["NGROK_GRAPHQL_URL_HOST"] {
         return ngrokUrl
     } else {
         // Use remote for testing
@@ -69,9 +70,9 @@ public let graphqlWsUrl: String = {
 
 // Server URLs
 private let serverUrlHost: String = {
-   if installationSource == .appStore || installationSource == .testFlight {
-       return "tub-server.primodium.ai"
-   }
+//   if installationSource == .appStore || installationSource == .testFlight {
+//       return "tub-server.primodium.ai"
+//   }
     if let ngrokUrl = ProcessInfo.processInfo.environment["NGROK_SERVER_URL_HOST"] {
         return ngrokUrl
     } else {
@@ -95,4 +96,4 @@ public let MINT_BURNT: Bool = true
 public let FREEZE_BURNT: Bool = true
     
 public let CHART_INTERVAL: Double = 120
-public let CHART_INTERVAL_MIN_TRADES: Int = 15
+public let CHART_INTERVAL_MIN_TRADES: Int = 1000

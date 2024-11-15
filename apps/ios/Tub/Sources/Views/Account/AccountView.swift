@@ -59,8 +59,6 @@ struct AccountView: View {
             VStack(spacing: 24) {
                 if userModel.userId != nil  {
                     AccountContentView(
-                        userModel: userModel,
-                        priceModel: priceModel,
                         isAirdropping: $isAirdropping,
                         showOnrampView: $showOnrampView,
                         performAirdrop: performAirdrop
@@ -97,8 +95,6 @@ struct AccountView: View {
 
 // New component for the header section
 private struct AccountHeaderView: View {
-    let userModel: UserModel
-    let priceModel: SolPriceModel
     
     var body: some View {
         VStack(spacing: 8) {
@@ -106,17 +102,17 @@ private struct AccountHeaderView: View {
                 .font(.sfRounded(size: .xl2, weight: .semibold))
                 .foregroundColor(AppColors.white)
             
-            BalanceSection(userModel: userModel, priceModel: priceModel)
+            BalanceSection()
         }
     }
 }
 
 // New component for the balance section
 private struct BalanceSection: View {
-    let userModel: UserModel
-    let priceModel: SolPriceModel
+    @EnvironmentObject private var userModel: UserModel
+    @EnvironmentObject private var priceModel: SolPriceModel
     
-    var accountBalance: (balance: Int, change: Int) {
+    var accountBalance: (balance: Int?, change: Int) {
         let balance = userModel.balanceLamps
         
         let adjustedChange = userModel.balanceChangeLamps
@@ -130,9 +126,15 @@ private struct BalanceSection: View {
                 .font(.sfRounded(size: .lg, weight: .regular))
                 .foregroundColor(AppColors.lightGray.opacity(0.7))
             
-            Text("\(priceModel.formatPrice(lamports: accountBalance.balance, maxDecimals: 2, minDecimals: 2))")
+            if let balance = accountBalance.balance {
+                
+            
+            Text("\(priceModel.formatPrice(lamports: balance, maxDecimals: 2, minDecimals: 2))")
                 .font(.sfRounded(size: .xl5, weight: .bold))
                 .foregroundColor(.white)
+            } else {
+                ProgressView()
+            }
             
             if accountBalance.change > 0  {
                   Text("\(priceModel.formatPrice(lamports: accountBalance.change, showSign: true, maxDecimals: 2))")
@@ -231,8 +233,8 @@ private struct ActionButtonsView: View {
 
 // New component for account settings
 private struct AccountSettingsView: View {
-    let userModel: UserModel
-    
+    @EnvironmentObject private var userModel: UserModel
+
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
             Text("Account Settings")
@@ -318,21 +320,19 @@ private struct UnregisteredAccountView: View {
 
 // Main content view for registered users
 private struct AccountContentView: View {
-    let userModel: UserModel
-    let priceModel: SolPriceModel
     @Binding var isAirdropping: Bool
     @Binding var showOnrampView: Bool
     let performAirdrop: () -> Void
     
     var body: some View {
         VStack(spacing: 24) {
-            AccountHeaderView(userModel: userModel, priceModel: priceModel)
+            AccountHeaderView()
             ActionButtonsView(
                 isAirdropping: isAirdropping,
                 performAirdrop: performAirdrop,
                 showOnrampView: $showOnrampView
             )
-            AccountSettingsView(userModel: userModel)
+            AccountSettingsView()
             Spacer()
         }
     }

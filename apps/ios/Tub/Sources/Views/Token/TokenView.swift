@@ -55,8 +55,9 @@ struct TokenView : View {
     }
     
     func handleBuy(amount: Double) {
+        guard let balance = userModel.balanceLamps else { return }
         let buyAmountLamps = priceModel.usdToLamports(usd: amount)
-        if(buyAmountLamps > userModel.balanceLamps) {
+        if buyAmountLamps > balance {
             errorHandler.show(TubError.insufficientBalance)
             return
         }
@@ -116,6 +117,7 @@ struct TokenView : View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .dismissKeyboardOnTap()
             .background(.black)
+            .navigationBarBackButtonHidden(true)
         }
         .background(.black)
     }

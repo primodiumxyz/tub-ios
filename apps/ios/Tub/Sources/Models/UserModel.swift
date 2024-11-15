@@ -22,9 +22,9 @@ final class UserModel: ObservableObject {
     @Published var walletState: EmbeddedWalletState = .notCreated
     @Published var walletAddress: String?
     
-    @Published var balanceLamps: Int = 0
+    @Published var balanceLamps: Int? = nil
     @Published var initialTime = Date()
-    @Published var initialBalanceLamps: Int?
+    @Published var initialBalanceLamps: Int? = nil
     @Published var balanceChangeLamps: Int = 0
     
     private var accountBalanceSubscription: Apollo.Cancellable?
@@ -164,7 +164,7 @@ final class UserModel: ObservableObject {
             
             var email: String? {
                 linkedAccounts.first { account in
-                    if case .email(let _) = account {
+                    if case .email(_) = account {
                         return true
                     }
                     return false

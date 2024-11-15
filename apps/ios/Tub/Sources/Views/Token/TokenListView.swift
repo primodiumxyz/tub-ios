@@ -92,6 +92,7 @@ struct TokenListView: View {
                                 Text("Failed to load tokens.")
                                     .foregroundColor(AppColors.lightYellow)
                                     .multilineTextAlignment(.center)
+                                    .padding(.bottom, 24)
                                 Button(action: {
                                     viewModel.fetchTokens(setLoading: true)
                                 }) {
