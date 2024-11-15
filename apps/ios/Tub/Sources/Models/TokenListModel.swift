@@ -199,8 +199,10 @@ class TokenListModel: ObservableObject {
                         if let tokens = graphQLResult.data?.listTopTokens {
                             let mappedTokens = tokens
                                 .filter { token in
-                                    // Only include tokens that have PUMP_FUN in their exchanges
-                                    token.exchanges?.contains(self.PUMP_FUN_ADDRESS) ?? false
+                                    // Check if any exchange in the array matches PUMP_FUN_ADDRESS
+                                    token.exchanges.contains(where: { exchange in
+                                        exchange.address == PUMP_FUN_ADDRESS
+                                    })
                                 }
                                 .map { elem in
                                     Token(
