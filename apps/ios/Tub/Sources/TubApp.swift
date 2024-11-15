@@ -64,15 +64,7 @@ struct AppContent: View {
                         }
                     }
                 )
-            } else if userId == "" || authError != nil {
-                RegisterView()
-            } else if authState == .notReady || embeddedWalletState.toString == "connecting" {
-                LoadingView(message: "Connecting wallet")
-            }
-            else if embeddedWalletAddress == "" {
-                CreateWalletView()
-            }
-            else     {
+            } else {
                 HomeTabsView(userId: userId, walletAddress: embeddedWalletAddress, linkedAccounts: self.linkedAccounts).font(.sfRounded())
             }
         }

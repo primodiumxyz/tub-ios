@@ -36,7 +36,7 @@ class TokenListModel: ObservableObject {
 
     init(walletAddress: String) {
         self.walletAddress = walletAddress
-        self.currentTokenModel = TokenModel(walletAddress: walletAddress)
+        self.currentTokenModel = TokenModel()
     }
 
     var currentTokenIndex: Int {
@@ -55,10 +55,6 @@ class TokenListModel: ObservableObject {
         DispatchQueue.main.async {
             self.currentTokenModel.initialize(with: self.tokens[self.currentTokenIndex].id)
         }
-    }
-
-    func createTokenModel() -> TokenModel {
-        return TokenModel(walletAddress: walletAddress)
     }
 
     private func getNextToken(excluding currentId: String? = nil) -> Token? {
@@ -124,7 +120,7 @@ class TokenListModel: ObservableObject {
         recordTokenDwellTime()
 
         previousTokenModel = currentTokenModel
-        nextTokenModel = createTokenModel()
+        nextTokenModel = TokenModel()
 
         // Add current token to cooldown (ensuring uniqueness)
         if let currentToken = tokens[safe: currentTokenIndex] {
@@ -152,7 +148,7 @@ class TokenListModel: ObservableObject {
         recordTokenDwellTime()
 
         nextTokenModel = currentTokenModel
-        previousTokenModel = createTokenModel()
+        previousTokenModel = TokenModel()
 
         // Remove the last token from recently shown when going back
         if let lastToken = tokens.last {

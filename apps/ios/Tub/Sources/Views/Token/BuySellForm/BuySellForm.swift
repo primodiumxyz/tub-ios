@@ -31,16 +31,16 @@ struct BuySellForm: View {
             print("🔴 Haptic feedback disabled")
         }
         
-        tokenModel.sellTokens(completion: {result in
-            switch result {
-            case .success:
-                animationState.showSellBubbles = true
-                activeTab = "buy"
-                onSellSuccess()
-            case .failure(let error):
-                errorHandler.show(error)
-            }
-        })
+//        tokenModel.sellTokens(completion: {result in
+//            switch result {
+//            case .success:
+//                animationState.showSellBubbles = true
+//                activeTab = "buy"
+//                onSellSuccess()
+//            case .failure(let error):
+//                errorHandler.show(error)
+//            }
+//        })
     }
     
     var body: some View {

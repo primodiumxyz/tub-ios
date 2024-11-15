@@ -33,9 +33,7 @@ class UserModel: ObservableObject {
     @Published var currentTime: Date = Date()
     @Published var timeElapsed: TimeInterval = 0
 
-    private var cancellables: Set<AnyCancellable> = []
     private var accountBalanceSubscription: Apollo.Cancellable?
-    private var timerCancellable: AnyCancellable?
     
     @Published var isLoading: Bool = true
     @Published var error: String?
@@ -54,7 +52,6 @@ class UserModel: ObservableObject {
         Task {
             await fetchInitialData()
             subscribeToAccountBalance()
-            startTimeElapsedTimer()
         }
     }
 
@@ -134,17 +131,6 @@ class UserModel: ObservableObject {
         }
     }
 
-    private func startTimeElapsedTimer() {
-        timerCancellable?.cancel()
-        timerCancellable = Timer.publish(every: 1.0, on: .main, in: .common)
-            .autoconnect()
-            .sink { [weak self] _ in
-                guard let self = self else { return }
-                self.currentTime = Date()
-                self.timeElapsed = self.currentTime.timeIntervalSince(self.initialTime)
-            }
-    }
-
     func logout() {
         privy.logout()
         
@@ -162,11 +148,7 @@ class UserModel: ObservableObject {
 
     deinit {
     // Cancel any ongoing network requests or timers
-        cancellables.forEach { $0.cancel() }
-        cancellables.removeAll()
-        timerCancellable?.cancel()
         accountBalanceSubscription?.cancel()
-
     }
 
     var email: String? {

@@ -5,7 +5,6 @@ import TubAPI
 
 class TokenModel: ObservableObject {
     var tokenId: String = ""
-    var walletAddress: String = ""
 
     @EnvironmentObject private var errorHandler: ErrorHandler
 
@@ -21,9 +20,6 @@ class TokenModel: ObservableObject {
         volume: (0, FILTER_INTERVAL)
     )
     @Published var loading = true
-    @Published var balanceLamps: Int = 0
-
-    @Published var purchaseData: PurchaseData? = nil
 
     @Published var prices: [Price] = []
     @Published var priceChange: (amountLamps: Int, percentage: Double) = (0, 0)
@@ -33,16 +29,13 @@ class TokenModel: ObservableObject {
     private var lastPriceTimestamp: Date?
 
     private var latestPriceSubscription: Apollo.Cancellable?
-    private var tokenBalanceSubscription: Apollo.Cancellable?
 
     deinit {
         // Clean up subscriptions when the object is deallocated
         latestPriceSubscription?.cancel()
-        tokenBalanceSubscription?.cancel()
     }
 
-    init(walletAddress: String, tokenId: String? = nil) {
-        self.walletAddress = walletAddress
+    init(tokenId: String? = nil) {
         if tokenId != nil {
             self.initialize(with: tokenId!)
         }
@@ -51,14 +44,12 @@ class TokenModel: ObservableObject {
     func initialize(with newTokenId: String, timeframeSecs: Double = CHART_INTERVAL) {
         // Cancel all existing subscriptions
         latestPriceSubscription?.cancel()
-        tokenBalanceSubscription?.cancel()
 
         // Reset properties if necessary
         self.tokenId = newTokenId
         self.loading = true  // Reset loading state if needed
         self.prices = []
         self.priceChange = (0, 0)
-        self.balanceLamps = 0
         self.timeframeSecs = timeframeSecs
 
         // Re-run the initialization logic
@@ -66,12 +57,12 @@ class TokenModel: ObservableObject {
             do {
                 try await fetchTokenDetails()
                 try await fetchInitialPrices(self.timeframeSecs)
+                self.loading = false
             } catch {
                 print("Error fetching initial data: \(error)")
             }
 
             subscribeToLatestPrice()
-            subscribeToTokenBalance()
         }
     }
 
@@ -187,107 +178,6 @@ class TokenModel: ObservableObject {
                 }
             case .failure(let error):
                 print("Error in latest price subscription: \(error)")
-            }
-        }
-    }
-
-    private func subscribeToTokenBalance() {
-        tokenBalanceSubscription?.cancel()
-
-        tokenBalanceSubscription = Network.shared.apollo.subscribe(
-            subscription: SubWalletTokenBalanceSubscription(
-                wallet: self.walletAddress, token: self.tokenId)
-        ) { [weak self] result in
-            guard let self = self else { return }
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let graphQLResult):
-                    self.balanceLamps =
-                        graphQLResult.data?.balance.first?.value ?? 0
-                case .failure(let error):
-                    print("Error updating token balance: \(error.localizedDescription)")
-                }
-            }
-        }
-    }
-
-    func buyTokens(
-        buyAmountLamps: Int, completion: @escaping (Result<EmptyResponse, Error>) -> Void
-    ) {
-        if let price = self.prices.last?.price, price > 0 {
-            let tokenAmount = Int(Double(buyAmountLamps) / Double(price) * 1e9)
-            var errorMessage: String? = nil
-
-            Network.shared.buyToken(
-                tokenId: self.tokenId, amount: String(tokenAmount)
-            ) { result in
-                switch result {
-                case .success:
-                    self.purchaseData = PurchaseData(
-                        timestamp: Date(),
-                        amount: buyAmountLamps,
-                        price: price
-                    )
-                case .failure(let error):
-                    errorMessage = error.localizedDescription
-                    print("Error buying tokens: \(error)")
-                }
-                completion(result)
-            }
-
-            Network.shared.recordClientEvent(
-                event: ClientEvent(
-                    eventName: "buy_tokens",
-                    source: "token_model",
-                    metadata: [
-                        ["token_amount": tokenAmount],
-                        ["buy_amount": buyAmountLamps],
-                        ["price": price],
-                        ["token_id": tokenId],
-                    ],
-                    errorDetails: errorMessage
-                )
-            ) { result in
-                switch result {
-                case .success:
-                    print("Successfully recorded buy event")
-                case .failure(let error):
-                    print("Failed to record buy event: \(error)")
-                }
-            }
-        }
-    }
-
-    func sellTokens(completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
-        var errorMessage: String? = nil
-        Network.shared.sellToken(
-            tokenId: self.tokenId, amount: String(self.balanceLamps)
-        ) { result in
-            switch result {
-            case .success:
-                self.purchaseData = nil
-            case .failure(let error):
-                print("Error selling tokens: \(error)")
-            }
-            completion(result)
-        }
-
-        Network.shared.recordClientEvent(
-            event: ClientEvent(
-                eventName: "sell_tokens",
-                source: "token_model",
-                metadata: [
-                    ["sell_amount": self.balanceLamps],
-                    ["token_id": tokenId],
-                ],
-                errorDetails: errorMessage
-            )
-        ) { result in
-            switch result {
-            case .success:
-                print("Successfully recorded buy event")
-            case .failure(let error):
-                print("Failed to record buy event: \(error)")
             }
         }
     }
