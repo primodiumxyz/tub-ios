@@ -10,44 +10,6 @@
     naming_convention: hasura-default
   logical_models:
     - fields:
-        - name: token_id
-          type:
-            nullable: false
-            scalar: uuid
-        - name: mint
-          type:
-            nullable: false
-            scalar: text
-        - name: name
-          type:
-            nullable: false
-            scalar: varchar
-        - name: symbol
-          type:
-            nullable: false
-            scalar: varchar
-        - name: latest_price
-          type:
-            nullable: false
-            scalar: numeric
-        - name: increase_pct
-          type:
-            nullable: false
-            scalar: float8
-        - name: trades
-          type:
-            nullable: false
-            scalar: bigint
-        - name: created_at
-          type:
-            nullable: false
-            scalar: timestamptz
-        - name: created_at_offset
-          type:
-            nullable: false
-            scalar: timestamptz
-      name: account_transaction_offset_model
-    - fields:
         - name: balance
           type:
             nullable: false
@@ -60,200 +22,6 @@
             filter: {}
           role: public
     - fields:
-        - name: token_id
-          type:
-            nullable: false
-            scalar: uuid
-        - name: mint
-          type:
-            nullable: false
-            scalar: text
-        - name: name
-          type:
-            nullable: true
-            scalar: varchar
-        - name: symbol
-          type:
-            nullable: true
-            scalar: varchar
-        - name: description
-          type:
-            nullable: true
-            scalar: text
-        - name: uri
-          type:
-            nullable: true
-            scalar: text
-        - name: supply
-          type:
-            nullable: true
-            scalar: numeric
-        - name: decimals
-          type:
-            nullable: true
-            scalar: integer
-        - name: mint_burnt
-          type:
-            nullable: true
-            scalar: boolean
-        - name: freeze_burnt
-          type:
-            nullable: true
-            scalar: boolean
-        - name: is_pump_token
-          type:
-            nullable: true
-            scalar: boolean
-        - name: increase_pct
-          type:
-            nullable: false
-            scalar: float8
-        - name: trades
-          type:
-            nullable: false
-            scalar: bigint
-        - name: volume
-          type:
-            nullable: false
-            scalar: numeric
-        - name: latest_price
-          type:
-            nullable: false
-            scalar: numeric
-        - name: created_at
-          type:
-            nullable: false
-            scalar: timestamptz
-      name: formatted_tokens_model
-      select_permissions:
-        - permission:
-            columns:
-              - token_id
-              - mint
-              - name
-              - symbol
-              - description
-              - uri
-              - supply
-              - decimals
-              - mint_burnt
-              - freeze_burnt
-              - is_pump_token
-              - increase_pct
-              - trades
-              - volume
-              - latest_price
-              - created_at
-            filter: {}
-          role: public
-    - fields:
-        - name: token_id
-          type:
-            nullable: false
-            scalar: uuid
-        - name: mint
-          type:
-            nullable: false
-            scalar: text
-        - name: name
-          type:
-            nullable: true
-            scalar: varchar
-        - name: symbol
-          type:
-            nullable: true
-            scalar: varchar
-        - name: description
-          type:
-            nullable: true
-            scalar: text
-        - name: uri
-          type:
-            nullable: true
-            scalar: text
-        - name: supply
-          type:
-            nullable: true
-            scalar: numeric
-        - name: decimals
-          type:
-            nullable: true
-            scalar: integer
-        - name: mint_burnt
-          type:
-            nullable: true
-            scalar: boolean
-        - name: freeze_burnt
-          type:
-            nullable: true
-            scalar: boolean
-        - name: is_pump_token
-          type:
-            nullable: true
-            scalar: boolean
-        - name: increase_pct
-          type:
-            nullable: false
-            scalar: float8
-        - name: trades
-          type:
-            nullable: false
-            scalar: bigint
-        - name: volume
-          type:
-            nullable: false
-            scalar: numeric
-        - name: latest_price
-          type:
-            nullable: false
-            scalar: numeric
-        - name: created_at
-          type:
-            nullable: false
-            scalar: timestamptz
-        - name: trades_after
-          type:
-            nullable: false
-            scalar: text
-        - name: increase_pct_after
-          type:
-            nullable: false
-            scalar: text
-        - name: volume_after
-          type:
-            nullable: false
-            scalar: text
-        - name: interval_start
-          type:
-            nullable: false
-            scalar: timestamptz
-      name: formatted_tokens_with_performance_model
-      select_permissions:
-        - permission:
-            columns:
-              - token_id
-              - mint
-              - name
-              - symbol
-              - description
-              - uri
-              - supply
-              - decimals
-              - mint_burnt
-              - freeze_burnt
-              - is_pump_token
-              - increase_pct
-              - trades
-              - volume
-              - latest_price
-              - created_at
-              - trades_after
-              - increase_pct_after
-              - volume_after
-              - interval_start
-            filter: {}
-          role: public
-    - fields:
         - name: id
           type:
             nullable: false
@@ -261,44 +29,7 @@
         - name: token
           type:
             nullable: false
-            scalar: uuid
-        - name: price
-          type:
-            nullable: false
-            scalar: numeric
-        - name: created_at
-          type:
-            nullable: false
-            scalar: timestamptz
-        - name: internal_token_transaction_ref
-          type:
-            nullable: true
-            scalar: uuid
-        - name: created_at_offset
-          type:
-            nullable: false
-            scalar: timestamptz
-      name: token_price_history_offset
-      select_permissions:
-        - permission:
-            columns:
-              - id
-              - token
-              - price
-              - created_at
-              - internal_token_transaction_ref
-              - created_at_offset
-            filter: {}
-          role: public
-    - fields:
-        - name: id
-          type:
-            nullable: false
-            scalar: uuid
-        - name: token
-          type:
-            nullable: false
-            scalar: uuid
+            scalar: text
         - name: amount
           type:
             nullable: false
@@ -316,28 +47,6 @@
             nullable: false
             scalar: timestamptz
       name: token_transaction_offset_model
-    - fields:
-        - name: interval_start
-          type:
-            nullable: false
-            scalar: timestamptz
-        - name: total_volume
-          type:
-            nullable: false
-            scalar: numeric
-        - name: token_count
-          type:
-            nullable: false
-            scalar: bigint
-      name: volume_intervals_within_period
-      select_permissions:
-        - permission:
-            columns:
-              - interval_start
-              - total_volume
-              - token_count
-            filter: {}
-          role: public
     - fields:
         - name: id
           type:
@@ -362,50 +71,6 @@
       name: wallet_transaction_offset_model
   native_queries:
     - arguments:
-        distinct_prices_interval:
-          description: ""
-          nullable: false
-          type: interval
-        interval:
-          description: ""
-          nullable: false
-          type: interval
-        min_distinct_prices:
-          description: ""
-          nullable: false
-          type: integer
-      code: "WITH base_tokens AS (\n  SELECT * FROM get_formatted_tokens_interval({{interval}})\n),\ndistinct_prices AS (\n  SELECT \n    token,\n    COUNT(DISTINCT price) as distinct_price_count\n  FROM token_price_history\n  WHERE created_at >= NOW() - {{distinct_prices_interval}}::interval\n  GROUP BY token\n)\nSELECT b.* \nFROM base_tokens b\nJOIN distinct_prices dp ON b.token_id = dp.token\nWHERE dp.distinct_price_count >= {{min_distinct_prices}};"
-      returns: formatted_tokens_model
-      root_field_name: formatted_tokens_interval
-    - arguments:
-        after_intervals:
-          description: ""
-          nullable: false
-          type: text
-        end:
-          description: ""
-          nullable: false
-          type: timestamptz
-        interval:
-          description: ""
-          nullable: false
-          type: interval
-        start:
-          description: ""
-          nullable: false
-          type: timestamptz
-      code: SELECT * FROM get_formatted_tokens_with_performance_intervals_within_period({{start}}, {{end}}, {{interval}}, {{after_intervals}});
-      returns: formatted_tokens_with_performance_model
-      root_field_name: formatted_tokens_with_performance_intervals_within_period
-    - arguments:
-        offset:
-          description: ""
-          nullable: false
-          type: interval
-      code: SELECT *, created_at + {{offset}} as created_at_offset from token_price_history
-      returns: token_price_history_offset
-      root_field_name: token_price_history_offset
-    - arguments:
         offset:
           description: ""
           nullable: false
@@ -413,22 +78,6 @@
       code: SELECT  token_transaction.id,  token_transaction.token,  token_transaction.amount, wallet_transaction.wallet, created_at, created_at + {{offset}} as created_at_offset from token_transaction inner JOIN wallet_transaction on token_transaction.wallet_transaction = wallet_transaction.id
       returns: token_transaction_offset_model
       root_field_name: token_transaction_offset
-    - arguments:
-        end:
-          description: ""
-          nullable: false
-          type: timestamptz
-        interval:
-          description: ""
-          nullable: false
-          type: interval
-        start:
-          description: ""
-          nullable: false
-          type: timestamptz
-      code: "WITH RECURSIVE intervals AS (\n    -- Base case: first interval\n    SELECT \n        {{start}}::timestamptz as interval_start,\n        least({{start}}::timestamptz + {{interval}}::interval, {{end}}::timestamptz) as interval_end\n    \n    UNION ALL\n    \n    -- Recursive case: subsequent intervals\n    SELECT\n        interval_end,\n        least(interval_end + {{interval}}::interval, {{end}}::timestamptz)\n    FROM intervals\n    WHERE interval_end < {{end}}::timestamptz\n),\nvolume_stats AS (\n    SELECT \n        i.interval_start,\n        i.interval_end,\n        COALESCE(SUM(tph.price), 0) as total_volume,\n        COUNT(DISTINCT t.id) as token_count\n    FROM intervals i\n    LEFT JOIN token_price_history tph ON \n        tph.created_at >= i.interval_start AND \n        tph.created_at < i.interval_end\n    LEFT JOIN token t ON \n        t.id = tph.token AND \n        t.mint IS NOT NULL\n    GROUP BY i.interval_start, i.interval_end\n)\nSELECT \n    interval_start,\n    total_volume,\n    token_count\nFROM volume_stats\nORDER BY interval_start;"
-      returns: volume_intervals_within_period
-      root_field_name: volume_intervals_within_period
     - arguments:
         interval:
           description: ""
@@ -460,7 +109,7 @@
         token:
           description: ""
           nullable: false
-          type: uuid
+          type: text
         wallet:
           description: ""
           nullable: false

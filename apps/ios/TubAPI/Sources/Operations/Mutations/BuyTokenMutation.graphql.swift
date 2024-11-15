@@ -7,17 +7,17 @@ public class BuyTokenMutation: GraphQLMutation {
   public static let operationName: String = "BuyToken"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"mutation BuyToken($wallet: String!, $token: uuid!, $amount: numeric!, $override_token_price: numeric) { buy_token( args: { user_wallet: $wallet token_id: $token amount_to_buy: $amount token_cost: $override_token_price } ) { __typename id } }"#
+      #"mutation BuyToken($wallet: String!, $token: String!, $amount: numeric!, $override_token_price: numeric) { buy_token( args: { user_wallet: $wallet token: $token amount_to_buy: $amount token_cost: $override_token_price } ) { __typename id } }"#
     ))
 
   public var wallet: String
-  public var token: Uuid
+  public var token: String
   public var amount: Numeric
   public var override_token_price: GraphQLNullable<Numeric>
 
   public init(
     wallet: String,
-    token: Uuid,
+    token: String,
     amount: Numeric,
     override_token_price: GraphQLNullable<Numeric>
   ) {
@@ -42,7 +42,7 @@ public class BuyTokenMutation: GraphQLMutation {
     public static var __selections: [ApolloAPI.Selection] { [
       .field("buy_token", Buy_token?.self, arguments: ["args": [
         "user_wallet": .variable("wallet"),
-        "token_id": .variable("token"),
+        "token": .variable("token"),
         "amount_to_buy": .variable("amount"),
         "token_cost": .variable("override_token_price")
       ]]),

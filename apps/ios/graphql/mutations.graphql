@@ -1,26 +1,34 @@
-mutation RegisterNewToken($name: String!, $symbol: String!, $supply: numeric!, $uri: String) {
-  insert_token_one(object: { name: $name, symbol: $symbol, uri: $uri, supply: $supply }) {
-    id
-  }
-}
-
-mutation RegisterManyNewTokens($objects: [token_insert_input!]!) {
-  insert_token(objects: $objects, on_conflict: { constraint: token_mint_key, update_columns: [] }) {
-    affected_rows
-  }
-}
-
-mutation BuyToken($wallet: String!, $token: uuid!, $amount: numeric!, $override_token_price: numeric) {
+mutation BuyToken(
+  $wallet: String!
+  $token: String!
+  $amount: numeric!
+  $override_token_price: numeric
+) {
   buy_token(
-    args: { user_wallet: $wallet, token_id: $token, amount_to_buy: $amount, token_cost: $override_token_price }
+    args: {
+      user_wallet: $wallet
+      token: $token
+      amount_to_buy: $amount
+      token_cost: $override_token_price
+    }
   ) {
     id
   }
 }
 
-mutation SellToken($wallet: String!, $token: uuid!, $amount: numeric!, $override_token_price: numeric) {
+mutation SellToken(
+  $wallet: String!
+  $token: String!
+  $amount: numeric!
+  $override_token_price: numeric
+) {
   sell_token(
-    args: { user_wallet: $wallet, token_id: $token, amount_to_sell: $amount, token_cost: $override_token_price }
+    args: {
+      user_wallet: $wallet
+      token: $token
+      amount_to_sell: $amount
+      token_cost: $override_token_price
+    }
   ) {
     id
   }
@@ -29,19 +37,5 @@ mutation SellToken($wallet: String!, $token: uuid!, $amount: numeric!, $override
 mutation AirdropNativeToUser($wallet: String!, $amount: numeric!) {
   insert_wallet_transaction_one(object: { wallet: $wallet, amount: $amount }) {
     id
-  }
-}
-
-mutation AddTokenPriceHistory($token: uuid!, $price: numeric!) {
-  insert_token_price_history_one(object: { token: $token, price: $price }) {
-    id
-  }
-}
-
-mutation AddManyTokenPriceHistory($objects: [token_price_history_insert_input!]!) {
-  insert_token_price_history(objects: $objects) {
-    returning {
-      id
-    }
   }
 }

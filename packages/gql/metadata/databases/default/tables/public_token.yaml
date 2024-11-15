@@ -1,21 +1,6 @@
 table:
   name: token
   schema: public
-array_relationships:
-  - name: token_price_histories
-    using:
-      foreign_key_constraint_on:
-        column: token
-        table:
-          name: token_price_history
-          schema: public
-  - name: token_transactions
-    using:
-      foreign_key_constraint_on:
-        column: token
-        table:
-          name: token_transaction
-          schema: public
 select_permissions:
   - role: public
     permission:

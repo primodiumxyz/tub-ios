@@ -2,16 +2,6 @@ table:
   name: token_transaction
   schema: public
 object_relationships:
-  - name: token_data
-    using:
-      foreign_key_constraint_on: token
-  - name: token_price
-    using:
-      foreign_key_constraint_on:
-        column: internal_token_transaction_ref
-        table:
-          name: token_price_history
-          schema: public
   - name: wallet_transaction_data
     using:
       foreign_key_constraint_on: wallet_transaction
