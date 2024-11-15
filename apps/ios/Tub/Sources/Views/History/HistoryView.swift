@@ -25,9 +25,10 @@ struct HistoryView : View {
     }
     
     func fetchUserTxs(_ userId: String) {
+        guard let walletAddress = userModel.walletAddress else { return }
         loading = true
         error = nil // Reset error state
-        let query = GetWalletTransactionsQuery(wallet: userModel.walletAddress)
+        let query = GetWalletTransactionsQuery(wallet: walletAddress)
         
         Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { result in
             DispatchQueue.main.async {
@@ -98,7 +99,7 @@ struct HistoryView : View {
                 HistoryViewContent(txs: txs)
             }
         }.onAppear {
-            fetchUserTxs(userModel.userId)
+            if let userId = userModel.userId { fetchUserTxs(userId) }
         }
     }
 }
@@ -443,7 +444,7 @@ struct TransactionRow: View {
 
 #Preview {
     @Previewable @StateObject var errorHandler = ErrorHandler()
-    @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
+    @Previewable @StateObject var priceModel = SolPriceModel.shared
     HistoryView(txs: dummyData).environmentObject(priceModel).environmentObject(errorHandler)
 }
 

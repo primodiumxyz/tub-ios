@@ -7,16 +7,14 @@
 
 import Foundation
 
-class SolPriceModel: ObservableObject {
+final class SolPriceModel: ObservableObject {
+    static let shared = SolPriceModel()
+    
     @Published var price: Double = 200
     @Published var error: String?
     
-    init(mock: Bool = false) {
-        if mock {
-            self.price = 200
-        } else {
-            fetchCurrentPrice()
-        }
+    init() {
+        fetchCurrentPrice()
     }
     
     func fetchCurrentPrice() {

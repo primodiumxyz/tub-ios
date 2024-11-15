@@ -37,11 +37,10 @@
 		99C26C1E2CAEE38B004807A2 /* ApolloWebSocket in Frameworks */ = {isa = PBXBuildFile; productRef = 99C26C1D2CAEE38B004807A2 /* ApolloWebSocket */; };
 		99C79A182CE2F1BD00D0E697 /* DummyTokenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C79A172CE2F1BA00D0E697 /* DummyTokenView.swift */; };
 		99DDF62D2CB02816000234DA /* AccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99DDF62C2CB0280D000234DA /* AccountView.swift */; };
-		99DED24E2CAF28C10055FC60 /* UserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99DED24D2CAF28BD0055FC60 /* UserModel.swift */; };
 		99DED2512CAF2A6B0055FC60 /* ApolloCombine in Frameworks */ = {isa = PBXBuildFile; productRef = 99DED2502CAF2A6B0055FC60 /* ApolloCombine */; };
 		99E789492CC147C000C3CEEB /* ImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E789482CC147BD00C3CEEB /* ImageView.swift */; };
 		99F3D7A42CE6D55E005B895C /* UserTokenModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99F3D7A32CE6D55B005B895C /* UserTokenModel.swift */; };
-		99F3D7A62CE6D937005B895C /* GlobalUserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99F3D7A52CE6D934005B895C /* GlobalUserModel.swift */; };
+		99F3D7A62CE6D937005B895C /* UserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99F3D7A52CE6D934005B895C /* UserModel.swift */; };
 		99FB68342CC003FC00070D2A /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FB68332CC003FC00070D2A /* LoadingView.swift */; };
 		DB10A95D2CA5AA1B00B1E4F3 /* TokenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB10A95C2CA5AA1B00B1E4F3 /* TokenView.swift */; };
 		DB391A1E2CC377FC002EFA78 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = DB391A1D2CC377FC002EFA78 /* LaunchScreen.storyboard */; };
@@ -114,10 +113,9 @@
 		99BB98552CC1798400658059 /* CandleChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CandleChartView.swift; sourceTree = "<group>"; };
 		99C79A172CE2F1BA00D0E697 /* DummyTokenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DummyTokenView.swift; sourceTree = "<group>"; };
 		99DDF62C2CB0280D000234DA /* AccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountView.swift; sourceTree = "<group>"; };
-		99DED24D2CAF28BD0055FC60 /* UserModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserModel.swift; sourceTree = "<group>"; };
 		99E789482CC147BD00C3CEEB /* ImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageView.swift; sourceTree = "<group>"; };
 		99F3D7A32CE6D55B005B895C /* UserTokenModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserTokenModel.swift; sourceTree = "<group>"; };
-		99F3D7A52CE6D934005B895C /* GlobalUserModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalUserModel.swift; sourceTree = "<group>"; };
+		99F3D7A52CE6D934005B895C /* UserModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserModel.swift; sourceTree = "<group>"; };
 		99FB68332CC003FC00070D2A /* LoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingView.swift; sourceTree = "<group>"; };
 		DB10A95C2CA5AA1B00B1E4F3 /* TokenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenView.swift; sourceTree = "<group>"; };
 		DB391A1D2CC377FC002EFA78 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -245,11 +243,10 @@
 		999F59532CA6F70C00E7AE9F /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				99F3D7A52CE6D934005B895C /* GlobalUserModel.swift */,
+				99F3D7A52CE6D934005B895C /* UserModel.swift */,
 				99F3D7A32CE6D55B005B895C /* UserTokenModel.swift */,
 				997DE8F12CDAC84600164366 /* ErrorHandler.swift */,
 				9906661E2CC94B0D0068EA06 /* SolPriceModel.swift */,
-				99DED24D2CAF28BD0055FC60 /* UserModel.swift */,
 				999F59552CA6F96D00E7AE9F /* TokenModel.swift */,
 				4619A8172CCA4E25003CD119 /* TokenListModel.swift */,
 			);
@@ -572,7 +569,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				99F3D7A62CE6D937005B895C /* GlobalUserModel.swift in Sources */,
+				99F3D7A62CE6D937005B895C /* UserModel.swift in Sources */,
 				991361A12CADE3B300E5D656 /* TokenListView.swift in Sources */,
 				99B147FE2CDFE5B200DFDB96 /* ShimmeringView.swift in Sources */,
 				DFC723E32CB9A86C003A915C /* TokenInfoCardView.swift in Sources */,
@@ -599,7 +596,6 @@
 				99856DA62CD27E2E004B9D40 /* Privy.swift in Sources */,
 				999F595B2CA754FB00E7AE9F /* ChartView.swift in Sources */,
 				DFF5292B2CC0121B007DC43F /* AppColors.swift in Sources */,
-				99DED24E2CAF28C10055FC60 /* UserModel.swift in Sources */,
 				5D8EFC2C2CE529BB002D8210 /* AppDwellTimeTracker.swift in Sources */,
 				99290EC02CB7110C003E740A /* FormatDate.swift in Sources */,
 				DF1FE3C82CD568F700594C63 /* CountryCode.swift in Sources */,

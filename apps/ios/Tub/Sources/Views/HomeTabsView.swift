@@ -10,16 +10,10 @@ import PrivySDK
 
 struct HomeTabsView: View {
     var color = Color(red: 0.43, green: 0.97, blue: 0.98)
-    @StateObject private var priceModel : SolPriceModel
-    @StateObject private var userModel : UserModel
+    @EnvironmentObject private var userModel : UserModel
     @State private var selectedTab: Int = 0 // Track the selected tab
     @State private var tabStartTime: Date? = nil
   
-  
-    init(userId: String, walletAddress: String, linkedAccounts: [PrivySDK.LinkedAccount]?) {
-        _priceModel = StateObject(wrappedValue: SolPriceModel())
-        _userModel = StateObject(wrappedValue: UserModel(userId: userId, walletAddress: walletAddress, linkedAccounts: linkedAccounts))
-    }
 
     private func recordTabDwellTime(_ previousTab: String) {
         guard let startTime = tabStartTime else { return }
@@ -82,25 +76,15 @@ struct HomeTabsView: View {
     }
 
     var body: some View {
-        Group {
-            if let error = userModel.error {
-                LoginErrorView(
-                    errorMessage: error,
-                    retryAction: {
-                        Task {
-                            await userModel.fetchInitialData()
-                        }
-                    }
-                )
-            } 
-            else if userModel.isLoading  {
+//        Group {
+            if userModel.isLoading  {
                 LoadingView(identifier: "HomeTabsView - waiting for userModel & priceModel", message: "Loading user data")
-            } else {
+            } else if let wallet = userModel.walletAddress {
                 ZStack(alignment: .bottom) {
                     // Main content view
                     Group {
                         if selectedTab == 0 {
-                            TokenListView(walletAddress: userModel.walletAddress)
+                            TokenListView(walletAddress: wallet)
                         } else if selectedTab == 1 {
                             HistoryView()
                         } else if selectedTab == 2 {
@@ -169,9 +153,7 @@ struct HomeTabsView: View {
                     .ignoresSafeArea(.keyboard)
                 }
             }
-        }
-        .ignoresSafeArea(.keyboard)
-        .environmentObject(userModel)
-        .environmentObject(priceModel)
+//        }
+//        .ignoresSafeArea(.keyboard)
     }
 }

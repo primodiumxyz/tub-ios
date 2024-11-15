@@ -1,8 +1,8 @@
 //
-//  PlayerModel.swift
+//  GlobalUserModel.swift
 //  Tub
 //
-//  Created by Henry on 10/3/24.
+//  Created by Henry on 11/14/24.
 //
 
 import SwiftUI
@@ -12,82 +12,99 @@ import TubAPI
 import ApolloCombine
 import PrivySDK
 
-class UserModel: ObservableObject {
-    private lazy var iso8601Formatter: ISO8601DateFormatter = {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return formatter
-    }()
+final class UserModel: ObservableObject {
+    static let shared = UserModel()
     
-    @Published var userId: String
-    @Published var username: String = ""
-    @Published var walletAddress: String  = ""
-    @Published var linkedAccounts: [PrivySDK.LinkedAccount]? = nil
-
-    @Published var initialBalanceLamps: Int = 0
+    @EnvironmentObject private var errorHandler: ErrorHandler
+    
+    @Published var isLoading: Bool = false
+    @Published var userId: String?
+    @Published var walletState: EmbeddedWalletState = .notCreated
+    @Published var walletAddress: String?
+    
     @Published var balanceLamps: Int = 0
+    @Published var initialTime = Date()
+    @Published var initialBalanceLamps: Int?
     @Published var balanceChangeLamps: Int = 0
     
-    
-    @Published var initialTime: Date = Date()
-    @Published var currentTime: Date = Date()
-    @Published var timeElapsed: TimeInterval = 0
-
     private var accountBalanceSubscription: Apollo.Cancellable?
     
-    @Published var isLoading: Bool = true
-    @Published var error: String?
-
-    init(userId: String, walletAddress: String, linkedAccounts: [PrivySDK.LinkedAccount]? = nil, mock: Bool? = false) {
-        self.userId = userId
-        self.walletAddress = walletAddress
-        self.linkedAccounts = linkedAccounts
-        
-        if(mock == true) {
-            self.balanceLamps = 1000
-            isLoading = false
-            return
-        }
-        
-        Task {
-            await fetchInitialData()
-            subscribeToAccountBalance()
+    private init() {
+        setupAuthStateListener()
+        setupWalletStateListener()
+    }
+    
+    private func setupAuthStateListener() {
+        privy.setAuthStateChangeCallback { [weak self] state in
+            guard let self = self else { return }
+            
+            switch state {
+            case .authenticated(let authSession):
+                self.userId = authSession.user.id
+            case .unauthenticated:
+                DispatchQueue.main.async {
+                    self.userId = nil
+                    self.walletState = .notCreated
+                    self.walletAddress = nil
+                }
+            default:
+                break
+            }
         }
     }
-
+    
+    private func setupWalletStateListener() {
+        privy.embeddedWallet.setEmbeddedWalletStateChangeCallback { [weak self] state in
+            guard let self = self else { return }
+            switch state {
+            case .error:
+                let walletError = NSError(
+                    domain: "com.tubapp.wallet", code: 1001,
+                    userInfo: [NSLocalizedDescriptionKey: "Failed to connect wallet."])
+                errorHandler.show(walletError)
+            case .connected(let wallets):
+                if let solanaWallet = wallets.first(where: { $0.chainType == .solana }) {
+                    self.walletAddress = solanaWallet.address
+                }
+            default:
+                break
+            }
+            self.walletState = state
+        }
+    }
+    
     func fetchInitialData() async {
         let timeoutTask = Task {
-            self.error = nil
             self.isLoading = true
             try await Task.sleep(nanoseconds: 10 * 1_000_000_000) // 10 seconds
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
                 if self.isLoading {
-                    self.error = "User data fetch timed out"
                     self.isLoading = false
                 }
             }
         }
-
+        
         do {
             try await fetchInitialBalance()
             timeoutTask.cancel() // Cancel timeout if successful
             DispatchQueue.main.async {
                 self.initialTime = Date()
                 self.isLoading = false
-                self.error = nil
             }
         } catch {
             timeoutTask.cancel() // Cancel timeout if there's an error
             DispatchQueue.main.async {
-                self.error = error.localizedDescription
                 self.isLoading = false
             }
         }
     }
-
+    
     private func fetchInitialBalance() async throws {
-        let query = GetWalletBalanceQuery(wallet: self.walletAddress)
+        guard let walletAddress = self.walletAddress else {
+            return
+        }
+        let query = GetWalletBalanceQuery(wallet: walletAddress)
         
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { [weak self] result in
@@ -111,80 +128,85 @@ class UserModel: ObservableObject {
     }
     
     private func subscribeToAccountBalance() {
+        guard let walletAddress = self.walletAddress else { return }
         accountBalanceSubscription?.cancel()
         
         accountBalanceSubscription = Network.shared.apollo.subscribe(
             subscription: SubWalletBalanceSubscription(
-                wallet: self.walletAddress)
+                wallet: walletAddress)
         ) { [weak self] result in
             guard let self = self else { return }
             DispatchQueue.main.async {
                 switch result {
                 case .success(let graphQLResult):
-                    self.balanceLamps =
-                    graphQLResult.data?.balance.first?.value ?? 0
-                    self.balanceChangeLamps = self.balanceLamps - self.initialBalanceLamps
+                    let balance = graphQLResult.data?.balance.first?.value ?? 0
+                    
+                    self.balanceLamps = balance
+                    if let initialBalanceLamps = self.initialBalanceLamps {
+                        self.balanceChangeLamps = balance - initialBalanceLamps
+                    }
                 case .failure(let error):
                     print("Error: \(error.localizedDescription)")
                 }
             }
         }
     }
-
+    
+    func getLinkedAccounts() -> (email: String?, phone: String?, embeddedWallets: [PrivySDK.EmbeddedWallet]) {
+        
+        switch privy.authState {
+        case .authenticated(let session):
+            let linkedAccounts = session.user.linkedAccounts
+            
+            var email: String? {
+                linkedAccounts.first { account in
+                    if case .email(let _) = account {
+                        return true
+                    }
+                    return false
+                }.flatMap { account in
+                    if case .email(let emailAccount) = account {
+                        return emailAccount.email
+                    }
+                    return nil
+                }
+            }
+            
+            var phone: String? {
+                linkedAccounts.first { account in
+                    if case .phone = account {
+                        return true
+                    }
+                    return false
+                }.flatMap { account in
+                    if case .phone(let phoneAccount) = account {
+                        return phoneAccount.phoneNumber
+                    }
+                    return nil
+                }
+            }
+            
+            var embeddedWallets: [PrivySDK.EmbeddedWallet] {
+                linkedAccounts.compactMap { account in
+                    if case .embeddedWallet(let wallet) = account {
+                        return wallet
+                    }
+                    return nil
+                }
+            }
+            return (email, phone, embeddedWallets)
+        default:
+            return (nil, nil, [])
+        }
+    }
+    
     func logout() {
+        if userId == nil { return }
+        self.walletState = .notCreated
+        self.walletAddress = nil
+        self.balanceLamps = 0
+        self.initialBalanceLamps = nil
+        self.balanceChangeLamps = 0
         privy.logout()
-        
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            self.userId = ""
-            self.username = ""
-            self.balanceLamps = 0
-            self.balanceChangeLamps = 0
-            self.isLoading = true
-        }
-        
-        
-    }
-
-    deinit {
-    // Cancel any ongoing network requests or timers
-        accountBalanceSubscription?.cancel()
-    }
-
-    var email: String? {
-        linkedAccounts?.first { account in
-            if case .email(let emailAccount) = account {
-                return true
-            }
-            return false
-        }.flatMap { account in
-            if case .email(let emailAccount) = account {
-                return emailAccount.email
-            }
-            return nil
-        }
-    }
-    
-    var phone: String? {
-        linkedAccounts?.first { account in
-            if case .phone = account {
-                return true
-            }
-            return false
-        }.flatMap { account in
-            if case .phone(let phoneAccount) = account {
-                return phoneAccount.phoneNumber
-            }
-            return nil
-        }
-    }
-    
-    var embeddedWallets: [PrivySDK.EmbeddedWallet] {
-        linkedAccounts?.compactMap { account in
-            if case .embeddedWallet(let wallet) = account {
-                return wallet
-            }
-            return nil
-        } ?? []
     }
 }

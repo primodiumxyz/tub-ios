@@ -22,6 +22,8 @@ struct AccountBalanceView: View {
     
     var body: some View {
         VStack(alignment: .center) {
+            if let balance = userModel.balanceLamps {
+                
             
             // Collapsed view
             if !isExpanded {
@@ -34,7 +36,7 @@ struct AccountBalanceView: View {
                         Spacer()
                         
                         let tokenValue = 0
-                        Text("\(priceModel.formatPrice(lamports: userModel.balanceLamps + tokenValue, maxDecimals: 2, minDecimals: 2))")
+                        Text("\(priceModel.formatPrice(lamports: balance + tokenValue, maxDecimals: 2, minDecimals: 2))")
                             .font(.sfRounded(size: .lg))
                             .fontWeight(.bold)
                             .foregroundColor(AppColors.green)
@@ -96,7 +98,7 @@ struct AccountBalanceView: View {
         .onTapGesture {
             withAnimation {
                 isExpanded.toggle()
-            }
+            }}
         }
     }
     
