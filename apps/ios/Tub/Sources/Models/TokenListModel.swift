@@ -197,21 +197,26 @@ class TokenListModel: ObservableObject {
                     switch result {
                     case .success(let graphQLResult):
                         if let tokens = graphQLResult.data?.listTopTokens {
-                            let mappedTokens = tokens.map { elem in
-                                Token(
-                                    id: elem.address,
-                                    name: elem.name,
-                                    symbol: elem.symbol,
-                                    description: nil,
-                                    imageUri: elem.imageLargeUrl ?? elem.imageSmallUrl ?? elem.imageThumbUrl,
-                                    liquidity: Double(elem.liquidity) ?? 0.0,
-                                    marketCap: Double(elem.marketCap ?? "0") ?? 0.0,
-                                    volume: Double(elem.volume) ?? 0.0,
-                                    pairId: elem.topPairId,
-                                    socials: (discord: nil, instagram: nil, telegram: nil, twitter: nil, website: nil),
-                                    uniqueHolders: nil
-                                )
-                            }
+                            let mappedTokens = tokens
+                                .filter { token in
+                                    // Only include tokens that have PUMP_FUN in their exchanges
+                                    token.exchanges?.contains(self.PUMP_FUN_ADDRESS) ?? false
+                                }
+                                .map { elem in
+                                    Token(
+                                        id: elem.address,
+                                        name: elem.name,
+                                        symbol: elem.symbol,
+                                        description: nil,
+                                        imageUri: elem.imageLargeUrl ?? elem.imageSmallUrl ?? elem.imageThumbUrl,
+                                        liquidity: Double(elem.liquidity) ?? 0.0,
+                                        marketCap: Double(elem.marketCap ?? "0") ?? 0.0,
+                                        volume: Double(elem.volume) ?? 0.0,
+                                        pairId: elem.topPairId,
+                                        socials: (discord: nil, instagram: nil, telegram: nil, twitter: nil, website: nil),
+                                        uniqueHolders: nil
+                                    )
+                                }
                             
                             let currentToken = mappedTokens.first(where: { $0.id == self.currentTokenModel.tokenId })
                             return (mappedTokens, currentToken)
