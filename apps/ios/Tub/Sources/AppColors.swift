@@ -49,10 +49,10 @@ struct AppColors {
     static let primaryPinkGradient = LinearGradient(
         stops: [
             Gradient.Stop(color: AppColors.primaryPink.opacity(0.3), location: 0.00),
-            Gradient.Stop(color: AppColors.primaryPink.opacity(0), location: 0.37)
+            Gradient.Stop(color: AppColors.primaryPink.opacity(0), location: 0.8)
         ],
-        startPoint: UnitPoint(x: 0.5, y: 0),
-        endPoint: UnitPoint(x: 0.5, y: 1)
+        startPoint: UnitPoint(x: 0.5, y: 1),
+        endPoint: UnitPoint(x: 0.5, y: 0)
     )
     
     // login modal bg

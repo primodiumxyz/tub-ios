@@ -15,15 +15,30 @@ struct LoginModalView: View {
     @State private var showEmailModal = false
     @State private var isEmailValid = false
     @State private var showEmailError = false
-    @State private var agreedToTerms: Bool = false
     @State private var showMoreOptions = false
-    @State private var showTermsError = false
     @EnvironmentObject private var errorHandler: ErrorHandler
+    @State private var sendingEmailOtp = false
     
     // Email validation function using regex
     func validateEmail(_ email: String) -> Bool {
         let emailRegex = "^[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}$"
         return NSPredicate(format: "SELF MATCHES %@", emailRegex).evaluate(with: email)
+    }
+    
+    private func sendEmailOtp(email: String) {
+        Task {
+            if sendingEmailOtp { return }
+            sendingEmailOtp = true
+            let otpSent = await privy.email.sendCode(to: email)
+            sendingEmailOtp = false
+            if otpSent {
+                showEmailError = false
+                showEmailModal = true
+            } else {
+                showEmailError = true
+                showEmailModal = false
+            }
+        }
     }
     
     var body: some View {
@@ -32,7 +47,6 @@ struct LoginModalView: View {
                 .font(.sfRounded(size: .xl2, weight: .bold))
                 .foregroundColor(AppColors.white)
                 .padding(.top, 30)
-                .padding(.bottom, 10)
             
             // Email TextField
             VStack(alignment: .leading, spacing: 10) {
@@ -44,32 +58,10 @@ struct LoginModalView: View {
                     .cornerRadius(30)
                     .keyboardType(.emailAddress)
                     .foregroundColor(.black)
-                    .onChange(of: email) { newValue in
+                    .onChange(of: email) { _, newValue in
                         isEmailValid = validateEmail(newValue)
                         showEmailError = false
                     }
-                
-                // Terms Checkbox
-                HStack {
-                    Image(systemName: agreedToTerms ? "checkmark.square.fill" : "square")
-                        .foregroundColor(agreedToTerms ? AppColors.primaryPink : AppColors.lightGray)
-                        .onTapGesture {
-                            agreedToTerms.toggle()
-                        }
-
-                    Text("I agree to the ")
-                        .foregroundColor(AppColors.lightGray)
-                        + Text("Terms of Service")
-                        .foregroundColor(AppColors.primaryPink)
-                        .underline()
-                        + Text(" and ")
-                        .foregroundColor(AppColors.lightGray)
-                        + Text("Privacy Policy")
-                        .foregroundColor(AppColors.primaryPink)
-                        .underline()
-                }
-                .font(.sfRounded(size: .sm))
-                .padding(.horizontal)
                 
                 // if email invalid
                 if showEmailError {
@@ -84,35 +76,34 @@ struct LoginModalView: View {
                         .padding(.top, -4)
                         .padding(.horizontal, 20)
                 }
-                
-                if showTermsError {
-                    Text("Please agree to the Terms of Service and Privacy Policy")
-                        .font(.caption)
-                        .foregroundColor(.red)
-                        .padding(.top, -4)
-                        .padding(.horizontal, 20)
-                }else {
-                    Text("")
-                        .font(.caption)
-                        .padding(.top, -4)
-                        .padding(.horizontal, 20)
-                }
             }
             .frame(height: 80)
 
+            // Terms & Conditions
+            VStack(alignment: .center, spacing: 2) {
+                Text("By continuing, you agree to the ")
+                    .foregroundColor(AppColors.lightGray)
+                Text("Terms of Service")
+                    .foregroundColor(AppColors.primaryPink)
+                    .font(.sfRounded(size: .sm, weight: .medium))
+                    .underline()
+                + Text(" and ")
+                    .foregroundColor(AppColors.lightGray)
+                + Text("Privacy Policy")
+                    .foregroundColor(AppColors.primaryPink)
+                    .font(.sfRounded(size: .sm, weight: .medium))
+                    .underline()
+            }
+            .font(.sfRounded(size: .sm))
+            .padding(.horizontal,8)
+            .padding(.bottom,-16)
+            .multilineTextAlignment(.center)
                         
             VStack(spacing:16){
                 Button(action: {
-                    if !agreedToTerms {
-                        showTermsError = true
-                        UINotificationFeedbackGenerator().notificationOccurred(.warning)
-                        return
-                    }
-                    showTermsError = false
                     if isEmailValid {
-                        showEmailModal = true
+                        sendEmailOtp(email: email)
                     } else {
-                        showEmailError = true
                     }
                 }) {
                     Text("Continue")
@@ -121,8 +112,12 @@ struct LoginModalView: View {
                         .frame(maxWidth: .infinity)
                         .padding(14)
                 }
-                .background(agreedToTerms ? AppColors.primaryPink : AppColors.primaryPink.opacity(0.5))
+                .disabled(!isEmailValid || sendingEmailOtp)
+                .opacity(!isEmailValid || sendingEmailOtp ? 0.5 : 1.0)
+                .background(AppColors.primaryPink)
                 .cornerRadius(30)
+                .opacity(!isEmailValid || sendingEmailOtp ? 0.5 : 1.0)
+
                 
                 // or divider line
                 HStack(alignment: .center, spacing: 12) {
@@ -147,7 +142,7 @@ struct LoginModalView: View {
                 
                 // Apple Login
                 SignInWithApple()
-                    .frame(maxWidth: .infinity, maxHeight: 50, alignment: .center)
+                    .frame(width: .infinity, height: 50, alignment: .center)
                     .cornerRadius(30)
                     .padding(.horizontal,10)
                     .overlay(
@@ -160,7 +155,7 @@ struct LoginModalView: View {
                         // Ideally this is called in a view model, but showcasinlug logic here for brevity
                         Task {
                             do {
-                                let authSession = try await privy.oAuth.login(with: OAuthProvider.apple)
+                                let _ = try await privy.oAuth.login(with: OAuthProvider.apple)
                             } catch {
                                 errorHandler.show(error)
                             }
@@ -263,11 +258,11 @@ struct LoginModalView: View {
         .ignoresSafeArea(.keyboard)
         .sheet(isPresented: $showPhoneModal) {
             SignInWithPhoneView()
-                .presentationDetents([.height(500)])
+                .presentationDetents([.height(300)])
         }
         .sheet(isPresented: $showEmailModal) {
             SignInWithEmailView(email: $email)
-                .presentationDetents([.height(400)])
+                .presentationDetents([.height(300)])
         }
         .dismissKeyboardOnTap()
         .background(AppColors.pinkGradient)
