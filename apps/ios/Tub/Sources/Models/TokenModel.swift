@@ -39,6 +39,10 @@ class TokenModel: ObservableObject {
     private var priceSubscription: Apollo.Cancellable?
     private var candleSubscription: Apollo.Cancellable?
     
+    @Published var livePrices: [Price] = []
+    @Published var candleData: [CandleData] = []
+    @Published var activeView: Timespan = .live
+    
     deinit {
         // Clean up subscriptions when the object is deallocated
         latestPriceSubscription?.cancel()
@@ -55,7 +59,7 @@ class TokenModel: ObservableObject {
     }
     
     func initialize(with newToken: Token, timeframeSecs: Double = 90) {
-        // Cancel all existing subscriptions
+        // Cancel existing subscriptions
         latestPriceSubscription?.cancel()
         tokenBalanceSubscription?.cancel()
         priceSubscription?.cancel()
@@ -65,8 +69,8 @@ class TokenModel: ObservableObject {
         self.tokenId = newToken.id
         self.token = newToken
         self.loading = true
-        self.prices = []
-        self.candles = []
+        self.livePrices = []
+        self.candleData = []
         self.priceChange = (0, 0)
         self.balanceLamps = 0
         self.timeframeSecs = timeframeSecs
@@ -75,13 +79,14 @@ class TokenModel: ObservableObject {
             do {
                 try await fetchTokenDetails()
                 try await fetchUniqueHolders()
-                if currentTimeframe == .live {
-                    try await fetchInitialPrices(self.timeframeSecs)
-                    subscribeToTokenPrices()
-                } else {
-                    try await fetchInitialCandles()
-                    subscribeToCandles()
-                }
+                
+                // Fetch both types of data
+                try await fetchInitialPrices(self.timeframeSecs)
+                try await fetchInitialCandles()
+                
+                // Subscribe to both updates
+                subscribeToTokenPrices()
+                subscribeToCandles()
             } catch {
                 print("Error fetching initial data: \(error)")
             }
@@ -258,34 +263,21 @@ class TokenModel: ObservableObject {
 
     
     func updateHistoryInterval(_ timespan: Timespan) {
-        self.currentTimeframe = timespan
+        self.activeView = timespan
         self.calculatePriceChange()
         
-        if self.timeframeSecs >= timespan.timeframeSecs {
-            return
-        }
-        
-        // Cancel existing subscriptions
-        priceSubscription?.cancel()
-        candleSubscription?.cancel()
-        
-        // Reset data
-        self.prices = []
-        self.candles = []
-        self.loading = true
-        self.timeframeSecs = timespan.timeframeSecs
-        
-        Task {
-            do {
-                if timespan == .live {
-                    try await fetchInitialPrices(timeframeSecs)
-                    subscribeToTokenPrices()
-                } else {
-                    try await fetchInitialCandles()
-                    subscribeToCandles()
+        if self.timeframeSecs < timespan.timeframeSecs {
+            self.timeframeSecs = timespan.timeframeSecs
+            Task {
+                do {
+                    if timespan == .live {
+                        try await fetchInitialPrices(timeframeSecs)
+                    } else {
+                        try await fetchInitialCandles()
+                    }
+                } catch {
+                    print("Error updating history interval: \(error.localizedDescription)")
                 }
-            } catch {
-                print("Error updating history interval: \(error.localizedDescription)")
             }
         }
     }
