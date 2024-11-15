@@ -221,7 +221,7 @@ struct TokenView : View {
         
         if let purchaseData = tokenModel.purchaseData, let price = tokenModel.prices.last?.priceUsd, price > 0, activeTab == "sell" {
             // Calculate current value in lamports
-            let currentValueLamps = Int(Double(tokenModel.balanceLamps) / 1e9 * Double(price))
+            let currentValueLamps = Int(Double(tokenModel.balanceLamps) * Double(priceModel.usdToLamports(usd: price)) / 1e9)
             
             // Calculate profit
             let initialValueUsd = priceModel.lamportsToUsd(lamports: purchaseData.amount)
@@ -242,8 +242,8 @@ struct TokenView : View {
             
             // Add position stats
             stats += [
-                ("You Own", StatValue(
-                    text: "\(priceModel.formatPrice(lamports: currentValueLamps, maxDecimals: 2, minDecimals: 2)) (\(priceModel.formatPrice(lamports: tokenModel.balanceLamps, showUnit: false)) \(tokenModel.token.symbol))",
+                ("You own", StatValue(
+                    text: "\(priceModel.formatPrice(lamports: currentValueLamps, maxDecimals: 2, minDecimals: 2)) (\(formatLargeNumber(Double(tokenModel.balanceLamps) / 1e9)) \(tokenModel.token.symbol))",
                     color: nil
                 ))
             ]
