@@ -251,9 +251,9 @@ export class TubService {
             } else {
               const feeOptions = {
                 sourceAccount: currentRequest.sellTokenAccount,
-                  destinationAccount: this.octane.getSettings().tradeFeeRecipient,
-                  amount: feeAmount,
-                };
+                destinationAccount: this.octane.getSettings().tradeFeeRecipient,
+                amount: Number((BigInt(feeAmount) * BigInt(currentRequest.sellQuantity!) / 100n)), // divide by 100 because feeAmount is in basis points
+              };
 
               const feeTransferInstruction = createTransferInstruction(
                   feeOptions.sourceAccount,
@@ -265,7 +265,7 @@ export class TubService {
               const swapInstructions = await this.octane.getQuoteAndSwapInstructions({
                 inputMint: currentRequest.sellTokenId!,
                 outputMint: currentRequest.buyTokenId!,
-                amount: currentRequest.sellQuantity || 0,
+                amount: currentRequest.sellQuantity! - feeOptions.amount,
                 autoSlippage: true,
                 minimizeSlippage: true,
                 onlyDirectRoutes: false,
