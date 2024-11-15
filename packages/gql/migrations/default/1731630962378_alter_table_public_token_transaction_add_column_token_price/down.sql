@@ -1,4 +1,0 @@
--- Could not auto-generate a down migration.
--- Please write an appropriate down migration for the SQL below:
--- alter table "public"."token_transaction" add column "token_price" double precision
---  not null;
