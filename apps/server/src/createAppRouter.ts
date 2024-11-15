@@ -101,8 +101,8 @@ export function createAppRouter() {
             userPublicKey: new PublicKey(input.userPublicKey)
           }).then(subject => {
             subscription = subject.subscribe({
-              next: (transaction: Transaction) => {
-                emit.next(transaction);
+              next: (base64Transaction: string) => {
+                emit.next(base64Transaction);
               },
               error: (error: Error) => {
                 console.error('Swap stream error:', error);

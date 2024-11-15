@@ -23,7 +23,7 @@ export class TubService {
   private octane: OctaneService;
   private privy: PrivyClient;
   private activeSwapRequests: Map<string, ActiveSwapRequest> = new Map();
-  private swapSubjects: Map<string, Subject<Transaction>> = new Map();
+  private swapSubjects: Map<string, Subject<string>> = new Map();
   private swapRegistry: Map<string, { 
     hasFee: boolean, 
     transaction: Transaction,
@@ -188,7 +188,7 @@ export class TubService {
     });
     
     if (!this.swapSubjects.has(userId)) {
-      const subject = new Subject<Transaction>();
+      const subject = new Subject<string>();
       this.swapSubjects.set(userId, subject);
 
       // Create 1-second interval stream
@@ -240,27 +240,25 @@ export class TubService {
               }, currentRequest.userPublicKey);
               transaction = await this.octane.buildCompleteSwap(swapInstructions, feeTransferInstruction);
             }
-
-            if (transaction) {
-              const transactionBase64 = Buffer.from(
-                transaction.serialize()
-              ).toString('base64');
-              
-              // Store in registry with fee information
-              this.swapRegistry.set(
-                transactionBase64,
-                { 
-                  hasFee: feeAmount > 0, 
-                  transaction,
-                  timestamp: Date.now()
-                }
-              );
-            }
-
-            return transaction;
+            
+            const transactionBase64 = Buffer.from(
+              transaction.serialize()
+            ).toString('base64');
+            
+            // Store in registry with fee information
+            this.swapRegistry.set(
+              transactionBase64,
+              { 
+                hasFee: feeAmount > 0, 
+                transaction,
+                timestamp: Date.now()
+              }
+            );
+            
+            return transactionBase64;
           })
         )
-        .subscribe((transaction: Transaction | null) => {
+        .subscribe((transaction: string | null) => {
           if (transaction) {
             subject.next(transaction);
           }
