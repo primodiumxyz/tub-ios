@@ -91,12 +91,10 @@ struct HistoryView : View {
     
     var body: some View {
         Group {
-            if loading == true {
-                LoadingView(identifier: "HistoryView - loading")
-            } else if let error = error {
+            if let error = error {
                 ErrorView(error: error)
             } else {
-                HistoryViewContent(txs: txs)
+                HistoryViewContent(txs: txs, loading: $loading)
             }
         }.onAppear {
             if let userId = userModel.userId { fetchUserTxs(userId) }
@@ -108,6 +106,8 @@ struct HistoryView : View {
 
 struct HistoryViewContent: View {
     var txs: [Transaction]
+    @Binding var loading : Bool
+    
     @State private var showFilters = true
     
     // Filter state
@@ -258,7 +258,10 @@ struct HistoryViewContent: View {
                 
                 
                 // Transaction List
-                if filteredTransactions().isEmpty {
+                if loading {
+                   ProgressView()
+                }
+                else if filteredTransactions().isEmpty {
                     Text("No transactions found")
                         .font(.sfRounded(size: .base, weight: .regular))
                         .foregroundColor(AppColors.gray)

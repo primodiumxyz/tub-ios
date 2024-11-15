@@ -100,8 +100,8 @@ struct HomeTabsView: View {
                             AccountView()
                         }
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(AppColors.black)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                     // Custom Tab Bar
                     HStack {

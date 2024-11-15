@@ -68,7 +68,7 @@ struct AccountView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(AppColors.black)
+            .background(AppColors.black.ignoresSafeArea())
             .sheet(isPresented: $showOnrampView) {
                     
                     VStack {
@@ -90,6 +90,7 @@ struct AccountView: View {
             .presentationDragIndicator(.visible)
             .presentationBackground(.black)
         }
+        .background(AppColors.black.ignoresSafeArea())
     }
 }
 
