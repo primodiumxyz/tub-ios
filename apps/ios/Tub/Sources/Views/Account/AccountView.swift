@@ -17,6 +17,8 @@ struct AccountView: View {
     @State private var showOnrampView = false
     @State private var errorMessage: String = ""
     
+
+    
     func performAirdrop() {
         isAirdropping = true
         
@@ -55,7 +57,7 @@ struct AccountView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 24) {
-                if let userId = userModel.userId, let initialBalance = userModel.initialBalanceLamps {
+                if userModel.userId != nil  {
                     AccountContentView(
                         userModel: userModel,
                         priceModel: priceModel,
@@ -97,24 +99,32 @@ private struct BalanceSection: View {
     let userModel: UserModel
     let priceModel: SolPriceModel
     
+    var accountBalance: (balance: Int, change: Int) {
+        let balance = userModel.balanceLamps
+        
+        let adjustedChange = userModel.balanceChangeLamps
+        
+        return (balance, adjustedChange)
+    }
+    
     var body: some View {
         VStack(spacing: 8) {
             Text("Account Balance")
                 .font(.sfRounded(size: .lg, weight: .regular))
                 .foregroundColor(AppColors.lightGray.opacity(0.7))
             
-            Text("\(priceModel.formatPrice(lamports: userModel.balanceLamps, maxDecimals: 2, minDecimals: 2))")
+            Text("\(priceModel.formatPrice(lamports: accountBalance.balance, maxDecimals: 2, minDecimals: 2))")
                 .font(.sfRounded(size: .xl5, weight: .bold))
                 .foregroundColor(.white)
             
-            if let initialBalance = userModel.initialBalanceLamps  { let adjustedPercentage = userModel.initialBalanceLamps != 0 ? 100 - (Double(userModel.balanceLamps) / Double(initialBalance)) * 100 : 100
+            if accountBalance.change > 0  {
+                  Text("\(priceModel.formatPrice(lamports: accountBalance.change, showSign: true, maxDecimals: 2))")
+                                    
+                                    // Format time elapsed
+//                                    Text("\(formatDuration(userModel.timeElapsed))")
+//                                        .foregroundColor(.gray)
+//                                        .font(.sfRounded(size: .sm, weight: .regular))
                 
-                HStack {
-                    Image(systemName: adjustedPercentage < 0 ? "arrow.down.right" : "arrow.up.right")
-                    Text("\(abs(adjustedPercentage), specifier: "%.1f")%")
-                    Text("\(formatDuration(Date.now.timeIntervalSince1970 - userModel.initialTime.timeIntervalSince1970))")
-                }
-                .foregroundColor(.green)
             }
         }
         .padding(.top, 16)
@@ -285,27 +295,7 @@ private struct AccountSettingsView: View {
 // New component for unregistered users
 private struct UnregisteredAccountView: View {
     var body: some View {
-        VStack {
-            Text("Please register to view your account details.")
-                .font(.sfRounded(size: .lg, weight: .medium))
-                .foregroundColor(.yellow)
-                .multilineTextAlignment(.center)
-                .padding()
-            
-            NavigationLink(destination: RegisterView()) {
-                Text("Register Now")
-                    .font(.sfRounded(size: .base, weight: .semibold))
-                    .foregroundColor(AppColors.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(12)
-                    .background(AppColors.primaryPurple)
-                    .cornerRadius(26)
-            }
-            
-            Text(serverBaseUrl)
-                .foregroundStyle(.white)
-                .font(.caption)
-        }
+            LoginModalView().frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
