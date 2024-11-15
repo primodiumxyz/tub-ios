@@ -65,14 +65,7 @@ struct RegisterView: View {
                         }
                     
                     
-                    // if email invalid
-                    Text(showEmailError ? "Please enter a valid email address." : "")
-                        .font(.caption)
-                        .foregroundColor(.red)
-                        .padding(.top, -4)
-                        .padding(.horizontal, 20)
                     
-                    Spacer().frame(height: 20)
                     
                     Button(action: {
                         if isEmailValid {
@@ -95,8 +88,22 @@ struct RegisterView: View {
                             .inset(by: 0.5)
                             .stroke(AppColors.primaryPurple, lineWidth: 1)
                     )
-                    
-                    
+                    .opacity(!isEmailValid || sendingEmailOtp ? 0.5 : 1.0)
+
+                    // if email invalid
+                    if showEmailError {
+                        Text("Please enter a valid email address.")
+                            .font(.caption)
+                            .foregroundColor(.red)
+                            .padding(.top, -4)
+                            .padding(.horizontal, 20)
+                    } else {
+                        // Invisible placeholder to maintain spacing
+                        Text("")
+                            .font(.caption)
+                            .padding(.top, -4)
+                            .padding(.horizontal, 20)
+                    }
                 }
                 .padding(.horizontal)
                 // or divider line
