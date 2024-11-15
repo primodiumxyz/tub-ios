@@ -23,7 +23,7 @@ class CodexNetwork {
             interceptorProvider: interceptorProvider,
             endpointURL: URL(string: "https://graph.codex.io/graphql")!,
             additionalHeaders: [
-                "Authorization": "0d0342ba23b7b3254589defd7abed9299d6adf36",
+                "Authorization": "API_KEY",
                 "Content-Type": "application/json"
             ]
         )
