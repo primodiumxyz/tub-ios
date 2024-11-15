@@ -19,7 +19,8 @@ struct OtpModifer: ViewModifier {
     
     @Binding var pin : String
     
-    var textLimt = 1
+     var isFocused: Bool  // Add this property
+   var textLimt = 1
 
     func limitText(_ upper : Int) {
         if pin.count > upper {
@@ -36,9 +37,10 @@ struct OtpModifer: ViewModifier {
             .onReceive(Just(pin)) {_ in limitText(textLimt)}
             .frame(width: 45, height: 45)
             .background(Color.white.cornerRadius(5))
-            .background(
+.overlay(
                 RoundedRectangle(cornerRadius: 5)
-                    .stroke(Color.blue, lineWidth: 2)
+                    .stroke(isFocused ? AppColors.primaryPink : Color.gray, // Change color as needed
+                           lineWidth: isFocused ? 4 : 1)
             )
     }
 }

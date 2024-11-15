@@ -135,7 +135,7 @@ struct AccountView: View {
                                 }
                             }.disabled(isAirdropping)
                             
-                            Text("[DEV] Airdrop")
+                            Text("Get $200")
                                 .font(.sfRounded(size: .sm, weight: .medium))
                                 .foregroundColor(AppColors.primaryPink)
                                 .multilineTextAlignment(.center)
@@ -159,7 +159,7 @@ struct AccountView: View {
                                 .font(.sfRounded(size: .sm, weight: .medium))
                                 .foregroundColor(AppColors.aquaGreen)
                                 .multilineTextAlignment(.center)
-                        }.frame(width: 90).opacity(0.5)
+                        }.frame(width: 90).opacity(0.7)
 
                         // Add Funds Button
                         VStack(spacing: 8) {
@@ -179,7 +179,7 @@ struct AccountView: View {
                                 .font(.sfRounded(size: .sm, weight: .medium))
                                 .foregroundColor(AppColors.aquaGreen)
                                 .multilineTextAlignment(.center)
-                        }.frame(width: 90).opacity(0.5)
+                        }.frame(width: 90)
                         
                         Spacer()
                     }
@@ -270,5 +270,4 @@ struct AccountView: View {
             }
         }
     }
-
 }
