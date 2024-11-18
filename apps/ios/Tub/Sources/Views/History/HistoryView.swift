@@ -15,24 +15,24 @@ struct HistoryView : View {
     
     
     @State private var txs: [Transaction]
-    @State private var loading : Bool
+    @State private var isReady : Bool
     @State private var error: Error? // Add this line
     
     init(txs: [Transaction]? = []) {
         self._txs = State(initialValue: txs!.isEmpty ? [] : txs!)
-        self._loading = State(initialValue: txs == nil)
+        self._isReady = State(initialValue: txs != nil)
         self._error = State(initialValue: nil) // Add this line
     }
     
     func fetchUserTxs(_ userId: String) {
         guard let walletAddress = userModel.walletAddress else { return }
-        loading = true
+        isReady = false
         error = nil // Reset error state
         let query = GetWalletTransactionsQuery(wallet: walletAddress)
         
         Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { result in
             DispatchQueue.main.async {
-                self.loading = false
+                self.isReady = true
                 
                 switch result {
                 case .success(let graphQLResult):
@@ -61,19 +61,21 @@ struct HistoryView : View {
                                 valueLamps = Int(Double(price) * Double(transaction.amount) / Double(1e9))
                             }
                                 
-                            let newTransaction = Transaction(
-                                name: name ?? "",
-                                symbol: symbol ?? "",
-                                imageUri: imageUri,
-                                date: date,
-                                valueUsd: priceModel.lamportsToUsd(lamports: -valueLamps),
-                                valueLamps: -valueLamps,
-                                quantityTokens: transaction.amount,
-                                isBuy: isBuy,
-                                mint: mint
-                            )
+                            if let price = priceModel.lamportsToUsd(lamports: -valueLamps) {
+                                let newTransaction = Transaction(
+                                    name: name ?? "",
+                                    symbol: symbol ?? "",
+                                    imageUri: imageUri,
+                                    date: date,
+                                    valueUsd: price,
+                                    valueLamps: -valueLamps,
+                                    quantityTokens: transaction.amount,
+                                    isBuy: isBuy,
+                                    mint: mint
+                                )
                                 
-                            result.append(newTransaction)
+                                result.append(newTransaction)
+                            }
                         }
                     } else if let error = graphQLResult.errors?.first {
                         print(error)
@@ -94,7 +96,7 @@ struct HistoryView : View {
             if let error = error {
                 ErrorView(error: error)
             } else {
-                HistoryViewContent(txs: txs, loading: $loading)
+                HistoryViewContent(txs: txs, isReady: $isReady)
             }
         }.onAppear {
             if let userId = userModel.userId { fetchUserTxs(userId) }
@@ -106,7 +108,7 @@ struct HistoryView : View {
 
 struct HistoryViewContent: View {
     var txs: [Transaction]
-    @Binding var loading : Bool
+    @Binding var isReady : Bool
     
     @State private var showFilters = true
     
@@ -258,7 +260,7 @@ struct HistoryViewContent: View {
                 
                 
                 // Transaction List
-                if loading {
+                if !isReady {
                    ProgressView()
                 }
                 else if filteredTransactions().isEmpty {
@@ -411,22 +413,24 @@ struct TransactionRow: View {
             }
             Spacer()
             VStack(alignment: .trailing) {
-                HStack {
-                    Text(priceModel.formatPrice(usd: transaction.valueUsd, showSign: true))
+                if let price = priceModel.formatPrice(usd: transaction.valueUsd, showSign: true) {
+                    Text(price)
                         .font(.sfRounded(size: .base, weight: .bold))
                         .foregroundColor(transaction.isBuy ? AppColors.red: AppColors.green)
                 }
                 
-                HStack {
-                    Text(priceModel.formatPrice(lamports: abs(transaction.quantityTokens), showUnit: false))
-                        .font(.sfRounded(size: .xs, weight: .regular))
-                        .foregroundColor(AppColors.gray)
-                        .offset(x:4, y:2)
-                    
-                    Text(transaction.symbol)
-                        .font(.sfRounded(size: .xs, weight: .regular))
-                        .foregroundColor(AppColors.gray)
-                        .offset(y:2)
+                if let quantity = priceModel.formatPrice(lamports: abs(transaction.quantityTokens), showUnit: false) {
+                    HStack {
+                        Text(quantity)
+                            .font(.sfRounded(size: .xs, weight: .regular))
+                            .foregroundColor(AppColors.gray)
+                            .offset(x:4, y:2)
+                        
+                        Text(transaction.symbol)
+                            .font(.sfRounded(size: .xs, weight: .regular))
+                            .foregroundColor(AppColors.gray)
+                            .offset(y:2)
+                    }
                 }
             }
             Image(systemName: "chevron.right")

@@ -19,7 +19,7 @@ class TokenModel: ObservableObject {
         imageUri: "",
         volume: (0, FILTER_INTERVAL)
     )
-    @Published var loading = true
+    @Published var isReady = false
 
     @Published var prices: [Price] = []
     @Published var priceChange: (amountLamps: Int, percentage: Double) = (0, 0)
@@ -47,7 +47,7 @@ class TokenModel: ObservableObject {
 
         // Reset properties if necessary
         self.tokenId = newTokenId
-        self.loading = true  // Reset loading state if needed
+        self.isReady = false // Reset loading state if needed
         self.prices = []
         self.priceChange = (0, 0)
         self.timeframeSecs = timeframeSecs
@@ -57,7 +57,7 @@ class TokenModel: ObservableObject {
             do {
                 try await fetchTokenDetails()
                 try await fetchInitialPrices(self.timeframeSecs)
-                self.loading = false
+                self.isReady = true
             } catch {
                 print("Error fetching initial data: \(error)")
             }
@@ -92,7 +92,7 @@ class TokenModel: ObservableObject {
                                 return nil
                             } ?? []
                         self.lastPriceTimestamp = self.prices.last?.timestamp
-                        self.loading = false
+                        self.isReady = true
                         self.calculatePriceChange()
                     }
                     continuation.resume()
@@ -192,7 +192,7 @@ class TokenModel: ObservableObject {
 
         latestPriceSubscription?.cancel()
         self.prices = []
-        self.loading = true
+        self.isReady = false
         self.timeframeSecs = timespan.timeframeSecs
         Task {
             do {
@@ -234,21 +234,20 @@ class TokenModel: ObservableObject {
         }
     }
 
-    func getTokenStats(priceModel: SolPriceModel) -> [(String, String)] {
+    func getTokenStats(priceModel: SolPriceModel) -> [(String, String?)] {
         let currentPrice = prices.last?.price ?? 0
         let marketCap =
             Double(token.supply) / pow(10.0, Double(token.decimals)) * Double(currentPrice)  // we're dividing first otherwise it will overflow...
         let supplyValue = Double(token.supply) / pow(10.0, Double(token.decimals))
 
         return [
-            ("Market Cap", loading ? "..." : priceModel.formatPrice(lamports: Int(marketCap))),
+            ("Market Cap", isReady ? priceModel.formatPrice(lamports: Int(marketCap)) : nil),
             (
                 "Volume (\(formatDuration(token.volume.interval)))",
-                loading
-                    ? "..."
-                    : priceModel.formatPrice(lamports: token.volume.value, formatLarge: true)
+                isReady ? priceModel.formatPrice(lamports: token.volume.value, formatLarge: true) : nil
             ),
-            ("Supply", loading ? "..." : formatLargeNumber(supplyValue)),
+            ("Supply", isReady ? formatLargeNumber(supplyValue) : nil),
+            ("", nil),
         ]
     }
 }

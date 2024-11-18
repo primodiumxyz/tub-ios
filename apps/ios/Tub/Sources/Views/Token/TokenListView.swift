@@ -10,7 +10,6 @@ import TubAPI
 import UIKit
 
 struct TokenListView: View {
-    @StateObject private var viewModel: TokenListModel
     @EnvironmentObject private var userModel: UserModel
     
     // chevron animation
@@ -22,32 +21,37 @@ struct TokenListView: View {
     @State private var activeOffset: CGFloat = 0
     @State private var dragging = false
     
-    @State var activeTab: String = "buy"
+    var activeTab: String {
+        //        let balance: Int = tokenListModel.currentTokenModel.balanceLamps
+        let balance: Int = 0
+        return balance > 0 ? "sell" : "buy"
+    }
     
+    @ObservedObject var tokenListModel: TokenListModel
     @StateObject private var animationState = TokenAnimationState.shared
     
     @State private var showNotification = false
     
+    @State private var isLoading = false
+    
     private func canSwipe(value: DragGesture.Value) -> Bool {
         return activeTab != "sell" &&
         // not trying to swipe up from the first token
-        !(value.translation.height > 0 && viewModel.currentTokenIndex == 0) &&
+        !(value.translation.height > 0 && tokenListModel.currentTokenIndex == 0) &&
         // not trying to swipe down when there is only one token available (the current one)
-        !(value.translation.height < 0 && !viewModel.isNextTokenAvailable)
+        !(value.translation.height < 0 && !tokenListModel.isNextTokenAvailable)
     }
     
-    init() {
-        self._viewModel = StateObject(wrappedValue: TokenListModel())
-    }
+    
     
     private func loadToken(_ geometry: GeometryProxy, _ direction: String) {
         if direction == "previous" {
-            viewModel.loadPreviousToken()
+            tokenListModel.loadPreviousToken()
             withAnimation {
                 activeOffset += geometry.size.height
             }
         } else {
-            viewModel.loadNextToken()
+            tokenListModel.loadNextToken()
             withAnimation {
                 activeOffset -= geometry.size.height
             }
@@ -63,19 +67,17 @@ struct TokenListView: View {
         VStack {
             AccountBalanceView(
                 userModel: userModel,
-                currentTokenModel: viewModel.currentTokenModel
+                currentTokenModel: tokenListModel.currentTokenModel
             )
             .zIndex(2)
-               Divider()
-                        .frame(width: 300, height: 1)
-                        .overlay(
-                            Rectangle()
-                                .stroke(AppColors.lightGray.opacity(0.3), lineWidth: 0.5)
-                        )
-            if viewModel.isLoading {
-                    DummyTokenView(height: 400)
-                        .frame(height: .infinity)
-                
+            Divider()
+                .frame(width: 300, height: 1)
+                .overlay(
+                    Rectangle()
+                        .stroke(AppColors.lightGray.opacity(0.3), lineWidth: 0.5)
+                )
+            if tokenListModel.isLoading {
+                LoadingTokenView()
             } else {
                 ZStack(alignment: .top) {
                     // Main content
@@ -87,14 +89,14 @@ struct TokenListView: View {
                         
                         VStack(spacing: 0) {
                             // Rest of the content
-                            if viewModel.tokens.count == 0 {
+                            if tokenListModel.tokens.count == 0 {
                                 Spacer()
                                 Text("Failed to load tokens.")
                                     .foregroundColor(AppColors.lightYellow)
                                     .multilineTextAlignment(.center)
                                     .padding(.bottom, 24)
                                 Button(action: {
-                                    viewModel.fetchTokens(setLoading: true)
+                                    tokenListModel.fetchTokens(setLoading: true)
                                 }) {
                                     Text("Retry")
                                         .font(.sfRounded(size: .lg, weight: .semibold))
@@ -114,12 +116,11 @@ struct TokenListView: View {
                             } else {
                                 GeometryReader { geometry in
                                     VStack(spacing: 10) {
-                                        DummyTokenView(height: geometry.size.height)
+                                        LoadingTokenView()
                                             .frame(height: geometry.size.height)
                                             .opacity(dragging ? 0.8 : 0)
                                         TokenView(
-                                            tokenModel: viewModel.currentTokenModel,
-                                            activeTab: $activeTab,
+                                            tokenModel: tokenListModel.currentTokenModel,
                                             onSellSuccess: {
                                                 withAnimation {
                                                     showNotification = true
@@ -127,10 +128,10 @@ struct TokenListView: View {
                                             }
                                         )
                                         .frame(height: geometry.size.height - 25)
-                                        DummyTokenView(height: geometry.size.height)
+                                        LoadingTokenView()
                                             .frame(height: geometry.size.height)
                                             .opacity(dragging ? 0.8 : 0)
-
+                                        
                                         
                                     }
                                     .zIndex(1)
@@ -184,8 +185,11 @@ struct TokenListView: View {
                 }
                 .foregroundColor(.white)
             }
-        } .onAppear {
-            viewModel.subscribeTokens()
+        }.onAppear {
+            tokenListModel.subscribeTokens()
+        }
+        .onDisappear {
+            tokenListModel.unsubscribeTokens()
         }
     }
 }

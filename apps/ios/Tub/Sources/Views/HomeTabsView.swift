@@ -11,9 +11,16 @@ import PrivySDK
 struct HomeTabsView: View {
     var color = Color(red: 0.43, green: 0.97, blue: 0.98)
     @EnvironmentObject private var userModel : UserModel
+    @EnvironmentObject private var priceModel : SolPriceModel
+    
     @State private var selectedTab: Int = 0 // Track the selected tab
     @State private var tabStartTime: Date? = nil
   
+    @StateObject private var tokenListModel: TokenListModel
+    init() {
+        self._tokenListModel = StateObject(wrappedValue: TokenListModel())
+    }
+    
     // Add this to watch for userModel changes
     private var userId: String? {
         didSet {
@@ -86,14 +93,14 @@ struct HomeTabsView: View {
 
     var body: some View {
         Group {
-            if userModel.isLoading  {
-                LoadingView(identifier: "HomeTabsView - waiting for userModel & priceModel", message: "Loading user data")
-            } else  {
+            if !priceModel.isReady {
+                LoadingView(identifier: "HomeTabsView - waiting for userModel & priceModel")
+            } else {
                 ZStack(alignment: .bottom) {
                     // Main content view
                     Group {
                         if selectedTab == 0 {
-                            TokenListView()
+                            TokenListView(tokenListModel: tokenListModel)
                         } else if selectedTab == 1 {
                             HistoryView()
                         } else if selectedTab == 2 {

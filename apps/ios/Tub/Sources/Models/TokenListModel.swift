@@ -194,6 +194,16 @@ class TokenListModel: ObservableObject {
         }
     }
 
+    func unsubscribeTokens() {
+        // Stop the timer
+        timer?.invalidate()
+        timer = nil
+        
+        // Clear token subscription if it exists
+        tokenSubscription?.cancel()
+        tokenSubscription = nil
+    }
+
     private var fetching = false
     
     func fetchTokens(setLoading: Bool? = false) {

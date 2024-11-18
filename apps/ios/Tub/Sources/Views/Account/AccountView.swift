@@ -127,10 +127,9 @@ private struct BalanceSection: View {
                 .font(.sfRounded(size: .lg, weight: .regular))
                 .foregroundColor(AppColors.lightGray.opacity(0.7))
             
-            if let balance = accountBalance.balance {
+            if let balance = accountBalance.balance, let formattedBalance = priceModel.formatPrice(lamports: balance, maxDecimals: 2, minDecimals: 2) {
                 
-            
-            Text("\(priceModel.formatPrice(lamports: balance, maxDecimals: 2, minDecimals: 2))")
+            Text(formattedBalance)
                 .font(.sfRounded(size: .xl5, weight: .bold))
                 .foregroundColor(.white)
             } else {

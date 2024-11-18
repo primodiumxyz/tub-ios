@@ -11,7 +11,6 @@ struct BuySellForm: View {
     @EnvironmentObject var userModel: UserModel
     @EnvironmentObject var priceModel: SolPriceModel
     @ObservedObject var tokenModel: TokenModel
-    @Binding var activeTab: String
     @Binding var showBuySheet: Bool
     @Binding var defaultAmount: Double
     @State private var showBubbles = false
@@ -19,6 +18,12 @@ struct BuySellForm: View {
     @StateObject private var settingsManager = SettingsManager.shared
     @State private var navigateToLogin = false
     @State private var showOnrampView = false
+    
+    var activeTab: String {
+//        let balance: Int = viewModel.currentTokenModel.balanceLamps
+        let balance: Int = 0
+        return balance > 0 ? "sell" : "buy"
+    }
     
     var handleBuy: (Double) -> Void
     var onSellSuccess: () -> Void

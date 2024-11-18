@@ -96,4 +96,4 @@ public let MINT_BURNT: Bool = true
 public let FREEZE_BURNT: Bool = true
     
 public let CHART_INTERVAL: Double = 120
-public let CHART_INTERVAL_MIN_TRADES: Int = 1000
+public let CHART_INTERVAL_MIN_TRADES: Int = 15

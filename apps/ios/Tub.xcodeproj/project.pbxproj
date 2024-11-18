@@ -25,6 +25,7 @@
 		9941CD6F2CCAA30D0009E5ED /* FormatPrice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9941CD6E2CCAA30B0009E5ED /* FormatPrice.swift */; };
 		994AE5F72CD2AB3F00553A32 /* GoogleLogoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994AE5F62CD2AB3F00553A32 /* GoogleLogoView.swift */; };
 		995FCA1F2CDA5ED70018A76D /* CoinbaseOnrampView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995FCA1E2CDA5ED20018A76D /* CoinbaseOnrampView.swift */; };
+		996772FE2CEB85820029B298 /* LoadingBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996772FD2CEB857C0029B298 /* LoadingBox.swift */; };
 		997DE8F22CDAC84900164366 /* ErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 997DE8F12CDAC84600164366 /* ErrorHandler.swift */; };
 		997DE8F42CDAC86500164366 /* ErrorOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 997DE8F32CDAC86000164366 /* ErrorOverlay.swift */; };
 		99856DA42CD27E1F004B9D40 /* Privy in Frameworks */ = {isa = PBXBuildFile; productRef = 99856DA32CD27E1F004B9D40 /* Privy */; };
@@ -35,7 +36,7 @@
 		99BB98562CC1798600658059 /* CandleChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99BB98552CC1798400658059 /* CandleChartView.swift */; };
 		99C26C1C2CAEE263004807A2 /* ApolloAPI in Frameworks */ = {isa = PBXBuildFile; productRef = 99C26C1B2CAEE263004807A2 /* ApolloAPI */; };
 		99C26C1E2CAEE38B004807A2 /* ApolloWebSocket in Frameworks */ = {isa = PBXBuildFile; productRef = 99C26C1D2CAEE38B004807A2 /* ApolloWebSocket */; };
-		99C79A182CE2F1BD00D0E697 /* DummyTokenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C79A172CE2F1BA00D0E697 /* DummyTokenView.swift */; };
+		99C79A182CE2F1BD00D0E697 /* LoadingTokenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C79A172CE2F1BA00D0E697 /* LoadingTokenView.swift */; };
 		99DDF62D2CB02816000234DA /* AccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99DDF62C2CB0280D000234DA /* AccountView.swift */; };
 		99DED2512CAF2A6B0055FC60 /* ApolloCombine in Frameworks */ = {isa = PBXBuildFile; productRef = 99DED2502CAF2A6B0055FC60 /* ApolloCombine */; };
 		99E789492CC147C000C3CEEB /* ImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E789482CC147BD00C3CEEB /* ImageView.swift */; };
@@ -102,6 +103,7 @@
 		9941CD6E2CCAA30B0009E5ED /* FormatPrice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatPrice.swift; sourceTree = "<group>"; };
 		994AE5F62CD2AB3F00553A32 /* GoogleLogoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleLogoView.swift; sourceTree = "<group>"; };
 		995FCA1E2CDA5ED20018A76D /* CoinbaseOnrampView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoinbaseOnrampView.swift; sourceTree = "<group>"; };
+		996772FD2CEB857C0029B298 /* LoadingBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingBox.swift; sourceTree = "<group>"; };
 		997DE8F12CDAC84600164366 /* ErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorHandler.swift; sourceTree = "<group>"; };
 		997DE8F32CDAC86000164366 /* ErrorOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorOverlay.swift; sourceTree = "<group>"; };
 		99856DA52CD27E27004B9D40 /* Privy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Privy.swift; sourceTree = "<group>"; };
@@ -111,7 +113,7 @@
 		999F595A2CA754F900E7AE9F /* ChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartView.swift; sourceTree = "<group>"; };
 		99B147FD2CDFE5B200DFDB96 /* ShimmeringView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShimmeringView.swift; sourceTree = "<group>"; };
 		99BB98552CC1798400658059 /* CandleChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CandleChartView.swift; sourceTree = "<group>"; };
-		99C79A172CE2F1BA00D0E697 /* DummyTokenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DummyTokenView.swift; sourceTree = "<group>"; };
+		99C79A172CE2F1BA00D0E697 /* LoadingTokenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingTokenView.swift; sourceTree = "<group>"; };
 		99DDF62C2CB0280D000234DA /* AccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountView.swift; sourceTree = "<group>"; };
 		99E789482CC147BD00C3CEEB /* ImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageView.swift; sourceTree = "<group>"; };
 		99F3D7A32CE6D55B005B895C /* UserTokenModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserTokenModel.swift; sourceTree = "<group>"; };
@@ -293,7 +295,7 @@
 		99DD66012CB80D3D00B56450 /* Token */ = {
 			isa = PBXGroup;
 			children = (
-				99C79A172CE2F1BA00D0E697 /* DummyTokenView.swift */,
+				99C79A172CE2F1BA00D0E697 /* LoadingTokenView.swift */,
 				99FBEEA72CCA882300BC6392 /* Charts */,
 				991361A02CADE3AA00E5D656 /* TokenListView.swift */,
 				DB10A95C2CA5AA1B00B1E4F3 /* TokenView.swift */,
@@ -307,6 +309,7 @@
 		99DD66022CB80D5B00B56450 /* Common */ = {
 			isa = PBXGroup;
 			children = (
+				996772FD2CEB857C0029B298 /* LoadingBox.swift */,
 				99B147FD2CDFE5B200DFDB96 /* ShimmeringView.swift */,
 				992875662CCACD47004B48BE /* ErrorView.swift */,
 				99E789482CC147BD00C3CEEB /* ImageView.swift */,
@@ -577,6 +580,7 @@
 				DF8C84ED2CDFDCA700E8FA7B /* DismissKeyboardModifier.swift in Sources */,
 				DF99EC212CE294B40065F390 /* TokenAnimationState.swift in Sources */,
 				995FCA1F2CDA5ED70018A76D /* CoinbaseOnrampView.swift in Sources */,
+				996772FE2CEB85820029B298 /* LoadingBox.swift in Sources */,
 				991D60812CD5211600A7245F /* CreateWalletView.swift in Sources */,
 				99DDF62D2CB02816000234DA /* AccountView.swift in Sources */,
 				9936FC582CADCA5200E21B8A /* Structs.swift in Sources */,
@@ -590,7 +594,7 @@
 				994AE5F72CD2AB3F00553A32 /* GoogleLogoView.swift in Sources */,
 				992875672CCACD4C004B48BE /* ErrorView.swift in Sources */,
 				997DE8F22CDAC84900164366 /* ErrorHandler.swift in Sources */,
-				99C79A182CE2F1BD00D0E697 /* DummyTokenView.swift in Sources */,
+				99C79A182CE2F1BD00D0E697 /* LoadingTokenView.swift in Sources */,
 				466945ED2CDFDB1F008E8B99 /* LoadingTracker.swift in Sources */,
 				DF5A2FC52CAF2DEF00508A56 /* HistoryDetailsView.swift in Sources */,
 				99856DA62CD27E2E004B9D40 /* Privy.swift in Sources */,

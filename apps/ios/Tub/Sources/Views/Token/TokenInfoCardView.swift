@@ -9,12 +9,17 @@ import SwiftUI
 struct TokenInfoCardView: View {
     @ObservedObject var tokenModel: TokenModel
     @Binding var isVisible: Bool
-    @Binding var activeTab: String
     @EnvironmentObject var priceModel: SolPriceModel
     
     @State private var dragOffset: CGFloat = 0.0
     @State private var animatingSwipe: Bool = false
     @State private var isClosing: Bool = false
+    
+    var activeTab: String {
+//      let balance: Int = tokenListModel.currentTokenModel.balanceLamps
+        let balance: Int = 0
+        return balance > 0 ? "sell" : "buy"
+    }
     
     private struct StatValue {
         let text: String
@@ -55,7 +60,7 @@ struct TokenInfoCardView: View {
         
         // Add original stats from tokenModel
         stats += tokenModel.getTokenStats(priceModel: priceModel).map { 
-            ($0.0, StatValue(text: $0.1, color: nil))
+            ($0.0, StatValue(text: $0.1 ?? "", color: nil))
         }
         
         return stats

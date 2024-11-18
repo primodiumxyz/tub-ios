@@ -40,8 +40,8 @@ struct BuyForm: View {
         guard let balance = userModel.balanceLamps else { return }
         // Use 10 as default if no amount is entered
         let amountToUse = buyAmountUsdString.isEmpty ? 10.0 : buyAmountUsd
-        let buyAmountLamps = priceModel.usdToLamports(usd: amountToUse)
-            
+        guard let buyAmountLamps = priceModel.usdToLamports(usd: amountToUse) else { return }
+        
         // Check if the user has enough balance
         if balance >= buyAmountLamps {
             if isDefaultOn {
@@ -62,15 +62,14 @@ struct BuyForm: View {
         }
         
         // Add a tiny buffer for floating point precision
-        let usdAmount = priceModel.lamportsToUsd(lamports: amountLamps)
-        buyAmountUsd = usdAmount
+        guard let usdAmount = priceModel.lamportsToUsd(lamports: amountLamps) else { return }
+        
         // Format to 2 decimal places, rounding down
         buyAmountUsdString = String(format: "%.2f", floor(usdAmount * 100) / 100)
         isValidInput = true
         
         // Compare with a small epsilon to avoid floating point precision issues
-        let buyAmountLamps = priceModel.usdToLamports(usd: usdAmount)
-        showInsufficientBalance = buyAmountLamps > balance
+        showInsufficientBalance = amountLamps > balance
     }
     
     func resetForm() {
@@ -105,7 +104,7 @@ struct BuyForm: View {
             defaultToggle
             VStack(alignment: .center, spacing: 20) {
                 numberInput
-//                tokenConversionDisplay
+                //                tokenConversionDisplay
                 amountButtons
                 buyButton
             }
@@ -124,7 +123,7 @@ struct BuyForm: View {
                     .foregroundColor(AppColors.aquaGreen)
                     .multilineTextAlignment(.center)
             }
-            .disabled((userModel.balanceLamps) ?? 0 < priceModel.usdToLamports(usd: buyAmountUsd))
+            .disabled((userModel.balanceLamps) ?? 0 < priceModel.usdToLamports(usd: buyAmountUsd) ?? 1)
             .frame(maxWidth: .infinity)
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
@@ -174,7 +173,7 @@ struct BuyForm: View {
                                 buyAmountUsdString = text
                             }
                             isValidInput = true
-                            showInsufficientBalance = (userModel.balanceLamps ?? 0) < priceModel.usdToLamports(usd: amount)
+                            showInsufficientBalance = (userModel.balanceLamps ?? 0) < priceModel.usdToLamports(usd: amount) ?? 0
                         } else {
                             buyAmountUsd = 0
                             isValidInput = false
@@ -233,12 +232,14 @@ struct BuyForm: View {
     private var tokenConversionDisplay: some View {
         Group {
             if let currentPrice = tokenModel.prices.last?.price, currentPrice > 0 {
-                let buyAmountLamps = priceModel.usdToLamports(usd: buyAmountUsd)
-                let tokenAmount = Int(Double(buyAmountLamps) / Double(currentPrice) * 1e9)
-
-                Text("\(priceModel.formatPrice(lamports: tokenAmount, showUnit: false)) \(tokenModel.token.symbol ?? "")")
-                    .font(.sfRounded(size: .base, weight: .bold))
-                    .opacity(0.8)
+                if let buyAmountLamps = priceModel.usdToLamports(usd: buyAmountUsd) {
+                    let tokenAmount = Int(Double(buyAmountLamps) / Double(currentPrice) * 1e9)
+                    
+                    Text("\(priceModel.formatPrice(lamports: tokenAmount, showUnit: false)) \(tokenModel.token.symbol ?? "")")
+                        .font(.sfRounded(size: .base, weight: .bold))
+                        .opacity(0.8)
+                    
+                }
             }
         }
         .onAppear{
@@ -341,50 +342,50 @@ func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange
     guard !string.isEmpty else {
         return true
     }
-
+    
     let currentText = textField.text ?? ""
     let replacementText = (currentText as NSString).replacingCharacters(in: range, with: string)
-
+    
     return replacementText.isDecimal()
 }
 
 
 extension String{
-   func isDecimal()->Bool{
-       let formatter = NumberFormatter()
-       formatter.allowsFloats = true
-       formatter.locale = Locale.current
-       return formatter.number(from: self) != nil
-   }
-        static let numberFormatter: NumberFormatter = {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            formatter.usesGroupingSeparator = true
-            formatter.groupingSeparator = ","
-            return formatter
-        }()
-        
-        var doubleValue: Double {
-            // Special handling for 3 decimal places with comma
-            if self.components(separatedBy: CharacterSet(charactersIn: ",")).last?.count == 3 {
-                String.numberFormatter.decimalSeparator = ","
-                if let result = String.numberFormatter.number(from: self) {
-                    return result.doubleValue
-                }
-            }
-            
-            // Try with dot as decimal separator
-            String.numberFormatter.decimalSeparator = "."
-            if let result = String.numberFormatter.number(from: self) {
-                return result.doubleValue
-            }
-            
-            // Try with comma as decimal separator
+    func isDecimal()->Bool{
+        let formatter = NumberFormatter()
+        formatter.allowsFloats = true
+        formatter.locale = Locale.current
+        return formatter.number(from: self) != nil
+    }
+    static let numberFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.usesGroupingSeparator = true
+        formatter.groupingSeparator = ","
+        return formatter
+    }()
+    
+    var doubleValue: Double {
+        // Special handling for 3 decimal places with comma
+        if self.components(separatedBy: CharacterSet(charactersIn: ",")).last?.count == 3 {
             String.numberFormatter.decimalSeparator = ","
             if let result = String.numberFormatter.number(from: self) {
                 return result.doubleValue
             }
-            
-            return 0
         }
+        
+        // Try with dot as decimal separator
+        String.numberFormatter.decimalSeparator = "."
+        if let result = String.numberFormatter.number(from: self) {
+            return result.doubleValue
+        }
+        
+        // Try with comma as decimal separator
+        String.numberFormatter.decimalSeparator = ","
+        if let result = String.numberFormatter.number(from: self) {
+            return result.doubleValue
+        }
+        
+        return 0
+    }
 }

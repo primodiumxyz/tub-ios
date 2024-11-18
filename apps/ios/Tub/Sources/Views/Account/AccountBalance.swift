@@ -42,15 +42,15 @@ struct AccountBalanceView: View {
                                 .foregroundColor(AppColors.white)
                             
                             Spacer()
-                            if let balance = accountBalance.balance, !priceModel.loading {
-                                Text("\(priceModel.formatPrice(lamports: balance, maxDecimals: 2, minDecimals: 2))")
+                            if let balance = accountBalance.balance, let balanceUsd = priceModel.formatPrice(lamports: balance, maxDecimals: 2, minDecimals: 2) {
+                                Text(balanceUsd)
                                     .font(.sfRounded(size: .lg))
                                     .fontWeight(.bold)
                                     .foregroundColor(AppColors.green)
                                     .padding(.trailing)
                                 
                             } else {
-                                ProgressView()
+                                LoadingBox(width: 80, height: 24)
                             }
                         }
                     }
@@ -67,7 +67,7 @@ struct AccountBalanceView: View {
                                 .foregroundColor(AppColors.white)
                             
                             HStack {
-                                if let balance = accountBalance.balance, !priceModel.loading {
+                                if let balance = accountBalance.balance {
                                     Text("\(priceModel.formatPrice(lamports: balance, maxDecimals: 2, minDecimals: 2))")
                                         .font(.sfRounded(size: .xl2))
                                         .fontWeight(.bold)

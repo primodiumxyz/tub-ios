@@ -32,13 +32,19 @@ enum Timespan: String, CaseIterable {
     }
 }
 
+
+
 struct TokenView : View {
     @EnvironmentObject private var errorHandler: ErrorHandler
     @ObservedObject var tokenModel: TokenModel
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject private var userModel: UserModel
-    @Binding var activeTab: String
     var onSellSuccess: () -> Void
+    var activeTab: String {
+        //      let balance: Int = tokenListModel.currentTokenModel.balanceLamps
+        let balance: Int = 0
+        return balance > 0 ? "sell" : "buy"
+    }
     
     @State private var showInfoCard = false
     @State private var selectedTimespan: Timespan = .live
@@ -48,16 +54,15 @@ struct TokenView : View {
     
     
     
-    init(tokenModel: TokenModel, activeTab: Binding<String>, onSellSuccess: @escaping () -> Void) {
+    init(tokenModel: TokenModel, onSellSuccess: @escaping () -> Void) {
         self.tokenModel = tokenModel
-        self._activeTab = activeTab
         self.onSellSuccess = onSellSuccess
     }
     
     func handleBuy(amount: Double) {
         guard let balance = userModel.balanceLamps else { return }
         let buyAmountLamps = priceModel.usdToLamports(usd: amount)
-        if buyAmountLamps > balance {
+        if let amount = buyAmountLamps, amount > balance {
             errorHandler.show(TubError.insufficientBalance)
             return
         }
@@ -99,7 +104,6 @@ struct TokenView : View {
                             .padding(.horizontal, 8)
                         BuySellForm(
                             tokenModel: tokenModel,
-                            activeTab: $activeTab,
                             showBuySheet: $showBuySheet,
                             defaultAmount: $defaultAmount,
                             handleBuy: handleBuy,
@@ -132,22 +136,22 @@ struct TokenView : View {
                     .font(.sfRounded(size: .lg, weight: .semibold))
             }
             HStack(alignment: .center, spacing: 6) {
-                if tokenModel.loading {
-                    LoadingPrice()
-                } else {
-                    Text(priceModel.formatPrice(lamports: tokenModel.prices.last?.price ?? 0, maxDecimals: 9, minDecimals: 2))
+                if let price = priceModel.formatPrice(lamports: tokenModel.prices.last?.price ?? 0, maxDecimals: 9, minDecimals: 2), tokenModel.isReady {
+                    Text(price)
                         .font(.sfRounded(size: .xl4, weight: .bold))
                     Image(systemName: "info.circle.fill")
                         .frame(width: 16, height: 16)
+                } else {
+                    
+                    LoadingBox(width: 200, height: 40)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             
-            if tokenModel.loading {
-                LoadingPriceChange()
-            } else {
+            if let price = priceModel.formatPrice(lamports: tokenModel.priceChange.amountLamps, showSign: true)
+            {
                 HStack {
-                    Text(priceModel.formatPrice(lamports: tokenModel.priceChange.amountLamps, showSign: true))
+                    Text(price)
                     Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
                     
                     Text("\(formatDuration(tokenModel.currentTimeframe.timeframeSecs))").foregroundColor(.gray)
@@ -155,6 +159,12 @@ struct TokenView : View {
                 .font(.sfRounded(size: .sm, weight: .semibold))
                 .foregroundColor(tokenModel.priceChange.amountLamps >= 0 ? .green : .red)
             }
+            else {
+                
+                
+                LoadingBox(width: 160, height: 14)
+            }
+            
         }
         .padding(.horizontal)
         .onTapGesture {
@@ -169,8 +179,8 @@ struct TokenView : View {
     
     private var chartView: some View {
         Group {
-            if tokenModel.loading {
-                LoadingChart()
+            if !tokenModel.isReady {
+                LoadingBox(height: 350)
             } else if selectedTimespan == .live {
                 ChartView(
                     prices: tokenModel.prices,
@@ -265,7 +275,7 @@ struct TokenView : View {
         //            ]
         //        } else {
         stats += tokenModel.getTokenStats(priceModel: priceModel).map {
-            ($0.0, StatValue(text: $0.1, color: nil))
+            ($0.0, StatValue(text: $0.1 ?? "", color: nil))
         }
         
         return stats
@@ -357,7 +367,7 @@ struct TokenView : View {
                     }
                 VStack {
                     Spacer()
-                    TokenInfoCardView(tokenModel: tokenModel, isVisible: $showInfoCard, activeTab: $activeTab)
+                    TokenInfoCardView(tokenModel: tokenModel, isVisible: $showInfoCard)
                 }
                 .transition(.move(edge: .bottom))
                 .zIndex(1) // Ensure it stays on top

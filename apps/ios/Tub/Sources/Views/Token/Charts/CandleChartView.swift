@@ -41,7 +41,6 @@ struct CandleChartView: View {
     }
     private func updateCandles() {
         if prices.isEmpty { return }
-        let startTime = prices.first!.timestamp
         let groupedPrices = Dictionary(grouping: prices) { price in
             floor(price.timestamp.timeIntervalSince1970 / intervalSecs) * intervalSecs
         }
@@ -106,7 +105,7 @@ struct CandleChartView: View {
         .chartYScale(domain: yDomain)
         .frame(height: height)
         .onAppear(perform: updateCandles)
-        .onChange(of: prices) { _ in updateCandles() }
+        .onChange(of: prices) { updateCandles() }
     }
 
     private var transparentCandleMark: (some ChartContent)? {
@@ -147,23 +146,25 @@ struct CandleChartView: View {
         }
     }
 
-    private var lastCandleAnnotation: (some ChartContent)? {
-        if let lastCandle = candles.last {
-            PointMark(
-                x: .value("Middle", lastCandle.start.addingTimeInterval(intervalSecs / 2)),
-                y: .value("Close", lastCandle.close)
-            )
-            .symbolSize(10)
-            .foregroundStyle(AppColors.white.opacity(0.7))
-            .annotation(position: lastCandle.close >= lastCandle.open ? .top : .bottom, spacing: 4) {
-                PillView(
-                    value: priceModel.formatPrice(lamports: lastCandle.close),
-                    color: AppColors.white.opacity(0.7),
-                    foregroundColor: AppColors.black
+    private var lastCandleAnnotation: some ChartContent {
+        Plot {
+            if let lastCandle = candles.last {
+                PointMark(
+                    x: .value("Middle", lastCandle.start.addingTimeInterval(intervalSecs / 2)),
+                    y: .value("Close", lastCandle.close)
                 )
+                .symbolSize(10)
+                .foregroundStyle(AppColors.white.opacity(0.7))
+                .annotation(position: lastCandle.close >= lastCandle.open ? .top : .bottom, spacing: 4) {
+                    if let price = priceModel.formatPrice(lamports: lastCandle.close) {
+                        PillView(
+                            value: price,
+                            color: AppColors.white.opacity(0.7),
+                            foregroundColor: AppColors.black
+                        )
+                    }
+                }
             }
-        } else {
-            nil
         }
     }
 
@@ -173,7 +174,7 @@ struct CandleChartView: View {
                 .foregroundStyle(.white.opacity(0.2))
             AxisValueLabel {
                 if let intValue = value.as(Int.self) {
-                    Text(priceModel.formatPrice(lamports: intValue))
+                    Text(priceModel.formatPrice(lamports: intValue) ?? "")
                         .foregroundStyle(.white.opacity(0.5))
                 }
             }
@@ -190,7 +191,7 @@ struct CandleChartView: View {
     private var yDomain: ClosedRange<Int> {
         if prices.isEmpty { return 0...100 }
 
-        var pricesWithPurchase = prices
+        let pricesWithPurchase = prices
         
         let minPrice = pricesWithPurchase.min { $0.price < $1.price }?.price ?? 0
         let maxPrice = pricesWithPurchase.max { $0.price < $1.price }?.price ?? 100

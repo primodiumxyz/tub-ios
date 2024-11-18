@@ -119,14 +119,14 @@ struct ChartView: View {
                         y: .value("Price", currentPrice.price)
                     )
                     .annotation(position: .top, spacing: 4) {
-                        if purchaseData?.timestamp == currentPrice.timestamp {
-                            EmptyView()
-                        } else {
+                        if let price = priceModel.formatPrice(lamports: abs(currentPrice.price)), purchaseData?.timestamp != currentPrice.timestamp {
                             PillView(
-                                value: "\(priceModel.formatPrice(lamports: abs(currentPrice.price)))",
+                                value: price,
                                 color: dashedLineColor,
                                 foregroundColor: AppColors.black
                             )
+                        } else {
+                            EmptyView()
                         }
                     }
                 }
@@ -153,7 +153,7 @@ struct ChartView: View {
                     
                     .annotation(position: .bottom, spacing: 0) {
                         PillView(
-                            value: "\(priceModel.formatPrice(lamports: data.price))",
+                            value: priceModel.formatPrice(lamports: data.price) ?? "--",
                             color: AppColors.primaryPink.opacity(0.8), foregroundColor: AppColors.white)
                     }
                 }
