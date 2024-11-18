@@ -130,17 +130,11 @@ struct TokenListView: View {
                                             }
                                         )
                                         .frame(height: geometry.size.height - 25)
-                                        if let model = tokenListModel.nextTokenModel, dragging {
-                                             TokenView(
-                                                tokenModel: model
-                                            )
-                                             .frame(height: geometry.size.height - 25)
-                                        } else {
+                                        
                                          LoadingTokenView()
                                             .frame(height: geometry.size.height)
                                             .opacity(dragging ? 0.8 : 0)
    
-                                        }
                                     }
                                     .zIndex(1)
                                     .offset(y: -geometry.size.height - 35 + offset + activeOffset)

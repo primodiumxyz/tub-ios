@@ -139,42 +139,46 @@ struct TokenView : View {
     }
     
     private var tokenInfoView: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                if tokenModel.token.imageUri != "" {
-                    ImageView(imageUri: tokenModel.token.imageUri, size: 20)
-                }
-                Text("$\(tokenModel.token.symbol)")
-                    .font(.sfRounded(size: .lg, weight: .semibold))
+        HStack(alignment: .center) {
+            // Image column
+            if tokenModel.token.imageUri != "" {
+                ImageView(imageUri: tokenModel.token.imageUri, size: 90)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(AppColors.white.opacity(0.5), lineWidth: 1)
+                    )
             }
-            HStack(alignment: .center, spacing: 6) {
-                if  tokenModel.isReady {
-                    let price = priceModel.formatPrice(lamports: tokenModel.prices.last?.price ?? 0, maxDecimals: 9, minDecimals: 2)
-                    Text(price)
-                        .font(.sfRounded(size: .xl4, weight: .bold))
-                    Image(systemName: "info.circle.fill")
-                        .frame(width: 16, height: 16)
-                } else {
-                    
-                    LoadingBox(width: 200, height: 40)
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
             
+            // Text column
+            VStack(alignment: .leading, spacing: 0) {
+                Text("$\(tokenModel.token.symbol)")
+                    .font(.sfRounded(size: .lg, weight: .semibold)).opacity(0.7)
+                
+                HStack(alignment: .center, spacing: 6) {
+                    if tokenModel.isReady {
+                        let price = priceModel.formatPrice(lamports: tokenModel.prices.last?.price ?? 0, maxDecimals: 9, minDecimals: 2)
+                        Text(price)
+                            .font(.sfRounded(size: .xl4, weight: .bold))
+                        Image(systemName: "info.circle.fill")
+                            .frame(width: 16, height: 16)
+                    } else {
+                        LoadingBox(width: 200, height: 40)
+                    }
+                }
                 
                 let price = priceModel.formatPrice(lamports: tokenModel.priceChange.amountLamps, showSign: true)
                 HStack {
                     Text(price)
                     Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
-                    
                     Text("\(formatDuration(tokenModel.currentTimeframe.timeframeSecs))").foregroundColor(.gray)
                 }
                 .font(.sfRounded(size: .sm, weight: .semibold))
                 .foregroundColor(tokenModel.priceChange.amountLamps >= 0 ? .green : .red)
+            }
         }
         .padding(.horizontal)
         .onTapGesture {
-            // Toggle the info card
             withAnimation(.easeInOut) {
                 showInfoCard.toggle()
             }
