@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { EventType, QuoteToken } from "@codex-data/sdk/dist/sdk/generated/graphql";
 
 import { useServer } from "@/hooks/use-server";
@@ -21,6 +21,7 @@ export const useTokenPrices = (
     try {
       if (!codexSdk) return;
 
+      console.log("Fetching chart data");
       setFetching(true);
       const now = Math.floor(Date.now() / 1000);
       const chunks = [];
@@ -111,7 +112,7 @@ export const useTokenPrices = (
         },
       },
     );
-  }, [codexSdk, onUpdate, token.mint]);
+  }, [codexSdk, token.mint]);
 
   useEffect(() => {
     fetchChartData().then(subscribeToChartData);
