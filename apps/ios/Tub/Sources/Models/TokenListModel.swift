@@ -50,11 +50,9 @@ class TokenListModel: ObservableObject {
     }
 
     private func initTokenModel() {
-        DispatchQueue.main.async {
             let tokenId = self.tokens[self.currentTokenIndex].id
             self.currentTokenModel.initialize(with: tokenId)
             self.userModel.initToken(tokenId: tokenId)
-        }
     }
 
     private func getNextToken(excluding currentId: String? = nil) -> Token? {

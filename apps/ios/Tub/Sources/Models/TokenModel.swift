@@ -3,20 +3,22 @@ import Combine
 import SwiftUI
 import TubAPI
 
+let emptyToken = Token(
+    id: "",
+    mint: "",
+    name: "",
+    symbol: "",
+    description: "",
+    supply: 0,
+    decimals: 6,
+    imageUri: "",
+    volume: (0, FILTER_INTERVAL)
+)
+
 class TokenModel: ObservableObject {
     var tokenId: String = ""
 
-    @Published var token: Token = Token(
-        id: "",
-        mint: "",
-        name: "",
-        symbol: "",
-        description: "",
-        supply: 0,
-        decimals: 6,
-        imageUri: "",
-        volume: (0, FILTER_INTERVAL)
-    )
+    @Published var token: Token = emptyToken
     @Published var isReady = false
 
     @Published var prices: [Price] = []
@@ -43,6 +45,7 @@ class TokenModel: ObservableObject {
         // Cancel all existing subscriptions
         latestPriceSubscription?.cancel()
 
+        self.token = emptyToken
         // Reset properties if necessary
         self.tokenId = newTokenId
         self.isReady = false // Reset loading state if needed
