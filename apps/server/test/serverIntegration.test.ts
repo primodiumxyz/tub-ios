@@ -57,7 +57,7 @@ describe("Server Integration Tests", () => {
     const result = await client.buyToken.mutate({
       tokenId,
       amount: "100",
-      overridePrice: "1000000000",
+      tokenPrice: "1000000000",
     });
 
     expect(result).toBeDefined();
@@ -67,6 +67,7 @@ describe("Server Integration Tests", () => {
     const result = await client.sellToken.mutate({
       tokenId,
       amount: "100",
+      tokenPrice: "1000000000",
     });
 
     expect(result).toBeDefined();
