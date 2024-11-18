@@ -235,6 +235,21 @@ class Network {
 
         return try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
     }
+
+    func requestCodexToken(_ expiration: Int = 3600 * 1000) async throws -> String {
+        let input: CodexTokenInput = .init(expiration: expiration)
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            callProcedure("requestCodexToken", input: input, completion: { (result: Result<CodexTokenResponse, Error>) in
+                switch result {
+                case .success(let response):
+                    continuation.resume(returning: response.token)
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            })
+        }
+    }
 }
 
 // MARK: - Response Types
@@ -303,6 +318,10 @@ struct RegisterTokenInput: Codable {
 
 struct AirdropInput: Codable {
     let amount: String
+}
+
+struct CodexTokenInput: Codable {
+    let expiration: Int
 }
 
 struct EventInput: Codable {
@@ -418,4 +437,8 @@ extension Network {
 
         task.resume()
     }
+}
+
+private struct CodexTokenResponse: Codable {
+    let token: String
 }

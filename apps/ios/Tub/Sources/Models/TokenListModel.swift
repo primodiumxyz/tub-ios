@@ -191,75 +191,94 @@ class TokenListModel: ObservableObject {
         }
     }
 
-    func subscribeTokens() {
+    public func subscribeTokens() async throws {
         // Initial fetch
-        fetchTokens()
+        try await fetchTokens()
 
         // Set up timer for 1-second updates
-        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+        await MainActor.run {
+            self.timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
                 guard let self = self else { return }
-                if !self.fetching { self.fetchTokens() }
+                if !self.fetching {
+                    Task {
+                        try? await self.fetchTokens()
+                    }
+                }
+            }
         }
     }
 
     private var fetching = false
     
-    func fetchTokens(setLoading: Bool? = false) {
-        CodexNetwork.shared.apollo.fetch(query: GetFilterTokensQuery(
-            rankingAttribute: .some(.init(TokenRankingAttribute.trendingScore))
-        ), cachePolicy: .fetchIgnoringCacheData) { [weak self] result in
-            guard let self = self else { return }
-            if let setLoading = setLoading, setLoading {
+    private func fetchTokens(setLoading: Bool? = false) async throws {
+        let client = await CodexNetwork.shared.apolloClient
+        
+        if let setLoading = setLoading, setLoading {
+            await MainActor.run {
                 self.isLoading = true
             }
-            
-            self.fetching = true
-            // Process data in background queue
-            DispatchQueue.global(qos: .userInitiated).async {
-                // Prepare data in background
-                let processedData: ([Token], Token?) = {
-                    switch result {
-                    case .success(let graphQLResult):
-                        if let tokens = graphQLResult.data?.filterTokens?.results {
-                            let mappedTokens = tokens
-                                .map { elem in
-                                    Token(
-                                        id: elem?.token?.address,
-                                        name: elem?.token?.info?.name,
-                                        symbol: elem?.token?.info?.symbol,
-                                        description: elem?.token?.info?.description,
-                                        imageUri: elem?.token?.info?.imageLargeUrl ?? elem?.token?.info?.imageSmallUrl ?? elem?.token?.info?.imageThumbUrl,
-                                        liquidity: Double(elem?.liquidity ?? "0"),
-                                        marketCap: Double(elem?.marketCap ?? "0"),
-                                        volume: Double(elem?.volume1 ?? "0"),
-                                        pairId: elem?.pair?.id,
-                                        socials: (discord: elem?.token?.socialLinks?.discord, instagram: elem?.token?.socialLinks?.instagram, telegram: elem?.token?.socialLinks?.telegram, twitter: elem?.token?.socialLinks?.twitter, website: elem?.token?.socialLinks?.website),
-                                        uniqueHolders: nil
-                                    )
-                                }
-                            
-                            let currentToken = mappedTokens.first(where: { $0.id == self.currentTokenModel.tokenId })
-                            return (mappedTokens, currentToken)
-                        }
-                        return ([], nil)
-                    case .failure(let error):
-                        print("Error fetching tokens: \(error.localizedDescription)")
-                        return ([], nil)
-                    }
-                }()
+        }
+        
+        self.fetching = true
+        
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            client.fetch(query: GetFilterTokensQuery(
+                rankingAttribute: .some(.init(TokenRankingAttribute.trendingScore))
+            ), cachePolicy: .fetchIgnoringCacheData) { [weak self] result in
+                guard let self = self else {
+                    continuation.resume(throwing: NSError(domain: "TokenListModel", code: 0))
+                    return
+                }
                 
-                self.fetching = false
-
-                // Update UI on main thread
-                DispatchQueue.main.async {
-                    self.isLoading = false
-                    self.availableTokens = processedData.0
-                    self.updateTokens()
-
-                    if let currentToken = processedData.1 {
-                        self.currentTokenModel.updateTokenDetails(from: currentToken)
+                // Process data in background queue
+                DispatchQueue.global(qos: .userInitiated).async {
+                    // Prepare data in background
+                    let processedData: ([Token], Token?) = {
+                        switch result {
+                        case .success(let graphQLResult):
+                            if let tokens = graphQLResult.data?.filterTokens?.results {
+                                let mappedTokens = tokens
+                                    .map { elem in
+                                        Token(
+                                            id: elem?.token?.address,
+                                            name: elem?.token?.info?.name,
+                                            symbol: elem?.token?.info?.symbol,
+                                            description: elem?.token?.info?.description,
+                                            imageUri: elem?.token?.info?.imageLargeUrl ?? elem?.token?.info?.imageSmallUrl ?? elem?.token?.info?.imageThumbUrl,
+                                            liquidity: Double(elem?.liquidity ?? "0"),
+                                            marketCap: Double(elem?.marketCap ?? "0"),
+                                            volume: Double(elem?.volume1 ?? "0"),
+                                            pairId: elem?.pair?.id,
+                                            socials: (discord: elem?.token?.socialLinks?.discord, instagram: elem?.token?.socialLinks?.instagram, telegram: elem?.token?.socialLinks?.telegram, twitter: elem?.token?.socialLinks?.twitter, website: elem?.token?.socialLinks?.website),
+                                            uniqueHolders: nil
+                                        )
+                                    }
+                                
+                                let currentToken = mappedTokens.first(where: { $0.id == self.currentTokenModel.tokenId })
+                                return (mappedTokens, currentToken)
+                            }
+                            return ([], nil)
+                        case .failure(let error):
+                            print("Error fetching tokens: \(error.localizedDescription)")
+                            return ([], nil)
+                        }
+                    }()
+                    
+                    self.fetching = false
+                    
+                    // Update UI on main thread
+                    Task { @MainActor in
+                        self.isLoading = false
+                        self.availableTokens = processedData.0
+                        self.updateTokens()
+                        
+                        if let currentToken = processedData.1 {
+                            self.currentTokenModel.updateTokenDetails(from: currentToken)
+                        }
                     }
                 }
+                
+                continuation.resume()
             }
         }
     }

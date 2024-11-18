@@ -10,18 +10,30 @@ import ApolloWebSocket
 import Foundation
 import Security
 
-// API key
-public let apiKey: String = "0d0342ba23b7b3254589defd7abed9299d6adf36"
-
 class CodexNetwork {
-    static let shared = CodexNetwork()
+    // Static instance
+    private static var _shared = CodexNetwork()
+    static var shared: CodexNetwork { _shared }
+    
+    // Initialization state
+    private var initializationContinuation: CheckedContinuation<Void, Never>?
+    private var isInitialized = false
+    private let initializationLock = NSLock()
+    
+    // Instance properties
+    private var apiKey: String?
     private var lastApiCallTime: Date = Date()
     
     // graphql
-    private let httpTransport: RequestChainNetworkTransport
-    private let webSocketTransport: WebSocketTransport
+    private var httpTransport: RequestChainNetworkTransport?
+    private var webSocketTransport: WebSocketTransport?
     
     private(set) lazy var apollo: ApolloClient = {
+        guard let httpTransport = httpTransport,
+              let webSocketTransport = webSocketTransport else {
+            fatalError("Attempted to access Apollo client before initialization")
+        }
+        
         let splitNetworkTransport = SplitNetworkTransport(
             uploadingNetworkTransport: httpTransport,
             webSocketNetworkTransport: webSocketTransport
@@ -49,10 +61,25 @@ class CodexNetwork {
     }
     
     // tRPC
-    private let baseURL : URL
-    private let session : URLSession
+    private var baseURL: URL
+    private var session: URLSession
     
-    init() {
+    private init() {
+        // Initialize with dummy values that will be replaced
+        self.baseURL = URL(string: "https://dummy.url")!
+        self.session = URLSession(configuration: .default)
+    }
+    
+    static func initialize(apiKey: String) {
+        shared.setup(with: apiKey)
+    }
+    
+    private func setup(with apiKey: String) {
+        initializationLock.lock()
+        defer { initializationLock.unlock() }
+        
+        self.apiKey = apiKey
+        
         // setup graphql
         let httpURL = URL(string: "https://graph.codex.io/graphql")!
         let store = ApolloStore()
@@ -72,15 +99,44 @@ class CodexNetwork {
             protocol: .graphql_transport_ws
         )
 
-//        webSocketTransport = WebSocketTransport(websocket: websocket)
-        webSocketTransport = {
-            let authPayload = ["Authorization": apiKey]
+         webSocketTransport = {
+          let authPayload = ["Authorization": apiKey]
           let config = WebSocketTransport.Configuration(connectingPayload: authPayload)
           return WebSocketTransport(websocket: websocket, config: config)
         }()
         
         // setup tRPC
-        baseURL = URL(string: "https://graph.codex.io/graphql")!
-        session = URLSession(configuration: .default)
+        self.baseURL = URL(string: "https://graph.codex.io/graphql")!
+        self.session = URLSession(configuration: .default)
+        
+        isInitialized = true
+        
+        // Resume any waiting operations
+        initializationContinuation?.resume()
+        initializationContinuation = nil
+    }
+    
+    private func waitForInitialization() async {
+        guard !isInitialized else { return }
+        
+        await withCheckedContinuation { continuation in
+            initializationLock.lock()
+            if isInitialized {
+                initializationLock.unlock()
+                continuation.resume()
+                return
+            }
+            
+            initializationContinuation = continuation
+            initializationLock.unlock()
+        }
+    }
+    
+    // Apollo client accessor
+    var apolloClient: ApolloClient {
+        get async {
+            await waitForInitialization()
+            return apollo
+        }
     }
 }

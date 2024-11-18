@@ -34,7 +34,8 @@ export const ServerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, [codexToken]);
 
   useEffect(() => {
-    if (!codexToken) server.requestCodexToken.mutate({ expiration: 3600 * 1000 }).then(setCodexToken);
+    if (!codexToken)
+      server.requestCodexToken.mutate({ expiration: 3600 * 1000 }).then(({ token }) => setCodexToken(token));
   }, [codexToken, server.requestCodexToken]);
 
   return <ServerContext.Provider value={{ ...server, codexSdk }}>{children}</ServerContext.Provider>;

@@ -93,7 +93,9 @@ struct TokenListView: View {
                                     .foregroundColor(AppColors.lightYellow)
                                     .multilineTextAlignment(.center)
                                 Button(action: {
-                                    viewModel.fetchTokens(setLoading: true)
+                                    Task {
+                                        try? await viewModel.subscribeTokens()
+                                    }
                                 }) {
                                     Text("Retry")
                                 }
@@ -172,7 +174,9 @@ struct TokenListView: View {
                 .foregroundColor(.white)
             }
         } .onAppear {
-            viewModel.subscribeTokens()
+            Task {
+                try? await viewModel.subscribeTokens()
+            }
         }
     }
 }

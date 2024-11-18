@@ -85,6 +85,16 @@ struct AppContent: View {
                     self.authError = nil
                     self.userId = authSession.user.id
                     self.linkedAccounts = authSession.user.linkedAccounts
+                    // Initialize CodexNetwork here
+                    Task {
+                        do {
+                            let codexToken = try await Network.shared.requestCodexToken(3600 * 1000) // expires in 1h
+                            // TODO: add some timeout to request a new token in 1h
+                            CodexNetwork.initialize(apiKey: codexToken)
+                        } catch {
+                            errorHandler.show(error)
+                        }
+                    }
                 default:
                     self.authError = nil
                     self.userId = ""

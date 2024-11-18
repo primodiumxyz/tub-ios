@@ -33,8 +33,9 @@ struct HistoryView : View {
     }
     
     func fetchTokenMetadata(address: String) async throws -> TokenMetadata {
+        let client = await CodexNetwork.shared.apolloClient
         return try await withCheckedThrowingContinuation { continuation in
-            CodexNetwork.shared.apollo.fetch(query: GetTokenMetadataQuery(
+            client.fetch(query: GetTokenMetadataQuery(
                 address: address
             )) { result in
                 switch result {
@@ -57,73 +58,83 @@ struct HistoryView : View {
     }
     
     func fetchUserTxs(_ userId: String) {
-        loading = true
-        error = nil // Reset error state
-        let query = GetWalletTransactionsQuery(wallet: userModel.walletAddress)
-        
-        Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { result in
-            Task {
-                do {
-                    switch result {
-                    case .success(let graphQLResult):
-                        if let tokenTransactions = graphQLResult.data?.token_transaction {
-                            var processedTxs: [Transaction] = []
-                            
-                            for transaction in tokenTransactions {
-                                guard let date = formatDateString(transaction.wallet_transaction_data.created_at) else {
-                                    continue
-                                }
-                                
-                                if abs(transaction.amount) == 0 {
-                                    continue
-                                }
-                                
-                                // Fetch token metadata if not cached
-                                if tokenMetadata[transaction.token] == nil {
-                                    let metadata = try await fetchTokenMetadata(address: transaction.token)
+        Task {
+            do {
+                let client = await CodexNetwork.shared.apolloClient
+                loading = true
+                error = nil
+                let query = GetWalletTransactionsQuery(wallet: userModel.walletAddress)
+                
+                client.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { result in
+                    Task {
+                        do {
+                            switch result {
+                            case .success(let graphQLResult):
+                                if let tokenTransactions = graphQLResult.data?.token_transaction {
+                                    var processedTxs: [Transaction] = []
+                                    
+                                    for transaction in tokenTransactions {
+                                        guard let date = formatDateString(transaction.wallet_transaction_data.created_at) else {
+                                            continue
+                                        }
+                                        
+                                        if abs(transaction.amount) == 0 {
+                                            continue
+                                        }
+                                        
+                                        // Fetch token metadata if not cached
+                                        if tokenMetadata[transaction.token] == nil {
+                                            let metadata = try await fetchTokenMetadata(address: transaction.token)
+                                            await MainActor.run {
+                                                tokenMetadata[transaction.token] = metadata
+                                            }
+                                        }
+                                        
+                                        let metadata = tokenMetadata[transaction.token]
+                                        let isBuy = transaction.amount >= 0
+                                        let mint = transaction.token
+                                        let priceUsd = transaction.token_price
+                                        
+                                        let valueUsd = Double(transaction.amount) * priceUsd / 1e9
+                                        
+                                        let newTransaction = Transaction(
+                                            name: metadata?.name ?? "",
+                                            symbol: metadata?.symbol ?? "",
+                                            imageUri: metadata?.imageUri ?? "",
+                                            date: date,
+                                            valueUsd: -valueUsd,
+                                            valueLamps: priceModel.usdToLamports(usd: -valueUsd),
+                                            quantityTokens: transaction.amount,
+                                            isBuy: isBuy,
+                                            mint: mint
+                                        )
+                                        
+                                        processedTxs.append(newTransaction)
+                                    }
+                                    
                                     await MainActor.run {
-                                        tokenMetadata[transaction.token] = metadata
+                                        self.txs = processedTxs
+                                        self.loading = false
                                     }
                                 }
-                                
-                                let metadata = tokenMetadata[transaction.token]
-                                let isBuy = transaction.amount >= 0
-                                let mint = transaction.token
-                                let priceUsd = transaction.token_price
-                                
-                                let valueUsd = Double(transaction.amount) * priceUsd / 1e9
-                                
-                                let newTransaction = Transaction(
-                                    name: metadata?.name ?? "",
-                                    symbol: metadata?.symbol ?? "",
-                                    imageUri: metadata?.imageUri ?? "",
-                                    date: date,
-                                    valueUsd: -valueUsd,
-                                    valueLamps: priceModel.usdToLamports(usd: -valueUsd),
-                                    quantityTokens: transaction.amount,
-                                    isBuy: isBuy,
-                                    mint: mint
-                                )
-                                
-                                processedTxs.append(newTransaction)
+                            case .failure(let error):
+                                await MainActor.run {
+                                    self.error = error
+                                    self.loading = false
+                                }
                             }
-                            
+                        } catch {
                             await MainActor.run {
-                                self.txs = processedTxs
+                                self.error = error
                                 self.loading = false
                             }
                         }
-                    case .failure(let error):
-                        await MainActor.run {
-                            self.error = error
-                            self.loading = false
-                        }
                     }
-                } catch {
-                    await MainActor.run {
-                        self.error = error
-                        self.loading = false
-                    }
+                }
+            } catch {
+                await MainActor.run {
+                    self.error = error
+                    self.loading = false
                 }
             }
         }
