@@ -164,7 +164,7 @@ class Network {
         tokenId: String, amount: String, tokenPrice: String,
         completion: @escaping (Result<EmptyResponse, Error>) -> Void
     ) {
-        let input = TokenActionInput(tokenId: tokenId, amount: amount)
+        let input = TokenActionInput(tokenId: tokenId, amount: amount, tokenPrice: tokenPrice)
         callProcedure("buyToken", input: input, completion: completion)
     }
 
@@ -172,7 +172,7 @@ class Network {
         tokenId: String, amount: String, tokenPrice: String,
         completion: @escaping (Result<EmptyResponse, Error>) -> Void
     ) {
-        let input = TokenActionInput(tokenId: tokenId, amount: amount)
+        let input = TokenActionInput(tokenId: tokenId, amount: amount, tokenPrice: tokenPrice)
         callProcedure("sellToken", input: input, completion: completion)
     }
 
@@ -286,11 +286,12 @@ struct RegisterUserInput: Codable {
 struct TokenActionInput: Codable {
     // Wrap in a dictionary structure that matches server expectation
     private enum CodingKeys: String, CodingKey {
-        case tokenId, amount
+        case tokenId, amount, tokenPrice
     }
 
     let tokenId: String
     let amount: String
+    let tokenPrice: String
 }
 
 struct RegisterTokenInput: Codable {

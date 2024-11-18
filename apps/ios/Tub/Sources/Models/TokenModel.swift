@@ -309,7 +309,7 @@ class TokenModel: ObservableObject {
     func buyTokens(buyAmountLamps: Int, priceModel: SolPriceModel, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
         if let price = self.prices.last?.priceUsd, price > 0 {
             let tokenAmount = Int(Double(buyAmountLamps) / Double(priceModel.usdToLamports(usd: price)) * 1e9)
-            
+
             Network.shared.buyToken(tokenId: self.tokenId, amount: String(tokenAmount), tokenPrice: String(price)) { result in
                 switch result {
                 case .success:
