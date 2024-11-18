@@ -31,10 +31,10 @@ struct BuySellForm: View {
     }
     
     var activeTab: String {
-       let balance: Int = userModel.tokenBalanceLamps ?? 0
+        let balance: Int = userModel.tokenBalanceLamps ?? 0
         return balance > 0 ? "sell" : "buy"
     }
-
+    
     
     func handleSell() {
         // Only trigger haptic feedback if vibration is enabled
@@ -46,18 +46,18 @@ struct BuySellForm: View {
             print("🔴 Haptic feedback disabled")
         }
         
-       userModel.sellTokens(completion: {result in
-           switch result {
-           case .success:
-               animationState.showSellBubbles = true
-               onSellSuccess?()
-           case .failure(let error):
+        userModel.sellTokens(completion: {result in
+            switch result {
+            case .success:
+                animationState.showSellBubbles = true
+                onSellSuccess?()
+            case .failure(let error):
                 notificationHandler.show(
                     error.localizedDescription,
                     type: .error
                 )
-           }
-       })
+            }
+        })
     }
     
     var body: some View {
@@ -65,7 +65,7 @@ struct BuySellForm: View {
             if userModel.userId == nil {
                 NavigationLink(destination: RegisterView(isRedirected: true)
                     .background(.black)
-                , isActive: $navigateToLogin) {
+                               , isActive: $navigateToLogin) {
                     EmptyView()
                 }
                 
@@ -115,38 +115,38 @@ struct BuySellForm: View {
                         CoinbaseOnrampView()
                     }
                 } else {
-                // edit button
-                HStack(spacing: 16) {
-                    Button(action: {
-                        showBuySheet = true
-                    }) {
-                        Image(systemName: "pencil")
-                            .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(AppColors.aquaGreen)
-                            .padding(12)
-                            .background(Circle().stroke(AppColors.aquaGreen, lineWidth: 1))
-                    }
-                    
-                    Button(action: {
-                        handleBuy(settingsManager.defaultBuyValue)
-                    }) {
-                        HStack(alignment: .center, spacing: 8) {
-                            Text("Buy \(priceModel.formatPrice(usd: settingsManager.defaultBuyValue) ?? "$0.00")")
-                                .font(.sfRounded(size: .xl, weight: .semibold))
-                                .foregroundColor(AppColors.black)
-                                .multilineTextAlignment(.center)
+                    // edit button
+                    HStack(spacing: 16) {
+                        Button(action: {
+                            showBuySheet = true
+                        }) {
+                            Image(systemName: "pencil")
+                                .font(.system(size: 20, weight: .bold))
+                                .foregroundColor(AppColors.aquaGreen)
+                                .padding(12)
+                                .background(Circle().stroke(AppColors.aquaGreen, lineWidth: 1))
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
-                        .background(AppColors.aquaGreen)
-                        .cornerRadius(30)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 30)
-                                .inset(by: 0.5)
-                                .stroke(AppColors.aquaGreen, lineWidth: 1)
-                        )
-                    }
+                        
+                        Button(action: {
+                            handleBuy(settingsManager.defaultBuyValue)
+                        }) {
+                            HStack(alignment: .center, spacing: 8) {
+                                Text("Buy \(priceModel.formatPrice(usd: settingsManager.defaultBuyValue) ?? "$0.00")")
+                                    .font(.sfRounded(size: .xl, weight: .semibold))
+                                    .foregroundColor(AppColors.black)
+                                    .multilineTextAlignment(.center)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 12)
+                            .background(AppColors.aquaGreen)
+                            .cornerRadius(30)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 30)
+                                    .inset(by: 0.5)
+                                    .stroke(AppColors.aquaGreen, lineWidth: 1)
+                            )
+                        }
                     }.padding(.horizontal,8)
                 }
             } else {

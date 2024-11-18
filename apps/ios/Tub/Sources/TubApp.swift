@@ -11,8 +11,6 @@ import SwiftUI
 @main
 struct TubApp: App {
     @Environment(\.scenePhase) private var scenePhase
-    
-
     private let dwellTimeTracker = AppDwellTimeTracker.shared
 
     var body: some Scene {
