@@ -236,14 +236,14 @@ class Network {
         return try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
     }
 
-    func requestCodexToken(_ expiration: Int = 3600 * 1000) async throws -> String {
+    func requestCodexToken(_ expiration: Int = 3600 * 1000) async throws -> (String, String) {
         let input: CodexTokenInput = .init(expiration: expiration)
         
         return try await withCheckedThrowingContinuation { continuation in
             callProcedure("requestCodexToken", input: input, completion: { (result: Result<CodexTokenResponse, Error>) in
                 switch result {
                 case .success(let response):
-                    continuation.resume(returning: response.token)
+                    continuation.resume(returning: (response.token, response.expiry))
                 case .failure(let error):
                     continuation.resume(throwing: error)
                 }
@@ -441,4 +441,5 @@ extension Network {
 
 private struct CodexTokenResponse: Codable {
     let token: String
+    let expiry: String
 }

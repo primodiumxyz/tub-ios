@@ -143,10 +143,11 @@ export class TubService {
     });
 
     const token = res.createApiTokens[0]?.token;
-    if (!token) {
+    const expiry = res.createApiTokens[0]?.expiresTimeString;
+    if (!token || !expiry) {
       throw new Error("Failed to create Codex API token");
     }
 
-    return { token: `Bearer ${token}` };
+    return { token: `Bearer ${token}`, expiry };
   }
 }
