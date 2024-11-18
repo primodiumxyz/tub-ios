@@ -1,3 +1,4 @@
+import { Codex } from "@codex-data/sdk";
 import { PrivyClient, WalletWithMetadata } from "@privy-io/server-auth";
 import { GqlClient } from "@tub/gql";
 import { config } from "dotenv";
@@ -7,10 +8,12 @@ config({ path: "../../.env" });
 export class TubService {
   private gql: GqlClient["db"];
   private privy: PrivyClient;
+  private codexSdk: Codex;
 
-  constructor(gqlClient: GqlClient["db"], privy: PrivyClient) {
+  constructor(gqlClient: GqlClient["db"], privy: PrivyClient, codexSdk: Codex) {
     this.gql = gqlClient;
     this.privy = privy;
+    this.codexSdk = codexSdk;
   }
 
   private verifyJWT = async (token: string) => {
@@ -131,5 +134,19 @@ export class TubService {
     }
 
     return id;
+  }
+
+  async requestCodexToken(expiration?: number) {
+    expiration = expiration ?? 3600 * 1000;
+    const res = await this.codexSdk.mutations.createApiTokens({
+      input: { expiresIn: expiration },
+    });
+
+    const token = res.createApiTokens[0]?.token;
+    if (!token) {
+      throw new Error("Failed to create Codex API token");
+    }
+
+    return token;
   }
 }

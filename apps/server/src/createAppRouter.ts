@@ -56,6 +56,7 @@ export function createAppRouter() {
       .mutation(async ({ ctx, input }) => {
         return await ctx.tubService.airdropNativeToUser(ctx.jwtToken, BigInt(input.amount));
       }),
+
     recordClientEvent: t.procedure
       .input(
         z.object({
@@ -69,6 +70,12 @@ export function createAppRouter() {
       )
       .mutation(async ({ ctx, input }) => {
         return await ctx.tubService.recordClientEvent(input, ctx.jwtToken);
+      }),
+
+    requestCodexToken: t.procedure
+      .input(z.object({ expiration: z.number().optional() }))
+      .mutation(async ({ ctx, input }) => {
+        return await ctx.tubService.requestCodexToken(input.expiration);
       }),
   });
 }

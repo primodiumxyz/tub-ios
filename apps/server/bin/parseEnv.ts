@@ -16,6 +16,7 @@ const commonSchema = z.object({
   COINBASE_CDP_API_KEY_PRIVATE_KEY: z.string().default(""),
   PRIVY_APP_ID: z.string(),
   PRIVY_APP_SECRET: z.string(),
+  CODEX_API_KEY: z.string(),
 });
 
 export function parseEnv<TSchema extends ZodTypeAny | undefined = undefined>(
