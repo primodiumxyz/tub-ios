@@ -19,14 +19,23 @@ struct BuySellForm: View {
     @State private var navigateToLogin = false
     @State private var showOnrampView = false
     
+    var handleBuy: (Double) -> Void
+    var onSellSuccess: (() -> Void)?
+    
+    init (tokenModel: TokenModel, showBuySheet: Binding<Bool>, defaultAmount: Binding<Double>, handleBuy: @escaping (Double) -> Void, onSellSuccess: (() -> Void)? = nil) {
+        self.tokenModel = tokenModel
+        self._showBuySheet = showBuySheet
+        self._defaultAmount = defaultAmount
+        self.handleBuy = handleBuy
+        self.onSellSuccess = onSellSuccess
+    }
+    
     var activeTab: String {
 //        let balance: Int = viewModel.currentTokenModel.balanceLamps
         let balance: Int = 0
         return balance > 0 ? "sell" : "buy"
     }
-    
-    var handleBuy: (Double) -> Void
-    var onSellSuccess: () -> Void
+
     
     func handleSell() {
         // Only trigger haptic feedback if vibration is enabled

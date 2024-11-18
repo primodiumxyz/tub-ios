@@ -39,7 +39,7 @@ struct TokenView : View {
     @ObservedObject var tokenModel: TokenModel
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject private var userModel: UserModel
-    var onSellSuccess: () -> Void
+    var onSellSuccess: (() -> Void)?
     var activeTab: String {
         //      let balance: Int = tokenListModel.currentTokenModel.balanceLamps
         let balance: Int = 0
@@ -54,7 +54,7 @@ struct TokenView : View {
     
     
     
-    init(tokenModel: TokenModel, onSellSuccess: @escaping () -> Void) {
+    init(tokenModel: TokenModel, onSellSuccess: (() -> Void)? = nil) {
         self.tokenModel = tokenModel
         self.onSellSuccess = onSellSuccess
     }

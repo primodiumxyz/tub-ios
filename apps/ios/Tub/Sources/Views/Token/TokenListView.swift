@@ -20,6 +20,7 @@ struct TokenListView: View {
     @State private var offset: CGFloat = 0
     @State private var activeOffset: CGFloat = 0
     @State private var dragging = false
+    @State private var isDragStarting = true
     
     var activeTab: String {
         //        let balance: Int = tokenListModel.currentTokenModel.balanceLamps
@@ -128,11 +129,17 @@ struct TokenListView: View {
                                             }
                                         )
                                         .frame(height: geometry.size.height - 25)
-                                        LoadingTokenView()
+                                        if let model = tokenListModel.nextTokenModel, dragging {
+                                             TokenView(
+                                                tokenModel: model
+                                            )
+                                             .frame(height: geometry.size.height - 25)
+                                        } else {
+                                         LoadingTokenView()
                                             .frame(height: geometry.size.height)
                                             .opacity(dragging ? 0.8 : 0)
-                                        
-                                        
+   
+                                        }
                                     }
                                     .zIndex(1)
                                     .offset(y: -geometry.size.height - 35 + offset + activeOffset)
@@ -140,11 +147,19 @@ struct TokenListView: View {
                                         DragGesture()
                                             .onChanged { value in
                                                 if canSwipe(value: value) {
+                                                    if isDragStarting {
+                                                        print("Drag started")
+                                                        isDragStarting = false
+                                                        // todo: show the next token
+                                                    }
+                                                    
                                                     dragging = true
                                                     offset = value.translation.height
                                                 }
                                             }
                                             .onEnded { value in
+                                                isDragStarting = true
+                                                
                                                 if canSwipe(value: value) {
                                                     let threshold: CGFloat = 50
                                                     if value.translation.height > threshold {

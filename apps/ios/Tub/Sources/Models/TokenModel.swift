@@ -6,8 +6,6 @@ import TubAPI
 class TokenModel: ObservableObject {
     var tokenId: String = ""
 
-    @EnvironmentObject private var errorHandler: ErrorHandler
-
     @Published var token: Token = Token(
         id: "",
         mint: "",
@@ -114,7 +112,6 @@ class TokenModel: ObservableObject {
                         code: 0,
                         userInfo: [NSLocalizedDescriptionKey: "Self is nil"]
                     )
-                    self?.errorHandler.show(error)
                     continuation.resume(throwing: error)
                     return
                 }
@@ -142,11 +139,9 @@ class TokenModel: ObservableObject {
                             code: 1,
                             userInfo: [NSLocalizedDescriptionKey: "Token not found"]
                         )
-                        errorHandler.show(error)
                         continuation.resume(throwing: error)
                     }
                 case .failure(let error):
-                    errorHandler.show(error)
                     continuation.resume(throwing: error)
                 }
             }
