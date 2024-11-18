@@ -21,6 +21,7 @@ final class UserModel: ObservableObject {
     @Published var userId: String?
     @Published var walletState: EmbeddedWalletState = .notCreated
     @Published var walletAddress: String?
+    @Published var error: Error?
     
     @Published var balanceLamps: Int? = nil
     @Published var initialTime = Date()
@@ -71,7 +72,7 @@ final class UserModel: ObservableObject {
                 if let solanaWallet = wallets.first(where: { $0.chainType == .solana }), walletAddress == nil {
                     self.walletAddress = solanaWallet.address
                     Task {
-                            await self.initializeUser()
+                        await self.initializeUser()
                     }
                 }
             default:
@@ -82,6 +83,7 @@ final class UserModel: ObservableObject {
     }
     
     func initializeUser() async {
+        self.error = nil
         let timeoutTask = Task {
             self.isLoading = true
             try await Task.sleep(nanoseconds: 10 * 1_000_000_000) // 10 seconds
@@ -94,6 +96,7 @@ final class UserModel: ObservableObject {
         }
         
         do {
+            try await CodexTokenManager.shared.handleUserSession()
             try await fetchInitialBalance()
             subscribeToAccountBalance()
             timeoutTask.cancel() // Cancel timeout if successful
@@ -106,6 +109,7 @@ final class UserModel: ObservableObject {
             DispatchQueue.main.async {
                 self.isLoading = false
             }
+            self.error = error
         }
     }
     
@@ -233,10 +237,11 @@ final class UserModel: ObservableObject {
     private var tokenBalanceSubscription: Apollo.Cancellable?
 
     func initToken(tokenId: String) {
+        guard let walletAddress else { return }
         deinitToken()
 
         self.tokenId = tokenId
-        subscribeToTokenBalance()
+        subscribeToTokenBalance(walletAddress: walletAddress, tokenId: tokenId)
     }
 
     func deinitToken() {
@@ -245,22 +250,18 @@ final class UserModel: ObservableObject {
         self.tokenId = nil
     }
 
-    private func subscribeToTokenBalance() {
-        guard let walletAddress = self.walletAddress, let token = self.tokenId else {
-            return
-        }
-        
+    private func subscribeToTokenBalance(walletAddress: String, tokenId: String) {
         tokenBalanceSubscription?.cancel()
 
         tokenBalanceSubscription = Network.shared.apollo.subscribe(
             subscription: SubWalletTokenBalanceSubscription(
-                wallet: walletAddress, token: token)
+                wallet: walletAddress, token: tokenId)
         ) { [weak self] result in
             guard let self = self else { return }
             DispatchQueue.main.async {
                 switch result {
                 case .success(let graphQLResult):
-                    self.tokenBalanceLamps =
+                    self.balanceLamps =
                         graphQLResult.data?.balance.first?.value ?? 0
                 case .failure(let error):
                     print("Error updating token balance: \(error.localizedDescription)")
@@ -272,14 +273,14 @@ final class UserModel: ObservableObject {
     func buyTokens(
         buyAmountLamps: Int, price: Int, completion: @escaping (Result<EmptyResponse, Error>) -> Void
     ) {
-        guard let tokenId = self.tokenId else {
+        guard let tokenId = self.tokenId  else {
             return
         }
             let tokenAmount = Int(Double(buyAmountLamps) / Double(price) * 1e9)
             var errorMessage: String? = nil
 
             Network.shared.buyToken(
-                tokenId: tokenId, amount: String(tokenAmount)
+                tokenId: tokenId, amount: String(tokenAmount), tokenPrice: String(price)
             ) { result in
                 switch result {
                 case .success:
@@ -317,14 +318,14 @@ final class UserModel: ObservableObject {
             }
     }
 
-    func sellTokens(completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
+    func sellTokens(price: Int, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
         guard let tokenId = self.tokenId, let balance = self.tokenBalanceLamps else {
             return
         }
         
         let errorMessage: String? = nil
         Network.shared.sellToken(
-            tokenId: tokenId, amount: String(balance)
+            tokenId: tokenId, amount: String(balance), tokenPrice: String(price)
         ) { result in
             switch result {
             case .success:

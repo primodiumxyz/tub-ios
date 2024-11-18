@@ -7,19 +7,19 @@ public class SubWalletTokenBalanceIgnoreIntervalSubscription: GraphQLSubscriptio
   public static let operationName: String = "SubWalletTokenBalanceIgnoreInterval"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"subscription SubWalletTokenBalanceIgnoreInterval($wallet: String!, $start: timestamptz = "now()", $interval: interval = "0", $token: uuid!) { balance: wallet_token_balance_ignore_interval( args: { wallet: $wallet, interval: $interval, start: $start, token: $token } ) { __typename value: balance } }"#
+      #"subscription SubWalletTokenBalanceIgnoreInterval($wallet: String!, $start: timestamptz = "now()", $interval: interval = "0", $token: String!) { balance: wallet_token_balance_ignore_interval( args: { wallet: $wallet, interval: $interval, start: $start, token: $token } ) { __typename value: balance } }"#
     ))
 
   public var wallet: String
   public var start: GraphQLNullable<Timestamptz>
   public var interval: GraphQLNullable<Interval>
-  public var token: Uuid
+  public var token: String
 
   public init(
     wallet: String,
     start: GraphQLNullable<Timestamptz> = "now()",
     interval: GraphQLNullable<Interval> = "0",
-    token: Uuid
+    token: String
   ) {
     self.wallet = wallet
     self.start = start

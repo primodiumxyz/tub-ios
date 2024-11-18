@@ -14,21 +14,13 @@ struct AccountBalanceView: View {
     
     @State private var isExpanded: Bool = false
     
-    var accountBalance: (totalBalance: Int?, change: Int) {
-        guard  let solBalance = userModel.balanceLamps else {
-            return (nil, 0)
-        }
-        var totalBalance: Int = solBalance
-        var deltaBalance = userModel.balanceChangeLamps
-        var tokenBalance = userModel.tokenBalanceLamps ?? 0
+    var balances: (solBalanceUsd: Double?, tokenBalanceUsd: Double, deltaUsd: Double) {
+        let solBalanceUsd = userModel.balanceLamps == nil ? nil : priceModel.lamportsToUsd(lamports: userModel.balanceLamps!)
+        let tokenBalanceUsd = userModel.tokenBalanceLamps == nil ? 0 : Double(userModel.tokenBalanceLamps!) * (currentTokenModel.prices.last?.priceUsd ?? 0) / 1e9
         
-        let finalTokenBalance = tokenBalance * (currentTokenModel.prices.last?.price ?? 0) / Int(1e9)
+        let deltaUsd = (tokenBalanceUsd) + priceModel.lamportsToUsd(lamports: userModel.balanceChangeLamps)
         
-        totalBalance += finalTokenBalance
-        deltaBalance += finalTokenBalance
-        tokenBalance = finalTokenBalance
-        
-        return (totalBalance, deltaBalance)
+        return (solBalanceUsd, tokenBalanceUsd, deltaUsd)
     }
     
     var body: some View {
@@ -46,8 +38,8 @@ struct AccountBalanceView: View {
                                 .foregroundColor(AppColors.white)
                             
                             Spacer()
-                            if let balance = accountBalance.totalBalance {
-                                let balanceUsd = priceModel.formatPrice(lamports: balance, maxDecimals: 2, minDecimals: 2)
+                            if let balance = balances.solBalanceUsd {
+                                let balanceUsd = priceModel.formatPrice(usd: balance + balances.tokenBalanceUsd, maxDecimals: 2, minDecimals: 2)
                                 Text(balanceUsd)
                                     .font(.sfRounded(size: .lg))
                                     .fontWeight(.bold)
@@ -73,8 +65,8 @@ struct AccountBalanceView: View {
                                 .foregroundColor(AppColors.white)
                             
                             HStack {
-                                if let balance = accountBalance.totalBalance  {
-                                    let formattedBalance = priceModel.formatPrice(lamports: balance, maxDecimals: 2, minDecimals: 2)
+                                if let balance = balances.solBalanceUsd {
+                                    let formattedBalance = priceModel.formatPrice(usd: balance, maxDecimals: 2, minDecimals: 2)
                                     Text(formattedBalance)
                                         .font(.sfRounded(size: .xl2))
                                         .fontWeight(.bold)
@@ -82,14 +74,14 @@ struct AccountBalanceView: View {
                                     
                                 }
                                 
-                                let formattedChange = priceModel.formatPrice(lamports: accountBalance.change, showSign: true, maxDecimals: 2)
+                                let formattedChange = priceModel.formatPrice(usd: balances.deltaUsd, showSign: true, maxDecimals: 2)
                                 Text(formattedChange)
                                     .font(.sfRounded(size: .xl2))
                                     .fontWeight(.bold)
-                                    .foregroundColor(accountBalance.change >= 0 ? AppColors.green : AppColors.red)
+                                    .foregroundColor(balances.deltaUsd >= 0 ? AppColors.green : AppColors.red)
                             }
                             .font(.sfRounded(size: .sm, weight: .semibold))
-                            .foregroundColor(accountBalance.change >= -10 ? AppColors.green : AppColors.red)
+                            .foregroundColor(balances.deltaUsd >= -10 ? AppColors.green : AppColors.red)
                         }
                         .padding(.horizontal,5)
                         .onTapGesture {

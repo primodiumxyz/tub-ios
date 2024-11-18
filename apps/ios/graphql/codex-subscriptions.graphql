@@ -1,0 +1,33 @@
+subscription SubTokenPrices(
+  $tokenAddress: String!
+  $networkId: Int = 1399811149
+) {
+  onTokenEventsCreated(
+    input: { tokenAddress: $tokenAddress, networkId: $networkId }
+  ) {
+    events {
+      eventType
+      timestamp
+      token0PoolValueUsd
+      token1PoolValueUsd
+      quoteToken
+    }
+  }
+}
+
+subscription SubTokenCandles($pairId: String!) {
+  onBarsUpdated(pairId: $pairId) {
+    aggregates {
+      r1 {
+        token {
+          o
+          h
+          l
+          c
+          v
+          t
+        }
+      }
+    }
+  }
+}

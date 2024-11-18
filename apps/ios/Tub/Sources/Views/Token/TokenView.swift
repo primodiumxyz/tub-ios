@@ -79,7 +79,8 @@ struct TokenView : View {
             return
         }
         
-        userModel.buyTokens(buyAmountLamps: buyAmountLamps, price: lastPrice.price) { result in
+        let priceLamps = priceModel.usdToLamports(usd: lastPrice.priceUsd)
+        userModel.buyTokens(buyAmountLamps: buyAmountLamps, price: priceLamps) { result in
             switch result {
             case .failure(let error):
                 print("failed to buy")
@@ -158,7 +159,7 @@ struct TokenView : View {
                 
                 HStack(alignment: .center, spacing: 6) {
                     if tokenModel.isReady {
-                        let price = priceModel.formatPrice(lamports: tokenModel.prices.last?.price ?? 0, maxDecimals: 9, minDecimals: 2)
+                        let price = priceModel.formatPrice(usd: tokenModel.prices.last?.priceUsd ?? 0, maxDecimals: 9, minDecimals: 2)
                         Text(price)
                             .font(.sfRounded(size: .xl4, weight: .bold))
                         Image(systemName: "info.circle.fill")
@@ -168,14 +169,14 @@ struct TokenView : View {
                     }
                 }
                 
-                let price = priceModel.formatPrice(lamports: tokenModel.priceChange.amountLamps, showSign: true)
+                let price = priceModel.formatPrice(usd: tokenModel.priceChange.amountUsd, showSign: true)
                 HStack {
                     Text(price)
                     Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
                     Text("\(formatDuration(tokenModel.currentTimeframe.timeframeSecs))").foregroundColor(.gray)
                 }
                 .font(.sfRounded(size: .sm, weight: .semibold))
-                .foregroundColor(tokenModel.priceChange.amountLamps >= 0 ? .green : .red)
+                .foregroundColor(tokenModel.priceChange.amountUsd >= 0 ? .green : .red)
             }
         }
         .padding(.horizontal)
@@ -202,8 +203,7 @@ struct TokenView : View {
                 )
             } else {
                 CandleChartView(
-                    prices: tokenModel.prices,
-                    intervalSecs: 90,
+                    candles: tokenModel.candles,
                     timeframeMins: 30,
                     height: height
                 )
@@ -256,17 +256,14 @@ struct TokenView : View {
     private var stats: [(String, StatValue)] {
         var stats = [(String, StatValue)]()
         
-        if let purchaseData = userModel.purchaseData, let price = tokenModel.prices.last?.price, price > 0, activeTab == "sell" {
+        if let purchaseData = userModel.purchaseData, let priceUsd = tokenModel.prices.last?.priceUsd, priceUsd > 0, activeTab == "sell" {
             // Calculate current value in lamports
             let tokenBalance = userModel.tokenBalanceLamps ?? 0
-            let currentValueLamps = Int(Double(tokenBalance) / 1e9 * Double(price))
             
+            let tokenBalanceUsd = priceModel.lamportsToUsd(lamports: tokenBalance) * (tokenModel.prices.last?.priceUsd ?? 0)
             // Calculate profit
             let initialValueUsd = priceModel.lamportsToUsd(lamports: purchaseData.amount)
-            let currentValueUsd = priceModel.lamportsToUsd(lamports: currentValueLamps)
-            let gains = currentValueUsd - initialValueUsd
-            
-            
+            let gains = tokenBalanceUsd - initialValueUsd
             
             if purchaseData.amount > 0, initialValueUsd > 0 {
                 let percentageGain = gains / initialValueUsd * 100
@@ -280,8 +277,8 @@ struct TokenView : View {
             
             // Add position stats
             stats += [
-                ("You Own", StatValue(
-                    text: "\(priceModel.formatPrice(lamports: currentValueLamps, maxDecimals: 2, minDecimals: 2)) (\(priceModel.formatPrice(lamports: tokenBalance, showUnit: false)) \(tokenModel.token.symbol))",
+                ("You own", StatValue(
+                    text: "\(priceModel.formatPrice(usd: tokenBalanceUsd, maxDecimals: 2, minDecimals: 2)) (\(priceModel.formatPrice(lamports: tokenBalance, showUnit: false)) \(tokenModel.token.symbol))",
                     color: nil
                 ))
             ]

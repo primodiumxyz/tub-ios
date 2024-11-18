@@ -45,7 +45,12 @@ struct BuySellForm: View {
             print("🔴 Haptic feedback disabled")
         }
         
-        userModel.sellTokens(completion: {result in
+        guard let tokenPrice = tokenModel.prices.last?.priceUsd else {
+            return
+        }
+        
+        let priceLamps = priceModel.usdToLamports(usd: tokenPrice)
+        userModel.sellTokens(price: priceLamps, completion: {result in
             switch result {
             case .success:
                 animationState.showSellBubbles = true
@@ -166,7 +171,7 @@ struct BuySellForm: View {
                             handleBuy(settingsManager.defaultBuyValue)
                         }) {
                             HStack(alignment: .center, spacing: 8) {
-                                Text("Buy \(priceModel.formatPrice(usd: settingsManager.defaultBuyValue) ?? "$0.00")")
+                                Text("Buy \(priceModel.formatPrice(usd: settingsManager.defaultBuyValue))")
                                     .font(.sfRounded(size: .xl, weight: .semibold))
                                     .foregroundColor(AppColors.black)
                                     .multilineTextAlignment(.center)

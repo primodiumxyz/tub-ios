@@ -29,17 +29,18 @@ struct TokenInfoCardView: View {
     private var stats: [(String, StatValue)] {
         var stats = [(String, StatValue)]()
         
-    if let purchaseData = userModel.purchaseData, activeTab == "sell" {
+        if let purchaseData = userModel.purchaseData, activeTab == "sell" {
             // Calculate current value in lamports
-        let tokenBalanceLamps = userModel.tokenBalanceLamps ?? 0
-            let currentValueLamps = Int(Double(tokenBalanceLamps) / 1e9 * Double(tokenModel.prices.last?.price ?? 0))
+            let tokenBalance = userModel.tokenBalanceLamps ?? 0
+            
+            let tokenBalanceUsd = priceModel.lamportsToUsd(lamports: tokenBalance) * (tokenModel.prices.last?.priceUsd ?? 0)
+            
+            let initialValueUsd = priceModel.lamportsToUsd(lamports: purchaseData.amount)
             
             // Calculate profit
-            let initialValueUsd = priceModel.lamportsToUsd(lamports: purchaseData.price)
-            let currentValueUsd = priceModel.lamportsToUsd(lamports: currentValueLamps)
-            let gains = currentValueUsd - initialValueUsd
+            let gains = tokenBalanceUsd - initialValueUsd
             
-
+            
             if initialValueUsd > 0 {
                 let percentageGain = gains / initialValueUsd * 100
                 stats += [
@@ -49,10 +50,10 @@ struct TokenInfoCardView: View {
                     ))
                 ]
             }
-          
+            
             stats += [
-                ("You Own", StatValue(
-                    text: "\(priceModel.formatPrice(lamports: currentValueLamps, maxDecimals: 2, minDecimals: 2)) (\(priceModel.formatPrice(lamports: tokenBalanceLamps, showUnit: false)) \(tokenModel.token.symbol))",
+                ("You own", StatValue(
+                    text: "\(priceModel.formatPrice(usd: tokenBalanceUsd, maxDecimals: 2, minDecimals: 2)) (\(formatLargeNumber(Double(tokenBalance) / 1e9)) \(tokenModel.token.symbol))",
                     color: nil
                 ))
             ]
@@ -60,7 +61,7 @@ struct TokenInfoCardView: View {
         }
         
         // Add original stats from tokenModel
-        stats += tokenModel.getTokenStats(priceModel: priceModel).map { 
+        stats += tokenModel.getTokenStats(priceModel: priceModel).map {
             ($0.0, StatValue(text: $0.1 ?? "", color: nil))
         }
         
@@ -171,7 +172,7 @@ struct TokenInfoCardView: View {
                     }
                 }
         )
-        .onChange(of: isVisible) { newValue in
+        .onChange(of: isVisible) { _, newValue in
             if newValue {
                 // Reset when becoming visible
                 isClosing = false

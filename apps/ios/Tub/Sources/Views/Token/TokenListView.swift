@@ -95,7 +95,9 @@ struct TokenListView: View {
                                     .multilineTextAlignment(.center)
                                     .padding(.bottom, 24)
                                 Button(action: {
-                                    tokenListModel.fetchTokens(setLoading: true)
+                                    Task {
+                                        try? await tokenListModel.subscribeTokens()
+                                    }
                                 }) {
                                     Text("Retry")
                                         .font(.sfRounded(size: .lg, weight: .semibold))
@@ -143,7 +145,6 @@ struct TokenListView: View {
                                             .onChanged { value in
                                                 if canSwipe(value: value) {
                                                     if isDragStarting {
-                                                        print("Drag started")
                                                         isDragStarting = false
                                                         // todo: show the next token
                                                     }
@@ -186,7 +187,11 @@ struct TokenListView: View {
                 .foregroundColor(.white)
             }
         }.onAppear {
-            tokenListModel.subscribeTokens()
+            do {
+                try tokenListModel.subscribeTokens()
+            } catch {
+                notificationHandler.show("Failed to fetch tokens", type: .error)
+            }
         }
         .onDisappear {
             tokenListModel.unsubscribeTokens()

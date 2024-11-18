@@ -1,6 +1,0 @@
-function:
-  name: get_formatted_tokens_interval
-  schema: public
-configuration:
-  custom_root_fields: {}
-  exposed_as: mutation

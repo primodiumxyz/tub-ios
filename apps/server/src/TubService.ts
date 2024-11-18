@@ -1,3 +1,4 @@
+import { Codex } from "@codex-data/sdk";
 import { PrivyClient, WalletWithMetadata } from "@privy-io/server-auth";
 import { GqlClient } from "@tub/gql";
 import { config } from "dotenv";
@@ -7,10 +8,12 @@ config({ path: "../../.env" });
 export class TubService {
   private gql: GqlClient["db"];
   private privy: PrivyClient;
+  private codexSdk: Codex;
 
-  constructor(gqlClient: GqlClient["db"], privy: PrivyClient) {
+  constructor(gqlClient: GqlClient["db"], privy: PrivyClient, codexSdk: Codex) {
     this.gql = gqlClient;
     this.privy = privy;
+    this.codexSdk = codexSdk;
   }
 
   private verifyJWT = async (token: string) => {
@@ -35,7 +38,7 @@ export class TubService {
     return { status: 200 };
   }
 
-  async sellToken(jwtToken: string, tokenId: string, amount: bigint, overridePrice?: bigint) {
+  async sellToken(jwtToken: string, tokenId: string, amount: bigint, tokenPrice: number) {
     const accountId = await this.verifyJWT(jwtToken);
     const wallet = await this.getUserWallet(accountId);
     if (!wallet) {
@@ -45,7 +48,7 @@ export class TubService {
       wallet,
       token: tokenId,
       amount: amount.toString(),
-      override_token_price: overridePrice?.toString(),
+      token_price: tokenPrice.toString(),
     });
 
     if (result.error) {
@@ -55,7 +58,7 @@ export class TubService {
     return result.data;
   }
 
-  async buyToken(jwtToken: string, tokenId: string, amount: bigint, overridePrice?: bigint) {
+  async buyToken(jwtToken: string, tokenId: string, amount: bigint, tokenPrice: number) {
     const accountId = await this.verifyJWT(jwtToken);
     const wallet = await this.getUserWallet(accountId);
     if (!wallet) {
@@ -65,7 +68,7 @@ export class TubService {
       wallet,
       token: tokenId,
       amount: amount.toString(),
-      override_token_price: overridePrice?.toString(),
+      token_price: tokenPrice.toString(),
     });
 
     if (result.error) {
@@ -131,5 +134,20 @@ export class TubService {
     }
 
     return id;
+  }
+
+  async requestCodexToken(expiration?: number) {
+    expiration = expiration ?? 3600 * 1000;
+    const res = await this.codexSdk.mutations.createApiTokens({
+      input: { expiresIn: expiration },
+    });
+
+    const token = res.createApiTokens[0]?.token;
+    const expiry = res.createApiTokens[0]?.expiresTimeString;
+    if (!token || !expiry) {
+      throw new Error("Failed to create Codex API token");
+    }
+
+    return { token: `Bearer ${token}`, expiry };
   }
 }

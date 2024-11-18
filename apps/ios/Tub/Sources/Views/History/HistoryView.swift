@@ -7,6 +7,7 @@
 
 import SwiftUI
 import TubAPI
+import CodexAPI
 
 struct HistoryView : View {
     
@@ -17,6 +18,13 @@ struct HistoryView : View {
     @State private var txs: [Transaction]
     @State private var isReady : Bool
     @State private var error: Error? // Add this line
+    @State private var tokenMetadata: [String: TokenMetadata] = [:] // Cache for token metadata
+    
+    struct TokenMetadata {
+        let name: String?
+        let symbol: String?
+        let imageUri: String?
+    }
     
     init(txs: [Transaction]? = []) {
         self._txs = State(initialValue: txs!.isEmpty ? [] : txs!)
@@ -24,66 +32,101 @@ struct HistoryView : View {
         self._error = State(initialValue: nil) // Add this line
     }
     
-    func fetchUserTxs(_ userId: String) {
-        guard let walletAddress = userModel.walletAddress else { return }
-        isReady = false
-        error = nil // Reset error state
-        let query = GetWalletTransactionsQuery(wallet: walletAddress)
-        
-        Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { result in
-            DispatchQueue.main.async {
-                self.isReady = true
-                
+    func fetchTokenMetadata(address: String) async throws -> TokenMetadata {
+        let client = await CodexNetwork.shared.apolloClient
+        return try await withCheckedThrowingContinuation { continuation in
+            client.fetch(query: GetTokenMetadataQuery(
+                address: address
+            )) { result in
                 switch result {
-                case .success(let graphQLResult):
-                    if let tokenTransactions = graphQLResult.data?.token_transaction {
-                        self.txs = tokenTransactions.reduce(into: []) { result, transaction in
-                            guard let date = formatDateString(transaction.wallet_transaction_data.created_at) else {
-                                return
-                            }
-                            if (abs(transaction.amount) == 0) {
-                                return
-                            }
-                            
-                            let isBuy = transaction.amount >= 0
-                            let symbol = transaction.token_data.symbol
-                            let name = transaction.token_data.name
-                            let mint = transaction.token_data.mint
-                            
-                            let imageUri = transaction.token_data.uri?.replacingOccurrences(of: "https://cdn.helius-rpc.com/cdn-cgi/image//", with: "").replacingOccurrences(of: "cf-ipfs.com", with: "ipfs.io") ?? "" // Helius cdn link doesn't work out for now
-                            let price = transaction.token_price?.price ?? 0
-                            
-                            var valueLamps = 0
-                            let maxSafeValue = transaction.amount > 0 ? Int.max / abs(transaction.amount) : 0
-                            if Double(price) > Double(maxSafeValue) {
-                                valueLamps = maxSafeValue / Int(1e9)
-                            } else {
-                                valueLamps = Int(Double(price) * Double(transaction.amount) / Double(1e9))
-                            }
-                                
-                            let newTransaction = Transaction(
-                                    name: name ?? "",
-                                    symbol: symbol ?? "",
-                                    imageUri: imageUri,
-                                    date: date,
-                                    valueUsd: priceModel.lamportsToUsd(lamports: -valueLamps),
-                                    valueLamps: -valueLamps,
-                                    quantityTokens: transaction.amount,
-                                    isBuy: isBuy,
-                                    mint: mint
-                                )
-                                
-                                result.append(newTransaction)
-                        }
-                    } else if let error = graphQLResult.errors?.first {
-                        print(error)
-                        self.error = error
+                case .success(let response):
+                    if let token = response.data?.token {
+                        let metadata = TokenMetadata(
+                            name: token.info?.name,
+                            symbol: token.info?.symbol,
+                            imageUri: token.info?.imageLargeUrl ?? token.info?.imageSmallUrl ?? token.info?.imageThumbUrl ?? nil
+                        )
+                        continuation.resume(returning: metadata)
                     } else {
-                        self.txs = []
+                        continuation.resume(throwing: NSError(domain: "TokenMetadata", code: 1))
                     }
                 case .failure(let error):
-                    print("Error fetching transactions: \(error)")
-                    self.error = error
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+    
+    func fetchUserTxs(_ walletAddress: String) {
+        Task {
+            do {
+                let client = await CodexNetwork.shared.apolloClient
+                isReady = false
+                error = nil
+                let query = GetWalletTransactionsQuery(wallet: walletAddress)
+                
+                client.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { result in
+                    Task {
+                        do {
+                            switch result {
+                            case .success(let graphQLResult):
+                                if let tokenTransactions = graphQLResult.data?.token_transaction {
+                                    var processedTxs: [Transaction] = []
+                                    
+                                    for transaction in tokenTransactions {
+                                        guard let date = formatDateString(transaction.wallet_transaction_data.created_at) else {
+                                            continue
+                                        }
+                                        
+                                        if abs(transaction.amount) == 0 {
+                                            continue
+                                        }
+                                        
+                                        // Fetch token metadata if not cached
+                                        if tokenMetadata[transaction.token] == nil {
+                                            let metadata = try await fetchTokenMetadata(address: transaction.token)
+                                            await MainActor.run {
+                                                tokenMetadata[transaction.token] = metadata
+                                            }
+                                        }
+                                        
+                                        let metadata = tokenMetadata[transaction.token]
+                                        let isBuy = transaction.amount >= 0
+                                        let mint = transaction.token
+                                        let priceUsd = transaction.token_price
+                                        
+                                        let valueUsd = Double(transaction.amount) * priceUsd / 1e9
+                                        
+                                        let newTransaction = Transaction(
+                                            name: metadata?.name ?? "",
+                                            symbol: metadata?.symbol ?? "",
+                                            imageUri: metadata?.imageUri ?? "",
+                                            date: date,
+                                            valueUsd: -valueUsd,
+                                            valueLamps: priceModel.usdToLamports(usd: -valueUsd),
+                                            quantityTokens: transaction.amount,
+                                            isBuy: isBuy,
+                                            mint: mint
+                                        )
+                                        
+                                        processedTxs.append(newTransaction)
+                                    }
+                                    
+                                    await MainActor.run {
+                                        self.txs = processedTxs
+                                        self.isReady = true
+                                    }
+                                }
+                            case .failure(let error):
+                                throw error
+                            }
+                        } catch {
+                            await MainActor.run {
+                                self.error = error
+                                self.isReady = true
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -259,7 +302,7 @@ struct HistoryViewContent: View {
                 
                 // Transaction List
                 if !isReady {
-                   ProgressView()
+                    ProgressView()
                 }
                 else if filteredTransactions().isEmpty {
                     Text("No transactions found")

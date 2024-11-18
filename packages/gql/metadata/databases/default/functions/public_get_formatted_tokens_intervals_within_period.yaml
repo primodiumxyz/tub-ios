@@ -1,3 +1,0 @@
-function:
-  name: get_formatted_tokens_intervals_within_period
-  schema: public

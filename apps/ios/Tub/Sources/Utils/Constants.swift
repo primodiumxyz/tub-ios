@@ -87,12 +87,5 @@ public let serverBaseUrl: String = {
     #endif
 }()
 
-// Filtered tokens and chart
-public let FILTER_INTERVAL: Double = 30 * 60
-public let MIN_TRADES: Int = 0
-public let MIN_VOLUME: Int = 0
-public let MINT_BURNT: Bool = true
-public let FREEZE_BURNT: Bool = true
-    
-public let CHART_INTERVAL: Double = 120
-public let CHART_INTERVAL_MIN_TRADES: Int = 15
+public let NETWORK_FILTER: Int = 1399811149 // Solana filter for Codex
+public let CHART_INTERVAL: Double = 180
