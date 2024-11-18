@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { EventType, QuoteToken } from "@codex-data/sdk/dist/sdk/generated/graphql";
 
-import { CODEX_SDK, NETWORK_FILTER } from "@/lib/constants";
+import { useServer } from "@/hooks/use-server";
+import { NETWORK_FILTER } from "@/lib/constants";
 import { Token, TokenPrice } from "@/lib/types";
 
 export const useTokenPrices = (
@@ -14,8 +15,12 @@ export const useTokenPrices = (
   const [error, setError] = useState<string | null>(null);
   const lastTimestamp = useRef(0);
 
-  const fetchChartData = async () => {
+  const { codexSdk } = useServer();
+
+  const fetchChartData = useCallback(async () => {
     try {
+      if (!codexSdk) return;
+
       setFetching(true);
       const now = Math.floor(Date.now() / 1000);
       const chunks = [];
@@ -35,7 +40,7 @@ export const useTokenPrices = (
       }
 
       // Fetch data for each chunk
-      const results = await Promise.all(chunks.map((inputs) => CODEX_SDK.queries.getTokenPrices({ inputs })));
+      const results = await Promise.all(chunks.map((inputs) => codexSdk.queries.getTokenPrices({ inputs })));
 
       // Combine and sort results
       const combinedPrices = results
@@ -62,10 +67,11 @@ export const useTokenPrices = (
       setError((err as Error).message);
       setFetching(false);
     }
-  };
+  }, [codexSdk, intervalSeconds, token.mint]);
 
-  const subscribeToChartData = async () => {
-    CODEX_SDK.subscriptions.onTokenEventsCreated(
+  const subscribeToChartData = useCallback(async () => {
+    if (!codexSdk) return;
+    codexSdk.subscriptions.onTokenEventsCreated(
       {
         input: {
           tokenAddress: token.mint ?? "",
@@ -105,11 +111,11 @@ export const useTokenPrices = (
         },
       },
     );
-  };
+  }, [codexSdk, onUpdate, token.mint]);
 
   useEffect(() => {
     fetchChartData().then(subscribeToChartData);
-  }, [intervalSeconds]);
+  }, [intervalSeconds, fetchChartData, subscribeToChartData]);
 
   return {
     tokenPrices,

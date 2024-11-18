@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { RankingDirection, TokenRankingAttribute } from "@codex-data/sdk/dist/sdk/generated/graphql";
 
-import { CODEX_SDK, PUMP_FUN_ID } from "@/lib/constants";
+import { useServer } from "@/hooks/use-server";
+import { PUMP_FUN_ID } from "@/lib/constants";
 import { Token } from "@/lib/types";
 
 export const useTokens = (): {
@@ -13,10 +14,13 @@ export const useTokens = (): {
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState<string | undefined>(undefined);
 
-  const fetchTokens = async () => {
+  const { codexSdk } = useServer();
+
+  const fetchTokens = useCallback(async () => {
     try {
+      if (!codexSdk) return;
       setFetching(true);
-      const res = await CODEX_SDK.queries.filterTokens({
+      const res = await codexSdk.queries.filterTokens({
         // see: https://docs.codex.io/reference/input-objects#tokenfilters
         filters: {
           exchangeId: [PUMP_FUN_ID],
@@ -77,13 +81,13 @@ export const useTokens = (): {
       setError((err as Error).message);
       setFetching(false);
     }
-  };
+  }, [codexSdk]);
 
   useEffect(() => {
     fetchTokens();
     const interval = setInterval(() => fetchTokens(), 5_000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchTokens]);
 
   return useMemo(
     () => ({

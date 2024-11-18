@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-import { CODEX_SDK } from "@/lib/constants";
+import { useServer } from "@/hooks/use-server";
 import { Token, TokenCandle, TokenCandles } from "@/lib/types";
 
 export const useTokenCandles = (
@@ -11,11 +11,14 @@ export const useTokenCandles = (
   const [fetching, setFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchCandlesData = async () => {
+  const { codexSdk } = useServer();
+
+  const fetchCandlesData = useCallback(async () => {
     try {
+      if (!codexSdk) return;
       setFetching(true);
 
-      const res = await CODEX_SDK.queries.getBars({
+      const res = await codexSdk.queries.getBars({
         from: Math.floor(Date.now() / 1000) - 60 * 30, // 30 min ago
         to: Math.floor(Date.now() / 1000),
         resolution: "1", // 1 min candles
@@ -37,10 +40,11 @@ export const useTokenCandles = (
       setError((err as Error).message);
       setFetching(false);
     }
-  };
+  }, [codexSdk, token.pairId]);
 
-  const subscribeToCandlesData = async () => {
-    CODEX_SDK.subscriptions.onBarsUpdated(
+  const subscribeToCandlesData = useCallback(async () => {
+    if (!codexSdk) return;
+    codexSdk.subscriptions.onBarsUpdated(
       {
         pairId: token.pairId,
       },
@@ -70,11 +74,11 @@ export const useTokenCandles = (
         },
       },
     );
-  };
+  }, [codexSdk, onUpdate, token.pairId]);
 
   useEffect(() => {
     fetchCandlesData().then(subscribeToCandlesData);
-  }, []);
+  }, [fetchCandlesData, subscribeToCandlesData]);
 
   return {
     tokenCandles,

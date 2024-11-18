@@ -147,6 +147,6 @@ export class TubService {
       throw new Error("Failed to create Codex API token");
     }
 
-    return token;
+    return `Bearer ${token}`;
   }
 }
