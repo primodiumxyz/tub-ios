@@ -20,9 +20,9 @@ class TokenListModel: ObservableObject {
     @Published var previousTokenModel: TokenModel?
     @Published var nextTokenModel: TokenModel?
     @Published var currentTokenModel: TokenModel
+    var userModel: UserModel
 
     @Published var isLoading = true
-    @Published var errorMessage: String?
 
     // Cooldown for not showing the same token too often
     private let TOKEN_COOLDOWN: TimeInterval = 60  // 60 seconds cooldown
@@ -32,7 +32,8 @@ class TokenListModel: ObservableObject {
     private var currentTokenStartTime: Date?
     private var tokenSubscription: Cancellable?
 
-    init() {
+    init(userModel: UserModel) {
+        self.userModel = userModel
         self.currentTokenModel = TokenModel()
     }
 
@@ -50,7 +51,9 @@ class TokenListModel: ObservableObject {
 
     private func initTokenModel() {
         DispatchQueue.main.async {
-            self.currentTokenModel.initialize(with: self.tokens[self.currentTokenIndex].id)
+            let tokenId = self.tokens[self.currentTokenIndex].id
+            self.currentTokenModel.initialize(with: tokenId)
+            self.userModel.initToken(tokenId: tokenId)
         }
     }
 
@@ -127,9 +130,11 @@ class TokenListModel: ObservableObject {
             recentlyShownTokens.append((id: currentToken.id, timestamp: Date()))
         }
 
-        if let newRandomToken = getNextToken(excluding: tokens[currentTokenIndex].id) {
-            tokens.append(newRandomToken)
+        if let newToken = getNextToken(excluding: tokens[currentTokenIndex].id) {
+
+            tokens.append(newToken)
             initTokenModel()
+
             // Set start time for new token
             currentTokenStartTime = Date()
         }

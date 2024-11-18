@@ -72,7 +72,7 @@ struct AccountDetailsView: View {
                 
                 Spacer()
             }
-            .onChange(of: userId) { newValue in
+            .onChange(of: userId) { _, newValue in
                 if newValue.isEmpty {
                     presentationMode.wrappedValue.dismiss()
                 }
@@ -96,7 +96,9 @@ struct AccountDetailsView: View {
                 }
             }
             .background(AppColors.black)
-        }  }else { EmptyView()
+        }
+        } else {
+            EmptyView()
         }
     }
     

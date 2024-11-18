@@ -52,6 +52,12 @@ struct TokenView : View {
     @State private var defaultAmount: Double = 50.0
     @State private var keyboardHeight: CGFloat = 0
     
+    var onSellSuccess: (() -> Void)?
+    
+    var activeTab: String {
+        let balance: Int = userModel.tokenBalanceLamps ?? 0
+        return balance > 0 ? "sell" : "buy"
+    }
     
     
     init(tokenModel: TokenModel, onSellSuccess: (() -> Void)? = nil) {
@@ -136,7 +142,8 @@ struct TokenView : View {
                     .font(.sfRounded(size: .lg, weight: .semibold))
             }
             HStack(alignment: .center, spacing: 6) {
-                if let price = priceModel.formatPrice(lamports: tokenModel.prices.last?.price ?? 0, maxDecimals: 9, minDecimals: 2), tokenModel.isReady {
+                if  tokenModel.isReady {
+                    let price = priceModel.formatPrice(lamports: tokenModel.prices.last?.price ?? 0, maxDecimals: 9, minDecimals: 2)
                     Text(price)
                         .font(.sfRounded(size: .xl4, weight: .bold))
                     Image(systemName: "info.circle.fill")
@@ -148,8 +155,8 @@ struct TokenView : View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             
-            if let price = priceModel.formatPrice(lamports: tokenModel.priceChange.amountLamps, showSign: true)
-            {
+                
+                let price = priceModel.formatPrice(lamports: tokenModel.priceChange.amountLamps, showSign: true)
                 HStack {
                     Text(price)
                     Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
@@ -245,39 +252,40 @@ struct TokenView : View {
     private var stats: [(String, StatValue)] {
         var stats = [(String, StatValue)]()
         
-        //        if let purchaseData = tokenModel.purchaseData, let price = tokenModel.prices.last?.price, price > 0, activeTab == "sell" {
-        //            // Calculate current value in lamports
-        //            let currentValueLamps = Int(Double(tokenModel.balanceLamps) / 1e9 * Double(price))
-        //
-        //            // Calculate profit
-        //            let initialValueUsd = priceModel.lamportsToUsd(lamports: purchaseData.amount)
-        //            let currentValueUsd = priceModel.lamportsToUsd(lamports: currentValueLamps)
-        //            let gains = currentValueUsd - initialValueUsd
-        //
-        //
-        //
-        //            if purchaseData.amount > 0, initialValueUsd > 0 {
-        //                let percentageGain = gains / initialValueUsd * 100
-        //                stats += [
-        //                    ("Gains", StatValue(
-        //                        text: "\(priceModel.formatPrice(usd: gains, showSign: true)) (\(String(format: "%.2f", percentageGain))%)",
-        //                        color: gains >= 0 ? AppColors.green : AppColors.red
-        //                    ))
-        //                ]
-        //            }
-        //
-        //            // Add position stats
-        //            stats += [
-        //                ("You Own", StatValue(
-        //                    text: "\(priceModel.formatPrice(lamports: currentValueLamps, maxDecimals: 2, minDecimals: 2)) (\(priceModel.formatPrice(lamports: tokenModel.balanceLamps, showUnit: false)) \(tokenModel.token.symbol))",
-        //                    color: nil
-        //                ))
-        //            ]
-        //        } else {
-        stats += tokenModel.getTokenStats(priceModel: priceModel).map {
-            ($0.0, StatValue(text: $0.1 ?? "", color: nil))
+        if let purchaseData = userModel.purchaseData, let price = tokenModel.prices.last?.price, price > 0, activeTab == "sell" {
+            // Calculate current value in lamports
+            let tokenBalance = userModel.tokenBalanceLamps ?? 0
+            let currentValueLamps = Int(Double(tokenBalance) / 1e9 * Double(price))
+            
+            // Calculate profit
+            let initialValueUsd = priceModel.lamportsToUsd(lamports: purchaseData.amount)
+            let currentValueUsd = priceModel.lamportsToUsd(lamports: currentValueLamps)
+            let gains = currentValueUsd - initialValueUsd
+            
+            
+            
+            if purchaseData.amount > 0, initialValueUsd > 0 {
+                let percentageGain = gains / initialValueUsd * 100
+                stats += [
+                    ("Gains", StatValue(
+                        text: "\(priceModel.formatPrice(usd: gains, showSign: true)) (\(String(format: "%.2f", percentageGain))%)",
+                        color: gains >= 0 ? AppColors.green : AppColors.red
+                    ))
+                ]
+            }
+            
+            // Add position stats
+            stats += [
+                ("You Own", StatValue(
+                    text: "\(priceModel.formatPrice(lamports: currentValueLamps, maxDecimals: 2, minDecimals: 2)) (\(priceModel.formatPrice(lamports: tokenBalance, showUnit: false)) \(tokenModel.token.symbol))",
+                    color: nil
+                ))
+            ]
+        } else {
+            stats += tokenModel.getTokenStats(priceModel: priceModel).map {
+                ($0.0, StatValue(text: $0.1 ?? "", color: nil))
+            }
         }
-        
         return stats
     }
     

@@ -23,8 +23,7 @@ struct TokenListView: View {
     @State private var isDragStarting = true
     
     var activeTab: String {
-        //        let balance: Int = tokenListModel.currentTokenModel.balanceLamps
-        let balance: Int = 0
+        let balance: Int = userModel.tokenBalanceLamps ?? 0
         return balance > 0 ? "sell" : "buy"
     }
     

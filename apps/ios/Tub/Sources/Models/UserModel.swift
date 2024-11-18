@@ -15,7 +15,7 @@ import PrivySDK
 final class UserModel: ObservableObject {
     static let shared = UserModel()
     
-    @EnvironmentObject private var errorHandler: ErrorHandler
+    @EnvironmentObject private var notificationHandler: NotificationHandler
     
     @Published var isLoading: Bool = false
     @Published var userId: String?
@@ -24,16 +24,21 @@ final class UserModel: ObservableObject {
     
     @Published var balanceLamps: Int? = nil
     @Published var initialTime = Date()
+    @Published var elapsedSeconds: TimeInterval = 0
     @Published var initialBalanceLamps: Int? = nil
     @Published var balanceChangeLamps: Int = 0
     
     private var accountBalanceSubscription: Apollo.Cancellable?
     
+    private var timer: Timer?
+    
     private init() {
         setupAuthStateListener()
         setupWalletStateListener()
     }
-    
+
+
+
     private func setupAuthStateListener() {
         privy.setAuthStateChangeCallback { [weak self] state in
             guard let self = self else { return }
@@ -41,11 +46,14 @@ final class UserModel: ObservableObject {
             switch state {
             case .authenticated(let authSession):
                 self.userId = authSession.user.id
+                self.startTimer()
             case .unauthenticated:
                 DispatchQueue.main.async {
                     self.userId = nil
                     self.walletState = .notCreated
                     self.walletAddress = nil
+                    self.stopTimer()
+                    self.elapsedSeconds = 0
                 }
             default:
                 break
@@ -58,10 +66,7 @@ final class UserModel: ObservableObject {
             guard let self = self else { return }
             switch state {
             case .error:
-                let walletError = NSError(
-                    domain: "com.tubapp.wallet", code: 1001,
-                    userInfo: [NSLocalizedDescriptionKey: "Failed to connect wallet."])
-                errorHandler.show(walletError)
+                notificationHandler.show("Failed to connect wallet.", type: .error)
             case .connected(let wallets):
                 if let solanaWallet = wallets.first(where: { $0.chainType == .solana }), walletAddress == nil {
                     self.walletAddress = solanaWallet.address
@@ -211,6 +216,158 @@ final class UserModel: ObservableObject {
         self.balanceLamps = 0
         self.initialBalanceLamps = nil
         self.balanceChangeLamps = 0
+        self.stopTimer()
+        self.elapsedSeconds = 0
+        deinitToken()
         privy.logout()
+    }
+
+
+    /* ------------------------------- USER TOKEN ------------------------------- */
+
+    @Published var tokenId: String? = nil
+    @Published var tokenBalanceLamps: Int? = nil
+
+    @Published var purchaseData: PurchaseData? = nil
+    
+    private var tokenBalanceSubscription: Apollo.Cancellable?
+
+    func initToken(tokenId: String) {
+        deinitToken()
+
+        self.tokenId = tokenId
+        subscribeToTokenBalance()
+    }
+
+    func deinitToken() {
+        tokenBalanceSubscription?.cancel()
+        self.tokenBalanceLamps = nil
+        self.tokenId = nil
+    }
+
+    private func subscribeToTokenBalance() {
+        guard let walletAddress = self.walletAddress, let token = self.tokenId else {
+            return
+        }
+        
+        tokenBalanceSubscription?.cancel()
+
+        tokenBalanceSubscription = Network.shared.apollo.subscribe(
+            subscription: SubWalletTokenBalanceSubscription(
+                wallet: walletAddress, token: token)
+        ) { [weak self] result in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let graphQLResult):
+                    self.tokenBalanceLamps =
+                        graphQLResult.data?.balance.first?.value ?? 0
+                case .failure(let error):
+                    print("Error updating token balance: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
+
+    func buyTokens(
+        buyAmountLamps: Int, price: Int, completion: @escaping (Result<EmptyResponse, Error>) -> Void
+    ) {
+        guard let tokenId = self.tokenId else {
+            return
+        }
+            let tokenAmount = Int(Double(buyAmountLamps) / Double(price) * 1e9)
+            var errorMessage: String? = nil
+
+            Network.shared.buyToken(
+                tokenId: tokenId, amount: String(tokenAmount)
+            ) { result in
+                switch result {
+                case .success:
+                    self.purchaseData = PurchaseData(
+                        timestamp: Date(),
+                        amount: buyAmountLamps,
+                        price: price
+                    )
+                case .failure(let error):
+                    errorMessage = error.localizedDescription
+                    print("Error buying tokens: \(error)")
+                }
+                completion(result)
+            }
+
+            Network.shared.recordClientEvent(
+                event: ClientEvent(
+                    eventName: "buy_tokens",
+                    source: "token_model",
+                    metadata: [
+                        ["token_amount": tokenAmount],
+                        ["buy_amount": buyAmountLamps],
+                        ["price": price],
+                        ["token_id": tokenId],
+                    ],
+                    errorDetails: errorMessage
+                )
+            ) { result in
+                switch result {
+                case .success:
+                    print("Successfully recorded buy event")
+                case .failure(let error):
+                    print("Failed to record buy event: \(error)")
+                }
+            }
+    }
+
+    func sellTokens(completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
+        guard let tokenId = self.tokenId, let balance = self.tokenBalanceLamps else {
+            return
+        }
+        
+        let errorMessage: String? = nil
+        Network.shared.sellToken(
+            tokenId: tokenId, amount: String(balance)
+        ) { result in
+            switch result {
+            case .success:
+                self.purchaseData = nil
+            case .failure(let error):
+                print("Error selling tokens: \(error)")
+            }
+            completion(result)
+        }
+
+        Network.shared.recordClientEvent(
+            event: ClientEvent(
+                eventName: "sell_tokens",
+                source: "token_model",
+                metadata: [
+                    ["sell_amount": balance],
+                    ["token_id": tokenId],
+                ],
+                errorDetails: errorMessage
+            )
+        ) { result in
+            switch result {
+            case .success:
+                print("Successfully recorded buy event")
+            case .failure(let error):
+                print("Failed to record buy event: \(error)")
+            }
+        }
+    }
+
+    private func startTimer() {
+        stopTimer() // Ensure any existing timer is invalidated
+        self.initialTime = Date()
+        self.elapsedSeconds = 0
+        
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            self.elapsedSeconds = Date().timeIntervalSince(self.initialTime)
+        }
+    }
+
+    private func stopTimer() {
+        timer?.invalidate()
+        timer = nil
     }
 }

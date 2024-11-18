@@ -31,8 +31,7 @@ struct BuySellForm: View {
     }
     
     var activeTab: String {
-//        let balance: Int = viewModel.currentTokenModel.balanceLamps
-        let balance: Int = 0
+       let balance: Int = userModel.tokenBalanceLamps ?? 0
         return balance > 0 ? "sell" : "buy"
     }
 
@@ -130,7 +129,7 @@ struct BuySellForm: View {
                         handleBuy(settingsManager.defaultBuyValue)
                     }) {
                         HStack(alignment: .center, spacing: 8) {
-                            Text("Buy \(priceModel.formatPrice(usd: settingsManager.defaultBuyValue))")
+                            Text("Buy \(priceModel.formatPrice(usd: settingsManager.defaultBuyValue) ?? "$0.00")")
                                 .font(.sfRounded(size: .xl, weight: .semibold))
                                 .foregroundColor(AppColors.black)
                                 .multilineTextAlignment(.center)

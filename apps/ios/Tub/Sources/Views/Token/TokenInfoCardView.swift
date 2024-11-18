@@ -10,14 +10,14 @@ struct TokenInfoCardView: View {
     @ObservedObject var tokenModel: TokenModel
     @Binding var isVisible: Bool
     @EnvironmentObject var priceModel: SolPriceModel
+    @EnvironmentObject var userModel: UserModel
     
     @State private var dragOffset: CGFloat = 0.0
     @State private var animatingSwipe: Bool = false
     @State private var isClosing: Bool = false
     
     var activeTab: String {
-//      let balance: Int = tokenListModel.currentTokenModel.balanceLamps
-        let balance: Int = 0
+        let balance: Int = userModel.tokenBalanceLamps ?? 0
         return balance > 0 ? "sell" : "buy"
     }
     
@@ -29,34 +29,35 @@ struct TokenInfoCardView: View {
     private var stats: [(String, StatValue)] {
         var stats = [(String, StatValue)]()
         
-//        if let purchaseData = tokenModel.purchaseData, activeTab == "sell" {
-//            // Calculate current value in lamports
-//            let currentValueLamps = Int(Double(tokenModel.balanceLamps) / 1e9 * Double(tokenModel.prices.last?.price ?? 0))
-//            
-//            // Calculate profit
-//            let initialValueUsd = priceModel.lamportsToUsd(lamports: purchaseData.price)
-//            let currentValueUsd = priceModel.lamportsToUsd(lamports: currentValueLamps)
-//            let gains = currentValueUsd - initialValueUsd
-//            
-//
-//            if purchaseData.amount > 0, initialValueUsd > 0 {
-//                let percentageGain = gains / initialValueUsd * 100
-//                stats += [
-//                    ("Gains", StatValue(
-//                        text: "\(priceModel.formatPrice(usd: gains, showSign: true)) (\(String(format: "%.2f", percentageGain))%)",
-//                        color: gains >= 0 ? AppColors.green : AppColors.red
-//                    ))
-//                ]
-//            }
-//          
-//            stats += [
-//                ("You Own", StatValue(
-//                    text: "\(priceModel.formatPrice(lamports: currentValueLamps, maxDecimals: 2, minDecimals: 2)) (\(priceModel.formatPrice(lamports: tokenModel.balanceLamps, showUnit: false)) \(tokenModel.token.symbol))",
-//                    color: nil
-//                ))
-//            ]
-//            
-//        }
+    if let purchaseData = userModel.purchaseData, activeTab == "sell" {
+            // Calculate current value in lamports
+        let tokenBalanceLamps = userModel.tokenBalanceLamps ?? 0
+            let currentValueLamps = Int(Double(tokenBalanceLamps) / 1e9 * Double(tokenModel.prices.last?.price ?? 0))
+            
+            // Calculate profit
+            let initialValueUsd = priceModel.lamportsToUsd(lamports: purchaseData.price)
+            let currentValueUsd = priceModel.lamportsToUsd(lamports: currentValueLamps)
+            let gains = currentValueUsd - initialValueUsd
+            
+
+            if initialValueUsd > 0 {
+                let percentageGain = gains / initialValueUsd * 100
+                stats += [
+                    ("Gains", StatValue(
+                        text: "\(priceModel.formatPrice(usd: gains, showSign: true)) (\(String(format: "%.2f", percentageGain))%)",
+                        color: gains >= 0 ? AppColors.green : AppColors.red
+                    ))
+                ]
+            }
+          
+            stats += [
+                ("You Own", StatValue(
+                    text: "\(priceModel.formatPrice(lamports: currentValueLamps, maxDecimals: 2, minDecimals: 2)) (\(priceModel.formatPrice(lamports: tokenBalanceLamps, showUnit: false)) \(tokenModel.token.symbol))",
+                    color: nil
+                ))
+            ]
+            
+        }
         
         // Add original stats from tokenModel
         stats += tokenModel.getTokenStats(priceModel: priceModel).map { 

@@ -70,22 +70,22 @@ struct AccountView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(AppColors.black.ignoresSafeArea())
             .sheet(isPresented: $showOnrampView) {
-                    
-                    VStack {
-                        HStack {
-                            Text("Deposit")
-                                .font(.sfRounded(size: .xl, weight: .semibold))
+                
+                VStack {
+                    HStack {
+                        Text("Deposit")
+                            .font(.sfRounded(size: .xl, weight: .semibold))
+                            .foregroundColor(AppColors.white)
+                        Spacer()
+                        Button(action: { showOnrampView = false }) {
+                            Image(systemName: "xmark")
                                 .foregroundColor(AppColors.white)
-                            Spacer()
-                            Button(action: { showOnrampView = false }) {
-                                Image(systemName: "xmark")
-                                    .foregroundColor(AppColors.white)
-                                    .font(.system(size: 16, weight: .medium))
-                            }
-                        }.padding(24)
-                        
-                        CoinbaseOnrampView()
-                    }.background(AppColors.black)
+                                .font(.system(size: 16, weight: .medium))
+                        }
+                    }.padding(24)
+                    
+                    CoinbaseOnrampView()
+                }.background(AppColors.black)
             }
             .presentationDragIndicator(.visible)
             .presentationBackground(.black)
@@ -127,22 +127,23 @@ private struct BalanceSection: View {
                 .font(.sfRounded(size: .lg, weight: .regular))
                 .foregroundColor(AppColors.lightGray.opacity(0.7))
             
-            if let balance = accountBalance.balance, let formattedBalance = priceModel.formatPrice(lamports: balance, maxDecimals: 2, minDecimals: 2) {
+            if let balance = accountBalance.balance  {
+                let formattedBalance = priceModel.formatPrice(lamports: balance, maxDecimals: 2, minDecimals: 2)
                 
-            Text(formattedBalance)
-                .font(.sfRounded(size: .xl5, weight: .bold))
-                .foregroundColor(.white)
+                Text(formattedBalance)
+                    .font(.sfRounded(size: .xl5, weight: .bold))
+                    .foregroundColor(.white)
             } else {
                 ProgressView()
             }
             
             if accountBalance.change > 0  {
-                  Text("\(priceModel.formatPrice(lamports: accountBalance.change, showSign: true, maxDecimals: 2))")
-                                    
-                                    // Format time elapsed
-//                                    Text("\(formatDuration(userModel.timeElapsed))")
-//                                        .foregroundColor(.gray)
-//                                        .font(.sfRounded(size: .sm, weight: .regular))
+                Text("\(priceModel.formatPrice(lamports: accountBalance.change, showSign: true, maxDecimals: 2))")
+                
+                // Format time elapsed
+                Text("\(formatDuration(userModel.elapsedSeconds))")
+                    .foregroundColor(.gray)
+                    .font(.sfRounded(size: .sm, weight: .regular))
                 
             }
         }
@@ -314,7 +315,7 @@ private struct AccountSettingsView: View {
 // New component for unregistered users
 private struct UnregisteredAccountView: View {
     var body: some View {
-            RegisterView().frame(maxWidth: .infinity, maxHeight: .infinity)
+        RegisterView().frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 

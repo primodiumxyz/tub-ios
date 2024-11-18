@@ -40,7 +40,7 @@ struct BuyForm: View {
         guard let balance = userModel.balanceLamps else { return }
         // Use 10 as default if no amount is entered
         let amountToUse = buyAmountUsdString.isEmpty ? 10.0 : buyAmountUsd
-        guard let buyAmountLamps = priceModel.usdToLamports(usd: amountToUse) else { return }
+        let buyAmountLamps = priceModel.usdToLamports(usd: amountToUse)
         
         // Check if the user has enough balance
         if balance >= buyAmountLamps {
@@ -62,7 +62,7 @@ struct BuyForm: View {
         }
         
         // Add a tiny buffer for floating point precision
-        guard let usdAmount = priceModel.lamportsToUsd(lamports: amountLamps) else { return }
+        let usdAmount = priceModel.lamportsToUsd(lamports: amountLamps)
         
         // Format to 2 decimal places, rounding down
         buyAmountUsdString = String(format: "%.2f", floor(usdAmount * 100) / 100)
@@ -123,7 +123,7 @@ struct BuyForm: View {
                     .foregroundColor(AppColors.aquaGreen)
                     .multilineTextAlignment(.center)
             }
-            .disabled((userModel.balanceLamps) ?? 0 < priceModel.usdToLamports(usd: buyAmountUsd) ?? 1)
+            .disabled((userModel.balanceLamps ?? 0) < priceModel.usdToLamports(usd: buyAmountUsd))
             .frame(maxWidth: .infinity)
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
@@ -173,7 +173,7 @@ struct BuyForm: View {
                                 buyAmountUsdString = text
                             }
                             isValidInput = true
-                            showInsufficientBalance = (userModel.balanceLamps ?? 0) < priceModel.usdToLamports(usd: amount) ?? 0
+                            showInsufficientBalance = (userModel.balanceLamps ?? 0) < priceModel.usdToLamports(usd: amount)
                         } else {
                             buyAmountUsd = 0
                             isValidInput = false
@@ -232,14 +232,13 @@ struct BuyForm: View {
     private var tokenConversionDisplay: some View {
         Group {
             if let currentPrice = tokenModel.prices.last?.price, currentPrice > 0 {
-                if let buyAmountLamps = priceModel.usdToLamports(usd: buyAmountUsd) {
+                let buyAmountLamps = priceModel.usdToLamports(usd: buyAmountUsd)
                     let tokenAmount = Int(Double(buyAmountLamps) / Double(currentPrice) * 1e9)
                     
-                    Text("\(priceModel.formatPrice(lamports: tokenAmount, showUnit: false)) \(tokenModel.token.symbol ?? "")")
+                    Text("\(priceModel.formatPrice(lamports: tokenAmount, showUnit: false)) \(tokenModel.token.symbol)")
                         .font(.sfRounded(size: .base, weight: .bold))
                         .opacity(0.8)
                     
-                }
             }
         }
         .onAppear{

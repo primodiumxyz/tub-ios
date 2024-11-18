@@ -61,13 +61,12 @@ struct HistoryView : View {
                                 valueLamps = Int(Double(price) * Double(transaction.amount) / Double(1e9))
                             }
                                 
-                            if let price = priceModel.lamportsToUsd(lamports: -valueLamps) {
-                                let newTransaction = Transaction(
+                            let newTransaction = Transaction(
                                     name: name ?? "",
                                     symbol: symbol ?? "",
                                     imageUri: imageUri,
                                     date: date,
-                                    valueUsd: price,
+                                    valueUsd: priceModel.lamportsToUsd(lamports: -valueLamps),
                                     valueLamps: -valueLamps,
                                     quantityTokens: transaction.amount,
                                     isBuy: isBuy,
@@ -413,24 +412,22 @@ struct TransactionRow: View {
             }
             Spacer()
             VStack(alignment: .trailing) {
-                if let price = priceModel.formatPrice(usd: transaction.valueUsd, showSign: true) {
-                    Text(price)
-                        .font(.sfRounded(size: .base, weight: .bold))
-                        .foregroundColor(transaction.isBuy ? AppColors.red: AppColors.green)
-                }
+                let price = priceModel.formatPrice(usd: transaction.valueUsd, showSign: true)
+                Text(price)
+                    .font(.sfRounded(size: .base, weight: .bold))
+                    .foregroundColor(transaction.isBuy ? AppColors.red: AppColors.green)
                 
-                if let quantity = priceModel.formatPrice(lamports: abs(transaction.quantityTokens), showUnit: false) {
-                    HStack {
-                        Text(quantity)
-                            .font(.sfRounded(size: .xs, weight: .regular))
-                            .foregroundColor(AppColors.gray)
-                            .offset(x:4, y:2)
-                        
-                        Text(transaction.symbol)
-                            .font(.sfRounded(size: .xs, weight: .regular))
-                            .foregroundColor(AppColors.gray)
-                            .offset(y:2)
-                    }
+                let quantity = priceModel.formatPrice(lamports: abs(transaction.quantityTokens), showUnit: false)
+                HStack {
+                    Text(quantity)
+                        .font(.sfRounded(size: .xs, weight: .regular))
+                        .foregroundColor(AppColors.gray)
+                        .offset(x:4, y:2)
+                    
+                    Text(transaction.symbol)
+                        .font(.sfRounded(size: .xs, weight: .regular))
+                        .foregroundColor(AppColors.gray)
+                        .offset(y:2)
                 }
             }
             Image(systemName: "chevron.right")

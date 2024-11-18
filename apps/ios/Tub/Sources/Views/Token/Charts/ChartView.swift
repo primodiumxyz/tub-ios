@@ -119,7 +119,8 @@ struct ChartView: View {
                         y: .value("Price", currentPrice.price)
                     )
                     .annotation(position: .top, spacing: 4) {
-                        if let price = priceModel.formatPrice(lamports: abs(currentPrice.price)), purchaseData?.timestamp != currentPrice.timestamp {
+                        if  purchaseData?.timestamp != currentPrice.timestamp {
+                            let price = priceModel.formatPrice(lamports: abs(currentPrice.price))
                             PillView(
                                 value: price,
                                 color: dashedLineColor,

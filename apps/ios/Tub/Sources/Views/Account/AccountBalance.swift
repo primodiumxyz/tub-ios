@@ -14,17 +14,21 @@ struct AccountBalanceView: View {
     
     @State private var isExpanded: Bool = false
     
-    var accountBalance: (tokens: Int, balance: Int?, change: Int) {
-        //        let tokenValue = currentTokenModel.balanceLamps * (currentTokenModel.prices.last?.price ?? 0) / Int(1e9)
-        let tokenValue = 0
-        var balance : Int? = nil
-        if let bal = userModel.balanceLamps {
-            balance = bal + tokenValue
+    var accountBalance: (totalBalance: Int?, change: Int) {
+        guard  let solBalance = userModel.balanceLamps else {
+            return (nil, 0)
         }
+        var totalBalance: Int = solBalance
+        var deltaBalance = userModel.balanceChangeLamps
+        var tokenBalance = userModel.tokenBalanceLamps ?? 0
         
-        let adjustedChange = userModel.balanceChangeLamps + tokenValue
+        let finalTokenBalance = tokenBalance * (currentTokenModel.prices.last?.price ?? 0) / Int(1e9)
         
-        return (tokenValue, balance, adjustedChange)
+        totalBalance += finalTokenBalance
+        deltaBalance += finalTokenBalance
+        tokenBalance = finalTokenBalance
+        
+        return (totalBalance, deltaBalance)
     }
     
     var body: some View {
@@ -33,24 +37,26 @@ struct AccountBalanceView: View {
             
             if !isExpanded {
                 VStack {
-                    HStack {
-                        if userModel.userId == nil {
-                            Text("")
-                        } else {
+                    if userModel.userId == nil {
+                        EmptyView()
+                    } else {
+                        HStack {
                             Text("Account Balance")
                                 .font(.sfRounded(size: .base, weight: .semibold))
                                 .foregroundColor(AppColors.white)
                             
                             Spacer()
-                            if let balance = accountBalance.balance, let balanceUsd = priceModel.formatPrice(lamports: balance, maxDecimals: 2, minDecimals: 2) {
+                            if let balance = accountBalance.totalBalance {
+                                let balanceUsd = priceModel.formatPrice(lamports: balance, maxDecimals: 2, minDecimals: 2)
                                 Text(balanceUsd)
                                     .font(.sfRounded(size: .lg))
                                     .fontWeight(.bold)
                                     .foregroundColor(AppColors.green)
                                     .padding(.trailing)
+                                    .frame(height:20)
                                 
                             } else {
-                                LoadingBox(width: 80, height: 24)
+                                LoadingBox(width: 80, height: 20)
                             }
                         }
                     }
@@ -67,26 +73,23 @@ struct AccountBalanceView: View {
                                 .foregroundColor(AppColors.white)
                             
                             HStack {
-                                if let balance = accountBalance.balance {
-                                    Text("\(priceModel.formatPrice(lamports: balance, maxDecimals: 2, minDecimals: 2))")
+                                if let balance = accountBalance.totalBalance  {
+                                    let formattedBalance = priceModel.formatPrice(lamports: balance, maxDecimals: 2, minDecimals: 2)
+                                    Text(formattedBalance)
                                         .font(.sfRounded(size: .xl2))
                                         .fontWeight(.bold)
                                         .foregroundColor(AppColors.white)
-                                } else {
-                                    ProgressView()
+                                    
                                 }
                                 
-                                
-                                Text("\(priceModel.formatPrice(lamports: accountBalance.change, showSign: true, maxDecimals: 2))")
-                                
-                                
-                                // Format time elapsed
-                                //                                    Text("\(formatDuration(Date.now))")
-                                //                                        .foregroundColor(.gray)
-                                //                                        .font(.sfRounded(size: .sm, weight: .regular))
+                                let formattedChange = priceModel.formatPrice(lamports: accountBalance.change, showSign: true, maxDecimals: 2)
+                                Text(formattedChange)
+                                    .font(.sfRounded(size: .xl2))
+                                    .fontWeight(.bold)
+                                    .foregroundColor(accountBalance.change >= 0 ? AppColors.green : AppColors.red)
                             }
                             .font(.sfRounded(size: .sm, weight: .semibold))
-                            .foregroundColor(accountBalance.2 >= -10 ? AppColors.green : AppColors.red)
+                            .foregroundColor(accountBalance.change >= -10 ? AppColors.green : AppColors.red)
                         }
                         .padding(.horizontal,5)
                         .onTapGesture {

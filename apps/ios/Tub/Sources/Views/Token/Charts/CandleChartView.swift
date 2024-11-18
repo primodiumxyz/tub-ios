@@ -14,17 +14,17 @@ struct CandleChartView: View {
     let intervalSecs: Double
     var timeframeMins: Double = 30
     let height: CGFloat
-
+    
     @State private var candles: [CandleData] = []
     @State private var transparentCandle: CandleData?
-
+    
     init(prices: [Price], intervalSecs: Double, timeframeMins: Double? = 30, maxCandleWidth: CGFloat = 10, height: CGFloat = 330) {
         self.prices = prices
         self.intervalSecs = intervalSecs > 0 ? intervalSecs : 1;
         self.timeframeMins = timeframeMins ?? 30
         self.height = height
     }
-
+    
     private var filteredPrices: [Price] {
         let filteredPrices = filterPrices(prices: prices, timeframeSecs: timeframeMins * 60)
         return filteredPrices
@@ -44,12 +44,12 @@ struct CandleChartView: View {
         let groupedPrices = Dictionary(grouping: prices) { price in
             floor(price.timestamp.timeIntervalSince1970 / intervalSecs) * intervalSecs
         }
-
+        
         let cutoffTime = Date().addingTimeInterval(-timeframeMins * 60)
         let filteredGroupedPrices = groupedPrices.filter { key, values in
             values.first!.timestamp >= cutoffTime
         }
-
+        
         let sortedKeys = filteredGroupedPrices.keys.sorted()
         candles = sortedKeys.enumerated().compactMap { (index, key) -> CandleData? in
             let values = filteredGroupedPrices[key]!
@@ -76,7 +76,7 @@ struct CandleChartView: View {
                 return nil
             }
         }
-
+        
         // Add transparent candle if needed
         let timeframeStart = Date().addingTimeInterval(-Double(timeframeMins) * 60)
         if let firstCandle = candles.first, firstCandle.start > timeframeStart {
@@ -92,7 +92,7 @@ struct CandleChartView: View {
             transparentCandle = nil
         }
     }
-
+    
     var body: some View {
         Chart {
             transparentCandleMark
@@ -107,7 +107,7 @@ struct CandleChartView: View {
         .onAppear(perform: updateCandles)
         .onChange(of: prices) { updateCandles() }
     }
-
+    
     private var transparentCandleMark: (some ChartContent)? {
         if let transparentCandle = transparentCandle {
             RectangleMark(
@@ -121,7 +121,7 @@ struct CandleChartView: View {
             nil
         }
     }
-
+    
     private var candleMarks: (some ChartContent)? {
         ForEach(candles, id: \.start) { candle in
             RectangleMark(
@@ -133,7 +133,7 @@ struct CandleChartView: View {
             .foregroundStyle(candle.close > candle.open ? Color.green : Color.red)
         }
     }
-
+    
     private var highLowLines: some ChartContent {
         ForEach(candles, id: \.start) { candle in
             RuleMark(
@@ -145,7 +145,7 @@ struct CandleChartView: View {
             .lineStyle(StrokeStyle(lineWidth: 1))
         }
     }
-
+    
     private var lastCandleAnnotation: some ChartContent {
         Plot {
             if let lastCandle = candles.last {
@@ -156,18 +156,17 @@ struct CandleChartView: View {
                 .symbolSize(10)
                 .foregroundStyle(AppColors.white.opacity(0.7))
                 .annotation(position: lastCandle.close >= lastCandle.open ? .top : .bottom, spacing: 4) {
-                    if let price = priceModel.formatPrice(lamports: lastCandle.close) {
-                        PillView(
-                            value: price,
-                            color: AppColors.white.opacity(0.7),
-                            foregroundColor: AppColors.black
-                        )
-                    }
+                    let price = priceModel.formatPrice(lamports: lastCandle.close)
+                    PillView(
+                        value: price,
+                        color: AppColors.white.opacity(0.7),
+                        foregroundColor: AppColors.black
+                    )
                 }
             }
         }
     }
-
+    
     private func yAxisConfig() -> some AxisContent {
         AxisMarks(position: .leading) { value in
             AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
@@ -180,17 +179,17 @@ struct CandleChartView: View {
             }
         }
     }
-
+    
     private func xAxisConfig() -> some AxisContent {
         AxisMarks(values: .stride(by: .minute, count: Int(floor(timeframeMins / 4)))) { value in
             AxisValueLabel(format: .dateTime.hour().minute())
                 .foregroundStyle(.white.opacity(0.5))
         }
     }
-
+    
     private var yDomain: ClosedRange<Int> {
         if prices.isEmpty { return 0...100 }
-
+        
         let pricesWithPurchase = prices
         
         let minPrice = pricesWithPurchase.min { $0.price < $1.price }?.price ?? 0

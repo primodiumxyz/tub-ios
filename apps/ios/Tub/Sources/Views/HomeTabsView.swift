@@ -17,8 +17,8 @@ struct HomeTabsView: View {
     @State private var tabStartTime: Date? = nil
   
     @StateObject private var tokenListModel: TokenListModel
-    init() {
-        self._tokenListModel = StateObject(wrappedValue: TokenListModel())
+    init(userModel: UserModel) {
+        self._tokenListModel = StateObject(wrappedValue: TokenListModel(userModel: userModel))
     }
     
     // Add this to watch for userModel changes
@@ -171,7 +171,7 @@ struct HomeTabsView: View {
             }
         }.frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea(.keyboard)
-        .onChange(of: userModel.userId) { newUserId in
+        .onChange(of: userModel.userId) { _, newUserId in
             if newUserId != nil {
                 selectedTab = 0  // Force switch to explore tab
                 recordTabSelection("explore")
