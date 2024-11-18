@@ -27,7 +27,7 @@ export const useTokenPrices = (
       for (let i = 0; i < numChunks; i++) {
         const chunkSize = Math.min(25, intervalSeconds - i * 25);
         const inputs = Array.from({ length: chunkSize }, (_, index) => ({
-          address: token.mint,
+          address: token.mint ?? "",
           networkId: NETWORK_FILTER[0],
           timestamp: now - (intervalSeconds - (i * 25 + index)),
         }));
@@ -68,7 +68,7 @@ export const useTokenPrices = (
     CODEX_SDK.subscriptions.onTokenEventsCreated(
       {
         input: {
-          tokenAddress: token.mint,
+          tokenAddress: token.mint ?? "",
           networkId: NETWORK_FILTER[0],
         },
       },

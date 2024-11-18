@@ -19,7 +19,7 @@ export const useTokenCandles = (
         from: Math.floor(Date.now() / 1000) - 60 * 30, // 30 min ago
         to: Math.floor(Date.now() / 1000),
         resolution: "1", // 1 min candles
-        symbol: token.pairId,
+        symbol: token.pairId ?? "",
       });
 
       if (!res.getBars) return;

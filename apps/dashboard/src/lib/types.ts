@@ -3,15 +3,15 @@ import { INTERVALS } from "@/lib/constants";
 export type Interval = (typeof INTERVALS)[number];
 
 export type Token = {
-  mint: string;
-  imageUri: string | null;
-  name: string;
-  symbol: string;
+  mint?: string;
+  imageUri?: string;
+  name?: string;
+  symbol?: string;
   latestPrice: number;
-  liquidity: string;
-  marketCap: string | null;
-  volume: string;
-  pairId: string;
+  liquidity?: string;
+  marketCap?: string;
+  volume?: string;
+  pairId?: string;
   priceChange: {
     [key in Interval]: number;
   };
