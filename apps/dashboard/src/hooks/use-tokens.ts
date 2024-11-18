@@ -25,7 +25,7 @@ export const useTokens = (): {
         },
         // see: https://docs.codex.io/reference/input-objects#tokenranking
         rankings: {
-          attribute: TokenRankingAttribute.TrendingScore24,
+          attribute: TokenRankingAttribute.TrendingScore,
           direction: RankingDirection.Desc,
         },
         limit: 50,

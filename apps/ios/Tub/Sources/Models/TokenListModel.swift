@@ -205,7 +205,9 @@ class TokenListModel: ObservableObject {
     private var fetching = false
     
     func fetchTokens(setLoading: Bool? = false) {
-        CodexNetwork.shared.apollo.fetch(query: GetFilterTokensQuery(), cachePolicy: .fetchIgnoringCacheData) { [weak self] result in
+        CodexNetwork.shared.apollo.fetch(query: GetFilterTokensQuery(
+            rankingAttribute: .some(.init(TokenRankingAttribute.trendingScore))
+        ), cachePolicy: .fetchIgnoringCacheData) { [weak self] result in
             guard let self = self else { return }
             if let setLoading = setLoading, setLoading {
                 self.isLoading = true

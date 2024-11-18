@@ -49,9 +49,9 @@ struct CandleData: Identifiable {
     let start: Date
     let end: Date
     let open: Double
-    let close: Double
-    let high: Double
-    let low: Double
+    var close: Double
+    var high: Double
+    var low: Double
     var volume: Int?
     
     init(start: Date, end: Date, open: Double, close: Double, high: Double, low: Double, volume: Int? = nil) {

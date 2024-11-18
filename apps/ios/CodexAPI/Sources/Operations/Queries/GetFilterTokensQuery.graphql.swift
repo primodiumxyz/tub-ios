@@ -7,16 +7,24 @@ public class GetFilterTokensQuery: GraphQLQuery {
   public static let operationName: String = "GetFilterTokens"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetFilterTokens($limit: Int = 50) { filterTokens( filters: { exchangeId: ["6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P:1399811149"] trendingIgnored: false potentialScam: false } rankings: { attribute: trendingScore24, direction: DESC } limit: $limit ) { __typename results { __typename token { __typename address info { __typename name symbol description imageLargeUrl imageSmallUrl imageThumbUrl } socialLinks { __typename discord instagram telegram twitter website } } priceUSD liquidity marketCap volume1 pair { __typename id } } } }"#
+      #"query GetFilterTokens($rankingAttribute: TokenRankingAttribute = trendingScore, $limit: Int = 50) { filterTokens( filters: { exchangeId: ["6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P:1399811149"] trendingIgnored: false potentialScam: false } rankings: { attribute: $rankingAttribute, direction: DESC } limit: $limit ) { __typename results { __typename token { __typename address info { __typename name symbol description imageLargeUrl imageSmallUrl imageThumbUrl } socialLinks { __typename discord instagram telegram twitter website } } priceUSD liquidity marketCap volume1 pair { __typename id } } } }"#
     ))
 
+  public var rankingAttribute: GraphQLNullable<GraphQLEnum<TokenRankingAttribute>>
   public var limit: GraphQLNullable<Int>
 
-  public init(limit: GraphQLNullable<Int> = 50) {
+  public init(
+    rankingAttribute: GraphQLNullable<GraphQLEnum<TokenRankingAttribute>> = .init(.trendingScore),
+    limit: GraphQLNullable<Int> = 50
+  ) {
+    self.rankingAttribute = rankingAttribute
     self.limit = limit
   }
 
-  public var __variables: Variables? { ["limit": limit] }
+  public var __variables: Variables? { [
+    "rankingAttribute": rankingAttribute,
+    "limit": limit
+  ] }
 
   public struct Data: CodexAPI.SelectionSet {
     public let __data: DataDict
@@ -31,7 +39,7 @@ public class GetFilterTokensQuery: GraphQLQuery {
           "potentialScam": false
         ],
         "rankings": [
-          "attribute": "trendingScore24",
+          "attribute": .variable("rankingAttribute"),
           "direction": "DESC"
         ],
         "limit": .variable("limit")

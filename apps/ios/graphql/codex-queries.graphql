@@ -1,11 +1,14 @@
-query GetFilterTokens($limit: Int = 50) {
+query GetFilterTokens(
+  $rankingAttribute: TokenRankingAttribute = trendingScore
+  $limit: Int = 50
+) {
   filterTokens(
     filters: {
       exchangeId: ["6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P:1399811149"] # pump.fun id
       trendingIgnored: false
       potentialScam: false
     }
-    rankings: { attribute: trendingScore24, direction: DESC }
+    rankings: { attribute: $rankingAttribute, direction: DESC }
     limit: $limit
   ) {
     results {

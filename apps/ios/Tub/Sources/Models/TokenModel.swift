@@ -258,17 +258,26 @@ class TokenModel: ObservableObject {
                         end: Date(timeIntervalSince1970: TimeInterval(newCandle.t) + 60),
                         open: newCandle.o,
                         close: newCandle.c,
-                        high: newCandle.h,
-                        low: newCandle.l,
+                        high: max(newCandle.h, newCandle.c),
+                        low: min(newCandle.l, newCandle.c),
                         volume: newCandle.v
                     )
                     
                     DispatchQueue.main.async {
                         if let index = self.candles.firstIndex(where: { $0.start == candleData.start }) {
-                            self.candles[index] = candleData
+                            var updatedCandle = self.candles[index]
+                            updatedCandle.close = candleData.close
+                            updatedCandle.high = max(updatedCandle.high, candleData.close)
+                            updatedCandle.low = min(updatedCandle.low, candleData.close)
+                            updatedCandle.volume = candleData.volume
+                            self.candles[index] = updatedCandle
                         } else {
                             self.candles.append(candleData)
+                            self.candles.sort { $0.start < $1.start }
                         }
+                        
+                        let thirtyMinutesAgo = Date().addingTimeInterval(-30 * 60)
+                        self.candles.removeAll { $0.start < thirtyMinutesAgo }
                     }
                 }
             case .failure(let error):
