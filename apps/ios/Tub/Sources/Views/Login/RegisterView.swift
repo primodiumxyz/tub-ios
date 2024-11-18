@@ -54,7 +54,6 @@ struct RegisterView: View {
                     }) {
                         Image(systemName: "chevron.left")
                             .foregroundColor(.white)
-                            .frame(height:10)
                             .padding(.horizontal)
                     }                 }
                 else {
