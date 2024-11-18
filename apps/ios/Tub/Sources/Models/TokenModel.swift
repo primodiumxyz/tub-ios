@@ -438,7 +438,7 @@ class TokenModel: ObservableObject {
     func getTokenStats(priceModel: SolPriceModel) -> [(String, String)] {
         return [
             ("Market Cap", loading ? "..." : priceModel.formatPrice(usd: token.marketCap, formatLarge: true)),
-            ("Volume (\((Int(RESOLUTION) ?? Int(60)) / 60)h)", loading ? "..." : priceModel.formatPrice(usd: token.volume, formatLarge: true)),
+            ("Volume (1h)", loading ? "..." : priceModel.formatPrice(usd: token.volume, formatLarge: true)),
             ("Liquidity", loading ? "..." : priceModel.formatPrice(usd: token.liquidity, formatLarge: true)),
             ("Unique holders", loading ? "..." : formatLargeNumber(Double(token.uniqueHolders)))
         ]
