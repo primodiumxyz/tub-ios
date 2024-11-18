@@ -25,9 +25,9 @@ export const TokensTable = ({ onRowClick }: { onRowClick?: (row: Row<Token>) => 
     if (globalFilter === "") return tokenArray;
     return tokenArray.filter(
       (token) =>
-        token.name.toLowerCase().includes(globalFilter.toLowerCase()) ||
-        token.symbol.toLowerCase().includes(globalFilter.toLowerCase()) ||
-        token.mint.toLowerCase().includes(globalFilter.toLowerCase()),
+        token.name?.toLowerCase().includes(globalFilter.toLowerCase()) ||
+        token.symbol?.toLowerCase().includes(globalFilter.toLowerCase()) ||
+        token.mint?.toLowerCase().includes(globalFilter.toLowerCase()),
     );
   }, [tokens, frozenTokens, frozen, globalFilter]);
 
