@@ -1,0 +1,46 @@
+//
+//  LoginWithEmailView.swift
+//  Tub
+//
+//  Created by Henry on 10/31/24.
+//
+
+import SwiftUI
+import PrivySDK
+
+struct SignInWithEmailView: View {
+    @EnvironmentObject private var errorHandler: ErrorHandler
+    @Binding var email: String // Email passed from RegisterView
+    @State private var loggingIn : Bool = false
+
+    
+
+    
+    private func verifyOTP(otpCode: String) {
+        Task {
+            do {
+                if self.loggingIn { return }
+                self.loggingIn = true
+                let _ = try await privy.email.loginWithCode(otpCode, sentTo: email)
+                
+                self.loggingIn = false
+            } catch {
+                print("error", error)
+                errorHandler.show(error)
+                self.loggingIn = false
+            }
+        }
+    }
+    
+    var body: some View {
+        VStack(spacing: 12) {
+            Text("Enter verification code")
+                .font(.sfRounded(size: .lg, weight: .medium))
+                .foregroundColor(AppColors.white)
+            OTPInputView(onComplete: verifyOTP)
+        }
+        .frame(maxHeight: .infinity)
+        .background(.black)
+        .dismissKeyboardOnTap()
+    }
+}

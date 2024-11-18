@@ -56,6 +56,20 @@ export function createAppRouter() {
       .mutation(async ({ ctx, input }) => {
         return await ctx.tubService.airdropNativeToUser(ctx.jwtToken, BigInt(input.amount));
       }),
+    recordClientEvent: t.procedure
+      .input(
+        z.object({
+          userAgent: z.string(),
+          eventName: z.string(),
+          buildVersion: z.string().optional(),
+          metadata: z.string().optional(),
+          errorDetails: z.string().optional(),
+          source: z.string().optional(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        return await ctx.tubService.recordClientEvent(input, ctx.jwtToken);
+      }),
   });
 }
 

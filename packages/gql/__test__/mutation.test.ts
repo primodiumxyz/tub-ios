@@ -30,8 +30,6 @@ describe("mutation tests", () => {
       token: tokenAddress,
     });
 
-    console.log(buy_result.error);
-
     expect(buy_result.data?.buy_token?.id).toBeDefined();
 
     const sell_result = await gql.db.SellTokenMutation({

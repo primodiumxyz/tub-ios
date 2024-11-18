@@ -78,25 +78,33 @@ struct TokenView : View {
     var body: some View {
         ZStack {
             // Main content
-            VStack(alignment: .leading, spacing: 4) {
-                tokenInfoView
-                chartView
-                    .padding(.top,5)
-                intervalButtons
-                    .padding(.bottom,8)
-                    .padding(.top,5)
-                infoCardLowOpacity
-                    .opacity(0.8)
-                    .padding(.horizontal, 8)
-                BuySellForm(
-                    tokenModel: tokenModel,
-                    activeTab: $activeTab,
-                    showBuySheet: $showBuySheet,
-                    defaultAmount: $defaultAmount,
-                    handleBuy: handleBuy,
-                    onSellSuccess: onSellSuccess
-                )
-                .equatable()
+            VStack(alignment: .leading, spacing: 0) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Spacer().frame(height:20)
+                    tokenInfoView
+                    chartView
+                        .padding(.top, 5)
+                    intervalButtons
+                        .padding(.bottom, 8)
+                        .padding(.top, 5)
+                }
+                
+                Spacer()
+                
+                VStack(spacing: 0) {
+                    infoCardLowOpacity
+                        .opacity(0.8)
+                        .padding(.horizontal, 8)
+                    BuySellForm(
+                        tokenModel: tokenModel,
+                        activeTab: $activeTab,
+                        showBuySheet: $showBuySheet,
+                        defaultAmount: $defaultAmount,
+                        handleBuy: handleBuy,
+                        onSellSuccess: onSellSuccess
+                    )
+                    .equatable()
+                }
             }
             .frame(maxWidth: .infinity)
             .foregroundColor(AppColors.white)

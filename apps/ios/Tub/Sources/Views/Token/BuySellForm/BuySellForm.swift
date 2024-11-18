@@ -16,14 +16,20 @@ struct BuySellForm: View {
     @Binding var defaultAmount: Double
     @State private var showBubbles = false
     @StateObject private var animationState = TokenAnimationState.shared
+    @StateObject private var settingsManager = SettingsManager.shared
     
     var handleBuy: (Double, SolPriceModel) -> Void
     var onSellSuccess: () -> Void
     
     func handleSell() {
-        // Add haptic feedback
-        let generator = UINotificationFeedbackGenerator()
-        generator.notificationOccurred(.success)
+        // Only trigger haptic feedback if vibration is enabled
+        if settingsManager.isVibrationEnabled {
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(.success)
+            print("🟢 Haptic feedback triggered")
+        } else {
+            print("🔴 Haptic feedback disabled")
+        }
         
         tokenModel.sellTokens(completion: {result in
             switch result {
@@ -59,10 +65,10 @@ struct BuySellForm: View {
                     }
                     
                     Button(action: {
-                        handleBuy(defaultAmount, priceModel)
+                        handleBuy(settingsManager.defaultBuyValue, priceModel)
                     }) {
                         HStack(alignment: .center, spacing: 8) {
-                            Text("Buy \(priceModel.formatPrice(usd: defaultAmount))")
+                            Text("Buy \(priceModel.formatPrice(usd: settingsManager.defaultBuyValue))")
                                 .font(.sfRounded(size: .xl, weight: .semibold))
                                 .foregroundColor(AppColors.black)
                                 .multilineTextAlignment(.center)

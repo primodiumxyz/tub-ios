@@ -16,17 +16,12 @@ struct ChartView: View {
     let purchaseData: PurchaseData?
     let height: CGFloat
     
-    init(prices: [Price], timeframeSecs: Double = 90.0, purchaseData: PurchaseData? = nil, height: CGFloat = 330) {
+    init(prices: [Price], timeframeSecs: Double = CHART_INTERVAL, purchaseData: PurchaseData? = nil, height: CGFloat = 330) {
         self.rawPrices = prices
         self.timeframeSecs = timeframeSecs
         self.purchaseData = purchaseData
         self.height = height
     }
-    
-    @State private var currentTime = Date().timeIntervalSince1970
-    
-    @State private var timerCancellable: Cancellable?
-    @State private var timer: Timer.TimerPublisher = Timer.publish(every: 0.1, on: .main, in: .common)
     
     private var dashedLineColor: Color {
         guard let purchasePriceUsd = purchaseData?.priceUsd,
@@ -45,7 +40,7 @@ struct ChartView: View {
     
     private var yDomain: ClosedRange<Double> {
         if prices.isEmpty { return 0...100 }
-
+        
         var pricesWithPurchase = prices
         if let data = purchaseData {
             let price = Price(timestamp: data.timestamp, priceUsd: data.priceUsd)
@@ -61,7 +56,7 @@ struct ChartView: View {
     }
     
     private var prices: [Price] {
-        let cutoffTime = currentTime - timeframeSecs
+        let cutoffTime = Date().addingTimeInterval(-timeframeSecs).timeIntervalSince1970
         if let firstValidIndex = rawPrices.firstIndex(where: { $0.timestamp.timeIntervalSince1970 >= cutoffTime }) {
             let slice = Array(rawPrices[firstValidIndex...])
             // If we have enough points in the time window, return them
@@ -78,6 +73,7 @@ struct ChartView: View {
         
         return rawPrices
     }
+    
     
     var body: some View {
         Chart {
