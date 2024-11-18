@@ -312,16 +312,16 @@ class TokenModel: ObservableObject {
     }
 
     func buyTokens(buyAmountLamps: Int, priceModel: SolPriceModel, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
-        if let price = self.prices.last?.priceUsd, price > 0 {
-            let tokenAmount = Int(Double(buyAmountLamps) / Double(priceModel.usdToLamports(usd: price)) * 1e9)
+        if let priceUsd = self.prices.last?.priceUsd, priceUsd > 0 {
+            let tokenAmount = Int(Double(buyAmountLamps) / Double(priceModel.usdToLamports(usd: priceUsd)) * 1e9)
 
-            Network.shared.buyToken(tokenId: self.tokenId, amount: String(tokenAmount), tokenPrice: String(price)) { result in
+            Network.shared.buyToken(tokenId: self.tokenId, amount: String(tokenAmount), tokenPrice: String(priceModel.usdToLamports(usd: priceUsd))) { result in
                 switch result {
                 case .success:
                     self.purchaseData = PurchaseData(
                         timestamp: Date(),
                         amount: buyAmountLamps,
-                        priceUsd: price
+                        priceUsd: priceUsd
                     )
                 case .failure(let error):
                     self.errorMessage = error.localizedDescription
@@ -337,7 +337,7 @@ class TokenModel: ObservableObject {
                     metadata: [
                         ["token_amount": tokenAmount],
                         ["buy_amount": buyAmountLamps],
-                        ["price": price],
+                        ["price": priceUsd],
                         ["token_id": tokenId],
                     ],
                     errorDetails: errorMessage
@@ -353,9 +353,8 @@ class TokenModel: ObservableObject {
         }
     }
 
-    func sellTokens(completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
-        Network.shared.sellToken(tokenId: self.tokenId, amount: String(self.balanceLamps), tokenPrice: String(self.prices.last?.priceUsd ?? 0)
-        ) { result in
+    func sellTokens(priceModel: SolPriceModel, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
+        Network.shared.sellToken(tokenId: self.tokenId, amount: String(self.balanceLamps), tokenPrice: String(priceModel.usdToLamports(usd: self.prices.last?.priceUsd ?? 0))) { result in
             switch result {
             case .success:
                 self.purchaseData = nil

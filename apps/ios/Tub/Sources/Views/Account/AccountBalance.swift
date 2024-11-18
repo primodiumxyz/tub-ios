@@ -15,21 +15,13 @@ struct AccountBalanceView: View {
     @State private var isExpanded: Bool = false
     
     var accountBalance: (Double, Double, Double) {
-        let tokenValueUsd = Double(currentTokenModel.balanceLamps) * (currentTokenModel.prices.last?.priceUsd ?? 0)
-        let balanceUsd = tokenValueUsd + priceModel.lamportsToUsd(lamports: userModel.balanceLamps)
+        let balanceUsd = priceModel.lamportsToUsd(lamports: userModel.balanceLamps)
+        let tokenValueUsd = Double(currentTokenModel.balanceLamps) * (currentTokenModel.prices.last?.priceUsd ?? 0) / 1e9
         
         let adjustedChangeUsd = tokenValueUsd + priceModel.lamportsToUsd(lamports: userModel.balanceChangeLamps)
         
         return (tokenValueUsd, balanceUsd, adjustedChangeUsd)
     }
-    
-//    var accountBalance: (Int, Int) {
-//        let balance = userModel.balanceLamps
-//        
-//        let adjustedChange = userModel.balanceChangeLamps
-//        
-//        return (balance, adjustedChange)
-//    }
     
     var body: some View {
         VStack(alignment: .center) {
@@ -44,8 +36,7 @@ struct AccountBalanceView: View {
                         
                         Spacer()
                         
-                        let tokenValue = 0
-                        Text("\(priceModel.formatPrice(lamports: userModel.balanceLamps + tokenValue, maxDecimals: 2, minDecimals: 2))")
+                        Text("\(priceModel.formatPrice(usd: accountBalance.0 + accountBalance.1, maxDecimals: 2, minDecimals: 2))")
                             .font(.sfRounded(size: .lg))
                             .fontWeight(.bold)
                             .foregroundColor(AppColors.green)
@@ -66,7 +57,7 @@ struct AccountBalanceView: View {
                                 .foregroundColor(AppColors.white)
                             
                             HStack {
-                                Text("\(priceModel.formatPrice(usd: accountBalance.1, maxDecimals: 2, minDecimals: 2))")
+                                Text("\(priceModel.formatPrice(usd: accountBalance.0 + accountBalance.1, maxDecimals: 2, minDecimals: 2))")
                                     .font(.sfRounded(size: .xl2))
                                     .fontWeight(.bold)
                                     .foregroundColor(AppColors.white)
@@ -81,7 +72,7 @@ struct AccountBalanceView: View {
                                         .font(.sfRounded(size: .sm, weight: .regular))
                             }
                             .font(.sfRounded(size: .sm, weight: .semibold))
-                            .foregroundColor(accountBalance.2 >= -10 ? AppColors.green : AppColors.red)
+                            .foregroundColor(accountBalance.2 >= 0 ? AppColors.green : AppColors.red)
                         }
                         .padding(.horizontal,5)
                         .onTapGesture {

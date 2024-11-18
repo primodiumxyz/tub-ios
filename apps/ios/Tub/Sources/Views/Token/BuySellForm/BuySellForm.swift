@@ -31,7 +31,7 @@ struct BuySellForm: View {
             print("🔴 Haptic feedback disabled")
         }
         
-        tokenModel.sellTokens(completion: {result in
+        tokenModel.sellTokens(priceModel: priceModel, completion: {result in
             switch result {
             case .success:
                 animationState.showSellBubbles = true
