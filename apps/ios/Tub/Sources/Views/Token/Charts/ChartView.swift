@@ -110,7 +110,7 @@ struct ChartView: View {
                         EmptyView()
                     } else {
                         PillView(
-                            value: "\(priceModel.formatPrice(usd: abs(currentPrice.priceUsd)))",
+                            value: "\(priceModel.formatPrice(usd: abs(currentPrice.priceUsd), maxDecimals: 9, minDecimals: 2))",
                              color: dashedLineColor,
                              foregroundColor: AppColors.black
                         )
