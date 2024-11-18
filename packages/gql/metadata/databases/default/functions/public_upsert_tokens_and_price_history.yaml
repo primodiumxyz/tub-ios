@@ -1,3 +1,0 @@
-function:
-  name: upsert_tokens_and_price_history
-  schema: public
