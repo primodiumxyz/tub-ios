@@ -331,7 +331,6 @@ class TokenModel: ObservableObject {
             
             switch result {
             case .success(let graphQLResult):
-                print(graphQLResult)
                 if let errors = graphQLResult.errors {
                     print("GraphQL errors: \(errors)")
                     return
