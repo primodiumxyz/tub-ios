@@ -41,6 +41,9 @@ class TokenModel: ObservableObject {
     
     @Published var livePrices: [Price] = []
     @Published var candleData: [CandleData] = []
+    @Published var activeView: Timespan?
+    
+    @Published var errorMessage: String?
     
     deinit {
         // Clean up subscriptions when the object is deallocated
@@ -54,7 +57,7 @@ class TokenModel: ObservableObject {
         }
     }
     
-    func initialize(with newTokenId: String, timeframeSecs: Double = CHART_INTERVAL) {
+    func initialize(with newToken: Token, timeframeSecs: Double = CHART_INTERVAL) {
         // Cancel all existing subscriptions
         latestPriceSubscription?.cancel()
         tokenBalanceSubscription?.cancel()
@@ -302,9 +305,14 @@ class TokenModel: ObservableObject {
                                 imageUri: self.token.imageUri,
                                 liquidity: self.token.liquidity,
                                 marketCap: self.token.marketCap,
+                                volume: self.token.volume,
                                 pairId: self.token.pairId,
                                 socials: (
                                     discord: metadata.socialLinks?.discord,
+                                    instagram: metadata.socialLinks?.instagram,
+                                    telegram: metadata.socialLinks?.telegram,
+                                    twitter: metadata.socialLinks?.twitter,
+                                    website: metadata.socialLinks?.website
                                 ),
                                 uniqueHolders: self.token.uniqueHolders
                             )
@@ -349,8 +357,7 @@ class TokenModel: ObservableObject {
         if let price = self.prices.last?.priceUsd, price > 0 {
             let tokenAmount = Int(Double(buyAmountLamps) / Double(priceModel.usdToLamports(usd: price)) * 1e9)
             
-            Network.shared.buyToken(tokenId: self.tokenId, amount: String(tokenAmount), tokenPrice: String(price)
-            ) { result in
+            Network.shared.buyToken(tokenId: self.tokenId, amount: String(tokenAmount), tokenPrice: String(price)) { result in
                 switch result {
                 case .success:
                     self.purchaseData = PurchaseData(
@@ -359,7 +366,7 @@ class TokenModel: ObservableObject {
                         priceUsd: price
                     )
                 case .failure(let error):
-                    errorMessage = error.localizedDescription
+                    self.errorMessage = error.localizedDescription
                     print("Error buying tokens: \(error)")
                 }
                 completion(result)

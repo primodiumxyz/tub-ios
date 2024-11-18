@@ -14,13 +14,13 @@ struct AccountBalanceView: View {
     
     @State private var isExpanded: Bool = false
     
-    var accountBalance: (Int, Int, Int) {
-        let tokenValue = currentTokenModel.balanceLamps * (currentTokenModel.prices.last?.price ?? 0) / Int(1e9)
-        let balance = tokenValue + userModel.balanceLamps
+    var accountBalance: (Double, Double, Double) {
+        let tokenValueUsd = Double(currentTokenModel.balanceLamps) * (currentTokenModel.prices.last?.priceUsd ?? 0)
+        let balanceUsd = tokenValueUsd + priceModel.lamportsToUsd(lamports: userModel.balanceLamps)
         
-        let adjustedChange = userModel.balanceChangeLamps + tokenValue
+        let adjustedChangeUsd = balanceUsd + tokenValueUsd
         
-        return (tokenValue, balance, adjustedChange)
+        return (tokenValueUsd, balanceUsd, adjustedChangeUsd)
     }
     
     var body: some View {
@@ -58,13 +58,13 @@ struct AccountBalanceView: View {
                                 .foregroundColor(AppColors.white)
                             
                             HStack {
-                                Text("\(priceModel.formatPrice(lamports: accountBalance.1, maxDecimals: 2, minDecimals: 2))")
+                                Text("\(priceModel.formatPrice(usd: accountBalance.1, maxDecimals: 2, minDecimals: 2))")
                                     .font(.sfRounded(size: .xl2))
                                     .fontWeight(.bold)
                                     .foregroundColor(AppColors.white)
                                 
                                     
-                                    Text("\(priceModel.formatPrice(lamports: accountBalance.2, showSign: true, maxDecimals: 2))")
+                                    Text("\(priceModel.formatPrice(usd: accountBalance.2, showSign: true, maxDecimals: 2))")
                                     
                                     
                                     // Format time elapsed

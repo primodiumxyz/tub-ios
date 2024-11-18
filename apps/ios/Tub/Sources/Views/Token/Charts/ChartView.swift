@@ -16,6 +16,11 @@ struct ChartView: View {
     let purchaseData: PurchaseData?
     let height: CGFloat
     
+    @State private var currentTime = Date().timeIntervalSince1970
+        
+    @State private var timerCancellable: Cancellable?
+    @State private var timer: Timer.TimerPublisher = Timer.publish(every: 0.1, on: .main, in: .common)
+    
     init(prices: [Price], timeframeSecs: Double = CHART_INTERVAL, purchaseData: PurchaseData? = nil, height: CGFloat = 330) {
         self.rawPrices = prices
         self.timeframeSecs = timeframeSecs
@@ -50,9 +55,9 @@ struct ChartView: View {
         let minPriceUsd = pricesWithPurchase.min { $0.priceUsd < $1.priceUsd }?.priceUsd ?? 0
         let maxPriceUsd = pricesWithPurchase.max { $0.priceUsd < $1.priceUsd }?.priceUsd ?? 100
         let range = maxPriceUsd - minPriceUsd
-        let padding = Int(Double(range) * 0.25)
+        let padding = range * 0.10
         
-        return (minPriceUsd - Double(padding))...(maxPriceUsd + Double(padding))
+        return (minPriceUsd - padding)...(maxPriceUsd + padding)
     }
     
     private var prices: [Price] {
