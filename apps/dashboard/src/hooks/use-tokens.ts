@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { RankingDirection, TokenRankingAttribute } from "@codex-data/sdk/dist/sdk/generated/graphql";
 
-import { CODEX_SDK, NETWORK_FILTER, PUMP_FUN_ADDRESS, RESOLUTION } from "@/lib/constants";
+import { useServer } from "@/hooks/use-server";
+import { PUMP_FUN_ID } from "@/lib/constants";
 import { Token } from "@/lib/types";
 
-// TODO: filter only pump.fun tokens
 export const useTokens = (): {
   tokens: Token[];
   fetching: boolean;
@@ -13,66 +14,80 @@ export const useTokens = (): {
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState<string | undefined>(undefined);
 
-  const fetchTokens = async () => {
+  const { codexSdk } = useServer();
+
+  const fetchTokens = useCallback(async () => {
     try {
+      if (!codexSdk) return;
       setFetching(true);
-      const res = await CODEX_SDK.queries.listTopTokens({
-        networkFilter: NETWORK_FILTER,
-        resolution: RESOLUTION, // time frame for trending results,
-        limit: 50, // max limit
+      const res = await codexSdk.queries.filterTokens({
+        // see: https://docs.codex.io/reference/input-objects#tokenfilters
+        filters: {
+          exchangeId: [PUMP_FUN_ID],
+          trendingIgnored: false,
+          potentialScam: false,
+        },
+        // see: https://docs.codex.io/reference/input-objects#tokenranking
+        rankings: {
+          attribute: TokenRankingAttribute.TrendingScore,
+          direction: RankingDirection.Desc,
+        },
+        limit: 50,
       });
 
       const formattedTokens =
-        res.listTopTokens
-          ?.filter((t) => t.exchanges.some((e) => e.address === PUMP_FUN_ADDRESS))
-          .map((t) => ({
-            mint: t.address,
-            imageUri: t.imageLargeUrl ?? t.imageSmallUrl ?? t.imageThumbUrl ?? null,
-            name: t.name,
-            symbol: t.symbol,
-            latestPrice: t.price,
-            liquidity: t.liquidity,
-            marketCap: t.marketCap ?? null,
-            volume: t.volume,
-            pairId: t.topPairId,
-            priceChange: {
-              60: t.priceChange1 ?? 0,
-              240: t.priceChange4 ?? 0,
-              720: t.priceChange12 ?? 0,
-              1440: t.priceChange24 ?? 0,
-            },
-            transactions: {
-              60: t.txnCount1 ?? 0,
-              240: t.txnCount4 ?? 0,
-              720: t.txnCount12 ?? 0,
-              1440: t.txnCount24 ?? 0,
-            },
-            uniqueBuys: {
-              60: t.uniqueBuys1 ?? 0,
-              240: t.uniqueBuys4 ?? 0,
-              720: t.uniqueBuys12 ?? 0,
-              1440: t.uniqueBuys24 ?? 0,
-            },
-            uniqueSells: {
-              60: t.uniqueSells1 ?? 0,
-              240: t.uniqueSells4 ?? 0,
-              720: t.uniqueSells12 ?? 0,
-              1440: t.uniqueSells24 ?? 0,
-            },
-          })) ?? [];
+        res.filterTokens?.results?.map((t) => ({
+          mint: t?.token?.address,
+          imageUri:
+            t?.token?.info?.imageLargeUrl ??
+            t?.token?.info?.imageSmallUrl ??
+            t?.token?.info?.imageThumbUrl ??
+            undefined,
+          name: t?.token?.info?.name ?? undefined,
+          symbol: t?.token?.info?.symbol,
+          latestPrice: Number(t?.priceUSD ?? 0),
+          liquidity: t?.liquidity ?? undefined,
+          marketCap: t?.marketCap ?? undefined,
+          volume: t?.volume1 ?? undefined,
+          pairId: t?.pair?.id,
+          priceChange: {
+            60: Number(t?.change1 ?? 0),
+            240: Number(t?.change4 ?? 0),
+            720: Number(t?.change12 ?? 0),
+            1440: Number(t?.change24 ?? 0),
+          },
+          transactions: {
+            60: t?.txnCount1 ?? 0,
+            240: t?.txnCount4 ?? 0,
+            720: t?.txnCount12 ?? 0,
+            1440: t?.txnCount24 ?? 0,
+          },
+          uniqueBuys: {
+            60: t?.uniqueBuys1 ?? 0,
+            240: t?.uniqueBuys4 ?? 0,
+            720: t?.uniqueBuys12 ?? 0,
+            1440: t?.uniqueBuys24 ?? 0,
+          },
+          uniqueSells: {
+            60: t?.uniqueSells1 ?? 0,
+            240: t?.uniqueSells4 ?? 0,
+            720: t?.uniqueSells12 ?? 0,
+            1440: t?.uniqueSells24 ?? 0,
+          },
+        })) ?? [];
       setTokens(formattedTokens);
       setFetching(false);
     } catch (err) {
       setError((err as Error).message);
       setFetching(false);
     }
-  };
+  }, [codexSdk]);
 
   useEffect(() => {
     fetchTokens();
     const interval = setInterval(() => fetchTokens(), 5_000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchTokens]);
 
   return useMemo(
     () => ({

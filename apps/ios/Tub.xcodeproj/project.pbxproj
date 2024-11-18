@@ -8,8 +8,11 @@
 
 /* Begin PBXBuildFile section */
 		4619A8182CCA4E25003CD119 /* TokenListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4619A8172CCA4E25003CD119 /* TokenListModel.swift */; };
+		46233A262CE67F7E00DB1740 /* CodexAPI in Frameworks */ = {isa = PBXBuildFile; productRef = 46233A252CE67F7E00DB1740 /* CodexAPI */; };
+		462B09862CE65C8600730068 /* CodexNetwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 462B09852CE65C8200730068 /* CodexNetwork.swift */; };
 		46442B952CDD7380009A6F0B /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46442B942CDD737D009A6F0B /* Constants.swift */; };
 		466945ED2CDFDB1F008E8B99 /* LoadingTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 466945EC2CDFDB1C008E8B99 /* LoadingTracker.swift */; };
+		468B07432CEBB63700C2CBFC /* CodexTokenManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 468B07422CEBB63400C2CBFC /* CodexTokenManager.swift */; };
 		5D8EFC2C2CE529BB002D8210 /* AppDwellTimeTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D8EFC2B2CE529AC002D8210 /* AppDwellTimeTracker.swift */; };
 		990337052CC94175002D3A25 /* AccountBalance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990337042CC9416B002D3A25 /* AccountBalance.swift */; };
 		9906661F2CC94B110068EA06 /* SolPriceModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9906661E2CC94B0D0068EA06 /* SolPriceModel.swift */; };
@@ -85,8 +88,10 @@
 
 /* Begin PBXFileReference section */
 		4619A8172CCA4E25003CD119 /* TokenListModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenListModel.swift; sourceTree = "<group>"; };
+		462B09852CE65C8200730068 /* CodexNetwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexNetwork.swift; sourceTree = "<group>"; };
 		46442B942CDD737D009A6F0B /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		466945EC2CDFDB1C008E8B99 /* LoadingTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingTracker.swift; sourceTree = "<group>"; };
+		468B07422CEBB63400C2CBFC /* CodexTokenManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexTokenManager.swift; sourceTree = "<group>"; };
 		5D8EFC2B2CE529AC002D8210 /* AppDwellTimeTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDwellTimeTracker.swift; sourceTree = "<group>"; };
 		990337042CC9416B002D3A25 /* AccountBalance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountBalance.swift; sourceTree = "<group>"; };
 		9906661E2CC94B0D0068EA06 /* SolPriceModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SolPriceModel.swift; sourceTree = "<group>"; };
@@ -158,6 +163,7 @@
 			files = (
 				99DED2512CAF2A6B0055FC60 /* ApolloCombine in Frameworks */,
 				99C26C1C2CAEE263004807A2 /* ApolloAPI in Frameworks */,
+				46233A262CE67F7E00DB1740 /* CodexAPI in Frameworks */,
 				993E5D902CAEE423000E23A9 /* ApolloWebSocket in Frameworks */,
 				99856DA42CD27E1F004B9D40 /* Privy in Frameworks */,
 				DFA4D6512CAC500B00AEDC73 /* Apollo in Frameworks */,
@@ -253,6 +259,7 @@
 		99A7CD502CB80C4100F27964 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				468B07422CEBB63400C2CBFC /* CodexTokenManager.swift */,
 				46B4B4532CD542DB00D8175A /* Extensions */,
 				999F59532CA6F70C00E7AE9F /* Models */,
 				999F59522CA6F6A900E7AE9F /* Views */,
@@ -260,6 +267,7 @@
 				DF1FE3C72CD568F700594C63 /* CountryCode.swift */,
 				DFF5292A2CC0121B007DC43F /* AppColors.swift */,
 				DB458DB32CAC827A00C5EC18 /* Network.swift */,
+				462B09852CE65C8200730068 /* CodexNetwork.swift */,
 				DB6D29042CA1C8F70099951A /* TubApp.swift */,
 				9979D2F02CB57B840040DF41 /* Utils */,
 				99856DA52CD27E27004B9D40 /* Privy.swift */,
@@ -440,6 +448,7 @@
 				993E5D8F2CAEE423000E23A9 /* ApolloWebSocket */,
 				99DED2502CAF2A6B0055FC60 /* ApolloCombine */,
 				99856DA32CD27E1F004B9D40 /* Privy */,
+				46233A252CE67F7E00DB1740 /* CodexAPI */,
 			);
 			productName = Tub;
 			productReference = DB6D29012CA1C8F70099951A /* Tub.app */;
@@ -520,6 +529,7 @@
 				DB458DAE2CAC821D00C5EC18 /* XCLocalSwiftPackageReference "TubAPI" */,
 				99DED24F2CAF2A6B0055FC60 /* XCRemoteSwiftPackageReference "ApolloCombine" */,
 				99856DA22CD27E1F004B9D40 /* XCRemoteSwiftPackageReference "privy-ios" */,
+				46233A242CE67F6200DB1740 /* XCLocalSwiftPackageReference "CodexAPI" */,
 			);
 			productRefGroup = DB6D29022CA1C8F70099951A /* Products */;
 			projectDirPath = "";
@@ -572,6 +582,7 @@
 				9910F1B62CAAE302005DEE6B /* SFRounded.swift in Sources */,
 				DF8C84ED2CDFDCA700E8FA7B /* DismissKeyboardModifier.swift in Sources */,
 				DF99EC212CE294B40065F390 /* TokenAnimationState.swift in Sources */,
+				468B07432CEBB63700C2CBFC /* CodexTokenManager.swift in Sources */,
 				995FCA1F2CDA5ED70018A76D /* CoinbaseOnrampView.swift in Sources */,
 				991D60812CD5211600A7245F /* CreateWalletView.swift in Sources */,
 				99DDF62D2CB02816000234DA /* AccountView.swift in Sources */,
@@ -594,6 +605,7 @@
 				99DED24E2CAF28C10055FC60 /* UserModel.swift in Sources */,
 				5D8EFC2C2CE529BB002D8210 /* AppDwellTimeTracker.swift in Sources */,
 				99290EC02CB7110C003E740A /* FormatDate.swift in Sources */,
+				462B09862CE65C8600730068 /* CodexNetwork.swift in Sources */,
 				DF1FE3C82CD568F700594C63 /* CountryCode.swift in Sources */,
 				DFEBC3E82CE44D1100EA4C84 /* SettingsManager.swift in Sources */,
 				DFEBC3E92CE44D1100EA4C84 /* SettingsView.swift in Sources */,
@@ -978,6 +990,10 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
+		46233A242CE67F6200DB1740 /* XCLocalSwiftPackageReference "CodexAPI" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = CodexAPI;
+		};
 		DB458DAE2CAC821D00C5EC18 /* XCLocalSwiftPackageReference "TubAPI" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = TubAPI;
@@ -1028,6 +1044,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		46233A252CE67F7E00DB1740 /* CodexAPI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 46233A242CE67F6200DB1740 /* XCLocalSwiftPackageReference "CodexAPI" */;
+			productName = CodexAPI;
+		};
 		993E5D8F2CAEE423000E23A9 /* ApolloWebSocket */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = DFA4D64F2CAC500B00AEDC73 /* XCRemoteSwiftPackageReference "apollo-ios" */;

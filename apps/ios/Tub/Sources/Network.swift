@@ -161,27 +161,19 @@ class Network {
     }
 
     func buyToken(
-        tokenId: String, amount: String,
+        tokenId: String, amount: String, tokenPrice: String,
         completion: @escaping (Result<EmptyResponse, Error>) -> Void
     ) {
-        let input = TokenActionInput(tokenId: tokenId, amount: amount)
+        let input = TokenActionInput(tokenId: tokenId, amount: amount, tokenPrice: tokenPrice)
         callProcedure("buyToken", input: input, completion: completion)
     }
 
     func sellToken(
-        tokenId: String, amount: String,
+        tokenId: String, amount: String, tokenPrice: String,
         completion: @escaping (Result<EmptyResponse, Error>) -> Void
     ) {
-        let input = TokenActionInput(tokenId: tokenId, amount: amount)
+        let input = TokenActionInput(tokenId: tokenId, amount: amount, tokenPrice: tokenPrice)
         callProcedure("sellToken", input: input, completion: completion)
-    }
-
-    func registerNewToken(
-        name: String, symbol: String, supply: String? = nil, uri: String? = nil,
-        completion: @escaping (Result<EmptyResponse, Error>) -> Void
-    ) {
-        let input = RegisterTokenInput(name: name, symbol: symbol, supply: supply, uri: uri)
-        callProcedure("registerNewToken", input: input, completion: completion)
     }
 
     func airdropNativeToUser(
@@ -243,6 +235,21 @@ class Network {
 
         return try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
     }
+
+    func requestCodexToken(_ expiration: Int = 3600 * 1000) async throws -> (String, String) {
+        let input: CodexTokenInput = .init(expiration: expiration)
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            callProcedure("requestCodexToken", input: input, completion: { (result: Result<CodexTokenResponse, Error>) in
+                switch result {
+                case .success(let response):
+                    continuation.resume(returning: (response.token, response.expiry))
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            })
+        }
+    }
 }
 
 // MARK: - Response Types
@@ -252,7 +259,7 @@ struct ResponseWrapper<T: Codable>: Codable {
     }
     let result: ResultWrapper
 }
-
+ 
 struct EmptyResponse: Codable {}
 
 struct UserResponse: Codable {
@@ -294,11 +301,12 @@ struct RegisterUserInput: Codable {
 struct TokenActionInput: Codable {
     // Wrap in a dictionary structure that matches server expectation
     private enum CodingKeys: String, CodingKey {
-        case tokenId, amount
+        case tokenId, amount, tokenPrice
     }
 
     let tokenId: String
     let amount: String
+    let tokenPrice: String
 }
 
 struct RegisterTokenInput: Codable {
@@ -310,6 +318,10 @@ struct RegisterTokenInput: Codable {
 
 struct AirdropInput: Codable {
     let amount: String
+}
+
+struct CodexTokenInput: Codable {
+    let expiration: Int
 }
 
 struct EventInput: Codable {
@@ -425,4 +437,9 @@ extension Network {
 
         task.resume()
     }
+}
+
+private struct CodexTokenResponse: Codable {
+    let token: String
+    let expiry: String
 }

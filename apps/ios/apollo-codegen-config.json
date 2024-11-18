@@ -1,7 +1,7 @@
 {
   "schemaNamespace": "TubAPI",
   "input": {
-    "operationSearchPaths": ["**/*.graphql"],
+    "operationSearchPaths": ["**/*.graphql", "!**/*codex*.graphql"],
     "schemaSearchPaths": ["**/*.graphqls"]
   },
   "output": {

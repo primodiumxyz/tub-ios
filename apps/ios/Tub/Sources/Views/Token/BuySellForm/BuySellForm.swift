@@ -18,7 +18,7 @@ struct BuySellForm: View {
     @StateObject private var animationState = TokenAnimationState.shared
     @StateObject private var settingsManager = SettingsManager.shared
     
-    var handleBuy: (Double) -> Void
+    var handleBuy: (Double, SolPriceModel) -> Void
     var onSellSuccess: () -> Void
     
     func handleSell() {
@@ -31,7 +31,7 @@ struct BuySellForm: View {
             print("🔴 Haptic feedback disabled")
         }
         
-        tokenModel.sellTokens(completion: {result in
+        tokenModel.sellTokens(priceModel: priceModel, completion: {result in
             switch result {
             case .success:
                 animationState.showSellBubbles = true
@@ -65,7 +65,7 @@ struct BuySellForm: View {
                     }
                     
                     Button(action: {
-                        handleBuy(settingsManager.defaultBuyValue)
+                        handleBuy(settingsManager.defaultBuyValue, priceModel)
                     }) {
                         HStack(alignment: .center, spacing: 8) {
                             Text("Buy \(priceModel.formatPrice(usd: settingsManager.defaultBuyValue))")

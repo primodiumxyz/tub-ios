@@ -85,6 +85,15 @@ struct AppContent: View {
                     self.authError = nil
                     self.userId = authSession.user.id
                     self.linkedAccounts = authSession.user.linkedAccounts
+                    // Initialize CodexNetwork here
+                    Task {
+                        do {
+                            // Request a Codex token & tart the refresh timer
+                            try await CodexTokenManager.shared.handleUserSession()
+                        } catch {
+                            errorHandler.show(error)
+                        }
+                    }
                 default:
                     self.authError = nil
                     self.userId = ""

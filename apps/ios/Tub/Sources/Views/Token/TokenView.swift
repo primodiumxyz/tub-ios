@@ -54,13 +54,13 @@ struct TokenView : View {
         self.onSellSuccess = onSellSuccess
     }
     
-    func handleBuy(amount: Double) {
+    func handleBuy(amount: Double, priceModel: SolPriceModel) {
         let buyAmountLamps = priceModel.usdToLamports(usd: amount)
         if(buyAmountLamps > userModel.balanceLamps) {
             errorHandler.show(TubError.insufficientBalance)
             return
         }
-        tokenModel.buyTokens(buyAmountLamps: buyAmountLamps) { result in
+        tokenModel.buyTokens(buyAmountLamps: buyAmountLamps, priceModel: priceModel) { result in
             switch result {
             case .success:
                 withAnimation(.easeInOut(duration: 0.3)) {
@@ -129,7 +129,7 @@ struct TokenView : View {
                 if tokenModel.loading {
                     LoadingPrice()
                 } else {
-                    Text(priceModel.formatPrice(lamports: tokenModel.prices.last?.price ?? 0, maxDecimals: 9, minDecimals: 2))
+                    Text(priceModel.formatPrice(usd: tokenModel.prices.last?.priceUsd ?? 0, maxDecimals: 9, minDecimals: 2))
                         .font(.sfRounded(size: .xl4, weight: .bold))
                     Image(systemName: "info.circle.fill")
                         .frame(width: 16, height: 16)
@@ -141,13 +141,13 @@ struct TokenView : View {
                 LoadingPriceChange()
             } else {
                 HStack {
-                    Text(priceModel.formatPrice(lamports: tokenModel.priceChange.amountLamps, showSign: true))
+                    Text(priceModel.formatPrice(usd: tokenModel.priceChange.amountUsd, maxDecimals: 9, minDecimals: 2))
                     Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
                     
                     Text("\(formatDuration(tokenModel.currentTimeframe.timeframeSecs))").foregroundColor(.gray)
                 }
                 .font(.sfRounded(size: .sm, weight: .semibold))
-                .foregroundColor(tokenModel.priceChange.amountLamps >= 0 ? .green : .red)
+                .foregroundColor(tokenModel.priceChange.amountUsd >= 0 ? .green : .red)
             }
         }
         .padding(.horizontal)
@@ -174,8 +174,7 @@ struct TokenView : View {
                 )
             } else {
                 CandleChartView(
-                    prices: tokenModel.prices,
-                    intervalSecs: 90,
+                    candles: tokenModel.candles,
                     timeframeMins: 30,
                     height: height
                 )
@@ -228,9 +227,9 @@ struct TokenView : View {
     private var stats: [(String, StatValue)] {
         var stats = [(String, StatValue)]()
         
-        if let purchaseData = tokenModel.purchaseData, let price = tokenModel.prices.last?.price, price > 0, activeTab == "sell" {
+        if let purchaseData = tokenModel.purchaseData, let price = tokenModel.prices.last?.priceUsd, price > 0, activeTab == "sell" {
             // Calculate current value in lamports
-            let currentValueLamps = Int(Double(tokenModel.balanceLamps) / 1e9 * Double(price))
+            let currentValueLamps = Int(Double(tokenModel.balanceLamps) * Double(priceModel.usdToLamports(usd: price)) / 1e9)
             
             // Calculate profit
             let initialValueUsd = priceModel.lamportsToUsd(lamports: purchaseData.amount)
@@ -251,8 +250,8 @@ struct TokenView : View {
             
             // Add position stats
             stats += [
-                ("You Own", StatValue(
-                    text: "\(priceModel.formatPrice(lamports: currentValueLamps, maxDecimals: 2, minDecimals: 2)) (\(priceModel.formatPrice(lamports: tokenModel.balanceLamps, showUnit: false)) \(tokenModel.token.symbol))",
+                ("You own", StatValue(
+                    text: "\(priceModel.formatPrice(lamports: currentValueLamps, maxDecimals: 2, minDecimals: 2)) (\(formatLargeNumber(Double(tokenModel.balanceLamps) / 1e9)) \(tokenModel.token.symbol))",
                     color: nil
                 ))
             ]

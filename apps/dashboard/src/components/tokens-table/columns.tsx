@@ -19,7 +19,7 @@ export const getColumns = (selectedInterval: Interval): ColumnDef<Token>[] => [
             target="_blank"
             onClick={(e) => e.stopPropagation()}
           >
-            {token.mint.slice(0, 6)}...{token.mint.slice(-6)}
+            {token.mint?.slice(0, 6)}...{token.mint?.slice(-6)}
           </a>
         </div>
       );

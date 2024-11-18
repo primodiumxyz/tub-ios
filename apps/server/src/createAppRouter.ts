@@ -19,7 +19,7 @@ export function createAppRouter() {
         z.object({
           tokenId: z.string(),
           amount: z.string(),
-          overridePrice: z.string().optional(),
+          tokenPrice: z.string(),
         }),
       )
       .mutation(async ({ ctx, input }) => {
@@ -27,7 +27,7 @@ export function createAppRouter() {
           ctx.jwtToken,
           input.tokenId,
           BigInt(input.amount),
-          input.overridePrice ? BigInt(input.overridePrice) : undefined,
+          Number(input.tokenPrice),
         );
       }),
     sellToken: t.procedure
@@ -35,7 +35,7 @@ export function createAppRouter() {
         z.object({
           tokenId: z.string(),
           amount: z.string(),
-          overridePrice: z.string().optional(),
+          tokenPrice: z.string(),
         }),
       )
       .mutation(async ({ ctx, input }) => {
@@ -43,7 +43,7 @@ export function createAppRouter() {
           ctx.jwtToken,
           input.tokenId,
           BigInt(input.amount),
-          input.overridePrice ? BigInt(input.overridePrice) : undefined,
+          Number(input.tokenPrice),
         );
       }),
 
@@ -56,6 +56,7 @@ export function createAppRouter() {
       .mutation(async ({ ctx, input }) => {
         return await ctx.tubService.airdropNativeToUser(ctx.jwtToken, BigInt(input.amount));
       }),
+
     recordClientEvent: t.procedure
       .input(
         z.object({
@@ -69,6 +70,12 @@ export function createAppRouter() {
       )
       .mutation(async ({ ctx, input }) => {
         return await ctx.tubService.recordClientEvent(input, ctx.jwtToken);
+      }),
+
+    requestCodexToken: t.procedure
+      .input(z.object({ expiration: z.number().optional() }))
+      .mutation(async ({ ctx, input }) => {
+        return await ctx.tubService.requestCodexToken(input.expiration);
       }),
   });
 }

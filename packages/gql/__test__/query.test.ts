@@ -1,8 +1,9 @@
 import { beforeAll, describe, expect, it } from "vitest";
-import { createClient, GqlClient } from "../src/index"
+
+import { createClient, GqlClient } from "../src/index";
 import { createWallet } from "./lib/common";
 
-const token_id = "722e8490-e852-4298-a250-7b0a399fec57";
+const tokenAddress = "EeP7gjHGjHTMEShEA8YgPXmYp6S3XvCDfQvkc8gy2kcL";
 
 describe("query tests", () => {
   let gql: GqlClient;
@@ -10,7 +11,6 @@ describe("query tests", () => {
   beforeAll(async () => {
     gql = await createClient({ url: "http://localhost:8080/v1/graphql", hasuraAdminSecret: "password" });
   });
-
 
   it("should be able to get the balance of the account before and after a buy executed", async () => {
     const wallet = createWallet();
@@ -22,9 +22,9 @@ describe("query tests", () => {
     await gql.db.BuyTokenMutation({
       wallet,
       amount: "100",
-      override_token_price: "1000000000",
-      token: token_id
-    })
+      token_price: "1000000000",
+      token: tokenAddress,
+    });
 
     const balance_before = await gql.db.GetWalletBalanceIgnoreIntervalQuery({ wallet, interval: "500ms" });
 
@@ -43,31 +43,20 @@ describe("query tests", () => {
     await gql.db.BuyTokenMutation({
       wallet,
       amount: "100",
-      override_token_price: "1000000000",
-      token: token_id
-    })
+      token_price: "1000000000",
+      token: tokenAddress,
+    });
 
-    const balance_before = await gql.db.GetWalletTokenBalanceIgnoreIntervalQuery({ token: token_id, wallet, interval: "100ms" });
+    const balance_before = await gql.db.GetWalletTokenBalanceIgnoreIntervalQuery({
+      token: tokenAddress,
+      wallet,
+      interval: "100ms",
+    });
 
     expect(balance_before.data?.balance[0].value).toBe(0);
 
-    const balance_after = await gql.db.GetWalletTokenBalanceQuery({ token: token_id, wallet });
+    const balance_after = await gql.db.GetWalletTokenBalanceQuery({ token: tokenAddress, wallet });
 
     expect(balance_after.data?.balance[0].value).toBe(100);
-  });
-
-  it("should be able to get the token price history between intervals", async () => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    const result = await gql.db.AddTokenPriceHistoryMutation({
-      price: "123456789",
-      token: token_id
-    })
-
-    const history = await gql.db.GetTokenPriceHistoryIntervalQuery({ token: token_id, interval: "100ms" });
-
-    const history_2 = await gql.db.GetTokenPriceHistoryIgnoreIntervalQuery({ token: token_id, interval: "0s" });
-
-    expect(history_2.data?.token_price_history_offset.length).toBeGreaterThan(history.data?.token_price_history_offset.length ?? 0);
   });
 });
