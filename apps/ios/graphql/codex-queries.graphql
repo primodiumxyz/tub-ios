@@ -1,5 +1,5 @@
 query GetFilterTokens(
-  $rankingAttribute: TokenRankingAttribute = trendingScore
+  $rankingAttribute: TokenRankingAttribute = trendingScore1
   $limit: Int = 50
 ) {
   filterTokens(

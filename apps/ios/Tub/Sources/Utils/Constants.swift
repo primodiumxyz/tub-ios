@@ -92,5 +92,4 @@ public let RESOLUTION: String = "60" // base top tokens on 1 hour resolution
 public let NETWORK_FILTER: Int = 1399811149
 public let PUMP_FUN_ADDRESS: String = "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P"
     
-public let CHART_INTERVAL: Double = 120
-public let CHART_INTERVAL_MIN_TRADES: Int = 15
+public let CHART_INTERVAL: Double = 180
