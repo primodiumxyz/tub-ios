@@ -1,20 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
+import { Row } from "@tanstack/react-table";
 
-import { getColumns } from "@/components/tracker/tokens-table/columns";
+import { getColumns } from "@/components/tokens-table/columns";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
-import { useSolPrice } from "@/hooks/use-sol-price";
-import { Token, useTokens } from "@/hooks/use-tokens";
-import { useTrackerParams } from "@/hooks/use-tracker-params";
+import { useTokens } from "@/hooks/use-tokens";
+import { INTERVALS } from "@/lib/constants";
+import { Interval, Token } from "@/lib/types";
 
-export const TokensTable = () => {
+export const TokensTable = ({ onRowClick }: { onRowClick?: (row: Row<Token>) => void }) => {
   const { tokens, fetching, error } = useTokens();
-  const { timespan, minTrades, minVolume } = useTrackerParams();
-  const { solToUsd } = useSolPrice();
   const [globalFilter, setGlobalFilter] = useState<string>("");
   const [frozen, setFrozen] = useState(false);
   const [frozenTokens, setFrozenTokens] = useState<Token[]>([]);
+  const [selectedInterval, setSelectedInterval] = useState<Interval>(60);
 
   useEffect(() => {
     if (frozen) setFrozenTokens(tokens);
@@ -27,8 +27,7 @@ export const TokensTable = () => {
       (token) =>
         token.name.toLowerCase().includes(globalFilter.toLowerCase()) ||
         token.symbol.toLowerCase().includes(globalFilter.toLowerCase()) ||
-        token.mint.toLowerCase().includes(globalFilter.toLowerCase()) ||
-        token.id.toLowerCase().includes(globalFilter.toLowerCase()),
+        token.mint.toLowerCase().includes(globalFilter.toLowerCase()),
     );
   }, [tokens, frozenTokens, frozen, globalFilter]);
 
@@ -36,16 +35,24 @@ export const TokensTable = () => {
   return (
     <div className="flex flex-col gap-2 mt-2 w-full">
       <div className="flex items-center justify-between gap-4">
-        <div className="flex gap-2 items-center">
-          <div className="flex items-center gap-2">
-            <Button onClick={() => setFrozen(!frozen)} variant={frozen ? "destructive" : "ghost"}>
-              {frozen ? "Unfreeze" : "Freeze"}
-            </Button>
-          </div>
-          <span className="text-sm text-muted-foreground">
-            {tokens.length} tokens {frozen && `(frozen at ${frozenTokens.length})`}
-          </span>
+        <div className="flex items-center gap-2">
+          <Button onClick={() => setFrozen(!frozen)} variant={frozen ? "destructive" : "ghost"}>
+            {frozen ? "Unfreeze" : "Freeze"}
+          </Button>
         </div>
+        <span className="text-sm text-muted-foreground">
+          {tokens.length} tokens {frozen && `(frozen at ${frozenTokens.length})`}
+        </span>
+        <span className="grow" />
+        <select
+          value={selectedInterval}
+          onChange={(e) => setSelectedInterval(Number(e.target.value) as Interval)}
+          className="rounded-md border p-2"
+        >
+          {INTERVALS.map((interval) => (
+            <option value={interval}>{interval / 60}h</option>
+          ))}
+        </select>
         <Input
           placeholder="Search"
           value={globalFilter}
@@ -54,12 +61,13 @@ export const TokensTable = () => {
         />
       </div>
       <DataTable
-        columns={getColumns(solToUsd)}
+        columns={getColumns(selectedInterval)}
         data={filteredTokens}
-        caption={`List of tokens with at least ${minVolume} volume and at least ${minTrades} trades in the last ${timespan}`}
+        caption={`List of the first 50 trending tokens during the last hour.`}
         loading={fetching}
         pagination={true}
-        defaultSorting={[{ id: "increasePct", desc: true }]}
+        defaultSorting={[{ id: "volume", desc: true }]}
+        onRowClick={onRowClick}
       />
     </div>
   );

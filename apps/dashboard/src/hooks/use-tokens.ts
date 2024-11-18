@@ -1,64 +1,85 @@
-import { useMemo } from "react";
-import { useSubscription } from "urql";
+import { useEffect, useMemo, useState } from "react";
 
-import { subscriptions } from "@tub/gql";
-import { useTrackerParams } from "@/hooks/use-tracker-params";
+import { CODEX_SDK, NETWORK_FILTER, PUMP_FUN_ADDRESS, RESOLUTION } from "@/lib/constants";
+import { Token } from "@/lib/types";
 
-export type Token = {
-  mint: string;
-  latestPrice: number;
-  increasePct: number;
-  trades: number;
-  volume: number;
-  name: string;
-  symbol: string;
-  uri: string;
-  mintBurnt: boolean;
-  freezeBurnt: boolean;
-  id: string;
-};
-
+// TODO: filter only pump.fun tokens
 export const useTokens = (): {
   tokens: Token[];
   fetching: boolean;
   error: string | undefined;
 } => {
-  const { timespan, minTrades, minVolume, mintBurnt, freezeBurnt } = useTrackerParams();
+  const [tokens, setTokens] = useState<Token[]>([]);
+  const [fetching, setFetching] = useState(true);
+  const [error, setError] = useState<string | undefined>(undefined);
 
-  const [filteredTokensResult] = useSubscription({
-    query: subscriptions.GetFilteredTokensIntervalSubscription,
-    variables: {
-      interval: timespan,
-      minTrades: minTrades.toString(),
-      minVolume: minVolume.toString(),
-      mintBurnt,
-      freezeBurnt,
-    },
-  });
+  const fetchTokens = async () => {
+    try {
+      setFetching(true);
+      const res = await CODEX_SDK.queries.listTopTokens({
+        networkFilter: NETWORK_FILTER,
+        resolution: RESOLUTION, // time frame for trending results,
+        limit: 50, // max limit
+      });
 
-  const tokens = useMemo(() => {
-    if (!filteredTokensResult.data?.formatted_tokens_interval) return [];
-    return filteredTokensResult.data.formatted_tokens_interval.map((token) => ({
-      mint: token.mint,
-      latestPrice: Number(token.latest_price),
-      increasePct: Number(token.increase_pct),
-      trades: Number(token.trades),
-      volume: Number(token.volume),
-      name: token.name ?? "NAME",
-      symbol: token.symbol ?? "SYMBOL",
-      uri: token.uri ?? "",
-      mintBurnt: token.mint_burnt ?? false,
-      freezeBurnt: token.freeze_burnt ?? false,
-      id: token.token_id,
-    }));
-  }, [filteredTokensResult.data]);
+      const formattedTokens =
+        res.listTopTokens
+          ?.filter((t) => t.exchanges.some((e) => e.address === PUMP_FUN_ADDRESS))
+          .map((t) => ({
+            mint: t.address,
+            imageUri: t.imageLargeUrl ?? t.imageSmallUrl ?? t.imageThumbUrl ?? null,
+            name: t.name,
+            symbol: t.symbol,
+            latestPrice: t.price,
+            liquidity: t.liquidity,
+            marketCap: t.marketCap ?? null,
+            volume: t.volume,
+            pairId: t.topPairId,
+            priceChange: {
+              60: t.priceChange1 ?? 0,
+              240: t.priceChange4 ?? 0,
+              720: t.priceChange12 ?? 0,
+              1440: t.priceChange24 ?? 0,
+            },
+            transactions: {
+              60: t.txnCount1 ?? 0,
+              240: t.txnCount4 ?? 0,
+              720: t.txnCount12 ?? 0,
+              1440: t.txnCount24 ?? 0,
+            },
+            uniqueBuys: {
+              60: t.uniqueBuys1 ?? 0,
+              240: t.uniqueBuys4 ?? 0,
+              720: t.uniqueBuys12 ?? 0,
+              1440: t.uniqueBuys24 ?? 0,
+            },
+            uniqueSells: {
+              60: t.uniqueSells1 ?? 0,
+              240: t.uniqueSells4 ?? 0,
+              720: t.uniqueSells12 ?? 0,
+              1440: t.uniqueSells24 ?? 0,
+            },
+          })) ?? [];
+      setTokens(formattedTokens);
+      setFetching(false);
+    } catch (err) {
+      setError((err as Error).message);
+      setFetching(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTokens();
+    const interval = setInterval(() => fetchTokens(), 5_000);
+    return () => clearInterval(interval);
+  }, []);
 
   return useMemo(
     () => ({
       tokens,
-      fetching: filteredTokensResult.fetching && filteredTokensResult.data === undefined,
-      error: filteredTokensResult.error?.message,
+      fetching,
+      error,
     }),
-    [tokens, filteredTokensResult.fetching, filteredTokensResult.data, filteredTokensResult.error],
+    [tokens, fetching, error],
   );
 };

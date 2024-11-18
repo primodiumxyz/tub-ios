@@ -1,35 +1,50 @@
-export type FilteredTokensPerformancePerIntervalData = {
+import { INTERVALS } from "@/lib/constants";
+
+export type Interval = (typeof INTERVALS)[number];
+
+export type Token = {
   mint: string;
-  increase_pct: string;
-  trades: string;
+  imageUri: string | null;
+  name: string;
+  symbol: string;
+  latestPrice: number;
+  liquidity: string;
+  marketCap: string | null;
   volume: string;
-  increase_pct_after: string;
-  trades_after: string;
-  volume_after: string;
-  created_at: Date;
-  interval_start: Date;
-};
-
-export type AggregatedStats = {
-  byInterval: Map<string, TokenStats>; // key is interval_start
-  global: TokenStats;
-};
-
-export type TokenStats = {
-  byAfterInterval: IntervalStats[];
-  tokenCount: number;
-};
-
-type IntervalStats = {
-  increasePct: {
-    avg: number;
-    min: number;
-    max: number;
+  pairId: string;
+  priceChange: {
+    [key in Interval]: number;
   };
-  trades: {
-    avg: number;
-    min: number;
-    max: number;
+  transactions: {
+    [key in Interval]: number;
   };
-  tokenCount: number;
+  uniqueBuys: {
+    [key in Interval]: number;
+  };
+  uniqueSells: {
+    [key in Interval]: number;
+  };
+};
+
+export type TokenPrice = {
+  timestamp: number;
+  price: number;
+};
+
+export type TokenCandle = {
+  o: number;
+  h: number;
+  l: number;
+  c: number;
+  v: number | null;
+  t: number;
+};
+
+export type TokenCandles = {
+  o: (number | null)[];
+  h: (number | null)[];
+  l: (number | null)[];
+  c: (number | null)[];
+  v: (number | null)[];
+  t: (number | null)[];
 };
