@@ -4,9 +4,8 @@
 import ApolloAPI
 
 public extension Objects {
-  /// Response returned by `onEventsCreated`.
-  static let AddEventsOutput = ApolloAPI.Object(
-    typename: "AddEventsOutput",
+  static let AddTokenEventsOutput = ApolloAPI.Object(
+    typename: "AddTokenEventsOutput",
     implementedInterfaces: []
   )
 }

@@ -325,32 +325,33 @@ class TokenModel: ObservableObject {
         priceSubscription?.cancel()
         
         priceSubscription = CodexNetwork.shared.apollo.subscribe(subscription: SubTokenPricesSubscription(
-            pairId: "\(tokenId):\(NETWORK_FILTER)"
+            tokenAddress: tokenId
         )) { [weak self] result in
             guard let self = self else { return }
             
             switch result {
             case .success(let graphQLResult):
+                print(graphQLResult)
                 if let errors = graphQLResult.errors {
                     print("GraphQL errors: \(errors)")
                     return
                 }
                 
-                if let events = graphQLResult.data?.onEventsCreated?.events {
+                if let events = graphQLResult.data?.onTokenEventsCreated.events {
                     let swaps = events
-                        .filter { $0?.eventType == .swap }
-                        .sorted { $0?.timestamp ?? 0 < $1?.timestamp ?? 0 }
+                        .filter { $0.eventType == .swap }
+                        .sorted { $0.timestamp < $1.timestamp }
                     for swap in swaps {
                         if let lastTimestamp = self.lastPriceTimestamp?.timeIntervalSince1970,
-                           Double(swap?.timestamp ?? 0) <= lastTimestamp {
+                           Double(swap.timestamp) <= lastTimestamp {
                             continue
                         }
                         
-                        let priceUsd = swap?.quoteToken == .token0 ?
-                            swap?.token0PoolValueUsd ?? "0" : swap?.token1PoolValueUsd ?? "0"
+                        let priceUsd = swap.quoteToken == .token0 ?
+                            swap.token0PoolValueUsd ?? "0" : swap.token1PoolValueUsd ?? "0"
                         
                         let newPrice = Price(
-                            timestamp: Date(timeIntervalSince1970: TimeInterval(swap?.timestamp ?? 0)),
+                            timestamp: Date(timeIntervalSince1970: TimeInterval(swap.timestamp)),
                             priceUsd: Double(priceUsd) ?? 0.0
                         )
                         
