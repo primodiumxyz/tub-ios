@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { EventType, QuoteToken } from "@codex-data/sdk/dist/sdk/generated/graphql";
 
 import { useServer } from "@/hooks/use-server";
