@@ -76,7 +76,6 @@ class TokenModel: ObservableObject {
 
         Task {
             do {
-                try await fetchTokenDetails()
                 try await fetchUniqueHolders()
                 
                 // Fetch both types of data
@@ -274,61 +273,6 @@ class TokenModel: ObservableObject {
                 }
             case .failure(let error):
                 print("Error in candle subscription: \(error.localizedDescription)")
-            }
-        }
-    }
-
-    private func fetchTokenDetails() async throws {
-        return try await withCheckedThrowingContinuation { continuation in
-            CodexNetwork.shared.apollo.fetch(query: GetTokenMetadataQuery(
-                address: tokenId
-            ), cachePolicy: .fetchIgnoringCacheData) { [weak self] result in
-                guard let self = self else {
-                    let error = NSError(
-                        domain: "TokenModel",
-                        code: 0,
-                        userInfo: [NSLocalizedDescriptionKey: "Self is nil"]
-                    )
-                    continuation.resume(throwing: error)
-                    return
-                }
-
-                switch result {
-                case .success(let response):
-                    if let metadata = response.data?.token {
-                        DispatchQueue.main.async {
-                            self.token = Token(
-                                id: self.tokenId,
-                                name: self.token.name,
-                                symbol: self.token.symbol,
-                                description: metadata.info?.description,
-                                imageUri: self.token.imageUri,
-                                liquidity: self.token.liquidity,
-                                marketCap: self.token.marketCap,
-                                volume: self.token.volume,
-                                pairId: self.token.pairId,
-                                socials: (
-                                    discord: metadata.socialLinks?.discord,
-                                    instagram: metadata.socialLinks?.instagram,
-                                    telegram: metadata.socialLinks?.telegram,
-                                    twitter: metadata.socialLinks?.twitter,
-                                    website: metadata.socialLinks?.website
-                                ),
-                                uniqueHolders: self.token.uniqueHolders
-                            )
-                        }
-                        continuation.resume()
-                    } else {
-                        let error = NSError(
-                            domain: "TokenModel",
-                            code: 1,
-                            userInfo: [NSLocalizedDescriptionKey: "Token not found"]
-                        )
-                        continuation.resume(throwing: error)
-                    }
-                case .failure(let error):
-                    continuation.resume(throwing: error)
-                }
             }
         }
     }

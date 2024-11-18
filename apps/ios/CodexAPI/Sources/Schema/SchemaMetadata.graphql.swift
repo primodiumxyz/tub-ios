@@ -21,11 +21,12 @@ public enum SchemaMetadata: ApolloAPI.SchemaMetadata {
   public static func objectType(forTypename typename: String) -> ApolloAPI.Object? {
     switch typename {
     case "Query": return CodexAPI.Objects.Query
-    case "TokenWithMetadata": return CodexAPI.Objects.TokenWithMetadata
-    case "Exchange": return CodexAPI.Objects.Exchange
+    case "TokenFilterConnection": return CodexAPI.Objects.TokenFilterConnection
+    case "TokenFilterResult": return CodexAPI.Objects.TokenFilterResult
     case "EnhancedToken": return CodexAPI.Objects.EnhancedToken
     case "TokenInfo": return CodexAPI.Objects.TokenInfo
     case "SocialLinks": return CodexAPI.Objects.SocialLinks
+    case "Pair": return CodexAPI.Objects.Pair
     case "HoldersResponse": return CodexAPI.Objects.HoldersResponse
     case "Price": return CodexAPI.Objects.Price
     case "BarsResponse": return CodexAPI.Objects.BarsResponse

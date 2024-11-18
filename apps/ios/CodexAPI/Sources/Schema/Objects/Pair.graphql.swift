@@ -4,9 +4,9 @@
 import ApolloAPI
 
 public extension Objects {
-  /// Metadata for a decentralized exchange.
-  static let Exchange = ApolloAPI.Object(
-    typename: "Exchange",
+  /// Metadata for a token pair.
+  static let Pair = ApolloAPI.Object(
+    typename: "Pair",
     implementedInterfaces: []
   )
 }

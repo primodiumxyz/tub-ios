@@ -4,9 +4,9 @@
 import ApolloAPI
 
 public extension Objects {
-  /// A token with metadata.
-  static let TokenWithMetadata = ApolloAPI.Object(
-    typename: "TokenWithMetadata",
+  /// A token matching a set of filter parameters.
+  static let TokenFilterResult = ApolloAPI.Object(
+    typename: "TokenFilterResult",
     implementedInterfaces: []
   )
 }

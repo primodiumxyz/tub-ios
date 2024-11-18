@@ -7,7 +7,7 @@ public class GetTokenMetadataQuery: GraphQLQuery {
   public static let operationName: String = "GetTokenMetadata"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetTokenMetadata($address: String!, $networkId: Int = 1399811149) { token(input: { address: $address, networkId: $networkId }) { __typename info { __typename name description symbol imageLargeUrl imageSmallUrl imageThumbUrl } socialLinks { __typename discord instagram telegram twitter website } } }"#
+      #"query GetTokenMetadata($address: String!, $networkId: Int = 1399811149) { token(input: { address: $address, networkId: $networkId }) { __typename info { __typename name symbol imageLargeUrl imageSmallUrl imageThumbUrl } } }"#
     ))
 
   public var address: String
@@ -52,13 +52,10 @@ public class GetTokenMetadataQuery: GraphQLQuery {
       public static var __selections: [ApolloAPI.Selection] { [
         .field("__typename", String.self),
         .field("info", Info?.self),
-        .field("socialLinks", SocialLinks?.self),
       ] }
 
       /// More metadata about the token.
       public var info: Info? { __data["info"] }
-      /// Community gathered links for the socials of this token.
-      public var socialLinks: SocialLinks? { __data["socialLinks"] }
 
       /// Token.Info
       ///
@@ -71,7 +68,6 @@ public class GetTokenMetadataQuery: GraphQLQuery {
         public static var __selections: [ApolloAPI.Selection] { [
           .field("__typename", String.self),
           .field("name", String?.self),
-          .field("description", String?.self),
           .field("symbol", String.self),
           .field("imageLargeUrl", String?.self),
           .field("imageSmallUrl", String?.self),
@@ -80,8 +76,6 @@ public class GetTokenMetadataQuery: GraphQLQuery {
 
         /// The token name. For example, `ApeCoin`.
         public var name: String? { __data["name"] }
-        /// A description of the token.
-        public var description: String? { __data["description"] }
         /// The token symbol. For example, `APE`.
         public var symbol: String { __data["symbol"] }
         /// The large token logo URL.
@@ -90,30 +84,6 @@ public class GetTokenMetadataQuery: GraphQLQuery {
         public var imageSmallUrl: String? { __data["imageSmallUrl"] }
         /// The thumbnail token logo URL.
         public var imageThumbUrl: String? { __data["imageThumbUrl"] }
-      }
-
-      /// Token.SocialLinks
-      ///
-      /// Parent Type: `SocialLinks`
-      public struct SocialLinks: CodexAPI.SelectionSet {
-        public let __data: DataDict
-        public init(_dataDict: DataDict) { __data = _dataDict }
-
-        public static var __parentType: any ApolloAPI.ParentType { CodexAPI.Objects.SocialLinks }
-        public static var __selections: [ApolloAPI.Selection] { [
-          .field("__typename", String.self),
-          .field("discord", String?.self),
-          .field("instagram", String?.self),
-          .field("telegram", String?.self),
-          .field("twitter", String?.self),
-          .field("website", String?.self),
-        ] }
-
-        public var discord: String? { __data["discord"] }
-        public var instagram: String? { __data["instagram"] }
-        public var telegram: String? { __data["telegram"] }
-        public var twitter: String? { __data["twitter"] }
-        public var website: String? { __data["website"] }
       }
     }
   }

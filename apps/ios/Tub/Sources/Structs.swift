@@ -14,16 +14,16 @@ struct Token: Identifiable {
     var socials: (discord: String?, instagram: String?, telegram: String?, twitter: String?, website: String?)
     var uniqueHolders: Int
     
-    init(id: String, name: String, symbol: String, description: String?, imageUri: String?, liquidity: Double, marketCap: Double?, volume: Double, pairId: String, socials: (discord: String?, instagram: String?, telegram: String?, twitter: String?, website: String?), uniqueHolders: Int?) {
-        self.id = id
-        self.name = name
-        self.symbol = symbol
+    init(id: String?, name: String?, symbol: String?, description: String?, imageUri: String?, liquidity: Double?, marketCap: Double?, volume: Double?, pairId: String?, socials: (discord: String?, instagram: String?, telegram: String?, twitter: String?, website: String?), uniqueHolders: Int?) {
+        self.id = id ?? ""
+        self.name = name ?? "NAME"
+        self.symbol = symbol ?? "SYMBOL"
         self.description = description ?? "DESCRIPTION"
         self.imageUri = imageUri?.replacingOccurrences(of: "cf-ipfs.com", with: "ipfs.io") ?? "" // sometimes this prefix gets added and it bricks it
-        self.liquidity = liquidity
+        self.liquidity = liquidity ?? 0.0
         self.marketCap = marketCap ?? 0.0
-        self.volume = volume
-        self.pairId = pairId
+        self.volume = volume ?? 0.0
+        self.pairId = pairId ?? ""
         self.socials = socials
         self.uniqueHolders = uniqueHolders ?? 0
     }

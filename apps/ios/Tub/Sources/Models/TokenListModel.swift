@@ -205,9 +205,7 @@ class TokenListModel: ObservableObject {
     private var fetching = false
     
     func fetchTokens(setLoading: Bool? = false) {
-        CodexNetwork.shared.apollo.fetch(query: GetTopTokensQuery(
-            resolution: .some(RESOLUTION)
-        ), cachePolicy: .fetchIgnoringCacheData) { [weak self] result in
+        CodexNetwork.shared.apollo.fetch(query: GetFilterTokensQuery(), cachePolicy: .fetchIgnoringCacheData) { [weak self] result in
             guard let self = self else { return }
             if let setLoading = setLoading, setLoading {
                 self.isLoading = true
@@ -220,26 +218,20 @@ class TokenListModel: ObservableObject {
                 let processedData: ([Token], Token?) = {
                     switch result {
                     case .success(let graphQLResult):
-                        if let tokens = graphQLResult.data?.listTopTokens {
+                        if let tokens = graphQLResult.data?.filterTokens?.results {
                             let mappedTokens = tokens
-                                .filter { token in
-                                    // Check if any exchange in the array matches PUMP_FUN_ADDRESS
-                                    token.exchanges.contains(where: { exchange in
-                                        exchange.address == PUMP_FUN_ADDRESS
-                                    })
-                                }
                                 .map { elem in
                                     Token(
-                                        id: elem.address,
-                                        name: elem.name,
-                                        symbol: elem.symbol,
-                                        description: nil,
-                                        imageUri: elem.imageLargeUrl ?? elem.imageSmallUrl ?? elem.imageThumbUrl,
-                                        liquidity: Double(elem.liquidity) ?? 0.0,
-                                        marketCap: Double(elem.marketCap ?? "0") ?? 0.0,
-                                        volume: Double(elem.volume) ?? 0.0,
-                                        pairId: elem.topPairId,
-                                        socials: (discord: nil, instagram: nil, telegram: nil, twitter: nil, website: nil),
+                                        id: elem?.token?.address,
+                                        name: elem?.token?.info?.name,
+                                        symbol: elem?.token?.info?.symbol,
+                                        description: elem?.token?.info?.description,
+                                        imageUri: elem?.token?.info?.imageLargeUrl ?? elem?.token?.info?.imageSmallUrl ?? elem?.token?.info?.imageThumbUrl,
+                                        liquidity: Double(elem?.liquidity ?? "0"),
+                                        marketCap: Double(elem?.marketCap ?? "0"),
+                                        volume: Double(elem?.volume1 ?? "0"),
+                                        pairId: elem?.pair?.id,
+                                        socials: (discord: elem?.token?.socialLinks?.discord, instagram: elem?.token?.socialLinks?.instagram, telegram: elem?.token?.socialLinks?.telegram, twitter: elem?.token?.socialLinks?.twitter, website: elem?.token?.socialLinks?.website),
                                         uniqueHolders: nil
                                     )
                                 }
@@ -252,8 +244,9 @@ class TokenListModel: ObservableObject {
                         print("Error fetching tokens: \(error.localizedDescription)")
                         return ([], nil)
                     }
-                    self.fetching = false
                 }()
+                
+                self.fetching = false
 
                 // Update UI on main thread
                 DispatchQueue.main.async {
