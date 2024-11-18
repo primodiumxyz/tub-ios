@@ -11,6 +11,7 @@ import UIKit
 
 struct TokenListView: View {
     @EnvironmentObject private var userModel: UserModel
+    @EnvironmentObject private var notificationHandler: NotificationHandler
     
     // chevron animation
     @State private var chevronOffset: CGFloat = 0.0
@@ -29,8 +30,6 @@ struct TokenListView: View {
     
     @ObservedObject var tokenListModel: TokenListModel
     @StateObject private var animationState = TokenAnimationState.shared
-    
-    @State private var showNotification = false
     
     @State private var isLoading = false
     
@@ -123,7 +122,10 @@ struct TokenListView: View {
                                             tokenModel: tokenListModel.currentTokenModel,
                                             onSellSuccess: {
                                                 withAnimation {
-                                                    showNotification = true
+                                                    notificationHandler.show(
+                                                        "Successfully sold tokens!",
+                                                        type: .success
+                                                    )
                                                 }
                                             }
                                         )
@@ -179,16 +181,6 @@ struct TokenListView: View {
                                 }
                             }
                         }
-                    }
-                    
-                    // Notification banner
-                    if showNotification {
-                        NotificationBanner(
-                            message: "Successfully sold tokens!",
-                            type: .success,
-                            isPresented: $showNotification
-                        )
-                        .zIndex(999) // Ensure it's above everything else
                     }
                     
                     // Bubbles effect

@@ -19,7 +19,7 @@ struct TubApp: App {
         WindowGroup {
             AppContent()
         }
-        .onChange(of: scenePhase) { phase in
+        .onChange(of: scenePhase) { _, phase in
             switch phase {
             case .active:
                 dwellTimeTracker.startTracking()
@@ -33,16 +33,16 @@ struct TubApp: App {
 }
 
 struct AppContent: View {
-    @StateObject private var errorHandler = ErrorHandler()
+    @StateObject private var notificationHandler = NotificationHandler()
     @StateObject private var userModel = UserModel.shared
     @StateObject private var priceModel = SolPriceModel.shared
     
     var body: some View {
-        HomeTabsView().font(.sfRounded())
+        HomeTabsView(userModel: userModel).font(.sfRounded())
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(.black)
-            .withErrorHandling()
-            .environmentObject(errorHandler)
+            .withNotificationBanner()
+            .environmentObject(notificationHandler)
             .environmentObject(userModel)
             .environmentObject(priceModel)
     }
@@ -53,7 +53,7 @@ struct AppContent: View {
 }
 
 extension View {
-    func withErrorHandling() -> some View {
-        modifier(ErrorOverlay())
+    func withNotificationBanner() -> some View {
+        modifier(NotificationBanner())
     }
 }

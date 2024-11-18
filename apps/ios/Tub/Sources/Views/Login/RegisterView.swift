@@ -10,7 +10,7 @@ struct RegisterView: View {
     @State private var email = ""
     @State private var showPhoneModal = false
     @State private var showEmailModal = false
-    @EnvironmentObject private var errorHandler: ErrorHandler
+    @EnvironmentObject private var notificationHandler: NotificationHandler
     @EnvironmentObject private var userModel: UserModel
     @State private var isEmailValid = false
     @State private var showEmailError = false
@@ -170,7 +170,9 @@ struct RegisterView: View {
                             do {
                                 let _ = try await privy.oAuth.login(with: OAuthProvider.apple)
                             } catch {
-                                errorHandler.show(error)
+                                notificationHandler.show(error.localizedDescription,
+                                    type: .error
+                                )
                             }
                         }
                     }
@@ -181,7 +183,10 @@ struct RegisterView: View {
                         do {
                             let _ = try await privy.oAuth.login(with: OAuthProvider.google)
                         } catch {
-                            errorHandler.show(error)
+                            notificationHandler.show(
+                                error.localizedDescription,
+                                type: .error
+                            )
                         }
                     }
                 }) {
@@ -226,7 +231,10 @@ struct RegisterView: View {
                             // Login with predefined OTP
                             let _ = try await privy.email.loginWithCode("145288", sentTo: "test-0932@privy.io")
                         } catch {
-                            errorHandler.show(error)
+                            notificationHandler.show(
+                                error.localizedDescription,
+                                type: .error
+                            )
                         }
                     }
                 }) {

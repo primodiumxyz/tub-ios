@@ -7,7 +7,7 @@
 import SwiftUI
 
 struct CreateWalletView : View {
-    @EnvironmentObject private var errorHandler: ErrorHandler
+    @EnvironmentObject private var notificationHandler: NotificationHandler
     @State private var isLoading = false
     @State private var hasFailed = false
     
@@ -42,7 +42,10 @@ struct CreateWalletView : View {
                 isLoading = false
             } catch {
                 isLoading = false
-                errorHandler.show(error)
+                notificationHandler.show(
+                    error.localizedDescription,
+                    type: .error
+                )
             }
         }
     }

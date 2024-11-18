@@ -74,7 +74,6 @@ struct HistoryView : View {
                                 )
                                 
                                 result.append(newTransaction)
-                            }
                         }
                     } else if let error = graphQLResult.errors?.first {
                         print(error)
@@ -447,8 +446,8 @@ struct TransactionRow: View {
 
 
 #Preview {
-    @Previewable @StateObject var errorHandler = ErrorHandler()
+    @Previewable @StateObject var notificationHandler = NotificationHandler()
     @Previewable @StateObject var priceModel = SolPriceModel.shared
-    HistoryView(txs: dummyData).environmentObject(priceModel).environmentObject(errorHandler)
+    HistoryView(txs: dummyData).environmentObject(priceModel).environmentObject(notificationHandler)
 }
 

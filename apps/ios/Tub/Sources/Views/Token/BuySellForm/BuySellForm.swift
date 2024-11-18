@@ -7,7 +7,7 @@
 import SwiftUI
 
 struct BuySellForm: View {
-    @EnvironmentObject private var errorHandler: ErrorHandler
+    @EnvironmentObject private var notificationHandler: NotificationHandler
     @EnvironmentObject var userModel: UserModel
     @EnvironmentObject var priceModel: SolPriceModel
     @ObservedObject var tokenModel: TokenModel
@@ -46,16 +46,18 @@ struct BuySellForm: View {
             print("🔴 Haptic feedback disabled")
         }
         
-//        tokenModel.sellTokens(completion: {result in
-//            switch result {
-//            case .success:
-//                animationState.showSellBubbles = true
-//                activeTab = "buy"
-//                onSellSuccess()
-//            case .failure(let error):
-//                errorHandler.show(error)
-//            }
-//        })
+       userModel.sellTokens(completion: {result in
+           switch result {
+           case .success:
+               animationState.showSellBubbles = true
+               onSellSuccess?()
+           case .failure(let error):
+                notificationHandler.show(
+                    error.localizedDescription,
+                    type: .error
+                )
+           }
+       })
     }
     
     var body: some View {

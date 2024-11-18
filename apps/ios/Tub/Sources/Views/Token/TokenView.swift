@@ -35,16 +35,10 @@ enum Timespan: String, CaseIterable {
 
 
 struct TokenView : View {
-    @EnvironmentObject private var errorHandler: ErrorHandler
     @ObservedObject var tokenModel: TokenModel
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject private var userModel: UserModel
-    var onSellSuccess: (() -> Void)?
-    var activeTab: String {
-        //      let balance: Int = tokenListModel.currentTokenModel.balanceLamps
-        let balance: Int = 0
-        return balance > 0 ? "sell" : "buy"
-    }
+    @EnvironmentObject private var notificationHandler: NotificationHandler
     
     @State private var showInfoCard = false
     @State private var selectedTimespan: Timespan = .live
@@ -66,25 +60,37 @@ struct TokenView : View {
     }
     
     func handleBuy(amount: Double) {
-        guard let balance = userModel.balanceLamps else { return }
-        let buyAmountLamps = priceModel.usdToLamports(usd: amount)
-        if let amount = buyAmountLamps, amount > balance {
-            errorHandler.show(TubError.insufficientBalance)
+        guard let balance = userModel.balanceLamps, let lastPrice = tokenModel.prices.last
+        else {
+            let error = NSError(domain: "TokenView", code: 1, userInfo: [NSLocalizedDescriptionKey: "Something went wrong. Please try again."])
+            notificationHandler.show(
+                error.localizedDescription,
+                type: .error
+            )
             return
         }
-        //        tokenModel.buyTokens(buyAmountLamps: buyAmountLamps) { result in
-        //            switch result {
-        //            case .success:
-        //                withAnimation(.easeInOut(duration: 0.3)) {
-        //                    showBuySheet = false
-        //                    activeTab = "sell" //  Switch tab after successful buy
-        //                }
-        //            case .failure(let error):
-        //                print("failed to buy")
-        //                print(error)
-        //                errorHandler.show(error)
-        //            }
-        //        }
+        
+        let buyAmountLamps = priceModel.usdToLamports(usd: amount)
+        if buyAmountLamps > balance {
+            notificationHandler.show(
+                "Insufficient balance",
+                type: .error
+            )
+            return
+        }
+        
+        userModel.buyTokens(buyAmountLamps: buyAmountLamps, price: lastPrice.price) { result in
+            switch result {
+            case .failure(let error):
+                print("failed to buy")
+                print(error)
+                notificationHandler.show(
+                    error.localizedDescription,
+                    type: .error
+                )
+            default: break
+            }
+        }
     }
     
     var body: some View {
@@ -165,13 +171,6 @@ struct TokenView : View {
                 }
                 .font(.sfRounded(size: .sm, weight: .semibold))
                 .foregroundColor(tokenModel.priceChange.amountLamps >= 0 ? .green : .red)
-            }
-            else {
-                
-                
-                LoadingBox(width: 160, height: 14)
-            }
-            
         }
         .padding(.horizontal)
         .onTapGesture {

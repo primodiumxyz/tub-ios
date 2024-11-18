@@ -12,7 +12,7 @@ enum FocusPin {
 }
 
 struct SignInWithPhoneView: View {
-    @EnvironmentObject private var errorHandler: ErrorHandler
+    @EnvironmentObject private var notificationHandler: NotificationHandler
     @State private var phoneNumber = ""
     @State private var showOTPInput = false
     @State private var signingIn : Bool = false
@@ -59,7 +59,10 @@ struct SignInWithPhoneView: View {
                 showOTPInput = true
             }else {
                 let error = NSError(domain: "PrivyError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to send OTP"])
-                errorHandler.show(error)
+                notificationHandler.show(
+                    error.localizedDescription,
+                    type: .error
+                )
                 debugPrint("Error: Failed to send OTP.")
                 
                 showOTPInput = false
@@ -83,7 +86,10 @@ struct SignInWithPhoneView: View {
                 signingIn = false
             } catch {
                 signingIn = false
-                errorHandler.show(error)
+                notificationHandler.show(
+                    error.localizedDescription,
+                    type: .error
+                )
                 print(error)
             }
         }

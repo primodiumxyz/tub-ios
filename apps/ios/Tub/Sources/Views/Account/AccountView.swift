@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct AccountView: View {
-    @EnvironmentObject private var errorHandler: ErrorHandler
+    @EnvironmentObject private var notificationHandler: NotificationHandler
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject private var userModel: UserModel
     @State private var isNavigatingToRegister = false
@@ -16,8 +16,6 @@ struct AccountView: View {
     @Environment(\.presentationMode) var presentationMode
     @State private var showOnrampView = false
     @State private var errorMessage: String = ""
-    
-
     
     func performAirdrop() {
         isAirdropping = true
@@ -27,10 +25,16 @@ struct AccountView: View {
                 isAirdropping = false
                 switch result {
                 case .success:
-                    errorHandler.showSuccess("Airdrop successful!")
+                    notificationHandler.show(
+                        "Airdrop successful!",
+                        type: .success
+                    )
                 case .failure(let error):
                     errorMessage = error.localizedDescription
-                    errorHandler.show(error)
+                    notificationHandler.show(
+                        error.localizedDescription,
+                        type: .error
+                    )
                 }
             }
         }
@@ -235,7 +239,7 @@ private struct ActionButtonsView: View {
 // New component for account settings
 private struct AccountSettingsView: View {
     @EnvironmentObject private var userModel: UserModel
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
             Text("Account Settings")
