@@ -5,13 +5,14 @@ on: [push]
 jobs:
   test:
     runs-on: ubuntu-latest
+    environment: DEV
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup
         uses: ./.github/actions/setup
-    
+
       - name: pnpm install
         run: pnpm install --frozen-lockfile
 
@@ -21,8 +22,11 @@ jobs:
       - name: Run Hasura DB
         run: pnpm dev:db:ci
 
-      - name: Run GQL Tests
-        run: pnpm --filter gql test
+      - name: Run Tests
+        run: PRIVY_APP_ID=${{ secrets.PRIVY_APP_ID }} PRIVY_APP_SECRET=${{ secrets.PRIVY_APP_SECRET }} pnpm test
+        env:
+          PRIVY_APP_ID: ${{ secrets.PRIVY_APP_ID }}
+          PRIVY_APP_SECRET: ${{ secrets.PRIVY_APP_SECRET }}
 
       - name: Teardown
         run: pnpm dev:teardown

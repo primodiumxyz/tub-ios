@@ -14,13 +14,13 @@ struct ErrorOverlay: ViewModifier {
         content
             .overlay(
                 Group {
-                    if errorHandler.isShowingError, let error = errorHandler.currentError {
+                    if errorHandler.isShowingNotification, let message = errorHandler.message {
                         VStack {
                             HStack(spacing: 6) {
-                                Image(systemName: "exclamationmark.triangle.fill")
-                                    .foregroundColor(.yellow)
+                                Image(systemName: errorHandler.notificationType.icon)
+                                    .foregroundColor(errorHandler.notificationType == .error ? .yellow : .green)
                                 
-                                Text(error.localizedDescription)
+                                Text(message)
                                     .foregroundColor(.white)
                                     .font(.sfRounded(size: .base))
                                 
@@ -37,16 +37,15 @@ struct ErrorOverlay: ViewModifier {
                             .cornerRadius(24)
                             .shadow(radius: 4)
                             
-                            
                             Spacer()
                         }
-                            .padding(.vertical, 0)
-                            .padding(.horizontal, 16)
+                        .padding(.vertical, 0)
+                        .padding(.horizontal, 16)
                         .transition(.move(edge: .top).combined(with: .opacity))
                         .zIndex(999)
                     }
                 }
-                .animation(.easeInOut(duration: 0.3), value: errorHandler.isShowingError)
+                .animation(.easeInOut(duration: 0.3), value: errorHandler.isShowingNotification)
             )
     }
 }

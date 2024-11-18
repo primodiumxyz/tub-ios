@@ -25,8 +25,9 @@ export class TubService {
   private async getUserWallet(userId: string) {
     const user = await this.privy.getUserById(userId);
 
-    const solanaWallet = user.linkedAccounts.find((account) => account.type === "wallet" && account.chainType === "solana") as WalletWithMetadata | undefined;
-    console.log(solanaWallet);
+    const solanaWallet = user.linkedAccounts.find(
+      (account) => account.type === "wallet" && account.chainType === "solana",
+    ) as WalletWithMetadata | undefined;
     return solanaWallet?.address;
   }
 
@@ -89,5 +90,46 @@ export class TubService {
     }
 
     return result.data;
+  }
+
+  async recordClientEvent(
+    event: {
+      userAgent: string;
+      eventName: string;
+      metadata?: string;
+      errorDetails?: string;
+      source?: string;
+      buildVersion?: string;
+    },
+    token: string,
+  ) {
+    const accountId = await this.verifyJWT(token);
+    const wallet = await this.getUserWallet(accountId);
+
+    if (!wallet) {
+      throw new Error("User does not have a wallet");
+    }
+
+    const result = await this.gql.AddClientEventMutation({
+      user_agent: event.userAgent,
+      event_name: event.eventName,
+      metadata: event.metadata,
+      user_wallet: wallet,
+      error_details: event.errorDetails,
+      source: event.source,
+      build: event.buildVersion,
+    });
+
+    const id = result.data?.insert_analytics_client_event_one?.id;
+
+    if (!id) {
+      throw new Error("Failed to record client event. Missing ID.");
+    }
+
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+
+    return id;
   }
 }

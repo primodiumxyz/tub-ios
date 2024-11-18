@@ -60,19 +60,21 @@ struct TokenListView: View {
     
     
     var body: some View {
-        Group {
+        VStack {
+            AccountBalanceView(
+                userModel: userModel,
+                currentTokenModel: viewModel.currentTokenModel
+            )
+            .zIndex(2)
+               Divider()
+                        .frame(width: 300, height: 1)
+                        .overlay(
+                            Rectangle()
+                                .stroke(AppColors.lightGray.opacity(0.3), lineWidth: 0.5)
+                        )
             if viewModel.isLoading {
-                VStack(spacing: 0) {
-                    AccountBalanceView(
-                        userModel: userModel,
-                        currentTokenModel: viewModel.currentTokenModel
-                    )
-                    .padding(.horizontal, 10)
-                    .background(dragging ? AppColors.black : nil)
-                    .zIndex(2)
                     DummyTokenView(height: 400)
                         .frame(height: .infinity)
-                }
                 
             } else {
                 ZStack(alignment: .top) {
@@ -84,20 +86,17 @@ struct TokenListView: View {
                         .ignoresSafeArea()
                         
                         VStack(spacing: 0) {
-                            AccountBalanceView(
-                                userModel: userModel,
-                                currentTokenModel: viewModel.currentTokenModel
-                            )
-                            .padding(.horizontal, 10)
-                            .background(dragging ? AppColors.black : nil)
-                            .zIndex(2)
-                            
                             // Rest of the content
                             if viewModel.tokens.count == 0 {
                                 Spacer()
-                                Text("An unexpected error occurred. Please come back later.")
+                                Text("Failed to load tokens.")
                                     .foregroundColor(AppColors.lightYellow)
                                     .multilineTextAlignment(.center)
+                                Button(action: {
+                                    viewModel.fetchTokens(setLoading: true)
+                                }) {
+                                    Text("Retry")
+                                }
                                 Spacer()
                             } else {
                                 GeometryReader { geometry in
@@ -114,11 +113,11 @@ struct TokenListView: View {
                                                 }
                                             }
                                         )
-                                        .frame(height: geometry.size.height)
+                                        .frame(height: geometry.size.height - 25)
                                         DummyTokenView(height: geometry.size.height)
                                             .frame(height: geometry.size.height)
                                             .opacity(dragging ? 0.8 : 0)
-                                        
+
                                         
                                     }
                                     .zIndex(1)
@@ -171,7 +170,6 @@ struct TokenListView: View {
                     }
                 }
                 .foregroundColor(.white)
-                .background(Color.black)
             }
         } .onAppear {
             viewModel.subscribeTokens()

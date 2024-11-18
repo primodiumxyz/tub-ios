@@ -9,24 +9,52 @@ import SwiftUI
 import Combine
 import os.log
 
+enum NotificationType {
+    case error
+    case success
+    
+    var color: Color {
+        switch self {
+        case .error: return .red
+        case .success: return .green
+        }
+    }
+    
+    var icon: String {
+        switch self {
+        case .error: return "exclamationmark.triangle.fill"
+        case .success: return "checkmark.circle.fill"
+        }
+    }
+}
+
 class ErrorHandler: ObservableObject {
-    @Published var currentError: Error? 
-    @Published var isShowingError = false
+    @Published var message: String?
+    @Published var isShowingNotification = false
+    @Published var notificationType: NotificationType = .error
     
     private var hideWorkItem: DispatchWorkItem?
     
     func show(_ error: Error) {
+        showNotification(error.localizedDescription, type: .error)
+        os_log("Error: %{public}@", log: .default, type: .error, error.localizedDescription)
+    }
+    
+    func showSuccess(_ message: String) {
+        showNotification(message, type: .success)
+    }
+    
+    private func showNotification(_ message: String, type: NotificationType) {
         hideWorkItem?.cancel()
         
-        currentError = error
-        isShowingError = true
-        
-        os_log("Error: %{public}@", log: .default, type: .error, error.localizedDescription)
+        self.message = message
+        self.notificationType = type
+        self.isShowingNotification = true
         
         let workItem = DispatchWorkItem { [weak self] in
             withAnimation {
-                self?.isShowingError = false
-                self?.currentError = nil
+                self?.isShowingNotification = false
+                self?.message = nil
             }
         }
         hideWorkItem = workItem
@@ -39,8 +67,8 @@ class ErrorHandler: ObservableObject {
         hideWorkItem = nil
         
         withAnimation {
-            isShowingError = false
-            currentError = nil
+            isShowingNotification = false
+            message = nil
         }
     }
 }

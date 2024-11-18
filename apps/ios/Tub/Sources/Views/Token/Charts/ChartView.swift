@@ -16,17 +16,12 @@ struct ChartView: View {
     let purchaseData: PurchaseData?
     let height: CGFloat
     
-    init(prices: [Price], timeframeSecs: Double = 90.0, purchaseData: PurchaseData? = nil, height: CGFloat = 330) {
+    init(prices: [Price], timeframeSecs: Double = CHART_INTERVAL, purchaseData: PurchaseData? = nil, height: CGFloat = 330) {
         self.rawPrices = prices
         self.timeframeSecs = timeframeSecs
         self.purchaseData = purchaseData
         self.height = height
     }
-    
-    @State private var currentTime = Date().timeIntervalSince1970
-    
-    @State private var timerCancellable: Cancellable?
-    @State private var timer: Timer.TimerPublisher = Timer.publish(every: 0.1, on: .main, in: .common)
     
     private var dashedLineColor: Color {
         guard let purchasePrice = purchaseData?.price,
@@ -45,7 +40,7 @@ struct ChartView: View {
     
     private var yDomain: ClosedRange<Int> {
         if prices.isEmpty { return 0...100 }
-
+        
         var pricesWithPurchase = prices
         if let data = purchaseData {
             let price = Price(timestamp: data.timestamp, price: data.price)
@@ -61,7 +56,7 @@ struct ChartView: View {
     }
     
     private var prices: [Price] {
-        let cutoffTime = currentTime - timeframeSecs
+        let cutoffTime = Date().addingTimeInterval(-timeframeSecs).timeIntervalSince1970
         if let firstValidIndex = rawPrices.firstIndex(where: { $0.timestamp.timeIntervalSince1970 >= cutoffTime }) {
             let slice = Array(rawPrices[firstValidIndex...])
             // If we have enough points in the time window, return them
@@ -79,83 +74,95 @@ struct ChartView: View {
         return rawPrices
     }
     
+    
     var body: some View {
-        Chart {
-            ForEach(prices) { price in
-                LineMark(
-                    x: .value("Date", price.timestamp),
-                    y: .value("Price", price.price)
-                )
-                .foregroundStyle(AppColors.aquaBlue.opacity(0.8))
-                .shadow(color: AppColors.aquaBlue, radius: 3, x: 2, y: 2)
-                .lineStyle(StrokeStyle(lineWidth: 3))
-//                .interpolationMethod(.catmullRom) 
-            }
-            
-            if let currentPrice = prices.last, prices.count >= 2 {
-                PointMark(
-                    x: .value("Date", currentPrice.timestamp),
-                    y: .value("Price", currentPrice.price)
-                )
-                .foregroundStyle(.white.opacity(0.5)) // Transparent fill
-                .symbolSize(100)
+        if prices.count < 2 {
+            RoundedRectangle(cornerRadius: 8)
+                .fill(.white.opacity(0.1))
+                .frame(width: .infinity, height: 300)
+                .padding(.bottom, 18)
+                .shimmering()
+        } else {
+            Chart {
+                // Historical lines (all points except the last two)
+                ForEach(prices.dropLast(1)) { price in
+                    LineMark(
+                        x: .value("Date", price.timestamp),
+                        y: .value("Price", price.price)
+                    )
+                    .foregroundStyle(AppColors.aquaBlue.opacity(0.8))
+                    .shadow(color: AppColors.aquaBlue, radius: 3, x: 2, y: 2)
+                    .lineStyle(StrokeStyle(lineWidth: 3))
+                    .interpolationMethod(.cardinal(tension: 0.7))
+                }
+               
+                if let point = prices.last {
+                    LineMark(
+                        x: .value("Date", point.timestamp),
+                        y: .value("Price", point.price)
+                    )
+                    .foregroundStyle(AppColors.aquaBlue.opacity(0.8))
+                    .shadow(color: AppColors.aquaBlue, radius: 3, x: 2, y: 2)
+                    .lineStyle(StrokeStyle(lineWidth: 3))
+                }
                 
-                PointMark(
-                    x: .value("Date", currentPrice.timestamp),
-                    y: .value("Price", currentPrice.price)
-                )
-                .annotation(position: .top, spacing: 4) {
-                    if purchaseData?.timestamp == currentPrice.timestamp {
-                        EmptyView()
-                    } else {
+                if let currentPrice = prices.last {
+                    PointMark(
+                        x: .value("Date", currentPrice.timestamp),
+                        y: .value("Price", currentPrice.price)
+                    )
+                    .foregroundStyle(.white.opacity(0.5)) // Transparent fill
+                    .symbolSize(100)
+                    
+                    PointMark(
+                        x: .value("Date", currentPrice.timestamp),
+                        y: .value("Price", currentPrice.price)
+                    )
+                    .annotation(position: .top, spacing: 4) {
+                        if purchaseData?.timestamp == currentPrice.timestamp {
+                            EmptyView()
+                        } else {
+                            PillView(
+                                value: "\(priceModel.formatPrice(lamports: abs(currentPrice.price)))",
+                                color: dashedLineColor,
+                                foregroundColor: AppColors.black
+                            )
+                        }
+                    }
+                }
+                
+                if let data = purchaseData {
+                    // Calculate x position as max of purchase time and earliest chart time
+                    let xPosition = max(
+                        data.timestamp,
+                        prices.first?.timestamp ?? data.timestamp
+                    )
+                    
+                    // Add horizontal dashed line
+                    RuleMark(y: .value("Purchase Price", data.price))
+                        .foregroundStyle(AppColors.primaryPink.opacity(0.8))
+                        .lineStyle(StrokeStyle(lineWidth: 2, dash: [5, 5]))
+                    
+                    PointMark(
+                        x: .value("Date", xPosition),  // Updated x-value
+                        y: .value("Price", data.price)
+                    )
+                    .foregroundStyle(AppColors.primaryPink)
+                    .symbolSize(100)
+                    .symbol(.circle)
+                    
+                    .annotation(position: .bottom, spacing: 0) {
                         PillView(
-                            value: "\(priceModel.formatPrice(lamports: abs(currentPrice.price)))",
-                             color: dashedLineColor,
-                             foregroundColor: AppColors.black
-                        )
+                            value: "\(priceModel.formatPrice(lamports: data.price))",
+                            color: AppColors.primaryPink.opacity(0.8), foregroundColor: AppColors.white)
                     }
                 }
             }
-            
-            if let data = purchaseData {
-                // Calculate x position as max of purchase time and earliest chart time
-                let xPosition = max(
-                    data.timestamp,
-                    prices.first?.timestamp ?? data.timestamp
-                )
-
-                // Add horizontal dashed line
-                RuleMark(y: .value("Purchase Price", data.price))
-                    .foregroundStyle(AppColors.primaryPink.opacity(0.8))
-                    .lineStyle(StrokeStyle(lineWidth: 2, dash: [5, 5]))
-                
-                PointMark(
-                    x: .value("Date", xPosition),  // Updated x-value
-                    y: .value("Price", data.price)
-                )
-                .foregroundStyle(AppColors.primaryPink)
-                .symbolSize(100)
-                .symbol(.circle)
-                
-                .annotation(position: .bottom, spacing: 0) {
-                    PillView(
-                        value: "\(priceModel.formatPrice(lamports: data.price))",
-                        color: AppColors.primaryPink.opacity(0.8), foregroundColor: AppColors.white)
-                }
-            }
-        }
-        .chartYScale(domain: yDomain)
-        .chartYAxis(.hidden)
-        .chartXAxis(.hidden)
-        .frame(width: .infinity, height: height)
-        .onAppear {
-            timerCancellable = timer.connect()
-        }
-        .onDisappear {
-            timerCancellable?.cancel()
-        }
-        .onReceive(timer) { _ in
-            currentTime = Date().timeIntervalSince1970
+            .chartYScale(domain: yDomain)
+            .chartYAxis(.hidden)
+            .chartXAxis(.hidden)
+            .animation(.easeInOut, value: prices)
+            .frame(width: .infinity, height: height)
         }
     }
 }
