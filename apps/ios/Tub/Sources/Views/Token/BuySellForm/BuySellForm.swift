@@ -18,7 +18,6 @@ struct BuySellForm: View {
     @StateObject private var settingsManager = SettingsManager.shared
     @State private var navigateToLogin = false
     @State private var showOnrampView = false
-    
     var handleBuy: (Double) -> Void
     var onSellSuccess: (() -> Void)?
     
@@ -59,6 +58,41 @@ struct BuySellForm: View {
             }
         })
     }
+        func performAirdrop() {
+        Network.shared.airdropNativeToUser(amount: 1 * Int(1e9)) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success:
+                    notificationHandler.show(
+                        "Airdrop successful!",
+                        type: .success
+                    )
+                case .failure(let error):
+                    notificationHandler.show(
+                        error.localizedDescription,
+                        type: .error
+                    )
+                }
+            }
+        }
+        
+        Network.shared.recordClientEvent(
+            event: ClientEvent(
+                eventName: "airdrop",
+                source: "account_view",
+                metadata: [
+                    ["airdrop_amount": 1 * Int(1e9)]
+                ]
+            )
+        ) { result in
+            switch result {
+            case .success:
+                print("Successfully recorded buy event")
+            case .failure(let error):
+                print("Failed to record buy event: \(error)")
+            }
+        }
+    }
     
     var body: some View {
         VStack {
@@ -92,10 +126,11 @@ struct BuySellForm: View {
             } else if activeTab == "buy" {
                 if userModel.balanceLamps == 0 {
                     Button(action: {
-                        showOnrampView = true
+                        // showOnrampView = true
+                        performAirdrop()
                     }) {
                         HStack(alignment: .center, spacing: 8) {
-                            Text("Deposit")
+                            Text("Get 1 test SOL")
                                 .font(.sfRounded(size: .xl, weight: .semibold))
                                 .foregroundColor(AppColors.black)
                                 .multilineTextAlignment(.center)

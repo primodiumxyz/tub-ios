@@ -166,30 +166,6 @@ private struct ActionButtonsView: View {
         HStack(spacing: 24) {
             Spacer()
             
-            // Airdrop Button
-            VStack(spacing: 8) {
-                Button(action: performAirdrop) {
-                    ZStack {
-                        Circle()
-                            .stroke(AppColors.primaryPink, lineWidth: 1)
-                            .frame(width: 50, height: 50)
-                        
-                        if isAirdropping {
-                            ProgressView()
-                        } else {
-                            Image(systemName: "paperplane")
-                                .foregroundColor(AppColors.primaryPink)
-                                .font(.system(size: 24))
-                        }
-                    }
-                }.disabled(isAirdropping)
-                
-                Text("Get $200")
-                    .font(.sfRounded(size: .sm, weight: .medium))
-                    .foregroundColor(AppColors.primaryPink)
-                    .multilineTextAlignment(.center)
-            }.frame(width: 90)
-            
             // Add Transfer Button
             VStack(spacing: 8) {
                 Button(action: {} ) {

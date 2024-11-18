@@ -1,5 +1,5 @@
 //
-//  ExploreView.swift
+//  TokenView.swift
 //  Tub
 //
 //  Created by Emerson Hsieh on 2024/9/26.
@@ -88,7 +88,8 @@ struct TokenView : View {
                     error.localizedDescription,
                     type: .error
                 )
-            default: break
+            default:
+                showBuySheet = false
             }
         }
     }

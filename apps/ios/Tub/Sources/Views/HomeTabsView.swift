@@ -25,8 +25,8 @@ struct HomeTabsView: View {
     private var userId: String? {
         didSet {
             if userModel.userId != nil {
-                selectedTab = 0  // Force switch to explore tab
-                recordTabSelection("explore")
+                selectedTab = 0  // Force switch to trade tab
+                recordTabSelection("trade")
             }
         }
     }
@@ -59,7 +59,7 @@ struct HomeTabsView: View {
         // Record dwell time for previous tab
         let previousTab: String
         switch selectedTab {
-        case 0: previousTab = "explore"
+        case 0: previousTab = "trade"
         case 1: previousTab = "history"
         case 2: previousTab = "account"
         default: previousTab = "unknown"
@@ -114,15 +114,15 @@ struct HomeTabsView: View {
                     HStack {
                         Spacer()
 
-                        // Explore Tab
+                        // Trade Tab
                         Button(action: {
                             selectedTab = 0
-                            recordTabSelection("explore")
+                            recordTabSelection("trade")
                         }) {
                             VStack {
-                                Image(systemName: "safari")
+                                Image(systemName: "chart.line.uptrend.xyaxis")
                                     .font(.system(size: 24))
-                                Text("Explore")
+                                Text("Trade")
                                     .font(.sfRounded(size: .xs, weight: .regular))
                             }
                             .foregroundColor(
@@ -173,8 +173,8 @@ struct HomeTabsView: View {
         .ignoresSafeArea(.keyboard)
         .onChange(of: userModel.userId) { _, newUserId in
             if newUserId != nil {
-                selectedTab = 0  // Force switch to explore tab
-                recordTabSelection("explore")
+                selectedTab = 0  // Force switch to trade tab
+                recordTabSelection("trade")
             }
         }
     }

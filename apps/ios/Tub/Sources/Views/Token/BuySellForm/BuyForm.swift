@@ -13,12 +13,13 @@ struct BuyForm: View {
     @Binding var isVisible: Bool
     @Binding var defaultAmount: Double
     @EnvironmentObject var priceModel: SolPriceModel
+    @EnvironmentObject var notificationHandler: NotificationHandler
     @ObservedObject var tokenModel: TokenModel
     var onBuy: (Double) -> Void
     
     @EnvironmentObject private var userModel: UserModel
     @State private var buyAmountUsdString: String = ""
-    @State private var buyAmountUsd : Double = 0
+    @State private var buyAmountUsd : Double = 0 
     @State private var isValidInput: Bool = true
     
     @State private var dragOffset: CGFloat = 0.0
@@ -32,14 +33,13 @@ struct BuyForm: View {
     
     @State private var isDefaultOn: Bool = true //by default is on
     
-    @State private var showInsufficientBalance: Bool = false
-    
     @ObservedObject private var settingsManager = SettingsManager.shared
     
     private func handleBuy() {
         guard let balance = userModel.balanceLamps else { return }
         // Use 10 as default if no amount is entered
         let amountToUse = buyAmountUsdString.isEmpty ? 10.0 : buyAmountUsd
+
         let buyAmountLamps = priceModel.usdToLamports(usd: amountToUse)
         
         // Check if the user has enough balance
@@ -50,26 +50,22 @@ struct BuyForm: View {
             }
             onBuy(amountToUse)
         } else {
-            showInsufficientBalance = true
+            notificationHandler.show("Insufficient Balance", type: .error)
         }
     }
     
     func updateBuyAmount(_ amountLamps: Int) {
-        guard let balance = userModel.balanceLamps else { return }
         if amountLamps == 0 {
             isValidInput = false
             return
         }
         
         // Add a tiny buffer for floating point precision
-        let usdAmount = priceModel.lamportsToUsd(lamports: amountLamps)
+        buyAmountUsd = priceModel.lamportsToUsd(lamports: amountLamps)
         
         // Format to 2 decimal places, rounding down
-        buyAmountUsdString = String(format: "%.2f", floor(usdAmount * 100) / 100)
+        buyAmountUsdString = String(format: "%.2f", floor(buyAmountUsd * 100) / 100)
         isValidInput = true
-        
-        // Compare with a small epsilon to avoid floating point precision issues
-        showInsufficientBalance = amountLamps > balance
     }
     
     func resetForm() {
@@ -78,7 +74,6 @@ struct BuyForm: View {
         isValidInput = true
         animatingSwipe = false
         isDefaultOn = true
-        showInsufficientBalance = false
     }
     
     var body: some View {
@@ -167,17 +162,16 @@ struct BuyForm: View {
                             }
                             
                             let amount = text.doubleValue
+                            print("amount: \(amount)")
                             if amount > 0 {
                                 buyAmountUsd = amount
                                 // Only format if the value has changed
                                 buyAmountUsdString = text
                             }
                             isValidInput = true
-                            showInsufficientBalance = (userModel.balanceLamps ?? 0) < priceModel.usdToLamports(usd: amount)
                         } else {
                             buyAmountUsd = 0
                             isValidInput = false
-                            showInsufficientBalance = false
                         }
                     }
                     .font(.sfRounded(size: .xl5, weight: .bold))
@@ -192,22 +186,6 @@ struct BuyForm: View {
             }
             .frame(maxWidth: 300)
             .padding(.horizontal)
-            
-            // Fixed height container with error message
-            HStack {
-                if showInsufficientBalance {
-                    Text("Insufficient balance")
-                        .font(.caption)
-                        .foregroundColor(.red)
-                        .transition(.opacity)
-                } else {
-                    // Empty text to maintain height
-                    Text(" ")
-                        .font(.caption)
-                }
-            }
-            .frame(height: 8)
-            .padding(.top, -4)
         }
     }
     
