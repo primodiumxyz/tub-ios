@@ -18,10 +18,18 @@ struct AccountBalanceView: View {
         let tokenValueUsd = Double(currentTokenModel.balanceLamps) * (currentTokenModel.prices.last?.priceUsd ?? 0)
         let balanceUsd = tokenValueUsd + priceModel.lamportsToUsd(lamports: userModel.balanceLamps)
         
-        let adjustedChangeUsd = balanceUsd + tokenValueUsd
+        let adjustedChangeUsd = tokenValueUsd + priceModel.lamportsToUsd(lamports: userModel.balanceChangeLamps)
         
         return (tokenValueUsd, balanceUsd, adjustedChangeUsd)
     }
+    
+//    var accountBalance: (Int, Int) {
+//        let balance = userModel.balanceLamps
+//        
+//        let adjustedChange = userModel.balanceChangeLamps
+//        
+//        return (balance, adjustedChange)
+//    }
     
     var body: some View {
         VStack(alignment: .center) {
