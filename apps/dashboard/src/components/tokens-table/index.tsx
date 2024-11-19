@@ -66,7 +66,6 @@ export const TokensTable = ({ onRowClick }: { onRowClick?: (row: Row<Token>) => 
         caption={`List of the first 50 trending tokens during the last hour.`}
         loading={fetching}
         pagination={true}
-        defaultSorting={[{ id: "volume", desc: true }]}
         onRowClick={onRowClick}
       />
     </div>
