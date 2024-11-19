@@ -64,7 +64,6 @@ class TokenModel: ObservableObject {
 
         Task {
             do {
-                print("initializing")
                 self.isReady = false
                 try await fetchUniqueHolders()
                 
