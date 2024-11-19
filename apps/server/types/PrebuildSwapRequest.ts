@@ -5,5 +5,4 @@ export type UserPrebuildSwapRequest = {
   buyTokenId?: string;
   sellTokenId?: string;
   sellQuantity?: number;
-  userPublicKey: PublicKey;
 };

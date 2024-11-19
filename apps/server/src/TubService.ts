@@ -17,6 +17,7 @@ const USDC_MAINNET_PUBLIC_KEY = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wE
 type ActiveSwapRequest = UserPrebuildSwapRequest & {
   buyTokenAccount?: PublicKey;
   sellTokenAccount?: PublicKey;
+  userPublicKey: PublicKey;
 };
 
 /**
@@ -225,10 +226,14 @@ export class TubService {
    */
   async startSwapStream(jwtToken: string, request: UserPrebuildSwapRequest) {
     const userId = await this.verifyJWT(jwtToken);
-
+    const userWallet = await this.getUserWallet(userId);
+    if (!userWallet) {
+      throw new Error("User does not have a wallet registered with Privy");
+    }
+    const userPublicKey = new PublicKey(userWallet);
     // Derive token accounts
     const derivedAccounts = await this.deriveTokenAccounts(
-      request.userPublicKey,
+      userPublicKey,
       request.buyTokenId,
       request.sellTokenId
     );
@@ -236,7 +241,8 @@ export class TubService {
     // Store the enhanced request
     this.activeSwapRequests.set(userId, {
       ...request,
-      ...derivedAccounts
+      ...derivedAccounts,
+      userPublicKey
     });
     
     if (!this.swapSubjects.has(userId)) {
@@ -327,6 +333,11 @@ export class TubService {
    */
   async updateSwapRequest(jwtToken: string, updates: Partial<UserPrebuildSwapRequest>) {
     const userId = await this.verifyJWT(jwtToken);
+    const userWallet = await this.getUserWallet(userId);
+    if (!userWallet) {
+      throw new Error("User does not have a wallet registered with Privy");
+    }
+    const userPublicKey = new PublicKey(userWallet);
     const current = this.activeSwapRequests.get(userId);
     if (current) {
       // Re-derive accounts if tokens changed
@@ -336,7 +347,7 @@ export class TubService {
 
       const derivedAccounts = needsNewDerivedAccounts 
         ? await this.deriveTokenAccounts(
-            current.userPublicKey,
+            userPublicKey,
             updates.buyTokenId ?? current.buyTokenId,
             updates.sellTokenId ?? current.sellTokenId
           )
@@ -375,16 +386,19 @@ export class TubService {
   async signAndSendTransaction(jwtToken: string, userSignature: string, base64Transaction: string) {
     try {
       const userId = await this.verifyJWT(jwtToken);
+
       const registryEntry = this.swapRegistry.get(base64Transaction);
       if (!registryEntry) {
         throw new Error("Transaction not found in registry");
       }
-      const transaction = registryEntry.transaction;
+      
       const walletAddress = await this.getUserWallet(userId);
       if (!walletAddress) {
         throw new Error("User does not have a wallet registered with Privy");
       }
       const userPublicKey = new PublicKey(walletAddress);
+
+      const transaction = registryEntry.transaction;
       transaction.addSignature(userPublicKey, Buffer.from(userSignature));
 
       let feePayerSignature;
