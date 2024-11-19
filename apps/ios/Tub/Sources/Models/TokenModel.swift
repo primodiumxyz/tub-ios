@@ -41,7 +41,6 @@ class TokenModel: ObservableObject {
         priceSubscription?.cancel()
         candleSubscription?.cancel()
         candleSubscription = nil
-        print("cancelling candle sub")
     }
 
     init(token: Token? = nil) {
