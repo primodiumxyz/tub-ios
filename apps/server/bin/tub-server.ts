@@ -14,6 +14,8 @@ import { createClient as createGqlClient } from "@tub/gql";
 import { config } from "dotenv";
 import fastify from "fastify";
 
+const cacheManager = await import('cache-manager');
+
 config({ path: "../../.env" });
 
 const env = parseEnv();
@@ -58,11 +60,12 @@ export const start = async () => {
     );
 
     // Initialize cache for OctaneService
-    const cacheManager = require('cache-manager');
-    const cache = cacheManager.caching({ store: 'memory', max: 100, ttl: 10/*seconds*/ });
+    const cache = cacheManager.default.caching({ 
+      store: 'memory',
+      max: 100, 
+      ttl: 10 /*seconds*/ 
+    });
 
-
-    // Create fee payer keypair (!! TODO: implement more robust keypair management)
     const feePayerKeypair = Keypair.fromSecretKey(new Uint8Array(Buffer.from(env.PRIVATE_KEY, "base64")));
 
     if (!feePayerKeypair) {
