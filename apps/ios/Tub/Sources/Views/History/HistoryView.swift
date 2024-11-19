@@ -60,12 +60,11 @@ struct HistoryView : View {
     func fetchUserTxs(_ walletAddress: String) {
         Task {
             do {
-                let client = await CodexNetwork.shared.apolloClient
                 isReady = false
                 error = nil
                 let query = GetWalletTransactionsQuery(wallet: walletAddress)
                 
-                client.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { result in
+                Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { result in
                     Task {
                         do {
                             switch result {
