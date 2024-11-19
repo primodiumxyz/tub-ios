@@ -448,8 +448,6 @@ struct TransactionRow: View {
                     Text(transaction.name.isEmpty ? transaction.mint.truncatedAddress() : transaction.name)
                         .font(.sfRounded(size: .base, weight: .bold))
                         .foregroundColor(AppColors.white)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
                         .offset(x:-2)
                 }
                 
