@@ -53,15 +53,24 @@
     "@types/bn.js": "^5.1.0",
     "@types/cache-manager": "^3.4.3",
     "@types/debug": "^4.1.7",
+    "@types/jest": "^29.0.0",
     "@types/jsonwebtoken": "^9.0.7",
     "@vitest/coverage-v8": "^0.34.0",
     "@vitest/utils": "^2.1.1",
+    "axios": "^1.7.7",
+    "jest": "^29.0.0",
     "prettier": "^3.3.3",
+    "ts-jest": "^29.0.0",
     "tsx": "^3.12.6",
     "vite-tsconfig-paths": "^4.2.0",
     "vitest": "2.1.4"
   },
   "publishConfig": {
     "access": "public"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "testTimeout": 30000
   }
 }

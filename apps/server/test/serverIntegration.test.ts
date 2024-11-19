@@ -9,16 +9,19 @@ import { AppRouter } from "../src/createAppRouter";
 config({ path: "../../../.env" });
 const env = parseEnv();
 const tokenId = "722e8490-e852-4298-a250-7b0a399fec57";
-const port = inject("port");
-const host = inject("host");
+const host = process.env.SERVER_HOST || 'localhost';
+const port = process.env.SERVER_PORT || '4000';
 
 describe("Server Integration Tests", () => {
   let client: ReturnType<typeof createTRPCProxyClient<AppRouter>>;
   const privy = new PrivyClient(env.PRIVY_APP_ID, env.PRIVY_APP_SECRET);
 
   beforeAll(async () => {
+    const wsUrl = `ws://${host}:${port}/trpc`;
+    console.log(`Connecting to WebSocket at: ${wsUrl}`);
+    
     const wsClient = createWSClient({
-      url: `ws://${host}:${port}/trpc`,
+      url: wsUrl,
       WebSocket: WebSocket as any,
     });
 
