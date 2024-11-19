@@ -11,19 +11,19 @@ struct LoadingTokenView: View {
     var body: some View {
         
         ZStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(alignment: .top) {
-                    LoadingBox(width: 90, height: 90)
-                    VStack(alignment: .leading) {
-                        LoadingBox(width: 100, height: 20)
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(alignment: .center) {
+                    LoadingBox(width: 50, height: 50)
+                    VStack(alignment: .leading, spacing: 8) {
+                        LoadingBox(width: 100, height: 16)
                         
                         LoadingBox(width: 200, height: 40)
                         
                         LoadingBox(width: 160, height: 14)
                     }
-                    .padding(.bottom, 30)
                 }
-                
+                .padding(.bottom, 30)
+
                 // Chart
                 LoadingBox(height: 300)
                 
@@ -42,4 +42,7 @@ struct LoadingTokenView: View {
 }
 
 
+#Preview {
+    LoadingTokenView().background(.black)
+}
 

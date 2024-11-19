@@ -144,7 +144,7 @@ struct TokenView : View {
         HStack(alignment: .center) {
             // Image column
             if tokenModel.token.imageUri != "" {
-                ImageView(imageUri: tokenModel.token.imageUri, size: 90)
+                ImageView(imageUri: tokenModel.token.imageUri, size: 50)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
@@ -165,7 +165,7 @@ struct TokenView : View {
                         Image(systemName: "info.circle.fill")
                             .frame(width: 16, height: 16)
                     } else {
-                        LoadingBox(width: 200, height: 40)
+                        LoadingBox(width: 200, height: 40).padding(.vertical, 8)
                     }
                 }
                 
