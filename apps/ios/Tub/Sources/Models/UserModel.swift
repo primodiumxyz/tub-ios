@@ -226,7 +226,6 @@ final class UserModel: ObservableObject {
             self.balanceChangeLamps = 0
             self.stopTimer()
             self.elapsedSeconds = 0
-            deinitToken()
             privy.logout()
         }
     }
@@ -235,6 +234,7 @@ final class UserModel: ObservableObject {
     /* ------------------------------- USER TOKEN ------------------------------- */
 
     @Published var tokenId: String? = nil
+    
     @Published var tokenBalanceLamps: Int? = nil
 
     @Published var purchaseData: PurchaseData? = nil
@@ -242,20 +242,11 @@ final class UserModel: ObservableObject {
     private var tokenBalanceSubscription: Apollo.Cancellable?
 
     func initToken(tokenId: String) {
-        guard let walletAddress else { return }
-        deinitToken()
-
         self.tokenId = tokenId
+        guard let walletAddress else {
+            return }
+
         subscribeToTokenBalance(walletAddress: walletAddress, tokenId: tokenId)
-    }
-
-    func deinitToken() {
-        tokenBalanceSubscription?.cancel()
-
-        DispatchQueue.main.async { [weak self] in
-            self?.tokenBalanceLamps = nil
-            self?.tokenId = nil
-        }
     }
 
     private func subscribeToTokenBalance(walletAddress: String, tokenId: String) {
@@ -269,39 +260,48 @@ final class UserModel: ObservableObject {
             DispatchQueue.main.async {
                 switch result {
                 case .success(let graphQLResult):
-                    self.tokenBalanceLamps =
+                    let tokenBalanceLamps =
                         graphQLResult.data?.balance.first?.value ?? 0
+                    self.tokenBalanceLamps = tokenBalanceLamps
                 case .failure(let error):
                     print("Error updating token balance: \(error.localizedDescription)")
                 }
             }
         }
     }
-
     func buyTokens(
-        buyAmountLamps: Int, price: Int, completion: @escaping (Result<EmptyResponse, Error>) -> Void
+        buyAmountLamps: Int, priceLamps: Int, priceUsd: Double, completion: @escaping (Result<EmptyResponse, Error>) -> Void
     ) {
         guard let tokenId = self.tokenId  else {
             return
         }
-            let tokenAmount = Int(Double(buyAmountLamps) / Double(price) * 1e9)
             var errorMessage: String? = nil
 
+        print("tokenId: \(tokenId)")
+        print ("buyAmountLamps: \(buyAmountLamps)")
+        print ("priceLamps: \(priceLamps)")
+        let tokenAmount = Int(Double(buyAmountLamps) / Double(priceLamps) * 1e9)
+        print("token amount:", tokenAmount)
+
             Network.shared.buyToken(
-                tokenId: tokenId, amount: String(tokenAmount), tokenPrice: String(price)
+                tokenId: tokenId, amount: String(tokenAmount), tokenPrice: String(priceLamps)
             ) { result in
-                switch result {
-                case .success:
-                    self.purchaseData = PurchaseData(
-                        timestamp: Date(),
-                        amount: buyAmountLamps,
-                        price: price
-                    )
-                case .failure(let error):
-                    errorMessage = error.localizedDescription
-                    print("Error buying tokens: \(error)")
+                Task {
+                    switch result {
+                    case .success:
+                        await MainActor.run {
+                            self.purchaseData = PurchaseData(
+                                timestamp: Date(),
+                                amount: buyAmountLamps,
+                                price: priceLamps
+                            )
+                        }
+                    case .failure(let error):
+                        errorMessage = error.localizedDescription
+                        print("Error buying tokens: \(error)")
+                    }
+                    completion(result)
                 }
-                completion(result)
             }
 
             Network.shared.recordClientEvent(
@@ -309,9 +309,8 @@ final class UserModel: ObservableObject {
                     eventName: "buy_tokens",
                     source: "token_model",
                     metadata: [
-                        ["token_amount": tokenAmount],
                         ["buy_amount": buyAmountLamps],
-                        ["price": price],
+                        ["price": priceLamps],
                         ["token_id": tokenId],
                     ],
                     errorDetails: errorMessage

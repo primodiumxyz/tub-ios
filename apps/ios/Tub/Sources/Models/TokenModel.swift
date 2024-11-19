@@ -75,7 +75,6 @@ class TokenModel: ObservableObject {
                 
                 // Subscribe to both updates
                 
-                print("subscribing to candle \(newToken.name)")
                 subscribeToTokenPrices(newToken.id)
                 await subscribeToCandles(newToken.pairId)
             } catch {

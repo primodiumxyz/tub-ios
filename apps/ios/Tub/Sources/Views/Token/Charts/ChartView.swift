@@ -9,7 +9,7 @@ import SwiftUI
 import Charts
 import Combine
 
-let UPDATE_INTERVAL = 0.15
+let UPDATE_INTERVAL = 0.08
 
 struct ChartView: View {
     @EnvironmentObject var priceModel: SolPriceModel

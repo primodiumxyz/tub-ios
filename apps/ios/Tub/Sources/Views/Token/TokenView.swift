@@ -59,37 +59,29 @@ struct TokenView : View {
         self.onSellSuccess = onSellSuccess
     }
     
-    func handleBuy(amount: Double) {
-        guard let balance = userModel.balanceLamps, let lastPrice = tokenModel.prices.last
+    func handleBuy(amountUsd: Double) {
+        guard let priceUsd = tokenModel.prices.last?.priceUsd
         else {
-            let error = NSError(domain: "TokenView", code: 1, userInfo: [NSLocalizedDescriptionKey: "Something went wrong. Please try again."])
             notificationHandler.show(
-                error.localizedDescription,
+                "Something went wrong. Please try again.",
                 type: .error
             )
             return
         }
         
-        let buyAmountLamps = priceModel.usdToLamports(usd: amount)
-        if buyAmountLamps > balance {
-            notificationHandler.show(
-                "Insufficient balance",
-                type: .error
-            )
-            return
-        }
-        
-        let priceLamps = priceModel.usdToLamports(usd: lastPrice.priceUsd)
-        userModel.buyTokens(buyAmountLamps: buyAmountLamps, price: priceLamps) { result in
+        let buyAmountLamps = priceModel.usdToLamports(usd: amountUsd)
+
+        let priceLamps = priceModel.usdToLamports(usd: priceUsd)
+        print("price usd:", priceUsd, priceLamps)
+
+        userModel.buyTokens(buyAmountLamps: buyAmountLamps, priceLamps: priceLamps, priceUsd: priceUsd) { result in
             switch result {
             case .failure(let error):
-                print("failed to buy")
-                print(error)
                 notificationHandler.show(
                     error.localizedDescription,
                     type: .error
                 )
-            default:
+            case .success:
                 showBuySheet = false
             }
         }
