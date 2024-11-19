@@ -9,6 +9,8 @@ import SwiftUI
 import Charts
 import Combine
 
+let UPDATE_INTERVAL = 0.15
+
 struct ChartView: View {
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject private var userModel: UserModel
@@ -27,7 +29,7 @@ struct ChartView: View {
     @State private var currentTime = Date().timeIntervalSince1970
         
     @State private var timerCancellable: Cancellable?
-    @State private var timer: Timer.TimerPublisher = Timer.publish(every: 0.1, on: .main, in: .common)
+    @State private var timer: Timer.TimerPublisher = Timer.publish(every: UPDATE_INTERVAL, on: .main, in: .common)
     
     init(prices: [Price], timeframeSecs: Double = CHART_INTERVAL, height: CGFloat = 330) {
         self.rawPrices = prices
@@ -67,18 +69,45 @@ struct ChartView: View {
         return (minPriceUsd - padding)...(maxPriceUsd + padding)
     }
     
+    private func interpolatePrice(firstPoint: Price, secondPoint: Price, atTimestamp timestamp: TimeInterval) -> Price {
+        let timeSpan = secondPoint.timestamp.timeIntervalSince(firstPoint.timestamp)
+        let priceSpan = secondPoint.priceUsd - firstPoint.priceUsd
+        let slope = priceSpan / timeSpan
+        
+        let timeDiff = timestamp - firstPoint.timestamp.timeIntervalSince1970
+        let interpolatedPrice = firstPoint.priceUsd + slope * timeDiff
+        
+        return Price(timestamp: Date(timeIntervalSince1970: timestamp), priceUsd: interpolatedPrice)
+    }
+    
     private var prices: [Price] {
-        let cutoffTime = Date().addingTimeInterval(-timeframeSecs).timeIntervalSince1970
-        if let firstValidIndex = rawPrices.firstIndex(where: { $0.timestamp.timeIntervalSince1970 >= cutoffTime }) {
-            let slice = Array(rawPrices[firstValidIndex...])
-            // If we have enough points in the time window, return them
-            if slice.count >= 2 {
-                return slice
-            }
+        let cutoffTime = currentTime - timeframeSecs
+        
+        let firstIndex = rawPrices.firstIndex(where: { $0.timestamp.timeIntervalSince1970 >= cutoffTime })
+        
+        var filteredPrices = rawPrices
+        if rawPrices.count >= 3, let firstIndex, firstIndex > 0 {
+            filteredPrices = Array(filteredPrices.suffix(from: firstIndex))
+            let interpolatedPoint = interpolatePrice(
+                firstPoint: rawPrices[firstIndex - 1],
+                secondPoint: rawPrices[firstIndex],
+                atTimestamp: cutoffTime
+            )
+            filteredPrices.insert(interpolatedPoint, at: 0)
         }
         
-        // If we don't have enough points in the time window,
-        // return at least the last 2 points from rawPrices
+        if let lastPrice = filteredPrices.last {
+            let currentTimePoint = Price(
+                timestamp: Date(timeIntervalSince1970: currentTime),
+                priceUsd: lastPrice.priceUsd
+            )
+            filteredPrices.append(currentTimePoint)
+        }
+        
+        if filteredPrices.count >= 2 {
+            return filteredPrices
+        }
+        
         if rawPrices.count >= 2 {
             return Array(rawPrices.suffix(2))
         }
@@ -89,24 +118,33 @@ struct ChartView: View {
     
     var body: some View {
         Chart {
-            ForEach(prices) { price in
+            ForEach(prices.dropLast(1)) { price in
                 LineMark(
                     x: .value("Date", price.timestamp),
                     y: .value("Price", price.priceUsd)
                 )
                 .foregroundStyle(AppColors.aquaBlue.opacity(0.8))
-                .shadow(color: AppColors.aquaBlue, radius: 3, x: 2, y: 2)
                 .lineStyle(StrokeStyle(lineWidth: 3))
-                // .interpolationMethod(.catmullRom) 
+                .shadow(color: AppColors.aquaBlue, radius: 3, x: 2, y: 2)
+                .interpolationMethod(.cardinal(tension: 0.8))
             }
             
+            
             if let currentPrice = prices.last, prices.count >= 2 {
+                LineMark(
+                    x: .value("Date", currentPrice.timestamp),
+                    y: .value("Price", currentPrice.priceUsd)
+                )
+                .foregroundStyle(AppColors.aquaBlue.opacity(0.8))
+                .shadow(color: AppColors.aquaBlue, radius: 3, x: 2, y: 2)
+                .lineStyle(StrokeStyle(lineWidth: 3))
+                .interpolationMethod(.catmullRom)
+                
                 PointMark(
                     x: .value("Date", currentPrice.timestamp),
                     y: .value("Price", currentPrice.priceUsd)
                 )
-                .foregroundStyle(.white.opacity(0.5)) // Transparent fill
-                .symbolSize(100)
+                .foregroundStyle(.white.opacity(0.5))
                 
                 PointMark(
                     x: .value("Date", currentPrice.timestamp),
@@ -144,7 +182,6 @@ struct ChartView: View {
                 .foregroundStyle(AppColors.primaryPink)
                 .symbolSize(100)
                 .symbol(.circle)
-                
                 .annotation(position: .bottom, spacing: 0) {
                     PillView(
                         value: "\(priceModel.formatPrice(usd: purchasePriceUsd, maxDecimals: 9, minDecimals: 2))",
@@ -155,6 +192,7 @@ struct ChartView: View {
         .chartYScale(domain: yDomain)
         .chartYAxis(.hidden)
         .chartXAxis(.hidden)
+        
         .frame(width: .infinity, height: height)
         .onAppear {
             timerCancellable = timer.connect()

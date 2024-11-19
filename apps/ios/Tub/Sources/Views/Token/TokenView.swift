@@ -226,7 +226,7 @@ struct TokenView : View {
     
     private func intervalButton(for timespan: Timespan) -> some View {
         Button {
-            withAnimation {
+            withAnimation(.easeInOut(duration: 0.15)) {
                 selectedTimespan = timespan
                 tokenModel.updateHistoryInterval(timespan)
             }
