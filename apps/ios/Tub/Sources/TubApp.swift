@@ -40,11 +40,8 @@ struct AppContent: View {
         Group {
             if CodexTokenManager.shared.fetchFailed {
                 LoginErrorView(errorMessage: "Failed to connect. Please try again.",
-                               retryAction: {
-                    Task {
-                        CodexTokenManager.shared.handleUserSession()
-                    }
-                })
+                               retryAction: CodexTokenManager.shared.handleUserSession
+                )
             }
             else if !CodexTokenManager.shared.isReady {
                 LoadingView(identifier: "Fetching Codex token", message: "Fetching auth token")
