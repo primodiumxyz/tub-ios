@@ -34,6 +34,9 @@ final class UserModel: ObservableObject {
     private var timer: Timer?
     
     private init() {
+        Task {
+            try await CodexTokenManager.shared.handleUserSession()
+        }
         setupAuthStateListener()
         setupWalletStateListener()
     }
@@ -96,7 +99,6 @@ final class UserModel: ObservableObject {
         }
         
         do {
-            try await CodexTokenManager.shared.handleUserSession()
             try await fetchInitialBalance()
             subscribeToAccountBalance()
             timeoutTask.cancel() // Cancel timeout if successful
