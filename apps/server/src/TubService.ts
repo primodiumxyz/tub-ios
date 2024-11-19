@@ -6,12 +6,13 @@ import { OctaneService } from "./OctaneService";
 import { Subject, interval, switchMap } from 'rxjs';
 import { PublicKey, Transaction } from "@solana/web3.js";
 import { createTransferInstruction, getAssociatedTokenAddress } from "@solana/spl-token";
-import { UserPrebuildSwapRequest } from "../types/PrebuildSwapRequest";
+import { UserPrebuildSwapRequest, PrebuildSwapResponse } from "../types/PrebuildSwapRequest";
 
 config({ path: "../../.env" });
 
 const USDC_DEV_PUBLIC_KEY = new PublicKey("4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"); // The address of the USDC token on Solana Devnet
 const USDC_MAINNET_PUBLIC_KEY = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"); // The address of the USDC token on Solana Mainnet
+const SOL_MAINNET_PUBLIC_KEY = new PublicKey("So11111111111111111111111111111111111111112"); // The address of the SOL token on Solana Mainnet
 
 // Internal type that extends UserPrebuildSwapRequest with derived addresses
 type ActiveSwapRequest = UserPrebuildSwapRequest & {
@@ -29,12 +30,8 @@ export class TubService {
   private privy: PrivyClient;
   private codexSdk: Codex;
   private activeSwapRequests: Map<string, ActiveSwapRequest> = new Map();
-  private swapSubjects: Map<string, Subject<string>> = new Map();
-  private swapRegistry: Map<string, { 
-    hasFee: boolean, 
-    transaction: Transaction,
-    timestamp: number 
-  }> = new Map();
+  private swapSubjects: Map<string, Subject<PrebuildSwapResponse>> = new Map();
+  private swapRegistry: Map<string, PrebuildSwapResponse & { transaction: Transaction }> = new Map();
 
   private readonly REGISTRY_TIMEOUT = 5 * 60 * 1000; // 5 minutes in milliseconds
 
@@ -218,6 +215,75 @@ export class TubService {
     return { token: `Bearer ${token}`, expiry };
   }
 
+  async get1USDCToSOLTransaction(jwtToken: string) {
+    const USDC_amount = 1e6; // 1 USDC
+    
+    const userWallet = await this.getUserWallet(jwtToken);
+    if (!userWallet) {
+      throw new Error("User does not have a wallet registered with Privy");
+    }
+
+    const mockRequest: UserPrebuildSwapRequest = {
+      userId: jwtToken,
+      buyTokenId: SOL_MAINNET_PUBLIC_KEY.toString(),
+      sellTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
+      sellQuantity: USDC_amount,
+    };
+
+    const userPublicKey = new PublicKey(userWallet);
+
+    // derive token accounts
+    const derivedAccounts = await this.deriveTokenAccounts(
+      userPublicKey,
+      USDC_MAINNET_PUBLIC_KEY.toString(),
+      SOL_MAINNET_PUBLIC_KEY.toString()
+    );
+
+    if (!derivedAccounts.sellTokenAccount || !derivedAccounts.buyTokenAccount) {
+      throw new Error("Sell or buy token account not found");
+    }
+
+    const feeOptions = {
+      sourceAccount: derivedAccounts.sellTokenAccount,
+      destinationAccount: this.octane.getSettings().tradeFeeRecipient,
+      amount: Number((BigInt(this.octane.getSettings().buyFee) * BigInt(1e6) / 100n)), // divide by 100 because feeAmount is in basis points
+    };
+
+    const feeTransferInstruction = createTransferInstruction(
+      feeOptions.sourceAccount,
+      feeOptions.destinationAccount,
+      userPublicKey,
+      feeOptions.amount,
+    );
+
+    const swapInstructions = await this.octane.getQuoteAndSwapInstructions({
+      inputMint: USDC_MAINNET_PUBLIC_KEY.toString(),
+      outputMint: SOL_MAINNET_PUBLIC_KEY.toString(),
+      amount: USDC_amount - feeOptions.amount,
+      autoSlippage: true,
+      minimizeSlippage: true,
+      onlyDirectRoutes: false,
+      asLegacyTransaction: false,
+    }, userPublicKey);
+
+    const transaction = await this.octane.buildCompleteSwap(swapInstructions, feeTransferInstruction);
+
+    const response: PrebuildSwapResponse = {
+      transactionBase64: Buffer.from(transaction.serialize()).toString('base64'),
+      ...mockRequest,
+      hasFee: feeOptions.amount > 0, // should be true
+      timestamp: Date.now()
+    };
+    
+    // Store in registry with fee information
+    this.swapRegistry.set(
+      response.transactionBase64,
+      { ...response, transaction }
+    );
+    
+    return response;
+  }
+
   /**
    * Starts a stream of built swap transactions for a user to sign
    * @param jwtToken - The user's JWT token
@@ -256,7 +322,7 @@ export class TubService {
     });
     
     if (!this.swapSubjects.has(userId)) {
-      const subject = new Subject<string>();
+      const subject = new Subject<PrebuildSwapResponse>();
       this.swapSubjects.set(userId, subject);
 
       // Create 1-second interval stream
@@ -308,27 +374,26 @@ export class TubService {
               }, currentRequest.userPublicKey);
               transaction = await this.octane.buildCompleteSwap(swapInstructions, feeTransferInstruction);
             }
-            
-            const transactionBase64 = Buffer.from(
-              transaction.serialize()
-            ).toString('base64');
+
+            const response: PrebuildSwapResponse = {
+              transactionBase64: Buffer.from(transaction.serialize()).toString('base64'),
+              ...currentRequest,
+              hasFee: feeAmount > 0,
+              timestamp: Date.now()
+            };
             
             // Store in registry with fee information
             this.swapRegistry.set(
-              transactionBase64,
-              { 
-                hasFee: feeAmount > 0, 
-                transaction,
-                timestamp: Date.now()
-              }
+              response.transactionBase64,
+              { ...response, transaction }
             );
             
-            return transactionBase64;
+            return response;
           })
         )
-        .subscribe((transaction: string | null) => {
-          if (transaction) {
-            subject.next(transaction);
+        .subscribe((response: PrebuildSwapResponse | null) => {
+          if (response) {
+            subject.next(response);
           }
         });
     }

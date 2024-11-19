@@ -6,3 +6,9 @@ export type UserPrebuildSwapRequest = {
   sellTokenId?: string;
   sellQuantity?: number;
 };
+
+export type PrebuildSwapResponse = UserPrebuildSwapRequest & {
+  transactionBase64: string;
+  hasFee: boolean;
+  timestamp: number;
+};
