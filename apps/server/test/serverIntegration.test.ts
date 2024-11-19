@@ -5,8 +5,11 @@ import { beforeAll, describe, expect, inject, it } from "vitest";
 import WebSocket from "ws";
 import { parseEnv } from "../bin/parseEnv";
 import { AppRouter } from "../src/createAppRouter";
+import { resolve } from 'path';
 
-config({ path: "../../../.env" });
+const envPath = resolve(__dirname, "../../../.env");
+console.log("Loading .env file from:", envPath);
+config({ path: envPath });
 const env = parseEnv();
 const tokenId = "722e8490-e852-4298-a250-7b0a399fec57";
 const host = process.env.SERVER_HOST || 'localhost';
