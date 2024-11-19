@@ -34,14 +34,16 @@ class CodexTokenManager: ObservableObject {
     }
 
     private func refreshToken() {
+        fetchFailed = false
         Task (priority: .high) {
             do {
-                fetchFailed = false
                 let codexToken = try await Network.shared.requestCodexToken(Int(tokenExpiration) * 1000)
                 CodexNetwork.initialize(apiKey: codexToken.0)
-                retryCount = 0 
-                isReady = true
-                
+                self.retryCount = 0
+                DispatchQueue.main.async {
+                    self.isReady = true
+                }
+
                 // Parse the expiry string to get the expiration time
                 if let expiryDate = ISO8601DateFormatter().date(from: codexToken.1) {
                     let timeUntilExpiry = expiryDate.timeIntervalSinceNow
@@ -62,7 +64,6 @@ class CodexTokenManager: ObservableObject {
                 }
                 
             } catch {
-                // Retry logic
                 if retryCount < maxRetryAttempts {
                     retryCount += 1
                     let delay = Double(retryCount) * 2 // Exponential backoff
@@ -73,7 +74,9 @@ class CodexTokenManager: ObservableObject {
                     }
                 } else {
                     print("Fetch failed, giving up")
-                    fetchFailed = true
+                    DispatchQueue.main.async {
+                        self.fetchFailed = true
+                    }
                 }
             }
         }

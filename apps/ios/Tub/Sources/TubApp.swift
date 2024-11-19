@@ -37,25 +37,29 @@ struct AppContent: View {
     
     
     var body: some View {
-        if CodexTokenManager.shared.fetchFailed {
-            LoginErrorView(errorMessage: "Failed to connect. Please try again.",
-                           retryAction: {
-                Task {
-                    CodexTokenManager.shared.handleUserSession()
-                }
-            })
-        }
-        else if !CodexTokenManager.shared.isReady {
-            LoadingView(identifier: "Fetching Codex token")
-            
-        } else {
-            HomeTabsView(userModel: userModel).font(.sfRounded())
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(.black)
-                .withNotificationBanner()
-                .environmentObject(notificationHandler)
-                .environmentObject(userModel)
-                .environmentObject(priceModel)
+        Group {
+            if CodexTokenManager.shared.fetchFailed {
+                LoginErrorView(errorMessage: "Failed to connect. Please try again.",
+                               retryAction: {
+                    Task {
+                        CodexTokenManager.shared.handleUserSession()
+                    }
+                })
+            }
+            else if !CodexTokenManager.shared.isReady {
+                LoadingView(identifier: "Fetching Codex token", message: "codex")
+                
+            } else {
+                HomeTabsView(userModel: userModel).font(.sfRounded())
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(.black)
+                    .withNotificationBanner()
+                    .environmentObject(notificationHandler)
+                    .environmentObject(userModel)
+                    .environmentObject(priceModel)
+            }
+        }.onAppear {
+             CodexTokenManager.shared.handleUserSession()
         }
     }
 }

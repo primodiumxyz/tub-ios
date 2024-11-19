@@ -49,35 +49,41 @@ class TokenModel: ObservableObject {
     }
     
     func initialize(with newToken: Token, timeframeSecs: Double = CHART_INTERVAL) {
-        // Cancel all existing subscriptions
+        // These can be on any thread since they're not @Published
         priceSubscription?.cancel()
         candleSubscription?.cancel()
 
-        // Reset properties
-        self.tokenId = newToken.id
-        self.token = newToken
-        self.isReady = false
-        self.prices = []
-        self.candles = []
-        self.priceChange = (0, 0)
-        self.timeframeSecs = timeframeSecs
+        DispatchQueue.main.async {
+            self.tokenId = newToken.id
+            self.token = newToken
+            self.isReady = false
+            self.prices = []
+            self.candles = []
+            self.priceChange = (0, 0)
+            self.timeframeSecs = timeframeSecs
+        }
 
         Task {
             do {
-                self.isReady = false
                 try await fetchUniqueHolders()
                 
                 // Fetch both types of data
                 try await fetchInitialPrices(self.timeframeSecs)
                 try await fetchInitialCandles()
-                self.isReady = true
+                
+                // Move final status update to main thread
+                DispatchQueue.main.async {
+                    self.isReady = true
+                }
                 
                 // Subscribe to both updates
                 subscribeToTokenPrices()
                 subscribeToCandles()
             } catch {
                 print("Error fetching initial data: \(error)")
-                self.isReady = false
+                DispatchQueue.main.async {
+                    self.isReady = false
+                }
             }
         }
     }
