@@ -58,73 +58,69 @@ struct HistoryView : View {
     }
     
     func fetchUserTxs(_ walletAddress: String) {
-        Task {
-            do {
-                isReady = false
-                error = nil
-                let query = GetWalletTransactionsQuery(wallet: walletAddress)
-                
-                Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { result in
-                    Task {
-                        do {
-                            switch result {
-                            case .success(let graphQLResult):
-                                if let tokenTransactions = graphQLResult.data?.token_transaction {
-                                    var processedTxs: [Transaction] = []
-                                    
-                                    for transaction in tokenTransactions {
-                                        guard let date = formatDateString(transaction.wallet_transaction_data.created_at) else {
-                                            continue
-                                        }
-                                        
-                                        if abs(transaction.amount) == 0 {
-                                            continue
-                                        }
-                                        
-                                        // Fetch token metadata if not cached
-                                        if tokenMetadata[transaction.token] == nil {
-                                            let metadata = try await fetchTokenMetadata(address: transaction.token)
-                                            await MainActor.run {
-                                                tokenMetadata[transaction.token] = metadata
-                                            }
-                                        }
-                                        
-                                        let metadata = tokenMetadata[transaction.token]
-                                        let isBuy = transaction.amount >= 0
-                                        let mint = transaction.token
-                                        let priceUsd = transaction.token_price
-                                        
-                                        let valueUsd = Double(transaction.amount) * priceUsd / 1e9
-                                        
-                                        let newTransaction = Transaction(
-                                            name: metadata?.name ?? "",
-                                            symbol: metadata?.symbol ?? "",
-                                            imageUri: metadata?.imageUri ?? "",
-                                            date: date,
-                                            valueUsd: -valueUsd,
-                                            valueLamps: priceModel.usdToLamports(usd: -valueUsd),
-                                            quantityTokens: transaction.amount,
-                                            isBuy: isBuy,
-                                            mint: mint
-                                        )
-                                        
-                                        processedTxs.append(newTransaction)
-                                    }
-                                    
+        isReady = false
+        error = nil
+        let query = GetWalletTransactionsQuery(wallet: walletAddress)
+        
+        Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { result in
+            Task {
+                do {
+                    switch result {
+                    case .success(let graphQLResult):
+                        if let tokenTransactions = graphQLResult.data?.token_transaction {
+                            var processedTxs: [Transaction] = []
+                            
+                            for transaction in tokenTransactions {
+                                guard let date = formatDateString(transaction.wallet_transaction_data.created_at) else {
+                                    continue
+                                }
+                                
+                                if abs(transaction.amount) == 0 {
+                                    continue
+                                }
+                                
+                                // Fetch token metadata if not cached
+                                if tokenMetadata[transaction.token] == nil {
+                                    let metadata = try await fetchTokenMetadata(address: transaction.token)
                                     await MainActor.run {
-                                        self.txs = processedTxs
-                                        self.isReady = true
+                                        tokenMetadata[transaction.token] = metadata
                                     }
                                 }
-                            case .failure(let error):
-                                throw error
+                                
+                                let metadata = tokenMetadata[transaction.token]
+                                let isBuy = transaction.amount >= 0
+                                let mint = transaction.token
+                                let priceUsd = transaction.token_price
+                                
+                                let valueUsd = Double(transaction.amount) * priceUsd / 1e9
+                                
+                                let newTransaction = Transaction(
+                                    name: metadata?.name ?? "",
+                                    symbol: metadata?.symbol ?? "",
+                                    imageUri: metadata?.imageUri ?? "",
+                                    date: date,
+                                    valueUsd: -valueUsd,
+                                    valueLamps: priceModel.usdToLamports(usd: -valueUsd),
+                                    quantityTokens: transaction.amount,
+                                    isBuy: isBuy,
+                                    mint: mint
+                                )
+                                
+                                processedTxs.append(newTransaction)
                             }
-                        } catch {
+                            
                             await MainActor.run {
-                                self.error = error
+                                self.txs = processedTxs
                                 self.isReady = true
                             }
                         }
+                    case .failure(let error):
+                        throw error
+                    }
+                } catch {
+                    await MainActor.run {
+                        self.error = error
+                        self.isReady = true
                     }
                 }
             }
