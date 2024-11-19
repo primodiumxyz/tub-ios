@@ -225,11 +225,21 @@ export class TubService {
    * @returns A Subject that emits base64-encoded transactions
    */
   async startSwapStream(jwtToken: string, request: UserPrebuildSwapRequest) {
+    console.log(`[startSwapStream] Starting swap stream for request:`, {
+      buyTokenId: request.buyTokenId,
+      sellTokenId: request.sellTokenId,
+      sellQuantity: request.sellQuantity?.toString()
+    });
+
     const userId = await this.verifyJWT(jwtToken);
+    console.log(`[startSwapStream] Verified user ID: ${userId}`);
+
     const userWallet = await this.getUserWallet(userId);
     if (!userWallet) {
       throw new Error("User does not have a wallet registered with Privy");
     }
+    console.log(`[startSwapStream] User wallet address: ${userWallet}`);
+
     const userPublicKey = new PublicKey(userWallet);
     // Derive token accounts
     const derivedAccounts = await this.deriveTokenAccounts(
@@ -323,6 +333,7 @@ export class TubService {
         });
     }
 
+    console.log(`[startSwapStream] Stream started successfully for user ${userId}`);
     return this.swapSubjects.get(userId)!;
   }
 
@@ -332,12 +343,18 @@ export class TubService {
    * @param updates - New parameters to update
    */
   async updateSwapRequest(jwtToken: string, updates: Partial<UserPrebuildSwapRequest>) {
+    console.log(`[updateSwapRequest] Received updates:`, updates);
+
     const userId = await this.verifyJWT(jwtToken);
+    console.log(`[updateSwapRequest] Verified user ID: ${userId}`);
+
     const userWallet = await this.getUserWallet(userId);
     if (!userWallet) {
       throw new Error("User does not have a wallet registered with Privy");
     }
     const userPublicKey = new PublicKey(userWallet);
+    console.log(`[updateSwapRequest] User wallet address: ${userWallet}`);
+
     const current = this.activeSwapRequests.get(userId);
     if (current) {
       // Re-derive accounts if tokens changed
@@ -353,11 +370,15 @@ export class TubService {
           )
         : {};
 
-      this.activeSwapRequests.set(userId, { 
-        ...current, 
-        ...updates,
-        ...derivedAccounts 
+      const updated = { ...current, ...updates, ...derivedAccounts };
+      this.activeSwapRequests.set(userId, updated);
+      console.log(`[updateSwapRequest] Updated swap request for user ${userId}:`, {
+        buyTokenId: updated.buyTokenId,
+        sellTokenId: updated.sellTokenId,
+        sellQuantity: updated.sellQuantity?.toString()
       });
+    } else {
+      console.log(`[updateSwapRequest] No active swap request found for user ${userId}`);
     }
   }
 
@@ -367,11 +388,16 @@ export class TubService {
    */
   async stopSwapStream(jwtToken: string) {
     const userId = await this.verifyJWT(jwtToken);
+    console.log(`[stopSwapStream] Stopping stream for user ${userId}`);
+
     this.activeSwapRequests.delete(userId);
     const subject = this.swapSubjects.get(userId);
     if (subject) {
       subject.complete();
       this.swapSubjects.delete(userId);
+      console.log(`[stopSwapStream] Successfully stopped stream for user ${userId}`);
+    } else {
+      console.log(`[stopSwapStream] No active stream found for user ${userId}`);
     }
   }
 
@@ -384,25 +410,32 @@ export class TubService {
    * @throws Error if transaction processing fails
    */
   async signAndSendTransaction(jwtToken: string, userSignature: string, base64Transaction: string) {
+    console.log(`[signAndSendTransaction] Starting transaction processing`);
+    
     try {
       const userId = await this.verifyJWT(jwtToken);
+      console.log(`[signAndSendTransaction] Verified user ID: ${userId}`);
 
       const registryEntry = this.swapRegistry.get(base64Transaction);
       if (!registryEntry) {
         throw new Error("Transaction not found in registry");
       }
+      console.log(`[signAndSendTransaction] Found transaction in registry, hasFee: ${registryEntry.hasFee}`);
       
       const walletAddress = await this.getUserWallet(userId);
       if (!walletAddress) {
         throw new Error("User does not have a wallet registered with Privy");
       }
       const userPublicKey = new PublicKey(walletAddress);
+      console.log(`[signAndSendTransaction] User wallet address: ${walletAddress}`);
 
       const transaction = registryEntry.transaction;
       transaction.addSignature(userPublicKey, Buffer.from(userSignature));
+      console.log(`[signAndSendTransaction] Added user signature to transaction`);
 
       let feePayerSignature;
       if (registryEntry.hasFee) {
+        console.log(`[signAndSendTransaction] Getting fee payer signature with token fee`);
         feePayerSignature = await this.octane.signTransactionWithTokenFee(
           transaction,
           true, // buyWithUSDCBool
@@ -410,33 +443,36 @@ export class TubService {
           6 // tokenDecimals, note that other tokens besides USDC may have different decimals
         );
       } else {
+        console.log(`[signAndSendTransaction] Getting fee payer signature without token fee`);
         feePayerSignature = await this.octane.signTransactionWithoutTokenFee(transaction);
       }
 
       transaction.addSignature(this.octane.getSettings().feePayerPublicKey, Buffer.from(feePayerSignature));
+      console.log(`[signAndSendTransaction] Added fee payer signature to transaction`);
 
       // Send the fully signed transaction with signature
       const txid = await this.octane.getSettings().connection.sendRawTransaction(
         transaction.serialize(),
         { skipPreflight: false }
       );
+      console.log(`[signAndSendTransaction] Transaction sent with ID: ${txid}`);
 
       // Wait for confirmation
       const confirmation = await this.octane.getSettings().connection.confirmTransaction(txid);
+      console.log(`[signAndSendTransaction] Transaction confirmed:`, confirmation);
       
       if (confirmation.value.err) {
         throw new Error(`Transaction failed: ${confirmation.value.err}`);
       }
 
-
-
       // Clean up registry
       this.swapRegistry.delete(base64Transaction);
+      console.log(`[signAndSendTransaction] Transaction completed successfully`);
 
       return { signature: txid };
 
     } catch (error: unknown) {
-      console.error("Error processing transaction:", error);
+      console.error("[signAndSendTransaction] Error processing transaction:", error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       throw new Error(`Failed to process transaction: ${errorMessage}`);
     }
