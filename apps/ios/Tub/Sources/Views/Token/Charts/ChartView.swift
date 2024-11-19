@@ -11,27 +11,27 @@ import Combine
 
 struct ChartView: View {
     @EnvironmentObject var priceModel: SolPriceModel
+    @EnvironmentObject private var userModel: UserModel
     let rawPrices: [Price]
     let timeframeSecs: Double
-    let purchaseData: PurchaseData?
     let height: CGFloat
-    
+
     var purchasePriceUsd : Double? {
-        if let purchaseData {
+        if let purchaseData = userModel.purchaseData {
             return priceModel.lamportsToUsd(lamports: purchaseData.price)
         } else {
             return nil
         }
     }
+    
     @State private var currentTime = Date().timeIntervalSince1970
         
     @State private var timerCancellable: Cancellable?
     @State private var timer: Timer.TimerPublisher = Timer.publish(every: 0.1, on: .main, in: .common)
     
-    init(prices: [Price], timeframeSecs: Double = CHART_INTERVAL, purchaseData: PurchaseData? = nil, height: CGFloat = 330) {
+    init(prices: [Price], timeframeSecs: Double = CHART_INTERVAL, height: CGFloat = 330) {
         self.rawPrices = prices
         self.timeframeSecs = timeframeSecs
-        self.purchaseData = purchaseData
         self.height = height
     }
     
@@ -54,7 +54,7 @@ struct ChartView: View {
         if prices.isEmpty { return 0...100 }
         
         var pricesWithPurchase = prices
-        if let data = purchaseData, let purchasePriceUsd {
+        if let data = userModel.purchaseData, let purchasePriceUsd {
             let price = Price(timestamp: data.timestamp, priceUsd: purchasePriceUsd)
             pricesWithPurchase.append(price)
         }
@@ -97,7 +97,7 @@ struct ChartView: View {
                 .foregroundStyle(AppColors.aquaBlue.opacity(0.8))
                 .shadow(color: AppColors.aquaBlue, radius: 3, x: 2, y: 2)
                 .lineStyle(StrokeStyle(lineWidth: 3))
-//                .interpolationMethod(.catmullRom) 
+                // .interpolationMethod(.catmullRom) 
             }
             
             if let currentPrice = prices.last, prices.count >= 2 {
@@ -113,7 +113,7 @@ struct ChartView: View {
                     y: .value("Price", currentPrice.priceUsd)
                 )
                 .annotation(position: .top, spacing: 4) {
-                    if purchaseData?.timestamp == currentPrice.timestamp {
+                    if userModel.purchaseData?.timestamp == currentPrice.timestamp {
                         EmptyView()
                     } else {
                         PillView(
@@ -125,7 +125,7 @@ struct ChartView: View {
                 }
             }
             
-            if let data = purchaseData, let purchasePriceUsd {
+            if let data = userModel.purchaseData, let purchasePriceUsd {
                 // Calculate x position as max of purchase time and earliest chart time
                 let xPosition = max(
                     data.timestamp,
@@ -147,7 +147,7 @@ struct ChartView: View {
                 
                 .annotation(position: .bottom, spacing: 0) {
                     PillView(
-                        value: "\(priceModel.formatPrice(usd: purchasePriceUsd))",
+                        value: "\(priceModel.formatPrice(usd: purchasePriceUsd, maxDecimals: 9, minDecimals: 2))",
                         color: AppColors.primaryPink.opacity(0.8), foregroundColor: AppColors.white)
                 }
             }

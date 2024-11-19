@@ -197,8 +197,6 @@ struct TokenView : View {
                 ChartView(
                     prices: tokenModel.prices,
                     timeframeSecs: selectedTimespan.timeframeSecs,
-                    //                    purchaseData: tokenModel.purchaseData,
-                    purchaseData: nil,
                     height: height
                 )
             } else {
