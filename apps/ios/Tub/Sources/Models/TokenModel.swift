@@ -68,7 +68,7 @@ class TokenModel: ObservableObject {
                 try await fetchUniqueHolders()
                 
                 // Fetch both types of data
-                try await fetchInitialPrices(self.timeframeSecs)
+                await fetchInitialPrices(self.timeframeSecs)
                 try await fetchInitialCandles()
                 
                 // Move final status update to main thread
@@ -88,48 +88,56 @@ class TokenModel: ObservableObject {
         }
     }
 
-    func fetchInitialPrices(_ timeframeSecs: Double) async throws {
+    func fetchInitialPrices(_ timeframeSecs: Double) async {
         let client = await CodexNetwork.shared.apolloClient
         let now = Int(Date().timeIntervalSince1970)
         let batchSize = 25
         let numBatches = Int(ceil(timeframeSecs / Double(batchSize)))
-        var allPrices: [Price] = []
         
-        for i in 0..<numBatches {
-            let batchChunkSize = min(batchSize, Int(timeframeSecs) - (i * batchSize))
-            let inputs = (0..<batchChunkSize).map { index -> GetPriceInput in
-                let timestamp = now - Int(timeframeSecs) + (i * batchSize + index)
-                return GetPriceInput(
-                    address: tokenId,
-                    networkId: NETWORK_FILTER,
-                    timestamp: .some(timestamp)
-                )
-            }
-            
-            let query = GetTokenPricesQuery(inputs: inputs)
-            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-                client.fetch(query: query) { result in
-                    switch result {
-                    case .success(let response):
-                        if let prices = response.data?.getTokenPrices {
-                            let batchPrices = prices.compactMap { price -> Price? in
-                                guard let timestamp = price?.timestamp,
-                                      let priceUsd = price?.priceUsd else { return nil }
-                                return Price(
-                                    timestamp: Date(timeIntervalSince1970: TimeInterval(timestamp)),
-                                    priceUsd: priceUsd
-                                )
+        func getTokenPrices() async -> [Price] {
+            var allPrices: [Price] = []
+            for i in 0..<numBatches {
+                let batchChunkSize = min(batchSize, Int(timeframeSecs) - (i * batchSize))
+                let inputs = (0..<batchChunkSize).map { index -> GetPriceInput in
+                    let timestamp = now - Int(timeframeSecs) + (i * batchSize + index)
+                    return GetPriceInput(
+                        address: tokenId,
+                        networkId: NETWORK_FILTER,
+                        timestamp: .some(timestamp)
+                    )
+                }
+                
+                let query = GetTokenPricesQuery(inputs: inputs)
+                do {
+                    try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                        client.fetch(query: query) { result in
+                            switch result {
+                            case .success(let response):
+                                if let prices = response.data?.getTokenPrices {
+                                    let batchPrices = prices.compactMap { price -> Price? in
+                                        guard let timestamp = price?.timestamp,
+                                              let priceUsd = price?.priceUsd else { return nil }
+                                        return Price(
+                                            timestamp: Date(timeIntervalSince1970: TimeInterval(timestamp)),
+                                            priceUsd: priceUsd
+                                        )
+                                    }
+                                    allPrices.append(contentsOf: batchPrices)
+                                }
+                                continuation.resume()
+                            case .failure(let error):
+                                continuation.resume(throwing: error)
                             }
-                            allPrices.append(contentsOf: batchPrices)
                         }
-                        continuation.resume()
-                    case .failure(let error):
-                        continuation.resume(throwing: error)
+                    }
+                } catch {
+                    print(error)
                     }
                 }
-            }
+            return allPrices
         }
         
+        let allPrices = await getTokenPrices()
         DispatchQueue.main.async {
             self.prices = allPrices
                 .sorted { $0.timestamp < $1.timestamp }
@@ -294,7 +302,7 @@ class TokenModel: ObservableObject {
             Task {
                 do {
                     if timespan == .live {
-                        try await fetchInitialPrices(timeframeSecs)
+                        await fetchInitialPrices(timeframeSecs)
                     } else {
                         try await fetchInitialCandles()
                     }

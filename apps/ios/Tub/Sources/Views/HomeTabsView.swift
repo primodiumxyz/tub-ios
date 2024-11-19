@@ -94,7 +94,7 @@ struct HomeTabsView: View {
     var body: some View {
         Group {
             if !priceModel.isReady {
-                LoadingView(identifier: "HomeTabsView - waiting for userModel & priceModel")
+                LoadingView(identifier: "HomeTabsView - waiting for userModel & priceModel", message: "Connecting to Solana")
             } else {
                 ZStack(alignment: .bottom) {
                     // Main content view

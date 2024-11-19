@@ -31,6 +31,7 @@ enum NotificationType {
     }
 }
 
+@MainActor
 class NotificationHandler: ObservableObject {
     @Published var message: String?
     @Published var isShowingNotification = false

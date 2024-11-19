@@ -47,7 +47,7 @@ struct AppContent: View {
                 })
             }
             else if !CodexTokenManager.shared.isReady {
-                LoadingView(identifier: "Fetching Codex token", message: "codex")
+                LoadingView(identifier: "Fetching Codex token", message: "Fetching auth token")
                 
             } else {
                 HomeTabsView(userModel: userModel).font(.sfRounded())

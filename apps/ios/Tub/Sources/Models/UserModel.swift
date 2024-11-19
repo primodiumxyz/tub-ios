@@ -34,14 +34,9 @@ final class UserModel: ObservableObject {
     private var timer: Timer?
     
     private init() {
-        Task {
-            try await CodexTokenManager.shared.handleUserSession()
-        }
         setupAuthStateListener()
         setupWalletStateListener()
     }
-
-
 
     private func setupAuthStateListener() {
         privy.setAuthStateChangeCallback { [weak self] state in
@@ -49,7 +44,9 @@ final class UserModel: ObservableObject {
             
             switch state {
             case .authenticated(let authSession):
-                self.userId = authSession.user.id
+                DispatchQueue.main.async {
+                    self.userId = authSession.user.id
+                }
                 self.startTimer()
             case .unauthenticated:
                 DispatchQueue.main.async {
@@ -73,7 +70,9 @@ final class UserModel: ObservableObject {
                 notificationHandler.show("Failed to connect wallet.", type: .error)
             case .connected(let wallets):
                 if let solanaWallet = wallets.first(where: { $0.chainType == .solana }), walletAddress == nil {
-                    self.walletAddress = solanaWallet.address
+                    DispatchQueue.main.async {
+                        self.walletAddress = solanaWallet.address
+                    }
                     Task {
                         await self.initializeUser()
                     }
@@ -81,17 +80,20 @@ final class UserModel: ObservableObject {
             default:
                 break
             }
-            self.walletState = state
+            DispatchQueue.main.async {
+                self.walletState = state
+            }
         }
     }
     
     func initializeUser() async {
-        self.error = nil
-        let timeoutTask = Task {
+        let timeoutTask = DispatchWorkItem { [weak self] in
+            guard let self = self else { return }
+            self.error = nil
             self.isLoading = true
-            try await Task.sleep(nanoseconds: 10 * 1_000_000_000) // 10 seconds
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
+            
+            // Schedule the timeout
+            DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
                 if self.isLoading {
                     self.isLoading = false
                 }
@@ -110,8 +112,8 @@ final class UserModel: ObservableObject {
             timeoutTask.cancel() // Cancel timeout if there's an error
             DispatchQueue.main.async {
                 self.isLoading = false
+                self.error = error
             }
-            self.error = error
         }
     }
     
@@ -151,18 +153,17 @@ final class UserModel: ObservableObject {
                 wallet: walletAddress)
         ) { [weak self] result in
             guard let self = self else { return }
-            DispatchQueue.main.async {
                 switch result {
                 case .success(let graphQLResult):
                     let balance = graphQLResult.data?.balance.first?.value ?? 0
-                    
-                    self.balanceLamps = balance
-                    if let initialBalanceLamps = self.initialBalanceLamps {
-                        self.balanceChangeLamps = balance - initialBalanceLamps
+                    DispatchQueue.main.async {
+                        self.balanceLamps = balance
+                        if let initialBalanceLamps = self.initialBalanceLamps {
+                            self.balanceChangeLamps = balance - initialBalanceLamps
+                        }
                     }
                 case .failure(let error):
                     print("Error: \(error.localizedDescription)")
-                }
             }
         }
     }
@@ -216,16 +217,18 @@ final class UserModel: ObservableObject {
     }
     
     func logout() {
-        if userId == nil { return }
-        self.walletState = .notCreated
-        self.walletAddress = nil
-        self.balanceLamps = 0
-        self.initialBalanceLamps = nil
-        self.balanceChangeLamps = 0
-        self.stopTimer()
-        self.elapsedSeconds = 0
-        deinitToken()
-        privy.logout()
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self, self.userId != nil else { return }
+            self.walletState = .notCreated
+            self.walletAddress = nil
+            self.balanceLamps = 0
+            self.initialBalanceLamps = nil
+            self.balanceChangeLamps = 0
+            self.stopTimer()
+            self.elapsedSeconds = 0
+            deinitToken()
+            privy.logout()
+        }
     }
 
 
@@ -248,8 +251,11 @@ final class UserModel: ObservableObject {
 
     func deinitToken() {
         tokenBalanceSubscription?.cancel()
-        self.tokenBalanceLamps = nil
-        self.tokenId = nil
+
+        DispatchQueue.main.async { [weak self] in
+            self?.tokenBalanceLamps = nil
+            self?.tokenId = nil
+        }
     }
 
     private func subscribeToTokenBalance(walletAddress: String, tokenId: String) {
