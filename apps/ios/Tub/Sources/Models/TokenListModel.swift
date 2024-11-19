@@ -241,6 +241,7 @@ class TokenListModel: ObservableObject {
                         case .success(let graphQLResult):
                             if let tokens = graphQLResult.data?.filterTokens?.results {
                                 let mappedTokens = tokens
+                                    .sorted(by: { Double($0?.volume1 ?? "0") ?? 0 > Double($1?.volume1 ?? "0") ?? 0 })
                                     .map { elem in
                                         Token(
                                             id: elem?.token?.address,
@@ -256,6 +257,10 @@ class TokenListModel: ObservableObject {
                                             uniqueHolders: nil
                                         )
                                     }
+                                
+                                mappedTokens.map { elem in
+                                    print(elem.symbol, elem.volume)
+                                }
                                 
                                 let currentToken = mappedTokens.first(where: { $0.id == self.currentTokenModel.tokenId })
                                 return (mappedTokens, currentToken)
