@@ -30,11 +30,9 @@ struct TokenInfoCardView: View {
         var stats = [(String, StatValue)]()
         
         if let purchaseData = userModel.purchaseData, activeTab == "sell" {
-            // Calculate current value in lamports
-            let tokenBalance = userModel.tokenBalanceLamps ?? 0
-            
-            let tokenBalanceUsd = priceModel.lamportsToUsd(lamports: tokenBalance) * (tokenModel.prices.last?.priceUsd ?? 0)
-            
+            // Calculate current value
+            let tokenBalance = Double(userModel.tokenBalanceLamps ?? 0) / 1e9
+            let tokenBalanceUsd = tokenBalance * (tokenModel.prices.last?.priceUsd ?? 0)
             let initialValueUsd = priceModel.lamportsToUsd(lamports: purchaseData.amount)
             
             // Calculate profit
@@ -53,7 +51,7 @@ struct TokenInfoCardView: View {
             
             stats += [
                 ("You own", StatValue(
-                    text: "\(priceModel.formatPrice(usd: tokenBalanceUsd, maxDecimals: 2, minDecimals: 2)) (\(formatLargeNumber(Double(tokenBalance) / 1e9)) \(tokenModel.token.symbol))",
+                    text: "\(priceModel.formatPrice(usd: tokenBalanceUsd, maxDecimals: 2, minDecimals: 2)) (\(formatLargeNumber(tokenBalance)) \(tokenModel.token.symbol))",
                     color: nil
                 ))
             ]
