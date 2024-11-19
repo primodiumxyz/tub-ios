@@ -72,7 +72,6 @@ struct TokenView : View {
         let buyAmountLamps = priceModel.usdToLamports(usd: amountUsd)
 
         let priceLamps = priceModel.usdToLamports(usd: priceUsd)
-        print("price usd:", priceUsd, priceLamps)
 
         userModel.buyTokens(buyAmountLamps: buyAmountLamps, priceLamps: priceLamps, priceUsd: priceUsd) { result in
             switch result {
@@ -83,6 +82,12 @@ struct TokenView : View {
                 )
             case .success:
                 showBuySheet = false
+                withAnimation {
+                    notificationHandler.show(
+                        "Successfully bought tokens!",
+                        type: .success
+                    )
+                }
             }
         }
     }
@@ -157,15 +162,20 @@ struct TokenView : View {
                         Image(systemName: "info.circle.fill")
                             .frame(width: 16, height: 16)
                     } else {
-                        LoadingBox(width: 200, height: 40).padding(.vertical, 8)
+                        LoadingBox(width: 200, height: 40).padding(.vertical, 4)
                     }
                 }
                 
                 let price = priceModel.formatPrice(usd: tokenModel.priceChange.amountUsd, showSign: true)
                 HStack {
-                    Text(price)
-                    Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
-                    Text("\(formatDuration(tokenModel.currentTimeframe.timeframeSecs))").foregroundColor(.gray)
+                    
+                    if tokenModel.isReady {
+                        Text(price)
+                        Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
+                        Text("\(formatDuration(tokenModel.currentTimeframe.timeframeSecs))").foregroundColor(.gray)
+                    } else {
+                        LoadingBox(width:160, height: 12)
+                    }
                 }
                 .font(.sfRounded(size: .sm, weight: .semibold))
                 .foregroundColor(tokenModel.priceChange.amountUsd >= 0 ? .green : .red)

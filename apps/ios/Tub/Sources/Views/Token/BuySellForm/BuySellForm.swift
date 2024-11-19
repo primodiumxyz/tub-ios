@@ -129,7 +129,7 @@ struct BuySellForm: View {
                     )
                 }
             } else if activeTab == "buy" {
-                if userModel.balanceLamps == 0 {
+                if let balanceUsd = userModel.balanceLamps, priceModel.lamportsToUsd(lamports: balanceUsd) < 0.1  {
                     Button(action: {
                         // showOnrampView = true
                         performAirdrop()

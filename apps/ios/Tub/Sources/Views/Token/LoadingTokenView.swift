@@ -11,15 +11,15 @@ struct LoadingTokenView: View {
     var body: some View {
         
         ZStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading) {
                 HStack(alignment: .center) {
                     LoadingBox(width: 50, height: 50)
                     VStack(alignment: .leading, spacing: 8) {
                         LoadingBox(width: 100, height: 16)
                         
-                        LoadingBox(width: 200, height: 40)
+                        LoadingBox(width: 200, height: 40).padding(.vertical, 4)
                         
-                        LoadingBox(width: 160, height: 14)
+                        LoadingBox(width: 160, height: 12)
                     }
                 }
                 .padding(.bottom, 30)

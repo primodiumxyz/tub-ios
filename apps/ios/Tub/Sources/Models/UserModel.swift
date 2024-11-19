@@ -103,6 +103,9 @@ final class UserModel: ObservableObject {
         do {
             try await fetchInitialBalance()
             subscribeToAccountBalance()
+            if let walletAddress, let tokenId {
+                subscribeToTokenBalance(walletAddress: walletAddress, tokenId: tokenId)
+            }
             timeoutTask.cancel() // Cancel timeout if successful
             DispatchQueue.main.async {
                 self.initialTime = Date()
@@ -252,6 +255,7 @@ final class UserModel: ObservableObject {
     private func subscribeToTokenBalance(walletAddress: String, tokenId: String) {
         tokenBalanceSubscription?.cancel()
 
+        print("starting token balance subscription", walletAddress, tokenId)
         tokenBalanceSubscription = Network.shared.apollo.subscribe(
             subscription: SubWalletTokenBalanceSubscription(
                 wallet: walletAddress, token: tokenId)
@@ -272,16 +276,22 @@ final class UserModel: ObservableObject {
     func buyTokens(
         buyAmountLamps: Int, priceLamps: Int, priceUsd: Double, completion: @escaping (Result<EmptyResponse, Error>) -> Void
     ) {
-        guard let tokenId = self.tokenId  else {
+        guard let tokenId = self.tokenId, let balance = self.balanceLamps else {
+            completion(.failure(NSError(domain: "UserModel", code: 0, userInfo: [NSLocalizedDescriptionKey: "User not logged in"])))
             return
         }
-            var errorMessage: String? = nil
+        
+        var errorMessage: String? = nil
+        
+        
+        if  buyAmountLamps > balance {
+            print("buyAmountLamps: \(buyAmountLamps), balance: \(balance)")
+            errorMessage = "Insufficient balance"
+            completion(.failure(NSError(domain: "UserModel", code: 0, userInfo: [NSLocalizedDescriptionKey: "Insufficient balance"])))
+            return
+        }
 
-        print("tokenId: \(tokenId)")
-        print ("buyAmountLamps: \(buyAmountLamps)")
-        print ("priceLamps: \(priceLamps)")
         let tokenAmount = Int(Double(buyAmountLamps) / Double(priceLamps) * 1e9)
-        print("token amount:", tokenAmount)
 
             Network.shared.buyToken(
                 tokenId: tokenId, amount: String(tokenAmount), tokenPrice: String(priceLamps)
@@ -333,14 +343,19 @@ final class UserModel: ObservableObject {
         let errorMessage: String? = nil
         Network.shared.sellToken(
             tokenId: tokenId, amount: String(balance), tokenPrice: String(price)
-        ) { result in
-            switch result {
-            case .success:
-                self.purchaseData = nil
-            case .failure(let error):
-                print("Error selling tokens: \(error)")
+        ) {
+            result in
+            Task {
+                switch result {
+                case .success:
+                    await MainActor.run {
+                        self.purchaseData = nil
+                    }
+                case .failure(let error):
+                    print("Error selling tokens: \(error)")
+                }
+                completion(result)
             }
-            completion(result)
         }
 
         Network.shared.recordClientEvent(
@@ -356,9 +371,9 @@ final class UserModel: ObservableObject {
         ) { result in
             switch result {
             case .success:
-                print("Successfully recorded buy event")
+                print("Successfully recorded sell event")
             case .failure(let error):
-                print("Failed to record buy event: \(error)")
+                print("Failed to record sell event: \(error)")
             }
         }
     }
