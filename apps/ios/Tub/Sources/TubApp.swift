@@ -32,17 +32,12 @@ struct TubApp: App {
 
 struct AppContent: View {
     @StateObject private var errorHandler = ErrorHandler()
-    @State var userId: String = ""
-    @State var authState: PrivySDK.AuthState = .unauthenticated
+    @State var userId : String = ""
+    @State var authState: PrivySDK.AuthState = .notReady 
+    
     @State var embeddedWalletState: PrivySDK.EmbeddedWalletState = .notCreated
     @State var embeddedWalletAddress: String = ""
-    @State var authError: Error? = nil {
-        didSet {
-            if let error = authError {
-                errorHandler.show(error)
-            }
-        }
-    }
+    @State var authError: Error? = nil
     @State var walletError: Error? = nil
     @State var linkedAccounts: [PrivySDK.LinkedAccount]? = nil
    
@@ -63,13 +58,17 @@ struct AppContent: View {
                             }
                         }
                     }
+                    ,
+                    logoutAction: {
+                        authError = nil
+                        walletError = nil
+                    }
                 )
-            } else if userId == "" || authError != nil {
-                RegisterView()
             } else if authState == .notReady || embeddedWalletState.toString == "connecting" {
                 LoadingView(message: "Connecting wallet")
-            }
-            else if embeddedWalletAddress == "" {
+            } else if userId == "" || authState == .unauthenticated {
+                RegisterView()
+            } else if embeddedWalletAddress == "" {
                 CreateWalletView()
             }
             else     {
@@ -86,6 +85,15 @@ struct AppContent: View {
                     self.authError = nil
                     self.userId = authSession.user.id
                     self.linkedAccounts = authSession.user.linkedAccounts
+                    // Initialize CodexNetwork here
+                    Task {
+                        do {
+                            // Request a Codex token & tart the refresh timer
+                            try await CodexTokenManager.shared.handleUserSession()
+                        } catch {
+                            errorHandler.show(error)
+                        }
+                    }
                 default:
                     self.authError = nil
                     self.userId = ""

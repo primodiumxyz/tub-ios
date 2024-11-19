@@ -15,6 +15,7 @@ const commonSchema = z.object({
   COINBASE_CDP_API_KEY_PRIVATE_KEY: z.string().default(""),
   PRIVY_APP_ID: z.string(),
   PRIVY_APP_SECRET: z.string(),
+  CODEX_API_KEY: z.string(),
   OCTANE_TRADE_FEE_RECIPIENT: z.string(),
   OCTANE_BUY_FEE: z.coerce.number().default(100),
   OCTANE_SELL_FEE: z.coerce.number().default(0),

@@ -27,6 +27,7 @@ jobs:
         env:
           PRIVY_APP_ID: ${{ secrets.PRIVY_APP_ID }}
           PRIVY_APP_SECRET: ${{ secrets.PRIVY_APP_SECRET }}
+          CODEX_API_KEY: ${{ secrets.CODEX_API_KEY }}
 
       - name: Teardown
         run: pnpm dev:teardown

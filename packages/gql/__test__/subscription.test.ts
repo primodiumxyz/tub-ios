@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { createClient, GqlClient } from "../src/index";
 import { createWallet } from "./lib/common";
 
-const token_id = "722e8490-e852-4298-a250-7b0a399fec57";
+const tokenAddress = "EeP7gjHGjHTMEShEA8YgPXmYp6S3XvCDfQvkc8gy2kcL";
 
 describe("query tests", () => {
   let gql: GqlClient;
@@ -27,8 +27,8 @@ describe("query tests", () => {
     await gql.db.BuyTokenMutation({
       wallet,
       amount: "100",
-      override_token_price: "1000000000",
-      token: token_id,
+      token_price: "1000000000",
+      token: tokenAddress,
     });
 
     await new Promise((resolve) => setTimeout(resolve, 500));
@@ -63,8 +63,8 @@ describe("query tests", () => {
     await gql.db.BuyTokenMutation({
       wallet,
       amount: "100",
-      override_token_price: "1000000000",
-      token: token_id,
+      token_price: "1000000000",
+      token: tokenAddress,
     });
 
     await new Promise((resolve) => setTimeout(resolve, 500));
@@ -82,7 +82,7 @@ describe("query tests", () => {
     expect(result.data?.insert_wallet_transaction_one?.id).toBeDefined();
 
     let balance: number = 0;
-    const subBalance = gql.db.GetWalletTokenBalanceSubscription({ token: token_id, wallet }).subscribe((data) => {
+    const subBalance = gql.db.GetWalletTokenBalanceSubscription({ token: tokenAddress, wallet }).subscribe((data) => {
       balance = Number(data.data?.balance[0].value);
     });
 
@@ -91,8 +91,8 @@ describe("query tests", () => {
     await gql.db.BuyTokenMutation({
       wallet,
       amount: "100",
-      override_token_price: "1000000000",
-      token: token_id,
+      token_price: "1000000000",
+      token: tokenAddress,
     });
 
     // wait for the values to be updated from subscription
@@ -111,12 +111,12 @@ describe("query tests", () => {
     let balanceBefore: number[] = [];
 
     const subBalanceBefore = gql.db
-      .GetWalletTokenBalanceIgnoreIntervalSubscription({ token: token_id, wallet, interval: "2s" })
+      .GetWalletTokenBalanceIgnoreIntervalSubscription({ token: tokenAddress, wallet, interval: "2s" })
       .subscribe((data) => {
         balanceBefore.push(Number(data.data?.balance[0].value));
       });
 
-    const subBalance = gql.db.GetWalletTokenBalanceSubscription({ token: token_id, wallet }).subscribe((data) => {
+    const subBalance = gql.db.GetWalletTokenBalanceSubscription({ token: tokenAddress, wallet }).subscribe((data) => {
       balance.push(Number(data.data?.balance[0].value));
     });
 
@@ -132,8 +132,8 @@ describe("query tests", () => {
     await gql.db.BuyTokenMutation({
       wallet,
       amount: "100",
-      override_token_price: "1000000000",
-      token: token_id,
+      token_price: "1000000000",
+      token: tokenAddress,
     });
 
     await new Promise((resolve) => setTimeout(resolve, 500));

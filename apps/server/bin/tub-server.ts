@@ -3,6 +3,7 @@ import { AppRouter, createAppRouter } from "@/createAppRouter";
 import { OctaneService } from "@/OctaneService";
 import { TubService } from "@/TubService";
 import { parseEnv } from "@bin/parseEnv";
+import { Codex } from "@codex-data/sdk";
 import fastifyWebsocket from "@fastify/websocket";
 import { PrivyClient } from "@privy-io/server-auth";
 import { clusterApiUrl, Connection, Keypair, PublicKey } from "@solana/web3.js";
@@ -41,7 +42,7 @@ server.get("/", (req, res) => res.code(200).send("hello world"));
 // Helper function to extract bearer token
 const getBearerToken = (req: any) => {
   const authHeader = req.headers?.authorization;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
+  if (authHeader && authHeader.startsWith("Bearer ")) {
     return authHeader.substring(7);
   }
   return null;
@@ -93,11 +94,17 @@ export const start = async () => {
     if (!process.env.GRAPHQL_URL && env.NODE_ENV === "production") {
       throw new Error("GRAPHQL_URL is not set");
     }
-    const gqlClient = (await createGqlClient({ url: env.NODE_ENV !== "production" ? "http://localhost:8080/v1/graphql" : env.GRAPHQL_URL, hasuraAdminSecret: env.NODE_ENV !== "production" ? "password" : env.HASURA_ADMIN_SECRET })).db;
+    const gqlClient = (
+      await createGqlClient({
+        url: env.NODE_ENV !== "production" ? "http://localhost:8080/v1/graphql" : env.GRAPHQL_URL,
+        hasuraAdminSecret: env.NODE_ENV !== "production" ? "password" : env.HASURA_ADMIN_SECRET,
+      })
+    ).db;
 
     const privy = new PrivyClient(env.PRIVY_APP_ID, env.PRIVY_APP_SECRET);
+    const codexSdk = new Codex(env.CODEX_API_KEY);
 
-    const tubService = new TubService(gqlClient, privy, octaneService);
+    const tubService = new TubService(gqlClient, privy, codexSdk, octaneService);
 
     // @see https://trpc.io/docs/server/adapters/fastify
     server.register(fastifyTRPCPlugin<AppRouter>, {

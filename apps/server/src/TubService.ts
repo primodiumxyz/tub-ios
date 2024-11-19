@@ -1,3 +1,4 @@
+import { Codex } from "@codex-data/sdk";
 import { PrivyClient, WalletWithMetadata } from "@privy-io/server-auth";
 import { GqlClient } from "@tub/gql";
 import { config } from "dotenv";
@@ -25,6 +26,7 @@ export class TubService {
   private gql: GqlClient["db"];
   private octane: OctaneService;
   private privy: PrivyClient;
+  private codexSdk: Codex;
   private activeSwapRequests: Map<string, ActiveSwapRequest> = new Map();
   private swapSubjects: Map<string, Subject<string>> = new Map();
   private swapRegistry: Map<string, { 
@@ -41,10 +43,11 @@ export class TubService {
    * @param privy - Privy client for authentication
    * @param octane - OctaneService instance for transaction handling
    */
-  constructor(gqlClient: GqlClient["db"], privy: PrivyClient, octane: OctaneService) {
+  constructor(gqlClient: GqlClient["db"], privy: PrivyClient, codexSdk: Codex, octane: OctaneService) {
     this.gql = gqlClient;
     this.octane = octane;
     this.privy = privy;
+    this.codexSdk = codexSdk;
     
     // Start cleanup interval
     setInterval(() => this.cleanupRegistry(), 60 * 1000); // Run cleanup every minute
@@ -93,7 +96,7 @@ export class TubService {
   }
 
   // !! TODO: implement this after transaction success
-  async sellToken(jwtToken: string, tokenId: string, amount: bigint, overridePrice?: bigint) {
+  async sellToken(jwtToken: string, tokenId: string, amount: bigint, tokenPrice: number) {
     const accountId = await this.verifyJWT(jwtToken);
     const wallet = await this.getUserWallet(accountId);
     if (!wallet) {
@@ -103,7 +106,7 @@ export class TubService {
       wallet,
       token: tokenId,
       amount: amount.toString(),
-      override_token_price: overridePrice?.toString(),
+      token_price: tokenPrice.toString(),
     });
 
     if (result.error) {
@@ -114,7 +117,7 @@ export class TubService {
   }
 
   // !! TODO: implement this after transaction success
-  async buyToken(jwtToken: string, tokenId: string, amount: bigint, overridePrice?: bigint) {
+  async buyToken(jwtToken: string, tokenId: string, amount: bigint, tokenPrice: number) {
     const accountId = await this.verifyJWT(jwtToken);
     const wallet = await this.getUserWallet(accountId);
     if (!wallet) {
@@ -124,7 +127,7 @@ export class TubService {
       wallet,
       token: tokenId,
       amount: amount.toString(),
-      override_token_price: overridePrice?.toString(),
+      token_price: tokenPrice.toString(),
     });
 
     if (result.error) {
@@ -197,6 +200,21 @@ export class TubService {
     }
 
     return id;
+  }
+
+  async requestCodexToken(expiration?: number) {
+    expiration = expiration ?? 3600 * 1000;
+    const res = await this.codexSdk.mutations.createApiTokens({
+      input: { expiresIn: expiration },
+    });
+
+    const token = res.createApiTokens[0]?.token;
+    const expiry = res.createApiTokens[0]?.expiresTimeString;
+    if (!token || !expiry) {
+      throw new Error("Failed to create Codex API token");
+    }
+
+    return { token: `Bearer ${token}`, expiry };
   }
 
   /**
