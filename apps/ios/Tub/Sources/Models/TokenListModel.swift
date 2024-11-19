@@ -59,56 +59,51 @@ class TokenListModel: ObservableObject {
     private func getNextToken(excluding currentId: String? = nil) -> Token? {
         guard !availableTokens.isEmpty else { return nil }
 
-        // Clean up expired cooldowns first
+        // Clean up expired cooldowns (but don't add new ones)
         let now = Date()
         recentlyShownTokens = recentlyShownTokens.filter {
             now.timeIntervalSince($0.timestamp) < TOKEN_COOLDOWN
         }
 
-        // Create a set of tokens to exclude (both cooldown and current)
-        let excludedTokenIds = Set(recentlyShownTokens.map { $0.id })
-            .union(currentId.map { Set([$0]) } ?? Set())
-
-        // Filter available tokens
-        let availableTokensFiltered = availableTokens.filter { token in
-            !excludedTokenIds.contains(token.id)
+        // If this is the first token (no currentId), return the first non-cooldown token
+        if currentId == nil {
+            return availableTokens.first { token in
+                !recentlyShownTokens.contains { $0.id == token.id }
+            } ?? availableTokens[0]
         }
 
-        guard !availableTokensFiltered.isEmpty else {
-            // Get all available tokens except current
-            let fallbackTokens = availableTokens.filter { token in
-                token.id != currentId
-            }
-
-            guard !fallbackTokens.isEmpty else { return nil }
-
-            // Sort recently shown by timestamp to find the oldest one that's available
-            if let oldestRecent =
-                recentlyShownTokens
-                .sorted(by: { $0.timestamp < $1.timestamp })  // Sort by oldest first
-                .first(where: { recentToken in
-                    fallbackTokens.contains(where: { $0.id == recentToken.id })
-                })
-            {
-
-                // Remove the oldest token from cooldown and add it back with current timestamp
-                recentlyShownTokens.removeAll { $0.id == oldestRecent.id }
-                recentlyShownTokens.append((id: oldestRecent.id, timestamp: now))
-
-                if let oldestAvailableToken = fallbackTokens.first(where: {
-                    $0.id == oldestRecent.id
-                }) {
-                    return oldestAvailableToken
-                }
-            }
-
-            // If no match found in cooldown, return a random token
-            return fallbackTokens.randomElement()!
+        // Find the index of the current token
+        guard let currentIndex = availableTokens.firstIndex(where: { $0.id == currentId }) else {
+            return availableTokens[0]
         }
 
-        // Get a random token from the filtered list
-        let randomIndex = Int.random(in: 0..<availableTokensFiltered.count)
-        return availableTokensFiltered[randomIndex]
+        // Look for the next available token that's not in cooldown
+        for index in (currentIndex + 1)..<availableTokens.count {
+            let token = availableTokens[index]
+            if !recentlyShownTokens.contains(where: { $0.id == token.id }) {
+                return token
+            }
+        }
+
+        // If we've reached the end, start from beginning
+        for index in 0..<currentIndex {
+            let token = availableTokens[index]
+            if !recentlyShownTokens.contains(where: { $0.id == token.id }) {
+                return token
+            }
+        }
+
+        // If all tokens are in cooldown, get the oldest one
+        if let oldestRecent = recentlyShownTokens
+            .sorted(by: { $0.timestamp < $1.timestamp })
+            .first,
+            let token = availableTokens.first(where: { $0.id == oldestRecent.id })
+        {
+            return token
+        }
+
+        // Final fallback: return first token
+        return availableTokens[0]
     }
 
     // - Set the current token to the next one in line
@@ -121,7 +116,7 @@ class TokenListModel: ObservableObject {
         previousTokenModel = currentTokenModel
         nextTokenModel = TokenModel()
 
-        // Add current token to cooldown (ensuring uniqueness)
+        // Add current token to cooldown here
         if let currentToken = tokens[safe: currentTokenIndex] {
             // Remove any existing entry for this token
             recentlyShownTokens.removeAll { $0.id == currentToken.id }
@@ -130,11 +125,8 @@ class TokenListModel: ObservableObject {
         }
 
         if let newToken = getNextToken(excluding: tokens[currentTokenIndex].id) {
-
             tokens.append(newToken)
             initTokenModel()
-
-            // Set start time for new token
             currentTokenStartTime = Date()
         }
     }
@@ -151,14 +143,8 @@ class TokenListModel: ObservableObject {
         nextTokenModel = currentTokenModel
         previousTokenModel = TokenModel()
 
-        // Remove the last token from recently shown when going back
-        if let lastToken = tokens.last {
-            recentlyShownTokens.removeAll { $0.id == lastToken.id }
-        }
-
         tokens.removeLast()
         initTokenModel()
-        // Set start time for new token
         currentTokenStartTime = Date()
     }
 
@@ -257,10 +243,6 @@ class TokenListModel: ObservableObject {
                                             uniqueHolders: nil
                                         )
                                     }
-                                
-                                mappedTokens.map { elem in
-                                    print(elem.symbol, elem.volume)
-                                }
                                 
                                 let currentToken = mappedTokens.first(where: { $0.id == self.currentTokenModel.tokenId })
                                 return (mappedTokens, currentToken)
