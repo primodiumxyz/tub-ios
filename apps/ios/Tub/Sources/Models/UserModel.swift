@@ -263,7 +263,7 @@ final class UserModel: ObservableObject {
             DispatchQueue.main.async {
                 switch result {
                 case .success(let graphQLResult):
-                    self.balanceLamps =
+                    self.tokenBalanceLamps =
                         graphQLResult.data?.balance.first?.value ?? 0
                 case .failure(let error):
                     print("Error updating token balance: \(error.localizedDescription)")
