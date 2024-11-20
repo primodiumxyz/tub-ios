@@ -13,6 +13,7 @@ import { applyWSSHandler } from "@trpc/server/adapters/ws";
 import { createClient as createGqlClient } from "@tub/gql";
 import { config } from "dotenv";
 import fastify from "fastify";
+import bs58 from "bs58";
 
 const cacheManager = await import('cache-manager');
 
@@ -66,7 +67,10 @@ export const start = async () => {
       ttl: 10 /*seconds*/ 
     });
 
-    const feePayerKeypair = Keypair.fromSecretKey(new Uint8Array(Buffer.from(env.PRIVATE_KEY, "base64")));
+    // Initialize fee payer keypair from base58 private key
+    const feePayerKeypair = Keypair.fromSecretKey(
+      bs58.decode(env.FEE_PAYER_PRIVATE_KEY)
+    );
 
     if (!feePayerKeypair) {
       throw new Error("Fee payer keypair not found");
