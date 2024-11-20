@@ -99,8 +99,8 @@ class CodexTokenManager: ObservableObject {
                 if let expiryDate = formatter.date(from: codexToken.1) {
                     let timeUntilExpiry = expiryDate.timeIntervalSinceNow
                     
-                    // If expiry is less than 10 minutes away, throw an error
-                    if timeUntilExpiry < 60 * 10 {
+                    // If expiry is less than 6 minutes away, throw an error
+                    if timeUntilExpiry < 60 * 6 {
                         localCodexToken = nil
                         await self.refreshToken()
                         return
@@ -108,7 +108,7 @@ class CodexTokenManager: ObservableObject {
                     
                     // Set refresh timer to 5 minutes before expiration
                     refreshTimer?.invalidate()
-                    let refreshTime = timeUntilExpiry - 5 // 5 minutes in seconds
+                    let refreshTime = timeUntilExpiry - (5 * 60) // 5 minutes in seconds
                     refreshTimer = Timer.scheduledTimer(withTimeInterval: refreshTime, repeats: false) { [weak self] _ in
                         Task (priority: .high) {
                             await self?.refreshToken()
