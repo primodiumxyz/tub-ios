@@ -60,7 +60,6 @@ struct TransactionGroupRow: View {
             VStack(spacing: 0) {
                 ForEach(group.transactions, id: \.id) { transaction in
                     TransactionDetailRow(transaction: transaction)
-                    
                         Divider()
                             .background(Color(hue: 1.0, saturation: 0.0, brightness: 0.2))
                     
@@ -79,35 +78,43 @@ struct TransactionGroupRow: View {
     }
 }
 
+struct DummyView: View {
+    var body: some View {
+        Text("Hello Yi")
+    }
+}
+
 struct TransactionDetailRow: View {
     let transaction: Transaction
     @EnvironmentObject private var priceModel: SolPriceModel
     
     var body: some View {
-        HStack {
-            VStack(alignment: .leading) {
-                Text(transaction.isBuy ? "Buy" : "Sell")
-                    .font(.sfRounded(size: .sm, weight: .medium))
-                    .foregroundColor(AppColors.lightGray)
-                Text(formatDate(transaction.date))
-                    .font(.sfRounded(size: .xs, weight: .regular))
-                    .foregroundColor(AppColors.gray)
-            }
-            Spacer()
-            
-            VStack(alignment: .trailing) {
-                let price = priceModel.formatPrice(usd: transaction.valueUsd, showSign: true)
-                Text(price)
-                    .font(.sfRounded(size: .sm, weight: .bold))
-                    .foregroundColor(transaction.isBuy ? AppColors.red : AppColors.green)
+        NavigationLink(destination: DummyView()) {
+            HStack {
+                VStack(alignment: .leading) {
+                    Text(transaction.isBuy ? "Buy" : "Sell")
+                        .font(.sfRounded(size: .sm, weight: .medium))
+                        .foregroundColor(AppColors.lightGray)
+                    Text(formatDate(transaction.date))
+                        .font(.sfRounded(size: .xs, weight: .regular))
+                        .foregroundColor(AppColors.gray)
+                }
+                Spacer()
                 
-                let quantity = priceModel.formatPrice(lamports: abs(transaction.quantityTokens), showUnit: false)
-                Text("\(quantity) \(transaction.symbol)")
-                    .font(.sfRounded(size: .xs, weight: .regular))
-                    .foregroundColor(AppColors.gray)
+                VStack(alignment: .trailing) {
+                    let price = priceModel.formatPrice(usd: transaction.valueUsd, showSign: true)
+                    Text(price)
+                        .font(.sfRounded(size: .sm, weight: .bold))
+                        .foregroundColor(transaction.isBuy ? AppColors.red : AppColors.green)
+                    
+                    let quantity = priceModel.formatPrice(lamports: abs(transaction.quantityTokens), showUnit: false)
+                    Text("\(quantity) \(transaction.symbol)")
+                        .font(.sfRounded(size: .xs, weight: .regular))
+                        .foregroundColor(AppColors.gray)
+                }
             }
+            .padding(.vertical, 8)
         }
-        .padding(.vertical, 8)
     }
 }
 
