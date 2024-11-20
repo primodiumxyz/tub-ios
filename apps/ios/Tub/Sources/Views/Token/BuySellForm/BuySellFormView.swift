@@ -21,7 +21,7 @@ struct BuySellFormView: View {
     var handleBuy: (Double) -> Void
     var onSellSuccess: (() -> Void)?
     
-    init (tokenModel: TokenModel, showBuySheet: Binding<Bool>, defaultAmount: Binding<Double>, handleBuy: @escaping (Double) -> Void, onSellSuccess: (() -> Void)? = nil) {
+    init(tokenModel: TokenModel, showBuySheet: Binding<Bool>, defaultAmount: Binding<Double>, handleBuy: @escaping (Double) -> Void, onSellSuccess: (() -> Void)? = nil) {
         self.tokenModel = tokenModel
         self._showBuySheet = showBuySheet
         self._defaultAmount = defaultAmount
@@ -49,7 +49,7 @@ struct BuySellFormView: View {
         }
         
         let priceLamps = priceModel.usdToLamports(usd: tokenPrice)
-        userModel.sellTokens(price: priceLamps, completion: {result in
+        userModel.sellTokens(price: priceLamps, completion: { result in
             switch result {
             case .success:
                 animationState.showSellBubbles = true
@@ -62,7 +62,8 @@ struct BuySellFormView: View {
             }
         })
     }
-        func performAirdrop() {
+
+    func performAirdrop() {
         Network.shared.airdropNativeToUser(amount: 1 * Int(1e9)) { result in
             DispatchQueue.main.async {
                 switch result {
@@ -102,8 +103,8 @@ struct BuySellFormView: View {
         VStack {
             if userModel.userId == nil {
                 Button {
-					isLoginPresented = true
-				} label: {
+                    isLoginPresented = true
+                } label: {
                     HStack(alignment: .center, spacing: 8) {
                         Text("Login to Buy")
                             .font(.sfRounded(size: .xl, weight: .semibold))
@@ -122,7 +123,7 @@ struct BuySellFormView: View {
                     )
                 }
             } else if activeTab == "buy" {
-                if let balanceUsd = userModel.balanceLamps, priceModel.lamportsToUsd(lamports: balanceUsd) < 0.1  {
+                if let balanceUsd = userModel.balanceLamps, priceModel.lamportsToUsd(lamports: balanceUsd) < 0.1 {
                     Button(action: {
                         // showOnrampView = true
                         performAirdrop()
@@ -180,35 +181,35 @@ struct BuySellFormView: View {
                                     .stroke(AppColors.aquaGreen, lineWidth: 1)
                             )
                         }
-                    }.padding(.horizontal,8)
+                    }.padding(.horizontal, 8)
                 }
             } else {
                 SellForm(tokenModel: tokenModel, showBuySheet: $showBuySheet, onSell: handleSell)
-                    .padding(.horizontal,8)
+                    .padding(.horizontal, 8)
             }
         }
-		.padding(.bottom, 8)
-		.sheet(isPresented: $isLoginPresented) {
-			RegisterView(isRedirected: true)
-				.background(.black)
-		}
+        .padding(.bottom, 8)
+        .sheet(isPresented: $isLoginPresented) {
+            RegisterView(isRedirected: true)
+                .background(.black)
+        }
     }
 }
 
 #Preview {
-	@Previewable @State var show = false
-	@Previewable @State var testAmount = 1.0
-	@Previewable @StateObject var notificationHandler = NotificationHandler()
-	@Previewable @StateObject var userModel = UserModel.shared
-	@Previewable @StateObject var priceModel = SolPriceModel.shared
-	BuySellFormView(tokenModel: TokenModel(),
-					showBuySheet: $show,
-					defaultAmount: $testAmount,
-					handleBuy: { myDouble in },
-					onSellSuccess: nil)
-	.environmentObject(notificationHandler)
-	.environmentObject(userModel)
-	.environmentObject(priceModel)
+    @Previewable @State var show = false
+    @Previewable @State var testAmount = 1.0
+    @Previewable @StateObject var notificationHandler = NotificationHandler()
+    @Previewable @StateObject var userModel = UserModel.shared
+    @Previewable @StateObject var priceModel = SolPriceModel.shared
+    BuySellFormView(tokenModel: TokenModel(),
+                    showBuySheet: $show,
+                    defaultAmount: $testAmount,
+                    handleBuy: { _ in },
+                    onSellSuccess: nil)
+        .environmentObject(notificationHandler)
+        .environmentObject(userModel)
+        .environmentObject(priceModel)
 }
 
 // MARK: - Equatable Implementation
