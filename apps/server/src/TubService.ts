@@ -499,7 +499,7 @@ export class TubService {
       const swapInstructions = await this.octane.getQuoteAndSwapInstructions({
         inputMint: request.sellTokenId!,
         outputMint: request.buyTokenId!,
-        amount: request.sellQuantity || 0,
+        amount: request.sellQuantity!,
         autoSlippage: true,
         minimizeSlippage: true,
         onlyDirectRoutes: false,
