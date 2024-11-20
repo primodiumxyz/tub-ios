@@ -1,8 +1,9 @@
+import { PublicKey } from "@solana/web3.js";
 import { initTRPC } from "@trpc/server";
+import { observable } from "@trpc/server/observable";
 import { z } from "zod";
 import { TubService } from "./TubService";
-import { observable } from '@trpc/server/observable';
-import { PublicKey } from "@solana/web3.js";
+import { PrebuildSwapResponse } from "../types/PrebuildSwapRequest";
 
 export type AppContext = {
   tubService: TubService;
@@ -103,6 +104,11 @@ export function createAppRouter() {
       .mutation(async ({ ctx, input }) => {
         return await ctx.tubService.requestCodexToken(input.expiration);
       }),
+
+    getTestTx: t.procedure.mutation(async ({ ctx }) => {
+      return await ctx.tubService.getTestTx(ctx.jwtToken);
+    }),
+
     /**
      * Creates a subscription stream for token swaps
      * @param buyTokenId - The token ID to buy
@@ -113,46 +119,34 @@ export function createAppRouter() {
      * @throws Error if public key is invalid or token IDs are missing
      */
     swapStream: t.procedure
-      .input(z.object({
-        buyTokenId: z.string().optional(),
-        sellTokenId: z.string().optional(),
-        sellQuantity: z.number().optional(),
-        userPublicKey: z.string()
-      }))
+      .input(
+        z.object({
+          buyTokenId: z.string(),
+          sellTokenId: z.string(),
+          sellQuantity: z.number(),
+        }),
+      )
       .subscription(({ ctx, input }) => {
-        // Validate the public key before proceeding
-        try {
-          new PublicKey(input.userPublicKey);
-        } catch (e) {
-          throw new Error('Invalid user public key');
-        }
-
-        // Validate that we have both buy and sell token
-        if (!input.buyTokenId || !input.sellTokenId) {
-          throw new Error('Must provide both buyTokenId and sellTokenId');
-        }
-
         return observable((emit) => {
           let subscription: any;
-          
-          ctx.tubService.startSwapStream(ctx.jwtToken, {
-            ...input,
-            userId: ctx.jwtToken,
-            userPublicKey: new PublicKey(input.userPublicKey)
-          }).then(subject => {
-            subscription = subject.subscribe({
-              next: (base64Transaction: string) => {
-                emit.next(base64Transaction);
-              },
-              error: (error: Error) => {
-                console.error('Swap stream error:', error);
-                emit.error(error);
-              }
+
+          ctx.tubService
+            .startSwapStream(ctx.jwtToken, input)
+            .then((subject) => {
+              subscription = subject.subscribe({
+                next: (response: PrebuildSwapResponse) => {
+                  emit.next(response.transactionBase64);
+                },
+                error: (error: Error) => {
+                  console.error("Swap stream error:", error);
+                  emit.error(error);
+                },
+              });
+            })
+            .catch((error) => {
+              console.error("Failed to start swap stream:", error);
+              emit.error(error);
             });
-          }).catch(error => {
-            console.error('Failed to start swap stream:', error);
-            emit.error(error);
-          });
 
           return () => {
             if (subscription) subscription.unsubscribe();
@@ -168,11 +162,13 @@ export function createAppRouter() {
      * @param sellQuantity - Optional new quantity to sell
      */
     updateSwapRequest: t.procedure
-      .input(z.object({
-        buyTokenId: z.string().optional(),
-        sellTokenId: z.string().optional(),
-        sellQuantity: z.number().optional(),
-      }))
+      .input(
+        z.object({
+          buyTokenId: z.string().optional(),
+          sellTokenId: z.string().optional(),
+          sellQuantity: z.number().optional(),
+        }),
+      )
       .mutation(async ({ ctx, input }) => {
         await ctx.tubService.updateSwapRequest(ctx.jwtToken, input);
       }),
@@ -185,16 +181,14 @@ export function createAppRouter() {
      * @throws Error if transaction processing fails
      */
     submitSignedTransaction: t.procedure
-      .input(z.object({
-        signature: z.string(),
-        base64Transaction: z.string(),
-      }))
+      .input(
+        z.object({
+          signature: z.string(),
+          base64Transaction: z.string(),
+        }),
+      )
       .mutation(async ({ ctx, input }) => {
-        await ctx.tubService.signAndSendTransaction(
-          ctx.jwtToken,
-          input.signature,
-          input.base64Transaction
-        );
+        await ctx.tubService.signAndSendTransaction(ctx.jwtToken, input.signature, input.base64Transaction);
       }),
   });
 }

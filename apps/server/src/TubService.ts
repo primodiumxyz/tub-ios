@@ -7,6 +7,7 @@ import { Subject, interval, switchMap } from 'rxjs';
 import { PublicKey, Transaction } from "@solana/web3.js";
 import { createTransferInstruction, getAssociatedTokenAddress } from "@solana/spl-token";
 import { UserPrebuildSwapRequest, PrebuildSwapResponse } from "../types/PrebuildSwapRequest";
+import { buildTx } from "./buildTransaction";
 
 config({ path: "../../.env" });
 
@@ -14,10 +15,12 @@ const USDC_DEV_PUBLIC_KEY = new PublicKey("4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJg
 const USDC_MAINNET_PUBLIC_KEY = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"); // The address of the USDC token on Solana Mainnet
 const SOL_MAINNET_PUBLIC_KEY = new PublicKey("So11111111111111111111111111111111111111112"); // The address of the SOL token on Solana Mainnet
 
+const STREAM_INTERVAL = 1000; // 1 second
+
 // Internal type that extends UserPrebuildSwapRequest with derived addresses
-type ActiveSwapRequest = UserPrebuildSwapRequest & {
-  buyTokenAccount?: PublicKey;
-  sellTokenAccount?: PublicKey;
+export type SwapRequest = UserPrebuildSwapRequest & {
+  buyTokenAccount: PublicKey;
+  sellTokenAccount: PublicKey;
   userPublicKey: PublicKey;
 };
 
@@ -29,7 +32,7 @@ export class TubService {
   private octane: OctaneService;
   private privy: PrivyClient;
   private codexSdk: Codex;
-  private activeSwapRequests: Map<string, ActiveSwapRequest> = new Map();
+  private activeSwapRequests: Map<string, SwapRequest> = new Map();
   private swapSubjects: Map<string, Subject<PrebuildSwapResponse>> = new Map();
   private swapRegistry: Map<string, PrebuildSwapResponse & { transaction: Transaction }> = new Map();
 
@@ -224,7 +227,6 @@ export class TubService {
     }
 
     const mockRequest: UserPrebuildSwapRequest = {
-      userId: jwtToken,
       buyTokenId: SOL_MAINNET_PUBLIC_KEY.toString(),
       sellTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
       sellQuantity: USDC_amount,
@@ -238,10 +240,6 @@ export class TubService {
       USDC_MAINNET_PUBLIC_KEY.toString(),
       SOL_MAINNET_PUBLIC_KEY.toString()
     );
-
-    if (!derivedAccounts.sellTokenAccount || !derivedAccounts.buyTokenAccount) {
-      throw new Error("Sell or buy token account not found");
-    }
 
     const feeOptions = {
       sourceAccount: derivedAccounts.sellTokenAccount,
@@ -325,70 +323,31 @@ export class TubService {
       const subject = new Subject<PrebuildSwapResponse>();
       this.swapSubjects.set(userId, subject);
 
-      // Create 1-second interval stream
-      interval(1000)
+      interval(STREAM_INTERVAL)
         .pipe(
           switchMap(async () => {
             const currentRequest = this.activeSwapRequests.get(userId);
-            if (!currentRequest || !currentRequest.sellTokenAccount) return null;
+            if (!currentRequest) return null;
 
             // if sell token is either USDC Devnet or Mainnet, use the buy fee amount. otherwise use 0
             const feeAmount = currentRequest.sellTokenId === USDC_DEV_PUBLIC_KEY.toString() || currentRequest.sellTokenId === USDC_MAINNET_PUBLIC_KEY.toString()
               ? this.octane.getSettings().buyFee
               : 0;
 
-            let transaction: Transaction | null = null;
-            if (feeAmount === 0) {
-              const swapInstructions = await this.octane.getQuoteAndSwapInstructions({
-                inputMint: currentRequest.sellTokenId!,
-                outputMint: currentRequest.buyTokenId!,
-                amount: currentRequest.sellQuantity || 0,
-                autoSlippage: true,
-                minimizeSlippage: true,
-                onlyDirectRoutes: false,
-                asLegacyTransaction: false,
-              }, currentRequest.userPublicKey);
-              transaction = await this.octane.buildCompleteSwap(swapInstructions, null);
-            } else {
-              const feeOptions = {
-                sourceAccount: currentRequest.sellTokenAccount,
-                destinationAccount: this.octane.getSettings().tradeFeeRecipient,
-                amount: Number((BigInt(feeAmount) * BigInt(currentRequest.sellQuantity!) / 100n)), // divide by 100 because feeAmount is in basis points
-              };
-
-              const feeTransferInstruction = createTransferInstruction(
-                  feeOptions.sourceAccount,
-                  feeOptions.destinationAccount,
-                  currentRequest.userPublicKey,
-                  feeOptions.amount,
-              );
-
-              const swapInstructions = await this.octane.getQuoteAndSwapInstructions({
-                inputMint: currentRequest.sellTokenId!,
-                outputMint: currentRequest.buyTokenId!,
-                amount: currentRequest.sellQuantity! - feeOptions.amount,
-                autoSlippage: true,
-                minimizeSlippage: true,
-                onlyDirectRoutes: false,
-                asLegacyTransaction: false,
-              }, currentRequest.userPublicKey);
-              transaction = await this.octane.buildCompleteSwap(swapInstructions, feeTransferInstruction);
-            }
-
-            const response: PrebuildSwapResponse = {
-              transactionBase64: Buffer.from(transaction.serialize()).toString('base64'),
-              ...currentRequest,
-              hasFee: feeAmount > 0,
-              timestamp: Date.now()
-            };
+              const tx = await buildTx({
+                feeAmount,
+                ...currentRequest,
+                octane: this.octane,
+              });
+  
             
             // Store in registry with fee information
             this.swapRegistry.set(
-              response.transactionBase64,
-              { ...response, transaction }
+              tx.transactionBase64,
+              tx
             );
             
-            return response;
+            return tx;
           })
         )
         .subscribe((response: PrebuildSwapResponse | null) => {
@@ -400,6 +359,33 @@ export class TubService {
 
     console.log(`[startSwapStream] Stream started successfully for user ${userId}`);
     return this.swapSubjects.get(userId)!;
+  }
+
+  async getTestTx(jwtToken: string) : Promise<PrebuildSwapResponse> {
+    const userId = await this.verifyJWT(jwtToken);
+    const userWallet = await this.getUserWallet(userId);
+
+    if (!userWallet) {
+      throw new Error("User does not have a wallet registered with Privy");
+    }
+
+    const tokenAccounts = await this.deriveTokenAccounts(
+      new PublicKey(userWallet),
+      SOL_MAINNET_PUBLIC_KEY.toString(),
+      USDC_MAINNET_PUBLIC_KEY.toString()
+    );
+
+    const tx = await buildTx({
+      feeAmount: 0,
+      buyTokenId: SOL_MAINNET_PUBLIC_KEY.toString(),
+      sellTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
+      sellQuantity: 1e6,
+      ...tokenAccounts,
+      userPublicKey: new PublicKey(userWallet),
+      octane: this.octane,
+    });
+
+    return tx
   }
 
   /**
@@ -552,27 +538,23 @@ export class TubService {
    */
   private async deriveTokenAccounts(
     userPublicKey: PublicKey,
-    buyTokenId?: string,
-    sellTokenId?: string
-  ): Promise<{ buyTokenAccount?: PublicKey; sellTokenAccount?: PublicKey }> {
-    const accounts: { buyTokenAccount?: PublicKey; sellTokenAccount?: PublicKey } = {};
+    buyTokenId: string,
+    sellTokenId: string
+  ): Promise<{ buyTokenAccount: PublicKey; sellTokenAccount: PublicKey }> {
     
-    if (buyTokenId) {
-      accounts.buyTokenAccount = await getAssociatedTokenAddress(
-        new PublicKey(buyTokenId),
-        userPublicKey,
-        false
-      );
-    }
+      const [buyTokenAccount, sellTokenAccount]  = await Promise.all([
+        getAssociatedTokenAddress(
+          new PublicKey(buyTokenId),
+          userPublicKey,
+          false
+        ),
+        getAssociatedTokenAddress(
+          new PublicKey(sellTokenId),
+          userPublicKey,
+          false
+        )
+      ]);
     
-    if (sellTokenId) {
-      accounts.sellTokenAccount = await getAssociatedTokenAddress(
-        new PublicKey(sellTokenId),
-        userPublicKey,
-        false
-      );
-    }
-    
-    return accounts;
+    return { buyTokenAccount, sellTokenAccount };
   }
 }
