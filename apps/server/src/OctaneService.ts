@@ -72,37 +72,21 @@ export class OctaneService {
    * @returns Quote response from Jupiter
    * @throws Error if quote cannot be obtained
    */
-  async getQuote(params: QuoteGetRequest) {
-    // basic params
-    // const params: QuoteGetRequest = {
-    //   inputMint: "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn",
-    //   outputMint: "mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So",
-    //   amount: 35281,
-    //   slippageBps: 50,
-    //   onlyDirectRoutes: false,
-    //   asLegacyTransaction: false,
-    // }
-  
-    // // auto slippage w/ minimizeSlippage params
-    // const params: QuoteGetRequest = {
-    //   inputMint: "So11111111111111111111111111111111111111112",
-    //   outputMint: "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm", // $WIF
-    //   amount: 100000000, // 0.1 SOL
-    //   autoSlippage: true,
-    //   autoSlippageCollisionUsdValue: 1_000,
-    //   maxAutoSlippageBps: 1000, // 10%
-    //   minimizeSlippage: true,
-    //   onlyDirectRoutes: false,
-    //   asLegacyTransaction: false,
-    // };
-  
-    // get quote
-    const quote = await this.jupiterQuoteApi.quoteGet(params);
-  
-    if (!quote) {
-      throw new Error("unable to quote");
+  async getQuote(params: QuoteGetRequest): Promise<QuoteResponse> {
+    try {
+      // Change from quoteGet to quotePost
+      const quote = await this.jupiterQuoteApi.quotePost({
+        quoteRequest: params
+      });
+
+      if (!quote) {
+        throw new Error("unable to quote");
+      }
+      return quote;
+    } catch (error) {
+      console.error("Error getting quote:", error);
+      throw new Error(`Failed to get quote: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-    return quote;
   }
   
   async getSwapObj(wallet: Wallet, quote: QuoteResponse) {
@@ -130,30 +114,35 @@ export class OctaneService {
    * @returns Swap instructions from Jupiter
    */
   async getQuoteAndSwapInstructions(quoteAndSwapParams: QuoteGetRequest, userPublicKey: PublicKey) {  
-    const quote = await this.getQuote(quoteAndSwapParams);
-    console.dir(quote, { depth: null });
+    try {
+      const quote = await this.getQuote(quoteAndSwapParams);
+      console.dir(quote, { depth: null });
 
-    const swapInstructionsRequest: SwapInstructionsPostRequest = {
-        "swapRequest": {
-            "userPublicKey": userPublicKey.toBase58(),
-            "wrapAndUnwrapSol": true,
-            "useSharedAccounts": true,
-            "computeUnitPriceMicroLamports": 0,
-            "prioritizationFeeLamports": "auto",
-            "asLegacyTransaction": false,
-            "useTokenLedger": false,
-            "dynamicComputeUnitLimit": true,
-            "skipUserAccountsRpcCalls": false,
-            "dynamicSlippage": {
-                "minBps": 0,
-                "maxBps": 0
-            },
-            "quoteResponse": quote,
+      const swapInstructionsRequest: SwapInstructionsPostRequest = {
+        swapRequest: {
+          quoteResponse: quote,
+          userPublicKey: userPublicKey.toBase58(),
+          wrapAndUnwrapSol: true,
+          useSharedAccounts: true,
+          computeUnitPriceMicroLamports: 0,
+          prioritizationFeeLamports: "auto",
+          asLegacyTransaction: false,
+          useTokenLedger: false,
+          dynamicComputeUnitLimit: true,
+          skipUserAccountsRpcCalls: false,
+          dynamicSlippage: {
+            minBps: 0,
+            maxBps: 0
+          }
         }
       };
 
-    const swapInstructions = await this.jupiterQuoteApi.swapInstructionsPost(swapInstructionsRequest);
-    return swapInstructions;
+      const swapInstructions = await this.jupiterQuoteApi.swapInstructionsPost(swapInstructionsRequest);
+      return swapInstructions;
+    } catch (error) {
+      console.error("Error getting swap instructions:", error);
+      throw new Error(`Failed to get swap instructions: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   /**
