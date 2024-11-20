@@ -8,7 +8,7 @@ const commonSchema = z.object({
   JUPITER_URL: z.string(),
   HASURA_ADMIN_SECRET: z.string().default("password"),
   GRAPHQL_URL: z.string().default("http://localhost:8080/v1/graphql"),
-  PRIVATE_KEY: z.string(),
+  FEE_PAYER_PRIVATE_KEY: z.string(),
   JWT_SECRET: z.string().default("secret"),
   COINBASE_CDP_API_KEY_NAME: z.string().default(""),
   COINBASE_CDP_API_KEY_PRIVATE_KEY: z.string().default(""),

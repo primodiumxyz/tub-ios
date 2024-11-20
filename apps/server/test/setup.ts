@@ -15,9 +15,9 @@ export default async function ({ provide }: GlobalSetupContext) {
   });
   
   // Generate and set private key if not already set
-  if (!process.env.PRIVATE_KEY) {
+  if (!process.env.FEE_PAYER_PRIVATE_KEY) {
     const testKeypair = Keypair.generate();
-    process.env.PRIVATE_KEY = bs58.encode(testKeypair.secretKey);
+    process.env.FEE_PAYER_PRIVATE_KEY = bs58.encode(testKeypair.secretKey);
   }
   
   // Set any missing required variables with defaults
