@@ -202,6 +202,11 @@ export function createAppRouter() {
       .mutation(async ({ ctx }) => {
         return await ctx.tubService.get1USDCToSOLTransaction(ctx.jwtToken);
       }),
+
+    stopSwapStream: t.procedure
+      .mutation(async ({ ctx }) => {
+        await ctx.tubService.stopSwapStream(ctx.jwtToken);
+      }),
   });
 }
 
