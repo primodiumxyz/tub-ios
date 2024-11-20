@@ -158,7 +158,8 @@ describe("Jupiter Quote Integration Test", () => {
   }, 30000);
 
   it("should get swap instructions after quote", async () => {
-    const userPublicKey = new PublicKey("wifq4CRwpXCK8NYtKNsQAYoDethT1aR7R1DaKCLFgAd");
+    // generate a new keypair for the user
+    const userPublicKey = createTestKeypair().publicKey;
     
     const quoteRequest = {
       inputMint: "So11111111111111111111111111111111111111112", // SOL
@@ -221,7 +222,7 @@ describe("Jupiter Quote Integration Test", () => {
   }, 30000);
 
   it("should get swap instructions for USDC to SOL", async () => {
-    const userPublicKey = new PublicKey("41zCUJsKk6cMB94DDtm99qWmyMZfp4GkAhhuz4xTwePu");
+    const userPublicKey = createTestKeypair().publicKey;
     
     const quoteRequest = {
       inputMint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
@@ -229,7 +230,7 @@ describe("Jupiter Quote Integration Test", () => {
       amount: 1000000, // 1 USDC
       slippageBps: 50,
       onlyDirectRoutes: false,
-      asLegacyTransaction: false,
+      asLegacyTransaction: true,
     };
 
     try {
