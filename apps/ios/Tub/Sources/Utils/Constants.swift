@@ -88,4 +88,5 @@ public let serverBaseUrl: String = {
 }()
 
 public let NETWORK_FILTER: Int = 1399811149 // Solana filter for Codex
-public let CHART_INTERVAL: Double = 180
+public let CHART_INTERVAL: Double = 90
+public let PRICE_UPDATE_INTERVAL: Double = 0.5 // Update price every half second
