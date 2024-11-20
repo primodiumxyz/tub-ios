@@ -93,11 +93,15 @@ struct AccountBalanceView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .topLeading)
                     
-                    
                 }
             }
+            Divider()
+                .frame(width: 340.0, height: 1.0)
+                .background(Color(hue: 1.0, saturation: 0.0, brightness: 0.2))
+                .padding(.top, 2)
         }
-        .padding(.horizontal, 10)
+        .padding(10)
+        .background(AppColors.black)
         .onTapGesture {
             withAnimation {
                 isExpanded.toggle()

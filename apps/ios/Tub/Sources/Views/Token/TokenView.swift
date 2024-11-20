@@ -103,11 +103,9 @@ struct TokenView : View {
                         chartView
                             .padding(.top, 5)
                         intervalButtons
-                            .padding(.bottom, 8)
-                            .padding(.top, 5)
+                            .padding(.bottom, 12)
+                            .padding(.top, 12)
                     }
-                    
-                    Spacer()
                     
                     VStack(spacing: 0) {
                         infoCardLowOpacity
@@ -143,10 +141,6 @@ struct TokenView : View {
             if tokenModel.token.imageUri != "" {
                 ImageView(imageUri: tokenModel.token.imageUri, size: 50)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(AppColors.white.opacity(0.5), lineWidth: 1)
-                    )
             }
             
             // Text column
