@@ -255,7 +255,6 @@ final class UserModel: ObservableObject {
     private func subscribeToTokenBalance(walletAddress: String, tokenId: String) {
         tokenBalanceSubscription?.cancel()
 
-        print("starting token balance subscription", walletAddress, tokenId)
         tokenBalanceSubscription = Network.shared.apollo.subscribe(
             subscription: SubWalletTokenBalanceSubscription(
                 wallet: walletAddress, token: tokenId)
