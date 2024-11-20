@@ -21,7 +21,7 @@ class CodexNetwork {
     private let initializationLock = NSLock()
     
     // Instance properties
-    private var apiKey: String?
+    var apiKey: String?
     private var lastApiCallTime: Date = Date()
     
     // graphql

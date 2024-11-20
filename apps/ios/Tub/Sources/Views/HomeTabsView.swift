@@ -10,15 +10,25 @@ import PrivySDK
 
 struct HomeTabsView: View {
     var color = Color(red: 0.43, green: 0.97, blue: 0.98)
-    @StateObject private var priceModel : SolPriceModel
-    @StateObject private var userModel : UserModel
+    @EnvironmentObject private var userModel : UserModel
+    @EnvironmentObject private var priceModel : SolPriceModel
+    
     @State private var selectedTab: Int = 0 // Track the selected tab
     @State private var tabStartTime: Date? = nil
   
-  
-    init(userId: String, walletAddress: String, linkedAccounts: [PrivySDK.LinkedAccount]?) {
-        _priceModel = StateObject(wrappedValue: SolPriceModel())
-        _userModel = StateObject(wrappedValue: UserModel(userId: userId, walletAddress: walletAddress, linkedAccounts: linkedAccounts))
+    @StateObject private var tokenListModel: TokenListModel
+    init(userModel: UserModel) {
+        self._tokenListModel = StateObject(wrappedValue: TokenListModel(userModel: userModel))
+    }
+    
+    // Add this to watch for userModel changes
+    private var userId: String? {
+        didSet {
+            if userModel.userId != nil {
+                selectedTab = 0  // Force switch to trade tab
+                recordTabSelection("trade")
+            }
+        }
     }
 
     private func recordTabDwellTime(_ previousTab: String) {
@@ -49,7 +59,7 @@ struct HomeTabsView: View {
         // Record dwell time for previous tab
         let previousTab: String
         switch selectedTab {
-        case 0: previousTab = "explore"
+        case 0: previousTab = "trade"
         case 1: previousTab = "history"
         case 2: previousTab = "account"
         default: previousTab = "unknown"
@@ -83,46 +93,36 @@ struct HomeTabsView: View {
 
     var body: some View {
         Group {
-            if let error = userModel.error {
-                LoginErrorView(
-                    errorMessage: error,
-                    retryAction: {
-                        Task {
-                            await userModel.fetchInitialData()
-                        }
-                    }
-                )
-            } 
-            else if userModel.isLoading  {
-                LoadingView(identifier: "HomeTabsView - waiting for userModel & priceModel", message: "Loading user data")
+            if !priceModel.isReady {
+                LoadingView(identifier: "HomeTabsView - waiting for userModel & priceModel", message: "Connecting to Solana")
             } else {
                 ZStack(alignment: .bottom) {
                     // Main content view
                     Group {
                         if selectedTab == 0 {
-                            TokenListView(walletAddress: userModel.walletAddress)
+                            TokenListView(tokenListModel: tokenListModel)
                         } else if selectedTab == 1 {
                             HistoryView()
                         } else if selectedTab == 2 {
                             AccountView()
                         }
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(AppColors.black)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                     // Custom Tab Bar
                     HStack {
                         Spacer()
 
-                        // Explore Tab
+                        // Trade Tab
                         Button(action: {
                             selectedTab = 0
-                            recordTabSelection("explore")
+                            recordTabSelection("trade")
                         }) {
                             VStack {
-                                Image(systemName: "safari")
+                                Image(systemName: "chart.line.uptrend.xyaxis")
                                     .font(.system(size: 24))
-                                Text("Explore")
+                                Text("Trade")
                                     .font(.sfRounded(size: .xs, weight: .regular))
                             }
                             .foregroundColor(
@@ -169,9 +169,13 @@ struct HomeTabsView: View {
                     .ignoresSafeArea(.keyboard)
                 }
             }
-        }
+        }.frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea(.keyboard)
-        .environmentObject(userModel)
-        .environmentObject(priceModel)
+        .onChange(of: userModel.userId) { _, newUserId in
+            if newUserId != nil {
+                selectedTab = 0  // Force switch to trade tab
+                recordTabSelection("trade")
+            }
+        }
     }
 }

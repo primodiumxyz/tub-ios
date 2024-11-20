@@ -3,14 +3,23 @@ import PrivySDK
 import AuthenticationServices
 
 struct RegisterView: View {
+    
+    @Environment(\.dismiss) var dismiss  // Add this line
+    @Environment(\.presentationMode) var presentationMode
     @State private var username = ""
     @State private var email = ""
     @State private var showPhoneModal = false
     @State private var showEmailModal = false
-    @EnvironmentObject private var errorHandler: ErrorHandler
+    @EnvironmentObject private var notificationHandler: NotificationHandler
+    @EnvironmentObject private var userModel: UserModel
     @State private var isEmailValid = false
     @State private var showEmailError = false
     @State private var sendingEmailOtp = false
+    @State private var isRedirected : Bool
+    
+    init(isRedirected: Bool = false) {
+        self.isRedirected = isRedirected
+    }
     
     
     // Email validation function using regex
@@ -37,6 +46,22 @@ struct RegisterView: View {
     
     var body: some View {
         ScrollView(showsIndicators: false) {
+            HStack {
+                
+                if isRedirected {
+                    Button(action: {
+                        presentationMode.wrappedValue.dismiss()
+                    }) {
+                        Image(systemName: "chevron.left")
+                            .foregroundColor(.white)
+                            .padding(.horizontal)
+                    }                 }
+                else {
+                    Spacer().frame(height:10)
+                }
+                
+                Spacer()
+            }
             VStack(alignment: .leading, spacing: 12){
                 Image("Logo")
                     .resizable()
@@ -89,7 +114,7 @@ struct RegisterView: View {
                             .stroke(AppColors.primaryPurple, lineWidth: 1)
                     )
                     .opacity(!isEmailValid || sendingEmailOtp ? 0.5 : 1.0)
-
+                    
                     // if email invalid
                     if showEmailError {
                         Text("Please enter a valid email address.")
@@ -144,7 +169,9 @@ struct RegisterView: View {
                             do {
                                 let _ = try await privy.oAuth.login(with: OAuthProvider.apple)
                             } catch {
-                                errorHandler.show(error)
+                                notificationHandler.show(error.localizedDescription,
+                                    type: .error
+                                )
                             }
                         }
                     }
@@ -155,7 +182,10 @@ struct RegisterView: View {
                         do {
                             let _ = try await privy.oAuth.login(with: OAuthProvider.google)
                         } catch {
-                            errorHandler.show(error)
+                            notificationHandler.show(
+                                error.localizedDescription,
+                                type: .error
+                            )
                         }
                     }
                 }) {
@@ -200,7 +230,10 @@ struct RegisterView: View {
                             // Login with predefined OTP
                             let _ = try await privy.email.loginWithCode("145288", sentTo: "test-0932@privy.io")
                         } catch {
-                            errorHandler.show(error)
+                            notificationHandler.show(
+                                error.localizedDescription,
+                                type: .error
+                            )
                         }
                     }
                 }) {
@@ -223,12 +256,18 @@ struct RegisterView: View {
                 SignInWithEmailView(email: $email)
                     .presentationDetents([.height(300)])
             }
-            .padding(.top, 100)
+            .padding(.top, 80)
         }
         .ignoresSafeArea(.keyboard)
         .padding(.vertical)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.darkBlueGradient)
+        .onChange(of: userModel.userId) { _, newUserId in
+            if newUserId != nil {
+                dismiss()
+            }
+        }
+        .navigationBarBackButtonHidden(true)
     }
 }
 

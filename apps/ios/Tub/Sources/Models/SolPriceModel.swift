@@ -7,36 +7,39 @@
 
 import Foundation
 
-class SolPriceModel: ObservableObject {
-    @Published var price: Double = 200
+final class SolPriceModel: ObservableObject {
+    static let shared = SolPriceModel()
+    
+    @Published var isReady = true
+    @Published var price: Double? = nil
     @Published var error: String?
     
-    init(mock: Bool = false) {
-        if mock {
-            self.price = 200
-        } else {
-            fetchCurrentPrice()
-        }
+    init() {
+        fetchCurrentPrice()
     }
     
     func fetchCurrentPrice() {
         error = nil
+        isReady = false
         
         Network.shared.fetchSolPrice { [weak self] result in
             DispatchQueue.main.async {
+                guard let self = self else { return }
                 switch result {
                 case .success(let price):
-                    self?.price = price
+                    self.price = price
+                    break
                 case .failure(let fetchError):
-                    self?.error = fetchError.localizedDescription
+                    self.error = fetchError.localizedDescription
                     print("Error fetching SOL price: \(fetchError.localizedDescription)")
                 }
+                self.isReady = true
             }
         }
     }
     
     func formatPrice(sol: Double, showSign: Bool = false, showUnit: Bool = true, maxDecimals: Int = 9, minDecimals: Int = 0, formatLarge: Bool = true) -> String {
-        if price > 0 {
+        if let price = self.price, price > 0 {
             if sol.isNaN || sol.isInfinite || sol == 0 {
                 return showUnit ? "$0.00" : "0.00"
             }
@@ -76,15 +79,15 @@ class SolPriceModel: ObservableObject {
     }
     
     func formatPrice(usd: Double, showSign: Bool = false, showUnit: Bool = true, maxDecimals: Int = 2, minDecimals: Int = 0, formatLarge: Bool = true) -> String {
-        if price > 0 {
+        if let price = self.price, price > 0 {
             return formatPrice(sol: usd / price, showSign: showSign, showUnit: showUnit, maxDecimals: maxDecimals, minDecimals: minDecimals, formatLarge: formatLarge)
         } else {
-            return "0.00"
+            return "$0.00"
         }
     }
     
     func usdToLamports(usd: Double) -> Int {
-        if  price > 0 {
+        if let price = self.price, price > 0 {
             return Int(usd * 1e9 / price)
         } else {
             return 0
@@ -92,7 +95,7 @@ class SolPriceModel: ObservableObject {
     }
     
     func lamportsToUsd(lamports: Int) -> Double {
-        if price > 0 {
+        if  let price = self.price, price > 0 {
             return Double(lamports) * price / 1e9
         } else {
             return 0

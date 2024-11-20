@@ -9,12 +9,17 @@ import SwiftUI
 struct TokenInfoCardView: View {
     @ObservedObject var tokenModel: TokenModel
     @Binding var isVisible: Bool
-    @Binding var activeTab: String
     @EnvironmentObject var priceModel: SolPriceModel
+    @EnvironmentObject var userModel: UserModel
     
     @State private var dragOffset: CGFloat = 0.0
     @State private var animatingSwipe: Bool = false
     @State private var isClosing: Bool = false
+    
+    var activeTab: String {
+        let balance: Int = userModel.tokenBalanceLamps ?? 0
+        return balance > 0 ? "sell" : "buy"
+    }
     
     private struct StatValue {
         let text: String
@@ -24,18 +29,18 @@ struct TokenInfoCardView: View {
     private var stats: [(String, StatValue)] {
         var stats = [(String, StatValue)]()
         
-        if let purchaseData = tokenModel.purchaseData, activeTab == "sell" {
-            // Calculate current value in lamports
-            let currentValueLamps = Int(Double(tokenModel.balanceLamps) * Double( priceModel.usdToLamports(usd: tokenModel.prices.last?.priceUsd ?? 0)) / 1e9)
+        if let purchaseData = userModel.purchaseData, activeTab == "sell" {
+            // Calculate current value
+            let tokenBalance = Double(userModel.tokenBalanceLamps ?? 0) / 1e9
+            let tokenBalanceUsd = tokenBalance * (tokenModel.prices.last?.priceUsd ?? 0)
+            let initialValueUsd = priceModel.lamportsToUsd(lamports: purchaseData.amount)
             
             // Calculate profit
-            let initialValueUsd = priceModel.lamportsToUsd(lamports: purchaseData.amount)
-            let currentValueUsd = priceModel.lamportsToUsd(lamports: currentValueLamps)
-            let gains = currentValueUsd - initialValueUsd
+            let gains = tokenBalanceUsd - initialValueUsd
             
-
-            if purchaseData.amount > 0, purchaseData.priceUsd > 0 {
-                let percentageGain = gains / purchaseData.priceUsd * 100
+            
+            if initialValueUsd > 0 {
+                let percentageGain = gains / initialValueUsd * 100
                 stats += [
                     ("Gains", StatValue(
                         text: "\(priceModel.formatPrice(usd: gains, showSign: true)) (\(String(format: "%.2f", percentageGain))%)",
@@ -43,10 +48,10 @@ struct TokenInfoCardView: View {
                     ))
                 ]
             }
-          
+            
             stats += [
                 ("You own", StatValue(
-                    text: "\(priceModel.formatPrice(usd: currentValueUsd, maxDecimals: 2, minDecimals: 2)) (\(formatLargeNumber(Double(tokenModel.balanceLamps) / 1e9)) \(tokenModel.token.symbol))",
+                    text: "\(priceModel.formatPrice(usd: tokenBalanceUsd, maxDecimals: 2, minDecimals: 2)) (\(formatLargeNumber(tokenBalance)) \(tokenModel.token.symbol))",
                     color: nil
                 ))
             ]
@@ -54,8 +59,8 @@ struct TokenInfoCardView: View {
         }
         
         // Add original stats from tokenModel
-        stats += tokenModel.getTokenStats(priceModel: priceModel).map { 
-            ($0.0, StatValue(text: $0.1, color: nil))
+        stats += tokenModel.getTokenStats(priceModel: priceModel).map {
+            ($0.0, StatValue(text: $0.1 ?? "", color: nil))
         }
         
         return stats
@@ -165,7 +170,7 @@ struct TokenInfoCardView: View {
                     }
                 }
         )
-        .onChange(of: isVisible) { newValue in
+        .onChange(of: isVisible) { _, newValue in
             if newValue {
                 // Reset when becoming visible
                 isClosing = false
