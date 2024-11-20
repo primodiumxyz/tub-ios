@@ -34,16 +34,20 @@ struct AppContent: View {
     @StateObject private var notificationHandler = NotificationHandler()
     @StateObject private var userModel = UserModel.shared
     @StateObject private var priceModel = SolPriceModel.shared
-    
+    @StateObject private var tokenManager = CodexTokenManager.shared
     
     var body: some View {
         Group {
-            if CodexTokenManager.shared.fetchFailed {
+            if tokenManager.fetchFailed {
                 LoginErrorView(errorMessage: "Failed to connect. Please try again.",
-                               retryAction: CodexTokenManager.shared.handleUserSession
+                               retryAction: {
+                                    Task {
+                                        await tokenManager.handleUserSession()
+                                    }
+                                }
                 )
             }
-            else if !CodexTokenManager.shared.isReady {
+            else if !tokenManager.isReady {
                 LoadingView(identifier: "Fetching Codex token", message: "Fetching auth token")
                 
             } else {
@@ -56,7 +60,9 @@ struct AppContent: View {
                     .environmentObject(priceModel)
             }
         }.onAppear {
-             CodexTokenManager.shared.handleUserSession()
+            Task (priority: .high){
+                await tokenManager.handleUserSession()
+            }
         }
     }
 }

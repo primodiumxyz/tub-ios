@@ -198,4 +198,3 @@ struct TokenListView: View {
         }
     }
 }
-
