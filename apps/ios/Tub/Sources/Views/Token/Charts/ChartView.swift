@@ -24,11 +24,18 @@ struct ChartView: View {
     }
     
     @State private var currentTime = Date().timeIntervalSince1970
+    @State private var prices: [Price] = []
     
     init(prices: [Price], timeframeSecs: Double = CHART_INTERVAL, height: CGFloat = 330) {
         self.rawPrices = prices
         self.timeframeSecs = timeframeSecs
         self.height = height
+    }
+    
+    private func updatePrices() {
+        let dataPointCount = Int(timeframeSecs / PRICE_UPDATE_INTERVAL)
+        let startingIndex = rawPrices.count - dataPointCount
+        prices = startingIndex < 0 ? rawPrices : Array(rawPrices[startingIndex...])
     }
     
     private var dashedLineColor: Color {
@@ -62,34 +69,27 @@ struct ChartView: View {
         
         return (minPriceUsd - padding)...(maxPriceUsd + padding)
     }
-    
-    private var prices: [Price] {
-        let cutoffTime = currentTime - timeframeSecs
-        if let firstIndex = rawPrices.firstIndex(where: { $0.timestamp.timeIntervalSince1970 >= cutoffTime }) {
-            let slice = Array(rawPrices[firstIndex...])
-            if slice.count >= 2 {
-                return slice
-            }
+    private var xDomain: ClosedRange<Date> {
+        let min = Date(timeIntervalSinceNow: -timeframeSecs - 1)
+        var padding = 1.0
+        if let currentPrice = prices.last?.priceUsd {
+            let pillContent = priceModel.formatPrice(usd: abs(currentPrice), maxDecimals: 9, minDecimals: 2)
+            padding = Double(pillContent.count) * 1.5
         }
         
-        if rawPrices.count >= 2 {
-            return Array(rawPrices.suffix(2))
-        }
-        
-        return rawPrices
+        let max = Date(timeIntervalSinceNow: padding)
+        return min...max
     }
-    
     
     var body: some View {
         Chart {
-            ForEach(prices) { price in
+            ForEach(prices.dropLast()) { price in
                 LineMark(
                     x: .value("Date", price.timestamp),
                     y: .value("Price", price.priceUsd)
                 )
                 .foregroundStyle(AppColors.aquaBlue.opacity(0.8))
-                .lineStyle(StrokeStyle(lineWidth: 3))
-                .shadow(color: AppColors.aquaBlue, radius: 3, x: 2, y: 2)
+                .lineStyle(StrokeStyle(lineWidth: 4))
                 .interpolationMethod(.cardinal(tension: 0.8))
             }
             
@@ -100,8 +100,7 @@ struct ChartView: View {
                     y: .value("Price", currentPrice.priceUsd)
                 )
                 .foregroundStyle(AppColors.aquaBlue.opacity(0.8))
-                .shadow(color: AppColors.aquaBlue, radius: 3, x: 2, y: 2)
-                .lineStyle(StrokeStyle(lineWidth: 3))
+                .lineStyle(StrokeStyle(lineWidth: 4))
                 .interpolationMethod(.catmullRom)
                 
                 PointMark(
@@ -153,12 +152,16 @@ struct ChartView: View {
                 }
             }
         }
+        .animation(.linear(duration: 0.5), value: prices)
         .chartYScale(domain: yDomain)
         .chartYAxis(.hidden)
         .chartXAxis(.hidden)
         .frame(width: .infinity, height: height)
-        .onChange(of: prices) { _ in
-            currentTime = Date().timeIntervalSince1970
+        .onChange(of: rawPrices) {
+            updatePrices()
+        }
+        .onAppear {
+            updatePrices()
         }
     }
 }
