@@ -135,7 +135,7 @@ struct HistoryView : View {
                 HistoryViewContent(txs: txs, isReady: $isReady)
             }
         }.onAppear {
-            if let userId = userModel.userId { fetchUserTxs(userId) }
+            if let wallet = userModel.walletAddress { fetchUserTxs(wallet) }
         }
     }
 }
