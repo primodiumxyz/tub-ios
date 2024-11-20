@@ -43,14 +43,14 @@ struct TokenListView: View {
     
     
     
-    private func loadToken(_ geometry: GeometryProxy, _ direction: String) {
+    private func loadToken(_ geometry: GeometryProxy, _ direction: String) async {
         if direction == "previous" {
-            tokenListModel.loadPreviousToken()
+            await tokenListModel.loadPreviousToken()
             withAnimation {
                 activeOffset += geometry.size.height
             }
         } else {
-            tokenListModel.loadNextToken()
+            await tokenListModel.loadNextToken()
             withAnimation {
                 activeOffset -= geometry.size.height
             }
@@ -75,8 +75,8 @@ struct TokenListView: View {
                     Rectangle()
                         .stroke(AppColors.lightGray.opacity(0.3), lineWidth: 0.5)
                 )
-            if tokenListModel.isLoading {
-                LoadingTokenView()
+            if !tokenListModel.isReady {
+                LoadingView(identifier: "tokenList", message: "Loading hottest tokens")
             } else {
                 ZStack(alignment: .top) {
                     // Main content
@@ -96,7 +96,7 @@ struct TokenListView: View {
                                     .padding(.bottom, 24)
                                 Button(action: {
                                     Task {
-                                        try? await tokenListModel.subscribeTokens()
+                                        try? tokenListModel.subscribeTokens()
                                     }
                                 }) {
                                     Text("Retry")
@@ -158,10 +158,12 @@ struct TokenListView: View {
                                                 
                                                 if canSwipe(value: value) {
                                                     let threshold: CGFloat = 50
-                                                    if value.translation.height > threshold {
-                                                        loadToken(geometry, "previous")
-                                                    } else if value.translation.height < -threshold {
-                                                        loadToken(geometry, "next")
+                                                    Task(priority: .low) {
+                                                        if value.translation.height > threshold {
+                                                            await loadToken(geometry, "previous")
+                                                        } else if value.translation.height < -threshold {
+                                                            await loadToken(geometry, "next")
+                                                        }
                                                     }
                                                     withAnimation {
                                                         offset = 0
