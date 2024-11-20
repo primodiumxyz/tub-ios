@@ -496,10 +496,11 @@ export class TubService {
 
     let transaction: Transaction | null = null;
     if (feeAmount === 0) {
+      console.log("[buildSwapResponse] No fee, getting swap instructions");
       const swapInstructions = await this.octane.getQuoteAndSwapInstructions({
-        inputMint: request.sellTokenId!,
-        outputMint: request.buyTokenId!,
-        amount: request.sellQuantity!,
+        inputMint: request.sellTokenId,
+        outputMint: request.buyTokenId,
+        amount: request.sellQuantity,
         autoSlippage: true,
         minimizeSlippage: true,
         onlyDirectRoutes: false,
@@ -510,7 +511,7 @@ export class TubService {
       const feeOptions = {
         sourceAccount: request.sellTokenAccount,
         destinationAccount: this.octane.getSettings().tradeFeeRecipient,
-        amount: Number((BigInt(feeAmount) * BigInt(request.sellQuantity!) / 100n)),
+        amount: Number((BigInt(feeAmount) * BigInt(request.sellQuantity) / 10000n)),
       };
 
       const feeTransferInstruction = createTransferInstruction(
@@ -521,9 +522,9 @@ export class TubService {
       );
 
       const swapInstructions = await this.octane.getQuoteAndSwapInstructions({
-        inputMint: request.sellTokenId!,
-        outputMint: request.buyTokenId!,
-        amount: request.sellQuantity! - feeOptions.amount,
+        inputMint: request.sellTokenId,
+        outputMint: request.buyTokenId,
+        amount: request.sellQuantity - feeOptions.amount,
         autoSlippage: true,
         minimizeSlippage: true,
         onlyDirectRoutes: false,
