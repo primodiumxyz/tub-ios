@@ -61,7 +61,6 @@ struct AppContent: View {
             }
         }.onAppear {
             Task (priority: .high){
-                print("onAppear")
                 await tokenManager.handleUserSession()
             }
         }
