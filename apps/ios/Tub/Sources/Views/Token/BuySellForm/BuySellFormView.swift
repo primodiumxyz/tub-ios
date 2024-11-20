@@ -195,6 +195,22 @@ struct BuySellFormView: View {
     }
 }
 
+#Preview {
+	@Previewable @State var show = false
+	@Previewable @State var testAmount = 1.0
+	@Previewable @StateObject var notificationHandler = NotificationHandler()
+	@Previewable @StateObject var userModel = UserModel.shared
+	@Previewable @StateObject var priceModel = SolPriceModel.shared
+	BuySellFormView(tokenModel: TokenModel(),
+					showBuySheet: $show,
+					defaultAmount: $testAmount,
+					handleBuy: { myDouble in },
+					onSellSuccess: nil)
+	.environmentObject(notificationHandler)
+	.environmentObject(userModel)
+	.environmentObject(priceModel)
+}
+
 // MARK: - Equatable Implementation
 
 /// This extension adds custom equality comparison to BuySellFormView.
