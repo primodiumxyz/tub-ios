@@ -1,4 +1,3 @@
-import { PublicKey } from "@solana/web3.js";
 import { initTRPC } from "@trpc/server";
 import { observable } from "@trpc/server/observable";
 import { z } from "zod";
