@@ -1,12 +1,12 @@
 //
-//  BuySellForm.swift
+//  BuySellFormView.swift
 //  Tub
 //
 //  Created by Henry on 9/27/24.
 //
 import SwiftUI
 
-struct BuySellForm: View {
+struct BuySellFormView: View {
     @EnvironmentObject private var notificationHandler: NotificationHandler
     @EnvironmentObject var userModel: UserModel
     @EnvironmentObject var priceModel: SolPriceModel
@@ -33,7 +33,6 @@ struct BuySellForm: View {
         let balance: Int = userModel.tokenBalanceLamps ?? 0
         return balance > 0 ? "sell" : "buy"
     }
-    
     
     func handleSell() {
         // Only trigger haptic feedback if vibration is enabled
@@ -198,10 +197,10 @@ struct BuySellForm: View {
 
 // MARK: - Equatable Implementation
 
-/// This extension adds custom equality comparison to BuySellForm.
+/// This extension adds custom equality comparison to BuySellFormView.
 /// It's used to optimize SwiftUI's view updates by preventing unnecessary redraws.
-extension BuySellForm: Equatable {
-    static func == (lhs: BuySellForm, rhs: BuySellForm) -> Bool {
+extension BuySellFormView: Equatable {
+    static func == (lhs: BuySellFormView, rhs: BuySellFormView) -> Bool {
         lhs.tokenModel.tokenId == rhs.tokenModel.tokenId
     }
 }
