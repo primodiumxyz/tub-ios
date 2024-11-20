@@ -65,9 +65,9 @@ class TokenModel: ObservableObject {
                 // Fetch both types of data
                 if (selectedTimespan == .live) {
                     await fetchInitialPrices()
-                    try await fetchInitialCandles()
+                    await fetchInitialCandles()
                 } else {
-                    try await fetchInitialCandles()
+                    await fetchInitialCandles()
                     await fetchInitialPrices()
                 }
                 
@@ -206,50 +206,59 @@ class TokenModel: ObservableObject {
         }
     }
 
-    private func fetchInitialCandles() async throws {
+    private func fetchInitialCandles() async {
         let client = await CodexNetwork.shared.apolloClient
         let now = Int(Date().timeIntervalSince1970)
         let thirtyMinutesAgo = now - (30 * 60)
         
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            client.fetch(query: GetTokenCandlesQuery(
-                from: thirtyMinutesAgo,
-                to: now,
-                symbol: token.pairId,
-                resolution: "1"
-            )) { [weak self] result in
-                guard let self = self else {
-                    continuation.resume(throwing: NSError(domain: "TokenModel", code: 0))
-                    return
-                }
-                
-                switch result {
-                case .success(let response):
-                    if let bars = response.data?.getBars {
-                        DispatchQueue.main.async {
-                            self.candles = zip(0..<bars.t.count, bars.t).compactMap { index, timestamp in
-                                guard let timestamp = .some(timestamp),
-                                      let open = bars.o[index],
-                                      let close = bars.c[index],
-                                      let high = bars.h[index],
-                                      let low = bars.l[index] else { return nil }
-                                return CandleData(
-                                    start: Date(timeIntervalSince1970: TimeInterval(timestamp)),
-                                    end: Date(timeIntervalSince1970: TimeInterval(timestamp) + 60),
-                                    open: open,
-                                    close: close,
-                                    high: high,
-                                    low: low,
-                                    volume: bars.v[index]
-                                )
+        func getTokenCandles() async -> [CandleData] {
+            var allCandles: [CandleData] = []
+            do {
+                try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                    client.fetch(query: GetTokenCandlesQuery(
+                        from: thirtyMinutesAgo,
+                        to: now,
+                        symbol: token.pairId,
+                        resolution: "1"
+                    )) { result in
+                        switch result {
+                        case .success(let response):
+                            if let bars = response.data?.getBars {
+                                for index in 0..<bars.t.count {
+                                    let timestamp = bars.t[index]
+                                    guard let open = bars.o[index],
+                                          let close = bars.c[index],
+                                          let high = bars.h[index],
+                                          let low = bars.l[index] else { continue }
+                                    
+                                    let candleData = CandleData(
+                                        start: Date(timeIntervalSince1970: TimeInterval(timestamp)),
+                                        end: Date(timeIntervalSince1970: TimeInterval(timestamp) + 60),
+                                        open: open,
+                                        close: close,
+                                        high: high,
+                                        low: low,
+                                        volume: bars.v[index]
+                                    )
+                                    allCandles.append(candleData)
+                                }
                             }
+                            continuation.resume()
+                        case .failure(let error):
+                            continuation.resume(throwing: error)
                         }
                     }
-                    continuation.resume()
-                case .failure(let error):
-                    continuation.resume(throwing: error)
                 }
+            } catch {
+                print(error)
             }
+            return allCandles
+        }
+        
+        let allCandles = await getTokenCandles()
+        DispatchQueue.main.async {
+            self.candles = allCandles
+            self.isReady = true
         }
     }
 
