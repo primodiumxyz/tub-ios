@@ -113,7 +113,7 @@ struct TokenView : View {
                         infoCardLowOpacity
                             .opacity(0.8)
                             .padding(.horizontal, 8)
-                        BuySellForm(
+                        BuySellFormView(
                             tokenModel: tokenModel,
                             showBuySheet: $showBuySheet,
                             defaultAmount: $defaultAmount,
