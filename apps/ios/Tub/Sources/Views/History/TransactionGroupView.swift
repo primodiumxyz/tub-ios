@@ -12,63 +12,43 @@ struct TransactionGroup {
 
 struct TransactionGroupRow: View {
     let group: TransactionGroup
-    @State private var isExpanded = false
     @EnvironmentObject private var priceModel: SolPriceModel
     
     var body: some View {
-        VStack(spacing: 0) {
-            Button(action: { 
-                withAnimation { isExpanded.toggle() }
-            }) {
-                HStack(alignment: .center) {
-                    ImageView(imageUri: group.imageUri, size: 40)
-                        .cornerRadius(8)
-                    
-                    VStack(alignment: .leading) {
-                        Text(group.symbol)
-                            .font(.sfRounded(size: .base, weight: .bold))
-                            .foregroundColor(AppColors.white)
-                        
-                        if !isExpanded {
-                            Text(formatDate(group.date)) 
-                                .font(.sfRounded(size: .sm, weight: .regular))
-                                .foregroundColor(AppColors.gray)
-                        }
-                    }
-                    
-                    Spacer()
-                    
-                    VStack(alignment: .trailing) {
-                        let price = priceModel.formatPrice(usd: group.netProfit, showSign: true)
-                        Text(price)
-                            .font(.sfRounded(size: .base, weight: .bold))
-                            .foregroundColor(group.netProfit >= 0 ? AppColors.green : AppColors.red)
-                    }
-                    
-                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        .foregroundColor(AppColors.gray)
-                        .padding(.leading, 8)
-                        
-                }
-                .padding(.vertical, 12)
-            }
-        }
-        .background(Color.black)
-        
-        // Expanded content in a separate container
-        if isExpanded {
-            VStack(spacing: 0) {
+        DisclosureGroup {
+            ScrollView {
                 ForEach(group.transactions, id: \.id) { transaction in
                     TransactionDetailRow(transaction: transaction)
-                        Divider()
-                            .background(Color(hue: 1.0, saturation: 0.0, brightness: 0.2))
-                    
+                        .foregroundStyle(.primary)
+                    Divider()
+                        .background(.secondary)
                 }
             }
-            .padding(.leading, 48)
-            .padding(.trailing, 32)
-            .background(Color.black)
+        } label: {
+            HStack(alignment: .center) {
+                ImageView(imageUri: group.imageUri, size: 40)
+                    .cornerRadius(8)
+                
+                VStack(alignment: .leading) {
+                    Text(group.symbol)
+                        .font(.sfRounded(size: .base, weight: .bold))
+                        .foregroundStyle(.primary)
+                    
+                    Text(formatDate(group.date)) 
+                        .font(.sfRounded(size: .sm, weight: .regular))
+                        .foregroundStyle(.secondary)
+                }
+                
+                Spacer()
+                
+                let price = priceModel.formatPrice(usd: group.netProfit, showSign: true)
+                Text(price)
+                    .font(.sfRounded(size: .base, weight: .bold))
+                    .foregroundStyle(group.netProfit >= 0 ? AppColors.green : AppColors.red)
+            }
+            .padding(.vertical, 12)
         }
+        .accentColor(.primary)
     }
     
     private func formatDate(_ date: Date) -> String {
@@ -78,26 +58,21 @@ struct TransactionGroupRow: View {
     }
 }
 
-struct DummyView: View {
-    var body: some View {
-        Text("Hello Yi")
-    }
-}
 
 struct TransactionDetailRow: View {
     let transaction: Transaction
     @EnvironmentObject private var priceModel: SolPriceModel
     
     var body: some View {
-        NavigationLink(destination: DummyView()) {
+        NavigationLink(destination: HistoryDetailsView(transaction: transaction)) {
             HStack {
                 VStack(alignment: .leading) {
                     Text(transaction.isBuy ? "Buy" : "Sell")
                         .font(.sfRounded(size: .sm, weight: .medium))
-                        .foregroundColor(AppColors.lightGray)
+                        .foregroundStyle(.primary)
                     Text(formatDate(transaction.date))
                         .font(.sfRounded(size: .xs, weight: .regular))
-                        .foregroundColor(AppColors.gray)
+                        .foregroundStyle(.secondary)
                 }
                 Spacer()
                 
@@ -110,7 +85,7 @@ struct TransactionDetailRow: View {
                     let quantity = priceModel.formatPrice(lamports: abs(transaction.quantityTokens), showUnit: false)
                     Text("\(quantity) \(transaction.symbol)")
                         .font(.sfRounded(size: .xs, weight: .regular))
-                        .foregroundColor(AppColors.gray)
+                        .foregroundStyle(.secondary)
                 }
             }
             .padding(.vertical, 8)

@@ -163,12 +163,12 @@ struct HistoryViewContent: View {
             VStack {
                 Text("History")
                     .font(.sfRounded(size: .xl2, weight: .bold))
-                    .foregroundColor(AppColors.white)
+                    .foregroundStyle(.primary)
                 
                 HStack {
                     Text("Completed")
                         .font(.sfRounded(size: .xl2, weight: .bold))
-                        .foregroundColor(AppColors.white)
+                        .foregroundStyle(.primary)
                         .padding(.leading, 10.0)
                     Spacer()
                     
@@ -178,7 +178,7 @@ struct HistoryViewContent: View {
                         }
                     }) {
                         Image(systemName: "line.horizontal.3.decrease.circle")
-                            .foregroundColor(AppColors.white)
+                            .foregroundStyle(.primary)
                             .font(.system(size: 24))
                     }
                 }
@@ -192,7 +192,7 @@ struct HistoryViewContent: View {
                                 withAnimation { isSearching.toggle()}
                             }) {
                                 Image(systemName: isSearching ? "xmark.circle.fill" : "magnifyingglass")
-                                    .foregroundColor(AppColors.white)
+                                    .foregroundStyle(.primary)
                                     .font(.sfRounded(size: .lg, weight: .semibold))
                                 
                             }
@@ -310,7 +310,7 @@ struct HistoryViewContent: View {
                         }
                     }
                     .listStyle(PlainListStyle())
-                    .background(Color.black.edgesIgnoringSafeArea(.all))
+                    .scrollContentBackground(.hidden)
                     .padding(.horizontal, 16)
                 }
                 Spacer()
@@ -462,7 +462,6 @@ struct TransactionRow: View {
                 .offset(x: 12)
         }
         .padding(.bottom, 10.0)
-        .background(Color.black)
     }
     
     func formatDate(_ date: Date) -> String {
