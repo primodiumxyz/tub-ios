@@ -48,7 +48,7 @@ struct RegisterView: View {
                     Button {
                         dismiss()
                     } label: {
-                        Image(systemName: "xmark.circle")
+                        Text("Cancel")
                             .foregroundColor(.white)
                             .padding(.horizontal)
                     }

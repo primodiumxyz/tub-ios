@@ -189,7 +189,7 @@ struct BuySellFormView: View {
             }
         }
         .padding(.bottom, 8)
-        .sheet(isPresented: $isLoginPresented) {
+        .fullScreenCover(isPresented: $isLoginPresented) {
             RegisterView(isRedirected: true)
                 .background(.black)
         }
