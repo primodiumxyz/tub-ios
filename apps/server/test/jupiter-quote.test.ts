@@ -156,4 +156,130 @@ describe("Jupiter Quote Integration Test", () => {
     expect(quote.inAmount).toBe(quoteRequest.amount.toString());
     expect(Number(quote.outAmount)).toBeGreaterThan(0);
   }, 30000);
+
+  it("should get swap instructions after quote", async () => {
+    const userPublicKey = new PublicKey("wifq4CRwpXCK8NYtKNsQAYoDethT1aR7R1DaKCLFgAd");
+    
+    const quoteRequest = {
+      inputMint: "So11111111111111111111111111111111111111112", // SOL
+      outputMint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
+      amount: 100000000, // 0.1 SOL
+      slippageBps: 50,
+      onlyDirectRoutes: false,
+      asLegacyTransaction: false,
+    };
+
+    try {
+      console.log("\nTesting complete swap instruction flow:");
+      console.log("User Public Key:", userPublicKey.toBase58());
+      console.log("Quote Request:", quoteRequest);
+
+      const swapInstructions = await octaneService.getQuoteAndSwapInstructions(
+        quoteRequest,
+        userPublicKey
+      );
+
+      console.log("\nSwap Instructions Response:");
+      console.log({
+        hasSetupInstructions: !!swapInstructions.setupInstructions?.length,
+        setupInstructionsCount: swapInstructions.setupInstructions?.length || 0,
+        hasSwapInstruction: !!swapInstructions.swapInstruction,
+        cleanupInstructionCount: swapInstructions.cleanupInstruction ? 1 : 0,
+      });
+
+      // Build complete swap transaction
+      const transaction = await octaneService.buildCompleteSwap(swapInstructions, null);
+      
+      console.log("\nBuilt Transaction:");
+      console.log({
+        feePayer: transaction.feePayer?.toBase58(),
+        instructionsCount: transaction.instructions.length,
+        recentBlockhash: transaction.recentBlockhash,
+      });
+
+      // Assertions
+      expect(swapInstructions).toBeDefined();
+      expect(swapInstructions.swapInstruction).toBeDefined();
+      expect(transaction).toBeDefined();
+      expect(transaction.feePayer?.equals(octaneService.getSettings().feePayerPublicKey)).toBe(true);
+      expect(transaction.instructions.length).toBeGreaterThan(0);
+      expect(transaction.recentBlockhash).toBeDefined();
+
+    } catch (error) {
+      console.error('Error testing swap instructions:');
+      if (error instanceof AxiosError) {
+        console.error('Status:', error.response?.status);
+        console.error('Status Text:', error.response?.statusText);
+        console.error('Response Headers:', error.response?.headers);
+        console.error('Response Data:', JSON.stringify(error.response?.data, null, 2));
+      } else if (error instanceof Error) {
+        console.error('Error message:', error.message);
+        console.error('Stack trace:', error.stack);
+      }
+      throw error;
+    }
+  }, 30000);
+
+  it("should get swap instructions for USDC to SOL", async () => {
+    const userPublicKey = new PublicKey("41zCUJsKk6cMB94DDtm99qWmyMZfp4GkAhhuz4xTwePu");
+    
+    const quoteRequest = {
+      inputMint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
+      outputMint: "So11111111111111111111111111111111111111112", // SOL
+      amount: 1000000, // 1 USDC
+      slippageBps: 50,
+      onlyDirectRoutes: false,
+      asLegacyTransaction: false,
+    };
+
+    try {
+      console.log("\nTesting USDC->SOL swap instruction flow:");
+      console.log("User Public Key:", userPublicKey.toBase58());
+      console.log("Quote Request:", quoteRequest);
+
+      const swapInstructions = await octaneService.getQuoteAndSwapInstructions(
+        quoteRequest,
+        userPublicKey
+      );
+
+      console.log("\nSwap Instructions Response:");
+      console.log({
+        hasSetupInstructions: !!swapInstructions.setupInstructions?.length,
+        setupInstructionsCount: swapInstructions.setupInstructions?.length || 0,
+        hasSwapInstruction: !!swapInstructions.swapInstruction,
+        cleanupInstructionCount: swapInstructions.cleanupInstruction ? 1 : 0,
+      });
+
+      // Build complete swap transaction
+      const transaction = await octaneService.buildCompleteSwap(swapInstructions, null);
+      
+      console.log("\nBuilt Transaction:");
+      console.log({
+        feePayer: transaction.feePayer?.toBase58(),
+        instructionsCount: transaction.instructions.length,
+        recentBlockhash: transaction.recentBlockhash,
+      });
+
+      // Assertions
+      expect(swapInstructions).toBeDefined();
+      expect(swapInstructions.swapInstruction).toBeDefined();
+      expect(transaction).toBeDefined();
+      expect(transaction.feePayer?.equals(octaneService.getSettings().feePayerPublicKey)).toBe(true);
+      expect(transaction.instructions.length).toBeGreaterThan(0);
+      expect(transaction.recentBlockhash).toBeDefined();
+
+    } catch (error) {
+      console.error('Error testing USDC->SOL swap instructions:');
+      if (error instanceof AxiosError) {
+        console.error('Status:', error.response?.status);
+        console.error('Status Text:', error.response?.statusText);
+        console.error('Response Headers:', error.response?.headers);
+        console.error('Response Data:', JSON.stringify(error.response?.data, null, 2));
+      } else if (error instanceof Error) {
+        console.error('Error message:', error.message);
+        console.error('Stack trace:', error.stack);
+      }
+      throw error;
+    }
+  }, 30000);
 }); 

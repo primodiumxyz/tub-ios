@@ -146,27 +146,61 @@ export class OctaneService {
       const quote = await this.getQuote(quoteAndSwapParams);
       console.dir(quote, { depth: null });
 
+      // Log the API instance details
+      console.log("[getQuoteAndSwapInstructions] API Configuration:", {
+        basePath: (this.jupiterQuoteApi as any).configuration?.basePath,
+        availableMethods: Object.keys(this.jupiterQuoteApi)
+      });
+
+      console.log("[getQuoteAndSwapInstructions] User public key:", userPublicKey.toBase58());
+      console.log("[getQuoteAndSwapInstructions] User public key:", userPublicKey);
+
       const swapInstructionsRequest: SwapInstructionsPostRequest = {
         swapRequest: {
           quoteResponse: quote,
-          userPublicKey: userPublicKey.toBase58(),
-          wrapAndUnwrapSol: true,
-          useSharedAccounts: true,
-          computeUnitPriceMicroLamports: 0,
-          prioritizationFeeLamports: "auto",
-          asLegacyTransaction: false,
-          useTokenLedger: false,
-          dynamicComputeUnitLimit: true,
-          skipUserAccountsRpcCalls: false,
-          dynamicSlippage: {
-            minBps: 0,
-            maxBps: 0
-          }
+          userPublicKey: userPublicKey.toBase58(), // Make sure we're using toBase58()
         }
+        // {
+        //   quoteResponse: quote,
+        //   userPublicKey: userPublicKey.toString(),
+        //   wrapAndUnwrapSol: true,
+        //   useSharedAccounts: true,
+        //   computeUnitPriceMicroLamports: 0,
+        //   prioritizationFeeLamports: "auto",
+        //   asLegacyTransaction: false,
+        //   useTokenLedger: false,
+        //   dynamicComputeUnitLimit: true,
+        //   skipUserAccountsRpcCalls: false,
+        // }
       };
 
-      const swapInstructions = await this.jupiterQuoteApi.swapInstructionsPost(swapInstructionsRequest);
-      return swapInstructions;
+      console.log("[getQuoteAndSwapInstructions] Sending request:", {
+        url: `${(this.jupiterQuoteApi as any).configuration?.basePath}/swap-instructions`,
+        request: JSON.stringify(swapInstructionsRequest, null, 2)
+      });
+
+      try {
+        const swapInstructions = await this.jupiterQuoteApi.swapInstructionsPost(swapInstructionsRequest);
+        console.log("[getQuoteAndSwapInstructions] Received response:", {
+          hasSetupInstructions: !!swapInstructions.setupInstructions?.length,
+          hasSwapInstruction: !!swapInstructions.swapInstruction,
+          hasCleanupInstruction: !!swapInstructions.cleanupInstruction
+        });
+        return swapInstructions;
+      } catch (error) {
+        // Log the full error details
+        if (error instanceof Error) {
+          console.error("[getQuoteAndSwapInstructions] Detailed error:", {
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
+            response: (error as any).response?.data,
+            status: (error as any).response?.status,
+            headers: (error as any).response?.headers
+          });
+        }
+        throw error;
+      }
     } catch (error) {
       console.error("Error getting swap instructions:", error);
       throw new Error(`Failed to get swap instructions: ${error instanceof Error ? error.message : 'Unknown error'}`);
