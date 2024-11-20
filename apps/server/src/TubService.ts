@@ -496,6 +496,10 @@ export class TubService {
         ? this.octane.getSettings().buyFee
         : 0;
 
+    // Check if this is a USDC sell transaction
+    const isUSDCSell = request.sellTokenId === USDC_MAINNET_PUBLIC_KEY.toString() || 
+                       request.sellTokenId === USDC_DEV_PUBLIC_KEY.toString();
+
     let transaction: Transaction | null = null;
     if (feeAmount === 0) {
       const swapInstructions = await this.octane.getQuoteAndSwapInstructions({
@@ -505,7 +509,7 @@ export class TubService {
         autoSlippage: true,
         minimizeSlippage: true,
         onlyDirectRoutes: false,
-        asLegacyTransaction: false,
+        asLegacyTransaction: isUSDCSell, // Set to true for USDC sells
       }, request.userPublicKey);
       transaction = await this.octane.buildCompleteSwap(swapInstructions, null);
     } else {
@@ -529,7 +533,7 @@ export class TubService {
         autoSlippage: true,
         minimizeSlippage: true,
         onlyDirectRoutes: false,
-        asLegacyTransaction: false,
+        asLegacyTransaction: isUSDCSell, // Set to true for USDC sells
       }, request.userPublicKey);
       transaction = await this.octane.buildCompleteSwap(swapInstructions, feeTransferInstruction);
     }
