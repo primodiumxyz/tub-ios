@@ -7,18 +7,18 @@
 
 import SwiftUI
 
-struct ErrorOverlay: ViewModifier {
-    @EnvironmentObject var errorHandler: ErrorHandler
+struct NotificationBanner: ViewModifier {
+    @EnvironmentObject var notificationHandler: NotificationHandler
     
     func body(content: Content) -> some View {
         content
             .overlay(
                 Group {
-                    if errorHandler.isShowingNotification, let message = errorHandler.message {
+                    if notificationHandler.isShowingNotification, let message = notificationHandler.message {
                         VStack {
                             HStack(spacing: 6) {
-                                Image(systemName: errorHandler.notificationType.icon)
-                                    .foregroundColor(errorHandler.notificationType == .error ? .yellow : .green)
+                                Image(systemName: notificationHandler.notificationType.icon)
+                                    .foregroundColor(notificationHandler.notificationType.color)
                                 
                                 Text(message)
                                     .foregroundColor(.white)
@@ -26,15 +26,19 @@ struct ErrorOverlay: ViewModifier {
                                 
                                 Spacer()
                                 
-                                Button(action: errorHandler.hide) {
+                                Button(action: notificationHandler.hide) {
                                     Image(systemName: "xmark")
                                         .foregroundColor(.white)
                                 }
                             }
                             .padding(.horizontal, 16)
                             .frame(maxWidth: .infinity, maxHeight: 50)
-                            .background(Color.black.opacity(0.9))
+                            .background(AppColors.darkGray)
                             .cornerRadius(24)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 24)
+                                    .stroke(notificationHandler.notificationType.color.opacity(0.5), lineWidth: 2)
+                            )
                             .shadow(radius: 4)
                             
                             Spacer()
@@ -45,7 +49,7 @@ struct ErrorOverlay: ViewModifier {
                         .zIndex(999)
                     }
                 }
-                .animation(.easeInOut(duration: 0.3), value: errorHandler.isShowingNotification)
+                .animation(.easeInOut(duration: 0.3), value: notificationHandler.isShowingNotification)
             )
     }
 }

@@ -42,30 +42,3 @@ struct LoadingView: View {
     }
 }
 
-
-struct LoadingPrice: View {
-    var body: some View {
-        RoundedRectangle(cornerRadius: 4)
-            .fill(Color.white.opacity(0.05))
-            .frame(width: 120, height: 32)
-            .shimmering(opacity: 0.1)
-    }
-}
-
-struct LoadingPriceChange: View {
-    var body: some View {
-        RoundedRectangle(cornerRadius: 4)
-            .fill(Color.white.opacity(0.05))
-            .frame(width: 80, height: 20)
-            .shimmering(opacity: 0.1)
-    }
-}
-
-struct LoadingChart: View {
-    var body: some View {
-        RoundedRectangle(cornerRadius: 8)
-            .fill(Color.white.opacity(0.03))
-            .frame(height: 350)
-            .shimmering(opacity: 0.08)
-    }
-}

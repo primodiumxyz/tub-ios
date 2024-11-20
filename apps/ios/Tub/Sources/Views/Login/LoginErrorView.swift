@@ -32,7 +32,6 @@ struct LoginErrorView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
             
-            VStack(spacing: 16) {
                 Button(action: retryAction) {
                     Text("Try Again")
                         .font(.sfRounded(size: .lg, weight: .semibold))
@@ -42,24 +41,8 @@ struct LoginErrorView: View {
                         .background(AppColors.primaryPurple)
                         .cornerRadius(26)
                 }
-                
-                Button(action: {
-                    logoutAction?()
-                    privy.logout()
-                }) {
-                    Text("Logout")
-                        .font(.sfRounded(size: .lg, weight: .semibold))
-                        .foregroundColor(AppColors.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(14)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 26)
-                                .stroke(AppColors.red, lineWidth: 1)
-                        )
-                }
-            }
-            .padding(.horizontal)
         }
+        .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(.black)
         .foregroundStyle(.white)

@@ -16,7 +16,7 @@ struct HistoryView : View {
     
     
     @State private var txs: [Transaction]
-    @State private var loading : Bool
+    @State private var isReady : Bool
     @State private var error: Error? // Add this line
     @State private var tokenMetadata: [String: TokenMetadata] = [:] // Cache for token metadata
     
@@ -28,7 +28,7 @@ struct HistoryView : View {
     
     init(txs: [Transaction]? = []) {
         self._txs = State(initialValue: txs!.isEmpty ? [] : txs!)
-        self._loading = State(initialValue: txs == nil)
+        self._isReady = State(initialValue: txs != nil)
         self._error = State(initialValue: nil) // Add this line
     }
     
@@ -57,13 +57,12 @@ struct HistoryView : View {
         }
     }
     
-    func fetchUserTxs(_ userId: String) {
-        let client = Network.shared.apollo
-        loading = true
+    func fetchUserTxs(_ walletAddress: String) {
+        isReady = false
         error = nil
-        let query = GetWalletTransactionsQuery(wallet: userModel.walletAddress)
+        let query = GetWalletTransactionsQuery(wallet: walletAddress)
         
-        client.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { result in
+        Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { result in
             Task {
                 do {
                     switch result {
@@ -112,19 +111,16 @@ struct HistoryView : View {
                             
                             await MainActor.run {
                                 self.txs = processedTxs
-                                self.loading = false
+                                self.isReady = true
                             }
                         }
                     case .failure(let error):
-                        await MainActor.run {
-                            self.error = error
-                            self.loading = false
-                        }
+                        throw error
                     }
                 } catch {
                     await MainActor.run {
                         self.error = error
-                        self.loading = false
+                        self.isReady = true
                     }
                 }
             }
@@ -133,15 +129,13 @@ struct HistoryView : View {
     
     var body: some View {
         Group {
-            if loading == true {
-                LoadingView(identifier: "HistoryView - loading")
-            } else if let error = error {
+            if let error = error {
                 ErrorView(error: error)
             } else {
-                HistoryViewContent(txs: txs)
+                HistoryViewContent(txs: txs, isReady: $isReady)
             }
         }.onAppear {
-            fetchUserTxs(userModel.userId)
+            if let wallet = userModel.walletAddress { fetchUserTxs(wallet) }
         }
     }
 }
@@ -150,6 +144,8 @@ struct HistoryView : View {
 
 struct HistoryViewContent: View {
     var txs: [Transaction]
+    @Binding var isReady : Bool
+    
     @State private var showFilters = true
     
     // Filter state
@@ -300,7 +296,10 @@ struct HistoryViewContent: View {
                 
                 
                 // Transaction List
-                if filteredTransactions().isEmpty {
+                if !isReady {
+                    ProgressView()
+                }
+                else if filteredTransactions().isEmpty {
                     Text("No transactions found")
                         .font(.sfRounded(size: .base, weight: .regular))
                         .foregroundColor(AppColors.gray)
@@ -452,14 +451,14 @@ struct TransactionRow: View {
             }
             Spacer()
             VStack(alignment: .trailing) {
-                HStack {
-                    Text(priceModel.formatPrice(usd: transaction.valueUsd, showSign: true))
-                        .font(.sfRounded(size: .base, weight: .bold))
-                        .foregroundColor(transaction.isBuy ? AppColors.red: AppColors.green)
-                }
+                let price = priceModel.formatPrice(usd: transaction.valueUsd, showSign: true)
+                Text(price)
+                    .font(.sfRounded(size: .base, weight: .bold))
+                    .foregroundColor(transaction.isBuy ? AppColors.red: AppColors.green)
                 
+                let quantity = priceModel.formatPrice(lamports: abs(transaction.quantityTokens), showUnit: false)
                 HStack {
-                    Text(priceModel.formatPrice(lamports: abs(transaction.quantityTokens), showUnit: false))
+                    Text(quantity)
                         .font(.sfRounded(size: .xs, weight: .regular))
                         .foregroundColor(AppColors.gray)
                         .offset(x:4, y:2)
@@ -487,8 +486,8 @@ struct TransactionRow: View {
 
 
 #Preview {
-    @Previewable @StateObject var errorHandler = ErrorHandler()
-    @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
-    HistoryView(txs: dummyData).environmentObject(priceModel).environmentObject(errorHandler)
+    @Previewable @StateObject var notificationHandler = NotificationHandler()
+    @Previewable @StateObject var priceModel = SolPriceModel.shared
+    HistoryView(txs: dummyData).environmentObject(priceModel).environmentObject(notificationHandler)
 }
 

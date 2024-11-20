@@ -9,7 +9,7 @@ import SwiftUI
 import PrivySDK
 
 struct SignInWithEmailView: View {
-    @EnvironmentObject private var errorHandler: ErrorHandler
+    @EnvironmentObject private var notificationHandler: NotificationHandler
     @Binding var email: String // Email passed from RegisterView
     @State private var loggingIn : Bool = false
 
@@ -26,7 +26,10 @@ struct SignInWithEmailView: View {
                 self.loggingIn = false
             } catch {
                 print("error", error)
-                errorHandler.show(error)
+                notificationHandler.show(
+                    error.localizedDescription,
+                    type: .error
+                )
                 self.loggingIn = false
             }
         }

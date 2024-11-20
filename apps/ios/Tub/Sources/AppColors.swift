@@ -18,7 +18,7 @@ struct AppColors {
     static let green = Color.green
     static let red = Color.red
     static let shadowGray = Color(red: 0.11, green: 0.13, blue: 0.16)
-    static let darkgray = Color(red: 0.12, green: 0.12, blue: 0.11)
+    static let darkGray = Color(red: 0.12, green: 0.12, blue: 0.11)
     static let aquaGreen = Color(red: 0.01, green: 1, blue: 0.85)
 
     // graph
@@ -70,7 +70,8 @@ struct AppColors {
     static let darkBlueGradient = LinearGradient(
         stops: [
             Gradient.Stop(color: Color(red: 0.18, green: 0.08, blue: 0.37), location: 0.00),
-            Gradient.Stop(color: Color(red: 0.1, green: 0.1, blue: 0.2), location: 0.71)
+            Gradient.Stop(color: Color(red: 0.1, green: 0.1, blue: 0.2), location: 0.85),
+            Gradient.Stop(color: Color(red: 0, green: 0, blue: 0), location: 1.0)
         ],
         startPoint: UnitPoint(x: 0.5, y: 0),
         endPoint: UnitPoint(x: 0.5, y: 1)

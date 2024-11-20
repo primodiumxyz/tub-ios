@@ -7,7 +7,7 @@
 
 import SwiftUI
 import Foundation
-
+import PrivySDK
 
 struct AccountDetailsView: View {
     @Environment(\.dismiss) private var dismiss
@@ -22,31 +22,32 @@ struct AccountDetailsView: View {
         return "\(prefix)...\(suffix)"
     }
     
+    var linkedAccounts: (email: String?, phone: String?, embeddedWallets: [PrivySDK.EmbeddedWallet]) {
+        userModel.getLinkedAccounts()
+    }
+    
     var body: some View {
-        NavigationStack {
+        if let userId = userModel.userId, let wallet = userModel.walletAddress {          NavigationStack {
             VStack() {
                 // Account Information List
                 VStack(spacing: 24) {
-                    // Commented out for now
-                    // DetailRow(title: "Username", value: "Primo Rhino")
-                    
                     DetailRow(
-                        title: "Account ID", 
-                        value: truncateString(userModel.userId)
+                        title: "Account ID",
+                        value: truncateString(userId)
                     ) {
                         Button(action: {
-                            UIPasteboard.general.string = userModel.userId
+                            UIPasteboard.general.string = userId
                         }) {
                             Image(systemName: "doc.on.doc")
                                 .foregroundColor(AppColors.white)
                         }
                     }
                     
-                    if let email = userModel.email {
+                    if let email = linkedAccounts.email {
                         DetailRow(title: "Email", value: email)
                     }
                     
-                    if let phone = userModel.phone {
+                    if let phone = linkedAccounts.phone {
                         DetailRow(title: "Phone", value: phone)
                     }
                     
@@ -55,11 +56,11 @@ struct AccountDetailsView: View {
                         .overlay(Color.gray.opacity(0.5))
                     
                     DetailRow(
-                        title: "Wallet", 
-                        value: truncateString(userModel.walletAddress)
+                        title: "Wallet",
+                        value: truncateString(wallet)
                     ) {
                         Button(action: {
-                            UIPasteboard.general.string = userModel.walletAddress // Copy full address
+                            UIPasteboard.general.string = wallet // Copy full address
                         }) {
                             Image(systemName: "doc.on.doc")
                                 .foregroundColor(AppColors.white)
@@ -71,7 +72,7 @@ struct AccountDetailsView: View {
                 
                 Spacer()
             }
-            .onChange(of: userModel.userId) { newValue in
+            .onChange(of: userId) { _, newValue in
                 if newValue.isEmpty {
                     presentationMode.wrappedValue.dismiss()
                 }
@@ -96,7 +97,11 @@ struct AccountDetailsView: View {
             }
             .background(AppColors.black)
         }
+        } else {
+            EmptyView()
+        }
     }
+    
 }
 
 // Helper view for consistent row styling

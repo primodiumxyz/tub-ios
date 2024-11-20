@@ -21,11 +21,9 @@ class TokenListModel: ObservableObject {
     @Published var previousTokenModel: TokenModel?
     @Published var nextTokenModel: TokenModel?
     @Published var currentTokenModel: TokenModel
+    var userModel: UserModel
 
     @Published var isLoading = true
-    @Published var errorMessage: String?
-
-    private var walletAddress: String
 
     // Cooldown for not showing the same token too often
     private let TOKEN_COOLDOWN: TimeInterval = 60  // 60 seconds cooldown
@@ -35,9 +33,9 @@ class TokenListModel: ObservableObject {
     private var currentTokenStartTime: Date?
     private var tokenSubscription: Cancellable?
 
-    init(walletAddress: String) {
-        self.walletAddress = walletAddress
-        self.currentTokenModel = TokenModel(walletAddress: walletAddress)
+    init(userModel: UserModel) {
+        self.userModel = userModel
+        self.currentTokenModel = TokenModel()
     }
 
     var currentTokenIndex: Int {
@@ -53,13 +51,9 @@ class TokenListModel: ObservableObject {
     }
 
     private func initTokenModel() {
-        DispatchQueue.main.async {
-            self.currentTokenModel.initialize(with: self.tokens[self.currentTokenIndex])
-        }
-    }
-
-    func createTokenModel() -> TokenModel {
-        return TokenModel(walletAddress: walletAddress)
+        let token = self.tokens[self.currentTokenIndex]
+        self.currentTokenModel.initialize(with: token)
+        self.userModel.initToken(tokenId: token.id)
     }
 
     private func getNextToken(excluding currentId: String? = nil) -> Token? {
@@ -117,10 +111,10 @@ class TokenListModel: ObservableObject {
     // - Push a new random token to the array for the next swipe
     func loadNextToken() {
         // Record dwell time for current token before switching
-        recordTokenDwellTime()
+        self.recordTokenDwellTime()
 
         previousTokenModel = currentTokenModel
-        nextTokenModel = createTokenModel()
+        nextTokenModel = TokenModel()
 
         // Add current token to cooldown here
         if let currentToken = tokens[safe: currentTokenIndex] {
@@ -147,7 +141,7 @@ class TokenListModel: ObservableObject {
         recordTokenDwellTime()
 
         nextTokenModel = currentTokenModel
-        previousTokenModel = createTokenModel()
+        previousTokenModel = TokenModel()
 
         tokens.removeLast()
         initTokenModel()
@@ -179,8 +173,10 @@ class TokenListModel: ObservableObject {
         }
     }
 
-    public func subscribeTokens() async throws {
+    public func subscribeTokens() throws {
         // Initial fetch
+        Task {
+            
         try await fetchTokens()
 
         // Set up timer for 1-second updates
@@ -193,19 +189,24 @@ class TokenListModel: ObservableObject {
                     }
                 }
             }
+            }
         }
+    }
+
+    func unsubscribeTokens() {
+        // Stop the timer
+        timer?.invalidate()
+        timer = nil
+        
+        // Clear token subscription if it exists
+        tokenSubscription?.cancel()
+        tokenSubscription = nil
     }
 
     private var fetching = false
     
     private func fetchTokens(setLoading: Bool? = false) async throws {
         let client = await CodexNetwork.shared.apolloClient
-        
-        if let setLoading = setLoading, setLoading {
-            await MainActor.run {
-                self.isLoading = true
-            }
-        }
         
         self.fetching = true
         

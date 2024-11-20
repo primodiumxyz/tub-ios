@@ -1,5 +1,5 @@
 //
-//  ErrorHandler.swift
+//  NotificationBanner.swift
 //  Tub
 //
 //  Created by Henry on 11/5/24.
@@ -12,11 +12,13 @@ import os.log
 enum NotificationType {
     case error
     case success
+    case info
     
     var color: Color {
         switch self {
         case .error: return .red
         case .success: return .green
+        case .info: return .blue
         }
     }
     
@@ -24,24 +26,25 @@ enum NotificationType {
         switch self {
         case .error: return "exclamationmark.triangle.fill"
         case .success: return "checkmark.circle.fill"
+        case .info: return "info.circle.fill"
         }
     }
 }
 
-class ErrorHandler: ObservableObject {
+@MainActor
+class NotificationHandler: ObservableObject {
     @Published var message: String?
     @Published var isShowingNotification = false
-    @Published var notificationType: NotificationType = .error
+    @Published var notificationType: NotificationType = .info
     
     private var hideWorkItem: DispatchWorkItem?
     
-    func show(_ error: Error) {
-        showNotification(error.localizedDescription, type: .error)
-        os_log("Error: %{public}@", log: .default, type: .error, error.localizedDescription)
-    }
-    
-    func showSuccess(_ message: String) {
-        showNotification(message, type: .success)
+    func show(_ message: String, type: NotificationType) {
+        showNotification(message, type: type)
+        
+        if type == .error {
+            os_log("Error: %{public}@", log: .default, type: .error, message)
+        }
     }
     
     private func showNotification(_ message: String, type: NotificationType) {

@@ -32,7 +32,7 @@ struct Token: Identifiable {
 struct PurchaseData {
     let timestamp: Date
     let amount: Int
-    let priceUsd: Double
+    let price: Int
 }
 
 struct Price: Identifiable, Equatable {

@@ -1,5 +1,5 @@
 //
-//  ExploreView.swift
+//  TokenView.swift
 //  Tub
 //
 //  Created by Emerson Hsieh on 2024/9/26.
@@ -32,13 +32,13 @@ enum Timespan: String, CaseIterable {
     }
 }
 
+
+
 struct TokenView : View {
-    @EnvironmentObject private var errorHandler: ErrorHandler
     @ObservedObject var tokenModel: TokenModel
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject private var userModel: UserModel
-    @Binding var activeTab: String
-    var onSellSuccess: () -> Void
+    @EnvironmentObject private var notificationHandler: NotificationHandler
     
     @State private var showInfoCard = false
     @State private var selectedTimespan: Timespan = .live
@@ -46,105 +46,136 @@ struct TokenView : View {
     @State private var defaultAmount: Double = 50.0
     @State private var keyboardHeight: CGFloat = 0
     
+    var onSellSuccess: (() -> Void)?
+    
+    var activeTab: String {
+        let balance: Int = userModel.tokenBalanceLamps ?? 0
+        return balance > 0 ? "sell" : "buy"
+    }
     
     
-    init(tokenModel: TokenModel, activeTab: Binding<String>, onSellSuccess: @escaping () -> Void) {
+    init(tokenModel: TokenModel, onSellSuccess: (() -> Void)? = nil) {
         self.tokenModel = tokenModel
-        self._activeTab = activeTab
         self.onSellSuccess = onSellSuccess
     }
     
-    func handleBuy(amount: Double, priceModel: SolPriceModel) {
-        let buyAmountLamps = priceModel.usdToLamports(usd: amount)
-        if(buyAmountLamps > userModel.balanceLamps) {
-            errorHandler.show(TubError.insufficientBalance)
+    func handleBuy(amountUsd: Double) {
+        guard let priceUsd = tokenModel.prices.last?.priceUsd
+        else {
+            notificationHandler.show(
+                "Something went wrong. Please try again.",
+                type: .error
+            )
             return
         }
-        tokenModel.buyTokens(buyAmountLamps: buyAmountLamps, priceModel: priceModel) { result in
+        
+        let buyAmountLamps = priceModel.usdToLamports(usd: amountUsd)
+
+        let priceLamps = priceModel.usdToLamports(usd: priceUsd)
+
+        userModel.buyTokens(buyAmountLamps: buyAmountLamps, priceLamps: priceLamps, priceUsd: priceUsd) { result in
             switch result {
-            case .success:
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    showBuySheet = false
-                    activeTab = "sell" //  Switch tab after successful buy
-                }
             case .failure(let error):
-                print("failed to buy")
-                print(error)
-                errorHandler.show(error)
+                notificationHandler.show(
+                    error.localizedDescription,
+                    type: .error
+                )
+            case .success:
+                showBuySheet = false
+                withAnimation {
+                    notificationHandler.show(
+                        "Successfully bought tokens!",
+                        type: .success
+                    )
+                }
             }
         }
     }
     
     var body: some View {
-        ZStack {
-            // Main content
-            VStack(alignment: .leading, spacing: 0) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Spacer().frame(height:20)
-                    tokenInfoView
-                    chartView
-                        .padding(.top, 5)
-                    intervalButtons
-                        .padding(.bottom, 8)
-                        .padding(.top, 5)
+        NavigationStack {
+            ZStack {
+                // Main content
+                VStack(alignment: .leading, spacing: 0) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Spacer().frame(height:20)
+                        tokenInfoView
+                        chartView
+                            .padding(.top, 5)
+                        intervalButtons
+                            .padding(.bottom, 8)
+                            .padding(.top, 5)
+                    }
+                    
+                    Spacer()
+                    
+                    VStack(spacing: 0) {
+                        infoCardLowOpacity
+                            .opacity(0.8)
+                            .padding(.horizontal, 8)
+                        BuySellForm(
+                            tokenModel: tokenModel,
+                            showBuySheet: $showBuySheet,
+                            defaultAmount: $defaultAmount,
+                            handleBuy: handleBuy,
+                            onSellSuccess: onSellSuccess
+                        )
+                        .equatable()
+                    }
                 }
+                .frame(maxWidth: .infinity)
+                .foregroundColor(AppColors.white)
                 
-                Spacer()
-                
-                VStack(spacing: 0) {
-                    infoCardLowOpacity
-                        .opacity(0.8)
-                        .padding(.horizontal, 8)
-                    BuySellForm(
-                        tokenModel: tokenModel,
-                        activeTab: $activeTab,
-                        showBuySheet: $showBuySheet,
-                        defaultAmount: $defaultAmount,
-                        handleBuy: handleBuy,
-                        onSellSuccess: onSellSuccess
-                    )
-                    .equatable()
-                }
+                infoCardOverlay
+                buySheetOverlay
             }
-            .frame(maxWidth: .infinity)
-            .foregroundColor(AppColors.white)
-            
-            infoCardOverlay
-            buySheetOverlay
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .dismissKeyboardOnTap()
+            .background(.black)
+            .navigationBarBackButtonHidden(true)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .dismissKeyboardOnTap()
+        .background(.black)
     }
     
     private var tokenInfoView: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                if tokenModel.token.imageUri != "" {
-                    ImageView(imageUri: tokenModel.token.imageUri, size: 20)
-                }
-                Text("$\(tokenModel.token.symbol)")
-                    .font(.sfRounded(size: .lg, weight: .semibold))
+        HStack(alignment: .center) {
+            // Image column
+            if tokenModel.token.imageUri != "" {
+                ImageView(imageUri: tokenModel.token.imageUri, size: 50)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(AppColors.white.opacity(0.5), lineWidth: 1)
+                    )
             }
-            HStack(alignment: .center, spacing: 6) {
-                if tokenModel.loading {
-                    LoadingPrice()
-                } else {
-                    Text(priceModel.formatPrice(usd: tokenModel.prices.last?.priceUsd ?? 0, maxDecimals: 9, minDecimals: 2))
-                        .font(.sfRounded(size: .xl4, weight: .bold))
-                    Image(systemName: "info.circle.fill")
-                        .frame(width: 16, height: 16)
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
             
-            if tokenModel.loading {
-                LoadingPriceChange()
-            } else {
+            // Text column
+            VStack(alignment: .leading, spacing: 0) {
+                Text("$\(tokenModel.token.symbol)")
+                    .font(.sfRounded(size: .lg, weight: .semibold)).opacity(0.7)
+                
+                HStack(alignment: .center, spacing: 6) {
+                    if tokenModel.isReady {
+                        let price = priceModel.formatPrice(usd: tokenModel.prices.last?.priceUsd ?? 0, maxDecimals: 9, minDecimals: 2)
+                        Text(price)
+                            .font(.sfRounded(size: .xl4, weight: .bold))
+                        Image(systemName: "info.circle.fill")
+                            .frame(width: 16, height: 16)
+                    } else {
+                        LoadingBox(width: 200, height: 40).padding(.vertical, 4)
+                    }
+                }
+                
+                let price = priceModel.formatPrice(usd: tokenModel.priceChange.amountUsd, showSign: true)
                 HStack {
-                    Text(priceModel.formatPrice(usd: tokenModel.priceChange.amountUsd, maxDecimals: 9, minDecimals: 2))
-                    Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
                     
-                    Text("\(formatDuration(tokenModel.currentTimeframe.timeframeSecs))").foregroundColor(.gray)
+                    if tokenModel.isReady {
+                        Text(price)
+                        Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
+                        Text("\(formatDuration(tokenModel.currentTimeframe.timeframeSecs))").foregroundColor(.gray)
+                    } else {
+                        LoadingBox(width:160, height: 12)
+                    }
                 }
                 .font(.sfRounded(size: .sm, weight: .semibold))
                 .foregroundColor(tokenModel.priceChange.amountUsd >= 0 ? .green : .red)
@@ -152,7 +183,6 @@ struct TokenView : View {
         }
         .padding(.horizontal)
         .onTapGesture {
-            // Toggle the info card
             withAnimation(.easeInOut) {
                 showInfoCard.toggle()
             }
@@ -163,13 +193,12 @@ struct TokenView : View {
     
     private var chartView: some View {
         Group {
-            if tokenModel.loading {
-                LoadingChart()
+            if !tokenModel.isReady {
+                LoadingBox(height: 350)
             } else if selectedTimespan == .live {
                 ChartView(
                     prices: tokenModel.prices,
                     timeframeSecs: selectedTimespan.timeframeSecs,
-                    purchaseData: tokenModel.purchaseData,
                     height: height
                 )
             } else {
@@ -199,7 +228,7 @@ struct TokenView : View {
     
     private func intervalButton(for timespan: Timespan) -> some View {
         Button {
-            withAnimation {
+            withAnimation(.easeInOut(duration: 0.15)) {
                 selectedTimespan = timespan
                 tokenModel.updateHistoryInterval(timespan)
             }
@@ -227,16 +256,14 @@ struct TokenView : View {
     private var stats: [(String, StatValue)] {
         var stats = [(String, StatValue)]()
         
-        if let purchaseData = tokenModel.purchaseData, let price = tokenModel.prices.last?.priceUsd, price > 0, activeTab == "sell" {
-            // Calculate current value in lamports
-            let currentValueLamps = Int(Double(tokenModel.balanceLamps) * Double(priceModel.usdToLamports(usd: price)) / 1e9)
+        if let purchaseData = userModel.purchaseData, let priceUsd = tokenModel.prices.last?.priceUsd, priceUsd > 0, activeTab == "sell" {
+            // Calculate current value
+            let tokenBalance = Double(userModel.tokenBalanceLamps ?? 0) / 1e9
+            let tokenBalanceUsd = tokenBalance * (tokenModel.prices.last?.priceUsd ?? 0)
+            let initialValueUsd = priceModel.lamportsToUsd(lamports: purchaseData.amount)
             
             // Calculate profit
-            let initialValueUsd = priceModel.lamportsToUsd(lamports: purchaseData.amount)
-            let currentValueUsd = priceModel.lamportsToUsd(lamports: currentValueLamps)
-            let gains = currentValueUsd - initialValueUsd
-            
-            
+            let gains = tokenBalanceUsd - initialValueUsd
             
             if purchaseData.amount > 0, initialValueUsd > 0 {
                 let percentageGain = gains / initialValueUsd * 100
@@ -251,16 +278,15 @@ struct TokenView : View {
             // Add position stats
             stats += [
                 ("You own", StatValue(
-                    text: "\(priceModel.formatPrice(lamports: currentValueLamps, maxDecimals: 2, minDecimals: 2)) (\(formatLargeNumber(Double(tokenModel.balanceLamps) / 1e9)) \(tokenModel.token.symbol))",
+                    text: "\(priceModel.formatPrice(usd: tokenBalanceUsd, maxDecimals: 2, minDecimals: 2)) (\(formatLargeNumber(tokenBalance)) \(tokenModel.token.symbol))",
                     color: nil
                 ))
             ]
         } else {
             stats += tokenModel.getTokenStats(priceModel: priceModel).map {
-                ($0.0, StatValue(text: $0.1, color: nil))
+                ($0.0, StatValue(text: $0.1 ?? "", color: nil))
             }
         }
-        
         return stats
     }
     
@@ -350,7 +376,7 @@ struct TokenView : View {
                     }
                 VStack {
                     Spacer()
-                    TokenInfoCardView(tokenModel: tokenModel, isVisible: $showInfoCard, activeTab: $activeTab)
+                    TokenInfoCardView(tokenModel: tokenModel, isVisible: $showInfoCard)
                 }
                 .transition(.move(edge: .bottom))
                 .zIndex(1) // Ensure it stays on top

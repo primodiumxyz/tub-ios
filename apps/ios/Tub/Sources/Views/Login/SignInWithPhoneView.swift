@@ -12,10 +12,10 @@ enum FocusPin {
 }
 
 struct SignInWithPhoneView: View {
-    @EnvironmentObject private var errorHandler: ErrorHandler
+    @EnvironmentObject private var notificationHandler: NotificationHandler
     @State private var phoneNumber = ""
     @State private var showOTPInput = false
-    @State private var loading: Bool = false
+    @State private var signingIn : Bool = false
     
     @State private var showPhoneError = false
     @State private var selectedCountryCode = countryCodes[0].code
@@ -47,24 +47,27 @@ struct SignInWithPhoneView: View {
     }
     
     private func handlePhoneLogin() {
-        if loading { return }
+        if signingIn { return }
         if phoneNumber.isEmpty || !isValidPhoneNumber(phoneNumber) {
             showPhoneError = true
             return
         }
         Task {
-            loading = true
+            signingIn = true
             let otpSent = await privy.sms.sendCode(to: phoneNumber)
             if otpSent {
                 showOTPInput = true
             }else {
                 let error = NSError(domain: "PrivyError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to send OTP"])
-                errorHandler.show(error)
+                notificationHandler.show(
+                    error.localizedDescription,
+                    type: .error
+                )
                 debugPrint("Error: Failed to send OTP.")
                 
                 showOTPInput = false
             }
-            loading = false
+            signingIn = false
         }
     }
     
@@ -77,13 +80,16 @@ struct SignInWithPhoneView: View {
     private func verifyOTP(otpCode: String) {
         Task {
             do {
-                if loading { return }
-                loading = true
+                if signingIn { return }
+                signingIn = true
                 let _ = try await privy.sms.loginWithCode(otpCode, sentTo: phoneNumber)
-                loading = false
+                signingIn = false
             } catch {
-                loading = false
-                errorHandler.show(error)
+                signingIn = false
+                notificationHandler.show(
+                    error.localizedDescription,
+                    type: .error
+                )
                 print(error)
             }
         }
@@ -135,7 +141,7 @@ struct SignInWithPhoneView: View {
                         .background(AppColors.primaryPurple)
                         .cornerRadius(26)
                 }
-                .disabled(loading)
+                .disabled(signingIn)
                 .padding(.horizontal)
                 .padding(.top, 5)
                 Text(showPhoneError ? "Please enter a valid phone number." : "")

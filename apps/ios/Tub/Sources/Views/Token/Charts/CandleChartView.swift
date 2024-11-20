@@ -7,17 +7,30 @@
 
 import SwiftUI
 import Charts
+import Combine
 
 struct CandleChartView: View {
     @EnvironmentObject var priceModel: SolPriceModel
-    let candles: [CandleData]
+    let rawCandles: [CandleData]
     let timeframeMins: Double
     let height: CGFloat
+    @State private var currentTime = Date().timeIntervalSince1970
+        
+    @State private var timerCancellable: Cancellable?
+    @State private var timer: Timer.TimerPublisher = Timer.publish(every: UPDATE_INTERVAL, on: .main, in: .common)
 
     init(candles: [CandleData], timeframeMins: Double = 30, height: CGFloat = 330) {
-        self.candles = candles
+        self.rawCandles = candles
         self.timeframeMins = timeframeMins
         self.height = height
+    }
+
+    private var candles: [CandleData] {
+        let cutoffTime = currentTime - (timeframeMins * 60)
+        if let firstIndex = rawCandles.firstIndex(where: { $0.start.timeIntervalSince1970 >= cutoffTime }) {
+            return Array(rawCandles.suffix(from: firstIndex))
+        }
+        return rawCandles
     }
 
     private var yDomain: ClosedRange<Double> {
@@ -26,11 +39,21 @@ struct CandleChartView: View {
         let minPrice = candles.min { $0.low < $1.low }?.low ?? 0
         let maxPrice = candles.max { $0.high < $1.high }?.high ?? 100
         let range = maxPrice - minPrice
-        let padding = range * 0.25
+        let padding = range * 0.10
         
         return (minPrice - padding)...(maxPrice + padding)
     }
 
+    private var xDomain: ClosedRange<Date> {
+        if candles.isEmpty { 
+            return Date().addingTimeInterval(-timeframeMins * 60)...Date() 
+        }
+        
+        let endTime = candles.last?.end ?? Date()
+        let startTime = endTime.addingTimeInterval(-timeframeMins * 60)
+        return startTime...endTime
+    }
+    
     var body: some View {
         Chart {
             ForEach(candles) { candle in
@@ -38,8 +61,7 @@ struct CandleChartView: View {
                 RectangleMark(
                     x: .value("Time", candle.start),
                     yStart: .value("Open", candle.open),
-                    yEnd: .value("Close", candle.close),
-                    width: 8
+                    yEnd: .value("Close", candle.close)
                 )
                 .foregroundStyle(candle.close >= candle.open ? AppColors.green : AppColors.red)
 
@@ -50,28 +72,39 @@ struct CandleChartView: View {
                     yEnd: .value("Low", candle.low)
                 )
                 .foregroundStyle(candle.close >= candle.open ? AppColors.green : AppColors.red)
+                .opacity(0.5)
             }
         }
-        .chartXAxis {
-            AxisMarks(position: .bottom) { value in
-                AxisValueLabel {
-                    if let date = value.as(Date.self) {
-                        Text(date.formatted(.dateTime.hour()))
-                            .foregroundStyle(.white.opacity(0.5))
-                    }
-                }
-            }
-        }
-        .chartYAxis {
-            AxisMarks(position: .leading) { value in
-                AxisValueLabel {
-                    if let doubleValue = value.as(Double.self) {
-                        Text(priceModel.formatPrice(usd: doubleValue))
-                            .foregroundStyle(.white.opacity(0.5))
-                    }
-                }
-            }
-        }
+        .chartXScale(domain: xDomain)
+        .chartYScale(domain: yDomain)
+        .chartXAxis(content: xAxisConfig)
+        .chartYAxis(content: yAxisConfig)
         .frame(height: height)
+.onAppear {
+            timerCancellable = timer.connect()
+        }
+        .onDisappear {
+            timerCancellable?.cancel()
+        }
+
+    }
+    private func yAxisConfig() -> some AxisContent {
+        AxisMarks(position: .leading) { value in
+            AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
+                .foregroundStyle(.white.opacity(0.2))
+            AxisValueLabel {
+                if let doubleValue = value.as(Double.self) {
+                    Text(priceModel.formatPrice(usd: doubleValue, maxDecimals: 6))
+                        .foregroundStyle(.white.opacity(0.5))
+                }
+            }
+        }
+    }
+
+    private func xAxisConfig() -> some AxisContent {
+        AxisMarks(values: .stride(by: .minute, count: Int(floor(timeframeMins / 4)))) { value in
+            AxisValueLabel(format: .dateTime.hour().minute())
+                .foregroundStyle(.white.opacity(0.5))
+        }
     }
 }

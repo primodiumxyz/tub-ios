@@ -14,36 +14,44 @@ struct AccountBalanceView: View {
     
     @State private var isExpanded: Bool = false
     
-    var accountBalance: (Double, Double, Double) {
-        let balanceUsd = priceModel.lamportsToUsd(lamports: userModel.balanceLamps)
-        let tokenValueUsd = Double(currentTokenModel.balanceLamps) * (currentTokenModel.prices.last?.priceUsd ?? 0) / 1e9
+    var balances: (solBalanceUsd: Double?, tokenBalanceUsd: Double, deltaUsd: Double) {
+        let solBalanceUsd = userModel.balanceLamps == nil ? nil : priceModel.lamportsToUsd(lamports: userModel.balanceLamps!)
+        let tokenBalanceUsd = userModel.tokenBalanceLamps == nil ? 0 : Double(userModel.tokenBalanceLamps!) * (currentTokenModel.prices.last?.priceUsd ?? 0) / 1e9
         
-        let adjustedChangeUsd = tokenValueUsd + priceModel.lamportsToUsd(lamports: userModel.balanceChangeLamps)
+        let deltaUsd = (tokenBalanceUsd) + priceModel.lamportsToUsd(lamports: userModel.balanceChangeLamps)
         
-        return (tokenValueUsd, balanceUsd, adjustedChangeUsd)
+        return (solBalanceUsd, tokenBalanceUsd, deltaUsd)
     }
     
     var body: some View {
         VStack(alignment: .center) {
-            
             // Collapsed view
+            
             if !isExpanded {
                 VStack {
-                    HStack {
-                        Text("Account Balance")
-                            .font(.sfRounded(size: .base, weight: .semibold))
-                            .foregroundColor(AppColors.white)
-                        
-                        Spacer()
-                        
-                        Text("\(priceModel.formatPrice(usd: accountBalance.0 + accountBalance.1, maxDecimals: 2, minDecimals: 2))")
-                            .font(.sfRounded(size: .lg))
-                            .fontWeight(.bold)
-                            .foregroundColor(AppColors.green)
-                            .padding(.trailing)
+                    if userModel.userId == nil {
+                        EmptyView()
+                    } else {
+                        HStack {
+                            Text("Account Balance")
+                                .font(.sfRounded(size: .base, weight: .semibold))
+                                .foregroundColor(AppColors.white)
+                            
+                            Spacer()
+                            if let balance = balances.solBalanceUsd {
+                                let balanceUsd = priceModel.formatPrice(usd: balance + balances.tokenBalanceUsd, maxDecimals: 2, minDecimals: 2)
+                                Text(balanceUsd)
+                                    .font(.sfRounded(size: .lg))
+                                    .fontWeight(.bold)
+                                    .foregroundColor(AppColors.green)
+                                    .padding(.trailing)
+                                    .frame(height:20)
+                                
+                            } else {
+                                LoadingBox(width: 80, height: 20)
+                            }
+                        }
                     }
-                    .padding(.horizontal,10)
-                    .frame(maxWidth: .infinity, alignment: .topLeading)
                 }
             }
             
@@ -57,41 +65,42 @@ struct AccountBalanceView: View {
                                 .foregroundColor(AppColors.white)
                             
                             HStack {
-                                Text("\(priceModel.formatPrice(usd: accountBalance.0 + accountBalance.1, maxDecimals: 2, minDecimals: 2))")
+                                if let balance = balances.solBalanceUsd {
+                                    let formattedBalance = priceModel.formatPrice(usd: balance, maxDecimals: 2, minDecimals: 2)
+                                    Text(formattedBalance)
+                                        .font(.sfRounded(size: .xl2))
+                                        .fontWeight(.bold)
+                                        .foregroundColor(AppColors.white)
+                                    
+                                }
+                                
+                                let formattedChange = priceModel.formatPrice(usd: balances.deltaUsd, showSign: true, maxDecimals: 2)
+                                Text(formattedChange)
                                     .font(.sfRounded(size: .xl2))
                                     .fontWeight(.bold)
-                                    .foregroundColor(AppColors.white)
-                                
-                                    
-                                    Text("\(priceModel.formatPrice(usd: accountBalance.2, showSign: true, maxDecimals: 2))")
-                                    
-                                    
-                                    // Format time elapsed
-                                    Text("\(formatDuration(userModel.timeElapsed))")
-                                        .foregroundColor(.gray)
-                                        .font(.sfRounded(size: .sm, weight: .regular))
+                                    .foregroundColor(balances.deltaUsd >= 0 ? AppColors.green : AppColors.red)
                             }
                             .font(.sfRounded(size: .sm, weight: .semibold))
-                            .foregroundColor(accountBalance.2 >= 0 ? AppColors.green : AppColors.red)
+                            .foregroundColor(balances.deltaUsd >= -10 ? AppColors.green : AppColors.red)
                         }
                         .padding(.horizontal,5)
                         .onTapGesture {
                             withAnimation {
-                                    isExpanded.toggle()
+                                isExpanded.toggle()
                             }
                         }
                         
                     }
                     .frame(maxWidth: .infinity, alignment: .topLeading)
                     
-                 
+                    
                 }
             }
         }
         .padding(.horizontal, 10)
         .onTapGesture {
             withAnimation {
-                    isExpanded.toggle()
+                isExpanded.toggle()
             }
         }
     }

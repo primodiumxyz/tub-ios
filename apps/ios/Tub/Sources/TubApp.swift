@@ -12,12 +12,12 @@ import SwiftUI
 struct TubApp: App {
     @Environment(\.scenePhase) private var scenePhase
     private let dwellTimeTracker = AppDwellTimeTracker.shared
-
+    
     var body: some Scene {
         WindowGroup {
             AppContent()
         }
-        .onChange(of: scenePhase) { phase in
+        .onChange(of: scenePhase) { _, phase in
             switch phase {
             case .active:
                 dwellTimeTracker.startTracking()
@@ -31,95 +31,33 @@ struct TubApp: App {
 }
 
 struct AppContent: View {
-    @StateObject private var errorHandler = ErrorHandler()
-    @State var userId : String = ""
-    @State var authState: PrivySDK.AuthState = .notReady 
+    @StateObject private var notificationHandler = NotificationHandler()
+    @StateObject private var userModel = UserModel.shared
+    @StateObject private var priceModel = SolPriceModel.shared
     
-    @State var embeddedWalletState: PrivySDK.EmbeddedWalletState = .notCreated
-    @State var embeddedWalletAddress: String = ""
-    @State var authError: Error? = nil
-    @State var walletError: Error? = nil
-    @State var linkedAccounts: [PrivySDK.LinkedAccount]? = nil
-   
+    
     var body: some View {
         Group {
-            if let error = walletError {
-                LoginErrorView(
-                    errorMessage: error.localizedDescription,
-                    retryAction: {
-                        Task {
-                            authError = nil
-                            walletError = nil
-                            // Retry connection
-                            do {
-                                let _ = try await privy.refreshSession()
-                            } catch {
-                                errorHandler.show(error)
-                            }
-                        }
-                    }
-                    ,
-                    logoutAction: {
-                        authError = nil
-                        walletError = nil
-                    }
+            if CodexTokenManager.shared.fetchFailed {
+                LoginErrorView(errorMessage: "Failed to connect. Please try again.",
+                               retryAction: CodexTokenManager.shared.handleUserSession
                 )
-            } else if authState == .notReady || embeddedWalletState.toString == "connecting" {
-                LoadingView(message: "Connecting wallet")
-            } else if userId == "" || authState == .unauthenticated {
-                RegisterView()
-            } else if embeddedWalletAddress == "" {
-                CreateWalletView()
             }
-            else     {
-                HomeTabsView(userId: userId, walletAddress: embeddedWalletAddress, linkedAccounts: self.linkedAccounts).font(.sfRounded())
+            else if !CodexTokenManager.shared.isReady {
+                LoadingView(identifier: "Fetching Codex token", message: "Fetching auth token")
+                
+            } else {
+                HomeTabsView(userModel: userModel).font(.sfRounded())
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(.black)
+                    .withNotificationBanner()
+                    .environmentObject(notificationHandler)
+                    .environmentObject(userModel)
+                    .environmentObject(priceModel)
             }
+        }.onAppear {
+             CodexTokenManager.shared.handleUserSession()
         }
-        .zIndex(0)
-        .onAppear {
-            privy.setAuthStateChangeCallback { state in
-                switch state {
-                case .error(let error):
-                    self.authError = error
-                case .authenticated(let authSession):
-                    self.authError = nil
-                    self.userId = authSession.user.id
-                    self.linkedAccounts = authSession.user.linkedAccounts
-                    // Initialize CodexNetwork here
-                    Task {
-                        do {
-                            // Request a Codex token & tart the refresh timer
-                            try await CodexTokenManager.shared.handleUserSession()
-                        } catch {
-                            errorHandler.show(error)
-                        }
-                    }
-                default:
-                    self.authError = nil
-                    self.userId = ""
-                }
-                self.authState = state
-            }
-
-            privy.embeddedWallet.setEmbeddedWalletStateChangeCallback { state in
-                switch state {
-                case .error:
-                    self.walletError = NSError(
-                        domain: "com.tubapp.wallet", code: 1001,
-                        userInfo: [NSLocalizedDescriptionKey: "Failed to connect wallet."])
-                case .connected(let wallets):
-                    self.walletError = nil
-                    if let solanaWallet = wallets.first(where: { $0.chainType == .solana }) {
-                        self.embeddedWalletAddress = solanaWallet.address
-                    }
-                default:
-                    break
-                }
-                self.embeddedWalletState = state
-            }
-        }
-        .withErrorHandling()
-        .environmentObject(errorHandler)
     }
 }
 
@@ -128,7 +66,7 @@ struct AppContent: View {
 }
 
 extension View {
-    func withErrorHandling() -> some View {
-        modifier(ErrorOverlay())
+    func withNotificationBanner() -> some View {
+        modifier(NotificationBanner())
     }
 }
