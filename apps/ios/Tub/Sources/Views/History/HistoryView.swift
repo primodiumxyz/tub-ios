@@ -305,25 +305,14 @@ struct HistoryViewContent: View {
                         .foregroundColor(AppColors.gray)
                 } else {
                     List {
-                        ForEach(filteredTransactions(), id: \.id) { transaction in
-                            NavigationLink(destination: HistoryDetailsView(transaction: transaction)) {
-                                
-                                VStack {
-                                    TransactionRow(transaction: transaction)
-                                        .padding(.bottom, 2.0)
-                                        .padding(.leading, 10.0)
-                                    
-                                    if transaction != txs.last  {
-                                        Divider()
-                                            .frame(width: 340.0, height: 1.0)
-                                            .background(Color(hue: 1.0, saturation: 0.0, brightness: 0.2))
-                                    }
-                                }
-                            }
-                            .listRowBackground(Color.black)
+                        ForEach(groupTransactions(filteredTransactions()), id: \.date) { group in
+                            TransactionGroupRow(group: group)
+                                .listRowInsets(EdgeInsets())
                         }
                     }
                     .listStyle(PlainListStyle())
+                    .background(Color.black.edgesIgnoringSafeArea(.all))
+                    .padding(.horizontal, 16)
                 }
                 Spacer()
                 
@@ -483,11 +472,3 @@ struct TransactionRow: View {
         return formatter.string(from: date)
     }
 }
-
-
-#Preview {
-    @Previewable @StateObject var notificationHandler = NotificationHandler()
-    @Previewable @StateObject var priceModel = SolPriceModel.shared
-    HistoryView(txs: dummyData).environmentObject(priceModel).environmentObject(notificationHandler)
-}
-
