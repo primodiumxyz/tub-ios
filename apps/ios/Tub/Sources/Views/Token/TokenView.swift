@@ -20,11 +20,6 @@ enum TubError: LocalizedError {
     }
 }
 
-enum Timespan: String, CaseIterable {
-    case live = "LIVE"
-    case thirtyMin = "30M"
-}
-
 
 
 struct TokenView : View {
@@ -34,7 +29,6 @@ struct TokenView : View {
     @EnvironmentObject private var notificationHandler: NotificationHandler
     
     @State private var showInfoCard = false
-    @State private var selectedTimespan: Timespan = .live
     @State private var showBuySheet: Bool = false
     @State private var defaultAmount: Double = 50.0
     @State private var keyboardHeight: CGFloat = 0
@@ -188,7 +182,7 @@ struct TokenView : View {
         Group {
             if !tokenModel.isReady {
                 LoadingBox(height: 350)
-            } else if selectedTimespan == .live {
+            } else if tokenModel.selectedTimespan == .live {
                 ChartView(
                     prices: tokenModel.prices,
                     height: height
@@ -221,7 +215,7 @@ struct TokenView : View {
     private func intervalButton(for timespan: Timespan) -> some View {
         Button {
             withAnimation(.easeInOut(duration: 0.15)) {
-                selectedTimespan = timespan
+                tokenModel.selectedTimespan = timespan
             }
         } label: {
             HStack(spacing: 4) {
@@ -236,8 +230,8 @@ struct TokenView : View {
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
             .frame(width: 65)
-            .background(selectedTimespan == timespan ? AppColors.aquaBlue : Color.clear)
-            .foregroundColor(selectedTimespan == timespan ? AppColors.black : AppColors.white)
+            .background(tokenModel.selectedTimespan == timespan ? AppColors.aquaBlue : Color.clear)
+            .foregroundColor(tokenModel.selectedTimespan == timespan ? AppColors.black : AppColors.white)
             .cornerRadius(20)
         }
     }

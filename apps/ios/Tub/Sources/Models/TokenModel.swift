@@ -27,6 +27,8 @@ class TokenModel: ObservableObject {
     @Published var prices: [Price] = []
     @Published var candles: [CandleData] = []
     @Published var priceChange: (amountUsd: Double, percentage: Double) = (0, 0)
+    
+    @Published var selectedTimespan: Timespan = .live
 
     private var lastPriceTimestamp: Date?
     
@@ -61,8 +63,13 @@ class TokenModel: ObservableObject {
                 try await fetchUniqueHolders()
                 
                 // Fetch both types of data
-                await fetchInitialPrices()
-                try await fetchInitialCandles()
+                if (selectedTimespan == .live) {
+                    await fetchInitialPrices()
+                    try await fetchInitialCandles()
+                } else {
+                    try await fetchInitialCandles()
+                    await fetchInitialPrices()
+                }
                 
                 // Move final status update to main thread
                 DispatchQueue.main.async {
@@ -70,8 +77,13 @@ class TokenModel: ObservableObject {
                 }
                 
                 // Subscribe to both updates
-                await subscribeToTokenPrices()
-                await subscribeToCandles()
+                if (selectedTimespan == .live) {
+                    await subscribeToTokenPrices()
+                    await subscribeToCandles()
+                } else {
+                    await subscribeToCandles()
+                    await subscribeToTokenPrices()
+                }
             } catch {
                 print("Error fetching initial data: \(error)")
                 DispatchQueue.main.async {
