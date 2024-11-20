@@ -274,33 +274,31 @@ class TokenModel: ObservableObject {
             switch result {
             case .success(let graphQLResult):
                 if let newCandle = graphQLResult.data?.onBarsUpdated?.aggregates.r1?.token {
-//                    print(self.candles)
-//                    print(newCandle)
-//                    let candleData = CandleData(
-//                        start: Date(timeIntervalSince1970: TimeInterval(newCandle.t)),
-//                        end: Date(timeIntervalSince1970: TimeInterval(newCandle.t) + 60),
-//                        open: newCandle.o,
-//                        close: newCandle.c,
-//                        high: max(newCandle.h, newCandle.c),
-//                        low: min(newCandle.l, newCandle.c),
-//                        volume: newCandle.v
-//                    )
-//                    DispatchQueue.main.async {
-//                        self.candles.append(candleData)
-//                        if let index = self.candles.firstIndex(where: { $0.start == candleData.start }) {
-//                            var updatedCandle = self.candles[index]
-//                            updatedCandle.close = candleData.close
-//                            updatedCandle.high = max(updatedCandle.high, candleData.close)
-//                            updatedCandle.low = min(updatedCandle.low, candleData.close)
-//                            updatedCandle.volume = candleData.volume
-//                            self.candles[index] = updatedCandle
-//                        } else {
-//                            self.candles.sort { $0.start < $1.start }
-//                        }
-//                        
-//                        let thirtyMinutesAgo = Date().addingTimeInterval(-30 * 60)
-//                        self.candles.removeAll { $0.start < thirtyMinutesAgo }
-//                    }
+                    let candleData = CandleData(
+                        start: Date(timeIntervalSince1970: TimeInterval(newCandle.t)),
+                        end: Date(timeIntervalSince1970: TimeInterval(newCandle.t) + 60),
+                        open: newCandle.o,
+                        close: newCandle.c,
+                        high: max(newCandle.h, newCandle.c),
+                        low: min(newCandle.l, newCandle.c),
+                        volume: newCandle.v
+                    )
+                    DispatchQueue.main.async {
+                        self.candles.append(candleData)
+                        if let index = self.candles.firstIndex(where: { $0.start == candleData.start }) {
+                            var updatedCandle = self.candles[index]
+                            updatedCandle.close = candleData.close
+                            updatedCandle.high = max(updatedCandle.high, candleData.close)
+                            updatedCandle.low = min(updatedCandle.low, candleData.close)
+                            updatedCandle.volume = candleData.volume
+                            self.candles[index] = updatedCandle
+                        } else {
+                            self.candles.sort { $0.start < $1.start }
+                        }
+                        
+                        let thirtyMinutesAgo = Date().addingTimeInterval(-30 * 60)
+                        self.candles.removeAll { $0.start < thirtyMinutesAgo }
+                    }
                 }
             case .failure(let error):
                 print("Error in candle subscription: \(error.localizedDescription)")
