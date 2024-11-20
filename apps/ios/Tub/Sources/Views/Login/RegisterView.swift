@@ -271,5 +271,9 @@ struct RegisterView: View {
 }
 
 #Preview {
+	@Previewable @StateObject var notificationHandler = NotificationHandler()
+	@Previewable @StateObject var userModelxyz = UserModel.shared
 	RegisterView()
+		.environmentObject(notificationHandler)
+		.environmentObject(userModelxyz)
 }
