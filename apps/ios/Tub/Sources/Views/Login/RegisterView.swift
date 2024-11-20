@@ -258,6 +258,7 @@ struct RegisterView: View {
             .padding(.top, 80)
         }
         .ignoresSafeArea(.keyboard)
+		.scrollBounceBehavior(.basedOnSize, axes: [.vertical])
         .padding(.vertical)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.darkBlueGradient)
