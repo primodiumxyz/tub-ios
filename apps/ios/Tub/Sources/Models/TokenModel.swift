@@ -36,7 +36,12 @@ class TokenModel: ObservableObject {
     private var priceSubscription: Apollo.Cancellable?
     private var candleSubscription: Apollo.Cancellable?
     
+    private var latestPrice: Double?
+    private var priceUpdateTimer: Timer?
+    
     deinit {
+        priceUpdateTimer?.invalidate()
+        priceUpdateTimer = nil
         // Clean up subscriptions when the object is deallocated
         priceSubscription?.cancel()
         candleSubscription?.cancel()
@@ -89,63 +94,70 @@ class TokenModel: ObservableObject {
     func fetchInitialPrices(_ tokenId: String, timeframeSecs: Double = 30 * 60) async {
         let client = await CodexNetwork.shared.apolloClient
         let now = Int(Date().timeIntervalSince1970)
-        let batchSize = 25
-        let numBatches = Int(ceil(timeframeSecs / Double(batchSize)))
+        let startTime = now - Int(timeframeSecs)
         
-        func getTokenPrices() async -> [Price] {
-            var allPrices: [Price] = []
-            for i in 0..<numBatches {
-                let batchChunkSize = min(batchSize, Int(timeframeSecs) - (i * batchSize))
-                let inputs = (0..<batchChunkSize).map { index -> GetPriceInput in
-                    let timestamp = now - Int(timeframeSecs) + (i * batchSize + index)
-                    return GetPriceInput(
+        // Calculate number of intervals needed
+        let numIntervals = Int(ceil(timeframeSecs / PRICE_UPDATE_INTERVAL))
+        
+        // Create array of timestamps we need to fetch
+        let timestamps = (0..<numIntervals).map { i in
+            startTime + Int(Double(i) * PRICE_UPDATE_INTERVAL)
+        }
+        
+        // Fetch all prices and collect them in order
+        let prices = await withTaskGroup(of: Price?.self) { group in
+            for timestamp in timestamps {
+                group.addTask {
+                    let input = GetPriceInput(
                         address: tokenId,
                         networkId: NETWORK_FILTER,
                         timestamp: .some(timestamp)
                     )
-                }
-                
-                let query = GetTokenPricesQuery(inputs: inputs)
-                do {
-                    try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-                        client.fetch(query: query) { result in
-                            switch result {
-                            case .success(let response):
-                                if let prices = response.data?.getTokenPrices {
-                                    let batchPrices = prices.compactMap { price -> Price? in
-                                        guard let timestamp = price?.timestamp,
-                                              let priceUsd = price?.priceUsd else { return nil }
-                                        return Price(
+                    
+                    let query = GetTokenPricesQuery(inputs: [input])
+                    do {
+                        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Price?, Error>) in
+                            client.fetch(query: query) { result in
+                                switch result {
+                                case .success(let response):
+                                    if let prices = response.data?.getTokenPrices,
+                                       let firstPrice = prices.first,
+                                       let price = firstPrice?.priceUsd {
+                                        continuation.resume(returning: Price(
                                             timestamp: Date(timeIntervalSince1970: TimeInterval(timestamp)),
-                                            priceUsd: priceUsd
-                                        )
+                                            priceUsd: price
+                                        ))
+                                    } else {
+                                        continuation.resume(returning: nil)
                                     }
-                                    allPrices.append(contentsOf: batchPrices)
+                                case .failure(let error):
+                                    print("Error fetching price at timestamp \(timestamp): \(error)")
+                                    continuation.resume(returning: nil)
                                 }
-                                continuation.resume()
-                            case .failure(let error):
-                                continuation.resume(throwing: error)
                             }
                         }
-                    }
-                } catch {
-                    print(error)
+                    } catch {
+                        print("Error fetching price at timestamp \(timestamp): \(error)")
+                        return nil
                     }
                 }
+            }
+            
+            var allPrices: [Price] = []
+            for await price in group {
+                if let price = price {
+                    allPrices.append(price)
+                }
+            }
             return allPrices
         }
         
-        let allPrices = await getTokenPrices()
+        let sortedPrices = prices.sorted { $0.timestamp < $1.timestamp }
+        
         DispatchQueue.main.async {
-            self.prices = allPrices
-                .sorted { $0.timestamp < $1.timestamp }
-                .reduce(into: [Price]()) { result, price in
-                    if let lastPrice = result.last?.priceUsd, lastPrice == price.priceUsd {
-                        return
-                    }
-                    result.append(price)
-                }
+            self.prices = sortedPrices
             self.lastPriceTimestamp = self.prices.last?.timestamp
+            self.latestPrice = self.prices.last?.priceUsd
             self.isReady = true
             self.calculatePriceChange()
         }
@@ -155,6 +167,27 @@ class TokenModel: ObservableObject {
     private func subscribeToTokenPrices(_ tokenId: String) {
         priceSubscription?.cancel()
         
+        // Start the timer for regular price updates
+        priceUpdateTimer?.invalidate()
+        DispatchQueue.main.async {
+            self.priceUpdateTimer = Timer.scheduledTimer(withTimeInterval: PRICE_UPDATE_INTERVAL, repeats: true) { [weak self] _ in
+                guard let self = self else { return }
+                
+                let now = Date()
+                if let price = self.latestPrice {
+                    // Add a new price point at each interval
+                    let newPrice = Price(timestamp: now, priceUsd: price)
+                    self.prices.append(newPrice)
+                    self.lastPriceTimestamp = now
+                    self.calculatePriceChange()
+                }
+            }
+            
+            // Make sure the timer is retained
+            RunLoop.main.add(self.priceUpdateTimer!, forMode: .common)
+        }
+        
+        // Subscribe to real-time price updates
         priceSubscription = CodexNetwork.shared.apollo.subscribe(subscription: SubTokenPricesSubscription(
             tokenAddress: tokenId
         )) { [weak self] result in
@@ -171,25 +204,12 @@ class TokenModel: ObservableObject {
                     let swaps = events
                         .filter { $0.eventType == .swap }
                         .sorted { $0.timestamp < $1.timestamp }
-                    for swap in swaps {
-                        if let lastTimestamp = self.lastPriceTimestamp?.timeIntervalSince1970,
-                           Double(swap.timestamp) <= lastTimestamp {
-                            continue
-                        }
+                    
+                    if let lastSwap = swaps.last {
+                        let priceUsd = lastSwap.quoteToken == .token0 ?
+                            lastSwap.token0PoolValueUsd ?? "0" : lastSwap.token1PoolValueUsd ?? "0"
                         
-                        let priceUsd = swap.quoteToken == .token0 ?
-                            swap.token0PoolValueUsd ?? "0" : swap.token1PoolValueUsd ?? "0"
-                        
-                        let newPrice = Price(
-                            timestamp: Date(timeIntervalSince1970: TimeInterval(swap.timestamp)),
-                            priceUsd: Double(priceUsd) ?? 0.0
-                        )
-                        
-                        DispatchQueue.main.async {
-                            self.prices.append(newPrice)
-                            self.lastPriceTimestamp = newPrice.timestamp
-                            self.calculatePriceChange()
-                        }
+                        self.latestPrice = Double(priceUsd) ?? 0.0
                     }
                 }
             case .failure(let error):
