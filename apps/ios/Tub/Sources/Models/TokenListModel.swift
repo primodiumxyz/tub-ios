@@ -23,7 +23,7 @@ class TokenListModel: ObservableObject {
     @Published var currentTokenModel: TokenModel
     var userModel: UserModel
 
-    @Published var isLoading = true
+    @Published var isReady = false
 
     // Cooldown for not showing the same token too often
     private let TOKEN_COOLDOWN: TimeInterval = 60  // 60 seconds cooldown
@@ -50,9 +50,9 @@ class TokenListModel: ObservableObject {
         return self.availableTokens.count > 1
     }
 
-    private func initTokenModel() {
+    private func initTokenModel() async {
         let token = self.tokens[self.currentTokenIndex]
-        self.currentTokenModel.initialize(with: token)
+        await self.currentTokenModel.initialize(with: token)
         self.userModel.initToken(tokenId: token.id)
     }
 
@@ -109,7 +109,7 @@ class TokenListModel: ObservableObject {
     // - Set the current token to the next one in line
     // - Update the current token model
     // - Push a new random token to the array for the next swipe
-    func loadNextToken() {
+    func loadNextToken() async {
         // Record dwell time for current token before switching
         self.recordTokenDwellTime()
 
@@ -126,7 +126,7 @@ class TokenListModel: ObservableObject {
 
         if let newToken = getNextToken(excluding: tokens[currentTokenIndex].id) {
             tokens.append(newToken)
-            initTokenModel()
+            await initTokenModel()
             currentTokenStartTime = Date()
         }
     }
@@ -134,7 +134,7 @@ class TokenListModel: ObservableObject {
     // - Set the current token to the previously visited one
     // - Update the current token model
     // - Pop the last token in the array (swiping down should always be a fresh pumping token)
-    func loadPreviousToken() {
+    func loadPreviousToken() async {
         if currentTokenIndex == 0 { return }
 
         // Record dwell time for current token before switching
@@ -144,12 +144,12 @@ class TokenListModel: ObservableObject {
         previousTokenModel = TokenModel()
 
         tokens.removeLast()
-        initTokenModel()
+        await initTokenModel()
         currentTokenStartTime = Date()
     }
 
     // - Update the last token in the array to a random pumping token (keep it fresh for the next swipe)
-    private func updateTokens() {
+    private func updateTokens() async {
         guard !availableTokens.isEmpty else { return }
 
         // If it's initial load, generate two random tokens
@@ -158,8 +158,11 @@ class TokenListModel: ObservableObject {
                 tokens.append(firstToken)
                 if let secondToken = getNextToken(excluding: firstToken.id) {
                     tokens.append(secondToken)
-                    initTokenModel()
+                    await initTokenModel()
                     // Set start time for initial token
+                    await MainActor.run{
+                        if !self.isReady { self.isReady = true }
+                    }
                     currentTokenStartTime = Date()
                 }
             }
@@ -258,9 +261,8 @@ class TokenListModel: ObservableObject {
                     
                     // Update UI on main thread
                     Task { @MainActor in
-                        self.isLoading = false
                         self.availableTokens = processedData.0
-                        self.updateTokens()
+                        await self.updateTokens()
                         
                         if let currentToken = processedData.1 {
                             self.currentTokenModel.updateTokenDetails(from: currentToken)

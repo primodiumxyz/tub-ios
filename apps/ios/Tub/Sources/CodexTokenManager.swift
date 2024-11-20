@@ -6,6 +6,29 @@
 //
 
 import Foundation
+import SwiftUI
+
+// Add this structure above the CodexTokenManager class
+struct CodexTokenData: RawRepresentable, Codable {
+    let token: String
+    let expiry: String
+    
+    init?(rawValue: String) {
+        let components = rawValue.components(separatedBy: "|")
+        guard components.count == 2 else { return nil }
+        self.token = components[0]
+        self.expiry = components[1]
+    }
+    
+    var rawValue: String {
+        return "\(token)|\(expiry)"
+    }
+    
+    init(token: String, expiry: String) {
+        self.token = token
+        self.expiry = expiry
+    }
+}
 
 class CodexTokenManager: ObservableObject {
     static let shared = CodexTokenManager()
@@ -15,16 +38,32 @@ class CodexTokenManager: ObservableObject {
     private var retryCount = 0
     @Published var fetchFailed = false
     @Published var isReady = false
+    @AppStorage("codexToken") private var localCodexTokenData: CodexTokenData?
+    private var localCodexToken: (String, String)? {
+        get {
+            guard let data = localCodexTokenData else { return nil }
+            return (data.token, data.expiry)
+        }
+        set {
+            if let newValue = newValue {
+                localCodexTokenData = CodexTokenData(token: newValue.0, expiry: newValue.1)
+            } else {
+                localCodexTokenData = nil
+            }
+        }
+    }
 
     private var refreshTimer: Timer?
     
     private init() {}
 
-    public func handleUserSession() {
-        isReady = false
-        fetchFailed = false
-        retryCount = 0
-        refreshToken()
+    public func handleUserSession() async {
+        await MainActor.run {
+            isReady = false
+            fetchFailed = false
+            retryCount = 0
+        }
+        await refreshToken()
     }
     
     private func stopTokenRefresh() {
@@ -32,36 +71,59 @@ class CodexTokenManager: ObservableObject {
         refreshTimer = nil
         retryCount = 0
     }
+    private let formatter = { () -> ISO8601DateFormatter in
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return f
+    }()
 
-    private func refreshToken() {
+    private func refreshToken() async {
         fetchFailed = false
-        Task (priority: .high) {
             do {
-                let codexToken = try await Network.shared.requestCodexToken(Int(tokenExpiration) * 1000)
+                var codexToken: (String, String)?
+                if let localToken = localCodexToken {
+                    codexToken = localToken
+                } else {
+                    codexToken = try await Network.shared.requestCodexToken(Int(tokenExpiration) * 1000)
+                }
+
+                guard let codexToken = codexToken else {
+                    throw NSError(domain: "CodexTokenManager", code: 1, userInfo: [
+                        NSLocalizedDescriptionKey: "Failed to fetch codex token"
+                    ])
+                }
+
+                // Create a configured ISO8601DateFormatter
+
+                
+                if let expiryDate = formatter.date(from: codexToken.1) {
+                    let timeUntilExpiry = expiryDate.timeIntervalSinceNow
+                    
+                    // If expiry is less than 6 minutes away, throw an error
+                    if timeUntilExpiry < 60 * 6 {
+                        localCodexToken = nil
+                        await self.refreshToken()
+                        return
+                    }
+                    
+                    // Set refresh timer to 5 minutes before expiration
+                    refreshTimer?.invalidate()
+                    let refreshTime = timeUntilExpiry - (5 * 60) // 5 minutes in seconds
+                    refreshTimer = Timer.scheduledTimer(withTimeInterval: refreshTime, repeats: false) { [weak self] _ in
+                        Task (priority: .high) {
+                            await self?.refreshToken()
+                        }
+                    }
+                }
+
                 CodexNetwork.initialize(apiKey: codexToken.0)
+                self.localCodexToken = codexToken
                 self.retryCount = 0
                 DispatchQueue.main.async {
                     self.isReady = true
                 }
 
-                // Parse the expiry string to get the expiration time
-                if let expiryDate = ISO8601DateFormatter().date(from: codexToken.1) {
-                    let timeUntilExpiry = expiryDate.timeIntervalSinceNow
-                    
-                    // If expiry is less than 10 minutes away, throw an error
-                    if timeUntilExpiry < 60 * 10 {
-                        throw NSError(domain: "CodexTokenManager", code: 1, userInfo: [
-                            NSLocalizedDescriptionKey: "Token expiration time too short"
-                        ])
-                    }
-                    
-                    // Set refresh timer to 5 minutes before expiration
-                    refreshTimer?.invalidate()
-                    let refreshTime = timeUntilExpiry - 60 * 5 // 5 minutes in seconds
-                    refreshTimer = Timer.scheduledTimer(withTimeInterval: refreshTime, repeats: false) { [weak self] _ in
-                        self?.refreshToken()
-                    }
-                }
+                
                 
             } catch {
                 if retryCount < maxRetryAttempts {
@@ -70,7 +132,7 @@ class CodexTokenManager: ObservableObject {
                     Task (priority: .low) {
                         print("Fetch failed, retrying...")
                         try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
-                        self.refreshToken()
+                        await self.refreshToken()
                     }
                 } else {
                     print("Fetch failed, giving up")
@@ -79,7 +141,6 @@ class CodexTokenManager: ObservableObject {
                     }
                 }
             }
-        }
     }
 
     deinit {

@@ -8,9 +8,6 @@
 import SwiftUI
 import Charts
 import Combine
-
-let UPDATE_INTERVAL = 0.08
-
 struct ChartView: View {
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject private var userModel: UserModel
@@ -26,13 +23,17 @@ struct ChartView: View {
     }
     
     @State private var currentTime = Date().timeIntervalSince1970
-        
-    @State private var timerCancellable: Cancellable?
-    @State private var timer: Timer.TimerPublisher = Timer.publish(every: UPDATE_INTERVAL, on: .main, in: .common)
+    @State private var prices: [Price] = []
     
     init(prices: [Price], height: CGFloat = 330) {
         self.rawPrices = prices
         self.height = height
+    }
+    
+    private func updatePrices() {
+        let dataPointCount = Int(CHART_INTERVAL / PRICE_UPDATE_INTERVAL)
+        let startingIndex = rawPrices.count - dataPointCount
+        prices = startingIndex < 0 ? rawPrices : Array(rawPrices[startingIndex...])
     }
     
     private var dashedLineColor: Color {
@@ -66,64 +67,27 @@ struct ChartView: View {
         
         return (minPriceUsd - padding)...(maxPriceUsd + padding)
     }
-    
-    private func interpolatePrice(firstPoint: Price, secondPoint: Price, atTimestamp timestamp: TimeInterval) -> Price {
-        let timeSpan = secondPoint.timestamp.timeIntervalSince(firstPoint.timestamp)
-        let priceSpan = secondPoint.priceUsd - firstPoint.priceUsd
-        let slope = priceSpan / timeSpan
+    private var xDomain: ClosedRange<Date> {
+        let min = Date(timeIntervalSinceNow: -CHART_INTERVAL - 1)
+        var padding = 1.0
+        if let currentPrice = prices.last?.priceUsd {
+            let pillContent = priceModel.formatPrice(usd: abs(currentPrice), maxDecimals: 9, minDecimals: 2)
+            padding = Double(pillContent.count) * 1.5
+        }
         
-        let timeDiff = timestamp - firstPoint.timestamp.timeIntervalSince1970
-        let interpolatedPrice = firstPoint.priceUsd + slope * timeDiff
-        
-        return Price(timestamp: Date(timeIntervalSince1970: timestamp), priceUsd: interpolatedPrice)
+        let max = Date(timeIntervalSinceNow: padding)
+        return min...max
     }
-    
-    private var prices: [Price] {
-        let cutoffTime = currentTime - CHART_INTERVAL
-        
-        let firstIndex = rawPrices.firstIndex(where: { $0.timestamp.timeIntervalSince1970 >= cutoffTime })
-        
-        var filteredPrices = rawPrices
-        if rawPrices.count >= 3, let firstIndex, firstIndex > 0 {
-            filteredPrices = Array(filteredPrices.suffix(from: firstIndex))
-            let interpolatedPoint = interpolatePrice(
-                firstPoint: rawPrices[firstIndex - 1],
-                secondPoint: rawPrices[firstIndex],
-                atTimestamp: cutoffTime
-            )
-            filteredPrices.insert(interpolatedPoint, at: 0)
-        }
-        
-        if let lastPrice = filteredPrices.last {
-            let currentTimePoint = Price(
-                timestamp: Date(timeIntervalSince1970: currentTime),
-                priceUsd: lastPrice.priceUsd
-            )
-            filteredPrices.append(currentTimePoint)
-        }
-        
-        if filteredPrices.count >= 2 {
-            return filteredPrices
-        }
-        
-        if rawPrices.count >= 2 {
-            return Array(rawPrices.suffix(2))
-        }
-        
-        return rawPrices
-    }
-    
     
     var body: some View {
         Chart {
-            ForEach(prices.dropLast(1)) { price in
+            ForEach(prices.dropLast()) { price in
                 LineMark(
                     x: .value("Date", price.timestamp),
                     y: .value("Price", price.priceUsd)
                 )
                 .foregroundStyle(AppColors.aquaBlue.opacity(0.8))
-                .lineStyle(StrokeStyle(lineWidth: 3))
-                .shadow(color: AppColors.aquaBlue, radius: 3, x: 2, y: 2)
+                .lineStyle(StrokeStyle(lineWidth: 4))
                 .interpolationMethod(.cardinal(tension: 0.8))
             }
             
@@ -134,8 +98,7 @@ struct ChartView: View {
                     y: .value("Price", currentPrice.priceUsd)
                 )
                 .foregroundStyle(AppColors.aquaBlue.opacity(0.8))
-                .shadow(color: AppColors.aquaBlue, radius: 3, x: 2, y: 2)
-                .lineStyle(StrokeStyle(lineWidth: 3))
+                .lineStyle(StrokeStyle(lineWidth: 4))
                 .interpolationMethod(.catmullRom)
                 
                 PointMark(
@@ -187,19 +150,16 @@ struct ChartView: View {
                 }
             }
         }
+        .animation(.linear(duration: 0.5), value: prices)
         .chartYScale(domain: yDomain)
         .chartYAxis(.hidden)
         .chartXAxis(.hidden)
-        
         .frame(width: .infinity, height: height)
+        .onChange(of: rawPrices) {
+            updatePrices()
+        }
         .onAppear {
-            timerCancellable = timer.connect()
-        }
-        .onDisappear {
-            timerCancellable?.cancel()
-        }
-        .onReceive(timer) { _ in
-            currentTime = Date().timeIntervalSince1970
+            updatePrices()
         }
     }
 }

@@ -17,7 +17,7 @@ struct CandleChartView: View {
     @State private var currentTime = Date().timeIntervalSince1970
         
     @State private var timerCancellable: Cancellable?
-    @State private var timer: Timer.TimerPublisher = Timer.publish(every: UPDATE_INTERVAL, on: .main, in: .common)
+    @State private var timer: Timer.TimerPublisher = Timer.publish(every: 0.1, on: .main, in: .common)
 
     init(candles: [CandleData], timeframeMins: Double = 30, height: CGFloat = 330) {
         self.rawCandles = candles
