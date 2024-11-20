@@ -15,7 +15,6 @@ struct ChartView: View {
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject private var userModel: UserModel
     let rawPrices: [Price]
-    let timeframeSecs: Double
     let height: CGFloat
 
     var purchasePriceUsd : Double? {
@@ -31,9 +30,8 @@ struct ChartView: View {
     @State private var timerCancellable: Cancellable?
     @State private var timer: Timer.TimerPublisher = Timer.publish(every: UPDATE_INTERVAL, on: .main, in: .common)
     
-    init(prices: [Price], timeframeSecs: Double = CHART_INTERVAL, height: CGFloat = 330) {
+    init(prices: [Price], height: CGFloat = 330) {
         self.rawPrices = prices
-        self.timeframeSecs = timeframeSecs
         self.height = height
     }
     
@@ -81,7 +79,7 @@ struct ChartView: View {
     }
     
     private var prices: [Price] {
-        let cutoffTime = currentTime - timeframeSecs
+        let cutoffTime = currentTime - CHART_INTERVAL
         
         let firstIndex = rawPrices.firstIndex(where: { $0.timestamp.timeIntervalSince1970 >= cutoffTime })
         

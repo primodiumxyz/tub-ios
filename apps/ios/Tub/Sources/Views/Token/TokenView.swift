@@ -23,13 +23,6 @@ enum TubError: LocalizedError {
 enum Timespan: String, CaseIterable {
     case live = "LIVE"
     case thirtyMin = "30M"
-    
-    var timeframeSecs: Double {
-        switch self {
-        case .live: return CHART_INTERVAL
-        case .thirtyMin: return 30 * 60
-        }
-    }
 }
 
 
@@ -172,7 +165,7 @@ struct TokenView : View {
                     if tokenModel.isReady {
                         Text(price)
                         Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
-                        Text("\(formatDuration(tokenModel.currentTimeframe.timeframeSecs))").foregroundColor(.gray)
+                        Text("\(formatDuration(CHART_INTERVAL))").foregroundColor(.gray)
                     } else {
                         LoadingBox(width:160, height: 12)
                     }
@@ -198,7 +191,6 @@ struct TokenView : View {
             } else if selectedTimespan == .live {
                 ChartView(
                     prices: tokenModel.prices,
-                    timeframeSecs: selectedTimespan.timeframeSecs,
                     height: height
                 )
             } else {
@@ -230,7 +222,6 @@ struct TokenView : View {
         Button {
             withAnimation(.easeInOut(duration: 0.15)) {
                 selectedTimespan = timespan
-                tokenModel.updateHistoryInterval(timespan)
             }
         } label: {
             HStack(spacing: 4) {
