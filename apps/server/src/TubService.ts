@@ -453,37 +453,31 @@ export class TubService {
   /**
    * Derives associated token accounts for buy and sell tokens
    * @param userPublicKey - The user's public key
-   * @param buyTokenId - Optional ID of token to buy
-   * @param sellTokenId - Optional ID of token to sell
+   * @param buyTokenId - ID of token to buy
+   * @param sellTokenId - ID of token to sell
    * @returns Object containing derived token account addresses
    */
   private async deriveTokenAccounts(
     userPublicKey: PublicKey,
-    buyTokenId?: string,
-    sellTokenId?: string
+    buyTokenId: string,
+    sellTokenId: string
   ): Promise<{ buyTokenAccount?: PublicKey; sellTokenAccount?: PublicKey }> {
     const accounts: { buyTokenAccount?: PublicKey; sellTokenAccount?: PublicKey } = {};
-    
-    if (buyTokenId) {
-      accounts.buyTokenAccount = await getAssociatedTokenAddress(
-        new PublicKey(buyTokenId),
+
+    accounts.buyTokenAccount = await getAssociatedTokenAddress(
+      new PublicKey(buyTokenId),
         userPublicKey,
         false
-      );
-    }
-    
-    if (sellTokenId) {
-      accounts.sellTokenAccount = await getAssociatedTokenAddress(
-        new PublicKey(sellTokenId),
+    );
+
+    accounts.sellTokenAccount = await getAssociatedTokenAddress(
+      new PublicKey(sellTokenId),
         userPublicKey,
         false
-      );
-    }
+    );
     
     return accounts;
   }
-
-  // First, let's add a private method to handle the common swap-building logic
 
   private async buildSwapResponse(
     request: ActiveSwapRequest
