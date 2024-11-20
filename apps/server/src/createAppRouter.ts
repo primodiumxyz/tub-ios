@@ -105,10 +105,6 @@ export function createAppRouter() {
         return await ctx.tubService.requestCodexToken(input.expiration);
       }),
 
-    getTestTx: t.procedure.mutation(async ({ ctx }) => {
-      return await ctx.tubService.getTestTx(ctx.jwtToken);
-    }),
-
     /**
      * Creates a subscription stream for token swaps
      * @param buyTokenId - The token ID to buy
@@ -189,6 +185,23 @@ export function createAppRouter() {
       )
       .mutation(async ({ ctx, input }) => {
         await ctx.tubService.signAndSendTransaction(ctx.jwtToken, input.signature, input.base64Transaction);
+      }),
+
+    fetchSwap: t.procedure
+      .input(
+        z.object({
+          buyTokenId: z.string(),
+          sellTokenId: z.string(),
+          sellQuantity: z.number(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        return await ctx.tubService.fetchSwap(ctx.jwtToken, input);
+      }),
+
+    get1USDCToSOLTransaction: t.procedure
+      .mutation(async ({ ctx }) => {
+        return await ctx.tubService.get1USDCToSOLTransaction(ctx.jwtToken);
       }),
   });
 }
