@@ -77,6 +77,7 @@ struct CandleChartView: View {
         }
         .chartXScale(domain: xDomain)
         .chartYScale(domain: yDomain)
+        .animation(.easeInOut(duration: PRICE_UPDATE_INTERVAL), value: candles)
         .chartXAxis(content: xAxisConfig)
         .chartYAxis(content: yAxisConfig)
         .frame(height: height)
