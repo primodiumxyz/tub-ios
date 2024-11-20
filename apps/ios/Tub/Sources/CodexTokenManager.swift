@@ -53,7 +53,7 @@ class CodexTokenManager: ObservableObject {
         }
     }
 
-    private var refreshTimer: Timer?
+    private var refetchTimer: Timer?
     
     private init() {}
 
@@ -67,8 +67,8 @@ class CodexTokenManager: ObservableObject {
     }
     
     private func stopTokenRefresh() {
-        refreshTimer?.invalidate()
-        refreshTimer = nil
+        refetchTimer?.invalidate()
+        refetchTimer = nil
         retryCount = 0
     }
     private let formatter = { () -> ISO8601DateFormatter in
@@ -77,70 +77,68 @@ class CodexTokenManager: ObservableObject {
         return f
     }()
 
-    private func refreshToken() async {
-        fetchFailed = false
-            do {
-                var codexToken: (String, String)?
-                if let localToken = localCodexToken {
-                    codexToken = localToken
+    private func fetchToken () async throws -> (String, String) {
+        var codexToken: (String, String)?
+        if let localToken = localCodexToken {
+            codexToken = localToken
                 } else {
                     codexToken = try await Network.shared.requestCodexToken(Int(tokenExpiration) * 1000)
                 }
-
                 guard let codexToken = codexToken else {
                     throw NSError(domain: "CodexTokenManager", code: 1, userInfo: [
                         NSLocalizedDescriptionKey: "Failed to fetch codex token"
-                    ])
-                }
+                ])
+        }
+        return codexToken
+    }
+    private func refreshToken() async {
+        fetchFailed = false
+        do {
+            var codexToken = try await fetchToken()
 
-                // Create a configured ISO8601DateFormatter
-
+            if let expiryDate = formatter.date(from: codexToken.1) {
+                let timeUntilExpiry = expiryDate.timeIntervalSinceNow
                 
-                if let expiryDate = formatter.date(from: codexToken.1) {
-                    let timeUntilExpiry = expiryDate.timeIntervalSinceNow
-                    
-                    // If expiry is less than 6 minutes away, throw an error
-                    if timeUntilExpiry < 60 * 6 {
-                        localCodexToken = nil
+                if timeUntilExpiry < 60 * 6 {
+                    localCodexToken = nil
+                    codexToken = try await fetchToken()
+                }
+                
+                // Schedule refresh at a specific time (5 minutes before expiration)
+                refetchTimer?.invalidate()
+                let refreshDate = expiryDate.addingTimeInterval(-5 * 60) // 5 minutes before expiry
+                refetchTimer = Timer(fire: refreshDate, interval: 0, repeats: false) { [weak self] _ in
+                    Task(priority: .high) {
+                        guard let self else { return }
                         await self.refreshToken()
-                        return
-                    }
-                    
-                    // Set refresh timer to 5 minutes before expiration
-                    refreshTimer?.invalidate()
-                    let refreshTime = timeUntilExpiry - (5 * 60) // 5 minutes in seconds
-                    refreshTimer = Timer.scheduledTimer(withTimeInterval: refreshTime, repeats: false) { [weak self] _ in
-                        Task (priority: .high) {
-                            await self?.refreshToken()
-                        }
                     }
                 }
+                RunLoop.main.add(refetchTimer!, forMode: .common)
+            }
 
-                CodexNetwork.initialize(apiKey: codexToken.0)
-                self.localCodexToken = codexToken
-                self.retryCount = 0
+            CodexNetwork.initialize(apiKey: codexToken.0)
+            self.localCodexToken = codexToken
+            self.retryCount = 0
+            DispatchQueue.main.async {
+                self.isReady = true
+            }
+            
+        } catch {
+            if retryCount < maxRetryAttempts {
+                retryCount += 1
+                let delay = Double(retryCount) * 2 // Exponential backoff
+                Task (priority: .low) {
+                    print("Fetch failed, retrying...")
+                    try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+                    await self.refreshToken()
+                }
+            } else {
+                print("Fetch failed, giving up")
                 DispatchQueue.main.async {
-                    self.isReady = true
-                }
-
-                
-                
-            } catch {
-                if retryCount < maxRetryAttempts {
-                    retryCount += 1
-                    let delay = Double(retryCount) * 2 // Exponential backoff
-                    Task (priority: .low) {
-                        print("Fetch failed, retrying...")
-                        try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
-                        await self.refreshToken()
-                    }
-                } else {
-                    print("Fetch failed, giving up")
-                    DispatchQueue.main.async {
-                        self.fetchFailed = true
-                    }
+                    self.fetchFailed = true
                 }
             }
+        }
     }
 
     deinit {
