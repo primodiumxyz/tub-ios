@@ -5,7 +5,6 @@ import AuthenticationServices
 struct RegisterView: View {
     
     @Environment(\.dismiss) var dismiss  // Add this line
-    @Environment(\.presentationMode) var presentationMode
     @State private var username = ""
     @State private var email = ""
     @State private var showPhoneModal = false
@@ -48,15 +47,15 @@ struct RegisterView: View {
         ScrollView(showsIndicators: false) {
             HStack {
                 
-                if isRedirected {
-                    Button(action: {
-                        presentationMode.wrappedValue.dismiss()
-                    }) {
-                        Image(systemName: "chevron.left")
-                            .foregroundColor(.white)
-                            .padding(.horizontal)
-                    }                 }
-                else {
+				if isRedirected {
+					Button {
+						dismiss()
+					} label: {
+						Image(systemName: "xmark.circle")
+							.foregroundColor(.white)
+							.padding(.horizontal)
+					}
+				} else {
                     Spacer().frame(height:10)
                 }
                 
@@ -154,7 +153,7 @@ struct RegisterView: View {
                 
                 // Apple Login
                 SignInWithApple()
-                    .frame(width: .infinity, height: 50, alignment: .center)
+					.frame(maxWidth: .infinity, minHeight: 50, maxHeight: 50, alignment: .center)
                     .cornerRadius(30)
                     .padding(.horizontal,10)
                     .overlay(
@@ -272,5 +271,5 @@ struct RegisterView: View {
 }
 
 #Preview {
-    return RegisterView()
+	RegisterView()
 }

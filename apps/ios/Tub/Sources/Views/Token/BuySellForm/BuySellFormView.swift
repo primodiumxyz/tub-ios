@@ -16,7 +16,7 @@ struct BuySellForm: View {
     @State private var showBubbles = false
     @StateObject private var animationState = TokenAnimationState.shared
     @StateObject private var settingsManager = SettingsManager.shared
-    @State private var navigateToLogin = false
+    @State private var isLoginPresented = false
     @State private var showOnrampView = false
     var handleBuy: (Double) -> Void
     var onSellSuccess: (() -> Void)?
@@ -102,15 +102,9 @@ struct BuySellForm: View {
     var body: some View {
         VStack {
             if userModel.userId == nil {
-                NavigationLink(destination: RegisterView(isRedirected: true)
-                    .background(.black)
-                               , isActive: $navigateToLogin) {
-                    EmptyView()
-                }
-                
-                Button(action: {
-                    navigateToLogin = true
-                }) {
+                Button {
+					isLoginPresented = true
+				} label: {
                     HStack(alignment: .center, spacing: 8) {
                         Text("Login to Buy")
                             .font(.sfRounded(size: .xl, weight: .semibold))
@@ -193,7 +187,12 @@ struct BuySellForm: View {
                 SellForm(tokenModel: tokenModel, showBuySheet: $showBuySheet, onSell: handleSell)
                     .padding(.horizontal,8)
             }
-        }.padding(.bottom, 8)
+        }
+		.padding(.bottom, 8)
+		.sheet(isPresented: $isLoginPresented) {
+			RegisterView(isRedirected: true)
+				.background(.black)
+		}
     }
 }
 
