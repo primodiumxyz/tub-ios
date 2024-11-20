@@ -160,7 +160,7 @@ struct HistoryViewContent: View {
     
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
                 Text("History")
                     .font(.sfRounded(size: .xl2, weight: .bold))
