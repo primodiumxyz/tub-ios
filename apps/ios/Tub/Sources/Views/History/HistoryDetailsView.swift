@@ -80,7 +80,6 @@ struct HistoryDetailsView: View {
         }
         .padding()
         .background(Color.black.edgesIgnoringSafeArea(.all))
-        .navigationTitle("History")
         .foregroundColor(AppColors.white)
     }
     
