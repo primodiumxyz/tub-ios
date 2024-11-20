@@ -153,7 +153,7 @@ struct TokenView : View {
                     }
                 }
                 
-                let price = priceModel.formatPrice(usd: tokenModel.priceChange.amountUsd, showSign: true)
+                let price = priceModel.formatPrice(usd: tokenModel.priceChange.amountUsd, showSign: true, maxDecimals: 9, minDecimals: 2)
                 HStack {
                     
                     if tokenModel.isReady {
