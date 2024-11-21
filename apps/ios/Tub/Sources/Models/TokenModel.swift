@@ -43,7 +43,7 @@ class TokenModel: ObservableObject {
         priceUpdateTimer = nil
         // Clean up subscriptions when the object is deallocated
         priceSubscription?.cancel()
-         candleSubscription?.cancel()
+        candleSubscription?.cancel()
         candleSubscription = nil
     }
 
@@ -282,47 +282,52 @@ class TokenModel: ObservableObject {
     }
 
     private func subscribeToCandles() async {
-         candleSubscription?.cancel()
+        candleSubscription?.cancel()
         candleSubscription = nil
         
         let client = await CodexNetwork.shared.apolloClient
-         let subscription = SubTokenCandlesSubscription(pairId: token.pairId)
+        let subscription = SubTokenCandlesSubscription(pairId: token.pairId)
         
-         candleSubscription = client.subscribe(subscription: subscription) { [weak self] result in
-             guard let self = self else { return }
-             switch result {
-             case .success(let graphQLResult):
-                 if let newCandle = graphQLResult.data?.onBarsUpdated?.aggregates.r1?.usd {
-                     let candleData = CandleData(
-                         start: Date(timeIntervalSince1970: TimeInterval(newCandle.t)),
-                         end: Date(timeIntervalSince1970: TimeInterval(newCandle.t) + 60),
-                         open: newCandle.o,
-                         close: newCandle.c,
-                         high: max(newCandle.h, newCandle.c),
-                         low: min(newCandle.l, newCandle.c),
-                         volume: newCandle.v
-                     )
-                     DispatchQueue.main.async {
-                         self.candles.append(candleData)
-                         if let index = self.candles.firstIndex(where: { $0.start == candleData.start }) {
-                             var updatedCandle = self.candles[index]
-                             updatedCandle.close = candleData.close
-                             updatedCandle.high = max(updatedCandle.high, candleData.close)
-                             updatedCandle.low = min(updatedCandle.low, candleData.close)
-                             updatedCandle.volume = candleData.volume
-                             self.candles[index] = updatedCandle
-                         } else {
-                             self.candles.sort { $0.start < $1.start }
-                         }
+        candleSubscription = client.subscribe(subscription: subscription) { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success(let graphQLResult):
+                if let newCandle = graphQLResult.data?.onBarsUpdated?.aggregates.r1?.usd {
+                    let candleData = CandleData(
+                        start: Date(timeIntervalSince1970: TimeInterval(newCandle.t)),
+                        end: Date(timeIntervalSince1970: TimeInterval(newCandle.t) + 60),
+                        open: newCandle.o,
+                        close: newCandle.c,
+                        high: max(newCandle.h, newCandle.c),
+                        low: min(newCandle.l, newCandle.c),
+                        volume: newCandle.v
+                    )
+                    
+                    DispatchQueue.main.async {
+                        // Check if we already have a candle for this timestamp
+                        if let index = self.candles.firstIndex(where: { $0.start == candleData.start }) {
+                            // Update existing candle
+                            var updatedCandle = self.candles[index]
+                            updatedCandle.close = candleData.close
+                            updatedCandle.high = max(updatedCandle.high, candleData.close)
+                            updatedCandle.low = min(updatedCandle.low, candleData.close)
+                            updatedCandle.volume = candleData.volume
+                            self.candles[index] = updatedCandle
+                        } else {
+                            // Add new candle and maintain sorting
+                            self.candles.append(candleData)
+                            self.candles.sort { $0.start < $1.start }
+                        }
                         
-                         let startTime = Date().addingTimeInterval(Timespan.candles.seconds)
-                         self.candles.removeAll { $0.start < startTime }
-                     }
-                 }
-             case .failure(let error):
-                 print("Error in candle subscription: \(error.localizedDescription)")
-             }
-         }
+                        // Remove candles older than the timespan
+                        let cutoffTime = Date().addingTimeInterval(-Timespan.candles.seconds)
+                        self.candles.removeAll { $0.start < cutoffTime }
+                    }
+                }
+            case .failure(let error):
+                print("Error in candle subscription: \(error.localizedDescription)")
+            }
+        }
     }
     
     private func calculatePriceChange() {
