@@ -230,7 +230,8 @@ class TokenListModel: ObservableObject {
           let processedData: ([Token], Token?) = {
             switch result {
             case .success(let graphQLResult):
-              if let tokens = graphQLResult.data?.filterTokens?.results, tokens.count > 0 {
+              if let tokens = graphQLResult.data?.filterTokens?.results {
+                print("token count", tokens.count)
                 let mappedTokens =
                   tokens
                   .sorted(by: { Double($0?.volume1 ?? "0") ?? 0 > Double($1?.volume1 ?? "0") ?? 0 })

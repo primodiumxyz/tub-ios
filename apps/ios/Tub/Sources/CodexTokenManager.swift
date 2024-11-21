@@ -74,7 +74,6 @@ class CodexTokenManager: ObservableObject {
     guard let codexToken = codexToken else {
       throw TubError.networkFailure
     }
-    print("codexToken: \(codexToken.token)")
     return codexToken
   }
 
@@ -92,9 +91,6 @@ class CodexTokenManager: ObservableObject {
 
       if let expiryDate = formatter.date(from: codexToken.expiry) {
         let timeUntilExpiry = expiryDate.timeIntervalSinceNow
-        print(
-          "time until expiry: \(timeUntilExpiry), codexToken.expiry: \(codexToken.expiry), now: \(Date())"
-        )
 
         // Ensure we're not scheduling in the past
         let refreshTimeInterval = min(timeUntilExpiry - 300, timeUntilExpiry * 0.9)

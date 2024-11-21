@@ -59,7 +59,11 @@ struct TokenView: View {
         let priceLamps = priceModel.usdToLamports(usd: priceUsd)
 
         do {
-            try await userModel.buyTokens(buyAmountLamps: buyAmountLamps, priceLamps: priceLamps, priceUsd: priceUsd)
+            try await userModel.buyTokens(
+                buyAmountLamps: buyAmountLamps,
+                priceLamps: priceLamps,
+                priceUsd: priceUsd
+            )
             await MainActor.run {
                 showBuySheet = false
                 notificationHandler.show(
@@ -95,7 +99,7 @@ struct TokenView: View {
                         infoCardLowOpacity
                             .opacity(0.8)
                             .padding(.horizontal, 8)
-                        BuySellFormView(
+                        ActionButtonsView(
                             tokenModel: tokenModel,
                             showBuySheet: $showBuySheet,
                             handleBuy: handleBuy,
@@ -154,7 +158,9 @@ struct TokenView: View {
                     if tokenModel.isReady {
                         Text(price)
                         Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
-                        Text("\(formatDuration(tokenModel.currentTimeframe.timeframeSecs))").foregroundColor(.gray)
+                        Text("\(formatDuration(tokenModel.currentTimeframe.timeframeSecs))").foregroundColor(
+                            .gray
+                        )
                     }
                     else {
                         LoadingBox(width: 160, height: 12)
@@ -241,7 +247,8 @@ struct TokenView: View {
     private var stats: [(String, StatValue)] {
         var stats = [(String, StatValue)]()
 
-        if let purchaseData = userModel.purchaseData, let priceUsd = tokenModel.prices.last?.priceUsd, priceUsd > 0,
+        if let purchaseData = userModel.purchaseData, let priceUsd = tokenModel.prices.last?.priceUsd,
+            priceUsd > 0,
             activeTab == "sell"
         {
             // Calculate current value
@@ -414,7 +421,9 @@ struct TokenView: View {
             object: nil,
             queue: .main
         ) { notification in
-            if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
+            if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey]
+                as? CGRect
+            {
                 withAnimation(.easeOut(duration: 0.16)) {
                     self.keyboardHeight = keyboardFrame.height / 2
                 }
@@ -433,7 +442,15 @@ struct TokenView: View {
     }
 
     private func removeKeyboardNotifications() {
-        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
-        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
+        NotificationCenter.default.removeObserver(
+            self,
+            name: UIResponder.keyboardWillShowNotification,
+            object: nil
+        )
+        NotificationCenter.default.removeObserver(
+            self,
+            name: UIResponder.keyboardWillHideNotification,
+            object: nil
+        )
     }
 }

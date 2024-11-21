@@ -117,7 +117,7 @@ private struct BalanceSection: View {
 }
 
 // New component for action buttons
-private struct ActionButtonsView: View {
+private struct ActionButtons: View {
     let isAirdropping: Bool
     @Binding var showOnrampView: Bool
 
@@ -266,7 +266,7 @@ private struct AccountContentView: View {
     var body: some View {
         VStack(spacing: 24) {
             AccountHeaderView()
-            ActionButtonsView(
+            ActionButtons(
                 isAirdropping: isAirdropping,
                 showOnrampView: $showOnrampView
             )

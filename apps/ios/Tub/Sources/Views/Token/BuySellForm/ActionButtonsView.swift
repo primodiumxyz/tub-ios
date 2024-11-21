@@ -1,13 +1,13 @@
 import PrivySDK
 //
-//  BuySellFormView.swift
+//  ActionButtonsView.swift
 //  Tub
 //
 //  Created by Henry on 9/27/24.
 //
 import SwiftUI
 
-struct BuySellFormView: View {
+struct ActionButtonsView: View {
     @EnvironmentObject private var notificationHandler: NotificationHandler
     @EnvironmentObject var userModel: UserModel
     @EnvironmentObject var priceModel: SolPriceModel
@@ -74,32 +74,33 @@ struct BuySellFormView: View {
                 LoginButton(isLoginPresented: $isLoginPresented)
             }
             else if activeTab == "buy" {
-                HStack(spacing: 16) {
-                    Button(action: {
-                        showBuySheet = true
-                    }) {
-                        Image(systemName: "pencil")
-                            .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(AppColors.aquaGreen)
-                            .padding(12)
-                            .background(Circle().stroke(AppColors.aquaGreen, lineWidth: 1))
-                    }
 
-                    switch userModel.walletState {
-                    case .connected(_):
-                        if let balanceUsd = userModel.balanceLamps, priceModel.lamportsToUsd(lamports: balanceUsd) < 0.1
-                        {
-                            AirdropButton()
-                        }
-                        else {
+                switch userModel.walletState {
+                case .connected(_):
+                    if let balanceUsd = userModel.balanceLamps,
+                        priceModel.lamportsToUsd(lamports: balanceUsd) < 0.1
+                    {
+                        AirdropButton()
+                    }
+                    else {
+                        HStack(spacing: 16) {
+                            Button(action: {
+                                showBuySheet = true
+                            }) {
+                                Image(systemName: "pencil")
+                                    .font(.system(size: 20, weight: .bold))
+                                    .foregroundColor(AppColors.aquaGreen)
+                                    .padding(12)
+                                    .background(Circle().stroke(AppColors.aquaGreen, lineWidth: 1))
+                            }
                             BuyButton(showBuySheet: $showBuySheet, handleBuy: handleBuy)
-
                         }
-                    case .connecting:
-                        ConnectingButton()
-                    default:
-                        ConnectButton()
+
                     }
+                case .connecting:
+                    ConnectingButton()
+                default:
+                    ConnectButton()
                 }
             }
             else {
@@ -108,7 +109,7 @@ struct BuySellFormView: View {
 
             }
         }
-        .padding(.bottom, 8)
+        .padding(8)
         .fullScreenCover(isPresented: $isLoginPresented) {
             RegisterView(isRedirected: true)
                 .background(.black)
@@ -240,7 +241,7 @@ private struct BuyButton: View {
     @Previewable @StateObject var notificationHandler = NotificationHandler()
     @Previewable @StateObject var userModel = UserModel.shared
     @Previewable @StateObject var priceModel = SolPriceModel.shared
-    BuySellFormView(
+    ActionButtonsView(
         tokenModel: TokenModel(),
         showBuySheet: $show,
         handleBuy: { _ in },
@@ -253,10 +254,10 @@ private struct BuyButton: View {
 
 // MARK: - Equatable Implementation
 
-/// This extension adds custom equality comparison to BuySellFormView.
+/// This extension adds custom equality comparison to ActionButtonsView.
 /// It's used to optimize SwiftUI's view updates by preventing unnecessary redraws.
-extension BuySellFormView: Equatable {
-    static func == (lhs: BuySellFormView, rhs: BuySellFormView) -> Bool {
+extension ActionButtonsView: Equatable {
+    static func == (lhs: ActionButtonsView, rhs: ActionButtonsView) -> Bool {
         lhs.tokenModel.tokenId == rhs.tokenModel.tokenId
     }
 }
