@@ -156,6 +156,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		282A6A612CEEDDEB0039133F /* Localization */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Localization; sourceTree = "<group>"; };
 		46B4B4532CD542DB00D8175A /* Extensions */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Extensions; sourceTree = "<group>"; };
 		995DE48A2CE6A268001B3C3F /* Login */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Login; sourceTree = "<group>"; };
 		99DDF62E2CB0333D000234DA /* BuySellForm */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = BuySellForm; sourceTree = "<group>"; };
@@ -388,6 +389,7 @@
 				DB6D290A2CA1C8F80099951A /* Tub.entitlements */,
 				DB6D290B2CA1C8F80099951A /* Preview Content */,
 				DB6D29152CA1C8F80099951A /* TubTests */,
+				282A6A612CEEDDEB0039133F /* Localization */,
 			);
 			path = Tub;
 			sourceTree = "<group>";
@@ -442,6 +444,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				282A6A612CEEDDEB0039133F /* Localization */,
 				46B4B4532CD542DB00D8175A /* Extensions */,
 				995DE48A2CE6A268001B3C3F /* Login */,
 				99DDF62E2CB0333D000234DA /* BuySellForm */,
@@ -526,6 +529,7 @@
 			knownRegions = (
 				en,
 				Base,
+				fr,
 			);
 			mainGroup = DB6D28F82CA1C8F70099951A;
 			packageReferences = (
@@ -723,6 +727,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
@@ -778,6 +783,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
 			};
 			name = Release;
 		};
