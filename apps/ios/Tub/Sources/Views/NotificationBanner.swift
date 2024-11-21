@@ -9,7 +9,7 @@ import SwiftUI
 
 struct NotificationBanner: ViewModifier {
     @EnvironmentObject var notificationHandler: NotificationHandler
-    
+
     func body(content: Content) -> some View {
         content
             .overlay(
@@ -19,13 +19,13 @@ struct NotificationBanner: ViewModifier {
                             HStack(spacing: 6) {
                                 Image(systemName: notificationHandler.notificationType.icon)
                                     .foregroundColor(notificationHandler.notificationType.color)
-                                
+
                                 Text(message)
                                     .foregroundColor(.white)
                                     .font(.sfRounded(size: .base))
-                                
+
                                 Spacer()
-                                
+
                                 Button(action: notificationHandler.hide) {
                                     Image(systemName: "xmark")
                                         .foregroundColor(.white)
@@ -40,7 +40,7 @@ struct NotificationBanner: ViewModifier {
                                     .stroke(notificationHandler.notificationType.color.opacity(0.5), lineWidth: 2)
                             )
                             .shadow(radius: 4)
-                            
+
                             Spacer()
                         }
                         .padding(.vertical, 0)
@@ -53,4 +53,3 @@ struct NotificationBanner: ViewModifier {
             )
     }
 }
-

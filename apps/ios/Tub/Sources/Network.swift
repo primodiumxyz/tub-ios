@@ -91,7 +91,8 @@ class Network {
                     let encoder = JSONEncoder()
                     let data = try encoder.encode(input)
                     request.httpBody = data
-                } catch {
+                }
+                catch {
                     completion(.failure(error))
                     return
                 }
@@ -107,29 +108,39 @@ class Network {
                     completion(
                         .failure(
                             NSError(
-                                domain: "NetworkError", code: 0,
-                                userInfo: [NSLocalizedDescriptionKey: "No data received"])))
+                                domain: "NetworkError",
+                                code: 0,
+                                userInfo: [NSLocalizedDescriptionKey: "No data received"]
+                            )
+                        )
+                    )
                     return
                 }
 
                 do {
                     // First, try to decode as an error response
-                    if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data)
-                    {
+                    if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
                         let errorMessage = errorResponse.error.message
                         completion(
                             .failure(
                                 NSError(
-                                    domain: "ServerError", code: errorResponse.error.code ?? -1,
-                                    userInfo: [NSLocalizedDescriptionKey: errorMessage])))
+                                    domain: "ServerError",
+                                    code: errorResponse.error.code ?? -1,
+                                    userInfo: [NSLocalizedDescriptionKey: errorMessage]
+                                )
+                            )
+                        )
                         return
                     }
 
                     // If it's not an error, proceed with normal decoding
                     let decodedResponse = try JSONDecoder().decode(
-                        ResponseWrapper<T>.self, from: data)
+                        ResponseWrapper<T>.self,
+                        from: data
+                    )
                     completion(.success(decodedResponse.result.data))
-                } catch {
+                }
+                catch {
                     completion(.failure(error))
                 }
             }
@@ -161,7 +172,9 @@ class Network {
     }
 
     func buyToken(
-        tokenId: String, amount: String, tokenPrice: String,
+        tokenId: String,
+        amount: String,
+        tokenPrice: String,
         completion: @escaping (Result<EmptyResponse, Error>) -> Void
     ) {
         let input = TokenActionInput(tokenId: tokenId, amount: amount, tokenPrice: tokenPrice)
@@ -169,7 +182,9 @@ class Network {
     }
 
     func sellToken(
-        tokenId: String, amount: String, tokenPrice: String,
+        tokenId: String,
+        amount: String,
+        tokenPrice: String,
         completion: @escaping (Result<EmptyResponse, Error>) -> Void
     ) {
         let input = TokenActionInput(tokenId: tokenId, amount: amount, tokenPrice: tokenPrice)
@@ -177,14 +192,16 @@ class Network {
     }
 
     func airdropNativeToUser(
-        amount: Int, completion: @escaping (Result<EmptyResponse, Error>) -> Void
+        amount: Int,
+        completion: @escaping (Result<EmptyResponse, Error>) -> Void
     ) {
         let input = AirdropInput(amount: String(amount))
         callProcedure("airdropNativeToUser", input: input, completion: completion)
     }
 
     func recordClientEvent(
-        event: ClientEvent, completion: @escaping (Result<EmptyResponse, Error>) -> Void
+        event: ClientEvent,
+        completion: @escaping (Result<EmptyResponse, Error>) -> Void
     ) {
         let input = EventInput(event: event)
         callProcedure("recordClientEvent", input: input, completion: completion)
@@ -201,12 +218,14 @@ class Network {
                 let expirationDate = Date(timeIntervalSince1970: exp)
                 if expirationDate > Date() {
                     return token
-                } else {
+                }
+                else {
                     do {
                         print("Token expired, refreshing session")
                         let newSession = try await privy.refreshSession()
                         return newSession.authToken
-                    } catch {
+                    }
+                    catch {
                         print("Failed to refresh session: \(error)")
                         return nil
                     }
@@ -229,7 +248,8 @@ class Network {
         let padded = base64String.padding(
             toLength: ((base64String.count + 3) / 4) * 4,
             withPad: "=",
-            startingAt: 0)
+            startingAt: 0
+        )
 
         guard let data = Data(base64Encoded: padded) else { return nil }
 
@@ -238,16 +258,20 @@ class Network {
 
     func requestCodexToken(_ expiration: Int = 3600 * 1000) async throws -> (String, String) {
         let input: CodexTokenInput = .init(expiration: expiration)
-        
+
         return try await withCheckedThrowingContinuation { continuation in
-            callProcedure("requestCodexToken", input: input, completion: { (result: Result<CodexTokenResponse, Error>) in
-                switch result {
-                case .success(let response):
-                    continuation.resume(returning: (response.token, response.expiry))
-                case .failure(let error):
-                    continuation.resume(throwing: error)
+            callProcedure(
+                "requestCodexToken",
+                input: input,
+                completion: { (result: Result<CodexTokenResponse, Error>) in
+                    switch result {
+                    case .success(let response):
+                        continuation.resume(returning: (response.token, response.expiry))
+                    case .failure(let error):
+                        continuation.resume(throwing: error)
+                    }
                 }
-            })
+            )
         }
     }
 }
@@ -259,7 +283,7 @@ struct ResponseWrapper<T: Codable>: Codable {
     }
     let result: ResultWrapper
 }
- 
+
 struct EmptyResponse: Codable {}
 
 struct UserResponse: Codable {
@@ -282,7 +306,9 @@ struct ClientEvent {
     var metadata: [[String: Any]]? = nil
 
     init(
-        eventName: String, source: String, metadata: [[String: Any]]? = nil,
+        eventName: String,
+        source: String,
+        metadata: [[String: Any]]? = nil,
         errorDetails: String? = nil
     ) {
         self.eventName = eventName
@@ -351,10 +377,12 @@ struct EventInput: Codable {
                 let jsonString = String(data: jsonData, encoding: .utf8)
             {
                 self.metadata = jsonString
-            } else {
+            }
+            else {
                 self.metadata = nil
             }
-        } else {
+        }
+        else {
             self.metadata = nil
         }
 
@@ -362,7 +390,8 @@ struct EventInput: Codable {
             let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String
         {
             self.buildVersion = "\(version) (\(build))"
-        } else {
+        }
+        else {
             self.buildVersion = nil
         }
     }
@@ -410,8 +439,12 @@ extension Network {
                 completion(
                     .failure(
                         NSError(
-                            domain: "NetworkError", code: 0,
-                            userInfo: [NSLocalizedDescriptionKey: "No data received"])))
+                            domain: "NetworkError",
+                            code: 0,
+                            userInfo: [NSLocalizedDescriptionKey: "No data received"]
+                        )
+                    )
+                )
                 return
             }
 
@@ -421,16 +454,22 @@ extension Network {
                     let price = json["USD"]
                 {
                     completion(.success(price))
-                } else {
+                }
+                else {
                     completion(
                         .failure(
                             NSError(
-                                domain: "ParsingError", code: 0,
+                                domain: "ParsingError",
+                                code: 0,
                                 userInfo: [
                                     NSLocalizedDescriptionKey: "Failed to parse JSON response"
-                                ])))
+                                ]
+                            )
+                        )
+                    )
                 }
-            } catch {
+            }
+            catch {
                 completion(.failure(error))
             }
         }

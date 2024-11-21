@@ -6,11 +6,11 @@
 //
 import SwiftUI
 
-struct CreateWalletView : View {
+struct CreateWalletView: View {
     @EnvironmentObject private var notificationHandler: NotificationHandler
     @State private var isLoading = false
     @State private var hasFailed = false
-    
+
     func createEmbeddedWallet() {
         Task {
             do {
@@ -20,10 +20,10 @@ struct CreateWalletView : View {
                     isLoading = false
                     return
                 }
-                
+
                 // Get the current embedded wallet state
                 let walletState = privy.embeddedWallet.embeddedWalletState
-                
+
                 // Check if we need to create a wallet
                 switch walletState {
                 case .notCreated:
@@ -32,7 +32,8 @@ struct CreateWalletView : View {
                 case .connected(let wallets):
                     if wallets.contains(where: { $0.chainType == .solana }) {
                         print("Wallet already created")
-                    } else {
+                    }
+                    else {
                         print("Eth wallet exists, creating solana wallet...")
                         let _ = try await privy.embeddedWallet.createWallet(chainType: .solana, allowAdditional: false)
                     }
@@ -40,7 +41,8 @@ struct CreateWalletView : View {
                     print("Wallet state: \(walletState.toString)")
                 }
                 isLoading = false
-            } catch {
+            }
+            catch {
                 isLoading = false
                 notificationHandler.show(
                     error.localizedDescription,
@@ -49,18 +51,19 @@ struct CreateWalletView : View {
             }
         }
     }
-    
-    
+
     var body: some View {
         VStack {
             if isLoading {
                 Text("Creating Tub Wallet...")
-            } else if hasFailed {
+            }
+            else if hasFailed {
                 LoginErrorView(
                     errorMessage: "Failed to create your Tub wallet. Please try again.",
                     retryAction: createEmbeddedWallet
                 )
-            } else {
+            }
+            else {
                 ProgressView()
             }
         }
@@ -70,7 +73,7 @@ struct CreateWalletView : View {
             createEmbeddedWallet()
         }
     }
-    
+
 }
 
 #Preview {

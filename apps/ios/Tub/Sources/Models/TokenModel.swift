@@ -1,8 +1,8 @@
 import Apollo
+import CodexAPI
 import Combine
 import SwiftUI
 import TubAPI
-import CodexAPI
 
 let emptyToken = Token(
     id: "",
@@ -22,7 +22,7 @@ class TokenModel: ObservableObject {
     var tokenId: String = ""
 
     @Published var token: Token = emptyToken
-    @Published var activeView : Timespan?
+    @Published var activeView: Timespan?
     @Published var isReady = false
 
     @Published var prices: [Price] = []
@@ -32,13 +32,13 @@ class TokenModel: ObservableObject {
     @Published var timeframeSecs: Double = CHART_INTERVAL
     @Published var currentTimeframe: Timespan = .live
     private var lastPriceTimestamp: Date?
-    
+
     private var priceSubscription: Apollo.Cancellable?
     private var candleSubscription: Apollo.Cancellable?
-    
+
     private var latestPrice: Double?
     private var priceUpdateTimer: Timer?
-    
+
     deinit {
         priceUpdateTimer?.invalidate()
         priceUpdateTimer = nil
@@ -53,7 +53,7 @@ class TokenModel: ObservableObject {
             self.initialize(with: token)
         }
     }
-    
+
     func initialize(with newToken: Token, timeframeSecs: Double = CHART_INTERVAL) {
         DispatchQueue.main.async {
             self.tokenId = newToken.id
@@ -68,21 +68,22 @@ class TokenModel: ObservableObject {
         Task {
             do {
                 try await fetchUniqueHolders()
-                
+
                 // Fetch both types of data
                 await fetchInitialPrices(newToken.id, timeframeSecs: self.timeframeSecs)
                 try await fetchInitialCandles(newToken.pairId)
-                
+
                 // Move final status update to main thread
                 DispatchQueue.main.async {
                     self.isReady = true
                 }
-                
+
                 // Subscribe to both updates
-                
+
                 subscribeToTokenPrices(newToken.id)
                 await subscribeToCandles(newToken.pairId)
-            } catch {
+            }
+            catch {
                 print("Error fetching initial data: \(error)")
                 DispatchQueue.main.async {
                     self.isReady = false
@@ -95,15 +96,15 @@ class TokenModel: ObservableObject {
         let client = await CodexNetwork.shared.apolloClient
         let now = Int(Date().timeIntervalSince1970)
         let startTime = now - Int(timeframeSecs)
-        
+
         // Calculate number of intervals needed
         let numIntervals = Int(ceil(timeframeSecs / PRICE_UPDATE_INTERVAL))
-        
+
         // Create array of timestamps we need to fetch
         let timestamps = (0..<numIntervals).map { i in
             startTime + Int(Double(i) * PRICE_UPDATE_INTERVAL)
         }
-        
+
         // Fetch all prices and collect them in order
         let prices = await withTaskGroup(of: Price?.self) { group in
             for timestamp in timestamps {
@@ -113,21 +114,26 @@ class TokenModel: ObservableObject {
                         networkId: NETWORK_FILTER,
                         timestamp: .some(timestamp)
                     )
-                    
+
                     let query = GetTokenPricesQuery(inputs: [input])
                     do {
-                        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Price?, Error>) in
+                        return try await withCheckedThrowingContinuation {
+                            (continuation: CheckedContinuation<Price?, Error>) in
                             client.fetch(query: query) { result in
                                 switch result {
                                 case .success(let response):
                                     if let prices = response.data?.getTokenPrices,
-                                       let firstPrice = prices.first,
-                                       let price = firstPrice?.priceUsd {
-                                        continuation.resume(returning: Price(
-                                            timestamp: Date(timeIntervalSince1970: TimeInterval(timestamp)),
-                                            priceUsd: price
-                                        ))
-                                    } else {
+                                        let firstPrice = prices.first,
+                                        let price = firstPrice?.priceUsd
+                                    {
+                                        continuation.resume(
+                                            returning: Price(
+                                                timestamp: Date(timeIntervalSince1970: TimeInterval(timestamp)),
+                                                priceUsd: price
+                                            )
+                                        )
+                                    }
+                                    else {
                                         continuation.resume(returning: nil)
                                     }
                                 case .failure(let error):
@@ -136,13 +142,14 @@ class TokenModel: ObservableObject {
                                 }
                             }
                         }
-                    } catch {
+                    }
+                    catch {
                         print("Error fetching price at timestamp \(timestamp): \(error)")
                         return nil
                     }
                 }
             }
-            
+
             var allPrices: [Price] = []
             for await price in group {
                 if let price = price {
@@ -151,9 +158,9 @@ class TokenModel: ObservableObject {
             }
             return allPrices
         }
-        
+
         let sortedPrices = prices.sorted { $0.timestamp < $1.timestamp }
-        
+
         DispatchQueue.main.async {
             self.prices = sortedPrices
             self.lastPriceTimestamp = self.prices.last?.timestamp
@@ -163,16 +170,16 @@ class TokenModel: ObservableObject {
         }
     }
 
-
     private func subscribeToTokenPrices(_ tokenId: String) {
         priceSubscription?.cancel()
-        
+
         // Start the timer for regular price updates
         priceUpdateTimer?.invalidate()
         DispatchQueue.main.async {
-            self.priceUpdateTimer = Timer.scheduledTimer(withTimeInterval: PRICE_UPDATE_INTERVAL, repeats: true) { [weak self] _ in
+            self.priceUpdateTimer = Timer.scheduledTimer(withTimeInterval: PRICE_UPDATE_INTERVAL, repeats: true) {
+                [weak self] _ in
                 guard let self = self else { return }
-                
+
                 let now = Date()
                 if let price = self.latestPrice {
                     // Add a new price point at each interval
@@ -182,33 +189,37 @@ class TokenModel: ObservableObject {
                     self.calculatePriceChange()
                 }
             }
-            
+
             // Make sure the timer is retained
             RunLoop.main.add(self.priceUpdateTimer!, forMode: .common)
         }
-        
+
         // Subscribe to real-time price updates
-        priceSubscription = CodexNetwork.shared.apollo.subscribe(subscription: SubTokenPricesSubscription(
-            tokenAddress: tokenId
-        )) { [weak self] result in
+        priceSubscription = CodexNetwork.shared.apollo.subscribe(
+            subscription: SubTokenPricesSubscription(
+                tokenAddress: tokenId
+            )
+        ) { [weak self] result in
             guard let self = self else { return }
-            
+
             switch result {
             case .success(let graphQLResult):
                 if let errors = graphQLResult.errors {
                     print("GraphQL errors: \(errors)")
                     return
                 }
-                
+
                 if let events = graphQLResult.data?.onTokenEventsCreated.events {
-                    let swaps = events
+                    let swaps =
+                        events
                         .filter { $0.eventType == .swap }
                         .sorted { $0.timestamp < $1.timestamp }
-                    
+
                     if let lastSwap = swaps.last {
-                        let priceUsd = lastSwap.quoteToken == .token0 ?
-                            lastSwap.token0PoolValueUsd ?? "0" : lastSwap.token1PoolValueUsd ?? "0"
-                        
+                        let priceUsd =
+                            lastSwap.quoteToken == .token0
+                            ? lastSwap.token0PoolValueUsd ?? "0" : lastSwap.token1PoolValueUsd ?? "0"
+
                         self.latestPrice = Double(priceUsd) ?? 0.0
                     }
                 }
@@ -222,29 +233,32 @@ class TokenModel: ObservableObject {
         let client = await CodexNetwork.shared.apolloClient
         let now = Int(Date().timeIntervalSince1970)
         let thirtyMinutesAgo = now - (30 * 60)
-        
+
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            client.fetch(query: GetTokenCandlesQuery(
-                from: thirtyMinutesAgo,
-                to: now,
-                symbol: pairId,
-                resolution: "1"
-            )) { [weak self] result in
+            client.fetch(
+                query: GetTokenCandlesQuery(
+                    from: thirtyMinutesAgo,
+                    to: now,
+                    symbol: pairId,
+                    resolution: "1"
+                )
+            ) { [weak self] result in
                 guard let self = self else {
                     continuation.resume(throwing: NSError(domain: "TokenModel", code: 0))
                     return
                 }
-                
+
                 switch result {
                 case .success(let response):
                     if let bars = response.data?.getBars {
                         DispatchQueue.main.async {
                             self.candles = zip(0..<bars.t.count, bars.t).compactMap { index, timestamp in
                                 guard let timestamp = .some(timestamp),
-                                      let open = bars.o[index],
-                                      let close = bars.c[index],
-                                      let high = bars.h[index],
-                                      let low = bars.l[index] else { return nil }
+                                    let open = bars.o[index],
+                                    let close = bars.c[index],
+                                    let high = bars.h[index],
+                                    let low = bars.l[index]
+                                else { return nil }
                                 return CandleData(
                                     start: Date(timeIntervalSince1970: TimeInterval(timestamp)),
                                     end: Date(timeIntervalSince1970: TimeInterval(timestamp) + 60),
@@ -268,69 +282,70 @@ class TokenModel: ObservableObject {
     private func subscribeToCandles(_ pairId: String) async {
         candleSubscription?.cancel()
         candleSubscription = nil
-        
-//        let client = await CodexNetwork.shared.apolloClient
-//        let subscription = SubTokenCandlesSubscription(pairId: pairId)
-//        
-//        candleSubscription = client.subscribe(subscription: subscription) { [weak self] result in
-//            guard let self = self else { return }
-//            switch result {
-//            case .success(let graphQLResult):
-//                if let newCandle = graphQLResult.data?.onBarsUpdated?.aggregates.r1?.token {
-//                    let candleData = CandleData(
-//                        start: Date(timeIntervalSince1970: TimeInterval(newCandle.t)),
-//                        end: Date(timeIntervalSince1970: TimeInterval(newCandle.t) + 60),
-//                        open: newCandle.o,
-//                        close: newCandle.c,
-//                        high: max(newCandle.h, newCandle.c),
-//                        low: min(newCandle.l, newCandle.c),
-//                        volume: newCandle.v
-//                    )
-//                    DispatchQueue.main.async {
-//                        self.candles.append(candleData)
-//                        if let index = self.candles.firstIndex(where: { $0.start == candleData.start }) {
-//                            var updatedCandle = self.candles[index]
-//                            updatedCandle.close = candleData.close
-//                            updatedCandle.high = max(updatedCandle.high, candleData.close)
-//                            updatedCandle.low = min(updatedCandle.low, candleData.close)
-//                            updatedCandle.volume = candleData.volume
-//                            self.candles[index] = updatedCandle
-//                        } else {
-//                            self.candles.sort { $0.start < $1.start }
-//                        }
-//                        
-//                        let thirtyMinutesAgo = Date().addingTimeInterval(-30 * 60)
-//                        self.candles.removeAll { $0.start < thirtyMinutesAgo }
-//                    }
-//                }
-//            case .failure(let error):
-//                print("Error in candle subscription: \(error.localizedDescription)")
-//            }
-//        }
+
+        //        let client = await CodexNetwork.shared.apolloClient
+        //        let subscription = SubTokenCandlesSubscription(pairId: pairId)
+        //
+        //        candleSubscription = client.subscribe(subscription: subscription) { [weak self] result in
+        //            guard let self = self else { return }
+        //            switch result {
+        //            case .success(let graphQLResult):
+        //                if let newCandle = graphQLResult.data?.onBarsUpdated?.aggregates.r1?.token {
+        //                    let candleData = CandleData(
+        //                        start: Date(timeIntervalSince1970: TimeInterval(newCandle.t)),
+        //                        end: Date(timeIntervalSince1970: TimeInterval(newCandle.t) + 60),
+        //                        open: newCandle.o,
+        //                        close: newCandle.c,
+        //                        high: max(newCandle.h, newCandle.c),
+        //                        low: min(newCandle.l, newCandle.c),
+        //                        volume: newCandle.v
+        //                    )
+        //                    DispatchQueue.main.async {
+        //                        self.candles.append(candleData)
+        //                        if let index = self.candles.firstIndex(where: { $0.start == candleData.start }) {
+        //                            var updatedCandle = self.candles[index]
+        //                            updatedCandle.close = candleData.close
+        //                            updatedCandle.high = max(updatedCandle.high, candleData.close)
+        //                            updatedCandle.low = min(updatedCandle.low, candleData.close)
+        //                            updatedCandle.volume = candleData.volume
+        //                            self.candles[index] = updatedCandle
+        //                        } else {
+        //                            self.candles.sort { $0.start < $1.start }
+        //                        }
+        //
+        //                        let thirtyMinutesAgo = Date().addingTimeInterval(-30 * 60)
+        //                        self.candles.removeAll { $0.start < thirtyMinutesAgo }
+        //                    }
+        //                }
+        //            case .failure(let error):
+        //                print("Error in candle subscription: \(error.localizedDescription)")
+        //            }
+        //        }
     }
 
     func updateHistoryInterval(_ timespan: Timespan) {
         self.calculatePriceChange()
         self.timeframeSecs = timespan.timeframeSecs
     }
-    
+
     private func calculatePriceChange() {
         let latestPrice = prices.last?.priceUsd ?? 0
-        
+
         // Get timestamp for start of current timeframe
         let startTime = Date().addingTimeInterval(-currentTimeframe.timeframeSecs)
-        
+
         // Find first price after the start time
-        let initialPriceUsd = prices.first(where: { $0.timestamp >= startTime })?.priceUsd ?? prices.first?.priceUsd ?? 0
-        
+        let initialPriceUsd =
+            prices.first(where: { $0.timestamp >= startTime })?.priceUsd ?? prices.first?.priceUsd ?? 0
+
         if latestPrice == 0 || initialPriceUsd == 0 {
             print("Error: Cannot calculate price change. Prices are not available.")
             return
         }
-        
+
         let priceChangeUsd = latestPrice - initialPriceUsd
         let priceChangePercentage = Double(priceChangeUsd) / Double(initialPriceUsd) * 100
-        
+
         DispatchQueue.main.async {
             self.priceChange = (priceChangeUsd, priceChangePercentage)
         }
@@ -349,16 +364,18 @@ class TokenModel: ObservableObject {
             ("Market Cap", !isReady ? nil : priceModel.formatPrice(usd: token.marketCap, formatLarge: true)),
             ("Volume (1h)", !isReady ? nil : priceModel.formatPrice(usd: token.volume, formatLarge: true)),
             ("Liquidity", !isReady ? nil : priceModel.formatPrice(usd: token.liquidity, formatLarge: true)),
-            ("Unique holders", !isReady ? nil : formatLargeNumber(Double(token.uniqueHolders)))
+            ("Unique holders", !isReady ? nil : formatLargeNumber(Double(token.uniqueHolders))),
         ]
     }
 
     private func fetchUniqueHolders() async throws {
         let client = await CodexNetwork.shared.apolloClient
         return try await withCheckedThrowingContinuation { continuation in
-            client.fetch(query: GetUniqueHoldersQuery(
-                pairId: "\(tokenId):\(NETWORK_FILTER)"
-            )) { [weak self] result in
+            client.fetch(
+                query: GetUniqueHoldersQuery(
+                    pairId: "\(tokenId):\(NETWORK_FILTER)"
+                )
+            ) { [weak self] result in
                 guard let self = self else {
                     let error = NSError(
                         domain: "TokenModel",
@@ -368,7 +385,7 @@ class TokenModel: ObservableObject {
                     continuation.resume(throwing: error)
                     return
                 }
-                
+
                 switch result {
                 case .success(let response):
                     if let holders = response.data?.holders.count {

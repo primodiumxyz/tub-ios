@@ -11,8 +11,8 @@ struct SellForm: View {
     @EnvironmentObject var priceModel: SolPriceModel
     @ObservedObject var tokenModel: TokenModel
     @Binding var showBuySheet: Bool
-    var onSell : () -> ()
-    
+    var onSell: () -> Void
+
     private var sellButton: some View {
         Button(action: onSell) {
             Text("Sell")
@@ -25,7 +25,7 @@ struct SellForm: View {
                 .cornerRadius(30)
         }
     }
-    
+
     var body: some View {
         GeometryReader { geometry in
             HStack(spacing: 8) {

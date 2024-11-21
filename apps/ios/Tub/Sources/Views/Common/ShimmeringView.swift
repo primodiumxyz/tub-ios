@@ -10,11 +10,11 @@ import SwiftUI
 struct ShimmeringView: ViewModifier {
     @State private var phase: CGFloat = 0
     let opacity: Double
-    
+
     init(opacity: Double = 0.1) {
         self.opacity = opacity
     }
-    
+
     func body(content: Content) -> some View {
         content
             .overlay(
@@ -48,4 +48,3 @@ extension View {
         modifier(ShimmeringView(opacity: opacity))
     }
 }
-

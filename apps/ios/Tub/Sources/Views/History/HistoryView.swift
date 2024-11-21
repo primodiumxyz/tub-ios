@@ -5,49 +5,52 @@
 //  Created by yixintan on 10/3/24.
 //
 
+import CodexAPI
 import SwiftUI
 import TubAPI
-import CodexAPI
 
-struct HistoryView : View {
-    
+struct HistoryView: View {
+
     @EnvironmentObject private var userModel: UserModel
     @EnvironmentObject private var priceModel: SolPriceModel
-    
-    
+
     @State private var txs: [Transaction]
-    @State private var isReady : Bool
-    @State private var error: Error? // Add this line
-    @State private var tokenMetadata: [String: TokenMetadata] = [:] // Cache for token metadata
-    
+    @State private var isReady: Bool
+    @State private var error: Error?  // Add this line
+    @State private var tokenMetadata: [String: TokenMetadata] = [:]  // Cache for token metadata
+
     struct TokenMetadata {
         let name: String?
         let symbol: String?
         let imageUri: String?
     }
-    
+
     init(txs: [Transaction]? = []) {
         self._txs = State(initialValue: txs!.isEmpty ? [] : txs!)
         self._isReady = State(initialValue: txs != nil)
-        self._error = State(initialValue: nil) // Add this line
+        self._error = State(initialValue: nil)  // Add this line
     }
-    
+
     func fetchTokenMetadata(address: String) async throws -> TokenMetadata {
         let client = await CodexNetwork.shared.apolloClient
         return try await withCheckedThrowingContinuation { continuation in
-            client.fetch(query: GetTokenMetadataQuery(
-                address: address
-            )) { result in
+            client.fetch(
+                query: GetTokenMetadataQuery(
+                    address: address
+                )
+            ) { result in
                 switch result {
                 case .success(let response):
                     if let token = response.data?.token {
                         let metadata = TokenMetadata(
                             name: token.info?.name,
                             symbol: token.info?.symbol,
-                            imageUri: token.info?.imageLargeUrl ?? token.info?.imageSmallUrl ?? token.info?.imageThumbUrl ?? nil
+                            imageUri: token.info?.imageLargeUrl ?? token.info?.imageSmallUrl ?? token.info?
+                                .imageThumbUrl ?? nil
                         )
                         continuation.resume(returning: metadata)
-                    } else {
+                    }
+                    else {
                         continuation.resume(throwing: NSError(domain: "TokenMetadata", code: 1))
                     }
                 case .failure(let error):
@@ -56,12 +59,12 @@ struct HistoryView : View {
             }
         }
     }
-    
+
     func fetchUserTxs(_ walletAddress: String) {
         isReady = false
         error = nil
         let query = GetWalletTransactionsQuery(wallet: walletAddress)
-        
+
         Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { result in
             Task {
                 do {
@@ -69,16 +72,16 @@ struct HistoryView : View {
                     case .success(let graphQLResult):
                         if let tokenTransactions = graphQLResult.data?.token_transaction {
                             var processedTxs: [Transaction] = []
-                            
+
                             for transaction in tokenTransactions {
                                 guard let date = formatDateString(transaction.wallet_transaction_data.created_at) else {
                                     continue
                                 }
-                                
+
                                 if abs(transaction.amount) == 0 {
                                     continue
                                 }
-                                
+
                                 // Fetch token metadata if not cached
                                 if tokenMetadata[transaction.token] == nil {
                                     let metadata = try await fetchTokenMetadata(address: transaction.token)
@@ -86,13 +89,13 @@ struct HistoryView : View {
                                         tokenMetadata[transaction.token] = metadata
                                     }
                                 }
-                                
+
                                 let metadata = tokenMetadata[transaction.token]
                                 let isBuy = transaction.amount >= 0
                                 let mint = transaction.token
                                 let priceLamps = transaction.token_price
                                 let valueLamps = transaction.amount * Int(priceLamps) / Int(1e9)
-                                
+
                                 let newTransaction = Transaction(
                                     name: metadata?.name ?? "",
                                     symbol: metadata?.symbol ?? "",
@@ -104,10 +107,10 @@ struct HistoryView : View {
                                     isBuy: isBuy,
                                     mint: mint
                                 )
-                                
+
                                 processedTxs.append(newTransaction)
                             }
-                            
+
                             await MainActor.run {
                                 self.txs = processedTxs
                                 self.isReady = true
@@ -116,7 +119,8 @@ struct HistoryView : View {
                     case .failure(let error):
                         throw error
                     }
-                } catch {
+                }
+                catch {
                     await MainActor.run {
                         self.error = error
                         self.isReady = true
@@ -125,12 +129,13 @@ struct HistoryView : View {
             }
         }
     }
-    
+
     var body: some View {
         Group {
             if let error = error {
                 ErrorView(error: error)
-            } else {
+            }
+            else {
                 HistoryViewContent(txs: txs, isReady: $isReady)
             }
         }.onAppear {
@@ -139,20 +144,18 @@ struct HistoryView : View {
     }
 }
 
-
-
 struct HistoryViewContent: View {
     var txs: [Transaction]
     @Binding var isReady: Bool
     @State private var filterState = FilterState()
-    
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 0) {
                     // Add padding at the top to make room for the filters
                     Color.clear.frame(height: 44)
-                    
+
                     // Transaction List
                     if !isReady {
                         ProgressView()
@@ -161,7 +164,8 @@ struct HistoryViewContent: View {
                         Text("No transactions found")
                             .font(.sfRounded(size: .base, weight: .regular))
                             .foregroundColor(AppColors.gray)
-                    } else {
+                    }
+                    else {
                         LazyVStack(spacing: 0) {
                             ForEach(groupTransactions(filteredTransactions()), id: \.date) { group in
                                 TransactionGroupRow(group: group)
@@ -174,18 +178,18 @@ struct HistoryViewContent: View {
             }
             .overlay(
                 TransactionFilters(filterState: $filterState)
-                    .background(Color.black)
-                , alignment: .top
+                    .background(Color.black),
+                alignment: .top
             )
             .navigationTitle("History")
             .navigationBarTitleDisplayMode(.large)
         }
     }
-    
+
     // Helper function to filter transactions
     func filteredTransactions() -> [Transaction] {
         var filteredData = txs
-        
+
         // Filter by search text
         if !filterState.searchText.isEmpty {
             filteredData = filteredData.filter { transaction in
@@ -193,41 +197,51 @@ struct HistoryViewContent: View {
                 return cleanedSymbol.hasPrefix(filterState.searchText.lowercased())
             }
         }
-        
+
         // Filter by Type (checkboxes)
         if filterState.selectedBuy && !filterState.selectedSell {
             filteredData = filteredData.filter { $0.isBuy }
-        } else if filterState.selectedSell && !filterState.selectedBuy {
+        }
+        else if filterState.selectedSell && !filterState.selectedBuy {
             filteredData = filteredData.filter { !$0.isBuy }
-        } else if !filterState.selectedBuy && !filterState.selectedSell {
+        }
+        else if !filterState.selectedBuy && !filterState.selectedSell {
             filteredData = []
         }
-        
+
         // Filter by Period
         if filterState.selectedPeriod != "All" {
             switch filterState.selectedPeriod {
             case "Today":
                 filteredData = filteredData.filter { Calendar.current.isDateInToday($0.date) }
             case "This Week":
-                filteredData = filteredData.filter { Calendar.current.isDate($0.date, equalTo: Date(), toGranularity: .weekOfYear) }
+                filteredData = filteredData.filter {
+                    Calendar.current.isDate($0.date, equalTo: Date(), toGranularity: .weekOfYear)
+                }
             case "This Month":
-                filteredData = filteredData.filter { Calendar.current.isDate($0.date, equalTo: Date(), toGranularity: .month) }
+                filteredData = filteredData.filter {
+                    Calendar.current.isDate($0.date, equalTo: Date(), toGranularity: .month)
+                }
             case "This Year":
-                filteredData = filteredData.filter { Calendar.current.isDate($0.date, equalTo: Date(), toGranularity: .year) }
+                filteredData = filteredData.filter {
+                    Calendar.current.isDate($0.date, equalTo: Date(), toGranularity: .year)
+                }
             default:
                 break
             }
         }
-        
+
         // Filter by Status (checkboxes)
         if filterState.selectedFilled && !filterState.selectedUnfilled {
             filteredData = filteredData.filter { _ in true }
-        } else if filterState.selectedUnfilled && !filterState.selectedFilled {
+        }
+        else if filterState.selectedUnfilled && !filterState.selectedFilled {
             filteredData = filteredData.filter { _ in false }
-        } else if !filterState.selectedFilled && !filterState.selectedUnfilled {
+        }
+        else if !filterState.selectedFilled && !filterState.selectedUnfilled {
             filteredData = []
         }
-        
+
         // Filter by Amount
         if filterState.selectedAmountRange != "All" {
             switch filterState.selectedAmountRange {
@@ -239,7 +253,7 @@ struct HistoryViewContent: View {
                 break
             }
         }
-        
+
         return filteredData
     }
 }
@@ -257,13 +271,13 @@ struct FilterState {
 
 struct TransactionFilters: View {
     @Binding var filterState: FilterState
-    
+
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
                 // Search Button and Field
                 SearchFilter(filterState: $filterState)
-                
+
                 // Type Filter
                 Menu {
                     Toggle(isOn: $filterState.selectedBuy) { Text("Buy") }
@@ -272,7 +286,7 @@ struct TransactionFilters: View {
                     Text(typeFilterLabel())
                         .filterStyle()
                 }
-                
+
                 // Period Filter
                 Menu {
                     ForEach(["All", "Today", "This Week", "This Month", "This Year"], id: \.self) { period in
@@ -284,7 +298,7 @@ struct TransactionFilters: View {
                     Text("Period: \(filterState.selectedPeriod)")
                         .filterStyle()
                 }
-                
+
                 // Status Filter
                 Menu {
                     Toggle(isOn: $filterState.selectedFilled) { Text("Filled") }
@@ -293,7 +307,7 @@ struct TransactionFilters: View {
                     Text(statusFilterLabel())
                         .filterStyle()
                 }
-                
+
                 // Amount Filter
                 Menu {
                     ForEach(["All", "< $100", "> $100"], id: \.self) { amount in
@@ -310,27 +324,33 @@ struct TransactionFilters: View {
         }
         .frame(height: 44)
     }
-    
+
     func typeFilterLabel() -> String {
         if filterState.selectedBuy && filterState.selectedSell {
             return "Type: All"
-        } else if filterState.selectedBuy {
+        }
+        else if filterState.selectedBuy {
             return "Type: Buy"
-        } else if filterState.selectedSell {
+        }
+        else if filterState.selectedSell {
             return "Type: Sell"
-        } else {
+        }
+        else {
             return "Type: None"
         }
     }
-    
+
     func statusFilterLabel() -> String {
         if filterState.selectedFilled && filterState.selectedUnfilled {
             return "Status: All"
-        } else if filterState.selectedFilled {
+        }
+        else if filterState.selectedFilled {
             return "Status: Filled"
-        } else if filterState.selectedUnfilled {
+        }
+        else if filterState.selectedUnfilled {
             return "Status: Unfilled"
-        } else {
+        }
+        else {
             return "Status: None"
         }
     }
@@ -354,12 +374,12 @@ extension View {
 struct TransactionRow: View {
     let transaction: Transaction
     @EnvironmentObject private var priceModel: SolPriceModel
-    
+
     var body: some View {
         HStack {
             ImageView(imageUri: transaction.imageUri, size: 40)
                 .cornerRadius(8)
-            
+
             VStack(alignment: .leading) {
                 HStack {
                     Text(transaction.isBuy ? "Buy" : "Sell")
@@ -370,33 +390,33 @@ struct TransactionRow: View {
                         .foregroundColor(AppColors.white)
                         .lineLimit(1)
                         .truncationMode(.tail)
-                        .offset(x:-2)
+                        .offset(x: -2)
                 }
-                
+
                 Text(formatDate(transaction.date))
                     .font(.sfRounded(size: .xs, weight: .regular))
                     .foregroundColor(AppColors.gray)
-                    .offset(y:2)
-                
+                    .offset(y: 2)
+
             }
             Spacer()
             VStack(alignment: .trailing) {
                 let price = priceModel.formatPrice(usd: transaction.valueUsd, showSign: true)
                 Text(price)
                     .font(.sfRounded(size: .base, weight: .bold))
-                    .foregroundColor(transaction.isBuy ? AppColors.red: AppColors.green)
-                
+                    .foregroundColor(transaction.isBuy ? AppColors.red : AppColors.green)
+
                 let quantity = priceModel.formatPrice(lamports: abs(transaction.quantityTokens), showUnit: false)
                 HStack {
                     Text(quantity)
                         .font(.sfRounded(size: .xs, weight: .regular))
                         .foregroundColor(AppColors.gray)
-                        .offset(x:4, y:2)
-                    
+                        .offset(x: 4, y: 2)
+
                     Text(transaction.symbol)
                         .font(.sfRounded(size: .xs, weight: .regular))
                         .foregroundColor(AppColors.gray)
-                        .offset(y:2)
+                        .offset(y: 2)
                 }
             }
             Image(systemName: "chevron.right")
@@ -405,7 +425,7 @@ struct TransactionRow: View {
         }
         .padding(.bottom, 10.0)
     }
-    
+
     func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
@@ -416,22 +436,22 @@ struct TransactionRow: View {
 // Separate search filter component
 struct SearchFilter: View {
     @Binding var filterState: FilterState
-    
+
     var body: some View {
         HStack(spacing: 8) {
             Button(action: {
                 if filterState.isSearching {
                     filterState.searchText = ""
                 }
-                withAnimation(.easeInOut(duration: 0.2)) {  
-                    filterState.isSearching.toggle() 
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    filterState.isSearching.toggle()
                 }
             }) {
                 Image(systemName: filterState.isSearching ? "xmark.circle.fill" : "magnifyingglass")
                     .foregroundStyle(.primary)
                     .font(.sfRounded(size: .base, weight: .semibold))
             }
-            
+
             if filterState.isSearching {
                 ZStack(alignment: .leading) {
                     if filterState.searchText.isEmpty {
@@ -445,7 +465,7 @@ struct SearchFilter: View {
                         .frame(width: 100)
                         .font(.sfRounded(size: .base, weight: .regular))
                 }
-                .transition(.move(edge: .trailing).combined(with: .opacity))  
+                .transition(.move(edge: .trailing).combined(with: .opacity))
             }
         }
         .filterStyle()

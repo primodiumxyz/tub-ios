@@ -5,22 +5,22 @@
 //  Created by Emerson Hsieh on 2024/9/24.
 //
 
-import SwiftUI
 import PrivySDK
+import SwiftUI
 
 struct HomeTabsView: View {
     var color = Color(red: 0.43, green: 0.97, blue: 0.98)
-    @EnvironmentObject private var userModel : UserModel
-    @EnvironmentObject private var priceModel : SolPriceModel
-    
-    @State private var selectedTab: Int = 0 // Track the selected tab
+    @EnvironmentObject private var userModel: UserModel
+    @EnvironmentObject private var priceModel: SolPriceModel
+
+    @State private var selectedTab: Int = 0  // Track the selected tab
     @State private var tabStartTime: Date? = nil
-  
+
     @StateObject private var tokenListModel: TokenListModel
     init(userModel: UserModel) {
         self._tokenListModel = StateObject(wrappedValue: TokenListModel(userModel: userModel))
     }
-    
+
     // Add this to watch for userModel changes
     private var userId: String? {
         didSet {
@@ -33,9 +33,9 @@ struct HomeTabsView: View {
 
     private func recordTabDwellTime(_ previousTab: String) {
         guard let startTime = tabStartTime else { return }
-        
+
         let dwellTimeMs = Int(Date().timeIntervalSince(startTime) * 1000)
-        
+
         Network.shared.recordClientEvent(
             event: ClientEvent(
                 eventName: "tab_dwell_time",
@@ -94,16 +94,22 @@ struct HomeTabsView: View {
     var body: some View {
         Group {
             if !priceModel.isReady {
-                LoadingView(identifier: "HomeTabsView - waiting for userModel & priceModel", message: "Connecting to Solana")
-            } else {
+                LoadingView(
+                    identifier: "HomeTabsView - waiting for userModel & priceModel",
+                    message: "Connecting to Solana"
+                )
+            }
+            else {
                 ZStack(alignment: .bottom) {
                     // Main content view
                     Group {
                         if selectedTab == 0 {
                             TokenListView(tokenListModel: tokenListModel)
-                        } else if selectedTab == 1 {
+                        }
+                        else if selectedTab == 1 {
                             HistoryView()
-                        } else if selectedTab == 2 {
+                        }
+                        else if selectedTab == 2 {
                             AccountView()
                         }
                     }
@@ -126,7 +132,8 @@ struct HomeTabsView: View {
                                     .font(.sfRounded(size: .xs, weight: .regular))
                             }
                             .foregroundColor(
-                                selectedTab == 0 ? color : AppColors.white.opacity(0.5))
+                                selectedTab == 0 ? color : AppColors.white.opacity(0.5)
+                            )
                         }
 
                         Spacer()
@@ -143,7 +150,8 @@ struct HomeTabsView: View {
                                     .font(.sfRounded(size: .xs, weight: .regular))
                             }
                             .foregroundColor(
-                                selectedTab == 1 ? color : AppColors.white.opacity(0.5))
+                                selectedTab == 1 ? color : AppColors.white.opacity(0.5)
+                            )
                         }
 
                         Spacer()
@@ -160,7 +168,8 @@ struct HomeTabsView: View {
                                     .font(.sfRounded(size: .xs, weight: .regular))
                             }
                             .foregroundColor(
-                                selectedTab == 2 ? color : AppColors.white.opacity(0.5))
+                                selectedTab == 2 ? color : AppColors.white.opacity(0.5)
+                            )
                         }
 
                         Spacer()
@@ -170,12 +179,12 @@ struct HomeTabsView: View {
                 }
             }
         }.frame(maxWidth: .infinity, maxHeight: .infinity)
-        .ignoresSafeArea(.keyboard)
-        .onChange(of: userModel.userId) { _, newUserId in
-            if newUserId != nil {
-                selectedTab = 0  // Force switch to trade tab
-                recordTabSelection("trade")
+            .ignoresSafeArea(.keyboard)
+            .onChange(of: userModel.userId) { _, newUserId in
+                if newUserId != nil {
+                    selectedTab = 0  // Force switch to trade tab
+                    recordTabSelection("trade")
+                }
             }
-        }
     }
 }
