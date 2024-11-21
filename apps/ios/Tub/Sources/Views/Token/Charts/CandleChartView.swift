@@ -103,9 +103,12 @@ struct CandleChartView: View {
     }
 
     private func xAxisConfig() -> some AxisContent {
-        AxisMarks(values: .stride(by: .minute, count: Int(floor(timeframeMins / 4)))) { value in
-            AxisValueLabel(format: .dateTime.hour().minute())
-                .foregroundStyle(.white.opacity(0.5))
+        AxisMarks(values: .stride(by: .minute, count: 4)) { value in
+            // show the first 6 labels (after that it gets cutoff
+            if value.index <= 6 {
+                AxisValueLabel(format: .dateTime.hour().minute())
+                    .foregroundStyle(.white.opacity(0.5))
+            }
         }
     }
 }
