@@ -33,7 +33,16 @@ final class UserModel: ObservableObject {
     
     private var timer: Timer?
     
+    @Published var hasSeenOnboarding: Bool {
+        didSet {
+            UserDefaults.standard.set(hasSeenOnboarding, forKey: "hasSeenOnboarding")
+        }
+    }
+    
     private init() {
+        self.hasSeenOnboarding = UserDefaults.standard.bool(forKey: "hasSeenOnboarding")
+        print("Initial hasSeenOnboarding value:", self.hasSeenOnboarding)
+        
         setupAuthStateListener()
         setupWalletStateListener()
     }
@@ -229,6 +238,7 @@ final class UserModel: ObservableObject {
             self.balanceChangeLamps = 0
             self.stopTimer()
             self.elapsedSeconds = 0
+            self.hasSeenOnboarding = false
             privy.logout()
         }
     }
