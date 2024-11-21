@@ -159,7 +159,7 @@ struct TokenView : View {
                     if tokenModel.isReady {
                         Text(price)
                         Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
-                        Text("\(formatDuration(CHART_INTERVAL))").foregroundColor(.gray)
+                        Text("\(formatDuration(tokenModel.selectedTimespan.seconds))").foregroundColor(.gray)
                     } else {
                         LoadingBox(width:160, height: 12)
                     }

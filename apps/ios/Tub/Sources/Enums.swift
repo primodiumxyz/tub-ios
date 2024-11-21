@@ -8,4 +8,11 @@
 enum Timespan: String, CaseIterable {
     case live = "LIVE"
     case thirtyMin = "30M"
+
+    public var seconds: Double {
+        switch self {
+            case .live: return CHART_INTERVAL
+            case .thirtyMin: return 30 * 60
+        }
+    }
 }

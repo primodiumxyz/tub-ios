@@ -100,10 +100,10 @@ class TokenModel: ObservableObject {
         func fetchInitialPrices() async {
             let client = await CodexNetwork.shared.apolloClient
             let now = Int(Date().timeIntervalSince1970)
-            let startTime = now - Int(CHART_INTERVAL)
+            let startTime = now - Int(Timespan.live.seconds)
             
             // Calculate number of intervals needed
-            let numIntervals = Int(ceil(CHART_INTERVAL / PRICE_UPDATE_INTERVAL))
+            let numIntervals = Int(ceil(Timespan.live.seconds / PRICE_UPDATE_INTERVAL))
             
             // Create array of timestamps we need to fetch
             let timestamps = (0..<numIntervals).map { i in
@@ -315,8 +315,8 @@ class TokenModel: ObservableObject {
                              self.candles.sort { $0.start < $1.start }
                          }
                         
-                         let thirtyMinutesAgo = Date().addingTimeInterval(-30 * 60)
-                         self.candles.removeAll { $0.start < thirtyMinutesAgo }
+                         let startTime = Date().addingTimeInterval(Timespan.thirtyMin.seconds)
+                         self.candles.removeAll { $0.start < startTime }
                      }
                  }
              case .failure(let error):
@@ -328,11 +328,15 @@ class TokenModel: ObservableObject {
     private func calculatePriceChange() {
         let latestPrice = prices.last?.priceUsd ?? 0
         
-        // Get timestamp for start of current timeframe
-        let startTime = Date().addingTimeInterval(-CHART_INTERVAL)
-        
-        // Find first price after the start time
-        let initialPriceUsd = prices.first(where: { $0.timestamp >= startTime })?.priceUsd ?? prices.first?.priceUsd ?? 0
+        let startTime = Date().addingTimeInterval(-selectedTimespan.seconds)
+        let initialPriceUsd: Double
+        // Find first price corresponding to the selected timespan
+        if selectedTimespan == .live {
+            initialPriceUsd = prices.first(where: { $0.timestamp >= startTime })?.priceUsd ?? prices.first?.priceUsd ?? 0
+        } else {
+            // Find the price within the candles data
+            initialPriceUsd = candles.first(where: { $0.start >= startTime })?.close ?? prices.first?.priceUsd ?? 0
+        }
         
         if latestPrice == 0 || initialPriceUsd == 0 {
             print("Error: Cannot calculate price change. Prices are not available.")
