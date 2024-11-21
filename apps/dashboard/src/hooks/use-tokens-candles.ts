@@ -55,15 +55,15 @@ export const useTokenCandles = (
             return;
           }
 
-          if (!value.data?.onBarsUpdated?.aggregates?.r1?.token) return;
+          if (!value.data?.onBarsUpdated?.aggregates?.r1?.usd) return;
 
           onUpdate({
-            o: value.data.onBarsUpdated.aggregates.r1.token.o,
-            h: value.data.onBarsUpdated.aggregates.r1.token.h,
-            l: value.data.onBarsUpdated.aggregates.r1.token.l,
-            c: value.data.onBarsUpdated.aggregates.r1.token.c,
-            v: value.data.onBarsUpdated.aggregates.r1.token.v ?? null,
-            t: value.data.onBarsUpdated.aggregates.r1.token.t,
+            o: value.data.onBarsUpdated.aggregates.r1.usd.o,
+            h: value.data.onBarsUpdated.aggregates.r1.usd.h,
+            l: value.data.onBarsUpdated.aggregates.r1.usd.l,
+            c: value.data.onBarsUpdated.aggregates.r1.usd.c,
+            v: value.data.onBarsUpdated.aggregates.r1.usd.v ?? null,
+            t: value.data.onBarsUpdated.aggregates.r1.usd.t,
           });
         },
         complete() {
@@ -74,7 +74,7 @@ export const useTokenCandles = (
         },
       },
     );
-  }, [codexSdk, onUpdate, token.pairId]);
+  }, [codexSdk, token.pairId]);
 
   useEffect(() => {
     fetchCandlesData().then(subscribeToCandlesData);
