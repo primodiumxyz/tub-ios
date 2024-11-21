@@ -271,40 +271,7 @@ private struct AccountContentView: View {
                 showOnrampView: $showOnrampView
             )
             AccountSettingsView()
-            // Spacer()
-
-            // Debug wallet state toggle
-            VStack(spacing: 8) {
-                Text("Wallet State: \(String(userModel.walletState.toString))")
-                    .foregroundColor(.gray)
-                    .font(.caption)
-
-                Button(action: {
-                    // Toggle between connected and notCreated states
-                    if userModel.walletState == .error {
-                        userModel.walletState = .notCreated
-                    }
-                    else if userModel.walletState == .notCreated {
-                        userModel.walletState = .connecting
-                    }
-                    else if userModel.walletState == .connecting {
-                        userModel.walletState = .connected([])
-                    }
-                    else if userModel.walletState.toString == "connected" {
-                        userModel.walletState = .error
-                    }
-                }) {
-                    Text("Toggle Wallet State")
-                        .foregroundColor(.gray)
-                        .font(.caption)
-                        .padding(8)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color.gray, lineWidth: 1)
-                        )
-                }
-            }
-            .padding(.bottom)
+            Spacer()
         }
     }
 }

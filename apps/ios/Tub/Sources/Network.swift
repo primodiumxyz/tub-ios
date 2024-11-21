@@ -180,8 +180,7 @@ class Network {
     func requestCodexToken(_ expiration: Int = 3600 * 1000) async throws -> CodexTokenData {
         let input: CodexTokenInput = .init(expiration: expiration)
         let res: CodexTokenResponse = try await callProcedure("requestCodexToken", input: input)
-        print("res", res)
-            return CodexTokenData(token: res.token, expiry: res.expiry)
+        return CodexTokenData(token: res.token, expiry: res.expiry)
     }
 }
 
