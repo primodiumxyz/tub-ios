@@ -41,18 +41,14 @@ final class UserModel: ObservableObject {
 
             switch state {
             case .authenticated(let authSession):
-                DispatchQueue.main.async {
-                    self.userId = authSession.user.id
-                }
+                self.userId = authSession.user.id
                 self.startTimer()
             default:
-                DispatchQueue.main.async {
-                    self.userId = nil
-                    self.walletState = .notCreated
-                    self.walletAddress = nil
-                    self.stopTimer()
-                    self.elapsedSeconds = 0
-                }
+                self.userId = nil
+                self.walletState = .notCreated
+                self.walletAddress = nil
+                self.stopTimer()
+                self.elapsedSeconds = 0
             }
         }
     }

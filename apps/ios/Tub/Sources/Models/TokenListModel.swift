@@ -175,29 +175,31 @@ class TokenListModel: ObservableObject {
         }
     }
 
-    public func subscribeTokens() {
-        // Initial fetch
-        Task {
+    public func startTokenSubscription() async {
+        do {
+            try await fetchTokens()
 
-            do {
-                try await fetchTokens()
-
-                // Set up timer for 1-second updates
-                await MainActor.run {
-                    self.timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-                        guard let self = self else { return }
-                        if !self.fetching {
-                            Task {
-                                try? await self.fetchTokens()
-                            }
+            // Set up timer for 1-second updates
+            self.timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+                guard let self = self else { return }
+                if !self.fetching {
+                    Task {
+                        do {
+                            try await self.fetchTokens()
+                        }
+                        catch {
+                            print("Error fetching tokens: \(error.localizedDescription)")
                         }
                     }
                 }
             }
         }
+        catch {
+            print("Error starting token subscription: \(error.localizedDescription)")
+        }
     }
 
-    func unsubscribeTokens() {
+    func stopTokenSubscription() {
         // Stop the timer
         timer?.invalidate()
         timer = nil
