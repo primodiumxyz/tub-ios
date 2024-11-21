@@ -1,11 +1,9 @@
-import SwiftUI
-import PrivySDK
 import AuthenticationServices
+import PrivySDK
+import SwiftUI
 
 struct RegisterView: View {
-    
-    @Environment(\.dismiss) var dismiss  // Add this line
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) var dismiss // Add this line
     @State private var username = ""
     @State private var email = ""
     @State private var showPhoneModal = false
@@ -15,12 +13,11 @@ struct RegisterView: View {
     @State private var isEmailValid = false
     @State private var showEmailError = false
     @State private var sendingEmailOtp = false
-    @State private var isRedirected : Bool
+    @State private var isRedirected: Bool
     
     init(isRedirected: Bool = false) {
         self.isRedirected = isRedirected
     }
-    
     
     // Email validation function using regex
     func validateEmail(_ email: String) -> Bool {
@@ -47,33 +44,32 @@ struct RegisterView: View {
     var body: some View {
         ScrollView(showsIndicators: false) {
             HStack {
-                
                 if isRedirected {
-                    Button(action: {
-                        presentationMode.wrappedValue.dismiss()
-                    }) {
-                        Image(systemName: "chevron.left")
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text("Cancel")
                             .foregroundColor(.white)
                             .padding(.horizontal)
-                    }                 }
-                else {
-                    Spacer().frame(height:10)
+                    }
+                } else {
+                    Spacer().frame(height: 10)
                 }
                 
                 Spacer()
             }
-            VStack(alignment: .leading, spacing: 12){
+            VStack(alignment: .leading, spacing: 12) {
                 Image("Logo")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 100, height: 100)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .padding(.horizontal,10)
+                    .padding(.horizontal, 10)
                 
                 Text("Welcome to tub")
                     .font(.sfRounded(size: .xl2, weight: .semibold))
                     .foregroundColor(AppColors.white)
-                    .padding(.horizontal,10)
+                    .padding(.horizontal, 10)
                 
                 VStack(alignment: .leading, spacing: 10) {
                     TextField("Enter your email", text: $email)
@@ -89,14 +85,10 @@ struct RegisterView: View {
                             showEmailError = false
                         }
                     
-                    
-                    
-                    
                     Button(action: {
                         if isEmailValid {
                             sendEmailOtp(email: email)
-                        } else {
-                        }
+                        } else {}
                     }) {
                         Text("Continue")
                             .font(.sfRounded(size: .lg, weight: .semibold))
@@ -150,18 +142,18 @@ struct RegisterView: View {
                             Rectangle()
                                 .stroke(AppColors.lightGray, lineWidth: 1)
                         )
-                }.frame(maxWidth: .infinity )
+                }.frame(maxWidth: .infinity)
                 
                 // Apple Login
                 SignInWithApple()
-                    .frame(width: .infinity, height: 50, alignment: .center)
+                    .frame(maxWidth: .infinity, minHeight: 50, maxHeight: 50, alignment: .center)
                     .cornerRadius(30)
-                    .padding(.horizontal,10)
+                    .padding(.horizontal, 10)
                     .overlay(
                         RoundedRectangle(cornerRadius: 30)
                             .inset(by: 0.5)
                             .stroke(.white, lineWidth: 1)
-                            .padding(.horizontal,10)
+                            .padding(.horizontal, 10)
                     )
                     .onTapGesture {
                         // Ideally this is called in a view model, but showcasinlug logic here for brevity
@@ -170,8 +162,7 @@ struct RegisterView: View {
                                 let _ = try await privy.oAuth.login(with: OAuthProvider.apple)
                             } catch {
                                 notificationHandler.show(error.localizedDescription,
-                                    type: .error
-                                )
+                                                         type: .error)
                             }
                         }
                     }
@@ -201,12 +192,12 @@ struct RegisterView: View {
                 .background(AppColors.black)
                 .foregroundStyle(AppColors.white)
                 .cornerRadius(30)
-                .padding(.horizontal,10)
+                .padding(.horizontal, 10)
                 .overlay(
                     RoundedRectangle(cornerRadius: 30)
                         .inset(by: 0.5)
                         .stroke(.white, lineWidth: 1)
-                        .padding(.horizontal,10)
+                        .padding(.horizontal, 10)
                 )
                 
                 // Phone button
@@ -237,7 +228,7 @@ struct RegisterView: View {
                         }
                     }
                 }) {
-                    HStack() {
+                    HStack {
                         Image(systemName: "ladybug.fill")
                             .frame(width: 24, height: 24)
                         
@@ -259,6 +250,7 @@ struct RegisterView: View {
             .padding(.top, 80)
         }
         .ignoresSafeArea(.keyboard)
+        .scrollBounceBehavior(.basedOnSize, axes: [.vertical])
         .padding(.vertical)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.darkBlueGradient)
@@ -272,5 +264,9 @@ struct RegisterView: View {
 }
 
 #Preview {
-    return RegisterView()
+    @Previewable @StateObject var notificationHandler = NotificationHandler()
+    @Previewable @StateObject var userModelxyz = UserModel.shared
+    RegisterView()
+        .environmentObject(notificationHandler)
+        .environmentObject(userModelxyz)
 }

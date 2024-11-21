@@ -1,12 +1,12 @@
 //
-//  BuySellForm.swift
+//  BuySellFormView.swift
 //  Tub
 //
 //  Created by Henry on 9/27/24.
 //
 import SwiftUI
 
-struct BuySellForm: View {
+struct BuySellFormView: View {
     @EnvironmentObject private var notificationHandler: NotificationHandler
     @EnvironmentObject var userModel: UserModel
     @EnvironmentObject var priceModel: SolPriceModel
@@ -16,12 +16,12 @@ struct BuySellForm: View {
     @State private var showBubbles = false
     @StateObject private var animationState = TokenAnimationState.shared
     @StateObject private var settingsManager = SettingsManager.shared
-    @State private var navigateToLogin = false
+    @State private var isLoginPresented = false
     @State private var showOnrampView = false
     var handleBuy: (Double) -> Void
     var onSellSuccess: (() -> Void)?
     
-    init (tokenModel: TokenModel, showBuySheet: Binding<Bool>, defaultAmount: Binding<Double>, handleBuy: @escaping (Double) -> Void, onSellSuccess: (() -> Void)? = nil) {
+    init(tokenModel: TokenModel, showBuySheet: Binding<Bool>, defaultAmount: Binding<Double>, handleBuy: @escaping (Double) -> Void, onSellSuccess: (() -> Void)? = nil) {
         self.tokenModel = tokenModel
         self._showBuySheet = showBuySheet
         self._defaultAmount = defaultAmount
@@ -33,7 +33,6 @@ struct BuySellForm: View {
         let balance: Int = userModel.tokenBalanceLamps ?? 0
         return balance > 0 ? "sell" : "buy"
     }
-    
     
     func handleSell() {
         // Only trigger haptic feedback if vibration is enabled
@@ -50,7 +49,7 @@ struct BuySellForm: View {
         }
         
         let priceLamps = priceModel.usdToLamports(usd: tokenPrice)
-        userModel.sellTokens(price: priceLamps, completion: {result in
+        userModel.sellTokens(price: priceLamps, completion: { result in
             switch result {
             case .success:
                 animationState.showSellBubbles = true
@@ -63,7 +62,8 @@ struct BuySellForm: View {
             }
         })
     }
-        func performAirdrop() {
+
+    func performAirdrop() {
         Network.shared.airdropNativeToUser(amount: 1 * Int(1e9)) { result in
             DispatchQueue.main.async {
                 switch result {
@@ -102,15 +102,9 @@ struct BuySellForm: View {
     var body: some View {
         VStack {
             if userModel.userId == nil {
-                NavigationLink(destination: RegisterView(isRedirected: true)
-                    .background(.black)
-                               , isActive: $navigateToLogin) {
-                    EmptyView()
-                }
-                
-                Button(action: {
-                    navigateToLogin = true
-                }) {
+                Button {
+                    isLoginPresented = true
+                } label: {
                     HStack(alignment: .center, spacing: 8) {
                         Text("Login to Buy")
                             .font(.sfRounded(size: .xl, weight: .semibold))
@@ -129,7 +123,7 @@ struct BuySellForm: View {
                     )
                 }
             } else if activeTab == "buy" {
-                if let balanceUsd = userModel.balanceLamps, priceModel.lamportsToUsd(lamports: balanceUsd) < 0.1  {
+                if let balanceUsd = userModel.balanceLamps, priceModel.lamportsToUsd(lamports: balanceUsd) < 0.1 {
                     Button(action: {
                         // showOnrampView = true
                         performAirdrop()
@@ -187,22 +181,43 @@ struct BuySellForm: View {
                                     .stroke(AppColors.aquaGreen, lineWidth: 1)
                             )
                         }
-                    }.padding(.horizontal,8)
+                    }.padding(.horizontal, 8)
                 }
             } else {
                 SellForm(tokenModel: tokenModel, showBuySheet: $showBuySheet, onSell: handleSell)
-                    .padding(.horizontal,8)
+                    .padding(.horizontal, 8)
             }
-        }.padding(.bottom, 8)
+        }
+        .padding(.bottom, 8)
+        .fullScreenCover(isPresented: $isLoginPresented) {
+            RegisterView(isRedirected: true)
+                .background(.black)
+        }
     }
+}
+
+#Preview {
+    @Previewable @State var show = false
+    @Previewable @State var testAmount = 1.0
+    @Previewable @StateObject var notificationHandler = NotificationHandler()
+    @Previewable @StateObject var userModel = UserModel.shared
+    @Previewable @StateObject var priceModel = SolPriceModel.shared
+    BuySellFormView(tokenModel: TokenModel(),
+                    showBuySheet: $show,
+                    defaultAmount: $testAmount,
+                    handleBuy: { _ in },
+                    onSellSuccess: nil)
+        .environmentObject(notificationHandler)
+        .environmentObject(userModel)
+        .environmentObject(priceModel)
 }
 
 // MARK: - Equatable Implementation
 
-/// This extension adds custom equality comparison to BuySellForm.
+/// This extension adds custom equality comparison to BuySellFormView.
 /// It's used to optimize SwiftUI's view updates by preventing unnecessary redraws.
-extension BuySellForm: Equatable {
-    static func == (lhs: BuySellForm, rhs: BuySellForm) -> Bool {
+extension BuySellFormView: Equatable {
+    static func == (lhs: BuySellFormView, rhs: BuySellFormView) -> Bool {
         lhs.tokenModel.tokenId == rhs.tokenModel.tokenId
     }
 }

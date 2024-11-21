@@ -69,12 +69,7 @@ struct TokenListView: View {
                 currentTokenModel: tokenListModel.currentTokenModel
             )
             .zIndex(2)
-            Divider()
-                .frame(width: 300, height: 1)
-                .overlay(
-                    Rectangle()
-                        .stroke(AppColors.lightGray.opacity(0.3), lineWidth: 0.5)
-                )
+
             if tokenListModel.isLoading {
                 LoadingTokenView()
             } else {
