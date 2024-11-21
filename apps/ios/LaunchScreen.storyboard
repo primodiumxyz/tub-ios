@@ -16,28 +16,22 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="7wp-7o-M09">
-                                <rect key="frame" x="63" y="337" width="267.00000000000006" height="203"/>
+                                <rect key="frame" x="146" y="364" width="101" height="101"/>
                                 <subviews>
-                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Logo" translatesAutoresizingMaskIntoConstraints="NO" id="mBX-if-8uG">
-                                        <rect key="frame" x="58.666666666666686" y="0.0" width="150" height="150"/>
+                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="LaunchScreenLogo" translatesAutoresizingMaskIntoConstraints="NO" id="mBX-if-8uG">
+                                        <rect key="frame" x="0.0" y="0.0" width="101" height="101"/>
                                         <constraints>
                                             <constraint firstAttribute="width" secondItem="mBX-if-8uG" secondAttribute="height" id="eNJ-3w-uWZ"/>
-                                            <constraint firstAttribute="height" constant="150" id="iue-E6-FtK"/>
+                                            <constraint firstAttribute="height" constant="101" id="iue-E6-FtK"/>
                                         </constraints>
                                     </imageView>
-                                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Welcome to Tub" textAlignment="center" lineBreakMode="middleTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="GJd-Yh-RWb">
-                                        <rect key="frame" x="0.0" y="160" width="267" height="43"/>
-                                        <fontDescription key="fontDescription" type="boldSystem" pointSize="36"/>
-                                        <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                        <nil key="highlightedColor"/>
-                                    </label>
                                 </subviews>
                             </stackView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="Bcu-3y-fUS"/>
                         <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
-                            <constraint firstItem="7wp-7o-M09" firstAttribute="centerY" secondItem="Bcu-3y-fUS" secondAttribute="centerY" id="8EL-Ny-r9D"/>
+                            <constraint firstItem="7wp-7o-M09" firstAttribute="centerY" secondItem="Bcu-3y-fUS" secondAttribute="centerY" constant="-24" id="8EL-Ny-r9D"/>
                             <constraint firstItem="7wp-7o-M09" firstAttribute="centerX" secondItem="Bcu-3y-fUS" secondAttribute="centerX" id="EFp-Pc-R9q"/>
                         </constraints>
                     </view>
@@ -48,6 +42,6 @@
         </scene>
     </scenes>
     <resources>
-        <image name="Logo" width="1024" height="1024"/>
+        <image name="LaunchScreenLogo" width="304" height="304"/>
     </resources>
 </document>
