@@ -253,7 +253,7 @@ export class OctaneService {
 
     // Verify transaction can be serialized
     try {
-      const serialized = transaction.serialize({ requireAllSignatures: false });
+      transaction.serialize({ requireAllSignatures: false });
       console.log("[buildCompleteSwap] Successfully verified transaction serialization");
     } catch (error) {
       console.error("[buildCompleteSwap] Failed to serialize transaction:", error);
