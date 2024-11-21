@@ -29,8 +29,6 @@ class Network {
         return ApolloClient(networkTransport: splitNetworkTransport, store: store)
     }()
 
-
-
     // tRPC
     private let baseURL: URL
     private let session: URLSession
@@ -52,7 +50,7 @@ class Network {
         baseURL = URL(string: serverBaseUrl)!
         session = URLSession(configuration: .default)
     }
-    
+
     // MARK: - Calls
     func getStatus() async throws -> Int {
         let response: StatusResponse = try await callProcedure("getStatus")
@@ -66,17 +64,17 @@ class Network {
 
     func sellToken(tokenId: String, amount: String, tokenPrice: String) async throws {
         let input = TokenActionInput(tokenId: tokenId, amount: amount, tokenPrice: tokenPrice)
-        let _ : EmptyResponse = try await callProcedure("sellToken", input: input)
+        let _: EmptyResponse = try await callProcedure("sellToken", input: input)
     }
 
     func airdropNativeToUser(amount: Int) async throws {
         let input = AirdropInput(amount: String(amount))
-        let _ : EmptyResponse = try await callProcedure("airdropNativeToUser", input: input)
+        let _: EmptyResponse = try await callProcedure("airdropNativeToUser", input: input)
     }
 
-    func recordClientEvent(event: ClientEvent) async throws -> Void {
+    func recordClientEvent(event: ClientEvent) async throws {
         let input = EventInput(event: event)
-        let _ : EmptyResponse = try await callProcedure("recordClientEvent", input: input)
+        let _: EmptyResponse = try await callProcedure("recordClientEvent", input: input)
     }
 
     // MARK: - Call Procedure
@@ -86,29 +84,29 @@ class Network {
     ) async throws -> T {
         // Get token asynchronously
         let token = await getStoredToken()
-        
+
         let url = baseURL.appendingPathComponent(procedure)
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        
+
         if let token = token {
             request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
-        
+
         if let input = input {
             let encoder = JSONEncoder()
             let data = try encoder.encode(input)
             request.httpBody = data
         }
-        
+
         let (data, _) = try await session.data(for: request)
-        
+
         // First, try to decode as an error response
         if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
             throw TubError.parsingError
         }
-        
+
         // If it's not an error, proceed with normal decoding
         let decodedResponse = try JSONDecoder().decode(ResponseWrapper<T>.self, from: data)
         return decodedResponse.result.data
@@ -118,7 +116,7 @@ class Network {
         return try await callProcedure(procedure, input: Optional<EmptyInput>.none)
     }
     // MARK: - JWT
-    
+
     private func decodeJWT(_ token: String) -> [String: Any]? {
         let segments = token.components(separatedBy: ".")
         guard segments.count > 1 else { return nil }
@@ -130,13 +128,14 @@ class Network {
         let padded = base64String.padding(
             toLength: ((base64String.count + 3) / 4) * 4,
             withPad: "=",
-            startingAt: 0)
+            startingAt: 0
+        )
 
         guard let data = Data(base64Encoded: padded) else { return nil }
 
         return try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
     }
-    
+
     private func storeToken(_ token: String) {
         let data = Data(token.utf8)
         let query: [String: Any] = [
@@ -147,7 +146,7 @@ class Network {
         SecItemDelete(query as CFDictionary)
         SecItemAdd(query as CFDictionary, nil)
     }
-    
+
     private func getStoredToken() async -> String? {
         switch privy.authState {
         case .authenticated(let authSession):
@@ -159,12 +158,14 @@ class Network {
                 let expirationDate = Date(timeIntervalSince1970: exp)
                 if expirationDate > Date() {
                     return token
-                } else {
+                }
+                else {
                     do {
                         print("Token expired, refreshing session")
                         let newSession = try await privy.refreshSession()
                         return newSession.authToken
-                    } catch {
+                    }
+                    catch {
                         print("Failed to refresh session: \(error)")
                         return nil
                     }
@@ -175,7 +176,6 @@ class Network {
             return nil
         }
     }
-
 
     func requestCodexToken(_ expiration: Int = 3600 * 1000) async throws -> CodexTokenData {
         let input: CodexTokenInput = .init(expiration: expiration)
@@ -208,8 +208,8 @@ private struct ErrorResponse: Codable {
         let path: String?
     }
 }
- 
-struct CodexTokenResponse : Codable {
+
+struct CodexTokenResponse: Codable {
     let token: String
     let expiry: String
 }
@@ -236,7 +236,9 @@ struct ClientEvent {
     var metadata: [[String: Any]]? = nil
 
     init(
-        eventName: String, source: String, metadata: [[String: Any]]? = nil,
+        eventName: String,
+        source: String,
+        metadata: [[String: Any]]? = nil,
         errorDetails: String? = nil
     ) {
         self.eventName = eventName
@@ -305,10 +307,12 @@ struct EventInput: Codable {
                 let jsonString = String(data: jsonData, encoding: .utf8)
             {
                 self.metadata = jsonString
-            } else {
+            }
+            else {
                 self.metadata = nil
             }
-        } else {
+        }
+        else {
             self.metadata = nil
         }
 
@@ -316,7 +320,8 @@ struct EventInput: Codable {
             let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String
         {
             self.buildVersion = "\(version) (\(build))"
-        } else {
+        }
+        else {
             self.buildVersion = nil
         }
     }
@@ -355,14 +360,13 @@ extension Network {
     func fetchSolPrice() async throws -> Double {
         let url = URL(string: "https://min-api.cryptocompare.com/data/price?fsym=SOL&tsyms=USD")!
         let (data, _) = try await session.data(from: url)
-        
+
         guard let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Double],
-             let price = json["USD"] else {
-             throw TubError.parsingError
+            let price = json["USD"]
+        else {
+            throw TubError.parsingError
         }
-        
+
         return price
     }
 }
-
-

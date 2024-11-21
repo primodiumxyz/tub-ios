@@ -20,15 +20,18 @@ enum InstallationSource {
 private var installationSource: InstallationSource {
     if let receiptUrl = Bundle.main.appStoreReceiptURL {
         let path = receiptUrl.path
-        
+
         if path.contains("sandboxReceipt") {
             return .testFlight
-        } else if path.contains("StoreKit") {
+        }
+        else if path.contains("StoreKit") {
             return .appStore
-        } else {
+        }
+        else {
             return .xcode
         }
-    } else {
+    }
+    else {
         return .invalid
     }
 }
@@ -42,9 +45,11 @@ private var installationSource: InstallationSource {
 private let graphqlUrlHost: String = {
     if installationSource == .appStore || installationSource == .testFlight {
         return "tub-graphql.primodium.ai"
-    } else if let ngrokUrl = ProcessInfo.processInfo.environment["NGROK_GRAPHQL_URL_HOST"] {
+    }
+    else if let ngrokUrl = ProcessInfo.processInfo.environment["NGROK_GRAPHQL_URL_HOST"] {
         return ngrokUrl
-    } else {
+    }
+    else {
         // Use remote for testing
         return "tub-graphql.primodium.ai"
     }
@@ -74,7 +79,8 @@ private let serverUrlHost: String = {
     }
     if let ngrokUrl = ProcessInfo.processInfo.environment["NGROK_SERVER_URL_HOST"] {
         return ngrokUrl
-    } else {
+    }
+    else {
         return "tub-server.primodium.ai"
     }
 }()
@@ -87,9 +93,9 @@ public let serverBaseUrl: String = {
     #endif
 }()
 
-public let NETWORK_FILTER: Int = 1399811149 // Solana filter for Codex
+public let NETWORK_FILTER: Int = 1_399_811_149  // Solana filter for Codex
 public let CHART_INTERVAL: Double = 120
-public let PRICE_UPDATE_INTERVAL: Double = 0.5 // Update price every half second
+public let PRICE_UPDATE_INTERVAL: Double = 0.5  // Update price every half second
 
 enum TubError: Error {
     case networkFailure
@@ -98,7 +104,7 @@ enum TubError: Error {
     case insufficientBalance
     case notLoggedIn
     case parsingError
-    
+
     var errorDescription: String? {
         switch self {
         case .insufficientBalance:

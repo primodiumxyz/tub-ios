@@ -261,7 +261,6 @@ private struct UnregisteredAccountView: View {
 private struct AccountContentView: View {
     @Binding var isAirdropping: Bool
     @Binding var showOnrampView: Bool
-    @EnvironmentObject private var userModel: UserModel
 
     var body: some View {
         VStack(spacing: 24) {

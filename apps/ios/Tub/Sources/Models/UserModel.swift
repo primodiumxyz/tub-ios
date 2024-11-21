@@ -5,31 +5,31 @@
 //  Created by Henry on 11/14/24.
 //
 
-import SwiftUI
-import Combine
 import Apollo
-import TubAPI
 import ApolloCombine
+import Combine
 import PrivySDK
+import SwiftUI
+import TubAPI
 
 final class UserModel: ObservableObject {
     static let shared = UserModel()
-    
+
     @Published var isLoading: Bool = false
     @Published var userId: String?
-    @Published var walletState: EmbeddedWalletState = .notCreated 
+    @Published var walletState: EmbeddedWalletState = .notCreated
     @Published var walletAddress: String?
-    
+
     @Published var balanceLamps: Int? = nil
     @Published var initialTime = Date()
     @Published var elapsedSeconds: TimeInterval = 0
     @Published var initialBalanceLamps: Int? = nil
     @Published var balanceChangeLamps: Int = 0
-    
+
     private var accountBalanceSubscription: Apollo.Cancellable?
-    
+
     private var timer: Timer?
-    
+
     private init() {
         setupAuthStateListener()
         setupWalletStateListener()
@@ -38,7 +38,7 @@ final class UserModel: ObservableObject {
     private func setupAuthStateListener() {
         privy.setAuthStateChangeCallback { [weak self] state in
             guard let self = self else { return }
-            
+
             switch state {
             case .authenticated(let authSession):
                 DispatchQueue.main.async {
@@ -56,7 +56,7 @@ final class UserModel: ObservableObject {
             }
         }
     }
-    
+
     private func setupWalletStateListener() {
         privy.embeddedWallet.setEmbeddedWalletStateChangeCallback { [weak self] state in
             guard let self = self else { return }
@@ -69,36 +69,39 @@ final class UserModel: ObservableObject {
                             self.walletState = state
                         }
                         await self.initializeUser()
-                    } else {
+                    }
+                    else {
                         do {
                             let _ = try await privy.embeddedWallet.createWallet(chainType: .solana)
-                        } catch {
+                        }
+                        catch {
                             print("failed to create solana wallet")
                         }
                     }
                 case .notCreated:
                     do {
                         let _ = try await privy.embeddedWallet.createWallet(chainType: .solana)
-                    } catch {
+                    }
+                    catch {
                         print("failed to create solana wallet")
                     }
                 case .connecting:
-                await MainActor.run {
+                    await MainActor.run {
                         self.walletState = state
                     }
-            default:
+                default:
                     self.logout(skipPrivy: true)
                 }
-                
+
             }
         }
     }
-    
+
     func initializeUser() async {
         let timeoutTask = DispatchWorkItem { [weak self] in
             guard let self = self else { return }
             self.isLoading = true
-            
+
             // Schedule the timeout
             DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
                 if self.isLoading {
@@ -106,39 +109,40 @@ final class UserModel: ObservableObject {
                 }
             }
         }
-        
+
         do {
             try await fetchInitialBalance()
             subscribeToAccountBalance()
             if let walletAddress, let tokenId {
                 subscribeToTokenBalance(walletAddress: walletAddress, tokenId: tokenId)
             }
-            timeoutTask.cancel() // Cancel timeout if successful
+            timeoutTask.cancel()  // Cancel timeout if successful
             DispatchQueue.main.async {
                 self.initialTime = Date()
                 self.isLoading = false
             }
-        } catch {
-            timeoutTask.cancel() // Cancel timeout if there's an error
+        }
+        catch {
+            timeoutTask.cancel()  // Cancel timeout if there's an error
             DispatchQueue.main.async {
                 self.isLoading = false
             }
         }
     }
-    
+
     private func fetchInitialBalance() async throws {
         guard let walletAddress = self.walletAddress else {
             return
         }
         let query = GetWalletBalanceQuery(wallet: walletAddress)
-        
+
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { [weak self] result in
                 guard let self = self else {
                     continuation.resume(throwing: TubError.networkFailure)
                     return
                 }
-                
+
                 switch result {
                 case .success(let response):
                     DispatchQueue.main.async {
@@ -152,37 +156,38 @@ final class UserModel: ObservableObject {
             }
         }
     }
-    
+
     private func subscribeToAccountBalance() {
         guard let walletAddress = self.walletAddress else { return }
         if let sub = accountBalanceSubscription { sub.cancel() }
-        
+
         accountBalanceSubscription = Network.shared.apollo.subscribe(
             subscription: SubWalletBalanceSubscription(
-                wallet: walletAddress)
+                wallet: walletAddress
+            )
         ) { [weak self] result in
             guard let self = self else { return }
-                switch result {
-                case .success(let graphQLResult):
-                    let balance = graphQLResult.data?.balance.first?.value ?? 0
-                    DispatchQueue.main.async {
-                        self.balanceLamps = balance
-                        if let initialBalanceLamps = self.initialBalanceLamps {
-                            self.balanceChangeLamps = balance - initialBalanceLamps
-                        }
+            switch result {
+            case .success(let graphQLResult):
+                let balance = graphQLResult.data?.balance.first?.value ?? 0
+                DispatchQueue.main.async {
+                    self.balanceLamps = balance
+                    if let initialBalanceLamps = self.initialBalanceLamps {
+                        self.balanceChangeLamps = balance - initialBalanceLamps
                     }
-                case .failure(let error):
-                    print("Error: \(error.localizedDescription)")
+                }
+            case .failure(let error):
+                print("Error: \(error.localizedDescription)")
             }
         }
     }
-    
+
     func getLinkedAccounts() -> (email: String?, phone: String?, embeddedWallets: [PrivySDK.EmbeddedWallet]) {
-        
+
         switch privy.authState {
         case .authenticated(let session):
             let linkedAccounts = session.user.linkedAccounts
-            
+
             var email: String? {
                 linkedAccounts.first { account in
                     if case .email(_) = account {
@@ -196,7 +201,7 @@ final class UserModel: ObservableObject {
                     return nil
                 }
             }
-            
+
             var phone: String? {
                 linkedAccounts.first { account in
                     if case .phone = account {
@@ -210,7 +215,7 @@ final class UserModel: ObservableObject {
                     return nil
                 }
             }
-            
+
             var embeddedWallets: [PrivySDK.EmbeddedWallet] {
                 linkedAccounts.compactMap { account in
                     if case .embeddedWallet(let wallet) = account {
@@ -224,7 +229,7 @@ final class UserModel: ObservableObject {
             return (nil, nil, [])
         }
     }
-    
+
     func logout(skipPrivy: Bool = false) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self, self.userId != nil else { return }
@@ -239,21 +244,21 @@ final class UserModel: ObservableObject {
         if !skipPrivy { privy.logout() }
     }
 
-
     /* ------------------------------- USER TOKEN ------------------------------- */
 
     @Published var tokenId: String? = nil
-    
+
     @Published var tokenBalanceLamps: Int? = nil
 
     @Published var purchaseData: PurchaseData? = nil
-    
+
     private var tokenBalanceSubscription: Apollo.Cancellable?
 
     func initToken(tokenId: String) {
         self.tokenId = tokenId
         guard let walletAddress else {
-            return }
+            return
+        }
 
         subscribeToTokenBalance(walletAddress: walletAddress, tokenId: tokenId)
     }
@@ -263,7 +268,9 @@ final class UserModel: ObservableObject {
 
         tokenBalanceSubscription = Network.shared.apollo.subscribe(
             subscription: SubWalletTokenBalanceSubscription(
-                wallet: walletAddress, token: tokenId)
+                wallet: walletAddress,
+                token: tokenId
+            )
         ) { [weak self] result in
             guard let self = self else { return }
             DispatchQueue.main.async {
@@ -278,25 +285,26 @@ final class UserModel: ObservableObject {
             }
         }
     }
-    
+
     func buyTokens(buyAmountLamps: Int, priceLamps: Int, priceUsd: Double) async throws {
         guard let tokenId = self.tokenId, let balance = self.balanceLamps else {
             throw TubError.invalidInput(reason: "No balance")
         }
-        
-        
-        if  buyAmountLamps > balance {
+
+        if buyAmountLamps > balance {
             throw TubError.insufficientBalance
         }
-        
+
         let tokenAmount = Int(Double(buyAmountLamps) / Double(priceLamps) * 1e9)
-        
+
         var err: (any Error)? = nil
         do {
             let _ = try await Network.shared.buyToken(
-                tokenId: tokenId, amount: String(tokenAmount), tokenPrice: String(priceLamps)
+                tokenId: tokenId,
+                amount: String(tokenAmount),
+                tokenPrice: String(priceLamps)
             )
-            
+
             await MainActor.run {
                 self.purchaseData = PurchaseData(
                     timestamp: Date(),
@@ -308,7 +316,7 @@ final class UserModel: ObservableObject {
         catch {
             err = error
         }
-        
+
         do {
             try await Network.shared.recordClientEvent(
                 event: ClientEvent(
@@ -323,10 +331,11 @@ final class UserModel: ObservableObject {
                 )
             )
             print("Successfully recorded buy event")
-        } catch {
+        }
+        catch {
             print("Failed to record buy event: \(error)")
         }
-        
+
         if let err {
             throw err
         }
@@ -336,19 +345,22 @@ final class UserModel: ObservableObject {
         guard let tokenId = self.tokenId, let balance = self.tokenBalanceLamps else {
             throw TubError.notLoggedIn
         }
-        
+
         var err: (any Error)? = nil
         do {
             try await Network.shared.sellToken(
-                tokenId: tokenId, amount: String(balance), tokenPrice: String(price)
+                tokenId: tokenId,
+                amount: String(balance),
+                tokenPrice: String(price)
             )
-                        await MainActor.run {
-                            self.purchaseData = nil
-                        }
-    } catch {
-        err = error
-        print("Error selling tokens: \(error)")
-    }
+            await MainActor.run {
+                self.purchaseData = nil
+            }
+        }
+        catch {
+            err = error
+            print("Error selling tokens: \(error)")
+        }
 
         do {
             try await Network.shared.recordClientEvent(
@@ -362,24 +374,26 @@ final class UserModel: ObservableObject {
                     errorDetails: err?.localizedDescription
                 )
             )
-                    print("Successfully recorded sell event")
-        } catch {
+            print("Successfully recorded sell event")
+        }
+        catch {
             print("Failed to record sell event: \(error)")
         }
-        
+
         if let err {
             throw err
         }
     }
-    
+
     func performAirdrop() async throws {
-        var err : (any Error)? = nil
+        var err: (any Error)? = nil
         do {
             try await Network.shared.airdropNativeToUser(amount: 1 * Int(1e9))
-        } catch {
+        }
+        catch {
             err = error
         }
-        
+
         try? await Network.shared.recordClientEvent(
             event: ClientEvent(
                 eventName: "airdrop",
@@ -388,17 +402,18 @@ final class UserModel: ObservableObject {
                     ["airdrop_amount": 1 * Int(1e9)]
                 ],
                 errorDetails: err?.localizedDescription
-            ))
+            )
+        )
         if let err {
             throw err
         }
     }
-    
+
     private func startTimer() {
-        stopTimer() // Ensure any existing timer is invalidated
+        stopTimer()  // Ensure any existing timer is invalidated
         self.initialTime = Date()
         self.elapsedSeconds = 0
-        
+
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             guard let self = self else { return }
             self.elapsedSeconds = Date().timeIntervalSince(self.initialTime)
