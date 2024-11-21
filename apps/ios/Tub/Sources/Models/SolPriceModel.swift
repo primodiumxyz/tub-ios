@@ -26,14 +26,19 @@ final class SolPriceModel: ObservableObject {
         error = nil
         isReady = false
 
-        do {
-            let price = try await Network.shared.fetchSolPrice()
-            self.price = price
+        Task(priority: .userInitiated) {
+            do {
+                let price = try await Network.shared.fetchSolPrice()
+                await MainActor.run {
+                    self.price = price
+                }
+            }
+            catch {
+                self.error = error.localizedDescription
+                print("Error fetching SOL price: \(error.localizedDescription)")
+            }
         }
-        catch {
-            self.error = error.localizedDescription
-            print("Error fetching SOL price: \(error.localizedDescription)")
-        }
+
         self.isReady = true
     }
 

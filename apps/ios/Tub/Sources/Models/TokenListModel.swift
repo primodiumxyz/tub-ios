@@ -16,12 +16,16 @@ import TubAPI
 // - When swiping down, increase the current index, and push a new random token to the tokens array (that becomes the one that keeps being updated as the sub goes)
 // - When swiping up, get back to the previously visited token, pop the last item in the tokens array, so we're again at "last - 1" and "last" gets constantly updated
 class TokenListModel: ObservableObject {
+
+    // Add static shared instance
+    static let shared = TokenListModel()
+
     @Published var availableTokens: [Token] = []
     @Published var tokens: [Token] = []
     @Published var previousTokenModel: TokenModel?
     @Published var nextTokenModel: TokenModel?
     @Published var currentTokenModel: TokenModel
-    var userModel: UserModel
+    var userModel: UserModel?  // Make optional since we'll set it after init
 
     @Published var isLoading = true
 
@@ -33,9 +37,14 @@ class TokenListModel: ObservableObject {
     private var currentTokenStartTime: Date?
     private var tokenSubscription: Cancellable?
 
-    init(userModel: UserModel) {
-        self.userModel = userModel
+    // Make init private
+    private init() {
         self.currentTokenModel = TokenModel()
+    }
+
+    // Add method to set user model
+    func configure(with userModel: UserModel) {
+        self.userModel = userModel
     }
 
     var currentTokenIndex: Int {
@@ -50,10 +59,11 @@ class TokenListModel: ObservableObject {
         return self.availableTokens.count > 1
     }
 
+    // Update initTokenModel to handle optional userModel
     private func initTokenModel() {
         let token = self.tokens[self.currentTokenIndex]
         self.currentTokenModel.initialize(with: token)
-        self.userModel.initToken(tokenId: token.id)
+        self.userModel?.initToken(tokenId: token.id)
     }
 
     private func getNextToken(excluding currentId: String? = nil) -> Token? {
@@ -176,6 +186,8 @@ class TokenListModel: ObservableObject {
     }
 
     public func startTokenSubscription() async {
+        // if we are already subscribed, don't restart it
+        if let _ = tokenSubscription { return }
         do {
             try await fetchTokens()
 
@@ -346,7 +358,6 @@ class TokenListModel: ObservableObject {
                     ]
                 )
             )
-            print("Recorded token dwell time")
         }
     }
 }

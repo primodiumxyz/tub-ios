@@ -35,6 +35,7 @@ struct AppContent: View {
     @StateObject private var userModel = UserModel.shared
     @StateObject private var priceModel = SolPriceModel.shared
     @StateObject private var tokenManager = CodexTokenManager.shared
+    @StateObject private var tokenListModel = TokenListModel.shared
 
     var body: some View {
         Group {
@@ -43,17 +44,16 @@ struct AppContent: View {
                     errorMessage: "Failed to connect. Please try again.",
                     retryAction: {
                         Task {
-                            await tokenManager.refreshToken()
+                            await tokenManager.refreshToken(hard: true)
                         }
                     }
                 )
             }
             else if !tokenManager.isReady {
                 LoadingView(identifier: "Fetching Codex token", message: "Fetching auth token")
-
             }
             else {
-                HomeTabsView(userModel: userModel).font(.sfRounded())
+                HomeTabsView().font(.sfRounded())
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(.black)
                     .withNotificationBanner()
@@ -64,6 +64,10 @@ struct AppContent: View {
         }.onAppear {
             Task(priority: .high) {
                 await tokenManager.refreshToken()
+            }
+            Task {
+                tokenListModel.configure(with: userModel)
+                await tokenListModel.startTokenSubscription()
             }
         }.onChange(of: userModel.walletState) { _, newState in
             if newState == .error {

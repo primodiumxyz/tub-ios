@@ -104,7 +104,7 @@ struct ChartView: View {
                 )
                 .foregroundStyle(AppColors.aquaBlue.opacity(0.8))
                 .lineStyle(StrokeStyle(lineWidth: 4))
-                .interpolationMethod(.catmullRom)
+                .interpolationMethod(.cardinal(tension: 0.8))
 
                 PointMark(
                     x: .value("Date", currentPrice.timestamp),
@@ -163,7 +163,7 @@ struct ChartView: View {
         .chartYScale(domain: yDomain)
         .chartYAxis(.hidden)
         .chartXAxis(.hidden)
-        .frame(width: .infinity, height: height)
+        .frame(maxWidth: .infinity, maxHeight: height)
         .onChange(of: rawPrices) {
             updatePrices()
         }

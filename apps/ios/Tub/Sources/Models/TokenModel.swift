@@ -31,6 +31,8 @@ class TokenModel: ObservableObject {
 
     @Published var timeframeSecs: Double = CHART_INTERVAL
     @Published var currentTimeframe: Timespan = .live
+    @Published var loadFailed = false
+
     private var lastPriceTimestamp: Date?
 
     private var priceSubscription: Apollo.Cancellable?
@@ -56,6 +58,7 @@ class TokenModel: ObservableObject {
 
     func initialize(with newToken: Token, timeframeSecs: Double = CHART_INTERVAL) {
         DispatchQueue.main.async {
+            self.loadFailed = false
             self.tokenId = newToken.id
             self.token = newToken
             self.isReady = false
@@ -65,45 +68,63 @@ class TokenModel: ObservableObject {
             self.timeframeSecs = timeframeSecs
         }
 
-        Task {
+        let time = Date()
+        Task(priority: .userInitiated) {
             do {
-                try await fetchUniqueHolders()
-
                 // Fetch both types of data
-                await fetchInitialPrices(newToken.id, timeframeSecs: self.timeframeSecs)
-                try await fetchInitialCandles(newToken.pairId)
-
+                try await fetchInitialPrices(newToken.id, timeframeSecs: self.timeframeSecs)
+                subscribeToTokenPrices(newToken.id)
                 // Move final status update to main thread
-                DispatchQueue.main.async {
+                await MainActor.run {
                     self.isReady = true
                 }
+            }
+            catch {
+                print("Error fetching prices: \(error)")
+                await MainActor.run {
+                    self.loadFailed = true
+                }
+            }
+        }
 
-                // Subscribe to both updates
-
-                subscribeToTokenPrices(newToken.id)
+        Task {
+            do {
+                try await fetchInitialCandles(newToken.pairId)
                 await subscribeToCandles(newToken.pairId)
             }
             catch {
-                print("Error fetching initial data: \(error)")
-                DispatchQueue.main.async {
-                    self.isReady = false
+                await MainActor.run {
+                    self.loadFailed = true
                 }
+            }
+        }
+
+        Task(priority: .background) {
+            do {
+                try await fetchUniqueHolders()
+                print("fetching holders took \(Date().timeIntervalSince(time))")
+            }
+            catch {
+                print("Error fetching unique holders: \(error)")
             }
         }
     }
 
-    func fetchInitialPrices(_ tokenId: String, timeframeSecs: Double = 30 * 60) async {
+    func fetchInitialPrices(_ tokenId: String, timeframeSecs: Double = 30 * 60) async throws {
         let client = await CodexNetwork.shared.apolloClient
         let now = Int(Date().timeIntervalSince1970)
         let startTime = now - Int(timeframeSecs)
 
-        // Calculate number of intervals needed
-        let numIntervals = Int(ceil(timeframeSecs / PRICE_UPDATE_INTERVAL))
+        // Use a fixed number of intervals
+        let NUM_PRICE_INTERVALS = 60  // Constant number of intervals to change
+        let intervalSize = timeframeSecs / Double(NUM_PRICE_INTERVALS)
 
         // Create array of timestamps we need to fetch
-        let timestamps = (0..<numIntervals).map { i in
-            startTime + Int(Double(i) * PRICE_UPDATE_INTERVAL)
+        let timestamps = (0..<NUM_PRICE_INTERVALS).map { i in
+            startTime + Int(Double(i) * intervalSize)
         }
+
+        print("timestamps: \(timestamps.suffix(5))")
 
         // Fetch all prices and collect them in order
         let prices = await withTaskGroup(of: Price?.self) { group in
@@ -144,7 +165,6 @@ class TokenModel: ObservableObject {
                         }
                     }
                     catch {
-                        print("Error fetching price at timestamp \(timestamp): \(error)")
                         return nil
                     }
                 }
@@ -156,9 +176,12 @@ class TokenModel: ObservableObject {
                     allPrices.append(price)
                 }
             }
+
             return allPrices
         }
-
+        if prices.count < 2 {
+            throw TubError.networkFailure
+        }
         let sortedPrices = prices.sorted { $0.timestamp < $1.timestamp }
 
         DispatchQueue.main.async {
@@ -172,26 +195,35 @@ class TokenModel: ObservableObject {
 
     private func subscribeToTokenPrices(_ tokenId: String) {
         priceSubscription?.cancel()
+        self.priceUpdateTimer?.invalidate()
 
-        // Start the timer for regular price updates
-        priceUpdateTimer?.invalidate()
-        DispatchQueue.main.async {
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+
             self.priceUpdateTimer = Timer.scheduledTimer(withTimeInterval: PRICE_UPDATE_INTERVAL, repeats: true) {
                 [weak self] _ in
-                guard let self = self else { return }
+                guard let self else {
+                    print("no self")
+                    return
+                }
 
                 let now = Date()
                 if let price = self.latestPrice {
                     // Add a new price point at each interval
                     let newPrice = Price(timestamp: now, priceUsd: price)
-                    self.prices.append(newPrice)
-                    self.lastPriceTimestamp = now
+                    Task { @MainActor in
+                        self.prices.append(newPrice)
+                        self.lastPriceTimestamp = now
+                    }
                     self.calculatePriceChange()
                 }
+
             }
 
             // Make sure the timer is retained
-            RunLoop.main.add(self.priceUpdateTimer!, forMode: .common)
+            if let timer = self.priceUpdateTimer {
+                RunLoop.main.add(timer, forMode: .common)
+            }
         }
 
         // Subscribe to real-time price updates
@@ -200,7 +232,9 @@ class TokenModel: ObservableObject {
                 tokenAddress: tokenId
             )
         ) { [weak self] result in
-            guard let self = self else { return }
+            guard let self else {
+                return
+            }
 
             switch result {
             case .success(let graphQLResult):
@@ -220,7 +254,9 @@ class TokenModel: ObservableObject {
                             lastSwap.quoteToken == .token0
                             ? lastSwap.token0PoolValueUsd ?? "0" : lastSwap.token1PoolValueUsd ?? "0"
 
-                        self.latestPrice = Double(priceUsd) ?? 0.0
+                        Task { @MainActor in
+                            self.latestPrice = Double(priceUsd) ?? 0.0
+                        }
                     }
                 }
             case .failure(let error):

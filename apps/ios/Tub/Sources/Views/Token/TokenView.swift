@@ -119,6 +119,7 @@ struct TokenView: View {
             .background(.black)
             .navigationBarBackButtonHidden(true)
         }
+        .onChange(of: tokenModel.tokenId) { withAnimation(.linear(duration: 0.5)) { self.selectedTimespan = .live } }
         .background(.black)
     }
 

@@ -89,9 +89,10 @@ class CodexTokenManager: ObservableObject {
             fetchFailed = false
         }
         do {
-            var codexToken = try await fetchToken(hard: hard)
+            let oldCodexToken = try await fetchToken(hard: hard)
 
-            if let expiryDate = formatter.date(from: codexToken.expiry) {
+            var refetch = false
+            if let expiryDate = formatter.date(from: oldCodexToken.expiry) {
                 let timeUntilExpiry = expiryDate.timeIntervalSinceNow
 
                 // Ensure we're not scheduling in the past
@@ -114,13 +115,14 @@ class CodexTokenManager: ObservableObject {
                     // If we're too close to expiry or past it, refresh immediately
 
                     localCodexToken = nil
-                    codexToken = try await fetchToken(hard: true)
+                    refetch = true
                 }
             }
 
+            let codexToken = refetch ? try await fetchToken(hard: true) : oldCodexToken
             CodexNetwork.initialize(apiKey: codexToken.token)
-            self.localCodexToken = CodexTokenData(token: codexToken.token, expiry: codexToken.expiry)
             await MainActor.run {
+                self.localCodexToken = CodexTokenData(token: codexToken.token, expiry: codexToken.expiry)
                 self.retryCount = 0
                 self.isReady = true
             }
