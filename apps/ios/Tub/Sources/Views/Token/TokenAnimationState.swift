@@ -6,5 +6,4 @@ class TokenAnimationState: ObservableObject {
   static let shared = TokenAnimationState()
   private init() {}
 
-
 }
