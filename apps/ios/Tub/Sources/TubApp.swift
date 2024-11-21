@@ -41,10 +41,10 @@ struct AppContent: View {
             if tokenManager.fetchFailed {
                 LoginErrorView(errorMessage: "Failed to connect. Please try again.",
                                retryAction: {
-                                    Task {
-                                        await tokenManager.handleUserSession()
-                                    }
-                                }
+                    Task {
+                        await tokenManager.refreshToken()
+                    }
+                }
                 )
             }
             else if !tokenManager.isReady {
@@ -61,7 +61,11 @@ struct AppContent: View {
             }
         }.onAppear {
             Task (priority: .high){
-                await tokenManager.handleUserSession()
+                await tokenManager.refreshToken()
+            }
+        }.onChange(of: userModel.walletState) { _, newState in
+            if newState == .error {
+                notificationHandler.show("Error connecting to wallet.", type: .error)
             }
         }
     }

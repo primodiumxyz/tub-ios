@@ -5,57 +5,38 @@
 //  Created by Emerson Hsieh on 2024/9/24.
 //
 
-import SwiftUI
 import PrivySDK
+import SwiftUI
 
-struct HomeTabsView: View {
-    var color = Color(red: 0.43, green: 0.97, blue: 0.98)
-    @EnvironmentObject private var userModel : UserModel
-    @EnvironmentObject private var priceModel : SolPriceModel
-    
-    @State private var selectedTab: Int = 0 // Track the selected tab
-    @State private var tabStartTime: Date? = nil
-  
-    @StateObject private var tokenListModel: TokenListModel
-    init(userModel: UserModel) {
-        self._tokenListModel = StateObject(wrappedValue: TokenListModel(userModel: userModel))
-    }
-    
-    // Add this to watch for userModel changes
-    private var userId: String? {
-        didSet {
-            if userModel.userId != nil {
-                selectedTab = 0  // Force switch to trade tab
-                recordTabSelection("trade")
-            }
-        }
-    }
+class TabsViewModel: ObservableObject {
+    var tabStartTime: Date? = nil
+    @Published var selectedTab: Int = 0  // Track the selected tab
 
-    private func recordTabDwellTime(_ previousTab: String) {
+    public func recordTabDwellTime(_ previousTab: String) {
         guard let startTime = tabStartTime else { return }
-        
+
         let dwellTimeMs = Int(Date().timeIntervalSince(startTime) * 1000)
-        
-        Network.shared.recordClientEvent(
-            event: ClientEvent(
-                eventName: "tab_dwell_time",
-                source: "home_tabs_view",
-                metadata: [
-                    ["tab_name": previousTab],
-                    ["dwell_time_ms": dwellTimeMs],
-                ]
-            )
-        ) { result in
-            switch result {
-            case .success:
-                print("Successfully recorded tab dwell time")
-            case .failure(let error):
+
+        Task(priority: .low) {
+            do {
+                try await Network.shared.recordClientEvent(
+                    event: ClientEvent(
+                        eventName: "tab_dwell_time",
+                        source: "home_tabs_view",
+                        metadata: [
+                            ["tab_name": previousTab],
+                            ["dwell_time_ms": dwellTimeMs],
+                        ]
+                    )
+                )
+            }
+            catch {
                 print("Failed to record tab dwell time: \(error)")
             }
         }
     }
 
-    private func recordTabSelection(_ tabName: String) {
+    func recordTabSelection(_ tabName: String) {
         // Record dwell time for previous tab
         let previousTab: String
         switch selectedTab {
@@ -70,40 +51,69 @@ struct HomeTabsView: View {
         }
 
         // Record selection of new tab
-        Network.shared.recordClientEvent(
-            event: ClientEvent(
-                eventName: "tab_selected",
-                source: "home_tabs_view",
-                metadata: [
-                    ["tab_name": tabName]
-                ]
-            )
-        ) { result in
-            switch result {
-            case .success:
+        Task {
+            do {
+                try await Network.shared.recordClientEvent(
+                    event: ClientEvent(
+                        eventName: "tab_selected",
+                        source: "home_tabs_view",
+                        metadata: [
+                            ["tab_name": tabName]
+                        ]
+                    )
+                )
                 print("Successfully recorded tab selection")
-            case .failure(let error):
+                // Start timing for new tab
+            }
+            catch {
                 print("Failed to record tab selection: \(error)")
             }
-        }
+            tabStartTime = Date()
 
-        // Start timing for new tab
-        tabStartTime = Date()
+        }
+    }
+}
+
+struct HomeTabsView: View {
+    var color = Color(red: 0.43, green: 0.97, blue: 0.98)
+    @EnvironmentObject private var userModel: UserModel
+    @EnvironmentObject private var priceModel: SolPriceModel
+    @StateObject private var vm = TabsViewModel()  // Make it optional
+
+    @StateObject private var tokenListModel: TokenListModel
+    init(userModel: UserModel) {
+        self._tokenListModel = StateObject(wrappedValue: TokenListModel(userModel: userModel))
+    }
+
+    // Add this to watch for userModel changes
+    private var userId: String? {
+        didSet {
+            if userModel.userId != nil {
+                vm.selectedTab = 0  // Force switch to trade tab
+                vm.recordTabSelection("trade")
+            }
+        }
     }
 
     var body: some View {
         Group {
             if !priceModel.isReady {
-                LoadingView(identifier: "HomeTabsView - waiting for userModel & priceModel", message: "Connecting to Solana")
-            } else {
+                LoadingView(
+                    identifier: "HomeTabsView - waiting for userModel & priceModel",
+                    message: "Connecting to Solana"
+                )
+            }
+            else {
                 ZStack(alignment: .bottom) {
                     // Main content view
                     Group {
-                        if selectedTab == 0 {
+                        if vm.selectedTab == 0 {
                             TokenListView(tokenListModel: tokenListModel)
-                        } else if selectedTab == 1 {
+                        }
+                        else if vm.selectedTab == 1 {
                             HistoryView()
-                        } else if selectedTab == 2 {
+                        }
+                        else if vm.selectedTab == 2 {
                             AccountView()
                         }
                     }
@@ -116,8 +126,8 @@ struct HomeTabsView: View {
 
                         // Trade Tab
                         Button(action: {
-                            selectedTab = 0
-                            recordTabSelection("trade")
+                            vm.selectedTab = 0
+                            vm.recordTabSelection("trade")
                         }) {
                             VStack {
                                 Image(systemName: "chart.line.uptrend.xyaxis")
@@ -126,15 +136,16 @@ struct HomeTabsView: View {
                                     .font(.sfRounded(size: .xs, weight: .regular))
                             }
                             .foregroundColor(
-                                selectedTab == 0 ? color : AppColors.white.opacity(0.5))
+                                vm.selectedTab == 0 ? color : AppColors.white.opacity(0.5)
+                            )
                         }
 
                         Spacer()
 
                         // History Tab
                         Button(action: {
-                            selectedTab = 1
-                            recordTabSelection("history")
+                            vm.selectedTab = 1
+                            vm.recordTabSelection("history")
                         }) {
                             VStack {
                                 Image(systemName: "clock")
@@ -143,15 +154,16 @@ struct HomeTabsView: View {
                                     .font(.sfRounded(size: .xs, weight: .regular))
                             }
                             .foregroundColor(
-                                selectedTab == 1 ? color : AppColors.white.opacity(0.5))
+                                vm.selectedTab == 1 ? color : AppColors.white.opacity(0.5)
+                            )
                         }
 
                         Spacer()
 
                         // Account Tab
                         Button(action: {
-                            selectedTab = 2
-                            recordTabSelection("account")
+                            vm.selectedTab = 2
+                            vm.recordTabSelection("account")
                         }) {
                             VStack {
                                 Image(systemName: "person")
@@ -160,7 +172,8 @@ struct HomeTabsView: View {
                                     .font(.sfRounded(size: .xs, weight: .regular))
                             }
                             .foregroundColor(
-                                selectedTab == 2 ? color : AppColors.white.opacity(0.5))
+                                vm.selectedTab == 2 ? color : AppColors.white.opacity(0.5)
+                            )
                         }
 
                         Spacer()
@@ -170,12 +183,12 @@ struct HomeTabsView: View {
                 }
             }
         }.frame(maxWidth: .infinity, maxHeight: .infinity)
-        .ignoresSafeArea(.keyboard)
-        .onChange(of: userModel.userId) { _, newUserId in
-            if newUserId != nil {
-                selectedTab = 0  // Force switch to trade tab
-                recordTabSelection("trade")
+            .ignoresSafeArea(.keyboard)
+            .onChange(of: userModel.userId) { _, newUserId in
+                if newUserId != nil {
+                    vm.selectedTab = 0  // Force switch to trade tab
+                    vm.recordTabSelection("trade")
+                }
             }
-        }
     }
 }

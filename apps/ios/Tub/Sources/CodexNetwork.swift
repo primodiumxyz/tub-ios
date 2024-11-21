@@ -66,7 +66,7 @@ class CodexNetwork {
     
     private init() {
         // Initialize with dummy values that will be replaced
-        self.baseURL = URL(string: "https://dummy.url")!
+        self.baseURL = URL(string: "https://graph.codex.io/graphql")!
         self.session = URLSession(configuration: .default)
     }
     
@@ -105,7 +105,6 @@ class CodexNetwork {
           return WebSocketTransport(websocket: websocket, config: config)
         }()
         
-        // setup tRPC
         self.baseURL = URL(string: "https://graph.codex.io/graphql")!
         self.session = URLSession(configuration: .default)
         
