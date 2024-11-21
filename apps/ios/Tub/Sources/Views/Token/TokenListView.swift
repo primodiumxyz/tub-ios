@@ -96,7 +96,7 @@ struct TokenListView: View {
                                     .padding(.bottom, 24)
                                 Button(action: {
                                     Task {
-                                        try? await tokenListModel.subscribeTokens()
+                                        try? tokenListModel.subscribeTokens()
                                     }
                                 }) {
                                     Text("Retry")
