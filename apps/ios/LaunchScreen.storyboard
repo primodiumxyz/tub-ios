@@ -16,13 +16,13 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="7wp-7o-M09">
-                                <rect key="frame" x="146" y="364" width="101" height="101"/>
+                                <rect key="frame" x="146.66666666666666" y="364.66666666666669" width="100" height="100"/>
                                 <subviews>
                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="LaunchScreenLogo" translatesAutoresizingMaskIntoConstraints="NO" id="mBX-if-8uG">
-                                        <rect key="frame" x="0.0" y="0.0" width="101" height="101"/>
+                                        <rect key="frame" x="0.0" y="0.0" width="100" height="100"/>
                                         <constraints>
                                             <constraint firstAttribute="width" secondItem="mBX-if-8uG" secondAttribute="height" id="eNJ-3w-uWZ"/>
-                                            <constraint firstAttribute="height" constant="101" id="iue-E6-FtK"/>
+                                            <constraint firstAttribute="height" constant="100" id="iue-E6-FtK"/>
                                         </constraints>
                                     </imageView>
                                 </subviews>
