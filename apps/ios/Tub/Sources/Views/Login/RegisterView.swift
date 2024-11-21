@@ -3,7 +3,7 @@ import PrivySDK
 import SwiftUI
 
 struct RegisterView: View {
-    @Environment(\.dismiss) var dismiss // Add this line
+    @Environment(\.dismiss) var dismiss  // Add this line
     @State private var username = ""
     @State private var email = ""
     @State private var showPhoneModal = false
@@ -14,17 +14,17 @@ struct RegisterView: View {
     @State private var showEmailError = false
     @State private var sendingEmailOtp = false
     @State private var isRedirected: Bool
-    
+
     init(isRedirected: Bool = false) {
         self.isRedirected = isRedirected
     }
-    
+
     // Email validation function using regex
     func validateEmail(_ email: String) -> Bool {
         let emailRegex = "^[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}$"
         return NSPredicate(format: "SELF MATCHES %@", emailRegex).evaluate(with: email)
     }
-    
+
     private func sendEmailOtp(email: String) {
         Task {
             if sendingEmailOtp { return }
@@ -34,13 +34,14 @@ struct RegisterView: View {
             if otpSent {
                 showEmailError = false
                 showEmailModal = true
-            } else {
+            }
+            else {
                 showEmailError = true
                 showEmailModal = false
             }
         }
     }
-    
+
     var body: some View {
         ScrollView(showsIndicators: false) {
             HStack {
@@ -52,10 +53,11 @@ struct RegisterView: View {
                             .foregroundColor(.white)
                             .padding(.horizontal)
                     }
-                } else {
+                }
+                else {
                     Spacer().frame(height: 10)
                 }
-                
+
                 Spacer()
             }
             VStack(alignment: .leading, spacing: 12) {
@@ -65,12 +67,12 @@ struct RegisterView: View {
                     .frame(width: 100, height: 100)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .padding(.horizontal, 10)
-                
+
                 Text("Welcome to tub")
                     .font(.sfRounded(size: .xl2, weight: .semibold))
                     .foregroundColor(AppColors.white)
                     .padding(.horizontal, 10)
-                
+
                 VStack(alignment: .leading, spacing: 10) {
                     TextField("Enter your email", text: $email)
                         .padding(.horizontal, 20)
@@ -84,11 +86,13 @@ struct RegisterView: View {
                             isEmailValid = validateEmail(newValue)
                             showEmailError = false
                         }
-                    
+
                     Button(action: {
                         if isEmailValid {
                             sendEmailOtp(email: email)
-                        } else {}
+                        }
+                        else {
+                        }
                     }) {
                         Text("Continue")
                             .font(.sfRounded(size: .lg, weight: .semibold))
@@ -106,7 +110,7 @@ struct RegisterView: View {
                             .stroke(AppColors.primaryPurple, lineWidth: 1)
                     )
                     .opacity(!isEmailValid || sendingEmailOtp ? 0.5 : 1.0)
-                    
+
                     // if email invalid
                     if showEmailError {
                         Text("Please enter a valid email address.")
@@ -114,7 +118,8 @@ struct RegisterView: View {
                             .foregroundColor(.red)
                             .padding(.top, -4)
                             .padding(.horizontal, 20)
-                    } else {
+                    }
+                    else {
                         // Invisible placeholder to maintain spacing
                         Text("")
                             .font(.caption)
@@ -131,11 +136,11 @@ struct RegisterView: View {
                             Rectangle()
                                 .stroke(AppColors.lightGray, lineWidth: 1)
                         )
-                    
+
                     Text("or")
                         .font(.sfRounded(size: .base, weight: .semibold))
                         .foregroundColor(AppColors.white)
-                    
+
                     Divider()
                         .frame(width: 153, height: 1)
                         .overlay(
@@ -143,7 +148,7 @@ struct RegisterView: View {
                                 .stroke(AppColors.lightGray, lineWidth: 1)
                         )
                 }.frame(maxWidth: .infinity)
-                
+
                 // Apple Login
                 SignInWithApple()
                     .frame(maxWidth: .infinity, minHeight: 50, maxHeight: 50, alignment: .center)
@@ -160,19 +165,23 @@ struct RegisterView: View {
                         Task {
                             do {
                                 let _ = try await privy.oAuth.login(with: OAuthProvider.apple)
-                            } catch {
-                                notificationHandler.show(error.localizedDescription,
-                                                         type: .error)
+                            }
+                            catch {
+                                notificationHandler.show(
+                                    error.localizedDescription,
+                                    type: .error
+                                )
                             }
                         }
                     }
-                
+
                 // Google Login
                 Button(action: {
                     Task {
                         do {
                             let _ = try await privy.oAuth.login(with: OAuthProvider.google)
-                        } catch {
+                        }
+                        catch {
                             notificationHandler.show(
                                 error.localizedDescription,
                                 type: .error
@@ -199,13 +208,13 @@ struct RegisterView: View {
                         .stroke(.white, lineWidth: 1)
                         .padding(.horizontal, 10)
                 )
-                
+
                 // Phone button
                 Button(action: { showPhoneModal = true }) {
                     HStack(alignment: .center) {
                         Image(systemName: "phone.fill")
                             .frame(width: 24, height: 24)
-                        
+
                         Text("Continue with Phone")
                             .font(.sfRounded(size: .lg, weight: .semibold))
                     }
@@ -220,7 +229,8 @@ struct RegisterView: View {
                             let _ = await privy.email.sendCode(to: "test-0932@privy.io")
                             // Login with predefined OTP
                             let _ = try await privy.email.loginWithCode("145288", sentTo: "test-0932@privy.io")
-                        } catch {
+                        }
+                        catch {
                             notificationHandler.show(
                                 error.localizedDescription,
                                 type: .error
@@ -231,7 +241,7 @@ struct RegisterView: View {
                     HStack {
                         Image(systemName: "ladybug.fill")
                             .frame(width: 24, height: 24)
-                        
+
                         Text("Dev Login")
                             .font(.sfRounded(size: .base, weight: .semibold))
                     }

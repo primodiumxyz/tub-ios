@@ -29,18 +29,18 @@ struct AppColors {
     // text
     static let lightYellow = Color(red: 1, green: 0.92, blue: 0.52)
     static let lightGray = Color(red: 0.77, green: 0.77, blue: 0.77)
-    
+
     // card
     static let purpleGray = Color(red: 0.23, green: 0.23, blue: 0.42)
     static let darkBlue = Color(red: 0.07, green: 0.07, blue: 0.16)
-    
+
     // Gradients
     // buy bg
     static let primaryPurpleGradient = LinearGradient(
         stops: [
             Gradient.Stop(color: .black, location: 0.08),
             Gradient.Stop(color: AppColors.primaryPurple.opacity(0.26), location: 0.25),
-            Gradient.Stop(color: AppColors.primaryPurple.opacity(0), location: 0.44)
+            Gradient.Stop(color: AppColors.primaryPurple.opacity(0), location: 0.44),
         ],
         startPoint: UnitPoint(x: 0.5, y: 0),
         endPoint: UnitPoint(x: 0.5, y: 1)
@@ -49,51 +49,51 @@ struct AppColors {
     static let primaryPinkGradient = LinearGradient(
         stops: [
             Gradient.Stop(color: AppColors.primaryPink.opacity(0.3), location: 0.00),
-            Gradient.Stop(color: AppColors.primaryPink.opacity(0), location: 0.8)
+            Gradient.Stop(color: AppColors.primaryPink.opacity(0), location: 0.8),
         ],
         startPoint: UnitPoint(x: 0.5, y: 1),
         endPoint: UnitPoint(x: 0.5, y: 0)
     )
-    
+
     // login modal bg
-    
+
     static let pinkGradient = LinearGradient(
         stops: [
-        Gradient.Stop(color: Color(red: 0.77, green: 0.38, blue: 0.6).opacity(0.4), location: 0.00),
-        Gradient.Stop(color: Color(red: 0.77, green: 0.38, blue: 0.6).opacity(0.1), location: 1.00),
+            Gradient.Stop(color: Color(red: 0.77, green: 0.38, blue: 0.6).opacity(0.4), location: 0.00),
+            Gradient.Stop(color: Color(red: 0.77, green: 0.38, blue: 0.6).opacity(0.1), location: 1.00),
         ],
         startPoint: UnitPoint(x: 0.5, y: 0),
         endPoint: UnitPoint(x: 0.5, y: 1)
     )
-    
+
     // card bg
     static let darkBlueGradient = LinearGradient(
         stops: [
             Gradient.Stop(color: Color(red: 0.18, green: 0.08, blue: 0.37), location: 0.00),
             Gradient.Stop(color: Color(red: 0.1, green: 0.1, blue: 0.2), location: 0.85),
-            Gradient.Stop(color: Color(red: 0, green: 0, blue: 0), location: 1.0)
+            Gradient.Stop(color: Color(red: 0, green: 0, blue: 0), location: 1.0),
         ],
         startPoint: UnitPoint(x: 0.5, y: 0),
         endPoint: UnitPoint(x: 0.5, y: 1)
     )
-    
+
     // info stats bg
     static let darkGrayGradient = LinearGradient(
-    stops: [
-    Gradient.Stop(color: Color(red: 0.12, green: 0.12, blue: 0.11), location: 0.38),
-    Gradient.Stop(color: Color(red: 0.12, green: 0.11, blue: 0.11).opacity(0), location: 1.00),
-    ],
-    startPoint: UnitPoint(x: 0.5, y: 0),
-    endPoint: UnitPoint(x: 0.5, y: 1)
+        stops: [
+            Gradient.Stop(color: Color(red: 0.12, green: 0.12, blue: 0.11), location: 0.38),
+            Gradient.Stop(color: Color(red: 0.12, green: 0.11, blue: 0.11).opacity(0), location: 1.00),
+        ],
+        startPoint: UnitPoint(x: 0.5, y: 0),
+        endPoint: UnitPoint(x: 0.5, y: 1)
     )
-    
+
     // buy green bg
     static let darkGreenGradient = LinearGradient(
         stops: [
-        Gradient.Stop(color: Color(red: 0.1, green: 0.2, blue: 0.18), location: 0.29),
-        Gradient.Stop(color: .black, location: 1.00),
+            Gradient.Stop(color: Color(red: 0.1, green: 0.2, blue: 0.18), location: 0.29),
+            Gradient.Stop(color: .black, location: 1.00),
         ],
         startPoint: UnitPoint(x: 0.5, y: 0),
         endPoint: UnitPoint(x: 0.5, y: 1)
-        )
+    )
 }

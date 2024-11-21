@@ -17,7 +17,8 @@ func getFormattingParameters(for value: Double) -> (minFractionDigits: Int, maxF
     let absValue = abs(value)
     if absValue >= 1 {
         return (0, 3)
-    } else {
+    }
+    else {
         let exponent = Int(floor(log10(absValue)))
         let digits = -exponent + 2
         return (0, digits)
@@ -36,7 +37,6 @@ func cleanupFormattedString(_ str: String) -> String {
     if result.starts(with: ".") {
         result = "0" + result
     }
-    
 
     // Add subscript for small numbers
     let absPrice = abs(Double(str) ?? 0.0)
@@ -46,7 +46,8 @@ func cleanupFormattedString(_ str: String) -> String {
         for char in parts {
             if char == "0" {
                 leadingZeros += 1
-            } else {
+            }
+            else {
                 break
             }
         }
@@ -56,7 +57,7 @@ func cleanupFormattedString(_ str: String) -> String {
             result = "0.0\(subscriptNumber)" + str.dropFirst(2 + leadingZeros)
         }
     }
-    
+
     return result
 }
 

@@ -20,47 +20,57 @@ struct BuySellFormView: View {
     @State private var showOnrampView = false
     var handleBuy: (Double) -> Void
     var onSellSuccess: (() -> Void)?
-    
-    init(tokenModel: TokenModel, showBuySheet: Binding<Bool>, defaultAmount: Binding<Double>, handleBuy: @escaping (Double) -> Void, onSellSuccess: (() -> Void)? = nil) {
+
+    init(
+        tokenModel: TokenModel,
+        showBuySheet: Binding<Bool>,
+        defaultAmount: Binding<Double>,
+        handleBuy: @escaping (Double) -> Void,
+        onSellSuccess: (() -> Void)? = nil
+    ) {
         self.tokenModel = tokenModel
         self._showBuySheet = showBuySheet
         self._defaultAmount = defaultAmount
         self.handleBuy = handleBuy
         self.onSellSuccess = onSellSuccess
     }
-    
+
     var activeTab: String {
         let balance: Int = userModel.tokenBalanceLamps ?? 0
         return balance > 0 ? "sell" : "buy"
     }
-    
+
     func handleSell() {
         // Only trigger haptic feedback if vibration is enabled
         if settingsManager.isVibrationEnabled {
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.success)
             print("🟢 Haptic feedback triggered")
-        } else {
+        }
+        else {
             print("🔴 Haptic feedback disabled")
         }
-        
+
         guard let tokenPrice = tokenModel.prices.last?.priceUsd else {
             return
         }
-        
+
         let priceLamps = priceModel.usdToLamports(usd: tokenPrice)
-        userModel.sellTokens(price: priceLamps, completion: { result in
-            switch result {
-            case .success:
-                animationState.showSellBubbles = true
-                onSellSuccess?()
-            case .failure(let error):
-                notificationHandler.show(
-                    error.localizedDescription,
-                    type: .error
-                )
+        userModel.sellTokens(
+            price: priceLamps,
+            completion: { result in
+                switch result {
+                case .success:
+                    animationState.showSellBubbles = true
+                    onSellSuccess?()
+                case .failure(let error):
+                    notificationHandler.show(
+                        error.localizedDescription,
+                        type: .error
+                    )
+                }
             }
-        })
+        )
     }
 
     func performAirdrop() {
@@ -80,7 +90,7 @@ struct BuySellFormView: View {
                 }
             }
         }
-        
+
         Network.shared.recordClientEvent(
             event: ClientEvent(
                 eventName: "airdrop",
@@ -98,7 +108,7 @@ struct BuySellFormView: View {
             }
         }
     }
-    
+
     var body: some View {
         VStack {
             if userModel.userId == nil {
@@ -122,7 +132,8 @@ struct BuySellFormView: View {
                             .stroke(AppColors.aquaGreen, lineWidth: 1)
                     )
                 }
-            } else if activeTab == "buy" {
+            }
+            else if activeTab == "buy" {
                 if let balanceUsd = userModel.balanceLamps, priceModel.lamportsToUsd(lamports: balanceUsd) < 0.1 {
                     Button(action: {
                         // showOnrampView = true
@@ -148,7 +159,8 @@ struct BuySellFormView: View {
                     .sheet(isPresented: $showOnrampView) {
                         CoinbaseOnrampView()
                     }
-                } else {
+                }
+                else {
                     // edit button
                     HStack(spacing: 16) {
                         Button(action: {
@@ -160,7 +172,7 @@ struct BuySellFormView: View {
                                 .padding(12)
                                 .background(Circle().stroke(AppColors.aquaGreen, lineWidth: 1))
                         }
-                        
+
                         Button(action: {
                             handleBuy(settingsManager.defaultBuyValue)
                         }) {
@@ -183,7 +195,8 @@ struct BuySellFormView: View {
                         }
                     }.padding(.horizontal, 8)
                 }
-            } else {
+            }
+            else {
                 SellForm(tokenModel: tokenModel, showBuySheet: $showBuySheet, onSell: handleSell)
                     .padding(.horizontal, 8)
             }
@@ -202,14 +215,16 @@ struct BuySellFormView: View {
     @Previewable @StateObject var notificationHandler = NotificationHandler()
     @Previewable @StateObject var userModel = UserModel.shared
     @Previewable @StateObject var priceModel = SolPriceModel.shared
-    BuySellFormView(tokenModel: TokenModel(),
-                    showBuySheet: $show,
-                    defaultAmount: $testAmount,
-                    handleBuy: { _ in },
-                    onSellSuccess: nil)
-        .environmentObject(notificationHandler)
-        .environmentObject(userModel)
-        .environmentObject(priceModel)
+    BuySellFormView(
+        tokenModel: TokenModel(),
+        showBuySheet: $show,
+        defaultAmount: $testAmount,
+        handleBuy: { _ in },
+        onSellSuccess: nil
+    )
+    .environmentObject(notificationHandler)
+    .environmentObject(userModel)
+    .environmentObject(priceModel)
 }
 
 // MARK: - Equatable Implementation
