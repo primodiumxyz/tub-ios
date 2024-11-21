@@ -171,22 +171,94 @@ export class OctaneService {
   async buildCompleteSwap(swapInstructions: SwapInstructionsResponse | null, feeTransferInstruction: TransactionInstruction | null) {
     // !! TODO: add genesis hash checks et al. from buildWhirlpoolsSwapToSOL if we don't trust Jupiter API
     if (!swapInstructions) {
-        throw new Error("Swap instructions not found");
+      throw new Error("Swap instructions not found");
     }
 
-    const allInstructions = [
-        ...(feeTransferInstruction ? [feeTransferInstruction] : []),
-        ...(swapInstructions.setupInstructions ?? []),
-        swapInstructions.swapInstruction
-    ].filter((instruction): instruction is TransactionInstruction => instruction !== undefined);
+    console.log("[buildCompleteSwap] Building transaction with:", {
+      hasSetupInstructions: !!swapInstructions.setupInstructions?.length,
+      setupInstructionsCount: swapInstructions.setupInstructions?.length || 0,
+      hasSwapInstruction: !!swapInstructions.swapInstruction,
+      hasCleanupInstruction: !!swapInstructions.cleanupInstruction,
+      hasFeeTransfer: !!feeTransferInstruction
+    });
 
+    // Get blockhash first to ensure it's available
+    const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash();
+
+    // Create transaction with all required fields
     const transaction = new Transaction();
-    if (allInstructions.length > 0) {
-        transaction.add(...allInstructions);
-    }
     transaction.feePayer = this.feePayerKeypair.publicKey;
-    
-    transaction.recentBlockhash = (await this.connection.getLatestBlockhash()).blockhash;
+    transaction.recentBlockhash = blockhash;
+    transaction.lastValidBlockHeight = lastValidBlockHeight;
+
+    // Add instructions one by one to ensure they're properly added
+    if (feeTransferInstruction) {
+      transaction.add(feeTransferInstruction);
+    }
+
+    if (swapInstructions.setupInstructions?.length) {
+      swapInstructions.setupInstructions.forEach(instruction => {
+        if (instruction) {
+          const txInstruction = new TransactionInstruction({
+            programId: new PublicKey(instruction.programId),
+            keys: instruction.accounts.map(account => ({
+              pubkey: new PublicKey(account.pubkey),
+              isSigner: account.isSigner,
+              isWritable: account.isWritable
+            })),
+            data: Buffer.from(instruction.data)
+          });
+          transaction.add(txInstruction);
+        }
+      });
+    }
+
+    if (swapInstructions.swapInstruction) {
+      const txInstruction = new TransactionInstruction({
+        programId: new PublicKey(swapInstructions.swapInstruction.programId),
+        keys: swapInstructions.swapInstruction.accounts.map(account => ({
+          pubkey: new PublicKey(account.pubkey),
+          isSigner: account.isSigner,
+          isWritable: account.isWritable
+        })),
+        data: Buffer.from(swapInstructions.swapInstruction.data)
+      });
+      transaction.add(txInstruction);
+    }
+
+    if (swapInstructions.cleanupInstruction) {
+      const txInstruction = new TransactionInstruction({
+        programId: new PublicKey(swapInstructions.cleanupInstruction.programId),
+        keys: swapInstructions.cleanupInstruction.accounts.map(account => ({
+          pubkey: new PublicKey(account.pubkey),
+          isSigner: account.isSigner,
+          isWritable: account.isWritable
+        })),
+        data: Buffer.from(swapInstructions.cleanupInstruction.data)
+      });
+      transaction.add(txInstruction);
+    }
+
+    console.log("[buildCompleteSwap] Created instruction array:", {
+      instructionCount: transaction.instructions.length,
+      hasFeeTransfer: !!feeTransferInstruction,
+      hasSwapInstruction: !!swapInstructions.swapInstruction,
+      hasCleanupInstruction: !!swapInstructions.cleanupInstruction,
+      instructions: transaction.instructions.map(i => ({
+        programId: i?.programId?.toBase58() || 'unknown',
+        keys: i?.keys?.length || 0,
+        data: i?.data?.length || 0
+      }))
+    });
+
+    // Verify transaction can be serialized
+    try {
+      const serialized = transaction.serialize({ requireAllSignatures: false });
+      console.log("[buildCompleteSwap] Successfully verified transaction serialization");
+    } catch (error) {
+      console.error("[buildCompleteSwap] Failed to serialize transaction:", error);
+      throw error;
+    }
 
     return transaction;
   }

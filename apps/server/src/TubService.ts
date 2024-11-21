@@ -66,7 +66,7 @@ export class TubService {
    * @returns The verified user ID
    * @throws Error if JWT is invalid
    */
-  private verifyJWT = async (token: string) => {
+  protected async verifyJWT(token: string): Promise<string> {
     try {
       const verifiedClaims = await this.privy.verifyAuthToken(token);
       return verifiedClaims.userId;
@@ -80,7 +80,7 @@ export class TubService {
    * @param userId - The user's ID
    * @returns The user's Solana wallet address or undefined if not found
    */
-  private async getUserWallet(userId: string) {
+  protected async getUserWallet(userId: string): Promise<string | undefined> {
     const user = await this.privy.getUserById(userId);
 
     const solanaWallet = user.linkedAccounts.find(
@@ -482,6 +482,13 @@ export class TubService {
   private async buildSwapResponse(
     request: ActiveSwapRequest
   ): Promise<PrebuildSwapResponse | null> {
+    console.log("[buildSwapResponse] Starting with request:", {
+      sellQuantity: request.sellQuantity,
+      sellTokenId: request.sellTokenId,
+      buyTokenId: request.buyTokenId,
+      userPublicKey: request.userPublicKey.toString()
+    });
+
     if (!request.sellTokenAccount) return null;
 
     // if sell token is either USDC Devnet or Mainnet, use the buy fee amount. otherwise use 0
@@ -495,58 +502,95 @@ export class TubService {
                        request.sellTokenId === USDC_DEV_PUBLIC_KEY.toString();
 
     let transaction: Transaction | null = null;
-    if (feeAmount === 0) {
-      console.log("[buildSwapResponse] No fee, getting swap instructions");
-      const swapInstructions = await this.octane.getQuoteAndSwapInstructions({
-        inputMint: request.sellTokenId,
-        outputMint: request.buyTokenId,
-        amount: request.sellQuantity,
-        autoSlippage: true,
-        minimizeSlippage: true,
-        onlyDirectRoutes: false,
-        asLegacyTransaction: isUSDCSell, // Set to true for USDC sells
-      }, request.userPublicKey);
-      transaction = await this.octane.buildCompleteSwap(swapInstructions, null);
-    } else {
-      const feeOptions = {
-        sourceAccount: request.sellTokenAccount,
-        destinationAccount: this.octane.getSettings().tradeFeeRecipient,
-        amount: Number((BigInt(feeAmount) * BigInt(request.sellQuantity) / 10000n)),
+    try {
+      if (feeAmount === 0) {
+        console.log("[buildSwapResponse] No fee, getting swap instructions");
+        const swapInstructions = await this.octane.getQuoteAndSwapInstructions({
+          inputMint: request.sellTokenId,
+          outputMint: request.buyTokenId,
+          amount: request.sellQuantity,
+          slippageBps: 10,
+          onlyDirectRoutes: false,
+          asLegacyTransaction: isUSDCSell, // Set to true for USDC sells
+        }, request.userPublicKey);
+
+        console.log("[buildSwapResponse] Got swap instructions:", {
+          hasSetupInstructions: !!swapInstructions?.setupInstructions?.length,
+          hasSwapInstruction: !!swapInstructions?.swapInstruction,
+          hasCleanupInstruction: !!swapInstructions?.cleanupInstruction
+        });
+
+        if (!swapInstructions?.swapInstruction) {
+          throw new Error("No swap instruction received");
+        }
+
+        transaction = await this.octane.buildCompleteSwap(swapInstructions, null);
+      } else {
+        const feeOptions = {
+          sourceAccount: request.sellTokenAccount,
+          destinationAccount: this.octane.getSettings().tradeFeeRecipient,
+          amount: Number((BigInt(feeAmount) * BigInt(request.sellQuantity) / 10000n)),
+        };
+
+        const feeTransferInstruction = createTransferInstruction(
+          feeOptions.sourceAccount,
+          feeOptions.destinationAccount,
+          request.userPublicKey,
+          feeOptions.amount,
+        );
+
+        const swapInstructions = await this.octane.getQuoteAndSwapInstructions({
+          inputMint: request.sellTokenId,
+          outputMint: request.buyTokenId,
+          amount: request.sellQuantity - feeOptions.amount,
+          slippageBps: 10,
+          onlyDirectRoutes: false,
+          asLegacyTransaction: isUSDCSell, // Set to true for USDC sells
+        }, request.userPublicKey);
+
+        console.log("[buildSwapResponse] Got swap instructions:", {
+          hasSetupInstructions: !!swapInstructions?.setupInstructions?.length,
+          hasSwapInstruction: !!swapInstructions?.swapInstruction,
+          hasCleanupInstruction: !!swapInstructions?.cleanupInstruction
+        });
+
+        if (!swapInstructions?.swapInstruction) {
+          throw new Error("No swap instruction received");
+        }
+
+        transaction = await this.octane.buildCompleteSwap(swapInstructions, feeTransferInstruction);
+      }
+
+      if (!transaction) {
+        throw new Error("Failed to build transaction");
+      }
+
+      console.log("[buildSwapResponse] Built transaction:", {
+        hasInstructions: transaction.instructions.length > 0,
+        instructionCount: transaction.instructions.length,
+        hasFeePayer: !!transaction.feePayer,
+        hasRecentBlockhash: !!transaction.recentBlockhash
+      });
+
+      const response: PrebuildSwapResponse = {
+        transactionBase64: Buffer.from(transaction.serialize({ verifySignatures: false })).toString('base64'),
+        ...request,
+        hasFee: feeAmount > 0,
+        timestamp: Date.now()
       };
-
-      const feeTransferInstruction = createTransferInstruction(
-        feeOptions.sourceAccount,
-        feeOptions.destinationAccount,
-        request.userPublicKey,
-        feeOptions.amount,
+      
+      // Store in registry with fee information
+      this.swapRegistry.set(
+        response.transactionBase64,
+        { ...response, transaction }
       );
+      
+      return response;
 
-      const swapInstructions = await this.octane.getQuoteAndSwapInstructions({
-        inputMint: request.sellTokenId,
-        outputMint: request.buyTokenId,
-        amount: request.sellQuantity - feeOptions.amount,
-        autoSlippage: true,
-        minimizeSlippage: true,
-        onlyDirectRoutes: false,
-        asLegacyTransaction: isUSDCSell, // Set to true for USDC sells
-      }, request.userPublicKey);
-      transaction = await this.octane.buildCompleteSwap(swapInstructions, feeTransferInstruction);
+    } catch (error) {
+      console.error("[buildSwapResponse] Error:", error);
+      throw error;
     }
-
-    const response: PrebuildSwapResponse = {
-      transactionBase64: Buffer.from(transaction.serialize()).toString('base64'),
-      ...request,
-      hasFee: feeAmount > 0,
-      timestamp: Date.now()
-    };
-    
-    // Store in registry with fee information
-    this.swapRegistry.set(
-      response.transactionBase64,
-      { ...response, transaction }
-    );
-    
-    return response;
   }
 
   // Now let's add the fetchSwap method
