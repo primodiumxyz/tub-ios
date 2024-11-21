@@ -205,7 +205,7 @@ struct TokenView : View {
             Spacer()
             HStack(spacing: 4) {
                 intervalButton(for: .live)
-                intervalButton(for: .thirtyMin)
+                intervalButton(for: .candles)
             }
             Spacer()
         }

@@ -31,7 +31,7 @@ struct ChartView: View {
     }
     
     private func updatePrices() {
-        let dataPointCount = Int(CHART_INTERVAL / PRICE_UPDATE_INTERVAL)
+        let dataPointCount = Int(Timespan.live.seconds / PRICE_UPDATE_INTERVAL)
         let startingIndex = rawPrices.count - dataPointCount
         prices = startingIndex < 0 ? rawPrices : Array(rawPrices[startingIndex...])
     }
@@ -68,7 +68,7 @@ struct ChartView: View {
         return (minPriceUsd - padding)...(maxPriceUsd + padding)
     }
     private var xDomain: ClosedRange<Date> {
-        let min = Date(timeIntervalSinceNow: -CHART_INTERVAL - 1)
+        let min = Date(timeIntervalSinceNow: -Timespan.live.seconds - 1)
         var padding = 1.0
         if let currentPrice = prices.last?.priceUsd {
             let pillContent = priceModel.formatPrice(usd: abs(currentPrice), maxDecimals: 9, minDecimals: 2)

@@ -228,14 +228,14 @@ class TokenModel: ObservableObject {
     private func fetchInitialCandles() async {
         let client = await CodexNetwork.shared.apolloClient
         let now = Int(Date().timeIntervalSince1970)
-        let thirtyMinutesAgo = now - (30 * 60)
+        let startTime = now - Int(Timespan.candles.seconds)
         
         func getTokenCandles() async -> [CandleData] {
             var allCandles: [CandleData] = []
             do {
                 try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
                     client.fetch(query: GetTokenCandlesQuery(
-                        from: thirtyMinutesAgo,
+                        from: startTime,
                         to: now,
                         symbol: token.pairId,
                         resolution: "1"
@@ -315,7 +315,7 @@ class TokenModel: ObservableObject {
                              self.candles.sort { $0.start < $1.start }
                          }
                         
-                         let startTime = Date().addingTimeInterval(Timespan.thirtyMin.seconds)
+                         let startTime = Date().addingTimeInterval(Timespan.candles.seconds)
                          self.candles.removeAll { $0.start < startTime }
                      }
                  }
