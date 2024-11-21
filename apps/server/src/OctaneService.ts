@@ -199,44 +199,17 @@ export class OctaneService {
     if (swapInstructions.setupInstructions?.length) {
       swapInstructions.setupInstructions.forEach(instruction => {
         if (instruction) {
-          const txInstruction = new TransactionInstruction({
-            programId: new PublicKey(instruction.programId),
-            keys: instruction.accounts.map(account => ({
-              pubkey: new PublicKey(account.pubkey),
-              isSigner: account.isSigner,
-              isWritable: account.isWritable
-            })),
-            data: Buffer.from(instruction.data)
-          });
-          transaction.add(txInstruction);
+          transaction.add(this.convertToTransactionInstruction(instruction));
         }
       });
     }
 
     if (swapInstructions.swapInstruction) {
-      const txInstruction = new TransactionInstruction({
-        programId: new PublicKey(swapInstructions.swapInstruction.programId),
-        keys: swapInstructions.swapInstruction.accounts.map(account => ({
-          pubkey: new PublicKey(account.pubkey),
-          isSigner: account.isSigner,
-          isWritable: account.isWritable
-        })),
-        data: Buffer.from(swapInstructions.swapInstruction.data)
-      });
-      transaction.add(txInstruction);
+      transaction.add(this.convertToTransactionInstruction(swapInstructions.swapInstruction));
     }
 
     if (swapInstructions.cleanupInstruction) {
-      const txInstruction = new TransactionInstruction({
-        programId: new PublicKey(swapInstructions.cleanupInstruction.programId),
-        keys: swapInstructions.cleanupInstruction.accounts.map(account => ({
-          pubkey: new PublicKey(account.pubkey),
-          isSigner: account.isSigner,
-          isWritable: account.isWritable
-        })),
-        data: Buffer.from(swapInstructions.cleanupInstruction.data)
-      });
-      transaction.add(txInstruction);
+      transaction.add(this.convertToTransactionInstruction(swapInstructions.cleanupInstruction));
     }
 
     console.log("[buildCompleteSwap] Created instruction array:", {
@@ -350,5 +323,17 @@ export class OctaneService {
       console.error("Error signing transaction without token fee:", e);
       throw new Error("Failed to sign transaction without token fee");
     }
+  }
+
+  private convertToTransactionInstruction(instruction: any): TransactionInstruction {
+    return new TransactionInstruction({
+      programId: new PublicKey(instruction.programId),
+      keys: instruction.accounts.map((account: { pubkey: string; isSigner: boolean; isWritable: boolean }) => ({
+        pubkey: new PublicKey(account.pubkey),
+        isSigner: account.isSigner,
+        isWritable: account.isWritable
+      })),
+      data: Buffer.from(instruction.data)
+    });
   }
 } 
