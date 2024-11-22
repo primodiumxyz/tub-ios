@@ -58,6 +58,7 @@ struct CustomToggleStyle: ToggleStyle {
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var settingsManager = SettingsManager.shared
+    
     // Add temporary state for editing
     @State private var tempDefaultValue: String = ""
     @FocusState private var isEditing: Bool
@@ -157,34 +158,26 @@ struct SettingsView: View {
 
                 Spacer()
             }
-            .navigationBarBackButtonHidden(true)
             .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden(false)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button(action: { dismiss() }) {
-                        Image(systemName: "chevron.left")
-                            .foregroundColor(AppColors.aquaGreen)
-                            .imageScale(.large)
-                    }
-                }
-
                 ToolbarItem(placement: .principal) {
                     Text("Settings")
                         .font(.sfRounded(size: .xl, weight: .semibold))
                         .foregroundColor(AppColors.white)
                 }
+                
+                // Keep keyboard toolbar
+                ToolbarItem(placement: .keyboard) {
+                    Button("Save") {
+                        isEditing = false
+                        updateDefaultValue()
+                    }
+                    .foregroundColor(AppColors.primaryPink)
+                    .font(.system(size: 20))
+                }
             }
             .background(AppColors.black)
-        }
-        .toolbar {
-            ToolbarItem(placement: .keyboard) {
-                Button("Save") {
-                    isEditing = false
-                    updateDefaultValue()
-                }
-                .foregroundColor(AppColors.primaryPink)
-                .font(.system(size: 20))
-            }
         }
     }
 

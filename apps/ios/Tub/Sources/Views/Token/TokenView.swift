@@ -119,7 +119,7 @@ struct TokenView: View {
                     }
                 }
                 .frame(maxWidth: .infinity)
-                .foregroundColor(AppColors.white)
+                .foregroundStyle(AppColors.white)
 
                 infoCardOverlay
                 buySheetOverlay
@@ -168,14 +168,14 @@ struct TokenView: View {
                     if tokenModel.isReady {
                         Text(price)
                         Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
-                        Text("\(formatDuration(tokenModel.currentTimeframe.timeframeSecs))").foregroundColor(.gray)
+                        Text("\(formatDuration(tokenModel.currentTimeframe.timeframeSecs))").foregroundStyle(.gray)
                     }
                     else {
                         LoadingBox(width: 160, height: 12)
                     }
                 }
                 .font(.sfRounded(size: .sm, weight: .semibold))
-                .foregroundColor(tokenModel.priceChange.amountUsd >= 0 ? .green : .red)
+                .foregroundStyle(tokenModel.priceChange.amountUsd >= 0 ? .green : .red)
             }
         }
         .padding(.horizontal)
@@ -217,37 +217,30 @@ struct TokenView: View {
         HStack {
             Spacer()
             HStack(spacing: 4) {
-                intervalButton(for: .live)
-                intervalButton(for: .thirtyMin)
+                IntervalButton(
+                    timespan: .live,
+                    isSelected: selectedTimespan == .live,
+                    action: {
+                        withAnimation(.easeInOut(duration: 0.15)) {
+                            selectedTimespan = .live
+                            tokenModel.updateHistoryInterval(.live)
+                        }
+                    }
+                )
+                IntervalButton(
+                    timespan: .thirtyMin,
+                    isSelected: selectedTimespan == .thirtyMin,
+                    action: {
+                        withAnimation(.easeInOut(duration: 0.15)) {
+                            selectedTimespan = .thirtyMin
+                            tokenModel.updateHistoryInterval(.thirtyMin)
+                        }
+                    }
+                )
             }
             Spacer()
         }
         .padding(.horizontal)
-    }
-
-    private func intervalButton(for timespan: Timespan) -> some View {
-        Button {
-            withAnimation(.easeInOut(duration: 0.15)) {
-                selectedTimespan = timespan
-                tokenModel.updateHistoryInterval(timespan)
-            }
-        } label: {
-            HStack(spacing: 4) {
-                if timespan == .live {
-                    Circle()
-                        .fill(AppColors.red)
-                        .frame(width: 7, height: 7)
-                }
-                Text(timespan.rawValue)
-                    .font(.sfRounded(size: .sm, weight: .medium))
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .frame(width: 65)
-            .background(selectedTimespan == timespan ? AppColors.aquaBlue : Color.clear)
-            .foregroundColor(selectedTimespan == timespan ? AppColors.black : AppColors.white)
-            .cornerRadius(20)
-        }
     }
 
     /* ------------------------------ Info Overlays ----------------------------- */
@@ -308,18 +301,18 @@ struct TokenView: View {
                         HStack(spacing: 0) {
                             Text(stat.0)
                                 .font(.sfRounded(size: .xs, weight: .regular))
-                                .foregroundColor(AppColors.white.opacity(0.7))
+                                .foregroundStyle(AppColors.white.opacity(0.7))
                                 .fixedSize(horizontal: true, vertical: false)
 
                             Text(stat.1.text)
                                 .font(.sfRounded(size: .base, weight: .semibold))
-                                .foregroundColor(stat.1.color ?? AppColors.white)
+                                .foregroundStyle(stat.1.color ?? AppColors.white)
                                 .frame(maxWidth: .infinity, alignment: .topTrailing)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
 
                         Rectangle()
-                            .foregroundColor(.clear)
+                            .foregroundStyle(.clear)
                             .frame(height: 0.5)
                             .background(AppColors.gray.opacity(0.5))
                             .padding(.top, 2)
@@ -339,18 +332,18 @@ struct TokenView: View {
                                 HStack(spacing: 0) {
                                     Text(stat.0)
                                         .font(.sfRounded(size: .xs, weight: .regular))
-                                        .foregroundColor(AppColors.white.opacity(0.7))
+                                        .foregroundStyle(AppColors.white.opacity(0.7))
                                         .fixedSize(horizontal: true, vertical: false)
 
                                     Text(stat.1.text)
                                         .font(.sfRounded(size: .base, weight: .semibold))
-                                        .foregroundColor(AppColors.white)
+                                        .foregroundStyle(AppColors.white)
                                         .frame(maxWidth: .infinity, alignment: .topTrailing)
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
 
                                 Rectangle()
-                                    .foregroundColor(.clear)
+                                    .foregroundStyle(.clear)
                                     .frame(height: 0.5)
                                     .background(AppColors.gray.opacity(0.5))
                                     .padding(.top, 2)

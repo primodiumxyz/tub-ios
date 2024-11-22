@@ -170,7 +170,7 @@ struct OTPInputView: View {
         .onAppear(perform: {
             pinFocusState = .pinOne
         })
-        .foregroundColor(.black)
+        .foregroundStyle(.black)
         .frame(maxWidth: .infinity)
         .padding(.vertical)
         .padding(.horizontal)

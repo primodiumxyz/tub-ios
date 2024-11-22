@@ -77,7 +77,7 @@ struct TokenInfoCardView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .center, spacing: 0) {
                 Rectangle()
-                    .foregroundColor(.clear)
+                    .foregroundStyle(.clear)
                     .frame(width: 60, height: 3)
                     .background(AppColors.lightGray)
                     .cornerRadius(100)
@@ -89,7 +89,7 @@ struct TokenInfoCardView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     Text("Stats")
                         .font(.sfRounded(size: .xl, weight: .semibold))
-                        .foregroundColor(AppColors.white)
+                        .foregroundStyle(AppColors.white)
                         .frame(maxWidth: .infinity, alignment: .topLeading)
                         .padding(.bottom, 4)
 
@@ -98,19 +98,19 @@ struct TokenInfoCardView: View {
                             HStack(alignment: .center) {
                                 Text(stat.0)
                                     .font(.sfRounded(size: .sm, weight: .regular))
-                                    .foregroundColor(AppColors.gray)
+                                    .foregroundStyle(AppColors.gray)
                                     .fixedSize(horizontal: true, vertical: false)
 
                                 Text(stat.1.text)
                                     .font(.sfRounded(size: .base, weight: .semibold))
                                     .frame(maxWidth: .infinity, alignment: .topTrailing)
-                                    .foregroundColor(stat.1.color ?? AppColors.white)
+                                    .foregroundStyle(stat.1.color ?? AppColors.white)
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
 
                             //divider
                             Rectangle()
-                                .foregroundColor(.clear)
+                                .foregroundStyle(.clear)
                                 .frame(height: 0.5)
                                 .background(AppColors.gray.opacity(0.5))
                         }
@@ -120,12 +120,12 @@ struct TokenInfoCardView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("About")
                             .font(.sfRounded(size: .xl, weight: .semibold))
-                            .foregroundColor(AppColors.white)
+                            .foregroundStyle(AppColors.white)
                             .frame(maxWidth: .infinity, alignment: .topLeading)
 
                         Text("\(tokenModel.token.description)")
                             .font(.sfRounded(size: .sm, weight: .regular))
-                            .foregroundColor(AppColors.lightGray)
+                            .foregroundStyle(AppColors.lightGray)
                             .multilineTextAlignment(.leading)
                     }
                     .padding(.vertical, 12)

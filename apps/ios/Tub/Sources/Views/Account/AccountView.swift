@@ -170,17 +170,12 @@ private struct ActionButtonsView: View {
 
             // Add Transfer Button
             VStack(spacing: 8) {
-                Button(action: {}) {
-                    ZStack {
-                        Circle()
-                            .stroke(AppColors.aquaGreen, lineWidth: 1)
-                            .frame(width: 50, height: 50)
-
-                        Image(systemName: "arrow.left.arrow.right")
-                            .foregroundColor(AppColors.aquaGreen)
-                            .font(.system(size: 22))
-                    }
-                }.disabled(true)
+                CircleButton(
+                    icon: "arrow.left.arrow.right",
+                    color: AppColors.aquaGreen,
+                    iconSize: 22,
+                    action: {}
+                ).disabled(true)
 
                 Text("Transfer")
                     .font(.sfRounded(size: .sm, weight: .medium))
@@ -190,17 +185,11 @@ private struct ActionButtonsView: View {
 
             // Add Funds Button
             VStack(spacing: 8) {
-                Button(action: { showOnrampView = true }) {
-                    ZStack {
-                        Circle()
-                            .stroke(AppColors.aquaGreen, lineWidth: 1)
-                            .frame(width: 50, height: 50)
-
-                        Image(systemName: "plus")
-                            .foregroundColor(AppColors.aquaGreen)
-                            .font(.system(size: 24))
-                    }
-                }
+                CircleButton(
+                    icon: "plus",
+                    color: AppColors.aquaGreen,
+                    action: { showOnrampView = true }
+                )
 
                 Text("Add Funds")
                     .font(.sfRounded(size: .sm, weight: .medium))
@@ -269,22 +258,12 @@ private struct AccountSettingsView: View {
             .foregroundColor(.white)
 
             // Logout Button
-            Button(action: userModel.logout) {
-                HStack(spacing: 16) {
-                    Image(systemName: "rectangle.portrait.and.arrow.right")
-                        .resizable()
-                        .frame(width: 22, height: 22, alignment: .center)
-                        .foregroundColor(AppColors.red)
-                        .padding(.bottom, 40)
-                        .padding(.leading, 4)
-                        .padding(.trailing, 2)
-
-                    Text("Logout")
-                        .font(.sfRounded(size: .lg, weight: .medium))
-                        .foregroundColor(AppColors.red)
-                        .padding(.bottom, 40)
-                }
-            }
+            IconTextButton(
+                icon: "rectangle.portrait.and.arrow.right",
+                text: "Logout",
+                textColor: AppColors.red,
+                action: userModel.logout
+            )
 
             Text(serverBaseUrl).foregroundStyle(.white)
                 .font(.caption)

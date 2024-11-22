@@ -107,26 +107,15 @@ struct BuyForm: View {
     }
 
     private var buyButton: some View {
-        Button(action: {
-            handleBuy()
-        }) {
-            HStack {
-                Text("Buy")
-                    .font(.sfRounded(size: .xl, weight: .semibold))
-                    .foregroundColor(AppColors.aquaGreen)
-                    .multilineTextAlignment(.center)
-            }
-            .disabled((userModel.balanceLamps ?? 0) < priceModel.usdToLamports(usd: buyAmountUsd))
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .cornerRadius(30)
-            .overlay(
-                RoundedRectangle(cornerRadius: 30)
-                    .inset(by: 0.5)
-                    .stroke(AppColors.aquaGreen, lineWidth: 1)
-            )
-        }
+        OutlineButton(
+            text: "Buy",
+            textColor: AppColors.aquaGreen,
+            strokeColor: AppColors.aquaGreen,
+            backgroundColor: .clear,
+            maxWidth: .infinity,
+            action: handleBuy
+        )
+        .disabled((userModel.balanceLamps ?? 0) < priceModel.usdToLamports(usd: buyAmountUsd))
     }
 
     private var numberInput: some View {
@@ -135,12 +124,13 @@ struct BuyForm: View {
                 Spacer()
                 Text("$")
                     .font(.sfRounded(size: .xl4, weight: .bold))
-                    .foregroundColor(AppColors.white)
+                    .foregroundStyle(AppColors.white)
 
                 TextField(
                     "",
                     text: $buyAmountUsdString,
-                    prompt: Text("10", comment: "placeholder").foregroundColor(AppColors.white.opacity(0.3))
+                    prompt: Text("10", comment: "placeholder")
+                    .foregroundStyle(AppColors.white.opacity(0.3))
                 )
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.leading)
@@ -177,7 +167,7 @@ struct BuyForm: View {
                     }
                 }
                 .font(.sfRounded(size: .xl5, weight: .bold))
-                .foregroundColor(isValidInput ? .white : .red)
+                .foregroundStyle(isValidInput ? .white : .red)
                 .frame(minWidth: 50)
                 .fixedSize()
                 .onTapGesture {
@@ -199,10 +189,10 @@ struct BuyForm: View {
                 HStack(spacing: 4) {
                     Text("Set Default")
                         .font(.sfRounded(size: .base, weight: .regular))
-                        .foregroundColor(isDefaultOn ? AppColors.white : AppColors.gray)
+                        .foregroundStyle(isDefaultOn ? AppColors.white : AppColors.gray)
 
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(isDefaultOn ? AppColors.green : AppColors.gray)
+                        .foregroundStyle(isDefaultOn ? AppColors.green : AppColors.gray)
                 }
             }
         }
@@ -211,24 +201,14 @@ struct BuyForm: View {
     private var amountButtons: some View {
         HStack(spacing: 10) {
             ForEach([10, 25, 50, 100], id: \.self) { amount in
-                amountButton(for: amount)
+                CapsuleButton(
+                    text: amount == 100 ? "MAX" : "\(amount)%",
+                    action: {
+                        guard let balance = userModel.balanceLamps else { return }
+                        updateBuyAmount(balance * amount / 100)
+                    }
+                )
             }
-        }
-    }
-
-    private func amountButton(for pct: Int) -> some View {
-        Button(action: {
-            guard let balance = userModel.balanceLamps else { return }
-
-            updateBuyAmount(balance * pct / 100)
-        }) {
-            Text(pct == 100 ? "MAX" : "\(pct)%")
-                .font(.sfRounded(size: .base, weight: .bold))
-                .foregroundColor(AppColors.white)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 9)
-                .background(AppColors.white.opacity(0.15))
-                .clipShape(Capsule())
         }
     }
 

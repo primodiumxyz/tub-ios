@@ -45,10 +45,6 @@ struct BuySellFormView: View {
         if settingsManager.isVibrationEnabled {
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.success)
-            print("🟢 Haptic feedback triggered")
-        }
-        else {
-            print("🔴 Haptic feedback disabled")
         }
 
         guard let tokenPrice = tokenModel.prices.last?.priceUsd else {
@@ -112,50 +108,27 @@ struct BuySellFormView: View {
     var body: some View {
         VStack {
             if userModel.userId == nil {
-                Button {
-                    isLoginPresented = true
-                } label: {
-                    HStack(alignment: .center, spacing: 8) {
-                        Text("Login to Buy")
-                            .font(.sfRounded(size: .xl, weight: .semibold))
-                            .foregroundColor(AppColors.black)
-                            .multilineTextAlignment(.center)
-                    }
-                    .frame(maxWidth: 300)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .background(AppColors.aquaGreen)
-                    .cornerRadius(30)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 30)
-                            .inset(by: 0.5)
-                            .stroke(AppColors.aquaGreen, lineWidth: 1)
-                    )
-                }
+                PrimaryButton(
+                    text: "Login to Buy",
+                    textColor: AppColors.black,
+                    backgroundColor: AppColors.aquaGreen,
+                    strokeColor: AppColors.aquaGreen,
+                    maxWidth: .infinity,
+                    action: { isLoginPresented = true }
+                )
+                .padding(.horizontal, 8)
             }
             else if activeTab == "buy" {
                 if let balanceUsd = userModel.balanceLamps, priceModel.lamportsToUsd(lamports: balanceUsd) < 0.1 {
-                    Button(action: {
-                        // showOnrampView = true
-                        performAirdrop()
-                    }) {
-                        HStack(alignment: .center, spacing: 8) {
-                            Text("Get 1 test SOL")
-                                .font(.sfRounded(size: .xl, weight: .semibold))
-                                .foregroundColor(AppColors.black)
-                                .multilineTextAlignment(.center)
-                        }
-                        .frame(maxWidth: 300)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
-                        .background(AppColors.aquaGreen)
-                        .cornerRadius(30)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 30)
-                                .inset(by: 0.5)
-                                .stroke(AppColors.aquaGreen, lineWidth: 1)
-                        )
-                    }
+                    PrimaryButton(
+                        text: "Get 1 test SOL",
+                        textColor: AppColors.black,
+                        backgroundColor: AppColors.aquaGreen,
+                        strokeColor: AppColors.aquaGreen,
+                        maxWidth: .infinity,
+                        action: performAirdrop
+                    )
+                    .padding(.horizontal, 8)
                     .sheet(isPresented: $showOnrampView) {
                         CoinbaseOnrampView()
                     }
@@ -163,36 +136,19 @@ struct BuySellFormView: View {
                 else {
                     // edit button
                     HStack(spacing: 16) {
-                        Button(action: {
-                            showBuySheet = true
-                        }) {
-                            Image(systemName: "pencil")
-                                .font(.system(size: 20, weight: .bold))
-                                .foregroundColor(AppColors.aquaGreen)
-                                .padding(12)
-                                .background(Circle().stroke(AppColors.aquaGreen, lineWidth: 1))
-                        }
-
-                        Button(action: {
-                            handleBuy(settingsManager.defaultBuyValue)
-                        }) {
-                            HStack(alignment: .center, spacing: 8) {
-                                Text("Buy \(priceModel.formatPrice(usd: settingsManager.defaultBuyValue))")
-                                    .font(.sfRounded(size: .xl, weight: .semibold))
-                                    .foregroundColor(AppColors.black)
-                                    .multilineTextAlignment(.center)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 12)
-                            .background(AppColors.aquaGreen)
-                            .cornerRadius(30)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 30)
-                                    .inset(by: 0.5)
-                                    .stroke(AppColors.aquaGreen, lineWidth: 1)
-                            )
-                        }
+                        CircleButton(
+                            icon: "pencil",
+                            color: AppColors.aquaGreen,
+                            iconSize: 20,
+                            iconWeight: .bold,
+                            action: { showBuySheet = true }
+                        )
+                        PrimaryButton(
+                            text: "Buy \(priceModel.formatPrice(usd: settingsManager.defaultBuyValue))",
+                            textColor: AppColors.black,
+                            backgroundColor: AppColors.aquaGreen,
+                            action: { handleBuy(settingsManager.defaultBuyValue) }
+                        )
                     }.padding(.horizontal, 8)
                 }
             }

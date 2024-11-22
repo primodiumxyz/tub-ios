@@ -36,12 +36,14 @@ struct AccountDetailsView: View {
                             title: "Account ID",
                             value: truncateString(userId)
                         ) {
-                            Button(action: {
-                                UIPasteboard.general.string = userId
-                            }) {
-                                Image(systemName: "doc.on.doc")
-                                    .foregroundColor(AppColors.white)
-                            }
+                            IconButton(
+                                icon: "doc.on.doc",
+                                color: AppColors.white,
+                                size: 16,
+                                action: {
+                                    UIPasteboard.general.string = userId
+                                }
+                            )
                         }
 
                         if let email = linkedAccounts.email {
@@ -60,12 +62,14 @@ struct AccountDetailsView: View {
                             title: "Wallet",
                             value: truncateString(wallet)
                         ) {
-                            Button(action: {
-                                UIPasteboard.general.string = wallet  // Copy full address
-                            }) {
-                                Image(systemName: "doc.on.doc")
-                                    .foregroundColor(AppColors.white)
-                            }
+                            IconButton(
+                                icon: "doc.on.doc",
+                                color: AppColors.white,
+                                size: 16,
+                                action: {
+                                    UIPasteboard.general.string = wallet  // Copy full address
+                                }
+                            )
                         }
                     }
                     .padding(.horizontal, 16)
@@ -78,18 +82,10 @@ struct AccountDetailsView: View {
                         presentationMode.wrappedValue.dismiss()
                     }
                 }
-                .navigationBarBackButtonHidden(true)
+                .navigationBarBackButtonHidden(false)
                 .navigationTitle("Account Details")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button(action: { dismiss() }) {
-                            Image(systemName: "chevron.left")
-                                .foregroundColor(AppColors.aquaGreen)
-                                .imageScale(.large)
-                        }
-                    }
-
                     ToolbarItem(placement: .principal) {
                         Text("Account Details")
                             .font(.sfRounded(size: .xl, weight: .semibold))
