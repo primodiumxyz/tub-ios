@@ -90,8 +90,9 @@ struct TokenView: View {
     }
 
     var body: some View {
-        NavigationStack {
             ZStack {
+                Color.black
+                
                 // Main content
                 VStack(alignment: .leading, spacing: 0) {
                     VStack(alignment: .leading, spacing: 4) {
@@ -126,10 +127,6 @@ struct TokenView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .dismissKeyboardOnTap()
-            .background(.black)
-            .navigationBarBackButtonHidden(true)
-        }
-        .background(.black)
     }
 
     private var tokenInfoView: some View {
