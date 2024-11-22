@@ -46,6 +46,7 @@ final class SolPriceModel: ObservableObject {
         RunLoop.main.add(timer!, forMode: .common)
     }
 
+    // this comment ensures that the fetchCurrentPrice function is executing on the main thread
     @MainActor
     func fetchCurrentPrice() async {
         guard !fetching else { return }
@@ -85,7 +86,7 @@ final class SolPriceModel: ObservableObject {
             }
         } catch {
             self.error = error.localizedDescription
-            print("Error fetching SOL price: \(error)")
+            print("Error fetching SOL price: \(error.localizedDescription)")
         }
         
         self.isReady = true
