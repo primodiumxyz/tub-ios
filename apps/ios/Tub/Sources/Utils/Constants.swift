@@ -97,6 +97,8 @@ public let NETWORK_FILTER: Int = 1_399_811_149  // Solana filter for Codex
 public let CHART_INTERVAL: Double = 120
 public let PRICE_UPDATE_INTERVAL: Double = 0.5  // Update price every half second
 
+public let WSOL_ADDRESS: String = "So11111111111111111111111111111111111111112"
+
 enum TubError: Error {
     case networkFailure
     case invalidInput(reason: String)

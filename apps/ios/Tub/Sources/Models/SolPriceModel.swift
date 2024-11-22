@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import CodexAPI
 
 final class SolPriceModel: ObservableObject {
     static let shared = SolPriceModel()
@@ -25,12 +26,32 @@ final class SolPriceModel: ObservableObject {
     func fetchCurrentPrice() async {
         error = nil
         isReady = false
+        
+        let client = await CodexNetwork.shared.apolloClient
+        let input = GetPriceInput(
+            address: WSOL_ADDRESS,
+            networkId: NETWORK_FILTER
+        )
+        let query = GetTokenPricesQuery(inputs: [input])
 
         do {
-            let price = try await Network.shared.fetchSolPrice()
-            self.price = price
-        }
-        catch {
+            try await withCheckedThrowingContinuation {
+                (continuation: CheckedContinuation<Void, Error>) in
+                client.fetch(query: query) { result in
+                    switch result {
+                    case .success(let response):
+                        if let prices = response.data?.getTokenPrices,
+                            let firstPrice = prices.first,
+                            let price = firstPrice?.priceUsd
+                        {
+                            self.price = price
+                        }
+                    case .failure(let error):
+                        continuation.resume(throwing: error)
+                    }
+                }
+            }
+        } catch {
             self.error = error.localizedDescription
             print("Error fetching SOL price: \(error.localizedDescription)")
         }
