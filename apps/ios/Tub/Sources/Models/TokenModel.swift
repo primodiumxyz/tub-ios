@@ -40,17 +40,24 @@ class TokenModel: ObservableObject {
     private var latestPrice: Double?
     private var priceUpdateTimer: Timer?
     private var preloaded = false
+    private var initialized = false
 
     deinit {
+        cleanup()
+    }
+
+    func cleanup() {
         priceUpdateTimer?.invalidate()
         priceUpdateTimer = nil
         // Clean up subscriptions when the object is deallocated
         priceSubscription?.cancel()
         candleSubscription?.cancel()
         candleSubscription = nil
+
     }
 
     func preload(with newToken: Token, timeframeSecs: Double = CHART_INTERVAL) {
+        cleanup()
         preloaded = true
         let now = Date()
         DispatchQueue.main.async {
@@ -84,15 +91,15 @@ class TokenModel: ObservableObject {
 
     func initialize(with newToken: Token, timeframeSecs: Double = CHART_INTERVAL) {
         let now = Date()
+        Task { @MainActor in
+            self.animate = true
+        }
+        if initialized { return }
+        initialized = true
         if !self.preloaded {
             Task {
                 self.preload(with: newToken, timeframeSecs: timeframeSecs)
             }
-        }
-
-        self.preloaded = false
-        Task { @MainActor in
-            self.animate = true
         }
 
         Task {
@@ -426,6 +433,12 @@ class TokenModel: ObservableObject {
                     continuation.resume(throwing: error)
                 }
             }
+        }
+    }
+
+    func stopAnimation() {
+        DispatchQueue.main.async {
+            self.animate = false
         }
     }
 }

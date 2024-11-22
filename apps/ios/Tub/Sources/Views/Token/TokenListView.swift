@@ -103,9 +103,18 @@ struct TokenListView: View {
                             else {
                                 GeometryReader { geometry in
                                     VStack(spacing: 10) {
-                                        LoadingTokenView()
-                                            .frame(height: geometry.size.height)
-                                            .opacity(dragging ? 0.8 : 0)
+                                        // PREVIOUS TOKEN
+                                        if let previousTokenModel = tokenListModel.previousTokenModel {
+                                            TokenView(tokenModel: previousTokenModel)
+                                                .frame(height: geometry.size.height)
+                                        }
+                                        else {
+                                            LoadingTokenView()
+                                                .frame(height: geometry.size.height)
+                                                .opacity(dragging ? 0.8 : 0)
+                                        }
+
+                                        // CURRENT TOKEN
                                         TokenView(
                                             tokenModel: tokenListModel.currentTokenModel,
                                             onSellSuccess: {
@@ -119,6 +128,7 @@ struct TokenListView: View {
                                         )
                                         .frame(height: geometry.size.height - 25)
 
+                                        // NEXT TOKEN
                                         if let nextToken = tokenListModel.nextTokenModel {
                                             TokenView(tokenModel: nextToken)
                                                 .frame(height: geometry.size.height)

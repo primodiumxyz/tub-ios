@@ -100,6 +100,36 @@ final class TokenListModel: ObservableObject {
         return fallback
     }
 
+    // - Set the current token to the previously visited one
+    // - Update the current token model
+    // - Pop the last token in the array (swiping down should always be a fresh pumping token)
+    func loadPreviousToken() {
+        guard let prevModel = previousTokenModel, currentTokenIndex > 0 else { return }
+        currentTokenIndex -= 1
+
+        recordTokenDwellTime()
+
+        // next
+        nextTokenModel = currentTokenModel
+        nextTokenModel?.stopAnimation()
+
+        // current
+        currentTokenStartTime = Date()
+        currentTokenModel = prevModel
+        initCurrentTokenModel(with: prevModel.token)
+
+        //previous
+        if currentTokenIndex > 0 {
+            let previousToken = tokenQueue[currentTokenIndex - 1]
+            let newPreviousTokenModel = TokenModel()
+            newPreviousTokenModel.preload(with: previousToken)
+            self.previousTokenModel = newPreviousTokenModel
+        }
+        else {
+            previousTokenModel = nil
+        }
+    }
+
     // - Move current to previous
     // - Move next to current and initialize
     // - If current is the end of the array, append a new one and preload it
@@ -107,8 +137,9 @@ final class TokenListModel: ObservableObject {
         self.recordTokenDwellTime()
         self.currentTokenIndex += 1
 
-        // prevous
+        // previous
         previousTokenModel = currentTokenModel
+        previousTokenModel?.stopAnimation()
 
         // current
         currentTokenStartTime = Date()
@@ -133,26 +164,6 @@ final class TokenListModel: ObservableObject {
         if self.currentTokenIndex >= tokenQueue.count - 1 {
             tokenQueue.append(newToken)
         }
-    }
-
-    func removePendingToken(_ tokenId: String) {
-        self.pendingTokens = self.pendingTokens.filter { $0.id != tokenId }
-    }
-
-    // - Set the current token to the previously visited one
-    // - Update the current token model
-    // - Pop the last token in the array (swiping down should always be a fresh pumping token)
-    func loadPreviousToken() {
-        if currentTokenIndex == 0 { return }
-        currentTokenIndex -= 1
-
-        recordTokenDwellTime()
-
-        nextTokenModel = currentTokenModel
-        previousTokenModel = TokenModel()
-
-        initCurrentTokenModel(with: tokenQueue[currentTokenIndex])
-        currentTokenStartTime = Date()
     }
 
     public func startTokenSubscription() async {
@@ -263,6 +274,10 @@ final class TokenListModel: ObservableObject {
                 continuation.resume()
             }
         }
+    }
+
+    private func removePendingToken(_ tokenId: String) {
+        self.pendingTokens = self.pendingTokens.filter { $0.id != tokenId }
     }
 
     private func updatePendingTokens(_ newTokens: [Token]) {
