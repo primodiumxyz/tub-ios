@@ -35,8 +35,7 @@ final class SolPriceModel: ObservableObject {
         let query = GetTokenPricesQuery(inputs: [input])
 
         do {
-            try await withCheckedThrowingContinuation {
-                (continuation: CheckedContinuation<Void, Error>) in
+            try await withCheckedThrowingContinuation { continuation in
                 client.fetch(query: query) { result in
                     switch result {
                     case .success(let response):
@@ -45,6 +44,9 @@ final class SolPriceModel: ObservableObject {
                             let price = firstPrice?.priceUsd
                         {
                             self.price = price
+                            continuation.resume()
+                        } else {
+                            continuation.resume(throwing: TubError.parsingError)
                         }
                     case .failure(let error):
                         continuation.resume(throwing: error)
