@@ -125,7 +125,6 @@ struct TokenView: View {
                 infoCardOverlay
                 buySheetOverlay
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .dismissKeyboardOnTap()
     }
 
