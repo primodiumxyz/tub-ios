@@ -189,6 +189,7 @@ struct TokenView: View {
             else if selectedTimespan == .live {
                 ChartView(
                     prices: tokenModel.prices,
+                    animate: $tokenModel.animate,
                     timeframeSecs: selectedTimespan.timeframeSecs,
                     height: height
                 )

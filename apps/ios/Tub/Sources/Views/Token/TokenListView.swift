@@ -18,6 +18,7 @@ struct TokenListView: View {
     @State private var chevronOffset: CGFloat = 0.0
     @State private var isMovingUp: Bool = true
 
+    private let SCROLL_DURATION = 0.3
     // swipe animation
     @State private var offset: CGFloat = 0
     @State private var activeOffset: CGFloat = 0
@@ -47,22 +48,30 @@ struct TokenListView: View {
         return true
     }
 
-    private func loadToken(_ geometry: GeometryProxy, _ direction: String) {
-        if direction == "previous" {
-            tokenListModel.loadPreviousToken()
+    private func loadToken(_ geometry: GeometryProxy, _ direction: SwipeDirection) {
+        if direction == .up {
             withAnimation {
                 activeOffset += geometry.size.height
             }
         }
         else {
-            tokenListModel.loadNextToken()
             withAnimation {
                 activeOffset -= geometry.size.height
             }
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            activeOffset = 0
+        DispatchQueue.main.asyncAfter(deadline: .now() + SCROLL_DURATION) {
+            // this adds a one frame delay apparently
+            DispatchQueue.main.async {
+                if direction == .up {
+                    tokenListModel.loadPreviousToken()
+                }
+                else {
+                    tokenListModel.loadNextToken()
+                }
+
+                activeOffset = 0
+            }
         }
     }
 
@@ -147,16 +156,16 @@ struct TokenListView: View {
                                                 if canSwipe(direction: direction) {
                                                     let threshold: CGFloat = 50
                                                     if value.translation.height > threshold {
-                                                        loadToken(geometry, "previous")
+                                                        loadToken(geometry, .up)
                                                     }
                                                     else if value.translation.height < -threshold {
-                                                        loadToken(geometry, "next")
+                                                        loadToken(geometry, .down)
                                                     }
                                                     withAnimation {
                                                         offset = 0
                                                     }
                                                     // Delay setting dragging to false to allow for smooth animation
-                                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                                    DispatchQueue.main.asyncAfter(deadline: .now() + SCROLL_DURATION) {
                                                         dragging = false
                                                     }
                                                 }

@@ -30,6 +30,7 @@ class TokenModel: ObservableObject {
     @Published var timeframeSecs: Double = CHART_INTERVAL
     @Published var currentTimeframe: Timespan = .live
     @Published var loadFailed = false
+    @Published var animate = false
 
     private var lastPriceTimestamp: Date?
 
@@ -47,12 +48,6 @@ class TokenModel: ObservableObject {
         priceSubscription?.cancel()
         candleSubscription?.cancel()
         candleSubscription = nil
-    }
-
-    init(token: Token? = nil) {
-        if let token = token {
-            self.initialize(with: token)
-        }
     }
 
     func preload(with newToken: Token, timeframeSecs: Double = CHART_INTERVAL) {
@@ -94,7 +89,11 @@ class TokenModel: ObservableObject {
                 self.preload(with: newToken, timeframeSecs: timeframeSecs)
             }
         }
+
         self.preloaded = false
+        Task { @MainActor in
+            self.animate = true
+        }
 
         Task {
             do {

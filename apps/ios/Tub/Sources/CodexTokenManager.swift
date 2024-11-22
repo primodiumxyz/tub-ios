@@ -58,7 +58,7 @@ class CodexTokenManager: ObservableObject {
         return f
     }()
 
-    private func fetchToken(hard: Bool? = false) async throws -> CodexTokenData {
+    private func fetchToken(hard: Bool) async throws -> CodexTokenData {
         var codexToken: CodexTokenData?
         if let localToken = localCodexToken, hard != true {
             codexToken = localToken
@@ -79,7 +79,7 @@ class CodexTokenManager: ObservableObject {
         return codexToken
     }
 
-    func refreshToken(hard: Bool? = false) async {
+    func refreshToken(hard: Bool? = true) async {
         guard !isRefreshing else { return }
         isRefreshing = true
         defer { isRefreshing = false }
@@ -89,7 +89,7 @@ class CodexTokenManager: ObservableObject {
             fetchFailed = false
         }
         do {
-            let oldCodexToken = try await fetchToken(hard: hard)
+            let oldCodexToken = try await fetchToken(hard: hard ?? false)
 
             var refetch = false
             if let expiryDate = formatter.date(from: oldCodexToken.expiry) {

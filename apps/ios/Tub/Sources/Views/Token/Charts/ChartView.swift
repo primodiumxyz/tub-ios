@@ -12,6 +12,7 @@ import SwiftUI
 struct ChartView: View {
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject private var userModel: UserModel
+    @Binding var animate: Bool
     let rawPrices: [Price]
     let timeframeSecs: Double
     let height: CGFloat
@@ -28,8 +29,14 @@ struct ChartView: View {
     @State private var currentTime = Date().timeIntervalSince1970
     @State private var prices: [Price] = []
 
-    init(prices: [Price], timeframeSecs: Double = CHART_INTERVAL, height: CGFloat = 330) {
+    init(
+        prices: [Price],
+        animate: Binding<Bool> = Binding.constant(false),
+        timeframeSecs: Double = CHART_INTERVAL,
+        height: CGFloat = 330
+    ) {
         self.rawPrices = prices
+        self._animate = animate
         self.timeframeSecs = timeframeSecs
         self.height = height
     }
@@ -159,7 +166,8 @@ struct ChartView: View {
                 }
             }
         }
-        .animation(.linear(duration: 0.5), value: prices)
+        .if(animate) { view in view.animation(.linear(duration: 0.5), value: prices)
+        }
         .chartYScale(domain: yDomain)
         .chartYAxis(.hidden)
         .chartXAxis(.hidden)

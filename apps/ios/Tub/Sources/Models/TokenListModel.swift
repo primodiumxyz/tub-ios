@@ -126,7 +126,8 @@ final class TokenListModel: ObservableObject {
 
         // next
         let newToken = getNextToken(excluding: currentTokenModel.token.id)
-        let newModel = TokenModel(token: newToken)
+        // Add delay before loading next model
+        let newModel = TokenModel()
         newModel.preload(with: newToken)
         self.nextTokenModel = newModel
         if self.currentTokenIndex >= tokenQueue.count - 1 {
@@ -135,7 +136,7 @@ final class TokenListModel: ObservableObject {
     }
 
     func removePendingToken(_ tokenId: String) {
-        let newPendingTokens = self.pendingTokens.filter { $0.id != tokenId }
+        self.pendingTokens = self.pendingTokens.filter { $0.id != tokenId }
     }
 
     // - Set the current token to the previously visited one
@@ -295,7 +296,7 @@ final class TokenListModel: ObservableObject {
         tokenQueue.append(secondToken)
         currentTokenStartTime = Date()
         removePendingToken(secondToken.id)
-        let nextModel = TokenModel(token: secondToken)
+        let nextModel = TokenModel()
         nextModel.preload(with: secondToken)
         self.nextTokenModel = nextModel
     }
