@@ -5,9 +5,9 @@
 //  Created by Henry on 10/17/24.
 //
 
-import SwiftUI
 import Charts
 import Combine
+import SwiftUI
 
 struct CandleChartView: View {
     @EnvironmentObject var priceModel: SolPriceModel
@@ -15,7 +15,7 @@ struct CandleChartView: View {
     let timeframeMins: Double
     let height: CGFloat
     @State private var currentTime = Date().timeIntervalSince1970
-        
+
     @State private var timerCancellable: Cancellable?
     @State private var timer: Timer.TimerPublisher = Timer.publish(every: 0.1, on: .main, in: .common)
 
@@ -35,25 +35,25 @@ struct CandleChartView: View {
 
     private var yDomain: ClosedRange<Double> {
         if candles.isEmpty { return 0...100 }
-        
+
         let minPrice = candles.min { $0.low < $1.low }?.low ?? 0
         let maxPrice = candles.max { $0.high < $1.high }?.high ?? 100
         let range = maxPrice - minPrice
         let padding = range * 0.10
-        
+
         return (minPrice - padding)...(maxPrice + padding)
     }
 
     private var xDomain: ClosedRange<Date> {
-        if candles.isEmpty { 
-            return Date().addingTimeInterval(-timeframeMins * 60)...Date() 
+        if candles.isEmpty {
+            return Date().addingTimeInterval(-timeframeMins * 60)...Date()
         }
-        
+
         let endTime = candles.last?.end ?? Date()
         let startTime = endTime.addingTimeInterval(-timeframeMins * 60)
         return startTime...endTime
     }
-    
+
     var body: some View {
         Chart {
             ForEach(candles) { candle in
@@ -80,7 +80,7 @@ struct CandleChartView: View {
         .chartXAxis(content: xAxisConfig)
         .chartYAxis(content: yAxisConfig)
         .frame(height: height)
-.onAppear {
+        .onAppear {
             timerCancellable = timer.connect()
         }
         .onDisappear {
