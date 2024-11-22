@@ -166,16 +166,13 @@ struct ChartView: View {
                 }
             }
         }
-        .if(animate) { view in view.animation(.linear(duration: 0.5), value: prices)
+        .if(animate) { view in view.animation(.linear(duration: PRICE_UPDATE_INTERVAL), value: prices)
         }
         .chartYScale(domain: yDomain)
         .chartYAxis(.hidden)
         .chartXAxis(.hidden)
-        .frame(maxWidth: .infinity, maxHeight: height)
+        .frame(maxWidth: .infinity, minHeight: height, maxHeight: height)
         .onChange(of: rawPrices) {
-            updatePrices()
-        }
-        .onAppear {
             updatePrices()
         }
     }
