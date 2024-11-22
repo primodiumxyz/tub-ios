@@ -12,7 +12,6 @@
 		46233A262CE67F7E00DB1740 /* CodexAPI in Frameworks */ = {isa = PBXBuildFile; productRef = 46233A252CE67F7E00DB1740 /* CodexAPI */; };
 		462B09862CE65C8600730068 /* CodexNetwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 462B09852CE65C8200730068 /* CodexNetwork.swift */; };
 		46442B952CDD7380009A6F0B /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46442B942CDD737D009A6F0B /* Constants.swift */; };
-		46538F262CEE364B007DD057 /* Enums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46538F252CEE3649007DD057 /* Enums.swift */; };
 		466945ED2CDFDB1F008E8B99 /* LoadingTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 466945EC2CDFDB1C008E8B99 /* LoadingTracker.swift */; };
 		468B07432CEBB63700C2CBFC /* CodexTokenManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 468B07422CEBB63400C2CBFC /* CodexTokenManager.swift */; };
 		5D8EFC2C2CE529BB002D8210 /* AppDwellTimeTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D8EFC2B2CE529AC002D8210 /* AppDwellTimeTracker.swift */; };
@@ -95,7 +94,6 @@
 		4619A8172CCA4E25003CD119 /* TokenListModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenListModel.swift; sourceTree = "<group>"; };
 		462B09852CE65C8200730068 /* CodexNetwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexNetwork.swift; sourceTree = "<group>"; };
 		46442B942CDD737D009A6F0B /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
-		46538F252CEE3649007DD057 /* Enums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Enums.swift; sourceTree = "<group>"; };
 		466945EC2CDFDB1C008E8B99 /* LoadingTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingTracker.swift; sourceTree = "<group>"; };
 		468B07422CEBB63400C2CBFC /* CodexTokenManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexTokenManager.swift; sourceTree = "<group>"; };
 		5D8EFC2B2CE529AC002D8210 /* AppDwellTimeTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDwellTimeTracker.swift; sourceTree = "<group>"; };
@@ -267,7 +265,6 @@
 		99A7CD502CB80C4100F27964 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				46538F252CEE3649007DD057 /* Enums.swift */,
 				468B07422CEBB63400C2CBFC /* CodexTokenManager.swift */,
 				46B4B4532CD542DB00D8175A /* Extensions */,
 				999F59532CA6F70C00E7AE9F /* Models */,
@@ -600,14 +597,12 @@
 				468B07432CEBB63700C2CBFC /* CodexTokenManager.swift in Sources */,
 				995FCA1F2CDA5ED70018A76D /* CoinbaseOnrampView.swift in Sources */,
 				996772FE2CEB85820029B298 /* LoadingBox.swift in Sources */,
-				991D60812CD5211600A7245F /* CreateWalletView.swift in Sources */,
 				282A6AB32CEEE8490039133F /* ButtonStyles.swift in Sources */,
 				99DDF62D2CB02816000234DA /* AccountView.swift in Sources */,
 				9936FC582CADCA5200E21B8A /* Structs.swift in Sources */,
 				DB458DB42CAC827A00C5EC18 /* Network.swift in Sources */,
 				997DE8F42CDAC86500164366 /* NotificationBanner.swift in Sources */,
 				DB675A332CA2B73D006FC9B3 /* HomeTabsView.swift in Sources */,
-				46538F262CEE364B007DD057 /* Enums.swift in Sources */,
 				46442B952CDD7380009A6F0B /* Constants.swift in Sources */,
 				4619A8182CCA4E25003CD119 /* TokenListModel.swift in Sources */,
 				DF5A2FC32CAF165D00508A56 /* HistoryView.swift in Sources */,
