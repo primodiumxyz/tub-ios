@@ -139,24 +139,26 @@ describe('TubService Integration Test', () => {
       console.log('\nGetting 1 USDC to SOL swap transaction...');
       const swapResponse = await tubService.get1USDCToSOLTransaction(mockJwtToken);
       
-      console.log('Received swap response:', {
-        hasFee: swapResponse.hasFee,
-        transactionLength: swapResponse.transactionBase64.length
-      });
+      // console.log('Received swap response:', {
+      //   hasFee: swapResponse.hasFee,
+      //   transactionLength: swapResponse.transactionBase64.length
+      // });
 
-      // Sign the transaction
+      // Decode transaction
       const transaction = Transaction.from(Buffer.from(swapResponse.transactionBase64, 'base64'));
+      
+      // User signs
       transaction.partialSign(userKeypair);
-      const signature = transaction.signatures.find(sig => sig.publicKey.equals(userKeypair.publicKey))?.signature;
-      if (!signature) {
+      const userSignature = transaction.signatures.find(sig => sig.publicKey.equals(userKeypair.publicKey))?.signature;
+      if (!userSignature) {
         throw new Error("Failed to get signature from transaction");
       }
 
-      console.log('\nSigning and sending transaction...');
+      // console.log('\nSigning and sending transaction...');
       const result = await tubService.signAndSendTransaction(
         mockJwtToken,
-        bs58.encode(signature),
-        swapResponse.transactionBase64
+        bs58.encode(userSignature),
+        swapResponse.transactionBase64  // Send original transaction
       );
 
       console.log('Transaction result:', result);

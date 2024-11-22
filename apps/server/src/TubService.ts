@@ -256,20 +256,20 @@ export class TubService {
    * @returns A Subject that emits base64-encoded transactions
    */
   async startSwapStream(jwtToken: string, request: UserPrebuildSwapRequest) {
-    console.log(`[startSwapStream] Starting swap stream for request:`, {
-      buyTokenId: request.buyTokenId,
-      sellTokenId: request.sellTokenId,
-      sellQuantity: request.sellQuantity?.toString()
-    });
+    // console.log(`[startSwapStream] Starting swap stream for request:`, {
+    //   buyTokenId: request.buyTokenId,
+    //   sellTokenId: request.sellTokenId,
+    //   sellQuantity: request.sellQuantity?.toString()
+    // });
 
     const userId = await this.verifyJWT(jwtToken);
-    console.log(`[startSwapStream] Verified user ID: ${userId}`);
+    // console.log(`[startSwapStream] Verified user ID: ${userId}`);
 
     const userWallet = await this.getUserWallet(userId);
     if (!userWallet) {
       throw new Error("User does not have a wallet registered with Privy");
     }
-    console.log(`[startSwapStream] User wallet address: ${userWallet}`);
+    // console.log(`[startSwapStream] User wallet address: ${userWallet}`);
 
     const userPublicKey = new PublicKey(userWallet);
     // Derive token accounts
@@ -306,7 +306,7 @@ export class TubService {
         });
     }
 
-    console.log(`[startSwapStream] Stream started successfully for user ${userId}`);
+    // console.log(`[startSwapStream] Stream started successfully for user ${userId}`);
     return this.swapSubjects.get(userId)!;
   }
 
@@ -316,17 +316,17 @@ export class TubService {
    * @param updates - New parameters to update
    */
   async updateSwapRequest(jwtToken: string, updates: Partial<UserPrebuildSwapRequest>) {
-    console.log(`[updateSwapRequest] Received updates:`, updates);
+    // console.log(`[updateSwapRequest] Received updates:`, updates);
 
     const userId = await this.verifyJWT(jwtToken);
-    console.log(`[updateSwapRequest] Verified user ID: ${userId}`);
+    // console.log(`[updateSwapRequest] Verified user ID: ${userId}`);
 
     const userWallet = await this.getUserWallet(userId);
     if (!userWallet) {
       throw new Error("User does not have a wallet registered with Privy");
     }
     const userPublicKey = new PublicKey(userWallet);
-    console.log(`[updateSwapRequest] User wallet address: ${userWallet}`);
+    // console.log(`[updateSwapRequest] User wallet address: ${userWallet}`);
 
     const current = this.activeSwapRequests.get(userId);
     if (current) {
@@ -345,11 +345,11 @@ export class TubService {
 
       const updated = { ...current, ...updates, ...derivedAccounts };
       this.activeSwapRequests.set(userId, updated);
-      console.log(`[updateSwapRequest] Updated swap request for user ${userId}:`, {
-        buyTokenId: updated.buyTokenId,
-        sellTokenId: updated.sellTokenId,
-        sellQuantity: updated.sellQuantity?.toString()
-      });
+      // console.log(`[updateSwapRequest] Updated swap request for user ${userId}:`, {
+      //   buyTokenId: updated.buyTokenId,
+      //   sellTokenId: updated.sellTokenId,
+      //   sellQuantity: updated.sellQuantity?.toString()
+      // });
     } else {
       console.log(`[updateSwapRequest] No active swap request found for user ${userId}`);
     }
@@ -383,24 +383,24 @@ export class TubService {
    * @throws Error if transaction processing fails
    */
   async signAndSendTransaction(jwtToken: string, userSignature: string, base64Transaction: string) {
-    console.log(`[signAndSendTransaction] Starting transaction processing`);
+    // console.log(`[signAndSendTransaction] Starting transaction processing`);
     
     try {
       const userId = await this.verifyJWT(jwtToken);
-      console.log(`[signAndSendTransaction] Verified user ID: ${userId}`);
+      // console.log(`[signAndSendTransaction] Verified user ID: ${userId}`);
 
       const registryEntry = this.swapRegistry.get(base64Transaction);
       if (!registryEntry) {
         throw new Error("Transaction not found in registry");
       }
-      console.log(`[signAndSendTransaction] Found transaction in registry, hasFee: ${registryEntry.hasFee}`);
+      // console.log(`[signAndSendTransaction] Found transaction in registry, hasFee: ${registryEntry.hasFee}`);
       
       const walletAddress = await this.getUserWallet(userId);
       if (!walletAddress) {
         throw new Error("User does not have a wallet registered with Privy");
       }
       const userPublicKey = new PublicKey(walletAddress);
-      console.log(`[signAndSendTransaction] User wallet address: ${walletAddress}`);
+      // console.log(`[signAndSendTransaction] User wallet address: ${walletAddress}`);
 
       // Create a new transaction from the registry entry
       const transaction = Transaction.from(Buffer.from(base64Transaction, 'base64'));
@@ -408,7 +408,7 @@ export class TubService {
       // Add user signature
       const userSignatureBytes = Buffer.from(bs58.decode(userSignature));
       transaction.addSignature(userPublicKey, userSignatureBytes);
-      console.log(`[signAndSendTransaction] Added user signature to transaction`);
+      // console.log(`[signAndSendTransaction] Added user signature to transaction`);
 
       // In test environment, skip token fee validation
       if (process.env.NODE_ENV === 'test') {
@@ -418,7 +418,7 @@ export class TubService {
       } else {
         let feePayerSignature;
         if (registryEntry.hasFee) {
-          console.log(`[signAndSendTransaction] Getting fee payer signature with token fee`);
+          // console.log(`[signAndSendTransaction] Getting fee payer signature with token fee`);
           feePayerSignature = await this.octane.signTransactionWithTokenFee(
             transaction,
             true, // buyWithUSDCBool
@@ -426,72 +426,69 @@ export class TubService {
             6 // tokenDecimals
           );
         } else {
-          console.log(`[signAndSendTransaction] Getting fee payer signature without token fee`);
+          // console.log(`[signAndSendTransaction] Getting fee payer signature without token fee`);
           feePayerSignature = await this.octane.signTransactionWithoutTokenFee(transaction);
         }
 
         const feePayerSignatureBytes = Buffer.from(bs58.decode(feePayerSignature));
         transaction.addSignature(this.octane.getSettings().feePayerPublicKey, feePayerSignatureBytes);
       }
-      console.log(`[signAndSendTransaction] Added fee payer signature to transaction`);
+      // console.log(`[signAndSendTransaction] Added fee payer signature to transaction`);
 
-      try {
-        // Send the fully signed transaction
-        const txid = await this.octane.getSettings().connection.sendRawTransaction(
-          transaction.serialize(),
-          { skipPreflight: false }
-        );
-        console.log(`[signAndSendTransaction] Transaction sent with ID: ${txid}`);
+      // Send the fully signed transaction
+      const txid = await this.octane.getSettings().connection.sendRawTransaction(
+        transaction.serialize(),
+        { skipPreflight: false }
+      );
+      console.log(`[signAndSendTransaction] Transaction sent with ID: ${txid}`);
 
-        // Wait for confirmation with a shorter timeout
-        const confirmation = await this.octane.getSettings().connection.confirmTransaction(
-          txid,
-          'processed' // Use 'processed' instead of default 'confirmed' for faster confirmation
-        );
-        console.log(`[signAndSendTransaction] Transaction confirmed:`, confirmation);
-        
-        if (confirmation.value.err) {
-          throw new Error(`Transaction failed: ${confirmation.value.err}`);
-        }
-
-        // Clean up registry
-        this.swapRegistry.delete(base64Transaction);
-        console.log(`[signAndSendTransaction] Transaction completed successfully`);
-
-        return { signature: txid };
-
-      } catch (error) {
-        if (error instanceof SendTransactionError) {
-          const logs = error.logs?.join('\n') ?? 'No logs available';
-          let details = 'No additional details';
-          
-          try {
-            // Get the logs before creating the error message
-            details = (await error.getLogs(this.octane.getSettings().connection)).join('\n');
-            
-            console.error("[signAndSendTransaction] Transaction failed:", {
-              message: error.message,
-              logs,
-              details: Array.isArray(details) ? details.join('\n') : details,
-            });
-
-            throw new Error(
-              `Transaction failed: ${error.message}\n` +
-              `Logs:\n${logs}\n` +
-              `Details:\n${Array.isArray(details) ? details.join('\n') : details}`
-            );
-          } catch (logError) {
-            console.error("[signAndSendTransaction] Error getting detailed logs:", logError);
-            throw new Error(`Transaction failed: ${error.message}\nLogs:\n${logs}`);
-          }
-        }
-        throw error;
+      // Wait for confirmation using polling
+      const confirmation = await this.octane.getSettings().connection.confirmTransaction(
+        {
+          signature: txid,
+          blockhash: transaction.recentBlockhash!,
+          lastValidBlockHeight: transaction.lastValidBlockHeight!
+        },
+        'processed'
+      );
+      console.log(`[signAndSendTransaction] Transaction confirmed:`, confirmation);
+      
+      if (confirmation.value.err) {
+        throw new Error(`Transaction failed: ${confirmation.value.err}`);
       }
 
-    } catch (error: unknown) {
-      console.error("[signAndSendTransaction] Error processing transaction:", error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      throw new Error(`Failed to process transaction: ${errorMessage}`);
+      // Clean up registry
+      this.swapRegistry.delete(base64Transaction);
+      console.log(`[signAndSendTransaction] Transaction completed successfully`);
+
+      return { signature: txid };
+
+    } catch (error) {
+      if (error instanceof SendTransactionError) {
+        const logs = error.logs?.join('\n') ?? 'No logs available';
+        let details = 'No additional details';
+        
+        try {
+          // Get the logs before creating the error message
+          details = (await error.getLogs(this.octane.getSettings().connection)).join('\n');
+          
+          console.error("[signAndSendTransaction] Transaction failed:", {
+            message: error.message,
+            logs,
+            details: Array.isArray(details) ? details.join('\n') : details,
+          });
+
+          throw new Error(
+            `Transaction failed: ${error.message}\n` +
+            `Logs:\n${logs}\n` +
+            `Details:\n${Array.isArray(details) ? details.join('\n') : details}`
+          );
+        } catch (logError) {
+          console.error("[signAndSendTransaction] Error getting detailed logs:", logError);
+          throw new Error(`Transaction failed: ${error.message}\nLogs:\n${logs}`);
+        }
+      }
+      throw error;
     }
   }
 
@@ -527,12 +524,12 @@ export class TubService {
   private async buildSwapResponse(
     request: ActiveSwapRequest
   ): Promise<PrebuildSwapResponse | null> {
-    console.log("[buildSwapResponse] Starting with request:", {
-      sellQuantity: request.sellQuantity,
-      sellTokenId: request.sellTokenId,
-      buyTokenId: request.buyTokenId,
-      userPublicKey: request.userPublicKey.toString()
-    });
+    // console.log("[buildSwapResponse] Starting with request:", {
+    //   sellQuantity: request.sellQuantity,
+    //   sellTokenId: request.sellTokenId,
+    //   buyTokenId: request.buyTokenId,
+    //   userPublicKey: request.userPublicKey.toString()
+    // });
 
     if (!request.sellTokenAccount) return null;
 
@@ -549,7 +546,7 @@ export class TubService {
     let transaction: Transaction | null = null;
     try {
       if (feeAmount === 0) {
-        console.log("[buildSwapResponse] No fee, getting swap instructions");
+        // console.log("[buildSwapResponse] No fee, getting swap instructions");
         const swapInstructions = await this.octane.getQuoteAndSwapInstructions({
           inputMint: request.sellTokenId,
           outputMint: request.buyTokenId,
@@ -559,11 +556,11 @@ export class TubService {
           asLegacyTransaction: true, // Set to true for USDC sells
         }, request.userPublicKey);
 
-        console.log("[buildSwapResponse] Got swap instructions:", {
-          hasSetupInstructions: !!swapInstructions?.setupInstructions?.length,
-          hasSwapInstruction: !!swapInstructions?.swapInstruction,
-          hasCleanupInstruction: !!swapInstructions?.cleanupInstruction
-        });
+        // console.log("[buildSwapResponse] Got swap instructions:", {
+        //   hasSetupInstructions: !!swapInstructions?.setupInstructions?.length,
+        //   hasSwapInstruction: !!swapInstructions?.swapInstruction,
+        //   hasCleanupInstruction: !!swapInstructions?.cleanupInstruction
+        // });
 
         if (!swapInstructions?.swapInstruction) {
           throw new Error("No swap instruction received");
@@ -593,11 +590,11 @@ export class TubService {
           asLegacyTransaction: true, // Set to true for USDC sells
         }, request.userPublicKey);
 
-        console.log("[buildSwapResponse] Got swap instructions:", {
-          hasSetupInstructions: !!swapInstructions?.setupInstructions?.length,
-          hasSwapInstruction: !!swapInstructions?.swapInstruction,
-          hasCleanupInstruction: !!swapInstructions?.cleanupInstruction
-        });
+        // console.log("[buildSwapResponse] Got swap instructions:", {
+        //   hasSetupInstructions: !!swapInstructions?.setupInstructions?.length,
+        //   hasSwapInstruction: !!swapInstructions?.swapInstruction,
+        //   hasCleanupInstruction: !!swapInstructions?.cleanupInstruction
+        // });
 
         if (!swapInstructions?.swapInstruction) {
           throw new Error("No swap instruction received");
@@ -610,12 +607,17 @@ export class TubService {
         throw new Error("Failed to build transaction");
       }
 
-      console.log("[buildSwapResponse] Built transaction:", {
-        hasInstructions: transaction.instructions.length > 0,
-        instructionCount: transaction.instructions.length,
-        hasFeePayer: !!transaction.feePayer,
-        hasRecentBlockhash: !!transaction.recentBlockhash
-      });
+      // Get fresh blockhash right before returning to user
+      const { blockhash, lastValidBlockHeight } = await this.octane.getSettings().connection.getLatestBlockhash();
+      transaction.recentBlockhash = blockhash;
+      transaction.lastValidBlockHeight = lastValidBlockHeight;
+
+      // console.log("[buildSwapResponse] Built transaction:", {
+      //   hasInstructions: transaction.instructions.length > 0,
+      //   instructionCount: transaction.instructions.length,
+      //   hasFeePayer: !!transaction.feePayer,
+      //   recentBlockhash: transaction.recentBlockhash
+      // });
 
       const response: PrebuildSwapResponse = {
         transactionBase64: Buffer.from(transaction.serialize({ verifySignatures: false })).toString('base64'),
@@ -640,20 +642,20 @@ export class TubService {
 
   // Now let's add the fetchSwap method
   async fetchSwap(jwtToken: string, request: UserPrebuildSwapRequest): Promise<PrebuildSwapResponse> {
-    console.log(`[fetchSwap] Processing swap request:`, {
-      buyTokenId: request.buyTokenId,
-      sellTokenId: request.sellTokenId,
-      sellQuantity: request.sellQuantity?.toString()
-    });
+    // console.log(`[fetchSwap] Processing swap request:`, {
+    //   buyTokenId: request.buyTokenId,
+    //   sellTokenId: request.sellTokenId,
+    //   sellQuantity: request.sellQuantity?.toString()
+    // });
 
     const userId = await this.verifyJWT(jwtToken);
-    console.log(`[fetchSwap] Verified user ID: ${userId}`);
+    // console.log(`[fetchSwap] Verified user ID: ${userId}`);
 
     const userWallet = await this.getUserWallet(userId);
     if (!userWallet) {
       throw new Error("User does not have a wallet registered with Privy");
     }
-    console.log(`[fetchSwap] User wallet address: ${userWallet}`);
+    // console.log(`[fetchSwap] User wallet address: ${userWallet}`);
 
     const userPublicKey = new PublicKey(userWallet);
     
