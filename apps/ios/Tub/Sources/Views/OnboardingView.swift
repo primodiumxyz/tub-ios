@@ -50,12 +50,12 @@ struct OnboardingView: View {
                                 
                                 Text(onboardingData[index].title)
                                     .font(.sfRounded(size: .xl2, weight: .semibold))
-                                    .foregroundStyle(AppColors.aquaGreen)
+                                    .foregroundStyle(Color("aquaGreen"))
                                     .padding(.top, 30)
                                 
                                 Text(onboardingData[index].subtitle)
                                     .font(.sfRounded(size: .lg, weight: .regular))
-                                    .foregroundStyle(AppColors.magenta)
+                                    .foregroundStyle(Color("magneta"))
                                     .multilineTextAlignment(.center)
                                     .padding(.horizontal, 40)
                                 
@@ -86,27 +86,22 @@ struct OnboardingView: View {
                     }
                     .tabViewStyle(.page(indexDisplayMode: .never))
                     
-                    Button {
-                        if currentPage < onboardingData.count - 1 {
-                            withAnimation {
-                                currentPage += 1
+                    OutlineButton(
+                        text: currentPage == onboardingData.count - 1 ? "Get Started" : "Continue",
+                        textColor: Color("aquaGreen"),
+                        strokeColor: Color("aquaGreen"),
+                        backgroundColor: Color.black,
+                        maxWidth:.infinity,
+                        action: {
+                            if currentPage < onboardingData.count - 1 {
+                                withAnimation {
+                                    currentPage += 1
+                                }
+                            } else {
+                                completeOnboarding()
                             }
-                        } else {
-                            completeOnboarding()
                         }
-                    } label: {
-                        Text(currentPage == onboardingData.count - 1 ? "Get Started" : "Continue")
-                            .font(.sfRounded(size: .xl, weight: .semibold))
-                            .frame(maxWidth: .infinity)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 12)
-                            .cornerRadius(30)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 30)
-                                    .inset(by: 0.5)
-                                    .stroke(AppColors.aquaGreen, lineWidth: 1)
-                            )
-                    }
+                    )
                     .padding(.horizontal, 20)
                     .padding(.bottom, 40)
                 }
