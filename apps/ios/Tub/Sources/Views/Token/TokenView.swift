@@ -9,17 +9,6 @@ import Combine
 import SwiftUI
 import TubAPI
 
-enum TubError: LocalizedError {
-    case insufficientBalance
-
-    var errorDescription: String? {
-        switch self {
-        case .insufficientBalance:
-            return "Insufficient Balance"
-        }
-    }
-}
-
 enum Timespan: String, CaseIterable {
     case live = "LIVE"
     case thirtyMin = "30M"
@@ -41,7 +30,6 @@ struct TokenView: View {
     @State private var showInfoCard = false
     @State private var selectedTimespan: Timespan = .live
     @State private var showBuySheet: Bool = false
-    @State private var defaultAmount: Double = 50.0
     @State private var keyboardHeight: CGFloat = 0
 
     var onSellSuccess: (() -> Void)?
@@ -56,7 +44,7 @@ struct TokenView: View {
         self.onSellSuccess = onSellSuccess
     }
 
-    func handleBuy(amountUsd: Double) {
+    func handleBuy(amountUsd: Double) async {
         guard let priceUsd = tokenModel.prices.last?.priceUsd
         else {
             notificationHandler.show(
@@ -70,22 +58,25 @@ struct TokenView: View {
 
         let priceLamps = priceModel.usdToLamports(usd: priceUsd)
 
-        userModel.buyTokens(buyAmountLamps: buyAmountLamps, priceLamps: priceLamps, priceUsd: priceUsd) { result in
-            switch result {
-            case .failure(let error):
-                notificationHandler.show(
-                    error.localizedDescription,
-                    type: .error
-                )
-            case .success:
+        do {
+            try await userModel.buyTokens(
+                buyAmountLamps: buyAmountLamps,
+                priceLamps: priceLamps,
+                priceUsd: priceUsd
+            )
+            await MainActor.run {
                 showBuySheet = false
-                withAnimation {
-                    notificationHandler.show(
-                        "Successfully bought tokens!",
-                        type: .success
-                    )
-                }
+                notificationHandler.show(
+                    "Successfully bought tokens!",
+                    type: .success
+                )
             }
+        }
+        catch {
+            notificationHandler.show(
+                error.localizedDescription,
+                type: .error
+            )
         }
     }
 
@@ -108,10 +99,9 @@ struct TokenView: View {
                         infoCardLowOpacity
                             .opacity(0.8)
                             .padding(.horizontal, 8)
-                        BuySellFormView(
+                        ActionButtonsView(
                             tokenModel: tokenModel,
                             showBuySheet: $showBuySheet,
-                            defaultAmount: $defaultAmount,
                             handleBuy: handleBuy,
                             onSellSuccess: onSellSuccess
                         )
@@ -168,7 +158,9 @@ struct TokenView: View {
                     if tokenModel.isReady {
                         Text(price)
                         Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
-                        Text("\(formatDuration(tokenModel.currentTimeframe.timeframeSecs))").foregroundColor(.gray)
+                        Text("\(formatDuration(tokenModel.currentTimeframe.timeframeSecs))").foregroundColor(
+                            .gray
+                        )
                     }
                     else {
                         LoadingBox(width: 160, height: 12)
@@ -255,7 +247,8 @@ struct TokenView: View {
     private var stats: [(String, StatValue)] {
         var stats = [(String, StatValue)]()
 
-        if let purchaseData = userModel.purchaseData, let priceUsd = tokenModel.prices.last?.priceUsd, priceUsd > 0,
+        if let purchaseData = userModel.purchaseData, let priceUsd = tokenModel.prices.last?.priceUsd,
+            priceUsd > 0,
             activeTab == "sell"
         {
             // Calculate current value
@@ -408,21 +401,16 @@ struct TokenView: View {
                         }
                     }
 
-                BuyForm(
-                    isVisible: $showBuySheet,
-                    defaultAmount: $defaultAmount,
-                    tokenModel: tokenModel,
-                    onBuy: handleBuy
-                )
-                .transition(.move(edge: .bottom))
-                .offset(y: -keyboardHeight)
-                .zIndex(2)
-                .onAppear {
-                    setupKeyboardNotifications()
-                }
-                .onDisappear {
-                    removeKeyboardNotifications()
-                }
+                BuyForm(isVisible: $showBuySheet, tokenModel: tokenModel, onBuy: handleBuy)
+                    .transition(.move(edge: .bottom))
+                    .offset(y: -keyboardHeight)
+                    .zIndex(2)
+                    .onAppear {
+                        setupKeyboardNotifications()
+                    }
+                    .onDisappear {
+                        removeKeyboardNotifications()
+                    }
             }
         )
     }
@@ -433,7 +421,9 @@ struct TokenView: View {
             object: nil,
             queue: .main
         ) { notification in
-            if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
+            if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey]
+                as? CGRect
+            {
                 withAnimation(.easeOut(duration: 0.16)) {
                     self.keyboardHeight = keyboardFrame.height / 2
                 }
@@ -452,7 +442,15 @@ struct TokenView: View {
     }
 
     private func removeKeyboardNotifications() {
-        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
-        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
+        NotificationCenter.default.removeObserver(
+            self,
+            name: UIResponder.keyboardWillShowNotification,
+            object: nil
+        )
+        NotificationCenter.default.removeObserver(
+            self,
+            name: UIResponder.keyboardWillHideNotification,
+            object: nil
+        )
     }
 }

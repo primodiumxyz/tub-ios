@@ -244,7 +244,7 @@ class TokenModel: ObservableObject {
                 )
             ) { [weak self] result in
                 guard let self = self else {
-                    continuation.resume(throwing: NSError(domain: "TokenModel", code: 0))
+                    continuation.resume(throwing: TubError.unknown)
                     return
                 }
 
@@ -377,12 +377,7 @@ class TokenModel: ObservableObject {
                 )
             ) { [weak self] result in
                 guard let self = self else {
-                    let error = NSError(
-                        domain: "TokenModel",
-                        code: 0,
-                        userInfo: [NSLocalizedDescriptionKey: "Self is nil"]
-                    )
-                    continuation.resume(throwing: error)
+                    continuation.resume(throwing: TubError.unknown)
                     return
                 }
 

@@ -51,7 +51,7 @@ struct HistoryView: View {
                         continuation.resume(returning: metadata)
                     }
                     else {
-                        continuation.resume(throwing: NSError(domain: "TokenMetadata", code: 1))
+                        continuation.resume(throwing: TubError.networkFailure)
                     }
                 case .failure(let error):
                     continuation.resume(throwing: error)

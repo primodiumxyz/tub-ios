@@ -23,7 +23,6 @@ struct SignInWithEmailView: View {
                 self.loggingIn = false
             }
             catch {
-                print("error", error)
                 notificationHandler.show(
                     error.localizedDescription,
                     type: .error

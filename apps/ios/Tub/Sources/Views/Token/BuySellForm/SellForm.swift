@@ -11,10 +11,10 @@ struct SellForm: View {
     @EnvironmentObject var priceModel: SolPriceModel
     @ObservedObject var tokenModel: TokenModel
     @Binding var showBuySheet: Bool
-    var onSell: () -> Void
+    var onSell: () async -> Void
 
     private var sellButton: some View {
-        Button(action: onSell) {
+        Button(action: { Task { await onSell() } }) {
             Text("Sell")
                 .font(.sfRounded(size: .xl, weight: .semibold))
                 .foregroundColor(AppColors.white)

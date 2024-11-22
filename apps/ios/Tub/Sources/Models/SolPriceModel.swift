@@ -15,27 +15,26 @@ final class SolPriceModel: ObservableObject {
     @Published var error: String?
 
     init() {
-        fetchCurrentPrice()
+        Task {
+            await fetchCurrentPrice()
+        }
     }
 
-    func fetchCurrentPrice() {
+    // this comment ensures that the fetchCurrentPrice function is executing on the main thread
+    @MainActor
+    func fetchCurrentPrice() async {
         error = nil
         isReady = false
 
-        Network.shared.fetchSolPrice { [weak self] result in
-            DispatchQueue.main.async {
-                guard let self = self else { return }
-                switch result {
-                case .success(let price):
-                    self.price = price
-                    break
-                case .failure(let fetchError):
-                    self.error = fetchError.localizedDescription
-                    print("Error fetching SOL price: \(fetchError.localizedDescription)")
-                }
-                self.isReady = true
-            }
+        do {
+            let price = try await Network.shared.fetchSolPrice()
+            self.price = price
         }
+        catch {
+            self.error = error.localizedDescription
+            print("Error fetching SOL price: \(error.localizedDescription)")
+        }
+        self.isReady = true
     }
 
     func formatPrice(

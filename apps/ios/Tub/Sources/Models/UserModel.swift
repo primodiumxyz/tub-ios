@@ -15,13 +15,10 @@ import TubAPI
 final class UserModel: ObservableObject {
     static let shared = UserModel()
 
-    @EnvironmentObject private var notificationHandler: NotificationHandler
-
     @Published var isLoading: Bool = false
     @Published var userId: String?
     @Published var walletState: EmbeddedWalletState = .notCreated
     @Published var walletAddress: String?
-    @Published var error: Error?
 
     @Published var balanceLamps: Int? = nil
     @Published var initialTime = Date()
@@ -44,20 +41,14 @@ final class UserModel: ObservableObject {
 
             switch state {
             case .authenticated(let authSession):
-                DispatchQueue.main.async {
-                    self.userId = authSession.user.id
-                }
+                self.userId = authSession.user.id
                 self.startTimer()
-            case .unauthenticated:
-                DispatchQueue.main.async {
-                    self.userId = nil
-                    self.walletState = .notCreated
-                    self.walletAddress = nil
-                    self.stopTimer()
-                    self.elapsedSeconds = 0
-                }
             default:
-                break
+                self.userId = nil
+                self.walletState = .notCreated
+                self.walletAddress = nil
+                self.stopTimer()
+                self.elapsedSeconds = 0
             }
         }
     }
@@ -65,23 +56,39 @@ final class UserModel: ObservableObject {
     private func setupWalletStateListener() {
         privy.embeddedWallet.setEmbeddedWalletStateChangeCallback { [weak self] state in
             guard let self = self else { return }
-            switch state {
-            case .error:
-                notificationHandler.show("Failed to connect wallet.", type: .error)
-            case .connected(let wallets):
-                if let solanaWallet = wallets.first(where: { $0.chainType == .solana }), walletAddress == nil {
-                    DispatchQueue.main.async {
-                        self.walletAddress = solanaWallet.address
-                    }
-                    Task {
+            Task {
+                switch state {
+                case .connected(let wallets):
+                    if let solanaWallet = wallets.first(where: { $0.chainType == .solana }) {
+                        await MainActor.run {
+                            self.walletAddress = solanaWallet.address
+                            self.walletState = state
+                        }
                         await self.initializeUser()
                     }
+                    else {
+                        do {
+                            let _ = try await privy.embeddedWallet.createWallet(chainType: .solana)
+                        }
+                        catch {
+                            print("failed to create solana wallet")
+                        }
+                    }
+                case .notCreated:
+                    do {
+                        let _ = try await privy.embeddedWallet.createWallet(chainType: .solana)
+                    }
+                    catch {
+                        print("failed to create solana wallet")
+                    }
+                case .connecting:
+                    await MainActor.run {
+                        self.walletState = state
+                    }
+                default:
+                    self.logout(skipPrivy: true)
                 }
-            default:
-                break
-            }
-            DispatchQueue.main.async {
-                self.walletState = state
+
             }
         }
     }
@@ -89,7 +96,6 @@ final class UserModel: ObservableObject {
     func initializeUser() async {
         let timeoutTask = DispatchWorkItem { [weak self] in
             guard let self = self else { return }
-            self.error = nil
             self.isLoading = true
 
             // Schedule the timeout
@@ -116,7 +122,6 @@ final class UserModel: ObservableObject {
             timeoutTask.cancel()  // Cancel timeout if there's an error
             DispatchQueue.main.async {
                 self.isLoading = false
-                self.error = error
             }
         }
     }
@@ -130,13 +135,7 @@ final class UserModel: ObservableObject {
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { [weak self] result in
                 guard let self = self else {
-                    continuation.resume(
-                        throwing: NSError(
-                            domain: "UserModel",
-                            code: 0,
-                            userInfo: [NSLocalizedDescriptionKey: "Self is nil"]
-                        )
-                    )
+                    continuation.resume(throwing: TubError.networkFailure)
                     return
                 }
 
@@ -227,7 +226,7 @@ final class UserModel: ObservableObject {
         }
     }
 
-    func logout() {
+    func logout(skipPrivy: Bool = false) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self, self.userId != nil else { return }
             self.walletState = .notCreated
@@ -237,8 +236,8 @@ final class UserModel: ObservableObject {
             self.balanceChangeLamps = 0
             self.stopTimer()
             self.elapsedSeconds = 0
-            privy.logout()
         }
+        if !skipPrivy { privy.logout() }
     }
 
     /* ------------------------------- USER TOKEN ------------------------------- */
@@ -282,122 +281,127 @@ final class UserModel: ObservableObject {
             }
         }
     }
-    func buyTokens(
-        buyAmountLamps: Int,
-        priceLamps: Int,
-        priceUsd: Double,
-        completion: @escaping (Result<EmptyResponse, Error>) -> Void
-    ) {
+
+    func buyTokens(buyAmountLamps: Int, priceLamps: Int, priceUsd: Double) async throws {
         guard let tokenId = self.tokenId, let balance = self.balanceLamps else {
-            completion(
-                .failure(
-                    NSError(domain: "UserModel", code: 0, userInfo: [NSLocalizedDescriptionKey: "User not logged in"])
-                )
-            )
-            return
+            throw TubError.invalidInput(reason: "No balance")
         }
 
-        var errorMessage: String? = nil
-
         if buyAmountLamps > balance {
-            print("buyAmountLamps: \(buyAmountLamps), balance: \(balance)")
-            errorMessage = "Insufficient balance"
-            completion(
-                .failure(
-                    NSError(domain: "UserModel", code: 0, userInfo: [NSLocalizedDescriptionKey: "Insufficient balance"])
-                )
-            )
-            return
+            throw TubError.insufficientBalance
         }
 
         let tokenAmount = Int(Double(buyAmountLamps) / Double(priceLamps) * 1e9)
 
-        Network.shared.buyToken(
-            tokenId: tokenId,
-            amount: String(tokenAmount),
-            tokenPrice: String(priceLamps)
-        ) { result in
-            Task {
-                switch result {
-                case .success:
-                    await MainActor.run {
-                        self.purchaseData = PurchaseData(
-                            timestamp: Date(),
-                            amount: buyAmountLamps,
-                            price: priceLamps
-                        )
-                    }
-                case .failure(let error):
-                    errorMessage = error.localizedDescription
-                    print("Error buying tokens: \(error)")
-                }
-                completion(result)
+        var err: (any Error)? = nil
+        do {
+            let _ = try await Network.shared.buyToken(
+                tokenId: tokenId,
+                amount: String(tokenAmount),
+                tokenPrice: String(priceLamps)
+            )
+
+            await MainActor.run {
+                self.purchaseData = PurchaseData(
+                    timestamp: Date(),
+                    amount: buyAmountLamps,
+                    price: priceLamps
+                )
             }
         }
+        catch {
+            err = error
+        }
 
-        Network.shared.recordClientEvent(
-            event: ClientEvent(
-                eventName: "buy_tokens",
-                source: "token_model",
-                metadata: [
-                    ["buy_amount": buyAmountLamps],
-                    ["price": priceLamps],
-                    ["token_id": tokenId],
-                ],
-                errorDetails: errorMessage
+        do {
+            try await Network.shared.recordClientEvent(
+                event: ClientEvent(
+                    eventName: "buy_tokens",
+                    source: "token_model",
+                    metadata: [
+                        ["buy_amount": buyAmountLamps],
+                        ["price": priceLamps],
+                        ["token_id": tokenId],
+                    ],
+                    errorDetails: err?.localizedDescription
+                )
             )
-        ) { result in
-            switch result {
-            case .success:
-                print("Successfully recorded buy event")
-            case .failure(let error):
-                print("Failed to record buy event: \(error)")
-            }
+            print("Successfully recorded buy event")
+        }
+        catch {
+            print("Failed to record buy event: \(error)")
+        }
+
+        if let err {
+            throw err
         }
     }
 
-    func sellTokens(price: Int, completion: @escaping (Result<EmptyResponse, Error>) -> Void) {
+    func sellTokens(price: Int) async throws {
         guard let tokenId = self.tokenId, let balance = self.tokenBalanceLamps else {
-            return
+            throw TubError.notLoggedIn
         }
 
-        let errorMessage: String? = nil
-        Network.shared.sellToken(
-            tokenId: tokenId,
-            amount: String(balance),
-            tokenPrice: String(price)
-        ) {
-            result in
-            Task {
-                switch result {
-                case .success:
-                    await MainActor.run {
-                        self.purchaseData = nil
-                    }
-                case .failure(let error):
-                    print("Error selling tokens: \(error)")
-                }
-                completion(result)
-            }
-        }
-
-        Network.shared.recordClientEvent(
-            event: ClientEvent(
-                eventName: "sell_tokens",
-                source: "token_model",
-                metadata: [
-                    ["sell_amount": balance],
-                    ["token_id": tokenId],
-                ],
-                errorDetails: errorMessage
+        var err: (any Error)? = nil
+        do {
+            try await Network.shared.sellToken(
+                tokenId: tokenId,
+                amount: String(balance),
+                tokenPrice: String(price)
             )
-        ) { result in
-            switch result {
-            case .success:
-                print("Successfully recorded sell event")
-            case .failure(let error):
-                print("Failed to record sell event: \(error)")
+            await MainActor.run {
+                self.purchaseData = nil
             }
+        }
+        catch {
+            err = error
+            print("Error selling tokens: \(error)")
+        }
+
+        do {
+            try await Network.shared.recordClientEvent(
+                event: ClientEvent(
+                    eventName: "sell_tokens",
+                    source: "token_model",
+                    metadata: [
+                        ["sell_amount": balance],
+                        ["token_id": tokenId],
+                    ],
+                    errorDetails: err?.localizedDescription
+                )
+            )
+            print("Successfully recorded sell event")
+        }
+        catch {
+            print("Failed to record sell event: \(error)")
+        }
+
+        if let err {
+            throw err
+        }
+    }
+
+    func performAirdrop() async throws {
+        var err: (any Error)? = nil
+        do {
+            try await Network.shared.airdropNativeToUser(amount: 1 * Int(1e9))
+        }
+        catch {
+            err = error
+        }
+
+        try? await Network.shared.recordClientEvent(
+            event: ClientEvent(
+                eventName: "airdrop",
+                source: "account_view",
+                metadata: [
+                    ["airdrop_amount": 1 * Int(1e9)]
+                ],
+                errorDetails: err?.localizedDescription
+            )
+        )
+        if let err {
+            throw err
         }
     }
 

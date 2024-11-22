@@ -17,55 +17,13 @@ struct AccountView: View {
     @State private var showOnrampView = false
     @State private var errorMessage: String = ""
 
-    func performAirdrop() {
-        isAirdropping = true
-
-        Network.shared.airdropNativeToUser(amount: 1 * Int(1e9)) { result in
-            DispatchQueue.main.async {
-                isAirdropping = false
-                switch result {
-                case .success:
-                    notificationHandler.show(
-                        "Airdrop successful!",
-                        type: .success
-                    )
-                case .failure(let error):
-                    errorMessage = error.localizedDescription
-                    notificationHandler.show(
-                        error.localizedDescription,
-                        type: .error
-                    )
-                }
-            }
-        }
-
-        Network.shared.recordClientEvent(
-            event: ClientEvent(
-                eventName: "airdrop",
-                source: "account_view",
-                metadata: [
-                    ["airdrop_amount": 1 * Int(1e9)]
-                ],
-                errorDetails: errorMessage
-            )
-        ) { result in
-            switch result {
-            case .success:
-                print("Successfully recorded buy event")
-            case .failure(let error):
-                print("Failed to record buy event: \(error)")
-            }
-        }
-    }
-
     var body: some View {
         NavigationStack {
             VStack(spacing: 24) {
                 if userModel.userId != nil {
                     AccountContentView(
                         isAirdropping: $isAirdropping,
-                        showOnrampView: $showOnrampView,
-                        performAirdrop: performAirdrop
+                        showOnrampView: $showOnrampView
                     )
                 }
                 else {
@@ -159,9 +117,8 @@ private struct BalanceSection: View {
 }
 
 // New component for action buttons
-private struct ActionButtonsView: View {
+private struct ActionButtons: View {
     let isAirdropping: Bool
-    let performAirdrop: () -> Void
     @Binding var showOnrampView: Bool
 
     var body: some View {
@@ -269,7 +226,7 @@ private struct AccountSettingsView: View {
             .foregroundColor(.white)
 
             // Logout Button
-            Button(action: userModel.logout) {
+            Button(action: { userModel.logout() }) {
                 HStack(spacing: 16) {
                     Image(systemName: "rectangle.portrait.and.arrow.right")
                         .resizable()
@@ -304,14 +261,12 @@ private struct UnregisteredAccountView: View {
 private struct AccountContentView: View {
     @Binding var isAirdropping: Bool
     @Binding var showOnrampView: Bool
-    let performAirdrop: () -> Void
 
     var body: some View {
         VStack(spacing: 24) {
             AccountHeaderView()
-            ActionButtonsView(
+            ActionButtons(
                 isAirdropping: isAirdropping,
-                performAirdrop: performAirdrop,
                 showOnrampView: $showOnrampView
             )
             AccountSettingsView()

@@ -9,11 +9,10 @@ import SwiftUI
 
 struct BuyForm: View {
     @Binding var isVisible: Bool
-    @Binding var defaultAmount: Double
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject var notificationHandler: NotificationHandler
     @ObservedObject var tokenModel: TokenModel
-    var onBuy: (Double) -> Void
+    var onBuy: (Double) async -> Void
 
     @EnvironmentObject private var userModel: UserModel
     @State private var buyAmountUsdString: String = ""
@@ -33,7 +32,8 @@ struct BuyForm: View {
 
     @ObservedObject private var settingsManager = SettingsManager.shared
 
-    private func handleBuy() {
+    @MainActor
+    private func handleBuy() async {
         guard let balance = userModel.balanceLamps else { return }
         // Use 10 as default if no amount is entered
         let amountToUse = buyAmountUsdString.isEmpty ? 10.0 : buyAmountUsd
@@ -43,10 +43,9 @@ struct BuyForm: View {
         // Check if the user has enough balance
         if balance >= buyAmountLamps {
             if isDefaultOn {
-                defaultAmount = amountToUse
                 settingsManager.defaultBuyValue = amountToUse
             }
-            onBuy(amountToUse)
+            await onBuy(amountToUse)
         }
         else {
             notificationHandler.show("Insufficient Balance", type: .error)
@@ -108,7 +107,7 @@ struct BuyForm: View {
 
     private var buyButton: some View {
         Button(action: {
-            handleBuy()
+            Task { await handleBuy() }
         }) {
             HStack {
                 Text("Buy")
