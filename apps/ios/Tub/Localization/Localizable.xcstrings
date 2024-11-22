@@ -87,6 +87,12 @@
     "Close" : {
 
     },
+    "Connect to Wallet" : {
+
+    },
+    "Connecting..." : {
+
+    },
     "Connection Error" : {
 
     },
@@ -97,9 +103,6 @@
 
     },
     "Country Code" : {
-
-    },
-    "Creating Tub Wallet..." : {
 
     },
     "Date" : {

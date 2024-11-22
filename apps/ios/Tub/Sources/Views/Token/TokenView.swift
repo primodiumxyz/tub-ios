@@ -197,6 +197,7 @@ struct TokenView: View {
             else {
                 CandleChartView(
                     candles: tokenModel.candles,
+                    animate: $tokenModel.animate,
                     timeframeMins: 30,
                     height: height
                 )

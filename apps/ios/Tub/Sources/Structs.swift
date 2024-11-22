@@ -56,7 +56,7 @@ struct Price: Identifiable, Equatable {
     var priceUsd: Double
 }
 
-struct CandleData: Identifiable {
+struct CandleData: Equatable, Identifiable {
     let id: Date
     let start: Date
     let end: Date
