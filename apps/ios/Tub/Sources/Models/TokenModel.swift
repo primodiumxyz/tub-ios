@@ -1,8 +1,8 @@
 import Apollo
+import CodexAPI
 import Combine
 import SwiftUI
 import TubAPI
-import CodexAPI
 
 let emptyToken = Token(
     id: "",
@@ -31,13 +31,13 @@ class TokenModel: ObservableObject {
     @Published var selectedTimespan: Timespan = .live
 
     private var lastPriceTimestamp: Date?
-    
+
     private var priceSubscription: Apollo.Cancellable?
     private var candleSubscription: Timer?
     
     private var latestPrice: Double?
     private var priceUpdateTimer: Timer?
-    
+
     deinit {
         priceUpdateTimer?.invalidate()
         priceUpdateTimer = nil
@@ -52,7 +52,7 @@ class TokenModel: ObservableObject {
             self.initialize(with: token)
         }
     }
-    
+
     func initialize(with newToken: Token) {
         DispatchQueue.main.async {
             self.tokenId = newToken.id
@@ -122,7 +122,6 @@ class TokenModel: ObservableObject {
         
         // Calculate number of intervals needed
         let numIntervals = Int(ceil(Timespan.live.seconds / PRICE_UPDATE_INTERVAL))
-        
         // Create array of timestamps we need to fetch
         let timestamps = (0..<numIntervals).map { i in
             startTime + Int(Double(i) * PRICE_UPDATE_INTERVAL)
@@ -137,7 +136,7 @@ class TokenModel: ObservableObject {
                         networkId: NETWORK_FILTER,
                         timestamp: .some(timestamp)
                     )
-                    
+
                     let query = GetTokenPricesQuery(inputs: [input])
                     do {
                         return try await withCheckedThrowingContinuation { continuation in
@@ -145,13 +144,17 @@ class TokenModel: ObservableObject {
                                 switch result {
                                 case .success(let response):
                                     if let prices = response.data?.getTokenPrices,
-                                       let firstPrice = prices.first,
-                                       let price = firstPrice?.priceUsd {
-                                        continuation.resume(returning: Price(
-                                            timestamp: Date(timeIntervalSince1970: TimeInterval(timestamp)),
-                                            priceUsd: price
-                                        ))
-                                    } else {
+                                        let firstPrice = prices.first,
+                                        let price = firstPrice?.priceUsd
+                                    {
+                                        continuation.resume(
+                                            returning: Price(
+                                                timestamp: Date(timeIntervalSince1970: TimeInterval(timestamp)),
+                                                priceUsd: price
+                                            )
+                                        )
+                                    }
+                                    else {
                                         continuation.resume(returning: nil)
                                     }
                                 case .failure(let error):
@@ -160,13 +163,14 @@ class TokenModel: ObservableObject {
                                 }
                             }
                         }
-                    } catch {
+                    }
+                    catch {
                         print("Error fetching price at timestamp \(timestamp): \(error)")
                         return nil
                     }
                 }
             }
-            
+
             var allPrices: [Price] = []
             for await price in group {
                 if let price = price {
@@ -181,13 +185,14 @@ class TokenModel: ObservableObject {
 
     private func subscribeToTokenPrices() async {
         priceSubscription?.cancel()
-        
+
         // Start the timer for regular price updates
         priceUpdateTimer?.invalidate()
         DispatchQueue.main.async {
-            self.priceUpdateTimer = Timer.scheduledTimer(withTimeInterval: PRICE_UPDATE_INTERVAL, repeats: true) { [weak self] _ in
+            self.priceUpdateTimer = Timer.scheduledTimer(withTimeInterval: PRICE_UPDATE_INTERVAL, repeats: true) {
+                [weak self] _ in
                 guard let self = self else { return }
-                
+
                 let now = Date()
                 if let price = self.latestPrice {
                     // Add a new price point at each interval
@@ -197,7 +202,7 @@ class TokenModel: ObservableObject {
                     self.calculatePriceChange()
                 }
             }
-            
+
             // Make sure the timer is retained
             RunLoop.main.add(self.priceUpdateTimer!, forMode: .common)
         }
@@ -208,23 +213,25 @@ class TokenModel: ObservableObject {
             tokenAddress: tokenId
         )) { [weak self] result in
             guard let self = self else { return }
-            
+
             switch result {
             case .success(let graphQLResult):
                 if let errors = graphQLResult.errors {
                     print("GraphQL errors: \(errors)")
                     return
                 }
-                
+
                 if let events = graphQLResult.data?.onTokenEventsCreated.events {
-                    let swaps = events
+                    let swaps =
+                        events
                         .filter { $0.eventType == .swap }
                         .sorted { $0.timestamp < $1.timestamp }
-                    
+
                     if let lastSwap = swaps.last {
-                        let priceUsd = lastSwap.quoteToken == .token0 ?
-                            lastSwap.token0PoolValueUsd ?? "0" : lastSwap.token1PoolValueUsd ?? "0"
-                        
+                        let priceUsd =
+                            lastSwap.quoteToken == .token0
+                            ? lastSwap.token0PoolValueUsd ?? "0" : lastSwap.token1PoolValueUsd ?? "0"
+
                         self.latestPrice = Double(priceUsd) ?? 0.0
                     }
                 }
@@ -294,12 +301,12 @@ class TokenModel: ObservableObject {
             }
         }
     }
-    
+
     private func calculatePriceChange() {
         let latestPrice = prices.last?.priceUsd ?? 0
-        
         let startTime = Date().addingTimeInterval(-selectedTimespan.seconds)
         let initialPriceUsd: Double
+        
         // Find first price corresponding to the selected timespan
         if selectedTimespan == .live {
             initialPriceUsd = prices.first(where: { $0.timestamp >= startTime })?.priceUsd ?? prices.first?.priceUsd ?? 0
@@ -312,10 +319,10 @@ class TokenModel: ObservableObject {
             print("Error: Cannot calculate price change. Prices are not available.")
             return
         }
-        
+
         let priceChangeUsd = latestPrice - initialPriceUsd
         let priceChangePercentage = Double(priceChangeUsd) / Double(initialPriceUsd) * 100
-        
+
         DispatchQueue.main.async {
             self.priceChange = (priceChangeUsd, priceChangePercentage)
         }
@@ -334,26 +341,23 @@ class TokenModel: ObservableObject {
             ("Market Cap", !isReady ? nil : priceModel.formatPrice(usd: token.marketCap, formatLarge: true)),
             ("Volume (1h)", !isReady ? nil : priceModel.formatPrice(usd: token.volume, formatLarge: true)),
             ("Liquidity", !isReady ? nil : priceModel.formatPrice(usd: token.liquidity, formatLarge: true)),
-            ("Unique holders", !isReady ? nil : formatLargeNumber(Double(token.uniqueHolders)))
+            ("Unique holders", !isReady ? nil : formatLargeNumber(Double(token.uniqueHolders))),
         ]
     }
 
     private func fetchUniqueHolders() async throws {
         let client = await CodexNetwork.shared.apolloClient
         return try await withCheckedThrowingContinuation { continuation in
-            client.fetch(query: GetUniqueHoldersQuery(
-                pairId: "\(tokenId):\(NETWORK_FILTER)"
-            )) { [weak self] result in
+            client.fetch(
+                query: GetUniqueHoldersQuery(
+                    pairId: "\(tokenId):\(NETWORK_FILTER)"
+                )
+            ) { [weak self] result in
                 guard let self = self else {
-                    let error = NSError(
-                        domain: "TokenModel",
-                        code: 0,
-                        userInfo: [NSLocalizedDescriptionKey: "Self is nil"]
-                    )
-                    continuation.resume(throwing: error)
+                    continuation.resume(throwing: TubError.unknown)
                     return
                 }
-                
+
                 switch result {
                 case .success(let response):
                     if let holders = response.data?.holders.count {

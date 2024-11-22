@@ -5,27 +5,24 @@
 //  Created by Henry on 10/31/24.
 //
 
-import SwiftUI
 import PrivySDK
+import SwiftUI
 
 struct SignInWithEmailView: View {
     @EnvironmentObject private var notificationHandler: NotificationHandler
-    @Binding var email: String // Email passed from RegisterView
-    @State private var loggingIn : Bool = false
+    @Binding var email: String  // Email passed from RegisterView
+    @State private var loggingIn: Bool = false
 
-    
-
-    
     private func verifyOTP(otpCode: String) {
         Task {
             do {
                 if self.loggingIn { return }
                 self.loggingIn = true
                 let _ = try await privy.email.loginWithCode(otpCode, sentTo: email)
-                
+
                 self.loggingIn = false
-            } catch {
-                print("error", error)
+            }
+            catch {
                 notificationHandler.show(
                     error.localizedDescription,
                     type: .error
@@ -34,7 +31,7 @@ struct SignInWithEmailView: View {
             }
         }
     }
-    
+
     var body: some View {
         VStack(spacing: 12) {
             Text("Enter verification code")

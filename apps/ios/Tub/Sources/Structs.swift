@@ -2,7 +2,7 @@ import Foundation
 import SwiftUI
 
 struct Token: Identifiable {
-    var id: String // also mint
+    var id: String  // also mint
     var name: String
     var symbol: String
     var description: String
@@ -13,13 +13,25 @@ struct Token: Identifiable {
     var pairId: String
     var socials: (discord: String?, instagram: String?, telegram: String?, twitter: String?, website: String?)
     var uniqueHolders: Int
-    
-    init(id: String?, name: String?, symbol: String?, description: String?, imageUri: String?, liquidity: Double?, marketCap: Double?, volume: Double?, pairId: String?, socials: (discord: String?, instagram: String?, telegram: String?, twitter: String?, website: String?), uniqueHolders: Int?) {
+
+    init(
+        id: String?,
+        name: String?,
+        symbol: String?,
+        description: String?,
+        imageUri: String?,
+        liquidity: Double?,
+        marketCap: Double?,
+        volume: Double?,
+        pairId: String?,
+        socials: (discord: String?, instagram: String?, telegram: String?, twitter: String?, website: String?),
+        uniqueHolders: Int?
+    ) {
         self.id = id ?? ""
         self.name = name ?? "NAME"
         self.symbol = symbol ?? "SYMBOL"
         self.description = description ?? "DESCRIPTION"
-        self.imageUri = imageUri?.replacingOccurrences(of: "cf-ipfs.com", with: "ipfs.io") ?? "" // sometimes this prefix gets added and it bricks it
+        self.imageUri = imageUri?.replacingOccurrences(of: "cf-ipfs.com", with: "ipfs.io") ?? ""  // sometimes this prefix gets added and it bricks it
         self.liquidity = liquidity ?? 0.0
         self.marketCap = marketCap ?? 0.0
         self.volume = volume ?? 0.0
@@ -53,7 +65,7 @@ struct CandleData: Equatable, Identifiable {
     var high: Double
     var low: Double
     var volume: Int?
-    
+
     init(start: Date, end: Date, open: Double, close: Double, high: Double, low: Double, volume: Int? = nil) {
         self.id = start
         self.start = start
@@ -79,7 +91,7 @@ struct Transaction: Identifiable, Equatable {
     let mint: String
 }
 
-    struct StatValue {
-        let text: String
-        let color: Color?
-    }
+struct StatValue {
+    let text: String
+    let color: Color?
+}

@@ -13,7 +13,7 @@ struct TransactionGroup {
 struct TransactionGroupRow: View {
     let group: TransactionGroup
     @EnvironmentObject private var priceModel: SolPriceModel
-    
+
     var body: some View {
         DisclosureGroup {
             ScrollView {
@@ -28,19 +28,19 @@ struct TransactionGroupRow: View {
             HStack(alignment: .center) {
                 ImageView(imageUri: group.imageUri, size: 40)
                     .cornerRadius(8)
-                
+
                 VStack(alignment: .leading) {
                     Text(group.symbol)
                         .font(.sfRounded(size: .base, weight: .bold))
                         .foregroundStyle(.primary)
-                    
-                    Text(formatDate(group.date)) 
+
+                    Text(formatDate(group.date))
                         .font(.sfRounded(size: .sm, weight: .regular))
                         .foregroundStyle(.secondary)
                 }
-                
+
                 Spacer()
-                
+
                 let price = priceModel.formatPrice(usd: group.netProfit, showSign: true)
                 Text(price)
                     .font(.sfRounded(size: .base, weight: .bold))
@@ -50,7 +50,7 @@ struct TransactionGroupRow: View {
         }
         .accentColor(.primary)
     }
-    
+
     private func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
@@ -58,11 +58,10 @@ struct TransactionGroupRow: View {
     }
 }
 
-
 struct TransactionDetailRow: View {
     let transaction: Transaction
     @EnvironmentObject private var priceModel: SolPriceModel
-    
+
     var body: some View {
         NavigationLink(destination: HistoryDetailsView(transaction: transaction)) {
             HStack {
@@ -75,13 +74,13 @@ struct TransactionDetailRow: View {
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
-                
+
                 VStack(alignment: .trailing) {
                     let price = priceModel.formatPrice(usd: transaction.valueUsd, showSign: true)
                     Text(price)
                         .font(.sfRounded(size: .sm, weight: .bold))
                         .foregroundColor(transaction.isBuy ? AppColors.red : AppColors.green)
-                    
+
                     let quantity = priceModel.formatPrice(lamports: abs(transaction.quantityTokens), showUnit: false)
                     Text("\(quantity) \(transaction.symbol)")
                         .font(.sfRounded(size: .xs, weight: .regular))
@@ -100,14 +99,14 @@ func groupTransactions(_ transactions: [Transaction]) -> [TransactionGroup] {
         let date = calendar.startOfDay(for: transaction.date)
         return "\(transaction.mint)_\(date)"
     }
-    
+
     return grouped.map { _, transactions in
         let netProfit = transactions.reduce(0.0) { sum, tx in
             sum + tx.valueUsd
         }
-        
+
         let firstTx = transactions.sorted { $0.date > $1.date }.first!
-        
+
         return TransactionGroup(
             transactions: transactions.sorted { $0.date > $1.date },
             netProfit: netProfit,

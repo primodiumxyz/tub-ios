@@ -16,5 +16,5 @@ let countryCodes = [
     CountryCode(name: "US", code: "+1"),
     CountryCode(name: "UK", code: "+44"),
     CountryCode(name: "AU", code: "+61"),
-    CountryCode(name: "SG", code: "+65")
+    CountryCode(name: "SG", code: "+65"),
 ]
