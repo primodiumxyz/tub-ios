@@ -102,7 +102,6 @@ class TokenModel: ObservableObject {
         Task(priority: .background) {
             do {
                 try await fetchUniqueHolders()
-                print("fetching holders took \(Date().timeIntervalSince(time))")
             }
             catch {
                 print("Error fetching unique holders: \(error)")
@@ -123,8 +122,6 @@ class TokenModel: ObservableObject {
         let timestamps = (0..<NUM_PRICE_INTERVALS).map { i in
             startTime + Int(Double(i) * intervalSize)
         }
-
-        print("timestamps: \(timestamps.suffix(5))")
 
         // Fetch all prices and collect them in order
         let prices = await withTaskGroup(of: Price?.self) { group in
@@ -203,7 +200,6 @@ class TokenModel: ObservableObject {
             self.priceUpdateTimer = Timer.scheduledTimer(withTimeInterval: PRICE_UPDATE_INTERVAL, repeats: true) {
                 [weak self] _ in
                 guard let self else {
-                    print("no self")
                     return
                 }
 
@@ -239,7 +235,6 @@ class TokenModel: ObservableObject {
             switch result {
             case .success(let graphQLResult):
                 if let errors = graphQLResult.errors {
-                    print("GraphQL errors: \(errors)")
                     return
                 }
 

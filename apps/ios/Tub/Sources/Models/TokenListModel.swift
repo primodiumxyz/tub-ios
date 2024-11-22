@@ -37,6 +37,13 @@ class TokenListModel: ObservableObject {
     private var currentTokenStartTime: Date?
     private var tokenSubscription: Cancellable?
 
+    private var currentTokenId: String? {
+        return self.currentTokenModel.token?.id
+    }
+    private var nextTokenId: String? {
+        return self.nextTokenModel?.token?.id
+    }
+
     // Make init private
     private init() {
         self.currentTokenModel = TokenModel()
@@ -48,7 +55,7 @@ class TokenListModel: ObservableObject {
     }
 
     var currentTokenIndex: Int {
-        return tokens.count - 2  // last - 1
+        return tokens.endIndex - 1
     }
 
     var isFirstToken: Bool {

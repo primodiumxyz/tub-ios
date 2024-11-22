@@ -105,9 +105,15 @@ struct TokenListView: View {
                                         )
                                         .frame(height: geometry.size.height - 25)
 
-                                        LoadingTokenView()
-                                            .frame(height: geometry.size.height)
-                                            .opacity(dragging ? 0.8 : 0)
+                                        if let nextToken = tokenListModel.nextTokenModel {
+                                            TokenView(tokenModel: nextToken)
+                                                .frame(height: geometry.size.height)
+                                        }
+                                        else {
+                                            LoadingTokenView()
+                                                .frame(height: geometry.size.height)
+                                                .opacity(dragging ? 0.8 : 0)
+                                        }
 
                                     }
                                     .zIndex(1)
