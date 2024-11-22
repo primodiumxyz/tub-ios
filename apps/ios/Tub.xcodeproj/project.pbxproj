@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		282A6AB32CEEE8490039133F /* ButtonStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 282A6AB22CEEE8490039133F /* ButtonStyles.swift */; };
 		4619A8182CCA4E25003CD119 /* TokenListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4619A8172CCA4E25003CD119 /* TokenListModel.swift */; };
 		46233A262CE67F7E00DB1740 /* CodexAPI in Frameworks */ = {isa = PBXBuildFile; productRef = 46233A252CE67F7E00DB1740 /* CodexAPI */; };
 		462B09862CE65C8600730068 /* CodexNetwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 462B09852CE65C8200730068 /* CodexNetwork.swift */; };
@@ -89,6 +90,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		282A6AB22CEEE8490039133F /* ButtonStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonStyles.swift; sourceTree = "<group>"; };
 		4619A8172CCA4E25003CD119 /* TokenListModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenListModel.swift; sourceTree = "<group>"; };
 		462B09852CE65C8200730068 /* CodexNetwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexNetwork.swift; sourceTree = "<group>"; };
 		46442B942CDD737D009A6F0B /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
@@ -154,6 +156,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		282A6A612CEEDDEB0039133F /* Localization */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Localization; sourceTree = "<group>"; };
 		46B4B4532CD542DB00D8175A /* Extensions */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Extensions; sourceTree = "<group>"; };
 		995DE48A2CE6A268001B3C3F /* Login */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Login; sourceTree = "<group>"; };
 		99DDF62E2CB0333D000234DA /* BuySellForm */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = BuySellForm; sourceTree = "<group>"; };
@@ -220,6 +223,7 @@
 			isa = PBXGroup;
 			children = (
 				5D8EFC2B2CE529AC002D8210 /* AppDwellTimeTracker.swift */,
+				282A6AB22CEEE8490039133F /* ButtonStyles.swift */,
 				466945EC2CDFDB1C008E8B99 /* LoadingTracker.swift */,
 				46442B942CDD737D009A6F0B /* Constants.swift */,
 				9941CD6E2CCAA30B0009E5ED /* FormatPrice.swift */,
@@ -385,6 +389,7 @@
 				DB6D290A2CA1C8F80099951A /* Tub.entitlements */,
 				DB6D290B2CA1C8F80099951A /* Preview Content */,
 				DB6D29152CA1C8F80099951A /* TubTests */,
+				282A6A612CEEDDEB0039133F /* Localization */,
 			);
 			path = Tub;
 			sourceTree = "<group>";
@@ -439,6 +444,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				282A6A612CEEDDEB0039133F /* Localization */,
 				46B4B4532CD542DB00D8175A /* Extensions */,
 				995DE48A2CE6A268001B3C3F /* Login */,
 				99DDF62E2CB0333D000234DA /* BuySellForm */,
@@ -523,6 +529,7 @@
 			knownRegions = (
 				en,
 				Base,
+				fr,
 			);
 			mainGroup = DB6D28F82CA1C8F70099951A;
 			packageReferences = (
@@ -590,6 +597,8 @@
 				468B07432CEBB63700C2CBFC /* CodexTokenManager.swift in Sources */,
 				995FCA1F2CDA5ED70018A76D /* CoinbaseOnrampView.swift in Sources */,
 				996772FE2CEB85820029B298 /* LoadingBox.swift in Sources */,
+				991D60812CD5211600A7245F /* CreateWalletView.swift in Sources */,
+				282A6AB32CEEE8490039133F /* ButtonStyles.swift in Sources */,
 				99DDF62D2CB02816000234DA /* AccountView.swift in Sources */,
 				9936FC582CADCA5200E21B8A /* Structs.swift in Sources */,
 				DB458DB42CAC827A00C5EC18 /* Network.swift in Sources */,
@@ -719,6 +728,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
@@ -774,6 +784,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
 			};
 			name = Release;
 		};

@@ -60,6 +60,37 @@ struct RegisterView: View {
 
                 Spacer()
             }
+            
+            /*
+            VStack(alignment: .center) {
+                HubButton(text: "Tap Me 1",
+                          textColor: .white,
+                          backgroundColor: .blue,
+                          strokeColor: .green) {
+                    print("todo: action code")
+                }
+
+                HubButtonYellow(text: "Tap Me 2") {
+                    print("todo: action code")
+                }
+                
+                Button {
+                    print("todo: action code")
+                } label: {
+                }
+                .buttonStyle(HubButtonStyle(text: "Tap Me 3",
+                                            textColor: .white,
+                                            backgroundColor: .purple,
+                                            strokeColor: .white))
+                
+                ImageButton(image: "discord",
+                            pressedImage: "Google",
+                            text: "Tap!") {
+                    print("todo: action code")
+                }
+            }
+             */
+
             VStack(alignment: .leading, spacing: 12) {
                 Image("Logo")
                     .resizable()
