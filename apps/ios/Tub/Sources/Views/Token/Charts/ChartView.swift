@@ -13,7 +13,6 @@ struct ChartView: View {
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject private var userModel: UserModel
     let rawPrices: [Price]
-    let timeframeSecs: Double
     let height: CGFloat
 
     var purchasePriceUsd: Double? {
@@ -27,15 +26,14 @@ struct ChartView: View {
 
     @State private var currentTime = Date().timeIntervalSince1970
     @State private var prices: [Price] = []
-
-    init(prices: [Price], timeframeSecs: Double = CHART_INTERVAL, height: CGFloat = 330) {
+    
+    init(prices: [Price], height: CGFloat = 330) {
         self.rawPrices = prices
-        self.timeframeSecs = timeframeSecs
         self.height = height
     }
 
     private func updatePrices() {
-        let dataPointCount = Int(timeframeSecs / PRICE_UPDATE_INTERVAL)
+        let dataPointCount = Int(Timespan.live.seconds / PRICE_UPDATE_INTERVAL)
         let startingIndex = rawPrices.count - dataPointCount
         prices = startingIndex < 0 ? rawPrices : Array(rawPrices[startingIndex...])
     }
@@ -74,7 +72,7 @@ struct ChartView: View {
         return (minPriceUsd - padding)...(maxPriceUsd + padding)
     }
     private var xDomain: ClosedRange<Date> {
-        let min = Date(timeIntervalSinceNow: -timeframeSecs - 1)
+        let min = Date(timeIntervalSinceNow: -Timespan.live.seconds - 1)
         var padding = 1.0
         if let currentPrice = prices.last?.priceUsd {
             let pillContent = priceModel.formatPrice(usd: abs(currentPrice), maxDecimals: 9, minDecimals: 2)

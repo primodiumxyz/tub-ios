@@ -9,18 +9,6 @@ import Combine
 import SwiftUI
 import TubAPI
 
-enum Timespan: String, CaseIterable {
-    case live = "LIVE"
-    case thirtyMin = "30M"
-
-    var timeframeSecs: Double {
-        switch self {
-        case .live: return CHART_INTERVAL
-        case .thirtyMin: return 30 * 60
-        }
-    }
-}
-
 struct TokenView: View {
     @ObservedObject var tokenModel: TokenModel
     @EnvironmentObject var priceModel: SolPriceModel
@@ -28,7 +16,6 @@ struct TokenView: View {
     @EnvironmentObject private var notificationHandler: NotificationHandler
 
     @State private var showInfoCard = false
-    @State private var selectedTimespan: Timespan = .live
     @State private var showBuySheet: Bool = false
     @State private var keyboardHeight: CGFloat = 0
 
@@ -152,13 +139,19 @@ struct TokenView: View {
                     }
                 }
 
-                let price = priceModel.formatPrice(usd: tokenModel.priceChange.amountUsd, showSign: true)
+                let price = priceModel.formatPrice(
+                    usd: tokenModel.priceChange.amountUsd,
+                    showSign: true,
+                    maxDecimals: 9,
+                    minDecimals: 2
+                )
+
                 HStack {
 
                     if tokenModel.isReady {
                         Text(price)
                         Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
-                        Text("\(formatDuration(tokenModel.currentTimeframe.timeframeSecs))").foregroundStyle(Color.gray)
+                        Text("\(formatDuration(tokenModel.selectedTimespan.seconds))").foregroundColor(.gray)
                     }
                     else {
                         LoadingBox(width: 160, height: 12)
@@ -183,10 +176,9 @@ struct TokenView: View {
             if !tokenModel.isReady {
                 LoadingBox(height: 350)
             }
-            else if selectedTimespan == .live {
+            else if tokenModel.selectedTimespan == .live {
                 ChartView(
                     prices: tokenModel.prices,
-                    timeframeSecs: selectedTimespan.timeframeSecs,
                     height: height
                 )
             }
@@ -209,21 +201,19 @@ struct TokenView: View {
             HStack(spacing: 4) {
                 IntervalButton(
                     timespan: .live,
-                    isSelected: selectedTimespan == .live,
+                    isSelected: tokenModel.selectedTimespan == .live,
                     action: {
                         withAnimation(.easeInOut(duration: 0.15)) {
-                            selectedTimespan = .live
-                            tokenModel.updateHistoryInterval(.live)
+                            tokenModel.selectedTimespan = .live
                         }
                     }
                 )
                 IntervalButton(
-                    timespan: .thirtyMin,
-                    isSelected: selectedTimespan == .thirtyMin,
+                    timespan: .candles,
+                    isSelected: tokenModel.selectedTimespan == .candles,
                     action: {
                         withAnimation(.easeInOut(duration: 0.15)) {
-                            selectedTimespan = .thirtyMin
-                            tokenModel.updateHistoryInterval(.thirtyMin)
+                            tokenModel.selectedTimespan = .candles
                         }
                     }
                 )
