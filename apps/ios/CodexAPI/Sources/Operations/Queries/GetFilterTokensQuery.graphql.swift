@@ -16,7 +16,7 @@ public class GetFilterTokensQuery: GraphQLQuery {
 
     public init(
         rankingAttribute: GraphQLNullable<GraphQLEnum<TokenRankingAttribute>> = .init(.volume1),
-        limit: GraphQLNullable<Int> = 5
+        limit: GraphQLNullable<Int> = 15
     ) {
         self.rankingAttribute = rankingAttribute
         self.limit = limit

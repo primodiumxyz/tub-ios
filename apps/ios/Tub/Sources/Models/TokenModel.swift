@@ -42,20 +42,6 @@ class TokenModel: ObservableObject {
     private var preloaded = false
     private var initialized = false
 
-    deinit {
-        cleanup()
-    }
-
-    func cleanup() {
-        priceUpdateTimer?.invalidate()
-        priceUpdateTimer = nil
-        // Clean up subscriptions when the object is deallocated
-        priceSubscription?.cancel()
-        candleSubscription?.cancel()
-        candleSubscription = nil
-
-    }
-
     func preload(with newToken: Token, timeframeSecs: Double = CHART_INTERVAL) {
         cleanup()
         preloaded = true
@@ -441,4 +427,19 @@ class TokenModel: ObservableObject {
             self.animate = false
         }
     }
+
+    func cleanup() {
+        priceUpdateTimer?.invalidate()
+        priceUpdateTimer = nil
+        // Clean up subscriptions when the object is deallocated
+        priceSubscription?.cancel()
+        candleSubscription?.cancel()
+        candleSubscription = nil
+
+    }
+
+    deinit {
+        cleanup()
+    }
+
 }
