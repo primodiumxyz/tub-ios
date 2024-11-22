@@ -19,8 +19,6 @@ let emptyToken = Token(
 )
 
 class TokenModel: ObservableObject {
-    var tokenId: String = ""
-
     @Published var token: Token = emptyToken
     @Published var activeView: Timespan?
     @Published var isReady = false
@@ -40,6 +38,7 @@ class TokenModel: ObservableObject {
 
     private var latestPrice: Double?
     private var priceUpdateTimer: Timer?
+    private var preloaded = false
 
     deinit {
         priceUpdateTimer?.invalidate()
@@ -56,10 +55,10 @@ class TokenModel: ObservableObject {
         }
     }
 
-    func initialize(with newToken: Token, timeframeSecs: Double = CHART_INTERVAL) {
+    func preload(with newToken: Token, timeframeSecs: Double = CHART_INTERVAL) {
+        preloaded = true
+        let now = Date()
         DispatchQueue.main.async {
-            self.loadFailed = false
-            self.tokenId = newToken.id
             self.token = newToken
             self.isReady = false
             self.prices = []
@@ -67,13 +66,12 @@ class TokenModel: ObservableObject {
             self.priceChange = (0, 0)
             self.timeframeSecs = timeframeSecs
         }
-
-        let time = Date()
         Task(priority: .userInitiated) {
             do {
                 // Fetch both types of data
                 try await fetchInitialPrices(newToken.id, timeframeSecs: self.timeframeSecs)
                 subscribeToTokenPrices(newToken.id)
+                print("\(newToken.name) price fetch took \(Date().timeIntervalSince(now)) seconds")
                 // Move final status update to main thread
                 await MainActor.run {
                     self.isReady = true
@@ -87,10 +85,22 @@ class TokenModel: ObservableObject {
             }
         }
 
+    }
+
+    func initialize(with newToken: Token, timeframeSecs: Double = CHART_INTERVAL) {
+        let now = Date()
+        if !self.preloaded {
+            Task {
+                self.preload(with: newToken, timeframeSecs: timeframeSecs)
+            }
+        }
+        self.preloaded = false
+
         Task {
             do {
-                try await fetchInitialCandles(newToken.pairId)
-                await subscribeToCandles(newToken.pairId)
+                try await self.fetchInitialCandles(newToken.pairId)
+                await self.subscribeToCandles(newToken.pairId)
+                print("\(newToken.name) candle fetch took \(Date().timeIntervalSince(now)) seconds")
             }
             catch {
                 await MainActor.run {
@@ -101,7 +111,8 @@ class TokenModel: ObservableObject {
 
         Task(priority: .background) {
             do {
-                try await fetchUniqueHolders()
+                try await self.fetchUniqueHolders()
+                print("\(newToken.name) unique holders fetch took \(Date().timeIntervalSince(now)) seconds")
             }
             catch {
                 print("Error fetching unique holders: \(error)")
@@ -234,7 +245,7 @@ class TokenModel: ObservableObject {
 
             switch result {
             case .success(let graphQLResult):
-                if let errors = graphQLResult.errors {
+                if let _ = graphQLResult.errors {
                     return
                 }
 
@@ -396,7 +407,7 @@ class TokenModel: ObservableObject {
         return try await withCheckedThrowingContinuation { continuation in
             client.fetch(
                 query: GetUniqueHoldersQuery(
-                    pairId: "\(tokenId):\(NETWORK_FILTER)"
+                    pairId: "\(self.token.id):\(NETWORK_FILTER)"
                 )
             ) { [weak self] result in
                 guard let self = self else {
