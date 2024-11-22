@@ -157,15 +157,14 @@ struct ChartView: View {
                 }
             }
         }
-        .animation(.linear(duration: 0.5), value: prices)
+        .conditionalModifier(condition: false) { chart in
+            chart.animation(.linear(duration: PRICE_UPDATE_INTERVAL), value: prices)
+        }
         .chartYScale(domain: yDomain)
         .chartYAxis(.hidden)
         .chartXAxis(.hidden)
-        .frame(width: .infinity, height: height)
+        .frame(maxWidth: .infinity, minHeight: height, maxHeight: height)
         .onChange(of: rawPrices) {
-            updatePrices()
-        }
-        .onAppear {
             updatePrices()
         }
     }
