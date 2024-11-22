@@ -60,11 +60,7 @@ struct SignInWithPhoneView: View {
                 showOTPInput = true
             }
             else {
-                let error = NSError(
-                    domain: "PrivyError",
-                    code: 0,
-                    userInfo: [NSLocalizedDescriptionKey: "Failed to send OTP"]
-                )
+                let error = TubError.networkFailure
                 notificationHandler.show(
                     error.localizedDescription,
                     type: .error

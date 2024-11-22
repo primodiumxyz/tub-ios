@@ -11,7 +11,7 @@ struct SellForm: View {
     @EnvironmentObject var priceModel: SolPriceModel
     @ObservedObject var tokenModel: TokenModel
     @Binding var showBuySheet: Bool
-    var onSell: () -> Void
+    var onSell: () async -> Void
 
     var body: some View {
         GeometryReader { geometry in

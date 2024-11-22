@@ -8,7 +8,7 @@
 // ... existing imports ...
 import SwiftUI
 
-// Add this new struct above the BuySellFormView struct
+// Add this new struct above the ActionButtonsView struct
 struct SwipeToEnterView: View {
     @State private var offset: CGFloat = 0
     @State private var isDragging = false

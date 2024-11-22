@@ -12,6 +12,7 @@ import UIKit
 struct TokenListView: View {
     @EnvironmentObject private var userModel: UserModel
     @EnvironmentObject private var notificationHandler: NotificationHandler
+    @StateObject private var tokenManager = CodexTokenManager.shared
 
     // chevron animation
     @State private var chevronOffset: CGFloat = 0.0
@@ -90,7 +91,8 @@ struct TokenListView: View {
                                     .padding(.bottom, 24)
                                 Button(action: {
                                     Task {
-                                        try? await tokenListModel.subscribeTokens()
+                                        await tokenManager.refreshToken(hard: true)
+                                        await tokenListModel.startTokenSubscription()
                                     }
                                 }) {
                                     Text("Retry")
@@ -183,15 +185,12 @@ struct TokenListView: View {
                 .foregroundColor(Color.white)
             }
         }.onAppear {
-            do {
-                try tokenListModel.subscribeTokens()
-            }
-            catch {
-                notificationHandler.show("Failed to fetch tokens", type: .error)
+            Task {
+                await tokenListModel.startTokenSubscription()
             }
         }
         .onDisappear {
-            tokenListModel.unsubscribeTokens()
+            tokenListModel.stopTokenSubscription()
         }
     }
 }

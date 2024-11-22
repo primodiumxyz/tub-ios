@@ -96,3 +96,29 @@ public let serverBaseUrl: String = {
 public let NETWORK_FILTER: Int = 1_399_811_149  // Solana filter for Codex
 public let CHART_INTERVAL: Double = 120
 public let PRICE_UPDATE_INTERVAL: Double = 0.5  // Update price every half second
+
+enum TubError: Error {
+    case networkFailure
+    case invalidInput(reason: String)
+    case unknown
+    case insufficientBalance
+    case notLoggedIn
+    case parsingError
+
+    var errorDescription: String? {
+        switch self {
+        case .insufficientBalance:
+            return "Insufficient balance"
+        case .notLoggedIn:
+            return "Not logged in"
+        case .networkFailure:
+            return "Couldn't connect"
+        case .invalidInput:
+            return "Invalid input"
+        case .parsingError:
+            return "Parsing error"
+        default:
+            return "Unknown error"
+        }
+    }
+}

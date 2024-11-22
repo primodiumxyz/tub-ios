@@ -15,8 +15,9 @@ struct AccountBalanceView: View {
     @State private var isExpanded: Bool = false
 
     var balances: (solBalanceUsd: Double?, tokenBalanceUsd: Double, deltaUsd: Double) {
-        let solBalanceUsd =
-            userModel.balanceLamps == nil ? nil : priceModel.lamportsToUsd(lamports: userModel.balanceLamps!)
+        let solBalanceUsd: Double? =
+            if let balance = userModel.balanceLamps { priceModel.lamportsToUsd(lamports: balance) }
+            else { nil }
         let tokenBalanceUsd =
             userModel.tokenBalanceLamps == nil
             ? 0 : Double(userModel.tokenBalanceLamps!) * (currentTokenModel.prices.last?.priceUsd ?? 0) / 1e9

@@ -175,27 +175,31 @@ class TokenListModel: ObservableObject {
         }
     }
 
-    public func subscribeTokens() throws {
-        // Initial fetch
-        Task {
-
+    public func startTokenSubscription() async {
+        do {
             try await fetchTokens()
 
             // Set up timer for 1-second updates
-            await MainActor.run {
-                self.timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-                    guard let self = self else { return }
-                    if !self.fetching {
-                        Task {
-                            try? await self.fetchTokens()
+            self.timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+                guard let self = self else { return }
+                if !self.fetching {
+                    Task {
+                        do {
+                            try await self.fetchTokens()
+                        }
+                        catch {
+                            print("Error fetching tokens: \(error.localizedDescription)")
                         }
                     }
                 }
             }
         }
+        catch {
+            print("Error starting token subscription: \(error.localizedDescription)")
+        }
     }
 
-    func unsubscribeTokens() {
+    func stopTokenSubscription() {
         // Stop the timer
         timer?.invalidate()
         timer = nil
@@ -220,7 +224,7 @@ class TokenListModel: ObservableObject {
                 cachePolicy: .fetchIgnoringCacheData
             ) { [weak self] result in
                 guard let self = self else {
-                    continuation.resume(throwing: NSError(domain: "TokenListModel", code: 0))
+                    continuation.resume(throwing: TubError.unknown)
                     return
                 }
 
@@ -241,7 +245,8 @@ class TokenListModel: ObservableObject {
                                             symbol: elem?.token?.info?.symbol,
                                             description: elem?.token?.info?.description,
                                             imageUri: elem?.token?.info?.imageLargeUrl ?? elem?.token?.info?
-                                                .imageSmallUrl ?? elem?.token?.info?.imageThumbUrl,
+                                                .imageSmallUrl
+                                                ?? elem?.token?.info?.imageThumbUrl,
                                             liquidity: Double(elem?.liquidity ?? "0"),
                                             marketCap: Double(elem?.marketCap ?? "0"),
                                             volume: Double(elem?.volume1 ?? "0"),
@@ -257,8 +262,9 @@ class TokenListModel: ObservableObject {
                                         )
                                     }
 
-                                let currentToken = mappedTokens.first(where: { $0.id == self.currentTokenModel.tokenId }
-                                )
+                                let currentToken = mappedTokens.first(where: {
+                                    $0.id == self.currentTokenModel.tokenId
+                                })
                                 return (mappedTokens, currentToken)
                             }
                             return ([], nil)
@@ -327,24 +333,20 @@ class TokenListModel: ObservableObject {
             let currentToken = tokens[safe: currentTokenIndex]
         else { return }
 
-        let dwellTimeMs = Int(Date().timeIntervalSince(startTime) * 1000)  // Convert to milliseconds
+        Task {
+            let dwellTimeMs = Int(Date().timeIntervalSince(startTime) * 1000)  // Convert to milliseconds
 
-        Network.shared.recordClientEvent(
-            event: ClientEvent(
-                eventName: "token_dwell_time",
-                source: "token_list_model",
-                metadata: [
-                    ["token_id": currentToken.id],
-                    ["dwell_time_ms": dwellTimeMs],
-                ]
+            try? await Network.shared.recordClientEvent(
+                event: ClientEvent(
+                    eventName: "token_dwell_time",
+                    source: "token_list_model",
+                    metadata: [
+                        ["token_id": currentToken.id],
+                        ["dwell_time_ms": dwellTimeMs],
+                    ]
+                )
             )
-        ) { result in
-            switch result {
-            case .success:
-                print("Successfully recorded token dwell time")
-            case .failure(let error):
-                print("Failed to record token dwell time: \(error)")
-            }
+            print("Recorded token dwell time")
         }
     }
 }
