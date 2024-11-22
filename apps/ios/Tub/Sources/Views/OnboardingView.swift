@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import WebKit
 
 struct OnboardingView: View {
     @Environment(\.dismiss) var dismiss
@@ -17,7 +18,7 @@ struct OnboardingView: View {
         OnboardingPage(
             title: "Swipe Up to Explore",
             subtitle: "Navigate through coins by swiping up.",
-            backgroundImage: "Logo"
+            backgroundImage: nil
         ),
         OnboardingPage(
             title: "1-Click Trading",
@@ -41,19 +42,16 @@ struct OnboardingView: View {
             ZStack {
                 Color.black.ignoresSafeArea()
                 
-                if currentPage == 1 {
-                    BubbleEffect(isActive: $showBubbles)
-                        .opacity(showBubbles ? 1 : 0)
-                        .animation(.easeIn, value: showBubbles)
-                }
-                
                 VStack(spacing: 0) {
                     TabView(selection: $currentPage) {
                         ForEach(0..<onboardingData.count, id: \.self) { index in
-                            VStack(spacing: 8) {
+                            VStack(spacing: 16) {
+                                Spacer()
+                                
                                 Text(onboardingData[index].title)
                                     .font(.sfRounded(size: .xl2, weight: .semibold))
                                     .foregroundStyle(AppColors.aquaGreen)
+                                    .padding(.top, 30)
                                 
                                 Text(onboardingData[index].subtitle)
                                     .font(.sfRounded(size: .lg, weight: .regular))
@@ -61,18 +59,25 @@ struct OnboardingView: View {
                                     .multilineTextAlignment(.center)
                                     .padding(.horizontal, 40)
                                 
-                                if let bgImage = onboardingData[index].backgroundImage {
-                                    Image(bgImage)
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(maxHeight: UIScreen.main.bounds.height * 0.5)
+                                if index == 0 {
+                                    GIFView(gifName: "swipe")
+                                        .frame(width: 300, height: 500)
+
+                                } else if index == 1 {
+                                    GIFView(gifName: "buysell")
+                                        .frame(width: 300, height: 550)
+                                } else if index == 2 {
+                                    GIFView(gifName: "history")
+                                        .frame(width: 300, height: 550)
                                 }
+                                Spacer()
+                                
                             }
                             .tag(index)
                             .onChange(of: currentPage) { oldValue, newValue in
                                 if newValue == 1 {
                                     showBubbles = false
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 6.8) {
                                         showBubbles = true
                                     }
                                 }
@@ -80,8 +85,6 @@ struct OnboardingView: View {
                         }
                     }
                     .tabViewStyle(.page(indexDisplayMode: .never))
-                    
-                    Spacer()
                     
                     Button {
                         if currentPage < onboardingData.count - 1 {
@@ -107,6 +110,12 @@ struct OnboardingView: View {
                     .padding(.horizontal, 20)
                     .padding(.bottom, 40)
                 }
+                
+                if currentPage == 1 {
+                    BubbleEffect(isActive: $showBubbles)
+                        .opacity(showBubbles ? 1 : 0)
+                        .animation(.easeIn, value: showBubbles)
+                }
             }
             .navigationBarHidden(true)
             .preferredColorScheme(.dark)
@@ -119,6 +128,27 @@ struct OnboardingPage {
     let subtitle: String
     let backgroundImage: String?
 }
+
+struct GIFView: UIViewRepresentable {
+    let gifName: String
+
+    func makeUIView(context: Context) -> WKWebView {
+        let webView = WKWebView()
+        webView.isUserInteractionEnabled = false
+        
+        if let url = Bundle.main.url(forResource: gifName, withExtension: "gif") {
+            let data = try? Data(contentsOf: url)
+            webView.load(data!, mimeType: "image/gif", characterEncodingName: "", baseURL: url.deletingLastPathComponent())
+        }
+        webView.scrollView.isScrollEnabled = false
+        webView.backgroundColor = .clear
+        webView.isOpaque = false
+        return webView
+    }
+
+    func updateUIView(_ uiView: WKWebView, context: Context) {}
+}
+
 
 #Preview {
     OnboardingView()
