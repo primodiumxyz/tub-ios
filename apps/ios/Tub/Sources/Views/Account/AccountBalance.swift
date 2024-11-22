@@ -39,18 +39,25 @@ struct AccountBalanceView: View {
                         .foregroundColor(AppColors.white)
 
                     Spacer()
-                    VStack(alignment: .trailing) {
+                    VStack(alignment: .trailing, spacing: 0) {
                         if let balance = balances.solBalanceUsd {
-                            let formattedChange = priceModel.formatPrice(
-                                usd: balances.deltaUsd,
-                                showSign: true,
-                                maxDecimals: 2
-                            )
-                            Text(formattedChange)
-                                .font(.sfRounded(size: .xs, weight: .light))
-                                .fontWeight(.bold)
-                                .foregroundColor(balances.deltaUsd >= 0 ? AppColors.green : AppColors.red)
-                                .opacity(0.7)
+                            if balances.deltaUsd != 0 {
+                                let formattedChange = priceModel.formatPrice(
+                                    usd: balances.deltaUsd,
+                                    showSign: true,
+                                    maxDecimals: 2
+                                )
+                                Text(formattedChange)
+                                    .font(.sfRounded(size: .xs, weight: .light))
+                                    .fontWeight(.bold)
+                                    .foregroundColor(balances.deltaUsd >= 0 ? AppColors.green : AppColors.red)
+                                    .opacity(0.7)
+                                    .frame(height: 10)
+                                    .padding(0)
+                            }
+                            else {
+                                Spacer().frame(height: 10)
+                            }
 
                             let formattedBalance = priceModel.formatPrice(
                                 usd: balance,
