@@ -102,7 +102,7 @@ struct CoinbaseOnrampView: View {
                 Text("Deposit with ")
                     .font(.sfRounded(size: .xl, weight: .semibold))
                     .padding(.trailing, -4)
-                Image("coinbase")
+                Image("Coinbase")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(height: 16)

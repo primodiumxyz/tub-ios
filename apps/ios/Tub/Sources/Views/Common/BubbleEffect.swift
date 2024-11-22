@@ -25,7 +25,7 @@ struct BubbleEffect: View {
         GeometryReader { geometry in
             ZStack {
                 ForEach(bubbles) { bubble in
-                    Image("tub_bubble_test")
+                    Image("Bubble")
                         .resizable()
                         .renderingMode(.template)
                         .foregroundColor(Color("aquaGreen").opacity(1.0))

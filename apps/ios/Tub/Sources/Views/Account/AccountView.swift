@@ -203,7 +203,7 @@ private struct AccountSettingsView: View {
                 Text("Support")
                     .font(.sfRounded(size: .lg, weight: .regular))
                 Spacer()
-                Image("discord")
+                Image("Discord")
                     .resizable()
                     .frame(width: 32, height: 32, alignment: .center)
                     .cornerRadius(8)
