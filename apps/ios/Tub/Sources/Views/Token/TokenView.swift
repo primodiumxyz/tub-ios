@@ -90,42 +90,40 @@ struct TokenView: View {
     }
 
     var body: some View {
-            ZStack {
-                Color.black
-                
-                // Main content
-                VStack(alignment: .leading, spacing: 0) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Spacer().frame(height: 20)
-                        tokenInfoView
-                        chartView
-                            .padding(.top, 5)
-                        intervalButtons
-                            .padding(.bottom, 12)
-                            .padding(.top, 12)
-                    }
+        ZStack {
 
-                    VStack(spacing: 0) {
-                        infoCardLowOpacity
-                            .opacity(0.8)
-                            .padding(.horizontal, 8)
-                        BuySellFormView(
-                            tokenModel: tokenModel,
-                            showBuySheet: $showBuySheet,
-                            defaultAmount: $defaultAmount,
-                            handleBuy: handleBuy,
-                            onSellSuccess: onSellSuccess
-                        )
-                        .equatable()
-                    }
+            // Main content
+            VStack(alignment: .leading, spacing: 0) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Spacer().frame(height: 20)
+                    tokenInfoView
+                    chartView
+                        .padding(.top, 5)
+                    intervalButtons
+                        .padding(.bottom, 12)
+                        .padding(.top, 12)
                 }
-                .frame(maxWidth: .infinity)
-                .foregroundColor(AppColors.white)
 
-                infoCardOverlay
-                buySheetOverlay
+                VStack(spacing: 0) {
+                    infoCardLowOpacity
+                        .opacity(0.8)
+                        .padding(.horizontal, 8)
+                    BuySellFormView(
+                        tokenModel: tokenModel,
+                        showBuySheet: $showBuySheet,
+                        defaultAmount: $defaultAmount,
+                        handleBuy: handleBuy,
+                        onSellSuccess: onSellSuccess
+                    )
+                    .equatable()
+                }
             }
-            .dismissKeyboardOnTap()
+            .frame(maxWidth: .infinity)
+            .foregroundColor(AppColors.white)
+            infoCardOverlay
+            buySheetOverlay
+        }
+        .dismissKeyboardOnTap()
     }
 
     private var tokenInfoView: some View {
@@ -135,14 +133,22 @@ struct TokenView: View {
                 ImageView(imageUri: tokenModel.token.imageUri, size: 50)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
             }
+            else {
+                LoadingBox(width: 50, height: 50)
+            }
 
             // Text column
             VStack(alignment: .leading, spacing: 0) {
-                Text("$\(tokenModel.token.symbol)")
-                    .font(.sfRounded(size: .lg, weight: .semibold)).opacity(0.7)
+                if tokenModel.token.symbol != "" {
+                    Text("$\(tokenModel.token.symbol)")
+                        .font(.sfRounded(size: .lg, weight: .semibold)).opacity(0.7)
+                }
+                else {
+                    LoadingBox(width: 100, height: 16)
+                }
 
-                HStack(alignment: .center, spacing: 6) {
-                    if tokenModel.isReady {
+                if tokenModel.isReady {
+                    HStack(alignment: .center, spacing: 6) {
                         let price = priceModel.formatPrice(
                             usd: tokenModel.prices.last?.priceUsd ?? 0,
                             maxDecimals: 9,
@@ -153,9 +159,10 @@ struct TokenView: View {
                         Image(systemName: "info.circle.fill")
                             .frame(width: 16, height: 16)
                     }
-                    else {
-                        LoadingBox(width: 200, height: 40).padding(.vertical, 4)
-                    }
+
+                }
+                else {
+                    LoadingBox(width: 200, height: 40).padding(.vertical, 4)
                 }
 
                 let price = priceModel.formatPrice(usd: tokenModel.priceChange.amountUsd, showSign: true)
@@ -164,7 +171,9 @@ struct TokenView: View {
                     if tokenModel.isReady {
                         Text(price)
                         Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
-                        Text("\(formatDuration(tokenModel.currentTimeframe.timeframeSecs))").foregroundColor(.gray)
+                        Text("\(formatDuration(tokenModel.currentTimeframe.timeframeSecs))").foregroundColor(
+                            .gray
+                        )
                     }
                     else {
                         LoadingBox(width: 160, height: 12)
@@ -210,15 +219,23 @@ struct TokenView: View {
     /* ---------------------------- Interval Buttons ---------------------------- */
 
     private var intervalButtons: some View {
-        HStack {
-            Spacer()
-            HStack(spacing: 4) {
-                intervalButton(for: .live)
-                intervalButton(for: .thirtyMin)
+        Group {
+            if tokenModel.isReady {
+                HStack {
+                    Spacer()
+                    HStack(spacing: 4) {
+                        intervalButton(for: .live)
+                        intervalButton(for: .thirtyMin)
+                    }
+                    Spacer()
+                }
+                .frame(height: 30)
+                .padding(.horizontal)
             }
-            Spacer()
+            else {
+                Spacer().frame(height: 32)
+            }
         }
-        .padding(.horizontal)
     }
 
     private func intervalButton(for timespan: Timespan) -> some View {
@@ -249,9 +266,13 @@ struct TokenView: View {
     /* ------------------------------ Info Overlays ----------------------------- */
 
     private var stats: [(String, StatValue)] {
+        if !tokenModel.isReady {
+            return []
+        }
         var stats = [(String, StatValue)]()
 
-        if let purchaseData = userModel.purchaseData, let priceUsd = tokenModel.prices.last?.priceUsd, priceUsd > 0,
+        if let purchaseData = userModel.purchaseData, let priceUsd = tokenModel.prices.last?.priceUsd,
+            priceUsd > 0,
             activeTab == "sell"
         {
             // Calculate current value
@@ -300,7 +321,7 @@ struct TokenView: View {
         VStack(alignment: .leading, spacing: 0) {
             if activeTab == "sell" {
                 ForEach(stats.prefix(3), id: \.0) { stat in
-                    VStack(spacing: 2) {
+                    VStack(spacing: 0) {
                         HStack(spacing: 0) {
                             Text(stat.0)
                                 .font(.sfRounded(size: .xs, weight: .regular))
@@ -318,7 +339,7 @@ struct TokenView: View {
                             .foregroundColor(.clear)
                             .frame(height: 0.5)
                             .background(AppColors.gray.opacity(0.5))
-                            .padding(.top, 2)
+                            .padding(.top, 4)
                     }
                     .padding(.vertical, 4)
                 }
@@ -331,7 +352,7 @@ struct TokenView: View {
                         let statIndex = (activeTab == "sell" ? 3 : 0) + rowIndex * 2 + columnIndex
                         if statIndex < stats.count {
                             let stat = stats[statIndex]
-                            VStack(spacing: 2) {
+                            VStack(spacing: 0) {
                                 HStack(spacing: 0) {
                                     Text(stat.0)
                                         .font(.sfRounded(size: .xs, weight: .regular))
@@ -349,7 +370,6 @@ struct TokenView: View {
                                     .foregroundColor(.clear)
                                     .frame(height: 0.5)
                                     .background(AppColors.gray.opacity(0.5))
-                                    .padding(.top, 2)
                             }
                         }
                     }
@@ -374,7 +394,6 @@ struct TokenView: View {
             if showInfoCard {
                 // Fullscreen tap dismiss
                 AppColors.black.opacity(0.2)
-                    .ignoresSafeArea()
                     .onTapGesture {
                         withAnimation(.easeInOut) {
                             showInfoCard = false  // Close the card
@@ -397,7 +416,6 @@ struct TokenView: View {
         return AnyView(
             Group {
                 AppColors.black.opacity(0.4)
-                    .ignoresSafeArea()
                     .onTapGesture {
                         withAnimation(.easeInOut(duration: 0.3)) {
                             showBuySheet = false
@@ -429,7 +447,9 @@ struct TokenView: View {
             object: nil,
             queue: .main
         ) { notification in
-            if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
+            if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey]
+                as? CGRect
+            {
                 withAnimation(.easeOut(duration: 0.16)) {
                     self.keyboardHeight = keyboardFrame.height / 2
                 }
@@ -448,7 +468,15 @@ struct TokenView: View {
     }
 
     private func removeKeyboardNotifications() {
-        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
-        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
+        NotificationCenter.default.removeObserver(
+            self,
+            name: UIResponder.keyboardWillShowNotification,
+            object: nil
+        )
+        NotificationCenter.default.removeObserver(
+            self,
+            name: UIResponder.keyboardWillHideNotification,
+            object: nil
+        )
     }
 }

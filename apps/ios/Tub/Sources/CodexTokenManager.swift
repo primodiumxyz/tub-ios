@@ -80,24 +80,7 @@ class CodexTokenManager: ObservableObject {
     }()
 
     private func fetchToken() async throws -> (String, String) {
-        var codexToken: (String, String)?
-        if let localToken = localCodexToken {
-            codexToken = localToken
-        }
-        else {
-            print("fetching new token")
-            codexToken = try await Network.shared.requestCodexToken(Int(tokenExpiration) * 1000)
-        }
-        guard let codexToken = codexToken else {
-            throw NSError(
-                domain: "CodexTokenManager",
-                code: 1,
-                userInfo: [
-                    NSLocalizedDescriptionKey: "Failed to fetch codex token"
-                ]
-            )
-        }
-        return codexToken
+        return try! await Network.shared.requestCodexToken(Int(tokenExpiration) * 1000)
     }
 
     private func refreshToken() async {
