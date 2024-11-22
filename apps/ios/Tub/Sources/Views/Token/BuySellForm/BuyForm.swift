@@ -112,7 +112,11 @@ struct BuyForm: View {
             strokeColor: Color("aquaGreen"),
             backgroundColor: .clear,
             maxWidth: .infinity,
-            action: handleBuy
+            action: {
+                Task {
+                    await handleBuy()
+                }
+            }
         )
         .disabled((userModel.balanceLamps ?? 0) < priceModel.usdToLamports(usd: buyAmountUsd))
     }

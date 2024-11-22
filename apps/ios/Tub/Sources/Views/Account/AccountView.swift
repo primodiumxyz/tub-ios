@@ -219,7 +219,7 @@ private struct AccountSettingsView: View {
                 icon: "rectangle.portrait.and.arrow.right",
                 text: "Logout",
                 textColor: Color.red,
-                action: userModel.logout
+                action: { userModel.logout() }
             )
 
             Text(serverBaseUrl).foregroundStyle(Color.white)

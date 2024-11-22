@@ -28,7 +28,11 @@ struct SellForm: View {
                     text: "Sell",
                     textColor: Color.white,
                     backgroundColor: Color("pink"),
-                    action: onSell
+                    action: {
+                        Task {
+                            await onSell()
+                        }
+                    }
                 )
             }
         }
