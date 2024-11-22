@@ -125,6 +125,9 @@ export class OctaneService {
         swapRequest: {
           quoteResponse: quote,
           userPublicKey: userPublicKey.toBase58(), // Make sure we're using toBase58()
+          asLegacyTransaction: true,
+          useSharedAccounts: false,
+          wrapAndUnwrapSol: true,
         }
       };
 
@@ -185,42 +188,94 @@ export class OctaneService {
     // Get blockhash first to ensure it's available
     const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash();
 
-    // Create transaction with all required fields
+    // Create new transaction
     const transaction = new Transaction();
     transaction.feePayer = this.feePayerKeypair.publicKey;
     transaction.recentBlockhash = blockhash;
     transaction.lastValidBlockHeight = lastValidBlockHeight;
 
-    // Add instructions one by one to ensure they're properly added
+    // Add fee transfer first (if any)
     if (feeTransferInstruction) {
+      console.log("[buildCompleteSwap] Adding fee transfer instruction");
       transaction.add(feeTransferInstruction);
     }
 
-    if (swapInstructions.setupInstructions?.length) {
-      swapInstructions.setupInstructions.forEach(instruction => {
-        if (instruction) {
-          transaction.add(this.convertToTransactionInstruction(instruction));
+    // Add Jupiter's instructions in their original order
+    const jupiterInstructions = [
+      ...(swapInstructions.setupInstructions || []),
+      swapInstructions.swapInstruction,
+      swapInstructions.cleanupInstruction
+    ].filter(ix => ix !== null && ix !== undefined);
+
+    // Add all Jupiter instructions preserving their exact data
+    jupiterInstructions.forEach(instruction => {
+      // If this is an ATA creation instruction, modify it to use fee payer
+      if (instruction.programId === 'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL') {
+        // Modify the account metas to make fee payer pay for rent
+        const keys = instruction.accounts.map(acc => ({
+          pubkey: new PublicKey(acc.pubkey),
+          isSigner: acc.isSigner,
+          isWritable: acc.isWritable
+        }));
+
+        // Make fee payer the rent payer
+        keys[0] = {
+          pubkey: this.feePayerKeypair.publicKey,
+          isSigner: true,
+          isWritable: true
+        };
+
+        transaction.add(new TransactionInstruction({
+          programId: new PublicKey(instruction.programId),
+          keys,
+          data: Buffer.from(instruction.data, 'base64')
+        }));
+      } else {
+        // Handle other instructions normally
+        console.log("[buildCompleteSwap] Adding instruction:", {
+          programId: instruction.programId,
+          dataType: typeof instruction.data,
+          dataLength: instruction.data?.length || 0,
+          rawData: instruction.data
+        });
+
+        // Handle instruction data based on its type
+        let data: Buffer;
+        if (typeof instruction.data === 'string') {
+          // Try base64 first, then hex
+          try {
+            data = Buffer.from(instruction.data, 'base64');
+          } catch {
+            data = Buffer.from(instruction.data, 'hex');
+          }
+        } else if (Array.isArray(instruction.data)) {
+          data = Buffer.from(instruction.data);
+        } else {
+          // If it's not a string or array, assume it's already a Buffer
+          data = instruction.data;
         }
-      });
-    }
 
-    if (swapInstructions.swapInstruction) {
-      transaction.add(this.convertToTransactionInstruction(swapInstructions.swapInstruction));
-    }
+        transaction.add(new TransactionInstruction({
+          programId: new PublicKey(instruction.programId),
+          keys: instruction.accounts.map(acc => ({
+            pubkey: new PublicKey(acc.pubkey),
+            isSigner: acc.isSigner,
+            isWritable: acc.isWritable
+          })),
+          data
+        }));
+      }
+    });
 
-    if (swapInstructions.cleanupInstruction) {
-      transaction.add(this.convertToTransactionInstruction(swapInstructions.cleanupInstruction));
-    }
-
-    console.log("[buildCompleteSwap] Created instruction array:", {
+    // Log for debugging
+    console.log("[buildCompleteSwap] Built transaction:", {
+      feePayer: transaction.feePayer?.toBase58(),
       instructionCount: transaction.instructions.length,
-      hasFeeTransfer: !!feeTransferInstruction,
-      hasSwapInstruction: !!swapInstructions.swapInstruction,
-      hasCleanupInstruction: !!swapInstructions.cleanupInstruction,
-      instructions: transaction.instructions.map(i => ({
-        programId: i?.programId?.toBase58() || 'unknown',
-        keys: i?.keys?.length || 0,
-        data: i?.data?.length || 0
+      instructions: transaction.instructions.map(ix => ({
+        programId: ix.programId.toBase58(),
+        keys: ix.keys.length,
+        dataLength: ix.data.length,
+        firstKey: ix.keys[0]?.pubkey.toBase58()
       }))
     });
 
@@ -326,14 +381,41 @@ export class OctaneService {
   }
 
   private convertToTransactionInstruction(instruction: any): TransactionInstruction {
+    // Handle instruction data properly
+    let data: Buffer;
+    if (typeof instruction.data === 'string') {
+      // If it's a hex string, remove '0x' prefix if present
+      const hex = instruction.data.startsWith('0x') ? instruction.data.slice(2) : instruction.data;
+      data = Buffer.from(hex, 'hex');
+    } else if (Array.isArray(instruction.data)) {
+      // If it's a byte array
+      data = Buffer.from(instruction.data);
+    } else if (instruction.data instanceof Buffer) {
+      // If it's already a Buffer
+      data = instruction.data;
+    } else {
+      console.error('Invalid instruction data format:', instruction.data);
+      throw new Error('Invalid instruction data format');
+    }
+
+    // Map accounts with proper key conversion
+    const keys = instruction.accounts.map((account: { pubkey: string; isSigner: boolean; isWritable: boolean }) => ({
+      pubkey: new PublicKey(account.pubkey),
+      isSigner: account.isSigner,
+      isWritable: account.isWritable
+    }));
+
+    // Log instruction details for debugging
+    console.log("[convertToTransactionInstruction] Converting instruction:", {
+      programId: instruction.programId,
+      dataLength: data.length,
+      keysCount: keys.length
+    });
+
     return new TransactionInstruction({
       programId: new PublicKey(instruction.programId),
-      keys: instruction.accounts.map((account: { pubkey: string; isSigner: boolean; isWritable: boolean }) => ({
-        pubkey: new PublicKey(account.pubkey),
-        isSigner: account.isSigner,
-        isWritable: account.isWritable
-      })),
-      data: Buffer.from(instruction.data)
+      keys,
+      data
     });
   }
 } 

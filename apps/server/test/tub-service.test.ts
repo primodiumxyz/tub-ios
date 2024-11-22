@@ -1,13 +1,14 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { TubService } from '../src/TubService';
 import { OctaneService } from '../src/OctaneService';
-import { Connection, Keypair, PublicKey } from '@solana/web3.js';
+import { Connection, Keypair, PublicKey, Transaction } from '@solana/web3.js';
 import { createJupiterApiClient } from '@jup-ag/api';
 import { MockPrivyClient } from './helpers/MockPrivyClient';
 import { Codex } from '@codex-data/sdk';
 import { createClient as createGqlClient } from '@tub/gql';
 import { config } from 'dotenv';
 import bs58 from 'bs58';
+import { getAssociatedTokenAddress } from '@solana/spl-token';
 
 config({ path: "../../.env" });
 
@@ -15,11 +16,16 @@ describe('TubService Integration Test', () => {
   let tubService: TubService;
   let userKeypair: Keypair;
   let mockJwtToken: string;
+  let connection: Connection;
   
   beforeAll(async () => {
     try {
+      if (!process.env.TEST_USER_PRIVATE_KEY) {
+        throw new Error("TEST_USER_PRIVATE_KEY not found in environment");
+      }
+
       // Setup connection to Solana mainnet
-      const connection = new Connection(process.env.QUICKNODE_MAINNET_URL ?? 'https://api.mainnet-beta.solana.com');
+      connection = new Connection(process.env.QUICKNODE_MAINNET_URL ?? 'https://api.mainnet-beta.solana.com');
       
       // Setup Jupiter API client
       const jupiterQuoteApi = createJupiterApiClient({
@@ -38,8 +44,10 @@ describe('TubService Integration Test', () => {
         bs58.decode(process.env.FEE_PAYER_PRIVATE_KEY!)
       );
 
-      // Create test user keypair
-      userKeypair = Keypair.generate();
+      // Create test user keypair from environment
+      userKeypair = Keypair.fromSecretKey(
+        bs58.decode(process.env.TEST_USER_PRIVATE_KEY)
+      );
       mockJwtToken = 'test_jwt_token';
 
       // Initialize services
@@ -71,6 +79,51 @@ describe('TubService Integration Test', () => {
         octaneService
       );
 
+      console.log('\nTest setup complete with user public key:', userKeypair.publicKey.toBase58());
+
+      // Log all relevant token accounts
+      const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
+      const SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
+      
+      // Get fee payer token accounts
+      const feePayerUsdcAta = await getAssociatedTokenAddress(
+        USDC_MINT,
+        feePayerKeypair.publicKey
+      );
+      const feePayerSolAta = await getAssociatedTokenAddress(
+        SOL_MINT,
+        feePayerKeypair.publicKey
+      );
+
+      // Get user token accounts
+      const userUsdcAta = await getAssociatedTokenAddress(
+        USDC_MINT,
+        userKeypair.publicKey
+      );
+      const userSolAta = await getAssociatedTokenAddress(
+        SOL_MINT,
+        userKeypair.publicKey
+      );
+
+      console.log("\nToken Accounts:");
+      console.log("Fee Payer:", feePayerKeypair.publicKey.toBase58());
+      console.log("Fee Payer USDC ATA:", feePayerUsdcAta.toBase58());
+      console.log("Fee Payer SOL ATA:", feePayerSolAta.toBase58());
+      console.log("\nUser:", userKeypair.publicKey.toBase58());
+      console.log("User USDC ATA:", userUsdcAta.toBase58());
+      console.log("User SOL ATA:", userSolAta.toBase58());
+
+      // Check USDC balance
+      try {
+        const balance = await connection.getTokenAccountBalance(userUsdcAta);
+        if (!balance.value.uiAmount || balance.value.uiAmount < 1) {
+          throw new Error(`Test account needs at least 1 USDC. Current balance: ${balance.value.uiAmount ?? 0} USDC`);
+        }
+        console.log(`USDC balance: ${balance.value.uiAmount} USDC`);
+      } catch (e) {
+        throw new Error("Test account needs a USDC token account with at least 1 USDC");
+      }
+
     } catch (error) {
       console.error('Error in test setup:', error);
       throw error;
@@ -91,21 +144,25 @@ describe('TubService Integration Test', () => {
         transactionLength: swapResponse.transactionBase64.length
       });
 
-    //   // Sign the transaction
-    //   const transaction = Buffer.from(swapResponse.transactionBase64, 'base64');
-    //   const signature = bs58.encode(userKeypair.sign(transaction));
+      // Sign the transaction
+      const transaction = Transaction.from(Buffer.from(swapResponse.transactionBase64, 'base64'));
+      transaction.partialSign(userKeypair);
+      const signature = transaction.signatures.find(sig => sig.publicKey.equals(userKeypair.publicKey))?.signature;
+      if (!signature) {
+        throw new Error("Failed to get signature from transaction");
+      }
 
-    //   console.log('\nSigning and sending transaction...');
-    //   const result = await tubService.signAndSendTransaction(
-    //     mockJwtToken,
-    //     signature,
-    //     swapResponse.transactionBase64
-    //   );
+      console.log('\nSigning and sending transaction...');
+      const result = await tubService.signAndSendTransaction(
+        mockJwtToken,
+        bs58.encode(signature),
+        swapResponse.transactionBase64
+      );
 
-    //   console.log('Transaction result:', result);
+      console.log('Transaction result:', result);
 
-    //   expect(result).toBeDefined();
-    //   expect(result.signature).toBeDefined();
+      expect(result).toBeDefined();
+      expect(result.signature).toBeDefined();
       
     } catch (error) {
       console.error('Error in swap flow test:', error);
