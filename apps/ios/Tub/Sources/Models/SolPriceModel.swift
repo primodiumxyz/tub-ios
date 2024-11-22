@@ -15,15 +15,43 @@ final class SolPriceModel: ObservableObject {
     @Published var price: Double? = nil
     @Published var error: String?
 
+    private var timer: Timer?
+    private var fetching = false
+    private let updateInterval: TimeInterval = 10 // Update every 10 seconds
+
     init() {
         Task {
             await fetchCurrentPrice()
+            startPriceUpdates()
         }
     }
 
-    // this comment ensures that the fetchCurrentPrice function is executing on the main thread
+    deinit {
+        timer?.invalidate()
+        timer = nil
+    }
+
+    private func startPriceUpdates() {
+        timer?.invalidate()
+        timer = nil
+        
+        timer = Timer.scheduledTimer(withTimeInterval: updateInterval, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            if !self.fetching {
+                Task {
+                    await self.fetchCurrentPrice()
+                }
+            }
+        }
+        RunLoop.main.add(timer!, forMode: .common)
+    }
+
     @MainActor
     func fetchCurrentPrice() async {
+        guard !fetching else { return }
+        fetching = true
+        defer { fetching = false }
+        
         error = nil
         isReady = false
         
@@ -37,26 +65,29 @@ final class SolPriceModel: ObservableObject {
         do {
             try await withCheckedThrowingContinuation { continuation in
                 client.fetch(query: query) { result in
-                    switch result {
-                    case .success(let response):
-                        if let prices = response.data?.getTokenPrices,
-                            let firstPrice = prices.first,
-                            let price = firstPrice?.priceUsd
-                        {
-                            self.price = price
-                            continuation.resume()
-                        } else {
-                            continuation.resume(throwing: TubError.parsingError)
+                    Task { @MainActor in
+                        switch result {
+                        case .success(let response):
+                            if let prices = response.data?.getTokenPrices,
+                               let firstPrice = prices.first,
+                               let price = firstPrice?.priceUsd
+                            {
+                                self.price = price
+                                continuation.resume()
+                            } else {
+                                continuation.resume(throwing: TubError.parsingError)
+                            }
+                        case .failure(let error):
+                            continuation.resume(throwing: error)
                         }
-                    case .failure(let error):
-                        continuation.resume(throwing: error)
                     }
                 }
             }
         } catch {
             self.error = error.localizedDescription
-            print("Error fetching SOL price: \(error.localizedDescription)")
+            print("Error fetching SOL price: \(error)")
         }
+        
         self.isReady = true
     }
 
