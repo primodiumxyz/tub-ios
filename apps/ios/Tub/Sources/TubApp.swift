@@ -37,25 +37,27 @@ struct AppContent: View {
     @StateObject private var userModel = UserModel.shared
     @StateObject private var priceModel = SolPriceModel.shared
     @StateObject private var tokenManager = CodexTokenManager.shared
-    
+
     var body: some View {
         Group {
             if tokenManager.fetchFailed {
-                LoginErrorView(errorMessage: "Failed to connect. Please try again.",
-                               retryAction: {
-                                    Task {
-                                        await tokenManager.handleUserSession()
-                                    }
-                                }
+                LoginErrorView(
+                    errorMessage: "Failed to connect. Please try again.",
+                    retryAction: {
+                        Task {
+                            await tokenManager.refreshToken()
+                        }
+                    }
                 )
             }
             else if !tokenManager.isReady {
                 LoadingView(identifier: "Fetching Codex token", message: "Fetching auth token")
-                
-            } else {
+
+            }
+            else {
                 HomeTabsView(userModel: userModel).font(.sfRounded())
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(.black)
+                    .background(Color.black)
                     .withNotificationBanner()
                     .environmentObject(notificationHandler)
                     .environmentObject(userModel)
@@ -69,8 +71,12 @@ struct AppContent: View {
                     }
             }
         }.onAppear {
-            Task (priority: .high){
-                await tokenManager.handleUserSession()
+            Task(priority: .high) {
+                await tokenManager.refreshToken()
+            }
+        }.onChange(of: userModel.walletState) { _, newState in
+            if newState == .error {
+                notificationHandler.show("Error connecting to wallet.", type: .error)
             }
         }
     }

@@ -12,14 +12,14 @@ struct LoadingBox: View {
     let height: CGFloat
     let opacity: CGFloat
     let cornerRadius: CGFloat
-    
-    init(width: CGFloat = .infinity, height: CGFloat = .infinity, opacity: Double = 0.3, cornerRadius : CGFloat = 8) {
+
+    init(width: CGFloat = .infinity, height: CGFloat = .infinity, opacity: Double = 0.3, cornerRadius: CGFloat = 8) {
         self.width = width
         self.height = height
         self.cornerRadius = cornerRadius
         self.opacity = opacity
     }
-    
+
     var body: some View {
         RoundedRectangle(cornerRadius: cornerRadius)
             .fill(Color.white.opacity(0.1))
@@ -38,4 +38,3 @@ struct LoadingBox: View {
     .padding()
     .background(Color.black)
 }
-

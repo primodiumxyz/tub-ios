@@ -10,11 +10,11 @@ import SwiftUI
 struct ShimmeringView: ViewModifier {
     @State private var phase: CGFloat = 0
     let opacity: Double
-    
+
     init(opacity: Double = 0.1) {
         self.opacity = opacity
     }
-    
+
     func body(content: Content) -> some View {
         content
             .overlay(
@@ -25,7 +25,7 @@ struct ShimmeringView: ViewModifier {
                             Rectangle()
                                 .fill(
                                     LinearGradient(
-                                        gradient: Gradient(colors: [.clear, .white.opacity(0.3), .clear]),
+                                        gradient: Gradient(colors: [.clear, Color.white.opacity(0.3), .clear]),
                                         startPoint: .leading,
                                         endPoint: .trailing
                                     )
@@ -48,4 +48,3 @@ extension View {
         modifier(ShimmeringView(opacity: opacity))
     }
 }
-
