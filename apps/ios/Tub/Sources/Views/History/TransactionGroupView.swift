@@ -44,7 +44,7 @@ struct TransactionGroupRow: View {
                 let price = priceModel.formatPrice(usd: group.netProfit, showSign: true)
                 Text(price)
                     .font(.sfRounded(size: .base, weight: .bold))
-                    .foregroundStyle(group.netProfit >= 0 ? AppColors.green : AppColors.red)
+                    .foregroundStyle(group.netProfit >= 0 ? Color.green : Color.red)
             }
             .padding(.vertical, 12)
         }
@@ -79,7 +79,7 @@ struct TransactionDetailRow: View {
                     let price = priceModel.formatPrice(usd: transaction.valueUsd, showSign: true)
                     Text(price)
                         .font(.sfRounded(size: .sm, weight: .bold))
-                        .foregroundColor(transaction.isBuy ? AppColors.red : AppColors.green)
+                        .foregroundColor(transaction.isBuy ? Color.red : Color.green)
 
                     let quantity = priceModel.formatPrice(lamports: abs(transaction.quantityTokens), showUnit: false)
                     Text("\(quantity) \(transaction.symbol)")

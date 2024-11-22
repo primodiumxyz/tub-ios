@@ -117,7 +117,7 @@ struct HomeTabsView: View {
                             AccountView()
                         }
                     }
-                    .background(AppColors.black)
+                    .background(Color.black)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                     // Custom Tab Bar
@@ -136,7 +136,7 @@ struct HomeTabsView: View {
                                     .font(.sfRounded(size: .xs, weight: .regular))
                             }
                             .foregroundColor(
-                                vm.selectedTab == 0 ? color : AppColors.white.opacity(0.5)
+                                vm.selectedTab == 0 ? color : Color.white.opacity(0.5)
                             )
                         }
 
@@ -154,7 +154,7 @@ struct HomeTabsView: View {
                                     .font(.sfRounded(size: .xs, weight: .regular))
                             }
                             .foregroundColor(
-                                vm.selectedTab == 1 ? color : AppColors.white.opacity(0.5)
+                                vm.selectedTab == 1 ? color : Color.white.opacity(0.5)
                             )
                         }
 
@@ -172,13 +172,13 @@ struct HomeTabsView: View {
                                     .font(.sfRounded(size: .xs, weight: .regular))
                             }
                             .foregroundColor(
-                                vm.selectedTab == 2 ? color : AppColors.white.opacity(0.5)
+                                vm.selectedTab == 2 ? color : Color.white.opacity(0.5)
                             )
                         }
 
                         Spacer()
                     }
-                    .background(AppColors.black)
+                    .background(Color.black)
                     .ignoresSafeArea(.keyboard)
                 }
             }

@@ -63,7 +63,7 @@ struct CandleChartView: View {
                     yStart: .value("Open", candle.open),
                     yEnd: .value("Close", candle.close)
                 )
-                .foregroundStyle(candle.close >= candle.open ? AppColors.green : AppColors.red)
+                .foregroundStyle(candle.close >= candle.open ? Color.green : Color.red)
 
                 // High-Low line
                 RuleMark(
@@ -71,7 +71,7 @@ struct CandleChartView: View {
                     yStart: .value("High", candle.high),
                     yEnd: .value("Low", candle.low)
                 )
-                .foregroundStyle(candle.close >= candle.open ? AppColors.green : AppColors.red)
+                .foregroundStyle(candle.close >= candle.open ? Color.green : Color.red)
                 .opacity(0.5)
             }
         }
@@ -94,11 +94,11 @@ struct CandleChartView: View {
     private func yAxisConfig() -> some AxisContent {
         AxisMarks(position: .leading) { value in
             AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
-                .foregroundStyle(.white.opacity(0.2))
+                .foregroundStyle(Color.white.opacity(0.2))
             AxisValueLabel {
                 if let doubleValue = value.as(Double.self) {
                     Text(priceModel.formatPrice(usd: doubleValue, maxDecimals: 6))
-                        .foregroundStyle(.white.opacity(0.5))
+                        .foregroundStyle(Color.white.opacity(0.5))
                 }
             }
         }

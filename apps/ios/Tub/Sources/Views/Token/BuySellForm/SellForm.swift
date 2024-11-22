@@ -13,43 +13,27 @@ struct SellForm: View {
     @Binding var showBuySheet: Bool
     var onSell: () async -> Void
 
-    private var sellButton: some View {
-        Button(action: { Task { await onSell() } }) {
-            Text("Sell")
-                .font(.sfRounded(size: .xl, weight: .semibold))
-                .foregroundColor(AppColors.white)
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-                .background(AppColors.primaryPink)
-                .cornerRadius(30)
-        }
-    }
-
     var body: some View {
         GeometryReader { geometry in
             HStack(spacing: 8) {
-                Button(action: {
-                    showBuySheet = true
-                }) {
-                    HStack(alignment: .center, spacing: 8) {
-                        Text("Buy")
-                            .font(.sfRounded(size: .xl, weight: .semibold))
-                            .foregroundColor(AppColors.primaryPink)
-                            .multilineTextAlignment(.center)
+                OutlineButton(
+                    text: "Buy",
+                    textColor: Color("pink"),
+                    strokeColor: Color("pink"),
+                    backgroundColor: Color.black,
+                    action: { showBuySheet = true }
+                )
+                
+                PrimaryButton(
+                    text: "Sell",
+                    textColor: Color.white,
+                    backgroundColor: Color("pink"),
+                    action: {
+                        Task {
+                            await onSell()
+                        }
                     }
-                    .frame(maxWidth: 50)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .background(AppColors.black)
-                    .cornerRadius(26)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 30)
-                            .inset(by: 0.5)
-                            .stroke(AppColors.primaryPink, lineWidth: 1)
-                    )
-                }
-                sellButton
+                )
             }
         }
         .frame(height: 50)

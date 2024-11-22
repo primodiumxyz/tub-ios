@@ -104,7 +104,7 @@ struct SignInWithPhoneView: View {
                 VStack {
                     Text("Enter verification code")
                         .font(.sfRounded(size: .lg, weight: .medium))
-                        .foregroundColor(AppColors.white)
+                        .foregroundStyle(Color.white)
                         .padding(.top, 16)
                         .padding(.horizontal, 20)
                 }
@@ -120,14 +120,14 @@ struct SignInWithPhoneView: View {
                     }
                     .pickerStyle(MenuPickerStyle())
                     .frame(width: 100, height: 50)
-                    .background(AppColors.white)
+                    .background(Color.white)
                     .cornerRadius(30)
 
                     TextField("Enter your Phone Number", text: formattedPhoneBinding)
                         .keyboardType(.phonePad)
                         .padding()
-                        .background(AppColors.white)
-                        .foregroundColor(.black)
+                        .background(Color.white)
+                        .foregroundStyle(Color.black)
                         .frame(maxWidth: .infinity, maxHeight: 50, alignment: .leading)
                         .cornerRadius(30)
                         .onChange(of: phoneNumber) {
@@ -135,20 +135,21 @@ struct SignInWithPhoneView: View {
                         }
                 }
                 .padding(.horizontal)
+                
                 Button(action: handlePhoneLogin) {
                     Text("Continue")
                         .font(.sfRounded(size: .lg, weight: .semibold))
-                        .foregroundColor(AppColors.white)
+                        .foregroundStyle(Color.white)
                         .frame(maxWidth: .infinity)
                         .padding(14)
-                        .background(AppColors.primaryPurple)
+                        .background(Color("purple"))
                         .cornerRadius(26)
                 }
                 .disabled(signingIn)
                 .padding(.horizontal)
                 .padding(.top, 5)
                 Text(showPhoneError ? "Please enter a valid phone number." : "")
-                    .foregroundColor(.red)
+                    .foregroundStyle(Color.red)
                     .font(.caption)
                     .padding(.top, -4)
                     .padding(.horizontal, 20)
@@ -156,7 +157,7 @@ struct SignInWithPhoneView: View {
             }
         }
         .frame(maxHeight: .infinity)
-        .background(.black)
+        .background(Color.black)
 
         .dismissKeyboardOnTap()
     }

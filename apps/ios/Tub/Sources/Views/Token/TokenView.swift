@@ -96,17 +96,17 @@ struct TokenView: View {
                     }
                 }
                 .frame(maxWidth: .infinity)
-                .foregroundColor(AppColors.white)
+                .foregroundStyle(Color.white)
 
                 infoCardOverlay
                 buySheetOverlay
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .dismissKeyboardOnTap()
-            .background(.black)
+            .background(Color.black)
             .navigationBarBackButtonHidden(true)
         }
-        .background(.black)
+        .background(Color.black)
     }
 
     private var tokenInfoView: some View {
@@ -152,7 +152,7 @@ struct TokenView: View {
                     }
                 }
                 .font(.sfRounded(size: .sm, weight: .semibold))
-                .foregroundColor(tokenModel.priceChange.amountUsd >= 0 ? .green : .red)
+                .foregroundStyle(tokenModel.priceChange.amountUsd >= 0 ? Color.green : Color.red)
             }
         }
         .padding(.horizontal)
@@ -192,8 +192,26 @@ struct TokenView: View {
         HStack {
             Spacer()
             HStack(spacing: 4) {
-                intervalButton(for: .live)
-                intervalButton(for: .candles)
+                IntervalButton(
+                    timespan: .live,
+                    isSelected: selectedTimespan == .live,
+                    action: {
+                        withAnimation(.easeInOut(duration: 0.15)) {
+                            selectedTimespan = .live
+                            tokenModel.updateHistoryInterval(.live)
+                        }
+                    }
+                )
+                IntervalButton(
+                    timespan: .candles,
+                    isSelected: selectedTimespan == .candles,
+                    action: {
+                        withAnimation(.easeInOut(duration: 0.15)) {
+                            selectedTimespan = .candles
+                            tokenModel.updateHistoryInterval(.candles)
+                        }
+                    }
+                )
             }
             Spacer()
         }
@@ -223,7 +241,6 @@ struct TokenView: View {
             .cornerRadius(20)
         }
     }
-
     /* ------------------------------ Info Overlays ----------------------------- */
 
     private var stats: [(String, StatValue)] {
@@ -249,7 +266,7 @@ struct TokenView: View {
                         StatValue(
                             text:
                                 "\(priceModel.formatPrice(usd: gains, showSign: true)) (\(String(format: "%.2f", percentageGain))%)",
-                            color: gains >= 0 ? AppColors.green : AppColors.red
+                            color: gains >= 0 ? Color.green : Color.red
                         )
                     )
                 ]
@@ -283,20 +300,20 @@ struct TokenView: View {
                         HStack(spacing: 0) {
                             Text(stat.0)
                                 .font(.sfRounded(size: .xs, weight: .regular))
-                                .foregroundColor(AppColors.white.opacity(0.7))
+                                .foregroundStyle(Color.white.opacity(0.7))
                                 .fixedSize(horizontal: true, vertical: false)
 
                             Text(stat.1.text)
                                 .font(.sfRounded(size: .base, weight: .semibold))
-                                .foregroundColor(stat.1.color ?? AppColors.white)
+                                .foregroundStyle(stat.1.color ?? Color.white)
                                 .frame(maxWidth: .infinity, alignment: .topTrailing)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
 
                         Rectangle()
-                            .foregroundColor(.clear)
+                            .foregroundStyle(Color.clear)
                             .frame(height: 0.5)
-                            .background(AppColors.gray.opacity(0.5))
+                            .background(Color.gray.opacity(0.5))
                             .padding(.top, 2)
                     }
                     .padding(.vertical, 4)
@@ -314,20 +331,20 @@ struct TokenView: View {
                                 HStack(spacing: 0) {
                                     Text(stat.0)
                                         .font(.sfRounded(size: .xs, weight: .regular))
-                                        .foregroundColor(AppColors.white.opacity(0.7))
+                                        .foregroundStyle(Color.white.opacity(0.7))
                                         .fixedSize(horizontal: true, vertical: false)
 
                                     Text(stat.1.text)
                                         .font(.sfRounded(size: .base, weight: .semibold))
-                                        .foregroundColor(AppColors.white)
+                                        .foregroundStyle(Color.white)
                                         .frame(maxWidth: .infinity, alignment: .topTrailing)
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
 
                                 Rectangle()
-                                    .foregroundColor(.clear)
+                                    .foregroundStyle(Color.clear)
                                     .frame(height: 0.5)
-                                    .background(AppColors.gray.opacity(0.5))
+                                    .background(Color.gray.opacity(0.5))
                                     .padding(.top, 2)
                             }
                         }
@@ -352,7 +369,7 @@ struct TokenView: View {
         Group {
             if showInfoCard {
                 // Fullscreen tap dismiss
-                AppColors.black.opacity(0.2)
+                Color.black.opacity(0.2)
                     .ignoresSafeArea()
                     .onTapGesture {
                         withAnimation(.easeInOut) {
@@ -375,7 +392,7 @@ struct TokenView: View {
         }
         return AnyView(
             Group {
-                AppColors.black.opacity(0.4)
+                Color.black.opacity(0.4)
                     .ignoresSafeArea()
                     .onTapGesture {
                         withAnimation(.easeInOut(duration: 0.3)) {

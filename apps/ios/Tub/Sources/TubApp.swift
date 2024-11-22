@@ -55,7 +55,7 @@ struct AppContent: View {
             else {
                 HomeTabsView(userModel: userModel).font(.sfRounded())
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(.black)
+                    .background(Color.black)
                     .withNotificationBanner()
                     .environmentObject(notificationHandler)
                     .environmentObject(userModel)
