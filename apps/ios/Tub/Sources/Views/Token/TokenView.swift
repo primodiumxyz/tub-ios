@@ -91,9 +91,8 @@ struct TokenView: View {
 
     var body: some View {
         ZStack {
-
             // Main content
-            VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading) {
                 VStack(alignment: .leading, spacing: 4) {
                     Spacer().frame(height: 20)
                     tokenInfoView
@@ -107,7 +106,7 @@ struct TokenView: View {
                 VStack(spacing: 0) {
                     infoCardLowOpacity
                         .opacity(0.8)
-                        .padding(.horizontal, 8)
+                        .padding(.bottom, 12)
                     BuySellFormView(
                         tokenModel: tokenModel,
                         showBuySheet: $showBuySheet,
@@ -116,7 +115,7 @@ struct TokenView: View {
                         onSellSuccess: onSellSuccess
                     )
                     .equatable()
-                }
+                }.padding(.horizontal, 8)
             }
             .frame(maxWidth: .infinity)
             .foregroundColor(AppColors.white)
@@ -229,7 +228,7 @@ struct TokenView: View {
                     }
                     Spacer()
                 }
-                .frame(height: 30)
+                .frame(height: 32)
                 .padding(.horizontal)
             }
             else {
@@ -346,7 +345,7 @@ struct TokenView: View {
             }
 
             // Then show remaining stats in two columns
-            ForEach(0..<((stats.count - (activeTab == "sell" ? 3 : 0) + 1) / 2), id: \.self) { rowIndex in
+            ForEach(0..<(stats.count + 1) / 2, id: \.self) { rowIndex in
                 HStack(spacing: 20) {
                     ForEach(0..<2) { columnIndex in
                         let statIndex = (activeTab == "sell" ? 3 : 0) + rowIndex * 2 + columnIndex

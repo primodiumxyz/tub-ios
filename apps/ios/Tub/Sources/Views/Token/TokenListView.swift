@@ -23,6 +23,8 @@ struct TokenListView: View {
     @State private var dragging = false
     @State private var isDragStarting = true
 
+    let OFFSET: Double = -15
+
     var activeTab: String {
         let balance: Int = userModel.tokenBalanceLamps ?? 0
         return balance > 0 ? "sell" : "buy"
@@ -74,14 +76,14 @@ struct TokenListView: View {
                 GeometryReader { geometry in
                     TokenView(tokenModel: TokenModel())
                         .frame(height: geometry.size.height)
-                        .offset(y: -35)
+                        .offset(y: OFFSET)
                 }
             }
             else {
                 // Main content
                 (activeTab == "sell"
                     ? AppColors.primaryPinkGradient
-                    : LinearGradient(colors: [.clear], startPoint: .top, endPoint: .bottom))
+                    : AppColors.primaryPurpleGradient)
 
                 VStack(spacing: 0) {
                     // Rest of the content
@@ -145,7 +147,7 @@ struct TokenListView: View {
 
                     }
                     .zIndex(-10)
-                    .offset(y: -geometry.size.height - 35 + offset + activeOffset)
+                    .offset(y: -geometry.size.height + OFFSET + offset + activeOffset)
                     .gesture(
                         DragGesture()
                             .onChanged { value in
