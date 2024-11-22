@@ -138,8 +138,13 @@ struct TokenView: View {
                         LoadingBox(width: 200, height: 40).padding(.vertical, 4)
                     }
                 }
-                
-                let price = priceModel.formatPrice(usd: tokenModel.priceChange.amountUsd, showSign: true, maxDecimals: 9, minDecimals: 2)
+
+                let price = priceModel.formatPrice(
+                    usd: tokenModel.priceChange.amountUsd,
+                    showSign: true,
+                    maxDecimals: 9,
+                    minDecimals: 2
+                )
 
                 HStack {
 
@@ -147,8 +152,9 @@ struct TokenView: View {
                         Text(price)
                         Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
                         Text("\(formatDuration(tokenModel.selectedTimespan.seconds))").foregroundColor(.gray)
-                    } else {
-                        LoadingBox(width:160, height: 12)
+                    }
+                    else {
+                        LoadingBox(width: 160, height: 12)
                     }
                 }
                 .font(.sfRounded(size: .sm, weight: .semibold))
@@ -169,7 +175,8 @@ struct TokenView: View {
         Group {
             if !tokenModel.isReady {
                 LoadingBox(height: 350)
-            } else if tokenModel.selectedTimespan == .live {
+            }
+            else if tokenModel.selectedTimespan == .live {
                 ChartView(
                     prices: tokenModel.prices,
                     height: height
@@ -194,21 +201,19 @@ struct TokenView: View {
             HStack(spacing: 4) {
                 IntervalButton(
                     timespan: .live,
-                    isSelected: selectedTimespan == .live,
+                    isSelected: tokenModel.selectedTimespan == .live,
                     action: {
                         withAnimation(.easeInOut(duration: 0.15)) {
-                            selectedTimespan = .live
-                            tokenModel.updateHistoryInterval(.live)
+                            tokenModel.selectedTimespan = .live
                         }
                     }
                 )
                 IntervalButton(
                     timespan: .candles,
-                    isSelected: selectedTimespan == .candles,
+                    isSelected: tokenModel.selectedTimespan == .candles,
                     action: {
                         withAnimation(.easeInOut(duration: 0.15)) {
-                            selectedTimespan = .candles
-                            tokenModel.updateHistoryInterval(.candles)
+                            tokenModel.selectedTimespan = .candles
                         }
                     }
                 )
@@ -218,29 +223,6 @@ struct TokenView: View {
         .padding(.horizontal)
     }
 
-    private func intervalButton(for timespan: Timespan) -> some View {
-        Button {
-            withAnimation(.easeInOut(duration: 0.15)) {
-                tokenModel.selectedTimespan = timespan
-            }
-        } label: {
-            HStack(spacing: 4) {
-                if timespan == .live {
-                    Circle()
-                        .fill(AppColors.red)
-                        .frame(width: 7, height: 7)
-                }
-                Text(timespan.rawValue)
-                    .font(.sfRounded(size: .sm, weight: .medium))
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .frame(width: 65)
-            .background(tokenModel.selectedTimespan == timespan ? AppColors.aquaBlue : Color.clear)
-            .foregroundColor(tokenModel.selectedTimespan == timespan ? AppColors.black : AppColors.white)
-            .cornerRadius(20)
-        }
-    }
     /* ------------------------------ Info Overlays ----------------------------- */
 
     private var stats: [(String, StatValue)] {
