@@ -188,7 +188,7 @@ struct TokenView: View {
     private var chartView: some View {
         Group {
             if !tokenModel.isReady {
-                LoadingBox(height: 350)
+                LoadingBox(height: height)
             }
             else if selectedTimespan == .live {
                 ChartView(
