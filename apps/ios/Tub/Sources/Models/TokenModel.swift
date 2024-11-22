@@ -30,7 +30,6 @@ class TokenModel: ObservableObject {
     @Published var timeframeSecs: Double = CHART_INTERVAL
     @Published var currentTimeframe: Timespan = .live
     @Published var loadFailed = false
-    @Published var animate = false
 
     private var lastPriceTimestamp: Date?
 
@@ -77,9 +76,6 @@ class TokenModel: ObservableObject {
 
     func initialize(with newToken: Token, timeframeSecs: Double = CHART_INTERVAL) {
         let now = Date()
-        Task { @MainActor in
-            self.animate = true
-        }
         if initialized { return }
         initialized = true
         if !self.preloaded {
@@ -419,12 +415,6 @@ class TokenModel: ObservableObject {
                     continuation.resume(throwing: error)
                 }
             }
-        }
-    }
-
-    func stopAnimation() {
-        DispatchQueue.main.async {
-            self.animate = false
         }
     }
 

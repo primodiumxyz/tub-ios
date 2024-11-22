@@ -31,7 +31,7 @@ struct ChartView: View {
 
     init(
         prices: [Price],
-        animate: Binding<Bool> = Binding.constant(false),
+        animate: Binding<Bool>,
         timeframeSecs: Double = CHART_INTERVAL,
         height: CGFloat = 330
     ) {

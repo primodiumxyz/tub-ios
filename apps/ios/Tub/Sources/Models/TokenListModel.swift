@@ -54,11 +54,6 @@ final class TokenListModel: ObservableObject {
         self.userModel = userModel
     }
 
-    // TODO: Make this reset the model and await a new token
-    func reset() -> Token {
-        return emptyToken
-    }
-
     private func initCurrentTokenModel(with token: Token) {
         // initialize current model
         self.currentTokenModel.initialize(with: token)
@@ -70,36 +65,21 @@ final class TokenListModel: ObservableObject {
             return tokenQueue[currentTokenIndex + 1]
         }
 
-        var randomQueuedToken: Token?
-        if self.tokenQueue.count >= 2 {
-            repeat { randomQueuedToken = self.tokenQueue.randomElement() }
-            while currentId != nil && randomQueuedToken?.id == currentId
-        }
-        let fallback = self.pendingTokens.count > 0 ? self.pendingTokens[0] : randomQueuedToken
-        guard let fallback else {
-            return reset()
-        }
-
-        let recentlyShownTokens = self.tokenQueue
-
         // If this is the first token (no currentId), return the first non-cooldown token
-        if currentId == nil {
-            return self.pendingTokens.first { token in
-                !recentlyShownTokens.contains { $0.id == token.id }
-            } ?? fallback
+        var nextToken = self.pendingTokens.first { token in
+            !self.tokenQueue.contains { $0.id == token.id } && token.id != currentId
         }
+        if let nextToken { return nextToken }
 
-        // Find the index of the current token
-
-        // Look for the next available token that's not in cooldown
-        for token in self.pendingTokens {
-            if !recentlyShownTokens.contains(where: { $0.id == token.id }) {
-                return token
-            }
+        if self.tokenQueue.count >= 2 {
+            repeat { nextToken = self.tokenQueue.randomElement() }
+            while currentId != nil && nextToken?.id == currentId
         }
 
         // Final fallback: return first token
-        return fallback
+        if let nextToken { return nextToken }
+
+        return emptyToken
     }
 
     // - Set the current token to the previously visited one
@@ -113,7 +93,6 @@ final class TokenListModel: ObservableObject {
 
         // next
         nextTokenModel = currentTokenModel
-        nextTokenModel?.stopAnimation()
 
         // current
         currentTokenStartTime = Date()
@@ -141,7 +120,6 @@ final class TokenListModel: ObservableObject {
 
         // previous
         previousTokenModel = currentTokenModel
-        previousTokenModel?.stopAnimation()
 
         // current
         currentTokenStartTime = Date()

@@ -32,6 +32,7 @@ struct TokenView: View {
     @State private var showBuySheet: Bool = false
     @State private var keyboardHeight: CGFloat = 0
 
+    @Binding var animate: Bool
     var onSellSuccess: (() -> Void)?
 
     var activeTab: String {
@@ -39,8 +40,9 @@ struct TokenView: View {
         return balance > 0 ? "sell" : "buy"
     }
 
-    init(tokenModel: TokenModel, onSellSuccess: (() -> Void)? = nil) {
+    init(tokenModel: TokenModel, animate: Binding<Bool>, onSellSuccess: (() -> Void)? = nil) {
         self.tokenModel = tokenModel
+        self._animate = animate
         self.onSellSuccess = onSellSuccess
     }
 
@@ -189,7 +191,7 @@ struct TokenView: View {
             else if selectedTimespan == .live {
                 ChartView(
                     prices: tokenModel.prices,
-                    animate: $tokenModel.animate,
+                    animate: $animate,
                     timeframeSecs: selectedTimespan.timeframeSecs,
                     height: height
                 )
@@ -197,7 +199,7 @@ struct TokenView: View {
             else {
                 CandleChartView(
                     candles: tokenModel.candles,
-                    animate: $tokenModel.animate,
+                    animate: $animate,
                     timeframeMins: 30,
                     height: height
                 )

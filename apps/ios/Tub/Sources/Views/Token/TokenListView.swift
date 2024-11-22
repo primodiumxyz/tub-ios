@@ -16,7 +16,6 @@ struct TokenListView: View {
 
     // chevron animation
     @State private var chevronOffset: CGFloat = 0.0
-    @State private var isMovingUp: Bool = true
 
     private let SCROLL_DURATION = 0.3
     // swipe animation
@@ -71,6 +70,7 @@ struct TokenListView: View {
                 }
 
                 activeOffset = 0
+                dragging = false
             }
         }
     }
@@ -104,8 +104,8 @@ struct TokenListView: View {
                                 GeometryReader { geometry in
                                     VStack(spacing: 10) {
                                         // PREVIOUS TOKEN
-                                        if let previousTokenModel = tokenListModel.previousTokenModel {
-                                            TokenView(tokenModel: previousTokenModel)
+                                        if let previousTokenModel = tokenListModel.previousTokenModel, dragging {
+                                            TokenView(tokenModel: previousTokenModel, animate: Binding.constant(false))
                                                 .frame(height: geometry.size.height)
                                         }
                                         else {
@@ -117,6 +117,7 @@ struct TokenListView: View {
                                         // CURRENT TOKEN
                                         TokenView(
                                             tokenModel: tokenListModel.currentTokenModel,
+                                            animate: Binding.constant(true),
                                             onSellSuccess: {
                                                 withAnimation {
                                                     notificationHandler.show(
@@ -129,8 +130,8 @@ struct TokenListView: View {
                                         .frame(height: geometry.size.height - 25)
 
                                         // NEXT TOKEN
-                                        if let nextToken = tokenListModel.nextTokenModel {
-                                            TokenView(tokenModel: nextToken)
+                                        if let nextToken = tokenListModel.nextTokenModel, dragging {
+                                            TokenView(tokenModel: nextToken, animate: Binding.constant(false))
                                                 .frame(height: geometry.size.height)
                                         }
                                         else {
@@ -173,10 +174,6 @@ struct TokenListView: View {
                                                     }
                                                     withAnimation {
                                                         offset = 0
-                                                    }
-                                                    // Delay setting dragging to false to allow for smooth animation
-                                                    DispatchQueue.main.asyncAfter(deadline: .now() + SCROLL_DURATION) {
-                                                        dragging = false
                                                     }
                                                 }
                                             }

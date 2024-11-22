@@ -16,7 +16,7 @@ struct CandleChartView: View {
     let height: CGFloat
     @State private var currentTime = Date().timeIntervalSince1970
 
-    @Binding private var animate: Bool
+    @Binding var animate: Bool
     @State private var timerCancellable: Cancellable?
     @State private var timer: Timer.TimerPublisher = Timer.publish(every: 0.1, on: .main, in: .common)
 
