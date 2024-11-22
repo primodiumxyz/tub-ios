@@ -60,8 +60,7 @@ class TokenListModel: ObservableObject {
     }
 
     // Update initTokenModel to handle optional userModel
-    private func initTokenModel() {
-        let token = self.tokens[self.currentTokenIndex]
+    private func initTokenModel(_ token: Token) {
         self.currentTokenModel.initialize(with: token)
         self.userModel?.initToken(tokenId: token.id)
     }
@@ -137,7 +136,7 @@ class TokenListModel: ObservableObject {
 
         if let newToken = getNextToken(excluding: tokens[currentTokenIndex].id) {
             tokens.append(newToken)
-            initTokenModel()
+            initTokenModel(newToken)
             currentTokenStartTime = Date()
         }
     }
@@ -155,21 +154,25 @@ class TokenListModel: ObservableObject {
         previousTokenModel = TokenModel()
 
         tokens.removeLast()
-        initTokenModel()
+        let currentToken = tokens[currentTokenIndex]
+        initTokenModel(currentToken)
         currentTokenStartTime = Date()
     }
 
     // - Update the last token in the array to a random pumping token (keep it fresh for the next swipe)
-    private func updateTokens() {
+    @MainActor
+    private func updateTokens(availableTokens: [Token], currentToken: Token?) {
         guard !availableTokens.isEmpty else { return }
 
-        // If it's initial load, generate two random tokens
-        if tokens.isEmpty {
+        self.isLoading = false
+        self.availableTokens = availableTokens
+
+        if self.tokens.isEmpty {
             if let firstToken = getNextToken() {
                 tokens.append(firstToken)
+                initTokenModel(firstToken)
                 if let secondToken = getNextToken(excluding: firstToken.id) {
                     tokens.append(secondToken)
-                    initTokenModel()
                     // Set start time for initial token
                     currentTokenStartTime = Date()
                 }
@@ -183,6 +186,7 @@ class TokenListModel: ObservableObject {
                 tokens[tokens.count - 1] = newToken
             }
         }
+
     }
 
     public func startTokenSubscription() async {
@@ -192,7 +196,7 @@ class TokenListModel: ObservableObject {
             try await fetchTokens()
 
             // Set up timer for 1-second updates
-            self.timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            self.timer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { [weak self] _ in
                 guard let self = self else { return }
                 if !self.fetching {
                     Task {
@@ -243,7 +247,7 @@ class TokenListModel: ObservableObject {
                 // Process data in background queue
                 DispatchQueue.global(qos: .userInitiated).async {
                     // Prepare data in background
-                    let processedData: ([Token], Token?) = {
+                    let tokenListData: (allTokens: [Token], currentToken: Token?) = {
                         switch result {
                         case .success(let graphQLResult):
                             if let tokens = graphQLResult.data?.filterTokens?.results {
@@ -277,26 +281,22 @@ class TokenListModel: ObservableObject {
                                 let currentToken = mappedTokens.first(where: {
                                     $0.id == self.currentTokenModel.tokenId
                                 })
-                                return (mappedTokens, currentToken)
+                                return (allTokens: mappedTokens, currentToken: currentToken)
                             }
-                            return ([], nil)
+                            return (allTokens: [], currentToken: nil)
                         case .failure(let error):
                             print("Error fetching tokens: \(error.localizedDescription)")
-                            return ([], nil)
+                            return (allTokens: [], currentToken: nil)
                         }
                     }()
 
                     self.fetching = false
 
-                    // Update UI on main thread
-                    Task { @MainActor in
-                        self.isLoading = false
-                        self.availableTokens = processedData.0
-                        self.updateTokens()
-
-                        if let currentToken = processedData.1 {
-                            self.currentTokenModel.updateTokenDetails(from: currentToken)
-                        }
+                    DispatchQueue.main.sync {
+                        self.updateTokens(
+                            availableTokens: tokenListData.allTokens,
+                            currentToken: tokenListData.currentToken
+                        )
                     }
                 }
 

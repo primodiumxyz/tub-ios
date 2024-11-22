@@ -114,7 +114,9 @@ class CodexTokenManager: ObservableObject {
                 else {
                     // If we're too close to expiry or past it, refresh immediately
 
-                    localCodexToken = nil
+                    await MainActor.run {
+                        localCodexToken = nil
+                    }
                     refetch = true
                 }
             }

@@ -387,14 +387,6 @@ class TokenModel: ObservableObject {
         }
     }
 
-    func updateTokenDetails(from token: Token) {
-        DispatchQueue.main.async {
-            self.token.liquidity = token.liquidity
-            self.token.marketCap = token.marketCap
-            self.token.volume = token.volume
-        }
-    }
-
     func getTokenStats(priceModel: SolPriceModel) -> [(String, String?)] {
         return [
             ("Market Cap", !isReady ? nil : priceModel.formatPrice(usd: token.marketCap, formatLarge: true)),

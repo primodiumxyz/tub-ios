@@ -84,32 +84,7 @@ struct TokenListView: View {
                         VStack(spacing: 0) {
                             // Rest of the content
                             if tokenListModel.tokens.count == 0 {
-                                Spacer()
-                                Text("Failed to load tokens.")
-                                    .foregroundColor(AppColors.lightYellow)
-                                    .multilineTextAlignment(.center)
-                                    .padding(.bottom, 24)
-                                Button(action: {
-                                    Task {
-                                        await tokenManager.refreshToken(hard: true)
-                                        await tokenListModel.startTokenSubscription()
-                                    }
-                                }) {
-                                    Text("Retry")
-                                        .font(.sfRounded(size: .lg, weight: .semibold))
-                                        .foregroundColor(AppColors.white)
-                                        .frame(maxWidth: 300)
-                                        .padding(.horizontal, 16)
-                                        .padding(.vertical, 12)
-                                        .background(AppColors.primaryPurple)
-                                        .cornerRadius(30)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 30)
-                                                .inset(by: 0.5)
-                                                .stroke(AppColors.primaryPurple, lineWidth: 1)
-                                        )
-                                }
-                                Spacer()
+                                TokenLoadErrorView()
                             }
                             else {
                                 GeometryReader { geometry in
@@ -191,6 +166,41 @@ struct TokenListView: View {
         }
         .onDisappear {
             tokenListModel.stopTokenSubscription()
+        }
+    }
+}
+struct TokenLoadErrorView: View {
+    @StateObject var tokenManager = CodexTokenManager.shared
+    @StateObject var tokenListModel = TokenListModel.shared
+
+    var body: some View {
+        VStack {
+            Spacer()
+            Text("Failed to load tokens.")
+                .foregroundColor(AppColors.lightYellow)
+                .multilineTextAlignment(.center)
+                .padding(.bottom, 24)
+            Button(action: {
+                Task {
+                    await tokenManager.refreshToken(hard: true)
+                    await tokenListModel.startTokenSubscription()
+                }
+            }) {
+                Text("Retry")
+                    .font(.sfRounded(size: .lg, weight: .semibold))
+                    .foregroundColor(AppColors.white)
+                    .frame(maxWidth: 300)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(AppColors.primaryPurple)
+                    .cornerRadius(30)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 30)
+                            .inset(by: 0.5)
+                            .stroke(AppColors.primaryPurple, lineWidth: 1)
+                    )
+            }
+            Spacer()
         }
     }
 }

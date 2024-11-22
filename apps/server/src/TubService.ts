@@ -20,8 +20,8 @@ export class TubService {
     try {
       const verifiedClaims = await this.privy.verifyAuthToken(token);
       return verifiedClaims.userId;
-    } catch (e: any) {
-      throw new Error(`Invalid JWT: ${e.message}`);
+    } catch (e: unknown) {
+      throw new Error(`Invalid JWT: ${e instanceof Error ? e.message : "Unknown error"}`);
     }
   };
 
@@ -138,16 +138,20 @@ export class TubService {
 
   async requestCodexToken(expiration?: number) {
     expiration = expiration ?? 3600 * 1000;
-    const res = await this.codexSdk.mutations.createApiTokens({
-      input: { expiresIn: expiration },
-    });
+    try {
+      const res = await this.codexSdk.mutations.createApiTokens({
+        input: { expiresIn: expiration },
+      });
 
-    const token = res.createApiTokens[0]?.token;
-    const expiry = res.createApiTokens[0]?.expiresTimeString;
-    if (!token || !expiry) {
-      throw new Error("Failed to create Codex API token");
+      const token = res.createApiTokens[0]?.token;
+      const expiry = res.createApiTokens[0]?.expiresTimeString;
+      if (!token || !expiry) {
+        throw new Error("Failed to create Codex API token");
+      }
+      return { token: `Bearer ${token}`, expiry };
+    } catch (error) {
+      console.log(` error: ${error}`);
+      throw error;
     }
-
-    return { token: `Bearer ${token}`, expiry };
   }
 }
