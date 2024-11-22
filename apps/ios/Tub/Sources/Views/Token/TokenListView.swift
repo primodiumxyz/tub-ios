@@ -92,7 +92,7 @@ struct TokenListView: View {
                                 Button(action: {
                                     Task {
                                         await tokenManager.refreshToken(hard: true)
-                                        tokenListModel.subscribeTokens()
+                                        await tokenListModel.startTokenSubscription()
                                     }
                                 }) {
                                     Text("Retry")
@@ -185,10 +185,12 @@ struct TokenListView: View {
                 .foregroundColor(.white)
             }
         }.onAppear {
-            tokenListModel.subscribeTokens()
+            Task {
+                await tokenListModel.startTokenSubscription()
+            }
         }
         .onDisappear {
-            tokenListModel.unsubscribeTokens()
+            tokenListModel.stopTokenSubscription()
         }
     }
 }
