@@ -110,9 +110,9 @@ struct BuySellFormView: View {
             if userModel.userId == nil {
                 PrimaryButton(
                     text: "Login to Buy",
-                    textColor: AppColors.black,
-                    backgroundColor: AppColors.aquaGreen,
-                    strokeColor: AppColors.aquaGreen,
+                    textColor: Color.black,
+                    backgroundColor: Color("aquaGreen"),
+                    strokeColor: Color("aquaGreen"),
                     maxWidth: .infinity,
                     action: { isLoginPresented = true }
                 )
@@ -122,9 +122,9 @@ struct BuySellFormView: View {
                 if let balanceUsd = userModel.balanceLamps, priceModel.lamportsToUsd(lamports: balanceUsd) < 0.1 {
                     PrimaryButton(
                         text: "Get 1 test SOL",
-                        textColor: AppColors.black,
-                        backgroundColor: AppColors.aquaGreen,
-                        strokeColor: AppColors.aquaGreen,
+                        textColor: Color.black,
+                        backgroundColor: Color("aquaGreen"),
+                        strokeColor: Color("aquaGreen"),
                         maxWidth: .infinity,
                         action: performAirdrop
                     )
@@ -138,15 +138,15 @@ struct BuySellFormView: View {
                     HStack(spacing: 16) {
                         CircleButton(
                             icon: "pencil",
-                            color: AppColors.aquaGreen,
+                            color: Color("aquaGreen"),
                             iconSize: 20,
                             iconWeight: .bold,
                             action: { showBuySheet = true }
                         )
                         PrimaryButton(
                             text: "Buy \(priceModel.formatPrice(usd: settingsManager.defaultBuyValue))",
-                            textColor: AppColors.black,
-                            backgroundColor: AppColors.aquaGreen,
+                            textColor: Color.black,
+                            backgroundColor: Color("aquaGreen"),
                             action: { handleBuy(settingsManager.defaultBuyValue) }
                         )
                     }.padding(.horizontal, 8)
@@ -160,7 +160,7 @@ struct BuySellFormView: View {
         .padding(.bottom, 8)
         .fullScreenCover(isPresented: $isLoginPresented) {
             RegisterView(isRedirected: true)
-                .background(.black)
+                .background(Color.black)
         }
     }
 }

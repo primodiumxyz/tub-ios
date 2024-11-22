@@ -184,8 +184,8 @@ struct CapsuleButtonStyle: ButtonStyle {
 
 struct CapsuleButton: View {
     var text: String
-    var textColor: Color = AppColors.white
-    var backgroundColor: Color = AppColors.white.opacity(0.15)
+    var textColor: Color = Color.white
+    var backgroundColor: Color = Color.white.opacity(0.15)
     var font: Font = .sfRounded(size: .base, weight: .bold)
     var action: () -> Void
     
@@ -333,13 +333,13 @@ struct FilterButtonStyle: ButtonStyle {
     func makeBody(configuration: Self.Configuration) -> some View {
         configuration.label
             .font(.sfRounded(size: .sm, weight: .regular))
-            .foregroundStyle(AppColors.white)
+            .foregroundStyle(Color.white)
             .padding(.horizontal)
             .padding(.vertical, 6)
             .fixedSize(horizontal: true, vertical: false)
             .overlay(
                 RoundedRectangle(cornerRadius: 20)
-                    .stroke(AppColors.lightGray, lineWidth: 1)
+                    .stroke(Color("grayLight"), lineWidth: 1)
             )
             .opacity(configuration.isPressed ? 0.7 : 1.0)
     }
@@ -367,7 +367,7 @@ struct IntervalButtonStyle: ButtonStyle {
         HStack(spacing: 4) {
             if isLive {
                 Circle()
-                    .fill(AppColors.red)
+                    .fill(Color.red)
                     .frame(width: 7, height: 7)
             }
             Text(text)
@@ -376,8 +376,8 @@ struct IntervalButtonStyle: ButtonStyle {
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
         .frame(width: 65)
-        .background(isSelected ? AppColors.aquaBlue : Color.clear)
-        .foregroundStyle(isSelected ? AppColors.black : AppColors.white)
+        .background(isSelected ? Color("aquaBlue") : Color.clear)
+        .foregroundStyle(isSelected ? Color.black : Color.white)
         .cornerRadius(20)
         .opacity(configuration.isPressed ? 0.7 : 1.0)
     }

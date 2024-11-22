@@ -50,7 +50,7 @@ struct RegisterView: View {
                         dismiss()
                     } label: {
                         Text("Cancel")
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Color.white)
                             .padding(.horizontal)
                     }
                 }
@@ -72,7 +72,7 @@ struct RegisterView: View {
 
                 Text("Welcome to tub")
                     .font(.sfRounded(size: .xl2, weight: .semibold))
-                    .foregroundStyle(AppColors.white)
+                    .foregroundStyle(Color.white)
                     .padding(.horizontal, 10)
 
                 VStack(alignment: .leading, spacing: 10) {
@@ -80,10 +80,10 @@ struct RegisterView: View {
                         .padding(.horizontal, 20)
                         .padding(.vertical, 10)
                         .frame(maxWidth: .infinity, minHeight: 50, alignment: .leading)
-                        .background(AppColors.white)
+                        .background(Color.white)
                         .cornerRadius(30)
                         .keyboardType(.emailAddress)
-                        .foregroundStyle(.black)
+                        .foregroundStyle(Color.black)
                         .onChange(of: email) { _, newValue in
                             isEmailValid = validateEmail(newValue)
                             showEmailError = false
@@ -91,9 +91,9 @@ struct RegisterView: View {
 
                     PrimaryButton(
                         text: "Continue",
-                        textColor: AppColors.white,
-                        backgroundColor: AppColors.primaryPurple,
-                        strokeColor: AppColors.primaryPurple,
+                        textColor: Color.white,
+                        backgroundColor: Color("purple"),
+                        strokeColor: Color("purple"),
                         maxWidth: .infinity,
                         action: {
                             if isEmailValid {
@@ -108,7 +108,7 @@ struct RegisterView: View {
                     if showEmailError {
                         Text("Please enter a valid email address.")
                             .font(.caption)
-                            .foregroundStyle(.red)
+                            .foregroundStyle(Color.red)
                             .padding(.top, -4)
                             .padding(.horizontal, 20)
                     }
@@ -127,18 +127,18 @@ struct RegisterView: View {
                         .frame(width: 153, height: 1)
                         .overlay(
                             Rectangle()
-                                .stroke(AppColors.lightGray, lineWidth: 1)
+                                .stroke(Color("grayLight"), lineWidth: 1)
                         )
 
                     Text("or")
                         .font(.sfRounded(size: .base, weight: .semibold))
-                        .foregroundStyle(AppColors.white)
+                        .foregroundStyle(Color.white)
 
                     Divider()
                         .frame(width: 153, height: 1)
                         .overlay(
                             Rectangle()
-                                .stroke(AppColors.lightGray, lineWidth: 1)
+                                .stroke(Color("grayLight"), lineWidth: 1)
                         )
                 }.frame(maxWidth: .infinity)
 
@@ -150,7 +150,7 @@ struct RegisterView: View {
                     .overlay(
                         RoundedRectangle(cornerRadius: 30)
                             .inset(by: 0.5)
-                            .stroke(.white, lineWidth: 1)
+                            .stroke(Color.white, lineWidth: 1)
                             .padding(.horizontal, 10)
                     )
                     .onTapGesture {
@@ -171,9 +171,9 @@ struct RegisterView: View {
                 // Google Login
                 OutlineButtonWithIcon(
                     text: "Sign in with Google",
-                    textColor: AppColors.white,
-                    strokeColor: .white,
-                    backgroundColor: AppColors.black,
+                    textColor: Color.white,
+                    strokeColor: Color.white,
+                    backgroundColor: Color.black,
                     leadingView: AnyView(GoogleLogoView()),
                     action: {
                         Task {
@@ -191,7 +191,7 @@ struct RegisterView: View {
                 IconTextButton(
                     icon: "phone.fill",
                     text: "Continue with Phone",
-                    textColor: AppColors.white,
+                    textColor: Color.white,
                     action: { showPhoneModal = true }
                 )
                 .frame(maxWidth: .infinity)
@@ -200,7 +200,7 @@ struct RegisterView: View {
                 IconTextButton(
                     icon: "ladybug.fill",
                     text: "Dev Login",
-                    textColor: AppColors.lightGray,
+                    textColor: Color("grayLight"),
                     action: {
                         Task {
                             do {

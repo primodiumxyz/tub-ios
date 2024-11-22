@@ -73,29 +73,29 @@ struct AccountView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(AppColors.black.ignoresSafeArea())
+            .background(Color.black.ignoresSafeArea())
             .sheet(isPresented: $showOnrampView) {
 
                 VStack {
                     HStack {
                         Text("Deposit")
                             .font(.sfRounded(size: .xl, weight: .semibold))
-                            .foregroundColor(AppColors.white)
+                            .foregroundColor(Color.white)
                         Spacer()
                         Button(action: { showOnrampView = false }) {
                             Image(systemName: "xmark")
-                                .foregroundColor(AppColors.white)
+                                .foregroundColor(Color.white)
                                 .font(.system(size: 16, weight: .medium))
                         }
                     }.padding(24)
 
                     CoinbaseOnrampView()
-                }.background(AppColors.black)
+                }.background(Color.black)
             }
             .presentationDragIndicator(.visible)
-            .presentationBackground(.black)
+            .presentationBackground(Color.black)
         }
-        .background(AppColors.black.ignoresSafeArea())
+        .background(Color.black.ignoresSafeArea())
     }
 }
 
@@ -106,7 +106,7 @@ private struct AccountHeaderView: View {
         VStack(spacing: 8) {
             Text("Account")
                 .font(.sfRounded(size: .xl2, weight: .semibold))
-                .foregroundColor(AppColors.white)
+                .foregroundColor(Color.white)
 
             BalanceSection()
         }
@@ -130,14 +130,14 @@ private struct BalanceSection: View {
         VStack(spacing: 8) {
             Text("Account Balance")
                 .font(.sfRounded(size: .lg, weight: .regular))
-                .foregroundColor(AppColors.lightGray.opacity(0.7))
+                .foregroundColor(Color("grayLight").opacity(0.7))
 
             if let balance = accountBalance.balance {
                 let formattedBalance = priceModel.formatPrice(lamports: balance, maxDecimals: 2, minDecimals: 2)
 
                 Text(formattedBalance)
                     .font(.sfRounded(size: .xl5, weight: .bold))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.white)
             }
             else {
                 ProgressView()
@@ -148,7 +148,7 @@ private struct BalanceSection: View {
 
                 // Format time elapsed
                 Text("\(formatDuration(userModel.elapsedSeconds))")
-                    .foregroundColor(.gray)
+                    .foregroundColor(Color.gray)
                     .font(.sfRounded(size: .sm, weight: .regular))
 
             }
@@ -172,14 +172,14 @@ private struct ActionButtonsView: View {
             VStack(spacing: 8) {
                 CircleButton(
                     icon: "arrow.left.arrow.right",
-                    color: AppColors.aquaGreen,
+                    color: Color("aquaGreen"),
                     iconSize: 22,
                     action: {}
                 ).disabled(true)
 
                 Text("Transfer")
                     .font(.sfRounded(size: .sm, weight: .medium))
-                    .foregroundColor(AppColors.aquaGreen)
+                    .foregroundColor(Color("aquaGreen"))
                     .multilineTextAlignment(.center)
             }.frame(width: 90).opacity(0.7)
 
@@ -187,13 +187,13 @@ private struct ActionButtonsView: View {
             VStack(spacing: 8) {
                 CircleButton(
                     icon: "plus",
-                    color: AppColors.aquaGreen,
+                    color: Color("aquaGreen"),
                     action: { showOnrampView = true }
                 )
 
                 Text("Add Funds")
                     .font(.sfRounded(size: .sm, weight: .medium))
-                    .foregroundColor(AppColors.aquaGreen)
+                    .foregroundColor(Color("aquaGreen"))
                     .multilineTextAlignment(.center)
             }.frame(width: 90)
 
@@ -211,7 +211,7 @@ private struct AccountSettingsView: View {
         VStack(alignment: .leading, spacing: 24) {
             Text("Account Settings")
                 .font(.sfRounded(size: .xl, weight: .medium))
-                .foregroundColor(.white)
+                .foregroundColor(Color.white)
 
             NavigationLink(destination: AccountDetailsView()) {
                 HStack(spacing: 16) {
@@ -223,7 +223,7 @@ private struct AccountSettingsView: View {
                     Spacer()
                     Image(systemName: "chevron.right")
                 }
-                .foregroundColor(.white)
+                .foregroundColor(Color.white)
             }
 
             NavigationLink(destination: SettingsView()) {
@@ -236,7 +236,7 @@ private struct AccountSettingsView: View {
                     Spacer()
                     Image(systemName: "chevron.right")
                 }
-                .foregroundColor(.white)
+                .foregroundColor(Color.white)
             }
 
             HStack(spacing: 16) {
@@ -252,20 +252,20 @@ private struct AccountSettingsView: View {
                     .cornerRadius(8)
                     .padding(.trailing, -4)
                 Text("@Discord Link")
-                    .foregroundColor(AppColors.aquaGreen)
+                    .foregroundColor(Color("aquaGreen"))
                     .font(.sfRounded(size: .lg, weight: .medium))
             }
-            .foregroundColor(.white)
+            .foregroundColor(Color.white)
 
             // Logout Button
             IconTextButton(
                 icon: "rectangle.portrait.and.arrow.right",
                 text: "Logout",
-                textColor: AppColors.red,
+                textColor: Color.red,
                 action: userModel.logout
             )
 
-            Text(serverBaseUrl).foregroundStyle(.white)
+            Text(serverBaseUrl).foregroundStyle(Color.white)
                 .font(.caption)
         }
         .padding()

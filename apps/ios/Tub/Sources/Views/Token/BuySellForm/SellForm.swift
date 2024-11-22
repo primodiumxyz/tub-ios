@@ -18,16 +18,16 @@ struct SellForm: View {
             HStack(spacing: 8) {
                 OutlineButton(
                     text: "Buy",
-                    textColor: AppColors.primaryPink,
-                    strokeColor: AppColors.primaryPink,
-                    backgroundColor: AppColors.black,
+                    textColor: Color("pink"),
+                    strokeColor: Color("pink"),
+                    backgroundColor: Color.black,
                     action: { showBuySheet = true }
                 )
                 
                 PrimaryButton(
                     text: "Sell",
-                    textColor: AppColors.white,
-                    backgroundColor: AppColors.primaryPink,
+                    textColor: Color.white,
+                    backgroundColor: Color("pink"),
                     action: onSell
                 )
             }

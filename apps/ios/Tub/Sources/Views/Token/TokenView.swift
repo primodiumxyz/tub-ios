@@ -119,17 +119,17 @@ struct TokenView: View {
                     }
                 }
                 .frame(maxWidth: .infinity)
-                .foregroundStyle(AppColors.white)
+                .foregroundStyle(Color.white)
 
                 infoCardOverlay
                 buySheetOverlay
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .dismissKeyboardOnTap()
-            .background(.black)
+            .background(Color.black)
             .navigationBarBackButtonHidden(true)
         }
-        .background(.black)
+        .background(Color.black)
     }
 
     private var tokenInfoView: some View {
@@ -168,14 +168,14 @@ struct TokenView: View {
                     if tokenModel.isReady {
                         Text(price)
                         Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
-                        Text("\(formatDuration(tokenModel.currentTimeframe.timeframeSecs))").foregroundStyle(.gray)
+                        Text("\(formatDuration(tokenModel.currentTimeframe.timeframeSecs))").foregroundStyle(Color.gray)
                     }
                     else {
                         LoadingBox(width: 160, height: 12)
                     }
                 }
                 .font(.sfRounded(size: .sm, weight: .semibold))
-                .foregroundStyle(tokenModel.priceChange.amountUsd >= 0 ? .green : .red)
+                .foregroundStyle(tokenModel.priceChange.amountUsd >= 0 ? Color.green : Color.red)
             }
         }
         .padding(.horizontal)
@@ -267,7 +267,7 @@ struct TokenView: View {
                         StatValue(
                             text:
                                 "\(priceModel.formatPrice(usd: gains, showSign: true)) (\(String(format: "%.2f", percentageGain))%)",
-                            color: gains >= 0 ? AppColors.green : AppColors.red
+                            color: gains >= 0 ? Color.green : Color.red
                         )
                     )
                 ]
@@ -301,20 +301,20 @@ struct TokenView: View {
                         HStack(spacing: 0) {
                             Text(stat.0)
                                 .font(.sfRounded(size: .xs, weight: .regular))
-                                .foregroundStyle(AppColors.white.opacity(0.7))
+                                .foregroundStyle(Color.white.opacity(0.7))
                                 .fixedSize(horizontal: true, vertical: false)
 
                             Text(stat.1.text)
                                 .font(.sfRounded(size: .base, weight: .semibold))
-                                .foregroundStyle(stat.1.color ?? AppColors.white)
+                                .foregroundStyle(stat.1.color ?? Color.white)
                                 .frame(maxWidth: .infinity, alignment: .topTrailing)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
 
                         Rectangle()
-                            .foregroundStyle(.clear)
+                            .foregroundStyle(Color.clear)
                             .frame(height: 0.5)
-                            .background(AppColors.gray.opacity(0.5))
+                            .background(Color.gray.opacity(0.5))
                             .padding(.top, 2)
                     }
                     .padding(.vertical, 4)
@@ -332,20 +332,20 @@ struct TokenView: View {
                                 HStack(spacing: 0) {
                                     Text(stat.0)
                                         .font(.sfRounded(size: .xs, weight: .regular))
-                                        .foregroundStyle(AppColors.white.opacity(0.7))
+                                        .foregroundStyle(Color.white.opacity(0.7))
                                         .fixedSize(horizontal: true, vertical: false)
 
                                     Text(stat.1.text)
                                         .font(.sfRounded(size: .base, weight: .semibold))
-                                        .foregroundStyle(AppColors.white)
+                                        .foregroundStyle(Color.white)
                                         .frame(maxWidth: .infinity, alignment: .topTrailing)
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
 
                                 Rectangle()
-                                    .foregroundStyle(.clear)
+                                    .foregroundStyle(Color.clear)
                                     .frame(height: 0.5)
-                                    .background(AppColors.gray.opacity(0.5))
+                                    .background(Color.gray.opacity(0.5))
                                     .padding(.top, 2)
                             }
                         }
@@ -370,7 +370,7 @@ struct TokenView: View {
         Group {
             if showInfoCard {
                 // Fullscreen tap dismiss
-                AppColors.black.opacity(0.2)
+                Color.black.opacity(0.2)
                     .ignoresSafeArea()
                     .onTapGesture {
                         withAnimation(.easeInOut) {
@@ -393,7 +393,7 @@ struct TokenView: View {
         }
         return AnyView(
             Group {
-                AppColors.black.opacity(0.4)
+                Color.black.opacity(0.4)
                     .ignoresSafeArea()
                     .onTapGesture {
                         withAnimation(.easeInOut(duration: 0.3)) {

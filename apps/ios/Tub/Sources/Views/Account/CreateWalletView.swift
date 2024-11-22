@@ -68,7 +68,7 @@ struct CreateWalletView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(.black).foregroundStyle(.white)
+        .background(Color.black).foregroundStyle(Color.white)
         .onAppear {
             createEmbeddedWallet()
         }

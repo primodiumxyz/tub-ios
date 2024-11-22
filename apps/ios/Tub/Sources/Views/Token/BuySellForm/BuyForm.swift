@@ -109,8 +109,8 @@ struct BuyForm: View {
     private var buyButton: some View {
         OutlineButton(
             text: "Buy",
-            textColor: AppColors.aquaGreen,
-            strokeColor: AppColors.aquaGreen,
+            textColor: Color("aquaGreen"),
+            strokeColor: Color("aquaGreen"),
             backgroundColor: .clear,
             maxWidth: .infinity,
             action: handleBuy
@@ -124,13 +124,13 @@ struct BuyForm: View {
                 Spacer()
                 Text("$")
                     .font(.sfRounded(size: .xl4, weight: .bold))
-                    .foregroundStyle(AppColors.white)
+                    .foregroundStyle(Color.white)
 
                 TextField(
                     "",
                     text: $buyAmountUsdString,
                     prompt: Text("10", comment: "placeholder")
-                    .foregroundStyle(AppColors.white.opacity(0.3))
+                    .foregroundStyle(Color.white.opacity(0.3))
                 )
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.leading)
@@ -167,7 +167,7 @@ struct BuyForm: View {
                     }
                 }
                 .font(.sfRounded(size: .xl5, weight: .bold))
-                .foregroundStyle(isValidInput ? .white : .red)
+                .foregroundStyle(isValidInput ? Color.white : Color.red)
                 .frame(minWidth: 50)
                 .fixedSize()
                 .onTapGesture {
@@ -189,10 +189,10 @@ struct BuyForm: View {
                 HStack(spacing: 4) {
                     Text("Set Default")
                         .font(.sfRounded(size: .base, weight: .regular))
-                        .foregroundStyle(isDefaultOn ? AppColors.white : AppColors.gray)
+                        .foregroundStyle(isDefaultOn ? Color.white : Color.gray)
 
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(isDefaultOn ? AppColors.green : AppColors.gray)
+                        .foregroundStyle(isDefaultOn ? Color.green : Color.gray)
                 }
             }
         }

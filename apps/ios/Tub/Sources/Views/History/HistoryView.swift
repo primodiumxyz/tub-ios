@@ -163,7 +163,7 @@ struct HistoryViewContent: View {
                     else if filteredTransactions().isEmpty {
                         Text("No transactions found")
                             .font(.sfRounded(size: .base, weight: .regular))
-                            .foregroundStyle(AppColors.gray)
+                            .foregroundStyle(Color.gray)
                     }
                     else {
                         LazyVStack(spacing: 0) {
@@ -365,10 +365,10 @@ struct TransactionRow: View {
                 HStack {
                     Text(transaction.isBuy ? "Buy" : "Sell")
                         .font(.sfRounded(size: .base, weight: .bold))
-                        .foregroundStyle(AppColors.lightGray)
+                        .foregroundStyle(Color("grayLight"))
                     Text(transaction.name.isEmpty ? transaction.mint.truncatedAddress() : transaction.name)
                         .font(.sfRounded(size: .base, weight: .bold))
-                        .foregroundStyle(AppColors.white)
+                        .foregroundStyle(Color.white)
                         .lineLimit(1)
                         .truncationMode(.tail)
                         .offset(x: -2)
@@ -376,7 +376,7 @@ struct TransactionRow: View {
 
                 Text(formatDate(transaction.date))
                     .font(.sfRounded(size: .xs, weight: .regular))
-                    .foregroundStyle(AppColors.gray)
+                    .foregroundStyle(Color.gray)
                     .offset(y: 2)
 
             }
@@ -385,23 +385,23 @@ struct TransactionRow: View {
                 let price = priceModel.formatPrice(usd: transaction.valueUsd, showSign: true)
                 Text(price)
                     .font(.sfRounded(size: .base, weight: .bold))
-                    .foregroundStyle(transaction.isBuy ? AppColors.red : AppColors.green)
+                    .foregroundStyle(transaction.isBuy ? Color.red : Color.green)
 
                 let quantity = priceModel.formatPrice(lamports: abs(transaction.quantityTokens), showUnit: false)
                 HStack {
                     Text(quantity)
                         .font(.sfRounded(size: .xs, weight: .regular))
-                        .foregroundStyle(AppColors.gray)
+                        .foregroundStyle(Color.gray)
                         .offset(x: 4, y: 2)
 
                     Text(transaction.symbol)
                         .font(.sfRounded(size: .xs, weight: .regular))
-                        .foregroundStyle(AppColors.gray)
+                        .foregroundStyle(Color.gray)
                         .offset(y: 2)
                 }
             }
             Image(systemName: "chevron.right")
-                .foregroundStyle(AppColors.gray)
+                .foregroundStyle(Color.gray)
                 .offset(x: 12)
         }
         .padding(.bottom, 10.0)
@@ -437,12 +437,12 @@ struct SearchFilter: View {
                 ZStack(alignment: .leading) {
                     if filterState.searchText.isEmpty {
                         Text("Search...")
-                            .foregroundStyle(AppColors.gray)
+                            .foregroundStyle(Color.gray)
                             .font(.sfRounded(size: .base, weight: .regular))
                     }
                     TextField("", text: $filterState.searchText)
                         .textFieldStyle(PlainTextFieldStyle())
-                        .foregroundStyle(AppColors.white)
+                        .foregroundStyle(Color.white)
                         .frame(width: 100)
                         .font(.sfRounded(size: .base, weight: .regular))
                 }

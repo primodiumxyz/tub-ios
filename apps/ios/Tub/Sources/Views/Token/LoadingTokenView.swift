@@ -36,11 +36,11 @@ struct LoadingTokenView: View {
             }
             .padding(.horizontal)
             .frame(maxWidth: .infinity)
-            .foregroundStyle(AppColors.white)
+            .foregroundStyle(Color.white)
         }
     }
 }
 
 #Preview {
-    LoadingTokenView().background(.black)
+    LoadingTokenView().background(Color.black)
 }

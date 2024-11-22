@@ -22,7 +22,7 @@ struct LoginErrorView: View {
         VStack(spacing: 24) {
             Image(systemName: "exclamationmark.triangle.fill")
                 .font(.system(size: 48))
-                .foregroundStyle(AppColors.red)
+                .foregroundStyle(Color.red)
 
             Text("Connection Error")
                 .font(.sfRounded(size: .xl, weight: .bold))
@@ -35,17 +35,17 @@ struct LoginErrorView: View {
             Button(action: retryAction) {
                 Text("Try Again")
                     .font(.sfRounded(size: .lg, weight: .semibold))
-                    .foregroundStyle(AppColors.white)
+                    .foregroundStyle(Color.white)
                     .frame(maxWidth: .infinity)
                     .padding(14)
-                    .background(AppColors.primaryPurple)
+                    .background(Color("purple"))
                     .cornerRadius(26)
             }
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(.black)
-        .foregroundStyle(.white)
+        .background(Color.black)
+        .foregroundStyle(Color.white)
     }
 }
 

@@ -18,29 +18,14 @@ struct CustomToggleStyle: ToggleStyle {
                 .frame(width: 50, height: 30)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(configuration.isOn ? AppColors.aquaGreen : AppColors.primaryPink, lineWidth: 1)
+                        .stroke(configuration.isOn ? Color("aquaGreen") : Color("pink"), lineWidth: 1)
                 )
                 .overlay(
                     Circle()
                         .fill(
-                            EllipticalGradient(
-                                stops: configuration.isOn
-                                    ? [
-                                        .init(
-                                            color: Color(red: 0, green: 0.32, blue: 0.27).opacity(0.79),
-                                            location: 0.00
-                                        ),
-                                        .init(color: Color(red: 0.01, green: 1, blue: 0.85), location: 0.90),
-                                    ]
-                                    : [
-                                        .init(
-                                            color: Color(red: 0.64, green: 0.19, blue: 0.45).opacity(0.48),
-                                            location: 0.00
-                                        ),
-                                        .init(color: Color(red: 0.87, green: 0.26, blue: 0.61), location: 0.90),
-                                    ],
-                                center: UnitPoint(x: 0.5, y: 0.5)
-                            )
+                            configuration.isOn 
+                                ? AppColors.toggleOnGradient
+                                : AppColors.toggleOffGradient
                         )
                         .frame(width: 24, height: 24)
                         .offset(x: configuration.isOn ? 10 : -10)
@@ -96,13 +81,13 @@ struct SettingsView: View {
                         HStack(spacing: 4) {
                             Text("$")
                                 .font(.sfRounded(size: .lg, weight: .semibold))
-                                .foregroundColor(AppColors.white.opacity(0.5))
+                                .foregroundColor(Color.white.opacity(0.5))
                             TextField("", text: $tempDefaultValue)
                                 .focused($isEditing)
                                 .keyboardType(.decimalPad)
                                 .font(.sfRounded(size: .lg, weight: .semibold))
                                 .multilineTextAlignment(.trailing)
-                                .foregroundColor(AppColors.white)
+                                .foregroundColor(Color.white)
                                 .frame(width: textWidth(for: tempDefaultValue))
                                 .onChange(of: tempDefaultValue) { newValue in
                                     // Remove any non-numeric characters except decimal point
@@ -129,7 +114,7 @@ struct SettingsView: View {
                                     updateDefaultValue()
                                 }
                             Image(systemName: "pencil")
-                                .foregroundColor(AppColors.white)
+                                .foregroundColor(Color.white)
                                 .font(.system(size: 20))
                         }
                     }
@@ -164,7 +149,7 @@ struct SettingsView: View {
                 ToolbarItem(placement: .principal) {
                     Text("Settings")
                         .font(.sfRounded(size: .xl, weight: .semibold))
-                        .foregroundColor(AppColors.white)
+                        .foregroundColor(Color.white)
                 }
                 
                 // Keep keyboard toolbar
@@ -173,11 +158,11 @@ struct SettingsView: View {
                         isEditing = false
                         updateDefaultValue()
                     }
-                    .foregroundColor(AppColors.primaryPink)
+                    .foregroundColor(Color("pink"))
                     .font(.system(size: 20))
                 }
             }
-            .background(AppColors.black)
+            .background(Color.black)
         }
     }
 
