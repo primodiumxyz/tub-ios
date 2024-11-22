@@ -163,7 +163,7 @@ struct ChartView: View {
         .chartYScale(domain: yDomain)
         .chartYAxis(.hidden)
         .chartXAxis(.hidden)
-        .frame(width: .infinity, height: height)
+        .frame(maxWidth: .infinity, minHeight: height, maxHeight: height)
         .onChange(of: rawPrices) {
             updatePrices()
         }
