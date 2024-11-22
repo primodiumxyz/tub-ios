@@ -258,7 +258,7 @@ private struct BuyButton: View {
 /// It's used to optimize SwiftUI's view updates by preventing unnecessary redraws.
 extension ActionButtonsView: Equatable {
     static func == (lhs: ActionButtonsView, rhs: ActionButtonsView) -> Bool {
-        lhs.tokenModel.tokenId == rhs.tokenModel.tokenId
+        lhs.tokenModel.token.id == rhs.tokenModel.token.id
     }
 }
 

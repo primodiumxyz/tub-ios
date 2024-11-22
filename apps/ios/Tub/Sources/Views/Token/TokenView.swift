@@ -48,7 +48,7 @@ struct TokenView: View {
         guard let priceUsd = tokenModel.prices.last?.priceUsd
         else {
             notificationHandler.show(
-                "Something went wrong. Please try again.",
+                "Something went wrong.",
                 type: .error
             )
             return
@@ -119,7 +119,7 @@ struct TokenView: View {
             .background(.black)
             .navigationBarBackButtonHidden(true)
         }
-        .onChange(of: tokenModel.tokenId) { withAnimation(.linear(duration: 0.5)) { self.selectedTimespan = .live } }
+        .onChange(of: tokenModel.token.id) { withAnimation(.linear(duration: 0.5)) { self.selectedTimespan = .live } }
         .background(.black)
     }
 

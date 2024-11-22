@@ -41,7 +41,7 @@ struct AppContent: View {
         Group {
             if tokenManager.fetchFailed {
                 LoginErrorView(
-                    errorMessage: "Failed to connect. Please try again.",
+                    errorMessage: "Failed to connect to Codex",
                     retryAction: {
                         Task {
                             await tokenManager.refreshToken(hard: true)

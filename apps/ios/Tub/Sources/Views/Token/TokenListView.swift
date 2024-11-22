@@ -34,12 +34,17 @@ struct TokenListView: View {
 
     @State private var isLoading = false
 
-    private func canSwipe(value: DragGesture.Value) -> Bool {
-        return activeTab != "sell"
-            // not trying to swipe up from the first token
-            && !(value.translation.height > 0 && tokenListModel.currentTokenIndex == 0)
-            // not trying to swipe down when there is only one token available (the current one)
-            && !(value.translation.height < 0 && !tokenListModel.isNextTokenAvailable)
+    private enum SwipeDirection {
+        case up
+        case down
+    }
+
+    private func canSwipe(direction: SwipeDirection) -> Bool {
+        if activeTab == "sell" { return false }
+        if direction == .up {
+            return tokenListModel.currentTokenIndex != 0
+        }
+        return true
     }
 
     private func loadToken(_ geometry: GeometryProxy, _ direction: String) {
@@ -69,7 +74,7 @@ struct TokenListView: View {
             )
             .zIndex(2)
 
-            if tokenListModel.isLoading {
+            if !tokenListModel.isReady {
                 LoadingTokenView()
             }
             else {
@@ -83,7 +88,7 @@ struct TokenListView: View {
 
                         VStack(spacing: 0) {
                             // Rest of the content
-                            if tokenListModel.tokens.count == 0 {
+                            if tokenListModel.totalTokenCount == 0 {
                                 TokenLoadErrorView()
                             }
                             else {
@@ -121,20 +126,25 @@ struct TokenListView: View {
                                     .gesture(
                                         DragGesture()
                                             .onChanged { value in
-                                                if canSwipe(value: value) {
-                                                    if isDragStarting {
-                                                        isDragStarting = false
-                                                        // todo: show the next token
-                                                    }
-
-                                                    dragging = true
-                                                    offset = value.translation.height
+                                                let direction =
+                                                    value.translation.height > 0
+                                                    ? SwipeDirection.up : SwipeDirection.down
+                                                if !canSwipe(direction: direction) { return }
+                                                if isDragStarting {
+                                                    isDragStarting = false
+                                                    // todo: show the next token
                                                 }
+
+                                                dragging = true
+                                                offset = value.translation.height
                                             }
                                             .onEnded { value in
                                                 isDragStarting = true
 
-                                                if canSwipe(value: value) {
+                                                let direction =
+                                                    value.translation.height > 0
+                                                    ? SwipeDirection.up : SwipeDirection.down
+                                                if canSwipe(direction: direction) {
                                                     let threshold: CGFloat = 50
                                                     if value.translation.height > threshold {
                                                         loadToken(geometry, "previous")
