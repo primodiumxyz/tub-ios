@@ -65,37 +65,50 @@ class TokenModel: ObservableObject {
         
         Task {
             do {
-                // Create async tasks for all fetches
-                async let pricesTask = fetchInitialPrices()
-                async let candlesTask = fetchInitialCandles()
+                // Add a retry mechanism with delay
+                var attempts = 0
+                let maxAttempts = 3
                 
-                // Wait for all tasks to complete
-                let fetchedPrices = await pricesTask
-                let fetchedCandles = await candlesTask
-                
-                // Update UI with fetched data
-                DispatchQueue.main.async {
-                    self.prices = fetchedPrices
-                    self.candles = fetchedCandles
-                    self.lastPriceTimestamp = self.prices.last?.timestamp
-                    self.latestPrice = self.prices.last?.priceUsd
-                    self.isReady = true
-                    self.calculatePriceChange()
+                while attempts < maxAttempts {
+                    let client = await CodexNetwork.shared.apolloClient
+                    
+                    // Try fetching initial data
+                    let prices = await fetchInitialPrices()
+                    let candles = await fetchInitialCandles()
+                    
+                    // Check if we got valid data
+                    if !prices.isEmpty && !candles.isEmpty {
+                        await MainActor.run {
+                            self.prices = prices
+                            self.candles = candles
+                            self.lastPriceTimestamp = self.prices.last?.timestamp
+                            self.latestPrice = self.prices.last?.priceUsd
+                            self.isReady = true
+                            self.calculatePriceChange()
+                        }
+                        
+                        // Set up subscriptions only after successful data fetch
+                        await subscribeToTokenPrices()
+                        await subscribeToCandles()
+                        try await fetchUniqueHolders()
+                        break
+                    }
+                    
+                    attempts += 1
+                    if attempts < maxAttempts {
+                        try await Task.sleep(nanoseconds: UInt64(1_000_000_000)) // 1 second delay
+                    }
                 }
                 
-                // Subscribe to updates concurrently
-                async let pricesSubscription: () = subscribeToTokenPrices()
-                async let candlesSubscription: () = subscribeToCandles()
-                
-                // Wait for both subscriptions to be established
-                await (_, _) = (pricesSubscription, candlesSubscription)
-
-                // Fetch unique holders after subscriptions are established
-                async let holdersTask: () = fetchUniqueHolders()
-                try await holdersTask
+                if attempts == maxAttempts {
+                    print("Failed to fetch initial data after \(maxAttempts) attempts")
+                    await MainActor.run {
+                        self.isReady = false
+                    }
+                }
             } catch {
                 print("Error fetching initial data: \(error)")
-                DispatchQueue.main.async {
+                await MainActor.run {
                     self.isReady = false
                 }
             }
