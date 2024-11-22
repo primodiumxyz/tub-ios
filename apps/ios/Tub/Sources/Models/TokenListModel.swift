@@ -71,8 +71,10 @@ final class TokenListModel: ObservableObject {
         }
 
         var randomQueuedToken: Token?
-        repeat { randomQueuedToken = self.tokenQueue.randomElement() }
-        while currentId != nil && randomQueuedToken?.id != currentId
+        if self.tokenQueue.count >= 2 {
+            repeat { randomQueuedToken = self.tokenQueue.randomElement() }
+            while currentId != nil && randomQueuedToken?.id == currentId
+        }
         let fallback = self.pendingTokens.count > 0 ? self.pendingTokens[0] : randomQueuedToken
         guard let fallback else {
             return reset()
