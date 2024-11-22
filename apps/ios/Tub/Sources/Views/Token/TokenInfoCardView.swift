@@ -46,7 +46,7 @@ struct TokenInfoCardView: View {
                         StatValue(
                             text:
                                 "\(priceModel.formatPrice(usd: gains, showSign: true)) (\(String(format: "%.2f", percentageGain))%)",
-                            color: gains >= 0 ? AppColors.green : AppColors.red
+                            color: gains >= 0 ? Color.green : Color.red
                         )
                     )
                 ]
@@ -77,9 +77,9 @@ struct TokenInfoCardView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .center, spacing: 0) {
                 Rectangle()
-                    .foregroundColor(.clear)
+                    .foregroundStyle(.clear)
                     .frame(width: 60, height: 3)
-                    .background(AppColors.lightGray)
+                    .background(Color("grayLight"))
                     .cornerRadius(100)
             }
             .padding()
@@ -89,7 +89,7 @@ struct TokenInfoCardView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     Text("Stats")
                         .font(.sfRounded(size: .xl, weight: .semibold))
-                        .foregroundColor(AppColors.white)
+                        .foregroundStyle(Color.white)
                         .frame(maxWidth: .infinity, alignment: .topLeading)
                         .padding(.bottom, 4)
 
@@ -98,21 +98,21 @@ struct TokenInfoCardView: View {
                             HStack(alignment: .center) {
                                 Text(stat.0)
                                     .font(.sfRounded(size: .sm, weight: .regular))
-                                    .foregroundColor(AppColors.gray)
+                                    .foregroundStyle(Color.gray)
                                     .fixedSize(horizontal: true, vertical: false)
 
                                 Text(stat.1.text)
                                     .font(.sfRounded(size: .base, weight: .semibold))
                                     .frame(maxWidth: .infinity, alignment: .topTrailing)
-                                    .foregroundColor(stat.1.color ?? AppColors.white)
+                                    .foregroundStyle(stat.1.color ?? Color.white)
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
 
                             //divider
                             Rectangle()
-                                .foregroundColor(.clear)
+                                .foregroundStyle(Color.clear)
                                 .frame(height: 0.5)
-                                .background(AppColors.gray.opacity(0.5))
+                                .background(Color.gray.opacity(0.5))
                         }
                         .padding(.vertical, 6)
                     }
@@ -120,12 +120,12 @@ struct TokenInfoCardView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("About")
                             .font(.sfRounded(size: .xl, weight: .semibold))
-                            .foregroundColor(AppColors.white)
+                            .foregroundStyle(Color.white)
                             .frame(maxWidth: .infinity, alignment: .topLeading)
 
                         Text("\(tokenModel.token.description)")
                             .font(.sfRounded(size: .sm, weight: .regular))
-                            .foregroundColor(AppColors.lightGray)
+                            .foregroundStyle(Color("grayLight"))
                             .multilineTextAlignment(.leading)
                     }
                     .padding(.vertical, 12)
@@ -141,11 +141,11 @@ struct TokenInfoCardView: View {
         .padding(.vertical, 0)
         .padding(.horizontal, 20)
         .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.44, alignment: .topLeading)
-        .background(AppColors.black)
+        .background(Color.black)
         .overlay(
             RoundedRectangle(cornerRadius: 30)
                 .inset(by: 0.5)
-                .stroke(AppColors.shadowGray, lineWidth: 1)
+                .stroke(Color("grayShadow"), lineWidth: 1)
         )
         .transition(.move(edge: .bottom))
         .offset(y: dragOffset)

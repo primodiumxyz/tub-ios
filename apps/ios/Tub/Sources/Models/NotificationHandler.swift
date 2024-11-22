@@ -16,9 +16,9 @@ enum NotificationType {
 
     var color: Color {
         switch self {
-        case .error: return .red
-        case .success: return .green
-        case .info: return .blue
+        case .error: return Color.red
+        case .success: return Color.green
+        case .info: return Color.blue
         }
     }
 

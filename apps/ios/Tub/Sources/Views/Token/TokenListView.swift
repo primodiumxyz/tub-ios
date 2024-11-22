@@ -86,7 +86,7 @@ struct TokenListView: View {
                             if tokenListModel.tokens.count == 0 {
                                 Spacer()
                                 Text("Failed to load tokens.")
-                                    .foregroundColor(AppColors.lightYellow)
+                                    .foregroundColor(Color("aquaGreen"))
                                     .multilineTextAlignment(.center)
                                     .padding(.bottom, 24)
                                 Button(action: {
@@ -97,16 +97,16 @@ struct TokenListView: View {
                                 }) {
                                     Text("Retry")
                                         .font(.sfRounded(size: .lg, weight: .semibold))
-                                        .foregroundColor(AppColors.white)
+                                        .foregroundColor(Color.white)
                                         .frame(maxWidth: 300)
                                         .padding(.horizontal, 16)
                                         .padding(.vertical, 12)
-                                        .background(AppColors.primaryPurple)
+                                        .background(Color("purple"))
                                         .cornerRadius(30)
                                         .overlay(
                                             RoundedRectangle(cornerRadius: 30)
                                                 .inset(by: 0.5)
-                                                .stroke(AppColors.primaryPurple, lineWidth: 1)
+                                                .stroke(Color("purple"), lineWidth: 1)
                                         )
                                 }
                                 Spacer()
@@ -182,7 +182,7 @@ struct TokenListView: View {
                             .zIndex(998)
                     }
                 }
-                .foregroundColor(.white)
+                .foregroundColor(Color.white)
             }
         }.onAppear {
             Task {

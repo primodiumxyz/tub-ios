@@ -28,7 +28,7 @@ struct BubbleEffect: View {
                     Image("tub_bubble_test")
                         .resizable()
                         .renderingMode(.template)
-                        .foregroundColor(AppColors.aquaGreen.opacity(1.0))
+                        .foregroundColor(Color("aquaGreen").opacity(1.0))
                         .frame(width: 30, height: 30)
                         .scaleEffect(bubble.scale)
                         .position(bubble.position)
