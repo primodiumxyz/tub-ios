@@ -143,7 +143,7 @@ struct TokenView: View {
                         .font(.sfRounded(size: .lg, weight: .semibold)).opacity(0.7)
                 }
                 else {
-                    LoadingBox(width: 100, height: 16)
+                    LoadingBox(width: 100, height: 20)
                 }
 
                 if tokenModel.isReady {

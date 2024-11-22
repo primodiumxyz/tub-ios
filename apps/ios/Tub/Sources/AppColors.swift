@@ -38,12 +38,11 @@ struct AppColors {
     // buy bg
     static let primaryPurpleGradient = LinearGradient(
         stops: [
-            Gradient.Stop(color: .black, location: 0.08),
-            Gradient.Stop(color: AppColors.primaryPurple.opacity(0.26), location: 0.25),
-            Gradient.Stop(color: AppColors.primaryPurple.opacity(0), location: 0.44),
+            Gradient.Stop(color: AppColors.primaryPurple.opacity(0.3), location: 0.00),
+            Gradient.Stop(color: AppColors.primaryPurple.opacity(0), location: 0.8),
         ],
-        startPoint: UnitPoint(x: 0.5, y: 0),
-        endPoint: UnitPoint(x: 0.5, y: 1)
+        startPoint: .bottom,
+        endPoint: .top
     )
     // sell bg
     static let primaryPinkGradient = LinearGradient(
@@ -51,8 +50,8 @@ struct AppColors {
             Gradient.Stop(color: AppColors.primaryPink.opacity(0.3), location: 0.00),
             Gradient.Stop(color: AppColors.primaryPink.opacity(0), location: 0.8),
         ],
-        startPoint: UnitPoint(x: 0.5, y: 1),
-        endPoint: UnitPoint(x: 0.5, y: 0)
+        startPoint: .bottom,
+        endPoint: .top
     )
 
     // login modal bg
@@ -62,8 +61,8 @@ struct AppColors {
             Gradient.Stop(color: Color(red: 0.77, green: 0.38, blue: 0.6).opacity(0.4), location: 0.00),
             Gradient.Stop(color: Color(red: 0.77, green: 0.38, blue: 0.6).opacity(0.1), location: 1.00),
         ],
-        startPoint: UnitPoint(x: 0.5, y: 0),
-        endPoint: UnitPoint(x: 0.5, y: 1)
+        startPoint: .top,
+        endPoint: .bottom
     )
 
     // card bg
@@ -73,8 +72,8 @@ struct AppColors {
             Gradient.Stop(color: Color(red: 0.1, green: 0.1, blue: 0.2), location: 0.85),
             Gradient.Stop(color: Color(red: 0, green: 0, blue: 0), location: 1.0),
         ],
-        startPoint: UnitPoint(x: 0.5, y: 0),
-        endPoint: UnitPoint(x: 0.5, y: 1)
+        startPoint: .top,
+        endPoint: .bottom
     )
 
     // info stats bg
@@ -83,8 +82,8 @@ struct AppColors {
             Gradient.Stop(color: Color(red: 0.12, green: 0.12, blue: 0.11), location: 0.38),
             Gradient.Stop(color: Color(red: 0.12, green: 0.11, blue: 0.11).opacity(0), location: 1.00),
         ],
-        startPoint: UnitPoint(x: 0.5, y: 0),
-        endPoint: UnitPoint(x: 0.5, y: 1)
+        startPoint: .top,
+        endPoint: .bottom
     )
 
     // buy green bg
@@ -93,7 +92,7 @@ struct AppColors {
             Gradient.Stop(color: Color(red: 0.1, green: 0.2, blue: 0.18), location: 0.29),
             Gradient.Stop(color: .black, location: 1.00),
         ],
-        startPoint: UnitPoint(x: 0.5, y: 0),
-        endPoint: UnitPoint(x: 0.5, y: 1)
+        startPoint: .top,
+        endPoint: .bottom
     )
 }

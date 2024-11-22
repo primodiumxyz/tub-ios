@@ -33,7 +33,7 @@ struct AccountBalanceView: View {
                 EmptyView()
             }
             else {
-                HStack(alignment: .top) {
+                HStack(alignment: .bottom) {
                     Text("Your Balance")
                         .font(.sfRounded(size: .lg, weight: .semibold))
                         .foregroundColor(AppColors.white)
@@ -41,6 +41,17 @@ struct AccountBalanceView: View {
                     Spacer()
                     VStack(alignment: .trailing) {
                         if let balance = balances.solBalanceUsd {
+                            let formattedChange = priceModel.formatPrice(
+                                usd: balances.deltaUsd,
+                                showSign: true,
+                                maxDecimals: 2
+                            )
+                            Text(formattedChange)
+                                .font(.sfRounded(size: .xs, weight: .light))
+                                .fontWeight(.bold)
+                                .foregroundColor(balances.deltaUsd >= 0 ? AppColors.green : AppColors.red)
+                                .opacity(0.7)
+
                             let formattedBalance = priceModel.formatPrice(
                                 usd: balance,
                                 maxDecimals: 2,
@@ -51,18 +62,9 @@ struct AccountBalanceView: View {
                                 .fontWeight(.bold)
                                 .foregroundColor(AppColors.white)
 
-                            let formattedChange = priceModel.formatPrice(
-                                usd: balances.deltaUsd,
-                                showSign: true,
-                                maxDecimals: 2
-                            )
-                            Text(formattedChange)
-                                .font(.sfRounded(size: .xs, weight: .light))
-                                .fontWeight(.bold)
-                                .foregroundColor(balances.deltaUsd >= 0 ? AppColors.green : AppColors.red)
                         }
                     }
-                }
+                }.padding(.horizontal, 16)
             }
             Divider()
                 .frame(width: 340.0, height: 1.0)

@@ -69,7 +69,7 @@ struct TokenListView: View {
                 userModel: userModel,
                 currentTokenModel: tokenListModel.currentTokenModel
             )
-            .zIndex(2)
+            .zIndex(3)
 
             if tokenListModel.isLoading {
 
@@ -118,7 +118,7 @@ struct TokenListView: View {
                 // Bubbles effect
                 if animationState.showSellBubbles {
                     BubbleEffect(isActive: $animationState.showSellBubbles)
-                        .zIndex(998)
+                        .zIndex(10)
                 }
             }
 
@@ -146,7 +146,7 @@ struct TokenListView: View {
                             .opacity(dragging ? 0.8 : 0)
 
                     }
-                    .zIndex(-10)
+                    .zIndex(1)
                     .offset(y: -geometry.size.height + OFFSET + offset + activeOffset)
                     .gesture(
                         DragGesture()
@@ -181,8 +181,8 @@ struct TokenListView: View {
                                     }
                                 }
                             }
-                    ).zIndex(1)
-                }.zIndex(-1)
+                    )
+                }.zIndex(1)
             }
         }.onAppear {
 
