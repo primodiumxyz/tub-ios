@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct BuyForm: View {
+struct BuyFormx: View {
     @Binding var isVisible: Bool
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject var notificationHandler: NotificationHandler
@@ -32,6 +32,8 @@ struct BuyForm: View {
 
     @ObservedObject private var settingsManager = SettingsManager.shared
 
+    static let formHeight: CGFloat = 250
+    
     @MainActor
     private func handleBuy() async {
         guard let balance = userModel.balanceLamps else { return }
@@ -82,27 +84,45 @@ struct BuyForm: View {
         .padding(.vertical, 20)
         .background(AppColors.darkGreenGradient)
         .cornerRadius(26)
-        .offset(y: max(dragOffset, slideOffset - keyboardHeight + (isKeyboardActive ? keyboardAdjustment : 0)))
+//        .offset(y: max(dragOffset, slideOffset - keyboardHeight + (isKeyboardActive ? keyboardAdjustment : 0)))
         .gesture(dragGesture)
-        .onAppear(perform: animateAppearance)
+//        .onAppear(perform: animateAppearance)
         .onChange(of: isVisible, perform: handleVisibilityChange)
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
             isKeyboardActive = false
         }
         .dismissKeyboardOnTap()
+        .presentationDetents([.height(Self.formHeight)])
+        .presentationBackground(.clear)
+        .border(.pink)
     }
 
     private var formContent: some View {
         VStack {
-            defaultToggle
+            HStack {
+                Button {
+                    isVisible = false
+                } label: {
+                    Text("Cancel")
+                        .font(.sfRounded(size: .base, weight: .regular))
+                        .foregroundColor(AppColors.white)
+                }
+                Spacer()
+                defaultToggle
+            }
+            .border(.blue)
+            
             VStack(alignment: .center, spacing: 20) {
                 numberInput
                 amountButtons
                 buyButton
+//                Text("line one")
+//                Text("line two")
             }
+            .border(.yellow)
         }
+        .frame(height: Self.formHeight)
         .padding(8)
-        .frame(height: 300)
     }
 
     private var buyButton: some View {

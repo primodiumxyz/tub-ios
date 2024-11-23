@@ -84,16 +84,18 @@ struct ActionButtonsView: View {
                     }
                     else {
                         HStack(spacing: 16) {
-                            Button(action: {
+                            Button {
                                 showBuySheet = true
-                            }) {
+                            } label: {
                                 Image(systemName: "pencil")
                                     .font(.system(size: 20, weight: .bold))
                                     .foregroundColor(AppColors.aquaGreen)
                                     .padding(12)
                                     .background(Circle().stroke(AppColors.aquaGreen, lineWidth: 1))
                             }
-                            BuyButton(showBuySheet: $showBuySheet, handleBuy: handleBuy)
+                            
+                            // The mint color "Buy $10" button
+                            BuyButton(handleBuy: handleBuy)
                         }
 
                     }
@@ -114,6 +116,20 @@ struct ActionButtonsView: View {
             RegisterView(isRedirected: true)
                 .background(.black)
 
+        }
+        .sheet(isPresented: $showBuySheet) {
+                BuyFormx(isVisible: $showBuySheet,
+                         tokenModel: tokenModel,
+                         onBuy: handleBuy)
+//                    .transition(.move(edge: .bottom))
+//                    .offset(y: -keyboardHeight)
+//                    .zIndex(2)
+//                    .onAppear {
+//                        setupKeyboardNotifications()
+//                    }
+//                    .onDisappear {
+//                        removeKeyboardNotifications()
+//                    }
         }
     }
 }
@@ -212,7 +228,6 @@ private struct AirdropButton: View {
 private struct BuyButton: View {
     @EnvironmentObject var userModel: UserModel
     @EnvironmentObject var priceModel: SolPriceModel
-    @Binding var showBuySheet: Bool
     @State private var showOnrampView = false
     @StateObject private var settingsManager = SettingsManager.shared
 
