@@ -85,10 +85,9 @@ struct TokenView: View {
                     infoCardLowOpacity
                         .opacity(0.8)
                         .padding(.bottom, 12)
-                    BuySellFormView(
+                    ActionButtonsView(
                         tokenModel: tokenModel,
                         showBuySheet: $showBuySheet,
-                        defaultAmount: $defaultAmount,
                         handleBuy: handleBuy,
                         onSellSuccess: onSellSuccess
                     )
@@ -202,24 +201,24 @@ struct TokenView: View {
         Group {
             if tokenModel.isReady {
                 HStack {
-                IntervalButton(
-                    timespan: .live,
-                    isSelected: tokenModel.selectedTimespan == .live,
-                    action: {
-                        withAnimation(.easeInOut(duration: 0.15)) {
-                            tokenModel.selectedTimespan = .live
+                    IntervalButton(
+                        timespan: .live,
+                        isSelected: tokenModel.selectedTimespan == .live,
+                        action: {
+                            withAnimation(.easeInOut(duration: 0.15)) {
+                                tokenModel.selectedTimespan = .live
+                            }
                         }
-                    }
-                )
-                IntervalButton(
-                    timespan: .candles,
-                    isSelected: tokenModel.selectedTimespan == .candles,
-                    action: {
-                        withAnimation(.easeInOut(duration: 0.15)) {
-                            tokenModel.selectedTimespan = .candles
+                    )
+                    IntervalButton(
+                        timespan: .candles,
+                        isSelected: tokenModel.selectedTimespan == .candles,
+                        action: {
+                            withAnimation(.easeInOut(duration: 0.15)) {
+                                tokenModel.selectedTimespan = .candles
+                            }
                         }
-                    }
-                )
+                    )
                 }
                 .frame(height: 32)
                 .padding(.horizontal)

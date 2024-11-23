@@ -28,7 +28,7 @@ struct AccountBalanceView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0.5) {
+        VStack(spacing: 4) {
             if userModel.userId == nil {
                 EmptyView()
             }

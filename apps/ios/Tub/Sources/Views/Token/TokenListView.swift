@@ -99,8 +99,8 @@ struct TokenListView: View {
                             .padding(.bottom, 24)
                         Button(action: {
                             Task {
-                                        await tokenManager.refreshToken(hard: true)
-                                        await tokenListModel.startTokenSubscription()
+                                await tokenManager.refreshToken(hard: true)
+                                await tokenListModel.startTokenSubscription()
                             }
                         }) {
                             Text("Retry")
@@ -191,11 +191,8 @@ struct TokenListView: View {
             }
         }.onAppear {
 
-            do {
-                try tokenListModel.subscribeTokens()
-            }
-            catch {
-                notificationHandler.show("Failed to fetch tokens", type: .error)
+            Task {
+                await tokenListModel.startTokenSubscription()
             }
         }
         .onDisappear {

@@ -92,27 +92,4 @@ struct AppColors {
         ],
         center: UnitPoint(x: 0.5, y: 0.5)
     )
-
-    // toggle button gradients
-    static let toggleOnGradient = EllipticalGradient(
-        stops: [
-            .init(
-                color: Color(red: 0, green: 0.32, blue: 0.27).opacity(0.79),
-                location: 0.00
-            ),
-            .init(color: Color(red: 0.01, green: 1, blue: 0.85), location: 0.90),
-        ],
-        center: UnitPoint(x: 0.5, y: 0.5)
-    )
-
-    static let toggleOffGradient = EllipticalGradient(
-        stops: [
-            .init(
-                color: Color(red: 0.64, green: 0.19, blue: 0.45).opacity(0.48),
-                location: 0.00
-            ),
-            .init(color: Color(red: 0.87, green: 0.26, blue: 0.61), location: 0.90),
-        ],
-        center: UnitPoint(x: 0.5, y: 0.5)
-    )
 }
