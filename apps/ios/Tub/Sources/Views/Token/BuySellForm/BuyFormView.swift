@@ -1,5 +1,5 @@
 //
-//  BuyForm.swift
+//  BuyFormView.swift
 //  Tub
 //
 //  Created by Henry on 10/4/24.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct BuyForm: View {
+struct BuyFormView: View {
     @Binding var isVisible: Bool
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject var notificationHandler: NotificationHandler
@@ -91,14 +91,12 @@ struct BuyForm: View {
                 Spacer()
                 defaultToggle
             }
-            .border(.blue)
             
             VStack(alignment: .center, spacing: 20) {
                 numberInput
                 amountButtons
                 buyButton
             }
-            .border(.yellow)
         }
         .frame(height: Self.formHeight)
         .padding(8)

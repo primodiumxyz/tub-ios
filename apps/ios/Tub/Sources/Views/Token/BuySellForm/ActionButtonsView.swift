@@ -118,9 +118,9 @@ struct ActionButtonsView: View {
 
         }
         .sheet(isPresented: $showBuySheet) {
-            BuyForm(isVisible: $showBuySheet,
-                    tokenModel: tokenModel,
-                    onBuy: handleBuy)
+            BuyFormView(isVisible: $showBuySheet,
+                        tokenModel: tokenModel,
+                        onBuy: handleBuy)
         }
     }
 }

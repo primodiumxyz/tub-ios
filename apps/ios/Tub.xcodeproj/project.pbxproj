@@ -597,7 +597,6 @@
 				468B07432CEBB63700C2CBFC /* CodexTokenManager.swift in Sources */,
 				995FCA1F2CDA5ED70018A76D /* CoinbaseOnrampView.swift in Sources */,
 				996772FE2CEB85820029B298 /* LoadingBox.swift in Sources */,
-				991D60812CD5211600A7245F /* CreateWalletView.swift in Sources */,
 				282A6AB32CEEE8490039133F /* ButtonStyles.swift in Sources */,
 				99DDF62D2CB02816000234DA /* AccountView.swift in Sources */,
 				9936FC582CADCA5200E21B8A /* Structs.swift in Sources */,
