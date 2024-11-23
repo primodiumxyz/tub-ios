@@ -35,6 +35,9 @@ struct TokenListView: View {
     @StateObject private var animationState = TokenAnimationState.shared
 
     private var background: LinearGradient {
+        if tokenListModel.isLoading || tokenListModel.tokens.count == 0 {
+            return LinearGradient(colors: [.clear], startPoint: .top, endPoint: .bottom)
+        }
         return activeTab == "sell"
             ? AppColors.primaryPinkGradient
             : AppColors.primaryPurpleGradient
