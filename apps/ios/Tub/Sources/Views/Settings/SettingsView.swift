@@ -103,7 +103,7 @@ struct SettingsView: View {
                                 .multilineTextAlignment(.trailing)
                                 .foregroundColor(AppColors.white)
                                 .frame(width: textWidth(for: tempDefaultValue))
-                                .onChange(of: tempDefaultValue) { newValue in
+                                .onChange(of: tempDefaultValue) { _, newValue in
                                     // Remove any non-numeric characters except decimal point
                                     let filtered = newValue.filter { "0123456789.".contains($0) }
 
