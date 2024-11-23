@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct BuyFormx: View {
+struct BuyForm: View {
     @Binding var isVisible: Bool
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject var notificationHandler: NotificationHandler
@@ -18,15 +18,6 @@ struct BuyFormx: View {
     @State private var buyAmountUsdString: String = ""
     @State private var buyAmountUsd: Double = 0
     @State private var isValidInput: Bool = true
-
-    @State private var dragOffset: CGFloat = 0.0
-    @State private var slideOffset: CGFloat = UIScreen.main.bounds.height
-    @State private var animatingSwipe: Bool = false
-    @State private var isClosing: Bool = false
-
-    @State private var isKeyboardActive: Bool = false
-    @State private var keyboardHeight: CGFloat = 0.0
-    private let keyboardAdjustment: CGFloat = 220
 
     @State private var isDefaultOn: Bool = true  //by default is on
 
@@ -72,7 +63,6 @@ struct BuyFormx: View {
         buyAmountUsdString = ""
         buyAmountUsd = 0
         isValidInput = true
-        animatingSwipe = false
         isDefaultOn = true
     }
 
@@ -84,17 +74,10 @@ struct BuyFormx: View {
         .padding(.vertical, 20)
         .background(AppColors.darkGreenGradient)
         .cornerRadius(26)
-//        .offset(y: max(dragOffset, slideOffset - keyboardHeight + (isKeyboardActive ? keyboardAdjustment : 0)))
-        .gesture(dragGesture)
-//        .onAppear(perform: animateAppearance)
-        .onChange(of: isVisible, perform: handleVisibilityChange)
-        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
-            isKeyboardActive = false
-        }
+        .onAppear { resetForm() }
         .dismissKeyboardOnTap()
         .presentationDetents([.height(Self.formHeight)])
         .presentationBackground(.clear)
-        .border(.pink)
     }
 
     private var formContent: some View {
@@ -103,9 +86,7 @@ struct BuyFormx: View {
                 Button {
                     isVisible = false
                 } label: {
-                    Text("Cancel")
-                        .font(.sfRounded(size: .base, weight: .regular))
-                        .foregroundColor(AppColors.white)
+                    Image(systemName: "xmark")
                 }
                 Spacer()
                 defaultToggle
@@ -116,8 +97,6 @@ struct BuyFormx: View {
                 numberInput
                 amountButtons
                 buyButton
-//                Text("line one")
-//                Text("line two")
             }
             .border(.yellow)
         }
@@ -199,9 +178,6 @@ struct BuyFormx: View {
                 .foregroundColor(isValidInput ? .white : .red)
                 .frame(minWidth: 50)
                 .fixedSize()
-                .onTapGesture {
-                    isKeyboardActive = true
-                }
                 Spacer()
             }
             .frame(maxWidth: 300)
@@ -250,60 +226,8 @@ struct BuyFormx: View {
                 .clipShape(Capsule())
         }
     }
-
-    private var dragGesture: some Gesture {
-        DragGesture()
-            .onChanged { value in
-                dragOffset = value.translation.height
-            }
-            .onEnded { value in
-                handleDragGestureEnd(value)
-            }
-    }
-
-    private func handleDragGestureEnd(_ value: DragGesture.Value) {
-        let threshold: CGFloat = 100
-        let verticalAmount = value.translation.height
-
-        if verticalAmount > threshold && !animatingSwipe {
-            withAnimation(.easeInOut(duration: 0.4)) {
-                dragOffset = UIScreen.main.bounds.height
-            }
-            animatingSwipe = true
-            isClosing = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                isVisible = false  // Close the form
-            }
-        }
-        else {
-            withAnimation(.easeInOut(duration: 0.3)) {
-                dragOffset = 0
-            }
-        }
-    }
-
-    private func animateAppearance() {
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.8, blendDuration: 0)) {
-            slideOffset = 150
-        }
-    }
-
-    private func handleVisibilityChange(_ newValue: Bool) {
-        if newValue {
-            // Reset when becoming visible
-            isClosing = false
-            dragOffset = 0
-            slideOffset = 150
-            resetForm()
-        }
-        else if !isClosing {
-            // Only animate closing if not already closing from gesture
-            withAnimation(.easeInOut(duration: 0.4)) {
-                dragOffset = UIScreen.main.bounds.height
-            }
-        }
-    }
 }
+
 func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String)
     -> Bool
 {

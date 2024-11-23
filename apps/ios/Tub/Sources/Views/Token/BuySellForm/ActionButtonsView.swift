@@ -118,18 +118,9 @@ struct ActionButtonsView: View {
 
         }
         .sheet(isPresented: $showBuySheet) {
-                BuyFormx(isVisible: $showBuySheet,
-                         tokenModel: tokenModel,
-                         onBuy: handleBuy)
-//                    .transition(.move(edge: .bottom))
-//                    .offset(y: -keyboardHeight)
-//                    .zIndex(2)
-//                    .onAppear {
-//                        setupKeyboardNotifications()
-//                    }
-//                    .onDisappear {
-//                        removeKeyboardNotifications()
-//                    }
+            BuyForm(isVisible: $showBuySheet,
+                    tokenModel: tokenModel,
+                    onBuy: handleBuy)
         }
     }
 }
