@@ -36,7 +36,7 @@ struct AccountBalanceView: View {
                 HStack(alignment: .bottom) {
                     Text("Your Balance")
                         .font(.sfRounded(size: .lg, weight: .semibold))
-                        .foregroundColor(AppColors.white)
+                        .foregroundColor(Color.white)
 
                     Spacer()
                     VStack(alignment: .trailing, spacing: 0) {
@@ -50,7 +50,7 @@ struct AccountBalanceView: View {
                                 Text(formattedChange)
                                     .font(.sfRounded(size: .xs, weight: .light))
                                     .fontWeight(.bold)
-                                    .foregroundColor(balances.deltaUsd >= 0 ? AppColors.green : AppColors.red)
+                                    .foregroundColor(balances.deltaUsd >= 0 ? Color.green : Color.red)
                                     .opacity(0.7)
                                     .frame(height: 10)
                                     .padding(0)
@@ -67,7 +67,7 @@ struct AccountBalanceView: View {
                             Text(formattedBalance)
                                 .font(.sfRounded(size: .lg))
                                 .fontWeight(.bold)
-                                .foregroundColor(AppColors.white)
+                                .foregroundColor(Color.white)
 
                         }
                     }

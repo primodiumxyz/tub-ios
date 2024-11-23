@@ -24,6 +24,10 @@ struct CodexTokenData: RawRepresentable, Codable {
         return "\(token) and \(expiry)"
     }
 
+    var value: (String, String) {
+        (token, expiry)
+    }
+
     init(token: String, expiry: String) {
         self.token = token
         self.expiry = expiry
@@ -33,40 +37,15 @@ struct CodexTokenData: RawRepresentable, Codable {
 class CodexTokenManager: ObservableObject {
     static let shared = CodexTokenManager()
 
-    private let tokenExpiration: TimeInterval = 60 * 60 * 24  // 24h
+    private let tokenExpiration: TimeInterval = 60 * 60  // 1h
     private let maxRetryAttempts = 2
     private var retryCount = 0
     @Published var fetchFailed = false
     @Published var isReady = false
-    @AppStorage("codexToken") private var localCodexTokenData: CodexTokenData?
-    private var localCodexToken: (String, String)? {
-        get {
-            guard let data = localCodexTokenData else { return nil }
-            return (data.token, data.expiry)
-        }
-        set {
-            if let newValue = newValue {
-                localCodexTokenData = CodexTokenData(token: newValue.0, expiry: newValue.1)
-            }
-            else {
-                localCodexTokenData = nil
-            }
-        }
-    }
+    @AppStorage("codexToken") private var localCodexToken: CodexTokenData?
 
     private var refetchTimer: Timer?
     private var isRefreshing = false
-
-    private init() {}
-
-    public func handleUserSession() async {
-        await MainActor.run {
-            isReady = false
-            fetchFailed = false
-            retryCount = 0
-        }
-        await refreshToken()
-    }
 
     private func stopTokenRefresh() {
         refetchTimer?.invalidate()
@@ -79,41 +58,41 @@ class CodexTokenManager: ObservableObject {
         return f
     }()
 
-    private func fetchToken() async throws -> (String, String) {
-        var codexToken: (String, String)?
-        if let localToken = localCodexToken {
+    private func fetchToken(hard: Bool? = false) async throws -> CodexTokenData {
+        var codexToken: CodexTokenData?
+        if let localToken = localCodexToken, hard != true {
             codexToken = localToken
         }
         else {
-            print("fetching new token")
-            codexToken = try await Network.shared.requestCodexToken(Int(tokenExpiration) * 1000)
+            do {
+                print("fetching new token...")
+                codexToken = try await Network.shared.requestCodexToken(Int(tokenExpiration) * 1000)
+            }
+            catch {
+                print(error)
+                throw error
+            }
         }
         guard let codexToken = codexToken else {
-            throw NSError(
-                domain: "CodexTokenManager",
-                code: 1,
-                userInfo: [
-                    NSLocalizedDescriptionKey: "Failed to fetch codex token"
-                ]
-            )
+            throw TubError.networkFailure
         }
         return codexToken
     }
 
-    func refreshToken() async {
+    func refreshToken(hard: Bool? = false) async {
         guard !isRefreshing else { return }
         isRefreshing = true
         defer { isRefreshing = false }
 
         await MainActor.run {
+            isReady = false
             fetchFailed = false
         }
         do {
-            var codexToken = try await fetchToken()
+            var codexToken = try await fetchToken(hard: hard)
 
-            if let expiryDate = formatter.date(from: codexToken.1) {
+            if let expiryDate = formatter.date(from: codexToken.expiry) {
                 let timeUntilExpiry = expiryDate.timeIntervalSinceNow
-                print("time until expiry:", timeUntilExpiry)
 
                 // Ensure we're not scheduling in the past
                 let refreshTimeInterval = min(timeUntilExpiry - 300, timeUntilExpiry * 0.9)
@@ -134,16 +113,15 @@ class CodexTokenManager: ObservableObject {
                 else {
                     // If we're too close to expiry or past it, refresh immediately
 
-                    print("refreshing")
                     localCodexToken = nil
-                    codexToken = try await fetchToken()
+                    codexToken = try await fetchToken(hard: true)
                 }
             }
 
-            CodexNetwork.initialize(apiKey: codexToken.0)
-            self.localCodexToken = codexToken
-            self.retryCount = 0
-            DispatchQueue.main.async {
+            CodexNetwork.initialize(apiKey: codexToken.token)
+            self.localCodexToken = CodexTokenData(token: codexToken.token, expiry: codexToken.expiry)
+            await MainActor.run {
+                self.retryCount = 0
                 self.isReady = true
             }
 
@@ -155,7 +133,7 @@ class CodexTokenManager: ObservableObject {
                 Task(priority: .low) {
                     print("Fetch failed, retrying...")
                     try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
-                    await self.refreshToken()
+                    await self.refreshToken(hard: true)
                 }
             }
             else {

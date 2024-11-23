@@ -22,20 +22,19 @@ class TokenModel: ObservableObject {
     var tokenId: String = ""
 
     @Published var token: Token = emptyToken
-    @Published var activeView: Timespan?
     @Published var isReady = false
 
     @Published var prices: [Price] = []
     @Published var candles: [CandleData] = []
     @Published var priceChange: (amountUsd: Double, percentage: Double) = (0, 0)
+    
+    @Published var selectedTimespan: Timespan = .live
 
-    @Published var timeframeSecs: Double = CHART_INTERVAL
-    @Published var currentTimeframe: Timespan = .live
     private var lastPriceTimestamp: Date?
 
     private var priceSubscription: Apollo.Cancellable?
-    private var candleSubscription: Apollo.Cancellable?
-
+    private var candleSubscription: Timer?
+    
     private var latestPrice: Double?
     private var priceUpdateTimer: Timer?
 
@@ -44,7 +43,7 @@ class TokenModel: ObservableObject {
         priceUpdateTimer = nil
         // Clean up subscriptions when the object is deallocated
         priceSubscription?.cancel()
-        candleSubscription?.cancel()
+        candleSubscription?.invalidate()
         candleSubscription = nil
     }
 
@@ -54,7 +53,7 @@ class TokenModel: ObservableObject {
         }
     }
 
-    func initialize(with newToken: Token, timeframeSecs: Double = CHART_INTERVAL) {
+    func initialize(with newToken: Token) {
         DispatchQueue.main.async {
             self.tokenId = newToken.id
             self.token = newToken
@@ -62,63 +61,85 @@ class TokenModel: ObservableObject {
             self.prices = []
             self.candles = []
             self.priceChange = (0, 0)
-            self.timeframeSecs = timeframeSecs
         }
-
+        
         Task {
             do {
-                try await fetchUniqueHolders()
-
-                // Fetch both types of data
-                await fetchInitialPrices(newToken.id, timeframeSecs: self.timeframeSecs)
-                try await fetchInitialCandles(newToken.pairId)
-
-                // Move final status update to main thread
-                DispatchQueue.main.async {
-                    self.isReady = true
+                // Add a retry mechanism with delay
+                var attempts = 0
+                let maxAttempts = 3
+                
+                while attempts < maxAttempts {
+                    let client = await CodexNetwork.shared.apolloClient
+                    
+                    // Try fetching initial data
+                    let prices = await fetchInitialPrices()
+                    let candles = await fetchInitialCandles()
+                    
+                    // Check if we got valid data
+                    if !prices.isEmpty && !candles.isEmpty {
+                        await MainActor.run {
+                            self.prices = prices
+                            self.candles = candles
+                            self.lastPriceTimestamp = self.prices.last?.timestamp
+                            self.latestPrice = self.prices.last?.priceUsd
+                            self.isReady = true
+                            self.calculatePriceChange()
+                        }
+                        
+                        // Set up subscriptions only after successful data fetch
+                        await subscribeToTokenPrices()
+                        await subscribeToCandles()
+                        try await fetchUniqueHolders()
+                        break
+                    }
+                    
+                    attempts += 1
+                    if attempts < maxAttempts {
+                        try await Task.sleep(nanoseconds: UInt64(1_000_000_000)) // 1 second delay
+                    }
                 }
-
-                // Subscribe to both updates
-
-                subscribeToTokenPrices(newToken.id)
-                await subscribeToCandles(newToken.pairId)
-            }
-            catch {
+                
+                if attempts == maxAttempts {
+                    print("Failed to fetch initial data after \(maxAttempts) attempts")
+                    await MainActor.run {
+                        self.isReady = false
+                    }
+                }
+            } catch {
                 print("Error fetching initial data: \(error)")
-                DispatchQueue.main.async {
+                await MainActor.run {
                     self.isReady = false
                 }
             }
         }
     }
 
-    func fetchInitialPrices(_ tokenId: String, timeframeSecs: Double = 30 * 60) async {
+    private func fetchInitialPrices() async -> [Price] {
         let client = await CodexNetwork.shared.apolloClient
         let now = Int(Date().timeIntervalSince1970)
-        let startTime = now - Int(timeframeSecs)
-
+        let startTime = now - Int(Timespan.live.seconds)
+        
         // Calculate number of intervals needed
-        let numIntervals = Int(ceil(timeframeSecs / PRICE_UPDATE_INTERVAL))
-
+        let numIntervals = Int(ceil(Timespan.live.seconds / PRICE_UPDATE_INTERVAL))
         // Create array of timestamps we need to fetch
         let timestamps = (0..<numIntervals).map { i in
             startTime + Int(Double(i) * PRICE_UPDATE_INTERVAL)
         }
-
-        // Fetch all prices and collect them in order
+        
+        // Fetch all prices concurrently and collect them in order
         let prices = await withTaskGroup(of: Price?.self) { group in
             for timestamp in timestamps {
                 group.addTask {
                     let input = GetPriceInput(
-                        address: tokenId,
+                        address: self.tokenId,
                         networkId: NETWORK_FILTER,
                         timestamp: .some(timestamp)
                     )
 
                     let query = GetTokenPricesQuery(inputs: [input])
                     do {
-                        return try await withCheckedThrowingContinuation {
-                            (continuation: CheckedContinuation<Price?, Error>) in
+                        return try await withCheckedThrowingContinuation { continuation in
                             client.fetch(query: query) { result in
                                 switch result {
                                 case .success(let response):
@@ -156,21 +177,13 @@ class TokenModel: ObservableObject {
                     allPrices.append(price)
                 }
             }
-            return allPrices
+            return allPrices.sorted { $0.timestamp < $1.timestamp }
         }
-
-        let sortedPrices = prices.sorted { $0.timestamp < $1.timestamp }
-
-        DispatchQueue.main.async {
-            self.prices = sortedPrices
-            self.lastPriceTimestamp = self.prices.last?.timestamp
-            self.latestPrice = self.prices.last?.priceUsd
-            self.isReady = true
-            self.calculatePriceChange()
-        }
+        
+        return prices
     }
 
-    private func subscribeToTokenPrices(_ tokenId: String) {
+    private func subscribeToTokenPrices() async {
         priceSubscription?.cancel()
 
         // Start the timer for regular price updates
@@ -193,13 +206,12 @@ class TokenModel: ObservableObject {
             // Make sure the timer is retained
             RunLoop.main.add(self.priceUpdateTimer!, forMode: .common)
         }
-
+        
+        let client = await CodexNetwork.shared.apolloClient
         // Subscribe to real-time price updates
-        priceSubscription = CodexNetwork.shared.apollo.subscribe(
-            subscription: SubTokenPricesSubscription(
-                tokenAddress: tokenId
-            )
-        ) { [weak self] result in
+        priceSubscription = client.subscribe(subscription: SubTokenPricesSubscription(
+            tokenAddress: tokenId
+        )) { [weak self] result in
             guard let self = self else { return }
 
             switch result {
@@ -229,115 +241,80 @@ class TokenModel: ObservableObject {
         }
     }
 
-    private func fetchInitialCandles(_ pairId: String) async throws {
+    private func fetchInitialCandles() async -> [CandleData] {
         let client = await CodexNetwork.shared.apolloClient
         let now = Int(Date().timeIntervalSince1970)
-        let thirtyMinutesAgo = now - (30 * 60)
-
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            client.fetch(
-                query: GetTokenCandlesQuery(
-                    from: thirtyMinutesAgo,
-                    to: now,
-                    symbol: pairId,
-                    resolution: "1"
-                )
-            ) { [weak self] result in
-                guard let self = self else {
-                    continuation.resume(throwing: NSError(domain: "TokenModel", code: 0))
-                    return
-                }
-
+        let startTime = now - Int(Timespan.candles.seconds)
+        
+        return try! await withCheckedThrowingContinuation { continuation in
+            client.fetch(query: GetTokenCandlesQuery(
+                from: startTime,
+                to: now,
+                symbol: token.pairId,
+                resolution: "1"
+            )) { result in
                 switch result {
                 case .success(let response):
+                    var allCandles: [CandleData] = []
                     if let bars = response.data?.getBars {
-                        DispatchQueue.main.async {
-                            self.candles = zip(0..<bars.t.count, bars.t).compactMap { index, timestamp in
-                                guard let timestamp = .some(timestamp),
-                                    let open = bars.o[index],
-                                    let close = bars.c[index],
-                                    let high = bars.h[index],
-                                    let low = bars.l[index]
-                                else { return nil }
-                                return CandleData(
-                                    start: Date(timeIntervalSince1970: TimeInterval(timestamp)),
-                                    end: Date(timeIntervalSince1970: TimeInterval(timestamp) + 60),
-                                    open: open,
-                                    close: close,
-                                    high: high,
-                                    low: low,
-                                    volume: bars.v[index]
-                                )
-                            }
+                        for index in 0..<bars.t.count {
+                            let timestamp = bars.t[index]
+                            guard let open = bars.o[index],
+                                  let close = bars.c[index],
+                                  let high = bars.h[index],
+                                  let low = bars.l[index] else { continue }
+                            
+                            let candleData = CandleData(
+                                start: Date(timeIntervalSince1970: TimeInterval(timestamp)),
+                                end: Date(timeIntervalSince1970: TimeInterval(timestamp) + 60),
+                                open: open,
+                                close: close,
+                                high: high,
+                                low: low,
+                                volume: bars.v[index]
+                            )
+                            allCandles.append(candleData)
                         }
                     }
-                    continuation.resume()
+                    continuation.resume(returning: allCandles)
                 case .failure(let error):
                     continuation.resume(throwing: error)
+                }
+            }
+        } ?? [] as! [CandleData]
+    }
+
+    private func subscribeToCandles() async {
+        candleSubscription?.invalidate()
+        candleSubscription = nil
+        
+        // Create a timer that fetches candles every 2 seconds
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+
+            candleSubscription = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
+                guard let self = self else { return }
+
+                Task {
+                    self.candles = await self.fetchInitialCandles()
                 }
             }
         }
     }
 
-    private func subscribeToCandles(_ pairId: String) async {
-        candleSubscription?.cancel()
-        candleSubscription = nil
-
-        //        let client = await CodexNetwork.shared.apolloClient
-        //        let subscription = SubTokenCandlesSubscription(pairId: pairId)
-        //
-        //        candleSubscription = client.subscribe(subscription: subscription) { [weak self] result in
-        //            guard let self = self else { return }
-        //            switch result {
-        //            case .success(let graphQLResult):
-        //                if let newCandle = graphQLResult.data?.onBarsUpdated?.aggregates.r1?.token {
-        //                    let candleData = CandleData(
-        //                        start: Date(timeIntervalSince1970: TimeInterval(newCandle.t)),
-        //                        end: Date(timeIntervalSince1970: TimeInterval(newCandle.t) + 60),
-        //                        open: newCandle.o,
-        //                        close: newCandle.c,
-        //                        high: max(newCandle.h, newCandle.c),
-        //                        low: min(newCandle.l, newCandle.c),
-        //                        volume: newCandle.v
-        //                    )
-        //                    DispatchQueue.main.async {
-        //                        self.candles.append(candleData)
-        //                        if let index = self.candles.firstIndex(where: { $0.start == candleData.start }) {
-        //                            var updatedCandle = self.candles[index]
-        //                            updatedCandle.close = candleData.close
-        //                            updatedCandle.high = max(updatedCandle.high, candleData.close)
-        //                            updatedCandle.low = min(updatedCandle.low, candleData.close)
-        //                            updatedCandle.volume = candleData.volume
-        //                            self.candles[index] = updatedCandle
-        //                        } else {
-        //                            self.candles.sort { $0.start < $1.start }
-        //                        }
-        //
-        //                        let thirtyMinutesAgo = Date().addingTimeInterval(-30 * 60)
-        //                        self.candles.removeAll { $0.start < thirtyMinutesAgo }
-        //                    }
-        //                }
-        //            case .failure(let error):
-        //                print("Error in candle subscription: \(error.localizedDescription)")
-        //            }
-        //        }
-    }
-
-    func updateHistoryInterval(_ timespan: Timespan) {
-        self.calculatePriceChange()
-        self.timeframeSecs = timespan.timeframeSecs
-    }
-
     private func calculatePriceChange() {
         let latestPrice = prices.last?.priceUsd ?? 0
-
-        // Get timestamp for start of current timeframe
-        let startTime = Date().addingTimeInterval(-currentTimeframe.timeframeSecs)
-
-        // Find first price after the start time
-        let initialPriceUsd =
-            prices.first(where: { $0.timestamp >= startTime })?.priceUsd ?? prices.first?.priceUsd ?? 0
-
+        let startTime = Date().addingTimeInterval(-selectedTimespan.seconds)
+        let initialPriceUsd: Double
+        
+        // Find first price corresponding to the selected timespan
+        if selectedTimespan == .live {
+            initialPriceUsd = prices.first(where: { $0.timestamp >= startTime })?.priceUsd ?? prices.first?.priceUsd ?? 0
+        } else {
+            // Find the price within the candles data
+            initialPriceUsd = candles.first(where: { $0.start >= startTime })?.close ?? prices.first?.priceUsd ?? 0
+        }
+        
         if latestPrice == 0 || initialPriceUsd == 0 {
             print("Error: Cannot calculate price change. Prices are not available.")
             return
@@ -377,12 +354,7 @@ class TokenModel: ObservableObject {
                 )
             ) { [weak self] result in
                 guard let self = self else {
-                    let error = NSError(
-                        domain: "TokenModel",
-                        code: 0,
-                        userInfo: [NSLocalizedDescriptionKey: "Self is nil"]
-                    )
-                    continuation.resume(throwing: error)
+                    continuation.resume(throwing: TubError.unknown)
                     return
                 }
 

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import CodexAPI
 
 final class SolPriceModel: ObservableObject {
     static let shared = SolPriceModel()
@@ -14,28 +15,81 @@ final class SolPriceModel: ObservableObject {
     @Published var price: Double? = nil
     @Published var error: String?
 
+    private var timer: Timer?
+    private var fetching = false
+    private let updateInterval: TimeInterval = 10 // Update every 10 seconds
+
     init() {
-        fetchCurrentPrice()
+        Task {
+            await fetchCurrentPrice()
+            startPriceUpdates()
+        }
     }
 
-    func fetchCurrentPrice() {
-        error = nil
-        isReady = false
+    deinit {
+        timer?.invalidate()
+        timer = nil
+    }
 
-        Network.shared.fetchSolPrice { [weak self] result in
-            DispatchQueue.main.async {
-                guard let self = self else { return }
-                switch result {
-                case .success(let price):
-                    self.price = price
-                    break
-                case .failure(let fetchError):
-                    self.error = fetchError.localizedDescription
-                    print("Error fetching SOL price: \(fetchError.localizedDescription)")
+    private func startPriceUpdates() {
+        timer?.invalidate()
+        timer = nil
+        
+        timer = Timer.scheduledTimer(withTimeInterval: updateInterval, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            if !self.fetching {
+                Task {
+                    await self.fetchCurrentPrice()
                 }
-                self.isReady = true
             }
         }
+        RunLoop.main.add(timer!, forMode: .common)
+    }
+
+    // this comment ensures that the fetchCurrentPrice function is executing on the main thread
+    @MainActor
+    func fetchCurrentPrice() async {
+        guard !fetching else { return }
+        fetching = true
+        defer { fetching = false }
+        
+        error = nil
+        isReady = false
+        
+        let client = await CodexNetwork.shared.apolloClient
+        let input = GetPriceInput(
+            address: WSOL_ADDRESS,
+            networkId: NETWORK_FILTER
+        )
+        let query = GetTokenPricesQuery(inputs: [input])
+
+        do {
+            try await withCheckedThrowingContinuation { continuation in
+                client.fetch(query: query) { result in
+                    Task { @MainActor in
+                        switch result {
+                        case .success(let response):
+                            if let prices = response.data?.getTokenPrices,
+                               let firstPrice = prices.first,
+                               let price = firstPrice?.priceUsd
+                            {
+                                self.price = price
+                                continuation.resume()
+                            } else {
+                                continuation.resume(throwing: TubError.parsingError)
+                            }
+                        case .failure(let error):
+                            continuation.resume(throwing: error)
+                        }
+                    }
+                }
+            }
+        } catch {
+            self.error = error.localizedDescription
+            print("Error fetching SOL price: \(error.localizedDescription)")
+        }
+        
+        self.isReady = true
     }
 
     func formatPrice(

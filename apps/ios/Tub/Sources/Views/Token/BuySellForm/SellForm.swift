@@ -11,45 +11,29 @@ struct SellForm: View {
     @EnvironmentObject var priceModel: SolPriceModel
     @ObservedObject var tokenModel: TokenModel
     @Binding var showBuySheet: Bool
-    var onSell: () -> Void
-
-    private var sellButton: some View {
-        Button(action: onSell) {
-            Text("Sell")
-                .font(.sfRounded(size: .xl, weight: .semibold))
-                .foregroundColor(Color.white)
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-                .background(Color.pink)
-                .cornerRadius(30)
-        }
-    }
+    var onSell: () async -> Void
 
     var body: some View {
         GeometryReader { geometry in
             HStack(spacing: 8) {
-                Button(action: {
-                    showBuySheet = true
-                }) {
-                    HStack(alignment: .center, spacing: 8) {
-                        Text("Buy")
-                            .font(.sfRounded(size: .xl, weight: .semibold))
-                            .foregroundColor(AppColors.primaryPink)
-                            .multilineTextAlignment(.center)
+                OutlineButton(
+                    text: "Buy",
+                    textColor: Color("pink"),
+                    strokeColor: Color("pink"),
+                    backgroundColor: Color.black,
+                    action: { showBuySheet = true }
+                )
+                
+                PrimaryButton(
+                    text: "Sell",
+                    textColor: Color.white,
+                    backgroundColor: Color("pink"),
+                    action: {
+                        Task {
+                            await onSell()
+                        }
                     }
-                    .frame(maxWidth: 50)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .background(Color.black)
-                    .cornerRadius(26)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 30)
-                            .inset(by: 0.5)
-                            .stroke(Color.pink, lineWidth: 1)
-                    )
-                }
-                sellButton
+                )
             }
         }
         .frame(height: 50)

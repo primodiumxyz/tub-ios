@@ -17,55 +17,13 @@ struct AccountView: View {
     @State private var showOnrampView = false
     @State private var errorMessage: String = ""
 
-    func performAirdrop() {
-        isAirdropping = true
-
-        Network.shared.airdropNativeToUser(amount: 1 * Int(1e9)) { result in
-            DispatchQueue.main.async {
-                isAirdropping = false
-                switch result {
-                case .success:
-                    notificationHandler.show(
-                        "Airdrop successful!",
-                        type: .success
-                    )
-                case .failure(let error):
-                    errorMessage = error.localizedDescription
-                    notificationHandler.show(
-                        error.localizedDescription,
-                        type: .error
-                    )
-                }
-            }
-        }
-
-        Network.shared.recordClientEvent(
-            event: ClientEvent(
-                eventName: "airdrop",
-                source: "account_view",
-                metadata: [
-                    ["airdrop_amount": 1 * Int(1e9)]
-                ],
-                errorDetails: errorMessage
-            )
-        ) { result in
-            switch result {
-            case .success:
-                print("Successfully recorded buy event")
-            case .failure(let error):
-                print("Failed to record buy event: \(error)")
-            }
-        }
-    }
-
     var body: some View {
         NavigationStack {
             VStack(spacing: 24) {
                 if userModel.userId != nil {
                     AccountContentView(
                         isAirdropping: $isAirdropping,
-                        showOnrampView: $showOnrampView,
-                        performAirdrop: performAirdrop
+                        showOnrampView: $showOnrampView
                     )
                 }
                 else {
@@ -73,29 +31,29 @@ struct AccountView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(AppColors.black.ignoresSafeArea())
+            .background(Color.black.ignoresSafeArea())
             .sheet(isPresented: $showOnrampView) {
 
                 VStack {
                     HStack {
                         Text("Deposit")
                             .font(.sfRounded(size: .xl, weight: .semibold))
-                            .foregroundColor(AppColors.white)
+                            .foregroundColor(Color.white)
                         Spacer()
                         Button(action: { showOnrampView = false }) {
                             Image(systemName: "xmark")
-                                .foregroundColor(AppColors.white)
+                                .foregroundColor(Color.white)
                                 .font(.system(size: 16, weight: .medium))
                         }
                     }.padding(24)
 
                     CoinbaseOnrampView()
-                }.background(AppColors.black)
+                }.background(Color.black)
             }
             .presentationDragIndicator(.visible)
-            .presentationBackground(.black)
+            .presentationBackground(Color.black)
         }
-        .background(AppColors.black.ignoresSafeArea())
+        .background(Color.black.ignoresSafeArea())
     }
 }
 
@@ -106,7 +64,7 @@ private struct AccountHeaderView: View {
         VStack(spacing: 8) {
             Text("Account")
                 .font(.sfRounded(size: .xl2, weight: .semibold))
-                .foregroundColor(AppColors.white)
+                .foregroundColor(Color.white)
 
             BalanceSection()
         }
@@ -130,14 +88,14 @@ private struct BalanceSection: View {
         VStack(spacing: 8) {
             Text("Account Balance")
                 .font(.sfRounded(size: .lg, weight: .regular))
-                .foregroundColor(AppColors.lightGray.opacity(0.7))
+                .foregroundColor(Color("grayLight").opacity(0.7))
 
             if let balance = accountBalance.balance {
                 let formattedBalance = priceModel.formatPrice(lamports: balance, maxDecimals: 2, minDecimals: 2)
 
                 Text(formattedBalance)
                     .font(.sfRounded(size: .xl5, weight: .bold))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.white)
             }
             else {
                 ProgressView()
@@ -148,7 +106,7 @@ private struct BalanceSection: View {
 
                 // Format time elapsed
                 Text("\(formatDuration(userModel.elapsedSeconds))")
-                    .foregroundColor(.gray)
+                    .foregroundColor(Color.gray)
                     .font(.sfRounded(size: .sm, weight: .regular))
 
             }
@@ -159,9 +117,8 @@ private struct BalanceSection: View {
 }
 
 // New component for action buttons
-private struct ActionButtonsView: View {
+private struct ActionButtons: View {
     let isAirdropping: Bool
-    let performAirdrop: () -> Void
     @Binding var showOnrampView: Bool
 
     var body: some View {
@@ -170,41 +127,30 @@ private struct ActionButtonsView: View {
 
             // Add Transfer Button
             VStack(spacing: 8) {
-                Button(action: {}) {
-                    ZStack {
-                        Circle()
-                            .stroke(AppColors.aquaGreen, lineWidth: 1)
-                            .frame(width: 50, height: 50)
-
-                        Image(systemName: "arrow.left.arrow.right")
-                            .foregroundColor(AppColors.aquaGreen)
-                            .font(.system(size: 22))
-                    }
-                }.disabled(true)
+                CircleButton(
+                    icon: "arrow.left.arrow.right",
+                    color: Color("aquaGreen"),
+                    iconSize: 22,
+                    action: {}
+                ).disabled(true)
 
                 Text("Transfer")
                     .font(.sfRounded(size: .sm, weight: .medium))
-                    .foregroundColor(AppColors.aquaGreen)
+                    .foregroundColor(Color("aquaGreen"))
                     .multilineTextAlignment(.center)
             }.frame(width: 90).opacity(0.7)
 
             // Add Funds Button
             VStack(spacing: 8) {
-                Button(action: { showOnrampView = true }) {
-                    ZStack {
-                        Circle()
-                            .stroke(AppColors.aquaGreen, lineWidth: 1)
-                            .frame(width: 50, height: 50)
-
-                        Image(systemName: "plus")
-                            .foregroundColor(AppColors.aquaGreen)
-                            .font(.system(size: 24))
-                    }
-                }
+                CircleButton(
+                    icon: "plus",
+                    color: Color("aquaGreen"),
+                    action: { showOnrampView = true }
+                )
 
                 Text("Add Funds")
                     .font(.sfRounded(size: .sm, weight: .medium))
-                    .foregroundColor(AppColors.aquaGreen)
+                    .foregroundColor(Color("aquaGreen"))
                     .multilineTextAlignment(.center)
             }.frame(width: 90)
 
@@ -222,7 +168,7 @@ private struct AccountSettingsView: View {
         VStack(alignment: .leading, spacing: 24) {
             Text("Account Settings")
                 .font(.sfRounded(size: .xl, weight: .medium))
-                .foregroundColor(.white)
+                .foregroundColor(Color.white)
 
             NavigationLink(destination: AccountDetailsView()) {
                 HStack(spacing: 16) {
@@ -234,7 +180,7 @@ private struct AccountSettingsView: View {
                     Spacer()
                     Image(systemName: "chevron.right")
                 }
-                .foregroundColor(.white)
+                .foregroundColor(Color.white)
             }
 
             NavigationLink(destination: SettingsView()) {
@@ -247,7 +193,7 @@ private struct AccountSettingsView: View {
                     Spacer()
                     Image(systemName: "chevron.right")
                 }
-                .foregroundColor(.white)
+                .foregroundColor(Color.white)
             }
 
             HStack(spacing: 16) {
@@ -257,36 +203,26 @@ private struct AccountSettingsView: View {
                 Text("Support")
                     .font(.sfRounded(size: .lg, weight: .regular))
                 Spacer()
-                Image("discord")
+                Image("Discord")
                     .resizable()
                     .frame(width: 32, height: 32, alignment: .center)
                     .cornerRadius(8)
                     .padding(.trailing, -4)
                 Text("@Discord Link")
-                    .foregroundColor(AppColors.aquaGreen)
+                    .foregroundColor(Color("aquaGreen"))
                     .font(.sfRounded(size: .lg, weight: .medium))
             }
-            .foregroundColor(.white)
+            .foregroundColor(Color.white)
 
             // Logout Button
-            Button(action: userModel.logout) {
-                HStack(spacing: 16) {
-                    Image(systemName: "rectangle.portrait.and.arrow.right")
-                        .resizable()
-                        .frame(width: 22, height: 22, alignment: .center)
-                        .foregroundColor(AppColors.red)
-                        .padding(.bottom, 40)
-                        .padding(.leading, 4)
-                        .padding(.trailing, 2)
+            IconTextButton(
+                icon: "rectangle.portrait.and.arrow.right",
+                text: "Logout",
+                textColor: Color.red,
+                action: { userModel.logout() }
+            )
 
-                    Text("Logout")
-                        .font(.sfRounded(size: .lg, weight: .medium))
-                        .foregroundColor(AppColors.red)
-                        .padding(.bottom, 40)
-                }
-            }
-
-            Text(serverBaseUrl).foregroundStyle(.white)
+            Text(serverBaseUrl).foregroundStyle(Color.white)
                 .font(.caption)
         }
         .padding()
@@ -304,14 +240,12 @@ private struct UnregisteredAccountView: View {
 private struct AccountContentView: View {
     @Binding var isAirdropping: Bool
     @Binding var showOnrampView: Bool
-    let performAirdrop: () -> Void
 
     var body: some View {
         VStack(spacing: 24) {
             AccountHeaderView()
-            ActionButtonsView(
+            ActionButtons(
                 isAirdropping: isAirdropping,
-                performAirdrop: performAirdrop,
                 showOnrampView: $showOnrampView
             )
             AccountSettingsView()

@@ -51,7 +51,7 @@ struct HistoryView: View {
                         continuation.resume(returning: metadata)
                     }
                     else {
-                        continuation.resume(throwing: NSError(domain: "TokenMetadata", code: 1))
+                        continuation.resume(throwing: TubError.networkFailure)
                     }
                 case .failure(let error):
                     continuation.resume(throwing: error)
@@ -163,7 +163,7 @@ struct HistoryViewContent: View {
                     else if filteredTransactions().isEmpty {
                         Text("No transactions found")
                             .font(.sfRounded(size: .base, weight: .regular))
-                            .foregroundColor(AppColors.gray)
+                            .foregroundStyle(Color.gray)
                     }
                     else {
                         LazyVStack(spacing: 0) {
@@ -274,7 +274,7 @@ struct TransactionFilters: View {
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
+            HStack(spacing: 8) {
                 // Search Button and Field
                 SearchFilter(filterState: $filterState)
 
@@ -283,8 +283,7 @@ struct TransactionFilters: View {
                     Toggle(isOn: $filterState.selectedBuy) { Text("Buy") }
                     Toggle(isOn: $filterState.selectedSell) { Text("Sell") }
                 } label: {
-                    Text(typeFilterLabel())
-                        .filterStyle()
+                    FilterButton(text: typeFilterLabel())
                 }
 
                 // Period Filter
@@ -295,8 +294,7 @@ struct TransactionFilters: View {
                         }
                     }
                 } label: {
-                    Text("Period: \(filterState.selectedPeriod)")
-                        .filterStyle()
+                    FilterButton(text: "Period: \(filterState.selectedPeriod)")
                 }
 
                 // Status Filter
@@ -304,8 +302,7 @@ struct TransactionFilters: View {
                     Toggle(isOn: $filterState.selectedFilled) { Text("Filled") }
                     Toggle(isOn: $filterState.selectedUnfilled) { Text("Unfilled") }
                 } label: {
-                    Text(statusFilterLabel())
-                        .filterStyle()
+                    FilterButton(text: statusFilterLabel())
                 }
 
                 // Amount Filter
@@ -316,8 +313,7 @@ struct TransactionFilters: View {
                         }
                     }
                 } label: {
-                    Text("Amount: \(filterState.selectedAmountRange)")
-                        .filterStyle()
+                    FilterButton(text: "Amount: \(filterState.selectedAmountRange)")
                 }
             }
             .padding()
@@ -356,21 +352,6 @@ struct TransactionFilters: View {
     }
 }
 
-extension View {
-    func filterStyle() -> some View {
-        self
-            .font(.sfRounded(size: .sm, weight: .regular))
-            .foregroundColor(AppColors.white)
-            .padding(.horizontal)
-            .padding(.vertical, 6)
-            .fixedSize(horizontal: true, vertical: false)
-            .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(AppColors.lightGray, lineWidth: 1)
-            )
-    }
-}
-
 struct TransactionRow: View {
     let transaction: Transaction
     @EnvironmentObject private var priceModel: SolPriceModel
@@ -384,10 +365,10 @@ struct TransactionRow: View {
                 HStack {
                     Text(transaction.isBuy ? "Buy" : "Sell")
                         .font(.sfRounded(size: .base, weight: .bold))
-                        .foregroundColor(AppColors.lightGray)
+                        .foregroundStyle(Color("grayLight"))
                     Text(transaction.name.isEmpty ? transaction.mint.truncatedAddress() : transaction.name)
                         .font(.sfRounded(size: .base, weight: .bold))
-                        .foregroundColor(AppColors.white)
+                        .foregroundStyle(Color.white)
                         .lineLimit(1)
                         .truncationMode(.tail)
                         .offset(x: -2)
@@ -395,7 +376,7 @@ struct TransactionRow: View {
 
                 Text(formatDate(transaction.date))
                     .font(.sfRounded(size: .xs, weight: .regular))
-                    .foregroundColor(AppColors.gray)
+                    .foregroundStyle(Color.gray)
                     .offset(y: 2)
 
             }
@@ -404,23 +385,23 @@ struct TransactionRow: View {
                 let price = priceModel.formatPrice(usd: transaction.valueUsd, showSign: true)
                 Text(price)
                     .font(.sfRounded(size: .base, weight: .bold))
-                    .foregroundColor(transaction.isBuy ? AppColors.red : AppColors.green)
+                    .foregroundStyle(transaction.isBuy ? Color.red : Color.green)
 
                 let quantity = priceModel.formatPrice(lamports: abs(transaction.quantityTokens), showUnit: false)
                 HStack {
                     Text(quantity)
                         .font(.sfRounded(size: .xs, weight: .regular))
-                        .foregroundColor(AppColors.gray)
+                        .foregroundStyle(Color.gray)
                         .offset(x: 4, y: 2)
 
                     Text(transaction.symbol)
                         .font(.sfRounded(size: .xs, weight: .regular))
-                        .foregroundColor(AppColors.gray)
+                        .foregroundStyle(Color.gray)
                         .offset(y: 2)
                 }
             }
             Image(systemName: "chevron.right")
-                .foregroundColor(AppColors.gray)
+                .foregroundStyle(Color.gray)
                 .offset(x: 12)
         }
         .padding(.bottom, 10.0)
@@ -456,18 +437,18 @@ struct SearchFilter: View {
                 ZStack(alignment: .leading) {
                     if filterState.searchText.isEmpty {
                         Text("Search...")
-                            .foregroundColor(AppColors.gray)
+                            .foregroundStyle(Color.gray)
                             .font(.sfRounded(size: .base, weight: .regular))
                     }
                     TextField("", text: $filterState.searchText)
                         .textFieldStyle(PlainTextFieldStyle())
-                        .foregroundColor(AppColors.white)
+                        .foregroundStyle(Color.white)
                         .frame(width: 100)
                         .font(.sfRounded(size: .base, weight: .regular))
                 }
                 .transition(.move(edge: .trailing).combined(with: .opacity))
             }
         }
-        .filterStyle()
+        .buttonStyle(FilterButtonStyle())
     }
 }

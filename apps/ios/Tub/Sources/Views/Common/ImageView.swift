@@ -24,7 +24,7 @@ struct ImageView: View {
                 Image(systemName: "photo")
                     .resizable()
                     .scaledToFit()
-                    .foregroundColor(.gray)
+                    .foregroundColor(Color.gray)
             @unknown default:
                 EmptyView()
             }

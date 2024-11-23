@@ -9,29 +9,6 @@ import Combine
 import SwiftUI
 import TubAPI
 
-enum TubError: LocalizedError {
-    case insufficientBalance
-
-    var errorDescription: String? {
-        switch self {
-        case .insufficientBalance:
-            return "Insufficient Balance"
-        }
-    }
-}
-
-enum Timespan: String, CaseIterable {
-    case live = "LIVE"
-    case thirtyMin = "30M"
-
-    var timeframeSecs: Double {
-        switch self {
-        case .live: return CHART_INTERVAL
-        case .thirtyMin: return 30 * 60
-        }
-    }
-}
-
 struct TokenView: View {
     @ObservedObject var tokenModel: TokenModel
     @EnvironmentObject var priceModel: SolPriceModel
@@ -39,9 +16,7 @@ struct TokenView: View {
     @EnvironmentObject private var notificationHandler: NotificationHandler
 
     @State private var showInfoCard = false
-    @State private var selectedTimespan: Timespan = .live
     @State private var showBuySheet: Bool = false
-    @State private var defaultAmount: Double = 50.0
     @State private var keyboardHeight: CGFloat = 0
 
     var onSellSuccess: (() -> Void)?
@@ -56,7 +31,7 @@ struct TokenView: View {
         self.onSellSuccess = onSellSuccess
     }
 
-    func handleBuy(amountUsd: Double) {
+    func handleBuy(amountUsd: Double) async {
         guard let priceUsd = tokenModel.prices.last?.priceUsd
         else {
             notificationHandler.show(
@@ -70,22 +45,25 @@ struct TokenView: View {
 
         let priceLamps = priceModel.usdToLamports(usd: priceUsd)
 
-        userModel.buyTokens(buyAmountLamps: buyAmountLamps, priceLamps: priceLamps, priceUsd: priceUsd) { result in
-            switch result {
-            case .failure(let error):
-                notificationHandler.show(
-                    error.localizedDescription,
-                    type: .error
-                )
-            case .success:
+        do {
+            try await userModel.buyTokens(
+                buyAmountLamps: buyAmountLamps,
+                priceLamps: priceLamps,
+                priceUsd: priceUsd
+            )
+            await MainActor.run {
                 showBuySheet = false
-                withAnimation {
-                    notificationHandler.show(
-                        "Successfully bought tokens!",
-                        type: .success
-                    )
-                }
+                notificationHandler.show(
+                    "Successfully bought tokens!",
+                    type: .success
+                )
             }
+        }
+        catch {
+            notificationHandler.show(
+                error.localizedDescription,
+                type: .error
+            )
         }
     }
 
@@ -118,7 +96,7 @@ struct TokenView: View {
                 }.padding(.horizontal, 8)
             }
             .frame(maxWidth: .infinity)
-            .foregroundColor(AppColors.white)
+            .foregroundColor(Color.white)
             infoCardOverlay
             buySheetOverlay
         }
@@ -164,22 +142,26 @@ struct TokenView: View {
                     LoadingBox(width: 200, height: 40).padding(.vertical, 4)
                 }
 
-                let price = priceModel.formatPrice(usd: tokenModel.priceChange.amountUsd, showSign: true)
+                let price = priceModel.formatPrice(
+                    usd: tokenModel.priceChange.amountUsd,
+                    showSign: true,
+                    maxDecimals: 9,
+                    minDecimals: 2
+                )
+
                 HStack {
 
                     if tokenModel.isReady {
                         Text(price)
                         Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
-                        Text("\(formatDuration(tokenModel.currentTimeframe.timeframeSecs))").foregroundColor(
-                            .gray
-                        )
+                        Text("\(formatDuration(tokenModel.selectedTimespan.seconds))").foregroundColor(.gray)
                     }
                     else {
                         LoadingBox(width: 160, height: 12)
                     }
                 }
                 .font(.sfRounded(size: .sm, weight: .semibold))
-                .foregroundColor(tokenModel.priceChange.amountUsd >= 0 ? .green : .red)
+                .foregroundStyle(tokenModel.priceChange.amountUsd >= 0 ? Color.green : Color.red)
             }
         }
         .padding(.horizontal)
@@ -197,10 +179,9 @@ struct TokenView: View {
             if !tokenModel.isReady {
                 LoadingBox(height: height)
             }
-            else if selectedTimespan == .live {
+            else if tokenModel.selectedTimespan == .live {
                 ChartView(
                     prices: tokenModel.prices,
-                    timeframeSecs: selectedTimespan.timeframeSecs,
                     height: height
                 )
             }
@@ -221,12 +202,24 @@ struct TokenView: View {
         Group {
             if tokenModel.isReady {
                 HStack {
-                    Spacer()
-                    HStack(spacing: 4) {
-                        intervalButton(for: .live)
-                        intervalButton(for: .thirtyMin)
+                IntervalButton(
+                    timespan: .live,
+                    isSelected: tokenModel.selectedTimespan == .live,
+                    action: {
+                        withAnimation(.easeInOut(duration: 0.15)) {
+                            tokenModel.selectedTimespan = .live
+                        }
                     }
-                    Spacer()
+                )
+                IntervalButton(
+                    timespan: .candles,
+                    isSelected: tokenModel.selectedTimespan == .candles,
+                    action: {
+                        withAnimation(.easeInOut(duration: 0.15)) {
+                            tokenModel.selectedTimespan = .candles
+                        }
+                    }
+                )
                 }
                 .frame(height: 32)
                 .padding(.horizontal)
@@ -234,31 +227,6 @@ struct TokenView: View {
             else {
                 Spacer().frame(height: 32)
             }
-        }
-    }
-
-    private func intervalButton(for timespan: Timespan) -> some View {
-        Button {
-            withAnimation(.easeInOut(duration: 0.15)) {
-                selectedTimespan = timespan
-                tokenModel.updateHistoryInterval(timespan)
-            }
-        } label: {
-            HStack(spacing: 4) {
-                if timespan == .live {
-                    Circle()
-                        .fill(AppColors.red)
-                        .frame(width: 7, height: 7)
-                }
-                Text(timespan.rawValue)
-                    .font(.sfRounded(size: .sm, weight: .medium))
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .frame(width: 65)
-            .background(selectedTimespan == timespan ? AppColors.aquaBlue : Color.clear)
-            .foregroundColor(selectedTimespan == timespan ? AppColors.black : AppColors.white)
-            .cornerRadius(20)
         }
     }
 
@@ -290,7 +258,7 @@ struct TokenView: View {
                         StatValue(
                             text:
                                 "\(priceModel.formatPrice(usd: gains, showSign: true)) (\(String(format: "%.2f", percentageGain))%)",
-                            color: gains >= 0 ? AppColors.green : AppColors.red
+                            color: gains >= 0 ? Color.green : Color.red
                         )
                     )
                 ]
@@ -324,21 +292,21 @@ struct TokenView: View {
                         HStack(spacing: 0) {
                             Text(stat.0)
                                 .font(.sfRounded(size: .xs, weight: .regular))
-                                .foregroundColor(AppColors.white.opacity(0.7))
+                                .foregroundStyle(Color.white.opacity(0.7))
                                 .fixedSize(horizontal: true, vertical: false)
 
                             Text(stat.1.text)
                                 .font(.sfRounded(size: .base, weight: .semibold))
-                                .foregroundColor(stat.1.color ?? AppColors.white)
+                                .foregroundStyle(stat.1.color ?? Color.white)
                                 .frame(maxWidth: .infinity, alignment: .topTrailing)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
 
                         Rectangle()
-                            .foregroundColor(.clear)
+                            .foregroundStyle(Color.clear)
                             .frame(height: 0.5)
-                            .background(AppColors.gray.opacity(0.5))
-                            .padding(.top, 4)
+                            .background(Color.gray.opacity(0.5))
+                            .padding(.top, 2)
                     }
                     .padding(.vertical, 4)
                 }
@@ -355,20 +323,21 @@ struct TokenView: View {
                                 HStack(spacing: 0) {
                                     Text(stat.0)
                                         .font(.sfRounded(size: .xs, weight: .regular))
-                                        .foregroundColor(AppColors.white.opacity(0.7))
+                                        .foregroundStyle(Color.white.opacity(0.7))
                                         .fixedSize(horizontal: true, vertical: false)
 
                                     Text(stat.1.text)
                                         .font(.sfRounded(size: .base, weight: .semibold))
-                                        .foregroundColor(AppColors.white)
+                                        .foregroundStyle(Color.white)
                                         .frame(maxWidth: .infinity, alignment: .topTrailing)
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
 
                                 Rectangle()
-                                    .foregroundColor(.clear)
+                                    .foregroundStyle(Color.clear)
                                     .frame(height: 0.5)
-                                    .background(AppColors.gray.opacity(0.5))
+                                    .background(Color.gray.opacity(0.5))
+                                    .padding(.top, 2)
                             }
                         }
                     }
@@ -392,7 +361,7 @@ struct TokenView: View {
         Group {
             if showInfoCard {
                 // Fullscreen tap dismiss
-                AppColors.black.opacity(0.2)
+                Color.black.opacity(0.2)
                     .onTapGesture {
                         withAnimation(.easeInOut) {
                             showInfoCard = false  // Close the card
@@ -414,28 +383,23 @@ struct TokenView: View {
         }
         return AnyView(
             Group {
-                AppColors.black.opacity(0.4)
+                Color.black.opacity(0.4)
                     .onTapGesture {
                         withAnimation(.easeInOut(duration: 0.3)) {
                             showBuySheet = false
                         }
                     }
 
-                BuyForm(
-                    isVisible: $showBuySheet,
-                    defaultAmount: $defaultAmount,
-                    tokenModel: tokenModel,
-                    onBuy: handleBuy
-                )
-                .transition(.move(edge: .bottom))
-                .offset(y: -keyboardHeight)
-                .zIndex(2)
-                .onAppear {
-                    setupKeyboardNotifications()
-                }
-                .onDisappear {
-                    removeKeyboardNotifications()
-                }
+                BuyForm(isVisible: $showBuySheet, tokenModel: tokenModel, onBuy: handleBuy)
+                    .transition(.move(edge: .bottom))
+                    .offset(y: -keyboardHeight)
+                    .zIndex(2)
+                    .onAppear {
+                        setupKeyboardNotifications()
+                    }
+                    .onDisappear {
+                        removeKeyboardNotifications()
+                    }
             }
         )
     }

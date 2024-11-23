@@ -21,19 +21,19 @@ struct NotificationBanner: ViewModifier {
                                     .foregroundColor(notificationHandler.notificationType.color)
 
                                 Text(message)
-                                    .foregroundColor(.white)
+                                    .foregroundColor(Color.white)
                                     .font(.sfRounded(size: .base))
 
                                 Spacer()
 
                                 Button(action: notificationHandler.hide) {
                                     Image(systemName: "xmark")
-                                        .foregroundColor(.white)
+                                        .foregroundColor(Color.white)
                                 }
                             }
                             .padding(.horizontal, 16)
                             .frame(maxWidth: .infinity, maxHeight: 50)
-                            .background(AppColors.darkGray)
+                            .background(Color("grayDark"))
                             .cornerRadius(24)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 24)

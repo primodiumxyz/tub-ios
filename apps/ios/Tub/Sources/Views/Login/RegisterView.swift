@@ -50,7 +50,7 @@ struct RegisterView: View {
                         dismiss()
                     } label: {
                         Text("Cancel")
-                            .foregroundColor(.white)
+                            .foregroundStyle(Color.white)
                             .padding(.horizontal)
                     }
                 }
@@ -61,35 +61,6 @@ struct RegisterView: View {
                 Spacer()
             }
             
-            /*
-            VStack(alignment: .center) {
-                HubButton(text: "Tap Me 1",
-                          textColor: .white,
-                          backgroundColor: .blue,
-                          strokeColor: .green) {
-                    print("todo: action code")
-                }
-
-                HubButtonYellow(text: "Tap Me 2") {
-                    print("todo: action code")
-                }
-                
-                Button {
-                    print("todo: action code")
-                } label: {
-                }
-                .buttonStyle(HubButtonStyle(text: "Tap Me 3",
-                                            textColor: .white,
-                                            backgroundColor: .purple,
-                                            strokeColor: .white))
-                
-                ImageButton(image: "discord",
-                            pressedImage: "Google",
-                            text: "Tap!") {
-                    print("todo: action code")
-                }
-            }
-             */
 
             VStack(alignment: .leading, spacing: 12) {
                 Image("Logo")
@@ -101,7 +72,7 @@ struct RegisterView: View {
 
                 Text("Welcome to tub")
                     .font(.sfRounded(size: .xl2, weight: .semibold))
-                    .foregroundColor(AppColors.white)
+                    .foregroundStyle(Color.white)
                     .padding(.horizontal, 10)
 
                 VStack(alignment: .leading, spacing: 10) {
@@ -109,44 +80,35 @@ struct RegisterView: View {
                         .padding(.horizontal, 20)
                         .padding(.vertical, 10)
                         .frame(maxWidth: .infinity, minHeight: 50, alignment: .leading)
-                        .background(AppColors.white)
+                        .background(Color.white)
                         .cornerRadius(30)
                         .keyboardType(.emailAddress)
-                        .foregroundColor(.black)
+                        .foregroundStyle(Color.black)
                         .onChange(of: email) { _, newValue in
                             isEmailValid = validateEmail(newValue)
                             showEmailError = false
                         }
 
-                    Button(action: {
-                        if isEmailValid {
-                            sendEmailOtp(email: email)
+                    PrimaryButton(
+                        text: "Continue",
+                        textColor: Color.white,
+                        backgroundColor: Color("purple"),
+                        strokeColor: Color("purple"),
+                        maxWidth: .infinity,
+                        action: {
+                            if isEmailValid {
+                                sendEmailOtp(email: email)
+                            }
                         }
-                        else {
-                        }
-                    }) {
-                        Text("Continue")
-                            .font(.sfRounded(size: .lg, weight: .semibold))
-                            .foregroundColor(AppColors.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(14)
-                    }
-                    .disabled(!isEmailValid || sendingEmailOtp)
-                    .opacity(!isEmailValid || sendingEmailOtp ? 0.5 : 1.0)
-                    .background(AppColors.primaryPurple)
-                    .cornerRadius(30)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 30)
-                            .inset(by: 0.5)
-                            .stroke(AppColors.primaryPurple, lineWidth: 1)
                     )
+                    .disabled(!isEmailValid || sendingEmailOtp)
                     .opacity(!isEmailValid || sendingEmailOtp ? 0.5 : 1.0)
 
                     // if email invalid
                     if showEmailError {
                         Text("Please enter a valid email address.")
                             .font(.caption)
-                            .foregroundColor(.red)
+                            .foregroundStyle(Color.red)
                             .padding(.top, -4)
                             .padding(.horizontal, 20)
                     }
@@ -165,18 +127,18 @@ struct RegisterView: View {
                         .frame(width: 153, height: 1)
                         .overlay(
                             Rectangle()
-                                .stroke(AppColors.lightGray, lineWidth: 1)
+                                .stroke(Color("grayLight"), lineWidth: 1)
                         )
 
                     Text("or")
                         .font(.sfRounded(size: .base, weight: .semibold))
-                        .foregroundColor(AppColors.white)
+                        .foregroundStyle(Color.white)
 
                     Divider()
                         .frame(width: 153, height: 1)
                         .overlay(
                             Rectangle()
-                                .stroke(AppColors.lightGray, lineWidth: 1)
+                                .stroke(Color("grayLight"), lineWidth: 1)
                         )
                 }.frame(maxWidth: .infinity)
 
@@ -188,7 +150,7 @@ struct RegisterView: View {
                     .overlay(
                         RoundedRectangle(cornerRadius: 30)
                             .inset(by: 0.5)
-                            .stroke(.white, lineWidth: 1)
+                            .stroke(Color.white, lineWidth: 1)
                             .padding(.horizontal, 10)
                     )
                     .onTapGesture {
@@ -207,79 +169,52 @@ struct RegisterView: View {
                     }
 
                 // Google Login
-                Button(action: {
-                    Task {
-                        do {
-                            let _ = try await privy.oAuth.login(with: OAuthProvider.google)
-                        }
-                        catch {
-                            notificationHandler.show(
-                                error.localizedDescription,
-                                type: .error
-                            )
+                OutlineButtonWithIcon(
+                    text: "Sign in with Google",
+                    textColor: Color.white,
+                    strokeColor: Color.white,
+                    backgroundColor: Color.black,
+                    leadingView: AnyView(GoogleLogoView()),
+                    action: {
+                        Task {
+                            do {
+                                let _ = try await privy.oAuth.login(with: OAuthProvider.google)
+                            } catch {
+                                notificationHandler.show(error.localizedDescription, type: .error)
+                            }
                         }
                     }
-                }) {
-                    HStack(alignment: .center, spacing: 8) {
-                        GoogleLogoView()
-                            .frame(width: 20, height: 20)
-                        Text("Sign in with Google").font(.sfRounded(size: .lg, weight: .semibold))
-                    }
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(10)
-                    .padding(.vertical, 5.0)
-                }
-                .background(AppColors.black)
-                .foregroundStyle(AppColors.white)
-                .cornerRadius(30)
-                .padding(.horizontal, 10)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 30)
-                        .inset(by: 0.5)
-                        .stroke(.white, lineWidth: 1)
-                        .padding(.horizontal, 10)
                 )
-
+                .padding(.horizontal, 10)
+                
                 // Phone button
-                Button(action: { showPhoneModal = true }) {
-                    HStack(alignment: .center) {
-                        Image(systemName: "phone.fill")
-                            .frame(width: 24, height: 24)
-
-                        Text("Continue with Phone")
-                            .font(.sfRounded(size: .lg, weight: .semibold))
-                    }
-                }
+                IconTextButton(
+                    icon: "phone.fill",
+                    text: "Continue with Phone",
+                    textColor: Color.white,
+                    action: { showPhoneModal = true }
+                )
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 10.0)
-                .foregroundStyle(AppColors.white)
-                Button(action: {
-                    Task {
-                        do {
-                            // Send OTP to test email
-                            let _ = await privy.email.sendCode(to: "test-0932@privy.io")
-                            // Login with predefined OTP
-                            let _ = try await privy.email.loginWithCode("145288", sentTo: "test-0932@privy.io")
-                        }
-                        catch {
-                            notificationHandler.show(
-                                error.localizedDescription,
-                                type: .error
-                            )
-                        }
-                    }
-                }) {
-                    HStack {
-                        Image(systemName: "ladybug.fill")
-                            .frame(width: 24, height: 24)
 
-                        Text("Dev Login")
-                            .font(.sfRounded(size: .base, weight: .semibold))
+                IconTextButton(
+                    icon: "ladybug.fill",
+                    text: "Dev Login",
+                    textColor: Color("grayLight"),
+                    action: {
+                        Task {
+                            do {
+                                let _ = await privy.email.sendCode(to: "test-0932@privy.io")
+                                let _ = try await privy.email.loginWithCode("145288", sentTo: "test-0932@privy.io")
+                            } catch {
+                                notificationHandler.show(error.localizedDescription, type: .error)
+                            }
+                        }
                     }
-                    .foregroundColor(AppColors.lightGray)
-                }
+                )
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 5)
+
             }.sheet(isPresented: $showPhoneModal) {
                 SignInWithPhoneView()
                     .presentationDetents([.height(300)])
@@ -311,3 +246,4 @@ struct RegisterView: View {
         .environmentObject(notificationHandler)
         .environmentObject(userModelxyz)
 }
+

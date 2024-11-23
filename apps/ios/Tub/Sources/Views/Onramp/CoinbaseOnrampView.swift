@@ -34,7 +34,7 @@ struct CoinbaseOnrampView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(.black)
+        .background(Color.black)
         .ignoresSafeArea(.keyboard)
         .onAppear {
             isAmountFocused = true
@@ -47,9 +47,9 @@ struct CoinbaseOnrampView: View {
                 Spacer()
                 Text("$")
                     .font(.sfRounded(size: .xl4, weight: .bold))
-                    .foregroundColor(AppColors.white)
+                    .foregroundColor(Color.white)
 
-                TextField("", text: $amountString, prompt: Text("100").foregroundColor(AppColors.white.opacity(0.3)))
+                TextField("", text: $amountString, prompt: Text("100").foregroundColor(Color.white.opacity(0.3)))
                     .focused($isAmountFocused)
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.leading)
@@ -81,7 +81,7 @@ struct CoinbaseOnrampView: View {
                         }
                     }
                     .font(.sfRounded(size: .xl5, weight: .bold))
-                    .foregroundColor(isValidInput ? .white : .red)
+                    .foregroundColor(isValidInput ? Color.white : Color.red)
                     .frame(minWidth: 50)
                     .fixedSize()
                 Spacer()
@@ -102,15 +102,15 @@ struct CoinbaseOnrampView: View {
                 Text("Deposit with ")
                     .font(.sfRounded(size: .xl, weight: .semibold))
                     .padding(.trailing, -4)
-                Image("coinbase")
+                Image("Coinbase")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(height: 16)
             }
-            .foregroundColor(AppColors.white)
+            .foregroundColor(Color.white)
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(AppColors.primaryPurple)
+            .background(Color("purple"))
             .cornerRadius(26)
         }
     }

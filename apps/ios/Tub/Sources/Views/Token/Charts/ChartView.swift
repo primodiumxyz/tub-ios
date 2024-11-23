@@ -13,7 +13,6 @@ struct ChartView: View {
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject private var userModel: UserModel
     let rawPrices: [Price]
-    let timeframeSecs: Double
     let height: CGFloat
 
     var purchasePriceUsd: Double? {
@@ -27,15 +26,14 @@ struct ChartView: View {
 
     @State private var currentTime = Date().timeIntervalSince1970
     @State private var prices: [Price] = []
-
-    init(prices: [Price], timeframeSecs: Double = CHART_INTERVAL, height: CGFloat = 330) {
+    
+    init(prices: [Price], height: CGFloat = 330) {
         self.rawPrices = prices
-        self.timeframeSecs = timeframeSecs
         self.height = height
     }
 
     private func updatePrices() {
-        let dataPointCount = Int(timeframeSecs / PRICE_UPDATE_INTERVAL)
+        let dataPointCount = Int(Timespan.live.seconds / PRICE_UPDATE_INTERVAL)
         let startingIndex = rawPrices.count - dataPointCount
         prices = startingIndex < 0 ? rawPrices : Array(rawPrices[startingIndex...])
     }
@@ -43,11 +41,11 @@ struct ChartView: View {
     private var dashedLineColor: Color {
         guard let purchasePriceUsd,
             let currentPriceUsd = prices.last?.priceUsd
-        else { return AppColors.white }
+        else { return Color.white }
         if currentPriceUsd == purchasePriceUsd {
-            return AppColors.white
+            return Color.white
         }
-        return currentPriceUsd < purchasePriceUsd ? AppColors.lightRed : AppColors.lightGreen
+        return currentPriceUsd < purchasePriceUsd ? Color("redLight") : Color("greenLight")
     }
 
     private var change: Double? {
@@ -74,7 +72,7 @@ struct ChartView: View {
         return (minPriceUsd - padding)...(maxPriceUsd + padding)
     }
     private var xDomain: ClosedRange<Date> {
-        let min = Date(timeIntervalSinceNow: -timeframeSecs - 1)
+        let min = Date(timeIntervalSinceNow: -Timespan.live.seconds - 1)
         var padding = 1.0
         if let currentPrice = prices.last?.priceUsd {
             let pillContent = priceModel.formatPrice(usd: abs(currentPrice), maxDecimals: 9, minDecimals: 2)
@@ -92,8 +90,8 @@ struct ChartView: View {
                     x: .value("Date", price.timestamp),
                     y: .value("Price", price.priceUsd)
                 )
-                .foregroundStyle(AppColors.aquaBlue.opacity(0.8))
-                .lineStyle(StrokeStyle(lineWidth: 4))
+                .foregroundStyle(Color("aquaBlue").opacity(0.8))
+                .lineStyle(StrokeStyle(lineWidth: 3))
                 .interpolationMethod(.cardinal(tension: 0.8))
             }
 
@@ -102,15 +100,15 @@ struct ChartView: View {
                     x: .value("Date", currentPrice.timestamp),
                     y: .value("Price", currentPrice.priceUsd)
                 )
-                .foregroundStyle(AppColors.aquaBlue.opacity(0.8))
-                .lineStyle(StrokeStyle(lineWidth: 4))
+                .foregroundStyle(Color("aquaBlue").opacity(0.8))
+                .lineStyle(StrokeStyle(lineWidth: 3))
                 .interpolationMethod(.catmullRom)
 
                 PointMark(
                     x: .value("Date", currentPrice.timestamp),
                     y: .value("Price", currentPrice.priceUsd)
                 )
-                .foregroundStyle(.white.opacity(0.5))
+                .foregroundStyle(Color.white.opacity(0.5))
 
                 PointMark(
                     x: .value("Date", currentPrice.timestamp),
@@ -125,7 +123,7 @@ struct ChartView: View {
                             value:
                                 "\(priceModel.formatPrice(usd: abs(currentPrice.priceUsd), maxDecimals: 9, minDecimals: 2))",
                             color: dashedLineColor,
-                            foregroundColor: AppColors.black
+                            foregroundColor: Color.black
                         )
                     }
                 }
@@ -140,34 +138,33 @@ struct ChartView: View {
 
                 // Add horizontal dashed line
                 RuleMark(y: .value("Purchase Price", purchasePriceUsd))
-                    .foregroundStyle(AppColors.primaryPink.opacity(0.8))
+                    .foregroundStyle(Color("pink").opacity(0.8))
                     .lineStyle(StrokeStyle(lineWidth: 2, dash: [5, 5]))
 
                 PointMark(
                     x: .value("Date", xPosition),  // Updated x-value
                     y: .value("Price", purchasePriceUsd)
                 )
-                .foregroundStyle(AppColors.primaryPink)
+                .foregroundStyle(Color("pink"))
                 .symbolSize(100)
                 .symbol(.circle)
                 .annotation(position: .bottom, spacing: 0) {
                     PillView(
                         value: "\(priceModel.formatPrice(usd: purchasePriceUsd, maxDecimals: 9, minDecimals: 2))",
-                        color: AppColors.primaryPink.opacity(0.8),
-                        foregroundColor: AppColors.white
+                        color: Color("pink").opacity(0.8),
+                        foregroundColor: Color.white
                     )
                 }
             }
         }
-        .animation(.linear(duration: 0.5), value: prices)
+        .conditionalModifier(condition: false) { chart in
+            chart.animation(.linear(duration: PRICE_UPDATE_INTERVAL), value: prices)
+        }
         .chartYScale(domain: yDomain)
         .chartYAxis(.hidden)
         .chartXAxis(.hidden)
         .frame(maxWidth: .infinity, minHeight: height, maxHeight: height)
         .onChange(of: rawPrices) {
-            updatePrices()
-        }
-        .onAppear {
             updatePrices()
         }
     }

@@ -43,7 +43,7 @@ struct AppContent: View {
                     errorMessage: "Failed to connect. Please try again.",
                     retryAction: {
                         Task {
-                            await tokenManager.handleUserSession()
+                            await tokenManager.refreshToken()
                         }
                     }
                 )
@@ -55,7 +55,7 @@ struct AppContent: View {
             else {
                 HomeTabsView(userModel: userModel).font(.sfRounded())
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(.black)
+                    .background(Color.black)
                     .withNotificationBanner()
                     .environmentObject(notificationHandler)
                     .environmentObject(userModel)
@@ -63,7 +63,11 @@ struct AppContent: View {
             }
         }.onAppear {
             Task(priority: .high) {
-                await tokenManager.handleUserSession()
+                await tokenManager.refreshToken()
+            }
+        }.onChange(of: userModel.walletState) { _, newState in
+            if newState == .error {
+                notificationHandler.show("Error connecting to wallet.", type: .error)
             }
         }
     }
