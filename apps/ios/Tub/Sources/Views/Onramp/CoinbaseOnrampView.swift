@@ -95,6 +95,9 @@ struct CoinbaseOnrampView: View {
             let walletAddress = userModel.walletAddress
             let urlStr =
                 "https://pay.coinbase.com/buy?appId=70955045-7672-4640-b524-0a5aff9e074e&addresses={\"\(walletAddress)\":[\"solana\"]}&assets=[\"USDC\"]&presetFiatAmount=\(amount)"
+            // if userModel.walletAddress is nil, urlStr will be:
+            //  "https://pay.coinbase...&addresses={\"nil\":[\"solana\"]}&assets..."
+            //  Is it okay to have nil for the wallet address?
             url = URL(string: urlStr)
             showInput = false
         }) {
