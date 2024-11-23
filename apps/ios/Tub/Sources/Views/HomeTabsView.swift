@@ -113,86 +113,70 @@ struct HomeTabsView: View {
                             AccountView()
                         }
                     }
-                    .background(AppColors.black)
+                    .background(Color.black)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                    // Custom Tab Bar
-                    VStack {
-                        Divider()
-                            .frame(width: 340.0, height: 1.0)
-                            .background(Color(hue: 1.0, saturation: 0.0, brightness: 0.2))
-                            .padding(0)
-                        HStack {
-                            Spacer()
+                    HStack {
+                        Spacer()
 
-                            // Trade Tab
-                            Button(action: {
-                                selectedTab = 0
-                                recordTabSelection("trade")
-                            }) {
-                                VStack {
-                                    Image(systemName: "chart.line.uptrend.xyaxis")
-                                        .font(.system(size: 24))
-                                    Text("Trade")
-                                        .font(.sfRounded(size: .xs, weight: .regular))
-                                }
-                                .foregroundColor(
-                                    selectedTab == 0 ? color : AppColors.white.opacity(0.5)
-                                )
+                        // Trade Tab
+                        Button(action: {
+                            selectedTab = 0
+                            recordTabSelection("trade")
+                        }) {
+                            VStack {
+                                Image(systemName: "chart.line.uptrend.xyaxis")
+                                    .font(.system(size: 24))
+                                Text("Trade")
+                                    .font(.sfRounded(size: .xs, weight: .regular))
                             }
-
-                            Spacer()
-
-                            // History Tab
-                            Button(action: {
-                                selectedTab = 1
-                                recordTabSelection("history")
-                            }) {
-                                VStack {
-                                    Image(systemName: "clock")
-                                        .font(.system(size: 24))
-                                    Text("History")
-                                        .font(.sfRounded(size: .xs, weight: .regular))
-                                }
-                                .foregroundColor(
-                                    selectedTab == 1 ? color : AppColors.white.opacity(0.7)
-                                )
-                            }
-
-                            Spacer()
-
-                            // Account Tab
-                            Button(action: {
-                                selectedTab = 2
-                                recordTabSelection("account")
-                            }) {
-                                VStack {
-                                    Image(systemName: "person")
-                                        .font(.system(size: 24))
-                                    Text("Account")
-                                        .font(.sfRounded(size: .xs, weight: .regular))
-                                }
-                                .foregroundColor(
-                                    selectedTab == 2 ? color : AppColors.white.opacity(0.7)
-                                )
-                            }
-
-                            Spacer()
-                        }
-                        .background(
-                            LinearGradient(
-                                gradient: Gradient(colors: [
-                                    Color.black.opacity(0),
-                                    Color.black.opacity(1),
-                                ]),
-                                startPoint: .top,
-                                endPoint: UnitPoint(x: 0.5, y: 0.7)
+                            .foregroundColor(
+                                selectedTab == 0 ? color : Color.white.opacity(0.5)
                             )
-                        )
-                        .ignoresSafeArea(.keyboard)
+                        }
+
+                        Spacer()
+
+                        // History Tab
+                        Button(action: {
+                            selectedTab = 1
+                            recordTabSelection("history")
+                        }) {
+                            VStack {
+                                Image(systemName: "clock")
+                                    .font(.system(size: 24))
+                                Text("History")
+                                    .font(.sfRounded(size: .xs, weight: .regular))
+                            }
+                            .foregroundColor(
+                                selectedTab == 1 ? color : Color.white.opacity(0.7)
+                            )
+                        }
+
+                        Spacer()
+
+                        // Account Tab
+                        Button(action: {
+                            selectedTab = 2
+                            recordTabSelection("account")
+                        }) {
+                            VStack {
+                                Image(systemName: "person")
+                                    .font(.system(size: 24))
+                                Text("Account")
+                                    .font(.sfRounded(size: .xs, weight: .regular))
+                            }
+                            .foregroundColor(
+                                selectedTab == 2 ? color : Color.white.opacity(0.7)
+                            )
+                        }
+
+                        Spacer()
                     }
+                    .padding(.top, 8)
+                    .background(Color.black)
+                    .ignoresSafeArea(.keyboard)
                 }
-                .padding(.top, 8)
             }
         }.frame(maxWidth: .infinity, maxHeight: .infinity)
             .ignoresSafeArea(.keyboard)

@@ -100,7 +100,7 @@ class CodexTokenManager: ObservableObject {
         return codexToken
     }
 
-    private func refreshToken() async {
+    func refreshToken() async {
         guard !isRefreshing else { return }
         isRefreshing = true
         defer { isRefreshing = false }

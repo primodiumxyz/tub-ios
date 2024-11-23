@@ -17,11 +17,11 @@ struct SellForm: View {
         Button(action: onSell) {
             Text("Sell")
                 .font(.sfRounded(size: .xl, weight: .semibold))
-                .foregroundColor(AppColors.white)
+                .foregroundColor(Color.white)
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
-                .background(AppColors.primaryPink)
+                .background(Color.pink)
                 .cornerRadius(30)
         }
     }
@@ -41,12 +41,12 @@ struct SellForm: View {
                     .frame(maxWidth: 50)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
-                    .background(AppColors.black)
+                    .background(Color.black)
                     .cornerRadius(26)
                     .overlay(
                         RoundedRectangle(cornerRadius: 30)
                             .inset(by: 0.5)
-                            .stroke(AppColors.primaryPink, lineWidth: 1)
+                            .stroke(Color.pink, lineWidth: 1)
                     )
                 }
                 sellButton
