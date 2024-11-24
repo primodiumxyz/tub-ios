@@ -58,7 +58,6 @@ class TokenModel: ObservableObject {
                 throw TubError.emptyTokenList
             }
             await subscribeToTokenPrices(newToken.id)
-            print("\(newToken.name) price fetch took \(Date().timeIntervalSince(now)) seconds")
             // Move final status update to main thread
             await MainActor.run {
                 self.prices = prices
@@ -126,7 +125,6 @@ class TokenModel: ObservableObject {
         Task(priority: .background) {
             do {
                 try await retry(fetchHolders)
-                print("\(newToken.name) unique holders fetch took \(Date().timeIntervalSince(now)) seconds")
             }
             catch {
                 print("Error fetching unique holders: \(error)")

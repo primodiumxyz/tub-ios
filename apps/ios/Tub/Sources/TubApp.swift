@@ -69,6 +69,7 @@ struct AppContent: View {
                     .withNotificationBanner()
                     .environmentObject(notificationHandler)
                     .environmentObject(userModel)
+                    .environmentObject(tokenListModel)
                     .environmentObject(priceModel)
             }
         }.onAppear {

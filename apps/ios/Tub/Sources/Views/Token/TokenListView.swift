@@ -31,7 +31,7 @@ struct TokenListView: View {
         return balance > 0 ? "sell" : "buy"
     }
 
-    @StateObject var tokenListModel = TokenListModel.shared
+    @EnvironmentObject var tokenListModel
     @StateObject private var animationState = TokenAnimationState.shared
 
     @State private var isLoading = false
@@ -214,7 +214,7 @@ struct TokenListView: View {
 }
 struct TokenLoadErrorView: View {
     @StateObject var tokenManager = CodexTokenManager.shared
-    @StateObject var tokenListModel = TokenListModel.shared
+    @EnvironmentObject var tokenListModel: TokenListModel
 
     var body: some View {
         VStack {

@@ -20,7 +20,6 @@ final class SolPriceModel: ObservableObject {
     private let updateInterval: TimeInterval = 10  // Update every 10 seconds
 
     init() {
-        print("initializing sol price model")
         Task {
             await fetchCurrentPrice()
             startPriceUpdates()
@@ -50,9 +49,7 @@ final class SolPriceModel: ObservableObject {
     // this comment ensures that the fetchCurrentPrice function is executing on the main thread
     @MainActor
     func fetchCurrentPrice() async {
-        print("fetching")
         guard !fetching else {
-            print("already fetching")
             return
         }
 
@@ -61,9 +58,7 @@ final class SolPriceModel: ObservableObject {
 
         error = nil
 
-        print("fetching client")
         let client = await CodexNetwork.shared.apolloClient
-        print("client fetched")
         let input = GetPriceInput(
             address: WSOL_ADDRESS,
             networkId: NETWORK_FILTER
@@ -77,21 +72,17 @@ final class SolPriceModel: ObservableObject {
                     Task { @MainActor in
                         switch result {
                         case .success(let response):
-                            print("failed")
                             if let prices = response.data?.getTokenPrices,
                                 let firstPrice = prices.first,
                                 let price = firstPrice?.priceUsd
                             {
                                 self.price = price
-                                print("new price", price)
                                 continuation.resume()
                             }
                             else {
-                                print("failed")
                                 continuation.resume(throwing: TubError.parsingError)
                             }
                         case .failure(let error):
-                            print("failed")
                             continuation.resume(throwing: error)
                         }
                     }
@@ -103,7 +94,6 @@ final class SolPriceModel: ObservableObject {
             print("Error fetching SOL price: \(error.localizedDescription)")
         }
 
-        print("ready")
         self.isReady = true
     }
 
