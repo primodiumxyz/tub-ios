@@ -79,14 +79,13 @@ struct TokenView: View {
                     chartView
                         .padding(.top, 5)
                     intervalButtons
-                        .padding(.bottom, 12)
-                        .padding(.top, 12)
+                        .padding(.horizontal)
+                        .padding(.vertical, 12)
                 }
 
                 VStack(spacing: 0) {
                     infoCardLowOpacity
                         .opacity(0.8)
-                        .padding(.bottom, 12)
                     ActionButtonsView(
                         tokenModel: tokenModel,
                         showBuySheet: $showBuySheet,
@@ -205,6 +204,7 @@ struct TokenView: View {
         Group {
             if tokenModel.isReady {
                 HStack {
+                    Spacer()
                     IntervalButton(
                         timespan: .live,
                         isSelected: tokenModel.selectedTimespan == .live,
@@ -223,6 +223,7 @@ struct TokenView: View {
                             }
                         }
                     )
+                    Spacer()
                 }
                 .frame(height: 32)
                 .padding(.horizontal)
@@ -235,62 +236,64 @@ struct TokenView: View {
 
     /* ------------------------------ Info Overlays ----------------------------- */
 
-    private var stats: [(String, StatValue)] {
-        if !tokenModel.isReady {
-            return []
-        }
-        var stats = [(String, StatValue)]()
-
-        if let purchaseData = userModel.purchaseData, let priceUsd = tokenModel.prices.last?.priceUsd,
+    private var sellStats: [(String, StatValue)]? {
+        guard
+            tokenModel.isReady,
+            let purchaseData = userModel.purchaseData,
+            let priceUsd = tokenModel.prices.last?.priceUsd,
             priceUsd > 0,
             activeTab == "sell"
-        {
-            // Calculate current value
-            let tokenBalance = Double(userModel.tokenBalanceLamps ?? 0) / 1e9
-            let tokenBalanceUsd = tokenBalance * (tokenModel.prices.last?.priceUsd ?? 0)
-            let initialValueUsd = priceModel.lamportsToUsd(lamports: purchaseData.amount)
+        else {
+            return nil
+        }
+        var stats = [(String, StatValue)]()
+        // Calculate current value
+        let tokenBalance = Double(userModel.tokenBalanceLamps ?? 0) / 1e9
+        let tokenBalanceUsd = tokenBalance * (tokenModel.prices.last?.priceUsd ?? 0)
+        let initialValueUsd = priceModel.lamportsToUsd(lamports: purchaseData.amount)
 
-            // Calculate profit
-            let gains = tokenBalanceUsd - initialValueUsd
+        // Calculate profit
+        let gains = tokenBalanceUsd - initialValueUsd
 
-            if purchaseData.amount > 0, initialValueUsd > 0 {
-                let percentageGain = gains / initialValueUsd * 100
-                stats += [
-                    (
-                        "Gains",
-                        StatValue(
-                            text:
-                                "\(priceModel.formatPrice(usd: gains, showSign: true)) (\(String(format: "%.2f", percentageGain))%)",
-                            color: gains >= 0 ? Color.green : Color.red
-                        )
-                    )
-                ]
-            }
-
-            // Add position stats
+        if purchaseData.amount > 0, initialValueUsd > 0 {
+            let percentageGain = gains / initialValueUsd * 100
             stats += [
                 (
-                    "You own",
+                    "Gains",
                     StatValue(
                         text:
-                            "\(priceModel.formatPrice(usd: tokenBalanceUsd, maxDecimals: 2, minDecimals: 2)) (\(formatLargeNumber(tokenBalance)) \(tokenModel.token.symbol))",
-                        color: nil
+                            "\(priceModel.formatPrice(usd: gains, showSign: true)) (\(String(format: "%.2f", percentageGain))%)",
+                        color: gains >= 0 ? Color.green : Color.red
                     )
                 )
             ]
         }
-        else {
-            stats += tokenModel.getTokenStats(priceModel: priceModel).map {
-                ($0.0, StatValue(text: $0.1 ?? "", color: nil))
-            }
-        }
+
+        // Add position stats
+        stats += [
+            (
+                "You own",
+                StatValue(
+                    text:
+                        "\(priceModel.formatPrice(usd: tokenBalanceUsd, maxDecimals: 2, minDecimals: 2)) (\(formatLargeNumber(tokenBalance)) \(tokenModel.token.symbol))",
+                    color: nil
+                )
+            )
+        ]
         return stats
+    }
+
+    private var generalStats: [(String, StatValue)] {
+        guard tokenModel.isReady else { return [] }
+        return tokenModel.getTokenStats(priceModel: priceModel).map {
+            ($0.0, StatValue(text: $0.1 ?? "", color: nil))
+        }
     }
 
     private var infoCardLowOpacity: some View {
         VStack(alignment: .leading, spacing: 0) {
-            if activeTab == "sell" {
-                ForEach(stats.prefix(3), id: \.0) { stat in
+            if let sellStats, activeTab == "sell" {
+                ForEach(sellStats, id: \.0) { stat in
                     VStack(spacing: 0) {
                         HStack(spacing: 0) {
                             Text(stat.0)
@@ -314,43 +317,37 @@ struct TokenView: View {
                     .padding(.vertical, 4)
                 }
             }
+            else {
+                ForEach(0..<(generalStats.count + 1) / 2, id: \.self) { rowIndex in
+                    HStack(spacing: 20) {
+                        ForEach(0..<2) { columnIndex in
+                            let statIndex = (activeTab == "sell" ? 3 : 0) + rowIndex * 2 + columnIndex
+                            if statIndex < generalStats.count {
+                                let stat = generalStats[statIndex]
+                                VStack(spacing: 0) {
+                                    HStack(spacing: 0) {
+                                        Text(stat.0)
+                                            .font(.sfRounded(size: .xs, weight: .regular))
+                                            .foregroundStyle(Color.white.opacity(0.7))
+                                            .fixedSize(horizontal: true, vertical: false)
 
-            // Then show remaining stats in two columns
-            ForEach(0..<(stats.count + 1) / 2, id: \.self) { rowIndex in
-                HStack(spacing: 20) {
-                    ForEach(0..<2) { columnIndex in
-                        let statIndex = (activeTab == "sell" ? 3 : 0) + rowIndex * 2 + columnIndex
-                        if statIndex < stats.count {
-                            let stat = stats[statIndex]
-                            VStack(spacing: 0) {
-                                HStack(spacing: 0) {
-                                    Text(stat.0)
-                                        .font(.sfRounded(size: .xs, weight: .regular))
-                                        .foregroundStyle(Color.white.opacity(0.7))
-                                        .fixedSize(horizontal: true, vertical: false)
-
-                                    Text(stat.1.text)
-                                        .font(.sfRounded(size: .base, weight: .semibold))
-                                        .foregroundStyle(Color.white)
-                                        .frame(maxWidth: .infinity, alignment: .topTrailing)
+                                        Text(stat.1.text)
+                                            .font(.sfRounded(size: .base, weight: .semibold))
+                                            .foregroundStyle(Color.white)
+                                            .frame(maxWidth: .infinity, alignment: .topTrailing)
+                                    }
+                                    .frame(maxWidth: .infinity, alignment: .leading)
                                 }
-                                .frame(maxWidth: .infinity, alignment: .leading)
-
-                                Rectangle()
-                                    .foregroundStyle(Color.clear)
-                                    .frame(height: 0.5)
-                                    .background(Color.gray.opacity(0.5))
-                                    .padding(.top, 2)
                             }
                         }
                     }
+                    .padding(.vertical, 4)
                 }
-                .padding(.vertical, 4)
             }
         }
         .padding(.horizontal, 16)
         .padding(.top, 16)
-        .frame(maxWidth: .infinity, maxHeight: 110, alignment: .topLeading)
+        .frame(maxWidth: .infinity, maxHeight: 80, alignment: .topLeading)
         .background(AppColors.darkGrayGradient)
         .cornerRadius(16)
         .onTapGesture {

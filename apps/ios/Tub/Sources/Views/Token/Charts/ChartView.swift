@@ -27,9 +27,10 @@ struct ChartView: View {
 
     @State private var currentTime = Date().timeIntervalSince1970
     @State private var prices: [Price] = []
-    
-    init(prices: [Price], height: CGFloat = 330) {
+
+    init(prices: [Price], animate: Binding<Bool>, height: CGFloat = 330) {
         self.rawPrices = prices
+        self._animate = animate
         self.height = height
     }
 

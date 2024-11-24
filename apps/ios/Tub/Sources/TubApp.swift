@@ -49,6 +49,16 @@ struct AppContent: View {
                     }
                 )
             }
+            else if let error = priceModel.error {
+                LoginErrorView(
+                    errorMessage: "Failed to get price data",
+                    retryAction: {
+                        Task {
+                            await priceModel.fetchCurrentPrice()
+                        }
+                    }
+                )
+            }
             else if !tokenManager.isReady {
                 LoadingView(identifier: "Fetching Codex token", message: "Fetching auth token")
             }
@@ -63,9 +73,8 @@ struct AppContent: View {
             }
         }.onAppear {
             Task(priority: .high) {
+                // we cannot start token subscription until we have the api key
                 await tokenManager.refreshToken()
-            }
-            Task {
                 tokenListModel.configure(with: userModel)
                 await tokenListModel.startTokenSubscription()
             }

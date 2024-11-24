@@ -39,15 +39,15 @@ struct TokenListView: View {
     private enum SwipeDirection {
         case up
         case down
+    }
+
     private var background: LinearGradient {
-        if tokenListModel.isLoading || tokenListModel.tokens.count == 0 {
+        if !tokenListModel.isReady || tokenListModel.totalTokenCount == 0 {
             return LinearGradient(colors: [.clear], startPoint: .top, endPoint: .bottom)
         }
         return activeTab == "sell"
             ? AppColors.primaryPinkGradient
             : AppColors.primaryPurpleGradient
-    }
-
     }
 
     private func canSwipe(direction: SwipeDirection) -> Bool {
@@ -95,17 +95,17 @@ struct TokenListView: View {
             if animationState.showSellBubbles {
                 BubbleEffect(isActive: $animationState.showSellBubbles)
                     .zIndex(10)
-                }
+            }
             AccountBalanceView(
                 userModel: userModel,
                 currentTokenModel: tokenListModel.currentTokenModel
             )
             .zIndex(3)
 
-            if tokenListModel.isLoading {
+            if !tokenListModel.isReady {
 
                 GeometryReader { geometry in
-                    TokenView(tokenModel: TokenModel())
+                    TokenView(tokenModel: TokenModel(), animate: Binding.constant(false))
                         .frame(height: geometry.size.height)
                         .offset(y: OFFSET)
                 }
@@ -113,75 +113,93 @@ struct TokenListView: View {
             else {
                 // Main content
 
-                        VStack(spacing: 0) {
-                            // Rest of the content
-                            if tokenListModel.totalTokenCount == 0 {
-                                TokenLoadErrorView()
-                            }
-                
-            }
-
-            if tokenListModel.tokens.count > 0 {
-                GeometryReader { geometry in
-                    VStack(spacing: 0) {
-                        LoadingTokenView()
-                            .frame(height: geometry.size.height)
-                            .opacity(dragging ? 0.8 : 0)
-                        TokenView(
-                            tokenModel: tokenListModel.currentTokenModel,
-                            onSellSuccess: {
-                                withAnimation {
-                                    notificationHandler.show(
-                                        "Successfully sold tokens!",
-                                        type: .success
-                                    )
-                                }
-                            }
-                        )
-                        .frame(height: geometry.size.height)
-
-                        LoadingTokenView()
-                            .frame(height: geometry.size.height)
-                            .opacity(dragging ? 0.8 : 0)
-
+                VStack(spacing: 0) {
+                    // Rest of the content
+                    if tokenListModel.totalTokenCount == 0 {
+                        TokenLoadErrorView()
                     }
-                    .zIndex(1)
-                    .offset(y: -geometry.size.height + OFFSET + offset + activeOffset)
-                    .gesture(
-                        DragGesture()
-                            .onChanged { value in
-                                if canSwipe(value: value) {
-                                    if isDragStarting {
-                                        isDragStarting = false
-                                        // todo: show the next token
-                                    }
 
-                                    dragging = true
-                                    offset = value.translation.height
-                                }
+                }
+
+                if tokenListModel.totalTokenCount > 0 {
+                    GeometryReader { geometry in
+                        VStack(spacing: 0) {
+                            if let previousTokenModel = tokenListModel.previousTokenModel, dragging {
+                                TokenView(tokenModel: previousTokenModel, animate: Binding.constant(false))
+                                    .frame(height: geometry.size.height)
                             }
-                            .onEnded { value in
-                                isDragStarting = true
+                            else {
+                                LoadingTokenView()
+                                    .frame(height: geometry.size.height)
+                                    .opacity(dragging ? 0.8 : 0)
+                            }
 
-                                if canSwipe(value: value) {
-                                    let threshold: CGFloat = 50
-                                    if value.translation.height > threshold {
-                                        loadToken(geometry, "previous")
-                                    }
-                                    else if value.translation.height < -threshold {
-                                        loadToken(geometry, "next")
-                                    }
+                            TokenView(
+                                tokenModel: tokenListModel.currentTokenModel,
+                                animate: Binding.constant(true),
+                                onSellSuccess: {
                                     withAnimation {
-                                        offset = 0
-                                    }
-                                    // Delay setting dragging to false to allow for smooth animation
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                        dragging = false
+                                        notificationHandler.show(
+                                            "Successfully sold tokens!",
+                                            type: .success
+                                        )
                                     }
                                 }
+                            )
+                            .frame(height: geometry.size.height)
+
+                            if let nextTokenModel = tokenListModel.nextTokenModel, dragging {
+                                TokenView(tokenModel: nextTokenModel, animate: Binding.constant(false))
+                                    .frame(height: geometry.size.height)
                             }
-                    )
-                }.zIndex(1)
+                            else {
+                                LoadingTokenView()
+                                    .frame(height: geometry.size.height)
+                                    .opacity(dragging ? 0.8 : 0)
+                            }
+                        }
+                        .zIndex(1)
+                        .offset(y: -geometry.size.height + OFFSET + offset + activeOffset)
+                        .gesture(
+                            DragGesture()
+                                .onChanged { value in
+                                    let dragDirection =
+                                        value.translation.height > 0 ? SwipeDirection.up : SwipeDirection.down
+                                    if canSwipe(direction: dragDirection) {
+                                        if isDragStarting {
+                                            isDragStarting = false
+                                            // todo: show the next token
+                                        }
+
+                                        dragging = true
+                                        offset = value.translation.height
+                                    }
+                                }
+                                .onEnded { value in
+                                    isDragStarting = true
+
+                                    let dragDirection =
+                                        value.translation.height > 0 ? SwipeDirection.up : SwipeDirection.down
+                                    if canSwipe(direction: dragDirection) {
+                                        let threshold: CGFloat = 50
+                                        if value.translation.height > threshold {
+                                            loadToken(geometry, .up)
+                                        }
+                                        else if value.translation.height < -threshold {
+                                            loadToken(geometry, .down)
+                                        }
+                                        withAnimation {
+                                            offset = 0
+                                        }
+                                        // Delay setting dragging to false to allow for smooth animation
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                            dragging = false
+                                        }
+                                    }
+                                }
+                        )
+                    }.zIndex(1)
+                }
             }
         }.onAppear {
             Task {
@@ -202,7 +220,7 @@ struct TokenLoadErrorView: View {
         VStack {
             Spacer()
             Text("Failed to load tokens.")
-                .foregroundColor(AppColors.lightYellow)
+                .foregroundColor(Color.aquaBlue)
                 .multilineTextAlignment(.center)
                 .padding(.bottom, 24)
             Button(action: {
@@ -213,16 +231,16 @@ struct TokenLoadErrorView: View {
             }) {
                 Text("Retry")
                     .font(.sfRounded(size: .lg, weight: .semibold))
-                    .foregroundColor(AppColors.white)
+                    .foregroundColor(Color.white)
                     .frame(maxWidth: 300)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
-                    .background(AppColors.primaryPurple)
+                    .background(Color.purple)
                     .cornerRadius(30)
                     .overlay(
                         RoundedRectangle(cornerRadius: 30)
                             .inset(by: 0.5)
-                            .stroke(AppColors.primaryPurple, lineWidth: 1)
+                            .stroke(Color.purple, lineWidth: 1)
                     )
             }
             Spacer()
