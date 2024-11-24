@@ -15,6 +15,7 @@ struct TokenView: View {
     @EnvironmentObject private var userModel: UserModel
     @EnvironmentObject private var notificationHandler: NotificationHandler
 
+    @Binding private var showBubbles: Bool
     @State private var showInfoCard = false
     @State private var showBuySheet: Bool = false
     @State private var keyboardHeight: CGFloat = 0
@@ -27,9 +28,15 @@ struct TokenView: View {
         return balance > 0 ? "sell" : "buy"
     }
 
-    init(tokenModel: TokenModel, animate: Binding<Bool>, onSellSuccess: (() -> Void)? = nil) {
+    init(
+        tokenModel: TokenModel,
+        animate: Binding<Bool>,
+        showBubbles: Binding<Bool>,
+        onSellSuccess: (() -> Void)? = nil
+    ) {
         self.tokenModel = tokenModel
         self._animate = animate
+        self._showBubbles = showBubbles
         self.onSellSuccess = onSellSuccess
     }
 
@@ -89,6 +96,7 @@ struct TokenView: View {
                     ActionButtonsView(
                         tokenModel: tokenModel,
                         showBuySheet: $showBuySheet,
+                        showBubbles: $showBubbles,
                         handleBuy: handleBuy,
                         onSellSuccess: onSellSuccess
                     )

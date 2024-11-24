@@ -13,20 +13,24 @@ struct ActionButtonsView: View {
     @EnvironmentObject var priceModel: SolPriceModel
     @ObservedObject var tokenModel: TokenModel
     @Binding var showBuySheet: Bool
-    @StateObject private var animationState = TokenAnimationState.shared
     @StateObject private var settingsManager = SettingsManager.shared
     @State private var isLoginPresented = false
+
+    @Binding var showBubbles: Bool
+
     var handleBuy: (Double) async -> Void
     var onSellSuccess: (() -> Void)?
 
     init(
         tokenModel: TokenModel,
         showBuySheet: Binding<Bool>,
+        showBubbles: Binding<Bool>,
         handleBuy: @escaping (Double) async -> Void,
         onSellSuccess: (() -> Void)? = nil
     ) {
         self.tokenModel = tokenModel
         self._showBuySheet = showBuySheet
+        self._showBubbles = showBubbles
         self.handleBuy = handleBuy
         self.onSellSuccess = onSellSuccess
     }
@@ -52,7 +56,7 @@ struct ActionButtonsView: View {
         do {
             try await userModel.sellTokens(price: priceLamps)
             await MainActor.run {
-                animationState.showSellBubbles = true
+                showBubbles = true
                 onSellSuccess?()
             }
         }
@@ -232,6 +236,7 @@ private struct BuyButton: View {
     ActionButtonsView(
         tokenModel: TokenModel(),
         showBuySheet: $show,
+        showBubbles: Binding.constant(false),
         handleBuy: { _ in },
         onSellSuccess: nil
     )

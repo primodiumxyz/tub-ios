@@ -31,8 +31,8 @@ struct TokenListView: View {
         return balance > 0 ? "sell" : "buy"
     }
 
-    @EnvironmentObject var tokenListModel
-    @StateObject private var animationState = TokenAnimationState.shared
+    @EnvironmentObject var tokenListModel: TokenListModel
+    @State private var showBubbles = false
 
     @State private var isLoading = false
 
@@ -92,8 +92,8 @@ struct TokenListView: View {
             background
                 .animation(.easeInOut(duration: 0.3), value: activeTab)
 
-            if animationState.showSellBubbles {
-                BubbleEffect(isActive: $animationState.showSellBubbles)
+            if showBubbles {
+                BubbleEffect(isActive: $showBubbles)
                     .zIndex(10)
             }
             AccountBalanceView(
@@ -105,9 +105,13 @@ struct TokenListView: View {
             if !tokenListModel.isReady {
 
                 GeometryReader { geometry in
-                    TokenView(tokenModel: TokenModel(), animate: Binding.constant(false))
-                        .frame(height: geometry.size.height)
-                        .offset(y: OFFSET)
+                    TokenView(
+                        tokenModel: TokenModel(),
+                        animate: Binding.constant(false),
+                        showBubbles: Binding.constant(false)
+                    )
+                    .frame(height: geometry.size.height)
+                    .offset(y: OFFSET)
                 }
             }
             else {
@@ -125,8 +129,12 @@ struct TokenListView: View {
                     GeometryReader { geometry in
                         VStack(spacing: 0) {
                             if let previousTokenModel = tokenListModel.previousTokenModel, dragging {
-                                TokenView(tokenModel: previousTokenModel, animate: Binding.constant(false))
-                                    .frame(height: geometry.size.height)
+                                TokenView(
+                                    tokenModel: previousTokenModel,
+                                    animate: Binding.constant(false),
+                                    showBubbles: Binding.constant(false)
+                                )
+                                .frame(height: geometry.size.height)
                             }
                             else {
                                 LoadingTokenView()
@@ -137,6 +145,7 @@ struct TokenListView: View {
                             TokenView(
                                 tokenModel: tokenListModel.currentTokenModel,
                                 animate: Binding.constant(true),
+                                showBubbles: $showBubbles,
                                 onSellSuccess: {
                                     withAnimation {
                                         notificationHandler.show(
@@ -149,8 +158,12 @@ struct TokenListView: View {
                             .frame(height: geometry.size.height)
 
                             if let nextTokenModel = tokenListModel.nextTokenModel, dragging {
-                                TokenView(tokenModel: nextTokenModel, animate: Binding.constant(false))
-                                    .frame(height: geometry.size.height)
+                                TokenView(
+                                    tokenModel: nextTokenModel,
+                                    animate: Binding.constant(false),
+                                    showBubbles: Binding.constant(false)
+                                )
+                                .frame(height: geometry.size.height)
                             }
                             else {
                                 LoadingTokenView()

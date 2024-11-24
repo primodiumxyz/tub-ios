@@ -49,7 +49,7 @@ struct AppContent: View {
                     }
                 )
             }
-            else if let error = priceModel.error {
+            else if let _ = priceModel.error {
                 LoginErrorView(
                     errorMessage: "Failed to get price data",
                     retryAction: {
