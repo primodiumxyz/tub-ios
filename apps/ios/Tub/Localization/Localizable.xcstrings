@@ -36,9 +36,6 @@
         }
       }
     },
-    "%lld%%" : {
-
-    },
     "$" : {
 
     },
@@ -69,13 +66,7 @@
     "Add Funds" : {
 
     },
-    "Amount: %@" : {
-
-    },
     "Buy" : {
-
-    },
-    "Buy %@" : {
 
     },
     "Buy Details" : {
@@ -99,9 +90,6 @@
     "Continue" : {
 
     },
-    "Continue with Phone" : {
-
-    },
     "Country Code" : {
 
     },
@@ -112,9 +100,6 @@
 
     },
     "Deposit with " : {
-
-    },
-    "Dev Login" : {
 
     },
     "Enter verification code" : {
@@ -132,25 +117,13 @@
     "Filled" : {
 
     },
-    "Get 1 test SOL" : {
-
-    },
     "High" : {
 
     },
     "History" : {
 
     },
-    "Login to Buy" : {
-
-    },
-    "Logout" : {
-
-    },
     "Low" : {
-
-    },
-    "MAX" : {
 
     },
     "No transactions found" : {
@@ -163,9 +136,6 @@
 
     },
     "or" : {
-
-    },
-    "Period: %@" : {
 
     },
     "Please enter a valid email address." : {
@@ -202,9 +172,6 @@
 
     },
     "Settings" : {
-
-    },
-    "Sign in with Google" : {
 
     },
     "Stats" : {

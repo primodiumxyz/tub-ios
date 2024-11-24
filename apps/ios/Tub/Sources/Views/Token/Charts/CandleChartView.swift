@@ -65,7 +65,7 @@ struct CandleChartView: View {
                     yStart: .value("Open", candle.open),
                     yEnd: .value("Close", candle.close)
                 )
-                .foregroundStyle(candle.close >= candle.open ? AppColors.green : AppColors.red)
+                .foregroundStyle(candle.close >= candle.open ? Color.green : Color.red)
 
                 // High-Low line
                 RuleMark(
@@ -73,13 +73,16 @@ struct CandleChartView: View {
                     yStart: .value("High", candle.high),
                     yEnd: .value("Low", candle.low)
                 )
-                .foregroundStyle(candle.close >= candle.open ? AppColors.green : AppColors.red)
+                .foregroundStyle(candle.close >= candle.open ? Color.green : Color.red)
                 .opacity(0.5)
             }
         }
         .if(animate) { view in view.animation(.linear(duration: PRICE_UPDATE_INTERVAL), value: candles) }
         .chartXScale(domain: xDomain)
         .chartYScale(domain: yDomain)
+        .conditionalModifier(condition: false) { chart in
+            chart.animation(.easeInOut(duration: PRICE_UPDATE_INTERVAL), value: candles)
+        }
         .chartXAxis(content: xAxisConfig)
         .chartYAxis(content: yAxisConfig)
         .frame(height: height)
@@ -94,20 +97,23 @@ struct CandleChartView: View {
     private func yAxisConfig() -> some AxisContent {
         AxisMarks(position: .leading) { value in
             AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
-                .foregroundStyle(.white.opacity(0.2))
+                .foregroundStyle(Color.white.opacity(0.2))
             AxisValueLabel {
                 if let doubleValue = value.as(Double.self) {
                     Text(priceModel.formatPrice(usd: doubleValue, maxDecimals: 6))
-                        .foregroundStyle(.white.opacity(0.5))
+                        .foregroundStyle(Color.white.opacity(0.5))
                 }
             }
         }
     }
 
     private func xAxisConfig() -> some AxisContent {
-        AxisMarks(values: .stride(by: .minute, count: Int(floor(timeframeMins / 4)))) { value in
-            AxisValueLabel(format: .dateTime.hour().minute())
-                .foregroundStyle(.white.opacity(0.5))
+        AxisMarks(values: .stride(by: .minute, count: 4)) { value in
+            // show the first 6 labels (after that it gets cutoff
+            if value.index <= 6 {
+                AxisValueLabel(format: .dateTime.hour().minute())
+                    .foregroundStyle(.white.opacity(0.5))
+            }
         }
     }
 }

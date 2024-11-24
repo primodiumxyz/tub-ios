@@ -22,10 +22,10 @@ struct ShimmeringView: ViewModifier {
                     Color.white
                         .opacity(opacity)
                         .mask(
-                            Rectangle()
+                            RoundedRectangle(cornerRadius: 8)
                                 .fill(
                                     LinearGradient(
-                                        gradient: Gradient(colors: [.clear, .white.opacity(0.3), .clear]),
+                                        gradient: Gradient(colors: [.clear, Color.white.opacity(0.3), .clear]),
                                         startPoint: .leading,
                                         endPoint: .trailing
                                     )

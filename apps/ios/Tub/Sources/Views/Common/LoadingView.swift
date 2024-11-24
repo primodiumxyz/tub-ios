@@ -37,6 +37,6 @@ struct LoadingView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.black)
-        .foregroundColor(.white)
+        .foregroundColor(Color.white)
     }
 }
