@@ -120,7 +120,6 @@ struct HomeTabsView: View {
                     .background(Color.black)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                    // Custom Tab Bar
                     HStack {
                         Spacer()
 
@@ -178,6 +177,7 @@ struct HomeTabsView: View {
 
                         Spacer()
                     }
+                    .padding(.top, 8)
                     .background(Color.black)
                     .ignoresSafeArea(.keyboard)
                 }
