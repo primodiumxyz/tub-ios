@@ -216,26 +216,33 @@ export class TubService {
     return { token: `Bearer ${token}`, expiry };
   }
 
-  // Now let's add the fetchSwap method
+  /**
+   * Builds a swap transaction for exchanging tokens
+   * @param jwtToken - The JWT token for user authentication
+   * @param request - The swap request parameters
+   * @param request.buyTokenId - Public key of the token to receive
+   * @param request.sellTokenId - Public key of the token to sell
+   * @param request.sellQuantity - Amount of tokens to sell (in token's base units)
+   * @returns {Promise<PrebuildSwapResponse>} Object containing the base64-encoded transaction and metadata
+   * @throws {Error} If user has no wallet or if swap building fails
+   * 
+   * @example
+   * const response = await tubService.fetchSwap(jwt, {
+   *   buyTokenId: "So11111111111111111111111111111111111111112",  // SOL
+   *   sellTokenId: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
+   *   sellQuantity: 1e6 // 1 USDC. Other tokens may be 1e9 standard
+   * });
+   */
   async fetchSwap(jwtToken: string, request: UserPrebuildSwapRequest): Promise<PrebuildSwapResponse> {
-    // console.log(`[fetchSwap] Processing swap request:`, {
-    //   buyTokenId: request.buyTokenId,
-    //   sellTokenId: request.sellTokenId,
-    //   sellQuantity: request.sellQuantity?.toString()
-    // });
-  
     const userId = await this.verifyJWT(jwtToken);
-    // console.log(`[fetchSwap] Verified user ID: ${userId}`);
 
     const userWallet = await this.getUserWallet(userId);
     if (!userWallet) {
       throw new Error("User does not have a wallet registered with Privy");
     }
-    // console.log(`[fetchSwap] User wallet address: ${userWallet}`);
 
     const userPublicKey = new PublicKey(userWallet);
     
-    // Derive token accounts
     const derivedAccounts = await this.deriveTokenAccounts(
       userPublicKey,
       request.buyTokenId,
@@ -257,6 +264,11 @@ export class TubService {
     return response;
   }
 
+  /**
+   * A test transaction with hardcoded 1 USDC to sell into SOL
+   * @param jwtToken - The user's JWT token
+   * @returns A constructed, signable transaction
+   */
   async get1USDCToSOLTransaction(jwtToken: string) {
     return this.fetchSwap(jwtToken, {
       buyTokenId: SOL_MAINNET_PUBLIC_KEY.toString(),
@@ -272,23 +284,13 @@ export class TubService {
    * @returns A Subject that emits base64-encoded transactions
    */
   async startSwapStream(jwtToken: string, request: UserPrebuildSwapRequest) {
-    // console.log(`[startSwapStream] Starting swap stream for request:`, {
-    //   buyTokenId: request.buyTokenId,
-    //   sellTokenId: request.sellTokenId,
-    //   sellQuantity: request.sellQuantity?.toString()
-    // });
-
     const userId = await this.verifyJWT(jwtToken);
-    // console.log(`[startSwapStream] Verified user ID: ${userId}`);
-
     const userWallet = await this.getUserWallet(userId);
     if (!userWallet) {
       throw new Error("User does not have a wallet registered with Privy");
     }
-    // console.log(`[startSwapStream] User wallet address: ${userWallet}`);
 
     const userPublicKey = new PublicKey(userWallet);
-    // Derive token accounts
     const derivedAccounts = await this.deriveTokenAccounts(
       userPublicKey,
       request.buyTokenId,
@@ -322,7 +324,6 @@ export class TubService {
         });
     }
 
-    // console.log(`[startSwapStream] Stream started successfully for user ${userId}`);
     return this.swapSubjects.get(userId)!;
   }
 
@@ -332,17 +333,12 @@ export class TubService {
    * @param updates - New parameters to update
    */
   async updateSwapRequest(jwtToken: string, updates: Partial<UserPrebuildSwapRequest>) {
-    // console.log(`[updateSwapRequest] Received updates:`, updates);
-
     const userId = await this.verifyJWT(jwtToken);
-    // console.log(`[updateSwapRequest] Verified user ID: ${userId}`);
-
     const userWallet = await this.getUserWallet(userId);
     if (!userWallet) {
       throw new Error("User does not have a wallet registered with Privy");
     }
     const userPublicKey = new PublicKey(userWallet);
-    // console.log(`[updateSwapRequest] User wallet address: ${userWallet}`);
 
     const current = this.activeSwapRequests.get(userId);
     if (current) {
@@ -361,13 +357,8 @@ export class TubService {
 
       const updated = { ...current, ...updates, ...derivedAccounts };
       this.activeSwapRequests.set(userId, updated);
-      // console.log(`[updateSwapRequest] Updated swap request for user ${userId}:`, {
-      //   buyTokenId: updated.buyTokenId,
-      //   sellTokenId: updated.sellTokenId,
-      //   sellQuantity: updated.sellQuantity?.toString()
-      // });
     } else {
-      console.log(`[updateSwapRequest] No active swap request found for user ${userId}`);
+      throw new Error(`[updateSwapRequest] No active swap request found for user ${userId}`);
     }
   }
 
@@ -377,16 +368,14 @@ export class TubService {
    */
   async stopSwapStream(jwtToken: string) {
     const userId = await this.verifyJWT(jwtToken);
-    console.log(`[stopSwapStream] Stopping stream for user ${userId}`);
 
     this.activeSwapRequests.delete(userId);
     const subject = this.swapSubjects.get(userId);
     if (subject) {
       subject.complete();
       this.swapSubjects.delete(userId);
-      console.log(`[stopSwapStream] Successfully stopped stream for user ${userId}`);
     } else {
-      console.log(`[stopSwapStream] No active stream found for user ${userId}`);
+      throw new Error(`[stopSwapStream] No active stream found for user ${userId}`);
     }
   }
 
@@ -399,24 +388,19 @@ export class TubService {
    * @throws Error if transaction processing fails
    */
   async signAndSendTransaction(jwtToken: string, userSignature: string, base64Transaction: string) {
-    // console.log(`[signAndSendTransaction] Starting transaction processing`);
-    
     try {
       const userId = await this.verifyJWT(jwtToken);
-      // console.log(`[signAndSendTransaction] Verified user ID: ${userId}`);
 
       const registryEntry = this.swapRegistry.get(base64Transaction);
       if (!registryEntry) {
         throw new Error("Transaction not found in registry");
       }
-      // console.log(`[signAndSendTransaction] Found transaction in registry, hasFee: ${registryEntry.hasFee}`);
       
       const walletAddress = await this.getUserWallet(userId);
       if (!walletAddress) {
         throw new Error("User does not have a wallet registered with Privy");
       }
       const userPublicKey = new PublicKey(walletAddress);
-      // console.log(`[signAndSendTransaction] User wallet address: ${walletAddress}`);
 
       // Create a new transaction from the registry entry
       const transaction = Transaction.from(Buffer.from(base64Transaction, 'base64'));
@@ -424,7 +408,6 @@ export class TubService {
       // Add user signature
       const userSignatureBytes = Buffer.from(bs58.decode(userSignature));
       transaction.addSignature(userPublicKey, userSignatureBytes);
-      // console.log(`[signAndSendTransaction] Added user signature to transaction`);
 
       // In test environment, skip token fee validation
       if (process.env.NODE_ENV === 'test') {
@@ -434,22 +417,19 @@ export class TubService {
       } else {
         let feePayerSignature;
         if (registryEntry.hasFee) {
-          // console.log(`[signAndSendTransaction] Getting fee payer signature with token fee`);
           feePayerSignature = await this.octane.signTransactionWithTokenFee(
             transaction,
             true, // buyWithUSDCBool
-            new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), // USDC
+            new PublicKey(USDC_MAINNET_PUBLIC_KEY.toString()), // USDC
             6 // tokenDecimals
           );
         } else {
-          // console.log(`[signAndSendTransaction] Getting fee payer signature without token fee`);
           feePayerSignature = await this.octane.signTransactionWithoutTokenFee(transaction);
         }
 
         const feePayerSignatureBytes = Buffer.from(bs58.decode(feePayerSignature));
         transaction.addSignature(this.octane.getSettings().feePayerPublicKey, feePayerSignatureBytes);
       }
-      // console.log(`[signAndSendTransaction] Added fee payer signature to transaction`);
 
       // Send the fully signed transaction
       const txid = await this.octane.getSettings().connection.sendRawTransaction(
