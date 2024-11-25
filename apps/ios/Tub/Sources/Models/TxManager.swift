@@ -8,7 +8,9 @@
 import PrivySDK
 import SwiftUI
 
-class TxManager: ObservableObject {
+final class TxManager: ObservableObject {
+    static let shared = TxManager()
+
     @Published var txData: TxData?
 
     @Published var fetchingTxData: Bool = false
@@ -20,15 +22,16 @@ class TxManager: ObservableObject {
     var quantity: Int?
     let tokenIdUsdc = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
 
-    func updateTxData(purchaseState: PurchaseState?, tokenId: String?, quantity: String?) async throws {
-        let tokenId = tokenId ?? self.tokenId
-        let quantity = quantity ?? quantity
-        let purchaseState = purchaseState ?? self.purchaseState
+    func updateTxData(purchaseState: PurchaseState?, tokenId: String?, quantity: Int?) async throws {
+        self.tokenId = tokenId ?? self.tokenId
+        self.quantity = quantity ?? quantity
+        self.purchaseState = purchaseState ?? self.purchaseState
 
-        guard let tokenId, let quantity else { return }
+        guard let tokenId = self.tokenId, let quantity = self.quantity else { return }
 
         let buyTokenId = purchaseState == .buy ? tokenId : tokenIdUsdc
-        let sellTokenId = purchaseState == .sell ? tokenIdUsdc : tokenId
+        let sellTokenId = purchaseState == .sell ? tokenId : tokenIdUsdc
+
         do {
             await MainActor.run {
                 self.fetchingTxData = true
@@ -72,6 +75,7 @@ class TxManager: ObservableObject {
         }
         catch {
             print(error.localizedDescription)
+            throw error
         }
     }
 

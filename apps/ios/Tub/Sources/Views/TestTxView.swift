@@ -9,64 +9,49 @@ import PrivySDK
 import SwiftUI
 
 struct TestTxView: View {
-    @State var txData: TxData? = nil
-
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject var notificationHandler: NotificationHandler
     @EnvironmentObject var userModel: UserModel
+    @StateObject var txManager = TxManager.shared
 
-    private func handleTxSubmission(_ tx: TxData) {
-        Task(priority: .userInitiated) {
-            guard let wallet = userModel.walletAddress else {
-                notificationHandler.show("Wallet does not exist", type: .error)
-                return
-            }
+    func handleTxSubmission() {
+        Task {
             do {
-                let provider = try privy.embeddedWallet.getSolanaProvider(for: wallet)
-                let signature = try await provider.signMessage(message: tx.transactionBase64)
-                let res = try await Network.shared.submitSignedTx(txBase64: tx.transactionBase64, signature: signature)
-                notificationHandler.show("Transaction submitted: \(res.txId)", type: .success)
+                guard let walletAddress = userModel.walletAddress else { throw TubError.notLoggedIn }
+                try await txManager.submitTx(walletAddress: walletAddress)
             }
             catch {
-                print(error.localizedDescription)
-                await MainActor.run {
-                    notificationHandler.show("Error sending transaction", type: .error)
-                }
+                notificationHandler.show(error.localizedDescription, type: .error)
             }
         }
     }
 
-    func handleGetTx() async {
-        do {
-            let tx = try await Network.shared.getTestTxData()
-            await MainActor.run {
-                self.txData = tx
+    func handleAppear() {
+        Task {
+            let solTokenId = "So11111111111111111111111111111111111111112"
+            do {
+                try await txManager.updateTxData(purchaseState: .buy, tokenId: solTokenId, quantity: Int(1e6))
+            }
+            catch {
+                notificationHandler.show(error.localizedDescription, type: .error)
             }
         }
-        catch {
-            notificationHandler.show(error.localizedDescription, type: .error)
-        }
-
     }
 
     var body: some View {
         VStack(spacing: 10) {
-            if let txData {
+            if let txData = txManager.txData {
                 DataRow(title: "Buy Token ID", content: txData.buyTokenId)
                 DataRow(title: "Sell Token ID", content: txData.sellTokenId)
                 DataRow(title: "Sell Quantity", content: priceModel.formatPrice(lamports: txData.sellQuantity))
-                Button(action: { handleTxSubmission(txData) }) {
+                Button(action: handleTxSubmission) {
                     Text("Submit Transaction")
                 }.padding().background(.red)
             }
             else {
                 Text("no data")
             }
-        }.foregroundStyle(.white).frame(maxWidth: .infinity, maxHeight: .infinity).onAppear {
-            Task {
-                await handleGetTx()
-            }
-        }
+        }.foregroundStyle(.white).frame(maxWidth: .infinity, maxHeight: .infinity).onAppear(perform: handleAppear)
     }
 
     private struct DataRow: View {

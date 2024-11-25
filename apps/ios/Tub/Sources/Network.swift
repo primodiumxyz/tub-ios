@@ -189,7 +189,7 @@ class Network {
         return res
     }
 
-    func getTxData(buyTokenId: String, sellTokenId: String, sellQuantity: String) async throws -> TxData {
+    func getTxData(buyTokenId: String, sellTokenId: String, sellQuantity: Int) async throws -> TxData {
         let input = SwapInput(buyTokenId: buyTokenId, sellTokenId: sellTokenId, sellQuantity: sellQuantity)
         let res: TxData = try await callProcedure("fetchSwap", input: input)
         return res
@@ -213,7 +213,7 @@ struct ResponseWrapper<T: Codable>: Codable {
 struct SwapInput: Codable {
     let buyTokenId: String
     let sellTokenId: String
-    let sellQuantity: String
+    let sellQuantity: Int
 }
 
 struct TxData: Codable {
