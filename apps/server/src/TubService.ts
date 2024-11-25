@@ -1,12 +1,12 @@
 import { Codex } from "@codex-data/sdk";
 import { PrivyClient, WalletWithMetadata } from "@privy-io/server-auth";
+import { PublicKey, SendTransactionError, Transaction } from "@solana/web3.js";
+import { createTransferInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { GqlClient } from "@tub/gql";
-import { config } from "dotenv";
+import { PrebuildSwapResponse, UserPrebuildSwapRequest } from "../types/PrebuildSwapRequest";
 import { OctaneService } from "./OctaneService";
 import { Subject, interval, switchMap } from 'rxjs';
-import { PublicKey, SendTransactionError, Transaction } from "@solana/web3.js";
-import { createTransferInstruction, getAssociatedTokenAddress } from "@solana/spl-token";
-import { UserPrebuildSwapRequest, PrebuildSwapResponse } from "../types/PrebuildSwapRequest";
+import { config } from "dotenv";
 import bs58 from 'bs58';
 
 config({ path: "../../.env" });
@@ -17,8 +17,8 @@ const SOL_MAINNET_PUBLIC_KEY = new PublicKey("So11111111111111111111111111111111
 
 // Internal type that extends UserPrebuildSwapRequest with derived addresses
 type ActiveSwapRequest = UserPrebuildSwapRequest & {
-  buyTokenAccount?: PublicKey;
-  sellTokenAccount?: PublicKey;
+  buyTokenAccount: PublicKey;
+  sellTokenAccount: PublicKey;
   userPublicKey: PublicKey;
 };
 
@@ -47,7 +47,7 @@ export class TubService {
     this.octane = octane;
     this.privy = privy;
     this.codexSdk = codexSdk;
-    
+
     // Start cleanup interval
     setInterval(() => this.cleanupRegistry(), 60 * 1000); // Run cleanup every minute
   }
@@ -71,8 +71,12 @@ export class TubService {
     try {
       const verifiedClaims = await this.privy.verifyAuthToken(token);
       return verifiedClaims.userId;
-    } catch (e: any) {
-      throw new Error(`Invalid JWT: ${e.message}`);
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        throw new Error(`Invalid JWT: ${e.message}`);
+      } else {
+        throw new Error(`Invalid JWT: ${e}`);
+      }
     }
   };
 
@@ -252,16 +256,17 @@ export class TubService {
     const activeRequest: ActiveSwapRequest = {
       ...request,
       ...derivedAccounts,
-      userPublicKey
+      userPublicKey,
     };
 
-    const response = await this.buildSwapResponse(activeRequest);
-    if (!response) {
-      throw new Error("Failed to build swap response");
+    try {
+      const response = await this.buildSwapResponse(activeRequest);
+      console.log(`[fetchSwap] Successfully built swap for user ${userId}`);
+      return response;
+    } catch (error) {
+      console.error("[fetchSwap] Error:", error);
+      throw new Error(`Failed to build swap response: ${error}`);
     }
-
-    console.log(`[fetchSwap] Successfully built swap for user ${userId}`);
-    return response;
   }
 
   /**
@@ -291,19 +296,15 @@ export class TubService {
     }
 
     const userPublicKey = new PublicKey(userWallet);
-    const derivedAccounts = await this.deriveTokenAccounts(
-      userPublicKey,
-      request.buyTokenId,
-      request.sellTokenId
-    );
-    
+    const derivedAccounts = await this.deriveTokenAccounts(userPublicKey, request.buyTokenId, request.sellTokenId);
+
     // Store the enhanced request
     this.activeSwapRequests.set(userId, {
       ...request,
       ...derivedAccounts,
-      userPublicKey
+      userPublicKey,
     });
-    
+
     if (!this.swapSubjects.has(userId)) {
       const subject = new Subject<PrebuildSwapResponse>();
       this.swapSubjects.set(userId, subject);
@@ -315,7 +316,7 @@ export class TubService {
             const currentRequest = this.activeSwapRequests.get(userId);
             if (!currentRequest) return null;
             return this.buildSwapResponse(currentRequest);
-          })
+          }),
         )
         .subscribe((response: PrebuildSwapResponse | null) => {
           if (response) {
@@ -343,15 +344,15 @@ export class TubService {
     const current = this.activeSwapRequests.get(userId);
     if (current) {
       // Re-derive accounts if tokens changed
-      const needsNewDerivedAccounts = 
+      const needsNewDerivedAccounts =
         (updates.buyTokenId && updates.buyTokenId !== current.buyTokenId) ||
         (updates.sellTokenId && updates.sellTokenId !== current.sellTokenId);
 
-      const derivedAccounts = needsNewDerivedAccounts 
+      const derivedAccounts = needsNewDerivedAccounts
         ? await this.deriveTokenAccounts(
             userPublicKey,
             updates.buyTokenId ?? current.buyTokenId,
-            updates.sellTokenId ?? current.sellTokenId
+            updates.sellTokenId ?? current.sellTokenId,
           )
         : {};
 
@@ -423,7 +424,7 @@ export class TubService {
             transaction,
             true, // buyWithUSDCBool
             new PublicKey(USDC_MAINNET_PUBLIC_KEY.toString()), // USDC
-            6 // tokenDecimals
+            6, // tokenDecimals
           );
         } else {
           feePayerSignature = await this.octane.signTransactionWithoutTokenFee(transaction);
@@ -434,10 +435,9 @@ export class TubService {
       }
 
       // Send the fully signed transaction
-      const txid = await this.octane.getSettings().connection.sendRawTransaction(
-        transaction.serialize(),
-        { skipPreflight: false }
-      );
+      const txid = await this.octane
+        .getSettings()
+        .connection.sendRawTransaction(transaction.serialize(), { skipPreflight: false });
       console.log(`[signAndSendTransaction] Transaction sent with ID: ${txid}`);
 
       // Wait for confirmation using polling
@@ -450,7 +450,7 @@ export class TubService {
         'processed'
       );
       console.log(`[signAndSendTransaction] Transaction confirmed:`, confirmation);
-      
+
       if (confirmation.value.err) {
         throw new Error(`Transaction failed: ${confirmation.value.err}`);
       }
@@ -497,32 +497,24 @@ export class TubService {
    * @param sellTokenId - ID of token to sell
    * @returns Object containing derived token account addresses
    */
-  private async deriveTokenAccounts(
+  private deriveTokenAccounts(
     userPublicKey: PublicKey,
     buyTokenId: string,
-    sellTokenId: string
-  ): Promise<{ buyTokenAccount?: PublicKey; sellTokenAccount?: PublicKey }> {
-    const accounts: { buyTokenAccount?: PublicKey; sellTokenAccount?: PublicKey } = {};
+    sellTokenId: string,
+  ): { buyTokenAccount: PublicKey; sellTokenAccount: PublicKey } {
+    const buyTokenAccount = getAssociatedTokenAddressSync(new PublicKey(buyTokenId), userPublicKey, false);
 
-    accounts.buyTokenAccount = await getAssociatedTokenAddress(
-      new PublicKey(buyTokenId),
-        userPublicKey,
-        false
-    );
+    const sellTokenAccount = getAssociatedTokenAddressSync(new PublicKey(sellTokenId), userPublicKey, false);
 
-    accounts.sellTokenAccount = await getAssociatedTokenAddress(
-      new PublicKey(sellTokenId),
-        userPublicKey,
-        false
-    );
-    
-    return accounts;
+    return { buyTokenAccount, sellTokenAccount };
   }
 
   private async buildSwapResponse(
     request: ActiveSwapRequest
-  ): Promise<PrebuildSwapResponse | null> {
-    if (!request.sellTokenAccount) return null;
+  ): Promise<PrebuildSwapResponse> {
+    if (!request.sellTokenAccount) {
+      throw new Error("Sell token account is required but was not provided");
+    }
 
     // if sell token is either USDC Devnet or Mainnet, use the buy fee amount. otherwise use 0
     const feeAmount = request.sellTokenId === USDC_DEV_PUBLIC_KEY.toString() || 
@@ -557,12 +549,14 @@ export class TubService {
           amount: Number((BigInt(feeAmount) * BigInt(request.sellQuantity) / 10000n)),
         };
 
-        const feeTransferInstruction = createTransferInstruction(
-          feeOptions.sourceAccount,
-          feeOptions.destinationAccount,
-          request.userPublicKey,
-          feeOptions.amount,
-        );
+      const feeTransferInstruction = feeOptions
+      ? createTransferInstruction(
+            feeOptions.sourceAccount,
+            feeOptions.destinationAccount,
+            request.userPublicKey,
+            feeOptions.amount,
+          )
+      : null;
 
         const swapInstructions = await this.octane.getQuoteAndSwapInstructions({
           inputMint: request.sellTokenId,

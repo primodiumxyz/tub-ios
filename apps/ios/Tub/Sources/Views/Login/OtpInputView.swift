@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct OTPInputView: View {
-    @FocusState private var pinFocusState: FocusPin? 
+    @FocusState private var pinFocusState: FocusPin?
     @State private var pinOne = ""
     @State private var pinTwo = ""
     @State private var pinThree = ""
@@ -9,7 +9,7 @@ struct OTPInputView: View {
     @State private var pinFive = ""
     @State private var pinSix = ""
     let onComplete: (String) -> Void
-    
+
     private func handlePaste(_ pastedText: String, for pin: Binding<String>) {
         let cleaned = pastedText.filter { $0.isNumber }
         if cleaned.count == 6 {
@@ -23,22 +23,22 @@ struct OTPInputView: View {
             onComplete(cleaned)
         }
     }
-    
-    private var otpCode : String {
+
+    private var otpCode: String {
         pinOne + pinTwo + pinThree + pinFour + pinFive + pinSix
     }
-
 
     var body: some View {
         HStack(spacing: 15) {
             TextField("", text: $pinOne)
-                .tint(.white)
+                .tint(Color.white)
                 .allowsHitTesting(false)
                 .modifier(OtpModifer(pin: $pinOne, isFocused: pinFocusState == .pinOne))
                 .onChange(of: pinOne) { oldVal, newVal in
                     if newVal.count > 1 {
                         handlePaste(newVal, for: $pinOne)
-                    } else {
+                    }
+                    else {
                         pinOne = newVal.filter { $0.isNumber }
                         if !pinOne.isEmpty {
                             pinFocusState = .pinTwo
@@ -46,10 +46,9 @@ struct OTPInputView: View {
                     }
                 }
                 .focused($pinFocusState, equals: .pinOne)
-                
-            
+
             TextField("", text: $pinTwo)
-                .tint(.white)
+                .tint(Color.white)
                 .modifier(OtpModifer(pin: $pinTwo, isFocused: pinFocusState == .pinTwo))
                 .allowsHitTesting(false)
                 .onChange(of: pinTwo) { oldVal, newVal in
@@ -61,14 +60,17 @@ struct OTPInputView: View {
                     }
                 }
                 .focused($pinFocusState, equals: .pinTwo)
-                .onKeyPress(.delete, action: {
-                    pinOne = ""
-                    pinFocusState = .pinOne
-                    return .handled
-                })
-            
+                .onKeyPress(
+                    .delete,
+                    action: {
+                        pinOne = ""
+                        pinFocusState = .pinOne
+                        return .handled
+                    }
+                )
+
             TextField("", text: $pinThree)
-                .tint(.white)
+                .tint(Color.white)
                 .modifier(OtpModifer(pin: $pinThree, isFocused: pinFocusState == .pinThree))
                 .allowsHitTesting(false)
                 .onChange(of: pinThree) { oldVal, newVal in
@@ -80,14 +82,17 @@ struct OTPInputView: View {
                     }
                 }
                 .focused($pinFocusState, equals: .pinThree)
-                .onKeyPress(.delete, action: {
-                    pinTwo = ""
-                    pinFocusState = .pinTwo
-                    return .handled
-                })
-            
+                .onKeyPress(
+                    .delete,
+                    action: {
+                        pinTwo = ""
+                        pinFocusState = .pinTwo
+                        return .handled
+                    }
+                )
+
             TextField("", text: $pinFour)
-                .tint(.white)
+                .tint(Color.white)
                 .modifier(OtpModifer(pin: $pinFour, isFocused: pinFocusState == .pinFour))
                 .allowsHitTesting(false)
                 .onChange(of: pinFour) { oldVal, newVal in
@@ -99,14 +104,17 @@ struct OTPInputView: View {
                     }
                 }
                 .focused($pinFocusState, equals: .pinFour)
-                .onKeyPress(.delete, action: {
-                    pinThree = ""
-                    pinFocusState = .pinThree
-                    return .handled
-                })
-            
+                .onKeyPress(
+                    .delete,
+                    action: {
+                        pinThree = ""
+                        pinFocusState = .pinThree
+                        return .handled
+                    }
+                )
+
             TextField("", text: $pinFive)
-                .tint(.white)
+                .tint(Color.white)
                 .modifier(OtpModifer(pin: $pinFive, isFocused: pinFocusState == .pinFive))
                 .allowsHitTesting(false)
                 .onChange(of: pinFive) { oldVal, newVal in
@@ -118,40 +126,51 @@ struct OTPInputView: View {
                     }
                 }
                 .focused($pinFocusState, equals: .pinFive)
-                .onKeyPress(.delete, action: {
-                    pinFour = ""
-                    pinFocusState = .pinFour
-                    return .handled
-                })
-            
+                .onKeyPress(
+                    .delete,
+                    action: {
+                        pinFour = ""
+                        pinFocusState = .pinFour
+                        return .handled
+                    }
+                )
+
             TextField("", text: $pinSix)
-                .tint(.white)
+                .tint(Color.white)
                 .modifier(OtpModifer(pin: $pinSix, isFocused: pinFocusState == .pinSix))
                 .allowsHitTesting(false)
                 .onChange(of: pinSix) { oldVal, newVal in
                     if newVal.count == 1 {
                         pinSix = newVal.filter { $0.isNumber }
                         if !pinSix.isEmpty {
-                            if otpCode.count != 6 || otpCode.contains(" ") { return }
-                            else { onComplete(otpCode)}
+                            if otpCode.count != 6 || otpCode.contains(" ") {
+                                return
+                            }
+                            else {
+                                onComplete(otpCode)
+                            }
                         }
                     }
                 }
                 .focused($pinFocusState, equals: .pinSix)
-                .onKeyPress(.delete, action: {
-                    if pinSix != "" {
-                        pinSix = ""
-                    } else {
-                        pinFive = ""
-                        pinFocusState = .pinFive
+                .onKeyPress(
+                    .delete,
+                    action: {
+                        if pinSix != "" {
+                            pinSix = ""
+                        }
+                        else {
+                            pinFive = ""
+                            pinFocusState = .pinFive
+                        }
+                        return .handled
                     }
-                    return .handled
-                })
+                )
         }
         .onAppear(perform: {
             pinFocusState = .pinOne
-            })
-        .foregroundColor(.black)
+        })
+        .foregroundStyle(Color.black)
         .frame(maxWidth: .infinity)
         .padding(.vertical)
         .padding(.horizontal)
