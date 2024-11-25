@@ -66,6 +66,7 @@
 		DFA4D6512CAC500B00AEDC73 /* Apollo in Frameworks */ = {isa = PBXBuildFile; productRef = DFA4D6502CAC500B00AEDC73 /* Apollo */; };
 		DFC723E32CB9A86C003A915C /* TokenInfoCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFC723E22CB9A86C003A915C /* TokenInfoCardView.swift */; };
 		DFDA138A2CEDF04000057A29 /* TransactionGroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFDA13892CEDF04000057A29 /* TransactionGroupView.swift */; };
+		DFDA13BC2CEF9ACA00057A29 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFDA13BB2CEF9ACA00057A29 /* OnboardingView.swift */; };
 		DFEBC3DD2CE443CA00EA4C84 /* AccountDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFEBC3DC2CE443CA00EA4C84 /* AccountDetailsView.swift */; };
 		DFEBC3E82CE44D1100EA4C84 /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFEBC3E52CE44D1100EA4C84 /* SettingsManager.swift */; };
 		DFEBC3E92CE44D1100EA4C84 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFEBC3E62CE44D1100EA4C84 /* SettingsView.swift */; };
@@ -143,12 +144,14 @@
 		DF1FE3C72CD568F700594C63 /* CountryCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CountryCode.swift; path = Tub/Sources/CountryCode.swift; sourceTree = SOURCE_ROOT; };
 		DF5A2FC22CAF165D00508A56 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		DF5A2FC42CAF2DEF00508A56 /* HistoryDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryDetailsView.swift; sourceTree = "<group>"; };
+		DF627D132CF0FA7600A4500B /* swipe.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = swipe.gif; path = Tub/Assets.xcassets/swipe.dataset/swipe.gif; sourceTree = "<group>"; };
 		DF7C361B2CD941FD00A4B27A /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		DF8C84EC2CDFDCA700E8FA7B /* DismissKeyboardModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DismissKeyboardModifier.swift; sourceTree = "<group>"; };
 		DF99EC202CE294B40065F390 /* TokenAnimationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenAnimationState.swift; sourceTree = "<group>"; };
 		DFA36D552CB4278C00F63D2D /* DummyData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DummyData.swift; path = Tub/Sources/Utils/DummyData.swift; sourceTree = SOURCE_ROOT; };
 		DFC723E22CB9A86C003A915C /* TokenInfoCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenInfoCardView.swift; sourceTree = "<group>"; };
 		DFDA13892CEDF04000057A29 /* TransactionGroupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionGroupView.swift; sourceTree = "<group>"; };
+		DFDA13BB2CEF9ACA00057A29 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		DFEBC3DC2CE443CA00EA4C84 /* AccountDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountDetailsView.swift; sourceTree = "<group>"; };
 		DFEBC3E52CE44D1100EA4C84 /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsManager.swift; sourceTree = "<group>"; };
 		DFEBC3E62CE44D1100EA4C84 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -160,6 +163,7 @@
 		46B4B4532CD542DB00D8175A /* Extensions */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Extensions; sourceTree = "<group>"; };
 		995DE48A2CE6A268001B3C3F /* Login */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Login; sourceTree = "<group>"; };
 		99DDF62E2CB0333D000234DA /* BuySellForm */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = BuySellForm; sourceTree = "<group>"; };
+		DF627D192CF0FB4500A4500B /* Media */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Media; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -244,6 +248,7 @@
 				99DD65FF2CB80D1100B56450 /* History */,
 				99DD65FE2CB80D0300B56450 /* Account */,
 				DB675A322CA2B73D006FC9B3 /* HomeTabsView.swift */,
+				DFDA13BB2CEF9ACA00057A29 /* OnboardingView.swift */,
 				DFEBC3E72CE44D1100EA4C84 /* Settings */,
 				995FCA1D2CDA5ECB0018A76D /* Onramp */,
 			);
@@ -358,6 +363,7 @@
 		DB6D28F82CA1C8F70099951A = {
 			isa = PBXGroup;
 			children = (
+				DF627D132CF0FA7600A4500B /* swipe.gif */,
 				DB391A1D2CC377FC002EFA78 /* LaunchScreen.storyboard */,
 				DB458DAB2CAC7F0100C5EC18 /* graphql */,
 				DB6D29032CA1C8F70099951A /* Tub */,
@@ -384,6 +390,7 @@
 				99856DCA2CD29201004B9D40 /* TubRelease.entitlements */,
 				99856DA92CD28271004B9D40 /* Info.plist */,
 				99A7CD502CB80C4100F27964 /* Sources */,
+				DF627D192CF0FB4500A4500B /* Media */,
 				9910F1B42CAAE2F0005DEE6B /* Fonts */,
 				DB6D29082CA1C8F80099951A /* Assets.xcassets */,
 				DB6D290A2CA1C8F80099951A /* Tub.entitlements */,
@@ -448,6 +455,7 @@
 				46B4B4532CD542DB00D8175A /* Extensions */,
 				995DE48A2CE6A268001B3C3F /* Login */,
 				99DDF62E2CB0333D000234DA /* BuySellForm */,
+				DF627D192CF0FB4500A4500B /* Media */,
 			);
 			name = Tub;
 			packageProductDependencies = (
@@ -614,6 +622,7 @@
 				99BE72BB2CEBB279006BB157 /* SolPriceModel.swift in Sources */,
 				99856DA62CD27E2E004B9D40 /* Privy.swift in Sources */,
 				999F595B2CA754FB00E7AE9F /* ChartView.swift in Sources */,
+				DFDA13BC2CEF9ACA00057A29 /* OnboardingView.swift in Sources */,
 				DFF5292B2CC0121B007DC43F /* AppColors.swift in Sources */,
 				5D8EFC2C2CE529BB002D8210 /* AppDwellTimeTracker.swift in Sources */,
 				99290EC02CB7110C003E740A /* FormatDate.swift in Sources */,

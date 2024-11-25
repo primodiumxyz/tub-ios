@@ -21,10 +21,26 @@ struct LoadingBox: View {
     }
 
     var body: some View {
-        RoundedRectangle(cornerRadius: cornerRadius)
-            .fill(Color.white.opacity(0.1))
-            .frame(width: width, height: height)
-            .shimmering(opacity: opacity)
+        if width == .infinity && height == .infinity {
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .fill(Color.white.opacity(0.1))
+                .shimmering(opacity: opacity)
+        } else if width == .infinity {
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .fill(Color.white.opacity(0.1))
+                .frame(maxWidth: width, minHeight: height, maxHeight: height)
+                .shimmering(opacity: opacity)
+        } else if height == .infinity {
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .fill(Color.white.opacity(0.1))
+                .frame(minWidth: width, maxWidth: width, maxHeight: height)
+                .shimmering(opacity: opacity)
+        } else {
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .fill(Color.white.opacity(0.1))
+                .frame(width: width, height: height)
+                .shimmering(opacity: opacity)
+        }
     }
 }
 

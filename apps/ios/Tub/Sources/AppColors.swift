@@ -10,14 +10,23 @@ import SwiftUI
 
 struct AppColors {
     // Gradients
+    // buy bg
+    static let primaryPurpleGradient = LinearGradient(
+        stops: [
+            Gradient.Stop(color: Color.purple.opacity(0.3), location: 0.00),
+            Gradient.Stop(color: Color.purple.opacity(0), location: 0.8),
+        ],
+        startPoint: .bottom,
+        endPoint: .top
+    )
     // sell bg
     static let primaryPinkGradient = LinearGradient(
         stops: [
-            Gradient.Stop(color: Color("pink").opacity(0.3), location: 0.00),
-            Gradient.Stop(color: Color("pink").opacity(0), location: 0.8),
+            Gradient.Stop(color: Color.pink.opacity(0.3), location: 0.00),
+            Gradient.Stop(color: Color.pink.opacity(0), location: 0.8),
         ],
-        startPoint: UnitPoint(x: 0.5, y: 1),
-        endPoint: UnitPoint(x: 0.5, y: 0)
+        startPoint: .bottom,
+        endPoint: .top
     )
 
     // login modal bg
@@ -26,8 +35,8 @@ struct AppColors {
             Gradient.Stop(color: Color(red: 0.77, green: 0.38, blue: 0.6).opacity(0.4), location: 0.00),
             Gradient.Stop(color: Color(red: 0.77, green: 0.38, blue: 0.6).opacity(0.1), location: 1.00),
         ],
-        startPoint: UnitPoint(x: 0.5, y: 0),
-        endPoint: UnitPoint(x: 0.5, y: 1)
+        startPoint: .top,
+        endPoint: .bottom
     )
 
     // card bg
@@ -37,8 +46,8 @@ struct AppColors {
             Gradient.Stop(color: Color(red: 0.1, green: 0.1, blue: 0.2), location: 0.85),
             Gradient.Stop(color: Color(red: 0, green: 0, blue: 0), location: 1.0),
         ],
-        startPoint: UnitPoint(x: 0.5, y: 0),
-        endPoint: UnitPoint(x: 0.5, y: 1)
+        startPoint: .top,
+        endPoint: .bottom
     )
 
     // info stats bg
@@ -47,8 +56,8 @@ struct AppColors {
             Gradient.Stop(color: Color(red: 0.12, green: 0.12, blue: 0.11), location: 0.38),
             Gradient.Stop(color: Color(red: 0.12, green: 0.11, blue: 0.11).opacity(0), location: 1.00),
         ],
-        startPoint: UnitPoint(x: 0.5, y: 0),
-        endPoint: UnitPoint(x: 0.5, y: 1)
+        startPoint: .top,
+        endPoint: .bottom
     )
 
     // light mode info stats bg
@@ -67,8 +76,8 @@ struct AppColors {
             Gradient.Stop(color: Color(red: 0.1, green: 0.2, blue: 0.18), location: 0.29),
             Gradient.Stop(color: Color.black, location: 1.00),
         ],
-        startPoint: UnitPoint(x: 0.5, y: 0),
-        endPoint: UnitPoint(x: 0.5, y: 1)
+        startPoint: .top,
+        endPoint: .bottom
     )
 
     // toggle button gradients
@@ -82,7 +91,7 @@ struct AppColors {
         ],
         center: UnitPoint(x: 0.5, y: 0.5)
     )
-    
+
     static let toggleOffGradient = EllipticalGradient(
         stops: [
             .init(
