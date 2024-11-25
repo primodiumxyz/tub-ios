@@ -180,7 +180,7 @@ private struct AccountSettingsView: View {
                     Spacer()
                     Image(systemName: "chevron.right")
                 }
-                .foregroundStyle(.primary)
+                .foregroundStyle(Color.primary)
             }
 
             NavigationLink(destination: SettingsView()) {
@@ -193,7 +193,7 @@ private struct AccountSettingsView: View {
                     Spacer()
                     Image(systemName: "chevron.right")
                 }
-                .foregroundStyle(.primary)
+                .foregroundStyle(Color.primary)
             }
 
             HStack(spacing: 16) {

@@ -76,9 +76,10 @@ struct TokenView: View {
                     Spacer().frame(height: 60)
                     tokenInfoView
                     chartView
-                        .padding(.top, 5)
+                        .padding(.top, 12)
                     intervalButtons
                         .padding(.top, 12)
+                        .padding(.bottom, 6)
                 }
                 .frame(maxWidth: .infinity)
                 .foregroundStyle(Color.primary)
@@ -353,7 +354,7 @@ struct TokenView: View {
         }
         .padding(.horizontal, 16)
         .padding(.top, 16)
-        .frame(maxWidth: .infinity, maxHeight: 110, alignment: .topLeading)
+        .frame(maxWidth: .infinity, maxHeight: 100, alignment: .topLeading)
         .background(colorScheme == .dark ? AppColors.darkGrayGradient : AppColors.lightGrayGradient)
         .cornerRadius(16)
         .onTapGesture {

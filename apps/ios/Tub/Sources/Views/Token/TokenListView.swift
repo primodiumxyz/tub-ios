@@ -64,11 +64,13 @@ struct TokenListView: View {
     var body: some View {
 
         ZStack(alignment: .top) {
-            AccountBalanceView(
-                userModel: userModel,
-                currentTokenModel: tokenListModel.currentTokenModel
-            )
-            .zIndex(3)
+            if userModel.userId != nil {
+                AccountBalanceView(
+                    userModel: userModel,
+                    currentTokenModel: tokenListModel.currentTokenModel
+                )
+                .zIndex(3)
+            }
 
             if tokenListModel.isLoading {
 
