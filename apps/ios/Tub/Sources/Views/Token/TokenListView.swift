@@ -26,9 +26,9 @@ struct TokenListView: View {
 
     let OFFSET: Double = -15
 
-    var activeTab: String {
+    var activeTab: PurchaseState {
         let balance: Int = userModel.tokenBalanceLamps ?? 0
-        return balance > 0 ? "sell" : "buy"
+        return balance > 0 ? .sell : .buy
     }
 
     @ObservedObject var tokenListModel: TokenListModel
@@ -38,12 +38,12 @@ struct TokenListView: View {
         if tokenListModel.isLoading || tokenListModel.tokens.count == 0 {
             return LinearGradient(colors: [.clear], startPoint: .top, endPoint: .bottom)
         }
-        return activeTab == "sell"
+        return activeTab == .sell
             ? AppColors.primaryPinkGradient
             : AppColors.primaryPurpleGradient
     }
     private func canSwipe(value: DragGesture.Value) -> Bool {
-        return activeTab != "sell"
+        return activeTab != .sell
             // not trying to swipe up from the first token
             && !(value.translation.height > 0 && tokenListModel.currentTokenIndex == 0)
             // not trying to swipe down when there is only one token available (the current one)

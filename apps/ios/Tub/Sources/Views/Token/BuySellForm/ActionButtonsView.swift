@@ -31,9 +31,9 @@ struct ActionButtonsView: View {
         self.onSellSuccess = onSellSuccess
     }
 
-    var activeTab: String {
+    var activeTab: PurchaseState {
         let balance: Int = userModel.tokenBalanceLamps ?? 0
-        return balance > 0 ? "sell" : "buy"
+        return balance > 0 ? .sell : .buy
     }
 
     func handleSell() async {
@@ -69,7 +69,7 @@ struct ActionButtonsView: View {
             if userModel.userId == nil {
                 LoginButton(isLoginPresented: $isLoginPresented)
             }
-            else if activeTab == "buy" {
+            else if activeTab == .buy {
 
                 switch userModel.walletState {
                 case .connected(_):

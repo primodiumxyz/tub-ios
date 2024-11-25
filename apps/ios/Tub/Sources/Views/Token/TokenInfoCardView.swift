@@ -16,9 +16,9 @@ struct TokenInfoCardView: View {
     @State private var animatingSwipe: Bool = false
     @State private var isClosing: Bool = false
 
-    var activeTab: String {
+    var activeTab: PurchaseState {
         let balance: Int = userModel.tokenBalanceLamps ?? 0
-        return balance > 0 ? "sell" : "buy"
+        return balance > 0 ? .sell : .buy
     }
 
     private struct StatValue {
@@ -29,7 +29,7 @@ struct TokenInfoCardView: View {
     private var stats: [(String, StatValue)] {
         var stats = [(String, StatValue)]()
 
-        if let purchaseData = userModel.purchaseData, activeTab == "sell" {
+        if let purchaseData = userModel.purchaseData, activeTab == .sell {
             // Calculate current value
             let tokenBalance = Double(userModel.tokenBalanceLamps ?? 0) / 1e9
             let tokenBalanceUsd = tokenBalance * (tokenModel.prices.last?.priceUsd ?? 0)
@@ -140,7 +140,11 @@ struct TokenInfoCardView: View {
         }
         .padding(.vertical, 0)
         .padding(.horizontal, 20)
-        .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.44, alignment: .topLeading)
+        .frame(
+            maxWidth: .infinity,
+            maxHeight: UIScreen.main.bounds.height * 0.44,
+            alignment: .topLeading
+        )
         .background(Color.black)
         .overlay(
             RoundedRectangle(cornerRadius: 30)

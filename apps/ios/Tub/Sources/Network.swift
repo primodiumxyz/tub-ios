@@ -184,8 +184,20 @@ class Network {
         return CodexTokenData(token: res.token, expiry: res.expiry)
     }
 
-    func getTestTx() async throws -> TxResponse {
-        let res: TxResponse = try await callProcedure("get1USDCToSOLTransaction")
+    func getTestTxData() async throws -> TxData {
+        let res: TxData = try await callProcedure("get1USDCToSOLTransaction")
+        return res
+    }
+
+    func getTxData(buyTokenId: String, sellTokenId: String, sellQuantity: String) async throws -> TxData {
+        let input = SwapInput(buyTokenId: buyTokenId, sellTokenId: sellTokenId, sellQuantity: sellQuantity)
+        let res: TxData = try await callProcedure("fetchSwap", input: input)
+        return res
+    }
+
+    func submitSignedTx(txBase64: String, signature: String) async throws -> TxIdResponse {
+        let input = signedTxInput(signature: signature, base64Transaction: txBase64)
+        let res: TxIdResponse = try await callProcedure("submitSignedTransaction", input: input)
         return res
     }
 }
@@ -198,7 +210,13 @@ struct ResponseWrapper<T: Codable>: Codable {
     let result: ResultWrapper
 }
 
-struct TxResponse: Codable {
+struct SwapInput: Codable {
+    let buyTokenId: String
+    let sellTokenId: String
+    let sellQuantity: String
+}
+
+struct TxData: Codable {
     let transactionBase64: String
     let buyTokenId: String
     let sellTokenId: String
@@ -207,6 +225,14 @@ struct TxResponse: Codable {
     let timestamp: Int
 }
 
+struct signedTxInput: Codable {
+    let signature: String
+    let base64Transaction: String
+}
+
+struct TxIdResponse: Codable {
+    let txId: String
+}
 private struct ErrorResponse: Codable {
     let error: ErrorDetails
 

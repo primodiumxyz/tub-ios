@@ -21,9 +21,9 @@ struct TokenView: View {
 
     var onSellSuccess: (() -> Void)?
 
-    var activeTab: String {
+    var activeTab: PurchaseState {
         let balance: Int = userModel.tokenBalanceLamps ?? 0
-        return balance > 0 ? "sell" : "buy"
+        return balance > 0 ? .sell : .buy
     }
 
     init(tokenModel: TokenModel, onSellSuccess: (() -> Void)? = nil) {
@@ -239,7 +239,7 @@ struct TokenView: View {
 
         if let purchaseData = userModel.purchaseData, let priceUsd = tokenModel.prices.last?.priceUsd,
             priceUsd > 0,
-            activeTab == "sell"
+            activeTab == .sell
         {
             // Calculate current value
             let tokenBalance = Double(userModel.tokenBalanceLamps ?? 0) / 1e9
@@ -285,7 +285,7 @@ struct TokenView: View {
 
     private var infoCardLowOpacity: some View {
         VStack(alignment: .leading, spacing: 0) {
-            if activeTab == "sell" {
+            if activeTab == .sell {
                 ForEach(stats.prefix(3), id: \.0) { stat in
                     VStack(spacing: 0) {
                         HStack(spacing: 0) {
@@ -315,7 +315,7 @@ struct TokenView: View {
             ForEach(0..<(stats.count + 1) / 2, id: \.self) { rowIndex in
                 HStack(spacing: 20) {
                     ForEach(0..<2) { columnIndex in
-                        let statIndex = (activeTab == "sell" ? 3 : 0) + rowIndex * 2 + columnIndex
+                        let statIndex = (activeTab == .sell ? 3 : 0) + rowIndex * 2 + columnIndex
                         if statIndex < stats.count {
                             let stat = stats[statIndex]
                             VStack(spacing: 0) {

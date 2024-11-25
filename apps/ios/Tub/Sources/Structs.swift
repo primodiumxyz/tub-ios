@@ -95,3 +95,8 @@ struct StatValue {
     let text: String
     let color: Color?
 }
+
+enum PurchaseState {
+    case buy
+    case sell
+}
