@@ -2,11 +2,11 @@ import { Connection } from "@solana/web3.js";
 
 import { GqlClient } from "@tub/gql";
 import { MAX_BATCH_SIZE, MIN_BATCH_FREQUENCY } from "@/lib/constants";
-import { Swap, SwapType } from "@/lib/types";
+import { Swap } from "@/lib/types";
 import { fetchPriceData, upsertTrades } from "@/lib/utils";
 
 export class BatchManager {
-  private batch: Swap<SwapType>[] = [];
+  private batch: Swap[] = [];
   private lastProcessTime: number = 0;
   private processing: boolean = false;
   private timer: NodeJS.Timeout | null = null;
@@ -21,7 +21,7 @@ export class BatchManager {
     }, MIN_BATCH_FREQUENCY);
   }
 
-  async add(swaps: Swap<SwapType>[]) {
+  async add(swaps: Swap[]) {
     this.batch.push(...swaps);
     await this.processIfNeeded();
   }

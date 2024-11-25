@@ -22,11 +22,8 @@ const handleSubscribeUpdate = async (data: SubscribeUpdate, batchManager: BatchM
     const tx = txFormatter.formTransactionFromJson(data.transaction, timestamp);
     if (!tx) return;
 
-    const parsedIxs = ixParser.parseTransactionWithInnerInstructions(tx);
-    const swapInfo = decodeSwapInfo(parsedIxs, timestamp).map((swap) => ({
-      ...swap,
-      sig: tx.transaction.signatures[0],
-    }));
+    const txsWithParsedIxs = ixParser.parseTransactionWithInnerInstructions(tx);
+    const swapInfo = decodeSwapInfo(txsWithParsedIxs, timestamp);
     await batchManager.add(swapInfo);
   } catch (error) {
     console.error("Unexpected error in handleSubscribeUpdate:", error);

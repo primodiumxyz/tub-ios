@@ -1,24 +1,26 @@
-import { PublicKey } from "@solana/web3.js";
+import { Idl } from "@coral-xyz/anchor";
+import { ParsedInstruction } from "@shyft-to/solana-transaction-parser";
+import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 
 import { SwapBaseInArgs, SwapBaseOutArgs } from "@/lib/parsers/raydium-amm-parser";
 
 /* ------------------------------- PARSED DATA ------------------------------ */
-export enum SwapType {
-  IN = "in",
-  OUT = "out",
-}
-
-export type Swap<T extends SwapType> = {
+export type Swap = {
   vaultA: PublicKey;
   vaultB: PublicKey;
-  type: T;
-  args: T extends SwapType.IN ? SwapBaseInArgs : SwapBaseOutArgs;
+  transferInfo: TransferInformation[];
   timestamp: number;
 };
 
-export type SwapWithPriceData<T extends SwapType = SwapType> = Swap<T> & {
+export type SwapWithPriceData = Swap & {
   mint: PublicKey;
   priceUsd: number;
+  amount: bigint;
+};
+
+export type TransferInformation = {
+  accounts: PublicKey[];
+  amount: bigint;
 };
 
 /* ----------------------------------- RPC ---------------------------------- */
@@ -33,4 +35,11 @@ export type ParsedTokenBalanceInfo = {
     uiAmount?: number;
     uiAmountString?: string;
   };
+};
+
+/* --------------------------------- PARSERS -------------------------------- */
+export type TransactionWithParsed = {
+  raw: TransactionInstruction;
+  // @ts-expect-error: type difference @coral-xyz/anchor -> @project-serum/anchor
+  parsed: ParsedInstruction<Idl, string>;
 };
