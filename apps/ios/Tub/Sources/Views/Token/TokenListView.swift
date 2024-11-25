@@ -34,14 +34,6 @@ struct TokenListView: View {
     @ObservedObject var tokenListModel: TokenListModel
     @StateObject private var animationState = TokenAnimationState.shared
 
-    private var background: LinearGradient {
-        if tokenListModel.isLoading || tokenListModel.tokens.count == 0 {
-            return LinearGradient(colors: [.clear], startPoint: .top, endPoint: .bottom)
-        }
-        return activeTab == "sell"
-            ? AppColors.primaryPinkGradient
-            : LinearGradient(colors: [.clear], startPoint: .top, endPoint: .bottom)
-    }
     private func canSwipe(value: DragGesture.Value) -> Bool {
         return activeTab != "sell"
             // not trying to swipe up from the first token
@@ -72,10 +64,6 @@ struct TokenListView: View {
     var body: some View {
 
         ZStack(alignment: .top) {
-//            background
-//                .ignoresSafeArea()
-//                .animation(.easeInOut(duration: 0.3), value: activeTab)
-
             AccountBalanceView(
                 userModel: userModel,
                 currentTokenModel: tokenListModel.currentTokenModel
