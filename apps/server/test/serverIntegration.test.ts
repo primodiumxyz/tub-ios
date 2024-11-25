@@ -86,12 +86,4 @@ describe("Server Integration Tests", () => {
 
     expect(result).toBeDefined();
   });
-
-  it("should request a Codex API token", async () => {
-    const result = await client.requestCodexToken.mutate({
-      expiration: 3600 * 1000,
-    });
-
-    expect(result).toBeDefined();
-  });
 });

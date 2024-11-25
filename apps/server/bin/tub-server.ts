@@ -2,7 +2,6 @@
 import { AppRouter, createAppRouter } from "@/createAppRouter";
 import { TubService } from "@/TubService";
 import { parseEnv } from "@bin/parseEnv";
-import { Codex } from "@codex-data/sdk";
 import fastifyWebsocket from "@fastify/websocket";
 import { PrivyClient } from "@privy-io/server-auth";
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
@@ -54,9 +53,8 @@ export const start = async () => {
     ).db;
 
     const privy = new PrivyClient(env.PRIVY_APP_ID, env.PRIVY_APP_SECRET);
-    const codexSdk = new Codex(env.CODEX_API_KEY);
 
-    const tubService = new TubService(gqlClient, privy, codexSdk);
+    const tubService = new TubService(gqlClient, privy);
 
     // @see https://trpc.io/docs/server/adapters/fastify
     server.register(fastifyTRPCPlugin<AppRouter>, {
