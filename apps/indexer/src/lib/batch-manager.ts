@@ -1,3 +1,5 @@
+import { Connection } from "@solana/web3.js";
+
 import { GqlClient } from "@tub/gql";
 import { MAX_BATCH_SIZE, MIN_BATCH_FREQUENCY } from "@/lib/constants";
 import { Swap, SwapType } from "@/lib/types";
@@ -9,7 +11,10 @@ export class BatchManager {
   private processing: boolean = false;
   private timer: NodeJS.Timeout | null = null;
 
-  constructor(private gql: GqlClient["db"]) {
+  constructor(
+    private gql: GqlClient["db"],
+    private connection: Connection,
+  ) {
     // Start the timer to check for processing needs periodically
     this.timer = setInterval(() => {
       this.processIfNeeded();
@@ -35,7 +40,7 @@ export class BatchManager {
         this.batch = [];
         this.lastProcessTime = now;
 
-        const swapWithPriceData = await fetchPriceData(batchToProcess);
+        const swapWithPriceData = await fetchPriceData(this.connection, batchToProcess);
         await upsertTrades(this.gql, swapWithPriceData);
 
         console.log(`Processed batch of ${batchToProcess.length} swaps`);

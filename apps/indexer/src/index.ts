@@ -6,7 +6,7 @@ import { createClient as createGqlClient, GqlClient } from "@tub/gql";
 import { parseEnv } from "@bin/parseEnv";
 import { BatchManager } from "@/lib/batch-manager";
 import { RaydiumAmmParser } from "@/lib/parsers/raydium-amm-parser";
-import { ixParser, txFormatter } from "@/lib/setup";
+import { connection, ixParser, txFormatter } from "@/lib/setup";
 import { decodeSwapInfo, fetchPriceData, upsertTrades } from "@/lib/utils";
 
 config({ path: "../../.env" });
@@ -103,7 +103,7 @@ export const start = async () => {
         })
       ).db;
 
-      const batchManager = new BatchManager(gql);
+      const batchManager = new BatchManager(gql, connection);
       await setupGeyserClient(batchManager, connectionId);
     } catch (err) {
       console.warn(`[${connectionId}] Error in indexer, restarting in a second...`);

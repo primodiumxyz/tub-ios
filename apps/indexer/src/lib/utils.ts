@@ -1,14 +1,13 @@
 // #!/usr/bin/env node
 import { Idl } from "@coral-xyz/anchor";
 import { ParsedInstruction } from "@shyft-to/solana-transaction-parser";
-import { ParsedAccountData, PublicKey } from "@solana/web3.js";
+import { Connection, ParsedAccountData, PublicKey } from "@solana/web3.js";
 import { config } from "dotenv";
 
 import { GqlClient } from "@tub/gql";
 import { parseEnv } from "@bin/parseEnv";
 import { WRAPPED_SOL_MINT } from "@/lib/constants";
 import { RaydiumAmmParser, SwapBaseInArgs, SwapBaseOutArgs } from "@/lib/parsers/raydium-amm-parser";
-import { connection } from "@/lib/setup";
 import { ParsedTokenBalanceInfo, Swap, SwapType, SwapWithPriceData } from "@/lib/types";
 
 config({ path: "../../.env" });
@@ -49,6 +48,7 @@ export const decodeSwapInfo = <T extends SwapType = SwapType>(
 
 /* ------------------------------ PROCESS DATA ------------------------------ */
 export const fetchPriceData = async <T extends SwapType = SwapType>(
+  connection: Connection,
   swaps: Swap<T>[],
 ): Promise<SwapWithPriceData<T>[]> => {
   // Break swaps into batches of 50 (max 100 accounts passed to `getMultipleParsedAccounts`)
@@ -104,14 +104,13 @@ export const fetchPriceData = async <T extends SwapType = SwapType>(
   );
 
   const priceData = (await priceResponse.json()) as {
-    data: Array<{
-      id: string;
-      price: number;
-    }>;
+    data: {
+      [id: string]: number;
+    };
   };
 
   // 5. Create price lookup map
-  const priceMap = new Map(priceData.data.map((item) => [item.id, item.price]));
+  const priceMap = new Map(Object.entries(priceData.data));
 
   // 6. Map swaps to include price data
   return swapsWithAccountInfo
@@ -151,9 +150,10 @@ export const upsertTrades = async (gql: GqlClient["db"], trades: SwapWithPriceDa
       const volumeUsd = Number(amount) * trade.priceUsd;
 
       return {
-        ...trade,
+        token_mint: trade.mint.toString(),
         volume_usd: volumeUsd.toString(),
         token_price_usd: trade.priceUsd.toString(),
+        created_at: new Date(trade.timestamp),
       };
     }),
   });

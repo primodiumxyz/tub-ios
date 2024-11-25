@@ -11,7 +11,7 @@ config({ path: "../../.env" });
 
 const env = parseEnv();
 
-export const connection = new Connection(env.QUICKNODE_ENDPOINT, {
+export const connection = new Connection(`${env.QUICKNODE_ENDPOINT}/${env.QUICKNODE_TOKEN}`, {
   commitment: "confirmed",
   // @ts-expect-error Property 'referrer' is missing in type 'import("undici-types/fetch").Request'
   fetch: fetchWithRetry,
