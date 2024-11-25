@@ -123,9 +123,6 @@
     "History" : {
 
     },
-    "loading..." : {
-
-    },
     "Low" : {
 
     },
@@ -208,6 +205,9 @@
 
     },
     "Unfilled" : {
+
+    },
+    "Update Tx Data" : {
 
     },
     "Welcome to tub" : {

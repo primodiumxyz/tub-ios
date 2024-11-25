@@ -94,9 +94,9 @@ public let serverBaseUrl: String = {
 }()
 
 public let NETWORK_FILTER: Int = 1_399_811_149  // Solana filter for Codex
-public let CHART_INTERVAL: Double = 60 * 2 // live 2m
-public let CANDLES_INTERVAL: Double = 60 * 30 // candles 30m
-public let PRICE_UPDATE_INTERVAL: Double = 0.5 // Update price every half second
+public let CHART_INTERVAL: Double = 60 * 2  // live 2m
+public let CANDLES_INTERVAL: Double = 60 * 30  // candles 30m
+public let PRICE_UPDATE_INTERVAL: Double = 0.5  // Update price every half second
 
 public let WSOL_ADDRESS: String = "So11111111111111111111111111111111111111112"
 
@@ -135,8 +135,8 @@ enum Timespan: String, CaseIterable {
 
     public var seconds: Double {
         switch self {
-            case .live: return CHART_INTERVAL
-            case .candles: return CANDLES_INTERVAL
+        case .live: return CHART_INTERVAL
+        case .candles: return CANDLES_INTERVAL
         }
     }
 }

@@ -85,11 +85,11 @@ final class TxManager: ObservableObject {
 
         // Wait while fetching is in progress, with 2 second timeout
         let startTime = Date()
-        while await MainActor.run { fetchingTxData } {
+        while fetchingTxData {
             if Date().timeIntervalSince(startTime) > 2.0 {
                 throw TubError.invalidInput(reason: "Timeout waiting for transaction data fetch")
             }
-            try await Task.sleep(nanoseconds: 50_000_000) // 50ms delay
+            try await Task.sleep(nanoseconds: 50_000_000)  // 50ms delay
         }
 
         guard let txData else {
