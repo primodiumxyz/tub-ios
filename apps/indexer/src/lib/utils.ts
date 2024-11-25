@@ -1,13 +1,19 @@
+// #!/usr/bin/env node
 import { Idl } from "@coral-xyz/anchor";
 import { ParsedInstruction } from "@shyft-to/solana-transaction-parser";
 import { ParsedAccountData, PublicKey } from "@solana/web3.js";
+import { config } from "dotenv";
 
 import { GqlClient } from "@tub/gql";
+import { parseEnv } from "@bin/parseEnv";
 import { WRAPPED_SOL_MINT } from "@/lib/constants";
 import { RaydiumAmmParser, SwapBaseInArgs, SwapBaseOutArgs } from "@/lib/parsers/raydium-amm-parser";
+import { connection } from "@/lib/setup";
 import { ParsedTokenBalanceInfo, Swap, SwapType, SwapWithPriceData } from "@/lib/types";
 
-import { connection } from "./setup";
+config({ path: "../../.env" });
+
+const env = parseEnv();
 
 /* --------------------------------- DECODER -------------------------------- */
 export const decodeSwapInfo = <T extends SwapType = SwapType>(
@@ -45,24 +51,39 @@ export const decodeSwapInfo = <T extends SwapType = SwapType>(
 export const fetchPriceData = async <T extends SwapType = SwapType>(
   swaps: Swap<T>[],
 ): Promise<SwapWithPriceData<T>[]> => {
-  // 1. Get parsed accounts for all vaults
-  const parsedAccounts = await connection.getMultipleParsedAccounts(
-    swaps.map((swap) => [swap.vaultA, swap.vaultB]).flat(),
-    {
-      commitment: "confirmed",
-    },
+  // Break swaps into batches of 50 (max 100 accounts passed to `getMultipleParsedAccounts`)
+  const batchSize = 50;
+  const batches = [];
+  for (let i = 0; i < swaps.length; i += batchSize) {
+    batches.push(swaps.slice(i, i + batchSize));
+  }
+
+  // Process each batch in parallel
+  const batchResults = await Promise.all(
+    batches.map(async (batchSwaps) => {
+      // 1. Get parsed accounts for all vaults in this batch
+      const parsedAccounts = await connection.getMultipleParsedAccounts(
+        batchSwaps.map((swap) => [swap.vaultA, swap.vaultB]).flat(),
+        {
+          commitment: "confirmed",
+        },
+      );
+
+      // 2. Get account info for each token traded in each swap
+      return batchSwaps.map((swap, i) => ({
+        ...swap,
+        mintA: (parsedAccounts.value[i * 2]?.data as ParsedAccountData | undefined)?.parsed.info as
+          | ParsedTokenBalanceInfo
+          | undefined,
+        mintB: (parsedAccounts.value[i * 2 + 1]?.data as ParsedAccountData | undefined)?.parsed.info as
+          | ParsedTokenBalanceInfo
+          | undefined,
+      }));
+    }),
   );
 
-  // 2. Get account info for each token traded in each swap
-  const swapsWithAccountInfo = swaps.map((swap, i) => ({
-    ...swap,
-    mintA: (parsedAccounts.value[i * 2]?.data as ParsedAccountData | undefined)?.parsed.info as
-      | ParsedTokenBalanceInfo
-      | undefined,
-    mintB: (parsedAccounts.value[i * 2 + 1]?.data as ParsedAccountData | undefined)?.parsed.info as
-      | ParsedTokenBalanceInfo
-      | undefined,
-  }));
+  // Flatten batch results
+  const swapsWithAccountInfo = batchResults.flat();
 
   // 3. Get the price for each token traded in each swap (except for WSOL)
   const uniqueMints = new Set(
@@ -73,7 +94,7 @@ export const fetchPriceData = async <T extends SwapType = SwapType>(
 
   // 4. Fetch prices from Jupiter API
   const priceResponse = await fetchWithRetry(
-    `https://public.jupiterapi.com/price?ids=${Array.from(uniqueMints).join(",")}`,
+    `${env.JUPITER_API_ENDPOINT}/price?ids=${Array.from(uniqueMints).join(",")}`,
     {
       method: "GET",
       headers: {

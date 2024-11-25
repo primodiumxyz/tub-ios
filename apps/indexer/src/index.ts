@@ -4,7 +4,8 @@ import { config } from "dotenv";
 
 import { createClient as createGqlClient, GqlClient } from "@tub/gql";
 import { parseEnv } from "@bin/parseEnv";
-import { PUMP_FUN_PROGRAM } from "@/lib/constants";
+import { BatchManager } from "@/lib/batch-manager";
+import { RaydiumAmmParser } from "@/lib/parsers/raydium-amm-parser";
 import { ixParser, txFormatter } from "@/lib/setup";
 import { decodeSwapInfo, fetchPriceData, upsertTrades } from "@/lib/utils";
 
@@ -13,7 +14,7 @@ config({ path: "../../.env" });
 const env = parseEnv();
 
 /* ----------------------------- HANDLE UPDATES ----------------------------- */
-const handleSubscribeUpdate = async (data: SubscribeUpdate, gql: GqlClient["db"]) => {
+const handleSubscribeUpdate = async (data: SubscribeUpdate, batchManager: BatchManager) => {
   try {
     // Parse the transaction and retrieve the swapped token accounts
     const timestamp = Date.now();
@@ -23,20 +24,20 @@ const handleSubscribeUpdate = async (data: SubscribeUpdate, gql: GqlClient["db"]
 
     const parsedIxs = ixParser.parseTransactionWithInnerInstructions(tx);
     const swapInfo = decodeSwapInfo(parsedIxs, timestamp);
-    const swapWithPriceData = await fetchPriceData(swapInfo);
-    await upsertTrades(gql, swapWithPriceData);
+    await batchManager.add(swapInfo);
   } catch (error) {
     console.error("Unexpected error in handleSubscribeUpdate:", error);
   }
 };
 
 /* ------------------------------- SETUP GEYSER ------------------------------ */
-const setupGeyserClient = async (gql: GqlClient["db"], connectionId: string) => {
+const setupGeyserClient = async (batchManager: BatchManager, connectionId: string) => {
   return new Promise(async (_, reject) => {
-    const client = new Client(env.QUICKNODE_ENDPOINT, env.QUICKNODE_TOKEN, {});
+    // @ts-expect-error This is a known issue; see https://github.com/rpcpool/yellowstone-grpc/issues/428
+    const client = new Client.default(`${env.QUICKNODE_ENDPOINT}:10000`, env.QUICKNODE_TOKEN, {});
     const stream = await client.subscribe();
 
-    stream.on("error", (error) => {
+    stream.on("error", (error: unknown) => {
       console.error(`[${connectionId}] Stream error:`, error);
       stream.end();
       reject(error);
@@ -48,7 +49,7 @@ const setupGeyserClient = async (gql: GqlClient["db"], connectionId: string) => 
     });
 
     stream.on("data", async (data: SubscribeUpdate) => {
-      await handleSubscribeUpdate(data, gql);
+      await handleSubscribeUpdate(data, batchManager);
     });
 
     const request: SubscribeRequest = {
@@ -58,7 +59,7 @@ const setupGeyserClient = async (gql: GqlClient["db"], connectionId: string) => 
           vote: false,
           failed: false,
           signature: undefined,
-          accountInclude: [PUMP_FUN_PROGRAM.toString()],
+          accountInclude: [RaydiumAmmParser.PROGRAM_ID.toString()],
           accountExclude: [],
           accountRequired: [],
         },
@@ -102,7 +103,8 @@ export const start = async () => {
         })
       ).db;
 
-      await setupGeyserClient(gql, connectionId);
+      const batchManager = new BatchManager(gql);
+      await setupGeyserClient(batchManager, connectionId);
     } catch (err) {
       console.warn(`[${connectionId}] Error in indexer, restarting in a second...`);
       console.error(err);
