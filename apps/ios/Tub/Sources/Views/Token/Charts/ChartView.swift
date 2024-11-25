@@ -108,7 +108,7 @@ struct ChartView: View {
                     x: .value("Date", currentPrice.timestamp),
                     y: .value("Price", currentPrice.priceUsd)
                 )
-                .foregroundStyle(Color.white.opacity(0.5))
+                .foregroundStyle(.secondary)
 
                 PointMark(
                     x: .value("Date", currentPrice.timestamp),
@@ -152,7 +152,7 @@ struct ChartView: View {
                     PillView(
                         value: "\(priceModel.formatPrice(usd: purchasePriceUsd, maxDecimals: 9, minDecimals: 2))",
                         color: Color("pink").opacity(0.8),
-                        foregroundColor: Color.white
+                        foregroundColor: Color.primary
                     )
                 }
             }
@@ -178,7 +178,7 @@ struct PillView: View {
     var body: some View {
         Text(value)
             .font(.caption)
-            .foregroundColor(foregroundColor)
+            .foregroundStyle(foregroundColor)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
             .background(color)

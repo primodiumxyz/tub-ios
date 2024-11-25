@@ -36,5 +36,5 @@ struct LoadingBox: View {
         LoadingBox(width: 300, height: 100, opacity: 1, cornerRadius: 12)
     }
     .padding()
-    .background(Color.black)
+    .background(Color(UIColor.systemBackground))
 }

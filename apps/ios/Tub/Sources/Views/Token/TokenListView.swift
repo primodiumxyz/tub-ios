@@ -86,7 +86,7 @@ struct TokenListView: View {
                             if tokenListModel.tokens.count == 0 {
                                 Spacer()
                                 Text("Failed to load tokens.")
-                                    .foregroundColor(Color("aquaGreen"))
+                                    .foregroundStyle(.accent)
                                     .multilineTextAlignment(.center)
                                     .padding(.bottom, 24)
                                 Button(action: {
@@ -97,7 +97,7 @@ struct TokenListView: View {
                                 }) {
                                     Text("Retry")
                                         .font(.sfRounded(size: .lg, weight: .semibold))
-                                        .foregroundColor(Color.white)
+                                        .foregroundStyle(Color.primary)
                                         .frame(maxWidth: 300)
                                         .padding(.horizontal, 16)
                                         .padding(.vertical, 12)
@@ -182,7 +182,7 @@ struct TokenListView: View {
                             .zIndex(998)
                     }
                 }
-                .foregroundColor(Color.white)
+                .foregroundStyle(Color.primary)
             }
         }.onAppear {
             Task {

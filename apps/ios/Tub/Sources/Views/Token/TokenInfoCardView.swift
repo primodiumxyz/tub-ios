@@ -11,6 +11,7 @@ struct TokenInfoCardView: View {
     @Binding var isVisible: Bool
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject var userModel: UserModel
+    @Environment(\.colorScheme) private var colorScheme
 
     @State private var dragOffset: CGFloat = 0.0
     @State private var animatingSwipe: Bool = false
@@ -89,7 +90,7 @@ struct TokenInfoCardView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     Text("Stats")
                         .font(.sfRounded(size: .xl, weight: .semibold))
-                        .foregroundStyle(Color.white)
+                        .foregroundStyle(Color.primary)
                         .frame(maxWidth: .infinity, alignment: .topLeading)
                         .padding(.bottom, 4)
 
@@ -98,13 +99,13 @@ struct TokenInfoCardView: View {
                             HStack(alignment: .center) {
                                 Text(stat.0)
                                     .font(.sfRounded(size: .sm, weight: .regular))
-                                    .foregroundStyle(Color.gray)
+                                    .foregroundStyle(Color.secondary)
                                     .fixedSize(horizontal: true, vertical: false)
 
                                 Text(stat.1.text)
                                     .font(.sfRounded(size: .base, weight: .semibold))
                                     .frame(maxWidth: .infinity, alignment: .topTrailing)
-                                    .foregroundStyle(stat.1.color ?? Color.white)
+                                    .foregroundStyle(stat.1.color ?? Color.primary)
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -120,12 +121,12 @@ struct TokenInfoCardView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("About")
                             .font(.sfRounded(size: .xl, weight: .semibold))
-                            .foregroundStyle(Color.white)
+                            .foregroundStyle(Color.primary)
                             .frame(maxWidth: .infinity, alignment: .topLeading)
 
                         Text("\(tokenModel.token.description)")
                             .font(.sfRounded(size: .sm, weight: .regular))
-                            .foregroundStyle(Color("grayLight"))
+                            .foregroundStyle(.secondary)
                             .multilineTextAlignment(.leading)
                     }
                     .padding(.vertical, 12)
@@ -134,18 +135,18 @@ struct TokenInfoCardView: View {
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
                 .frame(maxWidth: .infinity, alignment: .topLeading)
-                .background(AppColors.darkGrayGradient)
+                .background(colorScheme == .dark ? AppColors.darkGrayGradient : AppColors.lightGrayGradient)
                 .cornerRadius(20)
             }
         }
         .padding(.vertical, 0)
         .padding(.horizontal, 20)
         .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.44, alignment: .topLeading)
-        .background(Color.black)
+        .background(Color(UIColor.systemBackground))
         .overlay(
             RoundedRectangle(cornerRadius: 30)
                 .inset(by: 0.5)
-                .stroke(Color("grayShadow"), lineWidth: 1)
+                .stroke(colorScheme == .dark ? Color("grayShadow") : Color.primary, lineWidth: 1)
         )
         .transition(.move(edge: .bottom))
         .offset(y: dragOffset)

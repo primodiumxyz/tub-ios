@@ -20,13 +20,13 @@ struct SellForm: View {
                     text: "Buy",
                     textColor: Color("pink"),
                     strokeColor: Color("pink"),
-                    backgroundColor: Color.black,
+                    backgroundColor: Color(UIColor.systemBackground),
                     action: { showBuySheet = true }
                 )
                 
                 PrimaryButton(
                     text: "Sell",
-                    textColor: Color.white,
+                    textColor: .white,
                     backgroundColor: Color("pink"),
                     action: {
                         Task {

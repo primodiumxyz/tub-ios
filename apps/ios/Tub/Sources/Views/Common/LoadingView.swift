@@ -25,7 +25,7 @@ struct LoadingView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.white, lineWidth: 1)
+                        .stroke(.primary, lineWidth: 1)
                         .shimmering(opacity: 0.5)
                 )
                 .padding(.horizontal, 10)
@@ -36,7 +36,7 @@ struct LoadingView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.black)
-        .foregroundColor(Color.white)
+        .background(Color(UIColor.systemBackground))
+        .foregroundStyle(.primary)
     }
 }

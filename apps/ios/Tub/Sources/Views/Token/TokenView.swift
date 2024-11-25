@@ -14,6 +14,7 @@ struct TokenView: View {
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject private var userModel: UserModel
     @EnvironmentObject private var notificationHandler: NotificationHandler
+    @Environment(\.colorScheme) private var colorScheme
 
     @State private var showInfoCard = false
     @State private var showBuySheet: Bool = false
@@ -96,17 +97,17 @@ struct TokenView: View {
                     }
                 }
                 .frame(maxWidth: .infinity)
-                .foregroundStyle(Color.white)
+                .foregroundStyle(Color.primary)
 
                 infoCardOverlay
                 buySheetOverlay
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .dismissKeyboardOnTap()
-            .background(Color.black)
+            .background(Color(UIColor.systemBackground))
             .navigationBarBackButtonHidden(true)
         }
-        .background(Color.black)
+        .background(Color(UIColor.systemBackground))
     }
 
     private var tokenInfoView: some View {
@@ -282,12 +283,12 @@ struct TokenView: View {
                         HStack(spacing: 0) {
                             Text(stat.0)
                                 .font(.sfRounded(size: .xs, weight: .regular))
-                                .foregroundStyle(Color.white.opacity(0.7))
+                                .foregroundStyle(Color.primary.opacity(0.7))
                                 .fixedSize(horizontal: true, vertical: false)
 
                             Text(stat.1.text)
                                 .font(.sfRounded(size: .base, weight: .semibold))
-                                .foregroundStyle(stat.1.color ?? Color.white)
+                                .foregroundStyle(stat.1.color ?? Color.primary)
                                 .frame(maxWidth: .infinity, alignment: .topTrailing)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -313,12 +314,12 @@ struct TokenView: View {
                                 HStack(spacing: 0) {
                                     Text(stat.0)
                                         .font(.sfRounded(size: .xs, weight: .regular))
-                                        .foregroundStyle(Color.white.opacity(0.7))
+                                        .foregroundStyle(Color.primary.opacity(0.7))
                                         .fixedSize(horizontal: true, vertical: false)
 
                                     Text(stat.1.text)
                                         .font(.sfRounded(size: .base, weight: .semibold))
-                                        .foregroundStyle(Color.white)
+                                        .foregroundStyle(Color.primary)
                                         .frame(maxWidth: .infinity, alignment: .topTrailing)
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -338,7 +339,7 @@ struct TokenView: View {
         .padding(.horizontal, 16)
         .padding(.top, 16)
         .frame(maxWidth: .infinity, maxHeight: 110, alignment: .topLeading)
-        .background(AppColors.darkGrayGradient)
+        .background(colorScheme == .dark ? AppColors.darkGrayGradient : AppColors.lightGrayGradient)
         .cornerRadius(16)
         .onTapGesture {
             withAnimation(.easeInOut) {

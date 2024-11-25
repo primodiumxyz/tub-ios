@@ -127,7 +127,7 @@ struct BuyForm: View {
                 Spacer()
                 Text("$")
                     .font(.sfRounded(size: .xl4, weight: .bold))
-                    .foregroundStyle(Color.white)
+                    .foregroundStyle(.primary)
 
                 TextField(
                     "",
@@ -170,7 +170,7 @@ struct BuyForm: View {
                     }
                 }
                 .font(.sfRounded(size: .xl5, weight: .bold))
-                .foregroundStyle(isValidInput ? Color.white : Color.red)
+                .foregroundStyle(isValidInput ? .white : Color.red)
                 .frame(minWidth: 50)
                 .fixedSize()
                 .onTapGesture {
@@ -192,10 +192,10 @@ struct BuyForm: View {
                 HStack(spacing: 4) {
                     Text("Set Default")
                         .font(.sfRounded(size: .base, weight: .regular))
-                        .foregroundStyle(isDefaultOn ? Color.white : Color.gray)
+                        .foregroundStyle(isDefaultOn ? .primary : .secondary)
 
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(isDefaultOn ? Color.green : Color.gray)
+                        .foregroundStyle(isDefaultOn ? Color.green : .secondary)
                 }
             }
         }

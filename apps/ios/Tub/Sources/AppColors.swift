@@ -51,6 +51,16 @@ struct AppColors {
         endPoint: UnitPoint(x: 0.5, y: 1)
     )
 
+    // light mode info stats bg
+    static let lightGrayGradient = LinearGradient(
+        stops: [
+            Gradient.Stop(color: Color(red: 0.96, green: 0.96, blue: 0.96), location: 0.38),
+            Gradient.Stop(color: Color(red: 0.96, green: 0.96, blue: 0.96).opacity(0), location: 1.00),
+        ],
+        startPoint: UnitPoint(x: 0.5, y: 0),
+        endPoint: UnitPoint(x: 0.5, y: 1)
+    )
+
     // buy green bg
     static let darkGreenGradient = LinearGradient(
         stops: [

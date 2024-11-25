@@ -18,7 +18,7 @@ struct CustomToggleStyle: ToggleStyle {
                 .frame(width: 50, height: 30)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(configuration.isOn ? Color("aquaGreen") : Color("pink"), lineWidth: 1)
+                        .stroke(configuration.isOn ? .accent : .pink, lineWidth: 1)
                 )
                 .overlay(
                     Circle()
@@ -81,13 +81,13 @@ struct SettingsView: View {
                         HStack(spacing: 4) {
                             Text("$")
                                 .font(.sfRounded(size: .lg, weight: .semibold))
-                                .foregroundColor(Color.white.opacity(0.5))
+                                .foregroundStyle(.secondary)
                             TextField("", text: $tempDefaultValue)
                                 .focused($isEditing)
                                 .keyboardType(.decimalPad)
                                 .font(.sfRounded(size: .lg, weight: .semibold))
                                 .multilineTextAlignment(.trailing)
-                                .foregroundColor(Color.white)
+                                .foregroundStyle(.primary)
                                 .frame(width: textWidth(for: tempDefaultValue))
                                 .onChange(of: tempDefaultValue) { newValue in
                                     // Remove any non-numeric characters except decimal point
@@ -114,7 +114,7 @@ struct SettingsView: View {
                                     updateDefaultValue()
                                 }
                             Image(systemName: "pencil")
-                                .foregroundColor(Color.white)
+                                .foregroundStyle(.primary)
                                 .font(.system(size: 20))
                         }
                     }
@@ -149,7 +149,7 @@ struct SettingsView: View {
                 ToolbarItem(placement: .principal) {
                     Text("Settings")
                         .font(.sfRounded(size: .xl, weight: .semibold))
-                        .foregroundColor(Color.white)
+                        .foregroundStyle(.primary)
                 }
                 
                 // Keep keyboard toolbar
@@ -158,11 +158,11 @@ struct SettingsView: View {
                         isEditing = false
                         updateDefaultValue()
                     }
-                    .foregroundColor(Color("pink"))
+                    .foregroundStyle(Color("pink"))
                     .font(.system(size: 20))
                 }
             }
-            .background(Color.black)
+            .background(Color(UIColor.systemBackground))
         }
     }
 

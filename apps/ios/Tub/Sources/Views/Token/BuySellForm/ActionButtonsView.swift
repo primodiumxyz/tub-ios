@@ -82,7 +82,7 @@ struct ActionButtonsView: View {
                         HStack(spacing: 16) {
                             CircleButton(
                                 icon: "pencil",
-                                color: Color("aquaGreen"),
+                                color: .accent,
                                 iconSize: 20,
                                 iconWeight: .bold,
                                 action: { showBuySheet = true }
@@ -106,7 +106,7 @@ struct ActionButtonsView: View {
         .padding(8)
         .fullScreenCover(isPresented: $isLoginPresented) {
             RegisterView(isRedirected: true)
-                .background(.black)
+                .background(Color(UIColor.systemBackground))
 
         }
     }
@@ -117,9 +117,9 @@ private struct LoginButton: View {
     var body: some View {
         PrimaryButton(
             text: "Login to Buy",
-            textColor: Color.black,
-            backgroundColor: Color("aquaGreen"),
-            strokeColor: Color("aquaGreen"),
+            textColor: .black,
+            backgroundColor: .accent,
+            strokeColor: .accent,
             maxWidth: .infinity,
             action: { isLoginPresented = true }
         )
@@ -143,7 +143,7 @@ private struct ConnectButton: View {
             HStack(alignment: .center, spacing: 8) {
                 Text("Connect to Wallet")
                     .font(.sfRounded(size: .xl, weight: .semibold))
-                    .foregroundColor(Color.black)
+                    .foregroundColor(.black)
                     .multilineTextAlignment(.center)
             }
             .tubButtonStyle()
@@ -157,7 +157,7 @@ private struct ConnectingButton: View {
             HStack(alignment: .center, spacing: 8) {
                 Text("Connecting...")
                     .font(.sfRounded(size: .xl, weight: .semibold))
-                    .foregroundColor(Color.black)
+                    .foregroundColor(.black)
                     .multilineTextAlignment(.center)
             }
             .tubButtonStyle()
@@ -183,9 +183,9 @@ private struct AirdropButton: View {
     var body: some View {
         PrimaryButton(
             text: "Get 1 test SOL",
-            textColor: Color.black,
-            backgroundColor: Color("aquaGreen"),
-            strokeColor: Color("aquaGreen"),
+            textColor: .black,
+            backgroundColor: .accent,
+            strokeColor: .accent,
             maxWidth: .infinity,
             action: {
                 Task {
@@ -212,8 +212,8 @@ private struct BuyButton: View {
     var body: some View {
         PrimaryButton(
             text: "Buy \(priceModel.formatPrice(usd: settingsManager.defaultBuyValue))",
-            textColor: Color.black,
-            backgroundColor: Color("aquaGreen"),
+            textColor: .black,
+            backgroundColor: .accent,
             action: {
                 Task {
                     await handleBuy(settingsManager.defaultBuyValue)
@@ -256,12 +256,12 @@ extension View {
             .frame(maxWidth: .infinity)
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(Color("aquaGreen"))
+            .background(.accent)
             .cornerRadius(30)
             .overlay(
                 RoundedRectangle(cornerRadius: 30)
                     .inset(by: 0.5)
-                    .stroke(Color("aquaGreen"), lineWidth: 1)
+                    .stroke(.accent, lineWidth: 1)
             )
     }
 }

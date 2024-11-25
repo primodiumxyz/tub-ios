@@ -184,7 +184,7 @@ struct CapsuleButtonStyle: ButtonStyle {
 
 struct CapsuleButton: View {
     var text: String
-    var textColor: Color = Color.white
+    var textColor: Color = .white
     var backgroundColor: Color = Color.white.opacity(0.15)
     var font: Font = .sfRounded(size: .base, weight: .bold)
     var action: () -> Void
@@ -333,7 +333,7 @@ struct FilterButtonStyle: ButtonStyle {
     func makeBody(configuration: Self.Configuration) -> some View {
         configuration.label
             .font(.sfRounded(size: .sm, weight: .regular))
-            .foregroundStyle(Color.white)
+            .foregroundStyle(Color.primary)
             .padding(.horizontal)
             .padding(.vertical, 6)
             .fixedSize(horizontal: true, vertical: false)
@@ -377,7 +377,7 @@ struct IntervalButtonStyle: ButtonStyle {
         .padding(.vertical, 6)
         .frame(width: 65)
         .background(isSelected ? Color("aquaBlue") : Color.clear)
-        .foregroundStyle(isSelected ? Color.black : Color.white)
+        .foregroundStyle(isSelected ? Color.black : Color.primary)
         .cornerRadius(20)
         .opacity(configuration.isPressed ? 0.7 : 1.0)
     }

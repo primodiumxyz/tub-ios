@@ -40,7 +40,7 @@ struct AccountBalanceView: View {
                         HStack {
                             Text("Account Balance")
                                 .font(.sfRounded(size: .base, weight: .semibold))
-                                .foregroundColor(Color.white)
+                                .foregroundStyle(.primary)
 
                             Spacer()
                             if let balance = balances.solBalanceUsd {
@@ -52,7 +52,7 @@ struct AccountBalanceView: View {
                                 Text(balanceUsd)
                                     .font(.sfRounded(size: .lg))
                                     .fontWeight(.bold)
-                                    .foregroundColor(Color.green)
+                                    .foregroundStyle(Color.green)
                                     .padding(.trailing)
                                     .frame(height: 20)
 
@@ -72,7 +72,7 @@ struct AccountBalanceView: View {
                         VStack(alignment: .leading, spacing: 5) {
                             Text("Account Balance")
                                 .font(.sfRounded(size: .sm, weight: .semibold))
-                                .foregroundColor(Color.white)
+                                .foregroundStyle(.primary)
 
                             HStack {
                                 if let balance = balances.solBalanceUsd {
@@ -84,7 +84,7 @@ struct AccountBalanceView: View {
                                     Text(formattedBalance)
                                         .font(.sfRounded(size: .xl2))
                                         .fontWeight(.bold)
-                                        .foregroundColor(Color.white)
+                                        .foregroundStyle(.primary)
 
                                 }
 
@@ -94,12 +94,13 @@ struct AccountBalanceView: View {
                                     maxDecimals: 2
                                 )
                                 Text(formattedChange)
-                                    .font(.sfRounded(size: .xl2))
+                                    .font(.sfRounded(size: .lg))
+                                    .multilineTextAlignment(.trailing)
                                     .fontWeight(.bold)
-                                    .foregroundColor(balances.deltaUsd >= 0 ? Color.green : Color.red)
+                                    .foregroundStyle(balances.deltaUsd >= 0 ? Color.green : Color.red)
                             }
                             .font(.sfRounded(size: .sm, weight: .semibold))
-                            .foregroundColor(balances.deltaUsd >= -10 ? Color.green : Color.red)
+                            .foregroundStyle(balances.deltaUsd >= -10 ? Color.green : Color.red)
                         }
                         .padding(.horizontal, 5)
                         .onTapGesture {
@@ -119,7 +120,7 @@ struct AccountBalanceView: View {
                 .padding(.top, 2)
         }
         .padding(10)
-        .background(Color.black)
+        .background(Color(UIColor.systemBackground))
         .onTapGesture {
             withAnimation {
                 isExpanded.toggle()

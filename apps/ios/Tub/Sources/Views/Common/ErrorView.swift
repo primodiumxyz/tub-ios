@@ -20,7 +20,7 @@ struct ErrorView: View {
         VStack {
             Image(systemName: "exclamationmark.triangle")
                 .font(.system(size: 50))
-                .foregroundColor(.yellow)
+                .foregroundStyle(.yellow)
                 .padding()
 
             Text("Oops! Something went wrong")
@@ -35,7 +35,7 @@ struct ErrorView: View {
             if let retryAction = retryAction {
                 Button(action: retryAction) {
                     Text("Try Again")
-                        .foregroundColor(Color.white)
+                        .foregroundStyle(.primary)
                         .padding()
                         .background(Color.blue)
                         .cornerRadius(10)
@@ -43,7 +43,7 @@ struct ErrorView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.black)
-        .foregroundColor(Color.white)
+        .background(Color(UIColor.systemBackground))
+        .foregroundStyle(.primary)
     }
 }

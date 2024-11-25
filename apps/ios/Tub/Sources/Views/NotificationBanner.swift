@@ -18,28 +18,27 @@ struct NotificationBanner: ViewModifier {
                         VStack {
                             HStack(spacing: 6) {
                                 Image(systemName: notificationHandler.notificationType.icon)
-                                    .foregroundColor(notificationHandler.notificationType.color)
+                                    .foregroundStyle(notificationHandler.notificationType.color)
 
                                 Text(message)
-                                    .foregroundColor(Color.white)
+                                    .foregroundStyle(.primary)
                                     .font(.sfRounded(size: .base))
 
                                 Spacer()
 
                                 Button(action: notificationHandler.hide) {
                                     Image(systemName: "xmark")
-                                        .foregroundColor(Color.white)
+                                        .foregroundStyle(.primary)
                                 }
                             }
                             .padding(.horizontal, 16)
                             .frame(maxWidth: .infinity, maxHeight: 50)
-                            .background(Color("grayDark"))
+                            .background(Color(UIColor.systemBackground))
                             .cornerRadius(24)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 24)
                                     .stroke(notificationHandler.notificationType.color.opacity(0.5), lineWidth: 2)
                             )
-                            .shadow(radius: 4)
 
                             Spacer()
                         }

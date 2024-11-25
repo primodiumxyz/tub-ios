@@ -34,7 +34,7 @@ struct CoinbaseOnrampView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.black)
+        .background(Color(UIColor.systemBackground))
         .ignoresSafeArea(.keyboard)
         .onAppear {
             isAmountFocused = true
@@ -47,9 +47,9 @@ struct CoinbaseOnrampView: View {
                 Spacer()
                 Text("$")
                     .font(.sfRounded(size: .xl4, weight: .bold))
-                    .foregroundColor(Color.white)
+                    .foregroundStyle(.primary)
 
-                TextField("", text: $amountString, prompt: Text("100").foregroundColor(Color.white.opacity(0.3)))
+                TextField("", text: $amountString, prompt: Text("100").foregroundStyle(.secondary))
                     .focused($isAmountFocused)
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.leading)
@@ -81,7 +81,7 @@ struct CoinbaseOnrampView: View {
                         }
                     }
                     .font(.sfRounded(size: .xl5, weight: .bold))
-                    .foregroundColor(isValidInput ? Color.white : Color.red)
+                    .foregroundColor(isValidInput ? .primary : Color.red)
                     .frame(minWidth: 50)
                     .fixedSize()
                 Spacer()
@@ -107,7 +107,7 @@ struct CoinbaseOnrampView: View {
                     .aspectRatio(contentMode: .fit)
                     .frame(height: 16)
             }
-            .foregroundColor(Color.white)
+            .foregroundStyle(.primary)
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
             .background(Color("purple"))
@@ -136,9 +136,9 @@ struct WebView: UIViewRepresentable {
 
         let webView = WKWebView(frame: .zero, configuration: configuration)
 
-        webView.backgroundColor = .black
+        webView.backgroundColor = UIColor.systemBackground
         webView.isOpaque = false
-        webView.scrollView.backgroundColor = .black
+        webView.scrollView.backgroundColor = UIColor.systemBackground
 
         // Force dark mode at the WebView level
         if #available(iOS 13.0, *) {

@@ -75,10 +75,10 @@ class TabsViewModel: ObservableObject {
 }
 
 struct HomeTabsView: View {
-    var color = Color(red: 0.43, green: 0.97, blue: 0.98)
+    var color = Color("accentColor")
     @EnvironmentObject private var userModel: UserModel
     @EnvironmentObject private var priceModel: SolPriceModel
-    @StateObject private var vm = TabsViewModel()  // Make it optional
+    @StateObject private var vm = TabsViewModel()
 
     @StateObject private var tokenListModel: TokenListModel
     init(userModel: UserModel) {
@@ -104,91 +104,63 @@ struct HomeTabsView: View {
                 )
             }
             else {
-                ZStack(alignment: .bottom) {
-                    // Main content view
-                    Group {
-                        if vm.selectedTab == 0 {
-                            TokenListView(tokenListModel: tokenListModel)
-                        }
-                        else if vm.selectedTab == 1 {
-                            HistoryView()
-                        }
-                        else if vm.selectedTab == 2 {
-                            AccountView()
-                        }
-                    }
-                    .background(Color.black)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-                    // Custom Tab Bar
-                    HStack {
-                        Spacer()
-
-                        // Trade Tab
-                        Button(action: {
-                            vm.selectedTab = 0
-                            vm.recordTabSelection("trade")
-                        }) {
+                
+                TabView(selection: $vm.selectedTab) {
+                    // Trade Tab
+                    
+                    TokenListView(tokenListModel: tokenListModel)
+                        .tabItem {
                             VStack {
                                 Image(systemName: "chart.line.uptrend.xyaxis")
                                     .font(.system(size: 24))
                                 Text("Trade")
-                                    .font(.sfRounded(size: .xs, weight: .regular))
+                                    .font(.system(size: 12))
                             }
-                            .foregroundColor(
-                                vm.selectedTab == 0 ? color : Color.white.opacity(0.5)
-                            )
                         }
-
-                        Spacer()
-
-                        // History Tab
-                        Button(action: {
-                            vm.selectedTab = 1
-                            vm.recordTabSelection("history")
-                        }) {
+                        .tag(0)
+                        .onAppear {
+                            vm.recordTabSelection("trade")
+                        }
+                    
+                    HistoryView()
+                        .tabItem {
                             VStack {
                                 Image(systemName: "clock")
                                     .font(.system(size: 24))
                                 Text("History")
-                                    .font(.sfRounded(size: .xs, weight: .regular))
+                                    .font(.system(size: 12))
                             }
-                            .foregroundColor(
-                                vm.selectedTab == 1 ? color : Color.white.opacity(0.5)
-                            )
                         }
-
-                        Spacer()
-
-                        // Account Tab
-                        Button(action: {
-                            vm.selectedTab = 2
-                            vm.recordTabSelection("account")
-                        }) {
+                        .tag(1)
+                        .onAppear {
+                            vm.recordTabSelection("history")
+                        }
+                    
+                    AccountView()
+                        .tabItem {
                             VStack {
                                 Image(systemName: "person")
                                     .font(.system(size: 24))
                                 Text("Account")
-                                    .font(.sfRounded(size: .xs, weight: .regular))
+                                    .font(.system(size: 12))
                             }
-                            .foregroundColor(
-                                vm.selectedTab == 2 ? color : Color.white.opacity(0.5)
-                            )
                         }
-
-                        Spacer()
-                    }
-                    .background(Color.black)
-                    .ignoresSafeArea(.keyboard)
+                        .tag(2)
+                        .onAppear {
+                            vm.recordTabSelection("account")
+                        }
                 }
+                .background(Color(UIColor.systemBackground))
+                .ignoresSafeArea(.keyboard)
+                .edgesIgnoringSafeArea(.all)
+                
             }
-        }.frame(maxWidth: .infinity, maxHeight: .infinity)
-            .ignoresSafeArea(.keyboard)
-            .onChange(of: userModel.userId) { _, newUserId in
-                if newUserId != nil {
-                    vm.selectedTab = 0  // Force switch to trade tab
-                    vm.recordTabSelection("trade")
-                }
+        }
+        .onChange(of: userModel.userId) { _, newUserId in
+            if newUserId != nil {
+                vm.selectedTab = 0  // Force switch to trade tab
+                vm.recordTabSelection("trade")
             }
+        }
     }
 }
