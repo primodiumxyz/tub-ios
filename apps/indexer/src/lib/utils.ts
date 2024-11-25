@@ -126,6 +126,8 @@ export const fetchPriceData = async <T extends SwapType = SwapType>(
       const price = priceMap.get(tokenMint);
       if (price === undefined) return;
 
+      console.log(swap.sig, price, swap.args);
+
       return {
         vaultA: swap.vaultA,
         vaultB: swap.vaultB,
