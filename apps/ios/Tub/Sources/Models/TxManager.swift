@@ -21,8 +21,26 @@ final class TxManager: ObservableObject {
     var tokenId: String?
     var quantity: Int?
     let tokenIdUsdc = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+    private var currentFetchTask: Task<Void, Error>?
 
     func updateTxData(purchaseState: PurchaseState?, tokenId: String?, quantity: Int?) async throws {
+        currentFetchTask?.cancel()
+
+        currentFetchTask = Task {
+            do {
+                try await _updateTxData(purchaseState: purchaseState, tokenId: tokenId, quantity: quantity)
+            }
+            catch {
+                if !Task.isCancelled {
+                    throw error
+                }
+            }
+        }
+
+        try await currentFetchTask?.value
+    }
+
+    private func _updateTxData(purchaseState: PurchaseState?, tokenId: String?, quantity: Int?) async throws {
         self.tokenId = tokenId ?? self.tokenId
         self.quantity = quantity ?? quantity
         self.purchaseState = purchaseState ?? self.purchaseState

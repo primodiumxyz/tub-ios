@@ -40,6 +40,9 @@ struct TestTxView: View {
 
     var body: some View {
         VStack(spacing: 10) {
+            Button(action: handleAppear) {
+                Text("Update Tx Data")
+            }.padding().background(.blue)
             if let txData = txManager.txData {
                 DataRow(title: "Buy Token ID", content: txData.buyTokenId)
                 DataRow(title: "Sell Token ID", content: txData.sellTokenId)
@@ -51,7 +54,7 @@ struct TestTxView: View {
             else {
                 Text("no data")
             }
-        }.foregroundStyle(.white).frame(maxWidth: .infinity, maxHeight: .infinity).onAppear(perform: handleAppear)
+        }.foregroundStyle(.white).frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private struct DataRow: View {
