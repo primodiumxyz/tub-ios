@@ -411,7 +411,7 @@ export class TubService {
 
       // In test environment, skip token fee validation
       // !! TODO: Currently set to always be true. There's an error with Octane using an old RPC Method that no longer exists.
-      // Once fixed, this if/then can be removed.
+      // Once fixed, this if/then can be removed. Even then, as long as we're using the tx registry this shouldn't be an issue.
       if (true) {
         const feePayerSignature = await this.octane.signTransactionWithoutTokenFee(transaction);
         const feePayerSignatureBytes = Buffer.from(bs58.decode(feePayerSignature));
@@ -522,13 +522,6 @@ export class TubService {
   private async buildSwapResponse(
     request: ActiveSwapRequest
   ): Promise<PrebuildSwapResponse | null> {
-    // console.log("[buildSwapResponse] Starting with request:", {
-    //   sellQuantity: request.sellQuantity,
-    //   sellTokenId: request.sellTokenId,
-    //   buyTokenId: request.buyTokenId,
-    //   userPublicKey: request.userPublicKey.toString()
-    // });
-
     if (!request.sellTokenAccount) return null;
 
     // if sell token is either USDC Devnet or Mainnet, use the buy fee amount. otherwise use 0
@@ -537,14 +530,12 @@ export class TubService {
         ? this.octane.getSettings().buyFee
         : 0;
 
-    // Check if this is a USDC sell transaction
     const isUSDCSell = request.sellTokenId === USDC_MAINNET_PUBLIC_KEY.toString() || 
                        request.sellTokenId === USDC_DEV_PUBLIC_KEY.toString();
 
     let transaction: Transaction | null = null;
     try {
       if (feeAmount === 0) {
-        // console.log("[buildSwapResponse] No fee, getting swap instructions");
         const swapInstructions = await this.octane.getQuoteAndSwapInstructions({
           inputMint: request.sellTokenId,
           outputMint: request.buyTokenId,
@@ -553,12 +544,6 @@ export class TubService {
           onlyDirectRoutes: false,
           asLegacyTransaction: true, // Set to true for USDC sells
         }, request.userPublicKey);
-
-        // console.log("[buildSwapResponse] Got swap instructions:", {
-        //   hasSetupInstructions: !!swapInstructions?.setupInstructions?.length,
-        //   hasSwapInstruction: !!swapInstructions?.swapInstruction,
-        //   hasCleanupInstruction: !!swapInstructions?.cleanupInstruction
-        // });
 
         if (!swapInstructions?.swapInstruction) {
           throw new Error("No swap instruction received");
@@ -588,12 +573,6 @@ export class TubService {
           asLegacyTransaction: true, // Set to true for USDC sells
         }, request.userPublicKey);
 
-        // console.log("[buildSwapResponse] Got swap instructions:", {
-        //   hasSetupInstructions: !!swapInstructions?.setupInstructions?.length,
-        //   hasSwapInstruction: !!swapInstructions?.swapInstruction,
-        //   hasCleanupInstruction: !!swapInstructions?.cleanupInstruction
-        // });
-
         if (!swapInstructions?.swapInstruction) {
           throw new Error("No swap instruction received");
         }
@@ -609,13 +588,6 @@ export class TubService {
       const { blockhash, lastValidBlockHeight } = await this.octane.getSettings().connection.getLatestBlockhash();
       transaction.recentBlockhash = blockhash;
       transaction.lastValidBlockHeight = lastValidBlockHeight;
-
-      // console.log("[buildSwapResponse] Built transaction:", {
-      //   hasInstructions: transaction.instructions.length > 0,
-      //   instructionCount: transaction.instructions.length,
-      //   hasFeePayer: !!transaction.feePayer,
-      //   recentBlockhash: transaction.recentBlockhash
-      // });
 
       const response: PrebuildSwapResponse = {
         transactionBase64: Buffer.from(transaction.serialize({ verifySignatures: false })).toString('base64'),

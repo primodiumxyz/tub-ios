@@ -112,15 +112,6 @@ export class OctaneService {
       const quote = await this.getQuote(quoteAndSwapParams);
       console.dir(quote, { depth: null });
 
-      // // Log the API instance details
-      // console.log("[getQuoteAndSwapInstructions] API Configuration:", {
-      //   basePath: (this.jupiterQuoteApi as any).configuration?.basePath,
-      //   availableMethods: Object.keys(this.jupiterQuoteApi)
-      // });
-
-      // console.log("[getQuoteAndSwapInstructions] User public key:", userPublicKey.toBase58());
-      // console.log("[getQuoteAndSwapInstructions] User public key:", userPublicKey);
-
       const swapInstructionsRequest: SwapInstructionsPostRequest = {
         swapRequest: {
           quoteResponse: quote,
@@ -131,11 +122,6 @@ export class OctaneService {
           prioritizationFeeLamports: { "autoMultiplier": 3 }
         }
       };
-
-      // console.log("[getQuoteAndSwapInstructions] Sending request:", {
-      //   url: `${(this.jupiterQuoteApi as any).configuration?.basePath}/swap-instructions`,
-      //   request: JSON.stringify(swapInstructionsRequest, null, 2)
-      // });
 
       try {
         const swapInstructions = await this.jupiterQuoteApi.swapInstructionsPost(swapInstructionsRequest);
@@ -197,7 +183,6 @@ export class OctaneService {
 
     // Add fee transfer first (if any)
     if (feeTransferInstruction) {
-      // console.log("[buildCompleteSwap] Adding fee transfer instruction");
       transaction.add(feeTransferInstruction);
     }
 
@@ -262,14 +247,6 @@ export class OctaneService {
             data: instructionData
           }));
         } else {
-          // Handle other instructions normally
-          // console.log("[buildCompleteSwap] Adding instruction:", {
-          //   programId: instruction.programId,
-          //   dataType: typeof instruction.data,
-          //   dataLength: instruction.data?.length || 0,
-          //   rawData: instruction.data
-          // });
-
           // Handle instruction data based on its type
           let data: Buffer;
           if (typeof instruction.data === 'string') {
@@ -297,14 +274,6 @@ export class OctaneService {
           }));
         }
       } else {
-        // // Handle other instructions normally
-        // console.log("[buildCompleteSwap] Adding instruction:", {
-        //   programId: instruction.programId,
-        //   dataType: typeof instruction.data,
-        //   dataLength: instruction.data?.length || 0,
-        //   rawData: instruction.data
-        // });
-
         // Handle instruction data based on its type
         let data: Buffer;
         if (typeof instruction.data === 'string') {
@@ -333,22 +302,9 @@ export class OctaneService {
       }
     });
 
-    // // Log for debugging
-    // console.log("[buildCompleteSwap] Built transaction:", {
-    //   feePayer: transaction.feePayer?.toBase58(),
-    //   instructionCount: transaction.instructions.length,
-    //   instructions: transaction.instructions.map(ix => ({
-    //     programId: ix.programId.toBase58(),
-    //     keys: ix.keys.length,
-    //     dataLength: ix.data.length,
-    //     firstKey: ix.keys[0]?.pubkey.toBase58()
-    //   }))
-    // });
-
     // Verify transaction can be serialized
     try {
       transaction.serialize({ requireAllSignatures: false });
-      // console.log("[buildCompleteSwap] Successfully verified transaction serialization");
     } catch (error) {
       console.error("[buildCompleteSwap] Failed to serialize transaction:", error);
       throw error;
@@ -470,13 +426,6 @@ export class OctaneService {
       isSigner: account.isSigner,
       isWritable: account.isWritable
     }));
-
-    // // Log instruction details for debugging
-    // console.log("[convertToTransactionInstruction] Converting instruction:", {
-    //   programId: instruction.programId,
-    //   dataLength: data.length,
-    //   keysCount: keys.length
-    // });
 
     return new TransactionInstruction({
       programId: new PublicKey(instruction.programId),
