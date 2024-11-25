@@ -1,0 +1,2 @@
+CREATE TABLE "public"."trade_history" ("id" uuid NOT NULL DEFAULT gen_random_uuid(), "created_at" timestamptz NOT NULL DEFAULT now(), "token_mint" text NOT NULL, "token_price_lamports" numeric NOT NULL, "volume_lamports" numeric NOT NULL, PRIMARY KEY ("id") );COMMENT ON TABLE "public"."trade_history" IS E'History of trades on subscribed accounts from the indexer.';
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
