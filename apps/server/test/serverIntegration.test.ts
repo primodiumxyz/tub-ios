@@ -1,7 +1,8 @@
 import { PrivyClient } from "@privy-io/server-auth";
 import { createTRPCProxyClient, createWSClient, httpBatchLink, splitLink, wsLink } from "@trpc/client";
+import { Unsubscribable } from "@trpc/server/observable";
 import { config } from "dotenv";
-import { beforeAll, describe, expect, inject, it } from "vitest";
+import { assert, beforeAll, describe, expect, inject, it } from "vitest";
 import WebSocket from "ws";
 import { parseEnv } from "../bin/parseEnv";
 import { AppRouter } from "../src/createAppRouter";
@@ -90,5 +91,28 @@ describe("Server Integration Tests", () => {
   it("should get the SOL/USD price", async () => {
     const result = await client.getSolUsdPrice.query();
     expect(result).toBeGreaterThan(0);
+  });
+
+  it("should subscribe to the SOL/USD price", async () => {
+    const initialPrice = await client.getSolUsdPrice.query();
+
+    // Create a promise that resolves when we get a new price
+    const priceUpdatePromise = new Promise<Unsubscribable>((resolve, reject) => {
+      const subscription = client.subscribeSolPrice.subscribe(undefined, {
+        onData: (price) => {
+          if (price !== initialPrice) {
+            resolve(subscription);
+          }
+
+          setTimeout(() => {
+            reject(new Error("Timeout"));
+          }, 10_000);
+        },
+      });
+    });
+
+    // Wait for first & next price from subscription
+    const subscription = await priceUpdatePromise;
+    subscription.unsubscribe();
   });
 });

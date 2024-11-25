@@ -1,4 +1,5 @@
 import { initTRPC } from "@trpc/server";
+import { observable } from "@trpc/server/observable";
 import { z } from "zod";
 import { TubService } from "./TubService";
 
@@ -74,6 +75,19 @@ export function createAppRouter() {
 
     getSolUsdPrice: t.procedure.query(async ({ ctx }) => {
       return await ctx.tubService.getSolUsdPrice();
+    }),
+
+    subscribeSolPrice: t.procedure.subscription(({ ctx }) => {
+      return observable<number>((emit) => {
+        const onPrice = (price: number) => {
+          emit.next(price);
+        };
+
+        const cleanup = ctx.tubService.subscribeSolPrice(onPrice);
+        return () => {
+          cleanup();
+        };
+      });
     }),
   });
 }

@@ -1,15 +1,17 @@
+import { EventEmitter } from "events";
 import { PrivyClient, WalletWithMetadata } from "@privy-io/server-auth";
 import { GqlClient } from "@tub/gql";
 import { config } from "dotenv";
 
 config({ path: "../../.env" });
 
-const SOL_USD_UPDATE_INTERVAL = 10 * 1000; // 10 seconds
+const SOL_USD_UPDATE_INTERVAL = 5 * 1000; // 10 seconds
 
 export class TubService {
   private gql: GqlClient["db"];
   private privy: PrivyClient;
   private solUsdPrice: number | undefined;
+  private priceEmitter = new EventEmitter();
 
   constructor(gqlClient: GqlClient["db"], privy: PrivyClient) {
     this.gql = gqlClient;
@@ -22,24 +24,6 @@ export class TubService {
     this.updateSolUsdPrice();
 
     interval.unref(); // allow Node.js to exit if only this interval is still running
-  }
-
-  private verifyJWT = async (token: string) => {
-    try {
-      const verifiedClaims = await this.privy.verifyAuthToken(token);
-      return verifiedClaims.userId;
-    } catch (e: any) {
-      throw new Error(`Invalid JWT: ${e.message}`);
-    }
-  };
-
-  private async getUserWallet(userId: string) {
-    const user = await this.privy.getUserById(userId);
-
-    const solanaWallet = user.linkedAccounts.find(
-      (account) => account.type === "wallet" && account.chainType === "solana",
-    ) as WalletWithMetadata | undefined;
-    return solanaWallet?.address;
   }
 
   getStatus(): { status: number } {
@@ -149,11 +133,42 @@ export class TubService {
     return this.solUsdPrice;
   }
 
+  subscribeSolPrice(callback: (price: number) => void): () => void {
+    this.priceEmitter.on("price", callback);
+    // Send current price immediately if available
+    if (this.solUsdPrice !== undefined) callback(this.solUsdPrice);
+
+    // Return cleanup function
+    return () => {
+      this.priceEmitter.off("price", callback);
+    };
+  }
+
+  private verifyJWT = async (token: string) => {
+    try {
+      const verifiedClaims = await this.privy.verifyAuthToken(token);
+      return verifiedClaims.userId;
+    } catch (e: any) {
+      throw new Error(`Invalid JWT: ${e.message}`);
+    }
+  };
+
+  private async getUserWallet(userId: string) {
+    const user = await this.privy.getUserById(userId);
+
+    const solanaWallet = user.linkedAccounts.find(
+      (account) => account.type === "wallet" && account.chainType === "solana",
+    ) as WalletWithMetadata | undefined;
+    return solanaWallet?.address;
+  }
+
   private async updateSolUsdPrice(): Promise<void> {
     const res = await fetch(`${process.env.JUPITER_API_ENDPOINT}/price?ids=SOL`);
     const data = (await res.json()) as { data: { [id: string]: { price: number } } };
 
     this.solUsdPrice = data.data["SOL"]?.price;
+    if (this.solUsdPrice !== undefined) this.priceEmitter.emit("price", this.solUsdPrice);
+
     console.log(`SOL/USD price updated: ${this.solUsdPrice?.toLocaleString("en-US", { maximumFractionDigits: 2 })}`);
   }
 }
