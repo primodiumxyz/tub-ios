@@ -1,0 +1,216 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "" : {
+
+    },
+    "(%.1f%%)" : {
+
+    },
+    "@Discord Link" : {
+
+    },
+    "#8612373299412" : {
+
+    },
+    "%@" : {
+
+    },
+    "%@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ %2$@"
+          }
+        }
+      }
+    },
+    "%@ at %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ at %2$@"
+          }
+        }
+      }
+    },
+    "$" : {
+
+    },
+    "$%@" : {
+
+    },
+    "10" : {
+      "comment" : "placeholder"
+    },
+    "100" : {
+
+    },
+    "About" : {
+
+    },
+    "Account" : {
+
+    },
+    "Account Balance" : {
+
+    },
+    "Account Details" : {
+
+    },
+    "Account Settings" : {
+
+    },
+    "Add Funds" : {
+
+    },
+    "Buy" : {
+
+    },
+    "Buy Details" : {
+
+    },
+    "Cancel" : {
+
+    },
+    "Close" : {
+
+    },
+    "Connect to Wallet" : {
+
+    },
+    "Connecting..." : {
+
+    },
+    "Connection Error" : {
+
+    },
+    "Continue" : {
+
+    },
+    "Country Code" : {
+
+    },
+    "Date" : {
+
+    },
+    "Deposit" : {
+
+    },
+    "Deposit with " : {
+
+    },
+    "Enter verification code" : {
+
+    },
+    "Enter your email" : {
+
+    },
+    "Enter your Phone Number" : {
+
+    },
+    "Failed to load tokens." : {
+
+    },
+    "Filled" : {
+
+    },
+    "High" : {
+
+    },
+    "History" : {
+
+    },
+    "Low" : {
+
+    },
+    "No transactions found" : {
+
+    },
+    "Oops! Something went wrong" : {
+
+    },
+    "Open" : {
+
+    },
+    "or" : {
+
+    },
+    "Please enter a valid email address." : {
+
+    },
+    "Please enter a valid phone number." : {
+
+    },
+    "Price" : {
+
+    },
+    "Purchase Price" : {
+
+    },
+    "Quantity" : {
+
+    },
+    "Retry" : {
+
+    },
+    "Save" : {
+
+    },
+    "Search..." : {
+
+    },
+    "Sell" : {
+
+    },
+    "Sell Details" : {
+
+    },
+    "Set Default" : {
+
+    },
+    "Settings" : {
+
+    },
+    "Stats" : {
+
+    },
+    "Support" : {
+
+    },
+    "Time" : {
+
+    },
+    "Token" : {
+
+    },
+    "Trade" : {
+
+    },
+    "Transaction number" : {
+
+    },
+    "Transfer" : {
+
+    },
+    "Try Again" : {
+
+    },
+    "Unfilled" : {
+
+    },
+    "Welcome to tub" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "French: Tub welcomes you!"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

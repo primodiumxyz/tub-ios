@@ -12,19 +12,35 @@ struct LoadingBox: View {
     let height: CGFloat
     let opacity: CGFloat
     let cornerRadius: CGFloat
-    
-    init(width: CGFloat = .infinity, height: CGFloat = .infinity, opacity: Double = 0.3, cornerRadius : CGFloat = 8) {
+
+    init(width: CGFloat = .infinity, height: CGFloat = .infinity, opacity: Double = 0.3, cornerRadius: CGFloat = 8) {
         self.width = width
         self.height = height
         self.cornerRadius = cornerRadius
         self.opacity = opacity
     }
-    
+
     var body: some View {
-        RoundedRectangle(cornerRadius: cornerRadius)
-            .fill(Color.white.opacity(0.1))
-            .frame(width: width, height: height)
-            .shimmering(opacity: opacity)
+        if width == .infinity && height == .infinity {
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .fill(Color.white.opacity(0.1))
+                .shimmering(opacity: opacity)
+        } else if width == .infinity {
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .fill(Color.white.opacity(0.1))
+                .frame(maxWidth: width, minHeight: height, maxHeight: height)
+                .shimmering(opacity: opacity)
+        } else if height == .infinity {
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .fill(Color.white.opacity(0.1))
+                .frame(minWidth: width, maxWidth: width, maxHeight: height)
+                .shimmering(opacity: opacity)
+        } else {
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .fill(Color.white.opacity(0.1))
+                .frame(width: width, height: height)
+                .shimmering(opacity: opacity)
+        }
     }
 }
 
@@ -38,4 +54,3 @@ struct LoadingBox: View {
     .padding()
     .background(Color.black)
 }
-

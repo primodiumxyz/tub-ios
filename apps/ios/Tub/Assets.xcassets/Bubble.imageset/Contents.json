@@ -1,16 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "tub_bubble_test_small.png",
+      "filename" : "tub_bubble.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "tub_bubble_test 1.png",
+      "filename" : "tub_bubble@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
+      "filename" : "tub_bubble@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }

@@ -5,9 +5,9 @@
 //  Created by Henry on 10/17/24.
 //
 
-import SwiftUI
 import Charts
 import Combine
+import SwiftUI
 
 struct CandleChartView: View {
     @EnvironmentObject var priceModel: SolPriceModel
@@ -15,9 +15,9 @@ struct CandleChartView: View {
     let timeframeMins: Double
     let height: CGFloat
     @State private var currentTime = Date().timeIntervalSince1970
-        
+
     @State private var timerCancellable: Cancellable?
-    @State private var timer: Timer.TimerPublisher = Timer.publish(every: UPDATE_INTERVAL, on: .main, in: .common)
+    @State private var timer: Timer.TimerPublisher = Timer.publish(every: 0.1, on: .main, in: .common)
 
     init(candles: [CandleData], timeframeMins: Double = 30, height: CGFloat = 330) {
         self.rawCandles = candles
@@ -35,25 +35,25 @@ struct CandleChartView: View {
 
     private var yDomain: ClosedRange<Double> {
         if candles.isEmpty { return 0...100 }
-        
+
         let minPrice = candles.min { $0.low < $1.low }?.low ?? 0
         let maxPrice = candles.max { $0.high < $1.high }?.high ?? 100
         let range = maxPrice - minPrice
         let padding = range * 0.10
-        
+
         return (minPrice - padding)...(maxPrice + padding)
     }
 
     private var xDomain: ClosedRange<Date> {
-        if candles.isEmpty { 
-            return Date().addingTimeInterval(-timeframeMins * 60)...Date() 
+        if candles.isEmpty {
+            return Date().addingTimeInterval(-timeframeMins * 60)...Date()
         }
-        
+
         let endTime = candles.last?.end ?? Date()
         let startTime = endTime.addingTimeInterval(-timeframeMins * 60)
         return startTime...endTime
     }
-    
+
     var body: some View {
         Chart {
             ForEach(candles) { candle in
@@ -63,7 +63,7 @@ struct CandleChartView: View {
                     yStart: .value("Open", candle.open),
                     yEnd: .value("Close", candle.close)
                 )
-                .foregroundStyle(candle.close >= candle.open ? AppColors.green : AppColors.red)
+                .foregroundStyle(candle.close >= candle.open ? Color.green : Color.red)
 
                 // High-Low line
                 RuleMark(
@@ -71,16 +71,19 @@ struct CandleChartView: View {
                     yStart: .value("High", candle.high),
                     yEnd: .value("Low", candle.low)
                 )
-                .foregroundStyle(candle.close >= candle.open ? AppColors.green : AppColors.red)
+                .foregroundStyle(candle.close >= candle.open ? Color.green : Color.red)
                 .opacity(0.5)
             }
         }
         .chartXScale(domain: xDomain)
         .chartYScale(domain: yDomain)
+        .conditionalModifier(condition: false) { chart in
+            chart.animation(.easeInOut(duration: PRICE_UPDATE_INTERVAL), value: candles)
+        }
         .chartXAxis(content: xAxisConfig)
         .chartYAxis(content: yAxisConfig)
         .frame(height: height)
-.onAppear {
+        .onAppear {
             timerCancellable = timer.connect()
         }
         .onDisappear {
@@ -91,20 +94,23 @@ struct CandleChartView: View {
     private func yAxisConfig() -> some AxisContent {
         AxisMarks(position: .leading) { value in
             AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
-                .foregroundStyle(.white.opacity(0.2))
+                .foregroundStyle(Color.white.opacity(0.2))
             AxisValueLabel {
                 if let doubleValue = value.as(Double.self) {
                     Text(priceModel.formatPrice(usd: doubleValue, maxDecimals: 6))
-                        .foregroundStyle(.white.opacity(0.5))
+                        .foregroundStyle(Color.white.opacity(0.5))
                 }
             }
         }
     }
 
     private func xAxisConfig() -> some AxisContent {
-        AxisMarks(values: .stride(by: .minute, count: Int(floor(timeframeMins / 4)))) { value in
-            AxisValueLabel(format: .dateTime.hour().minute())
-                .foregroundStyle(.white.opacity(0.5))
+        AxisMarks(values: .stride(by: .minute, count: 4)) { value in
+            // show the first 6 labels (after that it gets cutoff
+            if value.index <= 6 {
+                AxisValueLabel(format: .dateTime.hour().minute())
+                    .foregroundStyle(.white.opacity(0.5))
+            }
         }
     }
 }

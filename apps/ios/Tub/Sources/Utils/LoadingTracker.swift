@@ -54,25 +54,21 @@ class LoadingTracker: ObservableObject {
         metrics[identifier] = current
 
         // Record loading metrics as client event
-        Network.shared.recordClientEvent(
-            event: ClientEvent(
-                eventName: "loading_time",
-                source: "loading_tracker",
-                metadata: [
-                    ["identifier": identifier],
-                    ["time_elapsed_ms": Int(timeElapsed * 1000)],
-                    ["attempt_number": current.count],
-                    ["total_time_ms": Int(current.totalTime * 1000)],
-                    ["average_time_ms": Int(current.totalTime / Double(current.count) * 1000)],
-                ]
+        Task(priority: .low) {
+            try? await Network.shared.recordClientEvent(
+                event: ClientEvent(
+                    eventName: "loading_time",
+                    source: "loading_tracker",
+                    metadata: [
+                        ["identifier": identifier],
+                        ["time_elapsed_ms": Int(timeElapsed * 1000)],
+                        ["attempt_number": current.count],
+                        ["total_time_ms": Int(current.totalTime * 1000)],
+                        ["average_time_ms": Int(current.totalTime / Double(current.count) * 1000)],
+                    ]
+                )
             )
-        ) { result in
-            switch result {
-            case .success:
-                print("✅ Recorded loading metrics for: \(identifier)")
-            case .failure(let error):
-                print("❌ Failed to record loading metrics: \(error)")
-            }
+            print("✅ Recorded loading metrics for: \(identifier)")
         }
 
         if show {

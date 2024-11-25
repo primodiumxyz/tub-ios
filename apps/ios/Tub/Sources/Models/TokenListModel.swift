@@ -6,9 +6,9 @@
 //
 
 import Apollo
+import CodexAPI
 import SwiftUI
 import TubAPI
-import CodexAPI
 
 // Logic for keeping an array of tokens and enabling swiping up (to previously visited tokens) and down (new pumping tokens)
 // - The current index in the tokens array is always "last - 1", so we can update "last" to a new random token anytime the subscription is triggered (`updateTokens`)
@@ -94,7 +94,8 @@ class TokenListModel: ObservableObject {
         }
 
         // If all tokens are in cooldown, get the oldest one
-        if let oldestRecent = recentlyShownTokens
+        if let oldestRecent =
+            recentlyShownTokens
             .sorted(by: { $0.timestamp < $1.timestamp })
             .first,
             let token = availableTokens.first(where: { $0.id == oldestRecent.id })
@@ -163,7 +164,8 @@ class TokenListModel: ObservableObject {
                     currentTokenStartTime = Date()
                 }
             }
-        } else {
+        }
+        else {
             // Only update the last token if we have more available tokens
             if let currentId = tokens[safe: currentTokenIndex]?.id,
                 let newToken = getNextToken(excluding: currentId)
@@ -173,52 +175,59 @@ class TokenListModel: ObservableObject {
         }
     }
 
-    public func subscribeTokens() throws {
-        // Initial fetch
-        Task {
-            
-        try await fetchTokens()
+    public func startTokenSubscription() async {
+        do {
+            try await fetchTokens()
 
-        // Set up timer for 1-second updates
-        await MainActor.run {
+            // Set up timer for 1-second updates
             self.timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
                 guard let self = self else { return }
                 if !self.fetching {
                     Task {
-                        try? await self.fetchTokens()
+                        do {
+                            try await self.fetchTokens()
+                        }
+                        catch {
+                            print("Error fetching tokens: \(error.localizedDescription)")
+                        }
                     }
                 }
             }
-            }
+        }
+        catch {
+            print("Error starting token subscription: \(error.localizedDescription)")
         }
     }
 
-    func unsubscribeTokens() {
+    func stopTokenSubscription() {
         // Stop the timer
         timer?.invalidate()
         timer = nil
-        
+
         // Clear token subscription if it exists
         tokenSubscription?.cancel()
         tokenSubscription = nil
     }
 
     private var fetching = false
-    
+
     private func fetchTokens(setLoading: Bool? = false) async throws {
         let client = await CodexNetwork.shared.apolloClient
-        
+
         self.fetching = true
-        
+
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            client.fetch(query: GetFilterTokensQuery(
-                rankingAttribute: .some(.init(TokenRankingAttribute.trendingScore))
-            ), cachePolicy: .fetchIgnoringCacheData) { [weak self] result in
+            client.fetch(
+                query: GetFilterTokensQuery(
+                    rankingAttribute: .some(.init(TokenRankingAttribute.trendingScore))
+                ),
+                cachePolicy: .fetchIgnoringCacheData
+            ) { [weak self] result in
                 guard let self = self else {
-                    continuation.resume(throwing: NSError(domain: "TokenListModel", code: 0))
+                    continuation.resume(throwing: TubError.unknown)
                     return
                 }
-                
+
                 // Process data in background queue
                 DispatchQueue.global(qos: .userInitiated).async {
                     // Prepare data in background
@@ -226,7 +235,8 @@ class TokenListModel: ObservableObject {
                         switch result {
                         case .success(let graphQLResult):
                             if let tokens = graphQLResult.data?.filterTokens?.results {
-                                let mappedTokens = tokens
+                                let mappedTokens =
+                                    tokens
                                     .sorted(by: { Double($0?.volume1 ?? "0") ?? 0 > Double($1?.volume1 ?? "0") ?? 0 })
                                     .map { elem in
                                         Token(
@@ -234,17 +244,27 @@ class TokenListModel: ObservableObject {
                                             name: elem?.token?.info?.name,
                                             symbol: elem?.token?.info?.symbol,
                                             description: elem?.token?.info?.description,
-                                            imageUri: elem?.token?.info?.imageLargeUrl ?? elem?.token?.info?.imageSmallUrl ?? elem?.token?.info?.imageThumbUrl,
+                                            imageUri: elem?.token?.info?.imageLargeUrl ?? elem?.token?.info?
+                                                .imageSmallUrl
+                                                ?? elem?.token?.info?.imageThumbUrl,
                                             liquidity: Double(elem?.liquidity ?? "0"),
                                             marketCap: Double(elem?.marketCap ?? "0"),
                                             volume: Double(elem?.volume1 ?? "0"),
                                             pairId: elem?.pair?.id,
-                                            socials: (discord: elem?.token?.socialLinks?.discord, instagram: elem?.token?.socialLinks?.instagram, telegram: elem?.token?.socialLinks?.telegram, twitter: elem?.token?.socialLinks?.twitter, website: elem?.token?.socialLinks?.website),
+                                            socials: (
+                                                discord: elem?.token?.socialLinks?.discord,
+                                                instagram: elem?.token?.socialLinks?.instagram,
+                                                telegram: elem?.token?.socialLinks?.telegram,
+                                                twitter: elem?.token?.socialLinks?.twitter,
+                                                website: elem?.token?.socialLinks?.website
+                                            ),
                                             uniqueHolders: nil
                                         )
                                     }
-                                
-                                let currentToken = mappedTokens.first(where: { $0.id == self.currentTokenModel.tokenId })
+
+                                let currentToken = mappedTokens.first(where: {
+                                    $0.id == self.currentTokenModel.tokenId
+                                })
                                 return (mappedTokens, currentToken)
                             }
                             return ([], nil)
@@ -253,21 +273,21 @@ class TokenListModel: ObservableObject {
                             return ([], nil)
                         }
                     }()
-                    
+
                     self.fetching = false
-                    
+
                     // Update UI on main thread
                     Task { @MainActor in
                         self.isLoading = false
                         self.availableTokens = processedData.0
                         self.updateTokens()
-                        
+
                         if let currentToken = processedData.1 {
                             self.currentTokenModel.updateTokenDetails(from: currentToken)
                         }
                     }
                 }
-                
+
                 continuation.resume()
             }
         }
@@ -295,11 +315,14 @@ class TokenListModel: ObservableObject {
 
         if hours > 1 {
             return "past \(hours) hours"
-        } else if hours > 0 {
+        }
+        else if hours > 0 {
             return "past hour"
-        } else if minutes > 1 {
+        }
+        else if minutes > 1 {
             return "past \(minutes) minutes"
-        } else {
+        }
+        else {
             return "past minute"
         }
     }
@@ -310,24 +333,20 @@ class TokenListModel: ObservableObject {
             let currentToken = tokens[safe: currentTokenIndex]
         else { return }
 
-        let dwellTimeMs = Int(Date().timeIntervalSince(startTime) * 1000)  // Convert to milliseconds
+        Task {
+            let dwellTimeMs = Int(Date().timeIntervalSince(startTime) * 1000)  // Convert to milliseconds
 
-        Network.shared.recordClientEvent(
-            event: ClientEvent(
-                eventName: "token_dwell_time",
-                source: "token_list_model",
-                metadata: [
-                    ["token_id": currentToken.id],
-                    ["dwell_time_ms": dwellTimeMs],
-                ]
+            try? await Network.shared.recordClientEvent(
+                event: ClientEvent(
+                    eventName: "token_dwell_time",
+                    source: "token_list_model",
+                    metadata: [
+                        ["token_id": currentToken.id],
+                        ["dwell_time_ms": dwellTimeMs],
+                    ]
+                )
             )
-        ) { result in
-            switch result {
-            case .success:
-                print("Successfully recorded token dwell time")
-            case .failure(let error):
-                print("Failed to record token dwell time: \(error)")
-            }
+            print("Recorded token dwell time")
         }
     }
 }

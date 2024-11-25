@@ -1,15 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "discord-logo-icon-vector-illustration_895118-14117.jpg",
+      "filename" : "discord_icon.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
+      "filename" : "discord_icon@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
+      "filename" : "discord_icon@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }
