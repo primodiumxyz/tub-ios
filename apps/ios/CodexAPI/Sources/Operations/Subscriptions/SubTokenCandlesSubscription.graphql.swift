@@ -7,7 +7,7 @@ public class SubTokenCandlesSubscription: GraphQLSubscription {
   public static let operationName: String = "SubTokenCandles"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"subscription SubTokenCandles($pairId: String!) { onBarsUpdated(pairId: $pairId) { __typename aggregates { __typename r1 { __typename token { __typename o h l c v t } } } } }"#
+      #"subscription SubTokenCandles($pairId: String!) { onBarsUpdated(pairId: $pairId) { __typename aggregates { __typename r1 { __typename usd { __typename o h l c v t } } } } }"#
     ))
 
   public var pairId: String
@@ -72,16 +72,16 @@ public class SubTokenCandlesSubscription: GraphQLSubscription {
           public static var __parentType: any ApolloAPI.ParentType { CodexAPI.Objects.CurrencyBarData }
           public static var __selections: [ApolloAPI.Selection] { [
             .field("__typename", String.self),
-            .field("token", Token.self),
+            .field("usd", Usd.self),
           ] }
 
-          /// Bar chart data in the network's base token.
-          public var token: Token { __data["token"] }
+          /// Bar chart data in USD.
+          public var usd: Usd { __data["usd"] }
 
-          /// OnBarsUpdated.Aggregates.R1.Token
+          /// OnBarsUpdated.Aggregates.R1.Usd
           ///
           /// Parent Type: `IndividualBarData`
-          public struct Token: CodexAPI.SelectionSet {
+          public struct Usd: CodexAPI.SelectionSet {
             public let __data: DataDict
             public init(_dataDict: DataDict) { __data = _dataDict }
 

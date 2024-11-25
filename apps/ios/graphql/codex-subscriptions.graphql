@@ -19,7 +19,7 @@ subscription SubTokenCandles($pairId: String!) {
   onBarsUpdated(pairId: $pairId) {
     aggregates {
       r1 {
-        token {
+        usd {
           o
           h
           l

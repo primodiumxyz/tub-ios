@@ -60,19 +60,19 @@ class CodexTokenManager: ObservableObject {
 
     private func fetchToken(hard: Bool) async throws -> CodexTokenData {
         var codexToken: CodexTokenData?
-        if let localToken = localCodexToken, hard != true {
-            codexToken = localToken
+        //        if let localToken = localCodexToken, hard != true {
+        //            codexToken = localToken
+        //        }
+        //        else {
+        do {
+            print("fetching new token...")
+            codexToken = try await Network.shared.requestCodexToken(Int(tokenExpiration) * 1000)
         }
-        else {
-            do {
-                print("fetching new token...")
-                codexToken = try await Network.shared.requestCodexToken(Int(tokenExpiration) * 1000)
-            }
-            catch {
-                print(error)
-                throw error
-            }
+        catch {
+            print(error)
+            throw error
         }
+        //        }
         guard let codexToken = codexToken else {
             throw TubError.networkFailure
         }
@@ -122,7 +122,7 @@ class CodexTokenManager: ObservableObject {
             }
 
             let codexToken = refetch ? try await fetchToken(hard: true) : oldCodexToken
-            CodexNetwork.initialize(apiKey: codexToken.token)
+            await CodexNetwork.initialize(apiKey: codexToken.token)
             await MainActor.run {
                 self.localCodexToken = CodexTokenData(token: codexToken.token, expiry: codexToken.expiry)
                 self.retryCount = 0

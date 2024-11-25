@@ -39,7 +39,7 @@ struct OtpModifer: ViewModifier {
             .overlay(
                 RoundedRectangle(cornerRadius: 5)
                     .stroke(
-                        isFocused ? AppColors.primaryPink : Color.gray,  // Change color as needed
+                        isFocused ? Color("pink") : Color.gray,  
                         lineWidth: isFocused ? 4 : 1
                     )
             )

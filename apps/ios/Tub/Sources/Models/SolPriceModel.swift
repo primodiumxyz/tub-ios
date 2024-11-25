@@ -5,38 +5,93 @@
 //  Created by Henry on 10/23/24.
 //
 
+import CodexAPI
 import Foundation
 
 final class SolPriceModel: ObservableObject {
     static let shared = SolPriceModel()
 
-    @Published var isReady = true
+    @Published var isReady = false
     @Published var price: Double? = nil
     @Published var error: String?
+
+    private var timer: Timer?
+    private var fetching = false
+    private let updateInterval: TimeInterval = 10  // Update every 10 seconds
 
     init() {
         Task {
             await fetchCurrentPrice()
+            startPriceUpdates()
         }
+    }
+
+    deinit {
+        timer?.invalidate()
+        timer = nil
+    }
+
+    private func startPriceUpdates() {
+        timer?.invalidate()
+        timer = nil
+
+        timer = Timer.scheduledTimer(withTimeInterval: updateInterval, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            if !self.fetching {
+                Task {
+                    await self.fetchCurrentPrice()
+                }
+            }
+        }
+        RunLoop.main.add(timer!, forMode: .common)
     }
 
     // this comment ensures that the fetchCurrentPrice function is executing on the main thread
     @MainActor
     func fetchCurrentPrice() async {
-        error = nil
-        isReady = false
+        guard !fetching else {
+            return
+        }
 
-        Task(priority: .userInitiated) {
-            do {
-                let price = try await Network.shared.fetchSolPrice()
-                await MainActor.run {
-                    self.price = price
+        fetching = true
+        defer { fetching = false }
+
+        error = nil
+
+        let client = await CodexNetwork.shared.apolloClient
+        let input = GetPriceInput(
+            address: WSOL_ADDRESS,
+            networkId: NETWORK_FILTER
+        )
+
+        let query = GetTokenPricesQuery(inputs: [input])
+
+        do {
+            try await withCheckedThrowingContinuation { continuation in
+                client.fetch(query: query) { result in
+                    Task { @MainActor in
+                        switch result {
+                        case .success(let response):
+                            if let prices = response.data?.getTokenPrices,
+                                let firstPrice = prices.first,
+                                let price = firstPrice?.priceUsd
+                            {
+                                self.price = price
+                                continuation.resume()
+                            }
+                            else {
+                                continuation.resume(throwing: TubError.parsingError)
+                            }
+                        case .failure(let error):
+                            continuation.resume(throwing: error)
+                        }
+                    }
                 }
             }
-            catch {
-                self.error = error.localizedDescription
-                print("Error fetching SOL price: \(error.localizedDescription)")
-            }
+        }
+        catch {
+            self.error = error.localizedDescription
+            print("Error fetching SOL price: \(error.localizedDescription)")
         }
 
         self.isReady = true

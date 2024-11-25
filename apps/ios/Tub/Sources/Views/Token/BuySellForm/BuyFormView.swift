@@ -103,26 +103,19 @@ struct BuyFormView: View {
     }
 
     private var buyButton: some View {
-        Button(action: {
-            Task { await handleBuy() }
-        }) {
-            HStack {
-                Text("Buy")
-                    .font(.sfRounded(size: .xl, weight: .semibold))
-                    .foregroundColor(AppColors.aquaGreen)
-                    .multilineTextAlignment(.center)
+        OutlineButton(
+            text: "Buy",
+            textColor: Color("aquaGreen"),
+            strokeColor: Color("aquaGreen"),
+            backgroundColor: .clear,
+            maxWidth: .infinity,
+            action: {
+                Task {
+                    await handleBuy()
+                }
             }
-            .disabled((userModel.balanceLamps ?? 0) < priceModel.usdToLamports(usd: buyAmountUsd))
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .cornerRadius(30)
-            .overlay(
-                RoundedRectangle(cornerRadius: 30)
-                    .inset(by: 0.5)
-                    .stroke(AppColors.aquaGreen, lineWidth: 1)
-            )
-        }
+        )
+        .disabled((userModel.balanceLamps ?? 0) < priceModel.usdToLamports(usd: buyAmountUsd))
     }
 
     private var numberInput: some View {
@@ -131,12 +124,13 @@ struct BuyFormView: View {
                 Spacer()
                 Text("$")
                     .font(.sfRounded(size: .xl4, weight: .bold))
-                    .foregroundColor(AppColors.white)
+                    .foregroundStyle(Color.white)
 
                 TextField(
                     "",
                     text: $buyAmountUsdString,
-                    prompt: Text("10", comment: "placeholder").foregroundColor(AppColors.white.opacity(0.3))
+                    prompt: Text("10", comment: "placeholder")
+                    .foregroundStyle(Color.white.opacity(0.3))
                 )
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.leading)
@@ -173,7 +167,7 @@ struct BuyFormView: View {
                     }
                 }
                 .font(.sfRounded(size: .xl5, weight: .bold))
-                .foregroundColor(isValidInput ? .white : .red)
+                .foregroundStyle(isValidInput ? Color.white : Color.red)
                 .frame(minWidth: 50)
                 .fixedSize()
                 Spacer()
@@ -192,10 +186,10 @@ struct BuyFormView: View {
                 HStack(spacing: 4) {
                     Text("Set Default")
                         .font(.sfRounded(size: .base, weight: .regular))
-                        .foregroundColor(isDefaultOn ? AppColors.white : AppColors.gray)
+                        .foregroundStyle(isDefaultOn ? Color.white : Color.gray)
 
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(isDefaultOn ? AppColors.green : AppColors.gray)
+                        .foregroundStyle(isDefaultOn ? Color.green : Color.gray)
                 }
             }
         }
@@ -204,26 +198,17 @@ struct BuyFormView: View {
     private var amountButtons: some View {
         HStack(spacing: 10) {
             ForEach([10, 25, 50, 100], id: \.self) { amount in
-                amountButton(for: amount)
+                CapsuleButton(
+                    text: amount == 100 ? "MAX" : "\(amount)%",
+                    action: {
+                        guard let balance = userModel.balanceLamps else { return }
+                        updateBuyAmount(balance * amount / 100)
+                    }
+                )
             }
         }
     }
 
-    private func amountButton(for pct: Int) -> some View {
-        Button(action: {
-            guard let balance = userModel.balanceLamps else { return }
-
-            updateBuyAmount(balance * pct / 100)
-        }) {
-            Text(pct == 100 ? "MAX" : "\(pct)%")
-                .font(.sfRounded(size: .base, weight: .bold))
-                .foregroundColor(AppColors.white)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 9)
-                .background(AppColors.white.opacity(0.15))
-                .clipShape(Capsule())
-        }
-    }
 }
 
 func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String)

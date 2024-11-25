@@ -13,20 +13,24 @@ struct ActionButtonsView: View {
     @EnvironmentObject var priceModel: SolPriceModel
     @ObservedObject var tokenModel: TokenModel
     @Binding var showBuySheet: Bool
-    @StateObject private var animationState = TokenAnimationState.shared
     @StateObject private var settingsManager = SettingsManager.shared
     @State private var isLoginPresented = false
+
+    @Binding var showBubbles: Bool
+
     var handleBuy: (Double) async -> Void
     var onSellSuccess: (() -> Void)?
 
     init(
         tokenModel: TokenModel,
         showBuySheet: Binding<Bool>,
+        showBubbles: Binding<Bool>,
         handleBuy: @escaping (Double) async -> Void,
         onSellSuccess: (() -> Void)? = nil
     ) {
         self.tokenModel = tokenModel
         self._showBuySheet = showBuySheet
+        self._showBubbles = showBubbles
         self.handleBuy = handleBuy
         self.onSellSuccess = onSellSuccess
     }
@@ -41,10 +45,6 @@ struct ActionButtonsView: View {
         if settingsManager.isVibrationEnabled {
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.success)
-            print("🟢 Haptic feedback triggered")
-        }
-        else {
-            print("🔴 Haptic feedback disabled")
         }
 
         guard let tokenPrice = tokenModel.prices.last?.priceUsd else {
@@ -56,7 +56,7 @@ struct ActionButtonsView: View {
         do {
             try await userModel.sellTokens(price: priceLamps)
             await MainActor.run {
-                animationState.showSellBubbles = true
+                showBubbles = true
                 onSellSuccess?()
             }
         }
@@ -84,15 +84,13 @@ struct ActionButtonsView: View {
                     }
                     else {
                         HStack(spacing: 16) {
-                            Button {
-                                showBuySheet = true
-                            } label: {
-                                Image(systemName: "pencil")
-                                    .font(.system(size: 20, weight: .bold))
-                                    .foregroundColor(AppColors.aquaGreen)
-                                    .padding(12)
-                                    .background(Circle().stroke(AppColors.aquaGreen, lineWidth: 1))
-                            }
+                            CircleButton(
+                                icon: "pencil",
+                                color: Color("aquaGreen"),
+                                iconSize: 20,
+                                iconWeight: .bold,
+                                action: { showBuySheet = true }
+                            )
                             
                             // The mint color "Buy $10" button
                             BuyButton(handleBuy: handleBuy)
@@ -128,17 +126,14 @@ struct ActionButtonsView: View {
 private struct LoginButton: View {
     @Binding var isLoginPresented: Bool
     var body: some View {
-        Button {
-            isLoginPresented = true
-        } label: {
-            HStack(alignment: .center, spacing: 8) {
-                Text("Login to Buy")
-                    .font(.sfRounded(size: .xl, weight: .semibold))
-                    .foregroundColor(AppColors.black)
-                    .multilineTextAlignment(.center)
-            }
-            .tubButtonStyle()
-        }
+        PrimaryButton(
+            text: "Login to Buy",
+            textColor: Color.black,
+            backgroundColor: Color("aquaGreen"),
+            strokeColor: Color("aquaGreen"),
+            maxWidth: .infinity,
+            action: { isLoginPresented = true }
+        )
     }
 }
 
@@ -159,7 +154,7 @@ private struct ConnectButton: View {
             HStack(alignment: .center, spacing: 8) {
                 Text("Connect to Wallet")
                     .font(.sfRounded(size: .xl, weight: .semibold))
-                    .foregroundColor(AppColors.black)
+                    .foregroundColor(Color.black)
                     .multilineTextAlignment(.center)
             }
             .tubButtonStyle()
@@ -173,7 +168,7 @@ private struct ConnectingButton: View {
             HStack(alignment: .center, spacing: 8) {
                 Text("Connecting...")
                     .font(.sfRounded(size: .xl, weight: .semibold))
-                    .foregroundColor(AppColors.black)
+                    .foregroundColor(Color.black)
                     .multilineTextAlignment(.center)
             }
             .tubButtonStyle()
@@ -197,19 +192,19 @@ private struct AirdropButton: View {
         }
     }
     var body: some View {
-        Button(action: {
-            Task {
-                await handleAirdrop()
+        PrimaryButton(
+            text: "Get 1 test SOL",
+            textColor: Color.black,
+            backgroundColor: Color("aquaGreen"),
+            strokeColor: Color("aquaGreen"),
+            maxWidth: .infinity,
+            action: {
+                Task {
+                    await handleAirdrop()
+                }
             }
-        }) {
-            HStack(alignment: .center, spacing: 8) {
-                Text("Get 1 test SOL")
-                    .font(.sfRounded(size: .xl, weight: .semibold))
-                    .foregroundColor(AppColors.black)
-                    .multilineTextAlignment(.center)
-            }
-            .tubButtonStyle()
-        }
+        )
+        .padding(.horizontal, 8)
         .sheet(isPresented: $showOnrampView) {
             CoinbaseOnrampView()
         }
@@ -225,19 +220,16 @@ private struct BuyButton: View {
     var handleBuy: (Double) async -> Void
 
     var body: some View {
-        Button(action: {
-            Task {
-                await handleBuy(settingsManager.defaultBuyValue)
+        PrimaryButton(
+            text: "Buy \(priceModel.formatPrice(usd: settingsManager.defaultBuyValue))",
+            textColor: Color.black,
+            backgroundColor: Color("aquaGreen"),
+            action: {
+                Task {
+                    await handleBuy(settingsManager.defaultBuyValue)
+                }
             }
-        }) {
-            HStack(alignment: .center, spacing: 8) {
-                Text("Buy \(priceModel.formatPrice(usd: settingsManager.defaultBuyValue))")
-                    .font(.sfRounded(size: .xl, weight: .semibold))
-                    .foregroundColor(AppColors.black)
-                    .multilineTextAlignment(.center)
-            }
-            .tubButtonStyle()
-        }
+        )
     }
 }
 
@@ -250,6 +242,7 @@ private struct BuyButton: View {
     ActionButtonsView(
         tokenModel: TokenModel(),
         showBuySheet: $show,
+        showBubbles: Binding.constant(false),
         handleBuy: { _ in },
         onSellSuccess: nil
     )
@@ -274,12 +267,12 @@ extension View {
             .frame(maxWidth: .infinity)
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(AppColors.aquaGreen)
+            .background(Color("aquaGreen"))
             .cornerRadius(30)
             .overlay(
                 RoundedRectangle(cornerRadius: 30)
                     .inset(by: 0.5)
-                    .stroke(AppColors.aquaGreen, lineWidth: 1)
+                    .stroke(Color("aquaGreen"), lineWidth: 1)
             )
     }
 }
