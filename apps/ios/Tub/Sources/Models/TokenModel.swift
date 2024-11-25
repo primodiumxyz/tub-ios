@@ -295,7 +295,14 @@ class TokenModel: ObservableObject {
                 guard let self = self else { return }
 
                 Task {
-                    self.candles = try await self.fetchInitialCandles()
+                    let candles = try? await self.fetchInitialCandles()
+                    DispatchQueue.main.async {
+                        if let candles = candles {
+                            self.candles = candles
+                        } else {
+                            self.candles = [CandleData]()
+                        }
+                    }
                 }
             }
         }
