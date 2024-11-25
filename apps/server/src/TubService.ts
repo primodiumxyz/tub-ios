@@ -216,27 +216,34 @@ export class TubService {
     return { token: `Bearer ${token}`, expiry };
   }
 
-  async get1USDCToSOLTransaction(jwtToken: string) {
-    const USDC_amount = 1e6; // 1 USDC
-    
+  // Now let's add the fetchSwap method
+  async fetchSwap(jwtToken: string, request: UserPrebuildSwapRequest): Promise<PrebuildSwapResponse> {
+    // console.log(`[fetchSwap] Processing swap request:`, {
+    //   buyTokenId: request.buyTokenId,
+    //   sellTokenId: request.sellTokenId,
+    //   sellQuantity: request.sellQuantity?.toString()
+    // });
+  
     const userId = await this.verifyJWT(jwtToken);
+    // console.log(`[fetchSwap] Verified user ID: ${userId}`);
+
     const userWallet = await this.getUserWallet(userId);
     if (!userWallet) {
       throw new Error("User does not have a wallet registered with Privy");
     }
-    const userPublicKey = new PublicKey(userWallet);
+    // console.log(`[fetchSwap] User wallet address: ${userWallet}`);
 
+    const userPublicKey = new PublicKey(userWallet);
+    
     // Derive token accounts
     const derivedAccounts = await this.deriveTokenAccounts(
       userPublicKey,
-      SOL_MAINNET_PUBLIC_KEY.toString(),
-      USDC_MAINNET_PUBLIC_KEY.toString()
+      request.buyTokenId,
+      request.sellTokenId
     );
-
+    
     const activeRequest: ActiveSwapRequest = {
-      buyTokenId: SOL_MAINNET_PUBLIC_KEY.toString(),
-      sellTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
-      sellQuantity: USDC_amount,
+      ...request,
       ...derivedAccounts,
       userPublicKey
     };
@@ -246,7 +253,16 @@ export class TubService {
       throw new Error("Failed to build swap response");
     }
 
+    console.log(`[fetchSwap] Successfully built swap for user ${userId}`);
     return response;
+  }
+
+  async get1USDCToSOLTransaction(jwtToken: string) {
+    return this.fetchSwap(jwtToken, {
+      buyTokenId: SOL_MAINNET_PUBLIC_KEY.toString(),
+      sellTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
+      sellQuantity: 1e6 // 1 USDC
+    });
   }
 
   /**
@@ -638,46 +654,5 @@ export class TubService {
       console.error("[buildSwapResponse] Error:", error);
       throw error;
     }
-  }
-
-  // Now let's add the fetchSwap method
-  async fetchSwap(jwtToken: string, request: UserPrebuildSwapRequest): Promise<PrebuildSwapResponse> {
-    // console.log(`[fetchSwap] Processing swap request:`, {
-    //   buyTokenId: request.buyTokenId,
-    //   sellTokenId: request.sellTokenId,
-    //   sellQuantity: request.sellQuantity?.toString()
-    // });
-
-    const userId = await this.verifyJWT(jwtToken);
-    // console.log(`[fetchSwap] Verified user ID: ${userId}`);
-
-    const userWallet = await this.getUserWallet(userId);
-    if (!userWallet) {
-      throw new Error("User does not have a wallet registered with Privy");
-    }
-    // console.log(`[fetchSwap] User wallet address: ${userWallet}`);
-
-    const userPublicKey = new PublicKey(userWallet);
-    
-    // Derive token accounts
-    const derivedAccounts = await this.deriveTokenAccounts(
-      userPublicKey,
-      request.buyTokenId,
-      request.sellTokenId
-    );
-    
-    const activeRequest: ActiveSwapRequest = {
-      ...request,
-      ...derivedAccounts,
-      userPublicKey
-    };
-
-    const response = await this.buildSwapResponse(activeRequest);
-    if (!response) {
-      throw new Error("Failed to build swap response");
-    }
-
-    console.log(`[fetchSwap] Successfully built swap for user ${userId}`);
-    return response;
   }
 }
