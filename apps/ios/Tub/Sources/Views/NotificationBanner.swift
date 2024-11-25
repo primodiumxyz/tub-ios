@@ -28,7 +28,7 @@ struct NotificationBanner: ViewModifier {
 
                                 Button(action: notificationHandler.hide) {
                                     Image(systemName: "xmark")
-                                        .foregroundStyle(.primary)
+                                        .foregroundStyle(Color.primary)
                                 }
                             }
                             .padding(.horizontal, 16)

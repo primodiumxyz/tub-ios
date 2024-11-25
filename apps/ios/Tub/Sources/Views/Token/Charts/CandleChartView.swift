@@ -94,11 +94,11 @@ struct CandleChartView: View {
     private func yAxisConfig() -> some AxisContent {
         AxisMarks(position: .leading) { value in
             AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
-                .foregroundStyle(Color.white.opacity(0.2))
+                .foregroundStyle(Color.primary.opacity(0.2))
             AxisValueLabel {
                 if let doubleValue = value.as(Double.self) {
                     Text(priceModel.formatPrice(usd: doubleValue, maxDecimals: 6))
-                        .foregroundStyle(Color.white.opacity(0.5))
+                        .foregroundStyle(Color.primary.opacity(0.5))
                 }
             }
         }
@@ -109,7 +109,7 @@ struct CandleChartView: View {
             // show the first 6 labels (after that it gets cutoff
             if value.index <= 6 {
                 AxisValueLabel(format: .dateTime.hour().minute())
-                    .foregroundStyle(.white.opacity(0.5))
+                    .foregroundStyle(.primary.opacity(0.5))
             }
         }
     }

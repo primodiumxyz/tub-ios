@@ -108,8 +108,8 @@ struct BuyForm: View {
     private var buyButton: some View {
         OutlineButton(
             text: "Buy",
-            textColor: Color("aquaGreen"),
-            strokeColor: Color("aquaGreen"),
+            textColor: .accent,
+            strokeColor: .accent,
             backgroundColor: .clear,
             maxWidth: .infinity,
             action: {
@@ -127,7 +127,7 @@ struct BuyForm: View {
                 Spacer()
                 Text("$")
                     .font(.sfRounded(size: .xl4, weight: .bold))
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(.white)
 
                 TextField(
                     "",
@@ -192,7 +192,7 @@ struct BuyForm: View {
                 HStack(spacing: 4) {
                     Text("Set Default")
                         .font(.sfRounded(size: .base, weight: .regular))
-                        .foregroundStyle(isDefaultOn ? .primary : .secondary)
+                        .foregroundStyle(isDefaultOn ? .white : .secondary)
 
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(isDefaultOn ? Color.green : .secondary)

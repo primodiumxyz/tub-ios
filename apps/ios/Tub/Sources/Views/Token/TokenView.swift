@@ -352,7 +352,7 @@ struct TokenView: View {
         Group {
             if showInfoCard {
                 // Fullscreen tap dismiss
-                Color.black.opacity(0.2)
+                Color(UIColor.systemBackground).opacity(0.2)
                     .ignoresSafeArea()
                     .onTapGesture {
                         withAnimation(.easeInOut) {
@@ -375,7 +375,7 @@ struct TokenView: View {
         }
         return AnyView(
             Group {
-                Color.black.opacity(0.4)
+                Color(UIColor.systemBackground).opacity(0.4)
                     .ignoresSafeArea()
                     .onTapGesture {
                         withAnimation(.easeInOut(duration: 0.3)) {
