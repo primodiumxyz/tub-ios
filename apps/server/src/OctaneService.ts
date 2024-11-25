@@ -112,26 +112,16 @@ export class OctaneService {
       const quote = await this.getQuote(quoteAndSwapParams);
       console.dir(quote, { depth: null });
 
-      // Log the API instance details
-      console.log("[getQuoteAndSwapInstructions] API Configuration:", {
-        basePath: (this.jupiterQuoteApi as any).configuration?.basePath,
-        availableMethods: Object.keys(this.jupiterQuoteApi)
-      });
-
-      console.log("[getQuoteAndSwapInstructions] User public key:", userPublicKey.toBase58());
-      console.log("[getQuoteAndSwapInstructions] User public key:", userPublicKey);
-
       const swapInstructionsRequest: SwapInstructionsPostRequest = {
         swapRequest: {
           quoteResponse: quote,
           userPublicKey: userPublicKey.toBase58(), // Make sure we're using toBase58()
+          asLegacyTransaction: true,
+          useSharedAccounts: false,
+          wrapAndUnwrapSol: true,
+          prioritizationFeeLamports: { "autoMultiplier": 3 }
         }
       };
-
-      console.log("[getQuoteAndSwapInstructions] Sending request:", {
-        url: `${(this.jupiterQuoteApi as any).configuration?.basePath}/swap-instructions`,
-        request: JSON.stringify(swapInstructionsRequest, null, 2)
-      });
 
       try {
         const swapInstructions = await this.jupiterQuoteApi.swapInstructionsPost(swapInstructionsRequest);
@@ -171,22 +161,154 @@ export class OctaneService {
   async buildCompleteSwap(swapInstructions: SwapInstructionsResponse | null, feeTransferInstruction: TransactionInstruction | null) {
     // !! TODO: add genesis hash checks et al. from buildWhirlpoolsSwapToSOL if we don't trust Jupiter API
     if (!swapInstructions) {
-        throw new Error("Swap instructions not found");
+      throw new Error("Swap instructions not found");
     }
 
-    const allInstructions = [
-        ...(feeTransferInstruction ? [feeTransferInstruction] : []),
-        ...(swapInstructions.setupInstructions ?? []),
-        swapInstructions.swapInstruction
-    ].filter((instruction): instruction is TransactionInstruction => instruction !== undefined);
+    console.log("[buildCompleteSwap] Building transaction with:", {
+      hasSetupInstructions: !!swapInstructions.setupInstructions?.length,
+      setupInstructionsCount: swapInstructions.setupInstructions?.length || 0,
+      hasSwapInstruction: !!swapInstructions.swapInstruction,
+      hasCleanupInstruction: !!swapInstructions.cleanupInstruction,
+      hasFeeTransfer: !!feeTransferInstruction
+    });
 
+    // Get blockhash first to ensure it's available
+    const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash();
+
+    // Create new transaction
     const transaction = new Transaction();
-    if (allInstructions.length > 0) {
-        transaction.add(...allInstructions);
-    }
     transaction.feePayer = this.feePayerKeypair.publicKey;
-    
-    transaction.recentBlockhash = (await this.connection.getLatestBlockhash()).blockhash;
+    transaction.recentBlockhash = blockhash;
+    transaction.lastValidBlockHeight = lastValidBlockHeight;
+
+    // Add fee transfer first (if any)
+    if (feeTransferInstruction) {
+      transaction.add(feeTransferInstruction);
+    }
+
+    // Add Jupiter's instructions in their original order
+    const jupiterInstructions = [
+      ...(swapInstructions.setupInstructions || []),
+      swapInstructions.swapInstruction,
+      swapInstructions.cleanupInstruction
+    ].filter(ix => ix !== null && ix !== undefined);
+
+    // Add all Jupiter instructions preserving their exact data
+    jupiterInstructions.forEach(instruction => {
+      // If this is an ATA creation instruction, modify it to use fee payer
+      if (instruction.programId === 'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL') {
+        // Modify the account metas to make fee payer pay for rent
+        const keys = instruction.accounts.map(acc => ({
+          pubkey: new PublicKey(acc.pubkey),
+          isSigner: acc.isSigner,
+          isWritable: acc.isWritable
+        }));
+
+        // Make fee payer the rent payer
+        keys[0] = {
+          pubkey: this.feePayerKeypair.publicKey,
+          isSigner: true,
+          isWritable: true
+        };
+
+        transaction.add(new TransactionInstruction({
+          programId: new PublicKey(instruction.programId),
+          keys,
+          data: Buffer.from(instruction.data, 'base64')
+        }));
+      } else if (instruction.programId === 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA') {
+        // Try to decode the instruction data
+        let instructionData: Buffer;
+        try {
+          instructionData = Buffer.from(instruction.data, 'base64');
+        } catch {
+          instructionData = Buffer.from(instruction.data, 'hex');
+        }
+
+        // Check if this is a CloseAccount instruction (opcode 9). If so, receive the residual funds as the FeePayer
+        if (instructionData.length === 1 && instructionData[0] === 9) {
+          // Modify the account metas to make fee payer receive the rent
+          const keys = instruction.accounts.map(acc => ({
+            pubkey: new PublicKey(acc.pubkey),
+            isSigner: acc.isSigner,
+            isWritable: acc.isWritable
+          }));
+
+          // Make fee payer the destination for rent refund
+          keys[1] = {
+            pubkey: this.feePayerKeypair.publicKey,
+            isSigner: false,
+            isWritable: true
+          };
+
+          transaction.add(new TransactionInstruction({
+            programId: new PublicKey(instruction.programId),
+            keys,
+            data: instructionData
+          }));
+        } else {
+          // Handle instruction data based on its type
+          let data: Buffer;
+          if (typeof instruction.data === 'string') {
+            // Try base64 first, then hex
+            try {
+              data = Buffer.from(instruction.data, 'base64');
+            } catch {
+              data = Buffer.from(instruction.data, 'hex');
+            }
+          } else if (Array.isArray(instruction.data)) {
+            data = Buffer.from(instruction.data);
+          } else {
+            // If it's not a string or array, assume it's already a Buffer
+            data = instruction.data;
+          }
+
+          transaction.add(new TransactionInstruction({
+            programId: new PublicKey(instruction.programId),
+            keys: instruction.accounts.map(acc => ({
+              pubkey: new PublicKey(acc.pubkey),
+              isSigner: acc.isSigner,
+              isWritable: acc.isWritable
+            })),
+            data
+          }));
+        }
+      } else {
+        // Handle instruction data based on its type
+        let data: Buffer;
+        if (typeof instruction.data === 'string') {
+          // Try base64 first, then hex
+          try {
+            data = Buffer.from(instruction.data, 'base64');
+          } catch {
+            data = Buffer.from(instruction.data, 'hex');
+          }
+        } else if (Array.isArray(instruction.data)) {
+          data = Buffer.from(instruction.data);
+        } else {
+          // If it's not a string or array, assume it's already a Buffer
+          data = instruction.data;
+        }
+
+        transaction.add(new TransactionInstruction({
+          programId: new PublicKey(instruction.programId),
+          keys: instruction.accounts.map(acc => ({
+            pubkey: new PublicKey(acc.pubkey),
+            isSigner: acc.isSigner,
+            isWritable: acc.isWritable
+          })),
+          data
+        }));
+      }
+    });
+
+    // Verify transaction can be serialized
+    try {
+      transaction.serialize({ requireAllSignatures: false });
+    } catch (error) {
+      console.error("[buildCompleteSwap] Failed to serialize transaction:", error);
+      throw error;
+    }
 
     return transaction;
   }
@@ -278,5 +400,37 @@ export class OctaneService {
       console.error("Error signing transaction without token fee:", e);
       throw new Error("Failed to sign transaction without token fee");
     }
+  }
+
+  private convertToTransactionInstruction(instruction: any): TransactionInstruction {
+    // Handle instruction data properly
+    let data: Buffer;
+    if (typeof instruction.data === 'string') {
+      // If it's a hex string, remove '0x' prefix if present
+      const hex = instruction.data.startsWith('0x') ? instruction.data.slice(2) : instruction.data;
+      data = Buffer.from(hex, 'hex');
+    } else if (Array.isArray(instruction.data)) {
+      // If it's a byte array
+      data = Buffer.from(instruction.data);
+    } else if (instruction.data instanceof Buffer) {
+      // If it's already a Buffer
+      data = instruction.data;
+    } else {
+      console.error('Invalid instruction data format:', instruction.data);
+      throw new Error('Invalid instruction data format');
+    }
+
+    // Map accounts with proper key conversion
+    const keys = instruction.accounts.map((account: { pubkey: string; isSigner: boolean; isWritable: boolean }) => ({
+      pubkey: new PublicKey(account.pubkey),
+      isSigner: account.isSigner,
+      isWritable: account.isWritable
+    }));
+
+    return new TransactionInstruction({
+      programId: new PublicKey(instruction.programId),
+      keys,
+      data
+    });
   }
 } 
