@@ -1,14 +1,16 @@
 import { Idl } from "@coral-xyz/anchor";
 import { ParsedInstruction } from "@shyft-to/solana-transaction-parser";
-import { Connection, ParsedAccountData, PublicKey } from "@solana/web3.js";
-import { Helius } from "helius-sdk";
+import { ParsedAccountData, PublicKey } from "@solana/web3.js";
 
-import { PRICE_PRECISION, PUMP_FUN_AUTHORITY, WRAPPED_SOL_MINT } from "@/lib/constants";
+import { GqlClient } from "@tub/gql";
+import { WRAPPED_SOL_MINT } from "@/lib/constants";
 import { RaydiumAmmParser, SwapBaseInArgs, SwapBaseOutArgs } from "@/lib/parsers/raydium-amm-parser";
-import { ParsedTokenBalanceInfo, PriceData, Swap, SwapType, TokenMetadata } from "@/lib/types";
+import { ParsedTokenBalanceInfo, Swap, SwapType, SwapWithPriceData } from "@/lib/types";
+
+import { connection } from "./setup";
 
 /* --------------------------------- DECODER -------------------------------- */
-export const decodeSwapData = <T extends SwapType = SwapType>(
+export const decodeSwapInfo = <T extends SwapType = SwapType>(
   // @ts-expect-error: type difference @coral-xyz/anchor -> @project-serum/anchor
   parsedIxs: ParsedInstruction<Idl, string>[],
   timestamp: number,
@@ -40,104 +42,122 @@ export const decodeSwapData = <T extends SwapType = SwapType>(
 };
 
 /* ------------------------------ PROCESS DATA ------------------------------ */
-export const processVaultsData = async <T extends SwapType = SwapType>(
-  connection: Connection,
-  helius: Helius,
-  vaultPairs: PublicKey[][],
+export const fetchPriceData = async <T extends SwapType = SwapType>(
   swaps: Swap<T>[],
-): Promise<{
-  tokensMetadata: TokenMetadata[];
-  priceData: PriceData[];
-}> => {
+): Promise<SwapWithPriceData<T>[]> => {
   // 1. Get parsed accounts for all vaults
-  const parsedAccounts = await connection.getMultipleParsedAccounts(vaultPairs.flat(), { commitment: "confirmed" });
-
-  // 2. Create a vault -> token mint/amount mapping
-  const vaultTokenMap = new Map(
-    parsedAccounts.value.map((account, i) => {
-      const key = vaultPairs.flat()[i]?.toString();
-      const info = (account?.data as ParsedAccountData | undefined)?.parsed.info as ParsedTokenBalanceInfo | undefined;
-      return [key, info];
-    }),
+  const parsedAccounts = await connection.getMultipleParsedAccounts(
+    swaps.map((swap) => [swap.vaultA, swap.vaultB]).flat(),
+    {
+      commitment: "confirmed",
+    },
   );
 
-  // 3. Get unique token mints
-  const uniqueTokenMints = Array.from(new Set(Array.from(vaultTokenMap.values()).map((info) => info?.mint))).filter(
-    (mint) => mint !== undefined,
+  // 2. Get account info for each token traded in each swap
+  const swapsWithAccountInfo = swaps.map((swap, i) => ({
+    ...swap,
+    mintA: (parsedAccounts.value[i * 2]?.data as ParsedAccountData | undefined)?.parsed.info as
+      | ParsedTokenBalanceInfo
+      | undefined,
+    mintB: (parsedAccounts.value[i * 2 + 1]?.data as ParsedAccountData | undefined)?.parsed.info as
+      | ParsedTokenBalanceInfo
+      | undefined,
+  }));
+
+  // 3. Get the price for each token traded in each swap (except for WSOL)
+  const uniqueMints = new Set(
+    swapsWithAccountInfo
+      .flatMap((swap) => [swap.mintA?.mint, swap.mintB?.mint])
+      .filter((mint): mint is string => !!mint && mint !== WRAPPED_SOL_MINT.toString()),
   );
 
-  // 4. Fetch token metadata for all unique token mints
-  const tokensMetadata = await getTokensMetadata(helius, uniqueTokenMints);
+  // 4. Fetch prices from Jupiter API
+  const priceResponse = await fetchWithRetry(
+    `https://public.jupiterapi.com/price?ids=${Array.from(uniqueMints).join(",")}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    },
+  );
 
-  // 5. Process swaps and calculate prices in one pass
-  const priceData = swaps
+  const priceData = (await priceResponse.json()) as {
+    data: Array<{
+      id: string;
+      price: number;
+    }>;
+  };
+
+  // 5. Create price lookup map
+  const priceMap = new Map(priceData.data.map((item) => [item.id, item.price]));
+
+  // 6. Map swaps to include price data
+  return swapsWithAccountInfo
     .map((swap) => {
-      const vaultAInfo = vaultTokenMap.get(swap.vaultA.toString());
-      const vaultBInfo = vaultTokenMap.get(swap.vaultB.toString());
-      return { ...calculatePrice(vaultAInfo, vaultBInfo), timestamp: swap.timestamp, swap: swap.args };
-    })
-    .filter((data) => !!data.mint) as PriceData[];
+      const tokenMint =
+        swap.mintA?.mint === WRAPPED_SOL_MINT.toString()
+          ? swap.mintB?.mint
+          : swap.mintB?.mint === WRAPPED_SOL_MINT.toString()
+            ? swap.mintA?.mint
+            : undefined;
+      if (!tokenMint) return;
 
-  return { tokensMetadata, priceData };
+      const price = priceMap.get(tokenMint);
+      if (price === undefined) return;
+
+      return {
+        vaultA: swap.vaultA,
+        vaultB: swap.vaultB,
+        type: swap.type,
+        args: swap.args,
+        timestamp: swap.timestamp,
+        mint: new PublicKey(tokenMint),
+        priceUsd: price,
+      };
+    })
+    .filter((swap): swap is SwapWithPriceData<T> => swap !== undefined);
 };
 
-const getTokensMetadata = async (helius: Helius, mints: string[]): Promise<TokenMetadata[]> => {
-  const tokensData = await helius.rpc.getAssetBatch({ ids: mints });
-  return tokensData.map((data) => {
-    const metadata = data.content?.metadata;
-    const tokenInfo = data.token_info;
-    const imageUri =
-      data.content?.links?.image ?? data.content?.files?.find((file) => file.mime?.startsWith("image"))?.uri;
+/* -------------------------------- DATABASE -------------------------------- */
+export const upsertTrades = async (gql: GqlClient["db"], trades: SwapWithPriceData[]) => {
+  await gql.UpsertTradesMutation({
+    trades: trades.map((trade) => {
+      const amount =
+        trade.type === SwapType.IN
+          ? (trade as SwapWithPriceData<SwapType.IN>).args.amountIn
+          : (trade as SwapWithPriceData<SwapType.OUT>).args.amountOut;
+      const volumeUsd = Number(amount) * trade.priceUsd;
 
-    // we need to explicitly cast to null to be able to insert null values in the DB
-    return {
-      mint: data.id,
-      metadata: {
-        name: metadata?.name?.slice(0, 255) || metadata?.symbol?.slice(0, 255) || null,
-        symbol: metadata?.symbol?.slice(0, 255) || metadata?.name?.slice(0, 255) || null,
-        description: metadata?.description || null,
-        imageUri: imageUri || null,
-      },
-      mintBurnt: !tokenInfo?.mint_authority || null,
-      freezeBurnt: !tokenInfo?.freeze_authority || null,
-      supply: tokenInfo?.supply || null,
-      decimals: tokenInfo?.decimals || null,
-      isPumpToken: data.authorities?.some((authority) => authority.address === PUMP_FUN_AUTHORITY.toString()) || null,
-    };
+      return {
+        ...trade,
+        volume_usd: volumeUsd.toString(),
+        token_price_usd: trade.priceUsd.toString(),
+      };
+    }),
   });
 };
 
-const calculatePrice = (
-  vaultAInfo: ParsedTokenBalanceInfo | undefined,
-  vaultBInfo: ParsedTokenBalanceInfo | undefined,
-) => {
-  if (!vaultAInfo || !vaultBInfo) return;
+/* ---------------------------------- UTILS --------------------------------- */
+export const fetchWithRetry = async (
+  input: RequestInfo | URL,
+  init?: RequestInit,
+  timeout = 300_000,
+): Promise<Response> => {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
 
-  // Separate Wrapped SOL (if it's present) and token swapped against WSOL
-  const wrappedSolInfo =
-    vaultAInfo.mint === WRAPPED_SOL_MINT.toString()
-      ? vaultAInfo
-      : vaultBInfo.mint === WRAPPED_SOL_MINT.toString()
-        ? vaultBInfo
-        : undefined;
-  if (!wrappedSolInfo) return;
-  const tokenInfo = wrappedSolInfo === vaultAInfo ? vaultBInfo : vaultAInfo;
-
-  const tokenPrice =
-    // If there is no token in the pool, we can consider the price to be 0
-    // This happens with tokens with no or close to 0 liquidity, or super botted,
-    // e.g. ECMYTGjvXWR3mb5RFEh3F1mAqFBe5EEe53A2n1F1sbpg or 5Jng6jkLKU1o8BNrCzTEMXMFvPjNJZTpdWR3Hq4RHJb6 (for reference)
-    tokenInfo.tokenAmount.amount === "0"
-      ? 0
-      : Number(
-          (BigInt(wrappedSolInfo.tokenAmount.amount) *
-            BigInt(PRICE_PRECISION) *
-            BigInt(10 ** tokenInfo.tokenAmount.decimals)) /
-            (BigInt(tokenInfo.tokenAmount.amount) * BigInt(10 ** wrappedSolInfo.tokenAmount.decimals)),
-        );
-
-  return {
-    mint: tokenInfo.mint,
-    price: tokenPrice,
-  };
+  try {
+    const response = await fetch(input, {
+      ...init,
+      signal: controller.signal,
+    });
+    clearTimeout(id);
+    return response;
+  } catch (error) {
+    clearTimeout(id);
+    console.error(`Fetch error: ${String(error)}. Retrying in 5 seconds...`);
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    return fetchWithRetry(input, init);
+  }
 };

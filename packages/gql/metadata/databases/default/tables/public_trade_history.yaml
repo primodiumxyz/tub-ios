@@ -5,8 +5,8 @@ select_permissions:
   - role: public
     permission:
       columns:
-        - token_price_lamports
-        - volume_lamports
+        - token_price_usd
+        - volume_usd
         - token_mint
         - created_at
         - id
