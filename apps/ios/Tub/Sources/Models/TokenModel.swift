@@ -70,11 +70,10 @@ class TokenModel: ObservableObject {
                 let maxAttempts = 3
                 
                 while attempts < maxAttempts {
-                    let client = await CodexNetwork.shared.apolloClient
                     
                     // Try fetching initial data
                     let prices = await fetchInitialPrices()
-                    let candles = await fetchInitialCandles()
+                    let candles = try await fetchInitialCandles()
                     
                     // Check if we got valid data
                     if !prices.isEmpty && !candles.isEmpty {
@@ -241,12 +240,12 @@ class TokenModel: ObservableObject {
         }
     }
 
-    private func fetchInitialCandles() async -> [CandleData] {
+    private func fetchInitialCandles() async throws -> [CandleData] {
         let client = await CodexNetwork.shared.apolloClient
         let now = Int(Date().timeIntervalSince1970)
         let startTime = now - Int(Timespan.candles.seconds)
-        
-        return try! await withCheckedThrowingContinuation { continuation in
+
+        return try await withCheckedThrowingContinuation { continuation in
             client.fetch(query: GetTokenCandlesQuery(
                 from: startTime,
                 to: now,
@@ -281,7 +280,7 @@ class TokenModel: ObservableObject {
                     continuation.resume(throwing: error)
                 }
             }
-        } ?? [] as! [CandleData]
+        }
     }
 
     private func subscribeToCandles() async {
@@ -296,7 +295,7 @@ class TokenModel: ObservableObject {
                 guard let self = self else { return }
 
                 Task {
-                    self.candles = await self.fetchInitialCandles()
+                    self.candles = try await self.fetchInitialCandles()
                 }
             }
         }
