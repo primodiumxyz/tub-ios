@@ -86,4 +86,9 @@ describe("Server Integration Tests", () => {
 
     expect(result).toBeDefined();
   });
+
+  it("should get the SOL/USD price", async () => {
+    const result = await client.getSolUsdPrice.query();
+    expect(result).toBeGreaterThan(0);
+  });
 });

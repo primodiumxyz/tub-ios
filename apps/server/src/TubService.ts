@@ -4,13 +4,24 @@ import { config } from "dotenv";
 
 config({ path: "../../.env" });
 
+const SOL_USD_UPDATE_INTERVAL = 10 * 1000; // 10 seconds
+
 export class TubService {
   private gql: GqlClient["db"];
   private privy: PrivyClient;
+  private solUsdPrice: number | undefined;
 
   constructor(gqlClient: GqlClient["db"], privy: PrivyClient) {
     this.gql = gqlClient;
     this.privy = privy;
+
+    // Update the SOL/USD price every 10 seconds
+    const interval = setInterval(() => {
+      this.updateSolUsdPrice();
+    }, SOL_USD_UPDATE_INTERVAL);
+    this.updateSolUsdPrice();
+
+    interval.unref(); // allow Node.js to exit if only this interval is still running
   }
 
   private verifyJWT = async (token: string) => {
@@ -131,5 +142,18 @@ export class TubService {
     }
 
     return id;
+  }
+
+  async getSolUsdPrice(): Promise<number | undefined> {
+    if (!this.solUsdPrice) await this.updateSolUsdPrice();
+    return this.solUsdPrice;
+  }
+
+  private async updateSolUsdPrice(): Promise<void> {
+    const res = await fetch(`${process.env.JUPITER_API_ENDPOINT}/price?ids=SOL`);
+    const data = (await res.json()) as { data: { [id: string]: { price: number } } };
+
+    this.solUsdPrice = data.data["SOL"]?.price;
+    console.log(`SOL/USD price updated: ${this.solUsdPrice?.toLocaleString("en-US", { maximumFractionDigits: 2 })}`);
   }
 }

@@ -71,6 +71,10 @@ export function createAppRouter() {
       .mutation(async ({ ctx, input }) => {
         return await ctx.tubService.recordClientEvent(input, ctx.jwtToken);
       }),
+
+    getSolUsdPrice: t.procedure.query(async ({ ctx }) => {
+      return await ctx.tubService.getSolUsdPrice();
+    }),
   });
 }
 
