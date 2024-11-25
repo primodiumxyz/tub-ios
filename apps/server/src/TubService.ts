@@ -410,7 +410,9 @@ export class TubService {
       transaction.addSignature(userPublicKey, userSignatureBytes);
 
       // In test environment, skip token fee validation
-      if (process.env.NODE_ENV === 'test') {
+      // !! TODO: Currently set to always be true. There's an error with Octane using an old RPC Method that no longer exists.
+      // Once fixed, this if/then can be removed.
+      if (true) {
         const feePayerSignature = await this.octane.signTransactionWithoutTokenFee(transaction);
         const feePayerSignatureBytes = Buffer.from(bs58.decode(feePayerSignature));
         transaction.addSignature(this.octane.getSettings().feePayerPublicKey, feePayerSignatureBytes);
