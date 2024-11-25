@@ -50,7 +50,7 @@ struct RegisterView: View {
                         dismiss()
                     } label: {
                         Text("Cancel")
-                            .foregroundStyle(Color.white)
+                            .foregroundStyle(.primary)
                             .padding(.horizontal)
                     }
                 }
@@ -68,42 +68,31 @@ struct RegisterView: View {
                     .scaledToFit()
                     .frame(width: 100, height: 100)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .padding(.horizontal, 10)
+                    .padding(.horizontal, 16)
 
                 Text("Welcome to tub")
                     .font(.sfRounded(size: .xl2, weight: .semibold))
-                    .foregroundStyle(Color.white)
-                    .padding(.horizontal, 10)
+                    .foregroundStyle(.primary)
+                    .padding(.horizontal, 16)
 
                 VStack(alignment: .leading, spacing: 10) {
                     TextField("Enter your email", text: $email)
                         .padding(.horizontal, 20)
                         .padding(.vertical, 10)
                         .frame(maxWidth: .infinity, minHeight: 50, alignment: .leading)
-                        .background(Color.white)
+                        .background(Color(UIColor.systemBackground))
+                        .foregroundColor(.primary)
                         .cornerRadius(30)
                         .keyboardType(.emailAddress)
-                        .foregroundStyle(Color.black)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 30)
+                                .stroke(.primary, lineWidth: 0.5)
+                        )
                         .onChange(of: email) { _, newValue in
                             isEmailValid = validateEmail(newValue)
-                            showEmailError = false
+                            showEmailError = !isEmailValid && !newValue.isEmpty
                         }
-
-                    PrimaryButton(
-                        text: "Continue",
-                        textColor: Color.white,
-                        backgroundColor: Color("purple"),
-                        strokeColor: Color("purple"),
-                        maxWidth: .infinity,
-                        action: {
-                            if isEmailValid {
-                                sendEmailOtp(email: email)
-                            }
-                        }
-                    )
-                    .disabled(!isEmailValid || sendingEmailOtp)
-                    .opacity(!isEmailValid || sendingEmailOtp ? 0.5 : 1.0)
-
+                    
                     // if email invalid
                     if showEmailError {
                         Text("Please enter a valid email address.")
@@ -119,6 +108,24 @@ struct RegisterView: View {
                             .padding(.top, -4)
                             .padding(.horizontal, 20)
                     }
+                    
+                    Spacer().frame(height: 20)
+
+                    PrimaryButton(
+                        text: "Continue",
+                        textColor: Color.white,
+                        backgroundColor: Color("pink"),
+                        strokeColor: Color.clear,
+                        maxWidth: .infinity,
+                        action: {
+                            if isEmailValid {
+                                sendEmailOtp(email: email)
+                            }
+                        }
+                    )
+                    .disabled(!isEmailValid || sendingEmailOtp)
+                    .opacity(!isEmailValid || sendingEmailOtp ? 0.8 : 1.0)
+
                 }
                 .padding(.horizontal)
                 // or divider line
@@ -127,18 +134,18 @@ struct RegisterView: View {
                         .frame(width: 153, height: 1)
                         .overlay(
                             Rectangle()
-                                .stroke(Color("grayLight"), lineWidth: 1)
+                                .stroke(.secondary.opacity(0.5), lineWidth: 0.5)
                         )
 
                     Text("or")
                         .font(.sfRounded(size: .base, weight: .semibold))
-                        .foregroundStyle(Color.white)
+                        .foregroundStyle(.secondary)
 
                     Divider()
                         .frame(width: 153, height: 1)
                         .overlay(
                             Rectangle()
-                                .stroke(Color("grayLight"), lineWidth: 1)
+                                .stroke(.secondary.opacity(0.5), lineWidth: 0.5)
                         )
                 }.frame(maxWidth: .infinity)
 
@@ -191,16 +198,18 @@ struct RegisterView: View {
                 IconTextButton(
                     icon: "phone.fill",
                     text: "Continue with Phone",
-                    textColor: Color.white,
+                    textColor: .primary,
                     action: { showPhoneModal = true }
                 )
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 10.0)
+                .padding(.top, 10.0)
+                .padding(.bottom, 5.0)
+
 
                 IconTextButton(
                     icon: "ladybug.fill",
                     text: "Dev Login",
-                    textColor: Color("grayLight"),
+                    textColor: .secondary,
                     action: {
                         Task {
                             do {
@@ -223,13 +232,13 @@ struct RegisterView: View {
                 SignInWithEmailView(email: $email)
                     .presentationDetents([.height(300)])
             }
-            .padding(.top, 80)
+            .padding(.top, 70)
         }
         .ignoresSafeArea(.keyboard)
         .scrollBounceBehavior(.basedOnSize, axes: [.vertical])
         .padding(.vertical)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(AppColors.darkBlueGradient)
+        .background(Color(UIColor.systemBackground))
         .onChange(of: userModel.userId) { _, newUserId in
             if newUserId != nil {
                 dismiss()

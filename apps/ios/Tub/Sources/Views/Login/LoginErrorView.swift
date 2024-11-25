@@ -35,17 +35,17 @@ struct LoginErrorView: View {
             Button(action: retryAction) {
                 Text("Try Again")
                     .font(.sfRounded(size: .lg, weight: .semibold))
-                    .foregroundStyle(Color.white)
+                    .foregroundStyle(.primary)
                     .frame(maxWidth: .infinity)
                     .padding(14)
-                    .background(Color("purple"))
+                    .background(.accent)
                     .cornerRadius(26)
             }
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.black)
-        .foregroundStyle(Color.white)
+        .background(Color(UIColor.systemBackground))
+        .foregroundStyle(.primary)
     }
 }
 

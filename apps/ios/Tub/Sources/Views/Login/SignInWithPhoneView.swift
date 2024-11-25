@@ -104,7 +104,7 @@ struct SignInWithPhoneView: View {
                 VStack {
                     Text("Enter verification code")
                         .font(.sfRounded(size: .lg, weight: .medium))
-                        .foregroundStyle(Color.white)
+                        .foregroundStyle(.primary)
                         .padding(.top, 16)
                         .padding(.horizontal, 20)
                 }
@@ -120,16 +120,24 @@ struct SignInWithPhoneView: View {
                     }
                     .pickerStyle(MenuPickerStyle())
                     .frame(width: 100, height: 50)
-                    .background(Color.white)
+                    .background(Color(UIColor.systemBackground))
                     .cornerRadius(30)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 30)
+                            .stroke(.primary, lineWidth: 0.5)
+                    )
 
                     TextField("Enter your Phone Number", text: formattedPhoneBinding)
                         .keyboardType(.phonePad)
                         .padding()
-                        .background(Color.white)
-                        .foregroundStyle(Color.black)
+                        .background(Color(UIColor.systemBackground))
+                        .foregroundStyle(.primary)
                         .frame(maxWidth: .infinity, maxHeight: 50, alignment: .leading)
                         .cornerRadius(30)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 30)
+                                .stroke(.primary, lineWidth: 0.5)
+                        )
                         .onChange(of: phoneNumber) {
                             showPhoneError = false
                         }
@@ -142,7 +150,7 @@ struct SignInWithPhoneView: View {
                         .foregroundStyle(Color.white)
                         .frame(maxWidth: .infinity)
                         .padding(14)
-                        .background(Color("purple"))
+                        .background(Color("pink"))
                         .cornerRadius(26)
                 }
                 .disabled(signingIn)
@@ -157,7 +165,7 @@ struct SignInWithPhoneView: View {
             }
         }
         .frame(maxHeight: .infinity)
-        .background(Color.black)
+        .background(Color(UIColor.systemBackground))
 
         .dismissKeyboardOnTap()
     }
