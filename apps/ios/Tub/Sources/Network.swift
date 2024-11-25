@@ -104,6 +104,7 @@ class Network {
 
         // First, try to decode as an error response
         if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
+            print("Error decoding data", errorResponse)
             throw TubError.parsingError
         }
 
@@ -182,6 +183,11 @@ class Network {
         let res: CodexTokenResponse = try await callProcedure("requestCodexToken", input: input)
         return CodexTokenData(token: res.token, expiry: res.expiry)
     }
+
+    func getTestTx() async throws -> TxResponse {
+        let res: TxResponse = try await callProcedure("get1USDCToSOLTransaction")
+        return res
+    }
 }
 
 // MARK: - Response Types
@@ -190,6 +196,15 @@ struct ResponseWrapper<T: Codable>: Codable {
         let data: T
     }
     let result: ResultWrapper
+}
+
+struct TxResponse: Codable {
+    let transactionBase64: String
+    let buyTokenId: String
+    let sellTokenId: String
+    let sellQuantity: Int
+    let hasFee: Bool
+    let timestamp: Int
 }
 
 private struct ErrorResponse: Codable {

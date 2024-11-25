@@ -123,7 +123,13 @@
     "History" : {
 
     },
+    "loading..." : {
+
+    },
     "Low" : {
+
+    },
+    "no data" : {
 
     },
     "No transactions found" : {
@@ -177,6 +183,9 @@
     "Stats" : {
 
     },
+    "Submit Transaction" : {
+
+    },
     "Support" : {
 
     },
@@ -210,6 +219,9 @@
           }
         }
       }
+    },
+    "Your Balance" : {
+
     }
   },
   "version" : "1.0"
