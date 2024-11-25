@@ -38,7 +38,7 @@ export const decodeSwapInfo = <T extends SwapType = SwapType>(
       return {
         vaultA,
         vaultB,
-        type: (ix.name.toLowerCase() === "swapBaseIn" ? SwapType.IN : SwapType.OUT) as T,
+        type: (ix.name === "swapBaseIn" ? SwapType.IN : SwapType.OUT) as T,
         args: ix.args as T extends SwapType.IN ? SwapBaseInArgs : SwapBaseOutArgs,
         timestamp,
       };
@@ -105,12 +105,12 @@ export const fetchPriceData = async <T extends SwapType = SwapType>(
 
   const priceData = (await priceResponse.json()) as {
     data: {
-      [id: string]: number;
+      [id: string]: { price: number };
     };
   };
 
   // 5. Create price lookup map
-  const priceMap = new Map(Object.entries(priceData.data));
+  const priceMap = new Map(Object.entries(priceData.data).map(([id, { price }]) => [id, price]));
 
   // 6. Map swaps to include price data
   return swapsWithAccountInfo
@@ -141,7 +141,7 @@ export const fetchPriceData = async <T extends SwapType = SwapType>(
 
 /* -------------------------------- DATABASE -------------------------------- */
 export const upsertTrades = async (gql: GqlClient["db"], trades: SwapWithPriceData[]) => {
-  await gql.UpsertTradesMutation({
+  return await gql.UpsertTradesMutation({
     trades: trades.map((trade) => {
       const amount =
         trade.type === SwapType.IN

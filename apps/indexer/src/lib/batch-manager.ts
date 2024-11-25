@@ -40,13 +40,12 @@ export class BatchManager {
 
       try {
         const swapWithPriceData = await fetchPriceData(this.connection, batchToProcess);
-        console.log("start upsert");
-        await upsertTrades(this.gql, swapWithPriceData);
-        console.log("end upsert");
+        const res = await upsertTrades(this.gql, swapWithPriceData);
+        if (res.error) throw res.error.message;
 
         this.lastProcessTime = Date.now();
         const latency = ((Date.now() - oldestSwapTime) / 1000).toFixed(2);
-        console.log(`[${latency}s] Processed batch of ${batchToProcess.length} swaps`);
+        console.log(`[${latency}s] Processed batch of ${res.data?.insert_trade_history?.affected_rows} swaps`);
       } catch (error) {
         console.error("Error processing batch:", error);
         // On error, add failed items back at the start of the batch
