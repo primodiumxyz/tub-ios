@@ -35,21 +35,25 @@ export class BatchManager {
 
     if (shouldProcessTime || shouldProcessSize) {
       this.processing = true;
+      const batchToProcess = this.batch.splice(0, MAX_BATCH_SIZE);
+      const oldestSwapTime = Math.min(...batchToProcess.map((swap) => swap.timestamp));
+
       try {
-        const batchToProcess = [...this.batch];
-        this.batch = [];
-        this.lastProcessTime = now;
-
         const swapWithPriceData = await fetchPriceData(this.connection, batchToProcess);
+        console.log("start upsert");
         await upsertTrades(this.gql, swapWithPriceData);
+        console.log("end upsert");
 
-        console.log(`Processed batch of ${batchToProcess.length} swaps`);
+        this.lastProcessTime = Date.now();
+        const latency = ((Date.now() - oldestSwapTime) / 1000).toFixed(2);
+        console.log(`[${latency}s] Processed batch of ${batchToProcess.length} swaps`);
       } catch (error) {
         console.error("Error processing batch:", error);
-        // On error, add items back to batch
-        this.batch = [...this.batch, ...this.batch];
+        // On error, add failed items back at the start of the batch
+        this.batch.unshift(...batchToProcess);
+      } finally {
+        this.processing = false;
       }
-      this.processing = false;
     }
   }
 
