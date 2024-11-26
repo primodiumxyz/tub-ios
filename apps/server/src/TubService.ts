@@ -639,7 +639,7 @@ export class TubService {
             outputMint: request.buyTokenId,
             amount: request.sellQuantity - feeOptions.amount,
             slippageBps: 50,
-            onlyDirectRoutes: true,
+            onlyDirectRoutes: false,
             asLegacyTransaction: true, // Set to true for USDC sells
           },
           request.userPublicKey,
