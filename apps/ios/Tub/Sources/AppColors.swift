@@ -53,7 +53,7 @@ struct AppColors {
     // info stats bg
     static let darkGrayGradient = LinearGradient(
         stops: [
-            Gradient.Stop(color: Color(red: 0.12, green: 0.12, blue: 0.11), location: 0.38),
+            Gradient.Stop(color: Color(red: 0.12, green: 0.12, blue: 0.11), location: 0.1),
             Gradient.Stop(color: Color(red: 0.12, green: 0.11, blue: 0.11).opacity(0), location: 1.00),
         ],
         startPoint: .top,

@@ -23,7 +23,7 @@ struct CustomToggleStyle: ToggleStyle {
                 .overlay(
                     Circle()
                         .fill(
-                            configuration.isOn 
+                            configuration.isOn
                                 ? AppColors.toggleOnGradient
                                 : AppColors.toggleOffGradient
                         )
@@ -43,7 +43,7 @@ struct CustomToggleStyle: ToggleStyle {
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var settingsManager = SettingsManager.shared
-    
+
     // Add temporary state for editing
     @State private var tempDefaultValue: String = ""
     @FocusState private var isEditing: Bool
@@ -89,7 +89,7 @@ struct SettingsView: View {
                                 .multilineTextAlignment(.trailing)
                                 .foregroundStyle(.primary)
                                 .frame(width: textWidth(for: tempDefaultValue))
-                                .onChange(of: tempDefaultValue) { newValue in
+                                .onChange(of: tempDefaultValue) { _, newValue in
                                     // Remove any non-numeric characters except decimal point
                                     let filtered = newValue.filter { "0123456789.".contains($0) }
 
@@ -151,7 +151,7 @@ struct SettingsView: View {
                         .font(.sfRounded(size: .xl, weight: .semibold))
                         .foregroundStyle(.primary)
                 }
-                
+
                 // Keep keyboard toolbar
                 ToolbarItem(placement: .keyboard) {
                     Button("Save") {

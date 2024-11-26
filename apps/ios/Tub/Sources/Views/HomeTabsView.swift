@@ -75,15 +75,10 @@ class TabsViewModel: ObservableObject {
 }
 
 struct HomeTabsView: View {
-    var color = Color("accentColor")
+    var color = Color(red: 0.43, green: 0.97, blue: 0.98)
     @EnvironmentObject private var userModel: UserModel
     @EnvironmentObject private var priceModel: SolPriceModel
-    @StateObject private var vm = TabsViewModel()
-
-    @StateObject private var tokenListModel: TokenListModel
-    init(userModel: UserModel) {
-        self._tokenListModel = StateObject(wrappedValue: TokenListModel(userModel: userModel))
-    }
+    @StateObject private var vm = TabsViewModel()  // Make it optional
 
     // Add this to watch for userModel changes
     private var userId: String? {
@@ -99,68 +94,96 @@ struct HomeTabsView: View {
         Group {
             if !priceModel.isReady {
                 LoadingView(
-                    identifier: "HomeTabsView - waiting for userModel & priceModel",
+                    identifier: "HomeTabsView - waiting priceModel",
                     message: "Connecting to Solana"
                 )
             }
             else {
-                
-                TabView(selection: $vm.selectedTab) {
-                    // Trade Tab
-                    
-                    TokenListView(tokenListModel: tokenListModel)
-                        .tabItem {
+                ZStack(alignment: .bottom) {
+                    // Main content view
+                    Group {
+                        if vm.selectedTab == 0 {
+                            TokenListView()
+                        }
+                        else if vm.selectedTab == 1 {
+                            HistoryView()
+                        }
+                        else if vm.selectedTab == 2 {
+                            AccountView()
+                        }
+                    }
+                    .background(Color.black)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                    HStack {
+                        Spacer()
+
+                        // Trade Tab
+                        Button(action: {
+                            vm.selectedTab = 0
+                            vm.recordTabSelection("trade")
+                        }) {
                             VStack {
                                 Image(systemName: "chart.line.uptrend.xyaxis")
                                     .font(.system(size: 24))
                                 Text("Trade")
-                                    .font(.system(size: 12))
+                                    .font(.sfRounded(size: .xs, weight: .regular))
                             }
+                            .foregroundColor(
+                                vm.selectedTab == 0 ? color : Color.white.opacity(0.5)
+                            )
                         }
-                        .tag(0)
-                        .onAppear {
-                            vm.recordTabSelection("trade")
-                        }
-                    
-                    HistoryView()
-                        .tabItem {
+
+                        Spacer()
+
+                        // History Tab
+                        Button(action: {
+                            vm.selectedTab = 1
+                            vm.recordTabSelection("history")
+                        }) {
                             VStack {
                                 Image(systemName: "clock")
                                     .font(.system(size: 24))
                                 Text("History")
-                                    .font(.system(size: 12))
+                                    .font(.sfRounded(size: .xs, weight: .regular))
                             }
+                            .foregroundColor(
+                                vm.selectedTab == 1 ? color : Color.white.opacity(0.5)
+                            )
                         }
-                        .tag(1)
-                        .onAppear {
-                            vm.recordTabSelection("history")
-                        }
-                    
-                    AccountView()
-                        .tabItem {
+
+                        Spacer()
+
+                        // Account Tab
+                        Button(action: {
+                            vm.selectedTab = 2
+                            vm.recordTabSelection("account")
+                        }) {
                             VStack {
                                 Image(systemName: "person")
                                     .font(.system(size: 24))
                                 Text("Account")
-                                    .font(.system(size: 12))
+                                    .font(.sfRounded(size: .xs, weight: .regular))
                             }
+                            .foregroundColor(
+                                vm.selectedTab == 2 ? color : Color.white.opacity(0.5)
+                            )
                         }
-                        .tag(2)
-                        .onAppear {
-                            vm.recordTabSelection("account")
-                        }
+
+                        Spacer()
+                    }
+                    .padding(.top, 8)
+                    .background(Color.black)
+                    .ignoresSafeArea(.keyboard)
                 }
-                .background(Color(UIColor.systemBackground))
-                .ignoresSafeArea(.keyboard)
-                .edgesIgnoringSafeArea(.all)
-                
             }
-        }
-        .onChange(of: userModel.userId) { _, newUserId in
-            if newUserId != nil {
-                vm.selectedTab = 0  // Force switch to trade tab
-                vm.recordTabSelection("trade")
+        }.frame(maxWidth: .infinity, maxHeight: .infinity)
+            .ignoresSafeArea(.keyboard)
+            .onChange(of: userModel.userId) { _, newUserId in
+                if newUserId != nil {
+                    vm.selectedTab = 0  // Force switch to trade tab
+                    vm.recordTabSelection("trade")
+                }
             }
-        }
     }
 }

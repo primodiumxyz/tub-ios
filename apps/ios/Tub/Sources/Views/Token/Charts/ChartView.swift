@@ -12,6 +12,7 @@ import SwiftUI
 struct ChartView: View {
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject private var userModel: UserModel
+    @Binding var animate: Bool
     let rawPrices: [Price]
     let height: CGFloat
 
@@ -26,9 +27,10 @@ struct ChartView: View {
 
     @State private var currentTime = Date().timeIntervalSince1970
     @State private var prices: [Price] = []
-    
-    init(prices: [Price], height: CGFloat = 330) {
+
+    init(prices: [Price], animate: Binding<Bool>, height: CGFloat = 330) {
         self.rawPrices = prices
+        self._animate = animate
         self.height = height
     }
 
@@ -102,7 +104,7 @@ struct ChartView: View {
                 )
                 .foregroundStyle(Color("aquaBlue").opacity(0.8))
                 .lineStyle(StrokeStyle(lineWidth: 3))
-                .interpolationMethod(.catmullRom)
+                .interpolationMethod(.cardinal(tension: 0.8))
 
                 PointMark(
                     x: .value("Date", currentPrice.timestamp),
@@ -157,8 +159,7 @@ struct ChartView: View {
                 }
             }
         }
-        .conditionalModifier(condition: false) { chart in
-            chart.animation(.linear(duration: PRICE_UPDATE_INTERVAL), value: prices)
+        .if(animate) { view in view.animation(.linear(duration: PRICE_UPDATE_INTERVAL), value: prices)
         }
         .chartYScale(domain: yDomain)
         .chartYAxis(.hidden)
