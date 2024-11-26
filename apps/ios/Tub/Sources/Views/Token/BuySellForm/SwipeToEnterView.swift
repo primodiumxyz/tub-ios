@@ -16,7 +16,7 @@ struct SwipeToEnterView: View {
     var disabled: Bool
     var size: CGFloat = 80
 
-    init(text: String = "slide to unlock", onUnlock: @escaping () -> Void, disabled: Bool = false) {
+    init(text: String = "slide to unlock", disabled: Bool = false, onUnlock: @escaping () -> Void) {
         self.text = text
         self.onUnlock = onUnlock
         self.disabled = disabled

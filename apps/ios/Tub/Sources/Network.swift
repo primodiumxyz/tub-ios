@@ -103,7 +103,7 @@ class Network {
         let (data, _) = try await session.data(for: request)
 
         // First, try to decode as an error response
-        if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
+        if (try? JSONDecoder().decode(ErrorResponse.self, from: data)) != nil {
             throw TubError.parsingError
         }
 

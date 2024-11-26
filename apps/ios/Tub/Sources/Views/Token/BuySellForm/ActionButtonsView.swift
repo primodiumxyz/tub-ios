@@ -91,7 +91,9 @@ struct ActionButtonsView: View {
                                 iconWeight: .bold,
                                 action: { showBuySheet = true }
                             )
-                            BuyButton(showBuySheet: $showBuySheet, handleBuy: handleBuy)
+                            
+                            // The mint color "Buy $10" button
+                            BuyButton(handleBuy: handleBuy)
                         }
 
                     }
@@ -112,6 +114,11 @@ struct ActionButtonsView: View {
             RegisterView(isRedirected: true)
                 .background(.black)
 
+        }
+        .sheet(isPresented: $showBuySheet) {
+            BuyFormView(isVisible: $showBuySheet,
+                        tokenModel: tokenModel,
+                        onBuy: handleBuy)
         }
     }
 }
@@ -207,7 +214,6 @@ private struct AirdropButton: View {
 private struct BuyButton: View {
     @EnvironmentObject var userModel: UserModel
     @EnvironmentObject var priceModel: SolPriceModel
-    @Binding var showBuySheet: Bool
     @State private var showOnrampView = false
     @StateObject private var settingsManager = SettingsManager.shared
 
