@@ -104,7 +104,7 @@ struct TokenView: View {
                 }.padding(.horizontal, 8)
             }
             .frame(maxWidth: .infinity)
-            .foregroundColor(Color.white)
+            .foregroundStyle(Color.white)
             infoCardOverlay
         }
         .dismissKeyboardOnTap()
@@ -161,7 +161,7 @@ struct TokenView: View {
                     if tokenModel.isReady {
                         Text(price)
                         Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
-                        Text("\(formatDuration(tokenModel.selectedTimespan.seconds))").foregroundColor(.gray)
+                        Text("\(formatDuration(tokenModel.selectedTimespan.seconds))").foregroundStyle(.gray)
                     }
                     else {
                         LoadingBox(width: 160, height: 12)

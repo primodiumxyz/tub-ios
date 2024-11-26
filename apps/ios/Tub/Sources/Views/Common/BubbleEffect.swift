@@ -28,7 +28,7 @@ struct BubbleEffect: View {
                     Image("Bubble")
                         .resizable()
                         .renderingMode(.template)
-                        .foregroundColor(.accent.opacity(1.0))
+                        .foregroundStyle(.accent.opacity(1.0))
                         .frame(width: 30, height: 30)
                         .scaleEffect(bubble.scale)
                         .position(bubble.position)

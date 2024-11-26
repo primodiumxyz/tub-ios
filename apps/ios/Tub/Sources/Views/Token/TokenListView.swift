@@ -233,7 +233,7 @@ struct TokenLoadErrorView: View {
         VStack {
             Spacer()
             Text("Failed to load tokens.")
-                .foregroundColor(Color.aquaBlue)
+                .foregroundStyle(Color.aquaBlue)
                 .multilineTextAlignment(.center)
                 .padding(.bottom, 24)
             Button(action: {
@@ -244,7 +244,7 @@ struct TokenLoadErrorView: View {
             }) {
                 Text("Retry")
                     .font(.sfRounded(size: .lg, weight: .semibold))
-                    .foregroundColor(Color.white)
+                    .foregroundStyle(Color.white)
                     .frame(maxWidth: 300)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)

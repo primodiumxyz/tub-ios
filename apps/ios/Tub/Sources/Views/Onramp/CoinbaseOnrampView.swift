@@ -81,7 +81,7 @@ struct CoinbaseOnrampView: View {
                         }
                     }
                     .font(.sfRounded(size: .xl5, weight: .bold))
-                    .foregroundColor(isValidInput ? .primary : Color.red)
+                    .foregroundStyle(isValidInput ? .primary : Color.red)
                     .frame(minWidth: 50)
                     .fixedSize()
                 Spacer()

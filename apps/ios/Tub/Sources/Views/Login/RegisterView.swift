@@ -60,7 +60,6 @@ struct RegisterView: View {
 
                 Spacer()
             }
-            
 
             VStack(alignment: .leading, spacing: 12) {
                 Image("Logo")
@@ -81,7 +80,7 @@ struct RegisterView: View {
                         .padding(.vertical, 10)
                         .frame(maxWidth: .infinity, minHeight: 50, alignment: .leading)
                         .background(Color(UIColor.systemBackground))
-                        .foregroundColor(.primary)
+                        .foregroundStyle(.primary)
                         .cornerRadius(30)
                         .keyboardType(.emailAddress)
                         .overlay(
@@ -92,7 +91,7 @@ struct RegisterView: View {
                             isEmailValid = validateEmail(newValue)
                             showEmailError = !isEmailValid && !newValue.isEmpty
                         }
-                    
+
                     // if email invalid
                     if showEmailError {
                         Text("Please enter a valid email address.")
@@ -108,7 +107,7 @@ struct RegisterView: View {
                             .padding(.top, -4)
                             .padding(.horizontal, 20)
                     }
-                    
+
                     Spacer().frame(height: 20)
 
                     PrimaryButton(
@@ -186,14 +185,15 @@ struct RegisterView: View {
                         Task {
                             do {
                                 let _ = try await privy.oAuth.login(with: OAuthProvider.google)
-                            } catch {
+                            }
+                            catch {
                                 notificationHandler.show(error.localizedDescription, type: .error)
                             }
                         }
                     }
                 )
                 .padding(.horizontal, 10)
-                
+
                 // Phone button
                 IconTextButton(
                     icon: "phone.fill",
@@ -205,7 +205,6 @@ struct RegisterView: View {
                 .padding(.top, 10.0)
                 .padding(.bottom, 5.0)
 
-
                 IconTextButton(
                     icon: "ladybug.fill",
                     text: "Dev Login",
@@ -215,7 +214,8 @@ struct RegisterView: View {
                             do {
                                 let _ = await privy.email.sendCode(to: "test-0932@privy.io")
                                 let _ = try await privy.email.loginWithCode("145288", sentTo: "test-0932@privy.io")
-                            } catch {
+                            }
+                            catch {
                                 notificationHandler.show(error.localizedDescription, type: .error)
                             }
                         }
@@ -255,4 +255,3 @@ struct RegisterView: View {
         .environmentObject(notificationHandler)
         .environmentObject(userModelxyz)
 }
-

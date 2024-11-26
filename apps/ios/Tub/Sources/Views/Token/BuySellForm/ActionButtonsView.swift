@@ -156,7 +156,7 @@ private struct ConnectButton: View {
             HStack(alignment: .center, spacing: 8) {
                 Text("Connect to Wallet")
                     .font(.sfRounded(size: .xl, weight: .semibold))
-                    .foregroundColor(.black)
+                    .foregroundStyle(.black)
                     .multilineTextAlignment(.center)
             }
             .tubButtonStyle()
@@ -170,7 +170,7 @@ private struct ConnectingButton: View {
             HStack(alignment: .center, spacing: 8) {
                 Text("Connecting...")
                     .font(.sfRounded(size: .xl, weight: .semibold))
-                    .foregroundColor(.black)
+                    .foregroundStyle(.black)
                     .multilineTextAlignment(.center)
             }
             .tubButtonStyle()

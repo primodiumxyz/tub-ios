@@ -129,7 +129,7 @@ struct HomeTabsView: View {
                                 Text("Trade")
                                     .font(.sfRounded(size: .xs, weight: .regular))
                             }
-                            .foregroundColor(
+                            .foregroundStyle(
                                 vm.selectedTab == 0 ? color : Color.white.opacity(0.5)
                             )
                         }
@@ -147,7 +147,7 @@ struct HomeTabsView: View {
                                 Text("History")
                                     .font(.sfRounded(size: .xs, weight: .regular))
                             }
-                            .foregroundColor(
+                            .foregroundStyle(
                                 vm.selectedTab == 1 ? color : Color.white.opacity(0.5)
                             )
                         }
@@ -165,7 +165,7 @@ struct HomeTabsView: View {
                                 Text("Account")
                                     .font(.sfRounded(size: .xs, weight: .regular))
                             }
-                            .foregroundColor(
+                            .foregroundStyle(
                                 vm.selectedTab == 2 ? color : Color.white.opacity(0.5)
                             )
                         }
