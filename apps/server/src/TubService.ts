@@ -5,7 +5,7 @@ import { createTransferInstruction, getAssociatedTokenAddressSync } from "@solan
 import { GqlClient } from "@tub/gql";
 import { PrebuildSwapResponse, UserPrebuildSwapRequest } from "../types/PrebuildSwapRequest";
 import { OctaneService } from "./OctaneService";
-import { Subject, interval, switchMap } from "rxjs";
+import { Subject, interval, switchMap, Subscription } from "rxjs";
 import { config } from "dotenv";
 import bs58 from "bs58";
 
@@ -23,6 +23,16 @@ type ActiveSwapRequest = UserPrebuildSwapRequest & {
 };
 
 /**
+ * Type for managing active swap stream subscriptions
+ */
+interface SwapSubscription {
+  /** Subject that emits new swap transactions */
+  subject: Subject<PrebuildSwapResponse>;
+  /** RxJS subscription for cleanup */
+  subscription: Subscription;
+}
+
+/**
  * Service class handling token trading, swaps, and user operations
  */
 export class TubService {
@@ -33,6 +43,7 @@ export class TubService {
   private activeSwapRequests: Map<string, ActiveSwapRequest> = new Map();
   private swapSubjects: Map<string, Subject<PrebuildSwapResponse>> = new Map();
   private swapRegistry: Map<string, PrebuildSwapResponse & { transaction: Transaction }> = new Map();
+  private swapSubscriptions: Map<string, SwapSubscription> = new Map();
 
   private readonly REGISTRY_TIMEOUT = 5 * 60 * 1000; // 5 minutes in milliseconds
 
@@ -230,7 +241,12 @@ export class TubService {
    * @returns {Promise<PrebuildSwapResponse>} Object containing the base64-encoded transaction and metadata
    * @throws {Error} If user has no wallet or if swap building fails
    *
+   * @remarks
+   * The returned transaction will be stored in the registry for 5 minutes. After signing,
+   * the user should submit the transaction and signature to `signAndSendTransaction`.
+   *
    * @example
+   * // Get transaction to swap 1 USDC for SOL
    * const response = await tubService.fetchSwap(jwt, {
    *   buyTokenId: "So11111111111111111111111111111111111111112",  // SOL
    *   sellTokenId: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
@@ -332,12 +348,11 @@ export class TubService {
       userPublicKey,
     });
 
-    if (!this.swapSubjects.has(userId)) {
+    if (!this.swapSubscriptions.has(userId)) {
       const subject = new Subject<PrebuildSwapResponse>();
-      this.swapSubjects.set(userId, subject);
 
       // Create 1-second interval stream
-      interval(1000)
+      const subscription = interval(1000)
         .pipe(
           switchMap(async () => {
             const currentRequest = this.activeSwapRequests.get(userId);
@@ -350,15 +365,32 @@ export class TubService {
             subject.next(response);
           }
         });
+
+      this.swapSubscriptions.set(userId, { subject, subscription });
     }
 
-    return this.swapSubjects.get(userId)!;
+    return this.swapSubscriptions.get(userId)!.subject;
   }
 
   /**
-   * Updates parameters for an active swap request
+   * Updates parameters for an active swap request and returns a new transaction
    * @param jwtToken - The user's JWT token
    * @param updates - New parameters to update
+   * @param updates.buyTokenId - Optional new token to receive
+   * @param updates.sellTokenId - Optional new token to sell
+   * @param updates.sellQuantity - Optional new amount to sell
+   * @returns {Promise<PrebuildSwapResponse>} New swap transaction with updated parameters
+   * @throws {Error} If no active request exists or if building new transaction fails
+   *
+   * @remarks
+   * If token IDs are changed, new token accounts will be derived.
+   * The new transaction will be stored in the registry for 5 minutes.
+   *
+   * @example
+   * // Update sell quantity to 2 USDC
+   * const response = await tubService.updateSwapRequest(jwt, {
+   *   sellQuantity: 2e6 // Other tokens may have 1e9 standard
+   * });
    */
   async updateSwapRequest(jwtToken: string, updates: Partial<UserPrebuildSwapRequest>) {
     const userId = await this.verifyJWT(jwtToken);
@@ -384,7 +416,18 @@ export class TubService {
         : {};
 
       const updated = { ...current, ...updates, ...derivedAccounts };
+
+      // Update active request for streaming
       this.activeSwapRequests.set(userId, updated);
+
+      // Build new swap response and update registry
+      try {
+        const response = await this.buildSwapResponse(updated);
+        return response;
+      } catch (error) {
+        console.error("[updateSwapRequest] Error:", error);
+        throw new Error(`Failed to build updated swap response: ${error}`);
+      }
     } else {
       throw new Error(`[updateSwapRequest] No active swap request found for user ${userId}`);
     }
@@ -398,10 +441,11 @@ export class TubService {
     const userId = await this.verifyJWT(jwtToken);
 
     this.activeSwapRequests.delete(userId);
-    const subject = this.swapSubjects.get(userId);
-    if (subject) {
-      subject.complete();
-      this.swapSubjects.delete(userId);
+    const swapSubscription = this.swapSubscriptions.get(userId);
+    if (swapSubscription) {
+      swapSubscription.subscription.unsubscribe();
+      swapSubscription.subject.complete();
+      this.swapSubscriptions.delete(userId);
     } else {
       throw new Error(`[stopSwapStream] No active stream found for user ${userId}`);
     }
@@ -410,10 +454,15 @@ export class TubService {
   /**
    * Validates, signs, and sends a transaction with user and fee payer signatures
    * @param jwtToken - The user's JWT token
-   * @param userSignature - The user's signature for the transaction
-   * @param base64Transaction - The base64-encoded transaction (before signing) to submit. Came from swapStream
+   * @param userSignature - The user's base58-encoded signature for the transaction
+   * @param base64Transaction - The original base64-encoded transaction from fetchSwap
    * @returns Object containing the transaction signature
-   * @throws Error if transaction processing fails
+   * @throws Error if transaction not found in registry, invalid signatures, or processing fails
+   *
+   * @remarks
+   * This method expects the exact transaction returned by fetchSwap. The transaction must
+   * be in the registry (valid for 5 minutes) and must be signed by the user. The server
+   * will add the fee payer signature and submit the transaction.
    */
   async signAndSendTransaction(jwtToken: string, userSignature: string, base64Transaction: string) {
     try {

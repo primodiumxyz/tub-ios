@@ -3,6 +3,7 @@ import { observable } from "@trpc/server/observable";
 import { z } from "zod";
 import { TubService } from "./TubService";
 import { PrebuildSwapResponse } from "../types/PrebuildSwapRequest";
+import { Subscription } from "rxjs";
 
 export type AppContext = {
   tubService: TubService;
@@ -113,7 +114,7 @@ export function createAppRouter() {
      * @returns Observable stream of base64-encoded transactions
      * @throws Error if public key is invalid or token IDs are missing
      */
-    swapStream: t.procedure
+    startSwapStream: t.procedure
       .input(
         z.object({
           buyTokenId: z.string(),
@@ -123,7 +124,7 @@ export function createAppRouter() {
       )
       .subscription(({ ctx, input }) => {
         return observable((emit) => {
-          let subscription: any;
+          let subscription: Subscription;
 
           ctx.tubService
             .startSwapStream(ctx.jwtToken, input)
@@ -165,7 +166,7 @@ export function createAppRouter() {
         }),
       )
       .mutation(async ({ ctx, input }) => {
-        await ctx.tubService.updateSwapRequest(ctx.jwtToken, input);
+        return await ctx.tubService.updateSwapRequest(ctx.jwtToken, input);
       }),
 
     /**
@@ -197,16 +198,24 @@ export function createAppRouter() {
       .mutation(async ({ ctx, input }) => {
         return await ctx.tubService.fetchSwap(ctx.jwtToken, input);
       }),
-
-    get1USDCToSOLTransaction: t.procedure
-      .mutation(async ({ ctx }) => {
-        return await ctx.tubService.get1USDCToSOLTransaction(ctx.jwtToken);
+    fetchPresignedSwap: t.procedure
+      .input(
+        z.object({
+          buyTokenId: z.string(),
+          sellTokenId: z.string(),
+          sellQuantity: z.number(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        return await ctx.tubService.fetchPresignedSwap(ctx.jwtToken, input);
       }),
+    get1USDCToSOLTransaction: t.procedure.mutation(async ({ ctx }) => {
+      return await ctx.tubService.get1USDCToSOLTransaction(ctx.jwtToken);
+    }),
 
-    stopSwapStream: t.procedure
-      .mutation(async ({ ctx }) => {
-        await ctx.tubService.stopSwapStream(ctx.jwtToken);
-      }),
+    stopSwapStream: t.procedure.mutation(async ({ ctx }) => {
+      await ctx.tubService.stopSwapStream(ctx.jwtToken);
+    }),
   });
 }
 
