@@ -1,23 +1,23 @@
-import { describe, it, expect, beforeAll } from 'vitest';
-import { TubService } from '../src/TubService';
-import { OctaneService } from '../src/OctaneService';
-import { Connection, Keypair, PublicKey, Transaction } from '@solana/web3.js';
-import { createJupiterApiClient } from '@jup-ag/api';
-import { MockPrivyClient } from './helpers/MockPrivyClient';
-import { Codex } from '@codex-data/sdk';
-import { createClient as createGqlClient } from '@tub/gql';
-import { config } from 'dotenv';
-import bs58 from 'bs58';
-import { getAssociatedTokenAddress } from '@solana/spl-token';
+import { describe, it, expect, beforeAll } from "vitest";
+import { TubService } from "../src/TubService";
+import { OctaneService } from "../src/OctaneService";
+import { Connection, Keypair, PublicKey, Transaction } from "@solana/web3.js";
+import { createJupiterApiClient } from "@jup-ag/api";
+import { MockPrivyClient } from "./helpers/MockPrivyClient";
+import { Codex } from "@codex-data/sdk";
+import { createClient as createGqlClient } from "@tub/gql";
+import { config } from "dotenv";
+import bs58 from "bs58";
+import { getAssociatedTokenAddress } from "@solana/spl-token";
 
 config({ path: "../../.env" });
 
-describe('TubService Integration Test', () => {
+describe("TubService Integration Test", () => {
   let tubService: TubService;
   let userKeypair: Keypair;
   let mockJwtToken: string;
   let connection: Connection;
-  
+
   beforeAll(async () => {
     try {
       if (!process.env.TEST_USER_PRIVATE_KEY) {
@@ -25,30 +25,28 @@ describe('TubService Integration Test', () => {
       }
 
       // Setup connection to Solana mainnet
-      connection = new Connection(process.env.QUICKNODE_MAINNET_URL ?? 'https://api.mainnet-beta.solana.com');
-      
+      connection = new Connection(process.env.QUICKNODE_MAINNET_URL ?? "https://api.mainnet-beta.solana.com");
+
       // Setup Jupiter API client
       const jupiterQuoteApi = createJupiterApiClient({
-        basePath: process.env.JUPITER_URL
+        basePath: process.env.JUPITER_URL,
       });
 
       // Create cache for OctaneService
-      const cache = await (await import('cache-manager')).caching({
-        store: 'memory',
+      const cache = await (
+        await import("cache-manager")
+      ).caching({
+        store: "memory",
         max: 100,
-        ttl: 10 * 1000 // 10 seconds
+        ttl: 10 * 1000, // 10 seconds
       });
 
       // Create test fee payer keypair
-      const feePayerKeypair = Keypair.fromSecretKey(
-        bs58.decode(process.env.FEE_PAYER_PRIVATE_KEY!)
-      );
+      const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(process.env.FEE_PAYER_PRIVATE_KEY!));
 
       // Create test user keypair from environment
-      userKeypair = Keypair.fromSecretKey(
-        bs58.decode(process.env.TEST_USER_PRIVATE_KEY)
-      );
-      mockJwtToken = 'test_jwt_token';
+      userKeypair = Keypair.fromSecretKey(bs58.decode(process.env.TEST_USER_PRIVATE_KEY));
+      mockJwtToken = "test_jwt_token";
 
       // Initialize services
       const octaneService = new OctaneService(
@@ -59,13 +57,15 @@ describe('TubService Integration Test', () => {
         Number(process.env.OCTANE_BUY_FEE),
         0, // sell fee
         15, // min trade size
-        cache
+        cache,
       );
 
-      const gqlClient = (await createGqlClient({
-        url: 'http://localhost:8080/v1/graphql',
-        hasuraAdminSecret: 'password'
-      })).db;
+      const gqlClient = (
+        await createGqlClient({
+          url: "http://localhost:8080/v1/graphql",
+          hasuraAdminSecret: "password",
+        })
+      ).db;
 
       const codexSdk = new Codex(process.env.CODEX_API_KEY!);
 
@@ -74,36 +74,25 @@ describe('TubService Integration Test', () => {
 
       tubService = new TubService(
         gqlClient,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockPrivyClient as any,
         codexSdk,
-        octaneService
+        octaneService,
       );
 
-      console.log('\nTest setup complete with user public key:', userKeypair.publicKey.toBase58());
+      console.log("\nTest setup complete with user public key:", userKeypair.publicKey.toBase58());
 
       // Log all relevant token accounts
       const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
       const SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
-      
+
       // Get fee payer token accounts
-      const feePayerUsdcAta = await getAssociatedTokenAddress(
-        USDC_MINT,
-        feePayerKeypair.publicKey
-      );
-      const feePayerSolAta = await getAssociatedTokenAddress(
-        SOL_MINT,
-        feePayerKeypair.publicKey
-      );
+      const feePayerUsdcAta = await getAssociatedTokenAddress(USDC_MINT, feePayerKeypair.publicKey);
+      const feePayerSolAta = await getAssociatedTokenAddress(SOL_MINT, feePayerKeypair.publicKey);
 
       // Get user token accounts
-      const userUsdcAta = await getAssociatedTokenAddress(
-        USDC_MINT,
-        userKeypair.publicKey
-      );
-      const userSolAta = await getAssociatedTokenAddress(
-        SOL_MINT,
-        userKeypair.publicKey
-      );
+      const userUsdcAta = await getAssociatedTokenAddress(USDC_MINT, userKeypair.publicKey);
+      const userSolAta = await getAssociatedTokenAddress(SOL_MINT, userKeypair.publicKey);
 
       console.log("\nToken Accounts:");
       console.log("Fee Payer:", feePayerKeypair.publicKey.toBase58());
@@ -120,55 +109,58 @@ describe('TubService Integration Test', () => {
           throw new Error(`Test account needs at least 1 USDC. Current balance: ${balance.value.uiAmount ?? 0} USDC`);
         }
         console.log(`USDC balance: ${balance.value.uiAmount} USDC`);
-      } catch (e) {
+      } catch {
         throw new Error("Test account needs a USDC token account with at least 1 USDC");
       }
-
     } catch (error) {
-      console.error('Error in test setup:', error);
+      console.error("Error in test setup:", error);
       throw error;
     }
   });
 
-  it('should complete a full USDC to SOL swap flow', async () => {
+  it("should complete a full USDC to SOL swap flow", async () => {
     try {
-      console.log('\nStarting USDC to SOL swap flow test');
-      console.log('User public key:', userKeypair.publicKey.toBase58());
+      console.log("\nStarting USDC to SOL swap flow test");
+      console.log("User public key:", userKeypair.publicKey.toBase58());
 
       // Get the swap transaction
-      console.log('\nGetting 1 USDC to SOL swap transaction...');
+      console.log("\nGetting 1 USDC to SOL swap transaction...");
       const swapResponse = await tubService.get1USDCToSOLTransaction(mockJwtToken);
-      
+
       // console.log('Received swap response:', {
       //   hasFee: swapResponse.hasFee,
       //   transactionLength: swapResponse.transactionBase64.length
       // });
 
       // Decode transaction
-      const transaction = Transaction.from(Buffer.from(swapResponse.transactionBase64, 'base64'));
-      
+      const transaction = Transaction.from(Buffer.from(swapResponse.transactionBase64, "base64"));
+
       // User signs
       transaction.partialSign(userKeypair);
-      const userSignature = transaction.signatures.find(sig => sig.publicKey.equals(userKeypair.publicKey))?.signature;
+      const userSignature = transaction.signatures.find((sig) =>
+        sig.publicKey.equals(userKeypair.publicKey),
+      )?.signature;
       if (!userSignature) {
         throw new Error("Failed to get signature from transaction");
       }
 
+      // Convert raw signature bytes to base64
+      const base64Signature = Buffer.from(userSignature).toString("base64");
+
       // console.log('\nSigning and sending transaction...');
       const result = await tubService.signAndSendTransaction(
         mockJwtToken,
-        bs58.encode(userSignature),
-        swapResponse.transactionBase64  // Send original transaction
+        base64Signature,
+        swapResponse.transactionBase64, // Send original transaction
       );
 
-      console.log('Transaction result:', result);
+      console.log("Transaction result:", result);
 
       expect(result).toBeDefined();
       expect(result.signature).toBeDefined();
-      
     } catch (error) {
-      console.error('Error in swap flow test:', error);
+      console.error("Error in swap flow test:", error);
       throw error;
     }
   }, 30000);
-}); 
+});
