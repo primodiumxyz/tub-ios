@@ -454,7 +454,7 @@ export class TubService {
   /**
    * Validates, signs, and sends a transaction with user and fee payer signatures
    * @param jwtToken - The user's JWT token
-   * @param userSignature - The user's base58-encoded signature for the transaction
+   * @param userSignature - The user's base64-encoded signature for the transaction
    * @param base64Transaction - The original base64-encoded transaction from fetchSwap
    * @returns Object containing the transaction signature
    * @throws Error if transaction not found in registry, invalid signatures, or processing fails
@@ -482,8 +482,8 @@ export class TubService {
       // Create a new transaction from the registry entry
       const transaction = Transaction.from(Buffer.from(base64Transaction, "base64"));
 
-      // Add user signature
-      const userSignatureBytes = Buffer.from(bs58.decode(userSignature));
+      // Convert base64 signature to bytes
+      const userSignatureBytes = Buffer.from(userSignature, "base64");
       transaction.addSignature(userPublicKey, userSignatureBytes);
 
       // In test environment, skip token fee validation
