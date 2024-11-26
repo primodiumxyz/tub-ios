@@ -23,11 +23,10 @@ jobs:
         run: pnpm dev:db:ci
 
       - name: Run Tests
-        run: PRIVY_APP_ID=${{ secrets.PRIVY_APP_ID }} PRIVY_APP_SECRET=${{ secrets.PRIVY_APP_SECRET }} pnpm test
+        run: PRIVY_APP_ID=${{ secrets.PRIVY_APP_ID }} PRIVY_APP_SECRET=${{ secrets.PRIVY_APP_SECRET }} QUICKNODE_ENDPOINT=${{ secrets.QUICKNODE_ENDPOINT }} JUPITER_API_ENDPOINT=${{ secrets.JUPITER_API_ENDPOINT }} pnpm test
         env:
           PRIVY_APP_ID: ${{ secrets.PRIVY_APP_ID }}
           PRIVY_APP_SECRET: ${{ secrets.PRIVY_APP_SECRET }}
-          CODEX_API_KEY: ${{ secrets.CODEX_API_KEY }}
           JUPITER_API_ENDPOINT: ${{ secrets.JUPITER_API_ENDPOINT }}
 
       - name: Teardown
