@@ -23,7 +23,7 @@ struct TokenView: View {
 
     var activeTab: PurchaseState {
         let balance: Int = userModel.tokenBalanceLamps ?? 0
-        return balance > 0 ? .sell : .buy
+        return balance > 0 ? PurchaseState.sell : PurchaseState.buy
     }
 
     init(tokenModel: TokenModel, onSellSuccess: (() -> Void)? = nil) {
@@ -98,6 +98,17 @@ struct TokenView: View {
             .foregroundColor(Color.white)
             infoCardOverlay
             buySheetOverlay
+        }
+        .onChange(of: userModel.tokenBalanceLamps) {
+            guard let balance = userModel.tokenBalanceLamps else { return }
+            let purchaseState = balance > 0 ? PurchaseState.sell : PurchaseState.buy
+            if purchaseState == .sell {
+                try! TxManager.shared.updateTxData(purchaseState: .sell, quantity: balance)
+            }
+            else {
+                let defaultBuyValueLamps = priceModel.usdToLamports(usd: SettingsManager.shared.defaultBuyValue)
+                try! TxManager.shared.updateTxData(purchaseState: .buy, quantity: defaultBuyValueLamps)
+            }
         }
         .dismissKeyboardOnTap()
     }

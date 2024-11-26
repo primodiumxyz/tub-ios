@@ -23,7 +23,7 @@ final class TxManager: ObservableObject {
     let tokenIdUsdc = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
     private var currentFetchTask: Task<Void, Error>?
 
-    func updateTxData(purchaseState: PurchaseState?, tokenId: String?, quantity: Int?) async throws {
+    func updateTxData(purchaseState: PurchaseState? = nil, tokenId: String? = nil, quantity: Int? = nil) throws {
         currentFetchTask?.cancel()
 
         currentFetchTask = Task {
@@ -36,13 +36,18 @@ final class TxManager: ObservableObject {
                 }
             }
         }
-
-        try await currentFetchTask?.value
     }
 
     private func _updateTxData(purchaseState: PurchaseState?, tokenId: String?, quantity: Int?) async throws {
+        // if nothing is getting updated return without updating
+        if self.purchaseState == (purchaseState ?? self.purchaseState) && self.tokenId == (tokenId ?? self.tokenId)
+            && self.quantity == (quantity ?? self.quantity)
+        {
+            return
+        }
+
         self.tokenId = tokenId ?? self.tokenId
-        self.quantity = quantity ?? quantity
+        self.quantity = quantity ?? self.quantity
         self.purchaseState = purchaseState ?? self.purchaseState
 
         guard let tokenId = self.tokenId, let quantity = self.quantity else { return }
@@ -67,7 +72,7 @@ final class TxManager: ObservableObject {
             }
         }
         catch {
-            print(error.localizedDescription)
+            print("error updating tx data \(error.localizedDescription)")
         }
     }
 

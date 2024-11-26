@@ -32,6 +32,9 @@ struct BuyForm: View {
 
     @ObservedObject private var settingsManager = SettingsManager.shared
 
+    @State private var updateTimer: Timer?
+    @State private var amountLamps: Int = 0
+
     @MainActor
     private func handleBuy() async {
         guard let balance = userModel.balanceLamps else { return }
@@ -52,6 +55,17 @@ struct BuyForm: View {
         }
     }
 
+    func updateTxData(buyAmountUsd: Double) {
+        updateTimer?.invalidate()
+
+        // only update the amountLamps if the user hasnt updated the amount for more than 0.5 second
+        updateTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { _ in
+            let amountLamps = priceModel.usdToLamports(usd: buyAmountUsd)
+            try! TxManager.shared.updateTxData(quantity: amountLamps)
+        }
+
+    }
+
     func updateBuyAmount(_ amountLamps: Int) {
         if amountLamps == 0 {
             isValidInput = false
@@ -60,6 +74,7 @@ struct BuyForm: View {
 
         // Add a tiny buffer for floating point precision
         buyAmountUsd = priceModel.lamportsToUsd(lamports: amountLamps)
+        updateTxData(buyAmountUsd: buyAmountUsd)
 
         // Format to 2 decimal places, rounding down
         buyAmountUsdString = String(format: "%.2f", floor(buyAmountUsd * 100) / 100)
@@ -133,7 +148,7 @@ struct BuyForm: View {
                     "",
                     text: $buyAmountUsdString,
                     prompt: Text("10", comment: "placeholder")
-                    .foregroundStyle(Color.white.opacity(0.3))
+                        .foregroundStyle(Color.white.opacity(0.3))
                 )
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.leading)
@@ -159,6 +174,7 @@ struct BuyForm: View {
                         let amount = text.doubleValue
                         if amount > 0 {
                             buyAmountUsd = amount
+                            updateTxData(buyAmountUsd: buyAmountUsd)
                             // Only format if the value has changed
                             buyAmountUsdString = text
                         }
