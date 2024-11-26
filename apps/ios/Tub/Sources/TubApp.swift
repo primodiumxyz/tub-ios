@@ -12,10 +12,12 @@ import SwiftUI
 struct TubApp: App {
     @Environment(\.scenePhase) private var scenePhase
     private let dwellTimeTracker = AppDwellTimeTracker.shared
-
+    @StateObject private var userModel = UserModel.shared
+    
     var body: some Scene {
         WindowGroup {
             AppContent()
+                .environmentObject(userModel)
         }
         .onChange(of: scenePhase) { _, phase in
             switch phase {
@@ -71,6 +73,13 @@ struct AppContent: View {
                     .environmentObject(userModel)
                     .environmentObject(tokenListModel)
                     .environmentObject(priceModel)
+                    .fullScreenCover(isPresented: .init(
+                        get: { !userModel.hasSeenOnboarding },
+                        set: { newValue in userModel.hasSeenOnboarding = !newValue }
+                    )) {
+                        OnboardingView()
+                            .interactiveDismissDisabled()
+                    }
             }
         }.onAppear {
             Task(priority: .high) {
@@ -89,6 +98,8 @@ struct AppContent: View {
 
 #Preview {
     AppContent()
+        .environmentObject(UserModel.shared)
+
 }
 
 extension View {

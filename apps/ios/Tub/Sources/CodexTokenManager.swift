@@ -8,32 +8,10 @@
 import Foundation
 import SwiftUI
 
-// Add this structure above the CodexTokenManager class
-struct CodexTokenData: RawRepresentable, Codable {
-    let token: String
-    let expiry: String
-
-    init?(rawValue: String) {
-        let components = rawValue.components(separatedBy: " and ")
-        guard components.count == 2 else { return nil }
-        self.token = components[0]
-        self.expiry = components[1]
-    }
-
-    var rawValue: String {
-        return "\(token) and \(expiry)"
-    }
-
-    var value: (String, String) {
-        (token, expiry)
-    }
-
-    init(token: String, expiry: String) {
-        self.token = token
-        self.expiry = expiry
-    }
+struct CodexTokenData {
+    var token: String
+    var expiry: String
 }
-
 class CodexTokenManager: ObservableObject {
     static let shared = CodexTokenManager()
 
@@ -42,41 +20,32 @@ class CodexTokenManager: ObservableObject {
     private var retryCount = 0
     @Published var fetchFailed = false
     @Published var isReady = false
-    @AppStorage("codexToken") private var localCodexToken: CodexTokenData?
 
     private var refetchTimer: Timer?
     private var isRefreshing = false
 
     private func stopTokenRefresh() {
-        refetchTimer?.invalidate()
-        refetchTimer = nil
-        retryCount = 0
+        Task { @MainActor in
+            refetchTimer?.invalidate()
+            refetchTimer = nil
+            retryCount = 0
+        }
     }
+
     private let formatter = { () -> ISO8601DateFormatter in
         let f = ISO8601DateFormatter()
         f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         return f
     }()
 
-    private func fetchToken(hard: Bool) async throws -> CodexTokenData {
-        var codexToken: CodexTokenData?
-        //        if let localToken = localCodexToken, hard != true {
-        //            codexToken = localToken
-        //        }
-        //        else {
+
+    private func fetchToken(hard: Bool? = false) async throws -> CodexTokenData {
         do {
-            print("fetching new token...")
-            codexToken = try await Network.shared.requestCodexToken(Int(tokenExpiration) * 1000)
+            return try await Network.shared.requestCodexToken(Int(tokenExpiration) * 1000)
         }
         catch {
-            print(error)
             throw error
         }
-        //        }
-        guard let codexToken = codexToken else {
-            throw TubError.networkFailure
-        }
-        return codexToken
     }
 
     func refreshToken(hard: Bool? = false) async {
@@ -112,17 +81,11 @@ class CodexTokenManager: ObservableObject {
                     }
                 }
                 else {
-                    // If we're too close to expiry or past it, refresh immediately
-
-                    await MainActor.run {
-                        localCodexToken = nil
-                    }
-                    refetch = true
+                    codexToken = try await fetchToken(hard: true)
                 }
             }
 
-            let codexToken = refetch ? try await fetchToken(hard: true) : oldCodexToken
-            await CodexNetwork.initialize(apiKey: codexToken.token)
+            CodexNetwork.initialize(apiKey: codexToken.token)
             await MainActor.run {
                 self.localCodexToken = CodexTokenData(token: codexToken.token, expiry: codexToken.expiry)
                 self.retryCount = 0
