@@ -3,7 +3,7 @@ import { Connection } from "@solana/web3.js";
 import { GqlClient } from "@tub/gql";
 import { MAX_BATCH_SIZE, MIN_BATCH_FREQUENCY } from "@/lib/constants";
 import { Swap } from "@/lib/types";
-import { fetchPriceData, upsertTrades } from "@/lib/utils";
+import { fetchPriceAndMetadata, upsertTrades } from "@/lib/utils";
 
 export class BatchManager {
   private batch: Swap[] = [];
@@ -39,8 +39,8 @@ export class BatchManager {
       const oldestSwapTime = Math.min(...batchToProcess.map((swap) => swap.timestamp));
 
       try {
-        const swapWithPriceData = await fetchPriceData(this.connection, batchToProcess);
-        const res = await upsertTrades(this.gql, swapWithPriceData);
+        const SwapWithPriceAndMetadata = await fetchPriceAndMetadata(this.connection, batchToProcess);
+        const res = await upsertTrades(this.gql, SwapWithPriceAndMetadata);
         if (res.error) throw res.error.message;
 
         this.lastProcessTime = Date.now();
@@ -48,6 +48,7 @@ export class BatchManager {
         console.log(`[${latency}s] Processed batch of ${res.data?.insert_trade_history?.affected_rows} swaps`);
       } catch (error) {
         console.error("Error processing batch:", error);
+        console.log(batchToProcess);
         // On error, add failed items back at the start of the batch
         this.batch.unshift(...batchToProcess);
       } finally {

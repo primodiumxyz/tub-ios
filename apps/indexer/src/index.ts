@@ -7,7 +7,7 @@ import { parseEnv } from "@bin/parseEnv";
 import { BatchManager } from "@/lib/batch-manager";
 import { RaydiumAmmParser } from "@/lib/parsers/raydium-amm-parser";
 import { connection, ixParser, txFormatter } from "@/lib/setup";
-import { decodeSwapInfo, fetchPriceData, upsertTrades } from "@/lib/utils";
+import { decodeSwapInfo, fetchPriceAndMetadata, upsertTrades } from "@/lib/utils";
 
 config({ path: "../../.env" });
 

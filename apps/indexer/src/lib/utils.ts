@@ -6,9 +6,17 @@ import { config } from "dotenv";
 
 import { GqlClient } from "@tub/gql";
 import { parseEnv } from "@bin/parseEnv";
-import { WRAPPED_SOL_MINT } from "@/lib/constants";
+import { PUMP_FUN_AUTHORITY, WRAPPED_SOL_MINT } from "@/lib/constants";
 import { RaydiumAmmParser, SwapBaseInArgs, SwapBaseOutArgs } from "@/lib/parsers/raydium-amm-parser";
-import { ParsedTokenBalanceInfo, Swap, SwapWithPriceData, TransactionWithParsed } from "@/lib/types";
+import {
+  GetAssetsResponse,
+  GetJupiterPriceResponse,
+  ParsedTokenBalanceInfo,
+  Swap,
+  SwapTokenMetadata,
+  SwapWithPriceAndMetadata,
+  TransactionWithParsed,
+} from "@/lib/types";
 
 config({ path: "../../.env" });
 
@@ -55,7 +63,12 @@ export const decodeSwapInfo = (txsWithParsedIxs: TransactionWithParsed[], timest
 };
 
 /* ------------------------------ PROCESS DATA ------------------------------ */
-export const fetchPriceData = async (connection: Connection, swaps: Swap[]): Promise<SwapWithPriceData[]> => {
+export const fetchPriceAndMetadata = async (
+  connection: Connection,
+  swaps: Swap[],
+): Promise<SwapWithPriceAndMetadata[]> => {
+  if (swaps.length === 0) return [];
+
   // Break swaps into batches of 50 (max 100 accounts passed to `getMultipleParsedAccounts`)
   const batchSize = 50;
   const batches = [];
@@ -120,24 +133,59 @@ export const fetchPriceData = async (connection: Connection, swaps: Swap[]): Pro
   // Get unique token mints for price lookup (excluding WSOL)
   const uniqueMints = new Set(swapsWithAccountInfo.map((swap) => swap.tokenMint));
 
-  // Fetch prices from Jupiter API
-  const priceResponse = await fetchWithRetry(
-    `${env.JUPITER_API_ENDPOINT}/price?ids=${Array.from(uniqueMints).join(",")}`,
-    {
-      method: "GET",
-      headers: { "Content-Type": "application/json" },
-    },
-  );
+  const [priceResponse, metadataResponse] = await Promise.all([
+    // Fetch prices from Jupiter API
+    fetchWithRetry(
+      `${env.JUPITER_API_ENDPOINT}/price?ids=${Array.from(uniqueMints).join(",")}`,
+      {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      },
+      1_000,
+    ),
+    // Fetch metadata from QuickNode DAS API
+    fetchWithRetry(
+      `${env.QUICKNODE_ENDPOINT}/${env.QUICKNODE_TOKEN}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "getAssets",
+          params: { ids: Array.from(uniqueMints) },
+        }),
+      },
+      1_000,
+    ),
+  ]);
 
-  // Parse price data and create lookup map
-  const priceData = (await priceResponse.json()) as { data: { [id: string]: { price: number } } };
+  // Parse price and metadata responses and create a lookup map
+  const priceData = (await priceResponse.json()) as GetJupiterPriceResponse;
+  const metadataData = ((await metadataResponse.json()) as GetAssetsResponse).result // TODO: remove when QuickNode DAS API is fixed (returns null for a lot of tokens)
+    .filter((asset) => asset !== null);
   const priceMap = new Map(Object.entries(priceData.data).map(([id, { price }]) => [id, price]));
+  const metadataMap = new Map(metadataData.map((asset) => [asset.id, asset]));
 
   // Map final results with price data
   return swapsWithAccountInfo
     .map((swap) => {
       const price = priceMap.get(swap.tokenMint);
-      if (price === undefined) return;
+      const metadata = metadataMap.get(swap.tokenMint);
+      // TODO: idem (remove when QuickNode DAS API is fixed)
+      if (price === undefined /* || metadata === undefined */) return;
+
+      // TODO: idem (remove when QuickNode DAS API is fixed)
+      const tokenMetadata = metadata
+        ? formatTokenMetadata(metadata)
+        : {
+            name: "",
+            symbol: "",
+            description: "",
+            isPumpToken: false,
+          };
 
       return {
         vaultA: swap.vaultA,
@@ -146,25 +194,74 @@ export const fetchPriceData = async (connection: Connection, swaps: Swap[]): Pro
         mint: new PublicKey(swap.tokenMint),
         priceUsd: price,
         amount: swap.amount,
+        metadata: tokenMetadata,
       };
     })
-    .filter((swap): swap is SwapWithPriceData => swap !== undefined);
+    .filter((swap) => swap !== undefined);
+};
+
+const formatTokenMetadata = (data: GetAssetsResponse["result"][number]): SwapTokenMetadata => {
+  const metadata = data.content.metadata;
+  const files = data.content.files;
+  const links = data.content.links;
+  console.log(data.supply);
+
+  return {
+    name: metadata.name,
+    symbol: metadata.symbol,
+    description: metadata.description,
+    imageUri: links?.image ?? files.find((file) => file.mime.startsWith("image") && !!file.uri)?.uri,
+    externalUrl: links?.external_url,
+    supply: data.supply?.print_current_supply,
+    isPumpToken: data.authorities.some((authority) => authority.address === PUMP_FUN_AUTHORITY.toString()),
+  };
 };
 
 /* -------------------------------- DATABASE -------------------------------- */
-export const upsertTrades = async (gql: GqlClient["db"], trades: SwapWithPriceData[]) => {
+export const upsertTrades = async (gql: GqlClient["db"], trades: SwapWithPriceAndMetadata[]) => {
   return await gql.UpsertTradesMutation({
     trades: trades.map((trade) => {
       const volumeUsd = Number(trade.amount) * trade.priceUsd;
+      const { name, symbol, description, imageUri, externalUrl, supply, isPumpToken } = trade.metadata;
 
       return {
         token_mint: trade.mint.toString(),
         volume_usd: volumeUsd.toString(),
         token_price_usd: trade.priceUsd.toString(),
         created_at: new Date(trade.timestamp),
+        token_metadata: toPgComposite({
+          name: name.slice(0, 255),
+          symbol: symbol.slice(0, 10),
+          description,
+          image_uri: imageUri,
+          external_url: externalUrl,
+          supply: supply, // Don't convert to string here, let toPgComposite handle it
+          is_pump_token: isPumpToken,
+        }),
       };
     }),
   });
+};
+
+/**
+ * Converts a JavaScript object to a PostgreSQL composite type string
+ * @param obj The object to convert
+ * @returns A string in PostgreSQL composite type format: (val1,val2,...)
+ * @example
+ * toPgComposite({ name: 'Test "Quote"', active: true, count: null })
+ * // returns: ("Test ""Quote""",true,NULL)
+ */
+export const toPgComposite = (obj: Record<string, unknown>): string => {
+  const values = Object.values(obj).map((val) => {
+    if (val === null || val === undefined) return null;
+    // Escape quotes by doubling them (PostgreSQL syntax)
+    if (typeof val === "string") return `"${val.replace(/"/g, '""')}"`;
+    if (typeof val === "number") return isNaN(val) ? null : val.toString();
+    // For any other value that might be numeric (like BigInt) or string
+    return val.toString();
+  });
+
+  return `(${values.join(",")})`;
 };
 
 /* ---------------------------------- UTILS --------------------------------- */

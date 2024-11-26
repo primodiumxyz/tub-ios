@@ -9,6 +9,7 @@ select_permissions:
         - volume_usd
         - token_mint
         - created_at
+        - token_metadata
         - id
       filter: {}
       allow_aggregations: true
