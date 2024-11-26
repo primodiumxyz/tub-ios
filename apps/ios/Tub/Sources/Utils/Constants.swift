@@ -107,6 +107,7 @@ enum TubError: Error {
     case insufficientBalance
     case notLoggedIn
     case parsingError
+    case emptyTokenList
 
     var errorDescription: String? {
         switch self {
@@ -120,6 +121,8 @@ enum TubError: Error {
             return "Invalid input"
         case .parsingError:
             return "Parsing error"
+        case .emptyTokenList:
+            return "No tokens found"
         default:
             return "Unknown error"
         }
