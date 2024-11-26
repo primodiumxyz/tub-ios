@@ -60,7 +60,7 @@ struct AccountBalanceView: View {
                             }
 
                             let formattedBalance = priceModel.formatPrice(
-                                usd: balanceUsdc,
+                                usd: balanceUsdc + balances.tokenBalanceUsd,
                                 maxDecimals: 2,
                                 minDecimals: 2
                             )
