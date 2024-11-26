@@ -28,6 +28,7 @@ jobs:
           PRIVY_APP_ID: ${{ secrets.PRIVY_APP_ID }}
           PRIVY_APP_SECRET: ${{ secrets.PRIVY_APP_SECRET }}
           CODEX_API_KEY: ${{ secrets.CODEX_API_KEY }}
+          JUPITER_API_ENDPOINT: ${{ secrets.JUPITER_API_ENDPOINT }}
 
       - name: Teardown
         run: pnpm dev:teardown
