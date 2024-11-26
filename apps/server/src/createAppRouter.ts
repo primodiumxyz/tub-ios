@@ -3,7 +3,6 @@ import { observable } from "@trpc/server/observable";
 import { z } from "zod";
 import { TubService } from "./TubService";
 import { PrebuildSwapResponse } from "../types/PrebuildSwapRequest";
-import { Subscription } from "rxjs";
 
 export type AppContext = {
   tubService: TubService;
@@ -124,14 +123,15 @@ export function createAppRouter() {
       )
       .subscription(({ ctx, input }) => {
         return observable((emit) => {
-          let subscription: Subscription;
+          let subject = null;
 
           ctx.tubService
             .startSwapStream(ctx.jwtToken, input)
-            .then((subject) => {
-              subscription = subject.subscribe({
+            .then((s) => {
+              subject = s;
+              subject.subscribe({
                 next: (response: PrebuildSwapResponse) => {
-                  emit.next(response.transactionBase64);
+                  emit.next(response);
                 },
                 error: (error: Error) => {
                   console.error("Swap stream error:", error);
@@ -145,8 +145,7 @@ export function createAppRouter() {
             });
 
           return () => {
-            if (subscription) subscription.unsubscribe();
-            ctx.tubService.stopSwapStream(ctx.jwtToken);
+            ctx.tubService.stopSwapStream(ctx.jwtToken).catch(console.error);
           };
         });
       }),
