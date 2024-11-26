@@ -93,16 +93,16 @@ struct HistoryView: View {
                                 let metadata = tokenMetadata[transaction.token]
                                 let isBuy = transaction.amount >= 0
                                 let mint = transaction.token
-                                let priceLamps = transaction.token_price
-                                let valueLamps = transaction.amount * Int(priceLamps) / Int(1e9)
+                                let priceUsdc = transaction.token_price
+                                let valueUsdc = transaction.amount * Int(priceUsdc) / Int(1e9)
 
                                 let newTransaction = Transaction(
                                     name: metadata?.name ?? "",
                                     symbol: metadata?.symbol ?? "",
                                     imageUri: metadata?.imageUri ?? "",
                                     date: date,
-                                    valueUsd: priceModel.lamportsToUsd(lamports: -valueLamps),
-                                    valueLamps: -valueLamps,
+                                    valueUsd: priceModel.usdcToUsd(usdc: -valueUsdc),
+                                    valueUsdc: -valueUsdc,
                                     quantityTokens: transaction.amount,
                                     isBuy: isBuy,
                                     mint: mint

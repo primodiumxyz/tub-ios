@@ -300,7 +300,10 @@ class TokenModel: ObservableObject {
                 guard let self = self else { return }
 
                 Task {
-                    self.candles = await self.fetchInitialCandles()
+                    let newCandles = await self.fetchInitialCandles()
+                    await MainActor.run {
+                        self.candles = newCandles
+                    }
                 }
             }
         }

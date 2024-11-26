@@ -55,8 +55,8 @@ final class TxManager: ObservableObject {
 
         guard let tokenId = self.tokenId, let sellQuantity = self.sellQuantity else { return }
 
-        let buyTokenId = purchaseState == .buy ? tokenId : tokenIdUsdc
-        let sellTokenId = purchaseState == .sell ? tokenId : tokenIdUsdc
+        let buyTokenId = self.purchaseState == .buy ? tokenId : tokenIdUsdc
+        let sellTokenId = self.purchaseState == .sell ? tokenId : tokenIdUsdc
 
         do {
             await MainActor.run {
@@ -70,6 +70,7 @@ final class TxManager: ObservableObject {
             )
 
             await MainActor.run {
+                print("successfully fetched tx data!")
                 self.txData = tx
                 self.tokenId = self.purchaseState == .buy ? tx.buyTokenId : tx.sellTokenId
                 self.sellQuantity = tx.sellQuantity

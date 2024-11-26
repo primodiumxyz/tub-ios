@@ -33,7 +33,7 @@ struct TokenInfoCardView: View {
             // Calculate current value
             let tokenBalance = Double(userModel.balanceToken ?? 0) / 1e9
             let tokenBalanceUsd = tokenBalance * (tokenModel.prices.last?.priceUsd ?? 0)
-            let initialValueUsd = priceModel.lamportsToUsd(lamports: purchaseData.amount)
+            let initialValueUsd = priceModel.usdcToUsd(usdc: purchaseData.amountUsdc)
 
             // Calculate profit
             let gains = tokenBalanceUsd - initialValueUsd

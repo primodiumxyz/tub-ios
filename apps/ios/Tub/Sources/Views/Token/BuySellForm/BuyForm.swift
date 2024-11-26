@@ -99,6 +99,9 @@ struct BuyForm: View {
         .offset(y: max(dragOffset, slideOffset - keyboardHeight + (isKeyboardActive ? keyboardAdjustment : 0)))
         .gesture(dragGesture)
         .onAppear(perform: animateAppearance)
+        .onDisappear {
+            updateTxData(buyQuantityUsd: settingsManager.defaultBuyValueUsd)
+        }
         .onChange(of: isVisible, perform: handleVisibilityChange)
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
             isKeyboardActive = false

@@ -41,14 +41,13 @@ struct TokenView: View {
             return
         }
 
-        let priceLamps = priceModel.usdToLamports(usd: priceUsd)
+        let priceUsdc = priceModel.usdToUsdc(usd: priceUsd)
         let buyQuantityUsdc = priceModel.usdToUsdc(usd: buyQuantityUsd)
 
         do {
             try await userModel.buyTokens(
                 buyQuantityUsdc: buyQuantityUsdc,
-                tokenPriceLamps: priceLamps,
-                tokenPriceUsd: priceUsd
+                tokenPriceUsdc: priceUsdc
             )
             await MainActor.run {
                 showBuySheet = false
@@ -256,12 +255,12 @@ struct TokenView: View {
             // Calculate current value
             let tokenBalance = Double(userModel.balanceToken ?? 0) / 1e9
             let tokenBalanceUsd = tokenBalance * (tokenModel.prices.last?.priceUsd ?? 0)
-            let initialValueUsd = priceModel.lamportsToUsd(lamports: purchaseData.amount)
+            let initialValueUsd = priceModel.usdcToUsd(usdc: purchaseData.amountUsdc)
 
             // Calculate profit
             let gains = tokenBalanceUsd - initialValueUsd
 
-            if purchaseData.amount > 0, initialValueUsd > 0 {
+            if purchaseData.amountUsdc > 0, initialValueUsd > 0 {
                 let percentageGain = gains / initialValueUsd * 100
                 stats += [
                     (

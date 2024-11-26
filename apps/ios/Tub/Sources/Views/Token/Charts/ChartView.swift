@@ -17,7 +17,7 @@ struct ChartView: View {
 
     var purchasePriceUsd: Double? {
         if let purchaseData = userModel.purchaseData {
-            return priceModel.lamportsToUsd(lamports: purchaseData.price)
+            return priceModel.usdcToUsd(usdc: purchaseData.priceUsdc)
         }
         else {
             return nil
@@ -26,7 +26,7 @@ struct ChartView: View {
 
     @State private var currentTime = Date().timeIntervalSince1970
     @State private var prices: [Price] = []
-    
+
     init(prices: [Price], height: CGFloat = 330) {
         self.rawPrices = prices
         self.height = height

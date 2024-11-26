@@ -43,14 +43,14 @@ struct ActionButtonsView: View {
             generator.notificationOccurred(.success)
         }
 
-        guard let tokenPrice = tokenModel.prices.last?.priceUsd else {
+        guard let tokenPriceUsd = tokenModel.prices.last?.priceUsd else {
             return
         }
 
-        let priceLamps = priceModel.usdToLamports(usd: tokenPrice)
+        let priceUsdc = priceModel.usdToUsdc(usd: tokenPriceUsd)
 
         do {
-            try await userModel.sellTokens(price: priceLamps)
+            try await userModel.sellTokens(price: priceUsdc)
             await MainActor.run {
                 animationState.showSellBubbles = true
                 onSellSuccess?()

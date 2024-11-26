@@ -281,7 +281,7 @@ final class UserModel: ObservableObject {
         }
     }
 
-    func buyTokens(buyQuantityUsdc: Int, tokenPriceLamps: Int, tokenPriceUsd: Double) async throws {
+    func buyTokens(buyQuantityUsdc: Int, tokenPriceUsdc: Int) async throws {
         guard let tokenId = self.tokenId, let balanceUsdc = self.balanceUsdc else {
             throw TubError.invalidInput(reason: "No balance")
         }
@@ -290,21 +290,22 @@ final class UserModel: ObservableObject {
             throw TubError.insufficientBalance
         }
 
-        let tokenAmount = Int(Double(buyQuantityUsdc) / tokenPriceUsd * 1e9)
+        // assuming decimals are 1e9 for all tokens. We should probably pass this in.
+        let buyQuantityToken = (buyQuantityUsdc / tokenPriceUsdc) * Int(1e9)
 
         var err: (any Error)? = nil
         do {
             let _ = try await Network.shared.buyToken(
                 tokenId: tokenId,
-                amount: String(tokenAmount),
-                tokenPrice: String(tokenPriceLamps)
+                amount: String(buyQuantityToken),
+                tokenPrice: String(tokenPriceUsdc)
             )
 
             await MainActor.run {
                 self.purchaseData = PurchaseData(
                     timestamp: Date(),
-                    amount: tokenAmount,
-                    price: tokenPriceLamps
+                    amountUsdc: buyQuantityUsdc,
+                    priceUsdc: Int(tokenPriceUsdc)
                 )
             }
         }
@@ -318,8 +319,8 @@ final class UserModel: ObservableObject {
                     eventName: "buy_tokens",
                     source: "token_model",
                     metadata: [
-                        ["buy_amount": tokenAmount],
-                        ["price": tokenPriceLamps],
+                        ["buy_amount": buyQuantityToken],
+                        ["price": tokenPriceUsdc],
                         ["token_id": tokenId],
                     ],
                     errorDetails: err?.localizedDescription
