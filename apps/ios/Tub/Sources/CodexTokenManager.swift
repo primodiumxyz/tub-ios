@@ -66,7 +66,7 @@ class CodexTokenManager: ObservableObject {
         else {
             do {
                 print("fetching new token...")
-                codexToken = try await Network.shared.requestCodexToken(Int(tokenExpiration) * 1000)
+                // codexToken = try await Network.shared.requestCodexToken(Int(tokenExpiration) * 1000)
             }
             catch {
                 print(error)

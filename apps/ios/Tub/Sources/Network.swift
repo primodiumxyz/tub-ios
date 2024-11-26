@@ -104,6 +104,7 @@ class Network {
 
         // First, try to decode as an error response
         if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
+            print(errorResponse)
             throw TubError.parsingError
         }
 
@@ -177,10 +178,22 @@ class Network {
         }
     }
 
-    func requestCodexToken(_ expiration: Int = 3600 * 1000) async throws -> CodexTokenData {
-        let input: CodexTokenInput = .init(expiration: expiration)
-        let res: CodexTokenResponse = try await callProcedure("requestCodexToken", input: input)
-        return CodexTokenData(token: res.token, expiry: res.expiry)
+    func getSolPrice() async throws -> Double {
+        let url = baseURL.appendingPathComponent("getSolUsdPrice")
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        
+        let (data, _) = try await session.data(for: request)
+        
+        // First, try to decode as an error response
+        if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
+            print(errorResponse)
+            throw TubError.networkFailure
+        }
+        
+        // If it's not an error, proceed with normal decoding
+        let response = try JSONDecoder().decode(ResponseWrapper<Double>.self, from: data)
+        return response.result.data
     }
 }
 
@@ -354,19 +367,3 @@ struct EventInput: Codable {
 }
 
 private struct EmptyInput: Codable {}
-
-// MARK: - Extensions
-extension Network {
-    func fetchSolPrice() async throws -> Double {
-        let url = URL(string: "https://min-api.cryptocompare.com/data/price?fsym=SOL&tsyms=USD")!
-        let (data, _) = try await session.data(from: url)
-
-        guard let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Double],
-            let price = json["USD"]
-        else {
-            throw TubError.parsingError
-        }
-
-        return price
-    }
-}

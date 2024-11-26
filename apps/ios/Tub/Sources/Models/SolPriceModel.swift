@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import CodexAPI
+import TubAPI
 
 final class SolPriceModel: ObservableObject {
     static let shared = SolPriceModel()
@@ -17,79 +17,46 @@ final class SolPriceModel: ObservableObject {
 
     private var timer: Timer?
     private var fetching = false
-    private let updateInterval: TimeInterval = 10 // Update every 10 seconds
 
     init() {
-        Task {
-            await fetchCurrentPrice()
-            startPriceUpdates()
-        }
+        startPriceUpdates()
     }
 
     deinit {
         timer?.invalidate()
-        timer = nil
     }
 
     private func startPriceUpdates() {
-        timer?.invalidate()
-        timer = nil
+        // Initial fetch
+        Task { @MainActor in
+            await fetchPrice()
+        }
         
-        timer = Timer.scheduledTimer(withTimeInterval: updateInterval, repeats: true) { [weak self] _ in
+        // Setup timer for subsequent fetches
+        timer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true) { [weak self] _ in
             guard let self = self else { return }
-            if !self.fetching {
-                Task {
-                    await self.fetchCurrentPrice()
-                }
+            Task { @MainActor in
+                await self.fetchPrice()
             }
         }
         RunLoop.main.add(timer!, forMode: .common)
     }
-
-    // this comment ensures that the fetchCurrentPrice function is executing on the main thread
+    
     @MainActor
-    func fetchCurrentPrice() async {
+    private func fetchPrice() async {
         guard !fetching else { return }
         fetching = true
         defer { fetching = false }
         
-        error = nil
-        isReady = false
-        
-        let client = await CodexNetwork.shared.apolloClient
-        let input = GetPriceInput(
-            address: WSOL_ADDRESS,
-            networkId: NETWORK_FILTER
-        )
-        let query = GetTokenPricesQuery(inputs: [input])
-
         do {
-            try await withCheckedThrowingContinuation { continuation in
-                client.fetch(query: query) { result in
-                    Task { @MainActor in
-                        switch result {
-                        case .success(let response):
-                            if let prices = response.data?.getTokenPrices,
-                               let firstPrice = prices.first,
-                               let price = firstPrice?.priceUsd
-                            {
-                                self.price = price
-                                continuation.resume()
-                            } else {
-                                continuation.resume(throwing: TubError.parsingError)
-                            }
-                        case .failure(let error):
-                            continuation.resume(throwing: error)
-                        }
-                    }
-                }
-            }
+            let price = try await Network.shared.getSolPrice()
+            self.price = price
+            self.isReady = true
+            self.error = nil
         } catch {
             self.error = error.localizedDescription
-            print("Error fetching SOL price: \(error.localizedDescription)")
+            print("Error fetching SOL price: \(error)")
         }
-        
-        self.isReady = true
     }
 
     func formatPrice(
