@@ -407,7 +407,7 @@ export class OctaneService {
    * @throws Error if signing fails
    */
   // !! TODO: validate transaction before signing
-  async signTransactionWithoutTokenFee(transaction: Transaction): Promise<string> {
+  async signTransactionWithoutCheckingTokenFee(transaction: Transaction): Promise<string> {
     try {
       transaction.partialSign(this.feePayerKeypair);
       return bs58.encode(transaction.signature!);

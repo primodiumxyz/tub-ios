@@ -221,7 +221,7 @@ export class TubService {
   }
 
   /**
-   * Builds a swap transaction for exchanging tokens
+   * Builds a swap transaction for exchanging tokens that enables a server-side fee payer
    * @param jwtToken - The JWT token for user authentication
    * @param request - The swap request parameters
    * @param request.buyTokenId - Public key of the token to receive
@@ -262,6 +262,38 @@ export class TubService {
       console.error("[fetchSwap] Error:", error);
       throw new Error(`Failed to build swap response: ${error}`);
     }
+  }
+
+  /**
+   * Builds a swap transaction for exchanging tokens and signs it with the fee payer.
+   * @dev Once user signs, the transaction is complete and can be directly submitted to Solana RPC by the user.
+   * @param jwtToken - The JWT token for user authentication
+   * @param request - The swap request parameters
+   * @param request.buyTokenId - Public key of the token to receive
+   * @param request.sellTokenId - Public key of the token to sell
+   * @param request.sellQuantity - Amount of tokens to sell (in token's base units)
+   * @returns {Promise<PrebuildSwapResponse>} Object containing the base64-encoded transaction and metadata
+   * @throws {Error} If user has no wallet or if swap building fails
+   *
+   * @example
+   * const response = await tubService.fetchSwap(jwt, {
+   *   buyTokenId: "So11111111111111111111111111111111111111112",  // SOL
+   *   sellTokenId: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
+   *   sellQuantity: 1e6 // 1 USDC. Other tokens may be 1e9 standard
+   * });
+   */
+  async fetchPresignedSwap(jwtToken: string, request: UserPrebuildSwapRequest): Promise<PrebuildSwapResponse> {
+    const fetchSwapResponse = await this.fetchSwap(jwtToken, request);
+    const transaction = Transaction.from(Buffer.from(fetchSwapResponse.transactionBase64, "base64"));
+
+    const feePayerSignature = await this.octane.signTransactionWithoutCheckingTokenFee(transaction);
+    const feePayerSignatureBytes = Buffer.from(bs58.decode(feePayerSignature));
+    transaction.addSignature(this.octane.getSettings().feePayerPublicKey, feePayerSignatureBytes);
+
+    fetchSwapResponse.transactionBase64 = Buffer.from(transaction.serialize({ verifySignatures: false })).toString(
+      "base64",
+    );
+    return fetchSwapResponse;
   }
 
   /**
@@ -410,7 +442,7 @@ export class TubService {
       // Once fixed, this if/then can be removed. Even then, as long as we're using the tx registry this shouldn't be an issue.
       // eslint-disable-next-line no-constant-condition
       if (true) {
-        const feePayerSignature = await this.octane.signTransactionWithoutTokenFee(transaction);
+        const feePayerSignature = await this.octane.signTransactionWithoutCheckingTokenFee(transaction);
         const feePayerSignatureBytes = Buffer.from(bs58.decode(feePayerSignature));
         transaction.addSignature(this.octane.getSettings().feePayerPublicKey, feePayerSignatureBytes);
       } else {
@@ -423,7 +455,7 @@ export class TubService {
             6, // tokenDecimals
           );
         } else {
-          feePayerSignature = await this.octane.signTransactionWithoutTokenFee(transaction);
+          feePayerSignature = await this.octane.signTransactionWithoutCheckingTokenFee(transaction);
         }
 
         const feePayerSignatureBytes = Buffer.from(bs58.decode(feePayerSignature));
