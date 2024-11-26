@@ -19,16 +19,18 @@ final class TxManager: ObservableObject {
 
     var purchaseState: PurchaseState = .buy
     var tokenId: String?
-    var quantity: Int?
+    var sellQuantity: Int?
     let tokenIdUsdc = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
     private var currentFetchTask: Task<Void, Error>?
 
-    func updateTxData(purchaseState: PurchaseState? = nil, tokenId: String? = nil, quantity: Int? = nil) throws {
+    func updateTxData(purchaseState: PurchaseState? = nil, tokenId: String? = nil, sellQuantity: Int? = nil)
+        async throws
+    {
         currentFetchTask?.cancel()
 
         currentFetchTask = Task {
             do {
-                try await _updateTxData(purchaseState: purchaseState, tokenId: tokenId, quantity: quantity)
+                try await _updateTxData(purchaseState: purchaseState, tokenId: tokenId, sellQuantity: sellQuantity)
             }
             catch {
                 if !Task.isCancelled {
@@ -36,21 +38,22 @@ final class TxManager: ObservableObject {
                 }
             }
         }
+        try await currentFetchTask?.value
     }
 
-    private func _updateTxData(purchaseState: PurchaseState?, tokenId: String?, quantity: Int?) async throws {
+    private func _updateTxData(purchaseState: PurchaseState?, tokenId: String?, sellQuantity: Int?) async throws {
         // if nothing is getting updated return without updating
         if self.purchaseState == (purchaseState ?? self.purchaseState) && self.tokenId == (tokenId ?? self.tokenId)
-            && self.quantity == (quantity ?? self.quantity)
+            && self.sellQuantity == (sellQuantity ?? self.sellQuantity)
         {
             return
         }
 
         self.tokenId = tokenId ?? self.tokenId
-        self.quantity = quantity ?? self.quantity
+        self.sellQuantity = sellQuantity ?? self.sellQuantity
         self.purchaseState = purchaseState ?? self.purchaseState
 
-        guard let tokenId = self.tokenId, let quantity = self.quantity else { return }
+        guard let tokenId = self.tokenId, let sellQuantity = self.sellQuantity else { return }
 
         let buyTokenId = purchaseState == .buy ? tokenId : tokenIdUsdc
         let sellTokenId = purchaseState == .sell ? tokenId : tokenIdUsdc
@@ -63,13 +66,13 @@ final class TxManager: ObservableObject {
             let tx = try await Network.shared.getTxData(
                 buyTokenId: buyTokenId,
                 sellTokenId: sellTokenId,
-                sellQuantity: quantity
+                sellQuantity: sellQuantity
             )
 
             await MainActor.run {
                 self.txData = tx
                 self.tokenId = self.purchaseState == .buy ? tx.buyTokenId : tx.sellTokenId
-                self.quantity = tx.sellQuantity
+                self.sellQuantity = tx.sellQuantity
                 self.fetchingTxData = false
             }
         }
@@ -80,7 +83,7 @@ final class TxManager: ObservableObject {
 
     func clearTxData() {
         txData = nil
-        quantity = nil
+        sellQuantity = nil
         tokenId = nil
         purchaseState = .buy
     }
@@ -104,12 +107,12 @@ final class TxManager: ObservableObject {
         }
 
         let token = self.purchaseState == .sell ? txData.sellTokenId : txData.buyTokenId
-        if txData.sellQuantity != self.quantity || token != self.tokenId {
+        if txData.sellQuantity != self.sellQuantity || token != self.tokenId {
             do {
-                try await _updateTxData(purchaseState: self.purchaseState, tokenId: token, quantity: quantity)
+                try await self.updateTxData(sellQuantity: sellQuantity)
             }
             catch {
-                throw TubError.actionFailed(failureDescription: "Couldn't prepare transaction")
+
             }
         }
 

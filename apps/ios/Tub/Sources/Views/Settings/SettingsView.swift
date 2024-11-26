@@ -23,7 +23,7 @@ struct CustomToggleStyle: ToggleStyle {
                 .overlay(
                     Circle()
                         .fill(
-                            configuration.isOn 
+                            configuration.isOn
                                 ? AppColors.toggleOnGradient
                                 : AppColors.toggleOffGradient
                         )
@@ -43,9 +43,9 @@ struct CustomToggleStyle: ToggleStyle {
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var settingsManager = SettingsManager.shared
-    
+
     // Add temporary state for editing
-    @State private var tempDefaultValue: String = ""
+    @State private var tempDefaultValueUsd: String = ""
     @FocusState private var isEditing: Bool
 
     private let currencyFormatter: NumberFormatter = {
@@ -61,11 +61,11 @@ struct SettingsView: View {
     // Create a computed binding to handle validation
     private var validatedDefaultBuyValue: Binding<Double> {
         Binding(
-            get: { settingsManager.defaultBuyValue },
+            get: { settingsManager.defaultBuyValueUsd },
             set: { newValue in
                 // Round to 2 decimal places
                 let rounded = (newValue * 100).rounded() / 100
-                settingsManager.defaultBuyValue = max(0, rounded)
+                settingsManager.defaultBuyValueUsd = max(0, rounded)
             }
         )
     }
@@ -82,33 +82,33 @@ struct SettingsView: View {
                             Text("$")
                                 .font(.sfRounded(size: .lg, weight: .semibold))
                                 .foregroundColor(Color.white.opacity(0.5))
-                            TextField("", text: $tempDefaultValue)
+                            TextField("", text: $tempDefaultValueUsd)
                                 .focused($isEditing)
                                 .keyboardType(.decimalPad)
                                 .font(.sfRounded(size: .lg, weight: .semibold))
                                 .multilineTextAlignment(.trailing)
                                 .foregroundColor(Color.white)
-                                .frame(width: textWidth(for: tempDefaultValue))
-                                .onChange(of: tempDefaultValue) { newValue in
+                                .frame(width: textWidth(for: tempDefaultValueUsd))
+                                .onChange(of: tempDefaultValueUsd) { _, newValue in
                                     // Remove any non-numeric characters except decimal point
                                     let filtered = newValue.filter { "0123456789.".contains($0) }
 
                                     // Ensure only one decimal point
                                     let components = filtered.components(separatedBy: ".")
                                     if components.count > 2 {
-                                        tempDefaultValue = components[0] + "." + components[1]
+                                        tempDefaultValueUsd = components[0] + "." + components[1]
                                     }
                                     else if components.count == 2 {
                                         // Limit to 2 decimal places
                                         let decimals = components[1].prefix(2)
-                                        tempDefaultValue = components[0] + "." + String(decimals)
+                                        tempDefaultValueUsd = components[0] + "." + String(decimals)
                                     }
                                     else {
-                                        tempDefaultValue = filtered
+                                        tempDefaultValueUsd = filtered
                                     }
                                 }
                                 .onAppear {
-                                    tempDefaultValue = String(format: "%.2f", settingsManager.defaultBuyValue)
+                                    tempDefaultValueUsd = String(format: "%.2f", settingsManager.defaultBuyValueUsd)
                                 }
                                 .onSubmit {
                                     updateDefaultValue()
@@ -151,7 +151,7 @@ struct SettingsView: View {
                         .font(.sfRounded(size: .xl, weight: .semibold))
                         .foregroundColor(Color.white)
                 }
-                
+
                 // Keep keyboard toolbar
                 ToolbarItem(placement: .keyboard) {
                     Button("Save") {
@@ -167,9 +167,9 @@ struct SettingsView: View {
     }
 
     private func updateDefaultValue() {
-        if let newValue = Double(tempDefaultValue) {
+        if let newValue = Double(tempDefaultValueUsd) {
             let rounded = (newValue * 100).rounded() / 100
-            settingsManager.defaultBuyValue = max(0, rounded)
+            settingsManager.defaultBuyValueUsd = max(0, rounded)
         }
     }
 

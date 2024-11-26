@@ -32,7 +32,7 @@ struct ActionButtonsView: View {
     }
 
     var activeTab: PurchaseState {
-        let balance: Int = userModel.tokenBalanceLamps ?? 0
+        let balance: Int = userModel.balanceToken ?? 0
         return balance > 0 ? .sell : .buy
     }
 
@@ -73,8 +73,8 @@ struct ActionButtonsView: View {
 
                 switch userModel.walletState {
                 case .connected(_):
-                    if let balanceUsd = userModel.balanceLamps,
-                        priceModel.lamportsToUsd(lamports: balanceUsd) < 0.1
+                    if let balanceUsdc = userModel.balanceUsdc,
+                        priceModel.usdcToUsd(usdc: balanceUsdc) < 0.1
                     {
                         AirdropButton()
                     }
@@ -211,12 +211,12 @@ private struct BuyButton: View {
 
     var body: some View {
         PrimaryButton(
-            text: "Buy \(priceModel.formatPrice(usd: settingsManager.defaultBuyValue))",
+            text: "Buy \(priceModel.formatPrice(usd: settingsManager.defaultBuyValueUsd))",
             textColor: Color.black,
             backgroundColor: Color("aquaGreen"),
             action: {
                 Task {
-                    await handleBuy(settingsManager.defaultBuyValue)
+                    await handleBuy(settingsManager.defaultBuyValueUsd)
                 }
             }
         )

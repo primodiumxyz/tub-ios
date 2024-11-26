@@ -22,7 +22,7 @@ struct TokenView: View {
     var onSellSuccess: (() -> Void)?
 
     var activeTab: PurchaseState {
-        let balance: Int = userModel.tokenBalanceLamps ?? 0
+        let balance: Int = userModel.balanceToken ?? 0
         return balance > 0 ? PurchaseState.sell : PurchaseState.buy
     }
 
@@ -31,8 +31,8 @@ struct TokenView: View {
         self.onSellSuccess = onSellSuccess
     }
 
-    func handleBuy(amountUsd: Double) async {
-        guard let priceUsd = tokenModel.prices.last?.priceUsd
+    func handleBuy(buyQuantityUsd: Double) async {
+        guard let priceUsd = tokenModel.prices.last?.priceUsd, priceUsd > 0
         else {
             notificationHandler.show(
                 "Something went wrong. Please try again.",
@@ -41,15 +41,14 @@ struct TokenView: View {
             return
         }
 
-        let buyAmountLamps = priceModel.usdToLamports(usd: amountUsd)
-
         let priceLamps = priceModel.usdToLamports(usd: priceUsd)
+        let buyQuantityUsdc = priceModel.usdToUsdc(usd: buyQuantityUsd)
 
         do {
             try await userModel.buyTokens(
-                buyAmountLamps: buyAmountLamps,
-                priceLamps: priceLamps,
-                priceUsd: priceUsd
+                buyQuantityUsdc: buyQuantityUsdc,
+                tokenPriceLamps: priceLamps,
+                tokenPriceUsd: priceUsd
             )
             await MainActor.run {
                 showBuySheet = false
@@ -99,15 +98,17 @@ struct TokenView: View {
             infoCardOverlay
             buySheetOverlay
         }
-        .onChange(of: userModel.tokenBalanceLamps) {
-            guard let balance = userModel.tokenBalanceLamps else { return }
-            let purchaseState = balance > 0 ? PurchaseState.sell : PurchaseState.buy
-            if purchaseState == .sell {
-                try! TxManager.shared.updateTxData(purchaseState: .sell, quantity: balance)
-            }
-            else {
-                let defaultBuyValueLamps = priceModel.usdToLamports(usd: SettingsManager.shared.defaultBuyValue)
-                try! TxManager.shared.updateTxData(purchaseState: .buy, quantity: defaultBuyValueLamps)
+        .onChange(of: userModel.balanceToken) {
+            guard let balanceToken = userModel.balanceToken else { return }
+            let purchaseState = balanceToken > 0 ? PurchaseState.sell : PurchaseState.buy
+            Task {
+                if purchaseState == .sell {
+                    try! await TxManager.shared.updateTxData(purchaseState: .sell, sellQuantity: balanceToken)
+                }
+                else {
+                    let defaultBuyValueUsdc = priceModel.usdToUsdc(usd: SettingsManager.shared.defaultBuyValueUsd)
+                    try! await TxManager.shared.updateTxData(purchaseState: .buy, sellQuantity: defaultBuyValueUsdc)
+                }
             }
         }
         .dismissKeyboardOnTap()
@@ -253,7 +254,7 @@ struct TokenView: View {
             activeTab == .sell
         {
             // Calculate current value
-            let tokenBalance = Double(userModel.tokenBalanceLamps ?? 0) / 1e9
+            let tokenBalance = Double(userModel.balanceToken ?? 0) / 1e9
             let tokenBalanceUsd = tokenBalance * (tokenModel.prices.last?.priceUsd ?? 0)
             let initialValueUsd = priceModel.lamportsToUsd(lamports: purchaseData.amount)
 
@@ -388,11 +389,11 @@ struct TokenView: View {
     }
 
     private var buySheetOverlay: some View {
-        guard showBuySheet else {
-            return AnyView(EmptyView())
-        }
-        return AnyView(
-            Group {
+        Group {
+            if !showBuySheet {
+                EmptyView()
+            }
+            else {
                 Color.black.opacity(0.4)
                     .onTapGesture {
                         withAnimation(.easeInOut(duration: 0.3)) {
@@ -411,7 +412,7 @@ struct TokenView: View {
                         removeKeyboardNotifications()
                     }
             }
-        )
+        }
     }
 
     private func setupKeyboardNotifications() {

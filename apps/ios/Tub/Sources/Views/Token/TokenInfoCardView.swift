@@ -17,7 +17,7 @@ struct TokenInfoCardView: View {
     @State private var isClosing: Bool = false
 
     var activeTab: PurchaseState {
-        let balance: Int = userModel.tokenBalanceLamps ?? 0
+        let balance: Int = userModel.balanceToken ?? 0
         return balance > 0 ? .sell : .buy
     }
 
@@ -31,7 +31,7 @@ struct TokenInfoCardView: View {
 
         if let purchaseData = userModel.purchaseData, activeTab == .sell {
             // Calculate current value
-            let tokenBalance = Double(userModel.tokenBalanceLamps ?? 0) / 1e9
+            let tokenBalance = Double(userModel.balanceToken ?? 0) / 1e9
             let tokenBalanceUsd = tokenBalance * (tokenModel.prices.last?.priceUsd ?? 0)
             let initialValueUsd = priceModel.lamportsToUsd(lamports: purchaseData.amount)
 

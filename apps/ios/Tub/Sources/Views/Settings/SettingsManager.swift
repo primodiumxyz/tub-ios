@@ -16,14 +16,14 @@ class SettingsManager: ObservableObject {
         }
     }
 
-    @Published var defaultBuyValue: Double {
+    @Published var defaultBuyValueUsd: Double {
         didSet {
-            UserDefaults.standard.set(defaultBuyValue, forKey: "defaultBuyValue")
+            UserDefaults.standard.set(defaultBuyValueUsd, forKey: "defaultBuyValue")
         }
     }
 
     init() {
         self.isVibrationEnabled = UserDefaults.standard.object(forKey: "isVibrationEnabled") as? Bool ?? true
-        self.defaultBuyValue = UserDefaults.standard.object(forKey: "defaultBuyValue") as? Double ?? 10.00
+        self.defaultBuyValueUsd = UserDefaults.standard.object(forKey: "defaultBuyValue") as? Double ?? 10.00
     }
 }

@@ -42,7 +42,7 @@ struct BubbleEffect: View {
                     createBubbles(in: geometry)
                 }
             }
-            .onChange(of: isActive) { newValue in
+            .onChange(of: isActive) { _, newValue in
                 if newValue {
                     createBubbles(in: geometry)
                 }
@@ -53,7 +53,7 @@ struct BubbleEffect: View {
 
     private func createBubbles(in geometry: GeometryProxy) {
         bubbles = []
-        for i in 0..<bubbleCount {
+        for _ in 0..<bubbleCount {
             let randomX = CGFloat.random(in: 0...geometry.size.width)
             let randomStartY = CGFloat.random(in: geometry.size.height...(geometry.size.height + 250))
 

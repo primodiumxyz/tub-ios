@@ -27,7 +27,7 @@ struct TokenListView: View {
     let OFFSET: Double = -15
 
     var activeTab: PurchaseState {
-        let balance: Int = userModel.tokenBalanceLamps ?? 0
+        let balance: Int = userModel.balanceToken ?? 0
         return balance > 0 ? .sell : .buy
     }
 

@@ -104,7 +104,7 @@ class Network {
 
         // First, try to decode as an error response
         if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
-            print("Error decoding data", errorResponse)
+            print("Error decoding data", errorResponse.error.message)
             throw TubError.parsingError
         }
 

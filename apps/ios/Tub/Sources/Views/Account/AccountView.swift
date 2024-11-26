@@ -77,9 +77,9 @@ private struct BalanceSection: View {
     @EnvironmentObject private var priceModel: SolPriceModel
 
     var accountBalance: (balance: Int?, change: Int) {
-        let balance = userModel.balanceLamps
+        let balance = userModel.balanceUsdc
 
-        let adjustedChange = userModel.balanceChangeLamps
+        let adjustedChange = userModel.balanceChangeUsdc
 
         return (balance, adjustedChange)
     }

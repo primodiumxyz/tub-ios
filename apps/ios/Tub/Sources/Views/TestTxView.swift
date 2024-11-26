@@ -30,7 +30,11 @@ struct TestTxView: View {
         Task {
             let solTokenId = "So11111111111111111111111111111111111111112"
             do {
-                try await txManager.updateTxData(purchaseState: .buy, tokenId: solTokenId, quantity: Int(1e6))
+                try await txManager.updateTxData(
+                    purchaseState: .buy,
+                    tokenId: solTokenId,
+                    sellQuantity: priceModel.usdToUsdc(usd: 1.0)
+                )
             }
             catch {
                 notificationHandler.show(error.localizedDescription, type: .error)
