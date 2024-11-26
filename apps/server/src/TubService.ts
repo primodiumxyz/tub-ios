@@ -41,7 +41,6 @@ export class TubService {
   private privy: PrivyClient;
   private codexSdk: Codex;
   private activeSwapRequests: Map<string, ActiveSwapRequest> = new Map();
-  private swapSubjects: Map<string, Subject<PrebuildSwapResponse>> = new Map();
   private swapRegistry: Map<string, PrebuildSwapResponse & { transaction: Transaction }> = new Map();
   private swapSubscriptions: Map<string, SwapSubscription> = new Map();
 
@@ -496,7 +495,7 @@ export class TubService {
         transaction.addSignature(this.octane.getSettings().feePayerPublicKey, feePayerSignatureBytes);
       } else {
         let feePayerSignature;
-        if (registryEntry.hasFee) {
+        if (registryEntry!.hasFee) {
           feePayerSignature = await this.octane.signTransactionWithTokenFee(
             transaction,
             true, // buyWithUSDCBool
