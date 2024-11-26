@@ -108,6 +108,7 @@ enum TubError: Error {
     case notLoggedIn
     case parsingError
     case actionInProgress(actionDescription: String)
+    case actionFailed(failureDescription: String)
 
     var errorDescription: String? {
         switch self {
@@ -123,6 +124,8 @@ enum TubError: Error {
             return "Parsing error"
         case .actionInProgress(let actionDescription):
             return "\(actionDescription) already in progress"
+        case .actionFailed(let failureDescription):
+            return "\(failureDescription)"
         default:
             return "Unknown error"
         }

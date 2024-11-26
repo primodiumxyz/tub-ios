@@ -68,6 +68,8 @@ final class TxManager: ObservableObject {
 
             await MainActor.run {
                 self.txData = tx
+                self.tokenId = self.purchaseState == .buy ? tx.buyTokenId : tx.sellTokenId
+                self.quantity = tx.sellQuantity
                 self.fetchingTxData = false
             }
         }
@@ -98,7 +100,17 @@ final class TxManager: ObservableObject {
         }
 
         guard let txData else {
-            throw TubError.invalidInput(reason: "Missing required fields")
+            throw TubError.invalidInput(reason: "Missing transaction data")
+        }
+
+        let token = self.purchaseState == .sell ? txData.sellTokenId : txData.buyTokenId
+        if txData.sellQuantity != self.quantity || token != self.tokenId {
+            do {
+                try await self.updateTxData(tokenId: token, quantity: quantity)
+            }
+            catch {
+                throw TubError.actionFailed(failureDescription: "Couldn't prepare transaction")
+            }
         }
 
         do {
