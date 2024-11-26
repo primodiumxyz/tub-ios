@@ -38,7 +38,6 @@ class CodexTokenManager: ObservableObject {
         return f
     }()
 
-
     private func fetchToken(hard: Bool? = false) async throws -> CodexTokenData {
         do {
             return try await Network.shared.requestCodexToken(Int(tokenExpiration) * 1000)
@@ -58,10 +57,10 @@ class CodexTokenManager: ObservableObject {
             fetchFailed = false
         }
         do {
-            let oldCodexToken = try await fetchToken(hard: hard ?? false)
+            let codexToken = try await fetchToken(hard: hard ?? false)
 
             var refetch = false
-            if let expiryDate = formatter.date(from: oldCodexToken.expiry) {
+            if let expiryDate = formatter.date(from: codexToken.expiry) {
                 let timeUntilExpiry = expiryDate.timeIntervalSinceNow
 
                 // Ensure we're not scheduling in the past
@@ -80,14 +79,10 @@ class CodexTokenManager: ObservableObject {
                         RunLoop.main.add(refetchTimer!, forMode: .common)
                     }
                 }
-                else {
-                    codexToken = try await fetchToken(hard: true)
-                }
             }
 
-            CodexNetwork.initialize(apiKey: codexToken.token)
+            await CodexNetwork.initialize(apiKey: codexToken.token)
             await MainActor.run {
-                self.localCodexToken = CodexTokenData(token: codexToken.token, expiry: codexToken.expiry)
                 self.retryCount = 0
                 self.isReady = true
             }
