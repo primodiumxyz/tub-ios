@@ -20,6 +20,11 @@ export type SwapBaseOutArgs = {
 };
 const SwapBaseOutArgsLayout = struct<SwapBaseOutArgs>([u8("discriminator"), u64("maxAmountIn"), u64("amountOut")]);
 
+export type TransferInstruction = {
+  amount: bigint;
+};
+const TransferInstructionLayout = struct<TransferInstruction>([u8("instruction"), u64("amount")]);
+
 const parseSwapAccounts = (accounts: AccountMeta[]): AccountMeta[] => {
   // Transactions that go directly through Raydium include the 'ammTargetOrders' account
   // Otherwise, if they were made through Jupited, the Raydium AMM Routing program, or various other routes,
@@ -120,5 +125,24 @@ export class RaydiumAmmParser {
       args: { unknown: utils.bytes.bs58.encode(instruction.data) },
       programId: instruction.programId,
     };
+  }
+
+  static decodeTransferIxs(...instructions: TransactionInstruction[]) {
+    return instructions.map((instruction) => {
+      const dataBuffer = instruction.data;
+      const decoded = TransferInstructionLayout.decode(dataBuffer);
+
+      return {
+        name: "transfer",
+        accounts: instruction.keys,
+        args: {
+          amount: BigInt(decoded.amount),
+          source: instruction.keys[0]!.pubkey,
+          destination: instruction.keys[1]!.pubkey,
+          authority: instruction.keys[2]!.pubkey,
+        },
+        programId: instruction.programId,
+      };
+    });
   }
 }
