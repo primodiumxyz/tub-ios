@@ -80,11 +80,6 @@ struct HomeTabsView: View {
     @EnvironmentObject private var priceModel: SolPriceModel
     @StateObject private var vm = TabsViewModel()  // Make it optional
 
-    @StateObject private var tokenListModel: TokenListModel
-    init(userModel: UserModel) {
-        self._tokenListModel = StateObject(wrappedValue: TokenListModel(userModel: userModel))
-    }
-
     // Add this to watch for userModel changes
     private var userId: String? {
         didSet {
@@ -99,7 +94,7 @@ struct HomeTabsView: View {
         Group {
             if !priceModel.isReady {
                 LoadingView(
-                    identifier: "HomeTabsView - waiting for userModel & priceModel",
+                    identifier: "HomeTabsView - waiting priceModel",
                     message: "Connecting to Solana"
                 )
             }
@@ -108,7 +103,7 @@ struct HomeTabsView: View {
                     // Main content view
                     Group {
                         if vm.selectedTab == 0 {
-                            TokenListView(tokenListModel: tokenListModel)
+                            TokenListView()
                         }
                         else if vm.selectedTab == 1 {
                             HistoryView()

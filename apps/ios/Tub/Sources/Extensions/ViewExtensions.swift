@@ -13,7 +13,8 @@ extension View {
     func conditionalModifier<V: View>(condition: Bool, modifier: (Self) -> V) -> some View {
         if condition {
             modifier(self)
-        } else {
+        }
+        else {
             self
         }
     }

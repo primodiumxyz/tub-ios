@@ -5,10 +5,8 @@
 //  Created by Henry on 9/30/24.
 //
 
-// ... existing imports ...
 import SwiftUI
 
-// Add this new struct above the ActionButtonsView struct
 struct SwipeToEnterView: View {
     @State private var offset: CGFloat = 0
     @State private var isDragging = false

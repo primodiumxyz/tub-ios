@@ -79,16 +79,10 @@ final class UserModel: ObservableObject {
                         do {
                             let _ = try await privy.embeddedWallet.createWallet(chainType: .solana)
                         }
-                        catch {
-                            print("failed to create solana wallet")
-                        }
                     }
                 case .notCreated:
                     do {
                         let _ = try await privy.embeddedWallet.createWallet(chainType: .solana)
-                    }
-                    catch {
-                        print("failed to create solana wallet")
                     }
                 case .connecting:
                     await MainActor.run {

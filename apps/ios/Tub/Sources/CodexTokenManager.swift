@@ -57,8 +57,9 @@ class CodexTokenManager: ObservableObject {
             fetchFailed = false
         }
         do {
-            var codexToken = try await fetchToken(hard: hard)
+            let codexToken = try await fetchToken(hard: hard ?? false)
 
+            var refetch = false
             if let expiryDate = formatter.date(from: codexToken.expiry) {
                 let timeUntilExpiry = expiryDate.timeIntervalSinceNow
 
@@ -78,12 +79,9 @@ class CodexTokenManager: ObservableObject {
                         RunLoop.main.add(refetchTimer!, forMode: .common)
                     }
                 }
-                else {
-                    codexToken = try await fetchToken(hard: true)
-                }
             }
 
-            CodexNetwork.initialize(apiKey: codexToken.token)
+            await CodexNetwork.initialize(apiKey: codexToken.token)
             await MainActor.run {
                 self.retryCount = 0
                 self.isReady = true
