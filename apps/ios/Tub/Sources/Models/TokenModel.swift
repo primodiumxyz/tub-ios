@@ -95,8 +95,8 @@ class TokenModel: ObservableObject {
         }
 
         func fetchCandles() async throws {
-            let candles = await self.fetchInitialCandles(newToken.pairId)
-            if candles.isEmpty {
+            guard let candles = try? await self.fetchInitialCandles(newToken.pairId),
+                  !candles.isEmpty else {
                 throw TubError.emptyTokenList
             }
             await self.subscribeToCandles(newToken.pairId)
@@ -275,12 +275,12 @@ class TokenModel: ObservableObject {
         }
     }
 
-    private func fetchInitialCandles(_ pairId: String) async -> [CandleData] {
+    private func fetchInitialCandles(_ pairId: String) async throws -> [CandleData] {
         let client = await CodexNetwork.shared.apolloClient
         let now = Int(Date().timeIntervalSince1970)
         let startTime = now - Int(Timespan.candles.seconds)
 
-        return try! await withCheckedThrowingContinuation { continuation in
+        return try await withCheckedThrowingContinuation { continuation in
             client.fetch(
                 query: GetTokenCandlesQuery(
                     from: startTime,
@@ -318,7 +318,7 @@ class TokenModel: ObservableObject {
                     continuation.resume(throwing: error)
                 }
             }
-        } ?? [] as! [CandleData]
+        }
     }
 
     private func subscribeToCandles(_ pairId: String) async {
@@ -333,7 +333,14 @@ class TokenModel: ObservableObject {
                 guard let self = self else { return }
 
                 Task {
-                    self.candles = await self.fetchInitialCandles(pairId)
+                    let candles = try? await self.fetchInitialCandles(pairId)
+                    DispatchQueue.main.async {
+                        if let candles = candles {
+                            self.candles = candles
+                        } else {
+                            self.candles = [CandleData]()
+                        }
+                    }
                 }
             }
         }
