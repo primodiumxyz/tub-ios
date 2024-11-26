@@ -106,7 +106,7 @@ final class TxManager: ObservableObject {
         let token = self.purchaseState == .sell ? txData.sellTokenId : txData.buyTokenId
         if txData.sellQuantity != self.quantity || token != self.tokenId {
             do {
-                try await self.updateTxData(tokenId: token, quantity: quantity)
+                try await _updateTxData(purchaseState: self.purchaseState, tokenId: token, quantity: quantity)
             }
             catch {
                 throw TubError.actionFailed(failureDescription: "Couldn't prepare transaction")
