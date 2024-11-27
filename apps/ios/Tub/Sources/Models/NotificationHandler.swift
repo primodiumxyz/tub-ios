@@ -13,12 +13,14 @@ enum NotificationType {
     case error
     case success
     case info
+    case warning
 
     var color: Color {
         switch self {
-        case .error: return Color.red
-        case .success: return Color.green
-        case .info: return Color.blue
+        case .error: return .tubError
+        case .success: return .tubSuccess
+        case .info: return .tubBuyPrimary
+        case .warning: return .tubWarning
         }
     }
 
@@ -27,6 +29,7 @@ enum NotificationType {
         case .error: return "exclamationmark.triangle.fill"
         case .success: return "checkmark.circle.fill"
         case .info: return "info.circle.fill"
+        case .warning: return "exclamationmark.triangle.fill"
         }
     }
 }

@@ -77,11 +77,11 @@ struct AccountBalanceView: View {
                 .padding(.bottom, 4)
             }
             Divider()
-                .frame(width: 340.0, height: 1.0)
+                .frame(maxWidth: .infinity, maxHeight: 0.5)
                 .background(.secondary)
-                .padding(0)
         }
 
+        .padding(.horizontal, 16)
         .background(Color(UIColor.systemBackground))
     }
 }
