@@ -18,16 +18,16 @@ struct SellForm: View {
             HStack(spacing: 8) {
                 OutlineButton(
                     text: "Buy",
-                    textColor: Color("pink"),
-                    strokeColor: Color("pink"),
+                    textColor: .secondary,
+                    strokeColor: .secondary,
                     backgroundColor: Color(UIColor.systemBackground),
                     action: { showBuySheet = true }
                 )
 
                 PrimaryButton(
                     text: "Sell",
-                    textColor: Color.white,
-                    backgroundColor: Color("pink"),
+                    textColor: .primary,
+                    backgroundColor: .primary,
                     action: {
                         Task {
                             await onSell()

@@ -36,7 +36,6 @@ struct SignInWithEmailView: View {
         VStack(spacing: 12) {
             Text("Enter verification code")
                 .font(.sfRounded(size: .lg, weight: .medium))
-                .foregroundStyle(.primary)
             OTPInputView(onComplete: verifyOTP)
         }
         .frame(maxHeight: .infinity)

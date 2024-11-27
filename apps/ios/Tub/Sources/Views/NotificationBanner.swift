@@ -21,14 +21,13 @@ struct NotificationBanner: ViewModifier {
                                     .foregroundStyle(notificationHandler.notificationType.color)
 
                                 Text(message)
-                                    .foregroundStyle(.primary)
                                     .font(.sfRounded(size: .base))
 
                                 Spacer()
 
                                 Button(action: notificationHandler.hide) {
                                     Image(systemName: "xmark")
-                                        .foregroundStyle(Color.primary)
+                                        .foregroundStyle(Color("Tub/Primary"))
                                 }
                             }
                             .padding(.horizontal, 16)

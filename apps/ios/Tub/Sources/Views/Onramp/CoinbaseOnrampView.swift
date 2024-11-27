@@ -47,9 +47,8 @@ struct CoinbaseOnrampView: View {
                 Spacer()
                 Text("$")
                     .font(.sfRounded(size: .xl4, weight: .bold))
-                    .foregroundStyle(.primary)
 
-                TextField("", text: $amountString, prompt: Text("100").foregroundStyle(.secondary))
+                TextField("", text: $amountString, prompt: Text("100").foregroundStyle(Color("Tub/Secondary")))
                     .focused($isAmountFocused)
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.leading)
@@ -107,10 +106,8 @@ struct CoinbaseOnrampView: View {
                     .aspectRatio(contentMode: .fit)
                     .frame(height: 16)
             }
-            .foregroundStyle(.primary)
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(Color("purple"))
             .cornerRadius(26)
         }
         .disabled(userModel.walletAddress == nil)

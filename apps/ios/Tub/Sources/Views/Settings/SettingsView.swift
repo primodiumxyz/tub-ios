@@ -18,7 +18,7 @@ struct CustomToggleStyle: ToggleStyle {
                 .frame(width: 50, height: 30)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(configuration.isOn ? .accent : .pink, lineWidth: 1)
+                        .stroke(configuration.isOn ? .primary : .secondary, lineWidth: 1)
                 )
                 .overlay(
                     Circle()
@@ -114,7 +114,7 @@ struct SettingsView: View {
                                     updateDefaultValue()
                                 }
                             Image(systemName: "pencil")
-                                .foregroundStyle(.primary)
+                                .foregroundStyle(Color("Tub/Primary"))
                                 .font(.system(size: 20))
                         }
                     }
@@ -149,7 +149,6 @@ struct SettingsView: View {
                 ToolbarItem(placement: .principal) {
                     Text("Settings")
                         .font(.sfRounded(size: .xl, weight: .semibold))
-                        .foregroundStyle(.primary)
                 }
 
                 // Keep keyboard toolbar
@@ -158,7 +157,7 @@ struct SettingsView: View {
                         isEditing = false
                         updateDefaultValue()
                     }
-                    .foregroundStyle(Color("pink"))
+                    .foregroundStyle(Color("Tub/Secondary"))
                     .font(.system(size: 20))
                 }
             }

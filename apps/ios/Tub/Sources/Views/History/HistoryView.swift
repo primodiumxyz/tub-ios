@@ -366,10 +366,9 @@ struct TransactionRow: View {
                 HStack {
                     Text(transaction.isBuy ? "Buy" : "Sell")
                         .font(.sfRounded(size: .base, weight: .bold))
-                        .foregroundStyle(Color("grayLight"))
+                        .foregroundStyle(Color("Neutral"))
                     Text(transaction.name.isEmpty ? transaction.mint.truncatedAddress() : transaction.name)
                         .font(.sfRounded(size: .base, weight: .bold))
-                        .foregroundStyle(.primary)
                         .lineLimit(1)
                         .truncationMode(.tail)
                         .offset(x: -2)
@@ -450,7 +449,7 @@ struct SearchFilter: View {
         .background(Color.clear)
         .overlay(
             RoundedRectangle(cornerRadius: 20)
-                .stroke(Color("grayLight"), lineWidth: 1)
+                .stroke(Color("Neutral"), lineWidth: 1)
         )
         .onTapGesture {
             if !filterState.isSearching {

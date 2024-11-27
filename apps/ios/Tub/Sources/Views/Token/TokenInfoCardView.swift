@@ -80,7 +80,7 @@ struct TokenInfoCardView: View {
                 Rectangle()
                     .foregroundStyle(.clear)
                     .frame(width: 60, height: 3)
-                    .background(Color("grayLight"))
+                    .background(Color("Tub/Neutral"))
                     .cornerRadius(100)
             }
             .padding()
@@ -90,7 +90,6 @@ struct TokenInfoCardView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     Text("Stats")
                         .font(.sfRounded(size: .xl, weight: .semibold))
-                        .foregroundStyle(Color.primary)
                         .frame(maxWidth: .infinity, alignment: .topLeading)
                         .padding(.bottom, 4)
 
@@ -99,19 +98,19 @@ struct TokenInfoCardView: View {
                             HStack(alignment: .center) {
                                 Text(stat.0)
                                     .font(.sfRounded(size: .sm, weight: .regular))
-                                    .foregroundStyle(Color.secondary)
+                                    .foregroundStyle(.secondary)
                                     .fixedSize(horizontal: true, vertical: false)
 
                                 Text(stat.1.text)
                                     .font(.sfRounded(size: .base, weight: .semibold))
                                     .frame(maxWidth: .infinity, alignment: .topTrailing)
-                                    .foregroundStyle(stat.1.color ?? Color.primary)
+                                    .foregroundStyle(stat.1.color ?? .primary)
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
 
                             //divider
                             Rectangle()
-                                .foregroundStyle(Color.clear)
+                                .foregroundStyle(.clear)
                                 .frame(height: 0.5)
                                 .background(Color.gray.opacity(0.5))
                         }
@@ -121,7 +120,6 @@ struct TokenInfoCardView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("About")
                             .font(.sfRounded(size: .xl, weight: .semibold))
-                            .foregroundStyle(Color.primary)
                             .frame(maxWidth: .infinity, alignment: .topLeading)
 
                         Text("\(tokenModel.token.description)")
@@ -146,7 +144,7 @@ struct TokenInfoCardView: View {
         .overlay(
             RoundedRectangle(cornerRadius: 30)
                 .inset(by: 0.5)
-                .stroke(colorScheme == .dark ? Color("grayShadow") : Color.primary, lineWidth: 1)
+                .stroke(colorScheme == .dark ? Color("Tub/Neutral") : Color("Tub/Primary"), lineWidth: 1)
         )
         .transition(.move(edge: .bottom))
         .offset(y: dragOffset)

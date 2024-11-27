@@ -36,13 +36,13 @@ struct SwipeToEnterView: View {
                     Spacer()
                     Text(text)
                         .font(.sfRounded(size: .xl, weight: .semibold))
-                        .foregroundStyle(Color.white)
+                        .foregroundStyle(.white)
                     Spacer()
                     // Add three right-facing chevrons
                     HStack(spacing: 2) {
                         ForEach(0..<3) { i in
                             Image(systemName: "chevron.right")
-                                .foregroundStyle(Color.white)
+                                .foregroundStyle(.white)
                                 .font(.system(size: 14, weight: .bold))
                                 .opacity(Double(i) * 0.15 + 0.5)
                         }
@@ -54,11 +54,11 @@ struct SwipeToEnterView: View {
                 // Slider thumb
                 ZStack {
                     Circle()
-                        .fill(Color("purple"))
+                        .fill(Color("Tub/Primary"))
                         .frame(width: size - 20, height: size - 20)
 
                     Image(systemName: "arrow.left.arrow.right")
-                        .foregroundStyle(Color.white)
+                        .foregroundStyle(.white)
                         .fontWeight(.bold)
                         .font(.system(size: 20))  // Increase the size by 50%
                 }

@@ -86,7 +86,7 @@ struct ActionButtonsView: View {
                         HStack(spacing: 16) {
                             CircleButton(
                                 icon: "pencil",
-                                color: .accent,
+                                color: Color("Tub/Primary"),
                                 iconSize: 20,
                                 iconWeight: .bold,
                                 action: { showBuySheet = true }
@@ -130,9 +130,9 @@ private struct LoginButton: View {
     var body: some View {
         PrimaryButton(
             text: "Login to Buy",
-            textColor: .black,
-            backgroundColor: .accent,
-            strokeColor: .accent,
+            textColor: Color.black,
+            backgroundColor: Color("Tub/Primary"),
+            strokeColor: Color("Tub/Primary"),
             maxWidth: .infinity,
             action: { isLoginPresented = true }
         )
@@ -196,9 +196,9 @@ private struct AirdropButton: View {
     var body: some View {
         PrimaryButton(
             text: "Get 1 test SOL",
-            textColor: .black,
-            backgroundColor: .accent,
-            strokeColor: .accent,
+            textColor: Color.black,
+            backgroundColor: Color("Tub/Primary"),
+            strokeColor: Color("Tub/Primary"),
             maxWidth: .infinity,
             action: {
                 Task {
@@ -224,8 +224,8 @@ private struct BuyButton: View {
     var body: some View {
         PrimaryButton(
             text: "Buy \(priceModel.formatPrice(usd: settingsManager.defaultBuyValue))",
-            textColor: .white,
-            backgroundColor: .accent,
+            textColor: Color(UIColor.systemBackground),
+            backgroundColor: Color("Tub/Primary"),
             action: {
                 Task {
                     await handleBuy(settingsManager.defaultBuyValue)
@@ -269,12 +269,12 @@ extension View {
             .frame(maxWidth: .infinity)
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(.accent)
+            .background(Color("Tub/Primary"))
             .cornerRadius(30)
             .overlay(
                 RoundedRectangle(cornerRadius: 30)
                     .inset(by: 0.5)
-                    .stroke(.accent, lineWidth: 1)
+                    .stroke(Color("Tub/Primary"), lineWidth: 1)
             )
     }
 }

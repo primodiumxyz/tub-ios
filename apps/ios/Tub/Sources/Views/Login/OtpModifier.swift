@@ -35,11 +35,11 @@ struct OtpModifer: ViewModifier {
             .keyboardType(.numberPad)
             .onReceive(Just(pin)) { _ in limitText(textLimt) }
             .frame(width: 45, height: 45)
-            .background(Color.primary.cornerRadius(5))
+            .background(Color("Tub/Primary").cornerRadius(5))
             .overlay(
                 RoundedRectangle(cornerRadius: 5)
                     .stroke(
-                        isFocused ? Color("pink") : .secondary,
+                        isFocused ? Color("Tub/Primary") : Color("Tub/Secondary"),
                         lineWidth: isFocused ? 4 : 1
                     )
             )

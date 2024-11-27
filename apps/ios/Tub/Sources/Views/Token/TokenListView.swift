@@ -52,7 +52,7 @@ struct TokenListView: View {
 
     private var background: LinearGradient {
         if !tokenListModel.isReady || tokenListModel.totalTokenCount == 0 {
-            return LinearGradient(colors: [.clear], startPoint: .top, endPoint: .bottom)
+            return LinearGradient(colors: [Color.clear], startPoint: .top, endPoint: .bottom)
         }
         return activeTab == "sell"
             ? AppColors.primaryPinkGradient
@@ -244,7 +244,6 @@ struct TokenLoadErrorView: View {
         VStack {
             Spacer()
             Text("Failed to load tokens.")
-                .foregroundStyle(.accent)
                 .multilineTextAlignment(.center)
                 .padding(.bottom, 24)
             Button(action: {
@@ -255,7 +254,6 @@ struct TokenLoadErrorView: View {
             }) {
                 Text("Retry")
                     .font(.sfRounded(size: .lg, weight: .semibold))
-                    .foregroundStyle(.primary)
                     .frame(maxWidth: 300)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)

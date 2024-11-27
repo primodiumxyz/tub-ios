@@ -355,7 +355,6 @@ struct TokenView: View {
         .padding(.horizontal, 16)
         .padding(.top, 16)
         .frame(maxWidth: .infinity, maxHeight: 80, alignment: .topLeading)
-        .background(AppColors.darkGrayGradient)
         .cornerRadius(16)
         .onTapGesture {
             withAnimation(.easeInOut) {

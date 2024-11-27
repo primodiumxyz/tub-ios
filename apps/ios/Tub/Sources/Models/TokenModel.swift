@@ -42,7 +42,6 @@ class TokenModel: ObservableObject {
     func preload(with newToken: Token, timeframeSecs: Double = CHART_INTERVAL) {
         cleanup()
         preloaded = true
-        let now = Date()
         DispatchQueue.main.async {
             self.token = newToken
             self.isReady = false

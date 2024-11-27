@@ -163,6 +163,9 @@ private struct AccountSettingsView: View {
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 24) {
+                Text("Account Settings")
+                    .font(.sfRounded(size: .xl, weight: .medium))
+                    .foregroundStyle(.primary)
 
                 NavigationLink(destination: AccountDetailsView()) {
                     HStack(spacing: 16) {
@@ -202,8 +205,7 @@ private struct AccountSettingsView: View {
                         .frame(width: 32, height: 32, alignment: .center)
                         .cornerRadius(8)
                         .padding(.trailing, -4)
-                    Text("@Discord Link")
-                        .foregroundStyle(.accent)
+                    Text("Discord Server")
                         .font(.sfRounded(size: .lg, weight: .medium))
                 }
                 .foregroundStyle(.primary)

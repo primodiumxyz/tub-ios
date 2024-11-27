@@ -104,7 +104,6 @@ struct SignInWithPhoneView: View {
                 VStack {
                     Text("Enter verification code")
                         .font(.sfRounded(size: .lg, weight: .medium))
-                        .foregroundStyle(.primary)
                         .padding(.top, 16)
                         .padding(.horizontal, 20)
                 }
@@ -124,40 +123,39 @@ struct SignInWithPhoneView: View {
                     .cornerRadius(30)
                     .overlay(
                         RoundedRectangle(cornerRadius: 30)
-                            .stroke(.primary, lineWidth: 0.5)
+                            .stroke(Color("Tub/Primary"), lineWidth: 0.5)
                     )
 
                     TextField("Enter your Phone Number", text: formattedPhoneBinding)
                         .keyboardType(.phonePad)
                         .padding()
                         .background(Color(UIColor.systemBackground))
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(Color("Tub/Primary"))
                         .frame(maxWidth: .infinity, maxHeight: 50, alignment: .leading)
                         .cornerRadius(30)
                         .overlay(
                             RoundedRectangle(cornerRadius: 30)
-                                .stroke(.primary, lineWidth: 0.5)
+                                .stroke(Color("Tub/Primary"), lineWidth: 0.5)
                         )
                         .onChange(of: phoneNumber) {
                             showPhoneError = false
                         }
                 }
                 .padding(.horizontal)
-                
+
                 Button(action: handlePhoneLogin) {
                     Text("Continue")
                         .font(.sfRounded(size: .lg, weight: .semibold))
-                        .foregroundStyle(Color.white)
                         .frame(maxWidth: .infinity)
                         .padding(14)
-                        .background(Color("pink"))
+                        .background(Color("Tub/Secondary"))
                         .cornerRadius(26)
                 }
                 .disabled(signingIn)
                 .padding(.horizontal)
                 .padding(.top, 5)
                 Text(showPhoneError ? "Please enter a valid phone number." : "")
-                    .foregroundStyle(Color.red)
+                    .foregroundStyle(Color("Tub/Fail"))
                     .font(.caption)
                     .padding(.top, -4)
                     .padding(.horizontal, 20)

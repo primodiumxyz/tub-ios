@@ -72,12 +72,14 @@ struct BuyFormView: View {
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 20)
-        .background(AppColors.darkGreenGradient)
+        // Temporarily set color to the systemBackground until a final gradient for each color scheme is set
+        // .background(AppColors.darkGreenGradient)
+        .background(Color(UIColor.systemBackground))
         .cornerRadius(26)
         .onAppear { resetForm() }
         .dismissKeyboardOnTap()
         .presentationDetents([.height(Self.formHeight)])
-        .presentationBackground(.clear)
+        .presentationBackground(Color.clear)
     }
 
     private var formContent: some View {
@@ -105,9 +107,9 @@ struct BuyFormView: View {
     private var buyButton: some View {
         OutlineButton(
             text: "Buy",
-            textColor: .accent,
-            strokeColor: .accent,
-            backgroundColor: .clear,
+            textColor: Color("Tub/Primary"),
+            strokeColor: Color("Tub/Primary"),
+            backgroundColor: Color.clear,
             maxWidth: .infinity,
             action: {
                 Task {
@@ -130,7 +132,7 @@ struct BuyFormView: View {
                     "",
                     text: $buyAmountUsdString,
                     prompt: Text("10", comment: "placeholder")
-                        .foregroundStyle(Color.white.opacity(0.3))
+                        .foregroundStyle(.white.opacity(0.3))
                 )
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.leading)

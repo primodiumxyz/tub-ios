@@ -35,7 +35,6 @@ struct ErrorView: View {
             if let retryAction = retryAction {
                 Button(action: retryAction) {
                     Text("Try Again")
-                        .foregroundStyle(.primary)
                         .padding()
                         .background(Color.blue)
                         .cornerRadius(10)
@@ -44,6 +43,6 @@ struct ErrorView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(UIColor.systemBackground))
-        .foregroundStyle(.primary)
+        .foregroundStyle(Color("Tub/Primary"))
     }
 }

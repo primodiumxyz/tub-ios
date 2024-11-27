@@ -36,19 +36,18 @@ struct AccountBalanceView: View {
                 HStack(alignment: .bottom) {
                     Text("Your Balance")
                         .font(.sfRounded(size: .lg, weight: .semibold))
-                        .foregroundStyle(.primary)
 
                     Spacer()
                     HStack(alignment: .center, spacing: 10) {
                         if let balance = balances.solBalanceUsd {
-                        
+
                             if balances.deltaUsd != 0 {
                                 let formattedChange = priceModel.formatPrice(
                                     usd: balances.deltaUsd,
                                     showSign: true,
                                     maxDecimals: 2
                                 )
-                                
+
                                 Text(formattedChange)
                                     .font(.sfRounded(size: .xs, weight: .light))
                                     .fontWeight(.bold)
@@ -60,17 +59,16 @@ struct AccountBalanceView: View {
                             else {
                                 Spacer().frame(height: 10)
                             }
-                            
+
                             let formattedBalance = priceModel.formatPrice(
                                 usd: balance,
                                 maxDecimals: 2,
                                 minDecimals: 2
                             )
-                            
+
                             Text(formattedBalance)
                                 .font(.sfRounded(size: .lg))
                                 .fontWeight(.bold)
-                                .foregroundStyle(.primary)
 
                         }
                     }

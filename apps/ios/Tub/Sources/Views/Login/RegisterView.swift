@@ -50,7 +50,6 @@ struct RegisterView: View {
                         dismiss()
                     } label: {
                         Text("Cancel")
-                            .foregroundStyle(.primary)
                             .padding(.horizontal)
                     }
                 }
@@ -71,7 +70,6 @@ struct RegisterView: View {
 
                 Text("Welcome to tub")
                     .font(.sfRounded(size: .xl2, weight: .semibold))
-                    .foregroundStyle(.primary)
                     .padding(.horizontal, 16)
 
                 VStack(alignment: .leading, spacing: 10) {
@@ -80,12 +78,12 @@ struct RegisterView: View {
                         .padding(.vertical, 10)
                         .frame(maxWidth: .infinity, minHeight: 50, alignment: .leading)
                         .background(Color(UIColor.systemBackground))
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(Color("Tub/Primary"))
                         .cornerRadius(30)
                         .keyboardType(.emailAddress)
                         .overlay(
                             RoundedRectangle(cornerRadius: 30)
-                                .stroke(.primary, lineWidth: 0.5)
+                                .stroke(Color("Tub/Primary"), lineWidth: 0.5)
                         )
                         .onChange(of: email) { _, newValue in
                             isEmailValid = validateEmail(newValue)
@@ -96,7 +94,7 @@ struct RegisterView: View {
                     if showEmailError {
                         Text("Please enter a valid email address.")
                             .font(.caption)
-                            .foregroundStyle(Color.red)
+                            .foregroundStyle(.red)
                             .padding(.top, -4)
                             .padding(.horizontal, 20)
                     }
@@ -113,7 +111,7 @@ struct RegisterView: View {
                     PrimaryButton(
                         text: "Continue",
                         textColor: Color.white,
-                        backgroundColor: Color("pink"),
+                        backgroundColor: Color("Tub/Secondary"),
                         strokeColor: Color.clear,
                         maxWidth: .infinity,
                         action: {
@@ -133,18 +131,18 @@ struct RegisterView: View {
                         .frame(width: 153, height: 1)
                         .overlay(
                             Rectangle()
-                                .stroke(.secondary.opacity(0.5), lineWidth: 0.5)
+                                .stroke(Color("Tub/Secondary").opacity(0.5), lineWidth: 0.5)
                         )
 
                     Text("or")
                         .font(.sfRounded(size: .base, weight: .semibold))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color("Tub/Secondary"))
 
                     Divider()
                         .frame(width: 153, height: 1)
                         .overlay(
                             Rectangle()
-                                .stroke(.secondary.opacity(0.5), lineWidth: 0.5)
+                                .stroke(Color("Tub/Secondary").opacity(0.5), lineWidth: 0.5)
                         )
                 }.frame(maxWidth: .infinity)
 
@@ -198,7 +196,7 @@ struct RegisterView: View {
                 IconTextButton(
                     icon: "phone.fill",
                     text: "Continue with Phone",
-                    textColor: .primary,
+                    textColor: Color("Tub/Primary"),
                     action: { showPhoneModal = true }
                 )
                 .frame(maxWidth: .infinity)
@@ -208,7 +206,7 @@ struct RegisterView: View {
                 IconTextButton(
                     icon: "ladybug.fill",
                     text: "Dev Login",
-                    textColor: .secondary,
+                    textColor: Color("Tub/Secondary"),
                     action: {
                         Task {
                             do {
