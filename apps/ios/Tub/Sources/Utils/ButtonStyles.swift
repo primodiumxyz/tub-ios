@@ -61,6 +61,7 @@ struct PrimaryButton: View {
         action: @escaping () -> Void
     ) {
         self.text = text
+        print("text: \(text)")
         self.textColor = textColor
         self.backgroundColor = backgroundColor
         self.strokeColor = strokeColor
