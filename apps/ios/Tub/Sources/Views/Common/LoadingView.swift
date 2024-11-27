@@ -32,7 +32,9 @@ struct LoadingView: View {
                 .padding(.bottom, 8)
 
             if let message = message {
-                Text(message).opacity(0.7).font(.sfRounded(size: .sm)).frame(maxWidth: 200).multilineTextAlignment(.center)
+                Text(message).opacity(0.7).font(.sfRounded(size: .sm)).frame(maxWidth: 200).multilineTextAlignment(
+                    .center
+                )
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

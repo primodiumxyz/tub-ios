@@ -11,9 +11,10 @@ import SwiftUI
 struct PrimaryButtonStyle: ButtonStyle {
     var text: String
     var textColor: Color
-    var backgroundColor: Color
+    var backgroundColor: Color?
     var strokeColor: Color?
-    var maxWidth: CGFloat = 300
+    var maxWidth: CGFloat?
+    var disabled: Bool
 
     func makeBody(configuration: Self.Configuration) -> some View {
         HStack(alignment: .center, spacing: 8) {
@@ -25,7 +26,7 @@ struct PrimaryButtonStyle: ButtonStyle {
         .frame(maxWidth: maxWidth)
         .padding(.horizontal, 16)
         .padding(.vertical, 13)
-        .background(backgroundColor.opacity(configuration.isPressed ? 0.5 : 1.0))
+        .background(backgroundColor.opacity(configuration.isPressed || disabled ? 0.5 : 1.0))
         .cornerRadius(30)
         .overlay(
             Group {
@@ -46,11 +47,30 @@ struct PrimaryButton: View {
     var textColor: Color
     var backgroundColor: Color
     var strokeColor: Color? = nil
-    var maxWidth: CGFloat = 300
+    var maxWidth: CGFloat? = nil
     var action: () -> Void
+    var disabled: Bool = false
+
+    init(
+        text: String,
+        textColor: Color = .tubTextInverted,
+        backgroundColor: Color = .tubBuyPrimary,
+        strokeColor: Color? = nil,
+        maxWidth: CGFloat? = .infinity,
+        disabled: Bool = false,
+        action: @escaping () -> Void
+    ) {
+        self.text = text
+        self.textColor = textColor
+        self.backgroundColor = backgroundColor
+        self.strokeColor = strokeColor
+        self.maxWidth = maxWidth
+        self.action = action
+        self.disabled = disabled
+    }
 
     var body: some View {
-        Button(action: action) {
+        Button(action: self.disabled ? {} : action) {
             EmptyView()
         }
         .buttonStyle(
@@ -59,7 +79,8 @@ struct PrimaryButton: View {
                 textColor: textColor,
                 backgroundColor: backgroundColor,
                 strokeColor: strokeColor,
-                maxWidth: maxWidth
+                maxWidth: maxWidth,
+                disabled: disabled
             )
         )
     }
