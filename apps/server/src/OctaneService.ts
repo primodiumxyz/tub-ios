@@ -407,7 +407,7 @@ export class OctaneService {
    * @throws Error if signing fails
    */
   // !! TODO: validate transaction before signing
-  async signTransactionWithoutTokenFee(transaction: Transaction): Promise<string> {
+  async signTransactionWithoutCheckingTokenFee(transaction: Transaction): Promise<string> {
     try {
       transaction.partialSign(this.feePayerKeypair);
       return bs58.encode(transaction.signature!);
@@ -415,45 +415,5 @@ export class OctaneService {
       console.error("Error signing transaction without token fee:", e);
       throw new Error("Failed to sign transaction without token fee");
     }
-  }
-
-  private convertToTransactionInstruction(instruction: {
-    programId: string;
-    data: string | number[] | Buffer;
-    accounts: Array<{
-      pubkey: string;
-      isSigner: boolean;
-      isWritable: boolean;
-    }>;
-  }): TransactionInstruction {
-    // Handle instruction data properly
-    let data: Buffer;
-    if (typeof instruction.data === "string") {
-      // If it's a hex string, remove '0x' prefix if present
-      const hex = instruction.data.startsWith("0x") ? instruction.data.slice(2) : instruction.data;
-      data = Buffer.from(hex, "hex");
-    } else if (Array.isArray(instruction.data)) {
-      // If it's a byte array
-      data = Buffer.from(instruction.data);
-    } else if (instruction.data instanceof Buffer) {
-      // If it's already a Buffer
-      data = instruction.data;
-    } else {
-      console.error("Invalid instruction data format:", instruction.data);
-      throw new Error("Invalid instruction data format");
-    }
-
-    // Map accounts with proper key conversion
-    const keys = instruction.accounts.map((account: { pubkey: string; isSigner: boolean; isWritable: boolean }) => ({
-      pubkey: new PublicKey(account.pubkey),
-      isSigner: account.isSigner,
-      isWritable: account.isWritable,
-    }));
-
-    return new TransactionInstruction({
-      programId: new PublicKey(instruction.programId),
-      keys,
-      data,
-    });
   }
 }
