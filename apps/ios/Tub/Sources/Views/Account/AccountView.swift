@@ -125,14 +125,14 @@ private struct ActionButtons: View {
             VStack(spacing: 8) {
                 CircleButton(
                     icon: "arrow.left.arrow.right",
-                    color: .accent,
+                    color: .tubAccent,
                     iconSize: 22,
                     action: {}
                 ).disabled(true)
 
                 Text("Transfer")
                     .font(.sfRounded(size: .sm, weight: .medium))
-                    .foregroundStyle(.accent)
+                    .foregroundStyle(.tubAccent)
                     .multilineTextAlignment(.center)
             }.frame(width: 90).opacity(0.7)
 
@@ -140,13 +140,13 @@ private struct ActionButtons: View {
             VStack(spacing: 8) {
                 CircleButton(
                     icon: "plus",
-                    color: .accent,
+                    color: .tubAccent,
                     action: { showOnrampView = true }
                 )
 
                 Text("Add Funds")
                     .font(.sfRounded(size: .sm, weight: .medium))
-                    .foregroundStyle(.accent)
+                    .foregroundStyle(.tubAccent)
                     .multilineTextAlignment(.center)
             }.frame(width: 90)
 

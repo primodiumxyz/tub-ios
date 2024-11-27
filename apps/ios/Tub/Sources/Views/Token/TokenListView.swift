@@ -23,6 +23,7 @@ struct TokenListView: View {
     @EnvironmentObject private var notificationHandler: NotificationHandler
     @StateObject private var tokenManager = CodexTokenManager.shared
 
+    var emptyTokenModel = TokenModel()
     // chevron animation
     @State private var chevronOffset: CGFloat = 0.0
 

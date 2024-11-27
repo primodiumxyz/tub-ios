@@ -91,7 +91,7 @@ struct TokenView: View {
                 }
 
                 VStack(spacing: 0) {
-                    infoCardLowOpacity
+                    TokenInfoPreview(tokenModel: tokenModel, activeTab: activeTab)
                         .opacity(0.8)
                     ActionButtonsView(
                         tokenModel: tokenModel,
@@ -105,7 +105,6 @@ struct TokenView: View {
             }
             .frame(maxWidth: .infinity)
             .foregroundStyle(.primary)
-            infoCardOverlay
         }
         .dismissKeyboardOnTap()
     }
@@ -237,148 +236,6 @@ struct TokenView: View {
             }
             else {
                 Spacer().frame(height: 32)
-            }
-        }
-    }
-
-    /* ------------------------------ Info Overlays ----------------------------- */
-
-    private var sellStats: [(String, StatValue)]? {
-        guard
-            tokenModel.isReady,
-            let purchaseData = userModel.purchaseData,
-            let priceUsd = tokenModel.prices.last?.priceUsd,
-            priceUsd > 0,
-            activeTab == "sell"
-        else {
-            return nil
-        }
-        var stats = [(String, StatValue)]()
-        // Calculate current value
-        let tokenBalance = Double(userModel.tokenBalanceLamps ?? 0) / 1e9
-        let tokenBalanceUsd = tokenBalance * (tokenModel.prices.last?.priceUsd ?? 0)
-        let initialValueUsd = priceModel.lamportsToUsd(lamports: purchaseData.amount)
-
-        // Calculate profit
-        let gains = tokenBalanceUsd - initialValueUsd
-
-        if purchaseData.amount > 0, initialValueUsd > 0 {
-            let percentageGain = gains / initialValueUsd * 100
-            stats += [
-                (
-                    "Gains",
-                    StatValue(
-                        text:
-                            "\(priceModel.formatPrice(usd: gains, showSign: true)) (\(String(format: "%.2f", percentageGain))%)",
-                        color: gains >= 0 ? Color.green : Color.red
-                    )
-                )
-            ]
-        }
-
-        // Add position stats
-        stats += [
-            (
-                "You own",
-                StatValue(
-                    text:
-                        "\(priceModel.formatPrice(usd: tokenBalanceUsd, maxDecimals: 2, minDecimals: 2)) (\(formatLargeNumber(tokenBalance)) \(tokenModel.token.symbol))",
-                    color: nil
-                )
-            )
-        ]
-        return stats
-    }
-
-    private var generalStats: [(String, StatValue)] {
-        guard tokenModel.isReady else { return [] }
-        return tokenModel.getTokenStats(priceModel: priceModel).map {
-            ($0.0, StatValue(text: $0.1 ?? "", color: nil))
-        }
-    }
-
-    private var infoCardLowOpacity: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            if let sellStats, activeTab == "sell" {
-                ForEach(sellStats, id: \.0) { stat in
-                    VStack(spacing: 0) {
-                        HStack(spacing: 0) {
-                            Text(stat.0)
-                                .font(.sfRounded(size: .xs, weight: .regular))
-                                .foregroundStyle(.primary.opacity(0.7))
-                                .fixedSize(horizontal: true, vertical: false)
-
-                            Text(stat.1.text)
-                                .font(.sfRounded(size: .base, weight: .semibold))
-                                .foregroundStyle(stat.1.color ?? .primary)
-                                .frame(maxWidth: .infinity, alignment: .topTrailing)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
-                        Rectangle()
-                            .foregroundStyle(Color.clear)
-                            .frame(height: 0.5)
-                            .background(Color.gray.opacity(0.5))
-                            .padding(.top, 2)
-                    }
-                    .padding(.vertical, 4)
-                }
-            }
-            else {
-                ForEach(0..<(generalStats.count + 1) / 2, id: \.self) { rowIndex in
-                    HStack(spacing: 20) {
-                        ForEach(0..<2) { columnIndex in
-                            let statIndex = (activeTab == "sell" ? 3 : 0) + rowIndex * 2 + columnIndex
-                            if statIndex < generalStats.count {
-                                let stat = generalStats[statIndex]
-                                VStack(spacing: 0) {
-                                    HStack(spacing: 0) {
-                                        Text(stat.0)
-                                            .font(.sfRounded(size: .xs, weight: .regular))
-                                            .foregroundStyle(.primary.opacity(0.7))
-                                            .fixedSize(horizontal: true, vertical: false)
-
-                                        Text(stat.1.text)
-                                            .font(.sfRounded(size: .base, weight: .semibold))
-                                            .foregroundStyle(.primary)
-                                            .frame(maxWidth: .infinity, alignment: .topTrailing)
-                                    }
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                }
-                            }
-                        }
-                    }
-                    .padding(.vertical, 4)
-                }
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.top, 16)
-        .frame(maxWidth: .infinity, maxHeight: 80, alignment: .topLeading)
-        .cornerRadius(16)
-        .onTapGesture {
-            withAnimation(.easeInOut) {
-                showInfoCard.toggle()
-            }
-        }
-    }
-
-    private var infoCardOverlay: some View {
-        Group {
-            if showInfoCard {
-                // Fullscreen tap dismiss
-                Color.black.opacity(0.2)
-                    .onTapGesture {
-                        withAnimation(.easeInOut) {
-                            showInfoCard = false  // Close the card
-                        }
-                    }
-                VStack {
-                    Spacer()
-                    TokenInfoCardView(tokenModel: tokenModel, isVisible: $showInfoCard)
-                }
-                .transition(.move(edge: .bottom))
-                .zIndex(1)  // Ensure it stays on top
             }
         }
     }
