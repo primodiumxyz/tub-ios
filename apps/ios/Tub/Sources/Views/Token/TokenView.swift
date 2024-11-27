@@ -104,7 +104,7 @@ struct TokenView: View {
                 }.padding(.horizontal, 8)
             }
             .frame(maxWidth: .infinity)
-            .foregroundStyle(Color.white)
+            .foregroundStyle(.primary)
             infoCardOverlay
         }
         .dismissKeyboardOnTap()
@@ -305,12 +305,12 @@ struct TokenView: View {
                         HStack(spacing: 0) {
                             Text(stat.0)
                                 .font(.sfRounded(size: .xs, weight: .regular))
-                                .foregroundStyle(Color.white.opacity(0.7))
+                                .foregroundStyle(.primary.opacity(0.7))
                                 .fixedSize(horizontal: true, vertical: false)
 
                             Text(stat.1.text)
                                 .font(.sfRounded(size: .base, weight: .semibold))
-                                .foregroundStyle(stat.1.color ?? Color.white)
+                                .foregroundStyle(stat.1.color ?? .primary)
                                 .frame(maxWidth: .infinity, alignment: .topTrailing)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -335,12 +335,12 @@ struct TokenView: View {
                                     HStack(spacing: 0) {
                                         Text(stat.0)
                                             .font(.sfRounded(size: .xs, weight: .regular))
-                                            .foregroundStyle(Color.white.opacity(0.7))
+                                            .foregroundStyle(.primary.opacity(0.7))
                                             .fixedSize(horizontal: true, vertical: false)
 
                                         Text(stat.1.text)
                                             .font(.sfRounded(size: .base, weight: .semibold))
-                                            .foregroundStyle(Color.white)
+                                            .foregroundStyle(.primary)
                                             .frame(maxWidth: .infinity, alignment: .topTrailing)
                                     }
                                     .frame(maxWidth: .infinity, alignment: .leading)

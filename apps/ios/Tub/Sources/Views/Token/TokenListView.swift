@@ -10,6 +10,15 @@ import TubAPI
 import UIKit
 
 struct TokenListView: View {
+    init() {
+        let appearance = UITabBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = UIColor.systemBackground
+
+        UITabBar.appearance().standardAppearance = appearance
+        UITabBar.appearance().scrollEdgeAppearance = appearance
+    }
+
     @EnvironmentObject private var userModel: UserModel
     @EnvironmentObject private var notificationHandler: NotificationHandler
     @StateObject private var tokenManager = CodexTokenManager.shared
@@ -233,7 +242,7 @@ struct TokenLoadErrorView: View {
         VStack {
             Spacer()
             Text("Failed to load tokens.")
-                .foregroundStyle(Color.aquaBlue)
+                .foregroundStyle(.accent)
                 .multilineTextAlignment(.center)
                 .padding(.bottom, 24)
             Button(action: {
@@ -244,7 +253,7 @@ struct TokenLoadErrorView: View {
             }) {
                 Text("Retry")
                     .font(.sfRounded(size: .lg, weight: .semibold))
-                    .foregroundStyle(Color.white)
+                    .foregroundStyle(.primary)
                     .frame(maxWidth: 300)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
