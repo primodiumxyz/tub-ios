@@ -96,7 +96,7 @@ struct ActionButtonsView: View {
                     }
                 }
                 else {
-                    SellForm(tokenModel: tokenModel, showBuySheet: $showBuySheet, onSell: handleSell)
+                    SellButtons(onSell: handleSell)
                 }
             case .connecting:
                 ConnectingButton()
@@ -203,6 +203,35 @@ private struct BuyButton: View {
                 }
             }
         )
+    }
+}
+
+struct SellButtons: View {
+    @EnvironmentObject var priceModel: SolPriceModel
+
+    var onSell: () async -> Void
+
+    var body: some View {
+        HStack(spacing: 8) {
+            // This logic requires refactoring to work so commented out for now
+            //                OutlineButton(
+            //                    text: "Buy",
+            //                    textColor: .tubSellPrimary,
+            //                    strokeColor: .tubSellPrimary,
+            //                    backgroundColor: .clear,
+            //                    action: {}
+            //                )
+
+            PrimaryButton(
+                text: "Sell",
+                backgroundColor: .tubSellPrimary,
+                action: {
+                    Task {
+                        await onSell()
+                    }
+                }
+            )
+        }
     }
 }
 
