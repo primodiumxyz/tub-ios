@@ -75,6 +75,7 @@ struct TokenInfoCardView: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
+                .scrollBounceBehavior(.basedOnSize, axes: [.vertical])
                 .frame(maxWidth: .infinity, alignment: .topLeading)
                 .cornerRadius(20)
             }

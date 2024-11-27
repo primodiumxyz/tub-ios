@@ -172,7 +172,6 @@ final class SolPriceModel: ObservableObject {
         minDecimals: Int = 0,
         formatLarge: Bool = true
     ) -> String {
-        print("formatPrice(usd: \(usd), price: \(self.price))")
         if let price = self.price, price > 0 {
             return formatPrice(
                 sol: usd / price,

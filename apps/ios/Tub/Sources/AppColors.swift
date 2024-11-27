@@ -50,6 +50,13 @@ struct AppColors {
         endPoint: .bottom
     )
 
+    static let clearGradient = LinearGradient(
+        stops: [
+            Gradient.Stop(color: Color.clear, location: 0.00)
+        ],
+        startPoint: .top,
+        endPoint: .bottom
+    )
     // info stats bg
     static let darkGrayGradient = LinearGradient(
         stops: [

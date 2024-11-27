@@ -300,6 +300,7 @@ extension ActionButtonsView: Equatable {
                     handleBuy: { _ in },
                     onSellSuccess: nil
                 )
+                .border(.red)
             }
             .environmentObject(notificationHandler)
             .environmentObject(userModel)
