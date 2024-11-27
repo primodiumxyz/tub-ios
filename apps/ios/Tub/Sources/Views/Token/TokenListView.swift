@@ -140,19 +140,13 @@ struct TokenListView: View {
                 if tokenListModel.totalTokenCount > 0 {
                     GeometryReader { geometry in
                         VStack(spacing: 0) {
-                            if let previousTokenModel = tokenListModel.previousTokenModel, dragging {
-                                TokenView(
-                                    tokenModel: previousTokenModel,
-                                    animate: Binding.constant(false),
-                                    showBubbles: Binding.constant(false)
-                                )
-                                .frame(height: geometry.size.height)
-                            }
-                            else {
-                                LoadingTokenView()
-                                    .frame(height: geometry.size.height)
-                                    .opacity(dragging ? 0.8 : 0)
-                            }
+                            TokenView(
+                                tokenModel: tokenListModel.previousTokenModel ?? emptyTokenModel,
+                                animate: Binding.constant(false),
+                                showBubbles: Binding.constant(false)
+                            )
+                            .frame(height: geometry.size.height)
+                            .opacity(dragging ? 1 : 0)
 
                             TokenView(
                                 tokenModel: tokenListModel.currentTokenModel,
@@ -168,20 +162,13 @@ struct TokenListView: View {
                                 }
                             )
                             .frame(height: geometry.size.height)
-
-                            if let nextTokenModel = tokenListModel.nextTokenModel, dragging {
-                                TokenView(
-                                    tokenModel: nextTokenModel,
-                                    animate: Binding.constant(false),
-                                    showBubbles: Binding.constant(false)
-                                )
-                                .frame(height: geometry.size.height)
-                            }
-                            else {
-                                LoadingTokenView()
-                                    .frame(height: geometry.size.height)
-                                    .opacity(dragging ? 0.8 : 0)
-                            }
+                            TokenView(
+                                tokenModel: tokenListModel.nextTokenModel ?? emptyTokenModel,
+                                animate: Binding.constant(false),
+                                showBubbles: Binding.constant(false)
+                            )
+                            .frame(height: geometry.size.height)
+                            .opacity(dragging ? 1 : 0)
                         }
                         .zIndex(1)
                         .offset(y: -geometry.size.height + OFFSET + offset + activeOffset)

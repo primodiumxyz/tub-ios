@@ -41,7 +41,6 @@
 		99BE72BD2CEBB4CA006BB157 /* NotificationHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99BE72BC2CEBB4CA006BB157 /* NotificationHandler.swift */; };
 		99C26C1C2CAEE263004807A2 /* ApolloAPI in Frameworks */ = {isa = PBXBuildFile; productRef = 99C26C1B2CAEE263004807A2 /* ApolloAPI */; };
 		99C26C1E2CAEE38B004807A2 /* ApolloWebSocket in Frameworks */ = {isa = PBXBuildFile; productRef = 99C26C1D2CAEE38B004807A2 /* ApolloWebSocket */; };
-		99C79A182CE2F1BD00D0E697 /* LoadingTokenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C79A172CE2F1BA00D0E697 /* LoadingTokenView.swift */; };
 		99DBD8EC2CF77B9C0098C296 /* TokenInfoPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99DBD8EB2CF77B970098C296 /* TokenInfoPreview.swift */; };
 		99DBD8EE2CF781EA0098C296 /* spoofModelData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99DBD8ED2CF781E50098C296 /* spoofModelData.swift */; };
 		99DDF62D2CB02816000234DA /* AccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99DDF62C2CB0280D000234DA /* AccountView.swift */; };
@@ -124,7 +123,6 @@
 		99BE72AE2CEBB223006BB157 /* BubbleEffect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BubbleEffect.swift; sourceTree = "<group>"; };
 		99BE72BA2CEBB279006BB157 /* SolPriceModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SolPriceModel.swift; sourceTree = "<group>"; };
 		99BE72BC2CEBB4CA006BB157 /* NotificationHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationHandler.swift; sourceTree = "<group>"; };
-		99C79A172CE2F1BA00D0E697 /* LoadingTokenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingTokenView.swift; sourceTree = "<group>"; };
 		99DBD8EB2CF77B970098C296 /* TokenInfoPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenInfoPreview.swift; sourceTree = "<group>"; };
 		99DBD8ED2CF781E50098C296 /* spoofModelData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = spoofModelData.swift; sourceTree = "<group>"; };
 		99DDF62C2CB0280D000234DA /* AccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountView.swift; sourceTree = "<group>"; };
@@ -316,7 +314,6 @@
 			isa = PBXGroup;
 			children = (
 				99DBD8EB2CF77B970098C296 /* TokenInfoPreview.swift */,
-				99C79A172CE2F1BA00D0E697 /* LoadingTokenView.swift */,
 				99FBEEA72CCA882300BC6392 /* Charts */,
 				991361A02CADE3AA00E5D656 /* TokenListView.swift */,
 				DB10A95C2CA5AA1B00B1E4F3 /* TokenView.swift */,
@@ -624,7 +621,6 @@
 				994AE5F72CD2AB3F00553A32 /* GoogleLogoView.swift in Sources */,
 				992875672CCACD4C004B48BE /* ErrorView.swift in Sources */,
 				99DBD8EE2CF781EA0098C296 /* spoofModelData.swift in Sources */,
-				99C79A182CE2F1BD00D0E697 /* LoadingTokenView.swift in Sources */,
 				466945ED2CDFDB1F008E8B99 /* LoadingTracker.swift in Sources */,
 				DF5A2FC52CAF2DEF00508A56 /* HistoryDetailsView.swift in Sources */,
 				99BE72BB2CEBB279006BB157 /* SolPriceModel.swift in Sources */,
