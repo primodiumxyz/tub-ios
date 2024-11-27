@@ -113,16 +113,16 @@ struct TokenView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .center) {
                 if tokenModel.token.imageUri != "" {
-                    ImageView(imageUri: tokenModel.token.imageUri, size: 40)
+                    ImageView(imageUri: tokenModel.token.imageUri, size: 30)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                 }
                 else {
-                    LoadingBox(width: 40, height: 40)
+                    LoadingBox(width: 30, height: 30)
                 }
 
                 if tokenModel.token.symbol != "" {
                     Text("$\(tokenModel.token.symbol)")
-                        .font(.sfRounded(size: .lg, weight: .semibold)).opacity(0.7)
+                        .font(.sfRounded(size: .lg, weight: .semibold))
                 }
                 else {
                     LoadingBox(width: 100, height: 20)
@@ -154,17 +154,19 @@ struct TokenView: View {
                 minDecimals: 2
             )
 
+            let priceChange = tokenModel.priceChange.amountUsd
+            let priceChangePercentage = tokenModel.priceChange.percentage
             HStack(alignment: .center, spacing: 0) {
                 if tokenModel.isReady {
                     // Price change indicator
                     HStack(spacing: 4) {
-                        if tokenModel.priceChange.amountUsd > 0 {
+                        if priceChange > 0 {
                             Image(systemName: "triangle.fill")
                                 .resizable()
                                 .frame(width: 12, height: 8)
                                 .foregroundStyle(.tubSuccess)
                         }
-                        else if tokenModel.priceChange.amountUsd < 0 {
+                        else if priceChange < 0 {
                             Image(systemName: "triangle.fill")
                                 .resizable()
                                 .frame(width: 12, height: 8)
@@ -178,8 +180,10 @@ struct TokenView: View {
                                 .foregroundStyle(.tubNeutral)
                         }
 
-                        Text("\(abs(tokenModel.priceChange.percentage), specifier: "%.1f")%")
-                            .font(.sfRounded(size: .base, weight: .semibold))
+                        Text(
+                            "\(abs(priceChangePercentage), specifier: abs(priceChangePercentage) < 10 ? "%.2f" : "%.1f")%"
+                        )
+                        .font(.sfRounded(size: .base, weight: .semibold))
                     }
                     .frame(maxWidth: 75, alignment: .leading)
                     Text("\(formatDuration(tokenModel.selectedTimespan.seconds))").foregroundStyle(.gray)
@@ -190,8 +194,7 @@ struct TokenView: View {
             }
             .font(.sfRounded(size: .sm, weight: .semibold))
             .foregroundStyle(
-                tokenModel.priceChange.amountUsd > 0
-                    ? .tubSuccess : tokenModel.priceChange.amountUsd < 0 ? .tubError : .tubNeutral
+                priceChange > 0 ? .tubSuccess : priceChange < 0 ? .tubError : .tubNeutral
             )
         }
         .padding(.horizontal)

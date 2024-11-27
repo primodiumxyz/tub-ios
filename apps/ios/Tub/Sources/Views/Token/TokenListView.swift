@@ -34,7 +34,7 @@ struct TokenListView: View {
     @State private var dragging = false
     @State private var isDragStarting = true
 
-    let OFFSET: Double = -15
+    let OFFSET: Double = 5
 
     var activeTab: String {
         let balance: Int = userModel.tokenBalanceLamps ?? 0
