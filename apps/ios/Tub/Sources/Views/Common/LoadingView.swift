@@ -26,17 +26,25 @@ struct LoadingView: View {
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
                         .stroke(.tubText, lineWidth: 1)
-                        .shimmering(opacity: 0.5)
+                        .shimmering(opacity: 0.2, cornerRadius: 12)
                 )
                 .padding(.horizontal, 10)
                 .padding(.bottom, 8)
 
             if let message = message {
-                Text(message).opacity(0.7).font(.sfRounded(size: .sm))
+                Text(message).opacity(0.7).font(.sfRounded(size: .sm)).frame(maxWidth: 200).multilineTextAlignment(.center)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(UIColor.systemBackground))
-        .foregroundStyle(.tubText)
+        .foregroundStyle(.tubBuyPrimary)
     }
+}
+
+#Preview("Light") {
+    LoadingView(message: "Loading...").preferredColorScheme(.light)
+}
+
+#Preview("Dark") {
+    LoadingView(message: "Loading something real important...").preferredColorScheme(.dark)
 }
