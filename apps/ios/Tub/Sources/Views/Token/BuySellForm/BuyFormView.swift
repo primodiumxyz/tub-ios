@@ -85,11 +85,12 @@ struct BuyFormView: View {
     private var formContent: some View {
         VStack {
             HStack {
-                Button {
-                    isVisible = false
-                } label: {
-                    Image(systemName: "xmark")
-                }
+                IconButton(
+                    icon: "xmark",
+                    color: .tubBuyPrimary,
+                    size: 18,
+                    action: { isVisible = false }
+                )
                 Spacer()
                 defaultToggle
             }
@@ -109,7 +110,7 @@ struct BuyFormView: View {
             text: "Buy",
             textColor: .tubBuyPrimary,
             strokeColor: .tubBuyPrimary,
-            backgroundColor: Color.clear,
+            backgroundColor: .clear,
             maxWidth: .infinity,
             action: {
                 Task {
@@ -126,13 +127,13 @@ struct BuyFormView: View {
                 Spacer()
                 Text("$")
                     .font(.sfRounded(size: .xl4, weight: .bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(.tubText)
 
                 TextField(
                     "",
                     text: $buyAmountUsdString,
                     prompt: Text("10", comment: "placeholder")
-                        .foregroundStyle(.white.opacity(0.3))
+                        .foregroundStyle(.tubText.opacity(0.3))
                 )
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.leading)
@@ -169,7 +170,7 @@ struct BuyFormView: View {
                     }
                 }
                 .font(.sfRounded(size: .xl5, weight: .bold))
-                .foregroundStyle(isValidInput ? .white : Color.red)
+                .foregroundStyle(isValidInput ? .tubText : .tubError)
                 .frame(minWidth: 50)
                 .fixedSize()
                 Spacer()
@@ -188,10 +189,10 @@ struct BuyFormView: View {
                 HStack(spacing: 4) {
                     Text("Set Default")
                         .font(.sfRounded(size: .base, weight: .regular))
-                        .foregroundStyle(isDefaultOn ? .white : .secondary)
+                        .foregroundStyle(isDefaultOn ? .tubText : .tubNeutral)
 
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(isDefaultOn ? Color.green : .secondary)
+                        .foregroundStyle(isDefaultOn ? .tubSuccess : .tubNeutral)
                 }
             }
         }

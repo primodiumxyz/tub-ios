@@ -254,8 +254,18 @@ extension ActionButtonsView: Equatable {
         @State var show = false
         @State var testAmount = 1.0
         @StateObject var notificationHandler = NotificationHandler()
-        @StateObject var userModel = UserModel.shared
-        @StateObject var priceModel = SolPriceModel.shared
+        var userModel = {
+            let model = UserModel.shared
+            model.balanceLamps = 100 * Int(1e9)
+            return model
+        }()
+
+        var priceModel = {
+            let model = SolPriceModel.shared
+            spoofPriceModelData(model)
+            return model
+        }()
+
         @State var isDark: Bool = true
 
         func toggleBuySell() {

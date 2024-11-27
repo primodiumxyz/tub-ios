@@ -209,8 +209,8 @@ struct CapsuleButtonStyle: ButtonStyle {
 
 struct CapsuleButton: View {
     var text: String
-    var textColor: Color = .white
-    var backgroundColor: Color = Color.white.opacity(0.15)
+    var textColor: Color = .tubText
+    var backgroundColor: Color = .tubText.opacity(0.15)
     var font: Font = .sfRounded(size: .base, weight: .bold)
     var action: () -> Void
 
