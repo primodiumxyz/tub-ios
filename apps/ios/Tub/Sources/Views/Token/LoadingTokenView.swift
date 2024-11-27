@@ -42,5 +42,5 @@ struct LoadingTokenView: View {
 }
 
 #Preview {
-    LoadingTokenView().background(Color.black)
+    LoadingTokenView()
 }

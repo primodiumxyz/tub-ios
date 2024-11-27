@@ -152,6 +152,7 @@ private struct ConnectingButton: View {
     var body: some View {
         PrimaryButton(
             text: "Connecting...",
+            backgroundColor: .tubPurple,
             disabled: true,
             action: {}
         ).padding(.horizontal, 8)
@@ -177,6 +178,7 @@ private struct AirdropButton: View {
     var body: some View {
         PrimaryButton(
             text: "Get 1 test SOL",
+            backgroundColor: .tubPurple,
             action: handleAirdrop
         )
         .padding(.horizontal, 8)
@@ -197,6 +199,7 @@ private struct BuyButton: View {
     var body: some View {
         PrimaryButton(
             text: "Buy \(priceModel.formatPrice(usd: settingsManager.defaultBuyValue))",
+            backgroundColor: .tubPurple,
             action: {
                 Task {
                     await handleBuy(settingsManager.defaultBuyValue)
@@ -225,6 +228,7 @@ struct SellButtons: View {
             PrimaryButton(
                 text: "Sell",
                 backgroundColor: .tubSellPrimary,
+
                 action: {
                     Task {
                         await onSell()

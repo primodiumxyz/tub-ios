@@ -22,7 +22,7 @@ struct ShimmeringView: View {
             RoundedRectangle(cornerRadius: cornerRadius)
                 .fill(
                     LinearGradient(
-                        gradient: Gradient(colors: [Color.clear, Color.white.opacity(opacity), Color.clear]),
+                        gradient: Gradient(colors: [Color.clear, Color.tubText.opacity(opacity), Color.clear]),
                         startPoint: .leading,
                         endPoint: .trailing
                     )

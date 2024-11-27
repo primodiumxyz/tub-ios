@@ -13,7 +13,7 @@ struct LoadingBox: View {
     let opacity: CGFloat
     let cornerRadius: CGFloat
 
-    init(width: CGFloat = .infinity, height: CGFloat = .infinity, opacity: Double = 0.3, cornerRadius: CGFloat = 8) {
+    init(width: CGFloat = .infinity, height: CGFloat = .infinity, opacity: Double = 0.2, cornerRadius: CGFloat = 8) {
         self.width = width
         self.height = height
         self.cornerRadius = cornerRadius
@@ -25,17 +25,20 @@ struct LoadingBox: View {
             RoundedRectangle(cornerRadius: cornerRadius)
                 .fill(Color.white.opacity(0.1))
                 .shimmering(opacity: opacity)
-        } else if width == .infinity {
+        }
+        else if width == .infinity {
             RoundedRectangle(cornerRadius: cornerRadius)
                 .fill(Color.white.opacity(0.1))
                 .frame(maxWidth: width, minHeight: height, maxHeight: height)
                 .shimmering(opacity: opacity)
-        } else if height == .infinity {
+        }
+        else if height == .infinity {
             RoundedRectangle(cornerRadius: cornerRadius)
                 .fill(Color.white.opacity(0.1))
                 .frame(minWidth: width, maxWidth: width, maxHeight: height)
                 .shimmering(opacity: opacity)
-        } else {
+        }
+        else {
             RoundedRectangle(cornerRadius: cornerRadius)
                 .fill(Color.white.opacity(0.1))
                 .frame(width: width, height: height)

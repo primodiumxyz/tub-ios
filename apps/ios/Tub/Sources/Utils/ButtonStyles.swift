@@ -390,9 +390,10 @@ struct IntervalButtonStyle: ButtonStyle {
     var text: String
     var isSelected: Bool
     var isLive: Bool
+    @Environment(\.colorScheme) var colorScheme
 
     func makeBody(configuration: Self.Configuration) -> some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 8) {
             if isLive {
                 Circle()
                     .fill(Color.red)
@@ -404,8 +405,8 @@ struct IntervalButtonStyle: ButtonStyle {
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
         .frame(width: 65)
-        .background(isSelected ? .tubBuyPrimary : .clear)
-        .foregroundStyle(isSelected ? .white : .secondary)
+        .background(isSelected ? colorScheme == .dark ? .tubBuyPrimary : .tubBuySecondary : .clear)
+        .foregroundStyle(isSelected ? .black : .secondary)
         .cornerRadius(20)
         .opacity(configuration.isPressed ? 0.7 : 1.0)
     }

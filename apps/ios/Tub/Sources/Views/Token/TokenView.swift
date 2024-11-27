@@ -110,18 +110,16 @@ struct TokenView: View {
     }
 
     private var tokenInfoView: some View {
-        HStack(alignment: .center) {
-            // Image column
-            if tokenModel.token.imageUri != "" {
-                ImageView(imageUri: tokenModel.token.imageUri, size: 50)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-            }
-            else {
-                LoadingBox(width: 50, height: 50)
-            }
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .center) {
+                if tokenModel.token.imageUri != "" {
+                    ImageView(imageUri: tokenModel.token.imageUri, size: 40)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
+                else {
+                    LoadingBox(width: 40, height: 40)
+                }
 
-            // Text column
-            VStack(alignment: .leading, spacing: 0) {
                 if tokenModel.token.symbol != "" {
                     Text("$\(tokenModel.token.symbol)")
                         .font(.sfRounded(size: .lg, weight: .semibold)).opacity(0.7)
@@ -129,46 +127,72 @@ struct TokenView: View {
                 else {
                     LoadingBox(width: 100, height: 20)
                 }
+            }
 
+            if tokenModel.isReady {
+                HStack(alignment: .center, spacing: 6) {
+                    let price = priceModel.formatPrice(
+                        usd: tokenModel.prices.last?.priceUsd ?? 0,
+                        maxDecimals: 9,
+                        minDecimals: 2
+                    )
+                    Text(price)
+                        .font(.sfRounded(size: .xl4, weight: .bold))
+                    Image(systemName: "info.circle.fill")
+                        .frame(width: 16, height: 16)
+                }
+
+            }
+            else {
+                LoadingBox(width: 200, height: 40).padding(.vertical, 4)
+            }
+
+            let price = priceModel.formatPrice(
+                usd: tokenModel.priceChange.amountUsd,
+                showSign: true,
+                maxDecimals: 9,
+                minDecimals: 2
+            )
+
+            HStack(alignment: .center, spacing: 0) {
                 if tokenModel.isReady {
-                    HStack(alignment: .center, spacing: 6) {
-                        let price = priceModel.formatPrice(
-                            usd: tokenModel.prices.last?.priceUsd ?? 0,
-                            maxDecimals: 9,
-                            minDecimals: 2
-                        )
-                        Text(price)
-                            .font(.sfRounded(size: .xl4, weight: .bold))
-                        Image(systemName: "info.circle.fill")
-                            .frame(width: 16, height: 16)
-                    }
+                    // Price change indicator
+                    HStack(spacing: 4) {
+                        if tokenModel.priceChange.amountUsd > 0 {
+                            Image(systemName: "triangle.fill")
+                                .resizable()
+                                .frame(width: 12, height: 8)
+                                .foregroundStyle(.tubSuccess)
+                        }
+                        else if tokenModel.priceChange.amountUsd < 0 {
+                            Image(systemName: "triangle.fill")
+                                .resizable()
+                                .frame(width: 12, height: 8)
+                                .rotationEffect(.degrees(180))
+                                .foregroundStyle(.tubError)
+                        }
+                        else {
+                            Image(systemName: "rectangle.fill")
+                                .resizable()
+                                .frame(width: 8, height: 3)
+                                .foregroundStyle(.tubNeutral)
+                        }
 
+                        Text("\(abs(tokenModel.priceChange.percentage), specifier: "%.1f")%")
+                            .font(.sfRounded(size: .base, weight: .semibold))
+                    }
+                    .frame(maxWidth: 75, alignment: .leading)
+                    Text("\(formatDuration(tokenModel.selectedTimespan.seconds))").foregroundStyle(.gray)
                 }
                 else {
-                    LoadingBox(width: 200, height: 40).padding(.vertical, 4)
+                    LoadingBox(width: 160, height: 14)
                 }
-
-                let price = priceModel.formatPrice(
-                    usd: tokenModel.priceChange.amountUsd,
-                    showSign: true,
-                    maxDecimals: 9,
-                    minDecimals: 2
-                )
-
-                HStack {
-
-                    if tokenModel.isReady {
-                        Text(price)
-                        Text("(\(tokenModel.priceChange.percentage, specifier: "%.1f")%)")
-                        Text("\(formatDuration(tokenModel.selectedTimespan.seconds))").foregroundStyle(.gray)
-                    }
-                    else {
-                        LoadingBox(width: 160, height: 12)
-                    }
-                }
-                .font(.sfRounded(size: .sm, weight: .semibold))
-                .foregroundStyle(tokenModel.priceChange.amountUsd >= 0 ? Color.green : Color.red)
             }
+            .font(.sfRounded(size: .sm, weight: .semibold))
+            .foregroundStyle(
+                tokenModel.priceChange.amountUsd > 0
+                    ? .tubSuccess : tokenModel.priceChange.amountUsd < 0 ? .tubError : .tubNeutral
+            )
         }
         .padding(.horizontal)
         .onTapGesture {
