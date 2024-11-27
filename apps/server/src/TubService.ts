@@ -82,11 +82,7 @@ export class TubService {
       const verifiedClaims = await this.privy.verifyAuthToken(token);
       return verifiedClaims.userId;
     } catch (e: unknown) {
-      if (e instanceof Error) {
-        throw new Error(`Invalid JWT: ${e.message}`);
-      } else {
-        throw new Error(`Invalid JWT: ${e}`);
-      }
+      throw new Error(`Invalid JWT: ${e instanceof Error ? e.message : "Unknown error"}`);
     }
   }
 
@@ -226,7 +222,6 @@ export class TubService {
     if (!token || !expiry) {
       throw new Error("Failed to create Codex API token");
     }
-
     return { token: `Bearer ${token}`, expiry };
   }
 
@@ -278,7 +273,6 @@ export class TubService {
       throw new Error(`Failed to build swap response: ${error}`);
     }
   }
-
   /**
    * Builds a swap transaction for exchanging tokens and signs it with the fee payer.
    * @dev Once user signs, the transaction is complete and can be directly submitted to Solana RPC by the user.

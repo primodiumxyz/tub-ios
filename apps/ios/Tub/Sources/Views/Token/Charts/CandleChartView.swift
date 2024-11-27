@@ -16,11 +16,13 @@ struct CandleChartView: View {
     let height: CGFloat
     @State private var currentTime = Date().timeIntervalSince1970
 
+    @Binding var animate: Bool
     @State private var timerCancellable: Cancellable?
     @State private var timer: Timer.TimerPublisher = Timer.publish(every: 0.1, on: .main, in: .common)
 
-    init(candles: [CandleData], timeframeMins: Double = 30, height: CGFloat = 330) {
+    init(candles: [CandleData], animate: Binding<Bool>, timeframeMins: Double = 30, height: CGFloat = 330) {
         self.rawCandles = candles
+        self._animate = animate
         self.timeframeMins = timeframeMins
         self.height = height
     }
@@ -75,6 +77,7 @@ struct CandleChartView: View {
                 .opacity(0.5)
             }
         }
+        .if(animate) { view in view.animation(.linear(duration: PRICE_UPDATE_INTERVAL), value: candles) }
         .chartXScale(domain: xDomain)
         .chartYScale(domain: yDomain)
         .conditionalModifier(condition: false) { chart in

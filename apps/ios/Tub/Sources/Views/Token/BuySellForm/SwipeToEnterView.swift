@@ -5,10 +5,8 @@
 //  Created by Henry on 9/30/24.
 //
 
-// ... existing imports ...
 import SwiftUI
 
-// Add this new struct above the ActionButtonsView struct
 struct SwipeToEnterView: View {
     @State private var offset: CGFloat = 0
     @State private var isDragging = false
@@ -18,7 +16,7 @@ struct SwipeToEnterView: View {
     var disabled: Bool
     var size: CGFloat = 80
 
-    init(text: String = "slide to unlock", onUnlock: @escaping () -> Void, disabled: Bool = false) {
+    init(text: String = "slide to unlock", disabled: Bool = false, onUnlock: @escaping () -> Void) {
         self.text = text
         self.onUnlock = onUnlock
         self.disabled = disabled

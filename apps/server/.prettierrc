@@ -9,5 +9,6 @@
   "singleQuote": false,
   "useTabs": false,
   "quoteProps": "as-needed",
-  "requirePragma": false
+  "requirePragma": false,
+
 }
