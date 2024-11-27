@@ -98,8 +98,10 @@ struct TokenListView: View {
     var body: some View {
 
         ZStack(alignment: .top) {
-            background
-                .animation(.easeInOut(duration: 0.3), value: activeTab)
+            // Removes background after redesign
+
+            // background
+            //     .animation(.easeInOut(duration: 0.3), value: activeTab)
 
             if showBubbles {
                 BubbleEffect(isActive: $showBubbles)

@@ -162,6 +162,7 @@ struct HistoryViewContent: View {
                     }
                     else if filteredTransactions().isEmpty {
                         Text("No transactions found")
+                            .padding()
                             .font(.sfRounded(size: .base, weight: .regular))
                             .foregroundStyle(Color.gray)
                     }
@@ -182,7 +183,7 @@ struct HistoryViewContent: View {
                 alignment: .top
             )
             .navigationTitle("History")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
 
