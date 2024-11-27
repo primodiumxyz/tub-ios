@@ -74,7 +74,7 @@ struct TokenInfoPreview: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
+        ZStack(alignment: .bottom) {
             VStack(alignment: .leading, spacing: 0) {
                 if let sellStats, activeTab == "sell" {
                     ForEach(sellStats) { stat in
@@ -109,8 +109,9 @@ struct TokenInfoPreview: View {
                         topTrailing: 30
                     )
                 )
-                .inset(by: 0.5)
+                .inset(by: 1)
                 .stroke(colorScheme == .dark ? .clear : .tubBuySecondary, lineWidth: 1)
+                .padding(.bottom, -10)
             )
             .clipShape(
                 UnevenRoundedRectangle(
@@ -124,11 +125,11 @@ struct TokenInfoPreview: View {
             )
 
             Rectangle()
-                .fill(colorScheme == .dark ? .clear : Color(UIColor.systemBackground))
-                .frame(maxWidth: .infinity, maxHeight: 1)
-                .padding(.top, -1)
+                .fill(colorScheme == .dark ? .clear : .white)
+                .frame(maxWidth: .infinity, maxHeight: 8)
+                .padding(.bottom, -4)
         }
-        .frame(maxHeight: 80)
+        .frame(maxHeight: 100)
         .onTapGesture {
             self.showInfoOverlay.toggle()
         }
@@ -210,9 +211,10 @@ private struct StatView: View {
         Spacer().frame(height: 50)
 
         TokenInfoPreview(tokenModel: tokenModel, activeTab: activeTab)
+            .padding(8)
+            .border(.red)
             .environmentObject(userModel)
             .environmentObject(priceModel)
             .preferredColorScheme(isDark ? .dark : .light)
-        //            .border(.red)
     }
 }

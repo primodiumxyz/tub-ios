@@ -104,7 +104,6 @@ struct ActionButtonsView: View {
                 ConnectButton()
             }
         }
-        .padding(8)
         .fullScreenCover(isPresented: $isLoginPresented) {
             RegisterView(isRedirected: true)
         }
@@ -124,7 +123,7 @@ private struct LoginButton: View {
         PrimaryButton(
             text: "Login to Buy",
             action: { isLoginPresented = true }
-        )
+        ).padding(.horizontal, 8)
     }
 }
 
@@ -144,7 +143,8 @@ private struct ConnectButton: View {
                     }
                 }
             }
-        )
+        ).padding(.horizontal, 8)
+
     }
 }
 
@@ -154,7 +154,7 @@ private struct ConnectingButton: View {
             text: "Connecting...",
             disabled: true,
             action: {}
-        )
+        ).padding(.horizontal, 8)
     }
 }
 
@@ -230,7 +230,7 @@ struct SellButtons: View {
                         await onSell()
                     }
                 }
-            )
+            ).padding(.horizontal, 8)
         }
     }
 }

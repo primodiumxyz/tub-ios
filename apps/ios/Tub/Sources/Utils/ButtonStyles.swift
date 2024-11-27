@@ -61,7 +61,6 @@ struct PrimaryButton: View {
         action: @escaping () -> Void
     ) {
         self.text = text
-        print("text: \(text)")
         self.textColor = textColor
         self.backgroundColor = backgroundColor
         self.strokeColor = strokeColor
@@ -111,6 +110,7 @@ struct OutlineButtonStyle: ButtonStyle {
             RoundedRectangle(cornerRadius: 30)
                 .inset(by: 0.5)
                 .stroke(strokeColor, lineWidth: 1)
+                .clipShape(Rectangle())
         )
         .scaleEffect(configuration.isPressed ? 0.95 : 1)
         .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
@@ -351,6 +351,7 @@ struct OutlineButtonWithIcon: View {
                 RoundedRectangle(cornerRadius: 30)
                     .inset(by: 0.5)
                     .stroke(strokeColor, lineWidth: 1)
+                    .clipShape(Rectangle())
             )
         }
     }
@@ -367,6 +368,7 @@ struct FilterButtonStyle: ButtonStyle {
             .overlay(
                 RoundedRectangle(cornerRadius: 20)
                     .stroke(.tubNeutral, lineWidth: 1)
+                    .clipShape(Rectangle())
             )
             .opacity(configuration.isPressed ? 0.7 : 1.0)
     }
