@@ -144,7 +144,6 @@
 		DF1FE3C72CD568F700594C63 /* CountryCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CountryCode.swift; path = Tub/Sources/CountryCode.swift; sourceTree = SOURCE_ROOT; };
 		DF5A2FC22CAF165D00508A56 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		DF5A2FC42CAF2DEF00508A56 /* HistoryDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryDetailsView.swift; sourceTree = "<group>"; };
-		DF627D132CF0FA7600A4500B /* swipe.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = swipe.gif; path = Tub/Assets.xcassets/swipe.dataset/swipe.gif; sourceTree = "<group>"; };
 		DF7C361B2CD941FD00A4B27A /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		DF8C84EC2CDFDCA700E8FA7B /* DismissKeyboardModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DismissKeyboardModifier.swift; sourceTree = "<group>"; };
 		DF99EC202CE294B40065F390 /* TokenAnimationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenAnimationState.swift; sourceTree = "<group>"; };
@@ -363,7 +362,6 @@
 		DB6D28F82CA1C8F70099951A = {
 			isa = PBXGroup;
 			children = (
-				DF627D132CF0FA7600A4500B /* swipe.gif */,
 				DB391A1D2CC377FC002EFA78 /* LaunchScreen.storyboard */,
 				DB458DAB2CAC7F0100C5EC18 /* graphql */,
 				DB6D29032CA1C8F70099951A /* Tub */,
