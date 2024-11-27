@@ -170,7 +170,7 @@ private struct ConnectingButton: View {
             HStack(alignment: .center, spacing: 8) {
                 Text("Connecting...")
                     .font(.sfRounded(size: .xl, weight: .semibold))
-                    .foregroundStyle(.black)
+                    .foregroundStyle(.white)
                     .multilineTextAlignment(.center)
             }
             .tubButtonStyle()
@@ -224,7 +224,7 @@ private struct BuyButton: View {
     var body: some View {
         PrimaryButton(
             text: "Buy \(priceModel.formatPrice(usd: settingsManager.defaultBuyValue))",
-            textColor: .black,
+            textColor: .white,
             backgroundColor: .accent,
             action: {
                 Task {
