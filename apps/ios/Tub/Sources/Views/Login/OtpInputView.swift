@@ -31,7 +31,7 @@ struct OTPInputView: View {
     var body: some View {
         HStack(spacing: 15) {
             TextField("", text: $pinOne)
-                .tint(Color("Tub/Primary"))
+                .tint(.tubBuyPrimary)
                 .allowsHitTesting(false)
                 .modifier(OtpModifer(pin: $pinOne, isFocused: pinFocusState == .pinOne))
                 .onChange(of: pinOne) { oldVal, newVal in
@@ -48,7 +48,7 @@ struct OTPInputView: View {
                 .focused($pinFocusState, equals: .pinOne)
 
             TextField("", text: $pinTwo)
-                .tint(Color("Tub/Primary"))
+                .tint(.tubBuyPrimary)
                 .modifier(OtpModifer(pin: $pinTwo, isFocused: pinFocusState == .pinTwo))
                 .allowsHitTesting(false)
                 .onChange(of: pinTwo) { oldVal, newVal in
@@ -70,7 +70,7 @@ struct OTPInputView: View {
                 )
 
             TextField("", text: $pinThree)
-                .tint(Color("Tub/Primary"))
+                .tint(.tubBuyPrimary)
                 .modifier(OtpModifer(pin: $pinThree, isFocused: pinFocusState == .pinThree))
                 .allowsHitTesting(false)
                 .onChange(of: pinThree) { oldVal, newVal in
@@ -92,7 +92,7 @@ struct OTPInputView: View {
                 )
 
             TextField("", text: $pinFour)
-                .tint(Color("Tub/Primary"))
+                .tint(.tubBuyPrimary)
                 .modifier(OtpModifer(pin: $pinFour, isFocused: pinFocusState == .pinFour))
                 .allowsHitTesting(false)
                 .onChange(of: pinFour) { oldVal, newVal in
@@ -114,7 +114,7 @@ struct OTPInputView: View {
                 )
 
             TextField("", text: $pinFive)
-                .tint(Color("Tub/Primary"))
+                .tint(.tubBuyPrimary)
                 .modifier(OtpModifer(pin: $pinFive, isFocused: pinFocusState == .pinFive))
                 .allowsHitTesting(false)
                 .onChange(of: pinFive) { oldVal, newVal in
@@ -136,7 +136,7 @@ struct OTPInputView: View {
                 )
 
             TextField("", text: $pinSix)
-                .tint(Color("Tub/Primary"))
+                .tint(.tubBuyPrimary)
                 .modifier(OtpModifer(pin: $pinSix, isFocused: pinFocusState == .pinSix))
                 .allowsHitTesting(false)
                 .onChange(of: pinSix) { oldVal, newVal in

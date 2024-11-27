@@ -74,7 +74,11 @@ struct SignInWithPhoneView: View {
     }
 
     private func isValidPhoneNumber(_ number: String) -> Bool {
-        let numbersOnly = number.replacingOccurrences(of: "[^0-9]", with: "", options: .regularExpression)
+        let numbersOnly = number.replacingOccurrences(
+            of: "[^0-9]",
+            with: "",
+            options: .regularExpression
+        )
         let phoneRegex = "^[0-9]{10,15}$"
         return NSPredicate(format: "SELF MATCHES %@", phoneRegex).evaluate(with: numbersOnly)
     }
@@ -123,19 +127,19 @@ struct SignInWithPhoneView: View {
                     .cornerRadius(30)
                     .overlay(
                         RoundedRectangle(cornerRadius: 30)
-                            .stroke(Color("Tub/Primary"), lineWidth: 0.5)
+                            .stroke(.tubBuyPrimary, lineWidth: 0.5)
                     )
 
                     TextField("Enter your Phone Number", text: formattedPhoneBinding)
                         .keyboardType(.phonePad)
                         .padding()
                         .background(Color(UIColor.systemBackground))
-                        .foregroundStyle(Color("Tub/Primary"))
+                        .foregroundStyle(.tubBuyPrimary)
                         .frame(maxWidth: .infinity, maxHeight: 50, alignment: .leading)
                         .cornerRadius(30)
                         .overlay(
                             RoundedRectangle(cornerRadius: 30)
-                                .stroke(Color("Tub/Primary"), lineWidth: 0.5)
+                                .stroke(.tubBuyPrimary, lineWidth: 0.5)
                         )
                         .onChange(of: phoneNumber) {
                             showPhoneError = false
@@ -148,14 +152,14 @@ struct SignInWithPhoneView: View {
                         .font(.sfRounded(size: .lg, weight: .semibold))
                         .frame(maxWidth: .infinity)
                         .padding(14)
-                        .background(Color("Tub/Secondary"))
+                        .background(.tubSellPrimary)
                         .cornerRadius(26)
                 }
                 .disabled(signingIn)
                 .padding(.horizontal)
                 .padding(.top, 5)
                 Text(showPhoneError ? "Please enter a valid phone number." : "")
-                    .foregroundStyle(Color("Tub/Fail"))
+                    .foregroundStyle(.tubError)
                     .font(.caption)
                     .padding(.top, -4)
                     .padding(.horizontal, 20)

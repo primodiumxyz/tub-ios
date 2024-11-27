@@ -80,7 +80,7 @@ struct TokenInfoCardView: View {
                 Rectangle()
                     .foregroundStyle(.clear)
                     .frame(width: 60, height: 3)
-                    .background(Color("Tub/Neutral"))
+                    .background(.tubNeutral)
                     .cornerRadius(100)
             }
             .padding()
@@ -139,12 +139,16 @@ struct TokenInfoCardView: View {
         }
         .padding(.vertical, 0)
         .padding(.horizontal, 20)
-        .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.44, alignment: .topLeading)
+        .frame(
+            maxWidth: .infinity,
+            maxHeight: UIScreen.main.bounds.height * 0.44,
+            alignment: .topLeading
+        )
         .background(Color(UIColor.systemBackground))
         .overlay(
             RoundedRectangle(cornerRadius: 30)
                 .inset(by: 0.5)
-                .stroke(colorScheme == .dark ? Color("Tub/Neutral") : Color("Tub/Primary"), lineWidth: 1)
+                .stroke(colorScheme == .dark ? .tubNeutral : .tubBuyPrimary, lineWidth: 1)
         )
         .transition(.move(edge: .bottom))
         .offset(y: dragOffset)

@@ -107,8 +107,8 @@ struct BuyFormView: View {
     private var buyButton: some View {
         OutlineButton(
             text: "Buy",
-            textColor: Color("Tub/Primary"),
-            strokeColor: Color("Tub/Primary"),
+            textColor: .tubBuyPrimary,
+            strokeColor: .tubBuyPrimary,
             backgroundColor: Color.clear,
             maxWidth: .infinity,
             action: {
@@ -213,7 +213,11 @@ struct BuyFormView: View {
 
 }
 
-func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String)
+func textField(
+    _ textField: UITextField,
+    shouldChangeCharactersIn range: NSRange,
+    replacementString string: String
+)
     -> Bool
 {
     guard !string.isEmpty else {

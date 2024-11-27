@@ -344,7 +344,7 @@ struct FilterButtonStyle: ButtonStyle {
             .fixedSize(horizontal: true, vertical: false)
             .overlay(
                 RoundedRectangle(cornerRadius: 20)
-                    .stroke(Color("Tub/Neutral"), lineWidth: 1)
+                    .stroke(.tubNeutral, lineWidth: 1)
             )
             .opacity(configuration.isPressed ? 0.7 : 1.0)
     }
@@ -380,8 +380,8 @@ struct IntervalButtonStyle: ButtonStyle {
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
         .frame(width: 65)
-        .background(isSelected ? Color("Tub/Primary") : Color.clear)
-        .foregroundStyle(isSelected ? Color.white : .secondary)
+        .background(isSelected ? .tubBuyPrimary : .clear)
+        .foregroundStyle(isSelected ? .white : .secondary)
         .cornerRadius(20)
         .opacity(configuration.isPressed ? 0.7 : 1.0)
     }

@@ -43,6 +43,6 @@ struct ErrorView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(UIColor.systemBackground))
-        .foregroundStyle(Color("Tub/Primary"))
+        .foregroundStyle(.tubText)
     }
 }

@@ -27,7 +27,7 @@ struct NotificationBanner: ViewModifier {
 
                                 Button(action: notificationHandler.hide) {
                                     Image(systemName: "xmark")
-                                        .foregroundStyle(Color("Tub/Primary"))
+                                        .foregroundStyle(.tubText)
                                 }
                             }
                             .padding(.horizontal, 16)

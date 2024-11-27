@@ -48,12 +48,14 @@ struct CoinbaseOnrampView: View {
                 Text("$")
                     .font(.sfRounded(size: .xl4, weight: .bold))
 
-                TextField("", text: $amountString, prompt: Text("100").foregroundStyle(Color("Tub/Secondary")))
+                TextField("", text: $amountString, prompt: Text("100").foregroundStyle(.tubSellPrimary))
                     .focused($isAmountFocused)
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.leading)
                     .textFieldStyle(PlainTextFieldStyle())
-                    .onReceive(NotificationCenter.default.publisher(for: UITextField.textDidChangeNotification)) {
+                    .onReceive(
+                        NotificationCenter.default.publisher(for: UITextField.textDidChangeNotification)
+                    ) {
                         obj in
                         guard let textField = obj.object as? UITextField else { return }
 
@@ -129,7 +131,11 @@ struct WebView: UIViewRepresentable {
                 document.querySelector('.cds-button-b17kdj8k').style.background = '#6E00FF';
 
             """
-        let script = WKUserScript(source: darkScript, injectionTime: .atDocumentEnd, forMainFrameOnly: false)
+        let script = WKUserScript(
+            source: darkScript,
+            injectionTime: .atDocumentEnd,
+            forMainFrameOnly: false
+        )
         configuration.userContentController.addUserScript(script)
 
         let webView = WKWebView(frame: .zero, configuration: configuration)

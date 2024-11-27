@@ -74,7 +74,8 @@ struct HistoryView: View {
                             var processedTxs: [Transaction] = []
 
                             for transaction in tokenTransactions {
-                                guard let date = formatDateString(transaction.wallet_transaction_data.created_at) else {
+                                guard let date = formatDateString(transaction.wallet_transaction_data.created_at)
+                                else {
                                     continue
                                 }
 
@@ -366,7 +367,7 @@ struct TransactionRow: View {
                 HStack {
                     Text(transaction.isBuy ? "Buy" : "Sell")
                         .font(.sfRounded(size: .base, weight: .bold))
-                        .foregroundStyle(Color("Neutral"))
+                        .foregroundStyle(.tubNeutral)
                     Text(transaction.name.isEmpty ? transaction.mint.truncatedAddress() : transaction.name)
                         .font(.sfRounded(size: .base, weight: .bold))
                         .lineLimit(1)
@@ -387,7 +388,10 @@ struct TransactionRow: View {
                     .font(.sfRounded(size: .base, weight: .bold))
                     .foregroundStyle(transaction.isBuy ? Color.red : Color.green)
 
-                let quantity = priceModel.formatPrice(lamports: abs(transaction.quantityTokens), showUnit: false)
+                let quantity = priceModel.formatPrice(
+                    lamports: abs(transaction.quantityTokens),
+                    showUnit: false
+                )
                 HStack {
                     Text(quantity)
                         .font(.sfRounded(size: .xs, weight: .regular))
@@ -449,7 +453,7 @@ struct SearchFilter: View {
         .background(Color.clear)
         .overlay(
             RoundedRectangle(cornerRadius: 20)
-                .stroke(Color("Neutral"), lineWidth: 1)
+                .stroke(.tubNeutral, lineWidth: 1)
         )
         .onTapGesture {
             if !filterState.isSearching {

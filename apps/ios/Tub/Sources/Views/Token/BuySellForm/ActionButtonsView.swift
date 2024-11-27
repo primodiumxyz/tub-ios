@@ -86,7 +86,7 @@ struct ActionButtonsView: View {
                         HStack(spacing: 16) {
                             CircleButton(
                                 icon: "pencil",
-                                color: Color("Tub/Primary"),
+                                color: .tubBuyPrimary,
                                 iconSize: 20,
                                 iconWeight: .bold,
                                 action: { showBuySheet = true }
@@ -131,8 +131,8 @@ private struct LoginButton: View {
         PrimaryButton(
             text: "Login to Buy",
             textColor: Color.black,
-            backgroundColor: Color("Tub/Primary"),
-            strokeColor: Color("Tub/Primary"),
+            backgroundColor: .tubBuyPrimary,
+            strokeColor: .tubBuyPrimary,
             maxWidth: .infinity,
             action: { isLoginPresented = true }
         )
@@ -197,8 +197,8 @@ private struct AirdropButton: View {
         PrimaryButton(
             text: "Get 1 test SOL",
             textColor: Color.black,
-            backgroundColor: Color("Tub/Primary"),
-            strokeColor: Color("Tub/Primary"),
+            backgroundColor: .tubBuyPrimary,
+            strokeColor: .tubBuyPrimary,
             maxWidth: .infinity,
             action: {
                 Task {
@@ -225,7 +225,7 @@ private struct BuyButton: View {
         PrimaryButton(
             text: "Buy \(priceModel.formatPrice(usd: settingsManager.defaultBuyValue))",
             textColor: Color(UIColor.systemBackground),
-            backgroundColor: Color("Tub/Primary"),
+            backgroundColor: .tubBuyPrimary,
             action: {
                 Task {
                     await handleBuy(settingsManager.defaultBuyValue)
@@ -269,12 +269,12 @@ extension View {
             .frame(maxWidth: .infinity)
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(Color("Tub/Primary"))
+            .background(.tubBuyPrimary)
             .cornerRadius(30)
             .overlay(
                 RoundedRectangle(cornerRadius: 30)
                     .inset(by: 0.5)
-                    .stroke(Color("Tub/Primary"), lineWidth: 1)
+                    .stroke(.tubBuyPrimary, lineWidth: 1)
             )
     }
 }

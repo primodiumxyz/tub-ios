@@ -19,7 +19,7 @@ struct LoginErrorView: View {
     }
 
     var body: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 18) {
             Image(systemName: "exclamationmark.triangle.fill")
                 .font(.system(size: 48))
                 .foregroundStyle(.red)
@@ -35,23 +35,34 @@ struct LoginErrorView: View {
             Button(action: retryAction) {
                 Text("Try Again")
                     .font(.sfRounded(size: .lg, weight: .semibold))
-                    .foregroundStyle(Color("Tub/Primary"))
-                    .frame(maxWidth: .infinity)
+                    .foregroundStyle(.tubText)
                     .padding(14)
-                    .background(Color("Tub/Primary"))
+                    .background(.tubBuyPrimary)
                     .cornerRadius(26)
             }
         }
         .padding()
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(UIColor.systemBackground))
-        .foregroundStyle(Color("Tub/Primary"))
+        .foregroundStyle(.tubBuyPrimary)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(.tubError, lineWidth: 2)
+                .background(.tubError.opacity(0.05))
+        )
     }
 }
 
-#Preview {
+#Preview("Light") {
     LoginErrorView(
         errorMessage: "Unable to connect to your account. Please check your connection and try again.",
         retryAction: {}
     )
+    .preferredColorScheme(.light)
+}
+
+#Preview("Dark") {
+    LoginErrorView(
+        errorMessage: "Unable to connect to your account. Please check your connection and try again.",
+        retryAction: {}
+    ).preferredColorScheme(.dark)
 }

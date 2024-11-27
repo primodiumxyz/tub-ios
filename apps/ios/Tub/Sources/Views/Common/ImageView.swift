@@ -24,7 +24,7 @@ struct ImageView: View {
                 Image(systemName: "photo")
                     .resizable()
                     .scaledToFit()
-                    .foregroundStyle(Color("Tub/Secondary"))
+                    .foregroundStyle(.tubTextSecondary)
             @unknown default:
                 EmptyView()
             }

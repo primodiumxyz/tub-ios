@@ -47,7 +47,7 @@ struct ChartView: View {
         if currentPriceUsd == purchasePriceUsd {
             return Color.white
         }
-        return currentPriceUsd < purchasePriceUsd ? Color("Tub/Fail") : Color("Tub/Success")
+        return currentPriceUsd < purchasePriceUsd ? .tubError : .tubSuccess
     }
 
     private var change: Double? {
@@ -77,7 +77,11 @@ struct ChartView: View {
         let min = Date(timeIntervalSinceNow: -Timespan.live.seconds - 1)
         var padding = 1.0
         if let currentPrice = prices.last?.priceUsd {
-            let pillContent = priceModel.formatPrice(usd: abs(currentPrice), maxDecimals: 9, minDecimals: 2)
+            let pillContent = priceModel.formatPrice(
+                usd: abs(currentPrice),
+                maxDecimals: 9,
+                minDecimals: 2
+            )
             padding = Double(pillContent.count) * 1.5
         }
 
@@ -92,7 +96,7 @@ struct ChartView: View {
                     x: .value("Date", price.timestamp),
                     y: .value("Price", price.priceUsd)
                 )
-                .foregroundStyle(Color("Tub/Primary").opacity(0.8))
+                .foregroundStyle(.tubBuyPrimary.opacity(0.8))
                 .lineStyle(StrokeStyle(lineWidth: 3))
                 .interpolationMethod(.cardinal(tension: 0.8))
             }
@@ -102,7 +106,7 @@ struct ChartView: View {
                     x: .value("Date", currentPrice.timestamp),
                     y: .value("Price", currentPrice.priceUsd)
                 )
-                .foregroundStyle(Color("Tub/Primary").opacity(0.8))
+                .foregroundStyle(.tubBuyPrimary.opacity(0.8))
                 .lineStyle(StrokeStyle(lineWidth: 3))
                 .interpolationMethod(.cardinal(tension: 0.8))
 
@@ -110,7 +114,7 @@ struct ChartView: View {
                     x: .value("Date", currentPrice.timestamp),
                     y: .value("Price", currentPrice.priceUsd)
                 )
-                .foregroundStyle(Color("Tub/Secondary"))
+                .foregroundStyle(.tubSellPrimary)
 
                 PointMark(
                     x: .value("Date", currentPrice.timestamp),
@@ -140,21 +144,22 @@ struct ChartView: View {
 
                 // Add horizontal dashed line
                 RuleMark(y: .value("Purchase Price", purchasePriceUsd))
-                    .foregroundStyle(Color("Tub/Secondary").opacity(0.8))
+                    .foregroundStyle(.tubSellPrimary.opacity(0.8))
                     .lineStyle(StrokeStyle(lineWidth: 2, dash: [5, 5]))
 
                 PointMark(
                     x: .value("Date", xPosition),  // Updated x-value
                     y: .value("Price", purchasePriceUsd)
                 )
-                .foregroundStyle(Color("Tub/Secondary"))
+                .foregroundStyle(.tubSellPrimary)
                 .symbolSize(100)
                 .symbol(.circle)
                 .annotation(position: .bottom, spacing: 0) {
                     PillView(
-                        value: "\(priceModel.formatPrice(usd: purchasePriceUsd, maxDecimals: 9, minDecimals: 2))",
-                        color: Color("Tub/Secondary").opacity(0.8),
-                        foregroundColor: Color("Tub/Primary")
+                        value:
+                            "\(priceModel.formatPrice(usd: purchasePriceUsd, maxDecimals: 9, minDecimals: 2))",
+                        color: .tubSellPrimary.opacity(0.8),
+                        foregroundColor: .tubBuyPrimary
                     )
                 }
             }

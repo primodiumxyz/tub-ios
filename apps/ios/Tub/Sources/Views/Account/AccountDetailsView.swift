@@ -38,7 +38,7 @@ struct AccountDetailsView: View {
                         ) {
                             IconButton(
                                 icon: "doc.on.doc",
-                                color: Color("Tub/Primary"),
+                                color: .tubText,
                                 size: 16,
                                 action: {
                                     UIPasteboard.general.string = userId
@@ -64,7 +64,7 @@ struct AccountDetailsView: View {
                         ) {
                             IconButton(
                                 icon: "doc.on.doc",
-                                color: Color("Tub/Primary"),
+                                color: .tubText,
                                 size: 16,
                                 action: {
                                     UIPasteboard.general.string = wallet  // Copy full address

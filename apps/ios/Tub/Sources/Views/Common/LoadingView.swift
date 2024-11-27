@@ -25,7 +25,7 @@ struct LoadingView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color("Tub/Primary"), lineWidth: 1)
+                        .stroke(.tubText, lineWidth: 1)
                         .shimmering(opacity: 0.5)
                 )
                 .padding(.horizontal, 10)
@@ -37,6 +37,6 @@ struct LoadingView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(UIColor.systemBackground))
-        .foregroundStyle(Color("Tub/Primary"))
+        .foregroundStyle(.tubText)
     }
 }

@@ -114,7 +114,7 @@ struct SettingsView: View {
                                     updateDefaultValue()
                                 }
                             Image(systemName: "pencil")
-                                .foregroundStyle(Color("Tub/Primary"))
+                                .foregroundStyle(.tubBuyPrimary)
                                 .font(.system(size: 20))
                         }
                     }
@@ -157,7 +157,7 @@ struct SettingsView: View {
                         isEditing = false
                         updateDefaultValue()
                     }
-                    .foregroundStyle(Color("Tub/Secondary"))
+                    .foregroundStyle(.tubSellPrimary)
                     .font(.system(size: 20))
                 }
             }

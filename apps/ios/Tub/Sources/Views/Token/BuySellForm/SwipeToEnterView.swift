@@ -54,7 +54,7 @@ struct SwipeToEnterView: View {
                 // Slider thumb
                 ZStack {
                     Circle()
-                        .fill(Color("Tub/Primary"))
+                        .fill(.tubBuyPrimary)
                         .frame(width: size - 20, height: size - 20)
 
                     Image(systemName: "arrow.left.arrow.right")

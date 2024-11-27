@@ -78,12 +78,12 @@ struct RegisterView: View {
                         .padding(.vertical, 10)
                         .frame(maxWidth: .infinity, minHeight: 50, alignment: .leading)
                         .background(Color(UIColor.systemBackground))
-                        .foregroundStyle(Color("Tub/Primary"))
+                        .foregroundStyle(.tubBuyPrimary)
                         .cornerRadius(30)
                         .keyboardType(.emailAddress)
                         .overlay(
                             RoundedRectangle(cornerRadius: 30)
-                                .stroke(Color("Tub/Primary"), lineWidth: 0.5)
+                                .stroke(.tubBuyPrimary, lineWidth: 0.5)
                         )
                         .onChange(of: email) { _, newValue in
                             isEmailValid = validateEmail(newValue)
@@ -111,7 +111,7 @@ struct RegisterView: View {
                     PrimaryButton(
                         text: "Continue",
                         textColor: Color.white,
-                        backgroundColor: Color("Tub/Secondary"),
+                        backgroundColor: .tubSellPrimary,
                         strokeColor: Color.clear,
                         maxWidth: .infinity,
                         action: {
@@ -131,18 +131,18 @@ struct RegisterView: View {
                         .frame(width: 153, height: 1)
                         .overlay(
                             Rectangle()
-                                .stroke(Color("Tub/Secondary").opacity(0.5), lineWidth: 0.5)
+                                .stroke(.tubSellPrimary.opacity(0.5), lineWidth: 0.5)
                         )
 
                     Text("or")
                         .font(.sfRounded(size: .base, weight: .semibold))
-                        .foregroundStyle(Color("Tub/Secondary"))
+                        .foregroundStyle(.tubSellPrimary)
 
                     Divider()
                         .frame(width: 153, height: 1)
                         .overlay(
                             Rectangle()
-                                .stroke(Color("Tub/Secondary").opacity(0.5), lineWidth: 0.5)
+                                .stroke(.tubSellPrimary.opacity(0.5), lineWidth: 0.5)
                         )
                 }.frame(maxWidth: .infinity)
 
@@ -196,7 +196,7 @@ struct RegisterView: View {
                 IconTextButton(
                     icon: "phone.fill",
                     text: "Continue with Phone",
-                    textColor: Color("Tub/Primary"),
+                    textColor: .tubBuyPrimary,
                     action: { showPhoneModal = true }
                 )
                 .frame(maxWidth: .infinity)
@@ -206,7 +206,7 @@ struct RegisterView: View {
                 IconTextButton(
                     icon: "ladybug.fill",
                     text: "Dev Login",
-                    textColor: Color("Tub/Secondary"),
+                    textColor: .tubSellPrimary,
                     action: {
                         Task {
                             do {

@@ -98,10 +98,14 @@ struct AppContent: View {
     }
 }
 
-#Preview {
-    AppContent()
+#Preview("Light") {
+    AppContent().preferredColorScheme(.light)
         .environmentObject(UserModel.shared)
+}
 
+#Preview("Dark") {
+    AppContent().preferredColorScheme(.dark)
+        .environmentObject(UserModel.shared)
 }
 
 extension View {
