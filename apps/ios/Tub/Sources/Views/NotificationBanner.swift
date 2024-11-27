@@ -41,17 +41,23 @@ struct _NotificationBanner: View {
 
                     Text(message.prefix(70) + (message.count > 70 ? "..." : ""))
                         .font(.sfRounded(size: .base))
+                        .foregroundStyle(.black)
 
                     Spacer()
 
                     Button(action: onClose) {
                         Image(systemName: "xmark")
-                            .foregroundStyle(.tubText)
+                            .foregroundStyle(.black)
                     }
                 }
                 .padding(16)
                 .frame(maxWidth: .infinity)
-                .background(type.color.opacity(0.1))
+                .background(
+                    ZStack {
+                        Color.white
+                        type.color.opacity(0.1)
+                    }
+                )
                 .cornerRadius(24)
                 .overlay(
                     RoundedRectangle(cornerRadius: 24)
@@ -80,7 +86,7 @@ struct _NotificationBanner: View {
                     type: .info,
                     onClose: {}
                 )
-            }.frame(alignment: .top)
+            }.frame(alignment: .top).preferredColorScheme(.dark)
         }
     }
     return PreviewWrapper()
