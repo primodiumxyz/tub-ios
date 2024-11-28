@@ -1,0 +1,17 @@
+{
+  "transforms": [
+    {
+      "mode": "sql",
+      "include": "./src/timescale/queries/**/*.sql",
+      "emitTemplate": "./src/timescale/queries/{{name}}.queries.ts"
+    }
+  ],
+  "srcDir": "./src/",
+  "db": {
+    "host": "localhost",
+    "port": 5433,
+    "user": "indexer_user",
+    "password": "${TIMESCALE_DB_PASSWORD}",
+    "database": "indexer"
+  }
+}
