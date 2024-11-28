@@ -63,13 +63,14 @@ struct OnboardingView: View {
                                 if index == 0 {
                                     VideoPlayerView(videoName: "onboarding1")
                                         .frame(width: 300, height: 500)
-                                        .background(Color.white)
+                                        
                                 } else if index == 1 {
-                                    VideoPlayerView(videoName: "onboarding2")
-                                        .frame(width: 300, height: 550)
+                                    VideoPlayerView(videoName: "onboarding1")
+                                        .frame(width: 300, height: 500)
+                                        
                                 } else if index == 2 {
-                                    VideoPlayerView(videoName: "onboarding3")
-                                        .frame(width: 300, height: 550)
+                                    VideoPlayerView(videoName: "onboarding1")
+                                        .frame(width: 300, height: 500)
                                 }
                                 Spacer()
                                 
@@ -129,40 +130,46 @@ struct VideoPlayerView: UIViewRepresentable {
     let videoName: String
     
     func makeUIView(context: Context) -> UIView {
-        let containerView = UIView()
+        let containerView = UIView(frame: .zero)
         containerView.backgroundColor = .clear
         
         if let url = Bundle.main.url(forResource: videoName, withExtension: "mp4") {
             let player = AVPlayer(url: url)
             let playerLayer = AVPlayerLayer(player: player)
             playerLayer.videoGravity = .resizeAspect
-            playerLayer.frame = containerView.bounds
             containerView.layer.addSublayer(playerLayer)
             
-            // Store player and layer for later access
+            // Store references
+            containerView.tag = 100
             containerView.layer.setValue(playerLayer, forKey: "playerLayer")
             containerView.layer.setValue(player, forKey: "player")
             
-            // Start playing
-            player.play()
-            player.actionAtItemEnd = .none
-            
-            NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: player.currentItem, queue: .main) { _ in
+            NotificationCenter.default.addObserver(
+                forName: .AVPlayerItemDidPlayToEndTime,
+                object: player.currentItem,
+                queue: .main
+            ) { _ in
                 player.seek(to: .zero)
                 player.play()
             }
+            
+            player.play()
         }
         
         return containerView
     }
     
     func updateUIView(_ uiView: UIView, context: Context) {
-        if let playerLayer = uiView.layer.value(forKey: "playerLayer") as? AVPlayerLayer {
-            // Ensure the player layer frame matches the container view's bounds
-            CATransaction.begin()
-            CATransaction.setDisableActions(true)
-            playerLayer.frame = uiView.bounds
-            CATransaction.commit()
+        DispatchQueue.main.async {
+            if let playerLayer = uiView.layer.value(forKey: "playerLayer") as? AVPlayerLayer {
+                playerLayer.frame = uiView.bounds
+            }
+        }
+    }
+    
+    static func dismantleUIView(_ uiView: UIView, coordinator: ()) {
+        if let player = uiView.layer.value(forKey: "player") as? AVPlayer {
+            player.pause()
         }
     }
 }
@@ -172,3 +179,4 @@ struct VideoPlayerView: UIViewRepresentable {
     OnboardingView()
         .environmentObject(UserModel.shared)
 } 
+
