@@ -74,7 +74,8 @@ struct HistoryView: View {
                             var processedTxs: [Transaction] = []
 
                             for transaction in tokenTransactions {
-                                guard let date = formatDateString(transaction.wallet_transaction_data.created_at) else {
+                                guard let date = formatDateString(transaction.wallet_transaction_data.created_at)
+                                else {
                                     continue
                                 }
 
@@ -162,6 +163,7 @@ struct HistoryViewContent: View {
                     }
                     else if filteredTransactions().isEmpty {
                         Text("No transactions found")
+                            .padding()
                             .font(.sfRounded(size: .base, weight: .regular))
                             .foregroundStyle(Color.gray)
                     }
@@ -178,11 +180,11 @@ struct HistoryViewContent: View {
             }
             .overlay(
                 TransactionFilters(filterState: $filterState)
-                    .background(Color.black),
+                    .background(Color(UIColor.systemBackground)),
                 alignment: .top
             )
             .navigationTitle("History")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
 
@@ -365,10 +367,9 @@ struct TransactionRow: View {
                 HStack {
                     Text(transaction.isBuy ? "Buy" : "Sell")
                         .font(.sfRounded(size: .base, weight: .bold))
-                        .foregroundStyle(Color("grayLight"))
+                        .foregroundStyle(.tubNeutral)
                     Text(transaction.name.isEmpty ? transaction.mint.truncatedAddress() : transaction.name)
                         .font(.sfRounded(size: .base, weight: .bold))
-                        .foregroundStyle(Color.white)
                         .lineLimit(1)
                         .truncationMode(.tail)
                         .offset(x: -2)
@@ -387,22 +388,22 @@ struct TransactionRow: View {
                     .font(.sfRounded(size: .base, weight: .bold))
                     .foregroundStyle(transaction.isBuy ? Color.red : Color.green)
 
-                let quantity = priceModel.formatPrice(lamports: abs(transaction.quantityTokens), showUnit: false)
+                let quantity = priceModel.formatPrice(
+                    lamports: abs(transaction.quantityTokens),
+                    showUnit: false
+                )
                 HStack {
                     Text(quantity)
                         .font(.sfRounded(size: .xs, weight: .regular))
-                        .foregroundStyle(Color.gray)
+                        .foregroundStyle(.secondary)
                         .offset(x: 4, y: 2)
 
                     Text(transaction.symbol)
                         .font(.sfRounded(size: .xs, weight: .regular))
-                        .foregroundStyle(Color.gray)
+                        .foregroundStyle(.secondary)
                         .offset(y: 2)
                 }
             }
-            Image(systemName: "chevron.right")
-                .foregroundStyle(Color.gray)
-                .offset(x: 12)
         }
         .padding(.bottom, 10.0)
     }
@@ -420,35 +421,46 @@ struct SearchFilter: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            Button(action: {
-                if filterState.isSearching {
-                    filterState.searchText = ""
+            Image(systemName: filterState.isSearching ? "xmark.circle.fill" : "magnifyingglass")
+                .foregroundStyle(.primary)
+                .font(.sfRounded(size: .base, weight: .semibold))
+                .onTapGesture {
+                    if filterState.isSearching {
+                        filterState.searchText = ""
+                    }
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        filterState.isSearching.toggle()
+                    }
                 }
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    filterState.isSearching.toggle()
-                }
-            }) {
-                Image(systemName: filterState.isSearching ? "xmark.circle.fill" : "magnifyingglass")
-                    .foregroundStyle(.primary)
-                    .font(.sfRounded(size: .base, weight: .semibold))
-            }
 
             if filterState.isSearching {
                 ZStack(alignment: .leading) {
                     if filterState.searchText.isEmpty {
                         Text("Search...")
-                            .foregroundStyle(Color.gray)
+                            .foregroundStyle(.secondary)
                             .font(.sfRounded(size: .base, weight: .regular))
                     }
                     TextField("", text: $filterState.searchText)
                         .textFieldStyle(PlainTextFieldStyle())
-                        .foregroundStyle(Color.white)
+                        .foregroundStyle(.primary)
                         .frame(width: 100)
                         .font(.sfRounded(size: .base, weight: .regular))
                 }
-                .transition(.move(edge: .trailing).combined(with: .opacity))
             }
         }
-        .buttonStyle(FilterButtonStyle())
+        .padding(.horizontal)
+        .padding(.vertical, 6)
+        .background(Color.clear)
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(.tubNeutral, lineWidth: 1)
+        )
+        .onTapGesture {
+            if !filterState.isSearching {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    filterState.isSearching.toggle()
+                }
+            }
+        }
     }
 }

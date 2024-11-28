@@ -13,7 +13,7 @@ struct TubApp: App {
     @Environment(\.scenePhase) private var scenePhase
     private let dwellTimeTracker = AppDwellTimeTracker.shared
     @StateObject private var userModel = UserModel.shared
-    
+
     var body: some Scene {
         WindowGroup {
             AppContent()
@@ -67,16 +67,18 @@ struct AppContent: View {
             else {
                 HomeTabsView().font(.sfRounded())
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color.black)
+                    .background(Color(UIColor.systemBackground))
                     .withNotificationBanner()
                     .environmentObject(notificationHandler)
                     .environmentObject(userModel)
                     .environmentObject(tokenListModel)
                     .environmentObject(priceModel)
-                    .fullScreenCover(isPresented: .init(
-                        get: { !userModel.hasSeenOnboarding },
-                        set: { newValue in userModel.hasSeenOnboarding = !newValue }
-                    )) {
+                    .fullScreenCover(
+                        isPresented: .init(
+                            get: { !userModel.hasSeenOnboarding },
+                            set: { newValue in userModel.hasSeenOnboarding = !newValue }
+                        )
+                    ) {
                         OnboardingView()
                             .interactiveDismissDisabled()
                     }
@@ -96,10 +98,14 @@ struct AppContent: View {
     }
 }
 
-#Preview {
-    AppContent()
+#Preview("Light") {
+    AppContent().preferredColorScheme(.light)
         .environmentObject(UserModel.shared)
+}
 
+#Preview("Dark") {
+    AppContent().preferredColorScheme(.dark)
+        .environmentObject(UserModel.shared)
 }
 
 extension View {

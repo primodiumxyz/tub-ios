@@ -18,12 +18,12 @@ struct CustomToggleStyle: ToggleStyle {
                 .frame(width: 50, height: 30)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(configuration.isOn ? Color("aquaGreen") : Color("pink"), lineWidth: 1)
+                        .stroke(configuration.isOn ? .primary : .secondary, lineWidth: 1)
                 )
                 .overlay(
                     Circle()
                         .fill(
-                            configuration.isOn 
+                            configuration.isOn
                                 ? AppColors.toggleOnGradient
                                 : AppColors.toggleOffGradient
                         )
@@ -43,7 +43,7 @@ struct CustomToggleStyle: ToggleStyle {
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var settingsManager = SettingsManager.shared
-    
+
     // Add temporary state for editing
     @State private var tempDefaultValue: String = ""
     @FocusState private var isEditing: Bool
@@ -81,13 +81,13 @@ struct SettingsView: View {
                         HStack(spacing: 4) {
                             Text("$")
                                 .font(.sfRounded(size: .lg, weight: .semibold))
-                                .foregroundColor(Color.white.opacity(0.5))
+                                .foregroundStyle(.secondary)
                             TextField("", text: $tempDefaultValue)
                                 .focused($isEditing)
                                 .keyboardType(.decimalPad)
                                 .font(.sfRounded(size: .lg, weight: .semibold))
                                 .multilineTextAlignment(.trailing)
-                                .foregroundColor(Color.white)
+                                .foregroundStyle(.primary)
                                 .frame(width: textWidth(for: tempDefaultValue))
                                 .onChange(of: tempDefaultValue) { _, newValue in
                                     // Remove any non-numeric characters except decimal point
@@ -114,7 +114,7 @@ struct SettingsView: View {
                                     updateDefaultValue()
                                 }
                             Image(systemName: "pencil")
-                                .foregroundColor(Color.white)
+                                .foregroundStyle(.tubBuyPrimary)
                                 .font(.system(size: 20))
                         }
                     }
@@ -149,20 +149,19 @@ struct SettingsView: View {
                 ToolbarItem(placement: .principal) {
                     Text("Settings")
                         .font(.sfRounded(size: .xl, weight: .semibold))
-                        .foregroundColor(Color.white)
                 }
-                
+
                 // Keep keyboard toolbar
                 ToolbarItem(placement: .keyboard) {
                     Button("Save") {
                         isEditing = false
                         updateDefaultValue()
                     }
-                    .foregroundColor(Color("pink"))
+                    .foregroundStyle(.tubSellPrimary)
                     .font(.system(size: 20))
                 }
             }
-            .background(Color.black)
+            .background(Color(UIColor.systemBackground))
         }
     }
 

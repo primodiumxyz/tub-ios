@@ -8,6 +8,16 @@ Open the `/apps/ios` directory in Xcode with `File > Open`. The main Xcode proje
 
 Then, run the application with `Product > Run`. If you don't have a set destination for the iOS app, set a build destination with `Product > Destination` to either a tethered iOS device or an iOS simulator.
 
+## Colors
+
+In arguments that expect a color, the `Color` object can be omitted when referring to a default system color. For example, `Color.red` can be used in `.foregroundStyle()` as `.foregroundStyle(.red)`.
+
+All colors in this app is listed in `/apps/ios/Tub/Assets.xcasset`. Of all the customizable colors, only `AccentColor` is referred using the dot color shorthand of `.accent`.
+
+For text, always use `.primary` and `.secondary` as colors, which match up with the system color scheme. For elements such as buttons, use `Color("Tub/Primary")` and `Color("Tub/Secondary")` instead.
+
+All other colors are referred as `Color("Tub/{colorName}")`, with `{colorName}` being the name listed under `Assets.xcasset`. For example, to refer to the `Tertiary` color, use `Color("Tub/Tertiary")`.
+
 ## GraphQL
 
 The GraphQL types and schema are managed separately from the co-located TypeScript `@tub/gql` package in this repository. Instead, the iOS app uses Swift types generated with [`apollo-ios`](https://github.com/apollographql/apollo-ios)

@@ -32,7 +32,6 @@ struct TransactionGroupRow: View {
                 VStack(alignment: .leading) {
                     Text(group.symbol)
                         .font(.sfRounded(size: .base, weight: .bold))
-                        .foregroundStyle(.primary)
 
                     Text(formatDate(group.date))
                         .font(.sfRounded(size: .sm, weight: .regular))
@@ -68,7 +67,6 @@ struct TransactionDetailRow: View {
                 VStack(alignment: .leading) {
                     Text(transaction.isBuy ? "Buy" : "Sell")
                         .font(.sfRounded(size: .sm, weight: .medium))
-                        .foregroundStyle(.primary)
                     Text(formatDate(transaction.date))
                         .font(.sfRounded(size: .xs, weight: .regular))
                         .foregroundStyle(.secondary)
@@ -79,7 +77,7 @@ struct TransactionDetailRow: View {
                     let price = priceModel.formatPrice(usd: transaction.valueUsd, showSign: true)
                     Text(price)
                         .font(.sfRounded(size: .sm, weight: .bold))
-                        .foregroundColor(transaction.isBuy ? Color.red : Color.green)
+                        .foregroundStyle(transaction.isBuy ? Color.red : Color.green)
 
                     let quantity = priceModel.formatPrice(lamports: abs(transaction.quantityTokens), showUnit: false)
                     Text("\(quantity) \(transaction.symbol)")

@@ -11,10 +11,11 @@ import SwiftUI
 struct PrimaryButtonStyle: ButtonStyle {
     var text: String
     var textColor: Color
-    var backgroundColor: Color
+    var backgroundColor: Color?
     var strokeColor: Color?
-    var maxWidth: CGFloat = 300
-    
+    var maxWidth: CGFloat?
+    var disabled: Bool
+
     func makeBody(configuration: Self.Configuration) -> some View {
         HStack(alignment: .center, spacing: 8) {
             Text(text)
@@ -25,7 +26,7 @@ struct PrimaryButtonStyle: ButtonStyle {
         .frame(maxWidth: maxWidth)
         .padding(.horizontal, 16)
         .padding(.vertical, 13)
-        .background(backgroundColor.opacity(configuration.isPressed ? 0.5 : 1.0))
+        .background(backgroundColor.opacity(configuration.isPressed || disabled ? 0.5 : 1.0))
         .cornerRadius(30)
         .overlay(
             Group {
@@ -46,23 +47,44 @@ struct PrimaryButton: View {
     var textColor: Color
     var backgroundColor: Color
     var strokeColor: Color? = nil
-    var maxWidth: CGFloat = 300
+    var maxWidth: CGFloat? = nil
     var action: () -> Void
-    
+    var disabled: Bool = false
+
+    init(
+        text: String,
+        textColor: Color = .tubTextInverted,
+        backgroundColor: Color = .tubBuyPrimary,
+        strokeColor: Color? = nil,
+        maxWidth: CGFloat? = .infinity,
+        disabled: Bool = false,
+        action: @escaping () -> Void
+    ) {
+        self.text = text
+        self.textColor = textColor
+        self.backgroundColor = backgroundColor
+        self.strokeColor = strokeColor
+        self.maxWidth = maxWidth
+        self.action = action
+        self.disabled = disabled
+    }
+
     var body: some View {
-        Button(action: action) {
+        Button(action: self.disabled ? {} : action) {
             EmptyView()
         }
-        .buttonStyle(PrimaryButtonStyle(
-            text: text,
-            textColor: textColor,
-            backgroundColor: backgroundColor,
-            strokeColor: strokeColor,
-            maxWidth: maxWidth
-        ))
+        .buttonStyle(
+            PrimaryButtonStyle(
+                text: text,
+                textColor: textColor,
+                backgroundColor: backgroundColor,
+                strokeColor: strokeColor,
+                maxWidth: maxWidth,
+                disabled: disabled
+            )
+        )
     }
 }
-
 
 // MARK: - Outline Button Style (Button with outline, no background) - Eg. Buy button in BuyForm
 struct OutlineButtonStyle: ButtonStyle {
@@ -71,7 +93,7 @@ struct OutlineButtonStyle: ButtonStyle {
     var strokeColor: Color
     var backgroundColor: Color
     var maxWidth: CGFloat = 50
-    
+
     func makeBody(configuration: Self.Configuration) -> some View {
         HStack(alignment: .center, spacing: 8) {
             Text(text)
@@ -88,6 +110,7 @@ struct OutlineButtonStyle: ButtonStyle {
             RoundedRectangle(cornerRadius: 30)
                 .inset(by: 0.5)
                 .stroke(strokeColor, lineWidth: 1)
+                .clipShape(Rectangle())
         )
         .scaleEffect(configuration.isPressed ? 0.95 : 1)
         .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
@@ -101,21 +124,22 @@ struct OutlineButton: View {
     var backgroundColor: Color
     var maxWidth: CGFloat = 50
     var action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             EmptyView()
         }
-        .buttonStyle(OutlineButtonStyle(
-            text: text,
-            textColor: textColor,
-            strokeColor: strokeColor,
-            backgroundColor: backgroundColor,
-            maxWidth: maxWidth
-        ))
+        .buttonStyle(
+            OutlineButtonStyle(
+                text: text,
+                textColor: textColor,
+                strokeColor: strokeColor,
+                backgroundColor: backgroundColor,
+                maxWidth: maxWidth
+            )
+        )
     }
 }
-
 
 // MARK: - Circle Button Style - Eg. Add Funds button in AccountView
 struct CircleButtonStyle: ButtonStyle {
@@ -124,13 +148,13 @@ struct CircleButtonStyle: ButtonStyle {
     var size: CGFloat = 50
     var iconSize: CGFloat = 24
     var iconWeight: Font.Weight = .regular
-    
+
     func makeBody(configuration: Self.Configuration) -> some View {
         ZStack {
             Circle()
                 .stroke(color, lineWidth: 1.5)
                 .frame(width: size, height: size)
-            
+
             Image(systemName: icon)
                 .foregroundStyle(color)
                 .font(.system(size: iconSize, weight: iconWeight))
@@ -148,21 +172,22 @@ struct CircleButton: View {
     var iconSize: CGFloat = 24
     var iconWeight: Font.Weight = .regular
     var action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             EmptyView()
         }
-        .buttonStyle(CircleButtonStyle(
-            icon: icon,
-            color: color,
-            size: size,
-            iconSize: iconSize,
-            iconWeight: iconWeight
-        ))
+        .buttonStyle(
+            CircleButtonStyle(
+                icon: icon,
+                color: color,
+                size: size,
+                iconSize: iconSize,
+                iconWeight: iconWeight
+            )
+        )
     }
 }
-
 
 // MARK: - Capsule Button Style - Eg. Capsule button in BuyForm
 struct CapsuleButtonStyle: ButtonStyle {
@@ -170,7 +195,7 @@ struct CapsuleButtonStyle: ButtonStyle {
     var textColor: Color
     var backgroundColor: Color
     var font: Font = .sfRounded(size: .base, weight: .bold)
-    
+
     func makeBody(configuration: Self.Configuration) -> some View {
         Text(text)
             .font(font)
@@ -184,24 +209,25 @@ struct CapsuleButtonStyle: ButtonStyle {
 
 struct CapsuleButton: View {
     var text: String
-    var textColor: Color = Color.white
-    var backgroundColor: Color = Color.white.opacity(0.15)
+    var textColor: Color = .tubText
+    var backgroundColor: Color = .tubText.opacity(0.15)
     var font: Font = .sfRounded(size: .base, weight: .bold)
     var action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             EmptyView()
         }
-        .buttonStyle(CapsuleButtonStyle(
-            text: text,
-            textColor: textColor,
-            backgroundColor: backgroundColor,
-            font: font
-        ))
+        .buttonStyle(
+            CapsuleButtonStyle(
+                text: text,
+                textColor: textColor,
+                backgroundColor: backgroundColor,
+                font: font
+            )
+        )
     }
 }
-
 
 // MARK: - Icon Text Button Style - Eg. Logout button in AccountView
 struct IconTextButtonStyle: ButtonStyle {
@@ -212,7 +238,7 @@ struct IconTextButtonStyle: ButtonStyle {
     var spacing: CGFloat = 16
     var bottomPadding: CGFloat = 40
     var font: Font = .sfRounded(size: .lg, weight: .medium)
-    
+
     func makeBody(configuration: Self.Configuration) -> some View {
         HStack(spacing: spacing) {
             Image(systemName: icon)
@@ -241,30 +267,31 @@ struct IconTextButton: View {
     var bottomPadding: CGFloat = 40
     var font: Font = .sfRounded(size: .lg, weight: .medium)
     var action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             EmptyView()
         }
-        .buttonStyle(IconTextButtonStyle(
-            icon: icon,
-            text: text,
-            textColor: textColor,
-            iconSize: iconSize,
-            spacing: spacing,
-            bottomPadding: bottomPadding,
-            font: font
-        ))
+        .buttonStyle(
+            IconTextButtonStyle(
+                icon: icon,
+                text: text,
+                textColor: textColor,
+                iconSize: iconSize,
+                spacing: spacing,
+                bottomPadding: bottomPadding,
+                font: font
+            )
+        )
     }
 }
-
 
 // MARK: - Icon Button Style - Eg. Copy to clipboard button in AccountDetailsView
 struct IconButtonStyle: ButtonStyle {
     var icon: String
     var color: Color
     var size: CGFloat = 24
-    
+
     func makeBody(configuration: Self.Configuration) -> some View {
         Image(systemName: icon)
             .foregroundStyle(color)
@@ -279,19 +306,20 @@ struct IconButton: View {
     var color: Color
     var size: CGFloat = 24
     var action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             EmptyView()
         }
-        .buttonStyle(IconButtonStyle(
-            icon: icon,
-            color: color,
-            size: size
-        ))
+        .buttonStyle(
+            IconButtonStyle(
+                icon: icon,
+                color: color,
+                size: size
+            )
+        )
     }
 }
-
 
 // MARK: - Outline Button with Icon Style - Eg. Google Sign In button in RegisterView
 struct OutlineButtonWithIcon: View {
@@ -302,7 +330,7 @@ struct OutlineButtonWithIcon: View {
     var leadingView: AnyView? = nil
     var maxWidth: CGFloat = .infinity
     var action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             HStack(alignment: .center, spacing: 8) {
@@ -323,6 +351,7 @@ struct OutlineButtonWithIcon: View {
                 RoundedRectangle(cornerRadius: 30)
                     .inset(by: 0.5)
                     .stroke(strokeColor, lineWidth: 1)
+                    .clipShape(Rectangle())
             )
         }
     }
@@ -333,13 +362,13 @@ struct FilterButtonStyle: ButtonStyle {
     func makeBody(configuration: Self.Configuration) -> some View {
         configuration.label
             .font(.sfRounded(size: .sm, weight: .regular))
-            .foregroundStyle(Color.white)
             .padding(.horizontal)
             .padding(.vertical, 6)
             .fixedSize(horizontal: true, vertical: false)
             .overlay(
                 RoundedRectangle(cornerRadius: 20)
-                    .stroke(Color("grayLight"), lineWidth: 1)
+                    .stroke(.tubNeutral, lineWidth: 1)
+                    .clipShape(Rectangle())
             )
             .opacity(configuration.isPressed ? 0.7 : 1.0)
     }
@@ -347,7 +376,7 @@ struct FilterButtonStyle: ButtonStyle {
 
 struct FilterButton: View {
     var text: String
-    
+
     var body: some View {
         Button(action: {}) {
             Text(text)
@@ -356,15 +385,15 @@ struct FilterButton: View {
     }
 }
 
-
 // MARK: - Interval Button Style - Eg. Time interval selector in TokenView
 struct IntervalButtonStyle: ButtonStyle {
     var text: String
     var isSelected: Bool
     var isLive: Bool
-    
+    @Environment(\.colorScheme) var colorScheme
+
     func makeBody(configuration: Self.Configuration) -> some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 8) {
             if isLive {
                 Circle()
                     .fill(Color.red)
@@ -376,8 +405,8 @@ struct IntervalButtonStyle: ButtonStyle {
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
         .frame(width: 65)
-        .background(isSelected ? Color("aquaBlue") : Color.clear)
-        .foregroundStyle(isSelected ? Color.black : Color.white)
+        .background(isSelected ? colorScheme == .dark ? .tubBuyPrimary : .tubBuySecondary : .clear)
+        .foregroundStyle(isSelected ? .black : .secondary)
         .cornerRadius(20)
         .opacity(configuration.isPressed ? 0.7 : 1.0)
     }
@@ -387,16 +416,17 @@ struct IntervalButton: View {
     var timespan: Timespan
     var isSelected: Bool
     var action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             EmptyView()
         }
-        .buttonStyle(IntervalButtonStyle(
-            text: timespan.rawValue,
-            isSelected: isSelected,
-            isLive: timespan == .live
-        ))
+        .buttonStyle(
+            IntervalButtonStyle(
+                text: timespan.rawValue,
+                isSelected: isSelected,
+                isLive: timespan == .live
+            )
+        )
     }
 }
-

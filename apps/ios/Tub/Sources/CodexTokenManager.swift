@@ -59,7 +59,6 @@ class CodexTokenManager: ObservableObject {
         do {
             let codexToken = try await fetchToken(hard: hard ?? false)
 
-            var refetch = false
             if let expiryDate = formatter.date(from: codexToken.expiry) {
                 let timeUntilExpiry = expiryDate.timeIntervalSinceNow
 

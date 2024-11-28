@@ -41,7 +41,8 @@
 		99BE72BD2CEBB4CA006BB157 /* NotificationHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99BE72BC2CEBB4CA006BB157 /* NotificationHandler.swift */; };
 		99C26C1C2CAEE263004807A2 /* ApolloAPI in Frameworks */ = {isa = PBXBuildFile; productRef = 99C26C1B2CAEE263004807A2 /* ApolloAPI */; };
 		99C26C1E2CAEE38B004807A2 /* ApolloWebSocket in Frameworks */ = {isa = PBXBuildFile; productRef = 99C26C1D2CAEE38B004807A2 /* ApolloWebSocket */; };
-		99C79A182CE2F1BD00D0E697 /* LoadingTokenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C79A172CE2F1BA00D0E697 /* LoadingTokenView.swift */; };
+		99DBD8EC2CF77B9C0098C296 /* TokenInfoPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99DBD8EB2CF77B970098C296 /* TokenInfoPreview.swift */; };
+		99DBD8EE2CF781EA0098C296 /* spoofModelData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99DBD8ED2CF781E50098C296 /* spoofModelData.swift */; };
 		99DDF62D2CB02816000234DA /* AccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99DDF62C2CB0280D000234DA /* AccountView.swift */; };
 		99DED2512CAF2A6B0055FC60 /* ApolloCombine in Frameworks */ = {isa = PBXBuildFile; productRef = 99DED2502CAF2A6B0055FC60 /* ApolloCombine */; };
 		99E789492CC147C000C3CEEB /* ImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E789482CC147BD00C3CEEB /* ImageView.swift */; };
@@ -122,7 +123,8 @@
 		99BE72AE2CEBB223006BB157 /* BubbleEffect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BubbleEffect.swift; sourceTree = "<group>"; };
 		99BE72BA2CEBB279006BB157 /* SolPriceModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SolPriceModel.swift; sourceTree = "<group>"; };
 		99BE72BC2CEBB4CA006BB157 /* NotificationHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationHandler.swift; sourceTree = "<group>"; };
-		99C79A172CE2F1BA00D0E697 /* LoadingTokenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingTokenView.swift; sourceTree = "<group>"; };
+		99DBD8EB2CF77B970098C296 /* TokenInfoPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenInfoPreview.swift; sourceTree = "<group>"; };
+		99DBD8ED2CF781E50098C296 /* spoofModelData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = spoofModelData.swift; sourceTree = "<group>"; };
 		99DDF62C2CB0280D000234DA /* AccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountView.swift; sourceTree = "<group>"; };
 		99E789482CC147BD00C3CEEB /* ImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageView.swift; sourceTree = "<group>"; };
 		99F3D7A52CE6D934005B895C /* UserModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserModel.swift; sourceTree = "<group>"; };
@@ -226,6 +228,7 @@
 		9979D2F02CB57B840040DF41 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				99DBD8ED2CF781E50098C296 /* spoofModelData.swift */,
 				995D05652CF3C7C800627E81 /* retry.swift */,
 				5D8EFC2B2CE529AC002D8210 /* AppDwellTimeTracker.swift */,
 				282A6AB22CEEE8490039133F /* ButtonStyles.swift */,
@@ -310,7 +313,7 @@
 		99DD66012CB80D3D00B56450 /* Token */ = {
 			isa = PBXGroup;
 			children = (
-				99C79A172CE2F1BA00D0E697 /* LoadingTokenView.swift */,
+				99DBD8EB2CF77B970098C296 /* TokenInfoPreview.swift */,
 				99FBEEA72CCA882300BC6392 /* Charts */,
 				991361A02CADE3AA00E5D656 /* TokenListView.swift */,
 				DB10A95C2CA5AA1B00B1E4F3 /* TokenView.swift */,
@@ -515,7 +518,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1520;
-				LastUpgradeCheck = 1600;
+				LastUpgradeCheck = 1610;
 				TargetAttributes = {
 					DB6D29002CA1C8F70099951A = {
 						CreatedOnToolsVersion = 15.2;
@@ -599,6 +602,7 @@
 				995D05662CF3C7C900627E81 /* retry.swift in Sources */,
 				991361A12CADE3B300E5D656 /* TokenListView.swift in Sources */,
 				99B147FE2CDFE5B200DFDB96 /* ShimmeringView.swift in Sources */,
+				99DBD8EC2CF77B9C0098C296 /* TokenInfoPreview.swift in Sources */,
 				DFC723E32CB9A86C003A915C /* TokenInfoCardView.swift in Sources */,
 				9910F1B62CAAE302005DEE6B /* SFRounded.swift in Sources */,
 				DF8C84ED2CDFDCA700E8FA7B /* DismissKeyboardModifier.swift in Sources */,
@@ -616,7 +620,7 @@
 				DF5A2FC32CAF165D00508A56 /* HistoryView.swift in Sources */,
 				994AE5F72CD2AB3F00553A32 /* GoogleLogoView.swift in Sources */,
 				992875672CCACD4C004B48BE /* ErrorView.swift in Sources */,
-				99C79A182CE2F1BD00D0E697 /* LoadingTokenView.swift in Sources */,
+				99DBD8EE2CF781EA0098C296 /* spoofModelData.swift in Sources */,
 				466945ED2CDFDB1F008E8B99 /* LoadingTracker.swift in Sources */,
 				DF5A2FC52CAF2DEF00508A56 /* HistoryDetailsView.swift in Sources */,
 				99BE72BB2CEBB279006BB157 /* SolPriceModel.swift in Sources */,
@@ -683,6 +687,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -746,6 +751,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";

@@ -99,83 +99,54 @@ struct HomeTabsView: View {
                 )
             }
             else {
-                ZStack(alignment: .bottom) {
-                    // Main content view
-                    Group {
-                        if vm.selectedTab == 0 {
-                            TokenListView()
-                        }
-                        else if vm.selectedTab == 1 {
-                            HistoryView()
-                        }
-                        else if vm.selectedTab == 2 {
-                            AccountView()
-                        }
-                    }
-                    .background(Color.black)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                TabView(selection: $vm.selectedTab) {
+                    // Trade Tab
 
-                    HStack {
-                        Spacer()
-
-                        // Trade Tab
-                        Button(action: {
-                            vm.selectedTab = 0
-                            vm.recordTabSelection("trade")
-                        }) {
+                    TokenListView()
+                        .tabItem {
                             VStack {
                                 Image(systemName: "chart.line.uptrend.xyaxis")
                                     .font(.system(size: 24))
                                 Text("Trade")
-                                    .font(.sfRounded(size: .xs, weight: .regular))
+                                    .font(.system(size: 12))
                             }
-                            .foregroundColor(
-                                vm.selectedTab == 0 ? color : Color.white.opacity(0.5)
-                            )
+                        }
+                        .tag(0)
+                        .onAppear {
+                            vm.recordTabSelection("trade")
                         }
 
-                        Spacer()
-
-                        // History Tab
-                        Button(action: {
-                            vm.selectedTab = 1
-                            vm.recordTabSelection("history")
-                        }) {
+                    HistoryView()
+                        .tabItem {
                             VStack {
                                 Image(systemName: "clock")
                                     .font(.system(size: 24))
                                 Text("History")
-                                    .font(.sfRounded(size: .xs, weight: .regular))
+                                    .font(.system(size: 12))
                             }
-                            .foregroundColor(
-                                vm.selectedTab == 1 ? color : Color.white.opacity(0.5)
-                            )
+                        }
+                        .tag(1)
+                        .onAppear {
+                            vm.recordTabSelection("history")
                         }
 
-                        Spacer()
-
-                        // Account Tab
-                        Button(action: {
-                            vm.selectedTab = 2
-                            vm.recordTabSelection("account")
-                        }) {
+                    AccountView()
+                        .tabItem {
                             VStack {
                                 Image(systemName: "person")
                                     .font(.system(size: 24))
                                 Text("Account")
-                                    .font(.sfRounded(size: .xs, weight: .regular))
+                                    .font(.system(size: 12))
                             }
-                            .foregroundColor(
-                                vm.selectedTab == 2 ? color : Color.white.opacity(0.5)
-                            )
                         }
-
-                        Spacer()
-                    }
-                    .padding(.top, 8)
-                    .background(Color.black)
-                    .ignoresSafeArea(.keyboard)
+                        .tag(2)
+                        .onAppear {
+                            vm.recordTabSelection("account")
+                        }
                 }
+                .background(Color(UIColor.systemBackground))
+                .ignoresSafeArea(.keyboard)
+                .edgesIgnoringSafeArea(.all)
             }
         }.frame(maxWidth: .infinity, maxHeight: .infinity)
             .ignoresSafeArea(.keyboard)
