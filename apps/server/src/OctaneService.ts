@@ -1,9 +1,9 @@
 import { Connection, Keypair, PublicKey, Transaction, TransactionInstruction } from "@solana/web3.js";
 import { core, signWithTokenFee, createAccountIfTokenFeePaid } from "@primodiumxyz/octane-core";
-import { QuoteGetRequest, QuoteResponse, SwapInstructionsPostRequest, SwapInstructionsResponse } from '@jup-ag/api';
+import { QuoteGetRequest, QuoteResponse, SwapInstructionsPostRequest, SwapInstructionsResponse } from "@jup-ag/api";
 import { Wallet } from "@coral-xyz/anchor";
 import bs58 from "bs58";
-import type { Cache } from 'cache-manager';
+import type { Cache } from "cache-manager";
 import { DefaultApi } from "@jup-ag/api";
 
 export type OctaneSettings = {
@@ -39,7 +39,7 @@ export class OctaneService {
     private buyFee: number,
     private sellFee: number,
     private minTradeSize: number,
-    private cache: Cache
+    private cache: Cache,
   ) {}
 
   getSettings(): OctaneSettings {
@@ -65,24 +65,23 @@ export class OctaneService {
       console.log(`[getQuote] Requesting quote with params:`, {
         inputMint: params.inputMint,
         outputMint: params.outputMint,
-        amount: params.amount
+        amount: params.amount,
       });
 
       const quote = await this.jupiterQuoteApi.quoteGet(params);
-      
+
       if (!quote) {
         throw new Error("unable to quote");
       }
 
       console.log(`[getQuote] Successfully received quote`);
       return quote;
-
     } catch (error) {
       console.error("[getQuote] Error getting quote:", error);
-      throw new Error(`Failed to get quote: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get quote: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   }
-  
+
   async getSwapObj(wallet: Wallet, quote: QuoteResponse) {
     // Get serialized transaction
     const swapObj = await this.jupiterQuoteApi.swapPost({
@@ -95,19 +94,19 @@ export class OctaneService {
     });
     return swapObj;
   }
-  
+
   async flowQuote(quoteParams: QuoteGetRequest) {
     const quote = await this.getQuote(quoteParams);
     console.dir(quote, { depth: null });
   }
-  
+
   /**
    * Gets swap instructions for a quoted trade
    * @param quoteAndSwapParams - Parameters for quote and swap
    * @param userPublicKey - User's public key
    * @returns Swap instructions from Jupiter
    */
-  async getQuoteAndSwapInstructions(quoteAndSwapParams: QuoteGetRequest, userPublicKey: PublicKey) {  
+  async getQuoteAndSwapInstructions(quoteAndSwapParams: QuoteGetRequest, userPublicKey: PublicKey) {
     try {
       const quote = await this.getQuote(quoteAndSwapParams);
       console.dir(quote, { depth: null });
@@ -119,8 +118,8 @@ export class OctaneService {
           asLegacyTransaction: true,
           useSharedAccounts: false,
           wrapAndUnwrapSol: true,
-          prioritizationFeeLamports: { "autoMultiplier": 3 }
-        }
+          prioritizationFeeLamports: { autoMultiplier: 3 },
+        },
       };
 
       try {
@@ -128,7 +127,7 @@ export class OctaneService {
         console.log("[getQuoteAndSwapInstructions] Received response:", {
           hasSetupInstructions: !!swapInstructions.setupInstructions?.length,
           hasSwapInstruction: !!swapInstructions.swapInstruction,
-          hasCleanupInstruction: !!swapInstructions.cleanupInstruction
+          hasCleanupInstruction: !!swapInstructions.cleanupInstruction,
         });
         return swapInstructions;
       } catch (error) {
@@ -138,16 +137,13 @@ export class OctaneService {
             name: error.name,
             message: error.message,
             stack: error.stack,
-            response: (error as any).response?.data,
-            status: (error as any).response?.status,
-            headers: (error as any).response?.headers
           });
         }
         throw error;
       }
     } catch (error) {
       console.error("Error getting swap instructions:", error);
-      throw new Error(`Failed to get swap instructions: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to get swap instructions: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   }
 
@@ -158,7 +154,10 @@ export class OctaneService {
    * @returns Built transaction ready for signing
    * @throws Error if swap instructions are missing
    */
-  async buildCompleteSwap(swapInstructions: SwapInstructionsResponse | null, feeTransferInstruction: TransactionInstruction | null) {
+  async buildCompleteSwap(
+    swapInstructions: SwapInstructionsResponse | null,
+    feeTransferInstruction: TransactionInstruction | null,
+  ) {
     // !! TODO: add genesis hash checks et al. from buildWhirlpoolsSwapToSOL if we don't trust Jupiter API
     if (!swapInstructions) {
       throw new Error("Swap instructions not found");
@@ -169,17 +168,16 @@ export class OctaneService {
       setupInstructionsCount: swapInstructions.setupInstructions?.length || 0,
       hasSwapInstruction: !!swapInstructions.swapInstruction,
       hasCleanupInstruction: !!swapInstructions.cleanupInstruction,
-      hasFeeTransfer: !!feeTransferInstruction
+      hasFeeTransfer: !!feeTransferInstruction,
     });
 
     // Get blockhash first to ensure it's available
-    const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash();
+    const { blockhash } = await this.connection.getLatestBlockhash();
 
     // Create new transaction
     const transaction = new Transaction();
     transaction.feePayer = this.feePayerKeypair.publicKey;
     transaction.recentBlockhash = blockhash;
-    transaction.lastValidBlockHeight = lastValidBlockHeight;
 
     // Add fee transfer first (if any)
     if (feeTransferInstruction) {
@@ -190,71 +188,75 @@ export class OctaneService {
     const jupiterInstructions = [
       ...(swapInstructions.setupInstructions || []),
       swapInstructions.swapInstruction,
-      swapInstructions.cleanupInstruction
-    ].filter(ix => ix !== null && ix !== undefined);
+      swapInstructions.cleanupInstruction,
+    ].filter((ix) => ix !== null && ix !== undefined);
 
     // Add all Jupiter instructions preserving their exact data
-    jupiterInstructions.forEach(instruction => {
+    jupiterInstructions.forEach((instruction) => {
       // If this is an ATA creation instruction, modify it to use fee payer
-      if (instruction.programId === 'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL') {
+      if (instruction.programId === "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL") {
         // Modify the account metas to make fee payer pay for rent
-        const keys = instruction.accounts.map(acc => ({
+        const keys = instruction.accounts.map((acc) => ({
           pubkey: new PublicKey(acc.pubkey),
           isSigner: acc.isSigner,
-          isWritable: acc.isWritable
+          isWritable: acc.isWritable,
         }));
 
         // Make fee payer the rent payer
         keys[0] = {
           pubkey: this.feePayerKeypair.publicKey,
           isSigner: true,
-          isWritable: true
+          isWritable: true,
         };
 
-        transaction.add(new TransactionInstruction({
-          programId: new PublicKey(instruction.programId),
-          keys,
-          data: Buffer.from(instruction.data, 'base64')
-        }));
-      } else if (instruction.programId === 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA') {
+        transaction.add(
+          new TransactionInstruction({
+            programId: new PublicKey(instruction.programId),
+            keys,
+            data: Buffer.from(instruction.data, "base64"),
+          }),
+        );
+      } else if (instruction.programId === "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA") {
         // Try to decode the instruction data
         let instructionData: Buffer;
         try {
-          instructionData = Buffer.from(instruction.data, 'base64');
+          instructionData = Buffer.from(instruction.data, "base64");
         } catch {
-          instructionData = Buffer.from(instruction.data, 'hex');
+          instructionData = Buffer.from(instruction.data, "hex");
         }
 
         // Check if this is a CloseAccount instruction (opcode 9). If so, receive the residual funds as the FeePayer
         if (instructionData.length === 1 && instructionData[0] === 9) {
           // Modify the account metas to make fee payer receive the rent
-          const keys = instruction.accounts.map(acc => ({
+          const keys = instruction.accounts.map((acc) => ({
             pubkey: new PublicKey(acc.pubkey),
             isSigner: acc.isSigner,
-            isWritable: acc.isWritable
+            isWritable: acc.isWritable,
           }));
 
           // Make fee payer the destination for rent refund
           keys[1] = {
             pubkey: this.feePayerKeypair.publicKey,
             isSigner: false,
-            isWritable: true
+            isWritable: true,
           };
 
-          transaction.add(new TransactionInstruction({
-            programId: new PublicKey(instruction.programId),
-            keys,
-            data: instructionData
-          }));
+          transaction.add(
+            new TransactionInstruction({
+              programId: new PublicKey(instruction.programId),
+              keys,
+              data: instructionData,
+            }),
+          );
         } else {
           // Handle instruction data based on its type
           let data: Buffer;
-          if (typeof instruction.data === 'string') {
+          if (typeof instruction.data === "string") {
             // Try base64 first, then hex
             try {
-              data = Buffer.from(instruction.data, 'base64');
+              data = Buffer.from(instruction.data, "base64");
             } catch {
-              data = Buffer.from(instruction.data, 'hex');
+              data = Buffer.from(instruction.data, "hex");
             }
           } else if (Array.isArray(instruction.data)) {
             data = Buffer.from(instruction.data);
@@ -263,25 +265,27 @@ export class OctaneService {
             data = instruction.data;
           }
 
-          transaction.add(new TransactionInstruction({
-            programId: new PublicKey(instruction.programId),
-            keys: instruction.accounts.map(acc => ({
-              pubkey: new PublicKey(acc.pubkey),
-              isSigner: acc.isSigner,
-              isWritable: acc.isWritable
-            })),
-            data
-          }));
+          transaction.add(
+            new TransactionInstruction({
+              programId: new PublicKey(instruction.programId),
+              keys: instruction.accounts.map((acc) => ({
+                pubkey: new PublicKey(acc.pubkey),
+                isSigner: acc.isSigner,
+                isWritable: acc.isWritable,
+              })),
+              data,
+            }),
+          );
         }
       } else {
         // Handle instruction data based on its type
         let data: Buffer;
-        if (typeof instruction.data === 'string') {
+        if (typeof instruction.data === "string") {
           // Try base64 first, then hex
           try {
-            data = Buffer.from(instruction.data, 'base64');
+            data = Buffer.from(instruction.data, "base64");
           } catch {
-            data = Buffer.from(instruction.data, 'hex');
+            data = Buffer.from(instruction.data, "hex");
           }
         } else if (Array.isArray(instruction.data)) {
           data = Buffer.from(instruction.data);
@@ -290,15 +294,17 @@ export class OctaneService {
           data = instruction.data;
         }
 
-        transaction.add(new TransactionInstruction({
-          programId: new PublicKey(instruction.programId),
-          keys: instruction.accounts.map(acc => ({
-            pubkey: new PublicKey(acc.pubkey),
-            isSigner: acc.isSigner,
-            isWritable: acc.isWritable
-          })),
-          data
-        }));
+        transaction.add(
+          new TransactionInstruction({
+            programId: new PublicKey(instruction.programId),
+            keys: instruction.accounts.map((acc) => ({
+              pubkey: new PublicKey(acc.pubkey),
+              isSigner: acc.isSigner,
+              isWritable: acc.isWritable,
+            })),
+            data,
+          }),
+        );
       }
     });
 
@@ -322,7 +328,12 @@ export class OctaneService {
    * @returns Signature as a string
    * @throws Error if signing fails
    */
-  async signTransactionWithTokenFee(transaction: Transaction, buyWithUSDCBool: boolean, tokenMint: PublicKey, tokenDecimals: number): Promise<string> {
+  async signTransactionWithTokenFee(
+    transaction: Transaction,
+    buyWithUSDCBool: boolean,
+    tokenMint: PublicKey,
+    tokenDecimals: number,
+  ): Promise<string> {
     try {
       const { signature } = await signWithTokenFee(
         this.connection,
@@ -331,15 +342,15 @@ export class OctaneService {
         2, // maxSignatures
         5000, // lamportsPerSignature
         [
-            core.TokenFee.fromSerializable({
-                mint: tokenMint.toString(),
-                account: this.tradeFeeRecipient.toString(),
-                decimals: tokenDecimals,
-                fee: buyWithUSDCBool ? this.buyFee : this.sellFee
-            })
+          core.TokenFee.fromSerializable({
+            mint: tokenMint.toString(),
+            account: this.tradeFeeRecipient.toString(),
+            decimals: tokenDecimals,
+            fee: buyWithUSDCBool ? this.buyFee : this.sellFee,
+          }),
         ],
         this.cache,
-        2000 // sameSourceTimeout
+        2000, // sameSourceTimeout
       );
 
       return signature;
@@ -349,7 +360,11 @@ export class OctaneService {
     }
   }
 
-  async createAccountWithTokenFee(transaction: Transaction, tokenMint: PublicKey, tokenDecimals: number): Promise<string> {
+  async createAccountWithTokenFee(
+    transaction: Transaction,
+    tokenMint: PublicKey,
+    tokenDecimals: number,
+  ): Promise<string> {
     try {
       const { signature } = await createAccountIfTokenFeePaid(
         this.connection,
@@ -358,15 +373,15 @@ export class OctaneService {
         2, // maxSignatures
         5000, // lamportsPerSignature
         [
-            core.TokenFee.fromSerializable({
-                mint: tokenMint.toString(),
-                account: this.tradeFeeRecipient.toString(),
-                decimals: tokenDecimals,
-                fee: 0
-            })
+          core.TokenFee.fromSerializable({
+            mint: tokenMint.toString(),
+            account: this.tradeFeeRecipient.toString(),
+            decimals: tokenDecimals,
+            fee: 0,
+          }),
         ],
         this.cache,
-        2000 // sameSourceTimeout
+        2000, // sameSourceTimeout
       );
 
       return signature;
@@ -392,7 +407,7 @@ export class OctaneService {
    * @throws Error if signing fails
    */
   // !! TODO: validate transaction before signing
-  async signTransactionWithoutTokenFee(transaction: Transaction): Promise<string> {
+  async signTransactionWithoutCheckingTokenFee(transaction: Transaction): Promise<string> {
     try {
       transaction.partialSign(this.feePayerKeypair);
       return bs58.encode(transaction.signature!);
@@ -401,36 +416,4 @@ export class OctaneService {
       throw new Error("Failed to sign transaction without token fee");
     }
   }
-
-  private convertToTransactionInstruction(instruction: any): TransactionInstruction {
-    // Handle instruction data properly
-    let data: Buffer;
-    if (typeof instruction.data === 'string') {
-      // If it's a hex string, remove '0x' prefix if present
-      const hex = instruction.data.startsWith('0x') ? instruction.data.slice(2) : instruction.data;
-      data = Buffer.from(hex, 'hex');
-    } else if (Array.isArray(instruction.data)) {
-      // If it's a byte array
-      data = Buffer.from(instruction.data);
-    } else if (instruction.data instanceof Buffer) {
-      // If it's already a Buffer
-      data = instruction.data;
-    } else {
-      console.error('Invalid instruction data format:', instruction.data);
-      throw new Error('Invalid instruction data format');
-    }
-
-    // Map accounts with proper key conversion
-    const keys = instruction.accounts.map((account: { pubkey: string; isSigner: boolean; isWritable: boolean }) => ({
-      pubkey: new PublicKey(account.pubkey),
-      isSigner: account.isSigner,
-      isWritable: account.isWritable
-    }));
-
-    return new TransactionInstruction({
-      programId: new PublicKey(instruction.programId),
-      keys,
-      data
-    });
-  }
-} 
+}

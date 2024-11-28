@@ -13,20 +13,24 @@ struct ActionButtonsView: View {
     @EnvironmentObject var priceModel: SolPriceModel
     @ObservedObject var tokenModel: TokenModel
     @Binding var showBuySheet: Bool
-    @StateObject private var animationState = TokenAnimationState.shared
     @StateObject private var settingsManager = SettingsManager.shared
     @State private var isLoginPresented = false
+
+    @Binding var showBubbles: Bool
+
     var handleBuy: (Double) async -> Void
     var onSellSuccess: (() -> Void)?
 
     init(
         tokenModel: TokenModel,
         showBuySheet: Binding<Bool>,
+        showBubbles: Binding<Bool>,
         handleBuy: @escaping (Double) async -> Void,
         onSellSuccess: (() -> Void)? = nil
     ) {
         self.tokenModel = tokenModel
         self._showBuySheet = showBuySheet
+        self._showBubbles = showBubbles
         self.handleBuy = handleBuy
         self.onSellSuccess = onSellSuccess
     }
@@ -52,7 +56,7 @@ struct ActionButtonsView: View {
         do {
             try await userModel.sellTokens(price: priceUsdc)
             await MainActor.run {
-                animationState.showSellBubbles = true
+                showBubbles = true
                 onSellSuccess?()
             }
         }
@@ -87,7 +91,9 @@ struct ActionButtonsView: View {
                                 iconWeight: .bold,
                                 action: { showBuySheet = true }
                             )
-                            BuyButton(showBuySheet: $showBuySheet, handleBuy: handleBuy)
+
+                            // The mint color "Buy $10" button
+                            BuyButton(handleBuy: handleBuy)
                         }
 
                     }
@@ -108,6 +114,13 @@ struct ActionButtonsView: View {
             RegisterView(isRedirected: true)
                 .background(.black)
 
+        }
+        .sheet(isPresented: $showBuySheet) {
+            BuyFormView(
+                isVisible: $showBuySheet,
+                tokenModel: tokenModel,
+                onBuy: handleBuy
+            )
         }
     }
 }
@@ -203,7 +216,6 @@ private struct AirdropButton: View {
 private struct BuyButton: View {
     @EnvironmentObject var userModel: UserModel
     @EnvironmentObject var priceModel: SolPriceModel
-    @Binding var showBuySheet: Bool
     @State private var showOnrampView = false
     @StateObject private var settingsManager = SettingsManager.shared
 
@@ -232,6 +244,7 @@ private struct BuyButton: View {
     ActionButtonsView(
         tokenModel: TokenModel(),
         showBuySheet: $show,
+        showBubbles: Binding.constant(false),
         handleBuy: { _ in },
         onSellSuccess: nil
     )
@@ -246,7 +259,7 @@ private struct BuyButton: View {
 /// It's used to optimize SwiftUI's view updates by preventing unnecessary redraws.
 extension ActionButtonsView: Equatable {
     static func == (lhs: ActionButtonsView, rhs: ActionButtonsView) -> Bool {
-        lhs.tokenModel.tokenId == rhs.tokenModel.tokenId
+        lhs.tokenModel.token.id == rhs.tokenModel.token.id
     }
 }
 

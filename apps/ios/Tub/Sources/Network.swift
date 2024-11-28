@@ -399,6 +399,7 @@ private struct EmptyInput: Codable {}
 // MARK: - Extensions
 extension Network {
     func fetchSolPrice() async throws -> Double {
+        // todo: make this a fetch from our server
         let url = URL(string: "https://min-api.cryptocompare.com/data/price?fsym=SOL&tsyms=USD")!
         let (data, _) = try await session.data(from: url)
 

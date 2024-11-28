@@ -109,6 +109,7 @@ enum TubError: Error {
     case parsingError
     case actionInProgress(actionDescription: String)
     case actionFailed(failureDescription: String)
+    case emptyTokenList
 
     var errorDescription: String? {
         switch self {
@@ -126,6 +127,8 @@ enum TubError: Error {
             return "\(actionDescription) already in progress"
         case .actionFailed(let failureDescription):
             return "\(failureDescription)"
+        case .emptyTokenList:
+            return "No tokens found"
         default:
             return "Unknown error"
         }

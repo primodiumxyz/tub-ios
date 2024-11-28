@@ -5,7 +5,7 @@ import { createTransferInstruction, getAssociatedTokenAddressSync } from "@solan
 import { GqlClient } from "@tub/gql";
 import { PrebuildSwapResponse, UserPrebuildSwapRequest } from "../types/PrebuildSwapRequest";
 import { OctaneService } from "./OctaneService";
-import { Subject, interval, switchMap } from "rxjs";
+import { Subject, interval, switchMap, Subscription } from "rxjs";
 import { config } from "dotenv";
 import bs58 from "bs58";
 
@@ -23,6 +23,16 @@ type ActiveSwapRequest = UserPrebuildSwapRequest & {
 };
 
 /**
+ * Type for managing active swap stream subscriptions
+ */
+interface SwapSubscription {
+  /** Subject that emits new swap transactions */
+  subject: Subject<PrebuildSwapResponse>;
+  /** RxJS subscription for cleanup */
+  subscription: Subscription;
+}
+
+/**
  * Service class handling token trading, swaps, and user operations
  */
 export class TubService {
@@ -31,8 +41,8 @@ export class TubService {
   private privy: PrivyClient;
   private codexSdk: Codex;
   private activeSwapRequests: Map<string, ActiveSwapRequest> = new Map();
-  private swapSubjects: Map<string, Subject<PrebuildSwapResponse>> = new Map();
   private swapRegistry: Map<string, PrebuildSwapResponse & { transaction: Transaction }> = new Map();
+  private swapSubscriptions: Map<string, SwapSubscription> = new Map();
 
   private readonly REGISTRY_TIMEOUT = 5 * 60 * 1000; // 5 minutes in milliseconds
 
@@ -72,11 +82,7 @@ export class TubService {
       const verifiedClaims = await this.privy.verifyAuthToken(token);
       return verifiedClaims.userId;
     } catch (e: unknown) {
-      if (e instanceof Error) {
-        throw new Error(`Invalid JWT: ${e.message}`);
-      } else {
-        throw new Error(`Invalid JWT: ${e}`);
-      }
+      throw new Error(`Invalid JWT: ${e instanceof Error ? e.message : "Unknown error"}`);
     }
   }
 
@@ -216,12 +222,11 @@ export class TubService {
     if (!token || !expiry) {
       throw new Error("Failed to create Codex API token");
     }
-
     return { token: `Bearer ${token}`, expiry };
   }
 
   /**
-   * Builds a swap transaction for exchanging tokens
+   * Builds a swap transaction for exchanging tokens that enables a server-side fee payer
    * @param jwtToken - The JWT token for user authentication
    * @param request - The swap request parameters
    * @param request.buyTokenId - Public key of the token to receive
@@ -230,7 +235,12 @@ export class TubService {
    * @returns {Promise<PrebuildSwapResponse>} Object containing the base64-encoded transaction and metadata
    * @throws {Error} If user has no wallet or if swap building fails
    *
+   * @remarks
+   * The returned transaction will be stored in the registry for 5 minutes. After signing,
+   * the user should submit the transaction and signature to `signAndSendTransaction`.
+   *
    * @example
+   * // Get transaction to swap 1 USDC for SOL
    * const response = await tubService.fetchSwap(jwt, {
    *   buyTokenId: "So11111111111111111111111111111111111111112",  // SOL
    *   sellTokenId: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
@@ -257,12 +267,42 @@ export class TubService {
 
     try {
       const response = await this.buildSwapResponse(activeRequest);
-      console.log(`[fetchSwap] Successfully built swap for user ${userId}`);
       return response;
     } catch (error) {
       console.error("[fetchSwap] Error:", error);
       throw new Error(`Failed to build swap response: ${error}`);
     }
+  }
+  /**
+   * Builds a swap transaction for exchanging tokens and signs it with the fee payer.
+   * @dev Once user signs, the transaction is complete and can be directly submitted to Solana RPC by the user.
+   * @param jwtToken - The JWT token for user authentication
+   * @param request - The swap request parameters
+   * @param request.buyTokenId - Public key of the token to receive
+   * @param request.sellTokenId - Public key of the token to sell
+   * @param request.sellQuantity - Amount of tokens to sell (in token's base units)
+   * @returns {Promise<PrebuildSwapResponse>} Object containing the base64-encoded transaction and metadata
+   * @throws {Error} If user has no wallet or if swap building fails
+   *
+   * @example
+   * const response = await tubService.fetchSwap(jwt, {
+   *   buyTokenId: "So11111111111111111111111111111111111111112",  // SOL
+   *   sellTokenId: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
+   *   sellQuantity: 1e6 // 1 USDC. Other tokens may be 1e9 standard
+   * });
+   */
+  async fetchPresignedSwap(jwtToken: string, request: UserPrebuildSwapRequest): Promise<PrebuildSwapResponse> {
+    const fetchSwapResponse = await this.fetchSwap(jwtToken, request);
+    const transaction = Transaction.from(Buffer.from(fetchSwapResponse.transactionBase64, "base64"));
+
+    const feePayerSignature = await this.octane.signTransactionWithoutCheckingTokenFee(transaction);
+    const feePayerSignatureBytes = Buffer.from(bs58.decode(feePayerSignature));
+    transaction.addSignature(this.octane.getSettings().feePayerPublicKey, feePayerSignatureBytes);
+
+    fetchSwapResponse.transactionBase64 = Buffer.from(transaction.serialize({ verifySignatures: false })).toString(
+      "base64",
+    );
+    return fetchSwapResponse;
   }
 
   /**
@@ -301,12 +341,11 @@ export class TubService {
       userPublicKey,
     });
 
-    if (!this.swapSubjects.has(userId)) {
+    if (!this.swapSubscriptions.has(userId)) {
       const subject = new Subject<PrebuildSwapResponse>();
-      this.swapSubjects.set(userId, subject);
 
       // Create 1-second interval stream
-      interval(1000)
+      const subscription = interval(1000)
         .pipe(
           switchMap(async () => {
             const currentRequest = this.activeSwapRequests.get(userId);
@@ -319,15 +358,32 @@ export class TubService {
             subject.next(response);
           }
         });
+
+      this.swapSubscriptions.set(userId, { subject, subscription });
     }
 
-    return this.swapSubjects.get(userId)!;
+    return this.swapSubscriptions.get(userId)!.subject;
   }
 
   /**
-   * Updates parameters for an active swap request
+   * Updates parameters for an active swap request and returns a new transaction
    * @param jwtToken - The user's JWT token
    * @param updates - New parameters to update
+   * @param updates.buyTokenId - Optional new token to receive
+   * @param updates.sellTokenId - Optional new token to sell
+   * @param updates.sellQuantity - Optional new amount to sell
+   * @returns {Promise<PrebuildSwapResponse>} New swap transaction with updated parameters
+   * @throws {Error} If no active request exists or if building new transaction fails
+   *
+   * @remarks
+   * If token IDs are changed, new token accounts will be derived.
+   * The new transaction will be stored in the registry for 5 minutes.
+   *
+   * @example
+   * // Update sell quantity to 2 USDC
+   * const response = await tubService.updateSwapRequest(jwt, {
+   *   sellQuantity: 2e6 // Other tokens may have 1e9 standard
+   * });
    */
   async updateSwapRequest(jwtToken: string, updates: Partial<UserPrebuildSwapRequest>) {
     const userId = await this.verifyJWT(jwtToken);
@@ -353,7 +409,18 @@ export class TubService {
         : {};
 
       const updated = { ...current, ...updates, ...derivedAccounts };
+
+      // Update active request for streaming
       this.activeSwapRequests.set(userId, updated);
+
+      // Build new swap response and update registry
+      try {
+        const response = await this.buildSwapResponse(updated);
+        return response;
+      } catch (error) {
+        console.error("[updateSwapRequest] Error:", error);
+        throw new Error(`Failed to build updated swap response: ${error}`);
+      }
     } else {
       throw new Error(`[updateSwapRequest] No active swap request found for user ${userId}`);
     }
@@ -367,10 +434,11 @@ export class TubService {
     const userId = await this.verifyJWT(jwtToken);
 
     this.activeSwapRequests.delete(userId);
-    const subject = this.swapSubjects.get(userId);
-    if (subject) {
-      subject.complete();
-      this.swapSubjects.delete(userId);
+    const swapSubscription = this.swapSubscriptions.get(userId);
+    if (swapSubscription) {
+      swapSubscription.subscription.unsubscribe();
+      swapSubscription.subject.complete();
+      this.swapSubscriptions.delete(userId);
     } else {
       throw new Error(`[stopSwapStream] No active stream found for user ${userId}`);
     }
@@ -379,16 +447,17 @@ export class TubService {
   /**
    * Validates, signs, and sends a transaction with user and fee payer signatures
    * @param jwtToken - The user's JWT token
-   * @param userSignature - The user's signature for the transaction
-   * @param base64Transaction - The base64-encoded transaction (before signing) to submit. Came from swapStream
+   * @param userSignature - The user's base64-encoded signature for the transaction
+   * @param base64Transaction - The original base64-encoded transaction from fetchSwap
    * @returns Object containing the transaction signature
-   * @throws Error if transaction processing fails
+   * @throws Error if transaction not found in registry, invalid signatures, or processing fails
+   *
+   * @remarks
+   * This method expects the exact transaction returned by fetchSwap. The transaction must
+   * be in the registry (valid for 5 minutes) and must be signed by the user. The server
+   * will add the fee payer signature and submit the transaction.
    */
-  async signAndSendTransaction(
-    jwtToken: string,
-    userSignature: string,
-    base64Transaction: string,
-  ): Promise<{ txId: string }> {
+  async signAndSendTransaction(jwtToken: string, userSignature: string, base64Transaction: string) {
     try {
       const userId = await this.verifyJWT(jwtToken);
 
@@ -406,32 +475,34 @@ export class TubService {
       // Create a new transaction from the registry entry
       const transaction = Transaction.from(Buffer.from(base64Transaction, "base64"));
 
-      // Add user signature
-      const userSignatureBytes = Buffer.from(bs58.decode(userSignature));
+      // Convert base64 signature to bytes
+      const userSignatureBytes = Buffer.from(userSignature, "base64");
       transaction.addSignature(userPublicKey, userSignatureBytes);
 
       // In test environment, skip token fee validation
       // !! TODO: Currently set to always be true. There's an error with Octane using an old RPC Method that no longer exists.
       // Once fixed, this if/then can be removed. Even then, as long as we're using the tx registry this shouldn't be an issue.
+      // eslint-disable-next-line no-constant-condition
+      if (true) {
+        const feePayerSignature = await this.octane.signTransactionWithoutCheckingTokenFee(transaction);
+        const feePayerSignatureBytes = Buffer.from(bs58.decode(feePayerSignature));
+        transaction.addSignature(this.octane.getSettings().feePayerPublicKey, feePayerSignatureBytes);
+      } else {
+        let feePayerSignature;
+        if (registryEntry!.hasFee) {
+          feePayerSignature = await this.octane.signTransactionWithTokenFee(
+            transaction,
+            true, // buyWithUSDCBool
+            new PublicKey(USDC_MAINNET_PUBLIC_KEY.toString()), // USDC
+            6, // tokenDecimals
+          );
+        } else {
+          feePayerSignature = await this.octane.signTransactionWithoutCheckingTokenFee(transaction);
+        }
 
-      const feePayerSignature = await this.octane.signTransactionWithoutTokenFee(transaction);
-      const feePayerSignatureBytes = Buffer.from(bs58.decode(feePayerSignature));
-      transaction.addSignature(this.octane.getSettings().feePayerPublicKey, feePayerSignatureBytes);
-
-      //   let feePayerSignature;
-      //   if (registryEntry.hasFee) {
-      //     feePayerSignature = await this.octane.signTransactionWithTokenFee(
-      //       transaction,
-      //       true, // buyWithUSDCBool
-      //       new PublicKey(USDC_MAINNET_PUBLIC_KEY.toString()), // USDC
-      //       6, // tokenDecimals
-      //     );
-      //   } else {
-      //     feePayerSignature = await this.octane.signTransactionWithoutTokenFee(transaction);
-      //   }
-
-      //   const feePayerSignatureBytes = Buffer.from(bs58.decode(feePayerSignature));
-      //   transaction.addSignature(this.octane.getSettings().feePayerPublicKey, feePayerSignatureBytes);
+        const feePayerSignatureBytes = Buffer.from(bs58.decode(feePayerSignature));
+        transaction.addSignature(this.octane.getSettings().feePayerPublicKey, feePayerSignatureBytes);
+      }
 
       // Send the fully signed transaction
       const txid = await this.octane
@@ -458,7 +529,7 @@ export class TubService {
       this.swapRegistry.delete(base64Transaction);
       console.log(`[signAndSendTransaction] Transaction completed successfully`);
 
-      return { txId: txid };
+      return { signature: txid };
     } catch (error) {
       if (error instanceof SendTransactionError) {
         const logs = error.logs?.join("\n") ?? "No logs available";
@@ -527,7 +598,7 @@ export class TubService {
             inputMint: request.sellTokenId,
             outputMint: request.buyTokenId,
             amount: request.sellQuantity,
-            slippageBps: 10,
+            slippageBps: 50,
             onlyDirectRoutes: false,
             asLegacyTransaction: true, // Set to true for USDC sells
           },
@@ -560,8 +631,8 @@ export class TubService {
             inputMint: request.sellTokenId,
             outputMint: request.buyTokenId,
             amount: request.sellQuantity - feeOptions.amount,
-            slippageBps: 10,
-            onlyDirectRoutes: true,
+            slippageBps: 50,
+            onlyDirectRoutes: false,
             asLegacyTransaction: true, // Set to true for USDC sells
           },
           request.userPublicKey,
@@ -580,6 +651,9 @@ export class TubService {
 
       // Get fresh blockhash right before returning to user
       const { blockhash, lastValidBlockHeight } = await this.octane.getSettings().connection.getLatestBlockhash();
+      if (!blockhash || !lastValidBlockHeight) {
+        throw new Error("fresh blockhash not received");
+      }
       transaction.recentBlockhash = blockhash;
       transaction.lastValidBlockHeight = lastValidBlockHeight;
 

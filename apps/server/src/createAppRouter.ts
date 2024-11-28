@@ -113,7 +113,7 @@ export function createAppRouter() {
      * @returns Observable stream of base64-encoded transactions
      * @throws Error if public key is invalid or token IDs are missing
      */
-    swapStream: t.procedure
+    startSwapStream: t.procedure
       .input(
         z.object({
           buyTokenId: z.string(),
@@ -123,14 +123,15 @@ export function createAppRouter() {
       )
       .subscription(({ ctx, input }) => {
         return observable((emit) => {
-          let subscription: any;
+          let subject = null;
 
           ctx.tubService
             .startSwapStream(ctx.jwtToken, input)
-            .then((subject) => {
-              subscription = subject.subscribe({
+            .then((s) => {
+              subject = s;
+              subject.subscribe({
                 next: (response: PrebuildSwapResponse) => {
-                  emit.next(response.transactionBase64);
+                  emit.next(response);
                 },
                 error: (error: Error) => {
                   console.error("Swap stream error:", error);
@@ -144,8 +145,7 @@ export function createAppRouter() {
             });
 
           return () => {
-            if (subscription) subscription.unsubscribe();
-            ctx.tubService.stopSwapStream(ctx.jwtToken);
+            ctx.tubService.stopSwapStream(ctx.jwtToken).catch(console.error);
           };
         });
       }),
@@ -165,7 +165,7 @@ export function createAppRouter() {
         }),
       )
       .mutation(async ({ ctx, input }) => {
-        await ctx.tubService.updateSwapRequest(ctx.jwtToken, input);
+        return await ctx.tubService.updateSwapRequest(ctx.jwtToken, input);
       }),
 
     /**
@@ -197,16 +197,24 @@ export function createAppRouter() {
       .mutation(async ({ ctx, input }) => {
         return await ctx.tubService.fetchSwap(ctx.jwtToken, input);
       }),
-
-    get1USDCToSOLTransaction: t.procedure
-      .mutation(async ({ ctx }) => {
-        return await ctx.tubService.get1USDCToSOLTransaction(ctx.jwtToken);
+    fetchPresignedSwap: t.procedure
+      .input(
+        z.object({
+          buyTokenId: z.string(),
+          sellTokenId: z.string(),
+          sellQuantity: z.number(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        return await ctx.tubService.fetchPresignedSwap(ctx.jwtToken, input);
       }),
+    get1USDCToSOLTransaction: t.procedure.mutation(async ({ ctx }) => {
+      return await ctx.tubService.get1USDCToSOLTransaction(ctx.jwtToken);
+    }),
 
-    stopSwapStream: t.procedure
-      .mutation(async ({ ctx }) => {
-        await ctx.tubService.stopSwapStream(ctx.jwtToken);
-      }),
+    stopSwapStream: t.procedure.mutation(async ({ ctx }) => {
+      await ctx.tubService.stopSwapStream(ctx.jwtToken);
+    }),
   });
 }
 

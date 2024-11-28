@@ -11,7 +11,7 @@ import Foundation
 final class SolPriceModel: ObservableObject {
     static let shared = SolPriceModel()
 
-    @Published var isReady = true
+    @Published var isReady = false
     @Published var price: Double? = nil
     @Published var error: String?
 
@@ -49,18 +49,21 @@ final class SolPriceModel: ObservableObject {
     // this comment ensures that the fetchCurrentPrice function is executing on the main thread
     @MainActor
     func fetchCurrentPrice() async {
-        guard !fetching else { return }
+        guard !fetching else {
+            return
+        }
+
         fetching = true
         defer { fetching = false }
 
         error = nil
-        isReady = false
 
         let client = await CodexNetwork.shared.apolloClient
         let input = GetPriceInput(
             address: WSOL_ADDRESS,
             networkId: NETWORK_FILTER
         )
+
         let query = GetTokenPricesQuery(inputs: [input])
 
         do {
