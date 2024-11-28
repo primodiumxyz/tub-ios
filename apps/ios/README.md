@@ -14,9 +14,9 @@ In arguments that expect a color, the `Color` object can be omitted when referri
 
 All colors in this app is listed in `/apps/ios/Tub/Assets.xcasset`. Of all the customizable colors, only `AccentColor` is referred using the dot color shorthand of `.accent`.
 
-For text, always use `.primary` and `.secondary` as colors, which match up with the system color scheme. For elements such as buttons, use `Color("Tub/Primary")` and `Color("Tub/Secondary")` instead.
+For text, always use `.primary` and `.secondary` as colors, which match up with the system color scheme. For elements such as buttons, use `.tubPrimary` and `.tubSecondary` instead.
 
-All other colors are referred as `Color("Tub/{colorName}")`, with `{colorName}` being the name listed under `Assets.xcasset`. For example, to refer to the `Tertiary` color, use `Color("Tub/Tertiary")`.
+All other colors are referred as `.tubColorName`. For example, to refer to the `tubError` color, use `.tubError`.
 
 ## GraphQL
 
