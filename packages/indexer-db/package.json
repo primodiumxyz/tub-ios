@@ -5,7 +5,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "dev": "docker-compose -f docker/docker-compose.yaml up",
+    "dev": "bash ./scripts/start-timescale.sh",
     "db:local:migrate": "node-pg-migrate up",
     "db:local:migrate:down": "node-pg-migrate down",
     "db:local:migrate-status": "node-pg-migrate status",
@@ -14,7 +14,8 @@
     "generate:types": "pgtyped -c pgtyped-config.json"
   },
   "dependencies": {
-    "pg": "^8.11.3"
+    "pg": "^8.11.3",
+    "pg-query-parser": "^0.3.0"
   },
   "devDependencies": {
     "@pgtyped/cli": "^2.3.0",
