@@ -7,7 +7,7 @@ COMPOSE_PID=$!
 
 # Define the health check endpoints
 HASURA_HEALTH_CHECK_URL="http://localhost:8080/healthz?strict=true"
-TIMESCALE_HEALTH_CHECK="docker exec timescaledb pg_isready -U indexer_user -d indexer"
+TIMESCALE_HEALTH_CHECK="docker exec timescaledb pg_isready -U tsdbadmin -d indexer"
 
 # Define the number of retries and delay between checks
 RETRIES=100
@@ -57,7 +57,7 @@ for ((i=1; i<=$RETRIES; i++)); do
     
     echo "Running TimescaleDB migrations..."
     NODE_PATH=./node_modules \
-    DATABASE_URL="postgres://indexer_user:${TIMESCALE_DB_PASSWORD}@localhost:5433/indexer" \
+    DATABASE_URL="postgres://tsdbadmin:${TIMESCALE_DB_PASSWORD}@localhost:5433/indexer" \
       pnpm timescale:local:migrate up
     
     echo "Generating types..."

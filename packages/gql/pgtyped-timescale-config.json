@@ -8,10 +8,6 @@
   ],
   "srcDir": "./src/",
   "db": {
-    "host": "localhost",
-    "port": 5433,
-    "user": "indexer_user",
-    "password": "${TIMESCALE_DB_PASSWORD}",
-    "database": "indexer"
+    "connectionString": "postgres://tsdbadmin:password@localhost:5433/indexer"
   }
 }

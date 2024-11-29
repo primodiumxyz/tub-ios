@@ -15,13 +15,13 @@ services:
     ports:
       - "${TIMESCALE_DB_PORT:-5433}:5432"
     environment:
-      POSTGRES_USER: indexer_user
+      POSTGRES_USER: tsdbadmin
       POSTGRES_PASSWORD: ${TIMESCALE_DB_PASSWORD:-password}
       POSTGRES_DB: indexer
     volumes:
       - timescale_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U indexer_user -d indexer"]
+      test: ["CMD-SHELL", "pg_isready -U tsdbadmin -d indexer"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -47,7 +47,7 @@ services:
       HASURA_GRAPHQL_UNAUTHORIZED_ROLE: public
       HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL: 200
       HASURA_GRAPHQL_METADATA_DEFAULTS: '{"backend_configs":{"dataconnector":{"athena":{"uri":"http://data-connector-agent:8081/api/v1/athena"},"mariadb":{"uri":"http://data-connector-agent:8081/api/v1/mariadb"},"mysql8":{"uri":"http://data-connector-agent:8081/api/v1/mysql"},"oracle":{"uri":"http://data-connector-agent:8081/api/v1/oracle"},"snowflake":{"uri":"http://data-connector-agent:8081/api/v1/snowflake"}}}}'
-      TIMESCALE_DATABASE_URL: postgres://indexer_user:${TIMESCALE_DB_PASSWORD}@timescaledb:5432/indexer
+      TIMESCALE_DATABASE_URL: postgres://tsdbadmin:${TIMESCALE_DB_PASSWORD}@timescaledb:5432/indexer
     restart: always
     volumes:
       - ./migrations:/hasura-migrations

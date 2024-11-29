@@ -30,7 +30,7 @@ export class IndexerClient {
       host: config.host || 'localhost',
       port: config.port || 5433,
       database: config.database || 'indexer',
-      user: config.user || 'indexer_user',
+      user: config.user || 'tsdbadmin',
       password: config.password,
       ssl: config.ssl ? { rejectUnauthorized: true } : false,
     };
