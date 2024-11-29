@@ -8,6 +8,10 @@
   ],
   "srcDir": "./src/",
   "db": {
-    "connectionString": "postgres://tsdbadmin:password@localhost:5433/indexer"
+    "host": "localhost",
+    "user": "tsdbadmin",
+    "password": "password",
+    "dbName": "indexer",
+    "port": 5433
   }
 }

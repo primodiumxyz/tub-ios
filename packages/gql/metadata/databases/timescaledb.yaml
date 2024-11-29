@@ -1,0 +1,35 @@
+{
+  "name": "timescaledb",
+  "kind": "postgres",
+  "configuration": {
+    "connection_info": {
+      "database_url": {
+        "from_env": "TIMESCALE_DATABASE_URL"
+      }
+    }
+  },
+  "tables": [
+    {
+      "name": "get_token_trade_history_interval",
+      "schema": "public"
+    },
+    {
+      "name": "get_token_trade_history_interval_candles",
+      "schema": "public"
+    },
+    {
+      "name": "get_top_tokens_interval_by_volume",
+      "schema": "public"
+    }
+  ],
+  "functions": [
+    {
+      "name": "batch_insert_trades",
+      "schema": "public"
+    },
+    {
+      "name": "insert_trade",
+      "schema": "public"
+    }
+  ]
+}
