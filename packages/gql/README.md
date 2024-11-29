@@ -25,11 +25,11 @@ pnpm install @tub/gql
 To create a GraphQL client:
 
 ```typescript
-import { createClient } from '@tub/gql';
+import { createClient } from "@tub/gql";
 
 const gql = await createClient({
-  url: 'http://localhost:8080/v1/graphql',
-  hasuraAdminSecret: 'your-admin-secret'
+  url: "http://localhost:8080/v1/graphql",
+  hasuraAdminSecret: "your-admin-secret",
 });
 ```
 
@@ -46,7 +46,7 @@ const result = await gql.db.GetAllTokensQuery();
 ```typescript
 const result = await gql.db.RegisterNewUserMutation({
   amount: "1000000000000000000",
-  username: "test_user"
+  username: "test_user",
 });
 ```
 
@@ -54,7 +54,7 @@ const result = await gql.db.RegisterNewUserMutation({
 
 ```typescript
 const subscription = gql.db.GetLatestTokensSubscription({
-  limit: 10
+  limit: 10,
 });
 
 subscription.subscribe({
@@ -63,7 +63,7 @@ subscription.subscribe({
   },
   error: (error) => {
     console.error(error);
-  }
+  },
 });
 ```
 
@@ -74,6 +74,7 @@ subscription.subscribe({
 ### Setup
 
 1. Install dependencies:
+
    ```bash
    pnpm install
    ```
@@ -86,6 +87,7 @@ subscription.subscribe({
    ```
 
 ### Making Changes
+
 First, create a new issue on Linear and open a new branch/Github pull request. Do the following:
 
 1. After running `pnpm run dev`, launch the Hasura GUI at http://localhost:9695 if it doesn't automatically.
@@ -98,10 +100,11 @@ First, create a new issue on Linear and open a new branch/Github pull request. D
 <img width="1629" alt="image" src="https://github.com/user-attachments/assets/8769d3de-2038-41e0-9166-d38794279dd9">
 
 > **NOTE:** After making changes you find that you have a lot of migrations. We can squash them down to a single migration if needed:
- >  ```bash
- >  # squash all migrations from version 123 to the latest one:
- >  hasura migrate squash --name "some_name" --from 123
- >  ```
+>
+> ```bash
+> # squash all migrations from version 123 to the latest one:
+> hasura migrate squash --name "some_name" --from 123
+> ```
 
 5. Commit the changes and open a pull request.
 
@@ -133,11 +136,12 @@ Hasura migrations and metadata are two key components that work together to mana
    The local console is launched using the `pnpm hasura console` command. It provides a web interface to manage your Hasura project. When you make changes in the console. This is the preferred/simplest method to make changes:
    - Database schema changes trigger the creation of new migration files
    - Configuration changes update the metadata files
-    > **MAKE SURE TO USE THE LOCAL CONSOLE LAUNCHED FROM THE CLI(http://locahost:9695) FOR SCHEMA AND METADATA CHANGES TO BE REFLECTED IN THE PROJECT FILES. BROWSER CONSOLE WILL NOT WORK AS THE FILES WONT BE UPDATED/GENERATED LOCALLY FOR YOU TO COMMIT.**
+     > **MAKE SURE TO USE THE LOCAL CONSOLE LAUNCHED FROM THE CLI(http://locahost:9695) FOR SCHEMA AND METADATA CHANGES TO BE REFLECTED IN THE PROJECT FILES. BROWSER CONSOLE WILL NOT WORK AS THE FILES WONT BE UPDATED/GENERATED LOCALLY FOR YOU TO COMMIT.**
 2. **Migrations**:
    Migrations are used to manage changes to your database schema over time. When you make changes to your database structure using the local console, Hasura automatically generates migration files. These files contain SQL statements that represent the changes made to your database schema.
 
    Manual commands for working with migrations include:
+
    - `pnpm hasura migrate create`: Creates a new migration file
    - `pnpm hasura migrate apply`: Applies pending migrations to the database
    - `pnpm hasura migrate status`: Shows the status of migrations
@@ -146,11 +150,13 @@ Hasura migrations and metadata are two key components that work together to mana
    Metadata represents the configuration of your Hasura instance, including table relationships, permissions, and custom actions. When you make changes in the console, such as creating relationships or setting up permissions, these changes are reflected in the metadata.
 
    Manual commands for managing metadata are:
+
    - `pnpm hasura metadata export`: Exports the current metadata
    - `pnpm hasura metadata apply`: Applies the metadata to the Hasura instance
    - `pnpm hasura metadata reload`: Reloads the metadata from the database
 
 4. **Working in Tandem**:
+
    - When you run `pnpm hasura console`, it starts a local server that watches for changes made in the console.
    - As you make changes in the console, migration files and metadata files are automatically updated in your project directory.
    - You can then use version control to track these changes and collaborate with your team.
@@ -160,7 +166,6 @@ Hasura migrations and metadata are two key components that work together to mana
    The `pnpm hasura metadata inconsistency` command helps you identify and resolve any inconsistencies between your metadata and the actual database schema.
 
 For more detailed information on each command and its usage, you can refer to the [Hasura CLI Commands documentation](https://hasura.io/docs/2.0/hasura-cli/commands/index/).
-
 
 ## Deployment
 
@@ -176,11 +181,12 @@ Once the pull request has been approved by another team member and merged into `
 1. Check the status of the migrations with the following command. Make sure that the migration is not already applied:
 
 ```
-pnpm run db:remote:migrate-status
+pnpm run hasura:remote:migrate-status
 ```
+
 2. Apply the migrations and metadata to the production instance with the following commands:
 
 ```
-pnpm run db:remote:apply-migrations
-pnpm run db:remote:apply-metadata
+pnpm run hasura:remote:apply-migrations
+pnpm run hasura:remote:apply-metadata
 ```

@@ -31,8 +31,8 @@
     "hasura:remote:apply-metadata": "dotenvx run -f ./../../.env --quiet -- sh -c 'hasura metadata apply --endpoint \"$HASURA_URL\" --admin-secret \"$HASURA_ADMIN_SECRET\"'",
     "timescale:generate:types": "pgtyped -c pgtyped-timescale-config.json",
     "timescale:local:migrate": "node-pg-migrate up",
-    "dtimescale:local:migrate:down": "node-pg-migrate down",
-    "dtimescale:local:migrate-status": "node-pg-migrate status",
+    "timescale:local:migrate:down": "node-pg-migrate down",
+    "timescale:local:migrate-status": "node-pg-migrate status",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
@@ -59,6 +59,7 @@
     "@vitest/utils": "^2.1.1",
     "hasura-cli": "2.36.1",
     "node-pg-migrate": "^6.2.2",
+    "pg-query-parser": "^0.3.0",
     "prettier": "^3.3.3",
     "vite-tsconfig-paths": "^4.2.0",
     "vitest": "0.31.4"

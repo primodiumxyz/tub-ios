@@ -1,4 +1,4 @@
-import * as queries from './queries/index';
+import * as queries from '../../gql/src/timescale/queries/index';
 import { IndexerClient, IndexerConfig } from './client';
 import { PreparedQuery } from '@pgtyped/runtime';
 
