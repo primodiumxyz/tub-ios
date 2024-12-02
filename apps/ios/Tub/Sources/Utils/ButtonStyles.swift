@@ -368,7 +368,6 @@ struct FilterButtonStyle: ButtonStyle {
             .overlay(
                 RoundedRectangle(cornerRadius: 20)
                     .stroke(.tubNeutral, lineWidth: 1)
-                    .clipShape(Rectangle())
             )
             .opacity(configuration.isPressed ? 0.7 : 1.0)
     }

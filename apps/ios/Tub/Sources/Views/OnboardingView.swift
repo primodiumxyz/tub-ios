@@ -5,6 +5,7 @@
 //  Created by yixintan on 11/20/24.
 //
 
+import AVKit
 import SwiftUI
 import WebKit
 
@@ -55,7 +56,7 @@ struct OnboardingView: View {
 
                             if let mediaTitle = onboardingData[index].mediaTitle {
 
-                                GIFView(gifName: mediaTitle)
+                                VideoPlayerView(videoName: mediaTitle)
                                     .padding(.top, 16)
                                     .padding(.horizontal, 4)
                                     .frame(width: 200, height: 412.2)
@@ -116,29 +117,53 @@ struct OnboardingPage {
     }
 }
 
-struct GIFView: UIViewRepresentable {
-    let gifName: String
+struct VideoPlayerView: UIViewRepresentable {
+    let videoName: String
 
-    func makeUIView(context: Context) -> WKWebView {
-        let webView = WKWebView()
-        webView.isUserInteractionEnabled = false
+    func makeUIView(context: Context) -> UIView {
+        let containerView = UIView(frame: .zero)
+        containerView.backgroundColor = .clear
 
-        if let url = Bundle.main.url(forResource: gifName, withExtension: "gif") {
-            let data = try? Data(contentsOf: url)
-            webView.load(
-                data!,
-                mimeType: "image/gif",
-                characterEncodingName: "",
-                baseURL: url.deletingLastPathComponent()
-            )
+        if let url = Bundle.main.url(forResource: videoName, withExtension: "mp4") {
+            let player = AVPlayer(url: url)
+            let playerLayer = AVPlayerLayer(player: player)
+            playerLayer.videoGravity = .resizeAspect
+            containerView.layer.addSublayer(playerLayer)
+
+            // Store references
+            containerView.tag = 100
+            containerView.layer.setValue(playerLayer, forKey: "playerLayer")
+            containerView.layer.setValue(player, forKey: "player")
+
+            NotificationCenter.default.addObserver(
+                forName: .AVPlayerItemDidPlayToEndTime,
+                object: player.currentItem,
+                queue: .main
+            ) { _ in
+                player.seek(to: .zero)
+                player.play()
+            }
+
+            player.play()
         }
-        webView.scrollView.isScrollEnabled = false
-        webView.backgroundColor = .clear
-        webView.isOpaque = false
-        return webView
+
+        return containerView
     }
 
-    func updateUIView(_ uiView: WKWebView, context: Context) {}
+    func updateUIView(_ uiView: UIView, context: Context) {
+        DispatchQueue.main.async {
+            if let playerLayer = uiView.layer.value(forKey: "playerLayer") as? AVPlayerLayer {
+                playerLayer.frame = uiView.bounds
+            }
+        }
+    }
+
+    static func dismantleUIView(_ uiView: UIView, coordinator: ()) {
+        if let player = uiView.layer.value(forKey: "player") as? AVPlayer {
+            player.pause()
+
+        }
+    }
 }
 
 #Preview {

@@ -232,7 +232,6 @@ struct RegisterView: View {
         }
         .ignoresSafeArea(.keyboard)
         .scrollBounceBehavior(.basedOnSize, axes: [.vertical])
-        .padding(.vertical)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onChange(of: userModel.userId) { _, newUserId in
             if newUserId != nil {
