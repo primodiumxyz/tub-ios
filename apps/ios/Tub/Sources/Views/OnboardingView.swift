@@ -7,6 +7,7 @@
 
 import SwiftUI
 import WebKit
+import AVKit
 
 struct OnboardingView: View {
     @Environment(\.dismiss) var dismiss
@@ -58,17 +59,16 @@ struct OnboardingView: View {
                                     .padding(.horizontal, 40)
 
                                 if index == 0 {
-                                    GIFView(gifName: "swipe")
+                                    VideoPlayerView(videoName: "onboarding1")
                                         .frame(width: 300, height: 500)
-
-                                }
-                                else if index == 1 {
-                                    GIFView(gifName: "buysell")
-                                        .frame(width: 300, height: 550)
-                                }
-                                else if index == 2 {
-                                    GIFView(gifName: "history")
-                                        .frame(width: 300, height: 550)
+                                        
+                                } else if index == 1 {
+                                    VideoPlayerView(videoName: "onboarding1")
+                                        .frame(width: 300, height: 500)
+                                        
+                                } else if index == 2 {
+                                    VideoPlayerView(videoName: "onboarding1")
+                                        .frame(width: 300, height: 500)
                                 }
                                 Spacer()
 
@@ -125,32 +125,56 @@ struct OnboardingPage {
     let backgroundImage: String?
 }
 
-struct GIFView: UIViewRepresentable {
-    let gifName: String
-
-    func makeUIView(context: Context) -> WKWebView {
-        let webView = WKWebView()
-        webView.isUserInteractionEnabled = false
-
-        if let url = Bundle.main.url(forResource: gifName, withExtension: "gif") {
-            let data = try? Data(contentsOf: url)
-            webView.load(
-                data!,
-                mimeType: "image/gif",
-                characterEncodingName: "",
-                baseURL: url.deletingLastPathComponent()
-            )
+struct VideoPlayerView: UIViewRepresentable {
+    let videoName: String
+    
+    func makeUIView(context: Context) -> UIView {
+        let containerView = UIView(frame: .zero)
+        containerView.backgroundColor = .clear
+        
+        if let url = Bundle.main.url(forResource: videoName, withExtension: "mp4") {
+            let player = AVPlayer(url: url)
+            let playerLayer = AVPlayerLayer(player: player)
+            playerLayer.videoGravity = .resizeAspect
+            containerView.layer.addSublayer(playerLayer)
+            
+            // Store references
+            containerView.tag = 100
+            containerView.layer.setValue(playerLayer, forKey: "playerLayer")
+            containerView.layer.setValue(player, forKey: "player")
+            
+            NotificationCenter.default.addObserver(
+                forName: .AVPlayerItemDidPlayToEndTime,
+                object: player.currentItem,
+                queue: .main
+            ) { _ in
+                player.seek(to: .zero)
+                player.play()
+            }
+            
+            player.play()
         }
-        webView.scrollView.isScrollEnabled = false
-        webView.backgroundColor = .clear
-        webView.isOpaque = false
-        return webView
+        
+        return containerView
     }
+    
+    func updateUIView(_ uiView: UIView, context: Context) {
+        DispatchQueue.main.async {
+            if let playerLayer = uiView.layer.value(forKey: "playerLayer") as? AVPlayerLayer {
+                playerLayer.frame = uiView.bounds
+            }
+        }
+    }
+    
+    static func dismantleUIView(_ uiView: UIView, coordinator: ()) {
+        if let player = uiView.layer.value(forKey: "player") as? AVPlayer {
+            player.pause()
 
-    func updateUIView(_ uiView: WKWebView, context: Context) {}
+        }
+    }
 }
 
 #Preview {
     OnboardingView()
         .environmentObject(UserModel.shared)
-}
+} 
