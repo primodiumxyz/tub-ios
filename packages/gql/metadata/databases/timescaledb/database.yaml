@@ -1,0 +1,6 @@
+name: timescaledb
+kind: postgres
+configuration:
+  connection_info:
+    database_url:
+      from_env: TIMESCALE_DATABASE_URL

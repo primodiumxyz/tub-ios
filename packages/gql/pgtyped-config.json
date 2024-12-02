@@ -1,0 +1,24 @@
+{
+  "transforms": [
+    {
+      "mode": "sql",
+      "include": "src/timescale/queries/**/*.sql",
+      "emitTemplate": "{{dir}}/{{name}}.queries.ts"
+    },
+    {
+      "mode": "sql",
+      "include": "src/timescale/mutations/**/*.sql",
+      "emitTemplate": "{{dir}}/{{name}}.mutations.ts"
+    }
+  ],
+  "srcDir": "./",
+  "failOnError": true,
+  "camelCaseColumnNames": false,
+  "db": {
+    "host": "localhost",
+    "port": 5433,
+    "user": "tsdbadmin",
+    "dbName": "indexer",
+    "password": "password"
+  }
+}

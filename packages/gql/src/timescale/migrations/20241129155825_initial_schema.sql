@@ -40,13 +40,14 @@ ALTER TABLE trade_history SET (
 
 SELECT add_compression_policy('trade_history', INTERVAL '1 day');
 
--- Create continuous aggregates at 5-minute intervals
+-- Create continuous aggregates at 1-minute intervals
 -- This helps with quick lookups for common interval queries
-CREATE MATERIALIZED VIEW trade_history_5min
+CREATE MATERIALIZED VIEW trade_history_1min
 WITH (timescaledb.continuous) AS
 SELECT
-  time_bucket('5 minutes', created_at) AS bucket,
+  time_bucket('1 minute', created_at) AS bucket,
   token_mint,
+  FIRST(id, created_at) as id,
   FIRST(token_metadata, created_at) as token_metadata,
   AVG(token_price_usd) as avg_price,
   SUM(volume_usd) as total_volume,
@@ -56,16 +57,16 @@ GROUP BY bucket, token_mint
 WITH NO DATA;
 
 -- Refresh every 5 minutes, keeping last 24 hours of detailed data
-SELECT add_continuous_aggregate_policy('trade_history_5min',
+SELECT add_continuous_aggregate_policy('trade_history_1min',
   start_offset => INTERVAL '24 hours',
-  end_offset => INTERVAL '5 minutes',
-  schedule_interval => INTERVAL '5 minutes'
+  end_offset => INTERVAL '1 minute',
+  schedule_interval => INTERVAL '1 minute'
 );
 
 COMMENT ON TABLE trade_history IS 'History of trades on subscribed accounts from the indexer.';
 
 -- _DOWN_
-DROP MATERIALIZED VIEW IF EXISTS trade_history_5min CASCADE;
+DROP MATERIALIZED VIEW IF EXISTS trade_history_1min CASCADE;
 DROP TABLE IF EXISTS trade_history CASCADE;
 DROP TYPE IF EXISTS token_metadata CASCADE;
 DROP EXTENSION IF EXISTS timescaledb CASCADE;

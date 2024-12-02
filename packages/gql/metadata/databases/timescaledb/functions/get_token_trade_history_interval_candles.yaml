@@ -1,0 +1,7 @@
+function:
+  name: get_token_trade_history_interval_candles
+  schema: public
+configuration:
+  exposed_as: query
+  arguments:
+    session_argument: null

@@ -1,0 +1,9 @@
+table:
+  name: schema_migrations
+  schema: public
+select_permissions:
+  - role: public
+    permission:
+      columns: "*"
+      filter: {}
+      allow_aggregations: true

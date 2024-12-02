@@ -29,7 +29,7 @@
     "hasura:remote:remove-create-token-seed": "dotenvx run -f ./../../.env --quiet -- sh -c 'hasura seed create tokens_seed --from-table token --endpoint \"$HASURA_URL\" --admin-secret \"$HASURA_ADMIN_SECRET\"'",
     "hasura:remote:apply-migrations": "dotenvx run -f ./../../.env --quiet -- sh -c 'hasura migrate apply --endpoint \"$HASURA_URL\" --admin-secret \"$HASURA_ADMIN_SECRET\"'",
     "hasura:remote:apply-metadata": "dotenvx run -f ./../../.env --quiet -- sh -c 'hasura metadata apply --endpoint \"$HASURA_URL\" --admin-secret \"$HASURA_ADMIN_SECRET\"'",
-    "timescale:generate:types": "pgtyped -c pgtyped-timescale-config.json",
+    "timescale:generate:types": "pgtyped generate --config ./pgtyped-config.json",
     "timescale:local:migrate": "tsx src/timescale/scripts/migrate.ts up",
     "timescale:local:migrate-status": "tsx src/timescale/scripts/migrate.ts status",
     "timescale:local:migrate-create": "tsx src/timescale/scripts/migrate.ts create",
@@ -47,6 +47,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@pgtyped/parser": "^2.3.0",
+    "@pgtyped/query": "^2.3.0",
     "@urql/core": "^5.0.6",
     "gql.tada": "^1.8.9",
     "graphql-ws": "^5.16.0",
@@ -65,9 +67,9 @@
     "@vitest/utils": "^2.1.1",
     "hasura-cli": "2.36.1",
     "node-pg-migrate": "^6.2.2",
-    "pg-query-parser": "^0.3.0",
     "prettier": "^3.3.3",
     "vite-tsconfig-paths": "^4.2.0",
-    "vitest": "0.31.4"
+    "vitest": "0.31.4",
+    "yaml": "^2.6.1"
   }
 }

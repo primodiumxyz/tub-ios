@@ -86,7 +86,7 @@ for ((i=1; i<=$RETRIES; i++)); do
     echo "Running TimescaleDB migrations..."
     NODE_PATH=./node_modules \
     DATABASE_URL="postgres://tsdbadmin:${TIMESCALE_DB_PASSWORD:-password}@localhost:5433/indexer" \
-      pnpm timescale:local:migrate up
+      pnpm timescale:local:migrate
     
     # Then sync operations
     echo "Syncing TimescaleDB operations..."

@@ -1,3 +1,15 @@
+/* 
+ * @name getTopTokensIntervalByVolume
+ * @param interval_seconds INTEGER
+ * @param limit INTEGER
+ * @returns TABLE(
+ *   token_mint TEXT,
+ *   token_metadata token_metadata,
+ *   total_volume_usd NUMERIC,
+ *   price_change_pct NUMERIC,
+ *   avg_price_usd NUMERIC
+ * )
+*/
 CREATE OR REPLACE FUNCTION get_top_tokens_interval_by_volume(
   interval_seconds INTEGER,
   limit_count INTEGER DEFAULT 100
@@ -23,7 +35,7 @@ SELECT * FROM (
     ((LAST(avg_price, bucket) - FIRST(avg_price, bucket)) / 
       NULLIF(FIRST(avg_price, bucket), 0) * 100) as price_change_pct,
     AVG(avg_price) as avg_price_usd
-  FROM trade_history_5min t, params p
+  FROM trade_history_1min t, params p
   WHERE 
     bucket >= p.start_time
     AND bucket <= p.end_time
