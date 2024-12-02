@@ -13,7 +13,7 @@ struct OnboardingView: View {
     @EnvironmentObject private var userModel: UserModel
     @State private var currentPage = 0
     @State private var showBubbles = false
-    
+
     let onboardingData = [
         OnboardingPage(
             title: "Swipe to explore the hottest coins",
@@ -24,14 +24,14 @@ struct OnboardingView: View {
             title: "Instant profits with one tap",
             subtitle: "Perfect your timing for maximum gains!",
             mediaTitle: "buysell"
-        )
+        ),
     ]
-    
+
     private func completeOnboarding() {
         userModel.hasSeenOnboarding = true
         dismiss()
     }
-    
+
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
@@ -39,12 +39,12 @@ struct OnboardingView: View {
                     ForEach(0..<onboardingData.count, id: \.self) { index in
                         VStack(spacing: 16) {
                             Spacer()
-                            
+
                             Text(onboardingData[index].title)
                                 .font(.sfRounded(size: .xl2, weight: .semibold))
                                 .foregroundStyle(.tubBuyPrimary)
                                 .padding(.top, 30)
-                            
+
                             if let subtitle = onboardingData[index].subtitle {
                                 Text(subtitle)
                                     .font(.sfRounded(size: .lg, weight: .regular))
@@ -52,9 +52,9 @@ struct OnboardingView: View {
                                     .multilineTextAlignment(.center)
                                     .padding(.horizontal, 40)
                             }
-                            
+
                             if let mediaTitle = onboardingData[index].mediaTitle {
-                                
+
                                 GIFView(gifName: mediaTitle)
                                     .padding(.top, 16)
                                     .padding(.horizontal, 4)
@@ -78,7 +78,7 @@ struct OnboardingView: View {
                     }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
-                
+
                 OutlineButton(
                     text: currentPage == onboardingData.count - 1 ? "Get Started" : "Continue",
                     textColor: .tubBuyPrimary,
@@ -108,8 +108,8 @@ struct OnboardingPage {
     let title: String
     let subtitle: String?
     let mediaTitle: String?
-    
-    init(title: String, subtitle: String? = nil, mediaTitle: String? = nil){
+
+    init(title: String, subtitle: String? = nil, mediaTitle: String? = nil) {
         self.title = title
         self.subtitle = subtitle
         self.mediaTitle = mediaTitle
@@ -118,11 +118,11 @@ struct OnboardingPage {
 
 struct GIFView: UIViewRepresentable {
     let gifName: String
-    
+
     func makeUIView(context: Context) -> WKWebView {
         let webView = WKWebView()
         webView.isUserInteractionEnabled = false
-        
+
         if let url = Bundle.main.url(forResource: gifName, withExtension: "gif") {
             let data = try? Data(contentsOf: url)
             webView.load(
@@ -137,7 +137,7 @@ struct GIFView: UIViewRepresentable {
         webView.isOpaque = false
         return webView
     }
-    
+
     func updateUIView(_ uiView: WKWebView, context: Context) {}
 }
 

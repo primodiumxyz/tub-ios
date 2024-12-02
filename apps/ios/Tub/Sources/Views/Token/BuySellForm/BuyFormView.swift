@@ -89,7 +89,7 @@ struct BuyFormView: View {
             .cornerRadius(30)
             .presentationDetents([.height(Self.formHeight)])
             .presentationBackground(.clear)
-            
+
         }
     }
 
@@ -297,9 +297,6 @@ extension String {
         spoofTokenModelData(model)
         return model
     }()
-
-
-
 
     BuyFormView(isVisible: .constant(true), tokenModel: tokenModel, onBuy: { _ in })
         .environmentObject(userModel)

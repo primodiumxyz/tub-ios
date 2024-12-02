@@ -20,7 +20,7 @@ struct OtpModifer: ViewModifier {
     @Binding var pin: String
 
     var isFocused: Bool  // Add this property
-    var textLimt = 1
+    var textLimit = 1
 
     func limitText(_ upper: Int) {
         if pin.count > upper {
@@ -33,13 +33,13 @@ struct OtpModifer: ViewModifier {
         content
             .multilineTextAlignment(.center)
             .keyboardType(.numberPad)
-            .onReceive(Just(pin)) { _ in limitText(textLimt) }
+            .onReceive(Just(pin)) { _ in limitText(textLimit) }
             .frame(width: 45, height: 45)
-            .background(Color.tubBuyPrimary.cornerRadius(5))
+            .background(Color.clear.cornerRadius(5))
             .overlay(
                 RoundedRectangle(cornerRadius: 5)
                     .stroke(
-                        isFocused ? .tubBuyPrimary : .tubSellPrimary,
+                        isFocused ? .tubBuyPrimary : .tubBuyPrimary.opacity(0.5),
                         lineWidth: isFocused ? 4 : 1
                     )
             )
