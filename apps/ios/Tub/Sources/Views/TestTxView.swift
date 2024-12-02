@@ -50,7 +50,10 @@ struct TestTxView: View {
             if let txData = txManager.txData {
                 DataRow(title: "Buy Token ID", content: txData.buyTokenId)
                 DataRow(title: "Sell Token ID", content: txData.sellTokenId)
-                DataRow(title: "Sell Quantity", content: priceModel.formatPrice(lamports: txData.sellQuantity))
+                DataRow(
+                    title: "Sell Quantity",
+                    content: priceModel.formatPrice(usd: priceModel.usdcToUsd(usdc: txData.sellQuantity))
+                )
                 Button(action: handleTxSubmission) {
                     Text("Submit Transaction")
                 }.padding().background(.red)

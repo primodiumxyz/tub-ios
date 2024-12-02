@@ -103,7 +103,8 @@ struct HomeTabsView: View {
                     // Main content view
                     Group {
                         if vm.selectedTab == 0 {
-                            TokenListView()
+                            // TokenListView()
+                            TestTxView()
                         }
                         else if vm.selectedTab == 1 {
                             HistoryView()
