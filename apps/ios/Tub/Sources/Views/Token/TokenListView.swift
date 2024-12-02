@@ -56,8 +56,8 @@ struct TokenListView: View {
             return LinearGradient(colors: [Color.clear], startPoint: .top, endPoint: .bottom)
         }
         return activeTab == "sell"
-            ? AppColors.primaryPinkGradient
-            : AppColors.primaryPurpleGradient
+            ? Gradients.primaryPinkGradient
+            : Gradients.primaryPurpleGradient
     }
 
     private func canSwipe(direction: SwipeDirection) -> Bool {

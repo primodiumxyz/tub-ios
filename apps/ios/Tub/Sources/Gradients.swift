@@ -1,14 +1,7 @@
-//
-//  AppColors.swift
-//  Tub
-//
-//  Created by yixintan on 10/16/24.
-//
-
 import Foundation
 import SwiftUI
 
-struct AppColors {
+struct Gradients {
     // Gradients
     // buy bg
     static let primaryPurpleGradient = LinearGradient(
@@ -108,5 +101,14 @@ struct AppColors {
             .init(color: Color(red: 0.87, green: 0.26, blue: 0.61), location: 0.90),
         ],
         center: UnitPoint(x: 0.5, y: 0.5)
+    )
+
+    static let cardBgGradient = LinearGradient(
+        stops: [
+            Gradient.Stop(color: .tubBuyPrimary.opacity(0.2), location: 0.0),
+            Gradient.Stop(color: .tubBuyPrimary.opacity(0), location: 0.5),
+        ],
+        startPoint: .top,
+        endPoint: .bottom
     )
 }

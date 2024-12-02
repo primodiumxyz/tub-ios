@@ -24,8 +24,8 @@ struct CustomToggleStyle: ToggleStyle {
                     Circle()
                         .fill(
                             configuration.isOn
-                                ? AppColors.toggleOnGradient
-                                : AppColors.toggleOffGradient
+                                ? Gradients.primaryPurpleGradient
+                                : Gradients.primaryPinkGradient
                         )
                         .frame(width: 24, height: 24)
                         .offset(x: configuration.isOn ? 10 : -10)

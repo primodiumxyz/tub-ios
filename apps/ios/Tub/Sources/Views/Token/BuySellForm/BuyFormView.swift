@@ -25,8 +25,7 @@ struct BuyFormView: View {
 
     static let formHeight: CGFloat = 250
 
-    @MainActor
-    private func handleBuy() async {
+    private func handleBuy() {
         guard let balance = userModel.balanceLamps else { return }
         // Use 10 as default if no amount is entered
         let amountToUse = buyAmountUsdString.isEmpty ? 10.0 : buyAmountUsd
@@ -38,7 +37,9 @@ struct BuyFormView: View {
             if isDefaultOn {
                 settingsManager.defaultBuyValue = amountToUse
             }
-            await onBuy(amountToUse)
+            Task {
+                await onBuy(amountToUse)
+            }
         }
         else {
             notificationHandler.show("Insufficient Balance", type: .error)
@@ -67,19 +68,25 @@ struct BuyFormView: View {
     }
 
     var body: some View {
-        VStack {
-            formContent
+
+        ZStack {
+            Rectangle()
+                .fill(Color(UIColor.systemBackground))
+                .zIndex(0)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            VStack {
+                formContent
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 20)
+
+            }
+            .zIndex(1)
+            .background(Gradients.cardBgGradient)
+            .onAppear { resetForm() }
+            .dismissKeyboardOnTap()
+            .presentationDetents([.height(Self.formHeight)])
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 20)
-        // Temporarily set color to the systemBackground until a final gradient for each color scheme is set
-        // .background(AppColors.darkGreenGradient)
-        .background(Color(UIColor.systemBackground))
-        .cornerRadius(26)
-        .onAppear { resetForm() }
-        .dismissKeyboardOnTap()
-        .presentationDetents([.height(Self.formHeight)])
-        .presentationBackground(Color.clear)
     }
 
     private var formContent: some View {
@@ -101,7 +108,7 @@ struct BuyFormView: View {
                 buyButton
             }
         }
-        .frame(height: Self.formHeight)
+        .frame(maxWidth: .infinity)
         .padding(.horizontal, 8)
     }
 
@@ -112,11 +119,7 @@ struct BuyFormView: View {
             strokeColor: .tubBuyPrimary,
             backgroundColor: .clear,
             maxWidth: .infinity,
-            action: {
-                Task {
-                    await handleBuy()
-                }
-            }
+            action: handleBuy
         )
         .disabled((userModel.balanceLamps ?? 0) < priceModel.usdToLamports(usd: buyAmountUsd))
     }
