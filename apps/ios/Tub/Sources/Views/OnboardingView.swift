@@ -14,7 +14,7 @@ struct OnboardingView: View {
     @EnvironmentObject private var userModel: UserModel
     @State private var currentPage = 0
     @State private var showBubbles = false
-    
+
     let onboardingData = [
         OnboardingPage(
             title: "Swipe Up to Explore",
@@ -30,36 +30,34 @@ struct OnboardingView: View {
             title: "Good Luck!",
             subtitle: "Jump in and start trading now!",
             backgroundImage: nil
-        )
+        ),
     ]
-    
+
     private func completeOnboarding() {
         userModel.hasSeenOnboarding = true
         dismiss()
     }
-    
+
     var body: some View {
         NavigationView {
             ZStack {
                 Color.black.ignoresSafeArea()
-                
+
                 VStack(spacing: 0) {
                     TabView(selection: $currentPage) {
                         ForEach(0..<onboardingData.count, id: \.self) { index in
                             VStack(spacing: 16) {
                                 Spacer()
-                                
+
                                 Text(onboardingData[index].title)
                                     .font(.sfRounded(size: .xl2, weight: .semibold))
-                                    .foregroundStyle(Color("aquaGreen"))
                                     .padding(.top, 30)
-                                
+
                                 Text(onboardingData[index].subtitle)
                                     .font(.sfRounded(size: .lg, weight: .regular))
-                                    .foregroundStyle(Color("magneta"))
                                     .multilineTextAlignment(.center)
                                     .padding(.horizontal, 40)
-                                
+
                                 if index == 0 {
                                     VideoPlayerView(videoName: "onboarding1")
                                         .frame(width: 300, height: 500)
@@ -73,7 +71,7 @@ struct OnboardingView: View {
                                         .frame(width: 300, height: 500)
                                 }
                                 Spacer()
-                                
+
                             }
                             .tag(index)
                             .onChange(of: currentPage) { oldValue, newValue in
@@ -87,19 +85,20 @@ struct OnboardingView: View {
                         }
                     }
                     .tabViewStyle(.page(indexDisplayMode: .never))
-                    
+
                     OutlineButton(
                         text: currentPage == onboardingData.count - 1 ? "Get Started" : "Continue",
-                        textColor: Color("aquaGreen"),
-                        strokeColor: Color("aquaGreen"),
+                        textColor: .primary,
+                        strokeColor: .primary,
                         backgroundColor: Color.black,
-                        maxWidth:.infinity,
+                        maxWidth: .infinity,
                         action: {
                             if currentPage < onboardingData.count - 1 {
                                 withAnimation {
                                     currentPage += 1
                                 }
-                            } else {
+                            }
+                            else {
                                 completeOnboarding()
                             }
                         }
@@ -107,7 +106,7 @@ struct OnboardingView: View {
                     .padding(.horizontal, 20)
                     .padding(.bottom, 40)
                 }
-                
+
                 if currentPage == 1 {
                     BubbleEffect(isActive: $showBubbles)
                         .opacity(showBubbles ? 1 : 0)
@@ -170,13 +169,12 @@ struct VideoPlayerView: UIViewRepresentable {
     static func dismantleUIView(_ uiView: UIView, coordinator: ()) {
         if let player = uiView.layer.value(forKey: "player") as? AVPlayer {
             player.pause()
+
         }
     }
 }
-
 
 #Preview {
     OnboardingView()
         .environmentObject(UserModel.shared)
 } 
-

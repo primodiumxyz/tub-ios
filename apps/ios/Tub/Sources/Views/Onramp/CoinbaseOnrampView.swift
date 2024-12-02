@@ -34,7 +34,7 @@ struct CoinbaseOnrampView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.black)
+        .background(Color(UIColor.systemBackground))
         .ignoresSafeArea(.keyboard)
         .onAppear {
             isAmountFocused = true
@@ -47,14 +47,15 @@ struct CoinbaseOnrampView: View {
                 Spacer()
                 Text("$")
                     .font(.sfRounded(size: .xl4, weight: .bold))
-                    .foregroundColor(Color.white)
 
-                TextField("", text: $amountString, prompt: Text("100").foregroundColor(Color.white.opacity(0.3)))
+                TextField("", text: $amountString, prompt: Text("100").foregroundStyle(.tubSellPrimary))
                     .focused($isAmountFocused)
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.leading)
                     .textFieldStyle(PlainTextFieldStyle())
-                    .onReceive(NotificationCenter.default.publisher(for: UITextField.textDidChangeNotification)) {
+                    .onReceive(
+                        NotificationCenter.default.publisher(for: UITextField.textDidChangeNotification)
+                    ) {
                         obj in
                         guard let textField = obj.object as? UITextField else { return }
 
@@ -81,7 +82,7 @@ struct CoinbaseOnrampView: View {
                         }
                     }
                     .font(.sfRounded(size: .xl5, weight: .bold))
-                    .foregroundColor(isValidInput ? Color.white : Color.red)
+                    .foregroundStyle(isValidInput ? .primary : Color.red)
                     .frame(minWidth: 50)
                     .fixedSize()
                 Spacer()
@@ -94,7 +95,7 @@ struct CoinbaseOnrampView: View {
         Button(action: {
             let walletAddress = userModel.walletAddress
             let urlStr =
-                "https://pay.coinbase.com/buy?appId=70955045-7672-4640-b524-0a5aff9e074e&addresses={\"\(walletAddress)\":[\"solana\"]}&assets=[\"USDC\"]&presetFiatAmount=\(amount)"
+                "https://pay.coinbase.com/buy?appId=70955045-7672-4640-b524-0a5aff9e074e&addresses={\"\(walletAddress ?? "")\":[\"solana\"]}&assets=[\"USDC\"]&presetFiatAmount=\(amount)"
             url = URL(string: urlStr)
             showInput = false
         }) {
@@ -107,12 +108,11 @@ struct CoinbaseOnrampView: View {
                     .aspectRatio(contentMode: .fit)
                     .frame(height: 16)
             }
-            .foregroundColor(Color.white)
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(Color("purple"))
             .cornerRadius(26)
         }
+        .disabled(userModel.walletAddress == nil)
     }
 }
 
@@ -131,14 +131,18 @@ struct WebView: UIViewRepresentable {
                 document.querySelector('.cds-button-b17kdj8k').style.background = '#6E00FF';
 
             """
-        let script = WKUserScript(source: darkScript, injectionTime: .atDocumentEnd, forMainFrameOnly: false)
+        let script = WKUserScript(
+            source: darkScript,
+            injectionTime: .atDocumentEnd,
+            forMainFrameOnly: false
+        )
         configuration.userContentController.addUserScript(script)
 
         let webView = WKWebView(frame: .zero, configuration: configuration)
 
-        webView.backgroundColor = .black
+        webView.backgroundColor = UIColor.systemBackground
         webView.isOpaque = false
-        webView.scrollView.backgroundColor = .black
+        webView.scrollView.backgroundColor = UIColor.systemBackground
 
         // Force dark mode at the WebView level
         if #available(iOS 13.0, *) {

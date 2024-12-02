@@ -5,10 +5,8 @@
 //  Created by Henry on 9/30/24.
 //
 
-// ... existing imports ...
 import SwiftUI
 
-// Add this new struct above the ActionButtonsView struct
 struct SwipeToEnterView: View {
     @State private var offset: CGFloat = 0
     @State private var isDragging = false
@@ -18,7 +16,7 @@ struct SwipeToEnterView: View {
     var disabled: Bool
     var size: CGFloat = 80
 
-    init(text: String = "slide to unlock", onUnlock: @escaping () -> Void, disabled: Bool = false) {
+    init(text: String = "slide to unlock", disabled: Bool = false, onUnlock: @escaping () -> Void) {
         self.text = text
         self.onUnlock = onUnlock
         self.disabled = disabled
@@ -38,13 +36,13 @@ struct SwipeToEnterView: View {
                     Spacer()
                     Text(text)
                         .font(.sfRounded(size: .xl, weight: .semibold))
-                        .foregroundColor(Color.white)
+                        .foregroundStyle(.white)
                     Spacer()
                     // Add three right-facing chevrons
                     HStack(spacing: 2) {
                         ForEach(0..<3) { i in
                             Image(systemName: "chevron.right")
-                                .foregroundColor(Color.white)
+                                .foregroundStyle(.white)
                                 .font(.system(size: 14, weight: .bold))
                                 .opacity(Double(i) * 0.15 + 0.5)
                         }
@@ -56,11 +54,11 @@ struct SwipeToEnterView: View {
                 // Slider thumb
                 ZStack {
                     Circle()
-                        .fill(Color("purple"))
+                        .fill(.tubBuyPrimary)
                         .frame(width: size - 20, height: size - 20)
 
                     Image(systemName: "arrow.left.arrow.right")
-                        .foregroundColor(Color.white)
+                        .foregroundStyle(.white)
                         .fontWeight(.bold)
                         .font(.system(size: 20))  // Increase the size by 50%
                 }

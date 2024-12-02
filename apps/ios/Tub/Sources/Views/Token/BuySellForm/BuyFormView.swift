@@ -1,5 +1,5 @@
 //
-//  BuyForm.swift
+//  BuyFormView.swift
 //  Tub
 //
 //  Created by Henry on 10/4/24.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct BuyForm: View {
+struct BuyFormView: View {
     @Binding var isVisible: Bool
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject var notificationHandler: NotificationHandler
@@ -19,18 +19,11 @@ struct BuyForm: View {
     @State private var buyAmountUsd: Double = 0
     @State private var isValidInput: Bool = true
 
-    @State private var dragOffset: CGFloat = 0.0
-    @State private var slideOffset: CGFloat = UIScreen.main.bounds.height
-    @State private var animatingSwipe: Bool = false
-    @State private var isClosing: Bool = false
-
-    @State private var isKeyboardActive: Bool = false
-    @State private var keyboardHeight: CGFloat = 0.0
-    private let keyboardAdjustment: CGFloat = 220
-
     @State private var isDefaultOn: Bool = true  //by default is on
 
     @ObservedObject private var settingsManager = SettingsManager.shared
+
+    static let formHeight: CGFloat = 250
 
     @MainActor
     private func handleBuy() async {
@@ -70,7 +63,6 @@ struct BuyForm: View {
         buyAmountUsdString = ""
         buyAmountUsd = 0
         isValidInput = true
-        animatingSwipe = false
         isDefaultOn = true
     }
 
@@ -80,36 +72,44 @@ struct BuyForm: View {
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 20)
-        .background(AppColors.darkGreenGradient)
+        // Temporarily set color to the systemBackground until a final gradient for each color scheme is set
+        // .background(AppColors.darkGreenGradient)
+        .background(Color(UIColor.systemBackground))
         .cornerRadius(26)
-        .offset(y: max(dragOffset, slideOffset - keyboardHeight + (isKeyboardActive ? keyboardAdjustment : 0)))
-        .gesture(dragGesture)
-        .onAppear(perform: animateAppearance)
-        .onChange(of: isVisible, perform: handleVisibilityChange)
-        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
-            isKeyboardActive = false
-        }
+        .onAppear { resetForm() }
         .dismissKeyboardOnTap()
+        .presentationDetents([.height(Self.formHeight)])
+        .presentationBackground(Color.clear)
     }
 
     private var formContent: some View {
         VStack {
-            defaultToggle
+            HStack {
+                IconButton(
+                    icon: "xmark",
+                    color: .tubBuyPrimary,
+                    size: 18,
+                    action: { isVisible = false }
+                )
+                Spacer()
+                defaultToggle
+            }
+
             VStack(alignment: .center, spacing: 20) {
                 numberInput
                 amountButtons
                 buyButton
             }
         }
-        .padding(8)
-        .frame(height: 300)
+        .frame(height: Self.formHeight)
+        .padding(.horizontal, 8)
     }
 
     private var buyButton: some View {
         OutlineButton(
             text: "Buy",
-            textColor: Color("aquaGreen"),
-            strokeColor: Color("aquaGreen"),
+            textColor: .tubBuyPrimary,
+            strokeColor: .tubBuyPrimary,
             backgroundColor: .clear,
             maxWidth: .infinity,
             action: {
@@ -127,13 +127,13 @@ struct BuyForm: View {
                 Spacer()
                 Text("$")
                     .font(.sfRounded(size: .xl4, weight: .bold))
-                    .foregroundStyle(Color.white)
+                    .foregroundStyle(.tubText)
 
                 TextField(
                     "",
                     text: $buyAmountUsdString,
                     prompt: Text("10", comment: "placeholder")
-                    .foregroundStyle(Color.white.opacity(0.3))
+                        .foregroundStyle(.tubText.opacity(0.3))
                 )
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.leading)
@@ -170,12 +170,9 @@ struct BuyForm: View {
                     }
                 }
                 .font(.sfRounded(size: .xl5, weight: .bold))
-                .foregroundStyle(isValidInput ? Color.white : Color.red)
+                .foregroundStyle(isValidInput ? .tubText : .tubError)
                 .frame(minWidth: 50)
                 .fixedSize()
-                .onTapGesture {
-                    isKeyboardActive = true
-                }
                 Spacer()
             }
             .frame(maxWidth: 300)
@@ -192,10 +189,10 @@ struct BuyForm: View {
                 HStack(spacing: 4) {
                     Text("Set Default")
                         .font(.sfRounded(size: .base, weight: .regular))
-                        .foregroundStyle(isDefaultOn ? Color.white : Color.gray)
+                        .foregroundStyle(isDefaultOn ? .tubText : .tubNeutral)
 
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(isDefaultOn ? Color.green : Color.gray)
+                        .foregroundStyle(isDefaultOn ? .tubSuccess : .tubNeutral)
                 }
             }
         }
@@ -215,60 +212,13 @@ struct BuyForm: View {
         }
     }
 
-    private var dragGesture: some Gesture {
-        DragGesture()
-            .onChanged { value in
-                dragOffset = value.translation.height
-            }
-            .onEnded { value in
-                handleDragGestureEnd(value)
-            }
-    }
-
-    private func handleDragGestureEnd(_ value: DragGesture.Value) {
-        let threshold: CGFloat = 100
-        let verticalAmount = value.translation.height
-
-        if verticalAmount > threshold && !animatingSwipe {
-            withAnimation(.easeInOut(duration: 0.4)) {
-                dragOffset = UIScreen.main.bounds.height
-            }
-            animatingSwipe = true
-            isClosing = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                isVisible = false  // Close the form
-            }
-        }
-        else {
-            withAnimation(.easeInOut(duration: 0.3)) {
-                dragOffset = 0
-            }
-        }
-    }
-
-    private func animateAppearance() {
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.8, blendDuration: 0)) {
-            slideOffset = 150
-        }
-    }
-
-    private func handleVisibilityChange(_ newValue: Bool) {
-        if newValue {
-            // Reset when becoming visible
-            isClosing = false
-            dragOffset = 0
-            slideOffset = 150
-            resetForm()
-        }
-        else if !isClosing {
-            // Only animate closing if not already closing from gesture
-            withAnimation(.easeInOut(duration: 0.4)) {
-                dragOffset = UIScreen.main.bounds.height
-            }
-        }
-    }
 }
-func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String)
+
+func textField(
+    _ textField: UITextField,
+    shouldChangeCharactersIn range: NSRange,
+    replacementString string: String
+)
     -> Bool
 {
     guard !string.isEmpty else {

@@ -36,21 +36,22 @@ struct AccountBalanceView: View {
                 HStack(alignment: .bottom) {
                     Text("Your Balance")
                         .font(.sfRounded(size: .lg, weight: .semibold))
-                        .foregroundColor(Color.white)
 
                     Spacer()
-                    VStack(alignment: .trailing, spacing: 0) {
+                    HStack(alignment: .center, spacing: 10) {
                         if let balance = balances.solBalanceUsd {
+
                             if balances.deltaUsd != 0 {
                                 let formattedChange = priceModel.formatPrice(
                                     usd: balances.deltaUsd,
                                     showSign: true,
                                     maxDecimals: 2
                                 )
+
                                 Text(formattedChange)
                                     .font(.sfRounded(size: .xs, weight: .light))
                                     .fontWeight(.bold)
-                                    .foregroundColor(balances.deltaUsd >= 0 ? Color.green : Color.red)
+                                    .foregroundStyle(balances.deltaUsd >= 0 ? Color.green : Color.red)
                                     .opacity(0.7)
                                     .frame(height: 10)
                                     .padding(0)
@@ -64,21 +65,23 @@ struct AccountBalanceView: View {
                                 maxDecimals: 2,
                                 minDecimals: 2
                             )
+
                             Text(formattedBalance)
                                 .font(.sfRounded(size: .lg))
                                 .fontWeight(.bold)
-                                .foregroundColor(Color.white)
 
                         }
                     }
-                }.padding(.horizontal, 16)
+                }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 4)
             }
             Divider()
-                .frame(width: 340.0, height: 1.0)
-                .background(Color(hue: 1.0, saturation: 0.0, brightness: 0.2))
-                .padding(0)
+                .frame(maxWidth: .infinity, maxHeight: 0.5)
+                .background(.secondary)
         }
 
-        .background(Color.black)
+        .padding(.horizontal, 16)
+        .background(Color(UIColor.systemBackground))
     }
 }

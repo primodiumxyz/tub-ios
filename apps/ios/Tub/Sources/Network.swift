@@ -103,7 +103,7 @@ class Network {
         let (data, _) = try await session.data(for: request)
 
         // First, try to decode as an error response
-        if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
+        if (try? JSONDecoder().decode(ErrorResponse.self, from: data)) != nil {
             throw TubError.parsingError
         }
 
@@ -358,6 +358,7 @@ private struct EmptyInput: Codable {}
 // MARK: - Extensions
 extension Network {
     func fetchSolPrice() async throws -> Double {
+        // todo: make this a fetch from our server
         let url = URL(string: "https://min-api.cryptocompare.com/data/price?fsym=SOL&tsyms=USD")!
         let (data, _) = try await session.data(from: url)
 
