@@ -53,8 +53,13 @@ services:
       - ./migrations:/hasura-migrations
       - ./metadata:/hasura-metadata
     depends_on:
-      - postgres
-      - data-connector-agent
+      timescaledb:
+        condition: service_healthy
+      postgres:
+        condition: service_started
+      data-connector-agent:
+        condition: service_started
+
   data-connector-agent:
     image: hasura/graphql-data-connector:v2.42.0
     restart: always

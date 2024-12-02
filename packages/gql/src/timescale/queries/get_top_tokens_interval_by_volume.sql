@@ -14,13 +14,7 @@ CREATE OR REPLACE FUNCTION get_top_tokens_interval_by_volume(
   interval_seconds INTEGER,
   limit_count INTEGER DEFAULT 100
 )
-RETURNS TABLE (
-  token_mint TEXT,
-  token_metadata token_metadata,
-  total_volume_usd NUMERIC,
-  price_change_pct NUMERIC,
-  avg_price_usd NUMERIC
-) AS $$
+RETURNS SETOF token_volume_stats AS $$
 WITH params AS (
   SELECT 
     NOW() - (interval '1 second' * interval_seconds) as start_time,

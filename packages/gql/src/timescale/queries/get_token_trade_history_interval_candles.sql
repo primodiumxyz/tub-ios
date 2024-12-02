@@ -19,16 +19,7 @@ CREATE OR REPLACE FUNCTION get_token_trade_history_interval_candles(
   interval_seconds INTEGER,
   candle_seconds INTEGER DEFAULT 300
 )
-RETURNS TABLE (
-  bucket TIMESTAMPTZ,
-  token_mint TEXT,
-  open_price_usd NUMERIC,
-  close_price_usd NUMERIC,
-  high_price_usd NUMERIC,
-  low_price_usd NUMERIC,
-  volume_usd NUMERIC,
-  token_metadata token_metadata
-) AS $$
+RETURNS SETOF trade_history_candle AS $$
 WITH params AS (
   SELECT 
     NOW() - (interval '1 second' * interval_seconds) as start_time,

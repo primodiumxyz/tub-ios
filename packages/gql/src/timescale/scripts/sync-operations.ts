@@ -114,18 +114,47 @@ async function main() {
     mkdirSync(graphqlDir, { recursive: true });
 
     // Create/update databases.yaml
-    const databasesConfig = `
-- name: timescaledb
-  kind: postgres
-  configuration:
-    connection_info:
-      database_url:
-        from_env: TIMESCALE_DATABASE_URL
-  tables: "!include timescaledb/tables.yaml"
-  functions: "!include timescaledb/functions.yaml"
-`;
+    const databasesPath = path.resolve(databasesDir, "databases.yaml");
+    let existingConfig: { name: string; kind: string; configuration: any; tables?: string; functions?: string }[] = [];
+    try {
+      const existingContent = readFileSync(databasesPath, "utf-8");
+      existingConfig = yaml.parse(existingContent);
+    } catch (error) {
+      // File doesn't exist or is invalid, start fresh
+    }
 
-    writeFileSync(path.resolve(databasesDir, "databases.yaml"), databasesConfig);
+    // Find existing timescaledb config or create new one
+    let timescaleConfig = existingConfig.find((db) => db.name === "timescaledb");
+    if (!timescaleConfig) {
+      timescaleConfig = {
+        name: "timescaledb",
+        kind: "postgres",
+        configuration: {
+          connection_info: {
+            database_url: {
+              from_env: "TIMESCALE_DATABASE_URL",
+            },
+            isolation_level: "read-committed",
+            use_prepared_statements: false,
+          },
+        },
+      };
+      existingConfig.push(timescaleConfig);
+    }
+
+    // Ensure required settings
+    timescaleConfig.configuration.connection_info = {
+      ...timescaleConfig.configuration.connection_info,
+      is_data_source_only: true,
+      read_replicas: [],
+      manage_metadata: false,
+    };
+
+    // Update tables and functions references
+    timescaleConfig.tables = "!include timescaledb/tables.yaml";
+    timescaleConfig.functions = "!include timescaledb/functions.yaml";
+
+    writeFileSync(databasesPath, yaml.stringify(existingConfig));
 
     // Create function files and index
     const functionIncludes = [];

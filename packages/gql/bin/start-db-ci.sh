@@ -57,17 +57,11 @@ cleanup() {
 # Trap SIGINT (Ctrl+C) and SIGHUP (terminal close)
 trap cleanup SIGINT SIGHUP
 
-# Wait for services to be healthy
-echo "Waiting for services to be healthy..."
+# Wait for TimescaleDB and pgAdmin to be healthy
+echo "Waiting for TimescaleDB and pgAdmin to be healthy..."
 for ((i=1; i<=$RETRIES; i++)); do
-  HASURA_HEALTHY=false
   TIMESCALE_HEALTHY=false
   PGADMIN_HEALTHY=false
-
-  if check_hasura_health; then
-    HASURA_HEALTHY=true
-    echo "Hasura is healthy!"
-  fi
 
   if check_timescale_health; then
     TIMESCALE_HEALTHY=true
@@ -79,28 +73,36 @@ for ((i=1; i<=$RETRIES; i++)); do
     echo "pgAdmin is healthy!"
   fi
 
-  if [ "$HASURA_HEALTHY" = true ] && [ "$TIMESCALE_HEALTHY" = true ] && [ "$PGADMIN_HEALTHY" = true ]; then
-    echo "All services are healthy!"
-    
-    # Run TimescaleDB migrations first
+  if [ "$TIMESCALE_HEALTHY" = true ] && [ "$PGADMIN_HEALTHY" = true ]; then
     echo "Running TimescaleDB migrations..."
     NODE_PATH=./node_modules \
-    DATABASE_URL="postgres://tsdbadmin:${TIMESCALE_DB_PASSWORD:-password}@localhost:5433/indexer" \
+    DATABASE_URL="postgres://tsdbadmin:password@localhost:5433/indexer" \
       pnpm timescale:local:migrate
-    
-    # Then sync operations
-    echo "Syncing TimescaleDB operations..."
+
+    echo "Syncing TimescaleDB schema..."
     pnpm timescale:local:sync
-    
-    # Then Hasura migrations
-    echo "Running Hasura migrations..."
-    pnpm hasura:local:seed-apply
-    
-    # Generate types last
+
     echo "Generating types..."
-    TIMESCALE_DB_PASSWORD=${TIMESCALE_DB_PASSWORD:-password} pnpm timescale:generate:types
-    
-    break
+    pnpm timescale:generate:types
+
+    # Start Hasura after TimescaleDB setup
+    docker-compose up -d graphql-engine
+
+    # Wait for Hasura to be healthy
+    for ((j=1; j<=$RETRIES; j++)); do
+      if check_hasura_health; then
+        echo "Hasura is healthy!"
+
+        echo "Applying Hasura metadata..."
+        pnpm hasura:local:seed-apply
+        
+        echo "All services are healthy!"
+        break 2
+      else
+        echo "Waiting for Hasura to be healthy..."
+        sleep $DELAY
+      fi
+    done
   else
     echo "Health check failed. Retrying in $DELAY seconds..."
     sleep $DELAY
