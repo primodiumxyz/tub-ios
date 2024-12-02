@@ -73,35 +73,37 @@ struct ActionButtonsView: View {
             if userModel.userId == nil {
                 LoginButton(isLoginPresented: $isLoginPresented)
             }
-            switch userModel.walletState {
-            case .connected(_):
-                if activeTab == "buy" {
-                    if let balanceUsd = userModel.balanceLamps,
-                        priceModel.lamportsToUsd(lamports: balanceUsd) < 0.1
-                    {
-                        AirdropButton()
-                    }
-                    else {
-                        HStack(spacing: 16) {
-                            CircleButton(
-                                icon: "pencil",
-                                color: .tubBuyPrimary,
-                                iconSize: 20,
-                                iconWeight: .bold,
-                                action: { showBuySheet = true }
-                            )
+            else {
+                switch userModel.walletState {
+                case .connected(_):
+                    if activeTab == "buy" {
+                        if let balanceUsd = userModel.balanceLamps,
+                            priceModel.lamportsToUsd(lamports: balanceUsd) < 0.1
+                        {
+                            AirdropButton()
+                        }
+                        else {
+                            HStack(spacing: 16) {
+                                CircleButton(
+                                    icon: "pencil",
+                                    color: .tubBuyPrimary,
+                                    iconSize: 20,
+                                    iconWeight: .bold,
+                                    action: { showBuySheet = true }
+                                )
 
-                            BuyButton(handleBuy: handleBuy)
+                                BuyButton(handleBuy: handleBuy)
+                            }
                         }
                     }
+                    else {
+                        SellButtons(onSell: handleSell)
+                    }
+                case .connecting:
+                    ConnectingButton()
+                default:
+                    ConnectButton()
                 }
-                else {
-                    SellButtons(onSell: handleSell)
-                }
-            case .connecting:
-                ConnectingButton()
-            default:
-                ConnectButton()
             }
         }
         .fullScreenCover(isPresented: $isLoginPresented) {

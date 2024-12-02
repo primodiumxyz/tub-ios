@@ -30,7 +30,7 @@ struct AccountBalanceView: View {
     var body: some View {
         VStack(spacing: 4) {
             if userModel.userId == nil {
-                EmptyView()
+                Rectangle().fill(.clear).frame(maxHeight: 0)
             }
             else {
                 HStack(alignment: .bottom) {
