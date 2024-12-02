@@ -20,6 +20,7 @@ final class TxManager: ObservableObject {
     var purchaseState: PurchaseState = .buy
     var tokenId: String?
     var sellQuantity: Int?
+    var lastUpdated = Date()
     let tokenIdUsdc = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
     private var currentFetchTask: Task<Void, Error>?
 
@@ -41,9 +42,11 @@ final class TxManager: ObservableObject {
         try await currentFetchTask?.value
     }
 
+    let UPDATE_SECONDS = 60 * 5
     private func _updateTxData(purchaseState: PurchaseState?, tokenId: String?, sellQuantity: Int?) async throws {
         // if nothing is getting updated return without updating
-        if self.purchaseState == (purchaseState ?? self.purchaseState) && self.tokenId == (tokenId ?? self.tokenId)
+        if Date().timeIntervalSince1970 < lastUpdated.timeIntervalSince1970 + Double(UPDATE_SECONDS)
+            && self.purchaseState == (purchaseState ?? self.purchaseState) && self.tokenId == (tokenId ?? self.tokenId)
             && self.sellQuantity == (sellQuantity ?? self.sellQuantity)
         {
             return

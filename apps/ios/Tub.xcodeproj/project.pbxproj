@@ -47,6 +47,7 @@
 		99DDF62D2CB02816000234DA /* AccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99DDF62C2CB0280D000234DA /* AccountView.swift */; };
 		99DED2512CAF2A6B0055FC60 /* ApolloCombine in Frameworks */ = {isa = PBXBuildFile; productRef = 99DED2502CAF2A6B0055FC60 /* ApolloCombine */; };
 		99E789492CC147C000C3CEEB /* ImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E789482CC147BD00C3CEEB /* ImageView.swift */; };
+		99EE82AA2CFE485A00615572 /* SolanaSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 99EE82A92CFE485A00615572 /* SolanaSwift */; };
 		99F3D7A62CE6D937005B895C /* UserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99F3D7A52CE6D934005B895C /* UserModel.swift */; };
 		99FB68342CC003FC00070D2A /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FB68332CC003FC00070D2A /* LoadingView.swift */; };
 		DB10A95D2CA5AA1B00B1E4F3 /* TokenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB10A95C2CA5AA1B00B1E4F3 /* TokenView.swift */; };
@@ -64,8 +65,6 @@
 		DF5A2FC32CAF165D00508A56 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5A2FC22CAF165D00508A56 /* HistoryView.swift */; };
 		DF5A2FC52CAF2DEF00508A56 /* HistoryDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5A2FC42CAF2DEF00508A56 /* HistoryDetailsView.swift */; };
 		DF8C84ED2CDFDCA700E8FA7B /* DismissKeyboardModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF8C84EC2CDFDCA700E8FA7B /* DismissKeyboardModifier.swift */; };
-		DF99EC212CE294B40065F390 /* TokenAnimationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF99EC202CE294B40065F390 /* TokenAnimationState.swift */; };
-		DFA36D562CB4278C00F63D2D /* DummyData.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFA36D552CB4278C00F63D2D /* DummyData.swift */; };
 		DFA4D6512CAC500B00AEDC73 /* Apollo in Frameworks */ = {isa = PBXBuildFile; productRef = DFA4D6502CAC500B00AEDC73 /* Apollo */; };
 		DFC723E32CB9A86C003A915C /* TokenInfoCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFC723E22CB9A86C003A915C /* TokenInfoCardView.swift */; };
 		DFDA138A2CEDF04000057A29 /* TransactionGroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFDA13892CEDF04000057A29 /* TransactionGroupView.swift */; };
@@ -153,8 +152,6 @@
 		DF627D132CF0FA7600A4500B /* swipe.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = swipe.gif; path = Tub/Assets.xcassets/swipe.dataset/swipe.gif; sourceTree = "<group>"; };
 		DF7C361B2CD941FD00A4B27A /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		DF8C84EC2CDFDCA700E8FA7B /* DismissKeyboardModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DismissKeyboardModifier.swift; sourceTree = "<group>"; };
-		DF99EC202CE294B40065F390 /* TokenAnimationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenAnimationState.swift; sourceTree = "<group>"; };
-		DFA36D552CB4278C00F63D2D /* DummyData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DummyData.swift; path = Tub/Sources/Utils/DummyData.swift; sourceTree = SOURCE_ROOT; };
 		DFC723E22CB9A86C003A915C /* TokenInfoCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenInfoCardView.swift; sourceTree = "<group>"; };
 		DFDA13892CEDF04000057A29 /* TransactionGroupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionGroupView.swift; sourceTree = "<group>"; };
 		DFDA13BB2CEF9ACA00057A29 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
@@ -183,6 +180,7 @@
 				993E5D902CAEE423000E23A9 /* ApolloWebSocket in Frameworks */,
 				99856DA42CD27E1F004B9D40 /* Privy in Frameworks */,
 				DFA4D6512CAC500B00AEDC73 /* Apollo in Frameworks */,
+				99EE82AA2CFE485A00615572 /* SolanaSwift in Frameworks */,
 				DB458DB12CAC824A00C5EC18 /* TubAPI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -473,6 +471,7 @@
 				99DED2502CAF2A6B0055FC60 /* ApolloCombine */,
 				99856DA32CD27E1F004B9D40 /* Privy */,
 				46233A252CE67F7E00DB1740 /* CodexAPI */,
+				99EE82A92CFE485A00615572 /* SolanaSwift */,
 			);
 			productName = Tub;
 			productReference = DB6D29012CA1C8F70099951A /* Tub.app */;
@@ -555,6 +554,7 @@
 				99DED24F2CAF2A6B0055FC60 /* XCRemoteSwiftPackageReference "ApolloCombine" */,
 				99856DA22CD27E1F004B9D40 /* XCRemoteSwiftPackageReference "privy-ios" */,
 				46233A242CE67F6200DB1740 /* XCLocalSwiftPackageReference "CodexAPI" */,
+				99EE82A82CFE485A00615572 /* XCRemoteSwiftPackageReference "solana-swift" */,
 			);
 			productRefGroup = DB6D29022CA1C8F70099951A /* Products */;
 			projectDirPath = "";
@@ -1061,6 +1061,14 @@
 				minimumVersion = 0.8.0;
 			};
 		};
+		99EE82A82CFE485A00615572 /* XCRemoteSwiftPackageReference "solana-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/p2p-org/solana-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.0;
+			};
+		};
 		DFA4D64F2CAC500B00AEDC73 /* XCRemoteSwiftPackageReference "apollo-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/apollographql/apollo-ios";
@@ -1108,6 +1116,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 99DED24F2CAF2A6B0055FC60 /* XCRemoteSwiftPackageReference "ApolloCombine" */;
 			productName = ApolloCombine;
+		};
+		99EE82A92CFE485A00615572 /* SolanaSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 99EE82A82CFE485A00615572 /* XCRemoteSwiftPackageReference "solana-swift" */;
+			productName = SolanaSwift;
 		};
 		DB458DB02CAC824A00C5EC18 /* TubAPI */ = {
 			isa = XCSwiftPackageProductDependency;
