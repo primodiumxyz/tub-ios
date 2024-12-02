@@ -38,7 +38,6 @@ final class UserModel: ObservableObject {
 
     private init() {
         self.hasSeenOnboarding = UserDefaults.standard.bool(forKey: "hasSeenOnboarding")
-        print("Initial hasSeenOnboarding value:", self.hasSeenOnboarding)
 
         setupAuthStateListener()
         setupWalletStateListener()
@@ -170,10 +169,10 @@ final class UserModel: ObservableObject {
             case .success(let graphQLResult):
                 let balance = graphQLResult.data?.balance.first?.value ?? 0
                 DispatchQueue.main.async {
-                    self.balanceLamps = balance
-                    if let initialBalanceLamps = self.initialBalanceLamps {
-                        self.balanceChangeLamps = balance - initialBalanceLamps
-                    }
+                   self.balanceLamps = balance
+                   if let initialBalanceLamps = self.initialBalanceLamps {
+                       self.balanceChangeLamps = balance - initialBalanceLamps
+                   }
                 }
             case .failure(let error):
                 print("Error: \(error.localizedDescription)")
@@ -241,7 +240,6 @@ final class UserModel: ObservableObject {
             self.elapsedSeconds = 0
         }
         if !skipPrivy {
-            self.hasSeenOnboarding = false
             privy.logout()
 
         }

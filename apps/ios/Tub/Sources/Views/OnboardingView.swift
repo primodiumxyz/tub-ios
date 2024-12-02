@@ -13,125 +13,116 @@ struct OnboardingView: View {
     @EnvironmentObject private var userModel: UserModel
     @State private var currentPage = 0
     @State private var showBubbles = false
-
+    
     let onboardingData = [
         OnboardingPage(
-            title: "Swipe Up to Explore",
-            subtitle: "Navigate through coins by swiping up.",
-            backgroundImage: nil
+            title: "Swipe to explore the hottest coins",
+            subtitle: "Our AI finds the best coins to buy and sell.",
+            mediaTitle: "swipe"
         ),
         OnboardingPage(
-            title: "1-Click Trading",
-            subtitle: "Take profits with one click when the market pumps!",
-            backgroundImage: nil
-        ),
-        OnboardingPage(
-            title: "Good Luck!",
-            subtitle: "Jump in and start trading now!",
-            backgroundImage: nil
-        ),
+            title: "Instant profits with one tap",
+            subtitle: "Perfect your timing for maximum gains!",
+            mediaTitle: "buysell"
+        )
     ]
-
+    
     private func completeOnboarding() {
         userModel.hasSeenOnboarding = true
         dismiss()
     }
-
+    
     var body: some View {
         NavigationView {
-            ZStack {
-                Color.black.ignoresSafeArea()
-
-                VStack(spacing: 0) {
-                    TabView(selection: $currentPage) {
-                        ForEach(0..<onboardingData.count, id: \.self) { index in
-                            VStack(spacing: 16) {
-                                Spacer()
-
-                                Text(onboardingData[index].title)
-                                    .font(.sfRounded(size: .xl2, weight: .semibold))
-                                    .padding(.top, 30)
-
-                                Text(onboardingData[index].subtitle)
+            VStack(spacing: 0) {
+                TabView(selection: $currentPage) {
+                    ForEach(0..<onboardingData.count, id: \.self) { index in
+                        VStack(spacing: 16) {
+                            Spacer()
+                            
+                            Text(onboardingData[index].title)
+                                .font(.sfRounded(size: .xl2, weight: .semibold))
+                                .foregroundStyle(.tubBuyPrimary)
+                                .padding(.top, 30)
+                            
+                            if let subtitle = onboardingData[index].subtitle {
+                                Text(subtitle)
                                     .font(.sfRounded(size: .lg, weight: .regular))
+                                    .foregroundStyle(.tubSellPrimary)
                                     .multilineTextAlignment(.center)
                                     .padding(.horizontal, 40)
-
-                                if index == 0 {
-                                    GIFView(gifName: "swipe")
-                                        .frame(width: 300, height: 500)
-
-                                }
-                                else if index == 1 {
-                                    GIFView(gifName: "buysell")
-                                        .frame(width: 300, height: 550)
-                                }
-                                else if index == 2 {
-                                    GIFView(gifName: "history")
-                                        .frame(width: 300, height: 550)
-                                }
-                                Spacer()
-
                             }
-                            .tag(index)
-                            .onChange(of: currentPage) { oldValue, newValue in
-                                if newValue == 1 {
-                                    showBubbles = false
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 6.8) {
-                                        showBubbles = true
-                                    }
+                            
+                            if let mediaTitle = onboardingData[index].mediaTitle {
+                                
+                                GIFView(gifName: mediaTitle)
+                                    .padding(.top, 16)
+                                    .padding(.horizontal, 4)
+                                    .frame(width: 200, height: 412.2)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 24)
+                                            .stroke(Color.gray, lineWidth: 2)
+                                    )
+                            }
+                            Spacer()
+                        }
+                        .tag(index)
+                        .onChange(of: currentPage) { oldValue, newValue in
+                            if newValue == 1 {
+                                showBubbles = false
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 6.8) {
+                                    showBubbles = true
                                 }
                             }
                         }
                     }
-                    .tabViewStyle(.page(indexDisplayMode: .never))
-
-                    OutlineButton(
-                        text: currentPage == onboardingData.count - 1 ? "Get Started" : "Continue",
-                        textColor: .primary,
-                        strokeColor: .primary,
-                        backgroundColor: Color.black,
-                        maxWidth: .infinity,
-                        action: {
-                            if currentPage < onboardingData.count - 1 {
-                                withAnimation {
-                                    currentPage += 1
-                                }
-                            }
-                            else {
-                                completeOnboarding()
+                }
+                .tabViewStyle(.page(indexDisplayMode: .never))
+                
+                OutlineButton(
+                    text: currentPage == onboardingData.count - 1 ? "Get Started" : "Continue",
+                    textColor: .tubBuyPrimary,
+                    strokeColor: .tubBuyPrimary,
+                    backgroundColor: .clear,
+                    maxWidth: .infinity,
+                    action: {
+                        if currentPage < onboardingData.count - 1 {
+                            withAnimation {
+                                currentPage += 1
                             }
                         }
-                    )
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 40)
-                }
-
-                if currentPage == 1 {
-                    BubbleEffect(isActive: $showBubbles)
-                        .opacity(showBubbles ? 1 : 0)
-                        .animation(.easeIn, value: showBubbles)
-                }
+                        else {
+                            completeOnboarding()
+                        }
+                    }
+                )
+                .padding(.horizontal, 20)
+                .padding(.bottom, 40)
             }
             .navigationBarHidden(true)
-            .preferredColorScheme(.dark)
         }
     }
 }
 
 struct OnboardingPage {
     let title: String
-    let subtitle: String
-    let backgroundImage: String?
+    let subtitle: String?
+    let mediaTitle: String?
+    
+    init(title: String, subtitle: String? = nil, mediaTitle: String? = nil){
+        self.title = title
+        self.subtitle = subtitle
+        self.mediaTitle = mediaTitle
+    }
 }
 
 struct GIFView: UIViewRepresentable {
     let gifName: String
-
+    
     func makeUIView(context: Context) -> WKWebView {
         let webView = WKWebView()
         webView.isUserInteractionEnabled = false
-
+        
         if let url = Bundle.main.url(forResource: gifName, withExtension: "gif") {
             let data = try? Data(contentsOf: url)
             webView.load(
@@ -146,11 +137,12 @@ struct GIFView: UIViewRepresentable {
         webView.isOpaque = false
         return webView
     }
-
+    
     func updateUIView(_ uiView: WKWebView, context: Context) {}
 }
 
 #Preview {
     OnboardingView()
         .environmentObject(UserModel.shared)
+        .preferredColorScheme(.light)
 }

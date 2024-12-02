@@ -73,6 +73,7 @@ struct BuyFormView: View {
             Rectangle()
                 .fill(Color(UIColor.systemBackground))
                 .zIndex(0)
+                .cornerRadius(30)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             VStack {
@@ -85,7 +86,10 @@ struct BuyFormView: View {
             .background(Gradients.cardBgGradient)
             .onAppear { resetForm() }
             .dismissKeyboardOnTap()
+            .cornerRadius(30)
             .presentationDetents([.height(Self.formHeight)])
+            .presentationBackground(.clear)
+            
         }
     }
 
@@ -204,8 +208,13 @@ struct BuyFormView: View {
     private var amountButtons: some View {
         HStack(spacing: 10) {
             ForEach([10, 25, 50, 100], id: \.self) { amount in
+                let balance = userModel.balanceLamps ?? 0
+                let selectedAmountUsd = priceModel.lamportsToUsd(lamports: balance * amount / 100)
+                let selected = selectedAmountUsd == buyAmountUsd
                 CapsuleButton(
                     text: amount == 100 ? "MAX" : "\(amount)%",
+                    textColor: .tubTextInverted,
+                    backgroundColor: .tubBuyPrimary.opacity(selected ? 0.8 : 0.5),
                     action: {
                         guard let balance = userModel.balanceLamps else { return }
                         updateBuyAmount(balance * amount / 100)
@@ -272,4 +281,28 @@ extension String {
 
         return 0
     }
+}
+
+#Preview {
+    @Previewable @StateObject var priceModel = {
+        let model = SolPriceModel.shared
+        spoofPriceModelData(model)
+        return model
+    }()
+
+    @Previewable @StateObject var userModel = UserModel.shared
+
+    let tokenModel = {
+        let model = TokenModel()
+        spoofTokenModelData(model)
+        return model
+    }()
+
+
+
+
+    BuyFormView(isVisible: .constant(true), tokenModel: tokenModel, onBuy: { _ in })
+        .environmentObject(userModel)
+        .environmentObject(priceModel)
+        .preferredColorScheme(.dark)
 }
