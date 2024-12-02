@@ -234,7 +234,6 @@ struct RegisterView: View {
         }
         .ignoresSafeArea(.keyboard)
         .scrollBounceBehavior(.basedOnSize, axes: [.vertical])
-        .padding(.vertical)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(UIColor.systemBackground))
         .onChange(of: userModel.userId) { _, newUserId in
