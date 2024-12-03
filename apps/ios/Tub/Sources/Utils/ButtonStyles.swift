@@ -56,6 +56,7 @@ struct OutlineButton: View {
     var strokeColor: Color
     var backgroundColor: Color
     var maxWidth: CGFloat = 50
+    var disabled: Bool = false
     var action: () -> Void
 
     var body: some View {
@@ -63,6 +64,7 @@ struct OutlineButton: View {
             backgroundColor: backgroundColor,
             strokeColor: strokeColor,
             maxWidth: maxWidth,
+            disabled: disabled,
             action: action
         ) {
             Text(text)
@@ -369,26 +371,30 @@ struct ContentButtonStyle<Content: View>: ButtonStyle {
     var strokeColor: Color?
     var maxWidth: CGFloat?
     var disabled: Bool
-    
+
     func makeBody(configuration: Self.Configuration) -> some View {
-        content
-            .frame(maxWidth: maxWidth)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 13)
-            .opacity(disabled ? 0.5 : 1.0) 
-            .background(backgroundColor.opacity(configuration.isPressed || disabled ? 0.5 : 1.0))
-            .cornerRadius(30)
-            .overlay(
-                Group {
-                    if let strokeColor = strokeColor {
-                        RoundedRectangle(cornerRadius: 30)
-                            .inset(by: 0.5)
-                            .stroke(strokeColor, lineWidth: 1)
-                    }
+        // Wrap the content in another view to extend the tap area
+        VStack {
+            content
+        }
+        .frame(maxWidth: maxWidth)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 13)
+        .opacity(disabled ? 0.5 : 1.0)
+        .background(backgroundColor.opacity(configuration.isPressed || disabled ? 0.5 : 1.0))
+        .cornerRadius(30)
+        .overlay(
+            Group {
+                if let strokeColor = strokeColor {
+                    RoundedRectangle(cornerRadius: 30)
+                        .inset(by: 0.5)
+                        .stroke(strokeColor, lineWidth: 1)
                 }
-            )
-            .scaleEffect(configuration.isPressed ? 0.95 : 1)
-            .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
+            }
+        )
+        .contentShape(Rectangle())
+        .scaleEffect(!disabled && configuration.isPressed ? 0.95 : 1)
+        .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
     }
 }
 
@@ -399,7 +405,7 @@ struct ContentButton<Content: View>: View {
     var maxWidth: CGFloat? = nil
     var action: () -> Void
     var disabled: Bool = false
-    
+
     init(
         backgroundColor: Color = .tubBuyPrimary,
         strokeColor: Color? = nil,
@@ -415,10 +421,10 @@ struct ContentButton<Content: View>: View {
         self.action = action
         self.disabled = disabled
     }
-    
+
     var body: some View {
         Button(action: self.disabled ? {} : action) {
-            EmptyView()
+            content
         }
         .buttonStyle(
             ContentButtonStyle(

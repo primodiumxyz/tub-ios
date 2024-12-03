@@ -20,19 +20,19 @@ struct CoinbaseOnrampView: View {
 
     var body: some View {
         VStack {
-                if showInput {
-                    VStack(spacing: 20) {
-                        numberInput
-                        continueButton
-                    }
-                    .padding()
+            if showInput {
+                VStack(spacing: 20) {
+                    numberInput
+                    continueButton
                 }
-                else {
-                    LoadingView(identifier: "Coinbase onramp")
-                }
-                
-                if userModel.walletAddress == nil {
-                    Text("Connect a wallet to continue").font(.sfRounded()).foregroundStyle(.tubError)
+                .padding()
+            }
+            else {
+                LoadingView(identifier: "Coinbase onramp")
+            }
+
+            if userModel.walletAddress == nil {
+                Text("Connect a wallet to continue").font(.sfRounded()).foregroundStyle(.tubError)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -43,7 +43,7 @@ struct CoinbaseOnrampView: View {
         }
         .sheet(isPresented: $showWebView) {
             if let url = url {
-                ZStack (alignment: .top){
+                ZStack(alignment: .top) {
                     HStack(alignment: .center, spacing: 0) {
                         Rectangle()
                             .foregroundStyle(.clear)
@@ -53,7 +53,7 @@ struct CoinbaseOnrampView: View {
                     }
                     .padding()
                     .zIndex(2)
-                    
+
                     WebView(url: url)
                         .ignoresSafeArea()
                 }
@@ -169,9 +169,8 @@ struct WebView: UIViewRepresentable {
     }
 }
 
-
 #Preview {
     CoinbaseOnrampView()
         .environmentObject(UserModel.shared)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(.light)
 }
