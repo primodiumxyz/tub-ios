@@ -110,9 +110,9 @@ struct RegisterView: View {
 
                     PrimaryButton(
                         text: "Continue",
-                        textColor: Color.white,
+                        textColor: .white,
                         backgroundColor: .tubSellPrimary,
-                        strokeColor: Color.clear,
+                        strokeColor: .clear,
                         maxWidth: .infinity,
                         action: {
                             if isEmailValid {
@@ -154,7 +154,7 @@ struct RegisterView: View {
                     .overlay(
                         RoundedRectangle(cornerRadius: 30)
                             .inset(by: 0.5)
-                            .stroke(Color.white, lineWidth: 1)
+                            .stroke(.white, lineWidth: 1)
                             .padding(.horizontal, 10)
                     )
                     .onTapGesture {
@@ -175,9 +175,9 @@ struct RegisterView: View {
                 // Google Login
                 OutlineButtonWithIcon(
                     text: "Sign in with Google",
-                    textColor: Color.white,
-                    strokeColor: Color.white,
-                    backgroundColor: Color.black,
+                    textColor: .white,
+                    strokeColor: .white,
+                    backgroundColor: .black,
                     leadingView: AnyView(GoogleLogoView()),
                     action: {
                         Task {
@@ -201,7 +201,6 @@ struct RegisterView: View {
                 )
                 .frame(maxWidth: .infinity)
                 .padding(.top, 10.0)
-                .padding(.bottom, 5.0)
 
                 IconTextButton(
                     icon: "ladybug.fill",
@@ -220,7 +219,6 @@ struct RegisterView: View {
                     }
                 )
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 5)
 
             }.sheet(isPresented: $showPhoneModal) {
                 SignInWithPhoneView()
@@ -235,7 +233,6 @@ struct RegisterView: View {
         .ignoresSafeArea(.keyboard)
         .scrollBounceBehavior(.basedOnSize, axes: [.vertical])
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(UIColor.systemBackground))
         .onChange(of: userModel.userId) { _, newUserId in
             if newUserId != nil {
                 dismiss()

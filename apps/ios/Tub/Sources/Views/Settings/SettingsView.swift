@@ -18,14 +18,14 @@ struct CustomToggleStyle: ToggleStyle {
                 .frame(width: 50, height: 30)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(configuration.isOn ? .primary : .secondary, lineWidth: 1)
+                        .stroke(configuration.isOn ? .tubSellPrimary : .tubBuyPrimary, lineWidth: 1)
                 )
                 .overlay(
                     Circle()
                         .fill(
                             configuration.isOn
-                                ? AppColors.toggleOnGradient
-                                : AppColors.toggleOffGradient
+                                ? Gradients.toggleOnGradient
+                                : Gradients.toggleOffGradient
                         )
                         .frame(width: 24, height: 24)
                         .offset(x: configuration.isOn ? 10 : -10)
@@ -119,17 +119,6 @@ struct SettingsView: View {
                         }
                     }
 
-                    // Commented out for now
-                    // Push Notifications Toggle
-                    //                    DetailRow(
-                    //                        title: "Push Notifications",
-                    //                        value: ""
-                    //                    ) {
-                    //                        Toggle("", isOn: $pushNotificationsEnabled)
-                    //                            .toggleStyle(CustomToggleStyle())
-                    //                    }
-
-                    // Vibration Toggle
                     DetailRow(
                         title: "Vibration",
                         value: ""
@@ -182,4 +171,5 @@ struct SettingsView: View {
 
 #Preview {
     SettingsView()
+        .preferredColorScheme(.dark)
 }

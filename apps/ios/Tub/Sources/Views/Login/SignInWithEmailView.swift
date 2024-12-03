@@ -39,7 +39,7 @@ struct SignInWithEmailView: View {
             OTPInputView(onComplete: verifyOTP)
         }
         .frame(maxHeight: .infinity)
-        .background(Color(UIColor.systemBackground))
+        .background(Gradients.cardBgGradient)
         .dismissKeyboardOnTap()
     }
 }
