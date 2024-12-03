@@ -10,7 +10,7 @@ struct TokenInfoCardView: View {
     @ObservedObject var tokenModel: TokenModel
     @EnvironmentObject var priceModel: SolPriceModel
     var stats: [StatValue]
-    var sellStats: ([StatValue])?
+    var sellStats: [StatValue]?
 
     init(tokenModel: TokenModel, stats: [StatValue], sellStats: [StatValue]? = nil) {
         self.tokenModel = tokenModel
@@ -18,6 +18,7 @@ struct TokenInfoCardView: View {
         self.sellStats = sellStats
     }
 
+    private var statRows: Int { (self.stats.count + 1) / 2 }
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .center, spacing: 0) {
@@ -44,7 +45,7 @@ struct TokenInfoCardView: View {
                             .padding(.vertical, 4)
                         }
                     }
-                    ForEach(0..<(stats.count + 1) / 2, id: \.self) { rowIndex in
+                    ForEach(0..<statRows, id: \.self) { rowIndex in
                         HStack(spacing: 20) {
                             ForEach(0..<2) { columnIndex in
                                 let statIndex = rowIndex * 2 + columnIndex

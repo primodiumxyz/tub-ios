@@ -29,10 +29,7 @@ struct AccountBalanceView: View {
 
     var body: some View {
         VStack(spacing: 4) {
-            if userModel.userId == nil {
-                Rectangle().fill(.clear).frame(maxHeight: 0)
-            }
-            else {
+            if userModel.userId != nil {
                 HStack(alignment: .bottom) {
                     Text("Your Balance")
                         .font(.sfRounded(size: .lg, weight: .semibold))

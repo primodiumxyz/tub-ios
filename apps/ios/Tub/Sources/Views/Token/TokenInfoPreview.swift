@@ -73,6 +73,8 @@ struct TokenInfoPreview: View {
         return ret
     }
 
+    private var statRows: Int { (generalStats.count + 1) / 2 }
+
     var body: some View {
         ZStack(alignment: .bottom) {
             VStack(alignment: .leading, spacing: 0) {
@@ -85,7 +87,7 @@ struct TokenInfoPreview: View {
                     }
                 }
                 else {
-                    ForEach(0..<(generalStats.count + 1) / 2, id: \.self) { rowIndex in
+                    ForEach(0..<statRows, id: \.self) { rowIndex in
                         HStack(spacing: 20) {
                             ForEach(0..<2) { columnIndex in
                                 let statIndex = rowIndex * 2 + columnIndex
@@ -99,7 +101,7 @@ struct TokenInfoPreview: View {
                 }
             }
             .padding(24)
-            .background(colorScheme == .dark ? Gradients.darkGrayGradient : Gradients.clearGradient)
+            .background(colorScheme == .dark ? Gradients.grayGradient : Gradients.clearGradient)
             .overlay(
                 UnevenRoundedRectangle(
                     cornerRadii: RectangleCornerRadii(

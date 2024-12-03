@@ -19,12 +19,12 @@ struct OnboardingView: View {
         OnboardingPage(
             title: "Swipe to explore the hottest coins",
             subtitle: "Our AI finds the best coins to buy and sell.",
-            mediaTitle: "swipe"
+            mediaTitle: "onboarding1"
         ),
         OnboardingPage(
             title: "Instant profits with one tap",
             subtitle: "Perfect your timing for maximum gains!",
-            mediaTitle: "buysell"
+            mediaTitle: "onboarding1"
         ),
     ]
 
@@ -34,7 +34,7 @@ struct OnboardingView: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 0) {
                 TabView(selection: $currentPage) {
                     ForEach(0..<onboardingData.count, id: \.self) { index in

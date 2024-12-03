@@ -2,79 +2,18 @@ import Foundation
 import SwiftUI
 
 struct Gradients {
-    // Gradients
-    // buy bg
-    static let primaryPurpleGradient = LinearGradient(
-        stops: [
-            Gradient.Stop(color: Color.purple.opacity(0.3), location: 0.00),
-            Gradient.Stop(color: Color.purple.opacity(0), location: 0.8),
-        ],
-        startPoint: .bottom,
-        endPoint: .top
-    )
-    // sell bg
-    static let primaryPinkGradient = LinearGradient(
-        stops: [
-            Gradient.Stop(color: Color.pink.opacity(0.3), location: 0.00),
-            Gradient.Stop(color: Color.pink.opacity(0), location: 0.8),
-        ],
-        startPoint: .bottom,
-        endPoint: .top
-    )
-
-    // login modal bg
-    static let pinkGradient = LinearGradient(
-        stops: [
-            Gradient.Stop(color: Color(red: 0.77, green: 0.38, blue: 0.6).opacity(0.4), location: 0.00),
-            Gradient.Stop(color: Color(red: 0.77, green: 0.38, blue: 0.6).opacity(0.1), location: 1.00),
-        ],
-        startPoint: .top,
-        endPoint: .bottom
-    )
-
-    // card bg
-    static let darkBlueGradient = LinearGradient(
-        stops: [
-            Gradient.Stop(color: Color(red: 0.18, green: 0.08, blue: 0.37), location: 0.00),
-            Gradient.Stop(color: Color(red: 0.1, green: 0.1, blue: 0.2), location: 0.85),
-            Gradient.Stop(color: Color(red: 0, green: 0, blue: 0), location: 1.0),
-        ],
-        startPoint: .top,
-        endPoint: .bottom
-    )
-
     static let clearGradient = LinearGradient(
         stops: [
-            Gradient.Stop(color: Color.clear, location: 0.00)
+            Gradient.Stop(color: .clear, location: 0.00)
         ],
         startPoint: .top,
         endPoint: .bottom
     )
     // info stats bg
-    static let darkGrayGradient = LinearGradient(
+    static let grayGradient = LinearGradient(
         stops: [
-            Gradient.Stop(color: Color(red: 0.12, green: 0.12, blue: 0.11), location: 0.1),
-            Gradient.Stop(color: Color(red: 0.12, green: 0.11, blue: 0.11).opacity(0), location: 1.00),
-        ],
-        startPoint: .top,
-        endPoint: .bottom
-    )
-
-    // light mode info stats bg
-    static let lightGrayGradient = LinearGradient(
-        stops: [
-            Gradient.Stop(color: Color(red: 0.96, green: 0.96, blue: 0.96), location: 0.38),
-            Gradient.Stop(color: Color(red: 0.96, green: 0.96, blue: 0.96).opacity(0), location: 1.00),
-        ],
-        startPoint: UnitPoint(x: 0.5, y: 0),
-        endPoint: UnitPoint(x: 0.5, y: 1)
-    )
-
-    // buy green bg
-    static let darkGreenGradient = LinearGradient(
-        stops: [
-            Gradient.Stop(color: Color(red: 0.1, green: 0.2, blue: 0.18), location: 0.29),
-            Gradient.Stop(color: Color.black, location: 1.00),
+            Gradient.Stop(color: .tubGray, location: 0.1),
+            Gradient.Stop(color: .clear, location: 1.00),
         ],
         startPoint: .top,
         endPoint: .bottom
@@ -106,7 +45,7 @@ struct Gradients {
     static let cardBgGradient = LinearGradient(
         stops: [
             Gradient.Stop(color: .tubAltSecondary.opacity(0.8), location: 0.0),
-            Gradient.Stop(color: .tubAltSecondary.opacity(0), location: 0.57),
+            Gradient.Stop(color: .clear, location: 0.57),
         ],
         startPoint: .top,
         endPoint: .bottom
