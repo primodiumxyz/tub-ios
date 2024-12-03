@@ -27,26 +27,22 @@ async function getClient(config?: Config) {
   });
 }
 
-async function dropExistingFunction(client: pg.Client, functionName: string) {
-  try {
-    // Get function parameters
-    const { rows } = await client.query(
-      `
-      SELECT pg_get_function_identity_arguments(oid) as args
-      FROM pg_proc 
-      WHERE proname = $1 
-      AND pronamespace = 'public'::regnamespace
-    `,
-      [functionName],
-    );
+async function executeSqlFiles(client: pg.Client, directory: string) {
+  const files = readdirSync(directory);
 
-    if (rows.length > 0) {
-      // Drop the function with its specific signature
-      await client.query(`DROP FUNCTION IF EXISTS ${functionName}(${rows[0].args})`);
-      console.log(`Dropped existing function: ${functionName}`);
+  for (const file of files) {
+    if (file.endsWith(".sql")) {
+      const filePath = path.join(directory, file);
+      const sql = readFileSync(filePath, "utf-8");
+
+      try {
+        console.log(`Executing SQL file: ${file}`);
+        await client.query(sql);
+        console.log(`Successfully executed: ${file}`);
+      } catch (error) {
+        console.error(`Error executing ${file}:`, error);
+      }
     }
-  } catch (error) {
-    console.warn(`Warning: Failed to drop function ${functionName}:`, error);
   }
 }
 
@@ -60,46 +56,67 @@ async function getTables(client: pg.Client) {
   return rows.map((row) => row.table_name);
 }
 
+async function getCustomTypes(client: pg.Client) {
+  const { rows } = await client.query(`
+    SELECT t.typname as name
+    FROM pg_type t
+    JOIN pg_namespace n ON t.typnamespace = n.oid
+    WHERE n.nspname = 'public'
+    AND t.typtype = 'c'
+  `);
+  return rows.map((row) => row.name);
+}
+
+async function getFunctions(client: pg.Client) {
+  const { rows } = await client.query(`
+    SELECT 
+      p.proname as name,
+      pg_get_function_result(p.oid) as return_type,
+      CASE 
+        WHEN p.provolatile = 'i' THEN 'IMMUTABLE'
+        WHEN p.provolatile = 's' THEN 'STABLE'
+        ELSE 'VOLATILE'
+      END as volatility
+    FROM pg_proc p
+    JOIN pg_namespace n ON p.pronamespace = n.oid
+    WHERE n.nspname = 'api'
+    AND p.prokind = 'f'
+  `);
+
+  return rows.map((row) => ({
+    name: row.name,
+    type: row.return_type.toLowerCase().includes("void") ? "mutation" : "query",
+    volatility: row.volatility,
+  }));
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const config: Config = {};
+  let applyMetadata = false;
 
-  for (let i = 0; i < args.length; i += 2) {
-    if (args[i] === "--endpoint") config.endpoint = args[i + 1];
-    if (args[i] === "--admin-secret") config.adminSecret = args[i + 1];
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === "--endpoint") {
+      config.endpoint = args[i + 1];
+      i++; // Skip next argument
+    } else if (args[i] === "--admin-secret") {
+      config.adminSecret = args[i + 1];
+      i++; // Skip next argument
+    } else if (args[i] === "--apply-metadata") {
+      applyMetadata = true;
+    }
   }
 
   const client = await getClient(config);
   await client.connect();
 
   try {
-    // Get all SQL files
-    const dirs = {
-      queries: path.resolve(__dirname, "../queries"),
-      mutations: path.resolve(__dirname, "../mutations"),
-    };
+    // Execute SQL files in mutations and queries directories
+    const mutationsDir = path.resolve(__dirname, "../../timescale/mutations");
+    const queriesDir = path.resolve(__dirname, "../../timescale/queries");
 
-    const operations = [];
-
-    // First, drop all existing functions
-    for (const [type, dir] of Object.entries(dirs)) {
-      const files = readdirSync(dir).filter((f) => f.endsWith(".sql"));
-
-      for (const file of files) {
-        const sql = readFileSync(path.join(dir, file), "utf-8");
-        const functionName = file.replace(".sql", "");
-        await dropExistingFunction(client, functionName);
-
-        // Execute the new function definition
-        await client.query(sql);
-        console.log(`Created function: ${functionName}`);
-
-        operations.push({
-          name: functionName,
-          type: type === "queries" ? "query" : "mutation",
-        });
-      }
-    }
+    await executeSqlFiles(client, mutationsDir);
+    await executeSqlFiles(client, queriesDir);
 
     // Create metadata directories
     const databasesDir = path.resolve(__dirname, "../../../metadata/databases");
@@ -115,7 +132,14 @@ async function main() {
 
     // Create/update databases.yaml
     const databasesPath = path.resolve(databasesDir, "databases.yaml");
-    let existingConfig: { name: string; kind: string; configuration: any; tables?: string; functions?: string }[] = [];
+    let existingConfig: {
+      name: string;
+      kind: string;
+      configuration: any;
+      tables?: string;
+      functions?: string;
+      types?: string;
+    }[] = [];
     try {
       const existingContent = readFileSync(databasesPath, "utf-8");
       existingConfig = yaml.parse(existingContent);
@@ -150,14 +174,17 @@ async function main() {
       manage_metadata: false,
     };
 
-    // Update tables and functions references
+    // Update references
     timescaleConfig.tables = "!include timescaledb/tables.yaml";
     timescaleConfig.functions = "!include timescaledb/functions.yaml";
+    timescaleConfig.types = "!include timescaledb/types.yaml";
 
     writeFileSync(databasesPath, yaml.stringify(existingConfig));
 
     // Create function files and index
+    const operations = await getFunctions(client);
     const functionIncludes = [];
+
     for (const op of operations) {
       const functionConfig = {
         function: {
@@ -209,21 +236,45 @@ async function main() {
 
     writeFileSync(path.resolve(timescaleDir, "tables.yaml"), tableIncludes.join("\n"));
 
-    // Apply metadata changes to Hasura
-    try {
-      execSync("hasura metadata apply", {
-        stdio: "inherit",
-        cwd: path.resolve(__dirname, "../../.."),
-      });
-      console.log("✨ Hasura metadata applied successfully");
+    // Create types directory and files
+    const typesDir = path.resolve(timescaleDir, "types");
+    mkdirSync(typesDir, { recursive: true });
 
-      execSync("hasura metadata reload", {
-        stdio: "inherit",
-        cwd: path.resolve(__dirname, "../../.."),
-      });
-      console.log("✨ Hasura metadata reloaded successfully");
-    } catch (error) {
-      console.error("Failed to apply/reload Hasura metadata:", error);
+    const types = await getCustomTypes(client);
+    const typeIncludes = [];
+
+    for (const typeName of types) {
+      const typeConfig = {
+        type: {
+          name: typeName,
+          schema: "public",
+        },
+      };
+
+      const fileName = `${typeName}.yaml`;
+      writeFileSync(path.resolve(typesDir, fileName), yaml.stringify(typeConfig));
+      typeIncludes.push(`- "!include types/${fileName}"`);
+    }
+
+    writeFileSync(path.resolve(timescaleDir, "types.yaml"), typeIncludes.join("\n"));
+
+    // Apply metadata changes to Hasura only if flag is provided
+    if (applyMetadata) {
+      try {
+        execSync("hasura metadata apply", {
+          stdio: "inherit",
+          cwd: path.resolve(__dirname, "../../.."),
+        });
+        console.log("✨ Hasura metadata applied successfully");
+
+        execSync("hasura metadata reload", {
+          stdio: "inherit",
+          cwd: path.resolve(__dirname, "../../.."),
+        });
+        console.log("✨ Hasura metadata reloaded successfully");
+      } catch (error) {
+        console.error("Failed to apply/reload Hasura metadata:", error);
+      }
     }
 
     // Generate operations file

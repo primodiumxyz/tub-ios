@@ -170,3 +170,4 @@
       manage_metadata: false
   tables: "!include timescaledb/tables.yaml"
   functions: "!include timescaledb/functions.yaml"
+  types: "!include timescaledb/types.yaml"

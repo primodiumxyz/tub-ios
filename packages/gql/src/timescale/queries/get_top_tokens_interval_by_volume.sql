@@ -10,7 +10,7 @@
  *   avg_price_usd NUMERIC
  * )
 */
-CREATE OR REPLACE FUNCTION get_top_tokens_interval_by_volume(
+CREATE OR REPLACE FUNCTION api.get_top_tokens_interval_by_volume(
   interval_seconds INTEGER,
   limit_count INTEGER DEFAULT 100
 )

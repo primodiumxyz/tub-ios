@@ -11,7 +11,7 @@
  *   token_metadata token_metadata
  * )
 */
-CREATE OR REPLACE FUNCTION get_token_trade_history_interval(
+CREATE OR REPLACE FUNCTION api.get_token_trade_history_interval(
   token_mint TEXT,
   interval_seconds INTEGER
 )

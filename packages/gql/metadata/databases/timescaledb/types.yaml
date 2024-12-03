@@ -1,0 +1,6 @@
+- "!include types/schema_migrations.yaml"
+- "!include types/token_metadata.yaml"
+- "!include types/trade_history.yaml"
+- "!include types/trade_history_1min.yaml"
+- "!include types/trade_history_candle.yaml"
+- "!include types/token_volume_stats.yaml"

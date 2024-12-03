@@ -13,7 +13,7 @@
  *   token_metadata token_metadata
  * )
 */
-CREATE OR REPLACE FUNCTION insert_trade(
+CREATE OR REPLACE FUNCTION api.insert_trade(
   token_mint TEXT,
   token_price_usd NUMERIC,
   volume_usd NUMERIC,

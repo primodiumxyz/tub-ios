@@ -2,6 +2,9 @@
 -- Enable TimescaleDB extension
 CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
 
+-- Create a custom schema for our API functions
+CREATE SCHEMA IF NOT EXISTS api;
+
 -- Create the token metadata type
 CREATE TYPE token_metadata AS (
   name VARCHAR(255),

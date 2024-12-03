@@ -2,6 +2,6 @@ function:
   name: batch_insert_trades
   schema: public
 configuration:
-  exposed_as: mutation
+  exposed_as: query
   arguments:
     session_argument: null

@@ -2,6 +2,6 @@ function:
   name: insert_trade
   schema: public
 configuration:
-  exposed_as: mutation
+  exposed_as: query
   arguments:
     session_argument: null
