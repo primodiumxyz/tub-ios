@@ -176,7 +176,7 @@ struct BuyFormView: View {
                         isValidInput = false
                     }
                 }
-                .font(.sfRounded(size: .xl5, weight: .bold))
+                .font(.sfRounded(size: .xl5, weight: .semibold))
                 .foregroundStyle(isValidInput ? .tubText : .tubError)
                 .frame(minWidth: 50)
                 .fixedSize()
@@ -210,11 +210,11 @@ struct BuyFormView: View {
             ForEach([10, 25, 50, 100], id: \.self) { amount in
                 let balance = userModel.balanceLamps ?? 0
                 let selectedAmountUsd = priceModel.lamportsToUsd(lamports: balance * amount / 100)
-                let selected = selectedAmountUsd == buyAmountUsd
+                let selected = balance > 0 && selectedAmountUsd == buyAmountUsd
                 CapsuleButton(
                     text: amount == 100 ? "MAX" : "\(amount)%",
-                    textColor: .tubTextInverted,
-                    backgroundColor: .tubBuyPrimary.opacity(selected ? 0.8 : 0.5),
+                    textColor: .white,
+                    backgroundColor: selected ? .tubAltPrimary : .tubAltSecondary,
                     action: {
                         guard let balance = userModel.balanceLamps else { return }
                         updateBuyAmount(balance * amount / 100)
@@ -301,5 +301,5 @@ extension String {
     BuyFormView(isVisible: .constant(true), tokenModel: tokenModel, onBuy: { _ in })
         .environmentObject(userModel)
         .environmentObject(priceModel)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(.light)
 }

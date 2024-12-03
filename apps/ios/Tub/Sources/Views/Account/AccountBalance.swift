@@ -51,7 +51,7 @@ struct AccountBalanceView: View {
                                 Text(formattedChange)
                                     .font(.sfRounded(size: .xs, weight: .light))
                                     .fontWeight(.bold)
-                                    .foregroundStyle(balances.deltaUsd >= 0 ? Color.green : Color.red)
+                                    .foregroundStyle(balances.deltaUsd >= 0 ? .tubSuccess : .tubError)
                                     .opacity(0.7)
                                     .frame(height: 10)
                                     .padding(0)
@@ -73,7 +73,6 @@ struct AccountBalanceView: View {
                         }
                     }
                 }
-                .padding(.horizontal, 24)
                 .padding(.bottom, 4)
                 Divider()
                     .frame(maxWidth: .infinity, maxHeight: 0.5)

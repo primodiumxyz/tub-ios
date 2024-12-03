@@ -24,8 +24,8 @@ struct CustomToggleStyle: ToggleStyle {
                     Circle()
                         .fill(
                             configuration.isOn
-                                ? Gradients.primaryPurpleGradient
-                                : Gradients.primaryPinkGradient
+                                ? Gradients.toggleOnGradient
+                                : Gradients.toggleOffGradient
                         )
                         .frame(width: 24, height: 24)
                         .offset(x: configuration.isOn ? 10 : -10)
@@ -119,17 +119,6 @@ struct SettingsView: View {
                         }
                     }
 
-                    // Commented out for now
-                    // Push Notifications Toggle
-                    //                    DetailRow(
-                    //                        title: "Push Notifications",
-                    //                        value: ""
-                    //                    ) {
-                    //                        Toggle("", isOn: $pushNotificationsEnabled)
-                    //                            .toggleStyle(CustomToggleStyle())
-                    //                    }
-
-                    // Vibration Toggle
                     DetailRow(
                         title: "Vibration",
                         value: ""
