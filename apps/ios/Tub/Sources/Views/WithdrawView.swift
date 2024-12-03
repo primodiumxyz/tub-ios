@@ -8,44 +8,32 @@
 import SolanaSwift
 import SwiftUI
 
-struct WDView: View {
-    @EnvironmentObject var userModel: UserModel
-    @EnvironmentObject var priceModel: SolPriceModel
+class WithdrawModel: ObservableObject {
 
-    @State private var buyAmountUsdString: String = ""
-    @State private var buyAmountUsd: Double = 0
-    @State private var recipient: String = ""
-    @State private var continueDisabled: Bool = true
+    @Published var buyAmountUsdString: String = ""
+    @Published var buyAmountUsd: Double = 0
+    @Published var recipient: String = ""
+    @Published var continueDisabled: Bool = true
 
-    static let formHeight: CGFloat = 250
+    @Published var currentPage = 0
 
-    private var pages: [AnyView] {
-        [
-            AnyView(
-                AmountSelectView(
-                    continueDisabled: $continueDisabled,
-                    buyAmountUsdString: $buyAmountUsdString,
-                    buyAmountUsd: $buyAmountUsd
-                )
-            ),
-            AnyView(
-                RecipientSelectView(
-                    continueDisabled: $continueDisabled,
-                    recipient: $recipient,
-                    buyAmountUsd: buyAmountUsd
-                )
-            ),
-        ]
+    func validateAddress(_ address: String) -> Bool {
+        if address.isEmpty { return false }
+        do {
+            let _ = try PublicKey(string: address)
+            return true
+        }
+        catch {
+            return false
+        }
     }
-
-    @State private var currentPage = 0
 
     func onComplete() {
         print("complete")
     }
 
-    func handleContinue() {
-        if currentPage == pages.count - 1 {
+    func handleContinue(complete: Bool) {
+        if complete {
             onComplete()
         }
         else {
@@ -53,25 +41,46 @@ struct WDView: View {
                 currentPage += 1
             }
         }
+    }
+}
 
+struct WithdrawView: View {
+    @EnvironmentObject var userModel: UserModel
+    @EnvironmentObject var priceModel: SolPriceModel
+    @StateObject private var vm = WithdrawModel()
+    static let formHeight: CGFloat = 250
+
+    var pages: [AnyView] {
+        [
+            AnyView(
+                AmountSelectView(
+                    vm: vm
+                )
+            ),
+            AnyView(
+                RecipientSelectView(
+                    vm: vm
+                )
+            ),
+        ]
     }
 
     private var nextButton: some View {
         HStack {
-            if currentPage > 0 {
-                PrimaryButton(text: "Back", action: { currentPage -= 1 }).frame(width: 80)
+            if vm.currentPage > 0 {
+                PrimaryButton(text: "Back", action: { vm.currentPage -= 1 }).frame(width: 80)
             }
             OutlineButton(
-                text: currentPage == pages.count - 1 ? "Confirm" : "Continue",
+                text: vm.currentPage == pages.count - 1 ? "Confirm" : "Continue",
                 textColor: .tubBuyPrimary,
                 strokeColor: .tubBuyPrimary,
                 backgroundColor: .clear,
                 maxWidth: .infinity,
-                disabled: continueDisabled,
-                action: handleContinue
+                disabled: vm.continueDisabled,
+                action: { vm.handleContinue(complete: vm.currentPage == pages.count - 1) }
 
             )
-            .disabled((userModel.balanceLamps ?? 0) < priceModel.usdToLamports(usd: buyAmountUsd))
+            .disabled((userModel.balanceLamps ?? 0) < priceModel.usdToLamports(usd: vm.buyAmountUsd))
         }
 
     }
@@ -79,7 +88,7 @@ struct WDView: View {
     var body: some View {
         VStack {
             VStack {
-                pages[currentPage].frame(height: 120)
+                pages[vm.currentPage].frame(height: 120)
                     .transition(
                         .asymmetric(
                             insertion: .move(edge: .trailing),
@@ -104,22 +113,20 @@ struct AmountSelectView: View {
     @EnvironmentObject var notificationHandler: NotificationHandler
     @EnvironmentObject private var userModel: UserModel
 
-    @Binding var continueDisabled: Bool
-    @Binding var buyAmountUsdString: String
-    @Binding var buyAmountUsd: Double
+    @ObservedObject var vm: WithdrawModel
 
     func updateBuyAmount(_ amountLamps: Int) {
         if amountLamps == 0 {
-            continueDisabled = true
+            vm.continueDisabled = true
             return
         }
 
         // Add a tiny buffer for floating point precision
-        buyAmountUsd = priceModel.lamportsToUsd(lamports: amountLamps)
+        vm.buyAmountUsd = priceModel.lamportsToUsd(lamports: amountLamps)
 
         // Format to 2 decimal places, rounding down
-        buyAmountUsdString = String(format: "%.2f", floor(buyAmountUsd * 100) / 100)
-        continueDisabled = false
+        vm.buyAmountUsdString = String(format: "%.2f", floor(vm.buyAmountUsd * 100) / 100)
+        vm.continueDisabled = false
     }
 
     var body: some View {
@@ -128,7 +135,7 @@ struct AmountSelectView: View {
             amountButtons
         }
         .onAppear {
-            let buyAmountLamps = priceModel.usdToLamports(usd: buyAmountUsd)
+            let buyAmountLamps = priceModel.usdToLamports(usd: vm.buyAmountUsd)
             updateBuyAmount(buyAmountLamps)
         }
     }
@@ -143,7 +150,7 @@ struct AmountSelectView: View {
 
                 TextField(
                     "",
-                    text: $buyAmountUsdString,
+                    text: $vm.buyAmountUsdString,
                     prompt: Text("10.00", comment: "placeholder")
                         .foregroundStyle(.tubText.opacity(0.3))
                 )
@@ -170,19 +177,19 @@ struct AmountSelectView: View {
 
                         let amount = text.doubleValue
                         if amount > 0 {
-                            buyAmountUsd = amount
+                            vm.buyAmountUsd = amount
                             // Only format if the value has changed
-                            buyAmountUsdString = text
+                            vm.buyAmountUsdString = text
                         }
-                        continueDisabled = false
+                        vm.continueDisabled = false
                     }
                     else {
-                        buyAmountUsd = 0
-                        continueDisabled = true
+                        vm.buyAmountUsd = 0
+                        vm.continueDisabled = true
                     }
                 }
                 .font(.sfRounded(size: .xl5, weight: .semibold))
-                .foregroundStyle(continueDisabled ? .tubError : .tubText)
+                .foregroundStyle(vm.continueDisabled ? .tubError : .tubText)
                 .frame(minWidth: 50)
                 .fixedSize()
                 Spacer()
@@ -197,7 +204,7 @@ struct AmountSelectView: View {
             ForEach([10, 25, 50, 100], id: \.self) { amount in
                 let balance = userModel.balanceLamps ?? 0
                 let selectedAmountUsd = priceModel.lamportsToUsd(lamports: balance * amount / 100)
-                let selected = balance > 0 && selectedAmountUsd == buyAmountUsd
+                let selected = balance > 0 && selectedAmountUsd == vm.buyAmountUsd
                 CapsuleButton(
                     text: amount == 100 ? "MAX" : "\(amount)%",
                     textColor: .white,
@@ -214,21 +221,8 @@ struct AmountSelectView: View {
 
 struct RecipientSelectView: View {
     @EnvironmentObject var priceModel: SolPriceModel
-    @Binding var continueDisabled: Bool
-    @Binding var recipient: String
     @State var showError: Bool = false
-    let buyAmountUsd: Double
-
-    func validateAddress(_ address: String) -> Bool {
-        if address.isEmpty { return false }
-        do {
-            let _ = try PublicKey(string: address)
-            return true
-        }
-        catch {
-            return false
-        }
-    }
+    @ObservedObject var vm: WithdrawModel
 
     var body: some View {
         VStack(spacing: 12) {
@@ -238,7 +232,7 @@ struct RecipientSelectView: View {
                         .font(.sfRounded(size: .lg, weight: .medium))
                         .foregroundStyle(.tubText.opacity(0.7))
 
-                    Text("$\(String(format: "%.2f", buyAmountUsd))")
+                    Text("$\(String(format: "%.2f", vm.buyAmountUsd))")
                         .font(.sfRounded(size: .lg, weight: .bold))
                         .foregroundStyle(.tubText)
 
@@ -249,7 +243,7 @@ struct RecipientSelectView: View {
                 }
                 TextField(
                     "",
-                    text: $recipient,
+                    text: $vm.recipient,
                     prompt: Text("Enter Solana address")
                         .foregroundStyle(.tubText.opacity(0.3))
                 )
@@ -269,15 +263,15 @@ struct RecipientSelectView: View {
             }
         }
         .onAppear {
-            let isValid = validateAddress(recipient)
-            continueDisabled = !isValid
-            showError = !recipient.isEmpty && !isValid
+            let isValid = vm.validateAddress(vm.recipient)
+            vm.continueDisabled = !isValid
+            showError = !vm.recipient.isEmpty && !isValid
 
         }
-        .onChange(of: recipient) {
-            let isValid = validateAddress(recipient)
-            continueDisabled = !isValid
-            showError = !recipient.isEmpty && !isValid
+        .onChange(of: vm.recipient) {
+            let isValid = vm.validateAddress(vm.recipient)
+            vm.continueDisabled = !isValid
+            showError = !vm.recipient.isEmpty && !isValid
         }
         .padding(.horizontal, 20)
     }
@@ -298,7 +292,7 @@ struct RecipientSelectView: View {
         return model
     }()
 
-    WDView()
+    WithdrawView()
         .environmentObject(userModel)
         .environmentObject(priceModel)
         .preferredColorScheme(.light)
