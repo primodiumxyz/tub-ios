@@ -18,7 +18,7 @@ struct CustomToggleStyle: ToggleStyle {
                 .frame(width: 50, height: 30)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(configuration.isOn ? .primary : .secondary, lineWidth: 1)
+                        .stroke(configuration.isOn ? .tubSellPrimary : .tubBuyPrimary, lineWidth: 1)
                 )
                 .overlay(
                     Circle()
@@ -171,4 +171,5 @@ struct SettingsView: View {
 
 #Preview {
     SettingsView()
+        .preferredColorScheme(.dark)
 }
