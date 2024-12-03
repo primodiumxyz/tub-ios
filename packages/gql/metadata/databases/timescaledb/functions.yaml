@@ -1,5 +1,5 @@
+- "!include functions/api_batch_insert_trades.yaml"
 - "!include functions/api_insert_trade.yaml"
 - "!include functions/api_get_token_trade_history_interval.yaml"
-- "!include functions/api_batch_insert_trades.yaml"
 - "!include functions/api_get_token_trade_history_interval_candles.yaml"
 - "!include functions/api_get_top_tokens_interval_by_volume.yaml"

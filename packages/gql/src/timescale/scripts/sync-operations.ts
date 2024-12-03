@@ -48,29 +48,32 @@ async function executeSqlFiles(client: pg.Client, directory: string) {
 
 async function getTables(client: pg.Client) {
   const { rows } = await client.query(`
-    SELECT table_name 
+    SELECT table_name, table_schema
     FROM information_schema.tables 
-    WHERE table_schema = 'api' 
+    WHERE (table_schema = 'api' OR table_name = 'schema_migrations')
     AND table_type = 'BASE TABLE'
   `);
-  return rows.map((row) => row.table_name);
+
+  return rows.map((row) => ({ name: row.table_name, schema: row.table_schema }));
 }
 
 async function getCustomTypes(client: pg.Client) {
   const { rows } = await client.query(`
-    SELECT t.typname as name
+    SELECT t.typname as name, n.nspname as schema
     FROM pg_type t
     JOIN pg_namespace n ON t.typnamespace = n.oid
     WHERE (n.nspname = 'public' OR n.nspname = 'api')
     AND t.typtype = 'c'
   `);
-  return rows.map((row) => row.name);
+
+  return rows.map((row) => ({ name: row.name, schema: row.schema }));
 }
 
 async function getFunctions(client: pg.Client) {
   const { rows } = await client.query(`
     SELECT 
       p.proname as name,
+      n.nspname as schema,
       pg_get_function_result(p.oid) as return_type,
       CASE 
         WHEN p.provolatile = 'i' THEN 'IMMUTABLE'
@@ -87,6 +90,7 @@ async function getFunctions(client: pg.Client) {
     name: row.name,
     type: row.return_type.toLowerCase().includes("void") ? "mutation" : "query",
     volatility: row.volatility,
+    schema: row.schema,
   }));
 }
 
@@ -189,7 +193,7 @@ async function main() {
       const functionConfig = {
         function: {
           name: op.name,
-          schema: "api",
+          schema: op.schema,
         },
         configuration: {
           exposed_as: op.type,
@@ -199,7 +203,7 @@ async function main() {
         },
       };
 
-      const fileName = `api_${op.name}.yaml`;
+      const fileName = `${op.schema}_${op.name}.yaml`;
       writeFileSync(path.resolve(functionsDir, fileName), yaml.stringify(functionConfig));
       functionIncludes.push(`- "!include functions/${fileName}"`);
     }
@@ -210,11 +214,11 @@ async function main() {
     const tables = await getTables(client);
     const tableIncludes = [];
 
-    for (const tableName of tables) {
+    for (const table of tables) {
       const tableConfig = {
         table: {
-          name: tableName,
-          schema: "api",
+          name: table.name,
+          schema: table.schema,
         },
         // Add any default permissions here if needed
         select_permissions: [
@@ -229,7 +233,7 @@ async function main() {
         ],
       };
 
-      const fileName = `api_${tableName}.yaml`;
+      const fileName = `${table.schema}_${table.name}.yaml`;
       writeFileSync(path.resolve(tablesDir, fileName), yaml.stringify(tableConfig));
       tableIncludes.push(`- "!include tables/${fileName}"`);
     }
@@ -243,15 +247,15 @@ async function main() {
     const types = await getCustomTypes(client);
     const typeIncludes = [];
 
-    for (const typeName of types) {
+    for (const type of types) {
       const typeConfig = {
         type: {
-          name: typeName,
-          schema: "public",
+          name: type.name,
+          schema: type.schema,
         },
       };
 
-      const fileName = `${typeName}.yaml`;
+      const fileName = `${type.schema}_${type.name}.yaml`;
       writeFileSync(path.resolve(typesDir, fileName), yaml.stringify(typeConfig));
       typeIncludes.push(`- "!include types/${fileName}"`);
     }
