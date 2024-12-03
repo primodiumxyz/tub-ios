@@ -18,42 +18,40 @@ struct AccountView: View {
     @State private var errorMessage: String = ""
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 24) {
-                if userModel.userId != nil {
-                    AccountContentView(
-                        isAirdropping: $isAirdropping,
-                        showOnrampView: $showOnrampView
-                    )
-                }
-                else {
-                    UnregisteredAccountView()
-                }
+        VStack(spacing: 24) {
+            if userModel.userId != nil {
+                AccountContentView(
+                    isAirdropping: $isAirdropping,
+                    showOnrampView: $showOnrampView
+                )
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color(UIColor.systemBackground))
-            .sheet(isPresented: $showOnrampView) {
-
-                VStack {
-                    HStack {
-                        Text("Deposit")
-                            .font(.sfRounded(size: .xl, weight: .semibold))
-                            .foregroundStyle(.primary)
-                        Spacer()
-                        Button(action: { showOnrampView = false }) {
-                            Image(systemName: "xmark")
-                                .foregroundStyle(.primary)
-                                .font(.system(size: 16, weight: .medium))
-                        }
-                    }.padding(24)
-
-                    CoinbaseOnrampView()
-                }.background(Color(UIColor.systemBackground))
+            else {
+                UnregisteredAccountView()
             }
-            .presentationDragIndicator(.visible)
-            .presentationBackground(Color(UIColor.systemBackground))
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(UIColor.systemBackground))
+        .sheet(isPresented: $showOnrampView) {
+
+            VStack {
+                HStack {
+                    Text("Deposit")
+                        .font(.sfRounded(size: .xl, weight: .semibold))
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    Button(action: { showOnrampView = false }) {
+                        Image(systemName: "xmark")
+                            .foregroundStyle(.primary)
+                            .font(.system(size: 16, weight: .medium))
+                    }
+                }.padding(24)
+
+                CoinbaseOnrampView()
+            }.background(Color(UIColor.systemBackground))
+        }
+        .presentationDragIndicator(.visible)
+        .presentationBackground(Color(UIColor.systemBackground))
+    
     }
 }
 
