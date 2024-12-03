@@ -9,12 +9,10 @@ import SolanaSwift
 import SwiftUI
 
 class WithdrawModel: ObservableObject {
-
     @Published var buyAmountUsdString: String = ""
     @Published var buyAmountUsd: Double = 0
     @Published var recipient: String = ""
     @Published var continueDisabled: Bool = true
-
     @Published var currentPage = 0
 
     func validateAddress(_ address: String) -> Bool {
@@ -48,7 +46,7 @@ struct WithdrawView: View {
     @EnvironmentObject var userModel: UserModel
     @EnvironmentObject var priceModel: SolPriceModel
     @StateObject private var vm = WithdrawModel()
-    static let formHeight: CGFloat = 250
+    static let formHeight: CGFloat = 400
 
     var pages: [AnyView] {
         [
@@ -86,24 +84,31 @@ struct WithdrawView: View {
     }
 
     var body: some View {
-        VStack {
+        ZStack {
+            RoundedRectangle(cornerRadius: 30).fill(Color(UIColor.systemBackground))
+                .zIndex(0).frame(width: .infinity, height: Self.formHeight)
             VStack {
-                pages[vm.currentPage].frame(height: 120)
-                    .transition(
-                        .asymmetric(
-                            insertion: .move(edge: .trailing),
-                            removal: .move(edge: .leading)
+                VStack {
+                    pages[vm.currentPage].frame(height: 150)
+                        .transition(
+                            .asymmetric(
+                                insertion: .move(edge: .trailing),
+                                removal: .move(edge: .leading)
+                            )
                         )
-                    )
 
-                nextButton
-            }.padding(20)
+                    nextButton
+                }
+                .padding(.horizontal, 20)
+            }
+            .frame(maxHeight: Self.formHeight)
+            .zIndex(1)
+            .background(Gradients.cardBgGradient)
+            .cornerRadius(30)
         }
         .frame(maxHeight: Self.formHeight, alignment: .leading)
-        .cornerRadius(30)
         .presentationDetents([.height(Self.formHeight)])
         .presentationBackground(.clear)
-        .background(Gradients.cardBgGradient)
     }
 
 }
@@ -292,8 +297,10 @@ struct RecipientSelectView: View {
         return model
     }()
 
-    WithdrawView()
-        .environmentObject(userModel)
-        .environmentObject(priceModel)
-        .preferredColorScheme(.light)
+    VStack {
+        WithdrawView()
+            .environmentObject(userModel)
+            .environmentObject(priceModel)
+            .preferredColorScheme(.light)
+    }.background(.red)
 }

@@ -15,6 +15,7 @@ struct AccountView: View {
     @State private var isAirdropping = false
     @Environment(\.presentationMode) var presentationMode
     @State private var showOnrampView = false
+    @State private var showWithdrawView = false
     @State private var errorMessage: String = ""
 
     var body: some View {
@@ -23,7 +24,8 @@ struct AccountView: View {
                 if userModel.userId != nil {
                     AccountContentView(
                         isAirdropping: $isAirdropping,
-                        showOnrampView: $showOnrampView
+                        showOnrampView: $showOnrampView,
+                        showWithdrawView: $showWithdrawView
                     )
                 }
                 else {
@@ -32,19 +34,19 @@ struct AccountView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color(UIColor.systemBackground))
-            .sheet(isPresented: $showOnrampView) {
-
+            .sheet(isPresented: $showWithdrawView) {
+                WithdrawView()
+            }
+            .fullScreenCover(isPresented: $showOnrampView) {
                 VStack {
                     HStack {
-                        Text("Deposit")
-                            .font(.sfRounded(size: .xl, weight: .semibold))
-                            .foregroundStyle(.primary)
-                        Spacer()
                         Button(action: { showOnrampView = false }) {
                             Image(systemName: "xmark")
-                                .foregroundStyle(.primary)
+                                .foregroundStyle(.tubBuyPrimary)
                                 .font(.system(size: 16, weight: .medium))
                         }
+                        Spacer()
+
                     }.padding(24)
 
                     CoinbaseOnrampView()
@@ -116,6 +118,7 @@ private struct BalanceSection: View {
 private struct ActionButtons: View {
     let isAirdropping: Bool
     @Binding var showOnrampView: Bool
+    @Binding var showWithdrawView: Bool
 
     var body: some View {
         HStack(spacing: 24) {
@@ -127,8 +130,8 @@ private struct ActionButtons: View {
                     icon: "arrow.left.arrow.right",
                     color: .tubAccent,
                     iconSize: 22,
-                    action: {}
-                ).disabled(true)
+                    action: { showWithdrawView.toggle() }
+                )
 
                 Text("Transfer")
                     .font(.sfRounded(size: .sm, weight: .medium))
@@ -239,13 +242,15 @@ private struct UnregisteredAccountView: View {
 private struct AccountContentView: View {
     @Binding var isAirdropping: Bool
     @Binding var showOnrampView: Bool
+    @Binding var showWithdrawView: Bool
 
     var body: some View {
         VStack(spacing: 24) {
             AccountHeaderView()
             ActionButtons(
                 isAirdropping: isAirdropping,
-                showOnrampView: $showOnrampView
+                showOnrampView: $showOnrampView,
+                showWithdrawView: $showWithdrawView
             )
             AccountSettingsView()
             Spacer()
