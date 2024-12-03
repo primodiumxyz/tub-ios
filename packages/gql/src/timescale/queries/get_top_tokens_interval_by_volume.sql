@@ -29,7 +29,7 @@ SELECT * FROM (
     ((LAST(avg_price, bucket) - FIRST(avg_price, bucket)) / 
       NULLIF(FIRST(avg_price, bucket), 0) * 100) as price_change_pct,
     AVG(avg_price) as avg_price_usd
-  FROM trade_history_1min t, params p
+  FROM api.trade_history_1min t, params p
   WHERE 
     bucket >= p.start_time
     AND bucket <= p.end_time
@@ -47,7 +47,7 @@ SELECT * FROM (
     ((LAST(token_price_usd, created_at) - FIRST(token_price_usd, created_at)) / 
       NULLIF(FIRST(token_price_usd, created_at), 0) * 100) as price_change_pct,
     AVG(token_price_usd) as avg_price_usd
-  FROM trade_history t, params p
+  FROM api.trade_history t, params p
   WHERE 
     created_at >= p.start_time
     AND created_at <= p.end_time

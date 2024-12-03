@@ -1,6 +1,6 @@
 function:
-  name: batch_insert_trades
-  schema: public
+  name: get_token_trade_history_interval
+  schema: api
 configuration:
   exposed_as: query
   arguments:

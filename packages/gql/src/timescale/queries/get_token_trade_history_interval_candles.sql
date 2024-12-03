@@ -34,7 +34,7 @@ SELECT
   MIN(token_price_usd) as low_price_usd,
   SUM(volume_usd) as volume_usd,
   FIRST(token_metadata::token_metadata, created_at) as token_metadata
-FROM trade_history, params
+FROM api.trade_history, params
 WHERE 
   token_mint = $1
   AND created_at >= params.start_time

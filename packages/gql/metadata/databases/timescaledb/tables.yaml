@@ -1,2 +1,1 @@
-- "!include tables/schema_migrations.yaml"
-- "!include tables/trade_history.yaml"
+- "!include tables/api_trade_history.yaml"

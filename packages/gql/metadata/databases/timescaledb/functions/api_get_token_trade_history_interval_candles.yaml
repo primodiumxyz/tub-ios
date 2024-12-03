@@ -1,6 +1,6 @@
 function:
-  name: get_top_tokens_interval_by_volume
-  schema: public
+  name: get_token_trade_history_interval_candles
+  schema: api
 configuration:
   exposed_as: query
   arguments:

@@ -11,8 +11,8 @@
  * )
 */
 CREATE OR REPLACE FUNCTION api.batch_insert_trades(trades JSONB)
-RETURNS SETOF trade_history AS $$
-  INSERT INTO trade_history (
+RETURNS SETOF api.trade_history AS $$
+  INSERT INTO api.trade_history (
     token_mint,
     token_price_usd,
     volume_usd,

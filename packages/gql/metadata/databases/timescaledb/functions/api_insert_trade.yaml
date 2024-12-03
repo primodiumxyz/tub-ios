@@ -1,6 +1,6 @@
 function:
-  name: get_token_trade_history_interval
-  schema: public
+  name: insert_trade
+  schema: api
 configuration:
   exposed_as: query
   arguments:

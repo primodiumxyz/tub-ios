@@ -1,6 +1,6 @@
 function:
-  name: insert_trade
-  schema: public
+  name: get_top_tokens_interval_by_volume
+  schema: api
 configuration:
   exposed_as: query
   arguments:

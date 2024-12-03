@@ -1,6 +1,6 @@
 table:
-  name: trade_history
-  schema: public
+  name: schema_migrations
+  schema: api
 select_permissions:
   - role: public
     permission:

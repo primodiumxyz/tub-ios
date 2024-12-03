@@ -15,7 +15,7 @@ CREATE OR REPLACE FUNCTION api.get_token_trade_history_interval(
   token_mint TEXT,
   interval_seconds INTEGER
 )
-RETURNS SETOF trade_history AS $$
+RETURNS SETOF api.trade_history AS $$
   WITH params AS (
     SELECT 
       NOW() - (interval '1 second' * interval_seconds) as start_time,
@@ -28,7 +28,7 @@ RETURNS SETOF trade_history AS $$
     token_price_usd,
     volume_usd,
     token_metadata
-  FROM trade_history, params
+  FROM api.trade_history, params
   WHERE 
     token_mint = $1
     AND created_at >= params.start_time

@@ -33,7 +33,7 @@ async function getClient(config?: Config) {
 
 async function ensureMigrationsTable(client: pg.Client) {
   await client.query(`
-    CREATE TABLE IF NOT EXISTS schema_migrations (
+    CREATE TABLE IF NOT EXISTS api.schema_migrations (
       id SERIAL PRIMARY KEY,
       name VARCHAR(255) NOT NULL UNIQUE,
       applied_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -42,7 +42,7 @@ async function ensureMigrationsTable(client: pg.Client) {
 }
 
 async function getAppliedMigrations(client: pg.Client): Promise<Migration[]> {
-  const { rows } = await client.query<Migration>("SELECT id, name, applied_at FROM schema_migrations ORDER BY id");
+  const { rows } = await client.query<Migration>("SELECT id, name, applied_at FROM api.schema_migrations ORDER BY id");
   return rows;
 }
 
@@ -50,7 +50,7 @@ async function applyMigration(client: pg.Client, name: string, sql: string) {
   await client.query("BEGIN");
   try {
     await client.query(sql);
-    await client.query("INSERT INTO schema_migrations (name) VALUES ($1)", [name]);
+    await client.query("INSERT INTO api.schema_migrations (name) VALUES ($1)", [name]);
     await client.query("COMMIT");
     console.log(`✅ Applied migration: ${name}`);
   } catch (error) {
@@ -64,7 +64,7 @@ async function revertMigration(client: pg.Client, name: string, sql: string) {
   await client.query("BEGIN");
   try {
     await client.query(sql);
-    await client.query("DELETE FROM schema_migrations WHERE name = $1", [name]);
+    await client.query("DELETE FROM api.schema_migrations WHERE name = $1", [name]);
     await client.query("COMMIT");
     console.log(`✅ Reverted migration: ${name}`);
   } catch (error) {

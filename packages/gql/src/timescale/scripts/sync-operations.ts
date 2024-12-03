@@ -50,7 +50,7 @@ async function getTables(client: pg.Client) {
   const { rows } = await client.query(`
     SELECT table_name 
     FROM information_schema.tables 
-    WHERE table_schema = 'public' 
+    WHERE table_schema = 'api' 
     AND table_type = 'BASE TABLE'
   `);
   return rows.map((row) => row.table_name);
@@ -61,7 +61,7 @@ async function getCustomTypes(client: pg.Client) {
     SELECT t.typname as name
     FROM pg_type t
     JOIN pg_namespace n ON t.typnamespace = n.oid
-    WHERE n.nspname = 'public'
+    WHERE (n.nspname = 'public' OR n.nspname = 'api')
     AND t.typtype = 'c'
   `);
   return rows.map((row) => row.name);
@@ -189,7 +189,7 @@ async function main() {
       const functionConfig = {
         function: {
           name: op.name,
-          schema: "public",
+          schema: "api",
         },
         configuration: {
           exposed_as: op.type,
@@ -199,7 +199,7 @@ async function main() {
         },
       };
 
-      const fileName = `${op.name}.yaml`;
+      const fileName = `api_${op.name}.yaml`;
       writeFileSync(path.resolve(functionsDir, fileName), yaml.stringify(functionConfig));
       functionIncludes.push(`- "!include functions/${fileName}"`);
     }
@@ -214,7 +214,7 @@ async function main() {
       const tableConfig = {
         table: {
           name: tableName,
-          schema: "public",
+          schema: "api",
         },
         // Add any default permissions here if needed
         select_permissions: [
@@ -229,7 +229,7 @@ async function main() {
         ],
       };
 
-      const fileName = `${tableName}.yaml`;
+      const fileName = `api_${tableName}.yaml`;
       writeFileSync(path.resolve(tablesDir, fileName), yaml.stringify(tableConfig));
       tableIncludes.push(`- "!include tables/${fileName}"`);
     }

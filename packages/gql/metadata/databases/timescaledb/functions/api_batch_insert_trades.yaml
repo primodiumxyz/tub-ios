@@ -1,6 +1,6 @@
 function:
-  name: get_token_trade_history_interval_candles
-  schema: public
+  name: batch_insert_trades
+  schema: api
 configuration:
   exposed_as: query
   arguments:
