@@ -138,8 +138,9 @@ export class TubService {
 
     const sigData = transaction.signatures[0];
     if (!sigData) {
-      throw new Error("Transaction is not signed");
+      throw new Error("Transaction is not signed by feePayer");
     }
+    const { signature: rawSignature, publicKey } = sigData;
 
     if (!rawSignature) {
       throw new Error("Transaction is not signed by feePayer");
