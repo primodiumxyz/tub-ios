@@ -157,43 +157,41 @@ struct HistoryViewContent: View {
     var fetchUserTxs: (String) -> Void
 
     var body: some View {
-//        NavigationStack {
-            ScrollView {
-                VStack(spacing: 0) {
+        ScrollView {
+            VStack(spacing: 0) {
 
-                    // Transaction List
-                    if !isReady {
-                        ProgressView()
-                    }
-                    else if filteredTransactions().isEmpty {
-                        TransactionFilters(filterState: $filterState)
-                            .background(Color(UIColor.systemBackground))
-                        Text("No transactions found")
-                            .padding()
-                            .font(.sfRounded(size: .base, weight: .regular))
-                            .foregroundStyle(Color.gray)
-                    }
-                    else {
-                        TransactionFilters(filterState: $filterState)
-                            .background(Color(UIColor.systemBackground))
-                        LazyVStack(spacing: 0) {
-                            ForEach(groupTransactions(filteredTransactions()), id: \.date) { group in
-                                TransactionGroupRow(group: group)
-                            }
+                // Transaction List
+                if !isReady {
+                    ProgressView()
+                }
+                else if filteredTransactions().isEmpty {
+                    TransactionFilters(filterState: $filterState)
+                        .background(Color(UIColor.systemBackground))
+                    Text("No transactions found")
+                        .padding()
+                        .font(.sfRounded(size: .base, weight: .regular))
+                        .foregroundStyle(Color.gray)
+                }
+                else {
+                    TransactionFilters(filterState: $filterState)
+                        .background(Color(UIColor.systemBackground))
+                    LazyVStack(spacing: 0) {
+                        ForEach(groupTransactions(filteredTransactions()), id: \.date) { group in
+                            TransactionGroupRow(group: group)
                         }
-                        .padding(.horizontal, 16)
                     }
-                    Spacer()
+                    .padding(.horizontal, 16)
                 }
+                Spacer()
             }
-            .refreshable {
-                if let wallet = userModel.walletAddress {
-                    fetchUserTxs(wallet)
-                }
+        }
+        .refreshable {
+            if let wallet = userModel.walletAddress {
+                fetchUserTxs(wallet)
             }
-            .navigationTitle("History")
-            .navigationBarTitleDisplayMode(.inline)
-//        }
+        }
+        .navigationTitle("History")
+        .navigationBarTitleDisplayMode(.inline)
     }
 
     // Helper function to filter transactions

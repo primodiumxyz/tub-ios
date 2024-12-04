@@ -78,17 +78,8 @@ struct HomeTabsView: View {
     var color = Color(red: 0.43, green: 0.97, blue: 0.98)
     @EnvironmentObject private var userModel: UserModel
     @EnvironmentObject private var priceModel: SolPriceModel
-    @StateObject private var vm = TabsViewModel()  // Make it optional
-
-    // Add this to watch for userModel changes
-    private var userId: String? {
-        didSet {
-            if userModel.userId != nil {
-                vm.selectedTab = 0  // Force switch to trade tab
-                vm.recordTabSelection("trade")
-            }
-        }
-    }
+    @StateObject private var vm = TabsViewModel()
+    @State private var refreshCounter = 0  // Tracks re-taps on the same tab
 
     var body: some View {
         Group {
@@ -99,11 +90,51 @@ struct HomeTabsView: View {
                 )
             }
             else {
-                TabView(selection: $vm.selectedTab) {
-                    // Trade Tab
+                VStack {
+                    TabView(selection: $vm.selectedTab) {
+                        // Trade Tab
+                        TokenListView()
+                            .id(refreshCounter)
+                            .tag(0)
 
-                    TokenListView()
-                        .tabItem {
+                        NavigationStack {
+                            HistoryView()
+                                .id(refreshCounter)
+                        }
+                        .tag(1)
+                        
+                        NavigationStack {
+                            AccountView()
+                                .id(refreshCounter)
+                        }
+                        .tag(2)
+                    }
+                    .background(Color(UIColor.systemBackground))
+                    .ignoresSafeArea(.keyboard)
+                    .edgesIgnoringSafeArea(.all)
+                    .onChange(of: vm.selectedTab) { oldTab, newTab in
+                        let tabName: String
+                        switch newTab {
+                        case 0: tabName = "trade"
+                        case 1: tabName = "history"
+                        case 2: tabName = "account"
+                        default: tabName = "unknown"
+                        }
+                        vm.recordTabSelection(tabName)
+                        
+                        if oldTab == newTab {
+                            refreshCounter += 1
+                        }
+                    }
+
+                    HStack {
+                        Spacer()
+                        Button {
+                            if vm.selectedTab == 0 {
+                                refreshCounter += 1
+                            }
+                            vm.selectedTab = 0
+                        } label: {
                             VStack {
                                 Image(systemName: "chart.line.uptrend.xyaxis")
                                     .font(.system(size: 24))
@@ -111,13 +142,13 @@ struct HomeTabsView: View {
                                     .font(.system(size: 12))
                             }
                         }
-                        .tag(0)
-                        .onAppear {
-                            vm.recordTabSelection("trade")
-                        }
-
-                    HistoryView()
-                        .tabItem {
+                        Spacer()
+                        Button {
+                            if vm.selectedTab == 1 {
+                                refreshCounter += 1
+                            }
+                            vm.selectedTab = 1
+                        } label: {
                             VStack {
                                 Image(systemName: "clock")
                                     .font(.system(size: 24))
@@ -125,13 +156,13 @@ struct HomeTabsView: View {
                                     .font(.system(size: 12))
                             }
                         }
-                        .tag(1)
-                        .onAppear {
-                            vm.recordTabSelection("history")
-                        }
-
-                    AccountView()
-                        .tabItem {
+                        Spacer()
+                        Button {
+                            if vm.selectedTab == 2 {
+                                refreshCounter += 1
+                            }
+                            vm.selectedTab = 2
+                        } label: {
                             VStack {
                                 Image(systemName: "person")
                                     .font(.system(size: 24))
@@ -139,22 +170,19 @@ struct HomeTabsView: View {
                                     .font(.system(size: 12))
                             }
                         }
-                        .tag(2)
-                        .onAppear {
-                            vm.recordTabSelection("account")
-                        }
-                }
-                .background(Color(UIColor.systemBackground))
-                .ignoresSafeArea(.keyboard)
-                .edgesIgnoringSafeArea(.all)
-            }
-        }.frame(maxWidth: .infinity, maxHeight: .infinity)
-            .ignoresSafeArea(.keyboard)
-            .onChange(of: userModel.userId) { _, newUserId in
-                if newUserId != nil {
-                    vm.selectedTab = 0  // Force switch to trade tab
-                    vm.recordTabSelection("trade")
+                        Spacer()
+                    }
+                    .background(Color(UIColor.systemBackground))
                 }
             }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .ignoresSafeArea(.keyboard)
+        .onChange(of: userModel.userId) { _, newUserId in
+            if newUserId != nil {
+                vm.selectedTab = 0  // Force switch to trade tab
+                vm.recordTabSelection("trade")
+            }
+        }
     }
 }
