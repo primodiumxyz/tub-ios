@@ -5,7 +5,7 @@ import { GqlClient } from "@tub/gql";
 import bs58 from "bs58";
 import { config } from "dotenv";
 
-import { env } from "@bin/tub-server";
+import { env } from "../bin/tub-server";
 import { createTransferInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token";
 
 config({ path: "../../.env" });
