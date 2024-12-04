@@ -101,8 +101,10 @@ describe("Server Integration Tests", () => {
   });
 
   describe.only("getPresignedTransfer", () => {
+    // privy dev key
     const fromAddress = "EeP7gjHGjHTMEShEA8YgPXmYp6S3XvCDfQvkc8gy2kcL";
-    const toAddress = "J5o3e9umaoUvJUguPXhH3gsNS7eSNxRbyGFvaaaEcXfV";
+    // fee payer address
+    const toAddress = "2HpAnS4sSbJaYxjETSE9uMtnuvja3hJsGqQZynmmWwfa";
     const usdcTokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 
     it("should execute getPresignedTransfer and verify fee payer", async () => {

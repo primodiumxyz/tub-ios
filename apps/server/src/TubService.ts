@@ -107,11 +107,14 @@ export class TubService {
     args: { fromAddress: string; toAddress: string; amount: bigint; tokenId: string },
   ): Promise<{ transactionBase64: string; signatureBase64: string; signerBase58: string }> {
     const accountId = await this.verifyJWT(jwtToken);
-    const keypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY));
+    if (!accountId) {
+      throw new Error("User is not registered with Privy");
+    }
     const wallet = await this.getUserWallet(accountId);
     if (!wallet) {
       throw new Error("User does not have a wallet");
     }
+    const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY));
 
     const tokenMint = new PublicKey(args.tokenId);
 
@@ -124,23 +127,22 @@ export class TubService {
     const transferInstruction = createTransferInstruction(fromTokenAccount, toTokenAccount, fromPublicKey, args.amount);
 
     const transaction = new Transaction();
-
-    const blockhash = await this.connection.getLatestBlockhash();
-    transaction.recentBlockhash = blockhash.blockhash;
-    transaction.feePayer = keypair.publicKey;
+    transaction.feePayer = feePayerKeypair.publicKey;
 
     transaction.add(transferInstruction);
 
-    transaction.sign(keypair);
+    const blockhash = await this.connection.getLatestBlockhash();
+    transaction.recentBlockhash = blockhash.blockhash;
+
+    transaction.sign(feePayerKeypair);
 
     const sigData = transaction.signatures[0];
     if (!sigData) {
       throw new Error("Transaction is not signed");
     }
-    const { signature: rawSignature, publicKey } = sigData;
 
     if (!rawSignature) {
-      throw new Error("Transaction is not signed");
+      throw new Error("Transaction is not signed by feePayer");
     }
 
     return {
