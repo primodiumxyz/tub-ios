@@ -106,7 +106,6 @@ export class TubService {
     jwtToken: string,
     args: { fromAddress: string; toAddress: string; amount: bigint; tokenId: string },
   ): Promise<{ transactionBase64: string; signatureBase64: string; signerBase58: string }> {
-    console.log("pre getSignedTransfer", args);
     const accountId = await this.verifyJWT(jwtToken);
     const keypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY));
     const wallet = await this.getUserWallet(accountId);
@@ -146,6 +145,7 @@ export class TubService {
 
     transaction.add(transferInstruction);
 
+    console.log("transaction", transaction);
     const transactionBase64 = transaction.serialize({ requireAllSignatures: false }).toString("base64");
     const signature = Buffer.from(rawSignature).toString("base64");
 

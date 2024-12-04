@@ -214,18 +214,16 @@ class Network {
         var tx = try Transaction.from(data: messageData)
 
         // 4. Setup required keys and provider
-        debugPrint("fee payer: \(transfer.signerBase58), from: \(fromAddress)")
-        print("fee payer: \(transfer.signerBase58), from: \(fromAddress)")
-
         let feePayerPublicKey = try PublicKey(string: transfer.signerBase58)
         let fromPublicKey = try PublicKey(string: fromAddress)
         let provider = try privy.embeddedWallet.getSolanaProvider(for: fromAddress)
 
         // 5. Add signatures in correct order
         // Fee payer signature must be first
-        tx.signatures.removeAll()
+
+        let signatureData = Data(base64Encoded: transfer.signatureBase64)
         let feePayerSignature = Signature(
-            signature: Data(base64Encoded: transfer.signatureBase64),
+            signature: signatureData,
             publicKey: feePayerPublicKey
         )
 
