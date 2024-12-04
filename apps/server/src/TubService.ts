@@ -604,8 +604,8 @@ export class TubService {
             outputMint: request.buyTokenId,
             amount: request.sellQuantity,
             slippageBps: 50,
-            onlyDirectRoutes: true,
-            asLegacyTransaction: false, // Set to true for USDC sells
+            onlyDirectRoutes: true, // Set to true only in USDC-SOL swaps
+            asLegacyTransaction: false,
           },
           request.userPublicKey,
         );
@@ -644,8 +644,8 @@ export class TubService {
             outputMint: request.buyTokenId,
             amount: request.sellQuantity - feeOptions.amount,
             slippageBps: 50,
-            onlyDirectRoutes: true,
-            asLegacyTransaction: false, // Set to true for USDC sells
+            onlyDirectRoutes: true, // Set to true only in USDC-SOL swaps
+            asLegacyTransaction: false,
           },
           request.userPublicKey,
         );
