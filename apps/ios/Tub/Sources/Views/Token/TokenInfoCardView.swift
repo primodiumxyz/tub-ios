@@ -11,6 +11,7 @@ struct TokenInfoCardView: View {
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject var userModel: UserModel
     var stats: [StatValue]
+    @State private var isDescriptionExpanded = false
 
     var activeTab: String {
         let balance: Int = userModel.tokenBalanceLamps ?? 0
@@ -65,12 +66,30 @@ struct TokenInfoCardView: View {
                             .font(.sfRounded(size: .xl, weight: .semibold))
                             .frame(maxWidth: .infinity, alignment: .topLeading)
 
-                        Text("\(tokenModel.token.description)")
-                            .font(.sfRounded(size: .sm, weight: .regular))
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.leading)
+                        VStack(alignment: .leading, spacing: 8) {
+                            if !tokenModel.token.description.isEmpty {
+                                JustifiedText(text: tokenModel.token.description, isExpanded: $isDescriptionExpanded)
+                                    .font(.sfRounded(size: .sm, weight: .regular))
+                                    .foregroundStyle(.secondary)
+
+                                if tokenModel.token.description.count > 200 {
+                                    Button(action: {
+                                        withAnimation {
+                                            isDescriptionExpanded.toggle()
+                                        }
+                                    }) {
+                                        Text(isDescriptionExpanded ? "Show Less" : "Show More")
+                                            .font(.sfRounded(size: .sm, weight: .medium))
+                                            .foregroundStyle(.tubBuyPrimary)
+                                    }
+                                }
+                            } else {
+                                Text("This token is still writing its autobiography... 📝")
+                                    .font(.sfRounded(size: .sm, weight: .regular))
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
                     }
-                    .padding(.vertical, 12)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .padding(.horizontal, 20)
@@ -80,5 +99,47 @@ struct TokenInfoCardView: View {
                 .cornerRadius(20)
             }
         }
+    }
+}
+
+struct JustifiedText: UIViewRepresentable {
+    let text: String
+    var font: UIFont?
+    var textColor: UIColor?
+    @Binding var isExpanded: Bool
+    let maxLines: Int = 5
+    
+    func makeUIView(context: Context) -> UILabel {
+        let label = UILabel()
+        label.numberOfLines = isExpanded ? 0 : maxLines
+        label.textAlignment = .justified
+        label.lineBreakMode = .byTruncatingTail
+        label.preferredMaxLayoutWidth = UIScreen.main.bounds.width - 40
+        return label
+    }
+    
+    func updateUIView(_ uiView: UILabel, context: Context) {
+        uiView.text = text
+        uiView.numberOfLines = isExpanded ? 0 : maxLines
+        if let font = font {
+            uiView.font = font
+        }
+        if let textColor = textColor {
+            uiView.textColor = textColor
+        }
+    }
+}
+
+extension JustifiedText {
+    func font(_ font: Font) -> JustifiedText {
+        let uiFont = UIFont(
+            descriptor: UIFontDescriptor(name: "SF Pro Rounded", size: 14),
+            size: 14
+        )
+        return JustifiedText(text: self.text, font: uiFont, textColor: self.textColor, isExpanded: self._isExpanded)
+    }
+    
+    func foregroundStyle(_ color: Color) -> JustifiedText {
+        return JustifiedText(text: self.text, font: self.font, textColor: UIColor(color), isExpanded: self._isExpanded)
     }
 }
