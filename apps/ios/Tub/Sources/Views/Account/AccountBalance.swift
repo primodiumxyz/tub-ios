@@ -73,11 +73,11 @@ struct AccountBalanceView: View {
                         }
                     }
                 }
-                .padding(.horizontal, 24)
+                .padding(.horizontal, 12)
                 .padding(.bottom, 4)
                 Divider()
                     .frame(maxWidth: .infinity, maxHeight: 0.5)
-                    .background(.secondary)
+                    .background(.secondary.opacity(0.5))
             }
         }
         .padding(.horizontal, 16)
