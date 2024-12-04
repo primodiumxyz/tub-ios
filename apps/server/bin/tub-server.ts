@@ -7,7 +7,7 @@ import { Codex } from "@codex-data/sdk";
 import fastifyWebsocket from "@fastify/websocket";
 import { PrivyClient } from "@privy-io/server-auth";
 import { clusterApiUrl, Connection, Keypair, PublicKey } from "@solana/web3.js";
-import { createJupiterApiClient, ConfigurationParameters } from '@jup-ag/api';
+import { createJupiterApiClient, ConfigurationParameters } from "@jup-ag/api";
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import { applyWSSHandler } from "@trpc/server/adapters/ws";
 import { createClient as createGqlClient } from "@tub/gql";
@@ -15,7 +15,7 @@ import { config } from "dotenv";
 import fastify from "fastify";
 import bs58 from "bs58";
 
-const cacheManager = await import('cache-manager');
+const cacheManager = await import("cache-manager");
 
 config({ path: "../../.env" });
 
@@ -28,9 +28,9 @@ export const server = fastify({
 });
 
 export type FeeOptions = {
-  amount: number,
-  sourceAccount: PublicKey,
-  destinationAccount: PublicKey,
+  amount: number;
+  sourceAccount: PublicKey;
+  destinationAccount: PublicKey;
 };
 
 await server.register(import("@fastify/compress"));
@@ -43,6 +43,7 @@ server.get("/readyz", (req, res) => res.code(200).send());
 server.get("/", (req, res) => res.code(200).send("hello world"));
 
 // Helper function to extract bearer token
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getBearerToken = (req: any) => {
   const authHeader = req.headers?.authorization;
   if (authHeader && authHeader.startsWith("Bearer ")) {
@@ -54,23 +55,19 @@ const getBearerToken = (req: any) => {
 export const start = async () => {
   try {
     const connection = new Connection(
-      env.NODE_ENV === "production" 
-        ? env.QUICKNODE_MAINNET_URL 
-        : clusterApiUrl("devnet"),
-      "confirmed"
+      env.NODE_ENV === "production" ? env.QUICKNODE_MAINNET_URL : clusterApiUrl("devnet"),
+      "confirmed",
     );
 
     // Initialize cache for OctaneService
-    const cache = cacheManager.default.caching({ 
-      store: 'memory',
-      max: 100, 
-      ttl: 10 /*seconds*/ 
+    const cache = cacheManager.default.caching({
+      store: "memory",
+      max: 100,
+      ttl: 10 /*seconds*/,
     });
 
     // Initialize fee payer keypair from base58 private key
-    const feePayerKeypair = Keypair.fromSecretKey(
-      bs58.decode(env.FEE_PAYER_PRIVATE_KEY)
-    );
+    const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY));
 
     if (!feePayerKeypair) {
       throw new Error("Fee payer keypair not found");
@@ -85,7 +82,7 @@ export const start = async () => {
     };
 
     const jupiterQuoteApi = createJupiterApiClient(jupiterConfig);
-    
+
     // Initialize OctaneService
     const octaneService = new OctaneService(
       connection,
@@ -95,7 +92,7 @@ export const start = async () => {
       env.OCTANE_BUY_FEE,
       env.OCTANE_SELL_FEE,
       env.OCTANE_MIN_TRADE_SIZE,
-      cache
+      cache,
     );
 
     if (!process.env.GRAPHQL_URL && env.NODE_ENV === "production") {
@@ -119,9 +116,9 @@ export const start = async () => {
       useWSS: true,
       trpcOptions: {
         router: createAppRouter(),
-        createContext: async (opt) => ({ 
-          tubService, 
-          jwtToken: getBearerToken(opt.req) ?? '' 
+        createContext: async (opt) => ({
+          tubService,
+          jwtToken: getBearerToken(opt.req) ?? "",
         }),
       },
     });
@@ -132,9 +129,9 @@ export const start = async () => {
     applyWSSHandler({
       wss: server.websocketServer,
       router: createAppRouter(),
-      createContext: async (opt) => ({ 
-        tubService, 
-        jwtToken: getBearerToken(opt.req) ?? '' 
+      createContext: async (opt) => ({
+        tubService,
+        jwtToken: getBearerToken(opt.req) ?? "",
       }),
     });
 

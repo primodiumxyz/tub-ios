@@ -1,19 +1,19 @@
 import { PrivyClient } from "@privy-io/server-auth";
 import { createTRPCProxyClient, createWSClient, httpBatchLink, splitLink, wsLink } from "@trpc/client";
 import { config } from "dotenv";
-import { beforeAll, describe, expect, inject, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import WebSocket from "ws";
 import { parseEnv } from "../bin/parseEnv";
 import { AppRouter } from "../src/createAppRouter";
-import { resolve } from 'path';
+import { resolve } from "path";
 
 const envPath = resolve(__dirname, "../../../.env");
 console.log("Loading .env file from:", envPath);
 config({ path: envPath });
 const env = parseEnv();
 const tokenId = "722e8490-e852-4298-a250-7b0a399fec57";
-const host = process.env.SERVER_HOST || 'localhost';
-const port = process.env.SERVER_PORT || '4000';
+const host = process.env.SERVER_HOST || "localhost";
+const port = process.env.SERVER_PORT || "4000";
 
 describe("Server Integration Tests", () => {
   let client: ReturnType<typeof createTRPCProxyClient<AppRouter>>;
@@ -22,9 +22,10 @@ describe("Server Integration Tests", () => {
   beforeAll(async () => {
     const wsUrl = `ws://${host}:${port}/trpc`;
     console.log(`Connecting to WebSocket at: ${wsUrl}`);
-    
+
     const wsClient = createWSClient({
       url: wsUrl,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       WebSocket: WebSocket as any,
     });
 
