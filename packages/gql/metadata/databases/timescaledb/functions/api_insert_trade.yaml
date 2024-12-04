@@ -1,7 +1,0 @@
-function:
-  name: insert_trade
-  schema: api
-configuration:
-  exposed_as: query
-  arguments:
-    session_argument: null

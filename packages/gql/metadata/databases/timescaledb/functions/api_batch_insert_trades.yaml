@@ -1,7 +1,0 @@
-function:
-  name: batch_insert_trades
-  schema: api
-configuration:
-  exposed_as: query
-  arguments:
-    session_argument: null

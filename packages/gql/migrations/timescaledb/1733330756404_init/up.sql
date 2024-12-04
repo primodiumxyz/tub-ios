@@ -1,4 +1,3 @@
--- _UP_
 -- Enable TimescaleDB extension
 CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
 
@@ -52,8 +51,8 @@ SELECT
   token_mint,
   FIRST(id, created_at) as id,
   FIRST(token_metadata, created_at) as token_metadata,
-  AVG(token_price_usd) as avg_price,
-  SUM(volume_usd) as total_volume,
+  AVG(token_price_usd) as avg_price_usd,
+  SUM(volume_usd) as total_volume_usd,
   COUNT(*) as trade_count
 FROM api.trade_history
 GROUP BY bucket, token_mint
@@ -67,9 +66,3 @@ SELECT add_continuous_aggregate_policy('api.trade_history_1min',
 );
 
 COMMENT ON TABLE api.trade_history IS 'History of trades on subscribed accounts from the indexer.';
-
--- _DOWN_
-DROP MATERIALIZED VIEW IF EXISTS api.trade_history_1min CASCADE;
-DROP TABLE IF EXISTS api.trade_history CASCADE;
-DROP TYPE IF EXISTS token_metadata CASCADE;
-DROP EXTENSION IF EXISTS timescaledb CASCADE;

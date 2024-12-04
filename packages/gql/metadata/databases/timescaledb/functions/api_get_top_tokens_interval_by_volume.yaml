@@ -1,7 +1,0 @@
-function:
-  name: get_top_tokens_interval_by_volume
-  schema: api
-configuration:
-  exposed_as: query
-  arguments:
-    session_argument: null

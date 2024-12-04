@@ -4,6 +4,6 @@ table:
 select_permissions:
   - role: public
     permission:
-      columns: "*"
+      columns: '*'
       filter: {}
       allow_aggregations: true

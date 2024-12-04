@@ -1,2 +1,2 @@
 - "!include api_trade_history.yaml"
-- "!include public_schema_migrations.yaml"
+- "!include api_trade_history_1min.yaml"

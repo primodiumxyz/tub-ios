@@ -75,10 +75,7 @@
           description: ""
           nullable: false
           type: interval
-      code: SELECT  token_transaction.id,  token_transaction.token,  token_transaction.amount,
-        wallet_transaction.wallet, created_at, created_at + {{offset}} as
-        created_at_offset from token_transaction inner JOIN wallet_transaction
-        on token_transaction.wallet_transaction = wallet_transaction.id
+      code: SELECT  token_transaction.id,  token_transaction.token,  token_transaction.amount, wallet_transaction.wallet, created_at, created_at + {{offset}} as created_at_offset from token_transaction inner JOIN wallet_transaction on token_transaction.wallet_transaction = wallet_transaction.id
       returns: token_transaction_offset_model
       root_field_name: token_transaction_offset
     - arguments:
@@ -94,14 +91,10 @@
           description: ""
           nullable: false
           type: varchar
-      code: >-
+      code: |-
         SELECT COALESCE(SUM(wallet_transaction_offset.amount), 0) as balance
-
-        from  (SELECT *, created_at + {{interval}} as created_at_offset from
-        wallet_transaction) as wallet_transaction_offset
-
-        where wallet_transaction_offset.wallet = {{wallet}} and
-        wallet_transaction_offset.created_at_offset <= {{start}}
+        from  (SELECT *, created_at + {{interval}} as created_at_offset from wallet_transaction) as wallet_transaction_offset
+        where wallet_transaction_offset.wallet = {{wallet}} and wallet_transaction_offset.created_at_offset <= {{start}}
       returns: balance_offset_model
       root_field_name: wallet_balance_ignore_interval
     - arguments:
@@ -121,29 +114,7 @@
           description: ""
           nullable: false
           type: varchar
-      code: >-
-        SELECT 
-            COALESCE(SUM(token_transaction_offset.amount), 0) AS balance
-        FROM (
-            SELECT  
-                token_transaction.id,  
-                token_transaction.token,  
-                token_transaction.amount, 
-                wallet_transaction.wallet, 
-                wallet_transaction.created_at, 
-                wallet_transaction.created_at + {{interval}} AS created_at_offset
-            FROM 
-                token_transaction
-            INNER JOIN 
-                wallet_transaction 
-            ON 
-                token_transaction.wallet_transaction = wallet_transaction.id
-        ) AS token_transaction_offset
-
-        WHERE 
-            token_transaction_offset.wallet = {{wallet}} 
-            AND token_transaction_offset.token = {{token}} 
-            AND token_transaction_offset.created_at_offset <= {{start}};
+      code: "SELECT \n    COALESCE(SUM(token_transaction_offset.amount), 0) AS balance\nFROM (\n    SELECT  \n        token_transaction.id,  \n        token_transaction.token,  \n        token_transaction.amount, \n        wallet_transaction.wallet, \n        wallet_transaction.created_at, \n        wallet_transaction.created_at + {{interval}} AS created_at_offset\n    FROM \n        token_transaction\n    INNER JOIN \n        wallet_transaction \n    ON \n        token_transaction.wallet_transaction = wallet_transaction.id\n) AS token_transaction_offset\nWHERE \n    token_transaction_offset.wallet = {{wallet}} \n    AND token_transaction_offset.token = {{token}} \n    AND token_transaction_offset.created_at_offset <= {{start}};"
       returns: balance_offset_model
       root_field_name: wallet_token_balance_ignore_interval
     - arguments:
@@ -151,8 +122,7 @@
           description: ""
           nullable: false
           type: interval
-      code: select *, created_at + {{offset}} as created_at_offset from
-        wallet_transaction
+      code: select *, created_at + {{offset}} as created_at_offset from wallet_transaction
       returns: wallet_transaction_offset_model
       root_field_name: wallet_transaction_offset
   tables: "!include default/tables/tables.yaml"
@@ -163,13 +133,113 @@
     connection_info:
       database_url:
         from_env: TIMESCALE_DATABASE_URL
+      isolation_level: read-committed
       pool_settings:
+        connection_lifetime: 600
         idle_timeout: 180
         max_connections: 50
         retries: 3
-      isolation_level: read-committed
-      use_prepared_statements: true # benchmark to see if it improves performance
+      use_prepared_statements: true
+  logical_models:
+    - fields:
+        - name: token_mint
+          type:
+            nullable: false
+            scalar: text
+        - name: total_volume_usd
+          type:
+            nullable: false
+            scalar: numeric
+        - name: price_change_pct
+          type:
+            nullable: false
+            scalar: numeric
+        - name: avg_price_usd
+          type:
+            nullable: false
+            scalar: numeric
+        - name: token_metadata_name
+          type:
+            nullable: false
+            scalar: varchar
+        - name: token_metadata_symbol
+          type:
+            nullable: false
+            scalar: varchar
+        - name: token_metadata_description
+          type:
+            nullable: false
+            scalar: text
+        - name: token_metadata_image_uri
+          type:
+            nullable: true
+            scalar: text
+        - name: token_metadata_external_url
+          type:
+            nullable: true
+            scalar: text
+        - name: token_metadata_supply
+          type:
+            nullable: true
+            scalar: numeric
+        - name: token_metadata_is_pump_token
+          type:
+            nullable: false
+            scalar: boolean
+      name: token_stats_model
+    - fields:
+        - name: bucket
+          type:
+            nullable: false
+            scalar: timestamptz
+        - name: token_mint
+          type:
+            nullable: false
+            scalar: text
+        - name: open_price_usd
+          type:
+            nullable: false
+            scalar: numeric
+        - name: close_price_usd
+          type:
+            nullable: false
+            scalar: numeric
+        - name: high_price_usd
+          type:
+            nullable: false
+            scalar: numeric
+        - name: low_price_usd
+          type:
+            nullable: false
+            scalar: numeric
+        - name: volume_usd
+          type:
+            nullable: false
+            scalar: numeric
+      name: trade_history_candle_model
+  native_queries:
+    - arguments:
+        interval:
+          description: ""
+          nullable: false
+          type: interval
+      code: "WITH params AS (\n  SELECT \n    date_trunc('minute', NOW() - {{interval}}::interval) as start_time,\n    date_trunc('minute', NOW()) as end_time\n),\ntoken_stats AS (\n  SELECT \n    token_mint,\n    SUM(total_volume_usd) as total_volume_usd,\n    ((LAST(avg_price_usd, bucket) - FIRST(avg_price_usd, bucket)) / \n      NULLIF(FIRST(avg_price_usd, bucket), 0) * 100) as price_change_pct,\n    AVG(avg_price_usd) as avg_price_usd,\n    LAST(token_metadata, bucket) as latest_metadata\n  FROM api.trade_history_1min, params\n  WHERE bucket >= start_time\n    AND bucket <= end_time\n  GROUP BY token_mint\n  HAVING SUM(total_volume_usd) > 0\n)\nSELECT \n  token_mint,\n  total_volume_usd,\n  price_change_pct,\n  avg_price_usd,\n  (latest_metadata).name AS token_metadata_name,\n  (latest_metadata).symbol AS token_metadata_symbol,\n  (latest_metadata).description AS token_metadata_description,\n  (latest_metadata).image_uri AS token_metadata_image_uri,\n  (latest_metadata).external_url AS token_metadata_external_url,\n  (latest_metadata).supply AS token_metadata_supply,\n  (latest_metadata).is_pump_token AS token_metadata_is_pump_token\nFROM token_stats;"
+      returns: token_stats_model
+      root_field_name: token_stats_interval_agg
+    - arguments:
+        interval:
+          description: ""
+          nullable: false
+          type: interval
+      code: "WITH params AS (\n  SELECT \n    NOW() - {{interval}}::interval as start_time,\n    NOW() as end_time\n),\ntoken_stats AS (\n  SELECT \n    token_mint,\n    SUM(volume_usd) as total_volume_usd,\n    ((LAST(token_price_usd, created_at) - FIRST(token_price_usd, created_at)) / \n      NULLIF(FIRST(token_price_usd, created_at), 0) * 100) as price_change_pct,\n    AVG(token_price_usd) as avg_price_usd,\n    LAST(token_metadata, created_at) as latest_metadata\n  FROM api.trade_history, params\n  WHERE created_at >= start_time\n    AND created_at <= end_time\n  GROUP BY token_mint\n  HAVING SUM(volume_usd) > 0\n)\nSELECT \n  token_mint,\n  total_volume_usd,\n  price_change_pct,\n  avg_price_usd,\n  (latest_metadata).name AS token_metadata_name,\n  (latest_metadata).symbol AS token_metadata_symbol,\n  (latest_metadata).description AS token_metadata_description,\n  (latest_metadata).image_uri AS token_metadata_image_uri,\n  (latest_metadata).external_url AS token_metadata_external_url,\n  (latest_metadata).supply AS token_metadata_supply,\n  (latest_metadata).is_pump_token AS token_metadata_is_pump_token\nFROM token_stats;"
+      returns: token_stats_model
+      root_field_name: token_stats_interval_comp
+    - arguments:
+        candle_interval:
+          description: ""
+          nullable: false
+          type: interval
+      code: "SELECT \n  time_bucket({{candle_interval}}::interval, created_at) as bucket,\n  token_mint,\n  FIRST(token_price_usd, created_at) as open_price_usd,\n  LAST(token_price_usd, created_at) as close_price_usd,\n  MAX(token_price_usd) as high_price_usd,\n  MIN(token_price_usd) as low_price_usd,\n  SUM(volume_usd) as volume_usd\nFROM api.trade_history\nGROUP BY 1, 2;"
+      returns: trade_history_candle_model
+      root_field_name: token_trade_history_candles
   tables: "!include timescaledb/tables/tables.yaml"
-  # functions: "!include timescaledb/functions/functions.yaml"
-  functions: []
-  types: "!include timescaledb/types/types.yaml"
