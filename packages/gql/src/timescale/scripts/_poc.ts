@@ -25,7 +25,7 @@ async function getClient() {
   return client;
 }
 
-function generateTokenData() {
+function generateTokenData(createdAt: string) {
   const tokenSymbols = ["SOL", "BONK", "WEN", "PYTH", "DUST"];
   const randomSymbol = tokenSymbols[Math.floor(Math.random() * tokenSymbols.length)];
 
@@ -33,6 +33,7 @@ function generateTokenData() {
     token_mint: `${randomSymbol}_${Math.random().toString(36).substring(2, 15)}`,
     token_price_usd: (Math.random() * 100).toFixed(6),
     volume_usd: (Math.random() * 1000000).toFixed(2),
+    created_at: createdAt,
     token_metadata: {
       name: `${randomSymbol} Token`,
       symbol: randomSymbol,
@@ -45,18 +46,48 @@ function generateTokenData() {
   };
 }
 
+async function verifyBatchInsertion(client: pg.Client, createdAt: string, expectedCount: number): Promise<boolean> {
+  const query = `
+    SELECT COUNT(*) as count
+    FROM api.trade_history
+    WHERE created_at = $1
+  `;
+
+  const result = await client.query(query, [createdAt]);
+  const actualCount = parseInt(result.rows[0].count);
+
+  if (actualCount !== expectedCount) {
+    console.error(`Verification failed: expected ${expectedCount} records, found ${actualCount}`);
+    return false;
+  }
+  return true;
+}
+
 async function insertBatchWithMetrics(
   client: pg.Client,
   trades: ReturnType<typeof generateTokenData>[],
   batchNumber: number,
 ): Promise<PerformanceMetrics> {
   const startTime = Date.now();
+  const createdAt = new Date(startTime).toISOString();
+
+  const tradesWithTimestamp = trades.map((trade) => ({
+    ...trade,
+    created_at: createdAt,
+  }));
 
   const query = `
     SELECT api.batch_insert_trades($1::jsonb);
   `;
 
-  await client.query(query, [JSON.stringify(trades)]);
+  await client.query(query, [JSON.stringify(tradesWithTimestamp)]);
+
+  const verified = await verifyBatchInsertion(client, createdAt, trades.length);
+  if (verified) {
+    console.log(`Batch #${batchNumber} correctly inserted`);
+  } else {
+    throw new Error(`Failed to verify batch insertion at ${createdAt}`);
+  }
 
   const endTime = Date.now();
   const latency = endTime - startTime;
@@ -67,7 +98,7 @@ async function insertBatchWithMetrics(
     endTime,
     latency,
     recordsInserted: trades.length,
-    timestamp: new Date(startTime).toISOString(),
+    timestamp: createdAt,
   };
 }
 
@@ -105,7 +136,7 @@ async function main() {
   try {
     while (Date.now() - startTime < TOTAL_RUNTIME) {
       // Generate batch of random trades
-      const trades = Array.from({ length: BATCH_SIZE }, () => generateTokenData());
+      const trades = Array.from({ length: BATCH_SIZE }, () => generateTokenData(new Date(Date.now()).toISOString()));
 
       // Insert batch and collect metrics
       const batchMetrics = await insertBatchWithMetrics(client, trades, ++batchNumber);
