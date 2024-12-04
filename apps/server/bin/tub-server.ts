@@ -19,7 +19,7 @@ const cacheManager = await import("cache-manager");
 
 config({ path: "../../.env" });
 
-const env = parseEnv();
+export const env = parseEnv();
 
 // @see https://fastify.dev/docs/latest/
 export const server = fastify({
@@ -38,13 +38,13 @@ await server.register(import("@fastify/cors"));
 await server.register(fastifyWebsocket);
 
 // k8s healthchecks
-server.get("/healthz", (req, res) => res.code(200).send());
-server.get("/readyz", (req, res) => res.code(200).send());
-server.get("/", (req, res) => res.code(200).send("hello world"));
+server.get("/healthz", (_, res) => res.code(200).send());
+server.get("/readyz", (_, res) => res.code(200).send());
+server.get("/", (_, res) => res.code(200).send("hello world"));
 
 // Helper function to extract bearer token
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const getBearerToken = (req: any) => {
+// @ts-expect-error IncomingMessage is not typed
+const getBearerToken = (req: IncomingMessage) => {
   const authHeader = req.headers?.authorization;
   if (authHeader && authHeader.startsWith("Bearer ")) {
     return authHeader.substring(7);

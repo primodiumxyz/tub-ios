@@ -15,6 +15,7 @@ struct AccountView: View {
     @State private var isAirdropping = false
     @Environment(\.presentationMode) var presentationMode
     @State private var showOnrampView = false
+    @State private var showWithdrawView = false
     @State private var errorMessage: String = ""
 
     var body: some View {
@@ -23,7 +24,8 @@ struct AccountView: View {
                 if userModel.userId != nil {
                     AccountContentView(
                         isAirdropping: $isAirdropping,
-                        showOnrampView: $showOnrampView
+                        showOnrampView: $showOnrampView,
+                        showWithdrawView: $showWithdrawView
                     )
                 }
                 else {
@@ -31,29 +33,49 @@ struct AccountView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color.black.ignoresSafeArea())
-            .sheet(isPresented: $showOnrampView) {
-
+            .background(Color(UIColor.systemBackground))
+            .sheet(isPresented: $showWithdrawView) {
+                WithdrawView()
+            }
+            .fullScreenCover(isPresented: $showOnrampView) {
                 VStack {
                     HStack {
-                        Text("Deposit")
-                            .font(.sfRounded(size: .xl, weight: .semibold))
-                            .foregroundColor(Color.white)
-                        Spacer()
                         Button(action: { showOnrampView = false }) {
                             Image(systemName: "xmark")
-                                .foregroundColor(Color.white)
+                                .foregroundStyle(.tubBuyPrimary)
                                 .font(.system(size: 16, weight: .medium))
                         }
+                        Spacer()
+
                     }.padding(24)
 
                     CoinbaseOnrampView()
-                }.background(Color.black)
+                }.background(Color(UIColor.systemBackground))
             }
-            .presentationDragIndicator(.visible)
-            .presentationBackground(Color.black)
         }
-        .background(Color.black.ignoresSafeArea())
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(UIColor.systemBackground))
+        .sheet(isPresented: $showOnrampView) {
+
+            VStack {
+                HStack {
+                    Text("Deposit")
+                        .font(.sfRounded(size: .xl, weight: .semibold))
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    Button(action: { showOnrampView = false }) {
+                        Image(systemName: "xmark")
+                            .foregroundStyle(.primary)
+                            .font(.system(size: 16, weight: .medium))
+                    }
+                }.padding(24)
+
+                CoinbaseOnrampView()
+            }.background(Color(UIColor.systemBackground))
+        }
+        .presentationDragIndicator(.visible)
+        .presentationBackground(Color(UIColor.systemBackground))
+
     }
 }
 
@@ -62,10 +84,6 @@ private struct AccountHeaderView: View {
 
     var body: some View {
         VStack(spacing: 8) {
-            Text("Account")
-                .font(.sfRounded(size: .xl2, weight: .semibold))
-                .foregroundColor(Color.white)
-
             BalanceSection()
         }
     }
@@ -88,14 +106,14 @@ private struct BalanceSection: View {
         VStack(spacing: 8) {
             Text("Account Balance")
                 .font(.sfRounded(size: .lg, weight: .regular))
-                .foregroundColor(Color("grayLight").opacity(0.7))
+                .foregroundStyle(.secondary)
 
             if let balance = accountBalance.balance {
                 let formattedBalance = priceModel.formatPrice(lamports: balance, maxDecimals: 2, minDecimals: 2)
 
                 Text(formattedBalance)
                     .font(.sfRounded(size: .xl5, weight: .bold))
-                    .foregroundColor(Color.white)
+                    .foregroundStyle(.primary)
             }
             else {
                 ProgressView()
@@ -106,7 +124,7 @@ private struct BalanceSection: View {
 
                 // Format time elapsed
                 Text("\(formatDuration(userModel.elapsedSeconds))")
-                    .foregroundColor(Color.gray)
+                    .foregroundStyle(.secondary)
                     .font(.sfRounded(size: .sm, weight: .regular))
 
             }
@@ -120,6 +138,7 @@ private struct BalanceSection: View {
 private struct ActionButtons: View {
     let isAirdropping: Bool
     @Binding var showOnrampView: Bool
+    @Binding var showWithdrawView: Bool
 
     var body: some View {
         HStack(spacing: 24) {
@@ -129,28 +148,28 @@ private struct ActionButtons: View {
             VStack(spacing: 8) {
                 CircleButton(
                     icon: "arrow.left.arrow.right",
-                    color: Color("aquaGreen"),
+                    color: .tubAccent,
                     iconSize: 22,
-                    action: {}
-                ).disabled(true)
+                    action: { showWithdrawView.toggle() }
+                )
 
                 Text("Transfer")
                     .font(.sfRounded(size: .sm, weight: .medium))
-                    .foregroundColor(Color("aquaGreen"))
+                    .foregroundStyle(.tubAccent)
                     .multilineTextAlignment(.center)
-            }.frame(width: 90).opacity(0.7)
+            }.frame(width: 90)
 
             // Add Funds Button
             VStack(spacing: 8) {
                 CircleButton(
                     icon: "plus",
-                    color: Color("aquaGreen"),
+                    color: .tubAccent,
                     action: { showOnrampView = true }
                 )
 
                 Text("Add Funds")
                     .font(.sfRounded(size: .sm, weight: .medium))
-                    .foregroundColor(Color("aquaGreen"))
+                    .foregroundStyle(.tubAccent)
                     .multilineTextAlignment(.center)
             }.frame(width: 90)
 
@@ -168,7 +187,7 @@ private struct AccountSettingsView: View {
         VStack(alignment: .leading, spacing: 24) {
             Text("Account Settings")
                 .font(.sfRounded(size: .xl, weight: .medium))
-                .foregroundColor(Color.white)
+                .foregroundStyle(.primary)
 
             NavigationLink(destination: AccountDetailsView()) {
                 HStack(spacing: 16) {
@@ -180,7 +199,7 @@ private struct AccountSettingsView: View {
                     Spacer()
                     Image(systemName: "chevron.right")
                 }
-                .foregroundColor(Color.white)
+                .foregroundStyle(Color.primary)
             }
 
             NavigationLink(destination: SettingsView()) {
@@ -193,7 +212,7 @@ private struct AccountSettingsView: View {
                     Spacer()
                     Image(systemName: "chevron.right")
                 }
-                .foregroundColor(Color.white)
+                .foregroundStyle(Color.primary)
             }
 
             HStack(spacing: 16) {
@@ -208,11 +227,10 @@ private struct AccountSettingsView: View {
                     .frame(width: 32, height: 32, alignment: .center)
                     .cornerRadius(8)
                     .padding(.trailing, -4)
-                Text("@Discord Link")
-                    .foregroundColor(Color("aquaGreen"))
+                Text("Discord Server")
                     .font(.sfRounded(size: .lg, weight: .medium))
             }
-            .foregroundColor(Color.white)
+            .foregroundStyle(.primary)
 
             // Logout Button
             IconTextButton(
@@ -222,10 +240,12 @@ private struct AccountSettingsView: View {
                 action: { userModel.logout() }
             )
 
-            Text(serverBaseUrl).foregroundStyle(Color.white)
+            Text(serverBaseUrl).foregroundStyle(.primary)
                 .font(.caption)
         }
         .padding()
+        .navigationTitle("Account")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
@@ -240,13 +260,15 @@ private struct UnregisteredAccountView: View {
 private struct AccountContentView: View {
     @Binding var isAirdropping: Bool
     @Binding var showOnrampView: Bool
+    @Binding var showWithdrawView: Bool
 
     var body: some View {
         VStack(spacing: 24) {
             AccountHeaderView()
             ActionButtons(
                 isAirdropping: isAirdropping,
-                showOnrampView: $showOnrampView
+                showOnrampView: $showOnrampView,
+                showWithdrawView: $showWithdrawView
             )
             AccountSettingsView()
             Spacer()

@@ -1,6 +1,6 @@
 import { Codex } from "@codex-data/sdk";
 import { PrivyClient, WalletWithMetadata } from "@privy-io/server-auth";
-import { PublicKey, SendTransactionError, Transaction } from "@solana/web3.js";
+import { Connection, Keypair, PublicKey, SendTransactionError, Transaction } from "@solana/web3.js";
 import { createTransferInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { GqlClient } from "@tub/gql";
 import { PrebuildSwapResponse, UserPrebuildSwapRequest } from "../types/PrebuildSwapRequest";
@@ -8,6 +8,7 @@ import { OctaneService } from "./OctaneService";
 import { Subject, interval, switchMap, Subscription } from "rxjs";
 import { config } from "dotenv";
 import bs58 from "bs58";
+import { env } from "../bin/tub-server";
 
 config({ path: "../../.env" });
 
@@ -40,6 +41,7 @@ export class TubService {
   private octane: OctaneService;
   private privy: PrivyClient;
   private codexSdk: Codex;
+  private connection: Connection;
   private activeSwapRequests: Map<string, ActiveSwapRequest> = new Map();
   private swapRegistry: Map<string, PrebuildSwapResponse & { transaction: Transaction }> = new Map();
   private swapSubscriptions: Map<string, SwapSubscription> = new Map();
@@ -57,6 +59,7 @@ export class TubService {
     this.octane = octane;
     this.privy = privy;
     this.codexSdk = codexSdk;
+    this.connection = new Connection(env.QUICKNODE_MAINNET_URL);
 
     // Start cleanup interval
     setInterval(() => this.cleanupRegistry(), 60 * 1000); // Run cleanup every minute
@@ -161,6 +164,57 @@ export class TubService {
     }
 
     return result.data;
+  }
+
+  async getSignedTransfer(
+    jwtToken: string,
+    args: { fromAddress: string; toAddress: string; amount: bigint; tokenId: string },
+  ): Promise<{ transactionBase64: string; signatureBase64: string; signerBase58: string }> {
+    const accountId = await this.verifyJWT(jwtToken);
+    if (!accountId) {
+      throw new Error("User is not registered with Privy");
+    }
+    const wallet = await this.getUserWallet(accountId);
+    if (!wallet) {
+      throw new Error("User does not have a wallet");
+    }
+    const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY));
+
+    const tokenMint = new PublicKey(args.tokenId);
+
+    const fromPublicKey = new PublicKey(args.fromAddress);
+    const toPublicKey = new PublicKey(args.toAddress);
+
+    const fromTokenAccount = getAssociatedTokenAddressSync(tokenMint, fromPublicKey);
+    const toTokenAccount = getAssociatedTokenAddressSync(tokenMint, toPublicKey);
+
+    const transferInstruction = createTransferInstruction(fromTokenAccount, toTokenAccount, fromPublicKey, args.amount);
+
+    const transaction = new Transaction();
+    transaction.feePayer = feePayerKeypair.publicKey;
+
+    transaction.add(transferInstruction);
+
+    const blockhash = await this.connection.getLatestBlockhash();
+    transaction.recentBlockhash = blockhash.blockhash;
+
+    transaction.sign(feePayerKeypair);
+
+    const sigData = transaction.signatures[0];
+    if (!sigData) {
+      throw new Error("Transaction is not signed by feePayer");
+    }
+    const { signature: rawSignature, publicKey } = sigData;
+
+    if (!rawSignature) {
+      throw new Error("Transaction is not signed by feePayer");
+    }
+
+    return {
+      transactionBase64: transaction.serialize({ requireAllSignatures: false }).toString("base64"),
+      signatureBase64: Buffer.from(rawSignature).toString("base64"),
+      signerBase58: publicKey.toBase58(),
+    };
   }
 
   /**

@@ -10,10 +10,20 @@ import TubAPI
 import UIKit
 
 struct TokenListView: View {
+    init() {
+        let appearance = UITabBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = UIColor.systemBackground
+
+        UITabBar.appearance().standardAppearance = appearance
+        UITabBar.appearance().scrollEdgeAppearance = appearance
+    }
+
     @EnvironmentObject private var userModel: UserModel
     @EnvironmentObject private var notificationHandler: NotificationHandler
     @StateObject private var tokenManager = CodexTokenManager.shared
 
+    var emptyTokenModel = TokenModel()
     // chevron animation
     @State private var chevronOffset: CGFloat = 0.0
 
@@ -24,7 +34,7 @@ struct TokenListView: View {
     @State private var dragging = false
     @State private var isDragStarting = true
 
-    let OFFSET: Double = -15
+    let OFFSET: Double = 5
 
     var activeTab: String {
         let balance: Int = userModel.tokenBalanceLamps ?? 0
@@ -39,15 +49,6 @@ struct TokenListView: View {
     private enum SwipeDirection {
         case up
         case down
-    }
-
-    private var background: LinearGradient {
-        if !tokenListModel.isReady || tokenListModel.totalTokenCount == 0 {
-            return LinearGradient(colors: [.clear], startPoint: .top, endPoint: .bottom)
-        }
-        return activeTab == "sell"
-            ? AppColors.primaryPinkGradient
-            : AppColors.primaryPurpleGradient
     }
 
     private func canSwipe(direction: SwipeDirection) -> Bool {
@@ -89,9 +90,6 @@ struct TokenListView: View {
     var body: some View {
 
         ZStack(alignment: .top) {
-            background
-                .animation(.easeInOut(duration: 0.3), value: activeTab)
-
             if showBubbles {
                 BubbleEffect(isActive: $showBubbles)
                     .zIndex(10)
@@ -128,19 +126,13 @@ struct TokenListView: View {
                 if tokenListModel.totalTokenCount > 0 {
                     GeometryReader { geometry in
                         VStack(spacing: 0) {
-                            if let previousTokenModel = tokenListModel.previousTokenModel, dragging {
-                                TokenView(
-                                    tokenModel: previousTokenModel,
-                                    animate: Binding.constant(false),
-                                    showBubbles: Binding.constant(false)
-                                )
-                                .frame(height: geometry.size.height)
-                            }
-                            else {
-                                LoadingTokenView()
-                                    .frame(height: geometry.size.height)
-                                    .opacity(dragging ? 0.8 : 0)
-                            }
+                            TokenView(
+                                tokenModel: tokenListModel.previousTokenModel ?? emptyTokenModel,
+                                animate: Binding.constant(false),
+                                showBubbles: Binding.constant(false)
+                            )
+                            .frame(height: geometry.size.height)
+                            .opacity(dragging ? 1 : 0)
 
                             TokenView(
                                 tokenModel: tokenListModel.currentTokenModel,
@@ -156,20 +148,13 @@ struct TokenListView: View {
                                 }
                             )
                             .frame(height: geometry.size.height)
-
-                            if let nextTokenModel = tokenListModel.nextTokenModel, dragging {
-                                TokenView(
-                                    tokenModel: nextTokenModel,
-                                    animate: Binding.constant(false),
-                                    showBubbles: Binding.constant(false)
-                                )
-                                .frame(height: geometry.size.height)
-                            }
-                            else {
-                                LoadingTokenView()
-                                    .frame(height: geometry.size.height)
-                                    .opacity(dragging ? 0.8 : 0)
-                            }
+                            TokenView(
+                                tokenModel: tokenListModel.nextTokenModel ?? emptyTokenModel,
+                                animate: Binding.constant(false),
+                                showBubbles: Binding.constant(false)
+                            )
+                            .frame(height: geometry.size.height)
+                            .opacity(dragging ? 1 : 0)
                         }
                         .zIndex(1)
                         .offset(y: -geometry.size.height + OFFSET + offset + activeOffset)
@@ -233,7 +218,6 @@ struct TokenLoadErrorView: View {
         VStack {
             Spacer()
             Text("Failed to load tokens.")
-                .foregroundColor(Color.aquaBlue)
                 .multilineTextAlignment(.center)
                 .padding(.bottom, 24)
             Button(action: {
@@ -244,7 +228,6 @@ struct TokenLoadErrorView: View {
             }) {
                 Text("Retry")
                     .font(.sfRounded(size: .lg, weight: .semibold))
-                    .foregroundColor(Color.white)
                     .frame(maxWidth: 300)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)

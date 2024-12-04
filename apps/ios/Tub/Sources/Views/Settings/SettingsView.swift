@@ -18,14 +18,14 @@ struct CustomToggleStyle: ToggleStyle {
                 .frame(width: 50, height: 30)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(configuration.isOn ? Color("aquaGreen") : Color("pink"), lineWidth: 1)
+                        .stroke(configuration.isOn ? .tubSellPrimary : .tubBuyPrimary, lineWidth: 1)
                 )
                 .overlay(
                     Circle()
                         .fill(
                             configuration.isOn
-                                ? AppColors.toggleOnGradient
-                                : AppColors.toggleOffGradient
+                                ? Gradients.toggleOnGradient
+                                : Gradients.toggleOffGradient
                         )
                         .frame(width: 24, height: 24)
                         .offset(x: configuration.isOn ? 10 : -10)
@@ -81,13 +81,13 @@ struct SettingsView: View {
                         HStack(spacing: 4) {
                             Text("$")
                                 .font(.sfRounded(size: .lg, weight: .semibold))
-                                .foregroundColor(Color.white.opacity(0.5))
+                                .foregroundStyle(.secondary)
                             TextField("", text: $tempDefaultValue)
                                 .focused($isEditing)
                                 .keyboardType(.decimalPad)
                                 .font(.sfRounded(size: .lg, weight: .semibold))
                                 .multilineTextAlignment(.trailing)
-                                .foregroundColor(Color.white)
+                                .foregroundStyle(.primary)
                                 .frame(width: textWidth(for: tempDefaultValue))
                                 .onChange(of: tempDefaultValue) { _, newValue in
                                     // Remove any non-numeric characters except decimal point
@@ -114,22 +114,11 @@ struct SettingsView: View {
                                     updateDefaultValue()
                                 }
                             Image(systemName: "pencil")
-                                .foregroundColor(Color.white)
+                                .foregroundStyle(.tubBuyPrimary)
                                 .font(.system(size: 20))
                         }
                     }
 
-                    // Commented out for now
-                    // Push Notifications Toggle
-                    //                    DetailRow(
-                    //                        title: "Push Notifications",
-                    //                        value: ""
-                    //                    ) {
-                    //                        Toggle("", isOn: $pushNotificationsEnabled)
-                    //                            .toggleStyle(CustomToggleStyle())
-                    //                    }
-
-                    // Vibration Toggle
                     DetailRow(
                         title: "Vibration",
                         value: ""
@@ -143,26 +132,21 @@ struct SettingsView: View {
 
                 Spacer()
             }
-            .navigationBarTitleDisplayMode(.inline)
             .navigationBarBackButtonHidden(false)
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Text("Settings")
-                        .font(.sfRounded(size: .xl, weight: .semibold))
-                        .foregroundColor(Color.white)
-                }
-
                 // Keep keyboard toolbar
                 ToolbarItem(placement: .keyboard) {
                     Button("Save") {
                         isEditing = false
                         updateDefaultValue()
                     }
-                    .foregroundColor(Color("pink"))
+                    .foregroundStyle(.tubSellPrimary)
                     .font(.system(size: 20))
                 }
             }
-            .background(Color.black)
+            .background(Color(UIColor.systemBackground))
         }
     }
 
@@ -183,4 +167,5 @@ struct SettingsView: View {
 
 #Preview {
     SettingsView()
+        .preferredColorScheme(.dark)
 }
