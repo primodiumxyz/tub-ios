@@ -10,6 +10,7 @@ struct TokenInfoCardView: View {
     @ObservedObject var tokenModel: TokenModel
     @EnvironmentObject var priceModel: SolPriceModel
     var stats: [StatValue]
+    @State private var isDescriptionExpanded = false
     var sellStats: [StatValue]?
 
     init(tokenModel: TokenModel, stats: [StatValue], sellStats: [StatValue]? = nil) {
@@ -62,13 +63,32 @@ struct TokenInfoCardView: View {
                             .font(.sfRounded(size: .xl, weight: .semibold))
                             .frame(maxWidth: .infinity, alignment: .topLeading)
 
-                        Text("\(tokenModel.token.description)")
-                            .font(.sfRounded(size: .sm, weight: .regular))
-                            .foregroundStyle(.tubText)
-                            .multilineTextAlignment(.leading)
-                            .padding(6)
+                        VStack(alignment: .leading, spacing: 8) {
+                            if !tokenModel.token.description.isEmpty {
+                                JustifiedText(text: tokenModel.token.description, isExpanded: $isDescriptionExpanded)
+                                    .font(.sfRounded(size: .sm, weight: .regular))
+                                    .foregroundStyle(.secondary)
+
+                                if tokenModel.token.description.count > 200 {
+                                    Button(action: {
+                                        withAnimation {
+                                            isDescriptionExpanded.toggle()
+                                        }
+                                    }) {
+                                        Text(isDescriptionExpanded ? "Show Less" : "Show More")
+                                            .font(.sfRounded(size: .sm, weight: .medium))
+                                            .foregroundStyle(.tubBuyPrimary)
+                                    }
+                                }
+                            } else {
+                                Text("This token is still writing its autobiography... 📝")
+                                    .font(.sfRounded(size: .sm, weight: .regular))
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
                     }
-                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 10)
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)

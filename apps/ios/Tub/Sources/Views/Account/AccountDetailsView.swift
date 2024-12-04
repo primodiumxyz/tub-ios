@@ -85,12 +85,6 @@ struct AccountDetailsView: View {
                 .navigationBarBackButtonHidden(false)
                 .navigationTitle("Account Details")
                 .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .principal) {
-                        Text("Account Details")
-                            .font(.sfRounded(size: .xl, weight: .semibold))
-                    }
-                }
                 .background(Color(UIColor.systemBackground))
             }
         }

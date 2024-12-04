@@ -16,7 +16,7 @@ struct HistoryView: View {
 
     @State private var txs: [Transaction]
     @State private var isReady: Bool
-    @State private var error: Error?  // Add this line
+    @State private var error: Error?  
     @State private var tokenMetadata: [String: TokenMetadata] = [:]  // Cache for token metadata
 
     struct TokenMetadata {
@@ -137,7 +137,11 @@ struct HistoryView: View {
                 ErrorView(error: error)
             }
             else {
-                HistoryViewContent(txs: txs, isReady: $isReady)
+                HistoryViewContent(
+                    txs: txs, 
+                    isReady: $isReady,
+                    fetchUserTxs: fetchUserTxs  
+                )
             }
         }.onAppear {
             if let wallet = userModel.walletAddress { fetchUserTxs(wallet) }
@@ -146,46 +150,48 @@ struct HistoryView: View {
 }
 
 struct HistoryViewContent: View {
+    @EnvironmentObject private var userModel: UserModel
     var txs: [Transaction]
     @Binding var isReady: Bool
     @State private var filterState = FilterState()
+    var fetchUserTxs: (String) -> Void
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 0) {
-                    // Add padding at the top to make room for the filters
-                    Color.clear.frame(height: 44)
+        ScrollView {
+            VStack(spacing: 0) {
 
-                    // Transaction List
-                    if !isReady {
-                        ProgressView()
-                    }
-                    else if filteredTransactions().isEmpty {
-                        Text("No transactions found")
-                            .padding()
-                            .font(.sfRounded(size: .base, weight: .regular))
-                            .foregroundStyle(Color.gray)
-                    }
-                    else {
-                        LazyVStack(spacing: 0) {
-                            ForEach(groupTransactions(filteredTransactions()), id: \.date) { group in
-                                TransactionGroupRow(group: group)
-                            }
-                        }
-                        .padding(.horizontal, 16)
-                    }
-                    Spacer()
+                // Transaction List
+                if !isReady {
+                    ProgressView()
                 }
+                else if filteredTransactions().isEmpty {
+                    TransactionFilters(filterState: $filterState)
+                        .background(Color(UIColor.systemBackground))
+                    Text("No transactions found")
+                        .padding()
+                        .font(.sfRounded(size: .base, weight: .regular))
+                        .foregroundStyle(Color.gray)
+                }
+                else {
+                    TransactionFilters(filterState: $filterState)
+                        .background(Color(UIColor.systemBackground))
+                    LazyVStack(spacing: 0) {
+                        ForEach(groupTransactions(filteredTransactions()), id: \.date) { group in
+                            TransactionGroupRow(group: group)
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                }
+                Spacer()
             }
-            .overlay(
-                TransactionFilters(filterState: $filterState)
-                    .background(Color(UIColor.systemBackground)),
-                alignment: .top
-            )
-            .navigationTitle("History")
-            .navigationBarTitleDisplayMode(.inline)
         }
+        .refreshable {
+            if let wallet = userModel.walletAddress {
+                fetchUserTxs(wallet)
+            }
+        }
+        .navigationTitle("History")
+        .navigationBarTitleDisplayMode(.inline)
     }
 
     // Helper function to filter transactions
