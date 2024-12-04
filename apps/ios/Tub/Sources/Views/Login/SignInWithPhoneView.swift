@@ -145,19 +145,8 @@ struct SignInWithPhoneView: View {
                             showPhoneError = false
                         }
                 }
-                .padding(.horizontal)
 
-                Button(action: handlePhoneLogin) {
-                    Text("Continue")
-                        .font(.sfRounded(size: .lg, weight: .semibold))
-                        .frame(maxWidth: .infinity)
-                        .padding(14)
-                        .background(.tubSellPrimary)
-                        .cornerRadius(26)
-                }
-                .disabled(signingIn)
-                .padding(.horizontal)
-                .padding(.top, 5)
+                PrimaryButton(text: "Continue", disabled: signingIn, action: handlePhoneLogin)
                 Text(showPhoneError ? "Please enter a valid phone number." : "")
                     .foregroundStyle(.tubError)
                     .font(.caption)
@@ -166,8 +155,9 @@ struct SignInWithPhoneView: View {
 
             }
         }
+        .padding(.horizontal)
         .frame(maxHeight: .infinity)
-        .background(Color(UIColor.systemBackground))
+        .background(Gradients.cardBgGradient)
 
         .dismissKeyboardOnTap()
     }

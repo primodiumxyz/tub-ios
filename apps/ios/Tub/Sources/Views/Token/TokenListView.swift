@@ -51,15 +51,6 @@ struct TokenListView: View {
         case down
     }
 
-    private var background: LinearGradient {
-        if !tokenListModel.isReady || tokenListModel.totalTokenCount == 0 {
-            return LinearGradient(colors: [Color.clear], startPoint: .top, endPoint: .bottom)
-        }
-        return activeTab == "sell"
-            ? AppColors.primaryPinkGradient
-            : AppColors.primaryPurpleGradient
-    }
-
     private func canSwipe(direction: SwipeDirection) -> Bool {
         if activeTab == "sell" { return false }
         if direction == .up {
@@ -99,11 +90,6 @@ struct TokenListView: View {
     var body: some View {
 
         ZStack(alignment: .top) {
-            // Removes background after redesign
-
-            // background
-            //     .animation(.easeInOut(duration: 0.3), value: activeTab)
-
             if showBubbles {
                 BubbleEffect(isActive: $showBubbles)
                     .zIndex(10)

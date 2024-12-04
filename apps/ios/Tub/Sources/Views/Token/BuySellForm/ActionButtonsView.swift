@@ -73,37 +73,40 @@ struct ActionButtonsView: View {
             if userModel.userId == nil {
                 LoginButton(isLoginPresented: $isLoginPresented)
             }
-            switch userModel.walletState {
-            case .connected(_):
-                if activeTab == "buy" {
-                    if let balanceUsd = userModel.balanceLamps,
-                        priceModel.lamportsToUsd(lamports: balanceUsd) < 0.1
-                    {
-                        AirdropButton()
-                    }
-                    else {
-                        HStack(spacing: 16) {
-                            CircleButton(
-                                icon: "pencil",
-                                color: .tubBuyPrimary,
-                                iconSize: 20,
-                                iconWeight: .bold,
-                                action: { showBuySheet = true }
-                            )
+            else {
+                switch userModel.walletState {
+                case .connected(_):
+                    if activeTab == "buy" {
+                        if let balanceUsd = userModel.balanceLamps,
+                            priceModel.lamportsToUsd(lamports: balanceUsd) < 0.1
+                        {
+                            AirdropButton()
+                        }
+                        else {
+                            HStack(spacing: 16) {
+                                CircleButton(
+                                    icon: "pencil",
+                                    color: .tubBuyPrimary,
+                                    iconSize: 20,
+                                    iconWeight: .bold,
+                                    action: { showBuySheet = true }
+                                )
 
-                            BuyButton(handleBuy: handleBuy)
+                                BuyButton(handleBuy: handleBuy)
+                            }
                         }
                     }
+                    else {
+                        SellButtons(onSell: handleSell)
+                    }
+                case .connecting:
+                    ConnectingButton()
+                default:
+                    ConnectButton()
                 }
-                else {
-                    SellButtons(onSell: handleSell)
-                }
-            case .connecting:
-                ConnectingButton()
-            default:
-                ConnectButton()
             }
         }
+        .padding(.horizontal, 8)
         .fullScreenCover(isPresented: $isLoginPresented) {
             RegisterView(isRedirected: true)
         }
@@ -123,7 +126,7 @@ private struct LoginButton: View {
         PrimaryButton(
             text: "Login to Buy",
             action: { isLoginPresented = true }
-        ).padding(.horizontal, 8)
+        )
     }
 }
 
@@ -143,7 +146,7 @@ private struct ConnectButton: View {
                     }
                 }
             }
-        ).padding(.horizontal, 8)
+        )
 
     }
 }
@@ -152,10 +155,9 @@ private struct ConnectingButton: View {
     var body: some View {
         PrimaryButton(
             text: "Connecting...",
-            backgroundColor: .tubPurple,
             disabled: true,
             action: {}
-        ).padding(.horizontal, 8)
+        )
     }
 }
 
@@ -178,10 +180,8 @@ private struct AirdropButton: View {
     var body: some View {
         PrimaryButton(
             text: "Get 1 test SOL",
-            backgroundColor: .tubPurple,
             action: handleAirdrop
         )
-        .padding(.horizontal, 8)
         .sheet(isPresented: $showOnrampView) {
             CoinbaseOnrampView()
         }
@@ -199,7 +199,6 @@ private struct BuyButton: View {
     var body: some View {
         PrimaryButton(
             text: "Buy \(priceModel.formatPrice(usd: settingsManager.defaultBuyValue))",
-            backgroundColor: .tubPurple,
             action: {
                 Task {
                     await handleBuy(settingsManager.defaultBuyValue)
@@ -216,25 +215,16 @@ struct SellButtons: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            // This logic requires refactoring to work so commented out for now
-            //                OutlineButton(
-            //                    text: "Buy",
-            //                    textColor: .tubSellPrimary,
-            //                    strokeColor: .tubSellPrimary,
-            //                    backgroundColor: .clear,
-            //                    action: {}
-            //                )
-
             PrimaryButton(
                 text: "Sell",
+                textColor: .white,
                 backgroundColor: .tubSellPrimary,
-
                 action: {
                     Task {
                         await onSell()
                     }
                 }
-            ).padding(.horizontal, 8)
+            )
         }
     }
 }

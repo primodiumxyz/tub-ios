@@ -71,7 +71,7 @@
 		DFEBC3DD2CE443CA00EA4C84 /* AccountDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFEBC3DC2CE443CA00EA4C84 /* AccountDetailsView.swift */; };
 		DFEBC3E82CE44D1100EA4C84 /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFEBC3E52CE44D1100EA4C84 /* SettingsManager.swift */; };
 		DFEBC3E92CE44D1100EA4C84 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFEBC3E62CE44D1100EA4C84 /* SettingsView.swift */; };
-		DFF5292B2CC0121B007DC43F /* AppColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFF5292A2CC0121B007DC43F /* AppColors.swift */; };
+		DFF5292B2CC0121B007DC43F /* Gradients.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFF5292A2CC0121B007DC43F /* Gradients.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -156,7 +156,7 @@
 		DFEBC3DC2CE443CA00EA4C84 /* AccountDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountDetailsView.swift; sourceTree = "<group>"; };
 		DFEBC3E52CE44D1100EA4C84 /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsManager.swift; sourceTree = "<group>"; };
 		DFEBC3E62CE44D1100EA4C84 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		DFF5292A2CC0121B007DC43F /* AppColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppColors.swift; sourceTree = "<group>"; };
+		DFF5292A2CC0121B007DC43F /* Gradients.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Gradients.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -279,7 +279,7 @@
 				999F59522CA6F6A900E7AE9F /* Views */,
 				9936FC562CADCA5200E21B8A /* Structs.swift */,
 				DF1FE3C72CD568F700594C63 /* CountryCode.swift */,
-				DFF5292A2CC0121B007DC43F /* AppColors.swift */,
+				DFF5292A2CC0121B007DC43F /* Gradients.swift */,
 				DB458DB32CAC827A00C5EC18 /* Network.swift */,
 				462B09852CE65C8200730068 /* CodexNetwork.swift */,
 				DB6D29042CA1C8F70099951A /* TubApp.swift */,
@@ -625,7 +625,7 @@
 				99856DA62CD27E2E004B9D40 /* Privy.swift in Sources */,
 				999F595B2CA754FB00E7AE9F /* ChartView.swift in Sources */,
 				DFDA13BC2CEF9ACA00057A29 /* OnboardingView.swift in Sources */,
-				DFF5292B2CC0121B007DC43F /* AppColors.swift in Sources */,
+				DFF5292B2CC0121B007DC43F /* Gradients.swift in Sources */,
 				5D8EFC2C2CE529BB002D8210 /* AppDwellTimeTracker.swift in Sources */,
 				99290EC02CB7110C003E740A /* FormatDate.swift in Sources */,
 				462B09862CE65C8600730068 /* CodexNetwork.swift in Sources */,

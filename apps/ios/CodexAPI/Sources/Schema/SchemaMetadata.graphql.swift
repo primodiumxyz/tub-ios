@@ -16,30 +16,30 @@ public protocol MutableInlineFragment: ApolloAPI.MutableSelectionSet & ApolloAPI
 where Schema == CodexAPI.SchemaMetadata {}
 
 public enum SchemaMetadata: ApolloAPI.SchemaMetadata {
-  public static let configuration: any ApolloAPI.SchemaConfiguration.Type = SchemaConfiguration.self
+    public static let configuration: any ApolloAPI.SchemaConfiguration.Type = SchemaConfiguration.self
 
-  public static func objectType(forTypename typename: String) -> ApolloAPI.Object? {
-    switch typename {
-    case "Query": return CodexAPI.Objects.Query
-    case "TokenFilterConnection": return CodexAPI.Objects.TokenFilterConnection
-    case "TokenFilterResult": return CodexAPI.Objects.TokenFilterResult
-    case "EnhancedToken": return CodexAPI.Objects.EnhancedToken
-    case "TokenInfo": return CodexAPI.Objects.TokenInfo
-    case "SocialLinks": return CodexAPI.Objects.SocialLinks
-    case "Pair": return CodexAPI.Objects.Pair
-    case "HoldersResponse": return CodexAPI.Objects.HoldersResponse
-    case "Price": return CodexAPI.Objects.Price
-    case "BarsResponse": return CodexAPI.Objects.BarsResponse
-    case "Subscription": return CodexAPI.Objects.Subscription
-    case "AddTokenEventsOutput": return CodexAPI.Objects.AddTokenEventsOutput
-    case "Event": return CodexAPI.Objects.Event
-    case "OnBarsUpdatedResponse": return CodexAPI.Objects.OnBarsUpdatedResponse
-    case "ResolutionBarData": return CodexAPI.Objects.ResolutionBarData
-    case "CurrencyBarData": return CodexAPI.Objects.CurrencyBarData
-    case "IndividualBarData": return CodexAPI.Objects.IndividualBarData
-    default: return nil
+    public static func objectType(forTypename typename: String) -> ApolloAPI.Object? {
+        switch typename {
+        case "AddTokenEventsOutput": return CodexAPI.Objects.AddTokenEventsOutput
+        case "BarsResponse": return CodexAPI.Objects.BarsResponse
+        case "CurrencyBarData": return CodexAPI.Objects.CurrencyBarData
+        case "EnhancedToken": return CodexAPI.Objects.EnhancedToken
+        case "Event": return CodexAPI.Objects.Event
+        case "HoldersResponse": return CodexAPI.Objects.HoldersResponse
+        case "IndividualBarData": return CodexAPI.Objects.IndividualBarData
+        case "OnBarsUpdatedResponse": return CodexAPI.Objects.OnBarsUpdatedResponse
+        case "Pair": return CodexAPI.Objects.Pair
+        case "Price": return CodexAPI.Objects.Price
+        case "Query": return CodexAPI.Objects.Query
+        case "ResolutionBarData": return CodexAPI.Objects.ResolutionBarData
+        case "SocialLinks": return CodexAPI.Objects.SocialLinks
+        case "Subscription": return CodexAPI.Objects.Subscription
+        case "TokenFilterConnection": return CodexAPI.Objects.TokenFilterConnection
+        case "TokenFilterResult": return CodexAPI.Objects.TokenFilterResult
+        case "TokenInfo": return CodexAPI.Objects.TokenInfo
+        default: return nil
+        }
     }
-  }
 }
 
 public enum Objects {}
