@@ -11,7 +11,7 @@
     "src"
   ],
   "scripts": {
-    "prepare": "[ \"$NODE_ENV\" != production ] && pnpm hasura update-cli --version v2.44.0-beta.1",
+    "prepare": "[ \"$NODE_ENV\" = production ] && exit 0; pnpm hasura update-cli --version v2.44.0-beta.1",
     "dev": "./bin/start-hasura.sh",
     "dev:ci": "./bin/start-hasura-ci.sh",
     "teardown": "docker compose down --remove-orphans --volumes",
