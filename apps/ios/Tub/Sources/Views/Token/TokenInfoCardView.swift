@@ -80,7 +80,8 @@ struct TokenInfoCardView: View {
                                             .foregroundStyle(.tubBuyPrimary)
                                     }
                                 }
-                            } else {
+                            }
+                            else {
                                 Text("This token is still writing its autobiography... 📝")
                                     .font(.sfRounded(size: .sm, weight: .regular))
                                     .foregroundStyle(.secondary)

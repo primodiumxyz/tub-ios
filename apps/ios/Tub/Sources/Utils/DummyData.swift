@@ -16,7 +16,7 @@ func dateFromString(_ dateString: String) -> Date? {
 
 // Dummy Data for Transactions
 let dummyData = [
-    Transaction(
+    TransactionData(
         name: "Monkey",
         symbol: "$MONKAY",
         imageUri: "monkey_icon",
@@ -27,7 +27,7 @@ let dummyData = [
         isBuy: true,
         mint: ""
     ),
-    Transaction(
+    TransactionData(
         name: "Monkey",
         symbol: "$MONKAY",
         imageUri: "monkey_icon",
@@ -38,7 +38,7 @@ let dummyData = [
         isBuy: false,
         mint: ""
     ),
-    Transaction(
+    TransactionData(
         name: "Monkey",
         symbol: "$MONKAY",
         imageUri: "monkey_icon",
@@ -49,7 +49,7 @@ let dummyData = [
         isBuy: true,
         mint: ""
     ),
-    Transaction(
+    TransactionData(
         name: "Pepe",
         symbol: "$PEPEGG",
         imageUri: "pepe_icon",
@@ -60,7 +60,7 @@ let dummyData = [
         isBuy: false,
         mint: ""
     ),
-    Transaction(
+    TransactionData(
         name: "Pepe",
         symbol: "$PEPEGG",
         imageUri: "pepe_icon",

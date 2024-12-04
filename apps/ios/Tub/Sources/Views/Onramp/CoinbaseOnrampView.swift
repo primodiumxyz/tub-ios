@@ -16,9 +16,10 @@ struct CoinbaseOnrampView: View {
     @State private var isValidInput: Bool = true
     @State private var showInput: Bool = true
     @FocusState private var isAmountFocused: Bool
+    @State private var showWebView: Bool = false
 
     var body: some View {
-        Group {
+        VStack {
             if showInput {
                 VStack(spacing: 20) {
                     numberInput
@@ -26,11 +27,12 @@ struct CoinbaseOnrampView: View {
                 }
                 .padding()
             }
-            else if let url = url {
-                WebView(url: url)
-            }
             else {
                 LoadingView(identifier: "Coinbase onramp")
+            }
+
+            if userModel.walletAddress == nil {
+                Text("Connect a wallet to continue").font(.sfRounded()).foregroundStyle(.tubError)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -38,6 +40,24 @@ struct CoinbaseOnrampView: View {
         .ignoresSafeArea(.keyboard)
         .onAppear {
             isAmountFocused = true
+        }
+        .sheet(isPresented: $showWebView) {
+            if let url = url {
+                ZStack(alignment: .top) {
+                    HStack(alignment: .center, spacing: 0) {
+                        Rectangle()
+                            .foregroundStyle(.clear)
+                            .frame(width: 60, height: 3)
+                            .background(.tubNeutral)
+                            .cornerRadius(100)
+                    }
+                    .padding()
+                    .zIndex(2)
+
+                    WebView(url: url)
+                        .ignoresSafeArea()
+                }
+            }
         }
     }
 
@@ -48,7 +68,7 @@ struct CoinbaseOnrampView: View {
                 Text("$")
                     .font(.sfRounded(size: .xl4, weight: .bold))
 
-                TextField("", text: $amountString, prompt: Text("100").foregroundStyle(.tubSellPrimary))
+                TextField("", text: $amountString, prompt: Text("100").foregroundStyle(.tubBuyPrimary.opacity(0.3)))
                     .focused($isAmountFocused)
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.leading)
@@ -82,7 +102,7 @@ struct CoinbaseOnrampView: View {
                         }
                     }
                     .font(.sfRounded(size: .xl5, weight: .bold))
-                    .foregroundStyle(isValidInput ? .primary : Color.red)
+                    .foregroundStyle(isValidInput ? .tubBuyPrimary : .tubError)
                     .frame(minWidth: 50)
                     .fixedSize()
                 Spacer()
@@ -92,51 +112,39 @@ struct CoinbaseOnrampView: View {
     }
 
     private var continueButton: some View {
-        Button(action: {
-            let walletAddress = userModel.walletAddress
-            let urlStr =
-                "https://pay.coinbase.com/buy?appId=70955045-7672-4640-b524-0a5aff9e074e&addresses={\"\(walletAddress ?? "")\":[\"solana\"]}&assets=[\"USDC\"]&presetFiatAmount=\(amount)"
-            url = URL(string: urlStr)
-            showInput = false
-        }) {
+        ContentButton(
+            backgroundColor: .tubPurple,
+            disabled: userModel.walletAddress == nil || amountString == "" || !isValidInput,
+            action: {
+                let walletAddress = userModel.walletAddress
+                let urlStr =
+                    "https://pay.coinbase.com/buy?appId=70955045-7672-4640-b524-0a5aff9e074e&addresses={\"\(walletAddress ?? "")\":[\"solana\"]}&assets=[\"USDC\"]&presetFiatAmount=\(amount)"
+                print(urlStr)
+                url = URL(string: urlStr)
+                showWebView = true
+            }
+        ) {
             HStack(alignment: .firstTextBaseline) {
-                Text("Deposit with ")
+                Text("Deposit with")
                     .font(.sfRounded(size: .xl, weight: .semibold))
+                    .foregroundStyle(.white)
                     .padding(.trailing, -4)
-                Image("Coinbase")
+                Image("coinbase")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(height: 16)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .cornerRadius(26)
         }
-        .disabled(userModel.walletAddress == nil)
     }
 }
 
 struct WebView: UIViewRepresentable {
     let url: URL
+    @Environment(\.colorScheme) var colorScheme
 
     func makeUIView(context: Context) -> WKWebView {
         let configuration = WKWebViewConfiguration()
         configuration.allowsInlineMediaPlayback = true
-
-        // Add user script to force dark mode
-        let darkScript = """
-                document.documentElement.style.colorScheme = 'dark';
-                document.body.style.backgroundColor = 'black';
-                document.body.style.color = 'white';
-                document.querySelector('.cds-button-b17kdj8k').style.background = '#6E00FF';
-
-            """
-        let script = WKUserScript(
-            source: darkScript,
-            injectionTime: .atDocumentEnd,
-            forMainFrameOnly: false
-        )
-        configuration.userContentController.addUserScript(script)
 
         let webView = WKWebView(frame: .zero, configuration: configuration)
 
@@ -145,7 +153,7 @@ struct WebView: UIViewRepresentable {
         webView.scrollView.backgroundColor = UIColor.systemBackground
 
         // Force dark mode at the WebView level
-        if #available(iOS 13.0, *) {
+        if #available(iOS 13.0, *), colorScheme == .dark {
             webView.overrideUserInterfaceStyle = .dark
         }
 
@@ -159,4 +167,10 @@ struct WebView: UIViewRepresentable {
         let request = URLRequest(url: url)
         webView.load(request)
     }
+}
+
+#Preview {
+    CoinbaseOnrampView()
+        .environmentObject(UserModel.shared)
+        .preferredColorScheme(.light)
 }

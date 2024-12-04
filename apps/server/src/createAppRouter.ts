@@ -7,7 +7,6 @@ export type AppContext = {
   jwtToken: string;
 };
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function createAppRouter() {
   const t = initTRPC.context<AppContext>().create();
   return t.router({
@@ -76,6 +75,13 @@ export function createAppRouter() {
       .input(z.object({ expiration: z.number().optional() }))
       .mutation(async ({ ctx, input }) => {
         return await ctx.tubService.requestCodexToken(input.expiration);
+      }),
+
+    getSignedTransfer: t.procedure
+      .input(z.object({ fromAddress: z.string(), toAddress: z.string(), amount: z.string(), tokenId: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        const amountBigInt = BigInt(input.amount);
+        return await ctx.tubService.getSignedTransfer(ctx.jwtToken, { ...input, amount: amountBigInt });
       }),
   });
 }

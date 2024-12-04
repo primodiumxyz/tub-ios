@@ -88,7 +88,8 @@ struct HomeTabsView: View {
                     identifier: "HomeTabsView - waiting priceModel",
                     message: "Connecting to Solana"
                 )
-            } else {
+            }
+            else {
                 ZStack {
                     // Main content with TabView
                     TabView(selection: $vm.selectedTab) {
@@ -154,7 +155,7 @@ struct HomeTabsView: View {
             }
         }
     }
-    
+
     private func handleTabSelection(oldTab: Int, newTab: Int) {
         let tabName: String
         switch newTab {
@@ -181,7 +182,8 @@ struct TabTapOverlay: View {
                         .onTapGesture {
                             if selectedTab == index {
                                 onSameTabTapped()
-                            } else {
+                            }
+                            else {
                                 selectedTab = index
                             }
                         }

@@ -7,41 +7,6 @@
 
 import SwiftUI
 
-// MARK: - Primary Button Style (Button with background) - Eg. Buy button
-struct PrimaryButtonStyle: ButtonStyle {
-    var text: String
-    var textColor: Color
-    var backgroundColor: Color?
-    var strokeColor: Color?
-    var maxWidth: CGFloat?
-    var disabled: Bool
-
-    func makeBody(configuration: Self.Configuration) -> some View {
-        HStack(alignment: .center, spacing: 8) {
-            Text(text)
-                .font(.sfRounded(size: .xl, weight: .semibold))
-                .foregroundStyle(textColor)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: maxWidth)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 13)
-        .background(backgroundColor.opacity(configuration.isPressed || disabled ? 0.5 : 1.0))
-        .cornerRadius(30)
-        .overlay(
-            Group {
-                if let strokeColor = strokeColor {
-                    RoundedRectangle(cornerRadius: 30)
-                        .inset(by: 0.5)
-                        .stroke(strokeColor, lineWidth: 1)
-                }
-            }
-        )
-        .scaleEffect(configuration.isPressed ? 0.95 : 1)
-        .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
-    }
-}
-
 struct PrimaryButton: View {
     var text: String
     var textColor: Color
@@ -70,50 +35,18 @@ struct PrimaryButton: View {
     }
 
     var body: some View {
-        Button(action: self.disabled ? {} : action) {
-            EmptyView()
-        }
-        .buttonStyle(
-            PrimaryButtonStyle(
-                text: text,
-                textColor: textColor,
-                backgroundColor: backgroundColor,
-                strokeColor: strokeColor,
-                maxWidth: maxWidth,
-                disabled: disabled
-            )
-        )
-    }
-}
-
-// MARK: - Outline Button Style (Button with outline, no background) - Eg. Buy button in BuyForm
-struct OutlineButtonStyle: ButtonStyle {
-    var text: String
-    var textColor: Color
-    var strokeColor: Color
-    var backgroundColor: Color
-    var maxWidth: CGFloat = 50
-
-    func makeBody(configuration: Self.Configuration) -> some View {
-        HStack(alignment: .center, spacing: 8) {
+        ContentButton(
+            backgroundColor: backgroundColor,
+            strokeColor: strokeColor,
+            maxWidth: maxWidth,
+            disabled: disabled,
+            action: action
+        ) {
             Text(text)
                 .font(.sfRounded(size: .xl, weight: .semibold))
                 .foregroundStyle(textColor)
                 .multilineTextAlignment(.center)
         }
-        .frame(maxWidth: maxWidth)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(backgroundColor.opacity(configuration.isPressed ? 0.5 : 1.0))
-        .cornerRadius(26)
-        .overlay(
-            RoundedRectangle(cornerRadius: 30)
-                .inset(by: 0.5)
-                .stroke(strokeColor, lineWidth: 1)
-                .clipShape(Rectangle())
-        )
-        .scaleEffect(configuration.isPressed ? 0.95 : 1)
-        .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
     }
 }
 
@@ -123,21 +56,22 @@ struct OutlineButton: View {
     var strokeColor: Color
     var backgroundColor: Color
     var maxWidth: CGFloat = 50
+    var disabled: Bool = false
     var action: () -> Void
 
     var body: some View {
-        Button(action: action) {
-            EmptyView()
+        ContentButton(
+            backgroundColor: backgroundColor,
+            strokeColor: strokeColor,
+            maxWidth: maxWidth,
+            disabled: disabled,
+            action: action
+        ) {
+            Text(text)
+                .font(.sfRounded(size: .xl, weight: .semibold))
+                .foregroundStyle(textColor)
+                .multilineTextAlignment(.center)
         }
-        .buttonStyle(
-            OutlineButtonStyle(
-                text: text,
-                textColor: textColor,
-                strokeColor: strokeColor,
-                backgroundColor: backgroundColor,
-                maxWidth: maxWidth
-            )
-        )
     }
 }
 
@@ -425,6 +359,80 @@ struct IntervalButton: View {
                 text: timespan.rawValue,
                 isSelected: isSelected,
                 isLive: timespan == .live
+            )
+        )
+    }
+}
+
+// MARK: - Content Button Style - Generic button that accepts any content
+struct ContentButtonStyle<Content: View>: ButtonStyle {
+    let content: Content
+    var backgroundColor: Color
+    var strokeColor: Color?
+    var maxWidth: CGFloat?
+    var disabled: Bool
+
+    func makeBody(configuration: Self.Configuration) -> some View {
+        // Wrap the content in another view to extend the tap area
+        VStack {
+            content
+        }
+        .frame(maxWidth: maxWidth)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 13)
+        .opacity(disabled ? 0.5 : 1.0)
+        .background(backgroundColor.opacity(configuration.isPressed || disabled ? 0.5 : 1.0))
+        .cornerRadius(30)
+        .overlay(
+            Group {
+                if let strokeColor = strokeColor {
+                    RoundedRectangle(cornerRadius: 30)
+                        .inset(by: 0.5)
+                        .stroke(strokeColor, lineWidth: 1)
+                }
+            }
+        )
+        .contentShape(Rectangle())
+        .scaleEffect(!disabled && configuration.isPressed ? 0.95 : 1)
+        .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
+    }
+}
+
+struct ContentButton<Content: View>: View {
+    let content: Content
+    var backgroundColor: Color
+    var strokeColor: Color? = nil
+    var maxWidth: CGFloat? = nil
+    var action: () -> Void
+    var disabled: Bool = false
+
+    init(
+        backgroundColor: Color = .tubBuyPrimary,
+        strokeColor: Color? = nil,
+        maxWidth: CGFloat? = .infinity,
+        disabled: Bool = false,
+        action: @escaping () -> Void,
+        @ViewBuilder content: () -> Content
+    ) {
+        self.content = content()
+        self.backgroundColor = backgroundColor
+        self.strokeColor = strokeColor
+        self.maxWidth = maxWidth
+        self.action = action
+        self.disabled = disabled
+    }
+
+    var body: some View {
+        Button(action: self.disabled ? {} : action) {
+            content
+        }
+        .buttonStyle(
+            ContentButtonStyle(
+                content: content,
+                backgroundColor: backgroundColor,
+                strokeColor: strokeColor,
+                maxWidth: maxWidth,
+                disabled: disabled
             )
         )
     }

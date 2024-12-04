@@ -12,7 +12,7 @@ struct JustifiedText: UIViewRepresentable {
     var textColor: UIColor?
     @Binding var isExpanded: Bool
     let maxLines: Int = 5
-    
+
     func makeUIView(context: Context) -> UILabel {
         let label = UILabel()
         label.numberOfLines = isExpanded ? 0 : maxLines
@@ -21,7 +21,7 @@ struct JustifiedText: UIViewRepresentable {
         label.preferredMaxLayoutWidth = UIScreen.main.bounds.width - 40
         return label
     }
-    
+
     func updateUIView(_ uiView: UILabel, context: Context) {
         uiView.text = text
         uiView.numberOfLines = isExpanded ? 0 : maxLines
@@ -42,8 +42,8 @@ extension JustifiedText {
         )
         return JustifiedText(text: self.text, font: uiFont, textColor: self.textColor, isExpanded: self._isExpanded)
     }
-    
+
     func foregroundStyle(_ color: Color) -> JustifiedText {
         return JustifiedText(text: self.text, font: self.font, textColor: UIColor(color), isExpanded: self._isExpanded)
     }
-} 
+}

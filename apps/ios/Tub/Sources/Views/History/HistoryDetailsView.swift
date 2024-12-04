@@ -9,7 +9,7 @@ import SwiftUI
 
 struct HistoryDetailsView: View {
     @EnvironmentObject private var priceModel: SolPriceModel
-    let transaction: Transaction
+    let transaction: TransactionData
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 20) {
