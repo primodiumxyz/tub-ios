@@ -62,7 +62,7 @@ for ((i=1; i<=$RETRIES; i++)); do
     echo "All services are healthy!"
 
     echo "Applying Hasura metadata..."
-    pnpm local:seed-apply
+    pnpm db:local:seed-apply
 
     break
   else

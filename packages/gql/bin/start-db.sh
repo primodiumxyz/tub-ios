@@ -62,11 +62,11 @@ for ((i=1; i<=$RETRIES; i++)); do
     echo "All services are healthy!"
 
     echo "Applying Hasura metadata..."
-    pnpm local:seed-apply
+    pnpm db:local:seed-apply
 
     # Start consoles after everything is set up
     echo "Starting Hasura console..."
-    pnpm local:console &
+    pnpm db:local:console &
 
     break
   else
