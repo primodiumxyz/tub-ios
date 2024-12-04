@@ -1,7 +1,12 @@
 import { Codex } from "@codex-data/sdk";
 import { PrivyClient, WalletWithMetadata } from "@privy-io/server-auth";
+import { Connection, Keypair, PublicKey, Transaction } from "@solana/web3.js";
 import { GqlClient } from "@tub/gql";
+import bs58 from "bs58";
 import { config } from "dotenv";
+
+import { env } from "@bin/tub-server";
+import { createTransferInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token";
 
 config({ path: "../../.env" });
 
@@ -9,11 +14,13 @@ export class TubService {
   private gql: GqlClient["db"];
   private privy: PrivyClient;
   private codexSdk: Codex;
+  private connection: Connection;
 
   constructor(gqlClient: GqlClient["db"], privy: PrivyClient, codexSdk: Codex) {
     this.gql = gqlClient;
     this.privy = privy;
     this.codexSdk = codexSdk;
+    this.connection = new Connection(env.QUICKNODE_MAINNET_URL);
   }
 
   private verifyJWT = async (token: string) => {
@@ -93,6 +100,56 @@ export class TubService {
     }
 
     return result.data;
+  }
+
+  async getSignedTransfer(
+    jwtToken: string,
+    args: { fromAddress: string; toAddress: string; amount: bigint; tokenId: string },
+  ): Promise<{ transactionBase64: string; signatureBase64: string; signerBase58: string }> {
+    console.log("pre getSignedTransfer", args);
+    const accountId = await this.verifyJWT(jwtToken);
+    const keypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY));
+    const wallet = await this.getUserWallet(accountId);
+    if (!wallet) {
+      throw new Error("User does not have a wallet");
+    }
+
+    const tokenMint = new PublicKey(args.tokenId);
+
+    const fromPublicKey = new PublicKey(args.fromAddress);
+    const toPublicKey = new PublicKey(args.toAddress);
+
+    const fromTokenAccount = getAssociatedTokenAddressSync(tokenMint, fromPublicKey);
+    const toTokenAccount = getAssociatedTokenAddressSync(tokenMint, toPublicKey);
+
+    const transferInstruction = createTransferInstruction(fromTokenAccount, toTokenAccount, fromPublicKey, args.amount);
+
+    const transaction = new Transaction();
+
+    const blockhash = await this.connection.getLatestBlockhash();
+    transaction.recentBlockhash = blockhash.blockhash;
+
+    transaction.sign(keypair);
+    if (transaction.signatures.length === 0) {
+      throw new Error("Transaction is not signed");
+    }
+    const sigData = transaction.signatures[0];
+    if (!sigData) {
+      throw new Error("Transaction is not signed");
+    }
+    const { signature: rawSignature, publicKey } = sigData;
+
+    if (!rawSignature) {
+      throw new Error("Transaction is not signed");
+    }
+    transaction.feePayer = keypair.publicKey;
+
+    transaction.add(transferInstruction);
+
+    const transactionBase64 = transaction.serialize({ requireAllSignatures: false }).toString("base64");
+    const signature = Buffer.from(rawSignature).toString("base64");
+
+    return { transactionBase64, signatureBase64: signature, signerBase58: publicKey.toBase58() };
   }
 
   async recordClientEvent(

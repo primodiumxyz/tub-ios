@@ -102,19 +102,42 @@ struct HomeTabsView: View {
                 TabView(selection: $vm.selectedTab) {
                     // Trade Tab
 
-                    TokenListView()
-                        .tabItem {
-                            VStack {
-                                Image(systemName: "chart.line.uptrend.xyaxis")
-                                    .font(.system(size: 24))
-                                Text("Trade")
-                                    .font(.system(size: 12))
+                    PrimaryButton(
+                        text: "test transfer",
+                        action: {
+                            guard let walletAddress = userModel.walletAddress else { return }
+                            Task {
+                                let fromAddress = walletAddress
+                                let toAddress = "J5o3e9umaoUvJUguPXhH3gsNS7eSNxRbyGFvaaaEcXfV"
+                                let amount = 100_000  // 10c
+
+                                do {
+                                    let res = try await Network.shared.transferUsdc(
+                                        fromAddress: fromAddress,
+                                        toAddress: toAddress,
+                                        amount: amount
+                                    )
+                                }
+                                catch {
+                                    print(error.localizedDescription)
+                                }
                             }
                         }
-                        .tag(0)
-                        .onAppear {
-                            vm.recordTabSelection("trade")
+                    )
+
+                    //                    TokenListView()
+                    .tabItem {
+                        VStack {
+                            Image(systemName: "chart.line.uptrend.xyaxis")
+                                .font(.system(size: 24))
+                            Text("Trade")
+                                .font(.system(size: 12))
                         }
+                    }
+                    .tag(0)
+                    .onAppear {
+                        vm.recordTabSelection("trade")
+                    }
 
                     HistoryView()
                         .tabItem {

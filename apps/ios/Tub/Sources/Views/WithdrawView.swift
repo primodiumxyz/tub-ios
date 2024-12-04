@@ -9,6 +9,8 @@ import SolanaSwift
 import SwiftUI
 
 class WithdrawModel: ObservableObject {
+    @EnvironmentObject var userModel: UserModel
+    @EnvironmentObject var notificationHandler: NotificationHandler
     @Published var buyAmountUsdString: String = ""
     @Published var buyAmountUsd: Double = 0
     @Published var recipient: String = ""
@@ -27,7 +29,32 @@ class WithdrawModel: ObservableObject {
     }
 
     func onComplete() {
-        print("complete")
+        guard let walletAddress = userModel.walletAddress else {
+            notificationHandler.show("Cannot transfer: not logged in", type: .error)
+            return
+        }
+
+        if !validateAddress(recipient) {
+            notificationHandler.show("Invalid recipient address", type: .error)
+            return
+        }
+
+        let buyAmountUsdc = Int(buyAmountUsd * 1e6)
+
+        Task {
+            do {
+                try await Network.shared.transferUsdc(
+                    fromAddress: walletAddress,
+                    toAddress: recipient,
+                    amount: buyAmountUsdc
+                )
+                notificationHandler.show("Transfer successful!", type: .success)
+            }
+            catch {
+                notificationHandler.show(error.localizedDescription, type: .error)
+            }
+        }
+
     }
 
     func handleContinue(complete: Bool) {

@@ -13,7 +13,7 @@ import fastify from "fastify";
 
 config({ path: "../../.env" });
 
-const env = parseEnv();
+export const env = parseEnv();
 
 // @see https://fastify.dev/docs/latest/
 export const server = fastify({
@@ -31,7 +31,8 @@ server.get("/readyz", (req, res) => res.code(200).send());
 server.get("/", (req, res) => res.code(200).send("hello world"));
 
 // Helper function to extract bearer token
-const getBearerToken = (req: any) => {
+// @ts-expect-error IncomingMessage is not typed
+const getBearerToken = (req: IncomingMessage) => {
   const authHeader = req.headers?.authorization;
   if (authHeader && authHeader.startsWith("Bearer ")) {
     return authHeader.substring(7);

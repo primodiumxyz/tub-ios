@@ -78,7 +78,7 @@ struct CandleData: Equatable, Identifiable {
     }
 }
 
-struct Transaction: Identifiable, Equatable {
+struct TransactionData: Identifiable, Equatable {
     let id = UUID()
     let name: String
     let symbol: String

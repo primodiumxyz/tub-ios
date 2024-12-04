@@ -9,6 +9,7 @@ import Apollo
 import ApolloWebSocket
 import Foundation
 import Security
+import SolanaSwift
 import UIKit
 
 class Network {
@@ -18,6 +19,7 @@ class Network {
     // graphql
     private let httpTransport: RequestChainNetworkTransport
     private let webSocketTransport: WebSocketTransport
+    private let solana: JSONRPCAPIClient
 
     private(set) lazy var apollo: ApolloClient = {
         let splitNetworkTransport = SplitNetworkTransport(
@@ -49,6 +51,7 @@ class Network {
         // setup tRPC
         baseURL = URL(string: serverBaseUrl)!
         session = URLSession(configuration: .default)
+        solana = JSONRPCAPIClient(endpoint: APIEndPoint(address: solanaUrl, network: .mainnetBeta))
     }
 
     // MARK: - Calls
@@ -103,8 +106,9 @@ class Network {
         let (data, _) = try await session.data(for: request)
 
         // First, try to decode as an error response
-        if (try? JSONDecoder().decode(ErrorResponse.self, from: data)) != nil {
-            throw TubError.parsingError
+        if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
+            print("Error: \(errorResponse.error.message)")
+            throw TubError.serverError(reason: errorResponse.error.message)
         }
 
         // If it's not an error, proceed with normal decoding
@@ -182,6 +186,71 @@ class Network {
         let res: CodexTokenResponse = try await callProcedure("requestCodexToken", input: input)
         return CodexTokenData(token: res.token, expiry: res.expiry)
     }
+
+    func getBalance(address: String) async throws -> Int {
+        let res = try await solana.getBalance(account: address)
+        return Int(res)
+    }
+
+    func transferUsdc(fromAddress: String, toAddress: String, amount: Int) async throws {
+        // 1. Constants and input preparation
+        let usdcTokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+        let input = TransferInput(
+            fromAddress: fromAddress,
+            toAddress: toAddress,
+            amount: String(amount),
+            tokenId: usdcTokenId
+        )
+
+        // 2. Get signed transaction from server
+        print("pre transfer")
+        let transfer: TransferResponse = try await callProcedure("getSignedTransfer", input: input)
+        print("post transfer")
+
+        // 3. Parse transaction data
+        guard let messageData = Data(base64Encoded: transfer.transactionBase64) else {
+            throw TubError.parsingError
+        }
+        var tx = try Transaction.from(data: messageData)
+
+        // 4. Setup required keys and provider
+        debugPrint("fee payer: \(transfer.signerBase58), from: \(fromAddress)")
+        print("fee payer: \(transfer.signerBase58), from: \(fromAddress)")
+
+        let feePayerPublicKey = try PublicKey(string: transfer.signerBase58)
+        let fromPublicKey = try PublicKey(string: fromAddress)
+        let provider = try privy.embeddedWallet.getSolanaProvider(for: fromAddress)
+
+        // 5. Add signatures in correct order
+        // Fee payer signature must be first
+        tx.signatures.removeAll()
+        let feePayerSignature = Signature(
+            signature: Data(base64Encoded: transfer.signatureBase64),
+            publicKey: feePayerPublicKey
+        )
+
+        try tx.addSignature(feePayerSignature)
+
+        // User signature
+        // Serialize the transaction for signing as base64
+        let message = try tx.compileMessage().serialize().base64EncodedString()
+
+        // Sign using the Privy Embedded Wallet.
+        let userSignatureMsg = try await provider.signMessage(message: message)
+
+        let userSignature = Signature(
+            signature: Data(base64Encoded: userSignatureMsg),
+            publicKey: fromPublicKey
+        )
+
+        try tx.addSignature(userSignature)
+
+        // 6. Send transaction
+        //        let txId = try await solana.simulateTransaction(transaction: tx.serialize().base64EncodedString())
+        let txId = try await solana.sendTransaction(transaction: tx.serialize().base64EncodedString())
+
+        print("Success! Transaction ID: \(txId)")
+    }
 }
 
 // MARK: - Response Types
@@ -207,6 +276,19 @@ private struct ErrorResponse: Codable {
         let stack: String?
         let path: String?
     }
+}
+
+struct TransferInput: Codable {
+    let fromAddress: String
+    let toAddress: String
+    let amount: String
+    let tokenId: String
+}
+
+struct TransferResponse: Codable {
+    let transactionBase64: String
+    let signatureBase64: String
+    let signerBase58: String
 }
 
 struct CodexTokenResponse: Codable {

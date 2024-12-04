@@ -4,6 +4,9 @@
     "" : {
 
     },
+    " " : {
+
+    },
     "#8612373299412" : {
 
     },
@@ -47,6 +50,9 @@
 
     },
     "10" : {
+      "comment" : "placeholder"
+    },
+    "10.00" : {
       "comment" : "placeholder"
     },
     "100" : {
@@ -94,13 +100,13 @@
     "Date" : {
 
     },
-    "Deposit" : {
-
-    },
     "Deposit with" : {
 
     },
     "Discord Server" : {
+
+    },
+    "Enter Solana address" : {
 
     },
     "Enter verification code" : {
@@ -169,16 +175,25 @@
     "Sell Details" : {
 
     },
+    "Sending" : {
+
+    },
     "Set Default" : {
 
     },
     "Settings" : {
 
     },
+    "Solana Address is invalid" : {
+
+    },
     "Support" : {
 
     },
     "Time" : {
+
+    },
+    "to" : {
 
     },
     "Token" : {
