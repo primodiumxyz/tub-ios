@@ -132,14 +132,10 @@ struct SettingsView: View {
 
                 Spacer()
             }
-            .navigationBarTitleDisplayMode(.inline)
             .navigationBarBackButtonHidden(false)
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Text("Settings")
-                        .font(.sfRounded(size: .xl, weight: .semibold))
-                }
-
                 // Keep keyboard toolbar
                 ToolbarItem(placement: .keyboard) {
                     Button("Save") {

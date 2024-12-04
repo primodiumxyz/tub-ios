@@ -52,10 +52,30 @@ struct AccountView: View {
                     CoinbaseOnrampView()
                 }.background(Color(UIColor.systemBackground))
             }
-            .presentationDragIndicator(.visible)
-            .presentationBackground(Color(UIColor.systemBackground))
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(UIColor.systemBackground))
+        .sheet(isPresented: $showOnrampView) {
+
+            VStack {
+                HStack {
+                    Text("Deposit")
+                        .font(.sfRounded(size: .xl, weight: .semibold))
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    Button(action: { showOnrampView = false }) {
+                        Image(systemName: "xmark")
+                            .foregroundStyle(.primary)
+                            .font(.system(size: 16, weight: .medium))
+                    }
+                }.padding(24)
+
+                CoinbaseOnrampView()
+            }.background(Color(UIColor.systemBackground))
+        }
+        .presentationDragIndicator(.visible)
+        .presentationBackground(Color(UIColor.systemBackground))
+
     }
 }
 
@@ -164,70 +184,68 @@ private struct AccountSettingsView: View {
     @EnvironmentObject private var userModel: UserModel
 
     var body: some View {
-        NavigationStack {
-            VStack(alignment: .leading, spacing: 24) {
-                Text("Account Settings")
-                    .font(.sfRounded(size: .xl, weight: .medium))
-                    .foregroundStyle(.primary)
-
-                NavigationLink(destination: AccountDetailsView()) {
-                    HStack(spacing: 16) {
-                        Image(systemName: "person.circle")
-                            .resizable()
-                            .frame(width: 24, height: 24, alignment: .center)
-                        Text("Account Details")
-                            .font(.sfRounded(size: .lg, weight: .regular))
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                    }
-                    .foregroundStyle(Color.primary)
-                }
-
-                NavigationLink(destination: SettingsView()) {
-                    HStack(spacing: 16) {
-                        Image(systemName: "gear")
-                            .resizable()
-                            .frame(width: 24, height: 24, alignment: .center)
-                        Text("Settings")
-                            .font(.sfRounded(size: .lg, weight: .regular))
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                    }
-                    .foregroundStyle(Color.primary)
-                }
-
-                HStack(spacing: 16) {
-                    Image(systemName: "questionmark.circle")
-                        .resizable()
-                        .frame(width: 24, height: 24, alignment: .center)
-                    Text("Support")
-                        .font(.sfRounded(size: .lg, weight: .regular))
-                    Spacer()
-                    Image("Discord")
-                        .resizable()
-                        .frame(width: 32, height: 32, alignment: .center)
-                        .cornerRadius(8)
-                        .padding(.trailing, -4)
-                    Text("Discord Server")
-                        .font(.sfRounded(size: .lg, weight: .medium))
-                }
+        VStack(alignment: .leading, spacing: 24) {
+            Text("Account Settings")
+                .font(.sfRounded(size: .xl, weight: .medium))
                 .foregroundStyle(.primary)
 
-                // Logout Button
-                IconTextButton(
-                    icon: "rectangle.portrait.and.arrow.right",
-                    text: "Logout",
-                    textColor: Color.red,
-                    action: { userModel.logout() }
-                )
-
-                Text(serverBaseUrl).foregroundStyle(.primary)
-                    .font(.caption)
+            NavigationLink(destination: AccountDetailsView()) {
+                HStack(spacing: 16) {
+                    Image(systemName: "person.circle")
+                        .resizable()
+                        .frame(width: 24, height: 24, alignment: .center)
+                    Text("Account Details")
+                        .font(.sfRounded(size: .lg, weight: .regular))
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                }
+                .foregroundStyle(Color.primary)
             }
-            .padding()
-            .navigationTitle("Account")
-            .navigationBarTitleDisplayMode(.inline)
+
+            NavigationLink(destination: SettingsView()) {
+                HStack(spacing: 16) {
+                    Image(systemName: "gear")
+                        .resizable()
+                        .frame(width: 24, height: 24, alignment: .center)
+                    Text("Settings")
+                        .font(.sfRounded(size: .lg, weight: .regular))
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                }
+                .foregroundStyle(Color.primary)
+            }
+
+            HStack(spacing: 16) {
+                Image(systemName: "questionmark.circle")
+                    .resizable()
+                    .frame(width: 24, height: 24, alignment: .center)
+                Text("Support")
+                    .font(.sfRounded(size: .lg, weight: .regular))
+                Spacer()
+                Image("Discord")
+                    .resizable()
+                    .frame(width: 32, height: 32, alignment: .center)
+                    .cornerRadius(8)
+                    .padding(.trailing, -4)
+                Text("Discord Server")
+                    .font(.sfRounded(size: .lg, weight: .medium))
+            }
+            .foregroundStyle(.primary)
+
+            // Logout Button
+            IconTextButton(
+                icon: "rectangle.portrait.and.arrow.right",
+                text: "Logout",
+                textColor: Color.red,
+                action: { userModel.logout() }
+            )
+
+            Text(serverBaseUrl).foregroundStyle(.primary)
+                .font(.caption)
         }
+        .padding()
+        .navigationTitle("Account")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 

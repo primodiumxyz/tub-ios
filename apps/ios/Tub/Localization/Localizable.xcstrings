@@ -4,9 +4,6 @@
     "" : {
 
     },
-    " " : {
-
-    },
     "#8612373299412" : {
 
     },
@@ -89,9 +86,6 @@
 
     },
     "Close" : {
-
-    },
-    "Connect a wallet to continue" : {
 
     },
     "Country Code" : {
@@ -184,10 +178,16 @@
     "Settings" : {
 
     },
-    "Solana Address is invalid" : {
+    "Show Less" : {
+
+    },
+    "Show More" : {
 
     },
     "Support" : {
+
+    },
+    "This token is still writing its autobiography... 📝" : {
 
     },
     "Time" : {
