@@ -104,3 +104,9 @@ struct StatValue: Identifiable {
         self.color = color
     }
 }
+
+struct TokenBalanceData: Identifiable {
+    let id: String
+    let mint: String
+    let amountToken: Int
+}

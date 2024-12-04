@@ -93,7 +93,8 @@ struct HomeTabsView: View {
                 ZStack {
                     // Main content with TabView
                     TabView(selection: $vm.selectedTab) {
-                        TokenListView()
+                        //                        TokenListView()
+                        TokenBalancesView()
                             .id(refreshCounter)
                             .tabItem {
                                 VStack {

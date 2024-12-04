@@ -192,12 +192,6 @@ class Network {
         return Int(res)
     }
 
-    struct TokenBalanceData: Identifiable, Codable {
-        let id: String
-        let mint: PublicKey
-        let amountToken: Int
-    }
-
     func getTokenBalances(address: String) async throws -> [TokenBalanceData] {
         let params = OwnerInfoParams(
             mint: nil,
@@ -212,7 +206,7 @@ class Network {
         let val = tokenAccounts.map { account in
             TokenBalanceData(
                 id: account.pubkey,
-                mint: account.account.data.mint,
+                mint: account.account.data.mint.base58EncodedString,
                 amountToken: Int(account.account.data.lamports)
             )
         }

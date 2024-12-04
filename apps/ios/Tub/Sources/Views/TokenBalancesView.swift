@@ -5,6 +5,7 @@
 //  Created by Henry on 12/4/24.
 //
 
+import CodexAPI
 import SwiftUI
 
 struct TokenBalancesView: View {
@@ -15,12 +16,49 @@ struct TokenBalancesView: View {
     @State private var tokens: [TokenData] = []
 
     struct TokenData {
-        let mint: String
-        let name: String
-        let symbol: String
-        let imageUri: String
+        let address: String
         let balance: Int
-        let priceUsd: Double
+        let name: String?
+        let symbol: String?
+        let imageUrl: String?
+    }
+
+    private func createTokenData(from tokenBalance: TokenBalanceData) async throws -> TokenData {
+        let client = await CodexNetwork.shared.apolloClient
+        let query = GetTokenMetadataQuery(address: tokenBalance.mint)
+
+        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<TokenData, Error>) in
+            client.fetch(query: query) { result in
+                switch result {
+                case .success(let response):
+                    let tokenData = TokenData(
+                        address: tokenBalance.mint,
+                        balance: tokenBalance.amountToken,
+                        name: response.data?.token.info?.name,
+                        symbol: response.data?.token.info?.symbol,
+                        imageUrl: response.data?.token.info?.imageLargeUrl
+                    )
+                    continuation.resume(returning: tokenData)
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+
+    private func processTokenBalances(_ balances: [TokenBalanceData]) async {
+        var updatedTokens: [TokenData] = []
+
+        for balance in balances {
+            if let tokenData = try? await createTokenData(from: balance) {
+                print("new token data:", tokenData)
+                updatedTokens.append(tokenData)
+            }
+        }
+
+        await MainActor.run {
+            self.tokens = updatedTokens
+        }
     }
 
     private func fetchTokenBalances() {
@@ -32,18 +70,12 @@ struct TokenBalancesView: View {
         Task {
             do {
                 let tokenBalances = try await Network.shared.getTokenBalances(address: wallet)
+                print("tokenBalances", tokenBalances)
+                await processTokenBalances(tokenBalances)
+
+                print("tokenData", tokenBalances)
                 // Update on main thread since we're modifying UI state
                 await MainActor.run {
-                    tokens = tokenBalances.map { balance in
-                        TokenData(
-                            mint: balance.mint.base58EncodedString,
-                            name: "",  // These fields aren't available in TokenBalanceData
-                            symbol: "",
-                            imageUri: "",
-                            balance: balance.amountToken,
-                            priceUsd: 0  // Price data isn't available in TokenBalanceData
-                        )
-                    }
                     isLoading = false
                 }
             }
@@ -76,14 +108,31 @@ struct TokenBalancesView: View {
                 Text("No tokens").foregroundStyle(.tubText)
             }
             else {
-                List(tokens, id: \.mint) { token in
+                List(tokens, id: \.address) { token in
                     HStack {
-                        Text(token.mint).font(.sfRounded(size: .xxs, weight: .medium))
+                        if let imageUrl = token.imageUrl {
+                            AsyncImage(url: URL(string: imageUrl)) { image in
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 32, height: 32)
+                                    .clipShape(Circle())
+                            } placeholder: {
+                                Circle()
+                                    .fill(Color.gray.opacity(0.2))
+                                    .frame(width: 32, height: 32)
+                            }
+                        }
+                        else {
+                            Circle()
+                                .fill(Color.gray.opacity(0.2))
+                                .frame(width: 32, height: 32)
+                        }
 
                         VStack(alignment: .leading) {
-                            Text(token.name)
+                            Text(token.name ?? "")
                                 .font(.sfRounded(size: .lg, weight: .medium))
-                            Text(token.symbol)
+                            Text(token.symbol ?? "")
                                 .font(.sfRounded(size: .sm))
                                 .foregroundStyle(.secondary)
                         }
