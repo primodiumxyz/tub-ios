@@ -4,6 +4,9 @@
     "" : {
 
     },
+    " " : {
+
+    },
     "#8612373299412" : {
 
     },
@@ -88,10 +91,16 @@
     "Close" : {
 
     },
+    "Connect a wallet to continue" : {
+
+    },
     "Country Code" : {
 
     },
     "Date" : {
+
+    },
+    "Deposit" : {
 
     },
     "Deposit with" : {
@@ -182,6 +191,9 @@
 
     },
     "Show More" : {
+
+    },
+    "Solana Address is invalid" : {
 
     },
     "Support" : {

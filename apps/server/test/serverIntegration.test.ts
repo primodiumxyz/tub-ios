@@ -99,8 +99,7 @@ describe("Server Integration Tests", () => {
       expect(result).toBeDefined();
     });
   });
-
-  describe.only("getPresignedTransfer", () => {
+  describe("getPresignedTransfer", () => {
     // privy dev key
     const fromAddress = "EeP7gjHGjHTMEShEA8YgPXmYp6S3XvCDfQvkc8gy2kcL";
     // fee payer address

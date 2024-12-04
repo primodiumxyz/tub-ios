@@ -338,12 +338,6 @@ struct RecipientSelectView: View {
 
     @Previewable @StateObject var userModel = UserModel.shared
 
-    let tokenModel = {
-        let model = TokenModel()
-        spoofTokenModelData(model)
-        return model
-    }()
-
     VStack {
         WithdrawView()
             .environmentObject(userModel)

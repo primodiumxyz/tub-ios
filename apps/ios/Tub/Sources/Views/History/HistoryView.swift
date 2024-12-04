@@ -151,7 +151,7 @@ struct HistoryView: View {
 
 struct HistoryViewContent: View {
     @EnvironmentObject private var userModel: UserModel
-    var txs: [Transaction]
+    var txs: [TransactionData]
     @Binding var isReady: Bool
     @State private var filterState = FilterState()
     var fetchUserTxs: (String) -> Void

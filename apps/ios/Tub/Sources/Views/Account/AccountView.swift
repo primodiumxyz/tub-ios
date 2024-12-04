@@ -157,7 +157,7 @@ private struct ActionButtons: View {
                     .font(.sfRounded(size: .sm, weight: .medium))
                     .foregroundStyle(.tubAccent)
                     .multilineTextAlignment(.center)
-            }.frame(width: 90).opacity(0.7)
+            }.frame(width: 90)
 
             // Add Funds Button
             VStack(spacing: 8) {
