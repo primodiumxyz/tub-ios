@@ -3,7 +3,11 @@ import { PrivyClient, WalletWithMetadata } from "@privy-io/server-auth";
 import { PublicKey, SendTransactionError, Transaction } from "@solana/web3.js";
 import { createTransferInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { GqlClient } from "@tub/gql";
-import { PrebuildSwapResponse, UserPrebuildSwapRequest } from "../types/PrebuildSwapRequest";
+import {
+  PrebuildSignedSwapResponse,
+  PrebuildSwapResponse,
+  UserPrebuildSwapRequest,
+} from "../types/PrebuildSwapRequest";
 import { OctaneService } from "./OctaneService";
 import { Subject, interval, switchMap, Subscription } from "rxjs";
 import { config } from "dotenv";
@@ -256,6 +260,7 @@ export class TubService {
     }
 
     const userPublicKey = new PublicKey(userWallet);
+    console.log("[fetchSwap] userPublicKey:", userPublicKey);
 
     const derivedAccounts = await this.deriveTokenAccounts(userPublicKey, request.buyTokenId, request.sellTokenId);
 
@@ -264,6 +269,7 @@ export class TubService {
       ...derivedAccounts,
       userPublicKey,
     };
+    console.log("[fetchSwap] activeRequest:", activeRequest);
 
     try {
       const response = await this.buildSwapResponse(activeRequest);
@@ -291,18 +297,27 @@ export class TubService {
    *   sellQuantity: 1e6 // 1 USDC. Other tokens may be 1e9 standard
    * });
    */
-  async fetchPresignedSwap(jwtToken: string, request: UserPrebuildSwapRequest): Promise<PrebuildSwapResponse> {
+  async fetchPresignedSwap(jwtToken: string, request: UserPrebuildSwapRequest): Promise<PrebuildSignedSwapResponse> {
     const fetchSwapResponse = await this.fetchSwap(jwtToken, request);
-    const transaction = Transaction.from(Buffer.from(fetchSwapResponse.transactionBase64, "base64"));
+    // fetch transaction from registry
+    const registryEntry = this.swapRegistry.get(fetchSwapResponse.transactionMessageBase64);
+    if (!registryEntry) {
+      throw new Error("Transaction not found in registry");
+    }
+    const transaction = registryEntry.transaction;
+    // remove transaction from registry
+    this.swapRegistry.delete(fetchSwapResponse.transactionMessageBase64);
 
     const feePayerSignature = await this.octane.signTransactionWithoutCheckingTokenFee(transaction);
     const feePayerSignatureBytes = Buffer.from(bs58.decode(feePayerSignature));
     transaction.addSignature(this.octane.getSettings().feePayerPublicKey, feePayerSignatureBytes);
 
-    fetchSwapResponse.transactionBase64 = Buffer.from(transaction.serialize({ verifySignatures: false })).toString(
-      "base64",
-    );
-    return fetchSwapResponse;
+    const fetchSignedSwapResponse: PrebuildSignedSwapResponse = {
+      ...fetchSwapResponse,
+      feePayerSignature,
+    };
+
+    return fetchSignedSwapResponse;
   }
 
   /**
@@ -448,7 +463,7 @@ export class TubService {
    * Validates, signs, and sends a transaction with user and fee payer signatures
    * @param jwtToken - The user's JWT token
    * @param userSignature - The user's base64-encoded signature for the transaction
-   * @param base64Transaction - The original base64-encoded transaction from fetchSwap
+   * @param base64TransactionMessage - The original base64-encoded transaction message from fetchSwap
    * @returns Object containing the transaction signature
    * @throws Error if transaction not found in registry, invalid signatures, or processing fails
    *
@@ -457,57 +472,44 @@ export class TubService {
    * be in the registry (valid for 5 minutes) and must be signed by the user. The server
    * will add the fee payer signature and submit the transaction.
    */
-  async signAndSendTransaction(jwtToken: string, userSignature: string, base64Transaction: string) {
+  async signAndSendTransaction(jwtToken: string, userSignature: string, base64TransactionMessage: string) {
     try {
       const userId = await this.verifyJWT(jwtToken);
+      console.log("[signAndSendTransaction] userId:", userId);
 
-      const registryEntry = this.swapRegistry.get(base64Transaction);
+      const registryEntry = this.swapRegistry.get(base64TransactionMessage);
       if (!registryEntry) {
         throw new Error("Transaction not found in registry");
       }
+      // log the base64 transaction
+      console.log("[signAndSendTransaction] base64 transaction:", base64TransactionMessage);
 
       const walletAddress = await this.getUserWallet(userId);
       if (!walletAddress) {
         throw new Error("User does not have a wallet registered with Privy");
       }
       const userPublicKey = new PublicKey(walletAddress);
-
+      console.log("[signAndSendTransaction] userPublicKey:", userPublicKey);
       // Create a new transaction from the registry entry
-      const transaction = Transaction.from(Buffer.from(base64Transaction, "base64"));
+      const transaction = registryEntry.transaction;
 
       // Convert base64 signature to bytes
       const userSignatureBytes = Buffer.from(userSignature, "base64");
       transaction.addSignature(userPublicKey, userSignatureBytes);
+      console.log("[signAndSendTransaction] First apply user signature:", transaction.signatures);
 
-      // In test environment, skip token fee validation
-      // !! TODO: Currently set to always be true. There's an error with Octane using an old RPC Method that no longer exists.
-      // Once fixed, this if/then can be removed. Even then, as long as we're using the tx registry this shouldn't be an issue.
-      // eslint-disable-next-line no-constant-condition
-      if (true) {
-        const feePayerSignature = await this.octane.signTransactionWithoutCheckingTokenFee(transaction);
-        const feePayerSignatureBytes = Buffer.from(bs58.decode(feePayerSignature));
-        transaction.addSignature(this.octane.getSettings().feePayerPublicKey, feePayerSignatureBytes);
-      } else {
-        let feePayerSignature;
-        if (registryEntry!.hasFee) {
-          feePayerSignature = await this.octane.signTransactionWithTokenFee(
-            transaction,
-            true, // buyWithUSDCBool
-            new PublicKey(USDC_MAINNET_PUBLIC_KEY.toString()), // USDC
-            6, // tokenDecimals
-          );
-        } else {
-          feePayerSignature = await this.octane.signTransactionWithoutCheckingTokenFee(transaction);
-        }
+      // Don't need to validate that we are receiving token fee, given that we already have a tx registry from earlier
+      const feePayerSignature = await this.octane.signTransactionWithoutCheckingTokenFee(transaction);
+      const feePayerSignatureBytes = Buffer.from(bs58.decode(feePayerSignature));
+      transaction.addSignature(this.octane.getSettings().feePayerPublicKey, feePayerSignatureBytes);
+      console.log("[signAndSendTransaction] Second, apply fee payer signature:", transaction.signatures);
 
-        const feePayerSignatureBytes = Buffer.from(bs58.decode(feePayerSignature));
-        transaction.addSignature(this.octane.getSettings().feePayerPublicKey, feePayerSignatureBytes);
-      }
-
-      // Send the fully signed transaction
-      const txid = await this.octane
-        .getSettings()
-        .connection.sendRawTransaction(transaction.serialize(), { skipPreflight: false });
+      // Send transaction
+      const txid = await this.octane.getSettings().connection.sendRawTransaction(transaction.serialize(), {
+        skipPreflight: false,
+        maxRetries: 3,
+        preflightCommitment: "processed",
+      });
       console.log(`[signAndSendTransaction] Transaction sent with ID: ${txid}`);
 
       // Wait for confirmation using polling
@@ -526,35 +528,38 @@ export class TubService {
       }
 
       // Clean up registry
-      this.swapRegistry.delete(base64Transaction);
+      this.swapRegistry.delete(base64TransactionMessage);
       console.log(`[signAndSendTransaction] Transaction completed successfully`);
 
       return { signature: txid };
     } catch (error) {
+      // Handle SendTransactionError specially
       if (error instanceof SendTransactionError) {
-        const logs = error.logs?.join("\n") ?? "No logs available";
-        let details = "No additional details";
+        const logs = (await error.getLogs(this.octane.getSettings().connection)) ?? "No logs available";
+        let details: string;
 
         try {
-          // Get the logs before creating the error message
           details = (await error.getLogs(this.octane.getSettings().connection)).join("\n");
-
-          console.error("[signAndSendTransaction] Transaction failed:", {
-            message: error.message,
-            logs,
-            details: Array.isArray(details) ? details.join("\n") : details,
-          });
-
-          throw new Error(
-            `Transaction failed: ${error.message}\n` +
-              `Logs:\n${logs}\n` +
-              `Details:\n${Array.isArray(details) ? details.join("\n") : details}`,
-          );
         } catch (logError) {
           console.error("[signAndSendTransaction] Error getting detailed logs:", logError);
-          throw new Error(`Transaction failed: ${error.message}\nLogs:\n${logs}`);
+          details = "Could not fetch detailed logs";
         }
+
+        console.error("[signAndSendTransaction] Transaction failed:", {
+          message: error.message,
+          logs,
+          details: Array.isArray(details) ? details.join("\n") : details,
+        });
+
+        throw new Error(
+          `Transaction failed: ${error.message}\n` +
+            `Logs:\n${logs}\n` +
+            `Details:\n${Array.isArray(details) ? details.join("\n") : details}`,
+        );
       }
+
+      // Handle all other errors
+      console.error("[signAndSendTransaction] Error:", error);
       throw error;
     }
   }
@@ -599,11 +604,18 @@ export class TubService {
             outputMint: request.buyTokenId,
             amount: request.sellQuantity,
             slippageBps: 50,
-            onlyDirectRoutes: false,
-            asLegacyTransaction: true, // Set to true for USDC sells
+            onlyDirectRoutes: true, // Set to true only in USDC-SOL swaps
+            asLegacyTransaction: false,
           },
           request.userPublicKey,
         );
+
+        console.log("[buildSwapResponse] Jupiter instructions:", {
+          setupCount: swapInstructions.setupInstructions?.length || 0,
+          setupInstructions: swapInstructions.setupInstructions?.map((ix) => ix.programId),
+          swapInstruction: swapInstructions.swapInstruction?.programId,
+          cleanupInstruction: swapInstructions.cleanupInstruction?.programId,
+        });
 
         if (!swapInstructions?.swapInstruction) {
           throw new Error("No swap instruction received");
@@ -632,11 +644,18 @@ export class TubService {
             outputMint: request.buyTokenId,
             amount: request.sellQuantity - feeOptions.amount,
             slippageBps: 50,
-            onlyDirectRoutes: false,
-            asLegacyTransaction: true, // Set to true for USDC sells
+            onlyDirectRoutes: true, // Set to true only in USDC-SOL swaps
+            asLegacyTransaction: false,
           },
           request.userPublicKey,
         );
+
+        console.log("[buildSwapResponse] Jupiter instructions:", {
+          setupCount: swapInstructions.setupInstructions?.length || 0,
+          setupInstructions: swapInstructions.setupInstructions?.map((ix) => ix.programId),
+          swapInstruction: swapInstructions.swapInstruction?.programId,
+          cleanupInstruction: swapInstructions.cleanupInstruction?.programId,
+        });
 
         if (!swapInstructions?.swapInstruction) {
           throw new Error("No swap instruction received");
@@ -658,14 +677,15 @@ export class TubService {
       transaction.lastValidBlockHeight = lastValidBlockHeight;
 
       const response: PrebuildSwapResponse = {
-        transactionBase64: Buffer.from(transaction.serialize({ verifySignatures: false })).toString("base64"),
+        transactionMessageBase64: Buffer.from(transaction.serializeMessage()).toString("base64"),
         ...request,
         hasFee: feeAmount > 0,
         timestamp: Date.now(),
       };
 
       // Store in registry with fee information
-      this.swapRegistry.set(response.transactionBase64, { ...response, transaction });
+      this.swapRegistry.set(response.transactionMessageBase64, { ...response, transaction });
+      console.log(`[buildSwapResponse] Transaction stored in registry: ${response.transactionMessageBase64}`);
 
       return response;
     } catch (error) {
