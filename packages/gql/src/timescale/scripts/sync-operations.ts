@@ -1,5 +1,5 @@
 import { execSync } from "child_process";
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "fs";
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "fs";
 import path, { dirname } from "path";
 import { fileURLToPath } from "url";
 import pg from "pg";
@@ -127,63 +127,14 @@ async function main() {
     const timescaleDir = path.resolve(databasesDir, "timescaledb");
     const functionsDir = path.resolve(timescaleDir, "functions");
     const tablesDir = path.resolve(timescaleDir, "tables");
+    const typesDir = path.resolve(timescaleDir, "types");
     const graphqlDir = path.resolve(__dirname, "../../graphql");
 
     mkdirSync(timescaleDir, { recursive: true });
     mkdirSync(functionsDir, { recursive: true });
     mkdirSync(tablesDir, { recursive: true });
+    mkdirSync(typesDir, { recursive: true });
     mkdirSync(graphqlDir, { recursive: true });
-
-    // Create/update databases.yaml
-    const databasesPath = path.resolve(databasesDir, "databases.yaml");
-    let existingConfig: {
-      name: string;
-      kind: string;
-      configuration: any;
-      tables?: string;
-      functions?: string;
-      types?: string;
-    }[] = [];
-    try {
-      const existingContent = readFileSync(databasesPath, "utf-8");
-      existingConfig = yaml.parse(existingContent);
-    } catch (error) {
-      // File doesn't exist or is invalid, start fresh
-    }
-
-    // Find existing timescaledb config or create new one
-    let timescaleConfig = existingConfig.find((db) => db.name === "timescaledb");
-    if (!timescaleConfig) {
-      timescaleConfig = {
-        name: "timescaledb",
-        kind: "postgres",
-        configuration: {
-          connection_info: {
-            database_url: {
-              from_env: "TIMESCALE_DATABASE_URL",
-            },
-            isolation_level: "read-committed",
-            use_prepared_statements: false,
-          },
-        },
-      };
-      existingConfig.push(timescaleConfig);
-    }
-
-    // Ensure required settings
-    timescaleConfig.configuration.connection_info = {
-      ...timescaleConfig.configuration.connection_info,
-      is_data_source_only: true,
-      read_replicas: [],
-      manage_metadata: false,
-    };
-
-    // Update references
-    timescaleConfig.tables = "!include timescaledb/tables.yaml";
-    timescaleConfig.functions = "!include timescaledb/functions.yaml";
-    timescaleConfig.types = "!include timescaledb/types.yaml";
-
-    writeFileSync(databasesPath, yaml.stringify(existingConfig));
 
     // Create function files and index
     const operations = await getFunctions(client);
@@ -205,10 +156,10 @@ async function main() {
 
       const fileName = `${op.schema}_${op.name}.yaml`;
       writeFileSync(path.resolve(functionsDir, fileName), yaml.stringify(functionConfig));
-      functionIncludes.push(`- "!include functions/${fileName}"`);
+      functionIncludes.push(`- "!include ${fileName}"`);
     }
 
-    writeFileSync(path.resolve(timescaleDir, "functions.yaml"), functionIncludes.sort().join("\n"));
+    writeFileSync(path.resolve(functionsDir, "functions.yaml"), functionIncludes.sort().join("\n"));
 
     // Create table files and index
     const tables = await getTables(client);
@@ -235,15 +186,12 @@ async function main() {
 
       const fileName = `${table.schema}_${table.name}.yaml`;
       writeFileSync(path.resolve(tablesDir, fileName), yaml.stringify(tableConfig));
-      tableIncludes.push(`- "!include tables/${fileName}"`);
+      tableIncludes.push(`- "!include ${fileName}"`);
     }
 
-    writeFileSync(path.resolve(timescaleDir, "tables.yaml"), tableIncludes.sort().join("\n"));
+    writeFileSync(path.resolve(tablesDir, "tables.yaml"), tableIncludes.sort().join("\n"));
 
-    // Create types directory and files
-    const typesDir = path.resolve(timescaleDir, "types");
-    mkdirSync(typesDir, { recursive: true });
-
+    // Create types files and index
     const types = await getCustomTypes(client);
     const typeIncludes = [];
 
@@ -257,10 +205,10 @@ async function main() {
 
       const fileName = `${type.schema}_${type.name}.yaml`;
       writeFileSync(path.resolve(typesDir, fileName), yaml.stringify(typeConfig));
-      typeIncludes.push(`- "!include types/${fileName}"`);
+      typeIncludes.push(`- "!include ${fileName}"`);
     }
 
-    writeFileSync(path.resolve(timescaleDir, "types.yaml"), typeIncludes.sort().join("\n"));
+    writeFileSync(path.resolve(typesDir, "types.yaml"), typeIncludes.sort().join("\n"));
 
     // Apply metadata changes to Hasura only if flag is provided
     if (applyMetadata) {

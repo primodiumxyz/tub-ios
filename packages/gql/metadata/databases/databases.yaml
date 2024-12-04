@@ -163,11 +163,13 @@
     connection_info:
       database_url:
         from_env: TIMESCALE_DATABASE_URL
+      pool_settings:
+        idle_timeout: 180
+        max_connections: 50
+        retries: 3
       isolation_level: read-committed
-      use_prepared_statements: false
-      is_data_source_only: true
-      read_replicas: []
-      manage_metadata: false
-  tables: "!include timescaledb/tables.yaml"
-  functions: "!include timescaledb/functions.yaml"
-  types: "!include timescaledb/types.yaml"
+      use_prepared_statements: true # benchmark to see if it improves performance
+  tables: "!include timescaledb/tables/tables.yaml"
+  # functions: "!include timescaledb/functions/functions.yaml"
+  functions: []
+  types: "!include timescaledb/types/types.yaml"
