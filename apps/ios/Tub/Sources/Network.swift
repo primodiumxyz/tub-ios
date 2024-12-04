@@ -187,6 +187,57 @@ class Network {
         return CodexTokenData(token: res.token, expiry: res.expiry)
     }
 
+    func getBalance(address: String) async throws -> Int {
+        let res = try await solana.getBalance(account: address)
+        return Int(res)
+    }
+
+    struct TokenBalanceData: Identifiable, Codable {
+        let id: String
+        let mint: PublicKey
+        let amountToken: Int
+    }
+
+    func getTokenBalances(address: String) async throws -> [TokenBalanceData] {
+        let params = OwnerInfoParams(
+            mint: nil,
+            programId: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        )
+        let tokenAccounts = try await solana.getTokenAccountsByOwner(
+            pubkey: address,
+            params: params,
+            configs: RequestConfiguration(encoding: "base64")
+        )
+
+        let val = tokenAccounts.map { account in
+            TokenBalanceData(
+                id: account.pubkey,
+                mint: account.account.data.mint,
+                amountToken: Int(account.account.data.lamports)
+            )
+        }
+        return val
+    }
+
+    func getTokenBalance(address: String, tokenMint: String) async throws -> Int {
+        let params = OwnerInfoParams(
+            mint: tokenMint,
+            programId: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        )
+        let tokenAccounts = try await solana.getTokenAccountsByOwner(
+            pubkey: address,
+            params: params,
+            configs: RequestConfiguration(encoding: "base64")
+        )
+
+        // Return 0 if no token account found
+        guard let firstAccount = tokenAccounts.first else {
+            return 0
+        }
+
+        return Int(firstAccount.account.data.lamports)
+    }
+
     func transferUsdc(fromAddress: String, toAddress: String, amount: Int) async throws -> String {
         // 1. Constants and input preparation
         let usdcTokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
