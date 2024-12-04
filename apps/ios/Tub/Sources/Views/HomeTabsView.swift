@@ -88,67 +88,27 @@ struct HomeTabsView: View {
                     identifier: "HomeTabsView - waiting priceModel",
                     message: "Connecting to Solana"
                 )
-            }
-            else {
-                VStack {
+            } else {
+                ZStack {
+                    // Main content with TabView
                     TabView(selection: $vm.selectedTab) {
-                        // Trade Tab
                         TokenListView()
                             .id(refreshCounter)
+                            .tabItem {
+                                VStack {
+                                    Image(systemName: "chart.line.uptrend.xyaxis")
+                                        .font(.system(size: 24))
+                                    Text("Trade")
+                                        .font(.system(size: 12))
+                                }
+                            }
                             .tag(0)
 
                         NavigationStack {
                             HistoryView()
                                 .id(refreshCounter)
                         }
-                        .tag(1)
-                        
-                        NavigationStack {
-                            AccountView()
-                                .id(refreshCounter)
-                        }
-                        .tag(2)
-                    }
-                    .background(Color(UIColor.systemBackground))
-                    .ignoresSafeArea(.keyboard)
-                    .edgesIgnoringSafeArea(.all)
-                    .onChange(of: vm.selectedTab) { oldTab, newTab in
-                        let tabName: String
-                        switch newTab {
-                        case 0: tabName = "trade"
-                        case 1: tabName = "history"
-                        case 2: tabName = "account"
-                        default: tabName = "unknown"
-                        }
-                        vm.recordTabSelection(tabName)
-                        
-                        if oldTab == newTab {
-                            refreshCounter += 1
-                        }
-                    }
-
-                    HStack {
-                        Spacer()
-                        Button {
-                            if vm.selectedTab == 0 {
-                                refreshCounter += 1
-                            }
-                            vm.selectedTab = 0
-                        } label: {
-                            VStack {
-                                Image(systemName: "chart.line.uptrend.xyaxis")
-                                    .font(.system(size: 24))
-                                Text("Trade")
-                                    .font(.system(size: 12))
-                            }
-                        }
-                        Spacer()
-                        Button {
-                            if vm.selectedTab == 1 {
-                                refreshCounter += 1
-                            }
-                            vm.selectedTab = 1
-                        } label: {
+                        .tabItem {
                             VStack {
                                 Image(systemName: "clock")
                                     .font(.system(size: 24))
@@ -156,13 +116,13 @@ struct HomeTabsView: View {
                                     .font(.system(size: 12))
                             }
                         }
-                        Spacer()
-                        Button {
-                            if vm.selectedTab == 2 {
-                                refreshCounter += 1
-                            }
-                            vm.selectedTab = 2
-                        } label: {
+                        .tag(1)
+
+                        NavigationStack {
+                            AccountView()
+                                .id(refreshCounter)
+                        }
+                        .tabItem {
                             VStack {
                                 Image(systemName: "person")
                                     .font(.system(size: 24))
@@ -170,9 +130,18 @@ struct HomeTabsView: View {
                                     .font(.system(size: 12))
                             }
                         }
-                        Spacer()
+                        .tag(2)
                     }
                     .background(Color(UIColor.systemBackground))
+                    .ignoresSafeArea(.keyboard)
+                    .onChange(of: vm.selectedTab) { oldTab, newTab in
+                        handleTabSelection(oldTab: oldTab, newTab: newTab)
+                    }
+
+                    // Transparent overlay to capture tab item taps
+                    TabTapOverlay(selectedTab: $vm.selectedTab) {
+                        refreshCounter += 1
+                    }
                 }
             }
         }
@@ -184,5 +153,44 @@ struct HomeTabsView: View {
                 vm.recordTabSelection("trade")
             }
         }
+    }
+    
+    private func handleTabSelection(oldTab: Int, newTab: Int) {
+        let tabName: String
+        switch newTab {
+        case 0: tabName = "trade"
+        case 1: tabName = "history"
+        case 2: tabName = "account"
+        default: tabName = "unknown"
+        }
+        vm.recordTabSelection(tabName)
+    }
+}
+
+struct TabTapOverlay: View {
+    @Binding var selectedTab: Int
+    let onSameTabTapped: () -> Void
+
+    var body: some View {
+        GeometryReader { proxy in
+            HStack(spacing: 0) {
+                ForEach(0..<3, id: \.self) { index in
+                    Rectangle()
+                        .fill(Color.clear)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            if selectedTab == index {
+                                onSameTabTapped()
+                            } else {
+                                selectedTab = index
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                }
+            }
+            .frame(height: 49)
+            .frame(maxHeight: .infinity, alignment: .bottom)
+        }
+        .allowsHitTesting(true)
     }
 }
