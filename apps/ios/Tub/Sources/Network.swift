@@ -192,7 +192,7 @@ class Network {
         return Int(res)
     }
 
-    func transferUsdc(fromAddress: String, toAddress: String, amount: Int) async throws {
+    func transferUsdc(fromAddress: String, toAddress: String, amount: Int) async throws -> String {
         // 1. Constants and input preparation
         let usdcTokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
         let input = TransferInput(
@@ -246,7 +246,7 @@ class Network {
         //        let txId = try await solana.simulateTransaction(transaction: tx.serialize().base64EncodedString())
         let txId = try await solana.sendTransaction(transaction: tx.serialize().base64EncodedString())
 
-        print("Success! Transaction ID: \(txId)")
+        return txId
     }
 }
 

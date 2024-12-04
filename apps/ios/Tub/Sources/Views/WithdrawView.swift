@@ -9,13 +9,17 @@ import SolanaSwift
 import SwiftUI
 
 class WithdrawModel: ObservableObject {
-    @EnvironmentObject var userModel: UserModel
-    @EnvironmentObject var notificationHandler: NotificationHandler
+    var walletAddress: String? = nil
+
     @Published var buyAmountUsdString: String = ""
     @Published var buyAmountUsd: Double = 0
     @Published var recipient: String = ""
     @Published var continueDisabled: Bool = true
     @Published var currentPage = 0
+
+    func initialize(walletAddress: String) {
+        self.walletAddress = walletAddress
+    }
 
     func validateAddress(_ address: String) -> Bool {
         if address.isEmpty { return false }
@@ -28,52 +32,60 @@ class WithdrawModel: ObservableObject {
         }
     }
 
-    func onComplete() {
-        guard let walletAddress = userModel.walletAddress else {
-            notificationHandler.show("Cannot transfer: not logged in", type: .error)
-            return
+    func onComplete() async throws -> String {
+        guard let walletAddress else {
+            throw TubError.somethingWentWrong(reason: "Cannot transfer: not logged in")
         }
 
         if !validateAddress(recipient) {
-            notificationHandler.show("Invalid recipient address", type: .error)
-            return
+            throw TubError.somethingWentWrong(reason: "Invalid recipient address")
         }
 
         let buyAmountUsdc = Int(buyAmountUsd * 1e6)
 
-        Task {
-            do {
-                try await Network.shared.transferUsdc(
-                    fromAddress: walletAddress,
-                    toAddress: recipient,
-                    amount: buyAmountUsdc
-                )
-                notificationHandler.show("Transfer successful!", type: .success)
-            }
-            catch {
-                notificationHandler.show(error.localizedDescription, type: .error)
-            }
+        do {
+            let txId = try await Network.shared.transferUsdc(
+                fromAddress: walletAddress,
+                toAddress: recipient,
+                amount: buyAmountUsdc
+            )
+            return txId
         }
-
-    }
-
-    func handleContinue(complete: Bool) {
-        if complete {
-            onComplete()
-        }
-        else {
-            withAnimation {
-                currentPage += 1
-            }
+        catch {
+            throw error
         }
     }
+
 }
 
 struct WithdrawView: View {
     @EnvironmentObject var userModel: UserModel
     @EnvironmentObject var priceModel: SolPriceModel
+    @EnvironmentObject var notificationHandler: NotificationHandler
+
     @StateObject private var vm = WithdrawModel()
+
     static let formHeight: CGFloat = 400
+
+    func handleContinue() {
+        let complete = vm.currentPage == pages.count - 1
+        if complete {
+            Task {
+                do {
+                    let _ = try await vm.onComplete()
+                    notificationHandler.show("Transfer successful!", type: .success)
+                }
+                catch {
+                    notificationHandler.show(error.localizedDescription, type: .error)
+                }
+            }
+        }
+        else {
+            withAnimation {
+                vm.currentPage += 1
+            }
+        }
+    }
 
     var pages: [AnyView] {
         [
@@ -102,7 +114,7 @@ struct WithdrawView: View {
                 backgroundColor: .clear,
                 maxWidth: .infinity,
                 disabled: vm.continueDisabled,
-                action: { vm.handleContinue(complete: vm.currentPage == pages.count - 1) }
+                action: handleContinue
 
             )
             .disabled((userModel.balanceLamps ?? 0) < priceModel.usdToLamports(usd: vm.buyAmountUsd))
@@ -113,7 +125,7 @@ struct WithdrawView: View {
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 30).fill(Color(UIColor.systemBackground))
-                .zIndex(0).frame(width: .infinity, height: Self.formHeight)
+                .zIndex(0).frame(maxWidth: .infinity, maxHeight: Self.formHeight)
             VStack {
                 VStack {
                     pages[vm.currentPage].frame(height: 150)
@@ -136,6 +148,14 @@ struct WithdrawView: View {
         .frame(maxHeight: Self.formHeight, alignment: .leading)
         .presentationDetents([.height(Self.formHeight)])
         .presentationBackground(.clear)
+        .onAppear {
+            guard let walletAddress = userModel.walletAddress else { return }
+            vm.initialize(walletAddress: walletAddress)
+        }
+        .onChange(of: userModel.walletAddress) {
+            guard let walletAddress = userModel.walletAddress else { return }
+            vm.initialize(walletAddress: walletAddress)
+        }
     }
 
 }

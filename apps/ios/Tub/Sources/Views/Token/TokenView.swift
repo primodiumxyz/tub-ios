@@ -147,13 +147,6 @@ struct TokenView: View {
                 LoadingBox(width: 200, height: 40).padding(.vertical, 4)
             }
 
-            let price = priceModel.formatPrice(
-                usd: tokenModel.priceChange.amountUsd,
-                showSign: true,
-                maxDecimals: 9,
-                minDecimals: 2
-            )
-
             let priceChange = tokenModel.priceChange.amountUsd
             let priceChangePercentage = tokenModel.priceChange.percentage
             HStack(alignment: .center, spacing: 0) {

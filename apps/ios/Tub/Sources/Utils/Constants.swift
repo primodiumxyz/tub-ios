@@ -105,6 +105,7 @@ public let PRICE_UPDATE_INTERVAL: Double = 0.5  // Update price every half secon
 public let WSOL_ADDRESS: String = "So11111111111111111111111111111111111111112"
 
 enum TubError: LocalizedError {
+    case somethingWentWrong(reason: String)
     case networkFailure
     case invalidInput(reason: String)
     case unknown
@@ -116,6 +117,8 @@ enum TubError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
+        case .somethingWentWrong(let reason):
+            return "Something went wrong: \(reason)"
         case .insufficientBalance:
             return "Insufficient balance"
         case .notLoggedIn:
