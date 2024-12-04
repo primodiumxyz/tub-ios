@@ -2,10 +2,10 @@
 export const TimescaleOperations = {
   queries: [
   "batch_insert_trades",
-  "insert_trade",
   "get_token_trade_history_interval",
   "get_token_trade_history_interval_candles",
-  "get_top_tokens_interval_by_volume"
+  "get_top_tokens_interval_by_volume",
+  "insert_trade"
 ],
   mutations: []
 } as const;
