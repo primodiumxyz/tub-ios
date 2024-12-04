@@ -45,7 +45,7 @@ export class BatchManager {
 
         this.lastProcessTime = Date.now();
         const latency = ((Date.now() - oldestSwapTime) / 1000).toFixed(2);
-        console.log(`[${latency}s] Processed batch of ${res.data?.insert_trade_history?.affected_rows} swaps`);
+        console.log(`[${latency}s] Processed batch of ${res.data?.insert_api_trade_history?.affected_rows} swaps`);
       } catch (error) {
         console.error("Error processing batch:", error);
         // On error, add failed items back at the start of the batch
