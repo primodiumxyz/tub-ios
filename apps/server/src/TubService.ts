@@ -127,11 +127,12 @@ export class TubService {
 
     const blockhash = await this.connection.getLatestBlockhash();
     transaction.recentBlockhash = blockhash.blockhash;
+    transaction.feePayer = keypair.publicKey;
+
+    transaction.add(transferInstruction);
 
     transaction.sign(keypair);
-    if (transaction.signatures.length === 0) {
-      throw new Error("Transaction is not signed");
-    }
+
     const sigData = transaction.signatures[0];
     if (!sigData) {
       throw new Error("Transaction is not signed");
@@ -141,15 +142,12 @@ export class TubService {
     if (!rawSignature) {
       throw new Error("Transaction is not signed");
     }
-    transaction.feePayer = keypair.publicKey;
 
-    transaction.add(transferInstruction);
-
-    console.log("transaction", transaction);
-    const transactionBase64 = transaction.serialize({ requireAllSignatures: false }).toString("base64");
-    const signature = Buffer.from(rawSignature).toString("base64");
-
-    return { transactionBase64, signatureBase64: signature, signerBase58: publicKey.toBase58() };
+    return {
+      transactionBase64: transaction.serialize({ requireAllSignatures: false }).toString("base64"),
+      signatureBase64: Buffer.from(rawSignature).toString("base64"),
+      signerBase58: publicKey.toBase58(),
+    };
   }
 
   async recordClientEvent(

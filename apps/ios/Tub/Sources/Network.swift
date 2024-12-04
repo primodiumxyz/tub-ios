@@ -203,9 +203,7 @@ class Network {
         )
 
         // 2. Get signed transaction from server
-        print("pre transfer")
         let transfer: TransferResponse = try await callProcedure("getSignedTransfer", input: input)
-        print("post transfer")
 
         // 3. Parse transaction data
         guard let messageData = Data(base64Encoded: transfer.transactionBase64) else {
@@ -216,7 +214,6 @@ class Network {
         // 4. Setup required keys and provider
         let feePayerPublicKey = try PublicKey(string: transfer.signerBase58)
         let fromPublicKey = try PublicKey(string: fromAddress)
-        let provider = try privy.embeddedWallet.getSolanaProvider(for: fromAddress)
 
         // 5. Add signatures in correct order
         // Fee payer signature must be first
@@ -234,6 +231,8 @@ class Network {
         let message = try tx.compileMessage().serialize().base64EncodedString()
 
         // Sign using the Privy Embedded Wallet.
+
+        let provider = try privy.embeddedWallet.getSolanaProvider(for: fromAddress)
         let userSignatureMsg = try await provider.signMessage(message: message)
 
         let userSignature = Signature(
