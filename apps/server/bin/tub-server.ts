@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-import { AppRouter, createAppRouter } from "@/createAppRouter";
-import { OctaneService } from "@/OctaneService";
-import { TubService } from "@/TubService";
-import { parseEnv } from "@bin/parseEnv";
+import { AppRouter, createAppRouter } from "../src/createAppRouter";
+import { OctaneService } from "../src/OctaneService";
+import { TubService } from "../src/TubService";
+import { parseEnv } from "../bin/parseEnv";
 import { Codex } from "@codex-data/sdk";
 import fastifyWebsocket from "@fastify/websocket";
 import { PrivyClient } from "@privy-io/server-auth";
@@ -10,6 +10,7 @@ import { clusterApiUrl, Connection, Keypair, PublicKey } from "@solana/web3.js";
 import { createJupiterApiClient, ConfigurationParameters } from "@jup-ag/api";
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import { applyWSSHandler } from "@trpc/server/adapters/ws";
+import { NodeHTTPCreateContextFnOptions } from "@trpc/server/adapters/node-http";
 import { createClient as createGqlClient } from "@tub/gql";
 import { config } from "dotenv";
 import fastify from "fastify";
@@ -129,7 +130,8 @@ export const start = async () => {
     applyWSSHandler({
       wss: server.websocketServer,
       router: createAppRouter(),
-      createContext: async (opt) => ({
+      // @ts-expect-error IncomingMessage is not typed
+      createContext: async (opt: NodeHTTPCreateContextFnOptions<IncomingMessage, WebSocket>) => ({
         tubService,
         jwtToken: getBearerToken(opt.req) ?? "",
       }),
