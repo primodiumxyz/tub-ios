@@ -1,5 +1,5 @@
 // #!/usr/bin/env node
-import { Connection, ParsedAccountData, PublicKey, TransactionInstruction } from "@solana/web3.js";
+import { Connection, ParsedAccountData, PublicKey } from "@solana/web3.js";
 import { config } from "dotenv";
 
 import { GqlClient } from "@tub/gql";
@@ -271,7 +271,7 @@ const formatTokenMetadata = (data: GetAssetsResponse["result"][number]): SwapTok
 
 /* -------------------------------- DATABASE -------------------------------- */
 export const upsertTrades = async (gql: GqlClient["db"], trades: SwapWithPriceAndMetadata[]) => {
-  return await gql.UpsertTradesMutation({
+  return await gql.InsertTradeHistoryManyMutation({
     trades: trades.map((trade) => {
       const volumeUsd = (Number(trade.amount) * trade.priceUsd) / 10 ** trade.tokenDecimals;
       const { name, symbol, description, imageUri, externalUrl, supply, isPumpToken } = trade.metadata;
@@ -287,7 +287,7 @@ export const upsertTrades = async (gql: GqlClient["db"], trades: SwapWithPriceAn
           description,
           image_uri: imageUri,
           external_url: externalUrl,
-          supply: supply, // Don't convert to string here, let toPgComposite handle it
+          supply: supply,
           is_pump_token: isPumpToken,
         }),
       };
