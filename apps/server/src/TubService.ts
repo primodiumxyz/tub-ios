@@ -496,124 +496,69 @@ export class TubService {
       // Convert base64 signature to bytes
       const userSignatureBytes = Buffer.from(userSignature, "base64");
       transaction.addSignature(userPublicKey, userSignatureBytes);
-
-      console.log("[signAndSendTransaction] base64 user signature:", userSignatureBytes.toString("base64"));
-
-      // log the signatures within the transaction
       console.log("[signAndSendTransaction] First apply user signature:", transaction.signatures);
 
-      // In test environment, skip token fee validation
-      // !! TODO: Currently set to always be true. There's an error with Octane using an old RPC Method that no longer exists.
-      // Once fixed, this if/then can be removed. Even then, as long as we're using the tx registry this shouldn't be an issue.
-      // eslint-disable-next-line no-constant-condition
-      if (true) {
-        const feePayerSignature = await this.octane.signTransactionWithoutCheckingTokenFee(transaction);
-        const feePayerSignatureBytes = Buffer.from(bs58.decode(feePayerSignature));
-        transaction.addSignature(this.octane.getSettings().feePayerPublicKey, feePayerSignatureBytes);
-      } else {
-        // let feePayerSignature;
-        // if (registryEntry!.hasFee) {
-        //   feePayerSignature = await this.octane.signTransactionWithTokenFee(
-        //     transaction,
-        //     true, // buyWithUSDCBool
-        //     new PublicKey(USDC_MAINNET_PUBLIC_KEY.toString()), // USDC
-        //     6, // tokenDecimals
-        //   );
-        // } else {
-        //   feePayerSignature = await this.octane.signTransactionWithoutCheckingTokenFee(transaction);
-        // }
-        // const feePayerSignatureBytes = Buffer.from(bs58.decode(feePayerSignature));
-        // transaction.addSignature(this.octane.getSettings().feePayerPublicKey, feePayerSignatureBytes);
-      }
-
-      // log the signatures within the transaction
+      // Don't need to validate that we are receiving token fee, given that we already have a tx registry from earlier
+      const feePayerSignature = await this.octane.signTransactionWithoutCheckingTokenFee(transaction);
+      const feePayerSignatureBytes = Buffer.from(bs58.decode(feePayerSignature));
+      transaction.addSignature(this.octane.getSettings().feePayerPublicKey, feePayerSignatureBytes);
       console.log("[signAndSendTransaction] Second, apply fee payer signature:", transaction.signatures);
-      console.log("[signAndSendTransaction] Transaction:", transaction);
-      console.log("[signAndSendTransaction] Transaction serialized:", transaction.serialize());
 
-      try {
-        const txid = await this.octane.getSettings().connection.sendRawTransaction(transaction.serialize(), {
-          skipPreflight: false,
-          maxRetries: 3,
-          preflightCommitment: "processed",
-        });
-        console.log(`[signAndSendTransaction] Transaction sent with ID: ${txid}`);
+      // Send transaction
+      const txid = await this.octane.getSettings().connection.sendRawTransaction(transaction.serialize(), {
+        skipPreflight: false,
+        maxRetries: 3,
+        preflightCommitment: "processed",
+      });
+      console.log(`[signAndSendTransaction] Transaction sent with ID: ${txid}`);
 
-        // Wait for confirmation using polling
-        const confirmation = await this.octane.getSettings().connection.confirmTransaction(
-          {
-            signature: txid,
-            blockhash: transaction.recentBlockhash!,
-            lastValidBlockHeight: transaction.lastValidBlockHeight!,
-          },
-          "processed",
-        );
-        console.log(`[signAndSendTransaction] Transaction confirmed:`, confirmation);
+      // Wait for confirmation using polling
+      const confirmation = await this.octane.getSettings().connection.confirmTransaction(
+        {
+          signature: txid,
+          blockhash: transaction.recentBlockhash!,
+          lastValidBlockHeight: transaction.lastValidBlockHeight!,
+        },
+        "processed",
+      );
+      console.log(`[signAndSendTransaction] Transaction confirmed:`, confirmation);
 
-        if (confirmation.value.err) {
-          throw new Error(`Transaction failed: ${confirmation.value.err}`);
-        }
-
-        // Clean up registry
-        this.swapRegistry.delete(base64TransactionMessage);
-        console.log(`[signAndSendTransaction] Transaction completed successfully`);
-
-        return { signature: txid };
-      } catch (error) {
-        if (error instanceof SendTransactionError) {
-          const logs = (await error.getLogs(this.octane.getSettings().connection)) ?? "No logs available";
-          let details = "No additional details";
-
-          try {
-            // Get the logs before creating the error message
-            details = (await error.getLogs(this.octane.getSettings().connection)).join("\n");
-
-            console.error("[signAndSendTransaction] Transaction failed:", {
-              message: error.message,
-              logs,
-              details: Array.isArray(details) ? details.join("\n") : details,
-            });
-
-            throw new Error(
-              `Transaction failed: ${error.message}\n` +
-                `Logs:\n${logs}\n` +
-                `Details:\n${Array.isArray(details) ? details.join("\n") : details}`,
-            );
-          } catch (logError) {
-            console.error("[signAndSendTransaction] Error getting detailed logs:", logError);
-            throw new Error(`Transaction failed: ${error.message}\nLogs:\n${logs}`);
-          }
-        }
-        // log the error
-        console.error("[signAndSendTransaction] Error:", error);
-        throw error;
+      if (confirmation.value.err) {
+        throw new Error(`Transaction failed: ${confirmation.value.err}`);
       }
+
+      // Clean up registry
+      this.swapRegistry.delete(base64TransactionMessage);
+      console.log(`[signAndSendTransaction] Transaction completed successfully`);
+
+      return { signature: txid };
     } catch (error) {
+      // Handle SendTransactionError specially
       if (error instanceof SendTransactionError) {
-        const logs = error.logs?.join("\n") ?? "No logs available";
-        let details = "No additional details";
+        const logs = (await error.getLogs(this.octane.getSettings().connection)) ?? "No logs available";
+        let details: string;
 
         try {
-          // Get the logs before creating the error message
           details = (await error.getLogs(this.octane.getSettings().connection)).join("\n");
-
-          console.error("[signAndSendTransaction] Transaction failed:", {
-            message: error.message,
-            logs,
-            details: Array.isArray(details) ? details.join("\n") : details,
-          });
-
-          throw new Error(
-            `Transaction failed: ${error.message}\n` +
-              `Logs:\n${logs}\n` +
-              `Details:\n${Array.isArray(details) ? details.join("\n") : details}`,
-          );
         } catch (logError) {
           console.error("[signAndSendTransaction] Error getting detailed logs:", logError);
-          throw new Error(`Transaction failed: ${error.message}\nLogs:\n${logs}`);
+          details = "Could not fetch detailed logs";
         }
+
+        console.error("[signAndSendTransaction] Transaction failed:", {
+          message: error.message,
+          logs,
+          details: Array.isArray(details) ? details.join("\n") : details,
+        });
+
+        throw new Error(
+          `Transaction failed: ${error.message}\n` +
+            `Logs:\n${logs}\n` +
+            `Details:\n${Array.isArray(details) ? details.join("\n") : details}`,
+        );
       }
-      // log the error
+
+      // Handle all other errors
       console.error("[signAndSendTransaction] Error:", error);
       throw error;
     }
