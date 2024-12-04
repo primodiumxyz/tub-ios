@@ -157,23 +157,25 @@ struct HistoryViewContent: View {
     var fetchUserTxs: (String) -> Void
 
     var body: some View {
-        NavigationStack {
+//        NavigationStack {
             ScrollView {
                 VStack(spacing: 0) {
-                    // Add padding at the top to make room for the filters
-                    Color.clear.frame(height: 44)
 
                     // Transaction List
                     if !isReady {
                         ProgressView()
                     }
                     else if filteredTransactions().isEmpty {
+                        TransactionFilters(filterState: $filterState)
+                            .background(Color(UIColor.systemBackground))
                         Text("No transactions found")
                             .padding()
                             .font(.sfRounded(size: .base, weight: .regular))
                             .foregroundStyle(Color.gray)
                     }
                     else {
+                        TransactionFilters(filterState: $filterState)
+                            .background(Color(UIColor.systemBackground))
                         LazyVStack(spacing: 0) {
                             ForEach(groupTransactions(filteredTransactions()), id: \.date) { group in
                                 TransactionGroupRow(group: group)
@@ -189,14 +191,9 @@ struct HistoryViewContent: View {
                     fetchUserTxs(wallet)
                 }
             }
-            .overlay(
-                TransactionFilters(filterState: $filterState)
-                    .background(Color(UIColor.systemBackground)),
-                alignment: .top
-            )
             .navigationTitle("History")
             .navigationBarTitleDisplayMode(.inline)
-        }
+//        }
     }
 
     // Helper function to filter transactions
