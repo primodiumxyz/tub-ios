@@ -26,9 +26,9 @@ await server.register(import("@fastify/cors"));
 await server.register(fastifyWebsocket);
 
 // k8s healthchecks
-server.get("/healthz", (req, res) => res.code(200).send());
-server.get("/readyz", (req, res) => res.code(200).send());
-server.get("/", (req, res) => res.code(200).send("hello world"));
+server.get("/healthz", (_, res) => res.code(200).send());
+server.get("/readyz", (_, res) => res.code(200).send());
+server.get("/", (_, res) => res.code(200).send("hello world"));
 
 // Helper function to extract bearer token
 // @ts-expect-error IncomingMessage is not typed

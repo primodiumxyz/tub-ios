@@ -187,11 +187,6 @@ class Network {
         return CodexTokenData(token: res.token, expiry: res.expiry)
     }
 
-    func getBalance(address: String) async throws -> Int {
-        let res = try await solana.getBalance(account: address)
-        return Int(res)
-    }
-
     func transferUsdc(fromAddress: String, toAddress: String, amount: Int) async throws -> String {
         // 1. Constants and input preparation
         let usdcTokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
