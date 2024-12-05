@@ -23,10 +23,14 @@ jobs:
         run: pnpm dev:db:ci
 
       - name: Run Tests
-        run: PRIVY_APP_ID=${{ secrets.PRIVY_APP_ID }} PRIVY_APP_SECRET=${{ secrets.PRIVY_APP_SECRET }} pnpm test
+        run: PRIVY_APP_ID=${{ secrets.PRIVY_APP_ID }} PRIVY_APP_SECRET=${{ secrets.PRIVY_APP_SECRET }} JUPITER_URL=${{ secrets.JUPITER_URL }} QUICKNODE_MAINNET_URL=${{ secrets.QUICKNODE_MAINNET_URL }} FEE_PAYER_PRIVATE_KEY=${{ secrets.FEE_PAYER_PRIVATE_KEY }} OCTANE_TRADE_FEE_RECIPIENT=${{ secrets.OCTANE_TRADE_FEE_RECIPIENT }} pnpm test
         env:
           PRIVY_APP_ID: ${{ secrets.PRIVY_APP_ID }}
           PRIVY_APP_SECRET: ${{ secrets.PRIVY_APP_SECRET }}
+          JUPITER_URL: ${{ secrets.JUPITER_URL }}
+          QUICKNODE_MAINNET_URL: ${{ secrets.QUICKNODE_MAINNET_URL }}
+          FEE_PAYER_PRIVATE_KEY: ${{ secrets.FEE_PAYER_PRIVATE_KEY }}
+          OCTANE_TRADE_FEE_RECIPIENT: ${{ secrets.OCTANE_TRADE_FEE_RECIPIENT }}
           CODEX_API_KEY: ${{ secrets.CODEX_API_KEY }}
 
       - name: Teardown
