@@ -1,25 +1,26 @@
 #!/usr/bin/env node
-import { AppRouter, createAppRouter } from "@/createAppRouter";
-import { OctaneService } from "@/OctaneService";
-import { TubService } from "@/TubService";
-import { parseEnv } from "@bin/parseEnv";
+import { AppRouter, createAppRouter } from "../src/createAppRouter";
+import { OctaneService } from "../src/OctaneService";
+import { TubService } from "../src/TubService";
+import { parseEnv } from "../bin/parseEnv";
 import { Codex } from "@codex-data/sdk";
 import fastifyWebsocket from "@fastify/websocket";
 import { PrivyClient } from "@privy-io/server-auth";
 import { clusterApiUrl, Connection, Keypair, PublicKey } from "@solana/web3.js";
-import { createJupiterApiClient, ConfigurationParameters } from '@jup-ag/api';
+import { createJupiterApiClient, ConfigurationParameters } from "@jup-ag/api";
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import { applyWSSHandler } from "@trpc/server/adapters/ws";
+import { NodeHTTPCreateContextFnOptions } from "@trpc/server/adapters/node-http";
 import { createClient as createGqlClient } from "@tub/gql";
 import { config } from "dotenv";
 import fastify from "fastify";
 import bs58 from "bs58";
 
-const cacheManager = await import('cache-manager');
+const cacheManager = await import("cache-manager");
 
 config({ path: "../../.env" });
 
-const env = parseEnv();
+export const env = parseEnv();
 
 // @see https://fastify.dev/docs/latest/
 export const server = fastify({
@@ -28,9 +29,9 @@ export const server = fastify({
 });
 
 export type FeeOptions = {
-  amount: number,
-  sourceAccount: PublicKey,
-  destinationAccount: PublicKey,
+  amount: number;
+  sourceAccount: PublicKey;
+  destinationAccount: PublicKey;
 };
 
 await server.register(import("@fastify/compress"));
@@ -38,12 +39,13 @@ await server.register(import("@fastify/cors"));
 await server.register(fastifyWebsocket);
 
 // k8s healthchecks
-server.get("/healthz", (req, res) => res.code(200).send());
-server.get("/readyz", (req, res) => res.code(200).send());
-server.get("/", (req, res) => res.code(200).send("hello world"));
+server.get("/healthz", (_, res) => res.code(200).send());
+server.get("/readyz", (_, res) => res.code(200).send());
+server.get("/", (_, res) => res.code(200).send("hello world"));
 
 // Helper function to extract bearer token
-const getBearerToken = (req: any) => {
+// @ts-expect-error IncomingMessage is not typed
+const getBearerToken = (req: IncomingMessage) => {
   const authHeader = req.headers?.authorization;
   if (authHeader && authHeader.startsWith("Bearer ")) {
     return authHeader.substring(7);
@@ -54,23 +56,19 @@ const getBearerToken = (req: any) => {
 export const start = async () => {
   try {
     const connection = new Connection(
-      env.NODE_ENV === "production" 
-        ? env.QUICKNODE_MAINNET_URL 
-        : clusterApiUrl("devnet"),
-      "confirmed"
+      env.NODE_ENV === "production" ? env.QUICKNODE_MAINNET_URL : clusterApiUrl("devnet"),
+      "confirmed",
     );
 
     // Initialize cache for OctaneService
-    const cache = cacheManager.default.caching({ 
-      store: 'memory',
-      max: 100, 
-      ttl: 10 /*seconds*/ 
+    const cache = cacheManager.default.caching({
+      store: "memory",
+      max: 100,
+      ttl: 10 /*seconds*/,
     });
 
     // Initialize fee payer keypair from base58 private key
-    const feePayerKeypair = Keypair.fromSecretKey(
-      bs58.decode(env.FEE_PAYER_PRIVATE_KEY)
-    );
+    const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY));
 
     if (!feePayerKeypair) {
       throw new Error("Fee payer keypair not found");
@@ -85,7 +83,7 @@ export const start = async () => {
     };
 
     const jupiterQuoteApi = createJupiterApiClient(jupiterConfig);
-    
+
     // Initialize OctaneService
     const octaneService = new OctaneService(
       connection,
@@ -95,7 +93,7 @@ export const start = async () => {
       env.OCTANE_BUY_FEE,
       env.OCTANE_SELL_FEE,
       env.OCTANE_MIN_TRADE_SIZE,
-      cache
+      cache,
     );
 
     if (!process.env.GRAPHQL_URL && env.NODE_ENV === "production") {
@@ -119,9 +117,9 @@ export const start = async () => {
       useWSS: true,
       trpcOptions: {
         router: createAppRouter(),
-        createContext: async (opt) => ({ 
-          tubService, 
-          jwtToken: getBearerToken(opt.req) ?? '' 
+        createContext: async (opt) => ({
+          tubService,
+          jwtToken: getBearerToken(opt.req) ?? "",
         }),
       },
     });
@@ -132,9 +130,10 @@ export const start = async () => {
     applyWSSHandler({
       wss: server.websocketServer,
       router: createAppRouter(),
-      createContext: async (opt) => ({ 
-        tubService, 
-        jwtToken: getBearerToken(opt.req) ?? '' 
+      // @ts-expect-error IncomingMessage is not typed
+      createContext: async (opt: NodeHTTPCreateContextFnOptions<IncomingMessage, WebSocket>) => ({
+        tubService,
+        jwtToken: getBearerToken(opt.req) ?? "",
       }),
     });
 

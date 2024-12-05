@@ -29,28 +29,26 @@ struct AccountBalanceView: View {
 
     var body: some View {
         VStack(spacing: 4) {
-            if userModel.userId == nil {
-                EmptyView()
-            }
-            else {
+            if userModel.userId != nil {
                 HStack(alignment: .bottom) {
                     Text("Your Balance")
                         .font(.sfRounded(size: .lg, weight: .semibold))
-                        .foregroundColor(Color.white)
 
                     Spacer()
-                    VStack(alignment: .trailing, spacing: 0) {
-                        if let balanceUsdc = balances.usdcBalanceUsd {
+                    HStack(alignment: .center, spacing: 10) {
+                        if let usdcBalanceUsd = balances.usdcBalanceUsd {
+
                             if balances.deltaUsd != 0 {
                                 let formattedChange = priceModel.formatPrice(
                                     usd: balances.deltaUsd,
                                     showSign: true,
                                     maxDecimals: 2
                                 )
+
                                 Text(formattedChange)
                                     .font(.sfRounded(size: .xs, weight: .light))
                                     .fontWeight(.bold)
-                                    .foregroundColor(balances.deltaUsd >= 0 ? Color.green : Color.red)
+                                    .foregroundStyle(balances.deltaUsd >= 0 ? .tubSuccess : .tubError)
                                     .opacity(0.7)
                                     .frame(height: 10)
                                     .padding(0)
@@ -60,25 +58,25 @@ struct AccountBalanceView: View {
                             }
 
                             let formattedBalance = priceModel.formatPrice(
-                                usd: balanceUsdc + balances.tokenBalanceUsd,
+                                usd: usdcBalanceUsd + balances.tokenBalanceUsd,
                                 maxDecimals: 2,
                                 minDecimals: 2
                             )
+
                             Text(formattedBalance)
                                 .font(.sfRounded(size: .lg))
                                 .fontWeight(.bold)
-                                .foregroundColor(Color.white)
 
                         }
                     }
-                }.padding(.horizontal, 16)
+                }
+                .padding(.bottom, 4)
+                Divider()
+                    .frame(maxWidth: .infinity, maxHeight: 0.5)
+                    .background(.tubNeutral.opacity(0.5))
             }
-            Divider()
-                .frame(width: 340.0, height: 1.0)
-                .background(Color(hue: 1.0, saturation: 0.0, brightness: 0.2))
-                .padding(0)
         }
-
-        .background(Color.black)
+        .padding(.horizontal, 16)
+        .background(Color(UIColor.systemBackground))
     }
 }

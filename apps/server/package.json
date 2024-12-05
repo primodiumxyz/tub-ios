@@ -32,7 +32,7 @@
     "@primodiumxyz/octane-core": "https://gitpkg.now.sh/primodiumxyz/octane/packages/core?303539d39fecd5fbc0b24712ba4fd47b70613371",
     "@privy-io/server-auth": "^1.16.2",
     "@solana/spl-token": "^0.4.8",
-    "@solana/web3.js": "^1.95.2",
+    "@solana/web3.js": "^1.95.4",
     "@trpc/client": "10.34.0",
     "@trpc/server": "10.34.0",
     "@tub/core": "workspace:*",

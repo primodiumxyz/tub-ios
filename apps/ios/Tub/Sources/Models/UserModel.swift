@@ -38,7 +38,6 @@ final class UserModel: ObservableObject {
 
     private init() {
         self.hasSeenOnboarding = UserDefaults.standard.bool(forKey: "hasSeenOnboarding")
-        print("Initial hasSeenOnboarding value:", self.hasSeenOnboarding)
 
         setupAuthStateListener()
         setupWalletStateListener()
@@ -241,7 +240,6 @@ final class UserModel: ObservableObject {
             self.elapsedSeconds = 0
         }
         if !skipPrivy {
-            self.hasSeenOnboarding = false
             privy.logout()
 
         }

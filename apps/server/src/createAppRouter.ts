@@ -215,6 +215,13 @@ export function createAppRouter() {
     stopSwapStream: t.procedure.mutation(async ({ ctx }) => {
       await ctx.tubService.stopSwapStream(ctx.jwtToken);
     }),
+
+    getSignedTransfer: t.procedure
+      .input(z.object({ fromAddress: z.string(), toAddress: z.string(), amount: z.string(), tokenId: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        const amountBigInt = BigInt(input.amount);
+        return await ctx.tubService.getSignedTransfer(ctx.jwtToken, { ...input, amount: amountBigInt });
+      }),
   });
 }
 

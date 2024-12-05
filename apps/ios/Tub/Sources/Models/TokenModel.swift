@@ -10,9 +10,9 @@ let emptyToken = Token(
     symbol: "",
     description: "",
     imageUri: "",
-    liquidity: 0,
-    marketCap: 0,
-    volume: 0,
+    liquidityUsd: 0,
+    marketCapUsd: 0,
+    volumeUsd: 0,
     pairId: "",
     socials: (discord: nil, instagram: nil, telegram: nil, twitter: nil, website: nil),
     uniqueHolders: 0
@@ -365,15 +365,6 @@ class TokenModel: ObservableObject {
         DispatchQueue.main.async {
             self.priceChange = (priceChangeUsd, priceChangePercentage)
         }
-    }
-
-    func getTokenStats(priceModel: SolPriceModel) -> [(String, String?)] {
-        return [
-            ("Market Cap", !isReady ? nil : priceModel.formatPrice(usd: token.marketCap, formatLarge: true)),
-            ("Volume (1h)", !isReady ? nil : priceModel.formatPrice(usd: token.volume, formatLarge: true)),
-            ("Liquidity", !isReady ? nil : priceModel.formatPrice(usd: token.liquidity, formatLarge: true)),
-            ("Unique holders", !isReady ? nil : formatLargeNumber(Double(token.uniqueHolders))),
-        ]
     }
 
     private func fetchUniqueHolders() async throws -> Int {

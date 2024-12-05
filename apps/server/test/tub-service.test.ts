@@ -6,11 +6,8 @@ import { createJupiterApiClient } from "@jup-ag/api";
 import { MockPrivyClient } from "./helpers/MockPrivyClient";
 import { Codex } from "@codex-data/sdk";
 import { createClient as createGqlClient } from "@tub/gql";
-import { config } from "dotenv";
 import bs58 from "bs58";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
-
-config({ path: "../../.env" });
 
 describe("TubService Integration Test", () => {
   let tubService: TubService;

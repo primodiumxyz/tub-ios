@@ -9,7 +9,8 @@ import SwiftUI
 
 extension Font {
     // Add an enum for Tailwind-like font sizes
-    enum TailwindSize: CGFloat {
+    enum TwSize: CGFloat {
+        case xxs = 10
         case xs = 12
         case sm = 14
         case base = 16
@@ -23,7 +24,7 @@ extension Font {
     }
 
     // Update the font function to use the new TailwindSize enum and adjust kerning
-    static func sfRounded(size: TailwindSize = .base, weight: Font.Weight = .regular) -> Font {
+    static func sfRounded(size: TwSize = .base, weight: Font.Weight = .regular) -> Font {
         return Font.system(size: size.rawValue, weight: weight, design: .rounded)
     }
 }

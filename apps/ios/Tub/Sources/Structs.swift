@@ -7,9 +7,9 @@ struct Token: Identifiable {
     var symbol: String
     var description: String
     var imageUri: String
-    var liquidity: Double
-    var marketCap: Double
-    var volume: Double
+    var liquidityUsd: Double
+    var marketCapUsd: Double
+    var volumeUsd: Double
     var pairId: String
     var socials: (discord: String?, instagram: String?, telegram: String?, twitter: String?, website: String?)
     var uniqueHolders: Int
@@ -20,9 +20,9 @@ struct Token: Identifiable {
         symbol: String?,
         description: String?,
         imageUri: String?,
-        liquidity: Double?,
-        marketCap: Double?,
-        volume: Double?,
+        liquidityUsd: Double?,
+        marketCapUsd: Double?,
+        volumeUsd: Double?,
         pairId: String?,
         socials: (discord: String?, instagram: String?, telegram: String?, twitter: String?, website: String?),
         uniqueHolders: Int?
@@ -32,9 +32,9 @@ struct Token: Identifiable {
         self.symbol = symbol ?? "SYMBOL"
         self.description = description ?? "DESCRIPTION"
         self.imageUri = imageUri?.replacingOccurrences(of: "cf-ipfs.com", with: "ipfs.io") ?? ""  // sometimes this prefix gets added and it bricks it
-        self.liquidity = liquidity ?? 0.0
-        self.marketCap = marketCap ?? 0.0
-        self.volume = volume ?? 0.0
+        self.liquidityUsd = liquidityUsd ?? 0.0
+        self.marketCapUsd = marketCapUsd ?? 0.0
+        self.volumeUsd = volumeUsd ?? 0.0
         self.pairId = pairId ?? ""
         self.socials = socials
         self.uniqueHolders = uniqueHolders ?? 0
@@ -78,7 +78,7 @@ struct CandleData: Equatable, Identifiable {
     }
 }
 
-struct Transaction: Identifiable, Equatable {
+struct TransactionData: Identifiable, Equatable {
     let id = UUID()
     let name: String
     let symbol: String
@@ -91,9 +91,18 @@ struct Transaction: Identifiable, Equatable {
     let mint: String
 }
 
-struct StatValue {
-    let text: String
+struct StatValue: Identifiable {
+    var id: String
+    let title: String
+    let value: String
     let color: Color?
+
+    init(title: String, value: String, color: Color? = nil) {
+        self.id = title
+        self.title = title
+        self.value = value
+        self.color = color
+    }
 }
 
 enum PurchaseState {

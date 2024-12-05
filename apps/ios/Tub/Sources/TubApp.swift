@@ -67,7 +67,7 @@ struct AppContent: View {
             else {
                 HomeTabsView().font(.sfRounded())
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color.black)
+                    .background(Color(UIColor.systemBackground))
                     .withNotificationBanner()
                     .environmentObject(notificationHandler)
                     .environmentObject(userModel)
@@ -98,10 +98,14 @@ struct AppContent: View {
     }
 }
 
-#Preview {
-    AppContent()
+#Preview("Light") {
+    AppContent().preferredColorScheme(.light)
         .environmentObject(UserModel.shared)
+}
 
+#Preview("Dark") {
+    AppContent().preferredColorScheme(.dark)
+        .environmentObject(UserModel.shared)
 }
 
 extension View {

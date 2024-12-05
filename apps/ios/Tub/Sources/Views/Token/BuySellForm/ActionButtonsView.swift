@@ -73,29 +73,31 @@ struct ActionButtonsView: View {
             if userModel.userId == nil {
                 LoginButton(isLoginPresented: $isLoginPresented)
             }
-            else if activeTab == .buy {
-
+            else {
                 switch userModel.walletState {
                 case .connected(_):
-                    if let balanceUsdc = userModel.balanceUsdc,
-                        priceModel.usdcToUsd(usdc: balanceUsdc) < 0.1
-                    {
-                        AirdropButton()
+                    if activeTab == .buy {
+                        if let balanceUsdc = userModel.balanceUsdc,
+                            priceModel.usdcToUsd(usdc: balanceUsdc) < 0.1
+                        {
+                            AirdropButton()
+                        }
+                        else {
+                            HStack(spacing: 16) {
+                                CircleButton(
+                                    icon: "pencil",
+                                    color: .tubBuyPrimary,
+                                    iconSize: 20,
+                                    iconWeight: .bold,
+                                    action: { showBuySheet = true }
+                                )
+
+                                BuyButton(handleBuy: handleBuy)
+                            }
+                        }
                     }
                     else {
-                        HStack(spacing: 16) {
-                            CircleButton(
-                                icon: "pencil",
-                                color: Color("aquaGreen"),
-                                iconSize: 20,
-                                iconWeight: .bold,
-                                action: { showBuySheet = true }
-                            )
-
-                            // The mint color "Buy $10" button
-                            BuyButton(handleBuy: handleBuy)
-                        }
-
+                        SellButtons(onSell: handleSell)
                     }
                 case .connecting:
                     ConnectingButton()
@@ -103,17 +105,10 @@ struct ActionButtonsView: View {
                     ConnectButton()
                 }
             }
-            else {
-                SellForm(tokenModel: tokenModel, showBuySheet: $showBuySheet, onSell: handleSell)
-                    .padding(.horizontal, 8)
-
-            }
         }
-        .padding(8)
+        .padding(.horizontal, 8)
         .fullScreenCover(isPresented: $isLoginPresented) {
             RegisterView(isRedirected: true)
-                .background(.black)
-
         }
         .sheet(isPresented: $showBuySheet) {
             BuyFormView(
@@ -130,10 +125,6 @@ private struct LoginButton: View {
     var body: some View {
         PrimaryButton(
             text: "Login to Buy",
-            textColor: Color.black,
-            backgroundColor: Color("aquaGreen"),
-            strokeColor: Color("aquaGreen"),
-            maxWidth: .infinity,
             action: { isLoginPresented = true }
         )
     }
@@ -142,40 +133,31 @@ private struct LoginButton: View {
 private struct ConnectButton: View {
     @EnvironmentObject private var notificationHandler: NotificationHandler
     var body: some View {
-        Button(action: {
-            Task {
-                do {
-                    try await privy.embeddedWallet.connectWallet()
-                    notificationHandler.show("Connection successful", type: .success)
-                }
-                catch {
-                    notificationHandler.show(error.localizedDescription, type: .error)
+        PrimaryButton(
+            text: "Connect to wallet",
+            action: {
+                Task {
+                    do {
+                        try await privy.embeddedWallet.connectWallet()
+                        notificationHandler.show("Connection successful", type: .success)
+                    }
+                    catch {
+                        notificationHandler.show(error.localizedDescription, type: .error)
+                    }
                 }
             }
-        }) {
-            HStack(alignment: .center, spacing: 8) {
-                Text("Connect to Wallet")
-                    .font(.sfRounded(size: .xl, weight: .semibold))
-                    .foregroundColor(Color.black)
-                    .multilineTextAlignment(.center)
-            }
-            .tubButtonStyle()
-        }
+        )
+
     }
 }
 
 private struct ConnectingButton: View {
     var body: some View {
-        Button(action: {}) {
-            HStack(alignment: .center, spacing: 8) {
-                Text("Connecting...")
-                    .font(.sfRounded(size: .xl, weight: .semibold))
-                    .foregroundColor(Color.black)
-                    .multilineTextAlignment(.center)
-            }
-            .tubButtonStyle()
-            .opacity(0.4)
-        }.disabled(true)
+        PrimaryButton(
+            text: "Connecting...",
+            disabled: true,
+            action: {}
+        )
     }
 }
 
@@ -184,29 +166,22 @@ private struct AirdropButton: View {
     @EnvironmentObject private var notificationHandler: NotificationHandler
     @State var showOnrampView = false
 
-    func handleAirdrop() async {
-        do {
-            try await userModel.performAirdrop()
-            notificationHandler.show("Airdrop successful!", type: .success)
-        }
-        catch {
-            notificationHandler.show("Airdrop failed \(error.localizedDescription)", type: .error)
+    func handleAirdrop() {
+        Task {
+            do {
+                try await userModel.performAirdrop()
+                notificationHandler.show("Airdrop successful!", type: .success)
+            }
+            catch {
+                notificationHandler.show("Airdrop failed \(error.localizedDescription)", type: .error)
+            }
         }
     }
     var body: some View {
         PrimaryButton(
             text: "Get 1 test SOL",
-            textColor: Color.black,
-            backgroundColor: Color("aquaGreen"),
-            strokeColor: Color("aquaGreen"),
-            maxWidth: .infinity,
-            action: {
-                Task {
-                    await handleAirdrop()
-                }
-            }
+            action: handleAirdrop
         )
-        .padding(.horizontal, 8)
         .sheet(isPresented: $showOnrampView) {
             CoinbaseOnrampView()
         }
@@ -224,8 +199,6 @@ private struct BuyButton: View {
     var body: some View {
         PrimaryButton(
             text: "Buy \(priceModel.formatPrice(usd: settingsManager.defaultBuyValueUsd))",
-            textColor: Color.black,
-            backgroundColor: Color("aquaGreen"),
             action: {
                 Task {
                     await handleBuy(settingsManager.defaultBuyValueUsd)
@@ -235,22 +208,25 @@ private struct BuyButton: View {
     }
 }
 
-#Preview {
-    @Previewable @State var show = false
-    @Previewable @State var testAmount = 1.0
-    @Previewable @StateObject var notificationHandler = NotificationHandler()
-    @Previewable @StateObject var userModel = UserModel.shared
-    @Previewable @StateObject var priceModel = SolPriceModel.shared
-    ActionButtonsView(
-        tokenModel: TokenModel(),
-        showBuySheet: $show,
-        showBubbles: Binding.constant(false),
-        handleBuy: { _ in },
-        onSellSuccess: nil
-    )
-    .environmentObject(notificationHandler)
-    .environmentObject(userModel)
-    .environmentObject(priceModel)
+struct SellButtons: View {
+    @EnvironmentObject var priceModel: SolPriceModel
+
+    var onSell: () async -> Void
+
+    var body: some View {
+        HStack(spacing: 8) {
+            PrimaryButton(
+                text: "Sell",
+                textColor: .white,
+                backgroundColor: .tubSellPrimary,
+                action: {
+                    Task {
+                        await onSell()
+                    }
+                }
+            )
+        }
+    }
 }
 
 // MARK: - Equatable Implementation
@@ -263,18 +239,79 @@ extension ActionButtonsView: Equatable {
     }
 }
 
-extension View {
-    func tubButtonStyle() -> some View {
-        self
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .background(Color("aquaGreen"))
-            .cornerRadius(30)
-            .overlay(
-                RoundedRectangle(cornerRadius: 30)
-                    .inset(by: 0.5)
-                    .stroke(Color("aquaGreen"), lineWidth: 1)
-            )
+#Preview {
+    struct PreviewWrapper: View {
+        @State var show = false
+        @State var testAmount = 1.0
+        @StateObject var notificationHandler = NotificationHandler()
+        var userModel = {
+            let model = UserModel.shared
+            model.balanceUsdc = 100 * Int(1e9)
+            return model
+        }()
+
+        var priceModel = {
+            let model = SolPriceModel.shared
+            spoofPriceModelData(model)
+            return model
+        }()
+
+        @State var isDark: Bool = true
+
+        func toggleBuySell() {
+            if userModel.balanceToken ?? 0 > 0 {
+                userModel.balanceToken = 0
+            }
+            else {
+                userModel.balanceToken = 100
+            }
+        }
+        func toggleWalletConnectionState() {
+            // You can add your function implementation here
+            if userModel.walletState.toString == "connected" {
+                userModel.walletState = .disconnected
+            }
+            else if userModel.walletState == .disconnected {
+                userModel.walletState = .connecting
+            }
+            else if userModel.walletState == .connecting {
+                userModel.walletState = .error
+            }
+            else {
+                userModel.walletState = .connected([])
+            }
+        }
+
+        var body: some View {
+            VStack {
+                VStack {
+                    Text("Modifiers")
+                    PrimaryButton(text: "Toggle Buy/Sell") {
+                        toggleBuySell()
+                    }
+                    PrimaryButton(text: "Toggle Connection") {
+                        toggleWalletConnectionState()
+                    }
+                    PrimaryButton(text: "Toggle Dark Mode") {
+                        isDark.toggle()
+                    }
+                }.padding(16).background(.tubBuySecondary)
+                Spacer().frame(height: 50)
+                ActionButtonsView(
+                    tokenModel: TokenModel(),
+                    showBuySheet: $show,
+                    showBubbles: Binding.constant(false),
+                    handleBuy: { _ in },
+                    onSellSuccess: nil
+                )
+                .border(.red)
+            }
+            .environmentObject(notificationHandler)
+            .environmentObject(userModel)
+            .environmentObject(priceModel)
+            .preferredColorScheme(isDark ? .dark : .light)
+        }
     }
+
+    return PreviewWrapper()
 }

@@ -218,9 +218,9 @@ final class TokenListModel: ObservableObject {
                                             imageUri: elem?.token?.info?.imageLargeUrl ?? elem?.token?.info?
                                                 .imageSmallUrl
                                                 ?? elem?.token?.info?.imageThumbUrl,
-                                            liquidity: Double(elem?.liquidity ?? "0"),
-                                            marketCap: Double(elem?.marketCap ?? "0"),
-                                            volume: Double(elem?.volume1 ?? "0"),
+                                            liquidityUsd: Double(elem?.liquidity ?? "0"),
+                                            marketCapUsd: Double(elem?.marketCap ?? "0"),
+                                            volumeUsd: Double(elem?.volume1 ?? "0"),
                                             pairId: elem?.pair?.id,
                                             socials: (
                                                 discord: elem?.token?.socialLinks?.discord,

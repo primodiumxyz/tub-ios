@@ -1,6 +1,7 @@
 query GetFilterTokens(
   $rankingAttribute: TokenRankingAttribute = volume1
   $limit: Int = 50
+  $offset: Int = 0
 ) {
   filterTokens(
     filters: {
@@ -10,7 +11,10 @@ query GetFilterTokens(
     }
     rankings: { attribute: $rankingAttribute, direction: DESC }
     limit: $limit
+    offset: $offset
   ) {
+    count
+    page
     results {
       token {
         address

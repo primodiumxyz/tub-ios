@@ -26,8 +26,7 @@ struct BuyFormView: View {
     @State private var updateTimer: Timer?
     static let formHeight: CGFloat = 250
 
-    @MainActor
-    private func handleBuy() async {
+    private func handleBuy() {
         guard let balanceUsdc = userModel.balanceUsdc else { return }
         // Use 10 as default if no amount is entered
         let buyQuantityUsd = buyQuantityUsdString.isEmpty ? 10.0 : self.buyQuantityUsd
@@ -39,7 +38,9 @@ struct BuyFormView: View {
             if isDefaultOn {
                 settingsManager.defaultBuyValueUsd = buyQuantityUsd
             }
-            await onBuy(buyQuantityUsd)
+            Task {
+                await onBuy(buyQuantityUsd)
+            }
         }
         else {
             notificationHandler.show("Insufficient Balance", type: .error)
@@ -82,13 +83,13 @@ struct BuyFormView: View {
     var body: some View {
         VStack {
             formContent
+                .padding()
+
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 20)
-        .background(AppColors.darkGreenGradient)
-        .cornerRadius(26)
+        .background(Gradients.cardBgGradient)
         .onAppear { resetForm() }
         .dismissKeyboardOnTap()
+        .cornerRadius(30)
         .presentationDetents([.height(Self.formHeight)])
         .presentationBackground(.clear)
     }
@@ -96,11 +97,12 @@ struct BuyFormView: View {
     private var formContent: some View {
         VStack {
             HStack {
-                Button {
-                    isVisible = false
-                } label: {
-                    Image(systemName: "xmark")
-                }
+                IconButton(
+                    icon: "xmark",
+                    color: .tubBuyPrimary,
+                    size: 18,
+                    action: { isVisible = false }
+                )
                 Spacer()
                 defaultToggle
             }
@@ -111,22 +113,18 @@ struct BuyFormView: View {
                 buyButton
             }
         }
-        .frame(height: Self.formHeight)
+        .frame(maxWidth: .infinity)
         .padding(.horizontal, 8)
     }
 
     private var buyButton: some View {
         OutlineButton(
             text: "Buy",
-            textColor: Color("aquaGreen"),
-            strokeColor: Color("aquaGreen"),
+            textColor: .tubBuyPrimary,
+            strokeColor: .tubBuyPrimary,
             backgroundColor: .clear,
             maxWidth: .infinity,
-            action: {
-                Task {
-                    await handleBuy()
-                }
-            }
+            action: handleBuy
         )
         .disabled((userModel.balanceUsdc ?? 0) < priceModel.usdToUsdc(usd: buyQuantityUsd))
     }
@@ -137,13 +135,13 @@ struct BuyFormView: View {
                 Spacer()
                 Text("$")
                     .font(.sfRounded(size: .xl4, weight: .bold))
-                    .foregroundStyle(Color.white)
+                    .foregroundStyle(.tubText)
 
                 TextField(
                     "",
                     text: $buyQuantityUsdString,
                     prompt: Text("10", comment: "placeholder")
-                        .foregroundStyle(Color.white.opacity(0.3))
+                        .foregroundStyle(.tubText.opacity(0.3))
                 )
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.leading)
@@ -180,8 +178,8 @@ struct BuyFormView: View {
                         isValidInput = false
                     }
                 }
-                .font(.sfRounded(size: .xl5, weight: .bold))
-                .foregroundStyle(isValidInput ? Color.white : Color.red)
+                .font(.sfRounded(size: .xl5, weight: .semibold))
+                .foregroundStyle(isValidInput ? .tubText : .tubError)
                 .frame(minWidth: 50)
                 .fixedSize()
                 Spacer()
@@ -200,32 +198,41 @@ struct BuyFormView: View {
                 HStack(spacing: 4) {
                     Text("Set Default")
                         .font(.sfRounded(size: .base, weight: .regular))
-                        .foregroundStyle(isDefaultOn ? Color.white : Color.gray)
+                        .foregroundStyle(isDefaultOn ? .tubText : .tubNeutral)
 
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(isDefaultOn ? Color.green : Color.gray)
+                        .foregroundStyle(isDefaultOn ? .tubSuccess : .tubNeutral)
                 }
             }
         }
     }
 
+    let amounts: [Int] = [10, 25, 50, 100]
     private var amountButtons: some View {
         HStack(spacing: 10) {
-            ForEach([10, 25, 50, 100], id: \.self) { amount in
+            ForEach(amounts, id: \.self) { amount in
+                let balance = userModel.balanceUsdc ?? 0
+                let selectedAmountUsd = priceModel.usdcToUsd(usdc: balance * Int(amount) / 100)
+                let selected = balance > 0 && selectedAmountUsd == buyQuantityUsd
                 CapsuleButton(
                     text: amount == 100 ? "MAX" : "\(amount)%",
+                    textColor: .white,
+                    backgroundColor: selected ? .tubAltPrimary : .tubAltSecondary,
                     action: {
-                        guard let balanceUsdc = userModel.balanceUsdc else { return }
-                        updateBuyAmount(balanceUsdc * amount / 100)
+                        guard let balance = userModel.balanceUsdc else { return }
+                        updateBuyAmount(balance * amount / 100)
                     }
                 )
             }
         }
     }
-
 }
 
-func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String)
+func textField(
+    _ textField: UITextField,
+    shouldChangeCharactersIn range: NSRange,
+    replacementString string: String
+)
     -> Bool
 {
     guard !string.isEmpty else {
@@ -276,4 +283,25 @@ extension String {
 
         return 0
     }
+}
+
+#Preview {
+    @Previewable @StateObject var priceModel = {
+        let model = SolPriceModel.shared
+        spoofPriceModelData(model)
+        return model
+    }()
+
+    @Previewable @StateObject var userModel = UserModel.shared
+
+    let tokenModel = {
+        let model = TokenModel()
+        spoofTokenModelData(model)
+        return model
+    }()
+
+    BuyFormView(isVisible: .constant(true), tokenModel: tokenModel, onBuy: { _ in })
+        .environmentObject(userModel)
+        .environmentObject(priceModel)
+        .preferredColorScheme(.light)
 }

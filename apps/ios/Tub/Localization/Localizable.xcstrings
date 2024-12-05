@@ -4,10 +4,7 @@
     "" : {
 
     },
-    "(%.1f%%)" : {
-
-    },
-    "@Discord Link" : {
+    " " : {
 
     },
     "#8612373299412" : {
@@ -36,6 +33,16 @@
         }
       }
     },
+    "%@%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@%2$@"
+          }
+        }
+      }
+    },
     "$" : {
 
     },
@@ -43,6 +50,9 @@
 
     },
     "10" : {
+      "comment" : "placeholder"
+    },
+    "10.00" : {
       "comment" : "placeholder"
     },
     "100" : {
@@ -66,6 +76,9 @@
     "Add Funds" : {
 
     },
+    "B" : {
+
+    },
     "Buy" : {
 
     },
@@ -78,16 +91,7 @@
     "Close" : {
 
     },
-    "Connect to Wallet" : {
-
-    },
-    "Connecting..." : {
-
-    },
-    "Connection Error" : {
-
-    },
-    "Continue" : {
+    "Connect a wallet to continue" : {
 
     },
     "Country Code" : {
@@ -99,7 +103,13 @@
     "Deposit" : {
 
     },
-    "Deposit with " : {
+    "Deposit with" : {
+
+    },
+    "Discord Server" : {
+
+    },
+    "Enter Solana address" : {
 
     },
     "Enter verification code" : {
@@ -171,13 +181,22 @@
     "Sell Details" : {
 
     },
+    "Sending" : {
+
+    },
     "Set Default" : {
 
     },
     "Settings" : {
 
     },
-    "Stats" : {
+    "Show Less" : {
+
+    },
+    "Show More" : {
+
+    },
+    "Solana Address is invalid" : {
 
     },
     "Submit Transaction" : {
@@ -186,7 +205,13 @@
     "Support" : {
 
     },
+    "This token is still writing its autobiography... 📝" : {
+
+    },
     "Time" : {
+
+    },
+    "to" : {
 
     },
     "Token" : {

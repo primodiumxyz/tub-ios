@@ -7,25 +7,29 @@ public class GetFilterTokensQuery: GraphQLQuery {
     public static let operationName: String = "GetFilterTokens"
     public static let operationDocument: ApolloAPI.OperationDocument = .init(
         definition: .init(
-            #"query GetFilterTokens($rankingAttribute: TokenRankingAttribute = volume1, $limit: Int = 50) { filterTokens( filters: { exchangeId: ["6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P:1399811149"] trendingIgnored: false potentialScam: false } rankings: { attribute: $rankingAttribute, direction: DESC } limit: $limit ) { __typename results { __typename token { __typename address info { __typename name symbol description imageLargeUrl imageSmallUrl imageThumbUrl } socialLinks { __typename discord instagram telegram twitter website } } priceUSD liquidity marketCap volume1 pair { __typename id } } } }"#
+            #"query GetFilterTokens($rankingAttribute: TokenRankingAttribute = volume1, $limit: Int = 50, $offset: Int = 0) { filterTokens( filters: { exchangeId: ["6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P:1399811149"] trendingIgnored: false potentialScam: false } rankings: { attribute: $rankingAttribute, direction: DESC } limit: $limit offset: $offset ) { __typename count page results { __typename token { __typename address info { __typename name symbol description imageLargeUrl imageSmallUrl imageThumbUrl } socialLinks { __typename discord instagram telegram twitter website } } priceUSD liquidity marketCap volume1 pair { __typename id } } } }"#
         )
     )
 
     public var rankingAttribute: GraphQLNullable<GraphQLEnum<TokenRankingAttribute>>
     public var limit: GraphQLNullable<Int>
+    public var offset: GraphQLNullable<Int>
 
     public init(
         rankingAttribute: GraphQLNullable<GraphQLEnum<TokenRankingAttribute>> = .init(.volume1),
-        limit: GraphQLNullable<Int> = 15
+        limit: GraphQLNullable<Int> = 50,
+        offset: GraphQLNullable<Int> = 0
     ) {
         self.rankingAttribute = rankingAttribute
         self.limit = limit
+        self.offset = offset
     }
 
     public var __variables: Variables? {
         [
             "rankingAttribute": rankingAttribute,
             "limit": limit,
+            "offset": offset,
         ]
     }
 
@@ -50,6 +54,7 @@ public class GetFilterTokensQuery: GraphQLQuery {
                             "direction": "DESC",
                         ],
                         "limit": .variable("limit"),
+                        "offset": .variable("offset"),
                     ]
                 )
             ]
@@ -69,10 +74,16 @@ public class GetFilterTokensQuery: GraphQLQuery {
             public static var __selections: [ApolloAPI.Selection] {
                 [
                     .field("__typename", String.self),
+                    .field("count", Int?.self),
+                    .field("page", Int?.self),
                     .field("results", [Result?]?.self),
                 ]
             }
 
+            /// The number of tokens returned.
+            public var count: Int? { __data["count"] }
+            /// Where in the list the server started when returning items.
+            public var page: Int? { __data["page"] }
             /// The list of tokens matching the filter parameters.
             public var results: [Result?]? { __data["results"] }
 
