@@ -44,9 +44,9 @@ struct TokenBalancesView: View {
                             }
 
                             VStack(alignment: .leading) {
-                                Text("\(token.metadata.name)")
+                                Text("\(String(describing: token.metadata.name))")
                                     .font(.sfRounded(size: .lg, weight: .medium))
-                                Text("\(token.metadata.symbol)")
+                                Text("\(String(describing: token.metadata.symbol))")
                                     .font(.sfRounded(size: .sm))
                                     .foregroundStyle(.secondary)
                             }
