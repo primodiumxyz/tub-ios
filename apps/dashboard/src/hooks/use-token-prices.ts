@@ -7,7 +7,7 @@ import { Token, TokenPrice } from "@/lib/types";
 export const useTokenPrices = (
   token: Token,
   intervalSeconds: number = 75,
-  onUpdate: (price: TokenPrice) => void,
+  onUpdate?: (price: TokenPrice) => void,
 ): { tokenPrices: TokenPrice[]; fetching: boolean; error?: string } => {
   const now = useMemo(() => Date.now(), []);
   const initialPrices = useRef<TokenPrice[]>([]);
@@ -41,7 +41,7 @@ export const useTokenPrices = (
 
       const newPrices = filterOutDuplicatePriceTimestamps(formatPrices(pricesAfterLastPrice));
 
-      newPrices.forEach(onUpdate);
+      newPrices.forEach((price) => onUpdate?.(price));
       lastPriceTimestamp.current = new Date(prices[prices.length - 1].created_at).getTime();
     }
   }, [tokenPricesRes]);

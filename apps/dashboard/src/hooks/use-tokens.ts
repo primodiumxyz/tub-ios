@@ -29,6 +29,7 @@ export const useTokens = (
           volumeUsd: Number(t.total_volume_usd),
           tradeCount: Number(t.total_trades),
           priceChangePct: Number(t.price_change_pct),
+          supply: Number(t.token_metadata_supply),
         })) ?? [],
       fetching: tokensRes.fetching,
       error: tokensRes.error?.message,

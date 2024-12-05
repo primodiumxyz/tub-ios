@@ -61,6 +61,7 @@ export const GetTopTokensByVolumeSubscription = graphql(`
       token_metadata_name
       token_metadata_image_uri
       token_metadata_symbol
+      token_metadata_supply
     }
   }
 `);
