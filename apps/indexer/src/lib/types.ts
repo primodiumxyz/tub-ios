@@ -2,8 +2,6 @@ import { Idl } from "@coral-xyz/anchor";
 import { ParsedInstruction } from "@shyft-to/solana-transaction-parser";
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 
-import { SwapBaseInArgs, SwapBaseOutArgs } from "@/lib/parsers/raydium-amm-parser";
-
 /* ------------------------------- PARSED DATA ------------------------------ */
 export type Swap = {
   vaultA: PublicKey;

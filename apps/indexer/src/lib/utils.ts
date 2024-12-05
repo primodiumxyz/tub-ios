@@ -1,13 +1,11 @@
 // #!/usr/bin/env node
-import { Idl } from "@coral-xyz/anchor";
-import { ParsedInstruction } from "@shyft-to/solana-transaction-parser";
 import { Connection, ParsedAccountData, PublicKey, TransactionInstruction } from "@solana/web3.js";
 import { config } from "dotenv";
 
 import { GqlClient } from "@tub/gql";
 import { parseEnv } from "@bin/parseEnv";
 import { PUMP_FUN_AUTHORITY, WRAPPED_SOL_MINT } from "@/lib/constants";
-import { RaydiumAmmParser, SwapBaseInArgs, SwapBaseOutArgs } from "@/lib/parsers/raydium-amm-parser";
+import { RaydiumAmmParser } from "@/lib/parsers/raydium-amm-parser";
 import {
   GetAssetsResponse,
   GetJupiterPriceResponse,
