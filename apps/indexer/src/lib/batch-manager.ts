@@ -48,7 +48,6 @@ export class BatchManager {
         console.log(`[${latency}s] Processed batch of ${res.data?.insert_trade_history?.affected_rows} swaps`);
       } catch (error) {
         console.error("Error processing batch:", error);
-        console.log(batchToProcess);
         // On error, add failed items back at the start of the batch
         this.batch.unshift(...batchToProcess);
       } finally {
