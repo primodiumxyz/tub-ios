@@ -1,7 +1,7 @@
 import { PrivyClient } from "@privy-io/server-auth";
 import { createTRPCProxyClient, createWSClient, httpBatchLink, splitLink, wsLink } from "@trpc/client";
 import { config } from "dotenv";
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it, afterAll } from "vitest";
 import WebSocket from "ws";
 import { parseEnv } from "../bin/parseEnv";
 import { AppRouter } from "../src/createAppRouter";
@@ -19,13 +19,14 @@ const port = process.env.SERVER_PORT || "8888";
 
 describe("Server Integration Tests", () => {
   let client: ReturnType<typeof createTRPCProxyClient<AppRouter>>;
+  let wsClient: ReturnType<typeof createWSClient>;
   const privy = new PrivyClient(env.PRIVY_APP_ID, env.PRIVY_APP_SECRET);
 
   beforeAll(async () => {
     const wsUrl = `ws://${host}:${port}/trpc`;
     console.log(`Connecting to WebSocket at: ${wsUrl}`);
 
-    const wsClient = createWSClient({
+    wsClient = createWSClient({
       url: `ws://${host}:${port}/trpc`,
       // @ts-expect-error WebSocket is not typed
       WebSocket,
@@ -45,6 +46,28 @@ describe("Server Integration Tests", () => {
         }),
       ],
     });
+  });
+
+  afterAll(async () => {
+    try {
+      // Close all subscriptions and queries
+      if (client) {
+        // @ts-expect-error _client is internal but needed for cleanup
+        await client._client?.terminate?.();
+        // @ts-expect-error _subscriptions is internal but needed for cleanup
+        client._subscriptions?.forEach((sub) => sub.unsubscribe?.());
+      }
+
+      // Close the WebSocket client
+      if (wsClient) {
+        wsClient.close();
+      }
+
+      // Small delay to ensure all connections are properly closed
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    } catch (error) {
+      console.error("Error in test cleanup:", error);
+    }
   });
 
   describe("Mock Api Endpoints", () => {
