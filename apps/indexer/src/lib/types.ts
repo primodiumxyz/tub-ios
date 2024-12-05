@@ -24,6 +24,7 @@ type SwapTokenPrice = {
   mint: PublicKey;
   priceUsd: number;
   amount: bigint;
+  tokenDecimals: number;
 };
 
 export type SwapTokenMetadata = {
