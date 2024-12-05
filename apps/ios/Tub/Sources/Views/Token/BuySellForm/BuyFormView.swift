@@ -12,7 +12,7 @@ struct BuyFormView: View {
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject var notificationHandler: NotificationHandler
     @ObservedObject var tokenModel: TokenModel
-    var onBuy: (Double) async -> Void
+    var onBuy: () async -> Void
 
     @EnvironmentObject private var userModel: UserModel
     @State private var buyQuantityUsdString: String = ""
@@ -36,10 +36,10 @@ struct BuyFormView: View {
         // Check if the user has enough balance
         if balanceUsdc >= buyQuantityUsdc {
             if isDefaultOn {
-                settingsManager.defaultBuyValueUsd = buyQuantityUsd
+                settingsManager.defaultBuyValueUsdc = buyQuantityUsdc
             }
             Task {
-                await onBuy(buyQuantityUsd)
+                await onBuy()
             }
         }
         else {
@@ -300,7 +300,7 @@ extension String {
         return model
     }()
 
-    BuyFormView(isVisible: .constant(true), tokenModel: tokenModel, onBuy: { _ in })
+    BuyFormView(isVisible: .constant(true), tokenModel: tokenModel, onBuy: { })
         .environmentObject(userModel)
         .environmentObject(priceModel)
         .preferredColorScheme(.light)

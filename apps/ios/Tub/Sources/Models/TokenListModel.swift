@@ -59,7 +59,10 @@ final class TokenListModel: ObservableObject {
         self.currentTokenModel.initialize(with: token)
         self.userModel?.initToken(tokenId: token.id)
         Task {
-            try! await TxManager.shared.updateTxData(tokenId: token.id)
+            try! await TxManager.shared.updateTxData(
+                tokenId: token.id,
+                sellQuantity: SettingsManager.shared.defaultBuyValueUsdc
+            )
         }
     }
 

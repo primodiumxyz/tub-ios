@@ -128,8 +128,8 @@ enum TubError: LocalizedError {
             return "Not logged in"
         case .networkFailure:
             return "Couldn't connect"
-        case .invalidInput:
-            return "Invalid input"
+        case .invalidInput(let reason):
+            return "Invalid input \(reason)"
         case .parsingError:
             return "Parsing error"
         case .actionInProgress(let actionDescription):

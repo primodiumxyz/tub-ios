@@ -40,7 +40,7 @@ struct TokenView: View {
         self.onSellSuccess = onSellSuccess
     }
 
-    func handleBuy(buyQuantityUsd: Double) async {
+    func handleBuy() async {
         guard let priceUsd = tokenModel.prices.last?.priceUsd, priceUsd > 0
         else {
             notificationHandler.show(
@@ -51,7 +51,7 @@ struct TokenView: View {
         }
 
         let priceUsdc = priceModel.usdToUsdc(usd: priceUsd)
-        let buyQuantityUsdc = priceModel.usdToUsdc(usd: buyQuantityUsd)
+        let buyQuantityUsdc = SettingsManager.shared.defaultBuyValueUsdc
 
         do {
             try await userModel.buyTokens(
@@ -112,7 +112,7 @@ struct TokenView: View {
                     try! await TxManager.shared.updateTxData(purchaseState: .sell, sellQuantity: balanceToken)
                 }
                 else {
-                    let defaultBuyValueUsdc = priceModel.usdToUsdc(usd: SettingsManager.shared.defaultBuyValueUsd)
+                    let defaultBuyValueUsdc = SettingsManager.shared.defaultBuyValueUsdc
                     try! await TxManager.shared.updateTxData(purchaseState: .buy, sellQuantity: defaultBuyValueUsdc)
                 }
             }

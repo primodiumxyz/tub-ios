@@ -60,21 +60,6 @@ class Network {
         return response.status
     }
 
-    func buyToken(tokenId: String, amount: String, tokenPrice: String) async throws {
-        let input = TokenActionInput(tokenId: tokenId, amount: amount, tokenPrice: tokenPrice)
-        let _: EmptyResponse = try await callProcedure("buyToken", input: input)
-    }
-
-    func sellToken(tokenId: String, amount: String, tokenPrice: String) async throws {
-        let input = TokenActionInput(tokenId: tokenId, amount: amount, tokenPrice: tokenPrice)
-        let _: EmptyResponse = try await callProcedure("sellToken", input: input)
-    }
-
-    func airdropNativeToUser(amount: Int) async throws {
-        let input = AirdropInput(amount: String(amount))
-        let _: EmptyResponse = try await callProcedure("airdropNativeToUser", input: input)
-    }
-
     func recordClientEvent(event: ClientEvent) async throws {
         let input = EventInput(event: event)
         let _: EmptyResponse = try await callProcedure("recordClientEvent", input: input)
@@ -237,7 +222,7 @@ class Network {
             amountToken: Int(firstAccount.account.data.lamports)
         )
     }
-    
+
     func getTestTxData() async throws -> TxData {
         let res: TxData = try await callProcedure("get1USDCToSOLTransaction")
         return res

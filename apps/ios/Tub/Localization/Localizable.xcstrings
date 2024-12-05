@@ -163,6 +163,9 @@
     "Please enter a valid phone number." : {
 
     },
+    "Portfolio" : {
+
+    },
     "Price" : {
 
     },
@@ -239,9 +242,6 @@
 
     },
     "Update Tx Data" : {
-
-    },
-    "USDC Balance: %lld" : {
 
     },
     "Welcome to tub" : {

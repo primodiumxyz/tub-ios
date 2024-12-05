@@ -333,6 +333,9 @@ final class UserModel: ObservableObject {
     }
 
     func buyTokens(buyQuantityUsdc: Int, tokenPriceUsdc: Int) async throws {
+        guard let walletAddress else {
+            throw TubError.notLoggedIn
+        }
         guard let tokenId = self.tokenId, let balanceUsdc = self.balanceUsdc else {
             throw TubError.invalidInput(reason: "No balance")
         }
@@ -346,11 +349,7 @@ final class UserModel: ObservableObject {
 
         var err: (any Error)? = nil
         do {
-            let _ = try await Network.shared.buyToken(
-                tokenId: tokenId,
-                amount: String(buyQuantityToken),
-                tokenPrice: String(tokenPriceUsdc)
-            )
+            try await TxManager.shared.submitTx(walletAddress: walletAddress)
 
             await MainActor.run {
                 self.purchaseData = PurchaseData(
@@ -389,17 +388,18 @@ final class UserModel: ObservableObject {
     }
 
     func sellTokens(price: Int) async throws {
+        guard let walletAddress else {
+            throw TubError.notLoggedIn
+        }
+        
         guard let tokenId = self.tokenId, let balance = self.balanceToken else {
             throw TubError.notLoggedIn
         }
 
         var err: (any Error)? = nil
         do {
-            try await Network.shared.sellToken(
-                tokenId: tokenId,
-                amount: String(balance),
-                tokenPrice: String(price)
-            )
+            try await TxManager.shared.submitTx(walletAddress: walletAddress)
+            
             await MainActor.run {
                 self.purchaseData = nil
             }
@@ -427,30 +427,6 @@ final class UserModel: ObservableObject {
             print("Failed to record sell event: \(error)")
         }
 
-        if let err {
-            throw err
-        }
-    }
-
-    func performAirdrop() async throws {
-        var err: (any Error)? = nil
-        do {
-            try await Network.shared.airdropNativeToUser(amount: 1 * Int(1e9))
-        }
-        catch {
-            err = error
-        }
-
-        try? await Network.shared.recordClientEvent(
-            event: ClientEvent(
-                eventName: "airdrop",
-                source: "account_view",
-                metadata: [
-                    ["airdrop_amount": 1 * Int(1e9)]
-                ],
-                errorDetails: err?.localizedDescription
-            )
-        )
         if let err {
             throw err
         }

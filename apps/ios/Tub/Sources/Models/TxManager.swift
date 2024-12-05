@@ -21,7 +21,6 @@ final class TxManager: ObservableObject {
     var tokenId: String?
     var sellQuantity: Int?
     var lastUpdated = Date()
-    let tokenIdUsdc = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
     private var currentFetchTask: Task<Void, Error>?
 
     func updateTxData(purchaseState: PurchaseState? = nil, tokenId: String? = nil, sellQuantity: Int? = nil)
@@ -43,6 +42,7 @@ final class TxManager: ObservableObject {
     }
 
     let UPDATE_SECONDS = 60 * 5
+  
     private func _updateTxData(purchaseState: PurchaseState?, tokenId: String?, sellQuantity: Int?) async throws {
         // if nothing is getting updated return without updating
         if Date().timeIntervalSince1970 < lastUpdated.timeIntervalSince1970 + Double(UPDATE_SECONDS)
@@ -58,8 +58,8 @@ final class TxManager: ObservableObject {
 
         guard let tokenId = self.tokenId, let sellQuantity = self.sellQuantity else { return }
 
-        let buyTokenId = self.purchaseState == .buy ? tokenId : tokenIdUsdc
-        let sellTokenId = self.purchaseState == .sell ? tokenId : tokenIdUsdc
+        let buyTokenId = self.purchaseState == .buy ? tokenId : USDC_MINT
+        let sellTokenId = self.purchaseState == .sell ? tokenId : USDC_MINT
 
         do {
             await MainActor.run {
@@ -90,6 +90,7 @@ final class TxManager: ObservableObject {
         sellQuantity = nil
         tokenId = nil
         purchaseState = .buy
+        fetchingTxData = false
     }
 
     func submitTx(walletAddress: String) async throws {

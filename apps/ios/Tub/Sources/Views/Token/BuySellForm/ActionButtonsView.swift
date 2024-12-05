@@ -18,14 +18,14 @@ struct ActionButtonsView: View {
 
     @Binding var showBubbles: Bool
 
-    var handleBuy: (Double) async -> Void
+    var handleBuy: () async -> Void
     var onSellSuccess: (() -> Void)?
 
     init(
         tokenModel: TokenModel,
         showBuySheet: Binding<Bool>,
         showBubbles: Binding<Bool>,
-        handleBuy: @escaping (Double) async -> Void,
+        handleBuy: @escaping () async -> Void,
         onSellSuccess: (() -> Void)? = nil
     ) {
         self.tokenModel = tokenModel
@@ -166,21 +166,10 @@ private struct AirdropButton: View {
     @EnvironmentObject private var notificationHandler: NotificationHandler
     @State var showOnrampView = false
 
-    func handleAirdrop() {
-        Task {
-            do {
-                try await userModel.performAirdrop()
-                notificationHandler.show("Airdrop successful!", type: .success)
-            }
-            catch {
-                notificationHandler.show("Airdrop failed \(error.localizedDescription)", type: .error)
-            }
-        }
-    }
     var body: some View {
         PrimaryButton(
-            text: "Get 1 test SOL",
-            action: handleAirdrop
+            text: "Deposit to buy",
+            action: { showOnrampView.toggle() }
         )
         .sheet(isPresented: $showOnrampView) {
             CoinbaseOnrampView()
@@ -194,14 +183,14 @@ private struct BuyButton: View {
     @State private var showOnrampView = false
     @StateObject private var settingsManager = SettingsManager.shared
 
-    var handleBuy: (Double) async -> Void
+    var handleBuy: () async -> Void
 
     var body: some View {
         PrimaryButton(
-            text: "Buy \(priceModel.formatPrice(usd: settingsManager.defaultBuyValueUsd))",
+            text: "Buy \(priceModel.formatPrice(usdc: settingsManager.defaultBuyValueUsdc))",
             action: {
                 Task {
-                    await handleBuy(settingsManager.defaultBuyValueUsd)
+                    await handleBuy()
                 }
             }
         )
@@ -301,7 +290,7 @@ extension ActionButtonsView: Equatable {
                     tokenModel: TokenModel(),
                     showBuySheet: $show,
                     showBubbles: Binding.constant(false),
-                    handleBuy: { _ in },
+                    handleBuy: { },
                     onSellSuccess: nil
                 )
                 .border(.red)
