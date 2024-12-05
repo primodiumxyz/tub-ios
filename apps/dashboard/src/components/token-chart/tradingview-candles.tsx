@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { CandlestickData, createChart, IChartApi, ISeriesApi, Time } from "lightweight-charts";
+import { createChart, IChartApi, ISeriesApi, Time } from "lightweight-charts";
 
 import { useTokenCandles } from "@/hooks/use-tokens-candles";
 import { Token } from "@/lib/types";
@@ -12,17 +12,8 @@ export const TradingViewCandlesChart = ({ token }: { token: Token }) => {
   const { tokenCandles, fetching, error } = useTokenCandles(token, (newCandle) => {
     if (!candleSeriesRef.current) return;
 
-    // Convert the new candle data to the format expected by lightweight-charts
-    const candleData: CandlestickData = {
-      time: newCandle.t as Time,
-      open: newCandle.o,
-      high: newCandle.h,
-      low: newCandle.l,
-      close: newCandle.c,
-    };
-
     // Update the last candle or add a new one
-    candleSeriesRef.current.update(candleData);
+    candleSeriesRef.current.update(newCandle);
 
     // Ensure the chart shows the latest data
     if (chartRef.current) {
@@ -87,20 +78,12 @@ export const TradingViewCandlesChart = ({ token }: { token: Token }) => {
     candleSeriesRef.current = candleSeries;
 
     // Format data for the chart
-    if (tokenCandles) {
-      const chartData: CandlestickData[] = tokenCandles.t.map((t, i) => ({
-        time: (t ?? 0) as Time,
-        open: tokenCandles.o[i] ?? 0,
-        high: tokenCandles.h[i] ?? 0,
-        low: tokenCandles.l[i] ?? 0,
-        close: tokenCandles.c[i] ?? 0,
-      }));
-
-      candleSeries.setData(chartData);
+    if (tokenCandles?.length) {
+      candleSeries.setData(tokenCandles);
 
       // Set a fixed time range based on the data
-      const firstTime = tokenCandles.t[0] ?? 0;
-      const lastTime = tokenCandles.t[tokenCandles.t.length - 1] ?? 0;
+      const firstTime = Number(tokenCandles[0].time);
+      const lastTime = Number(tokenCandles[tokenCandles.length - 1].time);
       const timeRange = lastTime - firstTime;
 
       chart.timeScale().setVisibleRange({

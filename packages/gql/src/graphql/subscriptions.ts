@@ -76,3 +76,18 @@ export const GetTokenPricesSinceSubscription = graphql(`
     }
   }
 `);
+
+export const GetTokenCandlesSubscription = graphql(`
+  subscription SubTokenCandles($token: String!, $since: timestamptz = "now()", $candle_interval: interval = "1m") {
+    token_trade_history_candles(
+      args: { candle_interval: $candle_interval }
+      where: { token_mint: { _eq: $token }, bucket: { _gte: $since } }
+    ) {
+      bucket
+      open_price_usd
+      close_price_usd
+      high_price_usd
+      low_price_usd
+    }
+  }
+`);

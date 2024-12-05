@@ -1,41 +1,62 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
+import { CandlestickData, Time } from "lightweight-charts";
+import { useSubscription } from "urql";
 
-import { Token, TokenCandles } from "@/lib/types";
+import { subscriptions } from "@tub/gql";
+import { Token } from "@/lib/types";
 
 export const useTokenCandles = (
   token: Token,
-  onUpdate: (candle: TokenCandle) => void,
-): { tokenCandles: TokenCandles | undefined; fetching: boolean; error: string | null } => {
-  const [tokenCandles, setTokenCandles] = useState<TokenCandles | undefined>();
-  const [fetching, setFetching] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  onUpdate: (candle: CandlestickData) => void,
+): { tokenCandles: CandlestickData[] | undefined; fetching: boolean; error?: string } => {
+  const now = useMemo(() => Date.now(), []);
+  const initialCandles = useRef<CandlestickData[]>([]);
+  const lastCandleTimestamp = useRef(0);
 
-  const fetchCandlesData = useCallback(async () => {
-    try {
-      setFetching(true);
+  const [tokenCandlesRes] = useSubscription({
+    query: subscriptions.GetTokenCandlesSubscription,
+    variables: { token: token.mint, candle_interval: "1m", since: new Date(now - 60 * 60 * 1000) },
+  });
 
-      // TODO: implement
-
-      setTokenCandles(undefined);
-
-      setFetching(false);
-    } catch (err) {
-      setError((err as Error).message);
-      setFetching(false);
-    }
-  }, [token.mint]);
-
-  const subscribeToCandlesData = useCallback(async () => {
-    // TODO: implement
-  }, [token.mint]);
+  const formatCandles = (
+    candles: {
+      bucket: Date;
+      open_price_usd: string;
+      high_price_usd: string;
+      low_price_usd: string;
+      close_price_usd: string;
+    }[],
+  ) =>
+    candles.map((candle) => ({
+      time: new Date(candle.bucket).getTime() as Time,
+      open: Number(candle.open_price_usd),
+      high: Number(candle.high_price_usd),
+      low: Number(candle.low_price_usd),
+      close: Number(candle.close_price_usd),
+    }));
 
   useEffect(() => {
-    fetchCandlesData().then(subscribeToCandlesData);
-  }, [fetchCandlesData, subscribeToCandlesData]);
+    const candles = tokenCandlesRes.data?.token_trade_history_candles;
+
+    if (candles && !initialCandles.current.length) {
+      initialCandles.current = formatCandles(candles);
+      lastCandleTimestamp.current = Number(initialCandles.current[initialCandles.current.length - 1].time);
+    } else if (candles) {
+      // Get all entries after the last price timestamp
+      const candlesAfterLastCandle = candles.filter(
+        (candle) => new Date(candle.bucket).getTime() >= lastCandleTimestamp.current,
+      );
+
+      const newCandles = formatCandles(candlesAfterLastCandle);
+
+      newCandles.forEach(onUpdate);
+      lastCandleTimestamp.current = Number(newCandles[newCandles.length - 1].time);
+    }
+  }, [tokenCandlesRes]);
 
   return {
-    tokenCandles,
-    fetching,
-    error,
+    tokenCandles: initialCandles.current,
+    fetching: initialCandles.current.length ? false : tokenCandlesRes.fetching,
+    error: tokenCandlesRes.error?.message,
   };
 };

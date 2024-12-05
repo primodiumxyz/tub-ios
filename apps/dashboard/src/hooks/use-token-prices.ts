@@ -18,6 +18,12 @@ export const useTokenPrices = (
     variables: { token: token.mint, since: new Date(now - intervalSeconds * 1000) },
   });
 
+  const formatPrices = (prices: { token_price_usd: string; created_at: Date }[]) =>
+    prices.map((price) => ({
+      price: Number(price.token_price_usd),
+      timestamp: new Date(price.created_at).getTime(),
+    }));
+
   const filterOutDuplicatePriceTimestamps = (prices: TokenPrice[]) =>
     prices.filter((price, index, self) => self.findIndex((p) => p.timestamp === price.timestamp) === index);
 
@@ -25,28 +31,15 @@ export const useTokenPrices = (
     const prices = tokenPricesRes.data?.api_trade_history;
 
     if (prices && !initialPrices.current.length) {
-      console.log("setting initial prices");
-      initialPrices.current = filterOutDuplicatePriceTimestamps(
-        prices.map((price) => ({
-          price: Number(price.token_price_usd),
-          timestamp: new Date(price.created_at).getTime(),
-        })),
-      );
-
+      initialPrices.current = filterOutDuplicatePriceTimestamps(formatPrices(prices));
       lastPriceTimestamp.current = initialPrices.current[initialPrices.current.length - 1].timestamp;
     } else if (prices) {
-      console.log("updating prices");
       // Get all entries after the last price timestamp
       const pricesAfterLastPrice = prices.filter(
         (price) => new Date(price.created_at).getTime() > lastPriceTimestamp.current,
       );
 
-      const newPrices = filterOutDuplicatePriceTimestamps(
-        pricesAfterLastPrice.map((price) => ({
-          price: Number(price.token_price_usd),
-          timestamp: new Date(price.created_at).getTime(),
-        })),
-      );
+      const newPrices = filterOutDuplicatePriceTimestamps(formatPrices(pricesAfterLastPrice));
 
       newPrices.forEach(onUpdate);
       lastPriceTimestamp.current = new Date(prices[prices.length - 1].created_at).getTime();

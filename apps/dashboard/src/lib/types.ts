@@ -16,21 +16,3 @@ export type TokenPrice = {
   timestamp: number;
   price: number;
 };
-
-export type TokenCandle = {
-  o: number;
-  h: number;
-  l: number;
-  c: number;
-  v: number | null;
-  t: number;
-};
-
-export type TokenCandles = {
-  o: (number | null)[];
-  h: (number | null)[];
-  l: (number | null)[];
-  c: (number | null)[];
-  v: (number | null)[];
-  t: (number | null)[];
-};
