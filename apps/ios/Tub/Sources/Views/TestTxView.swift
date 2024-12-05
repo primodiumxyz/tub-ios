@@ -52,7 +52,7 @@ struct TestTxView: View {
                 DataRow(title: "Sell Token ID", content: txData.sellTokenId)
                 DataRow(
                     title: "Sell Quantity",
-                    content: priceModel.formatPrice(usd: priceModel.usdcToUsd(usdc: txData.sellQuantity))
+                    content: priceModel.formatPrice(usdc: txData.sellQuantity)
                 )
                 Button(action: handleTxSubmission) {
                     Text("Submit Transaction")
