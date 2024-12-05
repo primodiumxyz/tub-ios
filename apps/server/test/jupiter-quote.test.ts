@@ -67,7 +67,9 @@ describe("Jupiter Quote Integration Test", () => {
       outputMint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
       amount: 100000000, // 0.1 SOL
       slippageBps: 50,
-      onlyDirectRoutes: false,
+      onlyDirectRoutes: true,
+      restrictIntermediateTokens: true,
+      maxAccounts: 50,
       asLegacyTransaction: false,
     };
 
@@ -128,7 +130,9 @@ describe("Jupiter Quote Integration Test", () => {
       outputMint: "So11111111111111111111111111111111111111112", // SOL
       amount: 1000000, // 1 USDC
       slippageBps: 50,
-      onlyDirectRoutes: false,
+      onlyDirectRoutes: true,
+      restrictIntermediateTokens: true,
+      maxAccounts: 50,
       asLegacyTransaction: false,
     };
 
@@ -178,6 +182,8 @@ describe("Jupiter Quote Integration Test", () => {
       amount: 100000000, // 0.1 SOL
       slippageBps: 50,
       onlyDirectRoutes: true,
+      restrictIntermediateTokens: true,
+      maxAccounts: 50,
       asLegacyTransaction: false,
     };
 
@@ -236,8 +242,10 @@ describe("Jupiter Quote Integration Test", () => {
       outputMint: "So11111111111111111111111111111111111111112", // SOL
       amount: 1000000, // 1 USDC
       slippageBps: 50,
-      onlyDirectRoutes: false,
-      asLegacyTransaction: true,
+      onlyDirectRoutes: true,
+      restrictIntermediateTokens: true,
+      maxAccounts: 50,
+      asLegacyTransaction: false,
     };
 
     try {

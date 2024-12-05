@@ -116,7 +116,6 @@ export class OctaneService {
           quoteResponse: quote,
           userPublicKey: userPublicKey.toBase58(), // Make sure we're using toBase58()
           asLegacyTransaction: quoteAndSwapParams.asLegacyTransaction,
-          useSharedAccounts: false,
           wrapAndUnwrapSol: true,
           prioritizationFeeLamports: { autoMultiplier: 3 },
         },
