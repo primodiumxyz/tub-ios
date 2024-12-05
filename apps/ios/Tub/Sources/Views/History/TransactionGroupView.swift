@@ -2,7 +2,7 @@ import SwiftUI
 import TubAPI
 
 struct TransactionGroup {
-    let transactions: [Transaction]
+    let transactions: [TransactionData]
     let netProfit: Double
     let date: Date
     let token: String
@@ -58,7 +58,7 @@ struct TransactionGroupRow: View {
 }
 
 struct TransactionDetailRow: View {
-    let transaction: Transaction
+    let transaction: TransactionData
     @EnvironmentObject private var priceModel: SolPriceModel
 
     var body: some View {
@@ -91,7 +91,7 @@ struct TransactionDetailRow: View {
 }
 
 // Helper function to group transactions
-func groupTransactions(_ transactions: [Transaction]) -> [TransactionGroup] {
+func groupTransactions(_ transactions: [TransactionData]) -> [TransactionGroup] {
     let grouped = Dictionary(grouping: transactions) { transaction in
         let calendar = Calendar.current
         let date = calendar.startOfDay(for: transaction.date)

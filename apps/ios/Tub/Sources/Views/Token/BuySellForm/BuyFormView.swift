@@ -68,29 +68,17 @@ struct BuyFormView: View {
     }
 
     var body: some View {
-
-        ZStack {
-            Rectangle()
-                .fill(Color(UIColor.systemBackground))
-                .zIndex(0)
-                .cornerRadius(30)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-            VStack {
-                formContent
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 20)
-
-            }
-            .zIndex(1)
-            .background(Gradients.cardBgGradient)
-            .onAppear { resetForm() }
-            .dismissKeyboardOnTap()
-            .cornerRadius(30)
-            .presentationDetents([.height(Self.formHeight)])
-            .presentationBackground(.clear)
+        VStack {
+            formContent
+                .padding()
 
         }
+        .background(Gradients.cardBgGradient)
+        .onAppear { resetForm() }
+        .dismissKeyboardOnTap()
+        .cornerRadius(30)
+        .presentationDetents([.height(Self.formHeight)])
+        .presentationBackground(.clear)
     }
 
     private var formContent: some View {

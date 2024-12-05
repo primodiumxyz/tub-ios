@@ -73,7 +73,7 @@ struct AccountBalanceView: View {
                 .padding(.bottom, 4)
                 Divider()
                     .frame(maxWidth: .infinity, maxHeight: 0.5)
-                    .background(.secondary)
+                    .background(.tubNeutral.opacity(0.5))
             }
         }
         .padding(.horizontal, 16)

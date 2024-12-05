@@ -93,6 +93,10 @@ public let serverBaseUrl: String = {
     #endif
 }()
 
+public let solanaUrl: String = {
+    return "https://blue-hardworking-paper.solana-mainnet.quiknode.pro/4240df2ab8f252905cfef06e20240f563e84418d"
+}()
+
 public let NETWORK_FILTER: Int = 1_399_811_149  // Solana filter for Codex
 public let CHART_INTERVAL: Double = 60 * 2  // live 2m
 public let CANDLES_INTERVAL: Double = 60 * 30  // candles 30m
@@ -100,7 +104,8 @@ public let PRICE_UPDATE_INTERVAL: Double = 0.5  // Update price every half secon
 
 public let WSOL_ADDRESS: String = "So11111111111111111111111111111111111111112"
 
-enum TubError: Error {
+enum TubError: LocalizedError {
+    case somethingWentWrong(reason: String)
     case networkFailure
     case invalidInput(reason: String)
     case unknown
@@ -108,9 +113,12 @@ enum TubError: Error {
     case notLoggedIn
     case parsingError
     case emptyTokenList
+    case serverError(reason: String)
 
     var errorDescription: String? {
         switch self {
+        case .somethingWentWrong(let reason):
+            return "Something went wrong: \(reason)"
         case .insufficientBalance:
             return "Insufficient balance"
         case .notLoggedIn:
@@ -123,6 +131,8 @@ enum TubError: Error {
             return "Parsing error"
         case .emptyTokenList:
             return "No tokens found"
+        case .serverError(let reason):
+            return reason
         default:
             return "Unknown error"
         }

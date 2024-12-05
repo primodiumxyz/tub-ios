@@ -4,6 +4,10 @@
     "" : {
 
     },
+
+    " " : {
+
+    },
     "#8612373299412" : {
 
     },
@@ -49,6 +53,9 @@
     "10" : {
       "comment" : "placeholder"
     },
+    "10.00" : {
+      "comment" : "placeholder"
+    },
     "100" : {
 
     },
@@ -85,6 +92,9 @@
     "Close" : {
 
     },
+    "Connect a wallet to continue" : {
+
+    },
     "Country Code" : {
 
     },
@@ -94,10 +104,13 @@
     "Deposit" : {
 
     },
-    "Deposit with " : {
+    "Deposit with" : {
 
     },
     "Discord Server" : {
+
+    },
+    "Enter Solana address" : {
 
     },
     "Enter verification code" : {
@@ -166,16 +179,36 @@
     "Sell Details" : {
 
     },
+    "Sending" : {
+
+    },
     "Set Default" : {
 
     },
     "Settings" : {
 
     },
+
+    "Show Less" : {
+
+    },
+    "Show More" : {
+
+    },
+    "Solana Address is invalid" : {
+
+    },
+    
     "Support" : {
 
     },
+    "This token is still writing its autobiography... 📝" : {
+
+    },
     "Time" : {
+
+    },
+    "to" : {
 
     },
     "Token" : {

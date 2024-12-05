@@ -29,6 +29,8 @@
 		995D05662CF3C7C900627E81 /* retry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D05652CF3C7C800627E81 /* retry.swift */; };
 		995FCA1F2CDA5ED70018A76D /* CoinbaseOnrampView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995FCA1E2CDA5ED20018A76D /* CoinbaseOnrampView.swift */; };
 		996772FE2CEB85820029B298 /* LoadingBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996772FD2CEB857C0029B298 /* LoadingBox.swift */; };
+		9971F29B2CFF836700BA48C0 /* WithdrawView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9971F29A2CFF835D00BA48C0 /* WithdrawView.swift */; };
+		9971F2F52CFFA88A00BA48C0 /* SolanaSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 9971F2F42CFFA88A00BA48C0 /* SolanaSwift */; };
 		997DE8F42CDAC86500164366 /* NotificationBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 997DE8F32CDAC86000164366 /* NotificationBanner.swift */; };
 		99856DA42CD27E1F004B9D40 /* Privy in Frameworks */ = {isa = PBXBuildFile; productRef = 99856DA32CD27E1F004B9D40 /* Privy */; };
 		99856DA62CD27E2E004B9D40 /* Privy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99856DA52CD27E27004B9D40 /* Privy.swift */; };
@@ -61,6 +63,7 @@
 		DB6D29232CA1C8F80099951A /* TubUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6D29222CA1C8F80099951A /* TubUITestsLaunchTests.swift */; };
 		DF1FE3C82CD568F700594C63 /* CountryCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF1FE3C72CD568F700594C63 /* CountryCode.swift */; };
 		DF38C3C42D0212F3003A156B /* EnvironmentKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF38C3C32D0212F3003A156B /* EnvironmentKeys.swift */; };
+		DF3D43D22D00DEB1004DAE81 /* JustifiedText.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF3D43D12D00DEB1004DAE81 /* JustifiedText.swift */; };
 		DF5A2FC32CAF165D00508A56 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5A2FC22CAF165D00508A56 /* HistoryView.swift */; };
 		DF5A2FC52CAF2DEF00508A56 /* HistoryDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5A2FC42CAF2DEF00508A56 /* HistoryDetailsView.swift */; };
 		DF8C84ED2CDFDCA700E8FA7B /* DismissKeyboardModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF8C84EC2CDFDCA700E8FA7B /* DismissKeyboardModifier.swift */; };
@@ -113,6 +116,7 @@
 		995D05652CF3C7C800627E81 /* retry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = retry.swift; sourceTree = "<group>"; };
 		995FCA1E2CDA5ED20018A76D /* CoinbaseOnrampView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoinbaseOnrampView.swift; sourceTree = "<group>"; };
 		996772FD2CEB857C0029B298 /* LoadingBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingBox.swift; sourceTree = "<group>"; };
+		9971F29A2CFF835D00BA48C0 /* WithdrawView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WithdrawView.swift; sourceTree = "<group>"; };
 		997DE8F32CDAC86000164366 /* NotificationBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationBanner.swift; sourceTree = "<group>"; };
 		99856DA52CD27E27004B9D40 /* Privy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Privy.swift; sourceTree = "<group>"; };
 		99856DA92CD28271004B9D40 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -147,6 +151,7 @@
 		DB6D29222CA1C8F80099951A /* TubUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TubUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		DF1FE3C72CD568F700594C63 /* CountryCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CountryCode.swift; path = Tub/Sources/CountryCode.swift; sourceTree = SOURCE_ROOT; };
 		DF38C3C32D0212F3003A156B /* EnvironmentKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvironmentKeys.swift; sourceTree = "<group>"; };
+		DF3D43D12D00DEB1004DAE81 /* JustifiedText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JustifiedText.swift; sourceTree = "<group>"; };
 		DF5A2FC22CAF165D00508A56 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		DF5A2FC42CAF2DEF00508A56 /* HistoryDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryDetailsView.swift; sourceTree = "<group>"; };
 		DF7C361B2CD941FD00A4B27A /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
@@ -177,6 +182,7 @@
 				99DED2512CAF2A6B0055FC60 /* ApolloCombine in Frameworks */,
 				99C26C1C2CAEE263004807A2 /* ApolloAPI in Frameworks */,
 				46233A262CE67F7E00DB1740 /* CodexAPI in Frameworks */,
+				9971F2F52CFFA88A00BA48C0 /* SolanaSwift in Frameworks */,
 				993E5D902CAEE423000E23A9 /* ApolloWebSocket in Frameworks */,
 				99856DA42CD27E1F004B9D40 /* Privy in Frameworks */,
 				DFA4D6512CAC500B00AEDC73 /* Apollo in Frameworks */,
@@ -235,6 +241,7 @@
 				282A6AB22CEEE8490039133F /* ButtonStyles.swift */,
 				466945EC2CDFDB1C008E8B99 /* LoadingTracker.swift */,
 				46442B942CDD737D009A6F0B /* Constants.swift */,
+				DF3D43D12D00DEB1004DAE81 /* JustifiedText.swift */,
 				9941CD6E2CCAA30B0009E5ED /* FormatPrice.swift */,
 				DF38C3C32D0212F3003A156B /* EnvironmentKeys.swift */,
 				DF8C84EC2CDFDCA700E8FA7B /* DismissKeyboardModifier.swift */,
@@ -247,6 +254,7 @@
 		999F59522CA6F6A900E7AE9F /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				9971F29A2CFF835D00BA48C0 /* WithdrawView.swift */,
 				995DE48A2CE6A268001B3C3F /* Login */,
 				997DE8F32CDAC86000164366 /* NotificationBanner.swift */,
 				99DD66022CB80D5B00B56450 /* Common */,
@@ -470,6 +478,7 @@
 				99DED2502CAF2A6B0055FC60 /* ApolloCombine */,
 				99856DA32CD27E1F004B9D40 /* Privy */,
 				46233A252CE67F7E00DB1740 /* CodexAPI */,
+				9971F2F42CFFA88A00BA48C0 /* SolanaSwift */,
 			);
 			productName = Tub;
 			productReference = DB6D29012CA1C8F70099951A /* Tub.app */;
@@ -552,6 +561,7 @@
 				99DED24F2CAF2A6B0055FC60 /* XCRemoteSwiftPackageReference "ApolloCombine" */,
 				99856DA22CD27E1F004B9D40 /* XCRemoteSwiftPackageReference "privy-ios" */,
 				46233A242CE67F6200DB1740 /* XCLocalSwiftPackageReference "CodexAPI" */,
+				9971F2F32CFFA88A00BA48C0 /* XCRemoteSwiftPackageReference "solana-swift" */,
 			);
 			productRefGroup = DB6D29022CA1C8F70099951A /* Products */;
 			projectDirPath = "";
@@ -608,6 +618,7 @@
 				9910F1B62CAAE302005DEE6B /* SFRounded.swift in Sources */,
 				DF8C84ED2CDFDCA700E8FA7B /* DismissKeyboardModifier.swift in Sources */,
 				468B07432CEBB63700C2CBFC /* CodexTokenManager.swift in Sources */,
+				9971F29B2CFF836700BA48C0 /* WithdrawView.swift in Sources */,
 				995FCA1F2CDA5ED70018A76D /* CoinbaseOnrampView.swift in Sources */,
 				996772FE2CEB85820029B298 /* LoadingBox.swift in Sources */,
 				282A6AB32CEEE8490039133F /* ButtonStyles.swift in Sources */,
@@ -620,6 +631,7 @@
 				4619A8182CCA4E25003CD119 /* TokenListModel.swift in Sources */,
 				DF5A2FC32CAF165D00508A56 /* HistoryView.swift in Sources */,
 				994AE5F72CD2AB3F00553A32 /* GoogleLogoView.swift in Sources */,
+				DF3D43D22D00DEB1004DAE81 /* JustifiedText.swift in Sources */,
 				992875672CCACD4C004B48BE /* ErrorView.swift in Sources */,
 				99DBD8EE2CF781EA0098C296 /* spoofModelData.swift in Sources */,
 				466945ED2CDFDB1F008E8B99 /* LoadingTracker.swift in Sources */,
@@ -1035,6 +1047,14 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		9971F2F32CFFA88A00BA48C0 /* XCRemoteSwiftPackageReference "solana-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/p2p-org/solana-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.0;
+			};
+		};
 		99856DA22CD27E1F004B9D40 /* XCRemoteSwiftPackageReference "privy-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/privy-io/privy-ios";
@@ -1087,6 +1107,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = DFA4D64F2CAC500B00AEDC73 /* XCRemoteSwiftPackageReference "apollo-ios" */;
 			productName = ApolloWebSocket;
+		};
+		9971F2F42CFFA88A00BA48C0 /* SolanaSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9971F2F32CFFA88A00BA48C0 /* XCRemoteSwiftPackageReference "solana-swift" */;
+			productName = SolanaSwift;
 		};
 		99856DA32CD27E1F004B9D40 /* Privy */ = {
 			isa = XCSwiftPackageProductDependency;

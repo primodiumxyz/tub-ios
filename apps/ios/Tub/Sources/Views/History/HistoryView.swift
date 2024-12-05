@@ -14,9 +14,9 @@ struct HistoryView: View {
     @EnvironmentObject private var userModel: UserModel
     @EnvironmentObject private var priceModel: SolPriceModel
 
-    @State private var txs: [Transaction]
+    @State private var txs: [TransactionData]
     @State private var isReady: Bool
-    @State private var error: Error?  // Add this line
+    @State private var error: Error?
     @State private var tokenMetadata: [String: TokenMetadata] = [:]  // Cache for token metadata
 
     struct TokenMetadata {
@@ -25,7 +25,7 @@ struct HistoryView: View {
         let imageUri: String?
     }
 
-    init(txs: [Transaction]? = []) {
+    init(txs: [TransactionData]? = []) {
         self._txs = State(initialValue: txs!.isEmpty ? [] : txs!)
         self._isReady = State(initialValue: txs != nil)
         self._error = State(initialValue: nil)  // Add this line
@@ -71,7 +71,7 @@ struct HistoryView: View {
                     switch result {
                     case .success(let graphQLResult):
                         if let tokenTransactions = graphQLResult.data?.token_transaction {
-                            var processedTxs: [Transaction] = []
+                            var processedTxs: [TransactionData] = []
 
                             for transaction in tokenTransactions {
                                 guard let date = formatDateString(transaction.wallet_transaction_data.created_at)
@@ -97,7 +97,7 @@ struct HistoryView: View {
                                 let priceLamps = transaction.token_price
                                 let valueLamps = transaction.amount * Int(priceLamps) / Int(1e9)
 
-                                let newTransaction = Transaction(
+                                let newTransaction = TransactionData(
                                     name: metadata?.name ?? "",
                                     symbol: metadata?.symbol ?? "",
                                     imageUri: metadata?.imageUri ?? "",
@@ -137,7 +137,11 @@ struct HistoryView: View {
                 ErrorView(error: error)
             }
             else {
-                HistoryViewContent(txs: txs, isReady: $isReady)
+                HistoryViewContent(
+                    txs: txs,
+                    isReady: $isReady,
+                    fetchUserTxs: fetchUserTxs
+                )
             }
         }.onAppear {
             if let wallet = userModel.walletAddress { fetchUserTxs(wallet) }
@@ -146,50 +150,52 @@ struct HistoryView: View {
 }
 
 struct HistoryViewContent: View {
-    var txs: [Transaction]
+    @EnvironmentObject private var userModel: UserModel
+    var txs: [TransactionData]
     @Binding var isReady: Bool
     @State private var filterState = FilterState()
+    var fetchUserTxs: (String) -> Void
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 0) {
-                    // Add padding at the top to make room for the filters
-                    Color.clear.frame(height: 44)
+        ScrollView {
+            VStack(spacing: 0) {
 
-                    // Transaction List
-                    if !isReady {
-                        ProgressView()
-                    }
-                    else if filteredTransactions().isEmpty {
-                        Text("No transactions found")
-                            .padding()
-                            .font(.sfRounded(size: .base, weight: .regular))
-                            .foregroundStyle(Color.gray)
-                    }
-                    else {
-                        LazyVStack(spacing: 0) {
-                            ForEach(groupTransactions(filteredTransactions()), id: \.date) { group in
-                                TransactionGroupRow(group: group)
-                            }
-                        }
-                        .padding(.horizontal, 16)
-                    }
-                    Spacer()
+                // Transaction List
+                if !isReady {
+                    ProgressView()
                 }
+                else if filteredTransactions().isEmpty {
+                    TransactionFilters(filterState: $filterState)
+                        .background(Color(UIColor.systemBackground))
+                    Text("No transactions found")
+                        .padding()
+                        .font(.sfRounded(size: .base, weight: .regular))
+                        .foregroundStyle(Color.gray)
+                }
+                else {
+                    TransactionFilters(filterState: $filterState)
+                        .background(Color(UIColor.systemBackground))
+                    LazyVStack(spacing: 0) {
+                        ForEach(groupTransactions(filteredTransactions()), id: \.date) { group in
+                            TransactionGroupRow(group: group)
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                }
+                Spacer()
             }
-            .overlay(
-                TransactionFilters(filterState: $filterState)
-                    .background(Color(UIColor.systemBackground)),
-                alignment: .top
-            )
-            .navigationTitle("History")
-            .navigationBarTitleDisplayMode(.inline)
         }
+        .refreshable {
+            if let wallet = userModel.walletAddress {
+                fetchUserTxs(wallet)
+            }
+        }
+        .navigationTitle("History")
+        .navigationBarTitleDisplayMode(.inline)
     }
 
     // Helper function to filter transactions
-    func filteredTransactions() -> [Transaction] {
+    func filteredTransactions() -> [TransactionData] {
         var filteredData = txs
 
         // Filter by search text
@@ -355,7 +361,7 @@ struct TransactionFilters: View {
 }
 
 struct TransactionRow: View {
-    let transaction: Transaction
+    let transaction: TransactionData
     @EnvironmentObject private var priceModel: SolPriceModel
 
     var body: some View {
