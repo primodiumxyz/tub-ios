@@ -38,7 +38,7 @@ struct AccountDetailsView: View {
                         ) {
                             IconButton(
                                 icon: "doc.on.doc",
-                                color: Color.white,
+                                color: .tubText,
                                 size: 16,
                                 action: {
                                     UIPasteboard.general.string = userId
@@ -64,7 +64,7 @@ struct AccountDetailsView: View {
                         ) {
                             IconButton(
                                 icon: "doc.on.doc",
-                                color: Color.white,
+                                color: .tubText,
                                 size: 16,
                                 action: {
                                     UIPasteboard.general.string = wallet  // Copy full address
@@ -85,14 +85,7 @@ struct AccountDetailsView: View {
                 .navigationBarBackButtonHidden(false)
                 .navigationTitle("Account Details")
                 .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .principal) {
-                        Text("Account Details")
-                            .font(.sfRounded(size: .xl, weight: .semibold))
-                            .foregroundColor(Color.white)
-                    }
-                }
-                .background(Color.black)
+                .background(Color(UIColor.systemBackground))
             }
         }
         else {
@@ -124,13 +117,11 @@ struct DetailRow: View {
         HStack(alignment: .center) {
             Text(title)
                 .font(.sfRounded(size: .lg, weight: .regular))
-                .foregroundColor(Color.white)
 
             Spacer()
 
             Text(value)
                 .font(.sfRounded(size: .lg, weight: .regular))
-                .foregroundColor(Color.white)
 
             if let icon = trailingIcon {
                 icon()

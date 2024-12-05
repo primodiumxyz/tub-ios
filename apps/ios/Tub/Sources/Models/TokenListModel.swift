@@ -15,177 +15,152 @@ import TubAPI
 // - On init, add two random tokens to the array (see `updateTokens`)
 // - When swiping down, increase the current index, and push a new random token to the tokens array (that becomes the one that keeps being updated as the sub goes)
 // - When swiping up, get back to the previously visited token, pop the last item in the tokens array, so we're again at "last - 1" and "last" gets constantly updated
-class TokenListModel: ObservableObject {
-    @Published var availableTokens: [Token] = []
-    @Published var tokens: [Token] = []
+final class TokenListModel: ObservableObject {
+    static let shared = TokenListModel()
+
+    @Published var isReady = false
+
+    @Published var pendingTokens: [Token] = []
+    @Published var tokenQueue: [Token] = []
+    var currentTokenIndex = -1
+
     @Published var previousTokenModel: TokenModel?
     @Published var nextTokenModel: TokenModel?
     @Published var currentTokenModel: TokenModel
-    var userModel: UserModel
-
-    @Published var isLoading = true
-
-    // Cooldown for not showing the same token too often
-    private let TOKEN_COOLDOWN: TimeInterval = 60  // 60 seconds cooldown
-    private var recentlyShownTokens: [(id: String, timestamp: Date)] = []
+    var userModel: UserModel?  // Make optional since we'll set it after init
 
     private var timer: Timer?
-    private var currentTokenStartTime: Date?
-    private var tokenSubscription: Cancellable?
 
-    init(userModel: UserModel) {
-        self.userModel = userModel
+    private var currentTokenStartTime: Date?
+
+    private var currentTokenId: String? {
+        return self.currentTokenModel.token.id
+    }
+
+    private var nextTokenId: String? {
+        return self.nextTokenModel?.token.id
+    }
+
+    var totalTokenCount: Int {
+        return self.tokenQueue.count + self.pendingTokens.count
+    }
+
+    // Make init private
+    private init() {
         self.currentTokenModel = TokenModel()
     }
-
-    var currentTokenIndex: Int {
-        return tokens.count - 2  // last - 1
+    // Add method to set user model
+    func configure(with userModel: UserModel) {
+        self.userModel = userModel
     }
 
-    var isFirstToken: Bool {
-        return currentTokenIndex == 0
-    }
-
-    var isNextTokenAvailable: Bool {
-        return self.availableTokens.count > 1
-    }
-
-    private func initTokenModel() {
-        let token = self.tokens[self.currentTokenIndex]
+    private func initCurrentTokenModel(with token: Token) {
+        // initialize current model
         self.currentTokenModel.initialize(with: token)
-        self.userModel.initToken(tokenId: token.id)
+        self.userModel?.initToken(tokenId: token.id)
+        Task {
+            try! await TxManager.shared.updateTxData(tokenId: token.id)
+        }
     }
 
-    private func getNextToken(excluding currentId: String? = nil) -> Token? {
-        guard !availableTokens.isEmpty else { return nil }
-
-        // Clean up expired cooldowns (but don't add new ones)
-        let now = Date()
-        recentlyShownTokens = recentlyShownTokens.filter {
-            now.timeIntervalSince($0.timestamp) < TOKEN_COOLDOWN
+    private func getNextToken(excluding currentId: String? = nil) -> Token {
+        if self.currentTokenIndex < self.tokenQueue.count - 1 {
+            return tokenQueue[currentTokenIndex + 1]
         }
 
         // If this is the first token (no currentId), return the first non-cooldown token
-        if currentId == nil {
-            return availableTokens.first { token in
-                !recentlyShownTokens.contains { $0.id == token.id }
-            } ?? availableTokens[0]
+        var nextToken = self.pendingTokens.first { token in
+            !self.tokenQueue.contains { $0.id == token.id } && token.id != currentId
         }
+        if let nextToken { return nextToken }
 
-        // Find the index of the current token
-        guard let currentIndex = availableTokens.firstIndex(where: { $0.id == currentId }) else {
-            return availableTokens[0]
-        }
-
-        // Look for the next available token that's not in cooldown
-        for index in (currentIndex + 1)..<availableTokens.count {
-            let token = availableTokens[index]
-            if !recentlyShownTokens.contains(where: { $0.id == token.id }) {
-                return token
-            }
-        }
-
-        // If we've reached the end, start from beginning
-        for index in 0..<currentIndex {
-            let token = availableTokens[index]
-            if !recentlyShownTokens.contains(where: { $0.id == token.id }) {
-                return token
-            }
-        }
-
-        // If all tokens are in cooldown, get the oldest one
-        if let oldestRecent =
-            recentlyShownTokens
-            .sorted(by: { $0.timestamp < $1.timestamp })
-            .first,
-            let token = availableTokens.first(where: { $0.id == oldestRecent.id })
-        {
-            return token
+        if self.tokenQueue.count >= 2 {
+            repeat { nextToken = self.tokenQueue.randomElement() }
+            while currentId != nil && nextToken?.id == currentId
         }
 
         // Final fallback: return first token
-        return availableTokens[0]
-    }
+        if let nextToken { return nextToken }
 
-    // - Set the current token to the next one in line
-    // - Update the current token model
-    // - Push a new random token to the array for the next swipe
-    func loadNextToken() {
-        // Record dwell time for current token before switching
-        self.recordTokenDwellTime()
-
-        previousTokenModel = currentTokenModel
-        nextTokenModel = TokenModel()
-
-        // Add current token to cooldown here
-        if let currentToken = tokens[safe: currentTokenIndex] {
-            // Remove any existing entry for this token
-            recentlyShownTokens.removeAll { $0.id == currentToken.id }
-            // Add the token with current timestamp
-            recentlyShownTokens.append((id: currentToken.id, timestamp: Date()))
-        }
-
-        if let newToken = getNextToken(excluding: tokens[currentTokenIndex].id) {
-            tokens.append(newToken)
-            initTokenModel()
-            currentTokenStartTime = Date()
-        }
+        return emptyToken
     }
 
     // - Set the current token to the previously visited one
     // - Update the current token model
     // - Pop the last token in the array (swiping down should always be a fresh pumping token)
     func loadPreviousToken() {
-        if currentTokenIndex == 0 { return }
+        guard let prevModel = previousTokenModel, currentTokenIndex > 0 else { return }
+        currentTokenIndex -= 1
 
-        // Record dwell time for current token before switching
         recordTokenDwellTime()
 
+        // next
         nextTokenModel = currentTokenModel
-        previousTokenModel = TokenModel()
 
-        tokens.removeLast()
-        initTokenModel()
+        // current
         currentTokenStartTime = Date()
-    }
+        currentTokenModel = prevModel
+        initCurrentTokenModel(with: prevModel.token)
 
-    // - Update the last token in the array to a random pumping token (keep it fresh for the next swipe)
-    private func updateTokens() {
-        guard !availableTokens.isEmpty else { return }
-
-        // If it's initial load, generate two random tokens
-        if tokens.isEmpty {
-            if let firstToken = getNextToken() {
-                tokens.append(firstToken)
-                if let secondToken = getNextToken(excluding: firstToken.id) {
-                    tokens.append(secondToken)
-                    initTokenModel()
-                    // Set start time for initial token
-                    currentTokenStartTime = Date()
-                }
-            }
+        //previous
+        if currentTokenIndex > 0 {
+            let previousToken = tokenQueue[currentTokenIndex - 1]
+            let newPreviousTokenModel = TokenModel()
+            newPreviousTokenModel.preload(with: previousToken)
+            self.previousTokenModel = newPreviousTokenModel
         }
         else {
-            // Only update the last token if we have more available tokens
-            if let currentId = tokens[safe: currentTokenIndex]?.id,
-                let newToken = getNextToken(excluding: currentId)
-            {
-                tokens[tokens.count - 1] = newToken
-            }
+            previousTokenModel = nil
+        }
+    }
+
+    // - Move current to previous
+    // - Move next to current and initialize
+    // - If current is the end of the array, append a new one and preload it
+    func loadNextToken() {
+        self.recordTokenDwellTime()
+        self.currentTokenIndex += 1
+
+        // previous
+        previousTokenModel = currentTokenModel
+
+        // current
+        currentTokenStartTime = Date()
+        if let nextModel = nextTokenModel {
+            currentTokenModel = nextModel
+            initCurrentTokenModel(with: nextModel.token)
+            removePendingToken(nextModel.token.id)
+        }
+        else {
+            currentTokenModel = TokenModel()
+            let newToken = getNextToken()
+            initCurrentTokenModel(with: newToken)
+            removePendingToken(newToken.id)
+        }
+
+        // next
+        let newToken = getNextToken(excluding: currentTokenModel.token.id)
+        // Add delay before loading next model
+        let newModel = TokenModel()
+        newModel.preload(with: newToken)
+        self.nextTokenModel = newModel
+        if self.currentTokenIndex >= tokenQueue.count - 1 {
+            tokenQueue.append(newToken)
         }
     }
 
     public func startTokenSubscription() async {
+        if let _ = timer { return }
         do {
-            try await fetchTokens()
+            try await fetchHotTokens()
 
             // Set up timer for 1-second updates
-            self.timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            self.timer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { [weak self] _ in
                 guard let self = self else { return }
                 if !self.fetching {
                     Task {
                         do {
-                            try await self.fetchTokens()
+                            try await self.fetchHotTokens()
                         }
                         catch {
                             print("Error fetching tokens: \(error.localizedDescription)")
@@ -203,15 +178,11 @@ class TokenListModel: ObservableObject {
         // Stop the timer
         timer?.invalidate()
         timer = nil
-
-        // Clear token subscription if it exists
-        tokenSubscription?.cancel()
-        tokenSubscription = nil
     }
 
     private var fetching = false
 
-    private func fetchTokens(setLoading: Bool? = false) async throws {
+    private func fetchHotTokens(setLoading: Bool? = false) async throws {
         let client = await CodexNetwork.shared.apolloClient
 
         self.fetching = true
@@ -231,7 +202,7 @@ class TokenListModel: ObservableObject {
                 // Process data in background queue
                 DispatchQueue.global(qos: .userInitiated).async {
                     // Prepare data in background
-                    let processedData: ([Token], Token?) = {
+                    let hotTokens: [Token] = {
                         switch result {
                         case .success(let graphQLResult):
                             if let tokens = graphQLResult.data?.filterTokens?.results {
@@ -247,9 +218,9 @@ class TokenListModel: ObservableObject {
                                             imageUri: elem?.token?.info?.imageLargeUrl ?? elem?.token?.info?
                                                 .imageSmallUrl
                                                 ?? elem?.token?.info?.imageThumbUrl,
-                                            liquidity: Double(elem?.liquidity ?? "0"),
-                                            marketCap: Double(elem?.marketCap ?? "0"),
-                                            volume: Double(elem?.volume1 ?? "0"),
+                                            liquidityUsd: Double(elem?.liquidity ?? "0"),
+                                            marketCapUsd: Double(elem?.marketCap ?? "0"),
+                                            volumeUsd: Double(elem?.volume1 ?? "0"),
                                             pairId: elem?.pair?.id,
                                             socials: (
                                                 discord: elem?.token?.socialLinks?.discord,
@@ -262,30 +233,25 @@ class TokenListModel: ObservableObject {
                                         )
                                     }
 
-                                let currentToken = mappedTokens.first(where: {
-                                    $0.id == self.currentTokenModel.tokenId
-                                })
-                                return (mappedTokens, currentToken)
+                                return mappedTokens
                             }
-                            return ([], nil)
+                            return []
                         case .failure(let error):
                             print("Error fetching tokens: \(error.localizedDescription)")
-                            return ([], nil)
+                            return []
                         }
                     }()
 
                     self.fetching = false
 
-                    // Update UI on main thread
-                    Task { @MainActor in
-                        self.isLoading = false
-                        self.availableTokens = processedData.0
-                        self.updateTokens()
-
-                        if let currentToken = processedData.1 {
-                            self.currentTokenModel.updateTokenDetails(from: currentToken)
+                    DispatchQueue.main.sync {
+                        self.updatePendingTokens(hotTokens)
+                        if self.tokenQueue.isEmpty {
+                            self.initializeTokenQueue()
                         }
+                        self.isReady = true
                     }
+
                 }
 
                 continuation.resume()
@@ -293,44 +259,50 @@ class TokenListModel: ObservableObject {
         }
     }
 
-    // Add cleanup method
-    func cleanup() {
-        // Record final dwell time before cleanup
-        recordTokenDwellTime()
-
-        timer?.invalidate()
-        timer = nil
-        tokenSubscription?.cancel()
-        tokenSubscription = nil
+    private func removePendingToken(_ tokenId: String) {
+        self.pendingTokens = self.pendingTokens.filter { $0.id != tokenId }
     }
 
-    // Make sure to call cleanup when appropriate
-    deinit {
-        cleanup()
+    private func updatePendingTokens(_ newTokens: [Token]) {
+        guard !newTokens.isEmpty else { return }
+
+        // Filter out any tokens that are already in the queue
+        let unqueuedNewTokens = newTokens.filter { newToken in
+            !self.tokenQueue.contains { $0.id == newToken.id }
+        }
+
+        // Filter out any old tokens that conflict with the new ones
+        let uniqueOldTokens = self.pendingTokens.filter { oldToken in
+            !unqueuedNewTokens.contains { $0.id == oldToken.id }
+        }
+
+        self.pendingTokens = Array((unqueuedNewTokens + uniqueOldTokens).prefix(20))
     }
 
-    func formatTimeElapsed(_ timeInterval: TimeInterval) -> String {
-        let hours = Int(timeInterval) / 3600
-        let minutes = (Int(timeInterval) % 3600) / 60
+    private func initializeTokenQueue() {
+        if !self.tokenQueue.isEmpty { return }
 
-        if hours > 1 {
-            return "past \(hours) hours"
-        }
-        else if hours > 0 {
-            return "past hour"
-        }
-        else if minutes > 1 {
-            return "past \(minutes) minutes"
-        }
-        else {
-            return "past minute"
-        }
+        // first model
+        let firstToken = getNextToken()
+        tokenQueue.append(firstToken)
+        self.currentTokenIndex += 1
+        removePendingToken(firstToken.id)
+        initCurrentTokenModel(with: firstToken)
+
+        // second model
+        let secondToken = getNextToken(excluding: firstToken.id)
+        tokenQueue.append(secondToken)
+        currentTokenStartTime = Date()
+        removePendingToken(secondToken.id)
+        let nextModel = TokenModel()
+        nextModel.preload(with: secondToken)
+        self.nextTokenModel = nextModel
     }
 
     // Add this new method after formatTimeElapsed
     private func recordTokenDwellTime() {
         guard let startTime = currentTokenStartTime,
-            let currentToken = tokens[safe: currentTokenIndex]
+            let currentToken = tokenQueue[safe: currentTokenIndex]
         else { return }
 
         Task {
@@ -346,8 +318,15 @@ class TokenListModel: ObservableObject {
                     ]
                 )
             )
-            print("Recorded token dwell time")
         }
+    }
+
+    deinit {
+        // Record final dwell time before cleanup
+        recordTokenDwellTime()
+
+        timer?.invalidate()
+        timer = nil
     }
 }
 

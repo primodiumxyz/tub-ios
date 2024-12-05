@@ -14,9 +14,9 @@ struct HistoryView: View {
     @EnvironmentObject private var userModel: UserModel
     @EnvironmentObject private var priceModel: SolPriceModel
 
-    @State private var txs: [Transaction]
+    @State private var txs: [TransactionData]
     @State private var isReady: Bool
-    @State private var error: Error?  // Add this line
+    @State private var error: Error?
     @State private var tokenMetadata: [String: TokenMetadata] = [:]  // Cache for token metadata
 
     struct TokenMetadata {
@@ -25,7 +25,7 @@ struct HistoryView: View {
         let imageUri: String?
     }
 
-    init(txs: [Transaction]? = []) {
+    init(txs: [TransactionData]? = []) {
         self._txs = State(initialValue: txs!.isEmpty ? [] : txs!)
         self._isReady = State(initialValue: txs != nil)
         self._error = State(initialValue: nil)  // Add this line
@@ -71,10 +71,11 @@ struct HistoryView: View {
                     switch result {
                     case .success(let graphQLResult):
                         if let tokenTransactions = graphQLResult.data?.token_transaction {
-                            var processedTxs: [Transaction] = []
+                            var processedTxs: [TransactionData] = []
 
                             for transaction in tokenTransactions {
-                                guard let date = formatDateString(transaction.wallet_transaction_data.created_at) else {
+                                guard let date = formatDateString(transaction.wallet_transaction_data.created_at)
+                                else {
                                     continue
                                 }
 
@@ -93,16 +94,16 @@ struct HistoryView: View {
                                 let metadata = tokenMetadata[transaction.token]
                                 let isBuy = transaction.amount >= 0
                                 let mint = transaction.token
-                                let priceLamps = transaction.token_price
-                                let valueLamps = transaction.amount * Int(priceLamps) / Int(1e9)
+                                let priceUsdc = transaction.token_price
+                                let valueUsdc = transaction.amount * Int(priceUsdc) / Int(1e9)
 
-                                let newTransaction = Transaction(
+                                let newTransaction = TransactionData(
                                     name: metadata?.name ?? "",
                                     symbol: metadata?.symbol ?? "",
                                     imageUri: metadata?.imageUri ?? "",
                                     date: date,
-                                    valueUsd: priceModel.lamportsToUsd(lamports: -valueLamps),
-                                    valueLamps: -valueLamps,
+                                    valueUsd: priceModel.usdcToUsd(usdc: -valueUsdc),
+                                    valueUsdc: -valueUsdc,
                                     quantityTokens: transaction.amount,
                                     isBuy: isBuy,
                                     mint: mint
@@ -136,7 +137,11 @@ struct HistoryView: View {
                 ErrorView(error: error)
             }
             else {
-                HistoryViewContent(txs: txs, isReady: $isReady)
+                HistoryViewContent(
+                    txs: txs,
+                    isReady: $isReady,
+                    fetchUserTxs: fetchUserTxs
+                )
             }
         }.onAppear {
             if let wallet = userModel.walletAddress { fetchUserTxs(wallet) }
@@ -145,49 +150,52 @@ struct HistoryView: View {
 }
 
 struct HistoryViewContent: View {
-    var txs: [Transaction]
+    @EnvironmentObject private var userModel: UserModel
+    var txs: [TransactionData]
     @Binding var isReady: Bool
     @State private var filterState = FilterState()
+    var fetchUserTxs: (String) -> Void
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 0) {
-                    // Add padding at the top to make room for the filters
-                    Color.clear.frame(height: 44)
+        ScrollView {
+            VStack(spacing: 0) {
 
-                    // Transaction List
-                    if !isReady {
-                        ProgressView()
-                    }
-                    else if filteredTransactions().isEmpty {
-                        Text("No transactions found")
-                            .font(.sfRounded(size: .base, weight: .regular))
-                            .foregroundStyle(Color.gray)
-                    }
-                    else {
-                        LazyVStack(spacing: 0) {
-                            ForEach(groupTransactions(filteredTransactions()), id: \.date) { group in
-                                TransactionGroupRow(group: group)
-                            }
-                        }
-                        .padding(.horizontal, 16)
-                    }
-                    Spacer()
+                // Transaction List
+                if !isReady {
+                    ProgressView()
                 }
+                else if filteredTransactions().isEmpty {
+                    TransactionFilters(filterState: $filterState)
+                        .background(Color(UIColor.systemBackground))
+                    Text("No transactions found")
+                        .padding()
+                        .font(.sfRounded(size: .base, weight: .regular))
+                        .foregroundStyle(Color.gray)
+                }
+                else {
+                    TransactionFilters(filterState: $filterState)
+                        .background(Color(UIColor.systemBackground))
+                    LazyVStack(spacing: 0) {
+                        ForEach(groupTransactions(filteredTransactions()), id: \.date) { group in
+                            TransactionGroupRow(group: group)
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                }
+                Spacer()
             }
-            .overlay(
-                TransactionFilters(filterState: $filterState)
-                    .background(Color.black),
-                alignment: .top
-            )
-            .navigationTitle("History")
-            .navigationBarTitleDisplayMode(.large)
         }
+        .refreshable {
+            if let wallet = userModel.walletAddress {
+                fetchUserTxs(wallet)
+            }
+        }
+        .navigationTitle("History")
+        .navigationBarTitleDisplayMode(.inline)
     }
 
     // Helper function to filter transactions
-    func filteredTransactions() -> [Transaction] {
+    func filteredTransactions() -> [TransactionData] {
         var filteredData = txs
 
         // Filter by search text
@@ -353,7 +361,7 @@ struct TransactionFilters: View {
 }
 
 struct TransactionRow: View {
-    let transaction: Transaction
+    let transaction: TransactionData
     @EnvironmentObject private var priceModel: SolPriceModel
 
     var body: some View {
@@ -365,10 +373,9 @@ struct TransactionRow: View {
                 HStack {
                     Text(transaction.isBuy ? "Buy" : "Sell")
                         .font(.sfRounded(size: .base, weight: .bold))
-                        .foregroundStyle(Color("grayLight"))
+                        .foregroundStyle(.tubNeutral)
                     Text(transaction.name.isEmpty ? transaction.mint.truncatedAddress() : transaction.name)
                         .font(.sfRounded(size: .base, weight: .bold))
-                        .foregroundStyle(Color.white)
                         .lineLimit(1)
                         .truncationMode(.tail)
                         .offset(x: -2)
@@ -387,22 +394,22 @@ struct TransactionRow: View {
                     .font(.sfRounded(size: .base, weight: .bold))
                     .foregroundStyle(transaction.isBuy ? Color.red : Color.green)
 
-                let quantity = priceModel.formatPrice(lamports: abs(transaction.quantityTokens), showUnit: false)
+                let quantity = priceModel.formatPrice(
+                    lamports: abs(transaction.quantityTokens),
+                    showUnit: false
+                )
                 HStack {
                     Text(quantity)
                         .font(.sfRounded(size: .xs, weight: .regular))
-                        .foregroundStyle(Color.gray)
+                        .foregroundStyle(.secondary)
                         .offset(x: 4, y: 2)
 
                     Text(transaction.symbol)
                         .font(.sfRounded(size: .xs, weight: .regular))
-                        .foregroundStyle(Color.gray)
+                        .foregroundStyle(.secondary)
                         .offset(y: 2)
                 }
             }
-            Image(systemName: "chevron.right")
-                .foregroundStyle(Color.gray)
-                .offset(x: 12)
         }
         .padding(.bottom, 10.0)
     }
@@ -420,35 +427,46 @@ struct SearchFilter: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            Button(action: {
-                if filterState.isSearching {
-                    filterState.searchText = ""
+            Image(systemName: filterState.isSearching ? "xmark.circle.fill" : "magnifyingglass")
+                .foregroundStyle(.primary)
+                .font(.sfRounded(size: .base, weight: .semibold))
+                .onTapGesture {
+                    if filterState.isSearching {
+                        filterState.searchText = ""
+                    }
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        filterState.isSearching.toggle()
+                    }
                 }
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    filterState.isSearching.toggle()
-                }
-            }) {
-                Image(systemName: filterState.isSearching ? "xmark.circle.fill" : "magnifyingglass")
-                    .foregroundStyle(.primary)
-                    .font(.sfRounded(size: .base, weight: .semibold))
-            }
 
             if filterState.isSearching {
                 ZStack(alignment: .leading) {
                     if filterState.searchText.isEmpty {
                         Text("Search...")
-                            .foregroundStyle(Color.gray)
+                            .foregroundStyle(.secondary)
                             .font(.sfRounded(size: .base, weight: .regular))
                     }
                     TextField("", text: $filterState.searchText)
                         .textFieldStyle(PlainTextFieldStyle())
-                        .foregroundStyle(Color.white)
+                        .foregroundStyle(.primary)
                         .frame(width: 100)
                         .font(.sfRounded(size: .base, weight: .regular))
                 }
-                .transition(.move(edge: .trailing).combined(with: .opacity))
             }
         }
-        .buttonStyle(FilterButtonStyle())
+        .padding(.horizontal)
+        .padding(.vertical, 6)
+        .background(Color.clear)
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(.tubNeutral, lineWidth: 1)
+        )
+        .onTapGesture {
+            if !filterState.isSearching {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    filterState.isSearching.toggle()
+                }
+            }
+        }
     }
 }

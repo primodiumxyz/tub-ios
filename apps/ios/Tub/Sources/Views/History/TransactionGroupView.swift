@@ -2,7 +2,7 @@ import SwiftUI
 import TubAPI
 
 struct TransactionGroup {
-    let transactions: [Transaction]
+    let transactions: [TransactionData]
     let netProfit: Double
     let date: Date
     let token: String
@@ -32,7 +32,6 @@ struct TransactionGroupRow: View {
                 VStack(alignment: .leading) {
                     Text(group.symbol)
                         .font(.sfRounded(size: .base, weight: .bold))
-                        .foregroundStyle(.primary)
 
                     Text(formatDate(group.date))
                         .font(.sfRounded(size: .sm, weight: .regular))
@@ -59,7 +58,7 @@ struct TransactionGroupRow: View {
 }
 
 struct TransactionDetailRow: View {
-    let transaction: Transaction
+    let transaction: TransactionData
     @EnvironmentObject private var priceModel: SolPriceModel
 
     var body: some View {
@@ -68,7 +67,6 @@ struct TransactionDetailRow: View {
                 VStack(alignment: .leading) {
                     Text(transaction.isBuy ? "Buy" : "Sell")
                         .font(.sfRounded(size: .sm, weight: .medium))
-                        .foregroundStyle(.primary)
                     Text(formatDate(transaction.date))
                         .font(.sfRounded(size: .xs, weight: .regular))
                         .foregroundStyle(.secondary)
@@ -79,7 +77,7 @@ struct TransactionDetailRow: View {
                     let price = priceModel.formatPrice(usd: transaction.valueUsd, showSign: true)
                     Text(price)
                         .font(.sfRounded(size: .sm, weight: .bold))
-                        .foregroundColor(transaction.isBuy ? Color.red : Color.green)
+                        .foregroundStyle(transaction.isBuy ? Color.red : Color.green)
 
                     let quantity = priceModel.formatPrice(lamports: abs(transaction.quantityTokens), showUnit: false)
                     Text("\(quantity) \(transaction.symbol)")
@@ -93,7 +91,7 @@ struct TransactionDetailRow: View {
 }
 
 // Helper function to group transactions
-func groupTransactions(_ transactions: [Transaction]) -> [TransactionGroup] {
+func groupTransactions(_ transactions: [TransactionData]) -> [TransactionGroup] {
     let grouped = Dictionary(grouping: transactions) { transaction in
         let calendar = Calendar.current
         let date = calendar.startOfDay(for: transaction.date)
