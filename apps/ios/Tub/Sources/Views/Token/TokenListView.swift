@@ -32,7 +32,8 @@ struct TokenListView: View {
     @State private var activeOffset: CGFloat = 0
     @State private var dragging = false
     @State private var isDragStarting = true
-	private let offsetThresholdToDragToAnotherToken = 150.0
+	@State private var animateCurrentTokenModel = true
+	private let offsetThresholdToDragToAnotherToken = 125.0
 	private let scrollAnimationDuration = 0.3
 	private let scrollSpringAnimationBounce = 0.35	// [0,1] where 1 is very springy
 
@@ -62,26 +63,54 @@ struct TokenListView: View {
     }
 
     private func loadToken(_ geometry: GeometryProxy, _ direction: SwipeDirection) {
-        if direction == .up {
+		animateCurrentTokenModel = false
+
+		if direction == .up {
+			// Step #1: Animate to the new TokenView
 			withAnimation(.spring(duration: scrollAnimationDuration, bounce: scrollSpringAnimationBounce)) {
-//			withAnimation(.easeOut(duration: scrollAnimationDuration)) {
+//alt anim option: withAnimation(.easeOut(duration: scrollAnimationDuration)) {
 				activeOffset += (geometry.size.height - dragGestureOffset)
 			} completion: {
+				// Step #2: While the "main/center" TokenView is still scrolled out of view,
+				//	call loadPreviousToken() which takes care of transitioning
+				//	previousTokenModel to now become currentTokenModel. This hides
+				//	the visual glitch that comes when the chart is given a completely
+				//	different set of prices to plot: this transition is visually jarring.
 				tokenListModel.loadPreviousToken()
-				dragging = false
-				activeOffset = 0
-				dragGestureOffset = 0
+
+				// Step #3: Wait a beat to let the currentTokenModel chart price rendering
+				//	to settle before resetting dragGestureOffset that results in the
+				//	"main/center" TokenView being centered again.
+				DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+					activeOffset = 0
+					dragGestureOffset = 0
+					dragging = false
+					animateCurrentTokenModel = true
+				}
 			}
         }
         else {
+			// Step #1: Animate to the new TokenView
 			withAnimation(.spring(duration: scrollAnimationDuration, bounce: scrollSpringAnimationBounce)) {
-//			withAnimation(.easeOut(duration: scrollAnimationDuration)) {
+//alt anim option: withAnimation(.easeOut(duration: scrollAnimationDuration)) {
 				activeOffset -= (geometry.size.height + dragGestureOffset)
 			} completion: {
+				// Step #2: While the "main/center" TokenView is still scrolled out of view,
+				//	call loadPreviousToken() which takes care of transitioning
+				//	nextTokenModel to now become currentTokenModel. This hides
+				//	the visual glitch that comes when the chart is given a completely
+				//	different set of prices to plot: this transition is visually jarring.
 				tokenListModel.loadNextToken()
-				dragging = false
-				activeOffset = 0
-				dragGestureOffset = 0
+
+				// Step #3: Wait a beat to let the currentTokenModel chart price rendering
+				//	to settle before resetting dragGestureOffset that results in the
+				//	"main/center" TokenView being centered again.
+				DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+					activeOffset = 0
+					dragGestureOffset = 0
+					dragging = false
+					animateCurrentTokenModel = true
+				}
 			}
         }
     }
@@ -135,7 +164,7 @@ struct TokenListView: View {
 
                             TokenView(
                                 tokenModel: tokenListModel.currentTokenModel,
-                                animate: Binding.constant(true),
+                                animate: $animateCurrentTokenModel,
                                 showBubbles: $showBubbles,
                                 onSellSuccess: {
                                     withAnimation {
