@@ -55,7 +55,7 @@ export const useTokenPrices = (
 
   return {
     tokenPrices: initialPrices.current,
-    fetching: tokenPricesRes.fetching,
+    fetching: initialPrices.current.length ? false : tokenPricesRes.fetching,
     error: tokenPricesRes.error?.message,
   };
 };
