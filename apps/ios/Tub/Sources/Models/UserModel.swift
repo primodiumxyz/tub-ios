@@ -295,7 +295,7 @@ final class UserModel: ObservableObject {
             throw TubError.insufficientBalance
         }
 
-        // assuming decimals are 1e9 for all tokens. We should probably pass this in.
+        // TODO: Pull the decimals in the token metadata instead of assuming 9
         let buyQuantityToken = (buyQuantityUsdc / tokenPriceUsdc) * Int(1e9)
 
         var err: (any Error)? = nil
