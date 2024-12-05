@@ -11,19 +11,6 @@ export type Token = {
   liquidity?: string;
   marketCap?: string;
   volume?: string;
-  pairId?: string;
-  priceChange: {
-    [key in Interval]: number;
-  };
-  transactions: {
-    [key in Interval]: number;
-  };
-  uniqueBuys: {
-    [key in Interval]: number;
-  };
-  uniqueSells: {
-    [key in Interval]: number;
-  };
 };
 
 export type TokenPrice = {
