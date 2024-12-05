@@ -5,12 +5,11 @@
 //  Created by Henry on 11/14/24.
 //
 
-import Apollo
-import ApolloCombine
 import Combine
 import PrivySDK
 import SwiftUI
 import TubAPI
+import CodexAPI
 
 final class UserModel: ObservableObject {
     static let shared = UserModel()
@@ -26,8 +25,8 @@ final class UserModel: ObservableObject {
     @Published var initialBalanceUsdc: Int? = nil
     @Published var balanceChangeUsdc: Int = 0
 
-    private var accountBalanceSubscription: Apollo.Cancellable?
-
+    @Published var tokenPortfolio: [String : TokenData] = [:]
+    
     private var timer: Timer?
 
     @Published var hasSeenOnboarding: Bool {
@@ -108,22 +107,100 @@ final class UserModel: ObservableObject {
             }
         }
 
-        do {
-            try await fetchInitialUsdcBalance()
-            startPollingUsdcBalance()
-            if let walletAddress, let tokenId {
-                subscribeToTokenBalance(walletAddress: walletAddress, tokenId: tokenId)
+            Task {
+                try await fetchInitialUsdcBalance()
+                startPollingUsdcBalance()
             }
+            
+            Task {
+                try await refreshPortfolio()
+                startPollingTokenPortfolio()
+            }
+            
             timeoutTask.cancel()  // Cancel timeout if successful
             DispatchQueue.main.async {
                 self.initialTime = Date()
                 self.isLoading = false
             }
+    }
+
+
+    private var tokenPortfolioTimer: Timer?
+    let PORTFOLIO_POLL_INTERVAL: TimeInterval = 60
+    
+    private func startPollingTokenPortfolio() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.stopPollingTokenPortfolio()  // Ensure any existing timer is invalidated
+
+            self.tokenPortfolioTimer = Timer.scheduledTimer(withTimeInterval: self.PORTFOLIO_POLL_INTERVAL, repeats: true) { [weak self] _ in
+                guard let self = self else { return }
+                Task {
+                    try await self.refreshPortfolio()
+                }
+            }
         }
-        catch {
-            timeoutTask.cancel()  // Cancel timeout if there's an error
-            DispatchQueue.main.async {
-                self.isLoading = false
+    }
+    
+    private func stopPollingTokenPortfolio() {
+        tokenPortfolioTimer?.invalidate()
+        tokenPortfolioTimer = nil
+    }
+    
+    
+    private func refreshPortfolio() async throws {
+        guard let walletAddress else { return }
+        
+        let tokenBalances = try await Network.shared.getTokenBalances(address: walletAddress)
+        
+        for balance in tokenBalances {
+            if balance.mint == USDC_MINT {
+                continue
+            }
+            Task {
+                try await updateTokenData(balance: balance)
+            }
+        }
+    }
+    
+    public func refreshTokenData(tokenMint: String) async throws {
+        guard let walletAddress else { return }
+        let balanceData = try await Network.shared.getTokenBalance(address: walletAddress, tokenMint: tokenMint)
+        try await updateTokenData(balance: balanceData)
+    }
+    
+    private func updateTokenData(balance: TokenBalanceData) async throws {
+        if let tokenData = tokenPortfolio[balance.mint] {
+            let newData = TokenData(id: balance.mint, balanceData: balance, metadata: tokenData.metadata)
+            await MainActor.run {
+                self.tokenPortfolio[balance.mint] = newData
+            }
+        } else {
+            let tokenData = try await createTokenData(from: balance)
+            let newToken = TokenData(id: balance.mint, balanceData: balance, metadata: tokenData)
+            await MainActor.run {
+                self.tokenPortfolio[balance.mint] = newToken
+            }
+        }
+    }
+
+    private func createTokenData(from tokenBalance: TokenBalanceData) async throws -> TokenMetadata {
+        let client = await CodexNetwork.shared.apolloClient
+        let query = GetTokenMetadataQuery(address: tokenBalance.mint)
+
+        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<TokenMetadata, Error>) in
+            client.fetch(query: query) { result in
+                switch result {
+                case .success(let response):
+                    let tokenData = TokenMetadata(
+                        name: response.data?.token.info?.name,
+                        symbol: response.data?.token.info?.symbol,
+                        imageUrl: response.data?.token.info?.imageLargeUrl
+                    )
+                    continuation.resume(returning: tokenData)
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
             }
         }
     }
@@ -133,11 +210,11 @@ final class UserModel: ObservableObject {
                         if self.initialBalanceUsdc == nil {
                             try await self.fetchInitialUsdcBalance()
                         } else {
-                            let balanceUsdc = try await Network.shared.getUsdcBalance(address: walletAddress)
+                            let usdcData = try await Network.shared.getUsdcBalance(address: walletAddress)
                             await MainActor.run {
-                                self.balanceUsdc = balanceUsdc
+                                self.balanceUsdc = usdcData.amountToken
                                 if let initialBalanceUsdc = self.initialBalanceUsdc {
-                                    self.balanceChangeUsdc = balanceUsdc - initialBalanceUsdc
+                                    self.balanceChangeUsdc = usdcData.amountToken - initialBalanceUsdc
                                 }
                             }
                         }
@@ -146,10 +223,10 @@ final class UserModel: ObservableObject {
     private func fetchInitialUsdcBalance() async throws {
         guard let walletAddress = self.walletAddress else { return }
         do {
-            let balanceUsdc = try await Network.shared.getUsdcBalance(address: walletAddress)
+            let usdcData = try await Network.shared.getUsdcBalance(address: walletAddress)
             await MainActor.run {
-                self.initialBalanceUsdc = balanceUsdc
-                self.balanceUsdc = balanceUsdc
+                self.initialBalanceUsdc = usdcData.amountToken
+                self.balanceUsdc = usdcData.amountToken
             }
         } catch {
             print("Error fetching initial balance: \(error)")
@@ -165,7 +242,6 @@ final class UserModel: ObservableObject {
             self.stopPollingUsdcBalance()  // Ensure any existing timer is invalidated
 
             self.usdcBalanceTimer = Timer.scheduledTimer(withTimeInterval: self.POLL_INTERVAL, repeats: true) { [weak self] _ in
-                print("here")
                 guard let self = self else { return }
                 Task {
                     try await self.fetchUsdcBalance()
@@ -252,37 +328,8 @@ final class UserModel: ObservableObject {
 
     @Published var purchaseData: PurchaseData? = nil
 
-    private var tokenBalanceSubscription: Apollo.Cancellable?
-
     func initToken(tokenId: String) {
         self.tokenId = tokenId
-        guard let walletAddress else {
-            return
-        }
-
-        subscribeToTokenBalance(walletAddress: walletAddress, tokenId: tokenId)
-    }
-
-    private func subscribeToTokenBalance(walletAddress: String, tokenId: String) {
-        tokenBalanceSubscription?.cancel()
-
-        tokenBalanceSubscription = Network.shared.apollo.subscribe(
-            subscription: SubWalletTokenBalanceSubscription(
-                wallet: walletAddress,
-                token: tokenId
-            )
-        ) { [weak self] result in
-            guard let self = self else { return }
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let graphQLResult):
-                    let balanceToken = graphQLResult.data?.balance.first?.value ?? 0
-                    self.balanceToken = balanceToken
-                case .failure(let error):
-                    print("Error updating token balance: \(error.localizedDescription)")
-                }
-            }
-        }
     }
 
     func buyTokens(buyQuantityUsdc: Int, tokenPriceUsdc: Int) async throws {

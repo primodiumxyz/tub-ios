@@ -105,10 +105,22 @@ struct StatValue: Identifiable {
     }
 }
 
-struct TokenBalanceData: Identifiable {
+struct TokenBalanceData {
+    var mint: String
+    var amountToken: Int
+}
+
+struct TokenMetadata {
+    var name: String?
+    var symbol: String?
+    var imageUrl: String?
+    
+}
+
+struct TokenData: Identifiable {
     let id: String
-    let mint: String
-    let amountToken: Int
+    var balanceData: TokenBalanceData
+    var metadata: TokenMetadata
 }
 
 enum PurchaseState {

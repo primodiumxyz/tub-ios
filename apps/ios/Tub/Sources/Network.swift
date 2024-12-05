@@ -205,7 +205,6 @@ class Network {
 
         let val = tokenAccounts.map { account in
             TokenBalanceData(
-                id: account.pubkey,
                 mint: account.account.data.mint.base58EncodedString,
                 amountToken: Int(account.account.data.lamports)
             )
@@ -213,12 +212,11 @@ class Network {
         return val
     }
 
-    func getUsdcBalance(address: String) async throws -> Int {
-        print("getting Token balance!", Date.now)
+    func getUsdcBalance(address: String) async throws -> TokenBalanceData {
         return try await getTokenBalance(address: address, tokenMint: USDC_MINT)
     }
 
-    func getTokenBalance(address: String, tokenMint: String) async throws -> Int {
+    func getTokenBalance(address: String, tokenMint: String) async throws -> TokenBalanceData {
         let params = OwnerInfoParams(
             mint: tokenMint,
             programId: nil
@@ -231,11 +229,15 @@ class Network {
 
         // Return 0 if no token account found
         guard let firstAccount = tokenAccounts.first else {
-            return 0
+            throw TubError.emptyTokenList
         }
 
-        return Int(firstAccount.account.data.lamports)
+        return TokenBalanceData(
+            mint: firstAccount.account.data.mint.base58EncodedString,
+            amountToken: Int(firstAccount.account.data.lamports)
+        )
     }
+    
     func getTestTxData() async throws -> TxData {
         let res: TxData = try await callProcedure("get1USDCToSOLTransaction")
         return res
