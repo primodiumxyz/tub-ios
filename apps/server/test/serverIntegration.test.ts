@@ -14,8 +14,8 @@ console.log("Loading .env file from:", envPath);
 config({ path: envPath });
 const env = parseEnv();
 const tokenId = "722e8490-e852-4298-a250-7b0a399fec57";
-const host = process.env.SERVER_HOST || "localhost";
-const port = process.env.SERVER_PORT || "4000";
+const host = process.env.SERVER_HOST || "0.0.0.0";
+const port = process.env.SERVER_PORT || "8888";
 
 describe("Server Integration Tests", () => {
   let client: ReturnType<typeof createTRPCProxyClient<AppRouter>>;
