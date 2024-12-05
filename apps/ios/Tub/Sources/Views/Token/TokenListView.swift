@@ -27,12 +27,14 @@ struct TokenListView: View {
     // chevron animation
     @State private var chevronOffset: CGFloat = 0.0
 
-    private let SCROLL_DURATION = 0.3
     // swipe animation
-    @State private var offset: CGFloat = 0
+    @State private var dragGestureOffset: CGFloat = 0
     @State private var activeOffset: CGFloat = 0
     @State private var dragging = false
     @State private var isDragStarting = true
+	private let offsetThresholdToDragToAnotherToken = 150.0
+	private let scrollAnimationDuration = 0.3
+	private let scrollSpringAnimationBounce = 0.35	// [0,1] where 1 is very springy
 
     let OFFSET: Double = 5
 
@@ -61,29 +63,26 @@ struct TokenListView: View {
 
     private func loadToken(_ geometry: GeometryProxy, _ direction: SwipeDirection) {
         if direction == .up {
-            withAnimation {
-                activeOffset += geometry.size.height
-            }
+			withAnimation(.spring(duration: scrollAnimationDuration, bounce: scrollSpringAnimationBounce)) {
+//			withAnimation(.easeOut(duration: scrollAnimationDuration)) {
+				activeOffset += (geometry.size.height - dragGestureOffset)
+			} completion: {
+				tokenListModel.loadPreviousToken()
+				dragging = false
+				activeOffset = 0
+				dragGestureOffset = 0
+			}
         }
         else {
-            withAnimation {
-                activeOffset -= geometry.size.height
-            }
-        }
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + SCROLL_DURATION) {
-            // this adds a one frame delay apparently
-            DispatchQueue.main.async {
-                if direction == .up {
-                    tokenListModel.loadPreviousToken()
-                }
-                else {
-                    tokenListModel.loadNextToken()
-                }
-
-                activeOffset = 0
-                dragging = false
-            }
+			withAnimation(.spring(duration: scrollAnimationDuration, bounce: scrollSpringAnimationBounce)) {
+//			withAnimation(.easeOut(duration: scrollAnimationDuration)) {
+				activeOffset -= (geometry.size.height + dragGestureOffset)
+			} completion: {
+				tokenListModel.loadNextToken()
+				dragging = false
+				activeOffset = 0
+				dragGestureOffset = 0
+			}
         }
     }
 
@@ -156,8 +155,13 @@ struct TokenListView: View {
                             .frame(height: geometry.size.height)
                             .opacity(dragging ? 1 : 0)
                         }
+//						.overlay {
+//							Text("drag offset = \(dragGestureOffset)")
+//								.font(.title)
+//								.bold()
+//						}
                         .zIndex(1)
-                        .offset(y: -geometry.size.height + OFFSET + offset + activeOffset)
+                        .offset(y: -geometry.size.height + OFFSET + dragGestureOffset + activeOffset)
                         .gesture(
                             DragGesture()
                                 .onChanged { value in
@@ -170,7 +174,7 @@ struct TokenListView: View {
                                         }
 
                                         dragging = true
-                                        offset = value.translation.height
+										dragGestureOffset = value.translation.height
                                     }
                                 }
                                 .onEnded { value in
@@ -179,20 +183,18 @@ struct TokenListView: View {
                                     let dragDirection =
                                         value.translation.height > 0 ? SwipeDirection.up : SwipeDirection.down
                                     if canSwipe(direction: dragDirection) {
-                                        let threshold: CGFloat = 50
-                                        if value.translation.height > threshold {
+                                        if value.translation.height > offsetThresholdToDragToAnotherToken {
                                             loadToken(geometry, .up)
                                         }
-                                        else if value.translation.height < -threshold {
+                                        else if value.translation.height < -offsetThresholdToDragToAnotherToken {
                                             loadToken(geometry, .down)
-                                        }
-                                        withAnimation {
-                                            offset = 0
-                                        }
-                                        // Delay setting dragging to false to allow for smooth animation
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                            dragging = false
-                                        }
+										} else {
+											withAnimation(.spring(duration: scrollAnimationDuration, bounce: scrollSpringAnimationBounce)) {
+												dragGestureOffset = 0
+											} completion: {
+												dragging = false
+											}
+										}
                                     }
                                 }
                         )
