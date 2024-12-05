@@ -9,11 +9,18 @@ import { useTokens } from "@/hooks/use-tokens";
 import { INTERVALS } from "@/lib/constants";
 import { Interval, Token } from "@/lib/types";
 
-export const TokensTable = ({ onRowClick }: { onRowClick?: (row: Row<Token>) => void }) => {
+export const TokensTable = ({
+  onRowClick,
+  selectedInterval,
+  setSelectedInterval,
+}: {
+  onRowClick?: (row: Row<Token>) => void;
+  selectedInterval: Interval;
+  setSelectedInterval: (interval: Interval) => void;
+}) => {
   const [globalFilter, setGlobalFilter] = useState<string>("");
   const [frozen, setFrozen] = useState(false);
   const [frozenTokens, setFrozenTokens] = useState<Token[]>([]);
-  const [selectedInterval, setSelectedInterval] = useState<Interval>("30m");
 
   const { tokens, fetching, error } = useTokens(selectedInterval);
 
