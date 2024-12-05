@@ -45,6 +45,7 @@ export const GetWalletBalanceIgnoreIntervalSubscription = graphql(`
   }
 `);
 
+// Dashboard
 export const GetTopTokensByVolumeSubscription = graphql(`
   subscription SubTopTokensByVolume($interval: interval = "30m") {
     token_stats_interval_comp(
@@ -60,6 +61,18 @@ export const GetTopTokensByVolumeSubscription = graphql(`
       token_metadata_name
       token_metadata_image_uri
       token_metadata_symbol
+    }
+  }
+`);
+
+export const GetTokenPricesSinceSubscription = graphql(`
+  subscription SubTokenPricesSince($token: String!, $since: timestamptz = "now()") {
+    api_trade_history(
+      where: { token_mint: { _eq: $token }, created_at: { _gte: $since } }
+      order_by: { created_at: asc }
+    ) {
+      token_price_usd
+      created_at
     }
   }
 `);
