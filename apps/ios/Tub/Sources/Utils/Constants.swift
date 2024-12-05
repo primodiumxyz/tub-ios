@@ -112,6 +112,8 @@ enum TubError: LocalizedError {
     case insufficientBalance
     case notLoggedIn
     case parsingError
+    case actionInProgress(actionDescription: String)
+    case actionFailed(failureDescription: String)
     case emptyTokenList
     case serverError(reason: String)
 
@@ -129,6 +131,10 @@ enum TubError: LocalizedError {
             return "Invalid input"
         case .parsingError:
             return "Parsing error"
+        case .actionInProgress(let actionDescription):
+            return "\(actionDescription) already in progress"
+        case .actionFailed(let failureDescription):
+            return "\(failureDescription)"
         case .emptyTokenList:
             return "No tokens found"
         case .serverError(let reason):

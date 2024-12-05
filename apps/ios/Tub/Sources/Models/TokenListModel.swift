@@ -58,6 +58,9 @@ final class TokenListModel: ObservableObject {
         // initialize current model
         self.currentTokenModel.initialize(with: token)
         self.userModel?.initToken(tokenId: token.id)
+        Task {
+            try! await TxManager.shared.updateTxData(tokenId: token.id)
+        }
     }
 
     private func getNextToken(excluding currentId: String? = nil) -> Token {

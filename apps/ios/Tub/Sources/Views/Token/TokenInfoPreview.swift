@@ -15,7 +15,7 @@ struct TokenInfoPreview: View {
     // add the color scheme
     @Environment(\.colorScheme) var colorScheme
 
-    var activeTab: String
+    var activeTab: PurchaseState
     @State private var showInfoOverlay: Bool = false
 
     private var sellStats: [StatValue]? {
@@ -24,20 +24,20 @@ struct TokenInfoPreview: View {
             let purchaseData = userModel.purchaseData,
             let priceUsd = tokenModel.prices.last?.priceUsd,
             priceUsd > 0,
-            activeTab == "sell"
+            activeTab == .sell
         else {
             return nil
         }
         var stats = [StatValue]()
         // Calculate current value
-        let tokenBalance = Double(userModel.tokenBalanceLamps ?? 0) / 1e9
+        let tokenBalance = Double(userModel.balanceToken ?? 0) / 1e9
         let tokenBalanceUsd = tokenBalance * (tokenModel.prices.last?.priceUsd ?? 0)
-        let initialValueUsd = priceModel.lamportsToUsd(lamports: purchaseData.amount)
+        let initialValueUsd = priceModel.usdcToUsd(usdc: purchaseData.amountUsdc)
 
         // Calculate profit
         let gains = tokenBalanceUsd - initialValueUsd
 
-        if purchaseData.amount > 0, initialValueUsd > 0 {
+        if purchaseData.amountUsdc > 0, initialValueUsd > 0 {
             let percentageGain = gains / initialValueUsd * 100
             stats.append(
                 StatValue(
@@ -78,7 +78,7 @@ struct TokenInfoPreview: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             VStack(alignment: .leading, spacing: 0) {
-                if let sellStats, activeTab == "sell" {
+                if let sellStats, activeTab == .sell {
                     ForEach(sellStats) { stat in
                         VStack(spacing: 0) {
                             StatView(stat: stat)
@@ -177,9 +177,9 @@ private struct StatView: View {
         return model
     }()
 
-    var activeTab: String {
-        let balance: Int = userModel.tokenBalanceLamps ?? 0
-        return balance > 0 ? "sell" : "buy"
+    var activeTab: PurchaseState {
+        let balance: Int = userModel.balanceToken ?? 0
+        return balance > 0 ? .sell : .buy
     }
 
     // Create mock token model with sample data
@@ -193,16 +193,16 @@ private struct StatView: View {
         VStack {
             Text("Modifiers")
             PrimaryButton(text: "Toggle Buy/Sell") {
-                if userModel.tokenBalanceLamps ?? 0 > 0 {
-                    userModel.tokenBalanceLamps = 0
+                if userModel.balanceToken ?? 0 > 0 {
+                    userModel.balanceToken = 0
                     userModel.purchaseData = nil
                 }
                 else {
-                    userModel.tokenBalanceLamps = 100
+                    userModel.balanceToken = 100
                     userModel.purchaseData = PurchaseData(
                         timestamp: Date().addingTimeInterval(-60 * 60),
-                        amount: 1000,
-                        price: 100
+                        amountUsdc: 1000,
+                        priceUsdc: 100
                     )
                 }
             }

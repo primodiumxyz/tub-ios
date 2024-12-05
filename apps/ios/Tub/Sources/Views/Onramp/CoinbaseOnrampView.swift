@@ -116,9 +116,9 @@ struct CoinbaseOnrampView: View {
             backgroundColor: .tubPurple,
             disabled: userModel.walletAddress == nil || amountString == "" || !isValidInput,
             action: {
-                let walletAddress = userModel.walletAddress
+                guard let walletAddress = userModel.walletAddress else { return }
                 let urlStr =
-                    "https://pay.coinbase.com/buy?appId=70955045-7672-4640-b524-0a5aff9e074e&addresses={\"\(walletAddress ?? "")\":[\"solana\"]}&assets=[\"USDC\"]&presetFiatAmount=\(amount)"
+                    "https://pay.coinbase.com/buy?appId=70955045-7672-4640-b524-0a5aff9e074e&addresses={\"\(walletAddress)\":[\"solana\"]}&assets=[\"USDC\"]&presetFiatAmount=\(amount)"
                 print(urlStr)
                 url = URL(string: urlStr)
                 showWebView = true

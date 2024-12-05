@@ -35,9 +35,9 @@ struct ActionButtonsView: View {
         self.onSellSuccess = onSellSuccess
     }
 
-    var activeTab: String {
-        let balance: Int = userModel.tokenBalanceLamps ?? 0
-        return balance > 0 ? "sell" : "buy"
+    var activeTab: PurchaseState {
+        let balance: Int = userModel.balanceToken ?? 0
+        return balance > 0 ? .sell : .buy
     }
 
     func handleSell() async {
@@ -47,14 +47,14 @@ struct ActionButtonsView: View {
             generator.notificationOccurred(.success)
         }
 
-        guard let tokenPrice = tokenModel.prices.last?.priceUsd else {
+        guard let tokenPriceUsd = tokenModel.prices.last?.priceUsd else {
             return
         }
 
-        let priceLamps = priceModel.usdToLamports(usd: tokenPrice)
+        let priceUsdc = priceModel.usdToUsdc(usd: tokenPriceUsd)
 
         do {
-            try await userModel.sellTokens(price: priceLamps)
+            try await userModel.sellTokens(price: priceUsdc)
             await MainActor.run {
                 showBubbles = true
                 onSellSuccess?()
@@ -76,9 +76,9 @@ struct ActionButtonsView: View {
             else {
                 switch userModel.walletState {
                 case .connected(_):
-                    if activeTab == "buy" {
-                        if let balanceUsd = userModel.balanceLamps,
-                            priceModel.lamportsToUsd(lamports: balanceUsd) < 0.1
+                    if activeTab == .buy {
+                        if let balanceUsdc = userModel.balanceUsdc,
+                            priceModel.usdcToUsd(usdc: balanceUsdc) < 0.1
                         {
                             AirdropButton()
                         }
@@ -198,10 +198,10 @@ private struct BuyButton: View {
 
     var body: some View {
         PrimaryButton(
-            text: "Buy \(priceModel.formatPrice(usd: settingsManager.defaultBuyValue))",
+            text: "Buy \(priceModel.formatPrice(usd: settingsManager.defaultBuyValueUsd))",
             action: {
                 Task {
-                    await handleBuy(settingsManager.defaultBuyValue)
+                    await handleBuy(settingsManager.defaultBuyValueUsd)
                 }
             }
         )
@@ -246,7 +246,7 @@ extension ActionButtonsView: Equatable {
         @StateObject var notificationHandler = NotificationHandler()
         var userModel = {
             let model = UserModel.shared
-            model.balanceLamps = 100 * Int(1e9)
+            model.balanceUsdc = 100 * Int(1e9)
             return model
         }()
 
@@ -259,11 +259,11 @@ extension ActionButtonsView: Equatable {
         @State var isDark: Bool = true
 
         func toggleBuySell() {
-            if userModel.tokenBalanceLamps ?? 0 > 0 {
-                userModel.tokenBalanceLamps = 0
+            if userModel.balanceToken ?? 0 > 0 {
+                userModel.balanceToken = 0
             }
             else {
-                userModel.tokenBalanceLamps = 100
+                userModel.balanceToken = 100
             }
         }
         func toggleWalletConnectionState() {

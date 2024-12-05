@@ -199,9 +199,6 @@ class TokenModel: ObservableObject {
             return allPrices
         }
 
-        if prices.count < 2 {
-            throw TubError.networkFailure
-        }
         return prices.sorted { $0.timestamp < $1.timestamp }
 
     }
@@ -333,14 +330,9 @@ class TokenModel: ObservableObject {
                 guard let self = self else { return }
 
                 Task {
-                    let candles = try? await self.fetchInitialCandles(pairId)
-                    DispatchQueue.main.async {
-                        if let candles = candles {
-                            self.candles = candles
-                        }
-                        else {
-                            self.candles = [CandleData]()
-                        }
+                    let newCandles = try! await self.fetchInitialCandles(pairId)
+                    await MainActor.run {
+                        self.candles = newCandles
                     }
                 }
             }

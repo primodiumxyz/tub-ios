@@ -36,9 +36,9 @@ struct TokenListView: View {
 
     let OFFSET: Double = 5
 
-    var activeTab: String {
-        let balance: Int = userModel.tokenBalanceLamps ?? 0
-        return balance > 0 ? "sell" : "buy"
+    var activeTab: PurchaseState {
+        let balance: Int = userModel.balanceToken ?? 0
+        return balance > 0 ? .sell : .buy
     }
 
     @EnvironmentObject var tokenListModel: TokenListModel
@@ -52,7 +52,7 @@ struct TokenListView: View {
     }
 
     private func canSwipe(direction: SwipeDirection) -> Bool {
-        if activeTab == "sell" { return false }
+        if activeTab == .sell { return false }
         if direction == .up {
             return tokenListModel.currentTokenIndex != 0
         }

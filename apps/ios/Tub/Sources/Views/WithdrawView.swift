@@ -117,7 +117,7 @@ struct WithdrawView: View {
                 action: handleContinue
 
             )
-            .disabled((userModel.balanceLamps ?? 0) < priceModel.usdToLamports(usd: vm.buyAmountUsd))
+            .disabled((userModel.balanceUsdc ?? 0) < priceModel.usdToUsdc(usd: vm.buyAmountUsd))
         }
 
     }
@@ -167,14 +167,14 @@ struct AmountSelectView: View {
 
     @ObservedObject var vm: WithdrawModel
 
-    func updateBuyAmount(_ amountLamps: Int) {
-        if amountLamps == 0 {
+    func updateBuyAmount(_ amountUsdc: Int) {
+        if amountUsdc == 0 {
             vm.continueDisabled = true
             return
         }
 
         // Add a tiny buffer for floating point precision
-        vm.buyAmountUsd = priceModel.lamportsToUsd(lamports: amountLamps)
+        vm.buyAmountUsd = priceModel.usdcToUsd(usdc: amountUsdc)
 
         // Format to 2 decimal places, rounding down
         vm.buyAmountUsdString = String(format: "%.2f", floor(vm.buyAmountUsd * 100) / 100)
@@ -187,8 +187,8 @@ struct AmountSelectView: View {
             amountButtons
         }
         .onAppear {
-            let buyAmountLamps = priceModel.usdToLamports(usd: vm.buyAmountUsd)
-            updateBuyAmount(buyAmountLamps)
+            let buyAmountUsdc = priceModel.usdToUsdc(usd: vm.buyAmountUsd)
+            updateBuyAmount(buyAmountUsdc)
         }
     }
 
@@ -251,18 +251,19 @@ struct AmountSelectView: View {
         }
     }
 
+    let amounts: [Int] = [10, 25, 50, 100]
     private var amountButtons: some View {
         HStack(spacing: 10) {
-            ForEach([10, 25, 50, 100], id: \.self) { amount in
-                let balance = userModel.balanceLamps ?? 0
-                let selectedAmountUsd = priceModel.lamportsToUsd(lamports: balance * amount / 100)
+            ForEach(amounts, id: \.self) { amount in
+                let balance = userModel.balanceUsdc ?? 0
+                let selectedAmountUsd = priceModel.usdcToUsd(usdc: balance * Int(amount) / 100)
                 let selected = balance > 0 && selectedAmountUsd == vm.buyAmountUsd
                 CapsuleButton(
                     text: amount == 100 ? "MAX" : "\(amount)%",
                     textColor: .white,
                     backgroundColor: selected ? .tubAltPrimary : .tubAltSecondary,
                     action: {
-                        guard let balance = userModel.balanceLamps else { return }
+                        guard let balance = userModel.balanceUsdc else { return }
                         updateBuyAmount(balance * amount / 100)
                     }
                 )

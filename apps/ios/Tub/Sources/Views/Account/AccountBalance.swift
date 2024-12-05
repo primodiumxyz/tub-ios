@@ -12,19 +12,19 @@ struct AccountBalanceView: View {
     @ObservedObject var userModel: UserModel
     @ObservedObject var currentTokenModel: TokenModel
 
-    var balances: (solBalanceUsd: Double?, tokenBalanceUsd: Double, deltaUsd: Double) {
-        let solBalanceUsd =
-            userModel.balanceLamps == nil
-            ? nil : priceModel.lamportsToUsd(lamports: userModel.balanceLamps!)
+    var balances: (usdcBalanceUsd: Double?, tokenBalanceUsd: Double, deltaUsd: Double) {
+        let usdcBalanceUsd =
+            userModel.balanceUsdc == nil
+            ? nil : priceModel.usdcToUsd(usdc: userModel.balanceUsdc!)
         let tokenBalanceUsd =
-            userModel.tokenBalanceLamps == nil
+            userModel.balanceToken == nil
             ? 0
-            : Double(userModel.tokenBalanceLamps!) * (currentTokenModel.prices.last?.priceUsd ?? 0) / 1e9
+            : Double(userModel.balanceToken!) * (currentTokenModel.prices.last?.priceUsd ?? 0) / 1e9
 
         let deltaUsd =
-            (tokenBalanceUsd) + priceModel.lamportsToUsd(lamports: userModel.balanceChangeLamps)
+            (tokenBalanceUsd) + priceModel.usdcToUsd(usdc: userModel.balanceChangeUsdc)
 
-        return (solBalanceUsd, tokenBalanceUsd, deltaUsd)
+        return (usdcBalanceUsd, tokenBalanceUsd, deltaUsd)
     }
 
     var body: some View {
@@ -36,7 +36,7 @@ struct AccountBalanceView: View {
 
                     Spacer()
                     HStack(alignment: .center, spacing: 10) {
-                        if let balance = balances.solBalanceUsd {
+                        if let usdcBalanceUsd = balances.usdcBalanceUsd {
 
                             if balances.deltaUsd != 0 {
                                 let formattedChange = priceModel.formatPrice(
@@ -58,7 +58,7 @@ struct AccountBalanceView: View {
                             }
 
                             let formattedBalance = priceModel.formatPrice(
-                                usd: balance,
+                                usd: usdcBalanceUsd + balances.tokenBalanceUsd,
                                 maxDecimals: 2,
                                 minDecimals: 2
                             )

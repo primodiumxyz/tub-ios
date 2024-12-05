@@ -43,8 +43,8 @@ struct Token: Identifiable {
 
 struct PurchaseData {
     let timestamp: Date
-    let amount: Int
-    let price: Int
+    let amountUsdc: Int
+    let priceUsdc: Int
 }
 
 struct Price: Identifiable, Equatable {
@@ -85,7 +85,7 @@ struct TransactionData: Identifiable, Equatable {
     let imageUri: String
     let date: Date
     let valueUsd: Double
-    let valueLamps: Int
+    let valueUsdc: Int
     let quantityTokens: Int
     let isBuy: Bool
     let mint: String
@@ -103,4 +103,9 @@ struct StatValue: Identifiable {
         self.value = value
         self.color = color
     }
+}
+
+enum PurchaseState {
+    case buy
+    case sell
 }

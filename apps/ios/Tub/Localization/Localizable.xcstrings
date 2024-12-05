@@ -136,6 +136,9 @@
     "Low" : {
 
     },
+    "no data" : {
+
+    },
     "No transactions found" : {
 
     },
@@ -196,6 +199,9 @@
     "Solana Address is invalid" : {
 
     },
+    "Submit Transaction" : {
+
+    },
     "Support" : {
 
     },
@@ -224,6 +230,9 @@
 
     },
     "Unfilled" : {
+
+    },
+    "Update Tx Data" : {
 
     },
     "Welcome to tub" : {
