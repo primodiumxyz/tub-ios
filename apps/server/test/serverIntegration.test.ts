@@ -48,9 +48,25 @@ describe("Server Integration Tests", () => {
     });
   });
 
-  afterAll(() => {
-    if (wsClient) {
-      wsClient.close();
+  afterAll(async () => {
+    try {
+      // Close all subscriptions and queries
+      if (client) {
+        // @ts-expect-error _client is internal but needed for cleanup
+        await client._client?.terminate?.();
+        // @ts-expect-error _subscriptions is internal but needed for cleanup
+        client._subscriptions?.forEach((sub) => sub.unsubscribe?.());
+      }
+
+      // Close the WebSocket client
+      if (wsClient) {
+        wsClient.close();
+      }
+
+      // Small delay to ensure all connections are properly closed
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    } catch (error) {
+      console.error("Error in test cleanup:", error);
     }
   });
 
