@@ -46,21 +46,6 @@ struct TokenBalancesView: View {
         }
     }
 
-    private func processTokenBalances(_ balances: [TokenBalanceData]) async {
-        var updatedTokens: [TokenData] = []
-
-        for balance in balances {
-            if let tokenData = try? await createTokenData(from: balance) {
-                print("new token data:", tokenData)
-                updatedTokens.append(tokenData)
-            }
-        }
-
-        await MainActor.run {
-            self.tokens = updatedTokens
-        }
-    }
-
     private func fetchTokenBalances() {
         guard let wallet = userModel.walletAddress else { return }
 
@@ -70,10 +55,18 @@ struct TokenBalancesView: View {
         Task {
             do {
                 let tokenBalances = try await Network.shared.getTokenBalances(address: wallet)
-                print("tokenBalances", tokenBalances)
-                await processTokenBalances(tokenBalances)
 
-                print("tokenData", tokenBalances)
+                for balance in tokenBalances {
+                    Task {
+                        if let tokenData = try? await createTokenData(from: balance) {
+                            await MainActor.run {
+                                self.tokens.append(tokenData)
+                            }
+                        }
+
+                    }
+                }
+
                 // Update on main thread since we're modifying UI state
                 await MainActor.run {
                     isLoading = false
