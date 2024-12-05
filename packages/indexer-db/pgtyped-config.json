@@ -1,0 +1,25 @@
+{
+  "transforms": [
+    {
+      "mode": "sql",
+      "include": "./src/queries/**/*.sql",
+      "emitTemplate": "./src/queries/{{name}}.queries.ts"
+    },
+    {
+      "mode": "sql",
+      "include": "./src/queries/**/*.sql",
+      "emitTemplate": "./src/queries/index.ts",
+      "indexPattern": "{{dir}}/{{name}}.queries.ts"
+    }
+  ],
+  "srcDir": "./src/",
+  "failOnError": false,
+  "camelCaseColumnNames": false,
+  "db": {
+    "host": "localhost",
+    "port": 5433,
+    "user": "indexer_user",
+    "password": "${TIMESCALE_DB_PASSWORD}",
+    "database": "indexer"
+  }
+}
