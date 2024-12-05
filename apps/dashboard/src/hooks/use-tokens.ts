@@ -2,9 +2,11 @@ import { useMemo } from "react";
 import { useSubscription } from "urql";
 
 import { subscriptions } from "@tub/gql";
-import { Token } from "@/lib/types";
+import { Interval, Token } from "@/lib/types";
 
-export const useTokens = (): {
+export const useTokens = (
+  interval: Interval,
+): {
   tokens: Token[];
   fetching: boolean;
   error: string | undefined;
@@ -12,7 +14,7 @@ export const useTokens = (): {
   const [tokensRes] = useSubscription({
     query: subscriptions.GetTopTokensByVolumeSubscription,
     variables: {
-      interval: "5m",
+      interval,
     },
   });
 

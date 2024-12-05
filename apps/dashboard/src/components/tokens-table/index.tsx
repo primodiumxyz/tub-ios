@@ -10,11 +10,12 @@ import { INTERVALS } from "@/lib/constants";
 import { Interval, Token } from "@/lib/types";
 
 export const TokensTable = ({ onRowClick }: { onRowClick?: (row: Row<Token>) => void }) => {
-  const { tokens, fetching, error } = useTokens();
   const [globalFilter, setGlobalFilter] = useState<string>("");
   const [frozen, setFrozen] = useState(false);
   const [frozenTokens, setFrozenTokens] = useState<Token[]>([]);
   const [selectedInterval, setSelectedInterval] = useState<Interval>("30m");
+
+  const { tokens, fetching, error } = useTokens(selectedInterval);
 
   useEffect(() => {
     if (frozen) setFrozenTokens(tokens);
@@ -63,7 +64,7 @@ export const TokensTable = ({ onRowClick }: { onRowClick?: (row: Row<Token>) => 
       <DataTable
         columns={getColumns(selectedInterval)}
         data={filteredTokens}
-        caption={`List of the first 50 trending tokens during the last hour.`}
+        caption={`List of the first 50 trending tokens by volume during the last ${selectedInterval}.`}
         loading={fetching}
         pagination={true}
         onRowClick={onRowClick}
