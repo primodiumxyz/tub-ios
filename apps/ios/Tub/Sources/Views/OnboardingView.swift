@@ -55,6 +55,7 @@ struct OnboardingView: View {
                                         .foregroundStyle(.tubSellPrimary)
                                         .multilineTextAlignment(.center)
                                         .padding(.horizontal, geometry.size.width * 0.1)
+                                        .padding(.bottom, geometry.size.height * 0.02)
                                 }
                                 
                                 if let mediaTitle = onboardingData[index].mediaTitle {
