@@ -76,7 +76,6 @@ actor CodexNetwork {
     }
 
     private func setup(with apiKey: String) {
-        print("api key: ", apiKey)
         self.apiKey = apiKey
 
         // setup graphql

@@ -61,7 +61,7 @@ struct TestTxView: View {
             else {
                 Text("no data")
             }
-        }.foregroundStyle(.white).frame(maxWidth: .infinity, maxHeight: .infinity)
+        }.foregroundStyle(.tubText).frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private struct DataRow: View {

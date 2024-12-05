@@ -75,7 +75,6 @@ class TabsViewModel: ObservableObject {
 }
 
 struct HomeTabsView: View {
-    var color = Color(red: 0.43, green: 0.97, blue: 0.98)
     @EnvironmentObject private var userModel: UserModel
     @EnvironmentObject private var priceModel: SolPriceModel
     @StateObject private var vm = TabsViewModel()
@@ -93,8 +92,7 @@ struct HomeTabsView: View {
                 ZStack {
                     // Main content with TabView
                     TabView(selection: $vm.selectedTab) {
-                                                TokenListView()
-//                        TokenBalancesView()
+                          TokenListView()
                             .id(refreshCounter)
                             .tabItem {
                                 VStack {
@@ -134,7 +132,8 @@ struct HomeTabsView: View {
                         }
                         .tag(2)
                         
-                        TokenBalancesView()
+//                        TokenBalancesView()
+                        TestTxView()
                         .tabItem {
                             VStack {
                                 Image(systemName: "book.closed.fill")

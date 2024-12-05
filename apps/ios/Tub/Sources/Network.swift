@@ -230,6 +230,7 @@ class Network {
 
     func getTxData(buyTokenId: String, sellTokenId: String, sellQuantity: Int) async throws -> TxData {
         let input = SwapInput(buyTokenId: buyTokenId, sellTokenId: sellTokenId, sellQuantity: sellQuantity)
+        print("getting tx data", input)
         let res: TxData = try await callProcedure("fetchSwap", input: input)
         return res
     }
