@@ -1,14 +1,10 @@
 #!/bin/bash
 
 # Start services first
-docker-compose up -d
+docker-compose up &
 
 # Store the process ID of the background docker-compose up command
 COMPOSE_PID=$!
-
-# Show logs in background while checking health
-docker compose logs -f &
-LOGS_PID=$!
 
 # Define the health check endpoints
 HASURA_HEALTH_CHECK_URL="http://localhost:8080/healthz?strict=true"
@@ -28,19 +24,6 @@ check_hasura_health() {
 check_timescale_health() {
   $TIMESCALE_HEALTH_CHECK > /dev/null 2>&1
 }
-
-# Function to cleanup
-cleanup() {
-  echo "Stopping containers..."
-  # Stop logs
-  kill $LOGS_PID 2>/dev/null
-  # Then stop all other containers
-  docker-compose down --volumes --remove-orphans
-  exit 0
-}
-
-# Trap SIGINT (Ctrl+C) and SIGHUP (terminal close)
-trap cleanup SIGINT SIGHUP
 
 # Wait for TimescaleDB to be healthy
 echo "Waiting for TimescaleDB & Hasura to be healthy..."
@@ -77,9 +60,13 @@ for ((i=1; i<=$RETRIES; i++)); do
   # If this is the last retry, print failure message and cleanup
   if [ "$i" -eq "$RETRIES" ]; then
     echo "Services did not become healthy after $RETRIES attempts. Exiting..."
-    cleanup
+    docker-compose down --volumes --remove-orphans
+    exit 1
   fi
 done
+
+# Trap SIGINT (Ctrl+C) and SIGHUP (terminal close)
+trap 'echo "Stopping containers..."; docker-compose down --volumes --remove-orphans; exit' SIGINT SIGHUP
 
 # Wait for docker-compose
 wait $COMPOSE_PID
