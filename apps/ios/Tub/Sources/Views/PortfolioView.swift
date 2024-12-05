@@ -81,14 +81,11 @@ struct TokenBalancesView: View {
             }
         }
     }
+    
+
 
     var body: some View {
         VStack {
-            PrimaryButton(
-                text: "Refresh",
-                disabled: isLoading,
-                action: fetchTokenBalances
-            )
             if isLoading {
                 ProgressView()
             }
@@ -138,6 +135,10 @@ struct TokenBalancesView: View {
                     .padding(.vertical, 4)
                 }
             }
+        }.onAppear {
+                fetchTokenBalances()
+        }.onDisappear {
+            self.tokens = []
         }
     }
 }

@@ -213,10 +213,15 @@ class Network {
         return val
     }
 
+    func getUsdcBalance(address: String) async throws -> Int {
+        print("getting Token balance!", Date.now)
+        return try await getTokenBalance(address: address, tokenMint: USDC_MINT)
+    }
+
     func getTokenBalance(address: String, tokenMint: String) async throws -> Int {
         let params = OwnerInfoParams(
             mint: tokenMint,
-            programId: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+            programId: nil
         )
         let tokenAccounts = try await solana.getTokenAccountsByOwner(
             pubkey: address,

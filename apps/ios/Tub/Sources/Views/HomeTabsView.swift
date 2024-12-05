@@ -93,8 +93,8 @@ struct HomeTabsView: View {
                 ZStack {
                     // Main content with TabView
                     TabView(selection: $vm.selectedTab) {
-                        //                        TokenListView()
-                        TokenBalancesView()
+                                                TokenListView()
+//                        TokenBalancesView()
                             .id(refreshCounter)
                             .tabItem {
                                 VStack {
@@ -133,6 +133,18 @@ struct HomeTabsView: View {
                             }
                         }
                         .tag(2)
+                        
+                        TokenBalancesView()
+                        .tabItem {
+                            VStack {
+                                Image(systemName: "book.closed.fill")
+                                    .font(.system(size: 24))
+                                Text("Portfolio")
+                                    .font(.system(size: 12))
+                            }
+                        }
+                        .tag(3)
+
                     }
                     .background(Color(UIColor.systemBackground))
                     .ignoresSafeArea(.keyboard)
@@ -176,7 +188,7 @@ struct TabTapOverlay: View {
     var body: some View {
         GeometryReader { proxy in
             HStack(spacing: 0) {
-                ForEach(0..<3, id: \.self) { index in
+                ForEach(0..<4, id: \.self) { index in
                     Rectangle()
                         .fill(Color.clear)
                         .contentShape(Rectangle())

@@ -109,8 +109,8 @@ final class UserModel: ObservableObject {
         }
 
         do {
-            try await fetchInitialBalance()
-            subscribeToAccountBalance()
+            try await fetchInitialUsdcBalance()
+            startPollingUsdcBalance()
             if let walletAddress, let tokenId {
                 subscribeToTokenBalance(walletAddress: walletAddress, tokenId: tokenId)
             }
@@ -128,56 +128,55 @@ final class UserModel: ObservableObject {
         }
     }
 
-    private func fetchInitialBalance() async throws {
-        guard let walletAddress = self.walletAddress else {
-            return
+    public func fetchUsdcBalance () async throws {
+                        guard let walletAddress = self.walletAddress else { return }
+                        if self.initialBalanceUsdc == nil {
+                            try await self.fetchInitialUsdcBalance()
+                        } else {
+                            let balanceUsdc = try await Network.shared.getUsdcBalance(address: walletAddress)
+                            await MainActor.run {
+                                self.balanceUsdc = balanceUsdc
+                                if let initialBalanceUsdc = self.initialBalanceUsdc {
+                                    self.balanceChangeUsdc = balanceUsdc - initialBalanceUsdc
+                                }
+                            }
+                        }
+    }
+
+    private func fetchInitialUsdcBalance() async throws {
+        guard let walletAddress = self.walletAddress else { return }
+        do {
+            let balanceUsdc = try await Network.shared.getUsdcBalance(address: walletAddress)
+            await MainActor.run {
+                self.initialBalanceUsdc = balanceUsdc
+                self.balanceUsdc = balanceUsdc
+            }
+        } catch {
+            print("Error fetching initial balance: \(error)")
         }
-        let query = GetWalletBalanceQuery(wallet: walletAddress)
+    }
 
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { [weak self] result in
-                guard let self = self else {
-                    continuation.resume(throwing: TubError.networkFailure)
-                    return
-                }
+    private var usdcBalanceTimer: Timer?
+    private let POLL_INTERVAL: TimeInterval = 10.0  // Set your desired interval here
 
-                switch result {
-                case .success(let response):
-                    DispatchQueue.main.async {
-                        self.initialBalanceUsdc = response.data?.balance.first?.value ?? 0
-                    }
-                    continuation.resume()
-                case .failure(let error):
-                    print("Error fetching initial balance: \(error)")
-                    continuation.resume(throwing: error)
+    private func startPollingUsdcBalance() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.stopPollingUsdcBalance()  // Ensure any existing timer is invalidated
+
+            self.usdcBalanceTimer = Timer.scheduledTimer(withTimeInterval: self.POLL_INTERVAL, repeats: true) { [weak self] _ in
+                print("here")
+                guard let self = self else { return }
+                Task {
+                    try await self.fetchUsdcBalance()
                 }
             }
         }
     }
 
-    private func subscribeToAccountBalance() {
-        guard let walletAddress = self.walletAddress else { return }
-        if let sub = accountBalanceSubscription { sub.cancel() }
-
-        accountBalanceSubscription = Network.shared.apollo.subscribe(
-            subscription: SubWalletBalanceSubscription(
-                wallet: walletAddress
-            )
-        ) { [weak self] result in
-            guard let self = self else { return }
-            switch result {
-            case .success(let graphQLResult):
-                let balance = graphQLResult.data?.balance.first?.value ?? 0
-                DispatchQueue.main.async {
-                    self.balanceUsdc = balance
-                    if let initialBalanceUsdc = self.initialBalanceUsdc {
-                        self.balanceChangeUsdc = balance - initialBalanceUsdc
-                    }
-                }
-            case .failure(let error):
-                print("Error: \(error.localizedDescription)")
-            }
-        }
+    private func stopPollingUsdcBalance() {
+        usdcBalanceTimer?.invalidate()
+        usdcBalanceTimer = nil
     }
 
     func getLinkedAccounts() -> (email: String?, phone: String?, embeddedWallets: [PrivySDK.EmbeddedWallet]) {
@@ -425,4 +424,6 @@ final class UserModel: ObservableObject {
         timer?.invalidate()
         timer = nil
     }
+    
+    
 }

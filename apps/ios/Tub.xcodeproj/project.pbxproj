@@ -34,7 +34,7 @@
 		997DE8F42CDAC86500164366 /* NotificationBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 997DE8F32CDAC86000164366 /* NotificationBanner.swift */; };
 		99856DA42CD27E1F004B9D40 /* Privy in Frameworks */ = {isa = PBXBuildFile; productRef = 99856DA32CD27E1F004B9D40 /* Privy */; };
 		99856DA62CD27E2E004B9D40 /* Privy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99856DA52CD27E27004B9D40 /* Privy.swift */; };
-		9995E9BF2D01025D005B9179 /* TokenBalancesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9995E9BE2D01025A005B9179 /* TokenBalancesView.swift */; };
+		9995E9BF2D01025D005B9179 /* PortfolioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9995E9BE2D01025A005B9179 /* PortfolioView.swift */; };
 		999ACA732CF50F13008D765B /* TxManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999ACA722CF50EEA008D765B /* TxManager.swift */; };
 		999F59562CA6F97100E7AE9F /* TokenModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999F59552CA6F96D00E7AE9F /* TokenModel.swift */; };
 		999F595B2CA754FB00E7AE9F /* ChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999F595A2CA754F900E7AE9F /* ChartView.swift */; };
@@ -123,7 +123,7 @@
 		99856DA52CD27E27004B9D40 /* Privy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Privy.swift; sourceTree = "<group>"; };
 		99856DA92CD28271004B9D40 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		99856DCA2CD29201004B9D40 /* TubRelease.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TubRelease.entitlements; sourceTree = "<group>"; };
-		9995E9BE2D01025A005B9179 /* TokenBalancesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenBalancesView.swift; sourceTree = "<group>"; };
+		9995E9BE2D01025A005B9179 /* PortfolioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioView.swift; sourceTree = "<group>"; };
 		999ACA722CF50EEA008D765B /* TxManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxManager.swift; sourceTree = "<group>"; };
 		999F59552CA6F96D00E7AE9F /* TokenModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenModel.swift; sourceTree = "<group>"; };
 		999F595A2CA754F900E7AE9F /* ChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartView.swift; sourceTree = "<group>"; };
@@ -256,7 +256,7 @@
 		999F59522CA6F6A900E7AE9F /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				9995E9BE2D01025A005B9179 /* TokenBalancesView.swift */,
+				9995E9BE2D01025A005B9179 /* PortfolioView.swift */,
 				99A4AAB12CF4FEBA002D0027 /* TestTxView.swift */,
 				9971F29A2CFF835D00BA48C0 /* WithdrawView.swift */,
 				995DE48A2CE6A268001B3C3F /* Login */,
@@ -638,7 +638,6 @@
 				994AE5F72CD2AB3F00553A32 /* GoogleLogoView.swift in Sources */,
 				DF3D43D22D00DEB1004DAE81 /* JustifiedText.swift in Sources */,
 				992875672CCACD4C004B48BE /* ErrorView.swift in Sources */,
-				99C79A182CE2F1BD00D0E697 /* LoadingTokenView.swift in Sources */,
 				99A4AAB22CF4FEBF002D0027 /* TestTxView.swift in Sources */,
 				99DBD8EE2CF781EA0098C296 /* spoofModelData.swift in Sources */,
 				466945ED2CDFDB1F008E8B99 /* LoadingTracker.swift in Sources */,
@@ -647,7 +646,7 @@
 				99856DA62CD27E2E004B9D40 /* Privy.swift in Sources */,
 				999F595B2CA754FB00E7AE9F /* ChartView.swift in Sources */,
 				DFDA13BC2CEF9ACA00057A29 /* OnboardingView.swift in Sources */,
-				9995E9BF2D01025D005B9179 /* TokenBalancesView.swift in Sources */,
+				9995E9BF2D01025D005B9179 /* PortfolioView.swift in Sources */,
 				DFF5292B2CC0121B007DC43F /* Gradients.swift in Sources */,
 				5D8EFC2C2CE529BB002D8210 /* AppDwellTimeTracker.swift in Sources */,
 				99290EC02CB7110C003E740A /* FormatDate.swift in Sources */,
