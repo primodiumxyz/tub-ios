@@ -14,7 +14,8 @@ struct OnboardingView: View {
     @EnvironmentObject private var userModel: UserModel
     @State private var currentPage = 0
     @State private var showBubbles = false
-
+    @Environment(\.screenSize) private var screenSize
+    
     let onboardingData = [
         OnboardingPage(
             title: "Swipe to explore the hottest coins",
@@ -27,80 +28,84 @@ struct OnboardingView: View {
             mediaTitle: "onboarding1"
         ),
     ]
-
+    
     private func completeOnboarding() {
         userModel.hasSeenOnboarding = true
         dismiss()
     }
-
+    
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                TabView(selection: $currentPage) {
-                    ForEach(0..<onboardingData.count, id: \.self) { index in
-                        VStack(spacing: 16) {
-                            Spacer()
-
-                            Text(onboardingData[index].title)
-                                .font(.sfRounded(size: .xl2, weight: .semibold))
-                                .foregroundStyle(.tubBuyPrimary)
-                                .padding(.top, 30)
-
-                            if let subtitle = onboardingData[index].subtitle {
-                                Text(subtitle)
-                                    .font(.sfRounded(size: .lg, weight: .regular))
-                                    .foregroundStyle(.tubSellPrimary)
+        GeometryReader { geometry in
+            NavigationStack {
+                VStack(spacing: 0) {
+                    TabView(selection: $currentPage) {
+                        ForEach(0..<onboardingData.count, id: \.self) { index in
+                            VStack(spacing: geometry.size.height * 0.02) {
+                                Spacer()
+                                
+                                Text(onboardingData[index].title)
+                                    .font(.sfRounded(size: .xl2, weight: .semibold))
+                                    .foregroundStyle(.tubBuyPrimary)
+                                    .padding(.top, geometry.size.height * 0.04)
                                     .multilineTextAlignment(.center)
-                                    .padding(.horizontal, 40)
+                                
+                                if let subtitle = onboardingData[index].subtitle {
+                                    Text(subtitle)
+                                        .font(.sfRounded(size: .lg, weight: .regular))
+                                        .foregroundStyle(.tubSellPrimary)
+                                        .multilineTextAlignment(.center)
+                                        .padding(.horizontal, geometry.size.width * 0.1)
+                                }
+                                
+                                if let mediaTitle = onboardingData[index].mediaTitle {
+                                    let videoHeight = min(geometry.size.height * 0.5, 412)
+                                    let videoWidth = min(geometry.size.width * 0.5, 200)
+                                    
+                                    VideoPlayerView(videoName: mediaTitle)
+                                        .padding(.top, geometry.size.height * 0.02)
+                                        .padding(.horizontal, 4)
+                                        .frame(width: videoWidth, height: videoHeight)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 24)
+                                                .stroke(Color.gray, lineWidth: 2)
+                                        )
+                                }
+                                Spacer()
                             }
-
-                            if let mediaTitle = onboardingData[index].mediaTitle {
-
-                                VideoPlayerView(videoName: mediaTitle)
-                                    .padding(.top, 16)
-                                    .padding(.horizontal, 4)
-                                    .frame(width: 200, height: 412.2)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 24)
-                                            .stroke(Color.gray, lineWidth: 2)
-                                    )
-                            }
-                            Spacer()
-                        }
-                        .tag(index)
-                        .onChange(of: currentPage) { oldValue, newValue in
-                            if newValue == 1 {
-                                showBubbles = false
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 6.8) {
-                                    showBubbles = true
+                            .tag(index)
+                            .onChange(of: currentPage) { oldValue, newValue in
+                                if newValue == 1 {
+                                    showBubbles = false
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 6.8) {
+                                        showBubbles = true
+                                    }
                                 }
                             }
                         }
                     }
-                }
-                .tabViewStyle(.page(indexDisplayMode: .never))
-
-                OutlineButton(
-                    text: currentPage == onboardingData.count - 1 ? "Get Started" : "Continue",
-                    textColor: .tubBuyPrimary,
-                    strokeColor: .tubBuyPrimary,
-                    backgroundColor: .clear,
-                    maxWidth: .infinity,
-                    action: {
-                        if currentPage < onboardingData.count - 1 {
-                            withAnimation {
-                                currentPage += 1
+                    .tabViewStyle(.page(indexDisplayMode: .never))
+                    
+                    OutlineButton(
+                        text: currentPage == onboardingData.count - 1 ? "Get Started" : "Continue",
+                        textColor: .tubBuyPrimary,
+                        strokeColor: .tubBuyPrimary,
+                        backgroundColor: .clear,
+                        maxWidth: .infinity,
+                        action: {
+                            if currentPage < onboardingData.count - 1 {
+                                withAnimation {
+                                    currentPage += 1
+                                }
+                            } else {
+                                completeOnboarding()
                             }
                         }
-                        else {
-                            completeOnboarding()
-                        }
-                    }
-                )
-                .padding(.horizontal, 20)
-                .padding(.bottom, 40)
+                    )
+                    .padding(.horizontal, geometry.size.width * 0.05)
+                    .padding(.bottom, geometry.size.height * 0.05)
+                }
+                .navigationBarHidden(true)
             }
-            .navigationBarHidden(true)
         }
     }
 }

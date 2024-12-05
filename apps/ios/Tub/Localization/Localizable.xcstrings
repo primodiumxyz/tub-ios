@@ -4,9 +4,6 @@
     "" : {
 
     },
-    "(%.1f%%)" : {
-
-    },
     "#8612373299412" : {
 
     },
@@ -29,6 +26,16 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "%1$@ at %2$@"
+          }
+        }
+      }
+    },
+    "%@%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@%2$@"
           }
         }
       }
@@ -63,6 +70,9 @@
     "Add Funds" : {
 
     },
+    "B" : {
+
+    },
     "Buy" : {
 
     },
@@ -73,18 +83,6 @@
 
     },
     "Close" : {
-
-    },
-    "Connect to Wallet" : {
-
-    },
-    "Connecting..." : {
-
-    },
-    "Connection Error" : {
-
-    },
-    "Continue" : {
 
     },
     "Country Code" : {
@@ -172,9 +170,6 @@
 
     },
     "Settings" : {
-
-    },
-    "Stats" : {
 
     },
     "Support" : {
