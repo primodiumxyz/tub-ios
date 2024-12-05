@@ -49,16 +49,16 @@ For examples in swift, see [Network.swift](../ios/Tub/Network.swift).
 
 The server can be configured with the following environment variables:
 
-| Variable               | Description                          | Default                            |
-| ---------------------- | ------------------------------------ | ---------------------------------- |
-| `NODE_ENV`             | Environment (local, dev, test, prod) | `local`                            |
-| `SERVER_HOST`          | Host that the server listens on      | `0.0.0.0`                          |
-| `SERVER_PORT`          | Port that the server listens on      | `8888`                             |
-| `HASURA_ADMIN_SECRET`  | Admin secret for Hasura GraphQL      | `password`                         |
-| `GRAPHQL_URL`          | URL of the GraphQL endpoint          | `http://localhost:8080/v1/graphql` |
-| `PRIVATE_KEY`          | Private key for solana wallet        | (a default key is provided)        |
-| `JWT_SECRET`           | Secret for JWT signing               | `secret`                           |
-| `JUPITER_API_ENDPOINT` | Endpoint for the Jupiter V6 Swap API |                                    |
+| Variable              | Description                          | Default                            |
+| --------------------- | ------------------------------------ | ---------------------------------- |
+| `NODE_ENV`            | Environment (local, dev, test, prod) | `local`                            |
+| `SERVER_HOST`         | Host that the server listens on      | `0.0.0.0`                          |
+| `SERVER_PORT`         | Port that the server listens on      | `8888`                             |
+| `HASURA_ADMIN_SECRET` | Admin secret for Hasura GraphQL      | `password`                         |
+| `GRAPHQL_URL`         | URL of the GraphQL endpoint          | `http://localhost:8080/v1/graphql` |
+| `PRIVATE_KEY`         | Private key for solana wallet        | (a default key is provided)        |
+| `JWT_SECRET`          | Secret for JWT signing               | `secret`                           |
+| `JUPITER_URL`         | Endpoint for the Jupiter V6 Swap API |                                    |
 
 ## Development
 

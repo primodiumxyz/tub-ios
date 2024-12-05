@@ -8,7 +8,7 @@ const commonSchema = z.object({
   GRAPHQL_URL: z.string().default("https://tub-graphql.primodium.ai/v1/graphql"),
   QUICKNODE_ENDPOINT: z.string(),
   QUICKNODE_TOKEN: z.string(),
-  JUPITER_API_ENDPOINT: z.string(),
+  JUPITER_URL: z.string(),
 });
 
 export function parseEnv<TSchema extends ZodTypeAny | undefined = undefined>(

@@ -163,7 +163,7 @@ export class TubService {
   }
 
   private async updateSolUsdPrice(): Promise<void> {
-    const res = await fetch(`${process.env.JUPITER_API_ENDPOINT}/price?ids=SOL`);
+    const res = await fetch(`${process.env.JUPITER_URL}/price?ids=SOL`);
     const data = (await res.json()) as { data: { [id: string]: { price: number } } };
 
     this.solUsdPrice = data.data["SOL"]?.price;

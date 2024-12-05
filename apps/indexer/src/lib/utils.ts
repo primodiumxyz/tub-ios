@@ -165,7 +165,7 @@ export const fetchPriceAndMetadata = async (
       const before = Date.now();
       const [priceResponse, metadataResponse] = await Promise.all([
         fetchWithRetry(
-          `${env.JUPITER_API_ENDPOINT}/price?ids=${mintIds}`,
+          `${env.JUPITER_URL}/price?ids=${mintIds}`,
           {
             method: "GET",
             headers: { "Content-Type": "application/json" },
