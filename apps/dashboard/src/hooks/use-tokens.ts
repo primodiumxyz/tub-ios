@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
+import { useSubscription } from "urql";
 
+import { subscriptions } from "@tub/gql";
 import { Token } from "@/lib/types";
 
 export const useTokens = (): {
@@ -7,36 +9,28 @@ export const useTokens = (): {
   fetching: boolean;
   error: string | undefined;
 } => {
-  const [tokens, setTokens] = useState<Token[]>([]);
-  const [fetching, setFetching] = useState(true);
-  const [error, setError] = useState<string | undefined>(undefined);
-
-  const fetchTokens = useCallback(async () => {
-    try {
-      setFetching(true);
-
-      // TODO: implement
-
-      setTokens([]);
-      setFetching(false);
-    } catch (err) {
-      setError((err as Error).message);
-      setFetching(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchTokens();
-    const interval = setInterval(() => fetchTokens(), 5_000);
-    return () => clearInterval(interval);
-  }, [fetchTokens]);
+  const [tokensRes] = useSubscription({
+    query: subscriptions.GetTopTokensByVolumeSubscription,
+    variables: {
+      interval: "5m",
+    },
+  });
 
   return useMemo(
     () => ({
-      tokens,
-      fetching,
-      error,
+      tokens:
+        tokensRes.data?.token_stats_interval_comp.map((t) => ({
+          mint: t.token_mint,
+          name: t.token_metadata_name,
+          symbol: t.token_metadata_symbol,
+          imageUri: t.token_metadata_image_uri ?? undefined,
+          volumeUsd: Number(t.total_volume_usd),
+          tradeCount: Number(t.total_trades),
+          priceChangePct: Number(t.price_change_pct),
+        })) ?? [],
+      fetching: tokensRes.fetching,
+      error: tokensRes.error?.message,
     }),
-    [tokens, fetching, error],
+    [tokensRes.data, tokensRes.fetching, tokensRes.error],
   );
 };

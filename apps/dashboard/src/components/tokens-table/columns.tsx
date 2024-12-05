@@ -56,57 +56,7 @@ export const getColumns = (selectedInterval: Interval): ColumnDef<Token>[] => [
         </Button>
       </div>
     ),
-    cell: ({ row }) => <div>${formatLargeNumber(Number(row.original.volume))}</div>,
-  },
-  {
-    accessorKey: "marketCap",
-    header: ({ column }) => (
-      <div className="flex items-center gap-2">
-        Market Cap
-        <Button
-          className="w-7 h-7 p-0"
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          {column.getIsSorted() ? (
-            column.getIsSorted() === "asc" ? (
-              <ArrowUp className="size-4" />
-            ) : (
-              <ArrowDown className="size-4" />
-            )
-          ) : (
-            <ArrowUpDown className="size-4" />
-          )}
-        </Button>
-      </div>
-    ),
-    cell: ({ row }) => (
-      <div>{row.original.marketCap ? `$${formatLargeNumber(Number(row.original.marketCap))}` : "N/A"}</div>
-    ),
-  },
-  {
-    accessorKey: "liquidity",
-    header: ({ column }) => (
-      <div className="flex items-center gap-2">
-        Liquidity
-        <Button
-          className="w-7 h-7 p-0"
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          {column.getIsSorted() ? (
-            column.getIsSorted() === "asc" ? (
-              <ArrowUp className="size-4" />
-            ) : (
-              <ArrowDown className="size-4" />
-            )
-          ) : (
-            <ArrowUpDown className="size-4" />
-          )}
-        </Button>
-      </div>
-    ),
-    cell: ({ row }) => <div>${formatLargeNumber(Number(row.original.liquidity))}</div>,
+    cell: ({ row }) => <div>${formatLargeNumber(row.original.volumeUsd)}</div>,
   },
   {
     accessorKey: "transactions",
@@ -130,7 +80,7 @@ export const getColumns = (selectedInterval: Interval): ColumnDef<Token>[] => [
         </Button>
       </div>
     ),
-    cell: ({ row }) => <div>{formatLargeNumber(row.original.transactions[selectedInterval])}</div>,
+    cell: ({ row }) => <div>{formatLargeNumber(row.original.tradeCount)}</div>,
   },
   {
     accessorKey: "priceChange",
@@ -155,61 +105,13 @@ export const getColumns = (selectedInterval: Interval): ColumnDef<Token>[] => [
       </div>
     ),
     cell: ({ row }) => {
-      const change = row.original.priceChange[selectedInterval];
+      const change = row.original.priceChangePct;
       return (
         <div className={change >= 0 ? "text-green-500" : "text-red-500"}>
           {change >= 0 ? "+" : ""}
-          {(change * 100).toFixed(2)}%
+          {change.toFixed(2)}%
         </div>
       );
     },
-  },
-  {
-    accessorKey: "uniqueBuys",
-    header: ({ column }) => (
-      <div className="flex items-center gap-2">
-        Unique Buys ({selectedInterval})
-        <Button
-          className="w-7 h-7 p-0"
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          {column.getIsSorted() ? (
-            column.getIsSorted() === "asc" ? (
-              <ArrowUp className="size-4" />
-            ) : (
-              <ArrowDown className="size-4" />
-            )
-          ) : (
-            <ArrowUpDown className="size-4" />
-          )}
-        </Button>
-      </div>
-    ),
-    cell: ({ row }) => <div>{formatLargeNumber(row.original.uniqueBuys[selectedInterval])}</div>,
-  },
-  {
-    accessorKey: "uniqueSells",
-    header: ({ column }) => (
-      <div className="flex items-center gap-2">
-        Unique Sells ({selectedInterval})
-        <Button
-          className="w-7 h-7 p-0"
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          {column.getIsSorted() ? (
-            column.getIsSorted() === "asc" ? (
-              <ArrowUp className="size-4" />
-            ) : (
-              <ArrowDown className="size-4" />
-            )
-          ) : (
-            <ArrowUpDown className="size-4" />
-          )}
-        </Button>
-      </div>
-    ),
-    cell: ({ row }) => <div>{formatLargeNumber(row.original.uniqueSells[selectedInterval])}</div>,
   },
 ];

@@ -44,3 +44,22 @@ export const GetWalletBalanceIgnoreIntervalSubscription = graphql(`
     }
   }
 `);
+
+export const GetTopTokensByVolumeSubscription = graphql(`
+  subscription SubTopTokensByVolume($interval: interval = "30m") {
+    token_stats_interval_comp(
+      args: { interval: $interval }
+      where: { token_metadata_is_pump_token: { _eq: true } }
+      order_by: { total_volume_usd: desc }
+      limit: 50
+    ) {
+      token_mint
+      total_volume_usd
+      total_trades
+      price_change_pct
+      token_metadata_name
+      token_metadata_image_uri
+      token_metadata_symbol
+    }
+  }
+`);
