@@ -231,6 +231,22 @@ class Network {
 
         return Int(firstAccount.account.data.lamports)
     }
+    func getTestTxData() async throws -> TxData {
+        let res: TxData = try await callProcedure("get1USDCToSOLTransaction")
+        return res
+    }
+
+    func getTxData(buyTokenId: String, sellTokenId: String, sellQuantity: Int) async throws -> TxData {
+        let input = SwapInput(buyTokenId: buyTokenId, sellTokenId: sellTokenId, sellQuantity: sellQuantity)
+        let res: TxData = try await callProcedure("fetchSwap", input: input)
+        return res
+    }
+
+    func submitSignedTx(txBase64: String, signature: String) async throws -> TxIdResponse {
+        let input = signedTxInput(signature: signature, base64Transaction: txBase64)
+        let res: TxIdResponse = try await callProcedure("submitSignedTransaction", input: input)
+        return res
+    }
 
     func transferUsdc(fromAddress: String, toAddress: String, amount: Int) async throws -> String {
         // 1. Constants and input preparation
@@ -298,6 +314,29 @@ struct ResponseWrapper<T: Codable>: Codable {
     let result: ResultWrapper
 }
 
+struct SwapInput: Codable {
+    let buyTokenId: String
+    let sellTokenId: String
+    let sellQuantity: Int
+}
+
+struct TxData: Codable {
+    let transactionMessageBase64: String
+    let buyTokenId: String
+    let sellTokenId: String
+    let sellQuantity: Int
+    let hasFee: Bool
+    let timestamp: Int
+}
+
+struct signedTxInput: Codable {
+    let signature: String
+    let base64Transaction: String
+}
+
+struct TxIdResponse: Codable {
+    let txId: String
+}
 private struct ErrorResponse: Codable {
     let error: ErrorDetails
 

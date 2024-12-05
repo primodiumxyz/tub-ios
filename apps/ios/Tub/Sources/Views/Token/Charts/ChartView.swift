@@ -16,15 +16,6 @@ struct ChartView: View {
     let height: CGFloat
     let purchaseData: PurchaseData?
 
-    var purchasePriceUsd: Double? {
-        if let purchaseData {
-            return priceModel.lamportsToUsd(lamports: purchaseData.price)
-        }
-        else {
-            return nil
-        }
-    }
-
     @State private var prices: [Price] = []
 
     let initialPointSize: Double = 35
@@ -32,6 +23,14 @@ struct ChartView: View {
 
     private let xAxisPadding: Double = Timespan.live.seconds * 0.13
 
+    var purchasePriceUsd: Double? {
+        if let priceUsdc = purchaseData?.priceUsdc {
+            return priceModel.usdcToUsd(usdc: priceUsdc)
+        }
+        else {
+            return nil
+        }
+    }
     init(prices: [Price], purchaseData: PurchaseData? = nil, animate: Binding<Bool>, height: CGFloat = 330) {
         self.rawPrices = prices
         self.purchaseData = purchaseData
@@ -56,7 +55,8 @@ struct ChartView: View {
         if prices.isEmpty { return 0...100 }
 
         var pricesWithPurchase = prices
-        if let data = purchaseData, let purchasePriceUsd {
+        if let data = purchaseData {
+            let purchasePriceUsd = priceModel.usdcToUsd(usdc: data.priceUsdc)
             let price = Price(timestamp: data.timestamp, priceUsd: purchasePriceUsd)
             pricesWithPurchase.append(price)
         }
@@ -208,8 +208,8 @@ struct PillView: View {
         var purchaseData: PurchaseData {
             PurchaseData(
                 timestamp: spoofPrices[20].timestamp,
-                amount: 1000,
-                price: priceModel.usdToLamports(usd: spoofPrices[20].priceUsd)
+                amountUsdc: 1000,
+                priceUsdc: priceModel.usdToUsdc(usd: spoofPrices[20].priceUsd)
             )
         }
 
