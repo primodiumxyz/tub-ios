@@ -129,12 +129,16 @@ export const fetchPriceAndMetadata = async (
           })?.amount;
           if (!amountTraded) return;
 
+          // Find decimals of the token
+          const tokenDecimals = isWsolA ? mintB.tokenAmount.decimals : mintA.tokenAmount.decimals;
+
           return {
             ...swap,
             mintA: mintAStr,
             mintB: mintBStr,
             tokenMint,
             amount: amountTraded,
+            tokenDecimals,
           };
         });
       }),
@@ -242,6 +246,7 @@ export const fetchPriceAndMetadata = async (
         mint: new PublicKey(swap.tokenMint),
         priceUsd: price,
         amount: swap.amount,
+        tokenDecimals: swap.tokenDecimals,
         metadata: tokenMetadata,
       };
     })
@@ -268,7 +273,7 @@ const formatTokenMetadata = (data: GetAssetsResponse["result"][number]): SwapTok
 export const upsertTrades = async (gql: GqlClient["db"], trades: SwapWithPriceAndMetadata[]) => {
   return await gql.UpsertTradesMutation({
     trades: trades.map((trade) => {
-      const volumeUsd = Number(trade.amount) * trade.priceUsd;
+      const volumeUsd = (Number(trade.amount) * trade.priceUsd) / 10 ** trade.tokenDecimals;
       const { name, symbol, description, imageUri, externalUrl, supply, isPumpToken } = trade.metadata;
 
       return {
