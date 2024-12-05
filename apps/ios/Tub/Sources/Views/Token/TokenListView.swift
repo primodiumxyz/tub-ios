@@ -203,7 +203,10 @@ struct TokenListView: View {
                                         }
 
                                         dragging = true
-										dragGestureOffset = value.translation.height
+										
+										withAnimation(.easeOut(duration: 0.25)) {
+											dragGestureOffset = value.translation.height
+										}
                                     }
                                 }
                                 .onEnded { value in
