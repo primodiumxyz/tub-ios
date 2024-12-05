@@ -649,6 +649,13 @@ export class TubService {
         ? this.octane.getSettings().buyFee
         : 0;
 
+    // if the sell token is SOL and the buy token is USDC, set to true. if the sell token is USDC and the buy token is SOL, set to true. otherwise, set to false.
+    const onlyDirectRoutesBool =
+      (request.sellTokenId === SOL_MAINNET_PUBLIC_KEY.toString() &&
+        request.buyTokenId === USDC_MAINNET_PUBLIC_KEY.toString()) ||
+      (request.sellTokenId === USDC_MAINNET_PUBLIC_KEY.toString() &&
+        request.buyTokenId === SOL_MAINNET_PUBLIC_KEY.toString());
+
     let transaction: Transaction | null = null;
     try {
       if (feeAmount === 0) {
@@ -658,7 +665,9 @@ export class TubService {
             outputMint: request.buyTokenId,
             amount: request.sellQuantity,
             slippageBps: 50,
-            onlyDirectRoutes: false, // Set to true only in USDC-SOL swaps
+            onlyDirectRoutes: onlyDirectRoutesBool,
+            restrictIntermediateTokens: true,
+            maxAccounts: 50,
             asLegacyTransaction: false,
           },
           request.userPublicKey,
@@ -698,7 +707,9 @@ export class TubService {
             outputMint: request.buyTokenId,
             amount: request.sellQuantity - feeOptions.amount,
             slippageBps: 50,
-            onlyDirectRoutes: false, // Set to true only in USDC-SOL swaps
+            onlyDirectRoutes: onlyDirectRoutesBool,
+            restrictIntermediateTokens: true,
+            maxAccounts: 50,
             asLegacyTransaction: false,
           },
           request.userPublicKey,
