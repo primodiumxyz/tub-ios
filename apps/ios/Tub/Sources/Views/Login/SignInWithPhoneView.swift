@@ -74,7 +74,11 @@ struct SignInWithPhoneView: View {
     }
 
     private func isValidPhoneNumber(_ number: String) -> Bool {
-        let numbersOnly = number.replacingOccurrences(of: "[^0-9]", with: "", options: .regularExpression)
+        let numbersOnly = number.replacingOccurrences(
+            of: "[^0-9]",
+            with: "",
+            options: .regularExpression
+        )
         let phoneRegex = "^[0-9]{10,15}$"
         return NSPredicate(format: "SELF MATCHES %@", phoneRegex).evaluate(with: numbersOnly)
     }
@@ -104,7 +108,6 @@ struct SignInWithPhoneView: View {
                 VStack {
                     Text("Enter verification code")
                         .font(.sfRounded(size: .lg, weight: .medium))
-                        .foregroundStyle(Color.white)
                         .padding(.top, 16)
                         .padding(.horizontal, 20)
                 }
@@ -120,44 +123,41 @@ struct SignInWithPhoneView: View {
                     }
                     .pickerStyle(MenuPickerStyle())
                     .frame(width: 100, height: 50)
-                    .background(Color.white)
+                    .background(Color(UIColor.systemBackground))
                     .cornerRadius(30)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 30)
+                            .stroke(.tubBuyPrimary, lineWidth: 0.5)
+                    )
 
                     TextField("Enter your Phone Number", text: formattedPhoneBinding)
                         .keyboardType(.phonePad)
                         .padding()
-                        .background(Color.white)
-                        .foregroundStyle(Color.black)
+                        .background(Color(UIColor.systemBackground))
+                        .foregroundStyle(.tubBuyPrimary)
                         .frame(maxWidth: .infinity, maxHeight: 50, alignment: .leading)
                         .cornerRadius(30)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 30)
+                                .stroke(.tubBuyPrimary, lineWidth: 0.5)
+                        )
                         .onChange(of: phoneNumber) {
                             showPhoneError = false
                         }
                 }
-                .padding(.horizontal)
-                
-                Button(action: handlePhoneLogin) {
-                    Text("Continue")
-                        .font(.sfRounded(size: .lg, weight: .semibold))
-                        .foregroundStyle(Color.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(14)
-                        .background(Color("purple"))
-                        .cornerRadius(26)
-                }
-                .disabled(signingIn)
-                .padding(.horizontal)
-                .padding(.top, 5)
+
+                PrimaryButton(text: "Continue", disabled: signingIn, action: handlePhoneLogin)
                 Text(showPhoneError ? "Please enter a valid phone number." : "")
-                    .foregroundStyle(Color.red)
+                    .foregroundStyle(.tubError)
                     .font(.caption)
                     .padding(.top, -4)
                     .padding(.horizontal, 20)
 
             }
         }
+        .padding(.horizontal)
         .frame(maxHeight: .infinity)
-        .background(Color.black)
+        .background(Gradients.cardBgGradient)
 
         .dismissKeyboardOnTap()
     }

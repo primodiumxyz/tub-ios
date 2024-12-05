@@ -10,15 +10,14 @@ import ApolloWebSocket
 import Foundation
 import Security
 
-class CodexNetwork {
-    // Static instance
-    private static var _shared = CodexNetwork()
+actor CodexNetwork {
+    // Static instance - needs to be accessed differently with actors
+    private static let _shared = CodexNetwork()
     static var shared: CodexNetwork { _shared }
 
-    // Initialization state
+    // Remove lock-related properties
     private var initializationContinuation: CheckedContinuation<Void, Never>?
     private var isInitialized = false
-    private let initializationLock = NSLock()
 
     // Instance properties
     var apiKey: String?
@@ -71,14 +70,13 @@ class CodexNetwork {
         self.session = URLSession(configuration: .default)
     }
 
-    static func initialize(apiKey: String) {
-        shared.setup(with: apiKey)
+    // Modified to be called from anywhere
+    static func initialize(apiKey: String) async {
+        await shared.setup(with: apiKey)
     }
 
     private func setup(with apiKey: String) {
-        initializationLock.lock()
-        defer { initializationLock.unlock() }
-
+        print("api key: ", apiKey)
         self.apiKey = apiKey
 
         // setup graphql
@@ -120,19 +118,11 @@ class CodexNetwork {
         guard !isInitialized else { return }
 
         await withCheckedContinuation { continuation in
-            initializationLock.lock()
-            if isInitialized {
-                initializationLock.unlock()
-                continuation.resume()
-                return
-            }
-
             initializationContinuation = continuation
-            initializationLock.unlock()
         }
     }
 
-    // Apollo client accessor
+    // Apollo client accessor - now natively async
     var apolloClient: ApolloClient {
         get async {
             await waitForInitialization()

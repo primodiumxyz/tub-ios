@@ -16,18 +16,27 @@ struct CandleChartView: View {
     let height: CGFloat
     @State private var currentTime = Date().timeIntervalSince1970
 
+    @Binding var animate: Bool
     @State private var timerCancellable: Cancellable?
     @State private var timer: Timer.TimerPublisher = Timer.publish(every: 0.1, on: .main, in: .common)
 
-    init(candles: [CandleData], timeframeMins: Double = 30, height: CGFloat = 330) {
+    init(
+        candles: [CandleData],
+        animate: Binding<Bool>,
+        timeframeMins: Double = 30,
+        height: CGFloat = 330
+    ) {
         self.rawCandles = candles
+        self._animate = animate
         self.timeframeMins = timeframeMins
         self.height = height
     }
 
     private var candles: [CandleData] {
         let cutoffTime = currentTime - (timeframeMins * 60)
-        if let firstIndex = rawCandles.firstIndex(where: { $0.start.timeIntervalSince1970 >= cutoffTime }) {
+        if let firstIndex = rawCandles.firstIndex(where: {
+            $0.start.timeIntervalSince1970 >= cutoffTime
+        }) {
             return Array(rawCandles.suffix(from: firstIndex))
         }
         return rawCandles
@@ -75,6 +84,8 @@ struct CandleChartView: View {
                 .opacity(0.5)
             }
         }
+        .if(animate) { view in view.animation(.linear(duration: PRICE_UPDATE_INTERVAL), value: candles)
+        }
         .chartXScale(domain: xDomain)
         .chartYScale(domain: yDomain)
         .conditionalModifier(condition: false) { chart in
@@ -94,11 +105,11 @@ struct CandleChartView: View {
     private func yAxisConfig() -> some AxisContent {
         AxisMarks(position: .leading) { value in
             AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
-                .foregroundStyle(Color.white.opacity(0.2))
+                .foregroundStyle(.tubBuyPrimary.opacity(0.2))
             AxisValueLabel {
                 if let doubleValue = value.as(Double.self) {
                     Text(priceModel.formatPrice(usd: doubleValue, maxDecimals: 6))
-                        .foregroundStyle(Color.white.opacity(0.5))
+                        .foregroundStyle(.tubBuyPrimary.opacity(0.5))
                 }
             }
         }
@@ -109,7 +120,7 @@ struct CandleChartView: View {
             // show the first 6 labels (after that it gets cutoff
             if value.index <= 6 {
                 AxisValueLabel(format: .dateTime.hour().minute())
-                    .foregroundStyle(.white.opacity(0.5))
+                    .foregroundStyle(.tubBuyPrimary.opacity(0.5))
             }
         }
     }
