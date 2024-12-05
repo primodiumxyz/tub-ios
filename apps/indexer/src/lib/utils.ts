@@ -20,6 +20,15 @@ config({ path: "../../.env" });
 
 const env = parseEnv();
 
+let jupiterAndGetAssetsCallTimes: number[] = [];
+let accountsCallTimes: number[] = [];
+
+const calculateAverage = (times: number[]): string => {
+  if (times.length === 0) return "0";
+  const avg = times.reduce((a, b) => a + b, 0) / times.length;
+  return avg.toFixed(3);
+};
+
 /* --------------------------------- DECODER -------------------------------- */
 export const decodeSwapInfo = (txsWithParsedIxs: TransactionWithParsed[], timestamp: number): Swap[] => {
   // Filter out the instructions that are not related to a Raydium swap
@@ -79,9 +88,15 @@ export const fetchPriceAndMetadata = async (
     await Promise.all(
       batches.map(async (batchSwaps) => {
         // Get parsed accounts for both vaults of each swap
+        const beforeAccounts = Date.now();
         const parsedAccounts = await connection.getMultipleParsedAccounts(
           batchSwaps.map((swap) => [swap.vaultA, swap.vaultB]).flat(),
           { commitment: "confirmed" },
+        );
+        const afterAccounts = Date.now();
+        accountsCallTimes.push((afterAccounts - beforeAccounts) / 1000);
+        console.log(
+          `[${(afterAccounts - beforeAccounts) / 1000}s] 'getMultipleParsedAccounts' (avg: ${calculateAverage(accountsCallTimes)}s)`,
         );
 
         return batchSwaps.map((swap, i) => {
@@ -131,41 +146,76 @@ export const fetchPriceAndMetadata = async (
   // Get unique token mints for price lookup (excluding WSOL)
   const uniqueMints = new Set(swapsWithAccountInfo.map((swap) => swap.tokenMint));
 
-  const [priceResponse, metadataResponse] = await Promise.all([
-    // Fetch prices from Jupiter API
-    fetchWithRetry(
-      `${env.JUPITER_API_ENDPOINT}/price?ids=${Array.from(uniqueMints).join(",")}`,
-      {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      },
-      1_000,
-    ),
-    // Fetch metadata from QuickNode DAS API
-    fetchWithRetry(
-      `${env.QUICKNODE_ENDPOINT}/${env.QUICKNODE_TOKEN}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          id: 1,
-          method: "getAssets",
-          params: { ids: Array.from(uniqueMints) },
-        }),
-      },
-      1_000,
-    ),
-  ]);
+  // Break unique mints into batches of 49
+  // TODO: remove when QuickNode Jupiter API is fixed (time here is already long but from 50+ accounts it jumps +4s)
+  const mintBatchSize = 49;
+  const mintBatches = [];
+  const uniqueMintsArray = Array.from(uniqueMints);
+  for (let i = 0; i < uniqueMintsArray.length; i += mintBatchSize) {
+    mintBatches.push(uniqueMintsArray.slice(i, i + mintBatchSize));
+  }
+
+  // Process each mint batch in parallel
+  const priceAndMetadataResponses = await Promise.all(
+    mintBatches.map(async (mintBatch) => {
+      const mintIds = mintBatch.join(",");
+      console.log(`Fetching prices for ${mintBatch.length} mints`);
+
+      // Fetch prices from Jupiter API and metadata from QuickNode DAS API
+      const before = Date.now();
+      const [priceResponse, metadataResponse] = await Promise.all([
+        fetchWithRetry(
+          `${env.JUPITER_API_ENDPOINT}/price?ids=${mintIds}`,
+          {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+          },
+          1_000,
+        ),
+        fetchWithRetry(
+          `${env.QUICKNODE_ENDPOINT}/${env.QUICKNODE_TOKEN}`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              jsonrpc: "2.0",
+              id: 1,
+              method: "getAssets",
+              params: { ids: Array.from(uniqueMints) },
+            }),
+            headers: { "Content-Type": "application/json" },
+          },
+          1_000,
+        ),
+      ]);
+      const after = Date.now();
+      jupiterAndGetAssetsCallTimes.push((after - before) / 1000);
+      console.log(
+        `[${(after - before) / 1000}s] Jupiter '/price' (avg: ${calculateAverage(jupiterAndGetAssetsCallTimes)}s)`,
+      );
+
+      return { priceResponse, metadataResponse };
+    }),
+  );
 
   // Parse price and metadata responses and create a lookup map
-  const priceData = (await priceResponse.json()) as GetJupiterPriceResponse;
-  const metadataData = ((await metadataResponse.json()) as GetAssetsResponse).result // TODO: remove when QuickNode DAS API is fixed (returns null for a lot of tokens)
-    .filter((asset) => asset !== null);
-  const priceMap = new Map(Object.entries(priceData.data).map(([id, { price }]) => [id, price]));
-  const metadataMap = new Map(metadataData.map((asset) => [asset.id, asset]));
+  const priceMap = new Map();
+  const metadataMap = new Map();
+
+  for (const { priceResponse, metadataResponse } of priceAndMetadataResponses) {
+    const [priceData, metadataData] = (await Promise.all([priceResponse.json(), metadataResponse.json()])) as [
+      GetJupiterPriceResponse,
+      GetAssetsResponse,
+    ];
+
+    for (const [id, { price }] of Object.entries(priceData.data)) {
+      priceMap.set(id, price);
+    }
+
+    // TODO: remove when QuickNode DAS API is fixed (returns null for a lot of tokens)
+    for (const asset of metadataData.result.filter((asset) => asset !== null)) {
+      metadataMap.set(asset.id, asset);
+    }
+  }
 
   // Map final results with price data
   return swapsWithAccountInfo
@@ -202,7 +252,6 @@ const formatTokenMetadata = (data: GetAssetsResponse["result"][number]): SwapTok
   const metadata = data.content.metadata;
   const files = data.content.files;
   const links = data.content.links;
-  console.log(data.supply);
 
   return {
     name: metadata.name,
@@ -266,6 +315,7 @@ export const toPgComposite = (obj: Record<string, unknown>): string => {
 export const fetchWithRetry = async (
   input: RequestInfo | URL,
   init?: RequestInit,
+  retry = 5_000,
   timeout = 300_000,
 ): Promise<Response> => {
   const controller = new AbortController();
@@ -280,8 +330,8 @@ export const fetchWithRetry = async (
     return response;
   } catch (error) {
     clearTimeout(id);
-    console.error(`Fetch error: ${String(error)}. Retrying in 5 seconds...`);
-    await new Promise((resolve) => setTimeout(resolve, 5000));
-    return fetchWithRetry(input, init);
+    console.error(`Fetch error: ${String(error)}. Retrying in ${retry / 1000} seconds...`);
+    await new Promise((resolve) => setTimeout(resolve, retry));
+    return fetchWithRetry(input, init, retry, timeout);
   }
 };
