@@ -41,7 +41,7 @@ final class TxManager: ObservableObject {
         try await currentFetchTask?.value
     }
 
-    let UPDATE_SECONDS = 60 * 5
+    let UPDATE_SECONDS = 1
   
     private func _updateTxData(purchaseState: PurchaseState?, tokenId: String?, sellQuantity: Int?) async throws {
         // if nothing is getting updated return without updating
