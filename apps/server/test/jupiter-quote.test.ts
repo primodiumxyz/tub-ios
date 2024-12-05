@@ -2,8 +2,8 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import { DefaultApi, Configuration } from "@jup-ag/api";
 import { OctaneService } from "../src/OctaneService";
 import { Keypair } from "@solana/web3.js";
-import { caching } from "cache-manager";
-import { describe, it, expect, beforeAll } from "vitest";
+import { caching, Cache } from "cache-manager";
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { AxiosError } from "axios";
 
 const createTestKeypair = () => Keypair.generate();
@@ -11,11 +11,13 @@ const createTestKeypair = () => Keypair.generate();
 describe("Jupiter Quote Integration Test", () => {
   let octaneService: OctaneService;
   let jupiterQuoteApi: DefaultApi;
+  let connection: Connection;
+  let cache: Cache;
 
   beforeAll(async () => {
     try {
       // Setup connection to Solana mainnet
-      const connection = new Connection(process.env.QUICKNODE_MAINNET_URL ?? "https://api.mainnet-beta.solana.com");
+      connection = new Connection(process.env.QUICKNODE_MAINNET_URL ?? "https://api.mainnet-beta.solana.com");
 
       // Setup Jupiter API client
       jupiterQuoteApi = new DefaultApi(
@@ -24,7 +26,7 @@ describe("Jupiter Quote Integration Test", () => {
         }),
       );
 
-      const cache = await caching({
+      cache = await caching({
         store: "memory",
         max: 100,
         ttl: 10 * 1000, // 10 seconds
@@ -47,6 +49,15 @@ describe("Jupiter Quote Integration Test", () => {
         console.error("Stack trace:", error.stack);
       }
       throw error;
+    }
+  });
+
+  afterAll(async () => {
+    try {
+      // Clear the cache
+      await cache?.reset();
+    } catch (error) {
+      console.error("Error in test cleanup:", error);
     }
   });
 

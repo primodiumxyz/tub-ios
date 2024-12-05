@@ -1,7 +1,7 @@
 import { PrivyClient } from "@privy-io/server-auth";
 import { createTRPCProxyClient, createWSClient, httpBatchLink, splitLink, wsLink } from "@trpc/client";
 import { config } from "dotenv";
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it, afterAll } from "vitest";
 import WebSocket from "ws";
 import { parseEnv } from "../bin/parseEnv";
 import { AppRouter } from "../src/createAppRouter";
@@ -19,13 +19,14 @@ const port = process.env.SERVER_PORT || "8888";
 
 describe("Server Integration Tests", () => {
   let client: ReturnType<typeof createTRPCProxyClient<AppRouter>>;
+  let wsClient: ReturnType<typeof createWSClient>;
   const privy = new PrivyClient(env.PRIVY_APP_ID, env.PRIVY_APP_SECRET);
 
   beforeAll(async () => {
     const wsUrl = `ws://${host}:${port}/trpc`;
     console.log(`Connecting to WebSocket at: ${wsUrl}`);
 
-    const wsClient = createWSClient({
+    wsClient = createWSClient({
       url: `ws://${host}:${port}/trpc`,
       // @ts-expect-error WebSocket is not typed
       WebSocket,
@@ -45,6 +46,12 @@ describe("Server Integration Tests", () => {
         }),
       ],
     });
+  });
+
+  afterAll(() => {
+    if (wsClient) {
+      wsClient.close();
+    }
   });
 
   describe("Mock Api Endpoints", () => {
