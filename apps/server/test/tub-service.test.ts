@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { TubService } from "../src/TubService";
 import { OctaneService } from "../src/OctaneService";
-import { Connection, Keypair, PublicKey, Transaction } from "@solana/web3.js";
+import { Connection, Keypair, PublicKey, VersionedTransaction, VersionedMessage } from "@solana/web3.js";
 import { createJupiterApiClient } from "@jup-ag/api";
 import { MockPrivyClient } from "./helpers/MockPrivyClient";
 import { Codex } from "@codex-data/sdk";
@@ -120,35 +120,33 @@ describe("TubService Integration Test", () => {
       console.log("\nStarting USDC to SOL swap flow test");
       console.log("User public key:", userKeypair.publicKey.toBase58());
 
-      // Get the swap transaction
+      // Get the constructed swap transaction
       console.log("\nGetting 1 USDC to SOL swap transaction...");
       const swapResponse = await tubService.get1USDCToSOLTransaction(mockJwtToken);
 
-      // console.log('Received swap response:', {
-      //   hasFee: swapResponse.hasFee,
-      //   transactionLength: swapResponse.transactionBase64.length
-      // });
+      // --- Begin Simulating Mock Privy Interaction ---
 
       // Decode transaction
-      const transaction = Transaction.from(Buffer.from(swapResponse.transactionBase64, "base64"));
+      const handoff = Buffer.from(swapResponse.transactionMessageBase64, "base64");
+      const message = VersionedMessage.deserialize(handoff);
+      const transaction = new VersionedTransaction(message);
 
       // User signs
-      transaction.partialSign(userKeypair);
-      const userSignature = transaction.signatures.find((sig) =>
-        sig.publicKey.equals(userKeypair.publicKey),
-      )?.signature;
+      transaction.sign([userKeypair]);
+      const userSignature = transaction.signatures![1];
       if (!userSignature) {
         throw new Error("Failed to get signature from transaction");
       }
 
-      // Convert raw signature bytes to base64
+      // Convert raw signature to base64
       const base64Signature = Buffer.from(userSignature).toString("base64");
 
-      // console.log('\nSigning and sending transaction...');
+      // --- End Simulating Mock Privy Interaction ---
+
       const result = await tubService.signAndSendTransaction(
         mockJwtToken,
         base64Signature,
-        swapResponse.transactionBase64, // Send original transaction
+        swapResponse.transactionMessageBase64, // Send original unsigned transaction
       );
 
       console.log("Transaction result:", result);

@@ -277,7 +277,7 @@ struct SwapInput: Codable {
 }
 
 struct TxData: Codable {
-    let transactionBase64: String
+    let transactionMessageBase64: String
     let buyTokenId: String
     let sellTokenId: String
     let sellQuantity: Int

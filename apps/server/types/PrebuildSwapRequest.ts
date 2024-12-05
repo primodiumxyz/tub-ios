@@ -5,7 +5,11 @@ export type UserPrebuildSwapRequest = {
 };
 
 export type PrebuildSwapResponse = UserPrebuildSwapRequest & {
-  transactionBase64: string;
+  transactionMessageBase64: string;
   hasFee: boolean;
   timestamp: number;
+};
+
+export type PrebuildSignedSwapResponse = PrebuildSwapResponse & {
+  feePayerSignature: string;
 };
