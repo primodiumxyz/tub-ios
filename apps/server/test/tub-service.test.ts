@@ -9,7 +9,8 @@ import { createClient as createGqlClient } from "@tub/gql";
 import bs58 from "bs58";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
 
-describe("TubService Integration Test", () => {
+// Skip entire suite in CI, because it would perform a live transaction each deployment
+(process.env.CI ? describe.skip : describe)("TubService Integration Test", () => {
   let tubService: TubService;
   let userKeypair: Keypair;
   let mockJwtToken: string;
