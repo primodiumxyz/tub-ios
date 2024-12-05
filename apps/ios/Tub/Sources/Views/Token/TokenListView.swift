@@ -32,10 +32,11 @@ struct TokenListView: View {
     @State private var activeOffset: CGFloat = 0
     @State private var dragging = false
     @State private var isDragStarting = true
-	@State private var animateCurrentTokenModel = true
-	private let offsetThresholdToDragToAnotherToken = 125.0
-	private let scrollAnimationDuration = 0.3
-	private let scrollSpringAnimationBounce = 0.35	// [0,1] where 1 is very springy
+    @State private var animateCurrentTokenModel = true
+    private let offsetThresholdToDragToAnotherToken = 125.0
+    private let scrollAnimationDuration = 0.3
+    private let scrollSpringAnimationBounce = 0.35  // [0,1] where 1 is very springy
+    private let moveToDragGestureOffsetAnimationDuration = 0.25
 
     let OFFSET: Double = 5
 
@@ -63,55 +64,55 @@ struct TokenListView: View {
     }
 
     private func loadToken(_ geometry: GeometryProxy, _ direction: SwipeDirection) {
-		animateCurrentTokenModel = false
+        animateCurrentTokenModel = false
 
-		if direction == .up {
-			// Step #1: Animate to the new TokenView
-			withAnimation(.spring(duration: scrollAnimationDuration, bounce: scrollSpringAnimationBounce)) {
-//alt anim option: withAnimation(.easeOut(duration: scrollAnimationDuration)) {
-				activeOffset += (geometry.size.height - dragGestureOffset)
-			} completion: {
-				// Step #2: While the "main/center" TokenView is still scrolled out of view,
-				//	call loadPreviousToken() which takes care of transitioning
-				//	previousTokenModel to now become currentTokenModel. This hides
-				//	the visual glitch that comes when the chart is given a completely
-				//	different set of prices to plot: this transition is visually jarring.
-				tokenListModel.loadPreviousToken()
+        if direction == .up {
+            // Step #1: Animate to the new TokenView
+            withAnimation(.spring(duration: scrollAnimationDuration, bounce: scrollSpringAnimationBounce)) {
+                //alt anim option: withAnimation(.easeOut(duration: scrollAnimationDuration)) {
+                activeOffset += (geometry.size.height - dragGestureOffset)
+            } completion: {
+                // Step #2: While the "main/center" TokenView is still scrolled out of view,
+                //	call loadPreviousToken() which takes care of transitioning
+                //	previousTokenModel to now become currentTokenModel. This hides
+                //	the visual glitch that comes when the chart is given a completely
+                //	different set of prices to plot: this transition is visually jarring.
+                tokenListModel.loadPreviousToken()
 
-				// Step #3: Wait a beat to let the currentTokenModel chart price rendering
-				//	to settle before resetting dragGestureOffset that results in the
-				//	"main/center" TokenView being centered again.
-				DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-					activeOffset = 0
-					dragGestureOffset = 0
-					dragging = false
-					animateCurrentTokenModel = true
-				}
-			}
+                // Step #3: Wait a beat to let the currentTokenModel chart price rendering
+                //	to settle before resetting dragGestureOffset that results in the
+                //	"main/center" TokenView being centered again.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                    activeOffset = 0
+                    dragGestureOffset = 0
+                    dragging = false
+                    animateCurrentTokenModel = true
+                }
+            }
         }
         else {
-			// Step #1: Animate to the new TokenView
-			withAnimation(.spring(duration: scrollAnimationDuration, bounce: scrollSpringAnimationBounce)) {
-//alt anim option: withAnimation(.easeOut(duration: scrollAnimationDuration)) {
-				activeOffset -= (geometry.size.height + dragGestureOffset)
-			} completion: {
-				// Step #2: While the "main/center" TokenView is still scrolled out of view,
-				//	call loadPreviousToken() which takes care of transitioning
-				//	nextTokenModel to now become currentTokenModel. This hides
-				//	the visual glitch that comes when the chart is given a completely
-				//	different set of prices to plot: this transition is visually jarring.
-				tokenListModel.loadNextToken()
+            // Step #1: Animate to the new TokenView
+            withAnimation(.spring(duration: scrollAnimationDuration, bounce: scrollSpringAnimationBounce)) {
+                //alt anim option: withAnimation(.easeOut(duration: scrollAnimationDuration)) {
+                activeOffset -= (geometry.size.height + dragGestureOffset)
+            } completion: {
+                // Step #2: While the "main/center" TokenView is still scrolled out of view,
+                //	call loadPreviousToken() which takes care of transitioning
+                //	nextTokenModel to now become currentTokenModel. This hides
+                //	the visual glitch that comes when the chart is given a completely
+                //	different set of prices to plot: this transition is visually jarring.
+                tokenListModel.loadNextToken()
 
-				// Step #3: Wait a beat to let the currentTokenModel chart price rendering
-				//	to settle before resetting dragGestureOffset that results in the
-				//	"main/center" TokenView being centered again.
-				DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-					activeOffset = 0
-					dragGestureOffset = 0
-					dragging = false
-					animateCurrentTokenModel = true
-				}
-			}
+                // Step #3: Wait a beat to let the currentTokenModel chart price rendering
+                //	to settle before resetting dragGestureOffset that results in the
+                //	"main/center" TokenView being centered again.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                    activeOffset = 0
+                    dragGestureOffset = 0
+                    dragging = false
+                    animateCurrentTokenModel = true
+                }
+            }
         }
     }
 
@@ -184,14 +185,14 @@ struct TokenListView: View {
                             .frame(height: geometry.size.height)
                             .opacity(dragging ? 1 : 0)
                         }
-//						.overlay {
-//							Text("drag offset = \(dragGestureOffset)")
-//								.font(.title)
-//								.bold()
-//						}
+                        //						.overlay {
+                        //							Text("drag offset = \(dragGestureOffset)")
+                        //								.font(.title)
+                        //								.bold()
+                        //						}
                         .zIndex(1)
                         .offset(y: -geometry.size.height + OFFSET + dragGestureOffset + activeOffset)
-                        .gesture(
+                        .highPriorityGesture(
                             DragGesture()
                                 .onChanged { value in
                                     let dragDirection =
@@ -203,10 +204,10 @@ struct TokenListView: View {
                                         }
 
                                         dragging = true
-										
-										withAnimation(.easeOut(duration: 0.25)) {
-											dragGestureOffset = value.translation.height
-										}
+
+                                        withAnimation(.easeOut(duration: moveToDragGestureOffsetAnimationDuration)) {
+                                            dragGestureOffset = value.translation.height
+                                        }
                                     }
                                 }
                                 .onEnded { value in
@@ -220,13 +221,19 @@ struct TokenListView: View {
                                         }
                                         else if value.translation.height < -offsetThresholdToDragToAnotherToken {
                                             loadToken(geometry, .down)
-										} else {
-											withAnimation(.spring(duration: scrollAnimationDuration, bounce: scrollSpringAnimationBounce)) {
-												dragGestureOffset = 0
-											} completion: {
-												dragging = false
-											}
-										}
+                                        }
+                                        else {
+                                            withAnimation(
+                                                .spring(
+                                                    duration: scrollAnimationDuration,
+                                                    bounce: scrollSpringAnimationBounce
+                                                )
+                                            ) {
+                                                dragGestureOffset = 0
+                                            } completion: {
+                                                dragging = false
+                                            }
+                                        }
                                     }
                                 }
                         )
