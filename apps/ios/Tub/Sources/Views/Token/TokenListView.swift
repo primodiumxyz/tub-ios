@@ -133,9 +133,7 @@ struct TokenListView: View {
 
                 GeometryReader { geometry in
                     TokenView(
-                        tokenModel: TokenModel(),
-                        animate: Binding.constant(false),
-                        showBubbles: Binding.constant(false)
+                        tokenModel: TokenModel()
                     )
                     .frame(height: geometry.size.height)
                     .offset(y: OFFSET)
@@ -155,17 +153,17 @@ struct TokenListView: View {
                 if tokenListModel.totalTokenCount > 0 {
                     GeometryReader { geometry in
                         VStack(spacing: 0) {
+                            // Previous TokenView that's offscreen above
                             TokenView(
-                                tokenModel: tokenListModel.previousTokenModel ?? emptyTokenModel,
-                                animate: Binding.constant(false),
-                                showBubbles: Binding.constant(false)
+                                tokenModel: tokenListModel.previousTokenModel ?? emptyTokenModel
                             )
                             .frame(height: geometry.size.height)
                             .opacity(dragging ? 1 : 0)
 
+                            // Current focused TokenModel that's centered onscreen
                             TokenView(
                                 tokenModel: tokenListModel.currentTokenModel,
-                                animate: $animateCurrentTokenModel,
+                                animate: animateCurrentTokenModel,
                                 showBubbles: $showBubbles,
                                 onSellSuccess: {
                                     withAnimation {
@@ -177,10 +175,10 @@ struct TokenListView: View {
                                 }
                             )
                             .frame(height: geometry.size.height)
+
+                            // Next TokenView that's offscreen below
                             TokenView(
-                                tokenModel: tokenListModel.nextTokenModel ?? emptyTokenModel,
-                                animate: Binding.constant(false),
-                                showBubbles: Binding.constant(false)
+                                tokenModel: tokenListModel.nextTokenModel ?? emptyTokenModel
                             )
                             .frame(height: geometry.size.height)
                             .opacity(dragging ? 1 : 0)

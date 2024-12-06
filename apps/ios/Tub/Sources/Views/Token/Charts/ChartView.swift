@@ -11,7 +11,7 @@ import SwiftUI
 
 struct ChartView: View {
     @EnvironmentObject var priceModel: SolPriceModel
-    @Binding var animate: Bool
+    let animate: Bool
     let rawPrices: [Price]
     let height: CGFloat
     let purchaseData: PurchaseData?
@@ -31,10 +31,10 @@ struct ChartView: View {
             return nil
         }
     }
-    init(prices: [Price], purchaseData: PurchaseData? = nil, animate: Binding<Bool>, height: CGFloat = 330) {
+    init(prices: [Price], purchaseData: PurchaseData? = nil, animate: Bool, height: CGFloat = 330) {
         self.rawPrices = prices
         self.purchaseData = purchaseData
-        self._animate = animate
+        self.animate = animate
         self.height = height
     }
 
@@ -155,13 +155,13 @@ struct ChartView: View {
                 }
             }
         }
-		// The animated visual "swipe-chart-glitch" prob occurs here. It happens
-		//	because when we scrollTokenList view to focus on a new token,
-		//	we immediately replace the token price data previously plotted
-		//	by the graph with completely different token price data: the visual
-		//	glitch occurs when all of the plotted data changes at once.
+        // The animated visual "swipe-chart-glitch" prob occurs here. It happens
+        //	because when we scrollTokenList view to focus on a new token,
+        //	we immediately replace the token price data previously plotted
+        //	by the graph with completely different token price data: the visual
+        //	glitch occurs when all of the plotted data changes at once.
         .if(animate) { view in
-			view.animation(.linear(duration: PRICE_UPDATE_INTERVAL), value: prices)
+            view.animation(.linear(duration: PRICE_UPDATE_INTERVAL), value: prices)
         }
         .chartYScale(domain: yDomain)
         .chartXScale(domain: xDomain)
@@ -240,7 +240,7 @@ struct PillView: View {
                 ChartView(
                     prices: spoofPrices,
                     purchaseData: showPurchaseData ? purchaseData : nil,
-                    animate: .constant(false),
+                    animate: false,
                     height: 330
                 )
                 .border(.red)
