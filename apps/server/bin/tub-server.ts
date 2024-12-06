@@ -54,7 +54,7 @@ const getBearerToken = (req: IncomingMessage) => {
 
 export const start = async () => {
   try {
-    const connection = new Connection(env.QUICKNODE_MAINNET_URL, "confirmed");
+    const connection = new Connection(`${env.QUICKNODE_ENDPOINT}/${env.QUICKNODE_TOKEN}`, "confirmed");
 
     // Initialize cache for OctaneService
     const cache = cacheManager.default.caching({
