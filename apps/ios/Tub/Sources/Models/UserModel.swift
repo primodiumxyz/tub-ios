@@ -20,17 +20,25 @@ final class UserModel: ObservableObject {
     @Published var walletState: EmbeddedWalletState = .notCreated
     @Published var walletAddress: String?
 
-    @Published var balanceLamps: Int? = nil
+    @Published var balanceUsdc: Int? = nil
     @Published var initialTime = Date()
     @Published var elapsedSeconds: TimeInterval = 0
-    @Published var initialBalanceLamps: Int? = nil
-    @Published var balanceChangeLamps: Int = 0
+    @Published var initialBalanceUsdc: Int? = nil
+    @Published var balanceChangeUsdc: Int = 0
 
     private var accountBalanceSubscription: Apollo.Cancellable?
 
     private var timer: Timer?
 
+    @Published var hasSeenOnboarding: Bool {
+        didSet {
+            UserDefaults.standard.set(hasSeenOnboarding, forKey: "hasSeenOnboarding")
+        }
+    }
+
     private init() {
+        self.hasSeenOnboarding = UserDefaults.standard.bool(forKey: "hasSeenOnboarding")
+
         setupAuthStateListener()
         setupWalletStateListener()
     }
@@ -70,16 +78,10 @@ final class UserModel: ObservableObject {
                         do {
                             let _ = try await privy.embeddedWallet.createWallet(chainType: .solana)
                         }
-                        catch {
-                            print("failed to create solana wallet")
-                        }
                     }
                 case .notCreated:
                     do {
                         let _ = try await privy.embeddedWallet.createWallet(chainType: .solana)
-                    }
-                    catch {
-                        print("failed to create solana wallet")
                     }
                 case .connecting:
                     await MainActor.run {
@@ -142,7 +144,7 @@ final class UserModel: ObservableObject {
                 switch result {
                 case .success(let response):
                     DispatchQueue.main.async {
-                        self.initialBalanceLamps = response.data?.balance.first?.value ?? 0
+                        self.initialBalanceUsdc = response.data?.balance.first?.value ?? 0
                     }
                     continuation.resume()
                 case .failure(let error):
@@ -167,9 +169,9 @@ final class UserModel: ObservableObject {
             case .success(let graphQLResult):
                 let balance = graphQLResult.data?.balance.first?.value ?? 0
                 DispatchQueue.main.async {
-                    self.balanceLamps = balance
-                    if let initialBalanceLamps = self.initialBalanceLamps {
-                        self.balanceChangeLamps = balance - initialBalanceLamps
+                    self.balanceUsdc = balance
+                    if let initialBalanceUsdc = self.initialBalanceUsdc {
+                        self.balanceChangeUsdc = balance - initialBalanceUsdc
                     }
                 }
             case .failure(let error):
@@ -231,20 +233,23 @@ final class UserModel: ObservableObject {
             guard let self = self, self.userId != nil else { return }
             self.walletState = .notCreated
             self.walletAddress = nil
-            self.balanceLamps = 0
-            self.initialBalanceLamps = nil
-            self.balanceChangeLamps = 0
+            self.balanceUsdc = 0
+            self.initialBalanceUsdc = nil
+            self.balanceChangeUsdc = 0
             self.stopTimer()
             self.elapsedSeconds = 0
         }
-        if !skipPrivy { privy.logout() }
+        if !skipPrivy {
+            privy.logout()
+
+        }
     }
 
     /* ------------------------------- USER TOKEN ------------------------------- */
 
     @Published var tokenId: String? = nil
 
-    @Published var tokenBalanceLamps: Int? = nil
+    @Published var balanceToken: Int? = nil
 
     @Published var purchaseData: PurchaseData? = nil
 
@@ -272,9 +277,8 @@ final class UserModel: ObservableObject {
             DispatchQueue.main.async {
                 switch result {
                 case .success(let graphQLResult):
-                    let tokenBalanceLamps =
-                        graphQLResult.data?.balance.first?.value ?? 0
-                    self.tokenBalanceLamps = tokenBalanceLamps
+                    let balanceToken = graphQLResult.data?.balance.first?.value ?? 0
+                    self.balanceToken = balanceToken
                 case .failure(let error):
                     print("Error updating token balance: \(error.localizedDescription)")
                 }
@@ -282,30 +286,31 @@ final class UserModel: ObservableObject {
         }
     }
 
-    func buyTokens(buyAmountLamps: Int, priceLamps: Int, priceUsd: Double) async throws {
-        guard let tokenId = self.tokenId, let balance = self.balanceLamps else {
+    func buyTokens(buyQuantityUsdc: Int, tokenPriceUsdc: Int) async throws {
+        guard let tokenId = self.tokenId, let balanceUsdc = self.balanceUsdc else {
             throw TubError.invalidInput(reason: "No balance")
         }
 
-        if buyAmountLamps > balance {
+        if buyQuantityUsdc > balanceUsdc {
             throw TubError.insufficientBalance
         }
 
-        let tokenAmount = Int(Double(buyAmountLamps) / Double(priceLamps) * 1e9)
+        // TODO: Pull the decimals in the token metadata instead of assuming 9
+        let buyQuantityToken = (buyQuantityUsdc / tokenPriceUsdc) * Int(1e9)
 
         var err: (any Error)? = nil
         do {
             let _ = try await Network.shared.buyToken(
                 tokenId: tokenId,
-                amount: String(tokenAmount),
-                tokenPrice: String(priceLamps)
+                amount: String(buyQuantityToken),
+                tokenPrice: String(tokenPriceUsdc)
             )
 
             await MainActor.run {
                 self.purchaseData = PurchaseData(
                     timestamp: Date(),
-                    amount: buyAmountLamps,
-                    price: priceLamps
+                    amountUsdc: buyQuantityUsdc,
+                    priceUsdc: Int(tokenPriceUsdc)
                 )
             }
         }
@@ -319,8 +324,8 @@ final class UserModel: ObservableObject {
                     eventName: "buy_tokens",
                     source: "token_model",
                     metadata: [
-                        ["buy_amount": buyAmountLamps],
-                        ["price": priceLamps],
+                        ["buy_amount": buyQuantityToken],
+                        ["price": tokenPriceUsdc],
                         ["token_id": tokenId],
                     ],
                     errorDetails: err?.localizedDescription
@@ -338,7 +343,7 @@ final class UserModel: ObservableObject {
     }
 
     func sellTokens(price: Int) async throws {
-        guard let tokenId = self.tokenId, let balance = self.tokenBalanceLamps else {
+        guard let tokenId = self.tokenId, let balance = self.balanceToken else {
             throw TubError.notLoggedIn
         }
 

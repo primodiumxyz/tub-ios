@@ -26,13 +26,18 @@
 		993E5D942CAEF33B000E23A9 /* queries.graphql in Resources */ = {isa = PBXBuildFile; fileRef = 993E5D912CAEF33B000E23A9 /* queries.graphql */; };
 		9941CD6F2CCAA30D0009E5ED /* FormatPrice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9941CD6E2CCAA30B0009E5ED /* FormatPrice.swift */; };
 		994AE5F72CD2AB3F00553A32 /* GoogleLogoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994AE5F62CD2AB3F00553A32 /* GoogleLogoView.swift */; };
+		995D05662CF3C7C900627E81 /* retry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D05652CF3C7C800627E81 /* retry.swift */; };
 		995FCA1F2CDA5ED70018A76D /* CoinbaseOnrampView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995FCA1E2CDA5ED20018A76D /* CoinbaseOnrampView.swift */; };
 		996772FE2CEB85820029B298 /* LoadingBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996772FD2CEB857C0029B298 /* LoadingBox.swift */; };
+		9971F29B2CFF836700BA48C0 /* WithdrawView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9971F29A2CFF835D00BA48C0 /* WithdrawView.swift */; };
+		9971F2F52CFFA88A00BA48C0 /* SolanaSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 9971F2F42CFFA88A00BA48C0 /* SolanaSwift */; };
 		997DE8F42CDAC86500164366 /* NotificationBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 997DE8F32CDAC86000164366 /* NotificationBanner.swift */; };
 		99856DA42CD27E1F004B9D40 /* Privy in Frameworks */ = {isa = PBXBuildFile; productRef = 99856DA32CD27E1F004B9D40 /* Privy */; };
 		99856DA62CD27E2E004B9D40 /* Privy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99856DA52CD27E27004B9D40 /* Privy.swift */; };
+		999ACA732CF50F13008D765B /* TxManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999ACA722CF50EEA008D765B /* TxManager.swift */; };
 		999F59562CA6F97100E7AE9F /* TokenModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999F59552CA6F96D00E7AE9F /* TokenModel.swift */; };
 		999F595B2CA754FB00E7AE9F /* ChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999F595A2CA754F900E7AE9F /* ChartView.swift */; };
+		99A4AAB22CF4FEBF002D0027 /* TestTxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A4AAB12CF4FEBA002D0027 /* TestTxView.swift */; };
 		99B147FE2CDFE5B200DFDB96 /* ShimmeringView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B147FD2CDFE5B200DFDB96 /* ShimmeringView.swift */; };
 		99BB98562CC1798600658059 /* CandleChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99BB98552CC1798400658059 /* CandleChartView.swift */; };
 		99BE72B02CEBB223006BB157 /* BubbleEffect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99BE72AE2CEBB223006BB157 /* BubbleEffect.swift */; };
@@ -40,10 +45,12 @@
 		99BE72BD2CEBB4CA006BB157 /* NotificationHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99BE72BC2CEBB4CA006BB157 /* NotificationHandler.swift */; };
 		99C26C1C2CAEE263004807A2 /* ApolloAPI in Frameworks */ = {isa = PBXBuildFile; productRef = 99C26C1B2CAEE263004807A2 /* ApolloAPI */; };
 		99C26C1E2CAEE38B004807A2 /* ApolloWebSocket in Frameworks */ = {isa = PBXBuildFile; productRef = 99C26C1D2CAEE38B004807A2 /* ApolloWebSocket */; };
-		99C79A182CE2F1BD00D0E697 /* LoadingTokenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C79A172CE2F1BA00D0E697 /* LoadingTokenView.swift */; };
+		99DBD8EC2CF77B9C0098C296 /* TokenInfoPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99DBD8EB2CF77B970098C296 /* TokenInfoPreview.swift */; };
+		99DBD8EE2CF781EA0098C296 /* spoofModelData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99DBD8ED2CF781E50098C296 /* spoofModelData.swift */; };
 		99DDF62D2CB02816000234DA /* AccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99DDF62C2CB0280D000234DA /* AccountView.swift */; };
 		99DED2512CAF2A6B0055FC60 /* ApolloCombine in Frameworks */ = {isa = PBXBuildFile; productRef = 99DED2502CAF2A6B0055FC60 /* ApolloCombine */; };
 		99E789492CC147C000C3CEEB /* ImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E789482CC147BD00C3CEEB /* ImageView.swift */; };
+		99EE82AA2CFE485A00615572 /* SolanaSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 99EE82A92CFE485A00615572 /* SolanaSwift */; };
 		99F3D7A62CE6D937005B895C /* UserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99F3D7A52CE6D934005B895C /* UserModel.swift */; };
 		99FB68342CC003FC00070D2A /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FB68332CC003FC00070D2A /* LoadingView.swift */; };
 		DB10A95D2CA5AA1B00B1E4F3 /* TokenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB10A95C2CA5AA1B00B1E4F3 /* TokenView.swift */; };
@@ -58,18 +65,18 @@
 		DB6D29212CA1C8F80099951A /* TubUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6D29202CA1C8F80099951A /* TubUITests.swift */; };
 		DB6D29232CA1C8F80099951A /* TubUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6D29222CA1C8F80099951A /* TubUITestsLaunchTests.swift */; };
 		DF1FE3C82CD568F700594C63 /* CountryCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF1FE3C72CD568F700594C63 /* CountryCode.swift */; };
+		DF3D43D22D00DEB1004DAE81 /* JustifiedText.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF3D43D12D00DEB1004DAE81 /* JustifiedText.swift */; };
 		DF5A2FC32CAF165D00508A56 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5A2FC22CAF165D00508A56 /* HistoryView.swift */; };
 		DF5A2FC52CAF2DEF00508A56 /* HistoryDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5A2FC42CAF2DEF00508A56 /* HistoryDetailsView.swift */; };
 		DF8C84ED2CDFDCA700E8FA7B /* DismissKeyboardModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF8C84EC2CDFDCA700E8FA7B /* DismissKeyboardModifier.swift */; };
-		DF99EC212CE294B40065F390 /* TokenAnimationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF99EC202CE294B40065F390 /* TokenAnimationState.swift */; };
-		DFA36D562CB4278C00F63D2D /* DummyData.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFA36D552CB4278C00F63D2D /* DummyData.swift */; };
 		DFA4D6512CAC500B00AEDC73 /* Apollo in Frameworks */ = {isa = PBXBuildFile; productRef = DFA4D6502CAC500B00AEDC73 /* Apollo */; };
 		DFC723E32CB9A86C003A915C /* TokenInfoCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFC723E22CB9A86C003A915C /* TokenInfoCardView.swift */; };
 		DFDA138A2CEDF04000057A29 /* TransactionGroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFDA13892CEDF04000057A29 /* TransactionGroupView.swift */; };
+		DFDA13BC2CEF9ACA00057A29 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFDA13BB2CEF9ACA00057A29 /* OnboardingView.swift */; };
 		DFEBC3DD2CE443CA00EA4C84 /* AccountDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFEBC3DC2CE443CA00EA4C84 /* AccountDetailsView.swift */; };
 		DFEBC3E82CE44D1100EA4C84 /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFEBC3E52CE44D1100EA4C84 /* SettingsManager.swift */; };
 		DFEBC3E92CE44D1100EA4C84 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFEBC3E62CE44D1100EA4C84 /* SettingsView.swift */; };
-		DFF5292B2CC0121B007DC43F /* AppColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFF5292A2CC0121B007DC43F /* AppColors.swift */; };
+		DFF5292B2CC0121B007DC43F /* Gradients.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFF5292A2CC0121B007DC43F /* Gradients.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -107,20 +114,25 @@
 		993E5D922CAEF33B000E23A9 /* subscriptions.graphql */ = {isa = PBXFileReference; lastKnownFileType = text; path = subscriptions.graphql; sourceTree = "<group>"; };
 		9941CD6E2CCAA30B0009E5ED /* FormatPrice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatPrice.swift; sourceTree = "<group>"; };
 		994AE5F62CD2AB3F00553A32 /* GoogleLogoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleLogoView.swift; sourceTree = "<group>"; };
+		995D05652CF3C7C800627E81 /* retry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = retry.swift; sourceTree = "<group>"; };
 		995FCA1E2CDA5ED20018A76D /* CoinbaseOnrampView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoinbaseOnrampView.swift; sourceTree = "<group>"; };
 		996772FD2CEB857C0029B298 /* LoadingBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingBox.swift; sourceTree = "<group>"; };
+		9971F29A2CFF835D00BA48C0 /* WithdrawView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WithdrawView.swift; sourceTree = "<group>"; };
 		997DE8F32CDAC86000164366 /* NotificationBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationBanner.swift; sourceTree = "<group>"; };
 		99856DA52CD27E27004B9D40 /* Privy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Privy.swift; sourceTree = "<group>"; };
 		99856DA92CD28271004B9D40 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		99856DCA2CD29201004B9D40 /* TubRelease.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TubRelease.entitlements; sourceTree = "<group>"; };
+		999ACA722CF50EEA008D765B /* TxManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxManager.swift; sourceTree = "<group>"; };
 		999F59552CA6F96D00E7AE9F /* TokenModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenModel.swift; sourceTree = "<group>"; };
 		999F595A2CA754F900E7AE9F /* ChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartView.swift; sourceTree = "<group>"; };
+		99A4AAB12CF4FEBA002D0027 /* TestTxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestTxView.swift; sourceTree = "<group>"; };
 		99B147FD2CDFE5B200DFDB96 /* ShimmeringView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShimmeringView.swift; sourceTree = "<group>"; };
 		99BB98552CC1798400658059 /* CandleChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CandleChartView.swift; sourceTree = "<group>"; };
 		99BE72AE2CEBB223006BB157 /* BubbleEffect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BubbleEffect.swift; sourceTree = "<group>"; };
 		99BE72BA2CEBB279006BB157 /* SolPriceModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SolPriceModel.swift; sourceTree = "<group>"; };
 		99BE72BC2CEBB4CA006BB157 /* NotificationHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationHandler.swift; sourceTree = "<group>"; };
-		99C79A172CE2F1BA00D0E697 /* LoadingTokenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingTokenView.swift; sourceTree = "<group>"; };
+		99DBD8EB2CF77B970098C296 /* TokenInfoPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenInfoPreview.swift; sourceTree = "<group>"; };
+		99DBD8ED2CF781E50098C296 /* spoofModelData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = spoofModelData.swift; sourceTree = "<group>"; };
 		99DDF62C2CB0280D000234DA /* AccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountView.swift; sourceTree = "<group>"; };
 		99E789482CC147BD00C3CEEB /* ImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageView.swift; sourceTree = "<group>"; };
 		99F3D7A52CE6D934005B895C /* UserModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserModel.swift; sourceTree = "<group>"; };
@@ -141,18 +153,18 @@
 		DB6D29202CA1C8F80099951A /* TubUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TubUITests.swift; sourceTree = "<group>"; };
 		DB6D29222CA1C8F80099951A /* TubUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TubUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		DF1FE3C72CD568F700594C63 /* CountryCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CountryCode.swift; path = Tub/Sources/CountryCode.swift; sourceTree = SOURCE_ROOT; };
+		DF3D43D12D00DEB1004DAE81 /* JustifiedText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JustifiedText.swift; sourceTree = "<group>"; };
 		DF5A2FC22CAF165D00508A56 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		DF5A2FC42CAF2DEF00508A56 /* HistoryDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryDetailsView.swift; sourceTree = "<group>"; };
 		DF7C361B2CD941FD00A4B27A /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		DF8C84EC2CDFDCA700E8FA7B /* DismissKeyboardModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DismissKeyboardModifier.swift; sourceTree = "<group>"; };
-		DF99EC202CE294B40065F390 /* TokenAnimationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenAnimationState.swift; sourceTree = "<group>"; };
-		DFA36D552CB4278C00F63D2D /* DummyData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DummyData.swift; path = Tub/Sources/Utils/DummyData.swift; sourceTree = SOURCE_ROOT; };
 		DFC723E22CB9A86C003A915C /* TokenInfoCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenInfoCardView.swift; sourceTree = "<group>"; };
 		DFDA13892CEDF04000057A29 /* TransactionGroupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionGroupView.swift; sourceTree = "<group>"; };
+		DFDA13BB2CEF9ACA00057A29 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		DFEBC3DC2CE443CA00EA4C84 /* AccountDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountDetailsView.swift; sourceTree = "<group>"; };
 		DFEBC3E52CE44D1100EA4C84 /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsManager.swift; sourceTree = "<group>"; };
 		DFEBC3E62CE44D1100EA4C84 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		DFF5292A2CC0121B007DC43F /* AppColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppColors.swift; sourceTree = "<group>"; };
+		DFF5292A2CC0121B007DC43F /* Gradients.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Gradients.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -160,6 +172,7 @@
 		46B4B4532CD542DB00D8175A /* Extensions */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Extensions; sourceTree = "<group>"; };
 		995DE48A2CE6A268001B3C3F /* Login */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Login; sourceTree = "<group>"; };
 		99DDF62E2CB0333D000234DA /* BuySellForm */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = BuySellForm; sourceTree = "<group>"; };
+		DF627D192CF0FB4500A4500B /* Media */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Media; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -170,9 +183,11 @@
 				99DED2512CAF2A6B0055FC60 /* ApolloCombine in Frameworks */,
 				99C26C1C2CAEE263004807A2 /* ApolloAPI in Frameworks */,
 				46233A262CE67F7E00DB1740 /* CodexAPI in Frameworks */,
+				9971F2F52CFFA88A00BA48C0 /* SolanaSwift in Frameworks */,
 				993E5D902CAEE423000E23A9 /* ApolloWebSocket in Frameworks */,
 				99856DA42CD27E1F004B9D40 /* Privy in Frameworks */,
 				DFA4D6512CAC500B00AEDC73 /* Apollo in Frameworks */,
+				99EE82AA2CFE485A00615572 /* SolanaSwift in Frameworks */,
 				DB458DB12CAC824A00C5EC18 /* TubAPI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -222,14 +237,16 @@
 		9979D2F02CB57B840040DF41 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				99DBD8ED2CF781E50098C296 /* spoofModelData.swift */,
+				995D05652CF3C7C800627E81 /* retry.swift */,
 				5D8EFC2B2CE529AC002D8210 /* AppDwellTimeTracker.swift */,
 				282A6AB22CEEE8490039133F /* ButtonStyles.swift */,
 				466945EC2CDFDB1C008E8B99 /* LoadingTracker.swift */,
 				46442B942CDD737D009A6F0B /* Constants.swift */,
+				DF3D43D12D00DEB1004DAE81 /* JustifiedText.swift */,
 				9941CD6E2CCAA30B0009E5ED /* FormatPrice.swift */,
 				DF8C84EC2CDFDCA700E8FA7B /* DismissKeyboardModifier.swift */,
 				99290EBF2CB7110C003E740A /* FormatDate.swift */,
-				DFA36D552CB4278C00F63D2D /* DummyData.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -237,6 +254,8 @@
 		999F59522CA6F6A900E7AE9F /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				99A4AAB12CF4FEBA002D0027 /* TestTxView.swift */,
+				9971F29A2CFF835D00BA48C0 /* WithdrawView.swift */,
 				995DE48A2CE6A268001B3C3F /* Login */,
 				997DE8F32CDAC86000164366 /* NotificationBanner.swift */,
 				99DD66022CB80D5B00B56450 /* Common */,
@@ -244,6 +263,7 @@
 				99DD65FF2CB80D1100B56450 /* History */,
 				99DD65FE2CB80D0300B56450 /* Account */,
 				DB675A322CA2B73D006FC9B3 /* HomeTabsView.swift */,
+				DFDA13BB2CEF9ACA00057A29 /* OnboardingView.swift */,
 				DFEBC3E72CE44D1100EA4C84 /* Settings */,
 				995FCA1D2CDA5ECB0018A76D /* Onramp */,
 			);
@@ -253,6 +273,7 @@
 		999F59532CA6F70C00E7AE9F /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				999ACA722CF50EEA008D765B /* TxManager.swift */,
 				99BE72BC2CEBB4CA006BB157 /* NotificationHandler.swift */,
 				99BE72BA2CEBB279006BB157 /* SolPriceModel.swift */,
 				99F3D7A52CE6D934005B895C /* UserModel.swift */,
@@ -271,7 +292,7 @@
 				999F59522CA6F6A900E7AE9F /* Views */,
 				9936FC562CADCA5200E21B8A /* Structs.swift */,
 				DF1FE3C72CD568F700594C63 /* CountryCode.swift */,
-				DFF5292A2CC0121B007DC43F /* AppColors.swift */,
+				DFF5292A2CC0121B007DC43F /* Gradients.swift */,
 				DB458DB32CAC827A00C5EC18 /* Network.swift */,
 				462B09852CE65C8200730068 /* CodexNetwork.swift */,
 				DB6D29042CA1C8F70099951A /* TubApp.swift */,
@@ -304,11 +325,10 @@
 		99DD66012CB80D3D00B56450 /* Token */ = {
 			isa = PBXGroup;
 			children = (
-				99C79A172CE2F1BA00D0E697 /* LoadingTokenView.swift */,
+				99DBD8EB2CF77B970098C296 /* TokenInfoPreview.swift */,
 				99FBEEA72CCA882300BC6392 /* Charts */,
 				991361A02CADE3AA00E5D656 /* TokenListView.swift */,
 				DB10A95C2CA5AA1B00B1E4F3 /* TokenView.swift */,
-				DF99EC202CE294B40065F390 /* TokenAnimationState.swift */,
 				DFC723E22CB9A86C003A915C /* TokenInfoCardView.swift */,
 				99DDF62E2CB0333D000234DA /* BuySellForm */,
 			);
@@ -384,6 +404,7 @@
 				99856DCA2CD29201004B9D40 /* TubRelease.entitlements */,
 				99856DA92CD28271004B9D40 /* Info.plist */,
 				99A7CD502CB80C4100F27964 /* Sources */,
+				DF627D192CF0FB4500A4500B /* Media */,
 				9910F1B42CAAE2F0005DEE6B /* Fonts */,
 				DB6D29082CA1C8F80099951A /* Assets.xcassets */,
 				DB6D290A2CA1C8F80099951A /* Tub.entitlements */,
@@ -448,6 +469,7 @@
 				46B4B4532CD542DB00D8175A /* Extensions */,
 				995DE48A2CE6A268001B3C3F /* Login */,
 				99DDF62E2CB0333D000234DA /* BuySellForm */,
+				DF627D192CF0FB4500A4500B /* Media */,
 			);
 			name = Tub;
 			packageProductDependencies = (
@@ -458,6 +480,7 @@
 				99DED2502CAF2A6B0055FC60 /* ApolloCombine */,
 				99856DA32CD27E1F004B9D40 /* Privy */,
 				46233A252CE67F7E00DB1740 /* CodexAPI */,
+				9971F2F42CFFA88A00BA48C0 /* SolanaSwift */,
 			);
 			productName = Tub;
 			productReference = DB6D29012CA1C8F70099951A /* Tub.app */;
@@ -507,7 +530,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1520;
-				LastUpgradeCheck = 1600;
+				LastUpgradeCheck = 1610;
 				TargetAttributes = {
 					DB6D29002CA1C8F70099951A = {
 						CreatedOnToolsVersion = 15.2;
@@ -540,6 +563,7 @@
 				99DED24F2CAF2A6B0055FC60 /* XCRemoteSwiftPackageReference "ApolloCombine" */,
 				99856DA22CD27E1F004B9D40 /* XCRemoteSwiftPackageReference "privy-ios" */,
 				46233A242CE67F6200DB1740 /* XCLocalSwiftPackageReference "CodexAPI" */,
+				9971F2F32CFFA88A00BA48C0 /* XCRemoteSwiftPackageReference "solana-swift" */,
 			);
 			productRefGroup = DB6D29022CA1C8F70099951A /* Products */;
 			projectDirPath = "";
@@ -588,13 +612,15 @@
 			files = (
 				99F3D7A62CE6D937005B895C /* UserModel.swift in Sources */,
 				99BE72BD2CEBB4CA006BB157 /* NotificationHandler.swift in Sources */,
+				995D05662CF3C7C900627E81 /* retry.swift in Sources */,
 				991361A12CADE3B300E5D656 /* TokenListView.swift in Sources */,
 				99B147FE2CDFE5B200DFDB96 /* ShimmeringView.swift in Sources */,
+				99DBD8EC2CF77B9C0098C296 /* TokenInfoPreview.swift in Sources */,
 				DFC723E32CB9A86C003A915C /* TokenInfoCardView.swift in Sources */,
 				9910F1B62CAAE302005DEE6B /* SFRounded.swift in Sources */,
 				DF8C84ED2CDFDCA700E8FA7B /* DismissKeyboardModifier.swift in Sources */,
-				DF99EC212CE294B40065F390 /* TokenAnimationState.swift in Sources */,
 				468B07432CEBB63700C2CBFC /* CodexTokenManager.swift in Sources */,
+				9971F29B2CFF836700BA48C0 /* WithdrawView.swift in Sources */,
 				995FCA1F2CDA5ED70018A76D /* CoinbaseOnrampView.swift in Sources */,
 				996772FE2CEB85820029B298 /* LoadingBox.swift in Sources */,
 				282A6AB32CEEE8490039133F /* ButtonStyles.swift in Sources */,
@@ -607,20 +633,25 @@
 				4619A8182CCA4E25003CD119 /* TokenListModel.swift in Sources */,
 				DF5A2FC32CAF165D00508A56 /* HistoryView.swift in Sources */,
 				994AE5F72CD2AB3F00553A32 /* GoogleLogoView.swift in Sources */,
+				DF3D43D22D00DEB1004DAE81 /* JustifiedText.swift in Sources */,
 				992875672CCACD4C004B48BE /* ErrorView.swift in Sources */,
 				99C79A182CE2F1BD00D0E697 /* LoadingTokenView.swift in Sources */,
+				99A4AAB22CF4FEBF002D0027 /* TestTxView.swift in Sources */,
+				99DBD8EE2CF781EA0098C296 /* spoofModelData.swift in Sources */,
 				466945ED2CDFDB1F008E8B99 /* LoadingTracker.swift in Sources */,
 				DF5A2FC52CAF2DEF00508A56 /* HistoryDetailsView.swift in Sources */,
 				99BE72BB2CEBB279006BB157 /* SolPriceModel.swift in Sources */,
 				99856DA62CD27E2E004B9D40 /* Privy.swift in Sources */,
 				999F595B2CA754FB00E7AE9F /* ChartView.swift in Sources */,
-				DFF5292B2CC0121B007DC43F /* AppColors.swift in Sources */,
+				DFDA13BC2CEF9ACA00057A29 /* OnboardingView.swift in Sources */,
+				DFF5292B2CC0121B007DC43F /* Gradients.swift in Sources */,
 				5D8EFC2C2CE529BB002D8210 /* AppDwellTimeTracker.swift in Sources */,
 				99290EC02CB7110C003E740A /* FormatDate.swift in Sources */,
 				462B09862CE65C8600730068 /* CodexNetwork.swift in Sources */,
 				DF1FE3C82CD568F700594C63 /* CountryCode.swift in Sources */,
 				DFEBC3E82CE44D1100EA4C84 /* SettingsManager.swift in Sources */,
 				DFEBC3E92CE44D1100EA4C84 /* SettingsView.swift in Sources */,
+				999ACA732CF50F13008D765B /* TxManager.swift in Sources */,
 				DB10A95D2CA5AA1B00B1E4F3 /* TokenView.swift in Sources */,
 				DB6D29052CA1C8F70099951A /* TubApp.swift in Sources */,
 				990337052CC94175002D3A25 /* AccountBalance.swift in Sources */,
@@ -630,7 +661,6 @@
 				999F59562CA6F97100E7AE9F /* TokenModel.swift in Sources */,
 				99BB98562CC1798600658059 /* CandleChartView.swift in Sources */,
 				99E789492CC147C000C3CEEB /* ImageView.swift in Sources */,
-				DFA36D562CB4278C00F63D2D /* DummyData.swift in Sources */,
 				DFEBC3DD2CE443CA00EA4C84 /* AccountDetailsView.swift in Sources */,
 				99BE72B02CEBB223006BB157 /* BubbleEffect.swift in Sources */,
 			);
@@ -674,6 +704,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -737,6 +768,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -1018,6 +1050,14 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		9971F2F32CFFA88A00BA48C0 /* XCRemoteSwiftPackageReference "solana-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/p2p-org/solana-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.0;
+			};
+		};
 		99856DA22CD27E1F004B9D40 /* XCRemoteSwiftPackageReference "privy-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/privy-io/privy-ios";
@@ -1040,6 +1080,14 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 0.8.0;
+			};
+		};
+		99EE82A82CFE485A00615572 /* XCRemoteSwiftPackageReference "solana-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/p2p-org/solana-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.0;
 			};
 		};
 		DFA4D64F2CAC500B00AEDC73 /* XCRemoteSwiftPackageReference "apollo-ios" */ = {
@@ -1071,6 +1119,11 @@
 			package = DFA4D64F2CAC500B00AEDC73 /* XCRemoteSwiftPackageReference "apollo-ios" */;
 			productName = ApolloWebSocket;
 		};
+		9971F2F42CFFA88A00BA48C0 /* SolanaSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9971F2F32CFFA88A00BA48C0 /* XCRemoteSwiftPackageReference "solana-swift" */;
+			productName = SolanaSwift;
+		};
 		99856DA32CD27E1F004B9D40 /* Privy */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 99856DA22CD27E1F004B9D40 /* XCRemoteSwiftPackageReference "privy-ios" */;
@@ -1089,6 +1142,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 99DED24F2CAF2A6B0055FC60 /* XCRemoteSwiftPackageReference "ApolloCombine" */;
 			productName = ApolloCombine;
+		};
+		99EE82A92CFE485A00615572 /* SolanaSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 99EE82A82CFE485A00615572 /* XCRemoteSwiftPackageReference "solana-swift" */;
+			productName = SolanaSwift;
 		};
 		DB458DB02CAC824A00C5EC18 /* TubAPI */ = {
 			isa = XCSwiftPackageProductDependency;

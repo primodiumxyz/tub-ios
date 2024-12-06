@@ -78,117 +78,121 @@ struct HomeTabsView: View {
     var color = Color(red: 0.43, green: 0.97, blue: 0.98)
     @EnvironmentObject private var userModel: UserModel
     @EnvironmentObject private var priceModel: SolPriceModel
-    @StateObject private var vm = TabsViewModel()  // Make it optional
+    @StateObject private var vm = TabsViewModel()
+    @State private var refreshCounter = 0  // Tracks re-taps on the same tab
 
-    @StateObject private var tokenListModel: TokenListModel
-    init(userModel: UserModel) {
-        self._tokenListModel = StateObject(wrappedValue: TokenListModel(userModel: userModel))
-    }
+    var body: some View {
+        Group {
+            if !priceModel.isReady {
+                LoadingView(
+                    identifier: "HomeTabsView - waiting priceModel",
+                    message: "Connecting to Solana"
+                )
+            }
+            else {
+                ZStack {
+                    // Main content with TabView
+                    TabView(selection: $vm.selectedTab) {
+                        TokenListView()
+                            .id(refreshCounter)
+                            .tabItem {
+                                VStack {
+                                    Image(systemName: "chart.line.uptrend.xyaxis")
+                                        .font(.system(size: 24))
+                                    Text("Trade")
+                                        .font(.system(size: 12))
+                                }
+                            }
+                            .tag(0)
 
-    // Add this to watch for userModel changes
-    private var userId: String? {
-        didSet {
-            if userModel.userId != nil {
+                        NavigationStack {
+                            HistoryView()
+                                .id(refreshCounter)
+                        }
+                        .tabItem {
+                            VStack {
+                                Image(systemName: "clock")
+                                    .font(.system(size: 24))
+                                Text("History")
+                                    .font(.system(size: 12))
+                            }
+                        }
+                        .tag(1)
+
+                        NavigationStack {
+                            AccountView()
+                                .id(refreshCounter)
+                        }
+                        .tabItem {
+                            VStack {
+                                Image(systemName: "person")
+                                    .font(.system(size: 24))
+                                Text("Account")
+                                    .font(.system(size: 12))
+                            }
+                        }
+                        .tag(2)
+                    }
+                    .background(Color(UIColor.systemBackground))
+                    .ignoresSafeArea(.keyboard)
+                    .onChange(of: vm.selectedTab) { oldTab, newTab in
+                        handleTabSelection(oldTab: oldTab, newTab: newTab)
+                    }
+
+                    // Transparent overlay to capture tab item taps
+                    TabTapOverlay(selectedTab: $vm.selectedTab) {
+                        refreshCounter += 1
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .ignoresSafeArea(.keyboard)
+        .onChange(of: userModel.userId) { _, newUserId in
+            if newUserId != nil {
                 vm.selectedTab = 0  // Force switch to trade tab
                 vm.recordTabSelection("trade")
             }
         }
     }
 
+    private func handleTabSelection(oldTab: Int, newTab: Int) {
+        let tabName: String
+        switch newTab {
+        case 0: tabName = "trade"
+        case 1: tabName = "history"
+        case 2: tabName = "account"
+        default: tabName = "unknown"
+        }
+        vm.recordTabSelection(tabName)
+    }
+}
+
+struct TabTapOverlay: View {
+    @Binding var selectedTab: Int
+    let onSameTabTapped: () -> Void
+
     var body: some View {
-        Group {
-            if !priceModel.isReady {
-                LoadingView(
-                    identifier: "HomeTabsView - waiting for userModel & priceModel",
-                    message: "Connecting to Solana"
-                )
-            }
-            else {
-                ZStack(alignment: .bottom) {
-                    // Main content view
-                    Group {
-                        if vm.selectedTab == 0 {
-                            TokenListView(tokenListModel: tokenListModel)
-                        }
-                        else if vm.selectedTab == 1 {
-                            HistoryView()
-                        }
-                        else if vm.selectedTab == 2 {
-                            AccountView()
-                        }
-                    }
-                    .background(Color.black)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-                    HStack {
-                        Spacer()
-
-                        // Trade Tab
-                        Button(action: {
-                            vm.selectedTab = 0
-                            vm.recordTabSelection("trade")
-                        }) {
-                            VStack {
-                                Image(systemName: "chart.line.uptrend.xyaxis")
-                                    .font(.system(size: 24))
-                                Text("Trade")
-                                    .font(.sfRounded(size: .xs, weight: .regular))
+        GeometryReader { proxy in
+            HStack(spacing: 0) {
+                ForEach(0..<3, id: \.self) { index in
+                    Rectangle()
+                        .fill(Color.clear)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            if selectedTab == index {
+                                onSameTabTapped()
                             }
-                            .foregroundColor(
-                                vm.selectedTab == 0 ? color : Color.white.opacity(0.5)
-                            )
-                        }
-
-                        Spacer()
-
-                        // History Tab
-                        Button(action: {
-                            vm.selectedTab = 1
-                            vm.recordTabSelection("history")
-                        }) {
-                            VStack {
-                                Image(systemName: "clock")
-                                    .font(.system(size: 24))
-                                Text("History")
-                                    .font(.sfRounded(size: .xs, weight: .regular))
+                            else {
+                                selectedTab = index
                             }
-                            .foregroundColor(
-                                vm.selectedTab == 1 ? color : Color.white.opacity(0.5)
-                            )
                         }
-
-                        Spacer()
-
-                        // Account Tab
-                        Button(action: {
-                            vm.selectedTab = 2
-                            vm.recordTabSelection("account")
-                        }) {
-                            VStack {
-                                Image(systemName: "person")
-                                    .font(.system(size: 24))
-                                Text("Account")
-                                    .font(.sfRounded(size: .xs, weight: .regular))
-                            }
-                            .foregroundColor(
-                                vm.selectedTab == 2 ? color : Color.white.opacity(0.5)
-                            )
-                        }
-
-                        Spacer()
-                    }
-                    .padding(.top, 8)
-                    .background(Color.black)
-                    .ignoresSafeArea(.keyboard)
+                        .frame(maxWidth: .infinity)
                 }
             }
-        }.frame(maxWidth: .infinity, maxHeight: .infinity)
-            .ignoresSafeArea(.keyboard)
-            .onChange(of: userModel.userId) { _, newUserId in
-                if newUserId != nil {
-                    vm.selectedTab = 0  // Force switch to trade tab
-                    vm.recordTabSelection("trade")
-                }
-            }
+            .frame(height: 49)
+            .frame(maxHeight: .infinity, alignment: .bottom)
+        }
+        .allowsHitTesting(true)
     }
 }

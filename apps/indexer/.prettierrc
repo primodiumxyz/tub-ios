@@ -11,11 +11,8 @@
   "quoteProps": "as-needed",
   "requirePragma": false,
 
-  "importOrderSeparation": false,
-  "importOrderSortSpecifiers": true,
   "importOrderBuiltinModulesToTop": true,
   "importOrderParserPlugins": ["typescript", "jsx", "decorators-legacy"],
-  "importOrderMergeDuplicateImports": true,
   "importOrderCombineTypeAndValueImports": true,
   "plugins": ["@ianvs/prettier-plugin-sort-imports"],
   "importOrder": ["<THIRD_PARTY_MODULES>", "", "^@tub/(.*)$", "^@bin/(.*)$", "^@/(.*)$", "", "^[./]"]

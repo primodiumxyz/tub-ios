@@ -8,5 +8,7 @@ export default defineConfig({
     environment: "node",
     globalSetup: ["./test/setup.ts"],
     testTimeout: 10000,
+    setupFiles: ["./test/setup.ts"],
+    reporters: ["default", "hanging-process"],
   },
 });
