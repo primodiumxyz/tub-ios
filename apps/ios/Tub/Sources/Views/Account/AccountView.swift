@@ -95,9 +95,9 @@ private struct BalanceSection: View {
     @EnvironmentObject private var priceModel: SolPriceModel
 
     var accountBalance: (balance: Int?, change: Int) {
-        let balance = userModel.balanceLamps
+        let balance = userModel.balanceUsdc
 
-        let adjustedChange = userModel.balanceChangeLamps
+        let adjustedChange = userModel.balanceChangeUsdc
 
         return (balance, adjustedChange)
     }
@@ -109,7 +109,7 @@ private struct BalanceSection: View {
                 .foregroundStyle(.secondary)
 
             if let balance = accountBalance.balance {
-                let formattedBalance = priceModel.formatPrice(lamports: balance, maxDecimals: 2, minDecimals: 2)
+                let formattedBalance = priceModel.formatPrice(usdc: balance, maxDecimals: 2, minDecimals: 2)
 
                 Text(formattedBalance)
                     .font(.sfRounded(size: .xl5, weight: .bold))
@@ -120,7 +120,7 @@ private struct BalanceSection: View {
             }
 
             if accountBalance.change > 0 {
-                Text("\(priceModel.formatPrice(lamports: accountBalance.change, showSign: true, maxDecimals: 2))")
+                Text("\(priceModel.formatPrice(usdc: accountBalance.change, showSign: true, maxDecimals: 2))")
 
                 // Format time elapsed
                 Text("\(formatDuration(userModel.elapsedSeconds))")

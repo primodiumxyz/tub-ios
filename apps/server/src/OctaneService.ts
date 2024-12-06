@@ -115,7 +115,7 @@ export class OctaneService {
         swapRequest: {
           quoteResponse: quote,
           userPublicKey: userPublicKey.toBase58(), // Make sure we're using toBase58()
-          asLegacyTransaction: true,
+          asLegacyTransaction: quoteAndSwapParams.asLegacyTransaction,
           useSharedAccounts: false,
           wrapAndUnwrapSol: true,
           prioritizationFeeLamports: { autoMultiplier: 3 },
@@ -128,6 +128,9 @@ export class OctaneService {
           hasSetupInstructions: !!swapInstructions.setupInstructions?.length,
           hasSwapInstruction: !!swapInstructions.swapInstruction,
           hasCleanupInstruction: !!swapInstructions.cleanupInstruction,
+          setupInstructions: swapInstructions.setupInstructions?.map((ix) => ix.programId),
+          swapInstruction: swapInstructions.swapInstruction?.programId,
+          cleanupInstruction: swapInstructions.cleanupInstruction?.programId,
         });
         return swapInstructions;
       } catch (error) {

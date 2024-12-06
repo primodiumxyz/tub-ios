@@ -6,7 +6,7 @@ import { parseEnv } from "../bin/parseEnv";
 import { Codex } from "@codex-data/sdk";
 import fastifyWebsocket from "@fastify/websocket";
 import { PrivyClient } from "@privy-io/server-auth";
-import { clusterApiUrl, Connection, Keypair, PublicKey } from "@solana/web3.js";
+import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 import { createJupiterApiClient, ConfigurationParameters } from "@jup-ag/api";
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import { applyWSSHandler } from "@trpc/server/adapters/ws";
@@ -55,10 +55,7 @@ const getBearerToken = (req: IncomingMessage) => {
 
 export const start = async () => {
   try {
-    const connection = new Connection(
-      env.NODE_ENV === "production" ? env.QUICKNODE_MAINNET_URL : clusterApiUrl("devnet"),
-      "confirmed",
-    );
+    const connection = new Connection(env.QUICKNODE_MAINNET_URL, "confirmed");
 
     // Initialize cache for OctaneService
     const cache = cacheManager.default.caching({

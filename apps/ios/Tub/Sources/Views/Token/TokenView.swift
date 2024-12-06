@@ -23,9 +23,9 @@ struct TokenView: View {
     @Binding var animate: Bool
     var onSellSuccess: (() -> Void)?
 
-    var activeTab: String {
-        let balance: Int = userModel.tokenBalanceLamps ?? 0
-        return balance > 0 ? "sell" : "buy"
+    var activeTab: PurchaseState {
+        let balance: Int = userModel.balanceToken ?? 0
+        return balance > 0 ? PurchaseState.sell : PurchaseState.buy
     }
 
     init(
@@ -40,8 +40,8 @@ struct TokenView: View {
         self.onSellSuccess = onSellSuccess
     }
 
-    func handleBuy(amountUsd: Double) async {
-        guard let priceUsd = tokenModel.prices.last?.priceUsd
+    func handleBuy(buyQuantityUsd: Double) async {
+        guard let priceUsd = tokenModel.prices.last?.priceUsd, priceUsd > 0
         else {
             notificationHandler.show(
                 "Something went wrong.",
@@ -50,15 +50,13 @@ struct TokenView: View {
             return
         }
 
-        let buyAmountLamps = priceModel.usdToLamports(usd: amountUsd)
-
-        let priceLamps = priceModel.usdToLamports(usd: priceUsd)
+        let priceUsdc = priceModel.usdToUsdc(usd: priceUsd)
+        let buyQuantityUsdc = priceModel.usdToUsdc(usd: buyQuantityUsd)
 
         do {
             try await userModel.buyTokens(
-                buyAmountLamps: buyAmountLamps,
-                priceLamps: priceLamps,
-                priceUsd: priceUsd
+                buyQuantityUsdc: buyQuantityUsdc,
+                tokenPriceUsdc: priceUsdc
             )
             await MainActor.run {
                 showBuySheet = false
@@ -105,6 +103,19 @@ struct TokenView: View {
             }
             .frame(maxWidth: .infinity)
             .foregroundStyle(.primary)
+        }
+        .onChange(of: userModel.balanceToken) {
+            guard let balanceToken = userModel.balanceToken else { return }
+            let purchaseState = balanceToken > 0 ? PurchaseState.sell : PurchaseState.buy
+            Task {
+                if purchaseState == .sell {
+                    try! await TxManager.shared.updateTxData(purchaseState: .sell, sellQuantity: balanceToken)
+                }
+                else {
+                    let defaultBuyValueUsdc = priceModel.usdToUsdc(usd: SettingsManager.shared.defaultBuyValueUsd)
+                    try! await TxManager.shared.updateTxData(purchaseState: .buy, sellQuantity: defaultBuyValueUsdc)
+                }
+            }
         }
         .dismissKeyboardOnTap()
     }

@@ -15,30 +15,31 @@ struct BuyFormView: View {
     var onBuy: (Double) async -> Void
 
     @EnvironmentObject private var userModel: UserModel
-    @State private var buyAmountUsdString: String = ""
-    @State private var buyAmountUsd: Double = 0
+    @State private var buyQuantityUsdString: String = ""
+    @State private var buyQuantityUsd: Double = 0
     @State private var isValidInput: Bool = true
 
     @State private var isDefaultOn: Bool = true  //by default is on
 
     @ObservedObject private var settingsManager = SettingsManager.shared
 
+    @State private var updateTimer: Timer?
     static let formHeight: CGFloat = 250
 
     private func handleBuy() {
-        guard let balance = userModel.balanceLamps else { return }
+        guard let balanceUsdc = userModel.balanceUsdc else { return }
         // Use 10 as default if no amount is entered
-        let amountToUse = buyAmountUsdString.isEmpty ? 10.0 : buyAmountUsd
+        let buyQuantityUsd = buyQuantityUsdString.isEmpty ? 10.0 : self.buyQuantityUsd
 
-        let buyAmountLamps = priceModel.usdToLamports(usd: amountToUse)
+        let buyQuantityUsdc = priceModel.usdToUsdc(usd: buyQuantityUsd)
 
         // Check if the user has enough balance
-        if balance >= buyAmountLamps {
+        if balanceUsdc >= buyQuantityUsdc {
             if isDefaultOn {
-                settingsManager.defaultBuyValue = amountToUse
+                settingsManager.defaultBuyValueUsd = buyQuantityUsd
             }
             Task {
-                await onBuy(amountToUse)
+                await onBuy(buyQuantityUsd)
             }
         }
         else {
@@ -46,23 +47,35 @@ struct BuyFormView: View {
         }
     }
 
-    func updateBuyAmount(_ amountLamps: Int) {
-        if amountLamps == 0 {
+    func updateTxData(buyQuantityUsd: Double) {
+        updateTimer?.invalidate()
+
+        // only update the amountLamps if the user hasnt updated the amount for more than 0.5 second
+        updateTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { _ in
+            let buyQuantityUsdc = priceModel.usdToUsdc(usd: buyQuantityUsd)
+            Task {
+                try! await TxManager.shared.updateTxData(sellQuantity: buyQuantityUsdc)
+            }
+        }
+
+    }
+
+    func updateBuyAmount(_ quantityUsdc: Int) {
+        if quantityUsdc == 0 {
             isValidInput = false
             return
         }
 
-        // Add a tiny buffer for floating point precision
-        buyAmountUsd = priceModel.lamportsToUsd(lamports: amountLamps)
+        self.buyQuantityUsd = priceModel.usdcToUsd(usdc: quantityUsdc)
+        updateTxData(buyQuantityUsd: self.buyQuantityUsd)
 
-        // Format to 2 decimal places, rounding down
-        buyAmountUsdString = String(format: "%.2f", floor(buyAmountUsd * 100) / 100)
+        self.buyQuantityUsdString = String(format: "%.2f", floor(buyQuantityUsd * 100) / 100)
         isValidInput = true
     }
 
     func resetForm() {
-        buyAmountUsdString = ""
-        buyAmountUsd = 0
+        buyQuantityUsdString = ""
+        buyQuantityUsd = 0
         isValidInput = true
         isDefaultOn = true
     }
@@ -113,7 +126,7 @@ struct BuyFormView: View {
             maxWidth: .infinity,
             action: handleBuy
         )
-        .disabled((userModel.balanceLamps ?? 0) < priceModel.usdToLamports(usd: buyAmountUsd))
+        .disabled((userModel.balanceUsdc ?? 0) < priceModel.usdToUsdc(usd: buyQuantityUsd))
     }
 
     private var numberInput: some View {
@@ -126,7 +139,7 @@ struct BuyFormView: View {
 
                 TextField(
                     "",
-                    text: $buyAmountUsdString,
+                    text: $buyQuantityUsdString,
                     prompt: Text("10", comment: "placeholder")
                         .foregroundStyle(.tubText.opacity(0.3))
                 )
@@ -153,14 +166,15 @@ struct BuyFormView: View {
 
                         let amount = text.doubleValue
                         if amount > 0 {
-                            buyAmountUsd = amount
+                            buyQuantityUsd = amount
+                            updateTxData(buyQuantityUsd: buyQuantityUsd)
                             // Only format if the value has changed
-                            buyAmountUsdString = text
+                            buyQuantityUsdString = text
                         }
                         isValidInput = true
                     }
                     else {
-                        buyAmountUsd = 0
+                        buyQuantityUsd = 0
                         isValidInput = false
                     }
                 }
@@ -193,25 +207,25 @@ struct BuyFormView: View {
         }
     }
 
+    let amounts: [Int] = [10, 25, 50, 100]
     private var amountButtons: some View {
         HStack(spacing: 10) {
-            ForEach([10, 25, 50, 100], id: \.self) { amount in
-                let balance = userModel.balanceLamps ?? 0
-                let selectedAmountUsd = priceModel.lamportsToUsd(lamports: balance * amount / 100)
-                let selected = balance > 0 && selectedAmountUsd == buyAmountUsd
+            ForEach(amounts, id: \.self) { amount in
+                let balance = userModel.balanceUsdc ?? 0
+                let selectedAmountUsd = priceModel.usdcToUsd(usdc: balance * Int(amount) / 100)
+                let selected = balance > 0 && selectedAmountUsd == buyQuantityUsd
                 CapsuleButton(
                     text: amount == 100 ? "MAX" : "\(amount)%",
                     textColor: .white,
                     backgroundColor: selected ? .tubAltPrimary : .tubAltSecondary,
                     action: {
-                        guard let balance = userModel.balanceLamps else { return }
+                        guard let balance = userModel.balanceUsdc else { return }
                         updateBuyAmount(balance * amount / 100)
                     }
                 )
             }
         }
     }
-
 }
 
 func textField(
