@@ -1,5 +1,4 @@
 import Apollo
-import CodexAPI
 import Combine
 import SwiftUI
 import TubAPI
@@ -132,6 +131,7 @@ class TokenModel: ObservableObject {
         }
     }
 
+    // TODO(pri-1386): replace with our query
     func fetchInitialPrices(_ tokenId: String) async throws -> [Price] {
         let client = await CodexNetwork.shared.apolloClient
         let now = Int(Date().timeIntervalSince1970)
@@ -203,6 +203,7 @@ class TokenModel: ObservableObject {
 
     }
 
+    // TODO(pri-1386): replace with our subscription
     private func subscribeToTokenPrices(_ newTokenId: String) async {
         priceSubscription?.cancel()
         self.priceUpdateTimer?.invalidate()

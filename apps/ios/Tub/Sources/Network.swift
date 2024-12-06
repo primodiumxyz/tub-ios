@@ -335,11 +335,6 @@ struct TransferResponse: Codable {
     let signerBase58: String
 }
 
-struct CodexTokenResponse: Codable {
-    let token: String
-    let expiry: String
-}
-
 struct EmptyResponse: Codable {}
 
 struct UserResponse: Codable {
@@ -400,10 +395,6 @@ struct RegisterTokenInput: Codable {
 
 struct AirdropInput: Codable {
     let amount: String
-}
-
-struct CodexTokenInput: Codable {
-    let expiration: Int
 }
 
 struct EventInput: Codable {

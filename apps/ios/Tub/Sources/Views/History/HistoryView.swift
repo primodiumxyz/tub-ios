@@ -5,7 +5,6 @@
 //  Created by yixintan on 10/3/24.
 //
 
-import CodexAPI
 import SwiftUI
 import TubAPI
 
@@ -31,6 +30,7 @@ struct HistoryView: View {
         self._error = State(initialValue: nil)  // Add this line
     }
 
+    // TODO(pri-1386): replace with our query
     func fetchTokenMetadata(address: String) async throws -> TokenMetadata {
         let client = await CodexNetwork.shared.apolloClient
         return try await withCheckedThrowingContinuation { continuation in

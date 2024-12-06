@@ -6,7 +6,6 @@
 //
 
 import Apollo
-import CodexAPI
 import SwiftUI
 import TubAPI
 
@@ -182,6 +181,7 @@ final class TokenListModel: ObservableObject {
 
     private var fetching = false
 
+    // TODO(pri-1386): replace with our query
     private func fetchHotTokens(setLoading: Bool? = false) async throws {
         let client = await CodexNetwork.shared.apolloClient
 
