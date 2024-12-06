@@ -10,6 +10,7 @@ export type Token = {
   volumeUsd: number;
   priceChangePct: number;
   tradeCount: number;
+  latestPriceUsd: number;
   supply: number;
 };
 

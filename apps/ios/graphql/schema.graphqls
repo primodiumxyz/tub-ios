@@ -440,6 +440,7 @@ type api_trade_history_1min {
   avg_price_usd: numeric
   bucket: timestamptz
   id: uuid
+  latest_price_usd: numeric
   token_metadata: token_metadata_scalar
   token_mint: String
   total_volume_usd: numeric
@@ -474,6 +475,7 @@ type api_trade_history_1min_aggregate_fields {
 """aggregate avg on columns"""
 type api_trade_history_1min_avg_fields {
   avg_price_usd: Float
+  latest_price_usd: Float
   total_volume_usd: Float
   trade_count: Float
 }
@@ -488,6 +490,7 @@ input api_trade_history_1min_bool_exp {
   avg_price_usd: numeric_comparison_exp
   bucket: timestamptz_comparison_exp
   id: uuid_comparison_exp
+  latest_price_usd: numeric_comparison_exp
   token_metadata: token_metadata_scalar_comparison_exp
   token_mint: String_comparison_exp
   total_volume_usd: numeric_comparison_exp
@@ -499,6 +502,7 @@ input type for incrementing numeric columns in table "api.trade_history_1min"
 """
 input api_trade_history_1min_inc_input {
   avg_price_usd: numeric
+  latest_price_usd: numeric
   total_volume_usd: numeric
   trade_count: bigint
 }
@@ -510,6 +514,7 @@ input api_trade_history_1min_insert_input {
   avg_price_usd: numeric
   bucket: timestamptz
   id: uuid
+  latest_price_usd: numeric
   token_metadata: token_metadata_scalar
   token_mint: String
   total_volume_usd: numeric
@@ -521,6 +526,7 @@ type api_trade_history_1min_max_fields {
   avg_price_usd: numeric
   bucket: timestamptz
   id: uuid
+  latest_price_usd: numeric
   token_metadata: token_metadata_scalar
   token_mint: String
   total_volume_usd: numeric
@@ -532,6 +538,7 @@ type api_trade_history_1min_min_fields {
   avg_price_usd: numeric
   bucket: timestamptz
   id: uuid
+  latest_price_usd: numeric
   token_metadata: token_metadata_scalar
   token_mint: String
   total_volume_usd: numeric
@@ -554,6 +561,7 @@ input api_trade_history_1min_order_by {
   avg_price_usd: order_by
   bucket: order_by
   id: order_by
+  latest_price_usd: order_by
   token_metadata: order_by
   token_mint: order_by
   total_volume_usd: order_by
@@ -572,6 +580,9 @@ enum api_trade_history_1min_select_column {
 
   """column name"""
   id
+
+  """column name"""
+  latest_price_usd
 
   """column name"""
   token_metadata
@@ -593,6 +604,7 @@ input api_trade_history_1min_set_input {
   avg_price_usd: numeric
   bucket: timestamptz
   id: uuid
+  latest_price_usd: numeric
   token_metadata: token_metadata_scalar
   token_mint: String
   total_volume_usd: numeric
@@ -602,6 +614,7 @@ input api_trade_history_1min_set_input {
 """aggregate stddev on columns"""
 type api_trade_history_1min_stddev_fields {
   avg_price_usd: Float
+  latest_price_usd: Float
   total_volume_usd: Float
   trade_count: Float
 }
@@ -609,6 +622,7 @@ type api_trade_history_1min_stddev_fields {
 """aggregate stddev_pop on columns"""
 type api_trade_history_1min_stddev_pop_fields {
   avg_price_usd: Float
+  latest_price_usd: Float
   total_volume_usd: Float
   trade_count: Float
 }
@@ -616,6 +630,7 @@ type api_trade_history_1min_stddev_pop_fields {
 """aggregate stddev_samp on columns"""
 type api_trade_history_1min_stddev_samp_fields {
   avg_price_usd: Float
+  latest_price_usd: Float
   total_volume_usd: Float
   trade_count: Float
 }
@@ -636,6 +651,7 @@ input api_trade_history_1min_stream_cursor_value_input {
   avg_price_usd: numeric
   bucket: timestamptz
   id: uuid
+  latest_price_usd: numeric
   token_metadata: token_metadata_scalar
   token_mint: String
   total_volume_usd: numeric
@@ -645,6 +661,7 @@ input api_trade_history_1min_stream_cursor_value_input {
 """aggregate sum on columns"""
 type api_trade_history_1min_sum_fields {
   avg_price_usd: numeric
+  latest_price_usd: numeric
   total_volume_usd: numeric
   trade_count: bigint
 }
@@ -663,6 +680,7 @@ input api_trade_history_1min_updates {
 """aggregate var_pop on columns"""
 type api_trade_history_1min_var_pop_fields {
   avg_price_usd: Float
+  latest_price_usd: Float
   total_volume_usd: Float
   trade_count: Float
 }
@@ -670,6 +688,7 @@ type api_trade_history_1min_var_pop_fields {
 """aggregate var_samp on columns"""
 type api_trade_history_1min_var_samp_fields {
   avg_price_usd: Float
+  latest_price_usd: Float
   total_volume_usd: Float
   trade_count: Float
 }
@@ -677,6 +696,7 @@ type api_trade_history_1min_var_samp_fields {
 """aggregate variance on columns"""
 type api_trade_history_1min_variance_fields {
   avg_price_usd: Float
+  latest_price_usd: Float
   total_volume_usd: Float
   trade_count: Float
 }
@@ -2349,6 +2369,7 @@ input token_stats_interval_comp_arguments {
 
 type token_stats_model {
   avg_price_usd: numeric!
+  latest_price_usd: numeric!
   price_change_pct: numeric!
   recent_price_change_pct: numeric!
   recent_trades: numeric!
@@ -2373,6 +2394,7 @@ input token_stats_model_bool_exp_bool_exp {
   _not: token_stats_model_bool_exp_bool_exp
   _or: [token_stats_model_bool_exp_bool_exp!]
   avg_price_usd: numeric_comparison_exp
+  latest_price_usd: numeric_comparison_exp
   price_change_pct: numeric_comparison_exp
   recent_price_change_pct: numeric_comparison_exp
   recent_trades: numeric_comparison_exp
@@ -2392,6 +2414,9 @@ input token_stats_model_bool_exp_bool_exp {
 enum token_stats_model_enum_name {
   """column name"""
   avg_price_usd
+
+  """column name"""
+  latest_price_usd
 
   """column name"""
   price_change_pct
@@ -2439,6 +2464,7 @@ enum token_stats_model_enum_name {
 """Ordering options when selecting data from "token_stats_model"."""
 input token_stats_model_order_by {
   avg_price_usd: order_by
+  latest_price_usd: order_by
   price_change_pct: order_by
   recent_price_change_pct: order_by
   recent_trades: order_by

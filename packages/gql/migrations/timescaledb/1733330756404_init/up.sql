@@ -49,6 +49,7 @@ WITH (timescaledb.continuous) AS
 SELECT
   time_bucket('1 minute', created_at) AS bucket,
   token_mint,
+  LAST(token_price_usd, created_at) as latest_price_usd,
   FIRST(id, created_at) as id,
   FIRST(token_metadata, created_at) as token_metadata,
   AVG(token_price_usd) as avg_price_usd,
