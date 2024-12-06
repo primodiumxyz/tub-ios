@@ -15,6 +15,7 @@ struct PrimaryButton: View {
     var maxWidth: CGFloat? = nil
     var action: () -> Void
     var disabled: Bool = false
+    var loading: Bool = false
 
     init(
         text: String,
@@ -23,6 +24,7 @@ struct PrimaryButton: View {
         strokeColor: Color? = nil,
         maxWidth: CGFloat? = .infinity,
         disabled: Bool = false,
+        loading: Bool = false,
         action: @escaping () -> Void
     ) {
         self.text = text
@@ -32,6 +34,7 @@ struct PrimaryButton: View {
         self.maxWidth = maxWidth
         self.action = action
         self.disabled = disabled
+        self.loading = loading
     }
 
     var body: some View {
@@ -40,6 +43,7 @@ struct PrimaryButton: View {
             strokeColor: strokeColor,
             maxWidth: maxWidth,
             disabled: disabled,
+            loading: loading,
             action: action
         ) {
             Text(text)
@@ -371,6 +375,7 @@ struct ContentButtonStyle<Content: View>: ButtonStyle {
     var strokeColor: Color?
     var maxWidth: CGFloat?
     var disabled: Bool
+    var loading: Bool
 
     func makeBody(configuration: Self.Configuration) -> some View {
         // Wrap the content in another view to extend the tap area
@@ -380,8 +385,8 @@ struct ContentButtonStyle<Content: View>: ButtonStyle {
         .frame(maxWidth: maxWidth)
         .padding(.horizontal, 16)
         .padding(.vertical, 13)
-        .opacity(disabled ? 0.5 : 1.0)
-        .background(backgroundColor.opacity(configuration.isPressed || disabled ? 0.5 : 1.0))
+        .opacity(disabled || loading ? 0.5 : 1.0)
+        .background(backgroundColor.opacity(configuration.isPressed || disabled || loading ? 0.5 : 1.0))
         .cornerRadius(30)
         .overlay(
             Group {
@@ -405,12 +410,14 @@ struct ContentButton<Content: View>: View {
     var maxWidth: CGFloat? = nil
     var action: () -> Void
     var disabled: Bool = false
+    var loading: Bool = false
 
     init(
         backgroundColor: Color = .tubBuyPrimary,
         strokeColor: Color? = nil,
         maxWidth: CGFloat? = .infinity,
         disabled: Bool = false,
+        loading: Bool = false,
         action: @escaping () -> Void,
         @ViewBuilder content: () -> Content
     ) {
@@ -420,11 +427,16 @@ struct ContentButton<Content: View>: View {
         self.maxWidth = maxWidth
         self.action = action
         self.disabled = disabled
+        self.loading = loading
     }
 
     var body: some View {
-        Button(action: self.disabled ? {} : action) {
-            content
+        Button(action: self.disabled || self.loading ? {} : action) {
+            if loading {
+                ProgressView()
+            } else {
+                content
+            }
         }
         .buttonStyle(
             ContentButtonStyle(
@@ -432,7 +444,8 @@ struct ContentButton<Content: View>: View {
                 backgroundColor: backgroundColor,
                 strokeColor: strokeColor,
                 maxWidth: maxWidth,
-                disabled: disabled
+                disabled: disabled,
+                loading: loading
             )
         )
     }

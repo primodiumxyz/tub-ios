@@ -60,7 +60,6 @@ final class TokenListModel: ObservableObject {
         self.userModel?.initToken(tokenId: token.id)
         if token.id != "" {
             Task {
-                print("updating with ", token.id)
                 try! await TxManager.shared.updateTxData(
                     tokenId: token.id,
                     sellQuantity: SettingsManager.shared.defaultBuyValueUsdc
