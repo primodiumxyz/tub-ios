@@ -7,7 +7,7 @@ public class GetTokensMetadataQuery: GraphQLQuery {
   public static let operationName: String = "GetTokensMetadata"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetTokensMetadata($tokens: [String!]!) { api_trade_history( where: { token_mint: { _in: $tokens } } order_by: [{ token_mint: asc }, { created_at: desc }] distinct_on: [token_mint] ) { __typename token_mint token_metadata } }"#
+      #"query GetTokensMetadata($tokens: [String!]!) { token_metadata_formatted(where: { mint: { _in: $tokens } }) { __typename mint name symbol image_uri } }"#
     ))
 
   public var tokens: [String]
@@ -24,32 +24,31 @@ public class GetTokensMetadataQuery: GraphQLQuery {
 
     public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Query_root }
     public static var __selections: [ApolloAPI.Selection] { [
-      .field("api_trade_history", [Api_trade_history].self, arguments: [
-        "where": ["token_mint": ["_in": .variable("tokens")]],
-        "order_by": [["token_mint": "asc"], ["created_at": "desc"]],
-        "distinct_on": ["token_mint"]
-      ]),
+      .field("token_metadata_formatted", [Token_metadata_formatted].self, arguments: ["where": ["mint": ["_in": .variable("tokens")]]]),
     ] }
 
-    /// fetch data from the table: "api.trade_history"
-    public var api_trade_history: [Api_trade_history] { __data["api_trade_history"] }
+    public var token_metadata_formatted: [Token_metadata_formatted] { __data["token_metadata_formatted"] }
 
-    /// Api_trade_history
+    /// Token_metadata_formatted
     ///
-    /// Parent Type: `Api_trade_history`
-    public struct Api_trade_history: TubAPI.SelectionSet {
+    /// Parent Type: `Token_metadata_model`
+    public struct Token_metadata_formatted: TubAPI.SelectionSet {
       public let __data: DataDict
       public init(_dataDict: DataDict) { __data = _dataDict }
 
-      public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Api_trade_history }
+      public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Token_metadata_model }
       public static var __selections: [ApolloAPI.Selection] { [
         .field("__typename", String.self),
-        .field("token_mint", String.self),
-        .field("token_metadata", TubAPI.Token_metadata_scalar.self),
+        .field("mint", String.self),
+        .field("name", String.self),
+        .field("symbol", String.self),
+        .field("image_uri", String?.self),
       ] }
 
-      public var token_mint: String { __data["token_mint"] }
-      public var token_metadata: TubAPI.Token_metadata_scalar { __data["token_metadata"] }
+      public var mint: String { __data["mint"] }
+      public var name: String { __data["name"] }
+      public var symbol: String { __data["symbol"] }
+      public var image_uri: String? { __data["image_uri"] }
     }
   }
 }

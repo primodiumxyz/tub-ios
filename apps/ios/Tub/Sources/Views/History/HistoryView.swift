@@ -19,15 +19,9 @@ struct HistoryView: View {
     @State private var tokenMetadata: [String: TokenMetadata] = [:]  // Cache for token metadata
 
     struct TokenMetadata {
-        let name: String?
-        let symbol: String?
+        let name: String
+        let symbol: String
         let imageUri: String?
-    }
-
-    struct TokenMetadataJSON: Codable {
-        let name: String?
-        let symbol: String?
-        let image_uri: String?
     }
 
     init(txs: [TransactionData]? = []) {
@@ -48,9 +42,7 @@ struct HistoryView: View {
         // Only fetch metadata for uncached tokens
         return try await withCheckedThrowingContinuation { continuation in
             Network.shared.apollo.fetch(
-                query: GetTokensMetadataQuery(
-                    tokens: uncachedTokens
-                )
+                query: GetTokensMetadataQuery(tokens: uncachedTokens)
             ) { result in
                 switch result {
                 case .success(let graphQLResult):
@@ -62,22 +54,14 @@ struct HistoryView: View {
                     // Create new metadata from fetched data
                     var updatedMetadata = self.tokenMetadata
                     
-                    if let tokens = graphQLResult.data?.api_trade_history {
-                        for token in tokens {
-                            if let metadataData = token.token_metadata.data(using: .utf8) {
-                                do {
-                                    let jsonMetadata = try JSONDecoder().decode(TokenMetadataJSON.self, from: metadataData)
-                                    let metadata = TokenMetadata(
-                                        name: jsonMetadata.name,
-                                        symbol: jsonMetadata.symbol,
-                                        imageUri: jsonMetadata.image_uri
-                                    )
-                                    updatedMetadata[token.token_mint] = metadata
-                                } catch {
-                                    print("Error decoding metadata for token \(token.token_mint): \(error)")
-                                    // Continue with other tokens even if one fails to decode
-                                    continue
-                                }
+                    if let tokens = graphQLResult.data?.token_metadata_formatted {
+                        for metadata in tokens {
+                            do {
+                                updatedMetadata[metadata.mint] = TokenMetadata(
+                                    name: metadata.name,
+                                    symbol: metadata.symbol,
+                                    imageUri: metadata.image_uri
+                                )
                             }
                         }
                         continuation.resume(returning: updatedMetadata)

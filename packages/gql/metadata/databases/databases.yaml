@@ -142,6 +142,53 @@
       use_prepared_statements: true
   logical_models:
     - fields:
+        - name: mint
+          type:
+            nullable: false
+            scalar: text
+        - name: name
+          type:
+            nullable: false
+            scalar: varchar
+        - name: symbol
+          type:
+            nullable: false
+            scalar: varchar
+        - name: description
+          type:
+            nullable: false
+            scalar: text
+        - name: image_uri
+          type:
+            nullable: true
+            scalar: text
+        - name: external_url
+          type:
+            nullable: true
+            scalar: text
+        - name: supply
+          type:
+            nullable: true
+            scalar: numeric
+        - name: is_pump_token
+          type:
+            nullable: false
+            scalar: boolean
+      name: token_metadata_model
+      select_permissions:
+        - permission:
+            columns:
+              - mint
+              - name
+              - symbol
+              - description
+              - image_uri
+              - external_url
+              - supply
+              - is_pump_token
+            filter: {}
+          role: public
+    - fields:
         - name: token_mint
           type:
             nullable: false
@@ -271,6 +318,10 @@
             filter: {}
           role: public
   native_queries:
+    - arguments: {}
+      code: "WITH latest_metadata AS (\n    SELECT DISTINCT ON (token_mint)\n        token_mint as mint,\n        (token_metadata).name as name,\n        (token_metadata).symbol as symbol,\n        (token_metadata).description as description,\n        (token_metadata).image_uri as image_uri,\n        (token_metadata).external_url as external_url,\n        (token_metadata).supply as supply,\n        (token_metadata).is_pump_token as is_pump_token\n    FROM api.trade_history\n    WHERE token_metadata::text != 'null'\n    ORDER BY token_mint, created_at DESC\n)\nSELECT \n    mint,\n    name,\n    symbol,\n    description,\n    image_uri,\n    external_url,\n    supply,\n    is_pump_token\nFROM latest_metadata;"
+      returns: token_metadata_model
+      root_field_name: token_metadata_formatted
     - arguments:
         interval:
           description: Main interval for total stats

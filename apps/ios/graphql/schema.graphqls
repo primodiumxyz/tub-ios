@@ -1658,6 +1658,22 @@ type query_root {
   fetch data from the table: "api.trade_history" using primary key columns
   """
   api_trade_history_by_pk(created_at: timestamptz!, id: uuid!, token_mint: String!): api_trade_history
+  token_metadata_formatted(
+    """distinct select on columns"""
+    distinct_on: [token_metadata_model_enum_name!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_metadata_model_order_by!]
+
+    """filter the rows returned"""
+    where: token_metadata_model_bool_exp_bool_exp
+  ): [token_metadata_model!]!
   token_stats_interval_agg(
     """token_stats_interval_aggNative Query Arguments"""
     args: token_stats_interval_agg_arguments!
@@ -2062,6 +2078,22 @@ type subscription_root {
     """filter the rows returned"""
     where: api_trade_history_bool_exp
   ): [api_trade_history!]!
+  token_metadata_formatted(
+    """distinct select on columns"""
+    distinct_on: [token_metadata_model_enum_name!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_metadata_model_order_by!]
+
+    """filter the rows returned"""
+    where: token_metadata_model_bool_exp_bool_exp
+  ): [token_metadata_model!]!
   token_stats_interval_agg(
     """token_stats_interval_aggNative Query Arguments"""
     args: token_stats_interval_agg_arguments!
@@ -2330,6 +2362,72 @@ input timestamptz_comparison_exp {
   _lte: timestamptz
   _neq: timestamptz
   _nin: [timestamptz!]
+}
+
+type token_metadata_model {
+  description: String!
+  external_url: String
+  image_uri: String
+  is_pump_token: Boolean!
+  mint: String!
+  name: String!
+  supply: numeric
+  symbol: String!
+}
+
+"""
+Boolean expression to filter rows from the logical model for "token_metadata_model". All fields are combined with a logical 'AND'.
+"""
+input token_metadata_model_bool_exp_bool_exp {
+  _and: [token_metadata_model_bool_exp_bool_exp!]
+  _not: token_metadata_model_bool_exp_bool_exp
+  _or: [token_metadata_model_bool_exp_bool_exp!]
+  description: String_comparison_exp
+  external_url: String_comparison_exp
+  image_uri: String_comparison_exp
+  is_pump_token: Boolean_comparison_exp
+  mint: String_comparison_exp
+  name: String_comparison_exp
+  supply: numeric_comparison_exp
+  symbol: String_comparison_exp
+}
+
+enum token_metadata_model_enum_name {
+  """column name"""
+  description
+
+  """column name"""
+  external_url
+
+  """column name"""
+  image_uri
+
+  """column name"""
+  is_pump_token
+
+  """column name"""
+  mint
+
+  """column name"""
+  name
+
+  """column name"""
+  supply
+
+  """column name"""
+  symbol
+}
+
+"""Ordering options when selecting data from "token_metadata_model"."""
+input token_metadata_model_order_by {
+  description: order_by
+  external_url: order_by
+  image_uri: order_by
+  is_pump_token: order_by
+  mint: order_by
+  name: order_by
+  supply: order_by
+  symbol: order_by
 }
 
 scalar token_metadata_scalar
