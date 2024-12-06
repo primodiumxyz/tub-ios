@@ -491,26 +491,30 @@ export class TubService {
       const feePayerSignatureBytes = Buffer.from(bs58.decode(feePayerSignature));
       transaction.addSignature(this.octane.getSettings().feePayerPublicKey, feePayerSignatureBytes);
 
+      // simulate the transaction
+      const simulation = await this.octane.getSettings().connection.simulateTransaction(transaction);
+      console.log("[signAndSendTransaction] Simulation:", simulation);
+
       // Send transaction
-      const txid = await this.octane.getSettings().connection.sendRawTransaction(message.serialize(), {
+      const txid = await this.octane.getSettings().connection.sendTransaction(transaction, {
         skipPreflight: false,
         maxRetries: 3,
-        preflightCommitment: "processed",
+        preflightCommitment: "confirmed",
       });
 
-      // // Wait for confirmation using polling
-      // const confirmation = await this.octane.getSettings().connection.confirmTransaction(
-      //   {
-      //     signature: txid,
-      //     blockhash: transaction.recentBlockhash!,
-      //     lastValidBlockHeight: message.lastValidBlockHeight!,
-      //   },
-      //   "processed",
-      // );
+      const signatureStatus = await this.octane.getSettings().connection.getSignatureStatuses([txid]);
+      console.log("[signAndSendTransaction] Signature status:", signatureStatus);
 
-      // if (confirmation.value.err) {
-      //   throw new Error(`Transaction failed: ${confirmation.value.err}`);
-      // }
+      // Wait for confirmation using polling
+      const confirmation = await this.octane.getSettings().connection.getTransaction(txid, {
+        commitment: "confirmed",
+        maxSupportedTransactionVersion: 0,
+      });
+
+      if (confirmation?.meta?.err) {
+        throw new Error(`Transaction failed: ${confirmation.meta.err}`);
+      }
+      console.log(`[signAndSendTransaction] Transaction confirmed:`, confirmation);
 
       // Clean up registry
       this.messageRegistry.delete(base64TransactionMessage);
