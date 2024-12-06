@@ -10,19 +10,30 @@ import SwiftUI
 struct LoginErrorView: View {
     let title: String
     let errorMessage: String
-    let retryAction: () -> Void
+    let retryAction: () async -> Void
     let logoutAction: (() -> Void)?
+    @State var retrying = false
 
     init(
         title: String = "Something went wrong. ",
         errorMessage: String,
-        retryAction: @escaping () -> Void,
+        retryAction: @escaping () async -> Void,
         logoutAction: (() -> Void)? = nil
     ) {
         self.title = title
         self.errorMessage = errorMessage
         self.retryAction = retryAction
         self.logoutAction = logoutAction
+    }
+    
+    func handleRetry() {
+        retrying = true
+        Task {
+            await retryAction()
+            await MainActor.run {
+                retrying = false
+            }
+        }
     }
 
     var body: some View {
@@ -39,7 +50,9 @@ struct LoginErrorView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
 
-            PrimaryButton(text: "Try again", maxWidth: 200, action: retryAction)
+            PrimaryButton(text: "Try again", maxWidth: 200, loading: retrying, action: handleRetry
+                
+            )
         }
         .padding(8)
         .background(Color(UIColor.systemBackground))
