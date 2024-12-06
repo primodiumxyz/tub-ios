@@ -32,6 +32,9 @@ export const TradingViewChart = ({ token }: { token: Token }) => {
       },
       width: chartContainerRef.current.clientWidth,
       height: 400,
+      localization: {
+        priceFormatter: (price: number) => price.toFixed(6),
+      },
       timeScale: {
         timeVisible: true,
         secondsVisible: false,

@@ -199,6 +199,25 @@
             nullable: false
             scalar: boolean
       name: token_stats_model
+      select_permissions:
+        - permission:
+            columns:
+              - token_mint
+              - total_volume_usd
+              - price_change_pct
+              - avg_price_usd
+              - total_trades
+              - trades_per_minute
+              - volume_usd_per_minute
+              - token_metadata_name
+              - token_metadata_symbol
+              - token_metadata_description
+              - token_metadata_image_uri
+              - token_metadata_external_url
+              - token_metadata_supply
+              - token_metadata_is_pump_token
+            filter: {}
+          role: public
     - fields:
         - name: bucket
           type:
@@ -229,6 +248,18 @@
             nullable: false
             scalar: numeric
       name: trade_history_candle_model
+      select_permissions:
+        - permission:
+            columns:
+              - bucket
+              - token_mint
+              - open_price_usd
+              - close_price_usd
+              - high_price_usd
+              - low_price_usd
+              - volume_usd
+            filter: {}
+          role: public
   native_queries:
     - arguments:
         interval:
