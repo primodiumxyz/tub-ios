@@ -1,4 +1,11 @@
-import { Connection, Keypair, PublicKey, Transaction, TransactionInstruction } from "@solana/web3.js";
+import {
+  Connection,
+  Keypair,
+  PublicKey,
+  Transaction,
+  TransactionInstruction,
+  VersionedTransaction,
+} from "@solana/web3.js";
 import { core, signWithTokenFee, createAccountIfTokenFeePaid } from "@primodiumxyz/octane-core";
 import { QuoteGetRequest, QuoteResponse, SwapInstructionsPostRequest, SwapInstructionsResponse } from "@jup-ag/api";
 import { Wallet } from "@coral-xyz/anchor";
@@ -409,10 +416,10 @@ export class OctaneService {
    * @throws Error if signing fails
    */
   // !! TODO: validate transaction before signing
-  async signTransactionWithoutCheckingTokenFee(transaction: Transaction): Promise<string> {
+  async signTransactionWithoutCheckingTokenFee(transaction: VersionedTransaction): Promise<string> {
     try {
-      transaction.partialSign(this.feePayerKeypair);
-      return bs58.encode(transaction.signature!);
+      transaction.sign([this.feePayerKeypair]);
+      return bs58.encode(transaction.signatures[0]!);
     } catch (e) {
       console.error("Error signing transaction without token fee:", e);
       throw new Error("Failed to sign transaction without token fee");

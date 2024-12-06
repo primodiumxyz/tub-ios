@@ -1,6 +1,14 @@
 import { Codex } from "@codex-data/sdk";
 import { PrivyClient, WalletWithMetadata } from "@privy-io/server-auth";
-import { Connection, Keypair, PublicKey, SendTransactionError, Transaction } from "@solana/web3.js";
+import {
+  Connection,
+  Keypair,
+  PublicKey,
+  SendTransactionError,
+  Transaction,
+  VersionedMessage,
+  VersionedTransaction,
+} from "@solana/web3.js";
 import { createTransferInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { GqlClient } from "@tub/gql";
 import {
@@ -358,7 +366,9 @@ export class TubService {
     if (!registryEntry) {
       throw new Error("Transaction not found in registry");
     }
-    const transaction = registryEntry.transaction;
+    const transaction = new VersionedTransaction(
+      VersionedMessage.deserialize(Buffer.from(registryEntry.transactionMessageBase64, "base64")),
+    );
     // remove transaction from registry
     this.swapRegistry.delete(fetchSwapResponse.transactionMessageBase64);
 
@@ -545,7 +555,9 @@ export class TubService {
       const userPublicKey = new PublicKey(walletAddress);
       console.log("[signAndSendTransaction] userPublicKey:", userPublicKey);
       // Create a new transaction from the registry entry
-      const transaction = registryEntry.transaction;
+      const transaction = new VersionedTransaction(
+        VersionedMessage.deserialize(Buffer.from(registryEntry.transactionMessageBase64, "base64")),
+      );
 
       // Convert base64 signature to bytes
       const userSignatureBytes = Buffer.from(userSignature, "base64");
@@ -558,28 +570,31 @@ export class TubService {
       transaction.addSignature(this.octane.getSettings().feePayerPublicKey, feePayerSignatureBytes);
       console.log("[signAndSendTransaction] Second, apply fee payer signature:", transaction.signatures);
 
+      // simulate the transaction
+      const simulation = await this.octane.getSettings().connection.simulateTransaction(transaction);
+      console.log("[signAndSendTransaction] Simulation:", simulation);
+
       // Send transaction
-      const txid = await this.octane.getSettings().connection.sendRawTransaction(transaction.serialize(), {
+      const txid = await this.octane.getSettings().connection.sendTransaction(transaction, {
         skipPreflight: false,
         maxRetries: 3,
-        preflightCommitment: "processed",
+        preflightCommitment: "confirmed",
       });
       console.log(`[signAndSendTransaction] Transaction sent with ID: ${txid}`);
 
-      // Wait for confirmation using polling
-      const confirmation = await this.octane.getSettings().connection.confirmTransaction(
-        {
-          signature: txid,
-          blockhash: transaction.recentBlockhash!,
-          lastValidBlockHeight: transaction.lastValidBlockHeight!,
-        },
-        "processed",
-      );
-      console.log(`[signAndSendTransaction] Transaction confirmed:`, confirmation);
+      const signatureStatus = await this.octane.getSettings().connection.getSignatureStatuses([txid]);
+      console.log("[signAndSendTransaction] Signature status:", signatureStatus);
 
-      if (confirmation.value.err) {
-        throw new Error(`Transaction failed: ${confirmation.value.err}`);
+      // Wait for confirmation using polling
+      const confirmation = await this.octane.getSettings().connection.getTransaction(txid, {
+        commitment: "confirmed",
+        maxSupportedTransactionVersion: 0,
+      });
+
+      if (confirmation?.meta?.err) {
+        throw new Error(`Transaction failed: ${confirmation.meta.err}`);
       }
+      console.log(`[signAndSendTransaction] Transaction confirmed:`, confirmation);
 
       // Clean up registry
       this.swapRegistry.delete(base64TransactionMessage);
@@ -667,7 +682,7 @@ export class TubService {
             slippageBps: 50,
             onlyDirectRoutes,
             restrictIntermediateTokens: true,
-            maxAccounts: 50,
+            maxAccounts: 20,
             asLegacyTransaction: false,
           },
           request.userPublicKey,
