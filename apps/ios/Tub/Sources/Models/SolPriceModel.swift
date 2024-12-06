@@ -43,7 +43,6 @@ final class SolPriceModel: ObservableObject {
         }
     }
 
-
     private func startPriceUpdates() {
         // Initial fetch
         Task { @MainActor in
