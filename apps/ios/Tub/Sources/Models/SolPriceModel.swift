@@ -25,6 +25,23 @@ final class SolPriceModel: ObservableObject {
     deinit {
         timer?.invalidate()
     }
+    
+    @MainActor
+    public func fetchPrice() async {
+        guard !fetching else { return }
+        fetching = true
+        defer { fetching = false }
+        
+        do {
+            let price = try await Network.shared.getSolPrice()
+            self.price = price
+            self.isReady = true
+            self.error = nil
+        } catch {
+            self.error = error.localizedDescription
+            print("Error fetching SOL price: \(error)")
+        }
+    }
 
     private func startPriceUpdates() {
         // Initial fetch
@@ -40,23 +57,6 @@ final class SolPriceModel: ObservableObject {
             }
         }
         RunLoop.main.add(timer!, forMode: .common)
-    }
-    
-    @MainActor
-    private func fetchPrice() async {
-        guard !fetching else { return }
-        fetching = true
-        defer { fetching = false }
-        
-        do {
-            let price = try await Network.shared.getSolPrice()
-            self.price = price
-            self.isReady = true
-            self.error = nil
-        } catch {
-            self.error = error.localizedDescription
-            print("Error fetching SOL price: \(error)")
-        }
     }
 
     func formatPrice(
