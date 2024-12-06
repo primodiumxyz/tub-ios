@@ -18,14 +18,14 @@ struct CustomToggleStyle: ToggleStyle {
                 .frame(width: 50, height: 30)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(configuration.isOn ? Color("aquaGreen") : Color("pink"), lineWidth: 1)
+                        .stroke(configuration.isOn ? .tubSellPrimary : .tubBuyPrimary, lineWidth: 1)
                 )
                 .overlay(
                     Circle()
                         .fill(
-                            configuration.isOn 
-                                ? AppColors.toggleOnGradient
-                                : AppColors.toggleOffGradient
+                            configuration.isOn
+                                ? Gradients.toggleOnGradient
+                                : Gradients.toggleOffGradient
                         )
                         .frame(width: 24, height: 24)
                         .offset(x: configuration.isOn ? 10 : -10)
@@ -43,9 +43,9 @@ struct CustomToggleStyle: ToggleStyle {
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var settingsManager = SettingsManager.shared
-    
+
     // Add temporary state for editing
-    @State private var tempDefaultValue: String = ""
+    @State private var tempDefaultValueUsd: String = ""
     @FocusState private var isEditing: Bool
 
     private let currencyFormatter: NumberFormatter = {
@@ -61,11 +61,11 @@ struct SettingsView: View {
     // Create a computed binding to handle validation
     private var validatedDefaultBuyValue: Binding<Double> {
         Binding(
-            get: { settingsManager.defaultBuyValue },
+            get: { settingsManager.defaultBuyValueUsd },
             set: { newValue in
                 // Round to 2 decimal places
                 let rounded = (newValue * 100).rounded() / 100
-                settingsManager.defaultBuyValue = max(0, rounded)
+                settingsManager.defaultBuyValueUsd = max(0, rounded)
             }
         )
     }
@@ -81,55 +81,44 @@ struct SettingsView: View {
                         HStack(spacing: 4) {
                             Text("$")
                                 .font(.sfRounded(size: .lg, weight: .semibold))
-                                .foregroundColor(Color.white.opacity(0.5))
-                            TextField("", text: $tempDefaultValue)
+                                .foregroundStyle(.tubNeutral)
+                            TextField("", text: $tempDefaultValueUsd)
                                 .focused($isEditing)
                                 .keyboardType(.decimalPad)
                                 .font(.sfRounded(size: .lg, weight: .semibold))
                                 .multilineTextAlignment(.trailing)
-                                .foregroundColor(Color.white)
-                                .frame(width: textWidth(for: tempDefaultValue))
-                                .onChange(of: tempDefaultValue) { newValue in
+                                .foregroundStyle(.primary)
+                                .frame(width: textWidth(for: tempDefaultValueUsd))
+                                .onChange(of: tempDefaultValueUsd) { _, newValue in
                                     // Remove any non-numeric characters except decimal point
                                     let filtered = newValue.filter { "0123456789.".contains($0) }
 
                                     // Ensure only one decimal point
                                     let components = filtered.components(separatedBy: ".")
                                     if components.count > 2 {
-                                        tempDefaultValue = components[0] + "." + components[1]
+                                        tempDefaultValueUsd = components[0] + "." + components[1]
                                     }
                                     else if components.count == 2 {
                                         // Limit to 2 decimal places
                                         let decimals = components[1].prefix(2)
-                                        tempDefaultValue = components[0] + "." + String(decimals)
+                                        tempDefaultValueUsd = components[0] + "." + String(decimals)
                                     }
                                     else {
-                                        tempDefaultValue = filtered
+                                        tempDefaultValueUsd = filtered
                                     }
                                 }
                                 .onAppear {
-                                    tempDefaultValue = String(format: "%.2f", settingsManager.defaultBuyValue)
+                                    tempDefaultValueUsd = String(format: "%.2f", settingsManager.defaultBuyValueUsd)
                                 }
                                 .onSubmit {
                                     updateDefaultValue()
                                 }
                             Image(systemName: "pencil")
-                                .foregroundColor(Color.white)
+                                .foregroundStyle(.tubBuyPrimary)
                                 .font(.system(size: 20))
                         }
                     }
 
-                    // Commented out for now
-                    // Push Notifications Toggle
-                    //                    DetailRow(
-                    //                        title: "Push Notifications",
-                    //                        value: ""
-                    //                    ) {
-                    //                        Toggle("", isOn: $pushNotificationsEnabled)
-                    //                            .toggleStyle(CustomToggleStyle())
-                    //                    }
-
-                    // Vibration Toggle
                     DetailRow(
                         title: "Vibration",
                         value: ""
@@ -143,33 +132,28 @@ struct SettingsView: View {
 
                 Spacer()
             }
-            .navigationBarTitleDisplayMode(.inline)
             .navigationBarBackButtonHidden(false)
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Text("Settings")
-                        .font(.sfRounded(size: .xl, weight: .semibold))
-                        .foregroundColor(Color.white)
-                }
-                
                 // Keep keyboard toolbar
                 ToolbarItem(placement: .keyboard) {
                     Button("Save") {
                         isEditing = false
                         updateDefaultValue()
                     }
-                    .foregroundColor(Color("pink"))
+                    .foregroundStyle(.tubSellPrimary)
                     .font(.system(size: 20))
                 }
             }
-            .background(Color.black)
+            .background(Color(UIColor.systemBackground))
         }
     }
 
     private func updateDefaultValue() {
-        if let newValue = Double(tempDefaultValue) {
+        if let newValue = Double(tempDefaultValueUsd) {
             let rounded = (newValue * 100).rounded() / 100
-            settingsManager.defaultBuyValue = max(0, rounded)
+            settingsManager.defaultBuyValueUsd = max(0, rounded)
         }
     }
 
@@ -183,4 +167,5 @@ struct SettingsView: View {
 
 #Preview {
     SettingsView()
+        .preferredColorScheme(.dark)
 }
