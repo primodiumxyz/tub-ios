@@ -98,12 +98,14 @@ struct TransactionData: Identifiable, Equatable {
 struct StatValue: Identifiable {
     var id: String
     let title: String
+    let caption: String?
     let value: String
     let color: Color?
 
-    init(title: String, value: String, color: Color? = nil) {
+    init(title: String, caption: String? = nil, value: String, color: Color? = nil) {
         self.id = title
         self.title = title
+        self.caption = caption
         self.value = value
         self.color = color
     }

@@ -62,15 +62,12 @@ struct TokenInfoPreview: View {
 
     private var generalStats: [StatValue] {
         let token = tokenModel.token
-        //        print(token)
         let ret = [
             StatValue(title: "Market Cap", value: priceModel.formatPrice(usd: token.marketCapUsd, formatLarge: true)),
-            StatValue(title: "Volume \(HOT_TOKENS_INTERVAL)", value: priceModel.formatPrice(usd: token.stats.volumeUsd, formatLarge: true)),
-            StatValue(title: "Trades \(HOT_TOKENS_INTERVAL)", value: formatLargeNumber(Double(token.stats.trades))),
-            StatValue(title: "Volume \(FILTERING_INTERVAL)", value: priceModel.formatPrice(usd: token.recentStats.volumeUsd, formatLarge: true)),
-            StatValue(title: "Trades \(FILTERING_INTERVAL)", value: formatLargeNumber(Double(token.recentStats.trades))),
+            StatValue(title: "Price change", caption: HOT_TOKENS_INTERVAL, value: String(format: "%.2f%%", token.stats.priceChangePct)),
+            StatValue(title: "Volume", caption: HOT_TOKENS_INTERVAL, value: priceModel.formatPrice(usd: token.stats.volumeUsd, formatLarge: true)),
+            StatValue(title: "Trades", caption: HOT_TOKENS_INTERVAL, value: formatLargeNumber(Double(token.stats.trades))),
         ]
-        //        print(ret)
         return ret
     }
 
@@ -148,17 +145,24 @@ private struct StatView: View {
 
     var body: some View {
         VStack(spacing: 4) {
-            HStack(spacing: 0) {
+            HStack(spacing: 3) {
                 Text(stat.title)
                     .font(.sfRounded(size: .xs, weight: .regular))
                     .foregroundStyle(.tubText)
                     .fixedSize(horizontal: true, vertical: false)
+                
+                if let caption = stat.caption {
+                    Text(caption)
+                        .font(.sfRounded(size: .xxs, weight: .regular))
+                        .foregroundStyle(.tubText.opacity(0.7))
+                }
 
                 Text(stat.value)
                     .font(.sfRounded(size: .sm, weight: .semibold))
                     .foregroundStyle(stat.color ?? .primary)
                     .frame(maxWidth: .infinity, alignment: .topTrailing)
             }
+            .alignmentGuide(.firstTextBaseline) { d in d[.firstTextBaseline] }
 
             Divider().padding(.top, 2)
                 .frame(height: 0.5)
