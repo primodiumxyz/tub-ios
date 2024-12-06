@@ -22,7 +22,7 @@ import { getAssociatedTokenAddress } from "@solana/spl-token";
       }
 
       // Setup connection to Solana mainnet
-      connection = new Connection(process.env.QUICKNODE_MAINNET_URL ?? "https://api.mainnet-beta.solana.com");
+      connection = new Connection(`${process.env.QUICKNODE_ENDPOINT}/${process.env.QUICKNODE_TOKEN}`);
 
       // Setup Jupiter API client
       const jupiterQuoteApi = createJupiterApiClient({
