@@ -322,9 +322,11 @@ class TokenModel: ObservableObject {
                 guard let self = self else { return }
 
                 Task {
-                    let newCandles = try! await self.fetchInitialCandles(pairId)
-                    await MainActor.run {
-                        self.candles = newCandles
+					let newCandles = try? await self.fetchInitialCandles(pairId)
+					if let newCandles = newCandles {
+						await MainActor.run {
+							self.candles = newCandles
+						}
                     }
                 }
             }
