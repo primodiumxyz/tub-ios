@@ -4,7 +4,6 @@ import { OctaneService } from "../src/OctaneService";
 import { Connection, Keypair, PublicKey, VersionedTransaction, VersionedMessage } from "@solana/web3.js";
 import { createJupiterApiClient } from "@jup-ag/api";
 import { MockPrivyClient } from "./helpers/MockPrivyClient";
-import { Codex } from "@codex-data/sdk";
 import { createClient as createGqlClient } from "@tub/gql";
 import bs58 from "bs58";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
@@ -65,8 +64,6 @@ import { getAssociatedTokenAddress } from "@solana/spl-token";
         })
       ).db;
 
-      const codexSdk = new Codex(process.env.CODEX_API_KEY!);
-
       // Create mock Privy client with our test wallet
       const mockPrivyClient = new MockPrivyClient(userKeypair.publicKey.toString());
 
@@ -74,7 +71,6 @@ import { getAssociatedTokenAddress } from "@solana/spl-token";
         gqlClient,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockPrivyClient as any,
-        codexSdk,
         octaneService,
       );
 
