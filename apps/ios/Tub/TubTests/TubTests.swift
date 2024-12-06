@@ -7,6 +7,8 @@
 
 import XCTest
 
+@testable import Tub
+
 final class TubTests: XCTestCase {
 
     override func setUpWithError() throws {
@@ -31,5 +33,4 @@ final class TubTests: XCTestCase {
             // Put the code you want to measure the time of here.
         }
     }
-
 }
