@@ -58,3 +58,41 @@ query GetWalletTransactions($wallet: String!) {
     }
   }
 }
+
+query GetTokensMetadata($tokens: [String!]!) {
+  api_trade_history(
+    where: { token_mint: { _in: $tokens } }
+    order_by: [{ token_mint: asc }, { created_at: desc }]
+    distinct_on: [token_mint]
+  ) {
+    token_mint
+    token_metadata
+  }
+}
+
+query GetTokenPricesSince($token: String!, $since: timestamptz = "now()") {
+  api_trade_history(
+    where: { token_mint: { _eq: $token }, created_at: { _gte: $since } }
+    order_by: { created_at: asc }
+  ) {
+    token_price_usd
+    created_at
+  }
+}
+
+query GetTokenCandles(
+  $token: String!
+  $since: timestamptz = "now()"
+  $candle_interval: interval = "1m"
+) {
+  token_trade_history_candles(
+    args: { candle_interval: $candle_interval }
+    where: { token_mint: { _eq: $token }, bucket: { _gte: $since } }
+  ) {
+    bucket
+    open_price_usd
+    close_price_usd
+    high_price_usd
+    low_price_usd
+  }
+}
