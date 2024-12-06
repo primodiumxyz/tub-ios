@@ -65,9 +65,10 @@ struct TokenInfoPreview: View {
         //        print(token)
         let ret = [
             StatValue(title: "Market Cap", value: priceModel.formatPrice(usd: token.marketCapUsd, formatLarge: true)),
-            StatValue(title: "Volume (1h)", value: priceModel.formatPrice(usd: token.volumeUsd, formatLarge: true)),
-            StatValue(title: "Liquidity", value: priceModel.formatPrice(usd: token.liquidityUsd, formatLarge: true)),
-            StatValue(title: "Unique holders", value: formatLargeNumber(Double(token.uniqueHolders))),
+            StatValue(title: "Volume \(HOT_TOKENS_INTERVAL)", value: priceModel.formatPrice(usd: token.stats.volumeUsd, formatLarge: true)),
+            StatValue(title: "Trades \(HOT_TOKENS_INTERVAL)", value: formatLargeNumber(Double(token.stats.trades))),
+            StatValue(title: "Volume \(FILTERING_INTERVAL)", value: priceModel.formatPrice(usd: token.recentStats.volumeUsd, formatLarge: true)),
+            StatValue(title: "Trades \(FILTERING_INTERVAL)", value: formatLargeNumber(Double(token.recentStats.trades))),
         ]
         //        print(ret)
         return ret
