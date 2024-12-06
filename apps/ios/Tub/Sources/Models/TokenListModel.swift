@@ -184,6 +184,12 @@ final class TokenListModel: ObservableObject {
                                         )
                                     }
                                 
+                                // Update the current token
+                                let currentToken = self.currentTokenModel.token
+                                if let updatedToken = mappedTokens.first(where: { $0.id == currentToken.id }) {
+                                self.currentTokenModel.updateTokenDetails(updatedToken)
+                                }
+
                                 return mappedTokens
                             }
                             return []

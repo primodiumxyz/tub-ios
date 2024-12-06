@@ -234,6 +234,12 @@ class TokenModel: ObservableObject {
         }
     }
 
+    public func updateTokenDetails(_ newToken: Token) {
+        DispatchQueue.main.async {
+            self.token = newToken
+        }
+    }
+
     private func calculatePriceChange() {
         let latestPrice = prices.last?.priceUsd ?? 0
         let startTime = Date().addingTimeInterval(-selectedTimespan.seconds)

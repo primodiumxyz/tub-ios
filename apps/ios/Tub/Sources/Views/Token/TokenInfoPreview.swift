@@ -66,7 +66,7 @@ struct TokenInfoPreview: View {
             StatValue(title: "Market Cap", value: priceModel.formatPrice(usd: token.marketCapUsd, formatLarge: true)),
             StatValue(title: "Change", caption: HOT_TOKENS_INTERVAL, value: String(format: "%.2f%%", token.stats.priceChangePct)),
             StatValue(title: "Volume", caption: HOT_TOKENS_INTERVAL, value: priceModel.formatPrice(usd: token.stats.volumeUsd, formatLarge: true)),
-            StatValue(title: "Trades", caption: HOT_TOKENS_INTERVAL, value: formatLargeNumber(Double(token.stats.trades))),
+            StatValue(title: "Trades", caption: HOT_TOKENS_INTERVAL, value: token.stats.trades.formatted()),
         ]
         return ret
     }
