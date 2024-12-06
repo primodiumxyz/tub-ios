@@ -116,49 +116,49 @@ import { getAssociatedTokenAddress } from "@solana/spl-token";
     }
   });
 
-  describe.skip("should complete a full USDC to SOL swap flow", () => {
-    it("should complete a full USDC to SOL swap flow", async () => {
-      try {
-        console.log("\nStarting USDC to SOL swap flow test");
-        console.log("User public key:", userKeypair.publicKey.toBase58());
+  //describe.skip("should complete a full USDC to SOL swap flow", () => {
+  it("should complete a full USDC to SOL swap flow", async () => {
+    try {
+      console.log("\nStarting USDC to SOL swap flow test");
+      console.log("User public key:", userKeypair.publicKey.toBase58());
 
-        // Get the constructed swap transaction
-        console.log("\nGetting 1 USDC to SOL swap transaction...");
-        const swapResponse = await tubService.get1USDCToSOLTransaction(mockJwtToken);
+      // Get the constructed swap transaction
+      console.log("\nGetting 1 USDC to SOL swap transaction...");
+      const swapResponse = await tubService.get1USDCToSOLTransaction(mockJwtToken);
 
-        // --- Begin Simulating Mock Privy Interaction ---
+      // --- Begin Simulating Mock Privy Interaction ---
 
-        // Decode transaction
-        const handoff = Buffer.from(swapResponse.transactionMessageBase64, "base64");
-        const message = VersionedMessage.deserialize(handoff);
-        const transaction = new VersionedTransaction(message);
+      // Decode transaction
+      const handoff = Buffer.from(swapResponse.transactionMessageBase64, "base64");
+      const message = VersionedMessage.deserialize(handoff);
+      const transaction = new VersionedTransaction(message);
 
-        // User signs
-        transaction.sign([userKeypair]);
-        const userSignature = transaction.signatures![1];
-        if (!userSignature) {
-          throw new Error("Failed to get signature from transaction");
-        }
-
-        // Convert raw signature to base64
-        const base64Signature = Buffer.from(userSignature).toString("base64");
-
-        // --- End Simulating Mock Privy Interaction ---
-
-        const result = await tubService.signAndSendTransaction(
-          mockJwtToken,
-          base64Signature,
-          swapResponse.transactionMessageBase64, // Send original unsigned transaction
-        );
-
-        console.log("Transaction result:", result);
-
-        expect(result).toBeDefined();
-        expect(result.signature).toBeDefined();
-      } catch (error) {
-        console.error("Error in swap flow test:", error);
-        throw error;
+      // User signs
+      transaction.sign([userKeypair]);
+      const userSignature = transaction.signatures![1];
+      if (!userSignature) {
+        throw new Error("Failed to get signature from transaction");
       }
-    }, 30000);
-  });
+
+      // Convert raw signature to base64
+      const base64Signature = Buffer.from(userSignature).toString("base64");
+
+      // --- End Simulating Mock Privy Interaction ---
+
+      const result = await tubService.signAndSendTransaction(
+        mockJwtToken,
+        base64Signature,
+        swapResponse.transactionMessageBase64, // Send original unsigned transaction
+      );
+
+      console.log("Transaction result:", result);
+
+      expect(result).toBeDefined();
+      expect(result.signature).toBeDefined();
+    } catch (error) {
+      console.error("Error in swap flow test:", error);
+      throw error;
+    }
+  }, 30000);
+  //});
 });
