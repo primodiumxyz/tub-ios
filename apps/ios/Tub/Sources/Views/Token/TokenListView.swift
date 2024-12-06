@@ -68,8 +68,8 @@ struct TokenListView: View {
 
         if direction == .up {
             // Step #1: Animate to the new TokenView
-            withAnimation(.spring(duration: scrollAnimationDuration, bounce: scrollSpringAnimationBounce)) {
-                //alt anim option: withAnimation(.easeOut(duration: scrollAnimationDuration)) {
+//            withAnimation(.spring(duration: scrollAnimationDuration, bounce: scrollSpringAnimationBounce)) {
+			withAnimation(.easeOut(duration: scrollAnimationDuration)) {
                 activeOffset += (geometry.size.height - dragGestureOffset)
             } completion: {
                 // Step #2: While the "main/center" TokenView is still scrolled out of view,
@@ -94,8 +94,8 @@ struct TokenListView: View {
         }
         else {
             // Step #1: Animate to the new TokenView
-            withAnimation(.spring(duration: scrollAnimationDuration, bounce: scrollSpringAnimationBounce)) {
-                //alt anim option: withAnimation(.easeOut(duration: scrollAnimationDuration)) {
+//            withAnimation(.spring(duration: scrollAnimationDuration, bounce: scrollSpringAnimationBounce)) {
+			withAnimation(.easeOut(duration: scrollAnimationDuration)) {
                 activeOffset -= (geometry.size.height + dragGestureOffset)
             } completion: {
                 // Step #2: While the "main/center" TokenView is still scrolled out of view,
@@ -224,18 +224,15 @@ struct TokenListView: View {
                                         else if value.translation.height < -offsetThresholdToDragToAnotherToken {
                                             loadToken(geometry, .down)
                                         }
-                                        else {
-                                            withAnimation(
-                                                .spring(
-                                                    duration: scrollAnimationDuration,
-                                                    bounce: scrollSpringAnimationBounce
-                                                )
-                                            ) {
-                                                dragGestureOffset = 0
-                                            } completion: {
-                                                dragging = false
-                                            }
-                                        }
+                                        else
+                        				{
+											//withAnimation(.spring(duration: scrollAnimationDuration, bounce: scrollSpringAnimationBounce)) {
+											withAnimation(.easeOut(duration: scrollAnimationDuration)) {
+                        						dragGestureOffset = 0
+                        					} completion: {
+                        						dragging = false
+                        					}
+                        				}
                                     }
                                 }
                         )
