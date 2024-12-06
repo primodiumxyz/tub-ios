@@ -60,6 +60,7 @@ subscription SubTopTokensByVolume(
     limit: 50
   ) {
     token_mint
+    latest_price_usd
     total_volume_usd
     total_trades
     price_change_pct
@@ -102,5 +103,6 @@ subscription SubTokenCandles(
     close_price_usd
     high_price_usd
     low_price_usd
+    volume_usd
   }
 }

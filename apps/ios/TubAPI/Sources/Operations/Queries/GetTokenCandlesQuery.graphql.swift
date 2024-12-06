@@ -7,7 +7,7 @@ public class GetTokenCandlesQuery: GraphQLQuery {
   public static let operationName: String = "GetTokenCandles"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetTokenCandles($token: String!, $since: timestamptz = "now()", $candle_interval: interval = "1m") { token_trade_history_candles( args: { candle_interval: $candle_interval } where: { token_mint: { _eq: $token }, bucket: { _gte: $since } } ) { __typename bucket open_price_usd close_price_usd high_price_usd low_price_usd } }"#
+      #"query GetTokenCandles($token: String!, $since: timestamptz = "now()", $candle_interval: interval = "1m") { token_trade_history_candles( args: { candle_interval: $candle_interval } where: { token_mint: { _eq: $token }, bucket: { _gte: $since } } ) { __typename bucket open_price_usd close_price_usd high_price_usd low_price_usd volume_usd } }"#
     ))
 
   public var token: String
@@ -62,6 +62,7 @@ public class GetTokenCandlesQuery: GraphQLQuery {
         .field("close_price_usd", TubAPI.Numeric.self),
         .field("high_price_usd", TubAPI.Numeric.self),
         .field("low_price_usd", TubAPI.Numeric.self),
+        .field("volume_usd", TubAPI.Numeric.self),
       ] }
 
       public var bucket: TubAPI.Timestamptz { __data["bucket"] }
@@ -69,6 +70,7 @@ public class GetTokenCandlesQuery: GraphQLQuery {
       public var close_price_usd: TubAPI.Numeric { __data["close_price_usd"] }
       public var high_price_usd: TubAPI.Numeric { __data["high_price_usd"] }
       public var low_price_usd: TubAPI.Numeric { __data["low_price_usd"] }
+      public var volume_usd: TubAPI.Numeric { __data["volume_usd"] }
     }
   }
 }
