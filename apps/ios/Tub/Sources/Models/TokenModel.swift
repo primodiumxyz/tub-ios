@@ -92,16 +92,8 @@ class TokenModel: ObservableObject {
         }
 
         func fetchCandles() async throws {
-            guard let candles = try? await self.fetchInitialCandles(newToken.id),
-                !candles.isEmpty
-            else {
-                throw TubError.emptyTokenList
-            }
             await self.subscribeToCandles(newToken.id)
             print("\(newToken.name) candle fetch took \(Date().timeIntervalSince(now)) seconds")
-            await MainActor.run {
-                self.candles = candles
-            }
         }
 
         Task {
@@ -121,7 +113,7 @@ class TokenModel: ObservableObject {
         return try await withCheckedThrowingContinuation { continuation in
             Network.shared.apollo.fetch(query: GetTokenPricesSinceQuery(
                 token: tokenId,
-                since: .some(startTime.ISO8601Format())
+                since: .some(iso8601Formatter.string(from: startTime))
             )) { result in
                 switch result {
                 case .success(let graphQLResult):
@@ -132,7 +124,7 @@ class TokenModel: ObservableObject {
 
                     let prices = graphQLResult.data?.api_trade_history.map { trade in
                         Price(
-                            timestamp: Date(timeIntervalSince1970: TimeInterval(trade.created_at) ?? 0),
+                            timestamp: iso8601Formatter.date(from: trade.created_at) ?? now,
                             priceUsd: trade.token_price_usd
                         )
                     } ?? []
@@ -180,7 +172,7 @@ class TokenModel: ObservableObject {
         priceSubscription = Network.shared.apollo.subscribe(
             subscription: SubTokenPricesSinceSubscription(
                 token: tokenId,
-                since: .some(now.ISO8601Format())
+                since: .some(iso8601Formatter.string(from: now))
             )
         ) { [weak self] result in
             guard let self = self else { return }
@@ -203,52 +195,15 @@ class TokenModel: ObservableObject {
         }
     }
 
-    private func fetchInitialCandles(_ tokenId: String) async throws -> [CandleData] {
-        let now = Date()
-        let startTime = now.addingTimeInterval(-Timespan.candles.seconds)
-        
-        return try await withCheckedThrowingContinuation { continuation in
-            Network.shared.apollo.fetch(
-                query: GetTokenCandlesQuery(
-                    token: tokenId,
-                    since: .some(startTime.ISO8601Format()),
-                    candle_interval: .some("1m")
-                )
-            ) { result in
-                switch result {
-                case .success(let graphQLResult):
-                    if let _ = graphQLResult.errors {
-                        continuation.resume(throwing: TubError.unknown)
-                        return
-                    }
-                    
-                    let candles = graphQLResult.data?.token_trade_history_candles.map { candle in
-                        CandleData(
-                            start: Date(timeIntervalSince1970: TimeInterval(candle.bucket) ?? 0),
-                            end: Date(timeIntervalSince1970: TimeInterval(candle.bucket) ?? 0).addingTimeInterval(60),
-                            open: candle.open_price_usd,
-                            close: candle.close_price_usd,
-                            high: candle.high_price_usd,
-                            low: candle.low_price_usd,
-                            volume: candle.volume_usd
-                        )
-                    } ?? []
-                    continuation.resume(returning: candles)
-                case .failure(let error):
-                    continuation.resume(throwing: error)
-                }
-            }
-        }
-    }
-
     private func subscribeToCandles(_ tokenId: String) async {
         candleSubscription?.cancel()
 
         let now = Date()
+        let since = now.addingTimeInterval(-Timespan.candles.seconds)
         candleSubscription = Network.shared.apollo.subscribe(
             subscription: SubTokenCandlesSubscription(
                 token: tokenId,
-                since: .some(now.ISO8601Format()),
+                since: .some(iso8601Formatter.string(from: since)),
                 candle_interval: .some("1m")
             )
         ) { [weak self] result in
@@ -257,10 +212,10 @@ class TokenModel: ObservableObject {
             switch result {
             case .success(let graphQLResult):
                 if let candles = graphQLResult.data?.token_trade_history_candles {
-                    let newCandles = candles.map { candle in
+                    let updatedCandles = candles.map { candle in
                         CandleData(
-                            start: Date(timeIntervalSince1970: TimeInterval(candle.bucket) ?? 0),
-                            end: Date(timeIntervalSince1970: TimeInterval(candle.bucket) ?? 0).addingTimeInterval(60),
+                            start: iso8601FormatterNoFractional.date(from: candle.bucket) ?? now,
+                            end: (iso8601FormatterNoFractional.date(from: candle.bucket) ?? now).addingTimeInterval(60),
                             open: candle.open_price_usd,
                             close: candle.close_price_usd,
                             high: candle.high_price_usd,
@@ -270,7 +225,7 @@ class TokenModel: ObservableObject {
                     }
                     
                     Task { @MainActor in
-                        self.candles = newCandles
+                        self.candles = updatedCandles
                     }
                 }
             case .failure(let error):
