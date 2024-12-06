@@ -42,13 +42,7 @@ class TokenModel: ObservableObject {
     func preload(with newToken: Token, timeframeSecs: Double = CHART_INTERVAL) {
         cleanup()
         preloaded = true
-        DispatchQueue.main.async {
-            self.token = newToken
-            self.isReady = false
-            self.prices = []
-            self.candles = []
-            self.priceChange = (0, 0)
-        }
+        token = newToken
 
         func fetchPrices() async throws {
             // Fetch both types of data
@@ -88,9 +82,7 @@ class TokenModel: ObservableObject {
         if initialized { return }
         initialized = true
         if !self.preloaded {
-            Task {
-                self.preload(with: newToken, timeframeSecs: timeframeSecs)
-            }
+            self.preload(with: newToken, timeframeSecs: timeframeSecs)
         }
 
         func fetchCandles() async throws {
@@ -405,6 +397,10 @@ class TokenModel: ObservableObject {
         candleSubscription?.invalidate()
         candleSubscription = nil
 
+        isReady = false
+        prices = []
+        candles = []
+        priceChange = (0, 0)
     }
 
     deinit {
