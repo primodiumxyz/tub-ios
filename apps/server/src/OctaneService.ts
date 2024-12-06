@@ -131,7 +131,6 @@ export class OctaneService {
         addressLookupTableAddresses,
       } = swapInstructions;
 
-      console.log("getSwapInstructions", addressLookupTableAddresses);
       const addressLookupTableAccounts = await this.getAddressLookupTableAccounts(addressLookupTableAddresses);
 
       const finalInstructions = [
@@ -192,13 +191,8 @@ export class OctaneService {
     instructions: TransactionInstruction[],
     addressLookupTableAccounts: AddressLookupTableAccount[],
   ) {
-    console.log("buildSwapMessage", instructions.length, addressLookupTableAccounts.length);
-    // Get blockhash first to ensure it's available
-
     const reassignedRentInstructions = await this.reassignRent(instructions);
     const { blockhash } = await this.connection.getLatestBlockhash();
-
-    console.log("addressLookupTableAccounts: ", addressLookupTableAccounts);
 
     // Create a v0 message with necessary instructions, depending on the mint
     console.log("building Swap Message", instructions.length, addressLookupTableAccounts.length);
@@ -220,37 +214,28 @@ export class OctaneService {
     return messageV0;
   }
 
-  async reassignRent(initInstructions: TransactionInstruction[]) {
+  private async reassignRent(initInstructions: TransactionInstruction[]) {
     const reassignedRentInstructions: TransactionInstruction[] = [];
 
     initInstructions.forEach((instruction) => {
       // If this is an ATA creation instruction, modify it to make fee payer pay for rent
-      console.log("instruction programId", instruction.programId);
       if (instruction.programId.equals(new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"))) {
-        console.log("ATA instruction keys before", instruction.keys);
         instruction.keys[0] = {
           pubkey: this.feePayerKeypair.publicKey,
           isSigner: true,
           isWritable: true,
         };
-        console.log("ATA instruction keys after", instruction.keys);
       } else if (
         // This is a CloseAccount instruction, receive the residual funds as the FeePayer
         instruction.programId.equals(new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA")) &&
         instruction.data.length === 1 &&
         instruction.data[0] === 9
       ) {
-        console.log("CloseAccount instruction keys before", instruction.keys);
         instruction.keys[1] = {
           pubkey: this.feePayerKeypair.publicKey,
           isSigner: false,
           isWritable: true,
         };
-        console.log("CloseAccount instruction keys after", instruction.keys);
-      }
-      if (instruction.programId.equals(new PublicKey("JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"))) {
-        console.log("Jupiter instruction keys before", instruction.keys);
-        console.log("Jupiter instruction data", instruction.data);
       }
       reassignedRentInstructions.push(
         new TransactionInstruction({

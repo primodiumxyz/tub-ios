@@ -565,7 +565,7 @@ export class TubService {
     const feeOptions = {
       sourceAccount: request.sellTokenAccount,
       destinationAccount: this.octane.getSettings().tradeFeeRecipient,
-      amount: Number((BigInt(feeAmount) * BigInt(request.sellQuantity)) / 10000n),
+      amount: feeAmount,
     };
 
     const feeTransferInstruction = feeOptions
