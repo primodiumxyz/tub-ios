@@ -7,13 +7,34 @@
 
 import SwiftUI
 
-struct ScreenSizeKey: EnvironmentKey {
-    static let defaultValue: CGSize = .zero
+extension UIScreen {
+    static let width = UIScreen.main.bounds.width
+    static let height = UIScreen.main.bounds.height
+
+    static func width(_ percentage: CGFloat) -> CGFloat {
+        width * percentage
+    }
+
+    static func height(_ percentage: CGFloat) -> CGFloat {
+        height * percentage
+    }
 }
 
-extension EnvironmentValues {
-    var screenSize: CGSize {
-        get { self[ScreenSizeKey.self] }
-        set { self[ScreenSizeKey.self] = newValue }
+extension CGSize {
+    func width(_ percentage: CGFloat) -> CGFloat {
+        width * percentage
     }
-} 
+
+    func height(_ percentage: CGFloat) -> CGFloat {
+        height * percentage
+    }
+
+    func padding(_ widthPercent: CGFloat, _ heightPercent: CGFloat) -> EdgeInsets {
+        EdgeInsets(
+            top: height(heightPercent),
+            leading: width(widthPercent),
+            bottom: height(heightPercent),
+            trailing: width(widthPercent)
+        )
+    }
+}

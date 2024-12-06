@@ -34,7 +34,8 @@ struct RegisterView: View {
             if otpSent {
                 showEmailError = false
                 showEmailModal = true
-            } else {
+            }
+            else {
                 showEmailError = true
                 showEmailModal = false
             }
@@ -42,165 +43,178 @@ struct RegisterView: View {
     }
 
     var body: some View {
-        GeometryReader { geometry in
-            VStack(spacing: 0) {
-                // Cancel button
-                HStack {
-                    if isRedirected {
-                        Button {
-                            dismiss()
-                        } label: {
-                            Text("Cancel")
-                                .padding(.horizontal)
-                        }
-                    } else {
-                        Spacer().frame(height: geometry.size.height * 0.02)
+        VStack(spacing: 0) {
+            // Cancel button
+            HStack {
+                if isRedirected {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text("Cancel")
+                            .padding(.horizontal)
                     }
-                    Spacer()
                 }
-                
-                VStack(alignment: .leading, spacing: geometry.size.height * 0.018) {
-                    // Logo
-                    Image("Logo")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: geometry.size.width * 0.25, height: geometry.size.width * 0.25)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .padding(.horizontal, geometry.size.width * 0.04)
-                    
-                    // Welcome text
-                    Text("Welcome to tub")
-                        .font(.sfRounded(size: .xl2, weight: .semibold))
-                        .padding(.horizontal, geometry.size.width * 0.04)
-                    
-                    // Email input section
-                    VStack(alignment: .leading, spacing: geometry.size.height * 0.015) {
-                        TextField("Enter your email", text: $email)
-                            .padding(.horizontal, geometry.size.width * 0.05)
-                            .padding(.vertical, geometry.size.height * 0.015)
-                            .frame(maxWidth: .infinity, minHeight: 50, alignment: .leading)
-                            .background(Color(UIColor.systemBackground))
-                            .foregroundStyle(.tubBuyPrimary)
-                            .cornerRadius(30)
-                            .keyboardType(.emailAddress)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 30)
-                                    .stroke(.tubBuyPrimary, lineWidth: 0.5)
-                            )
-                            .onChange(of: email) { _, newValue in
-                                isEmailValid = validateEmail(newValue)
-                                showEmailError = !isEmailValid && !newValue.isEmpty
-                            }
-                        
-                        if showEmailError {
-                            Text("Please enter a valid email address.")
-                                .font(.caption)
-                                .foregroundStyle(.red)
-                                .padding(.top, -4)
-                                .padding(.horizontal, geometry.size.width * 0.05)
-                        } else {
-                            Text("")
-                                .font(.caption)
-                                .padding(.top, -4)
-                                .padding(.horizontal, geometry.size.width * 0.05)
-                        }
-                        
-                        Spacer().frame(height: geometry.size.height * 0.01)
-                        
-                        // Continue button
-                        PrimaryButton(
-                            text: "Continue",
-                            textColor: .white,
-                            backgroundColor: .tubSellPrimary,
-                            strokeColor: .clear,
-                            maxWidth: .infinity,
-                            action: {
-                                if isEmailValid {
-                                    sendEmailOtp(email: email)
-                                }
-                            }
+                else {
+                    Spacer().frame(height: UIScreen.height(Layout.Spacing.xs))
+                }
+                Spacer()
+            }
+
+            VStack(alignment: .leading, spacing: UIScreen.height(Layout.Spacing.xs)) {
+                // Logo
+                Image("Logo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: UIScreen.width(Layout.Size.quarter), height: UIScreen.width(Layout.Size.quarter))
+                    .clipShape(RoundedRectangle(cornerRadius: Layout.Fixed.cornerRadius))
+                    .padding(.horizontal, UIScreen.width(Layout.Spacing.sm))
+
+                // Welcome text
+                Text("Welcome to tub")
+                    .font(.sfRounded(size: .xl2, weight: .semibold))
+                    .padding(.horizontal, UIScreen.width(Layout.Spacing.sm))
+
+                // Email input section
+                VStack(alignment: .leading, spacing: UIScreen.height(Layout.Spacing.xs)) {
+                    TextField("Enter your email", text: $email)
+                        .padding(.horizontal, UIScreen.width(Layout.Spacing.md))
+                        .padding(.vertical, UIScreen.height(Layout.Spacing.xs))
+                        .frame(maxWidth: .infinity, minHeight: Layout.Fixed.buttonHeight, alignment: .leading)
+                        .background(Color(UIColor.systemBackground))
+                        .foregroundStyle(.tubBuyPrimary)
+                        .cornerRadius(Layout.Fixed.cornerRadius)
+                        .keyboardType(.emailAddress)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: Layout.Fixed.cornerRadius)
+                                .stroke(.tubBuyPrimary, lineWidth: Layout.Fixed.borderWidth)
                         )
-                        .disabled(!isEmailValid || sendingEmailOtp)
-                        .opacity(!isEmailValid || sendingEmailOtp ? 0.8 : 1.0)
+                        .onChange(of: email) { _, newValue in
+                            isEmailValid = validateEmail(newValue)
+                            showEmailError = !isEmailValid && !newValue.isEmpty
+                        }
+
+                    if showEmailError {
+                        Text("Please enter a valid email address.")
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                            .padding(.top, -4)
+                            .padding(.horizontal, UIScreen.width(Layout.Spacing.md))
                     }
-                    .padding(.horizontal, geometry.size.width * 0.04)
-                    
-                    // Divider
-                    HStack(alignment: .center, spacing: geometry.size.width * 0.03) {
+                    else {
+                        Text("")
+                            .font(.caption)
+                            .padding(.top, -4)
+                            .padding(.horizontal, UIScreen.width(Layout.Spacing.md))
+                    }
+
+                    Spacer().frame(height: UIScreen.height(Layout.Spacing.tiny))
+
+                    // Continue button
+                    PrimaryButton(
+                        text: "Continue",
+                        textColor: .white,
+                        backgroundColor: .tubSellPrimary,
+                        strokeColor: .clear,
+                        maxWidth: .infinity,
+                        action: {
+                            if isEmailValid {
+                                sendEmailOtp(email: email)
+                            }
+                        }
+                    )
+                    .disabled(!isEmailValid || sendingEmailOtp)
+                    .opacity(!isEmailValid || sendingEmailOtp ? 0.8 : 1.0)
+                }
+                .padding(.horizontal, UIScreen.width(Layout.Spacing.sm))
+
+                // Divider
+                VStack(alignment: .center) {
+                    HStack(alignment: .center, spacing: UIScreen.width(Layout.Spacing.sm)) {
                         Divider()
-                            .frame(width: geometry.size.width * 0.35, height: 1)
+                            .frame(width: UIScreen.width(Layout.Size.third), height: 1)
                             .overlay(
                                 Rectangle()
-                                    .stroke(.tubSellPrimary.opacity(0.5), lineWidth: 0.5)
+                                    .stroke(.tubSellPrimary.opacity(0.5), lineWidth: Layout.Fixed.borderWidth)
                             )
-                        
+
                         Text("or")
                             .font(.sfRounded(size: .base, weight: .semibold))
                             .foregroundStyle(.tubSellPrimary)
-                        
+
                         Divider()
-                            .frame(width: geometry.size.width * 0.35, height: 1)
+                            .frame(width: UIScreen.width(Layout.Size.third), height: 1)
                             .overlay(
                                 Rectangle()
-                                    .stroke(.tubSellPrimary.opacity(0.5), lineWidth: 0.5)
+                                    .stroke(.tubSellPrimary.opacity(0.5), lineWidth: Layout.Fixed.borderWidth)
                             )
                     }
-                    .padding(.horizontal, geometry.size.width * 0.1)
-                    
-                    // Social login buttons
-                    VStack(spacing: geometry.size.height * 0.015) {
-                        // Apple Login
-                        SignInWithApple()
-                            .frame(maxWidth: .infinity, minHeight: 50, maxHeight: 50)
-                            .cornerRadius(30)
-                            .padding(.horizontal, geometry.size.width * 0.04)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 30)
-                                    .inset(by: 0.5)
-                                    .stroke(.white, lineWidth: 1)
-                                    .padding(.horizontal, geometry.size.width * 0.04)
-                            )
-                            .onTapGesture {
-                                Task {
-                                    do {
-                                        let _ = try await privy.oAuth.login(with: OAuthProvider.apple)
-                                    } catch {
-                                        notificationHandler.show(error.localizedDescription, type: .error)
-                                    }
+                }
+                .frame(maxWidth: .infinity)
+
+                // Social login buttons
+                VStack(spacing: UIScreen.height(Layout.Spacing.tiny)) {
+                    // Apple Login
+                    SignInWithApple()
+                        .frame(
+                            maxWidth: .infinity,
+                            minHeight: Layout.Fixed.buttonHeight,
+                            maxHeight: Layout.Fixed.buttonHeight
+                        )
+                        .cornerRadius(Layout.Fixed.cornerRadius)
+                        .padding(.horizontal, UIScreen.width(Layout.Spacing.sm))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: Layout.Fixed.cornerRadius)
+                                .inset(by: Layout.Fixed.borderWidth)
+                                .stroke(.white, lineWidth: 1)
+                                .padding(.horizontal, UIScreen.width(Layout.Spacing.sm))
+                        )
+                        .onTapGesture {
+                            Task {
+                                do {
+                                    let _ = try await privy.oAuth.login(with: OAuthProvider.apple)
+                                }
+                                catch {
+                                    notificationHandler.show(error.localizedDescription, type: .error)
                                 }
                             }
-                        
-                        // Google Login
-                        OutlineButtonWithIcon(
-                            text: "Sign in with Google",
-                            textColor: .white,
-                            strokeColor: .white,
-                            backgroundColor: .black,
-                            leadingView: AnyView(GoogleLogoView()),
-                            action: {
-                                Task {
-                                    do {
-                                        let _ = try await privy.oAuth.login(with: OAuthProvider.google)
-                                    } catch {
-                                        notificationHandler.show(error.localizedDescription, type: .error)
-                                    }
+                        }
+
+                    // Google Login
+                    OutlineButtonWithIcon(
+                        text: "Sign in with Google",
+                        textColor: .white,
+                        strokeColor: .white,
+                        backgroundColor: .black,
+                        leadingView: AnyView(GoogleLogoView()),
+                        action: {
+                            Task {
+                                do {
+                                    let _ = try await privy.oAuth.login(with: OAuthProvider.google)
+                                }
+                                catch {
+                                    notificationHandler.show(error.localizedDescription, type: .error)
                                 }
                             }
-                        )
-                        .padding(.horizontal, geometry.size.width * 0.04)
-                        
-                        // Phone button
-                        IconTextButton(
-                            icon: "phone.fill",
-                            text: "Continue with Phone",
-                            textColor: .tubBuyPrimary,
-                            action: { showPhoneModal = true }
-                        )
-                        .frame(maxWidth: .infinity, minHeight: 40, maxHeight: 40)
-                        .padding(.top, geometry.size.height * 0.022)
-                        
-                        // Dev Login (if needed)
-                        #if DEBUG
+                        }
+                    )
+                    .padding(.horizontal, UIScreen.width(Layout.Spacing.sm))
+
+                    // Phone button
+                    IconTextButton(
+                        icon: "phone.fill",
+                        text: "Continue with Phone",
+                        textColor: .tubBuyPrimary,
+                        action: { showPhoneModal = true }
+                    )
+                    .frame(
+                        maxWidth: .infinity,
+                        minHeight: Layout.Fixed.smallButtonHeight,
+                        maxHeight: Layout.Fixed.smallButtonHeight
+                    )
+                    .padding(.top, UIScreen.height(Layout.Spacing.sm))
+
+                    // Dev Login (if needed)
+                    #if DEBUG
                         IconTextButton(
                             icon: "ladybug.fill",
                             text: "Dev Login",
@@ -209,19 +223,22 @@ struct RegisterView: View {
                                 Task {
                                     do {
                                         let _ = await privy.email.sendCode(to: "test-0932@privy.io")
-                                        let _ = try await privy.email.loginWithCode("145288", sentTo: "test-0932@privy.io")
-                                    } catch {
+                                        let _ = try await privy.email.loginWithCode(
+                                            "145288",
+                                            sentTo: "test-0932@privy.io"
+                                        )
+                                    }
+                                    catch {
                                         notificationHandler.show(error.localizedDescription, type: .error)
                                     }
                                 }
                             }
                         )
                         .frame(maxWidth: .infinity)
-                        #endif
-                    }
+                    #endif
                 }
-                .padding(.top, geometry.size.height * 0.08)
             }
+            .padding(.top, UIScreen.height(Layout.Spacing.lg))
         }
         .sheet(isPresented: $showPhoneModal) {
             SignInWithPhoneView()
