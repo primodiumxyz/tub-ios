@@ -223,6 +223,7 @@ struct TokenView: View {
                     animate: animate,
                     height: height
                 )
+                //				.id(tokenModel.prices.count) // results in odd behavior: toggles between prices.count = 0 and prices.count = correct value
             }
             else {
                 CandleChartView(
@@ -231,7 +232,7 @@ struct TokenView: View {
                     timeframeMins: 30,
                     height: height
                 )
-                .id(tokenModel.prices.count)
+                .id(tokenModel.prices.count)  // should be tokenModel.candles.count?
             }
         }
     }
