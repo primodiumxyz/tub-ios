@@ -55,9 +55,9 @@ export const AddClientEventMutation = graphql(`
 `);
 
 // Indexer
-export const UpsertTradesMutation = graphql(`
-  mutation UpsertTrades($trades: [trade_history_insert_input!]!) {
-    insert_trade_history(objects: $trades) {
+export const InsertTradeHistoryManyMutation = graphql(`
+  mutation InsertTradeHistoryMany($trades: [api_trade_history_insert_input!]!) {
+    insert_api_trade_history(objects: $trades) {
       affected_rows
     }
   }

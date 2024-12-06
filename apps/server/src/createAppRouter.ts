@@ -9,7 +9,6 @@ export type AppContext = {
   jwtToken: string;
 };
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 /**
  * Creates and configures the main tRPC router with all API endpoints.
  * @returns A configured tRPC router with all procedures
@@ -98,11 +97,22 @@ export function createAppRouter() {
         return await ctx.tubService.recordClientEvent(input, ctx.jwtToken);
       }),
 
-    requestCodexToken: t.procedure
-      .input(z.object({ expiration: z.number().optional() }))
-      .mutation(async ({ ctx, input }) => {
-        return await ctx.tubService.requestCodexToken(input.expiration);
-      }),
+    getSolUsdPrice: t.procedure.query(async ({ ctx }) => {
+      return await ctx.tubService.getSolUsdPrice();
+    }),
+
+    subscribeSolPrice: t.procedure.subscription(({ ctx }) => {
+      return observable<number>((emit) => {
+        const onPrice = (price: number) => {
+          emit.next(price);
+        };
+
+        const cleanup = ctx.tubService.subscribeSolPrice(onPrice);
+        return () => {
+          cleanup();
+        };
+      });
+    }),
 
     /**
      * Creates a subscription stream for token swaps
@@ -208,6 +218,7 @@ export function createAppRouter() {
       .mutation(async ({ ctx, input }) => {
         return await ctx.tubService.fetchPresignedSwap(ctx.jwtToken, input);
       }),
+
     get1USDCToSOLTransaction: t.procedure.mutation(async ({ ctx }) => {
       return await ctx.tubService.get1USDCToSOLTransaction(ctx.jwtToken);
     }),

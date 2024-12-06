@@ -56,7 +56,7 @@ struct AppContent: View {
                     errorMessage: "Failed to get price data",
                     retryAction: {
                         Task {
-                            await priceModel.fetchCurrentPrice()
+                            await priceModel.fetchPrice()
                         }
                     }
                 )
