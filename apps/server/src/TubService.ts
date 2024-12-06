@@ -73,7 +73,7 @@ export class TubService {
     this.updateSolUsdPrice();
 
     interval.unref(); // allow Node.js to exit if only this interval is still running
-    this.connection = new Connection(env.QUICKNODE_MAINNET_URL);
+    this.connection = new Connection(`${env.QUICKNODE_ENDPOINT}/${env.QUICKNODE_TOKEN}`);
 
     // Start cleanup interval
     setInterval(() => this.cleanupRegistry(), 60 * 1000); // Run cleanup every minute

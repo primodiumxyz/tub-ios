@@ -1,6 +1,6 @@
 import { initGraphQLTada } from "gql.tada";
 
-import { introspection } from "./graphql-env";
+import { introspection } from "./codegen/graphql-env";
 
 export const graphql = initGraphQLTada<{
   introspection: introspection;

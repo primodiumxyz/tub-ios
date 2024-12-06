@@ -4,11 +4,22 @@ import { ArrowLeft, CandlestickChart, LineChart } from "lucide-react";
 import { TradingViewCandlesChart } from "@/components/token-chart/tradingview-candles";
 import { TradingViewChart } from "@/components/token-chart/tradingview-chart";
 import { Button } from "@/components/ui/button";
-import { Token } from "@/lib/types";
+import { useTokenPrices } from "@/hooks/use-token-prices";
+import { Interval, Token } from "@/lib/types";
 import { formatLargeNumber } from "@/lib/utils";
 
-export const TokenChart = ({ token, onBack }: { token: Token; onBack: () => void }) => {
+export const TokenChart = ({
+  token,
+  selectedInterval,
+  onBack,
+}: {
+  token: Token;
+  selectedInterval: Interval;
+  onBack: () => void;
+}) => {
   const [chartType, setChartType] = useState<"line" | "candles">("line");
+  const { tokenPrices } = useTokenPrices(token, 30);
+  console.log(token);
 
   return (
     <div className="flex flex-col w-full gap-4 p-4">
@@ -24,9 +35,12 @@ export const TokenChart = ({ token, onBack }: { token: Token; onBack: () => void
                 {token.name} (${token.symbol})
               </h3>
               <div className="flex gap-4 text-sm text-muted-foreground">
-                <span>MC: ${formatLargeNumber(Number(token.marketCap ?? 0))}</span>
-                <span>Vol: ${formatLargeNumber(Number(token.volume))}</span>
-                <span>Liq: ${formatLargeNumber(Number(token.liquidity))}</span>
+                <span>
+                  Volume ({selectedInterval}): ${formatLargeNumber(Number(token.volumeUsd))}
+                </span>
+                {tokenPrices.length > 0 && (
+                  <span>MC: {formatLargeNumber(Number(token.supply * tokenPrices[tokenPrices.length - 1].price))}</span>
+                )}
               </div>
             </div>
           </div>
