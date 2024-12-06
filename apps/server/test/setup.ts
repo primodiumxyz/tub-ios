@@ -1,13 +1,7 @@
-import { start } from "@bin/tub-server";
-import type { GlobalSetupContext } from "vitest/node";
 import { Keypair } from "@solana/web3.js";
 import { config } from "dotenv";
 import { resolve } from "path";
 import bs58 from "bs58";
-import { AddressInfo } from "ws";
-
-let teardownHappened = false;
-let server: Awaited<ReturnType<typeof start>>;
 
 declare module "vitest" {
   export interface ProvidedContext {
@@ -16,7 +10,7 @@ declare module "vitest" {
   }
 }
 
-export default async function ({ provide }: GlobalSetupContext) {
+export default async function () {
   console.log("Setting up test environment");
 
   // Load test environment variables first
@@ -40,27 +34,4 @@ export default async function ({ provide }: GlobalSetupContext) {
   process.env.OCTANE_BUY_FEE = process.env.OCTANE_BUY_FEE || "100";
   process.env.OCTANE_SELL_FEE = process.env.OCTANE_SELL_FEE || "0";
   process.env.OCTANE_MIN_TRADE_SIZE = process.env.OCTANE_MIN_TRADE_SIZE || "15";
-
-  // Start the server for integration tests
-  console.log("Starting server for tests");
-  server = await start();
-
-  const serverInfo = server.server.address() as AddressInfo;
-  if (!serverInfo) {
-    throw new Error("Server info not found");
-  }
-
-  provide("port", serverInfo.port);
-  provide("host", serverInfo.address);
-
-  return async () => {
-    if (teardownHappened) {
-      throw new Error("teardown called twice");
-    }
-    teardownHappened = true;
-
-    if (server) {
-      await server.close();
-    }
-  };
 }
