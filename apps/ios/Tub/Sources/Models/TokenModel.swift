@@ -213,7 +213,8 @@ class TokenModel: ObservableObject {
                     // Add a new price point at each interval
                     let newPrice = Price(timestamp: now, priceUsd: price)
                     Task { @MainActor in
-                        self.prices.append(newPrice)
+						self.prices.append(newPrice)
+						self.prices = self.prices.suffix(MAX_NUM_PRICES_TO_KEEP)
                         self.lastPriceTimestamp = now
                     }
                     self.calculatePriceChange()
