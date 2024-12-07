@@ -88,8 +88,11 @@ final class TokenListModel: ObservableObject {
     // - Set the current token to the previously visited one
     // - Update the current token model
     // - Pop the last token in the array (swiping down should always be a fresh pumping token)
-    func loadPreviousTokenIntoCurrentTokenPhaseOne() {
-        guard let prevModel = previousTokenModel, currentTokenIndex > 0 else { return }
+    func loadPreviousTokenIntoCurrentTokenPhaseOne() -> Bool {
+		guard let prevModel = previousTokenModel, currentTokenIndex > 0 else {
+			return false
+		}
+		
         recordTokenDwellTime()
 
         // next
@@ -103,6 +106,8 @@ final class TokenListModel: ObservableObject {
         currentTokenStartTime = Date()
         currentTokenModel = prevModel
         initCurrentTokenModel(with: prevModel.token)
+		
+		return true
     }
 
     func loadPreviousTokenIntoCurrentTokenPhaseTwo() {

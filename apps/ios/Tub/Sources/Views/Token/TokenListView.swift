@@ -77,19 +77,19 @@ struct TokenListView: View {
                 //	transitioning previousTokenModel to now become currentTokenModel. This hides
                 //	the visual glitch that comes when the chart is given a completely
                 //	different set of prices to plot: this transition is visually jarring.
-                tokenListModel.loadPreviousTokenIntoCurrentTokenPhaseOne()
-
-                // Step #3: Wait a beat to allow the currentTokenModel chart price rendering
-                //	to settle before resetting dragGestureOffset that results in the
-                //	"main/center" TokenView being centered again. With the offset now reset,
-                //	we setup the new previous token now that its View is safely offscreen.
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-                    activeOffset = 0
-                    dragGestureOffset = 0
-                    dragging = false
-                    animateCurrentTokenModel = true
-                    tokenListModel.loadPreviousTokenIntoCurrentTokenPhaseTwo()
-                }
+				if tokenListModel.loadPreviousTokenIntoCurrentTokenPhaseOne() {
+					// Step #3: Wait a beat to allow the currentTokenModel chart price rendering
+					//	to settle before resetting dragGestureOffset that results in the
+					//	"main/center" TokenView being centered again. With the offset now reset,
+					//	we setup the new previous token now that its View is safely offscreen.
+					DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+						activeOffset = 0
+						dragGestureOffset = 0
+						dragging = false
+						animateCurrentTokenModel = true
+						tokenListModel.loadPreviousTokenIntoCurrentTokenPhaseTwo()
+					}
+				}
             }
         }
         else {
