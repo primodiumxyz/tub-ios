@@ -218,7 +218,7 @@ struct TokenView: View {
             }
             else if tokenModel.selectedTimespan == .live {
                 ChartView(
-                    prices: tokenModel.prices,
+                    rawPrices: tokenModel.prices,
                     purchaseData: userModel.purchaseData,
                     animate: animate,
                     height: height

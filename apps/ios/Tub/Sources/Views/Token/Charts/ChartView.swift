@@ -31,8 +31,8 @@ struct ChartView: View {
             return nil
         }
     }
-    init(prices: [Price], purchaseData: PurchaseData? = nil, animate: Bool, height: CGFloat = 330) {
-        self.rawPrices = prices
+    init(rawPrices: [Price], purchaseData: PurchaseData? = nil, animate: Bool, height: CGFloat = 330) {
+		self.rawPrices = rawPrices
         self.purchaseData = purchaseData
         self.animate = animate
         self.height = height
@@ -238,7 +238,7 @@ struct PillView: View {
 
                 // Update ChartView to use the controls
                 ChartView(
-                    prices: spoofPrices,
+					rawPrices: spoofPrices,
                     purchaseData: showPurchaseData ? purchaseData : nil,
                     animate: false,
                     height: 330
