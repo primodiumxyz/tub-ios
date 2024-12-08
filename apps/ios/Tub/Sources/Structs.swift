@@ -1,43 +1,47 @@
 import Foundation
 import SwiftUI
 
+struct IntervalStats {
+    var volumeUsd: Double
+    var trades: Int
+    var priceChangePct: Double
+}
+
 struct Token: Identifiable {
-    var id: String  // also mint
+    var id: String // also mint
     var name: String
     var symbol: String
     var description: String
     var imageUri: String
-    var liquidityUsd: Double
+    var externalUrl: String
     var marketCapUsd: Double
-    var volumeUsd: Double
-    var pairId: String
-    var socials: (discord: String?, instagram: String?, telegram: String?, twitter: String?, website: String?)
-    var uniqueHolders: Int
+    var stats: IntervalStats
+    var recentStats: IntervalStats
 
     init(
-        id: String?,
-        name: String?,
-        symbol: String?,
-        description: String?,
+        id: String,
+        name: String,
+        symbol: String,
+        description: String,
         imageUri: String?,
-        liquidityUsd: Double?,
-        marketCapUsd: Double?,
-        volumeUsd: Double?,
-        pairId: String?,
-        socials: (discord: String?, instagram: String?, telegram: String?, twitter: String?, website: String?),
-        uniqueHolders: Int?
+        externalUrl: String?,
+        supply: Int,
+        latestPriceUsd: Double,
+        stats: IntervalStats,
+        recentStats: IntervalStats
     ) {
-        self.id = id ?? ""
-        self.name = name ?? "NAME"
-        self.symbol = symbol ?? "SYMBOL"
-        self.description = description ?? "DESCRIPTION"
-        self.imageUri = imageUri?.replacingOccurrences(of: "cf-ipfs.com", with: "ipfs.io") ?? ""  // sometimes this prefix gets added and it bricks it
-        self.liquidityUsd = liquidityUsd ?? 0.0
-        self.marketCapUsd = marketCapUsd ?? 0.0
-        self.volumeUsd = volumeUsd ?? 0.0
-        self.pairId = pairId ?? ""
-        self.socials = socials
-        self.uniqueHolders = uniqueHolders ?? 0
+        self.id = id
+        self.name = name
+        self.symbol = symbol
+        self.description = description
+        self.imageUri = imageUri ?? ""
+        self.externalUrl = externalUrl ?? ""
+        // TODO: check if it's correct when QuickNode fixes their DAS API
+        // 1. Is this ok to use that supply? do we need to use the circulating supply (that we don't have)?
+        // 2. Does the supply need to be divided by 10 ** tokenDecimals?
+        self.marketCapUsd = Double(supply) * latestPriceUsd
+        self.stats = stats
+        self.recentStats = recentStats
     }
 }
 
@@ -64,9 +68,9 @@ struct CandleData: Equatable, Identifiable {
     var close: Double
     var high: Double
     var low: Double
-    var volume: Int?
+    var volume: Double?
 
-    init(start: Date, end: Date, open: Double, close: Double, high: Double, low: Double, volume: Int? = nil) {
+    init(start: Date, end: Date, open: Double, close: Double, high: Double, low: Double, volume: Double) {
         self.id = start
         self.start = start
         self.end = end
@@ -94,12 +98,14 @@ struct TransactionData: Identifiable, Equatable {
 struct StatValue: Identifiable {
     var id: String
     let title: String
+    let caption: String?
     let value: String
     let color: Color?
 
-    init(title: String, value: String, color: Color? = nil) {
+    init(title: String, caption: String? = nil, value: String, color: Color? = nil) {
         self.id = title
         self.title = title
+        self.caption = caption
         self.value = value
         self.color = color
     }

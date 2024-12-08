@@ -58,7 +58,7 @@ final class SolPriceModel: ObservableObject {
         }
         RunLoop.main.add(timer!, forMode: .common)
     }
-
+    
     func formatPrice(
         usd: Double,
         showSign: Bool = false,

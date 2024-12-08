@@ -20,8 +20,8 @@ config({ path: "../../.env" });
 
 const env = parseEnv();
 
-let jupiterAndGetAssetsCallTimes: number[] = [];
-let accountsCallTimes: number[] = [];
+const jupiterAndGetAssetsCallTimes: number[] = [];
+const accountsCallTimes: number[] = [];
 
 const calculateAverage = (times: number[]): string => {
   if (times.length === 0) return "0";
@@ -306,11 +306,35 @@ export const upsertTrades = async (gql: GqlClient["db"], trades: SwapWithPriceAn
 export const toPgComposite = (obj: Record<string, unknown>): string => {
   const values = Object.values(obj).map((val) => {
     if (val === null || val === undefined) return null;
-    // Escape quotes by doubling them (PostgreSQL syntax)
-    if (typeof val === "string") return `"${val.replace(/"/g, '""')}"`;
-    if (typeof val === "number") return isNaN(val) ? null : val.toString();
-    // For any other value that might be numeric (like BigInt) or string
-    return val.toString();
+
+    if (typeof val === "string") {
+      // Escape special characters and quotes
+      const escaped = val
+        // Replace backslashes first to avoid double-escaping
+        .replace(/\\/g, "\\\\")
+        // Escape quotes
+        .replace(/"/g, '\\"')
+        // Replace newlines
+        .replace(/\n/g, "\\n")
+        // Replace carriage returns
+        .replace(/\r/g, "\\r")
+        // Replace tabs
+        .replace(/\t/g, "\\t");
+
+      return `"${escaped}"`;
+    }
+
+    if (typeof val === "number") {
+      return isNaN(val) ? null : val.toString();
+    }
+
+    if (typeof val === "boolean") {
+      return val.toString();
+    }
+
+    // For any other value, convert to string and escape
+    const stringVal = val.toString();
+    return `"${stringVal.replace(/"/g, '\\"')}"`;
   });
 
   return `(${values.join(",")})`;

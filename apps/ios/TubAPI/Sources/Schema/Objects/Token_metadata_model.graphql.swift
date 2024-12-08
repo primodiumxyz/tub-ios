@@ -4,9 +4,8 @@
 import ApolloAPI
 
 public extension Objects {
-  /// Community gathered social links of tokens/NFTs.
-  static let SocialLinks = ApolloAPI.Object(
-    typename: "SocialLinks",
+  static let Token_metadata_model = ApolloAPI.Object(
+    typename: "token_metadata_model",
     implementedInterfaces: []
   )
 }

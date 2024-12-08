@@ -4,9 +4,9 @@
 import ApolloAPI
 
 public extension Objects {
-  /// Metadata for a token pair.
-  static let Pair = ApolloAPI.Object(
-    typename: "Pair",
+  /// History of trades on subscribed accounts from the indexer.
+  static let Api_trade_history = ApolloAPI.Object(
+    typename: "api_trade_history",
     implementedInterfaces: []
   )
 }

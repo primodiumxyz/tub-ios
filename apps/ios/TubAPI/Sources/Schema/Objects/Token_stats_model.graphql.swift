@@ -4,9 +4,8 @@
 import ApolloAPI
 
 public extension Objects {
-  /// A token matching a set of filter parameters.
-  static let TokenFilterResult = ApolloAPI.Object(
-    typename: "TokenFilterResult",
+  static let Token_stats_model = ApolloAPI.Object(
+    typename: "token_stats_model",
     implementedInterfaces: []
   )
 }

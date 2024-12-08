@@ -4,9 +4,8 @@
 import ApolloAPI
 
 public extension Objects {
-  /// Price data for a bar at a specific resolution.
-  static let CurrencyBarData = ApolloAPI.Object(
-    typename: "CurrencyBarData",
+  static let Trade_history_candle_model = ApolloAPI.Object(
+    typename: "trade_history_candle_model",
     implementedInterfaces: []
   )
 }

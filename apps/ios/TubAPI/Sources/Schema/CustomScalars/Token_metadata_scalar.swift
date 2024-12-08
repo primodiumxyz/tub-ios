@@ -7,4 +7,4 @@
 
 import ApolloAPI
 
-public typealias Numeric = Double
+public typealias Token_metadata_scalar = String

@@ -47,9 +47,9 @@ export const GetWalletBalanceIgnoreIntervalSubscription = graphql(`
 
 // Dashboard
 export const GetTopTokensByVolumeSubscription = graphql(`
-  subscription SubTopTokensByVolume($interval: interval = "30m") {
+  subscription SubTopTokensByVolume($interval: interval = "30m", $recentInterval: interval = "20s") {
     token_stats_interval_comp(
-      args: { interval: $interval }
+      args: { interval: $interval, recent_interval: $recentInterval }
       where: { token_metadata_is_pump_token: { _eq: true } }
       order_by: { total_volume_usd: desc }
       limit: 50
@@ -58,6 +58,7 @@ export const GetTopTokensByVolumeSubscription = graphql(`
       total_volume_usd
       total_trades
       price_change_pct
+      latest_price_usd
       token_metadata_name
       token_metadata_image_uri
       token_metadata_symbol

@@ -36,22 +36,11 @@ struct AppContent: View {
     @StateObject private var notificationHandler = NotificationHandler()
     @StateObject private var userModel = UserModel.shared
     @StateObject private var priceModel = SolPriceModel.shared
-    @StateObject private var tokenManager = CodexTokenManager.shared
     @StateObject private var tokenListModel = TokenListModel.shared
 
     var body: some View {
         Group {
-            if tokenManager.fetchFailed {
-                LoginErrorView(
-                    errorMessage: "Failed to connect to Codex",
-                    retryAction: {
-                        Task {
-                            await tokenManager.refreshToken(hard: true)
-                        }
-                    }
-                )
-            }
-            else if let _ = priceModel.error {
+            if let _ = priceModel.error {
                 LoginErrorView(
                     errorMessage: "Failed to get price data",
                     retryAction: {
@@ -60,9 +49,6 @@ struct AppContent: View {
                         }
                     }
                 )
-            }
-            else if !tokenManager.isReady {
-                LoadingView(identifier: "Fetching Codex token", message: "Fetching auth token")
             }
             else {
                 HomeTabsView().font(.sfRounded())
@@ -85,8 +71,6 @@ struct AppContent: View {
             }
         }.onAppear {
             Task(priority: .high) {
-                // we cannot start token subscription until we have the api key
-                await tokenManager.refreshToken()
                 tokenListModel.configure(with: userModel)
                 await tokenListModel.startTokenSubscription()
             }
