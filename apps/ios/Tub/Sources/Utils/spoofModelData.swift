@@ -21,6 +21,7 @@ func spoofTokenModelData(_ model: TokenModel) {
         description: "A mock token for preview",
         imageUri: "https://example.com/mock.png",
         externalUrl: "https://example.com/mock",
+        decimals: 6,
         supply: 1_000_000_000,
         latestPriceUsd: 0.0075,
         stats: IntervalStats(volumeUsd: 750_000, trades: 370, priceChangePct: 17.3),

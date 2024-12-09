@@ -2365,6 +2365,7 @@ input timestamptz_comparison_exp {
 }
 
 type token_metadata_model {
+  decimals: numeric
   description: String!
   external_url: String
   image_uri: String
@@ -2382,6 +2383,7 @@ input token_metadata_model_bool_exp_bool_exp {
   _and: [token_metadata_model_bool_exp_bool_exp!]
   _not: token_metadata_model_bool_exp_bool_exp
   _or: [token_metadata_model_bool_exp_bool_exp!]
+  decimals: numeric_comparison_exp
   description: String_comparison_exp
   external_url: String_comparison_exp
   image_uri: String_comparison_exp
@@ -2393,6 +2395,9 @@ input token_metadata_model_bool_exp_bool_exp {
 }
 
 enum token_metadata_model_enum_name {
+  """column name"""
+  decimals
+
   """column name"""
   description
 
@@ -2420,6 +2425,7 @@ enum token_metadata_model_enum_name {
 
 """Ordering options when selecting data from "token_metadata_model"."""
 input token_metadata_model_order_by {
+  decimals: order_by
   description: order_by
   external_url: order_by
   image_uri: order_by
@@ -2472,6 +2478,7 @@ type token_stats_model {
   recent_price_change_pct: numeric!
   recent_trades: numeric!
   recent_volume_usd: numeric!
+  token_metadata_decimals: numeric
   token_metadata_description: String!
   token_metadata_external_url: String
   token_metadata_image_uri: String
@@ -2497,6 +2504,7 @@ input token_stats_model_bool_exp_bool_exp {
   recent_price_change_pct: numeric_comparison_exp
   recent_trades: numeric_comparison_exp
   recent_volume_usd: numeric_comparison_exp
+  token_metadata_decimals: numeric_comparison_exp
   token_metadata_description: String_comparison_exp
   token_metadata_external_url: String_comparison_exp
   token_metadata_image_uri: String_comparison_exp
@@ -2527,6 +2535,9 @@ enum token_stats_model_enum_name {
 
   """column name"""
   recent_volume_usd
+
+  """column name"""
+  token_metadata_decimals
 
   """column name"""
   token_metadata_description
@@ -2567,6 +2578,7 @@ input token_stats_model_order_by {
   recent_price_change_pct: order_by
   recent_trades: order_by
   recent_volume_usd: order_by
+  token_metadata_decimals: order_by
   token_metadata_description: order_by
   token_metadata_external_url: order_by
   token_metadata_image_uri: order_by

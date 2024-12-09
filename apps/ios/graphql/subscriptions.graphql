@@ -72,6 +72,7 @@ subscription SubTopTokensByVolume(
     token_metadata_description
     token_metadata_image_uri
     token_metadata_external_url
+    token_metadata_decimals
     token_metadata_supply
   }
 }

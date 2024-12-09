@@ -10,6 +10,7 @@ let emptyToken = Token(
     description: "",
     imageUri: "",
     externalUrl: "",
+    decimals: 0,
     supply: 0,
     latestPriceUsd: 0,
     stats: IntervalStats(volumeUsd: 0, trades: 0, priceChangePct: 0),

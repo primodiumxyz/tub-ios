@@ -11,7 +11,8 @@ CREATE TYPE token_metadata AS (
   description TEXT,
   image_uri TEXT,
   external_url TEXT,
-  supply NUMERIC,
+  decimals NUMERIC(2, 0),
+  supply NUMERIC(30, 0),
   is_pump_token BOOLEAN
 );
 

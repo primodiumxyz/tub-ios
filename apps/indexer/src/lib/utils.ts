@@ -287,6 +287,7 @@ export const upsertTrades = async (gql: GqlClient["db"], trades: SwapWithPriceAn
           description,
           image_uri: imageUri,
           external_url: externalUrl,
+          decimals: trade.tokenDecimals.toString(),
           supply: supply,
           is_pump_token: isPumpToken,
         }),

@@ -14,6 +14,7 @@ struct Token: Identifiable {
     var description: String
     var imageUri: String
     var externalUrl: String
+    var decimals: Int
     var marketCapUsd: Double
     var stats: IntervalStats
     var recentStats: IntervalStats
@@ -25,6 +26,7 @@ struct Token: Identifiable {
         description: String,
         imageUri: String?,
         externalUrl: String?,
+        decimals: Int,
         supply: Int,
         latestPriceUsd: Double,
         stats: IntervalStats,
@@ -36,6 +38,7 @@ struct Token: Identifiable {
         self.description = description
         self.imageUri = imageUri ?? ""
         self.externalUrl = externalUrl ?? ""
+        self.decimals = decimals
         // TODO: check if it's correct when QuickNode fixes their DAS API
         // 1. Is this ok to use that supply? do we need to use the circulating supply (that we don't have)?
         // 2. Does the supply need to be divided by 10 ** tokenDecimals?
