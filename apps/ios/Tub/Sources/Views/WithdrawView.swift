@@ -146,14 +146,14 @@ struct WithdrawView: View {
     var body: some View {
         NavigationStack {
             VStack(alignment: .center) {
-                Spacer().frame(height: 50)
+                Spacer().frame(height: UIScreen.height(Layout.Spacing.md))
                 numberInput
                 
                 Text("Your Balance \(priceModel.formatPrice(usdc: userModel.balanceUsdc ?? 0))")
                     .font(.sfRounded(size: .lg, weight: .medium))
                     .foregroundStyle(.tubPurple)
                 
-                Spacer().frame(height: 80)
+                Spacer().frame(height: UIScreen.height(Layout.Spacing.lg))
                 RecipientSelectView(vm: vm)
                 Spacer()
                 
@@ -167,7 +167,7 @@ struct WithdrawView: View {
                     action: handleContinue
                 )
             }
-            .padding(24)
+            .padding(UIScreen.width(Layout.Spacing.md))
             .navigationTitle("Transfer")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -199,13 +199,13 @@ struct RecipientSelectView: View {
     @ObservedObject var vm: WithdrawModel
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: UIScreen.height(Layout.Spacing.xs)) {
             Text("To")
                 .font(.sfRounded(size: .lg, weight: .medium))
                 .foregroundStyle(.tubPurple)
             
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 8) {
+            VStack(alignment: .leading, spacing: UIScreen.height(Layout.Spacing.tiny)) {
+                HStack(spacing: UIScreen.width(Layout.Spacing.xs)) {
                     Image(systemName: "wallet.bifold.fill")
                         .foregroundStyle(.tubText)
                     
@@ -237,6 +237,7 @@ struct RecipientSelectView: View {
                 }
             }
         }
+        .padding(.horizontal, UIScreen.width(Layout.Spacing.sm))
         .onAppear {
             let isValid = vm.validateAddress(vm.recipient)
             vm.continueDisabled = !isValid
@@ -247,7 +248,6 @@ struct RecipientSelectView: View {
             vm.continueDisabled = !isValid
             showError = !vm.recipient.isEmpty && !isValid
         }
-        .padding(.horizontal, 20)
     }
 }
 
