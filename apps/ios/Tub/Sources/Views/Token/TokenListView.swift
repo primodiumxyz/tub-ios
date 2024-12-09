@@ -200,16 +200,14 @@ struct TokenListView: View {
                         .highPriorityGesture(
                             DragGesture()
                                 .onChanged { value in
-                                    let dragDirection =
-                                        value.translation.height > 0 ? SwipeDirection.up : SwipeDirection.down
+                                    let dragDirection = value.translation.height > 0 ? SwipeDirection.up : SwipeDirection.down
                                     if canSwipe(direction: dragDirection) {
                                         dragging = true
 										dragGestureOffset = value.translation.height
                                     }
                                 }
                                 .onEnded { value in
-                                    let dragDirection =
-                                        value.translation.height > 0 ? SwipeDirection.up : SwipeDirection.down
+                                    let dragDirection = value.translation.height > 0 ? SwipeDirection.up : SwipeDirection.down
                                     if canSwipe(direction: dragDirection) {
                                         if value.translation.height > offsetThresholdToDragToAnotherToken {
                                             loadToken(geometry, .up)
