@@ -195,7 +195,6 @@ export class OctaneService {
     const { blockhash } = await this.connection.getLatestBlockhash();
 
     // Create a v0 message with necessary instructions, depending on the mint
-    console.log("building Swap Message", instructions.length, addressLookupTableAccounts.length);
     const messageV0 = new TransactionMessage({
       payerKey: this.feePayerKeypair.publicKey,
       recentBlockhash: blockhash,

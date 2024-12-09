@@ -489,27 +489,34 @@ export class TubService {
       // Don't need to validate that we are receiving token fee, given that we already have a tx registry from earlier
       const feePayerSignature = await this.octane.signTransactionWithoutCheckingTokenFee(transaction);
       const feePayerSignatureBytes = Buffer.from(bs58.decode(feePayerSignature));
-      transaction.addSignature(this.octane.getSettings().feePayerPublicKey, feePayerSignatureBytes);
+      const settings = this.octane.getSettings();
+      transaction.addSignature(settings.feePayerPublicKey, feePayerSignatureBytes);
 
       // simulate the transaction
-      const simulation = await this.octane.getSettings().connection.simulateTransaction(transaction);
-      console.log("[signAndSendTransaction] Simulation:", simulation);
+      const simulation = await settings.connection.simulateTransaction(transaction);
+      if (simulation.value?.err) {
+        throw new Error(`Transaction simulation failed: ${simulation.value.err.toString()}`);
+      }
 
       // Send transaction
-      const txid = await this.octane.getSettings().connection.sendTransaction(transaction, {
+      const txid = await settings.connection.sendTransaction(transaction, {
         skipPreflight: false,
         maxRetries: 3,
         preflightCommitment: "confirmed",
       });
 
-      const signatureStatus = await this.octane.getSettings().connection.getSignatureStatuses([txid]);
+      const signatureStatus = await settings.connection.getSignatureStatuses([txid]);
       console.log("[signAndSendTransaction] Signature status:", signatureStatus);
 
       // Wait for confirmation using polling
-      const confirmation = await this.octane.getSettings().connection.getTransaction(txid, {
+      const confirmation = await settings.connection.getTransaction(txid, {
         commitment: "confirmed",
         maxSupportedTransactionVersion: 0,
       });
+
+      if (confirmation == null) {
+        throw new Error(`Transaction not found: ${txid}`);
+      }
 
       if (confirmation?.meta?.err) {
         throw new Error(`Transaction failed: ${confirmation.meta.err}`);

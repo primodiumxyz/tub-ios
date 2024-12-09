@@ -44,9 +44,8 @@ struct TestTxView: View {
 
     var body: some View {
         VStack(spacing: 10) {
-            Button(action: handleAppear) {
-                Text("Update Tx Data")
-            }.padding().background(.blue)
+            PrimaryButton(text: "Update Tx Data", loading: txManager.fetchingTxData || txManager.submittingTx, action: handleAppear)
+            
             if let txData = txManager.txData {
                 DataRow(title: "Buy Token ID", content: txData.buyTokenId)
                 DataRow(title: "Sell Token ID", content: txData.sellTokenId)
@@ -54,9 +53,8 @@ struct TestTxView: View {
                     title: "Sell Quantity",
                     content: priceModel.formatPrice(usdc: txData.sellQuantity)
                 )
-                Button(action: handleTxSubmission) {
-                    Text("Submit Transaction")
-                }.padding().background(.red)
+                
+                PrimaryButton(text: "Submit Tx", loading: txManager.fetchingTxData || txManager.submittingTx, action: handleTxSubmission)
             }
             else {
                 Text("no data")
