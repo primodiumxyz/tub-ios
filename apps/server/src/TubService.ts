@@ -1,6 +1,6 @@
 import { Codex } from "@codex-data/sdk";
 import { PrivyClient, WalletWithMetadata } from "@privy-io/server-auth";
-import { Connection, Keypair, PublicKey, SendTransactionError, Transaction } from "@solana/web3.js";
+import { Connection, Keypair, MessageV0, PublicKey, Transaction, VersionedTransaction } from "@solana/web3.js";
 import { createTransferInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { GqlClient } from "@tub/gql";
 import {
@@ -47,7 +47,7 @@ export class TubService {
   private codexSdk: Codex;
   private connection: Connection;
   private activeSwapRequests: Map<string, ActiveSwapRequest> = new Map();
-  private swapRegistry: Map<string, PrebuildSwapResponse & { transaction: Transaction }> = new Map();
+  private messageRegistry: Map<string, PrebuildSwapResponse & { message: MessageV0 }> = new Map();
   private swapSubscriptions: Map<string, SwapSubscription> = new Map();
 
   private readonly REGISTRY_TIMEOUT = 5 * 60 * 1000; // 5 minutes in milliseconds
@@ -71,9 +71,9 @@ export class TubService {
 
   private cleanupRegistry() {
     const now = Date.now();
-    for (const [key, value] of this.swapRegistry.entries()) {
+    for (const [key, value] of this.messageRegistry.entries()) {
       if (now - value.timestamp > this.REGISTRY_TIMEOUT) {
-        this.swapRegistry.delete(key);
+        this.messageRegistry.delete(key);
       }
     }
   }
@@ -109,65 +109,6 @@ export class TubService {
 
   getStatus(): { status: number } {
     return { status: 200 };
-  }
-
-  // !! TODO: implement this after transaction success
-  async sellToken(jwtToken: string, tokenId: string, amount: bigint, tokenPrice: number) {
-    const accountId = await this.verifyJWT(jwtToken);
-    const wallet = await this.getUserWallet(accountId);
-    if (!wallet) {
-      throw new Error("User does not have a wallet");
-    }
-    const result = await this.gql.SellTokenMutation({
-      wallet,
-      token: tokenId,
-      amount: amount.toString(),
-      token_price: tokenPrice.toString(),
-    });
-
-    if (result.error) {
-      throw new Error(result.error.message);
-    }
-
-    return result.data;
-  }
-
-  // !! TODO: implement this after transaction success
-  async buyToken(jwtToken: string, tokenId: string, amount: bigint, tokenPrice: number) {
-    const accountId = await this.verifyJWT(jwtToken);
-    const wallet = await this.getUserWallet(accountId);
-    if (!wallet) {
-      throw new Error("User does not have a wallet");
-    }
-    const result = await this.gql.BuyTokenMutation({
-      wallet,
-      token: tokenId,
-      amount: amount.toString(),
-      token_price: tokenPrice.toString(),
-    });
-
-    if (result.error) {
-      throw new Error(result.error.message);
-    }
-    return result.data;
-  }
-
-  async airdropNativeToUser(jwtToken: string, amount: bigint) {
-    const accountId = await this.verifyJWT(jwtToken);
-    const wallet = await this.getUserWallet(accountId);
-    if (!wallet) {
-      throw new Error("User does not have a wallet");
-    }
-    const result = await this.gql.AirdropNativeToWalletMutation({
-      wallet,
-      amount: amount.toString(),
-    });
-
-    if (result.error) {
-      throw new Error(result.error.message);
-    }
-
-    return result.data;
   }
 
   async getSignedTransfer(
@@ -314,7 +255,6 @@ export class TubService {
     }
 
     const userPublicKey = new PublicKey(userWallet);
-    console.log("[fetchSwap] userPublicKey:", userPublicKey);
 
     const derivedAccounts = await this.deriveTokenAccounts(userPublicKey, request.buyTokenId, request.sellTokenId);
 
@@ -323,13 +263,11 @@ export class TubService {
       ...derivedAccounts,
       userPublicKey,
     };
-    console.log("[fetchSwap] activeRequest:", activeRequest);
 
     try {
       const response = await this.buildSwapResponse(activeRequest);
       return response;
     } catch (error) {
-      console.error("[fetchSwap] Error:", error);
       throw new Error(`Failed to build swap response: ${error}`);
     }
   }
@@ -354,17 +292,18 @@ export class TubService {
   async fetchPresignedSwap(jwtToken: string, request: UserPrebuildSwapRequest): Promise<PrebuildSignedSwapResponse> {
     const fetchSwapResponse = await this.fetchSwap(jwtToken, request);
     // fetch transaction from registry
-    const registryEntry = this.swapRegistry.get(fetchSwapResponse.transactionMessageBase64);
+    const registryEntry = this.messageRegistry.get(fetchSwapResponse.transactionMessageBase64);
     if (!registryEntry) {
       throw new Error("Transaction not found in registry");
     }
-    const transaction = registryEntry.transaction;
+    const message = registryEntry.message;
+
+    const transaction = new VersionedTransaction(message);
+
     // remove transaction from registry
-    this.swapRegistry.delete(fetchSwapResponse.transactionMessageBase64);
+    this.messageRegistry.delete(fetchSwapResponse.transactionMessageBase64);
 
     const feePayerSignature = await this.octane.signTransactionWithoutCheckingTokenFee(transaction);
-    const feePayerSignatureBytes = Buffer.from(bs58.decode(feePayerSignature));
-    transaction.addSignature(this.octane.getSettings().feePayerPublicKey, feePayerSignatureBytes);
 
     const fetchSignedSwapResponse: PrebuildSignedSwapResponse = {
       ...fetchSwapResponse,
@@ -487,7 +426,6 @@ export class TubService {
         const response = await this.buildSwapResponse(updated);
         return response;
       } catch (error) {
-        console.error("[updateSwapRequest] Error:", error);
         throw new Error(`Failed to build updated swap response: ${error}`);
       }
     } else {
@@ -529,89 +467,67 @@ export class TubService {
   async signAndSendTransaction(jwtToken: string, userSignature: string, base64TransactionMessage: string) {
     try {
       const userId = await this.verifyJWT(jwtToken);
-      console.log("[signAndSendTransaction] userId:", userId);
 
-      const registryEntry = this.swapRegistry.get(base64TransactionMessage);
+      const registryEntry = this.messageRegistry.get(base64TransactionMessage);
       if (!registryEntry) {
         throw new Error("Transaction not found in registry");
       }
-      // log the base64 transaction
-      console.log("[signAndSendTransaction] base64 transaction:", base64TransactionMessage);
 
       const walletAddress = await this.getUserWallet(userId);
       if (!walletAddress) {
         throw new Error("User does not have a wallet registered with Privy");
       }
       const userPublicKey = new PublicKey(walletAddress);
-      console.log("[signAndSendTransaction] userPublicKey:", userPublicKey);
       // Create a new transaction from the registry entry
-      const transaction = registryEntry.transaction;
+      const message = registryEntry.message;
+      const transaction = new VersionedTransaction(message);
 
       // Convert base64 signature to bytes
       const userSignatureBytes = Buffer.from(userSignature, "base64");
       transaction.addSignature(userPublicKey, userSignatureBytes);
-      console.log("[signAndSendTransaction] First apply user signature:", transaction.signatures);
 
       // Don't need to validate that we are receiving token fee, given that we already have a tx registry from earlier
       const feePayerSignature = await this.octane.signTransactionWithoutCheckingTokenFee(transaction);
       const feePayerSignatureBytes = Buffer.from(bs58.decode(feePayerSignature));
-      transaction.addSignature(this.octane.getSettings().feePayerPublicKey, feePayerSignatureBytes);
-      console.log("[signAndSendTransaction] Second, apply fee payer signature:", transaction.signatures);
+      const settings = this.octane.getSettings();
+      transaction.addSignature(settings.feePayerPublicKey, feePayerSignatureBytes);
 
-      // Send transaction
-      const txid = await this.octane.getSettings().connection.sendRawTransaction(transaction.serialize(), {
-        skipPreflight: false,
-        maxRetries: 3,
-        preflightCommitment: "processed",
-      });
-      console.log(`[signAndSendTransaction] Transaction sent with ID: ${txid}`);
-
-      // Wait for confirmation using polling
-      const confirmation = await this.octane.getSettings().connection.confirmTransaction(
-        {
-          signature: txid,
-          blockhash: transaction.recentBlockhash!,
-          lastValidBlockHeight: transaction.lastValidBlockHeight!,
-        },
-        "processed",
-      );
-      console.log(`[signAndSendTransaction] Transaction confirmed:`, confirmation);
-
-      if (confirmation.value.err) {
-        throw new Error(`Transaction failed: ${confirmation.value.err}`);
+      // simulate the transaction
+      const simulation = await settings.connection.simulateTransaction(transaction);
+      if (simulation.value?.err) {
+        throw new Error(`Transaction simulation failed: ${simulation.value.err.toString()}`);
       }
 
+      // Send transaction
+      const txid = await settings.connection.sendTransaction(transaction, {
+        skipPreflight: false,
+        maxRetries: 3,
+        preflightCommitment: "confirmed",
+      });
+
+      const signatureStatus = await settings.connection.getSignatureStatuses([txid]);
+      console.log("[signAndSendTransaction] Signature status:", signatureStatus);
+
+      // Wait for confirmation using polling
+      const confirmation = await settings.connection.getTransaction(txid, {
+        commitment: "confirmed",
+        maxSupportedTransactionVersion: 0,
+      });
+
+      if (confirmation == null) {
+        throw new Error(`Transaction not found: ${txid}`);
+      }
+
+      if (confirmation?.meta?.err) {
+        throw new Error(`Transaction failed: ${confirmation.meta.err}`);
+      }
+      console.log(`[signAndSendTransaction] Transaction confirmed:`, confirmation);
+
       // Clean up registry
-      this.swapRegistry.delete(base64TransactionMessage);
-      console.log(`[signAndSendTransaction] Transaction completed successfully`);
+      this.messageRegistry.delete(base64TransactionMessage);
 
       return { signature: txid };
     } catch (error) {
-      // Handle SendTransactionError specially
-      if (error instanceof SendTransactionError) {
-        const logs = (await error.getLogs(this.octane.getSettings().connection)) ?? "No logs available";
-        let details: string;
-
-        try {
-          details = (await error.getLogs(this.octane.getSettings().connection)).join("\n");
-        } catch (logError) {
-          console.error("[signAndSendTransaction] Error getting detailed logs:", logError);
-          details = "Could not fetch detailed logs";
-        }
-
-        console.error("[signAndSendTransaction] Transaction failed:", {
-          message: error.message,
-          logs,
-          details: Array.isArray(details) ? details.join("\n") : details,
-        });
-
-        throw new Error(
-          `Transaction failed: ${error.message}\n` +
-            `Logs:\n${logs}\n` +
-            `Details:\n${Array.isArray(details) ? details.join("\n") : details}`,
-        );
-      }
-
       // Handle all other errors
       console.error("[signAndSendTransaction] Error:", error);
       throw error;
@@ -646,116 +562,65 @@ export class TubService {
     const usdcDevPubKey = USDC_DEV_PUBLIC_KEY.toString();
     const usdcMainPubKey = USDC_MAINNET_PUBLIC_KEY.toString();
     const solMainPubKey = SOL_MAINNET_PUBLIC_KEY.toString();
-    const feeAmount =
+    const _feeAmount =
       request.sellTokenId === usdcDevPubKey || request.sellTokenId === usdcMainPubKey
         ? this.octane.getSettings().buyFee
         : 0;
 
+    const feeAmount = Number((BigInt(_feeAmount) * BigInt(request.sellQuantity)) / 10000n);
+
+    const feeOptions = {
+      sourceAccount: request.sellTokenAccount,
+      destinationAccount: this.octane.getSettings().tradeFeeRecipient,
+      amount: feeAmount,
+    };
+
+    const feeTransferInstruction = feeOptions
+      ? createTransferInstruction(
+          feeOptions.sourceAccount,
+          feeOptions.destinationAccount,
+          request.userPublicKey,
+          feeOptions.amount,
+        )
+      : null;
     // if the sell token is SOL and the buy token is USDC, set to true. if the sell token is USDC and the buy token is SOL, set to true. otherwise, set to false.
     const onlyDirectRoutes =
       (request.sellTokenId === solMainPubKey && request.buyTokenId === usdcMainPubKey) ||
       (request.sellTokenId === usdcMainPubKey && request.buyTokenId === solMainPubKey);
 
-    let transaction: Transaction | null = null;
-    try {
-      if (feeAmount === 0) {
-        const swapInstructions = await this.octane.getQuoteAndSwapInstructions(
-          {
-            inputMint: request.sellTokenId,
-            outputMint: request.buyTokenId,
-            amount: request.sellQuantity,
-            slippageBps: 50,
-            onlyDirectRoutes,
-            restrictIntermediateTokens: true,
-            maxAccounts: 50,
-            asLegacyTransaction: false,
-          },
-          request.userPublicKey,
-        );
+    const swapInstructionRequest = {
+      inputMint: request.sellTokenId,
+      outputMint: request.buyTokenId,
+      amount: request.sellQuantity - feeAmount,
+      slippageBps: 50,
+      onlyDirectRoutes,
+      restrictIntermediateTokens: true,
+      maxAccounts: 50,
+      asLegacyTransaction: false,
+    };
 
-        console.log("[buildSwapResponse] Jupiter instructions:", {
-          setupCount: swapInstructions.setupInstructions?.length || 0,
-          setupInstructions: swapInstructions.setupInstructions?.map((ix) => ix.programId),
-          swapInstruction: swapInstructions.swapInstruction?.programId,
-          cleanupInstruction: swapInstructions.cleanupInstruction?.programId,
-        });
+    const { instructions: swapInstructions, addressLookupTableAccounts } = await this.octane.getSwapInstructions(
+      swapInstructionRequest,
+      request.userPublicKey,
+    );
 
-        if (!swapInstructions?.swapInstruction) {
-          throw new Error("No swap instruction received");
-        }
-
-        transaction = await this.octane.buildCompleteSwap(swapInstructions, null);
-      } else {
-        const feeOptions = {
-          sourceAccount: request.sellTokenAccount,
-          destinationAccount: this.octane.getSettings().tradeFeeRecipient,
-          amount: Number((BigInt(feeAmount) * BigInt(request.sellQuantity)) / 10000n),
-        };
-
-        const feeTransferInstruction = feeOptions
-          ? createTransferInstruction(
-              feeOptions.sourceAccount,
-              feeOptions.destinationAccount,
-              request.userPublicKey,
-              feeOptions.amount,
-            )
-          : null;
-
-        const swapInstructions = await this.octane.getQuoteAndSwapInstructions(
-          {
-            inputMint: request.sellTokenId,
-            outputMint: request.buyTokenId,
-            amount: request.sellQuantity - feeOptions.amount,
-            slippageBps: 50,
-            onlyDirectRoutes,
-            restrictIntermediateTokens: true,
-            maxAccounts: 50,
-            asLegacyTransaction: false,
-          },
-          request.userPublicKey,
-        );
-
-        console.log("[buildSwapResponse] Jupiter instructions:", {
-          setupCount: swapInstructions.setupInstructions?.length || 0,
-          setupInstructions: swapInstructions.setupInstructions?.map((ix) => ix.programId),
-          swapInstruction: swapInstructions.swapInstruction?.programId,
-          cleanupInstruction: swapInstructions.cleanupInstruction?.programId,
-        });
-
-        if (!swapInstructions?.swapInstruction) {
-          throw new Error("No swap instruction received");
-        }
-
-        transaction = await this.octane.buildCompleteSwap(swapInstructions, feeTransferInstruction);
-      }
-
-      if (!transaction) {
-        throw new Error("Failed to build transaction");
-      }
-
-      // Get fresh blockhash right before returning to user
-      const { blockhash, lastValidBlockHeight } = await this.octane.getSettings().connection.getLatestBlockhash();
-      if (!blockhash || !lastValidBlockHeight) {
-        throw new Error("fresh blockhash not received");
-      }
-      transaction.recentBlockhash = blockhash;
-      transaction.lastValidBlockHeight = lastValidBlockHeight;
-
-      const response: PrebuildSwapResponse = {
-        transactionMessageBase64: Buffer.from(transaction.serializeMessage()).toString("base64"),
-        ...request,
-        hasFee: feeAmount > 0,
-        timestamp: Date.now(),
-      };
-
-      // Store in registry with fee information
-      this.swapRegistry.set(response.transactionMessageBase64, { ...response, transaction });
-      console.log(`[buildSwapResponse] Transaction stored in registry: ${response.transactionMessageBase64}`);
-
-      return response;
-    } catch (error) {
-      console.error("[buildSwapResponse] Error:", error);
-      throw error;
+    if (!swapInstructions?.length) {
+      throw new Error("No swap instruction received");
     }
+
+    const allInstructions = feeTransferInstruction ? [feeTransferInstruction, ...swapInstructions] : swapInstructions;
+    const message = await this.octane.buildSwapMessage(allInstructions, addressLookupTableAccounts);
+
+    const response: PrebuildSwapResponse = {
+      transactionMessageBase64: Buffer.from(message.serialize()).toString("base64"),
+      ...request,
+      hasFee: feeAmount > 0,
+      timestamp: Date.now(),
+    };
+
+    // Store in registry with fee information
+    this.messageRegistry.set(response.transactionMessageBase64, { ...response, message });
+
+    return response;
   }
 }

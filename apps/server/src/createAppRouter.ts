@@ -25,64 +25,6 @@ export function createAppRouter() {
       return ctx.tubService.getStatus();
     }),
 
-    /**
-     * Purchases a specified amount of tokens
-     * @param tokenId - The unique identifier of the token to buy
-     * @param amount - The amount of tokens to purchase as a string (will be converted to BigInt)
-     * @param overridePrice - Optional override price for the token purchase
-     * @returns Result of the token purchase operation
-     */
-    buyToken: t.procedure
-      .input(
-        z.object({
-          tokenId: z.string(),
-          amount: z.string(),
-          tokenPrice: z.string(),
-        }),
-      )
-      .mutation(async ({ ctx, input }) => {
-        return await ctx.tubService.buyToken(
-          ctx.jwtToken,
-          input.tokenId,
-          BigInt(input.amount),
-          Number(input.tokenPrice),
-        );
-      }),
-
-    /**
-     * Sells a specified amount of tokens
-     * @param tokenId - The unique identifier of the token to sell
-     * @param amount - The amount of tokens to sell as a string (will be converted to BigInt)
-     * @param overridePrice - Optional override price for the token sale
-     * @returns Result of the token sale operation
-     */
-    sellToken: t.procedure
-      .input(
-        z.object({
-          tokenId: z.string(),
-          amount: z.string(),
-          tokenPrice: z.string(),
-        }),
-      )
-      .mutation(async ({ ctx, input }) => {
-        return await ctx.tubService.sellToken(
-          ctx.jwtToken,
-          input.tokenId,
-          BigInt(input.amount),
-          Number(input.tokenPrice),
-        );
-      }),
-
-    airdropNativeToUser: t.procedure
-      .input(
-        z.object({
-          amount: z.string(),
-        }),
-      )
-      .mutation(async ({ ctx, input }) => {
-        return await ctx.tubService.airdropNativeToUser(ctx.jwtToken, BigInt(input.amount));
-      }),
-
     recordClientEvent: t.procedure
       .input(
         z.object({

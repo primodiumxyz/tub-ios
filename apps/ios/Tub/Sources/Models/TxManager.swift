@@ -111,28 +111,36 @@ final class TxManager: ObservableObject {
         }
 
         let token = self.purchaseState == .sell ? txData.sellTokenId : txData.buyTokenId
-        if txData.sellQuantity != self.sellQuantity || token != self.tokenId {
-            do {
-                try await self.updateTxData(sellQuantity: sellQuantity)
-            }
-            catch {
-
-            }
-        }
 
         do {
+            await MainActor.run {
+                self.submittingTx = true
+            }
+            
+            if txData.sellQuantity != self.sellQuantity || token != self.tokenId {
+                    try await self.updateTxData(sellQuantity: sellQuantity)
+            }
             let provider = try privy.embeddedWallet.getSolanaProvider(for: walletAddress)
             let signature = try await provider.signMessage(message: txData.transactionMessageBase64)
             let res = try await Network.shared.submitSignedTx(
                 txBase64: txData.transactionMessageBase64,
                 signature: signature
             )
+            Task {
+                try! await UserModel.shared.fetchUsdcBalance()
+                if let tokenId {
+                    try! await UserModel.shared.refreshTokenData(tokenMint: tokenId)
+                }
+            }
             await MainActor.run {
                 txs.append(res.txId)
+                self.submittingTx = false
             }
         }
         catch {
-            print(error.localizedDescription)
+             await MainActor.run {
+                self.submittingTx = false
+            }
             throw error
         }
     }

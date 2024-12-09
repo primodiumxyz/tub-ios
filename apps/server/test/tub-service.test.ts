@@ -116,6 +116,7 @@ import { getAssociatedTokenAddress } from "@solana/spl-token";
     }
   });
 
+  //describe.skip("should complete a full USDC to SOL swap flow", () => {
   it("should complete a full USDC to SOL swap flow", async () => {
     try {
       console.log("\nStarting USDC to SOL swap flow test");
@@ -159,4 +160,5 @@ import { getAssociatedTokenAddress } from "@solana/spl-token";
       throw error;
     }
   }, 30000);
+  //});
 });
