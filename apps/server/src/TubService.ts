@@ -1,18 +1,18 @@
 import { Codex } from "@codex-data/sdk";
 import { PrivyClient, WalletWithMetadata } from "@privy-io/server-auth";
-import { Connection, Keypair, MessageV0, PublicKey, Transaction, VersionedTransaction } from "@solana/web3.js";
 import { createTransferInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token";
+import { Connection, Keypair, MessageV0, PublicKey, Transaction, VersionedTransaction } from "@solana/web3.js";
 import { GqlClient } from "@tub/gql";
+import bs58 from "bs58";
+import { config } from "dotenv";
+import { Subject, Subscription, interval, switchMap } from "rxjs";
+import { env } from "../bin/tub-server";
 import {
   PrebuildSignedSwapResponse,
   PrebuildSwapResponse,
   UserPrebuildSwapRequest,
 } from "../types/PrebuildSwapRequest";
 import { OctaneService } from "./OctaneService";
-import { Subject, interval, switchMap, Subscription } from "rxjs";
-import { config } from "dotenv";
-import bs58 from "bs58";
-import { env } from "../bin/tub-server";
 
 config({ path: "../../.env" });
 
@@ -377,11 +377,8 @@ export class TubService {
    * Updates parameters for an active swap request and returns a new transaction
    * @param jwtToken - The user's JWT token
    * @param updates - New parameters to update
-   * @param updates.buyTokenId - Optional new token to receive
-   * @param updates.sellTokenId - Optional new token to sell
-   * @param updates.sellQuantity - Optional new amount to sell
-   * @returns {Promise<PrebuildSwapResponse>} New swap transaction with updated parameters
-   * @throws {Error} If no active request exists or if building new transaction fails
+   * @returns New swap transaction with updated parameters
+   * @throws Error If no active request exists or if building new transaction fails
    *
    * @remarks
    * If token IDs are changed, new token accounts will be derived.
@@ -409,7 +406,7 @@ export class TubService {
         (updates.sellTokenId && updates.sellTokenId !== current.sellTokenId);
 
       const derivedAccounts = needsNewDerivedAccounts
-        ? await this.deriveTokenAccounts(
+        ? this.deriveTokenAccounts(
             userPublicKey,
             updates.buyTokenId ?? current.buyTokenId,
             updates.sellTokenId ?? current.sellTokenId,
@@ -495,7 +492,7 @@ export class TubService {
       // simulate the transaction
       const simulation = await settings.connection.simulateTransaction(transaction);
       if (simulation.value?.err) {
-        throw new Error(`Transaction simulation failed: ${simulation.value.err.toString()}`);
+        throw new Error(`Transaction simulation failed: ${JSON.stringify(simulation.value.err)}`);
       }
 
       // Send transaction
@@ -509,10 +506,20 @@ export class TubService {
       console.log("[signAndSendTransaction] Signature status:", signatureStatus);
 
       // Wait for confirmation using polling
-      const confirmation = await settings.connection.getTransaction(txid, {
-        commitment: "confirmed",
-        maxSupportedTransactionVersion: 0,
-      });
+      let confirmation = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        confirmation = await settings.connection.getTransaction(txid, {
+          commitment: "confirmed",
+          maxSupportedTransactionVersion: 0,
+        });
+
+        if (confirmation) {
+          break; // Exit loop if confirmation is received
+        }
+
+        console.log(`[signAndSendTransaction] Waiting for confirmation... Attempt ${attempt + 1}`);
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 1 second before retrying
+      }
 
       if (confirmation == null) {
         throw new Error(`Transaction not found: ${txid}`);

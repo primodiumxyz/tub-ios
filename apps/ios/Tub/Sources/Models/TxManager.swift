@@ -21,7 +21,11 @@ final class TxManager: ObservableObject {
     var tokenId: String?
     var sellQuantity: Int?
     var lastUpdated = Date()
+    
+    let UPDATE_SECONDS = 5
+    
     private var currentFetchTask: Task<Void, Error>?
+    private var fetchStaleTxDataTimer: Timer?
 
     func updateTxData(purchaseState: PurchaseState? = nil, tokenId: String? = nil, sellQuantity: Int? = nil)
         async throws
@@ -41,12 +45,33 @@ final class TxManager: ObservableObject {
         try await currentFetchTask?.value
     }
 
-    let UPDATE_SECONDS = 1
-    private func _updateTxData(purchaseState: PurchaseState?, tokenId: String?, sellQuantity: Int?) async throws {
+    private func isTxDataStale() -> Bool {
+        return Date().timeIntervalSince1970 <= lastUpdated.timeIntervalSince1970 + Double(UPDATE_SECONDS)
+    }
+    
+    private func startFetchStaleTxDataTimer() {
+        DispatchQueue.main.async {
+            self.fetchStaleTxDataTimer?.invalidate() // Invalidate any existing timer
+            self.fetchStaleTxDataTimer = Timer.scheduledTimer(withTimeInterval: TimeInterval(self.UPDATE_SECONDS), repeats: true) { [weak self] _ in
+                guard let self else { return }
+                Task {
+                    do {
+                    try await self._updateTxData(purchaseState: self.purchaseState, tokenId: self.tokenId, sellQuantity: self.sellQuantity, hard: true)
+                } catch {
+                    print("Failed to update transaction data: \(error.localizedDescription)")
+                }
+            }
+        }
+        }
+    }
+
+    private func _updateTxData(purchaseState: PurchaseState?, tokenId: String?, sellQuantity: Int?, hard: Bool = false) async throws {
         // if nothing is getting updated return without updating
-        if Date().timeIntervalSince1970 < lastUpdated.timeIntervalSince1970 + Double(UPDATE_SECONDS)
-            && self.purchaseState == (purchaseState ?? self.purchaseState) && self.tokenId == (tokenId ?? self.tokenId)
-            && self.sellQuantity == (sellQuantity ?? self.sellQuantity)
+        if !hard
+           && !isTxDataStale()
+           && self.purchaseState == (purchaseState ?? self.purchaseState)
+           && self.tokenId == (tokenId ?? self.tokenId)
+           && self.sellQuantity == (sellQuantity ?? self.sellQuantity)
         {
             return
         }
@@ -77,6 +102,7 @@ final class TxManager: ObservableObject {
                 self.tokenId = self.purchaseState == .buy ? tx.buyTokenId : tx.sellTokenId
                 self.sellQuantity = tx.sellQuantity
                 self.fetchingTxData = false
+                self.startFetchStaleTxDataTimer() // Start or reset the timer after successful fetch
             }
         }
         catch {
@@ -94,10 +120,14 @@ final class TxManager: ObservableObject {
 
     func submitTx(walletAddress: String) async throws {
         if submittingTx {
-            throw TubError.actionInProgress(actionDescription: "Submit transaction")
+            throw TubError.actionInProgress(actionDescription: "Transaction submission")
         }
-
-        // Wait while fetching is in progress, with 2 second timeout
+        
+        guard let txData else {
+            throw TubError.invalidInput(reason: "Missing transaction data")
+        }
+        
+        // Await fetch completion
         let startTime = Date()
         while fetchingTxData {
             if Date().timeIntervalSince(startTime) > 2.0 {
@@ -106,26 +136,27 @@ final class TxManager: ObservableObject {
             try await Task.sleep(nanoseconds: 50_000_000)  // 50ms delay
         }
 
-        guard let txData else {
-            throw TubError.invalidInput(reason: "Missing transaction data")
-        }
-
+        // Update tx data if its stale
         let token = self.purchaseState == .sell ? txData.sellTokenId : txData.buyTokenId
-
+        
+        if isTxDataStale() || txData.sellQuantity != self.sellQuantity || token != self.tokenId {
+           try await self.updateTxData(sellQuantity: sellQuantity)
+        }
+        
+        // Sign and send the tx
         do {
             await MainActor.run {
                 self.submittingTx = true
             }
-            
-            if txData.sellQuantity != self.sellQuantity || token != self.tokenId {
-                    try await self.updateTxData(sellQuantity: sellQuantity)
-            }
+
             let provider = try privy.embeddedWallet.getSolanaProvider(for: walletAddress)
             let signature = try await provider.signMessage(message: txData.transactionMessageBase64)
             let res = try await Network.shared.submitSignedTx(
                 txBase64: txData.transactionMessageBase64,
                 signature: signature
             )
+            
+            // Update USDC balance & token balance
             Task {
                 try! await UserModel.shared.fetchUsdcBalance()
                 if let tokenId {

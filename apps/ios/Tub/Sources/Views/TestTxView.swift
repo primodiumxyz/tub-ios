@@ -87,10 +87,11 @@ struct TestTxView: View {
     }()
 
     @Previewable @StateObject var userModel = UserModel.shared
+    @Previewable @StateObject var notificationHandler = NotificationHandler()
 
     TestTxView()
         .environmentObject(priceModel)
+        .environmentObject(notificationHandler)
         .environmentObject(userModel)
-
         .preferredColorScheme(.light)
 }
