@@ -180,7 +180,7 @@ class Network {
     func getTokenBalances(address: String) async throws -> [TokenBalanceData] {
         let params = OwnerInfoParams(
             mint: nil,
-            programId: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+            programId: TOKEN_PROGRAM_ID
         )
         let tokenAccounts = try await solana.getTokenAccountsByOwner(
             pubkey: address,
@@ -230,7 +230,6 @@ class Network {
 
     func getTxData(buyTokenId: String, sellTokenId: String, sellQuantity: Int) async throws -> TxData {
         let input = SwapInput(buyTokenId: buyTokenId, sellTokenId: sellTokenId, sellQuantity: sellQuantity)
-        print("getting tx data", input)
         let res: TxData = try await callProcedure("fetchSwap", input: input)
         return res
     }

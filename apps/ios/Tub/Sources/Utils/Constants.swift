@@ -104,6 +104,7 @@ public let PRICE_UPDATE_INTERVAL: Double = 0.5  // Update price every half secon
 
 public let WSOL_ADDRESS: String = "So11111111111111111111111111111111111111112"
 public let USDC_MINT: String = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+public let TOKEN_PROGRAM_ID: String = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
 
 enum TubError: LocalizedError {
     case somethingWentWrong(reason: String)

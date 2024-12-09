@@ -447,6 +447,4 @@ final class UserModel: ObservableObject {
         timer?.invalidate()
         timer = nil
     }
-    
-    
 }

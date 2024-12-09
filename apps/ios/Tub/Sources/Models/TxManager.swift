@@ -22,7 +22,7 @@ final class TxManager: ObservableObject {
     var sellQuantity: Int?
     var lastUpdated = Date()
     
-    let UPDATE_SECONDS = 5
+    let STALE_TXDATA_SECONDS = 5
     
     private var currentFetchTask: Task<Void, Error>?
     private var fetchStaleTxDataTimer: Timer?
@@ -46,13 +46,13 @@ final class TxManager: ObservableObject {
     }
 
     private func isTxDataStale() -> Bool {
-        return Date().timeIntervalSince1970 <= lastUpdated.timeIntervalSince1970 + Double(UPDATE_SECONDS)
+        return Date().timeIntervalSince1970 <= lastUpdated.timeIntervalSince1970 + Double(STALE_TXDATA_SECONDS)
     }
     
     private func startFetchStaleTxDataTimer() {
         DispatchQueue.main.async {
             self.fetchStaleTxDataTimer?.invalidate() // Invalidate any existing timer
-            self.fetchStaleTxDataTimer = Timer.scheduledTimer(withTimeInterval: TimeInterval(self.UPDATE_SECONDS), repeats: true) { [weak self] _ in
+            self.fetchStaleTxDataTimer = Timer.scheduledTimer(withTimeInterval: TimeInterval(self.STALE_TXDATA_SECONDS), repeats: true) { [weak self] _ in
                 guard let self else { return }
                 Task {
                     do {
@@ -97,7 +97,6 @@ final class TxManager: ObservableObject {
             )
 
             await MainActor.run {
-                print("successfully fetched tx data!")
                 self.txData = tx
                 self.tokenId = self.purchaseState == .buy ? tx.buyTokenId : tx.sellTokenId
                 self.sellQuantity = tx.sellQuantity
