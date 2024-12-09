@@ -3,7 +3,7 @@ import PrivySDK
 import SwiftUI
 
 struct RegisterView: View {
-    @Environment(\.dismiss) var dismiss  // Add this line
+    @Environment(\.dismiss) var dismiss
     @State private var username = ""
     @State private var email = ""
     @State private var showPhoneModal = false
@@ -43,7 +43,8 @@ struct RegisterView: View {
     }
 
     var body: some View {
-        ScrollView(showsIndicators: false) {
+        VStack(spacing: 0) {
+            // Cancel button
             HStack {
                 if isRedirected {
                     Button {
@@ -54,60 +55,61 @@ struct RegisterView: View {
                     }
                 }
                 else {
-                    Spacer().frame(height: 10)
+                    Spacer().frame(height: UIScreen.height(Layout.Spacing.xs))
                 }
-
                 Spacer()
             }
 
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: UIScreen.height(Layout.Spacing.xs)) {
+                // Logo
                 Image("Logo")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 100, height: 100)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .padding(.horizontal, 16)
+                    .frame(width: UIScreen.width(Layout.Size.quarter), height: UIScreen.width(Layout.Size.quarter))
+                    .clipShape(RoundedRectangle(cornerRadius: Layout.Fixed.cornerRadius))
+                    .padding(.horizontal, UIScreen.width(Layout.Spacing.sm))
 
+                // Welcome text
                 Text("Welcome to tub")
                     .font(.sfRounded(size: .xl2, weight: .semibold))
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, UIScreen.width(Layout.Spacing.sm))
 
-                VStack(alignment: .leading, spacing: 10) {
+                // Email input section
+                VStack(alignment: .leading, spacing: UIScreen.height(Layout.Spacing.xs)) {
                     TextField("Enter your email", text: $email)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 10)
-                        .frame(maxWidth: .infinity, minHeight: 50, alignment: .leading)
+                        .padding(.horizontal, UIScreen.width(Layout.Spacing.md))
+                        .padding(.vertical, UIScreen.height(Layout.Spacing.xs))
+                        .frame(maxWidth: .infinity, minHeight: Layout.Fixed.buttonHeight, alignment: .leading)
                         .background(Color(UIColor.systemBackground))
                         .foregroundStyle(.tubBuyPrimary)
-                        .cornerRadius(30)
+                        .cornerRadius(Layout.Fixed.cornerRadius)
                         .keyboardType(.emailAddress)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 30)
-                                .stroke(.tubBuyPrimary, lineWidth: 0.5)
+                            RoundedRectangle(cornerRadius: Layout.Fixed.cornerRadius)
+                                .stroke(.tubBuyPrimary, lineWidth: Layout.Fixed.borderWidth)
                         )
                         .onChange(of: email) { _, newValue in
                             isEmailValid = validateEmail(newValue)
                             showEmailError = !isEmailValid && !newValue.isEmpty
                         }
 
-                    // if email invalid
                     if showEmailError {
                         Text("Please enter a valid email address.")
                             .font(.caption)
                             .foregroundStyle(.red)
                             .padding(.top, -4)
-                            .padding(.horizontal, 20)
+                            .padding(.horizontal, UIScreen.width(Layout.Spacing.md))
                     }
                     else {
-                        // Invisible placeholder to maintain spacing
                         Text("")
                             .font(.caption)
                             .padding(.top, -4)
-                            .padding(.horizontal, 20)
+                            .padding(.horizontal, UIScreen.width(Layout.Spacing.md))
                     }
 
-                    Spacer().frame(height: 20)
+                    Spacer().frame(height: UIScreen.height(Layout.Spacing.tiny))
 
+                    // Continue button
                     PrimaryButton(
                         text: "Continue",
                         textColor: .white,
@@ -122,113 +124,129 @@ struct RegisterView: View {
                     )
                     .disabled(!isEmailValid || sendingEmailOtp)
                     .opacity(!isEmailValid || sendingEmailOtp ? 0.8 : 1.0)
-
                 }
-                .padding(.horizontal)
-                // or divider line
-                HStack(alignment: .center, spacing: 12) {
-                    Divider()
-                        .frame(width: 153, height: 1)
-                        .overlay(
-                            Rectangle()
-                                .stroke(.tubSellPrimary.opacity(0.5), lineWidth: 0.5)
+                .padding(.horizontal, UIScreen.width(Layout.Spacing.sm))
+
+                // Divider
+                VStack(alignment: .center) {
+                    HStack(alignment: .center, spacing: UIScreen.width(Layout.Spacing.sm)) {
+                        Divider()
+                            .frame(width: UIScreen.width(Layout.Size.third), height: 1)
+                            .overlay(
+                                Rectangle()
+                                    .stroke(.tubSellPrimary.opacity(0.5), lineWidth: Layout.Fixed.borderWidth)
+                            )
+
+                        Text("or")
+                            .font(.sfRounded(size: .base, weight: .semibold))
+                            .foregroundStyle(.tubSellPrimary)
+
+                        Divider()
+                            .frame(width: UIScreen.width(Layout.Size.third), height: 1)
+                            .overlay(
+                                Rectangle()
+                                    .stroke(.tubSellPrimary.opacity(0.5), lineWidth: Layout.Fixed.borderWidth)
+                            )
+                    }
+                }
+                .frame(maxWidth: .infinity)
+
+                // Social login buttons
+                VStack(spacing: UIScreen.height(Layout.Spacing.tiny)) {
+                    // Apple Login
+                    SignInWithApple()
+                        .frame(
+                            maxWidth: .infinity,
+                            minHeight: Layout.Fixed.buttonHeight,
+                            maxHeight: Layout.Fixed.buttonHeight
                         )
-
-                    Text("or")
-                        .font(.sfRounded(size: .base, weight: .semibold))
-                        .foregroundStyle(.tubSellPrimary)
-
-                    Divider()
-                        .frame(width: 153, height: 1)
+                        .cornerRadius(Layout.Fixed.cornerRadius)
+                        .padding(.horizontal, UIScreen.width(Layout.Spacing.sm))
                         .overlay(
-                            Rectangle()
-                                .stroke(.tubSellPrimary.opacity(0.5), lineWidth: 0.5)
+                            RoundedRectangle(cornerRadius: Layout.Fixed.cornerRadius)
+                                .inset(by: Layout.Fixed.borderWidth)
+                                .stroke(.white, lineWidth: 1)
+                                .padding(.horizontal, UIScreen.width(Layout.Spacing.sm))
                         )
-                }.frame(maxWidth: .infinity)
+                        .onTapGesture {
+                            Task {
+                                do {
+                                    let _ = try await privy.oAuth.login(with: OAuthProvider.apple)
+                                }
+                                catch {
+                                    notificationHandler.show(error.localizedDescription, type: .error)
+                                }
+                            }
+                        }
 
-                // Apple Login
-                SignInWithApple()
-                    .frame(maxWidth: .infinity, minHeight: 50, maxHeight: 50, alignment: .center)
-                    .cornerRadius(30)
-                    .padding(.horizontal, 10)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 30)
-                            .inset(by: 0.5)
-                            .stroke(.white, lineWidth: 1)
-                            .padding(.horizontal, 10)
+                    // Google Login
+                    OutlineButtonWithIcon(
+                        text: "Sign in with Google",
+                        textColor: .white,
+                        strokeColor: .white,
+                        backgroundColor: .black,
+                        leadingView: AnyView(GoogleLogoView()),
+                        action: {
+                            Task {
+                                do {
+                                    let _ = try await privy.oAuth.login(with: OAuthProvider.google)
+                                }
+                                catch {
+                                    notificationHandler.show(error.localizedDescription, type: .error)
+                                }
+                            }
+                        }
                     )
-                    .onTapGesture {
-                        // Ideally this is called in a view model, but showcasinlug logic here for brevity
-                        Task {
-                            do {
-                                let _ = try await privy.oAuth.login(with: OAuthProvider.apple)
-                            }
-                            catch {
-                                notificationHandler.show(
-                                    error.localizedDescription,
-                                    type: .error
-                                )
-                            }
-                        }
-                    }
+                    .padding(.horizontal, UIScreen.width(Layout.Spacing.sm))
 
-                // Google Login
-                OutlineButtonWithIcon(
-                    text: "Sign in with Google",
-                    textColor: .white,
-                    strokeColor: .white,
-                    backgroundColor: .black,
-                    leadingView: AnyView(GoogleLogoView()),
-                    action: {
-                        Task {
-                            do {
-                                let _ = try await privy.oAuth.login(with: OAuthProvider.google)
-                            }
-                            catch {
-                                notificationHandler.show(error.localizedDescription, type: .error)
-                            }
-                        }
-                    }
-                )
-                .padding(.horizontal, 10)
+                    // Phone button
+                    IconTextButton(
+                        icon: "phone.fill",
+                        text: "Continue with Phone",
+                        textColor: .tubBuyPrimary,
+                        action: { showPhoneModal = true }
+                    )
+                    .frame(
+                        maxWidth: .infinity,
+                        minHeight: Layout.Fixed.smallButtonHeight,
+                        maxHeight: Layout.Fixed.smallButtonHeight
+                    )
+                    .padding(.top, UIScreen.height(Layout.Spacing.sm))
 
-                // Phone button
-                IconTextButton(
-                    icon: "phone.fill",
-                    text: "Continue with Phone",
-                    textColor: .tubBuyPrimary,
-                    action: { showPhoneModal = true }
-                )
-                .frame(maxWidth: .infinity)
-                .padding(.top, 10.0)
-
-                IconTextButton(
-                    icon: "ladybug.fill",
-                    text: "Dev Login",
-                    textColor: .tubSellPrimary,
-                    action: {
-                        Task {
-                            do {
-                                let _ = await privy.email.sendCode(to: "test-0932@privy.io")
-                                let _ = try await privy.email.loginWithCode("145288", sentTo: "test-0932@privy.io")
+                    // Dev Login (if needed)
+                    #if DEBUG
+                        IconTextButton(
+                            icon: "ladybug.fill",
+                            text: "Dev Login",
+                            textColor: .tubSellPrimary,
+                            action: {
+                                Task {
+                                    do {
+                                        let _ = await privy.email.sendCode(to: "test-0932@privy.io")
+                                        let _ = try await privy.email.loginWithCode(
+                                            "145288",
+                                            sentTo: "test-0932@privy.io"
+                                        )
+                                    }
+                                    catch {
+                                        notificationHandler.show(error.localizedDescription, type: .error)
+                                    }
+                                }
                             }
-                            catch {
-                                notificationHandler.show(error.localizedDescription, type: .error)
-                            }
-                        }
-                    }
-                )
-                .frame(maxWidth: .infinity)
-
-            }.sheet(isPresented: $showPhoneModal) {
-                SignInWithPhoneView()
-                    .presentationDetents([.height(300)])
+                        )
+                        .frame(maxWidth: .infinity)
+                    #endif
+                }
             }
-            .sheet(isPresented: $showEmailModal) {
-                SignInWithEmailView(email: $email)
-                    .presentationDetents([.height(300)])
-            }
-            .padding(.top, 70)
+            .padding(.top, UIScreen.height(Layout.Spacing.lg))
+        }
+        .sheet(isPresented: $showPhoneModal) {
+            SignInWithPhoneView()
+                .presentationDetents([.height(300)])
+        }
+        .sheet(isPresented: $showEmailModal) {
+            SignInWithEmailView(email: $email)
+                .presentationDetents([.height(300)])
         }
         .ignoresSafeArea(.keyboard)
         .scrollBounceBehavior(.basedOnSize, axes: [.vertical])
