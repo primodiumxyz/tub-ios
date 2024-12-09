@@ -15,7 +15,6 @@ class WithdrawModel: ObservableObject {
     @Published var buyAmountUsd: Double = 0
     @Published var recipient: String = ""
     @Published var continueDisabled: Bool = true
-    @Published var currentPage = 0
 
     func initialize(walletAddress: String) {
         self.walletAddress = walletAddress
@@ -62,133 +61,18 @@ struct WithdrawView: View {
     @EnvironmentObject var userModel: UserModel
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject var notificationHandler: NotificationHandler
-
     @StateObject private var vm = WithdrawModel()
-
-    static let formHeight: CGFloat = 400
+    @Environment(\.dismiss) private var dismiss
 
     func handleContinue() {
-        let complete = vm.currentPage == pages.count - 1
-        if complete {
-            Task {
-                do {
-                    let _ = try await vm.onComplete()
-                    notificationHandler.show("Transfer successful!", type: .success)
-                }
-                catch {
-                    notificationHandler.show(error.localizedDescription, type: .error)
-                }
+        Task {
+            do {
+                let _ = try await vm.onComplete()
+                notificationHandler.show("Transfer successful!", type: .success)
             }
-        }
-        else {
-            withAnimation {
-                vm.currentPage += 1
+            catch {
+                notificationHandler.show(error.localizedDescription, type: .error)
             }
-        }
-    }
-
-    var pages: [AnyView] {
-        [
-            AnyView(
-                AmountSelectView(
-                    vm: vm
-                )
-            ),
-            AnyView(
-                RecipientSelectView(
-                    vm: vm
-                )
-            ),
-        ]
-    }
-
-    private var nextButton: some View {
-        HStack {
-            if vm.currentPage > 0 {
-                PrimaryButton(text: "Back", action: { vm.currentPage -= 1 }).frame(width: 80)
-            }
-            OutlineButton(
-                text: vm.currentPage == pages.count - 1 ? "Confirm" : "Continue",
-                textColor: .tubBuyPrimary,
-                strokeColor: .tubBuyPrimary,
-                backgroundColor: .clear,
-                maxWidth: .infinity,
-                disabled: vm.continueDisabled,
-                action: handleContinue
-
-            )
-            .disabled((userModel.balanceUsdc ?? 0) < priceModel.usdToUsdc(usd: vm.buyAmountUsd))
-        }
-
-    }
-
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 30).fill(Color(UIColor.systemBackground))
-                .zIndex(0).frame(maxWidth: .infinity, maxHeight: Self.formHeight)
-            VStack {
-                VStack {
-                    pages[vm.currentPage].frame(height: 150)
-                        .transition(
-                            .asymmetric(
-                                insertion: .move(edge: .trailing),
-                                removal: .move(edge: .leading)
-                            )
-                        )
-
-                    nextButton
-                }
-                .padding(.horizontal, 20)
-            }
-            .frame(maxHeight: Self.formHeight)
-            .zIndex(1)
-            .background(Gradients.cardBgGradient)
-            .cornerRadius(30)
-        }
-        .frame(maxHeight: Self.formHeight, alignment: .leading)
-        .presentationDetents([.height(Self.formHeight)])
-        .presentationBackground(.clear)
-        .onAppear {
-            guard let walletAddress = userModel.walletAddress else { return }
-            vm.initialize(walletAddress: walletAddress)
-        }
-        .onChange(of: userModel.walletAddress) {
-            guard let walletAddress = userModel.walletAddress else { return }
-            vm.initialize(walletAddress: walletAddress)
-        }
-    }
-
-}
-
-struct AmountSelectView: View {
-    @EnvironmentObject var priceModel: SolPriceModel
-    @EnvironmentObject var notificationHandler: NotificationHandler
-    @EnvironmentObject private var userModel: UserModel
-
-    @ObservedObject var vm: WithdrawModel
-
-    func updateBuyAmount(_ amountUsdc: Int) {
-        if amountUsdc == 0 {
-            vm.continueDisabled = true
-            return
-        }
-
-        // Add a tiny buffer for floating point precision
-        vm.buyAmountUsd = priceModel.usdcToUsd(usdc: amountUsdc)
-
-        // Format to 2 decimal places, rounding down
-        vm.buyAmountUsdString = String(format: "%.2f", floor(vm.buyAmountUsd * 100) / 100)
-        vm.continueDisabled = false
-    }
-
-    var body: some View {
-        VStack(alignment: .center, spacing: 20) {
-            numberInput
-            amountButtons
-        }
-        .onAppear {
-            let buyAmountUsdc = priceModel.usdToUsdc(usd: vm.buyAmountUsd)
-            updateBuyAmount(buyAmountUsdc)
         }
     }
 
@@ -199,7 +83,7 @@ struct AmountSelectView: View {
                 Text("$")
                     .font(.sfRounded(size: .xl4, weight: .bold))
                     .foregroundStyle(.tubText)
-
+                
                 TextField(
                     "",
                     text: $vm.buyAmountUsdString,
@@ -210,8 +94,9 @@ struct AmountSelectView: View {
                 .multilineTextAlignment(.leading)
                 .textFieldStyle(PlainTextFieldStyle())
                 .onReceive(NotificationCenter.default.publisher(for: UITextField.textDidChangeNotification)) { obj in
-                    guard let textField = obj.object as? UITextField else { return }
-
+                    guard let textField = obj.object as? UITextField,
+                          textField.keyboardType == .decimalPad else { return }
+                    
                     if let text = textField.text {
                         // Validate decimal places
                         let components = text.components(separatedBy: ".")
@@ -221,27 +106,34 @@ struct AmountSelectView: View {
                                 textField.text = String(text.dropLast())
                             }
                         }
-
+                        
                         // Validate if it's a decimal
                         if !text.isEmpty && !text.isDecimal() {
                             textField.text = String(text.dropLast())
                         }
-
+                        
                         let amount = text.doubleValue
                         if amount > 0 {
-                            vm.buyAmountUsd = amount
-                            // Only format if the value has changed
-                            vm.buyAmountUsdString = text
+                            // Convert to USDC and back to ensure proper rounding
+                            let amountUsdc = priceModel.usdToUsdc(usd: amount)
+                            vm.buyAmountUsd = priceModel.usdcToUsd(usdc: amountUsdc)
+                            // Format to 2 decimal places
+                            vm.buyAmountUsdString = String(format: "%.2f", vm.buyAmountUsd)
+                        } else {
+                            vm.buyAmountUsd = 0
                         }
-                        vm.continueDisabled = false
                     }
                     else {
                         vm.buyAmountUsd = 0
-                        vm.continueDisabled = true
                     }
                 }
                 .font(.sfRounded(size: .xl5, weight: .semibold))
-                .foregroundStyle(vm.continueDisabled ? .tubError : .tubText)
+                .foregroundStyle(
+                    vm.buyAmountUsd == 0 ||
+                    (userModel.balanceUsdc ?? 0) < priceModel.usdToUsdc(usd: vm.buyAmountUsd)
+                    ? .tubError
+                    : .tubText
+                )
                 .frame(minWidth: 50)
                 .fixedSize()
                 Spacer()
@@ -251,25 +143,54 @@ struct AmountSelectView: View {
         }
     }
 
-    let amounts: [Int] = [10, 25, 50, 100]
-    private var amountButtons: some View {
-        HStack(spacing: 10) {
-            ForEach(amounts, id: \.self) { amount in
-                let balance = userModel.balanceUsdc ?? 0
-                let selectedAmountUsd = priceModel.usdcToUsd(usdc: balance * Int(amount) / 100)
-                let selected = balance > 0 && selectedAmountUsd == vm.buyAmountUsd
-                CapsuleButton(
-                    text: amount == 100 ? "MAX" : "\(amount)%",
+    var body: some View {
+        NavigationStack {
+            VStack(alignment: .center) {
+                Spacer().frame(height: 50)
+                numberInput
+                
+                Text("Your Balance \(priceModel.formatPrice(usdc: userModel.balanceUsdc ?? 0))")
+                    .font(.sfRounded(size: .lg, weight: .medium))
+                    .foregroundStyle(.tubPurple)
+                
+                Spacer().frame(height: 80)
+                RecipientSelectView(vm: vm)
+                Spacer()
+                
+                PrimaryButton(
+                    text: "Confirm",
                     textColor: .white,
-                    backgroundColor: selected ? .tubAltPrimary : .tubAltSecondary,
-                    action: {
-                        guard let balance = userModel.balanceUsdc else { return }
-                        updateBuyAmount(balance * amount / 100)
-                    }
+                    backgroundColor: .tubPurple,
+                    disabled: !vm.validateAddress(vm.recipient) ||
+                             vm.buyAmountUsd == 0 ||
+                             (userModel.balanceUsdc ?? 0) < priceModel.usdToUsdc(usd: vm.buyAmountUsd),
+                    action: handleContinue
                 )
+            }
+            .padding(24)
+            .navigationTitle("Transfer")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark")
+                            .foregroundStyle(.tubText)
+                            .padding(6)
+                    }
+                }
+            }
+            .background(Color(UIColor.systemBackground))
+            .onAppear {
+                guard let walletAddress = userModel.walletAddress else { return }
+                vm.initialize(walletAddress: walletAddress)
+            }
+            .onChange(of: userModel.walletAddress) {
+                guard let walletAddress = userModel.walletAddress else { return }
+                vm.initialize(walletAddress: walletAddress)
             }
         }
     }
+
 }
 
 struct RecipientSelectView: View {
@@ -278,48 +199,48 @@ struct RecipientSelectView: View {
     @ObservedObject var vm: WithdrawModel
 
     var body: some View {
-        VStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("To")
+                .font(.sfRounded(size: .lg, weight: .medium))
+                .foregroundStyle(.tubPurple)
+            
+            VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 8) {
-                    Text("Sending")
-                        .font(.sfRounded(size: .lg, weight: .medium))
-                        .foregroundStyle(.tubText.opacity(0.7))
-
-                    Text("$\(String(format: "%.2f", vm.buyAmountUsd))")
-                        .font(.sfRounded(size: .lg, weight: .bold))
+                    Image(systemName: "wallet.bifold.fill")
                         .foregroundStyle(.tubText)
-
-                    Text("to")
+                    
+                    Text("Solana Wallet")
                         .font(.sfRounded(size: .lg, weight: .medium))
-                        .foregroundStyle(.tubText.opacity(0.7))
-
+                        .foregroundStyle(.tubText)
                 }
-                TextField(
-                    "",
-                    text: $vm.recipient,
-                    prompt: Text("Enter Solana address")
-                        .foregroundStyle(.tubText.opacity(0.3))
-                )
-
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .autocapitalization(.none)
-                .autocorrectionDisabled()
-                .font(.sfRounded(size: .lg, weight: .regular))
-                .cornerRadius(10)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(.tubPurple.opacity(0.5), lineWidth: 1)
-                )
-
-                Text(showError ? "Solana Address is invalid" : " ").font(.sfRounded(size: .sm, weight: .regular))
-                    .foregroundStyle(.red)
+                
+                HStack {
+                    TextField(
+                        "",
+                        text: $vm.recipient,
+                        prompt: Text("Enter Solana address")
+                            .foregroundStyle(.tubText.opacity(0.3))
+                    )
+                    .autocapitalization(.none)
+                    .autocorrectionDisabled()
+                    .font(.sfRounded(size: .lg, weight: .regular))
+                    
+                    Image(systemName: "pencil")
+                        .foregroundStyle(.tubText.opacity(0.5))
+                }
+                .padding(.vertical, 8)
+                
+                if showError {
+                    Text("Solana Address is invalid")
+                        .font(.sfRounded(size: .sm, weight: .regular))
+                        .foregroundStyle(.red)
+                }
             }
         }
         .onAppear {
             let isValid = vm.validateAddress(vm.recipient)
             vm.continueDisabled = !isValid
             showError = !vm.recipient.isEmpty && !isValid
-
         }
         .onChange(of: vm.recipient) {
             let isValid = vm.validateAddress(vm.recipient)
@@ -344,5 +265,5 @@ struct RecipientSelectView: View {
             .environmentObject(userModel)
             .environmentObject(priceModel)
             .preferredColorScheme(.light)
-    }.background(.red)
+    }
 }
