@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - release/*
+      - 0xpolarzero/pri-1416-ci-apply-metadata-migrations-on-merge
 
 jobs:
   apply-migrations-and-metadata:
@@ -24,9 +25,15 @@ jobs:
       - name: Dry run checks
         id: dry-run
         run: |
-          echo "Running migration dry run..."
+          echo "Running migration dry run for default database..."
           cd packages/gql
-          if ! pnpm hasura migrate apply --endpoint "$HASURA_ENDPOINT" --admin-secret "$HASURA_ADMIN_SECRET" --disable-interactive --all-databases --dry-run; then
+          if ! pnpm hasura migrate apply --endpoint "$HASURA_ENDPOINT" --admin-secret "$HASURA_ADMIN_SECRET" --disable-interactive --database-name default --dry-run; then
+            echo "Migration dry run failed"
+            exit 1
+          fi
+
+          echo "Running migration dry run for timescaledb database..."
+          if ! pnpm hasura migrate apply --endpoint "$HASURA_ENDPOINT" --admin-secret "$HASURA_ADMIN_SECRET" --disable-interactive --database-name timescaledb --dry-run; then
             echo "Migration dry run failed"
             exit 1
           fi
