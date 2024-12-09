@@ -180,11 +180,6 @@ class Network {
             return nil
         }
     }
-    
-    func requestCodexToken(_ expiration: Int = 3600 * 1000) async throws -> CodexTokenData {
-        // Temp mock; this gets removed in next PR
-        return CodexTokenData(token: "ac2ba5cdb00c002dd9751a68b713caa89ac0f522", expiry: "")
-    }
 
     func getSolPrice() async throws -> Double {
         let url = baseURL.appendingPathComponent("getSolUsdPrice")
