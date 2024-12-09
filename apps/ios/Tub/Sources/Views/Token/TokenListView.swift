@@ -63,6 +63,13 @@ struct TokenListView: View {
         return true
     }
 
+	private func postAutoScrollResets() {
+		activeOffset = 0
+		dragGestureOffset = 0
+		dragging = false
+		animateCurrentTokenModel = true
+	}
+	
     private func loadToken(_ geometry: GeometryProxy, _ direction: SwipeDirection) {
         animateCurrentTokenModel = false
 
@@ -83,12 +90,11 @@ struct TokenListView: View {
 					//	"main/center" TokenView being centered again. With the offset now reset,
 					//	we setup the new previous token now that its View is safely offscreen.
 					DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-						activeOffset = 0
-						dragGestureOffset = 0
-						dragging = false
-						animateCurrentTokenModel = true
+						postAutoScrollResets()
 						tokenListModel.loadPreviousTokenIntoCurrentTokenPhaseTwo()
 					}
+				} else {
+					postAutoScrollResets()
 				}
             }
         }
@@ -110,10 +116,7 @@ struct TokenListView: View {
                 //	"main/center" TokenView being centered again. With the offset now reset,
                 //	we setup the new next token now that its View is safely offscreen.
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-                    activeOffset = 0
-                    dragGestureOffset = 0
-                    dragging = false
-                    animateCurrentTokenModel = true
+					postAutoScrollResets()
                     tokenListModel.loadNextTokenIntoCurrentTokenPhaseTwo()
                 }
             }
