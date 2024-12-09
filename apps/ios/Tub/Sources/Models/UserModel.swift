@@ -144,7 +144,7 @@ final class UserModel: ObservableObject {
                 switch result {
                 case .success(let response):
                     DispatchQueue.main.async {
-                        self.initialBalanceUsdc = response.data?.balance.first?.value ?? 0
+                        self.initialBalanceUsdc = Int(response.data?.balance.first?.value ?? 0)
                     }
                     continuation.resume()
                 case .failure(let error):
@@ -167,7 +167,7 @@ final class UserModel: ObservableObject {
             guard let self = self else { return }
             switch result {
             case .success(let graphQLResult):
-                let balance = graphQLResult.data?.balance.first?.value ?? 0
+                let balance = Int(graphQLResult.data?.balance.first?.value ?? 0)
                 DispatchQueue.main.async {
                     self.balanceUsdc = balance
                     if let initialBalanceUsdc = self.initialBalanceUsdc {
@@ -277,7 +277,7 @@ final class UserModel: ObservableObject {
             DispatchQueue.main.async {
                 switch result {
                 case .success(let graphQLResult):
-                    let balanceToken = graphQLResult.data?.balance.first?.value ?? 0
+                    let balanceToken = Int(graphQLResult.data?.balance.first?.value ?? 0)
                     self.balanceToken = balanceToken
                 case .failure(let error):
                     print("Error updating token balance: \(error.localizedDescription)")
@@ -310,7 +310,7 @@ final class UserModel: ObservableObject {
                 self.purchaseData = PurchaseData(
                     timestamp: Date(),
                     amountUsdc: buyQuantityUsdc,
-                    priceUsdc: Int(tokenPriceUsdc)
+                    priceUsdc: tokenPriceUsdc
                 )
             }
         }

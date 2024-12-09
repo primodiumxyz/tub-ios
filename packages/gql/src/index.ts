@@ -11,9 +11,9 @@ import { TadaDocumentNode } from "gql.tada";
 import { createClient as createWSClient } from "graphql-ws";
 import { WebSocket } from "ws";
 
-import * as mutations from "./lib/mutations";
-import * as queries from "./lib/queries";
-import * as subscriptions from "./lib/subscriptions";
+import * as mutations from "./graphql/mutations";
+import * as queries from "./graphql/queries";
+import * as subscriptions from "./graphql/subscriptions";
 
 // Helper type to extract variables from a query or mutation
 type ExtractVariables<T> = T extends TadaDocumentNode<any, infer V, any> ? V : never;
@@ -38,8 +38,10 @@ function createMutationWrapper<T extends TadaDocumentNode<any, any, any>>(client
 }
 
 function createSubscriptionWrapper<T extends TadaDocumentNode<any, any, any>>(client: Client, operation: T) {
-  return (args: ExtractVariables<T>, options: Partial<OperationContext>): OperationResultSource<OperationResult<ExtractData<T>>> =>
-    client.subscription(operation, args ?? {}, options);
+  return (
+    args: ExtractVariables<T>,
+    options: Partial<OperationContext>,
+  ): OperationResultSource<OperationResult<ExtractData<T>>> => client.subscription(operation, args ?? {}, options);
 }
 
 //------------------------------------------------
@@ -97,10 +99,10 @@ const createClient = <T extends "web" | "node" = "node">({
 }): CreateClientReturn<T> => {
   const fetchOptions = hasuraAdminSecret
     ? {
-      headers: {
-        "x-hasura-admin-secret": hasuraAdminSecret,
-      },
-    }
+        headers: {
+          "x-hasura-admin-secret": hasuraAdminSecret,
+        },
+      }
     : undefined;
 
   const createClientInternal = (webSocketImpl?: typeof WebSocket): GqlClient => {

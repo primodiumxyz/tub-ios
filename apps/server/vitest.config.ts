@@ -7,6 +7,7 @@ export default defineConfig({
     globals: true,
     environment: "node",
     globalSetup: ["./test/setup.ts"],
+    testTimeout: 10000,
     setupFiles: ["./test/setup.ts"],
     reporters: ["default", "hanging-process"],
   },

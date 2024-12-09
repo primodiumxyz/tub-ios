@@ -12,15 +12,18 @@
   ],
   "scripts": {
     "prepare": "[ \"$NODE_ENV\" = production ] && exit 0; pnpm hasura update-cli --version v2.44.0-beta.1",
-    "dev": "./bin/start-hasura.sh",
-    "dev:ci": "./bin/start-hasura-ci.sh",
+    "dev": "./bin/start-db.sh",
+    "dev:ci": "./bin/start-db-ci.sh",
     "teardown": "docker compose down --remove-orphans --volumes",
-    "extract-mutations": "tsx ./bin/extractGql.ts ./src/lib/mutations.ts",
-    "extract-queries": "tsx ./bin/extractGql.ts ./src/lib/queries.ts",
-    "extract-subscriptions": "tsx ./bin/extractGql.ts ./src/lib/subscriptions.ts",
+    "extract-mutations": "tsx ./bin/extractGql.ts ./src/graphql/analytics/mutations.ts",
+    "extract-queries": "tsx ./bin/extractGql.ts ./src/graphql/analytics/queries.ts",
+    "extract-subscriptions": "tsx ./bin/extractGql.ts ./src/graphql/analytics/subscriptions.ts",
+    "generate:types": "pnpm gql-tada generate-output",
     "db:local:console": "dotenvx run -f ./../../.env --quiet -- sh -c 'hasura console'",
     "db:local:seed-apply": "dotenvx run -f ./../../.env --quiet -- sh -c 'hasura seed apply --disable-interactive --database-name default'",
     "db:remote:upgrade-v3": "dotenvx run -f ./../../.env --quiet -- sh -c 'hasura scripts update-project-v3 --endpoint \"$HASURA_URL\" --admin-secret \"$HASURA_ADMIN_SECRET\"'",
+    "db:remote:metadata-ic": "dotenvx run -f ./../../.env --quiet -- sh -c 'hasura metadata ic list --endpoint \"$HASURA_URL\" --admin-secret \"$HASURA_ADMIN_SECRET\"'",
+    "db:remote:metadata-reload": "dotenvx run -f ./../../.env --quiet -- sh -c 'hasura metadata reload --endpoint \"$HASURA_URL\" --admin-secret \"$HASURA_ADMIN_SECRET\"'",
     "db:remote:migrate-init": "dotenvx run -f ./../../.env --quiet -- sh -c 'hasura migrate create init --from-server --endpoint \"$HASURA_URL\" --admin-secret \"$HASURA_ADMIN_SECRET\"'",
     "db:remote:migrate-status": "dotenvx run -f ./../../.env --quiet -- sh -c 'hasura migrate status --endpoint \"$HASURA_URL\" --admin-secret \"$HASURA_ADMIN_SECRET\"'",
     "db:remote:migrate-reset": "dotenvx run -f ./../../.env --quiet -- sh -c 'hasura migrate delete --all --endpoint \"$HASURA_URL\" --admin-secret \"$HASURA_ADMIN_SECRET\"'",
@@ -50,6 +53,7 @@
     "hasura-cli": "2.36.1",
     "prettier": "^3.3.3",
     "vite-tsconfig-paths": "^4.2.0",
-    "vitest": "0.31.4"
+    "vitest": "0.31.4",
+    "yaml": "^2.6.1"
   }
 }
