@@ -177,6 +177,7 @@ final class TokenListModel: ObservableObject {
                                             description: elem.token_metadata_description,
                                             imageUri: elem.token_metadata_image_uri,
                                             externalUrl: elem.token_metadata_external_url,
+                                            decimals: Int(elem.token_metadata_decimals ?? 0),
                                             supply: Int(elem.token_metadata_supply ?? 0),
                                             latestPriceUsd: elem.latest_price_usd,
                                             stats: IntervalStats(volumeUsd: elem.total_volume_usd, trades: Int(elem.total_trades), priceChangePct: elem.price_change_pct),
