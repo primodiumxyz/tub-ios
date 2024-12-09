@@ -166,6 +166,10 @@
           type:
             nullable: true
             scalar: text
+        - name: decimals
+          type:
+            nullable: true
+            scalar: numeric
         - name: supply
           type:
             nullable: true
@@ -184,6 +188,7 @@
               - description
               - image_uri
               - external_url
+              - decimals
               - supply
               - is_pump_token
             filter: {}
@@ -245,6 +250,10 @@
           type:
             nullable: true
             scalar: text
+        - name: token_metadata_decimals
+          type:
+            nullable: true
+            scalar: numeric
         - name: token_metadata_supply
           type:
             nullable: true
@@ -271,6 +280,7 @@
               - token_metadata_description
               - token_metadata_image_uri
               - token_metadata_external_url
+              - token_metadata_decimals
               - token_metadata_supply
               - token_metadata_is_pump_token
             filter: {}
@@ -319,7 +329,7 @@
           role: public
   native_queries:
     - arguments: {}
-      code: "WITH latest_metadata AS (\n    SELECT DISTINCT ON (token_mint)\n        token_mint as mint,\n        (token_metadata).name as name,\n        (token_metadata).symbol as symbol,\n        (token_metadata).description as description,\n        (token_metadata).image_uri as image_uri,\n        (token_metadata).external_url as external_url,\n        (token_metadata).supply as supply,\n        (token_metadata).is_pump_token as is_pump_token\n    FROM api.trade_history\n    WHERE token_metadata::text != 'null'\n    ORDER BY token_mint, created_at DESC\n)\nSELECT \n    mint,\n    name,\n    symbol,\n    description,\n    image_uri,\n    external_url,\n    supply,\n    is_pump_token\nFROM latest_metadata;"
+      code: "WITH latest_metadata AS (\n    SELECT DISTINCT ON (token_mint)\n        token_mint as mint,\n        (token_metadata).name as name,\n        (token_metadata).symbol as symbol,\n        (token_metadata).description as description,\n        (token_metadata).image_uri as image_uri,\n        (token_metadata).external_url as external_url,\n        (token_metadata).decimals as decimals,\n        (token_metadata).supply as supply,\n        (token_metadata).is_pump_token as is_pump_token\n    FROM api.trade_history\n    WHERE token_metadata::text != 'null'\n    ORDER BY token_mint, created_at DESC\n)\nSELECT \n    mint,\n    name,\n    symbol,\n    description,\n    image_uri,\n    external_url,\n    decimals,\n    supply,\n    is_pump_token\nFROM latest_metadata;"
       returns: token_metadata_model
       root_field_name: token_metadata_formatted
     - arguments:
@@ -331,7 +341,7 @@
           description: Additional interval to get recent stats on a different timeframe
           nullable: false
           type: interval
-      code: "WITH params AS (\n  SELECT \n    date_trunc('minute', NOW() - {{interval}}::interval) as start_time,\n    date_trunc('minute', NOW()) as end_time,\n    date_trunc('minute', NOW() - {{recent_interval}}::interval) as recent_start_time\n),\ntoken_stats AS (\n  SELECT \n    token_mint,\n    SUM(total_volume_usd) as total_volume_usd,\n    ((LAST(avg_price_usd, bucket) - FIRST(avg_price_usd, bucket)) / \n      NULLIF(FIRST(avg_price_usd, bucket), 0) * 100) as price_change_pct,\n    AVG(avg_price_usd) as avg_price_usd,\n    LAST(latest_price_usd, bucket) as latest_price_usd,\n    SUM(trade_count) as total_trades,\n    SUM(CASE WHEN bucket >= recent_start_time THEN total_volume_usd ELSE 0 END) as recent_volume_usd,\n    SUM(CASE WHEN bucket >= recent_start_time THEN trade_count ELSE 0 END) as recent_trades,\n    COALESCE(\n        ((LAST(avg_price_usd, bucket) FILTER (WHERE bucket >= recent_start_time) - \n        FIRST(avg_price_usd, bucket) FILTER (WHERE bucket >= recent_start_time)) / \n        NULLIF(FIRST(avg_price_usd, bucket) FILTER (WHERE bucket >= recent_start_time), 0) * 100),\n        0\n    ) as recent_price_change_pct,\n    LAST(token_metadata, bucket) as latest_metadata\n  FROM api.trade_history_1min, params\n  WHERE bucket >= start_time\n    AND bucket <= end_time\n  GROUP BY token_mint\n  HAVING SUM(total_volume_usd) > 0\n)\nSELECT \n  token_mint,\n  total_volume_usd,\n  price_change_pct,\n  avg_price_usd,\n  latest_price_usd,\n  total_trades,\n  recent_volume_usd,\n  recent_trades,\n  recent_price_change_pct,\n  (latest_metadata).name AS token_metadata_name,\n  (latest_metadata).symbol AS token_metadata_symbol,\n  (latest_metadata).description AS token_metadata_description,\n  (latest_metadata).image_uri AS token_metadata_image_uri,\n  (latest_metadata).external_url AS token_metadata_external_url,\n  (latest_metadata).supply AS token_metadata_supply,\n  (latest_metadata).is_pump_token AS token_metadata_is_pump_token\nFROM token_stats;"
+      code: "WITH params AS (\n  SELECT \n    date_trunc('minute', NOW() - {{interval}}::interval) as start_time,\n    date_trunc('minute', NOW()) as end_time,\n    date_trunc('minute', NOW() - {{recent_interval}}::interval) as recent_start_time\n),\ntoken_stats AS (\n  SELECT \n    token_mint,\n    SUM(total_volume_usd) as total_volume_usd,\n    ((LAST(avg_price_usd, bucket) - FIRST(avg_price_usd, bucket)) / \n      NULLIF(FIRST(avg_price_usd, bucket), 0) * 100) as price_change_pct,\n    AVG(avg_price_usd) as avg_price_usd,\n    LAST(latest_price_usd, bucket) as latest_price_usd,\n    SUM(trade_count) as total_trades,\n    SUM(CASE WHEN bucket >= recent_start_time THEN total_volume_usd ELSE 0 END) as recent_volume_usd,\n    SUM(CASE WHEN bucket >= recent_start_time THEN trade_count ELSE 0 END) as recent_trades,\n    COALESCE(\n        ((LAST(avg_price_usd, bucket) FILTER (WHERE bucket >= recent_start_time) - \n        FIRST(avg_price_usd, bucket) FILTER (WHERE bucket >= recent_start_time)) / \n        NULLIF(FIRST(avg_price_usd, bucket) FILTER (WHERE bucket >= recent_start_time), 0) * 100),\n        0\n    ) as recent_price_change_pct,\n    LAST(token_metadata, bucket) as latest_metadata\n  FROM api.trade_history_1min, params\n  WHERE bucket >= start_time\n    AND bucket <= end_time\n  GROUP BY token_mint\n  HAVING SUM(total_volume_usd) > 0\n)\nSELECT \n  token_mint,\n  total_volume_usd,\n  price_change_pct,\n  avg_price_usd,\n  latest_price_usd,\n  total_trades,\n  recent_volume_usd,\n  recent_trades,\n  recent_price_change_pct,\n  (latest_metadata).name AS token_metadata_name,\n  (latest_metadata).symbol AS token_metadata_symbol,\n  (latest_metadata).description AS token_metadata_description,\n  (latest_metadata).image_uri AS token_metadata_image_uri,\n  (latest_metadata).external_url AS token_metadata_external_url,\n  (latest_metadata).decimals AS token_metadata_decimals,\n  (latest_metadata).supply AS token_metadata_supply,\n  (latest_metadata).is_pump_token AS token_metadata_is_pump_token\nFROM token_stats;"
       returns: token_stats_model
       root_field_name: token_stats_interval_agg
     - arguments:
@@ -343,7 +353,7 @@
           description: Additional interval to get recent stats on a different timeframe
           nullable: false
           type: interval
-      code: "WITH params AS (\n  SELECT \n    NOW() - {{interval}}::interval as start_time,\n    NOW() as end_time,\n    NOW() - {{recent_interval}}::interval as recent_start_time\n),\ntoken_stats AS (\n  SELECT \n    token_mint,\n    SUM(volume_usd) as total_volume_usd,\n    ((LAST(token_price_usd, created_at) - FIRST(token_price_usd, created_at)) / \n      NULLIF(FIRST(token_price_usd, created_at), 0) * 100) as price_change_pct,\n    AVG(token_price_usd) as avg_price_usd,\n    LAST(token_price_usd, created_at) as latest_price_usd,\n    COUNT(*)::numeric as total_trades,\n    SUM(CASE WHEN created_at >= recent_start_time THEN volume_usd ELSE 0 END) as recent_volume_usd,\n    COUNT(CASE WHEN created_at >= recent_start_time THEN 1 END)::numeric as recent_trades,\n    COALESCE(\n        ((LAST(token_price_usd, created_at) FILTER (WHERE created_at >= recent_start_time) - \n        FIRST(token_price_usd, created_at) FILTER (WHERE created_at >= recent_start_time)) / \n        NULLIF(FIRST(token_price_usd, created_at) FILTER (WHERE created_at >= recent_start_time), 0) * 100),\n        0\n    ) as recent_price_change_pct,\n    LAST(token_metadata, created_at) as latest_metadata\n  FROM api.trade_history, params\n  WHERE created_at >= start_time\n    AND created_at <= end_time\n  GROUP BY token_mint\n  HAVING SUM(volume_usd) > 0\n)\nSELECT \n  token_mint,\n  total_volume_usd,\n  price_change_pct,\n  avg_price_usd,\n  latest_price_usd,\n  total_trades,\n  recent_volume_usd,\n  recent_trades,\n  recent_price_change_pct,\n  (latest_metadata).name AS token_metadata_name,\n  (latest_metadata).symbol AS token_metadata_symbol,\n  (latest_metadata).description AS token_metadata_description,\n  (latest_metadata).image_uri AS token_metadata_image_uri,\n  (latest_metadata).external_url AS token_metadata_external_url,\n  (latest_metadata).supply AS token_metadata_supply,\n  (latest_metadata).is_pump_token AS token_metadata_is_pump_token\nFROM token_stats;"
+      code: "WITH params AS (\n  SELECT \n    NOW() - {{interval}}::interval as start_time,\n    NOW() as end_time,\n    NOW() - {{recent_interval}}::interval as recent_start_time\n),\ntoken_stats AS (\n  SELECT \n    token_mint,\n    SUM(volume_usd) as total_volume_usd,\n    ((LAST(token_price_usd, created_at) - FIRST(token_price_usd, created_at)) / \n      NULLIF(FIRST(token_price_usd, created_at), 0) * 100) as price_change_pct,\n    AVG(token_price_usd) as avg_price_usd,\n    LAST(token_price_usd, created_at) as latest_price_usd,\n    COUNT(*)::numeric as total_trades,\n    SUM(CASE WHEN created_at >= recent_start_time THEN volume_usd ELSE 0 END) as recent_volume_usd,\n    COUNT(CASE WHEN created_at >= recent_start_time THEN 1 END)::numeric as recent_trades,\n    COALESCE(\n        ((LAST(token_price_usd, created_at) FILTER (WHERE created_at >= recent_start_time) - \n        FIRST(token_price_usd, created_at) FILTER (WHERE created_at >= recent_start_time)) / \n        NULLIF(FIRST(token_price_usd, created_at) FILTER (WHERE created_at >= recent_start_time), 0) * 100),\n        0\n    ) as recent_price_change_pct,\n    LAST(token_metadata, created_at) as latest_metadata\n  FROM api.trade_history, params\n  WHERE created_at >= start_time\n    AND created_at <= end_time\n  GROUP BY token_mint\n  HAVING SUM(volume_usd) > 0\n)\nSELECT \n  token_mint,\n  total_volume_usd,\n  price_change_pct,\n  avg_price_usd,\n  latest_price_usd,\n  total_trades,\n  recent_volume_usd,\n  recent_trades,\n  recent_price_change_pct,\n  (latest_metadata).name AS token_metadata_name,\n  (latest_metadata).symbol AS token_metadata_symbol,\n  (latest_metadata).description AS token_metadata_description,\n  (latest_metadata).image_uri AS token_metadata_image_uri,\n  (latest_metadata).external_url AS token_metadata_external_url,\n  (latest_metadata).decimals AS token_metadata_decimals,\n  (latest_metadata).supply AS token_metadata_supply,\n  (latest_metadata).is_pump_token AS token_metadata_is_pump_token\nFROM token_stats;"
       returns: token_stats_model
       root_field_name: token_stats_interval_comp
     - arguments:
