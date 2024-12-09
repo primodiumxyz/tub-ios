@@ -32,6 +32,7 @@ struct TokenListView: View {
     @State private var activeOffset: CGFloat = 0
     @State private var dragging = false
     @State private var animateCurrentTokenModel = true
+	@State private var isAutoScrolling = false
     private let offsetThresholdToDragToAnotherToken = 125.0
 	private let scrollAnimationDuration = 0.5
 	private let scrollAnimationAbortedDuration = 0.15
@@ -56,11 +57,19 @@ struct TokenListView: View {
     }
 
     private func canSwipe(direction: SwipeDirection) -> Bool {
-        if activeTab == .sell { return false }
-        if direction == .up {
+		if isAutoScrolling {
+			return false
+		}
+
+		if activeTab == .sell {
+			return false
+		}
+        
+		if direction == .up {
             return tokenListModel.currentTokenIndex != 0
         }
-        return true
+        
+		return true
     }
 
 	private func postAutoScrollResets() {
@@ -68,10 +77,12 @@ struct TokenListView: View {
 		dragGestureOffset = 0
 		dragging = false
 		animateCurrentTokenModel = true
+		isAutoScrolling = false
 	}
 	
     private func loadToken(_ geometry: GeometryProxy, _ direction: SwipeDirection) {
         animateCurrentTokenModel = false
+		isAutoScrolling = true
 
         if direction == .up {
             // Step #1: Animate to the new TokenView
