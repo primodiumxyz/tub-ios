@@ -1,4 +1,4 @@
-import { PrivyClient } from "@privy-io/server-auth";
+import { PrivyClient, WalletWithMetadata } from "@privy-io/server-auth";
 import { PublicKey } from "@solana/web3.js";
 
 export type UserContext = {
@@ -23,10 +23,10 @@ export class AuthService {
         throw new Error("User is not registered with Privy");
       }
 
-      const user = await this.privy.getUser(userId);
+      const user = await this.privy.getUserById(userId);
       const solanaWallet = user.linkedAccounts.find(
-        (account) => account.type === "wallet" && account.walletClientType === "solana",
-      );
+        (account) => account.type === "wallet" && account.chainType === "solana",
+      ) as WalletWithMetadata | undefined;
 
       if (!solanaWallet?.address) {
         throw new Error("User does not have a wallet registered with Privy");
