@@ -34,9 +34,9 @@ struct TokenListView: View {
     @State private var animateCurrentTokenModel = true
 	@State private var isAutoScrolling = false
     private let offsetThresholdToDragToAnotherToken = 125.0
-	private let scrollAnimationDuration = 0.5
-	private let scrollAnimationAbortedDuration = 0.15
-    private let scrollSpringAnimationBounce = 0.35  // [0,1] where 1 is very springy
+	private let autoScrollAnimationDuration = 0.35
+	private let autoScrollAnimationAbortedDuration = 0.15
+    private let autoScrollSpringAnimationBounce = 0.35  // [0,1] where 1 is very springy
     private let moveToDragGestureOffsetAnimationDuration = 0.25
 
     let OFFSET: Double = 5
@@ -86,8 +86,8 @@ struct TokenListView: View {
 
         if direction == .up {
             // Step #1: Animate to the new TokenView
-//            withAnimation(.spring(duration: scrollAnimationDuration, bounce: scrollSpringAnimationBounce)) {
-			withAnimation(.easeOut(duration: scrollAnimationDuration)) {
+//            withAnimation(.spring(duration: autoScrollAnimationDuration, bounce: autoScrollSpringAnimationBounce)) {
+			withAnimation(.easeOut(duration: autoScrollAnimationDuration)) {
                 activeOffset += (geometry.size.height - dragGestureOffset)
             } completion: {
                 // Step #2: While the "main/center" TokenView is still scrolled out of view,
@@ -111,8 +111,8 @@ struct TokenListView: View {
         }
         else {
             // Step #1: Animate to the new TokenView
-//            withAnimation(.spring(duration: scrollAnimationDuration, bounce: scrollSpringAnimationBounce)) {
-			withAnimation(.easeOut(duration: scrollAnimationDuration)) {
+//            withAnimation(.spring(duration: autoScrollAnimationDuration, bounce: autoScrollSpringAnimationBounce)) {
+			withAnimation(.easeOut(duration: autoScrollAnimationDuration)) {
                 activeOffset -= (geometry.size.height + dragGestureOffset)
             } completion: {
                 // Step #2: While the "main/center" TokenView is still scrolled out of view,
@@ -230,8 +230,8 @@ struct TokenListView: View {
                                         }
                                         else
                         				{
-											//withAnimation(.spring(duration: scrollAnimationDuration, bounce: scrollSpringAnimationBounce)) {
-											withAnimation(.easeOut(duration: scrollAnimationAbortedDuration)) {
+											//withAnimation(.spring(duration: autoScrollAnimationDuration, bounce: autoScrollSpringAnimationBounce)) {
+											withAnimation(.easeOut(duration: autoScrollAnimationAbortedDuration)) {
                         						dragGestureOffset = 0
                         					} completion: {
                         						dragging = false
