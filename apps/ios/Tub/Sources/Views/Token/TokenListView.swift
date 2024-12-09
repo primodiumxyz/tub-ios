@@ -204,10 +204,7 @@ struct TokenListView: View {
                                         value.translation.height > 0 ? SwipeDirection.up : SwipeDirection.down
                                     if canSwipe(direction: dragDirection) {
                                         dragging = true
-
-                                        withAnimation(.easeOut(duration: moveToDragGestureOffsetAnimationDuration)) {
-                                            dragGestureOffset = value.translation.height
-                                        }
+										dragGestureOffset = value.translation.height
                                     }
                                 }
                                 .onEnded { value in
