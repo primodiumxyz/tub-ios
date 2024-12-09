@@ -15,12 +15,13 @@ struct TokenView: View {
     @EnvironmentObject private var userModel: UserModel
     @EnvironmentObject private var notificationHandler: NotificationHandler
 
-    @Binding private var showBubbles: Bool
-    @State private var showInfoCard = false
-    @State private var showBuySheet: Bool = false
-    @State private var keyboardHeight: CGFloat = 0
+	@State private var showInfoCard = false
+	@State private var showBuySheet: Bool = false
+	@State private var keyboardHeight: CGFloat = 0
 
+    @Binding private var showBubbles: Bool
 	@Binding var animate: Bool
+	
     var onSellSuccess: (() -> Void)?
 
     var activeTab: PurchaseState {
