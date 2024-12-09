@@ -219,21 +219,21 @@ struct RecipientSelectView: View {
                         "",
                         text: $vm.recipient,
                         prompt: Text("Enter Solana address")
-                            .foregroundStyle(.tubText.opacity(0.3))
+                            .foregroundStyle(.tubNeutral)
                     )
                     .autocapitalization(.none)
                     .autocorrectionDisabled()
                     .font(.sfRounded(size: .lg, weight: .regular))
                     
                     Image(systemName: "pencil")
-                        .foregroundStyle(.tubText.opacity(0.5))
+                        .foregroundStyle(.tubNeutral)
                 }
                 .padding(.vertical, 8)
                 
                 if showError {
                     Text("Solana Address is invalid")
                         .font(.sfRounded(size: .sm, weight: .regular))
-                        .foregroundStyle(.red)
+                        .foregroundStyle(.tubError)
                 }
             }
         }
