@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { AppRouter, createAppRouter } from "../src/createAppRouter";
-import { OctaneService } from "../src/OctaneService";
+import { JupiterService } from "../src/JupiterService";
 import { TubService } from "../src/TubService";
 import { parseEnv } from "../bin/parseEnv";
 import { Codex } from "@codex-data/sdk";
@@ -57,7 +57,7 @@ export const start = async () => {
   try {
     const connection = new Connection(env.QUICKNODE_MAINNET_URL, "confirmed");
 
-    // Initialize cache for OctaneService
+    // Initialize cache for JupiterService
     const cache = cacheManager.default.caching({
       store: "memory",
       max: 100,
@@ -81,8 +81,8 @@ export const start = async () => {
 
     const jupiterQuoteApi = createJupiterApiClient(jupiterConfig);
 
-    // Initialize OctaneService
-    const octaneService = new OctaneService(
+    // Initialize JupiterService
+    const jupiterService = new JupiterService(
       connection,
       jupiterQuoteApi,
       feePayerKeypair,
@@ -106,7 +106,7 @@ export const start = async () => {
     const privy = new PrivyClient(env.PRIVY_APP_ID, env.PRIVY_APP_SECRET);
     const codexSdk = new Codex(env.CODEX_API_KEY);
 
-    const tubService = new TubService(gqlClient, privy, codexSdk, octaneService);
+    const tubService = new TubService(gqlClient, privy, codexSdk, jupiterService);
 
     // @see https://trpc.io/docs/server/adapters/fastify
     server.register(fastifyTRPCPlugin<AppRouter>, {

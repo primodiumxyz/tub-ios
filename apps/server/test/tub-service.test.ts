@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { TubService } from "../src/TubService";
-import { OctaneService } from "../src/OctaneService";
+import { JupiterService } from "../src/JupiterService";
 import { Connection, Keypair, PublicKey, VersionedTransaction, VersionedMessage } from "@solana/web3.js";
 import { createJupiterApiClient } from "@jup-ag/api";
 import { MockPrivyClient } from "./helpers/MockPrivyClient";
@@ -30,7 +30,7 @@ import { getAssociatedTokenAddress } from "@solana/spl-token";
         basePath: process.env.JUPITER_URL,
       });
 
-      // Create cache for OctaneService
+      // Create cache for JupiterService
       const cache = await (
         await import("cache-manager")
       ).caching({
@@ -47,7 +47,7 @@ import { getAssociatedTokenAddress } from "@solana/spl-token";
       mockJwtToken = "test_jwt_token";
 
       // Initialize services
-      const octaneService = new OctaneService(
+      const jupiterService = new JupiterService(
         connection,
         jupiterQuoteApi,
         feePayerKeypair,
@@ -75,7 +75,7 @@ import { getAssociatedTokenAddress } from "@solana/spl-token";
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockPrivyClient as any,
         codexSdk,
-        octaneService,
+        jupiterService,
       );
 
       console.log("\nTest setup complete with user public key:", userKeypair.publicKey.toBase58());

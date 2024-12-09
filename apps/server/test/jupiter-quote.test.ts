@@ -1,6 +1,6 @@
 import { Connection, PublicKey, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 import { DefaultApi, Configuration } from "@jup-ag/api";
-import { OctaneService } from "../src/OctaneService";
+import { JupiterService } from "../src/JupiterService";
 import { Keypair } from "@solana/web3.js";
 import { Cache } from "cache-manager";
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
@@ -9,7 +9,7 @@ import { AxiosError } from "axios";
 const createTestKeypair = () => Keypair.generate();
 
 describe("Jupiter Quote Integration Test", () => {
-  let octaneService: OctaneService;
+  let jupiterService: JupiterService;
   let jupiterQuoteApi: DefaultApi;
   let connection: Connection;
   let cache: Cache;
@@ -26,7 +26,7 @@ describe("Jupiter Quote Integration Test", () => {
         }),
       );
 
-      octaneService = new OctaneService(
+      jupiterService = new JupiterService(
         connection,
         jupiterQuoteApi,
         createTestKeypair(),
@@ -71,7 +71,7 @@ describe("Jupiter Quote Integration Test", () => {
       console.log("Input: 0.1 SOL");
       console.log("Request:", quoteRequest);
 
-      const quote = await octaneService.getQuote(quoteRequest);
+      const quote = await jupiterService.getQuote(quoteRequest);
 
       console.log("Quote response:");
       console.log({
@@ -132,7 +132,7 @@ describe("Jupiter Quote Integration Test", () => {
     console.log("\nGetting quote for USDC -> SOL:");
     console.log("Input: 1 USDC");
 
-    const quote = await octaneService.getQuote(quoteRequest);
+    const quote = await jupiterService.getQuote(quoteRequest);
 
     console.log("Quote response:");
     console.log({
@@ -185,7 +185,7 @@ describe("Jupiter Quote Integration Test", () => {
       console.log("User Public Key:", userPublicKey.toBase58());
       console.log("Quote Request:", quoteRequest);
 
-      const swapInstructions = await octaneService.getSwapInstructions(quoteRequest, userPublicKey);
+      const swapInstructions = await jupiterService.getSwapInstructions(quoteRequest, userPublicKey);
 
       console.log("\nSwap Instructions Response:");
       console.log({
@@ -201,7 +201,7 @@ describe("Jupiter Quote Integration Test", () => {
         swapInstructions.instructions?.length,
         swapInstructions.addressLookupTableAccounts?.length,
       );
-      const message = await octaneService.buildSwapMessage(
+      const message = await jupiterService.buildSwapMessage(
         swapInstructions.instructions,
         swapInstructions.addressLookupTableAccounts,
       );
@@ -217,7 +217,7 @@ describe("Jupiter Quote Integration Test", () => {
       expect(swapInstructions).toBeDefined();
       expect(swapInstructions.instructions).toBeDefined();
       expect(transaction).toBeDefined();
-      expect(decompiledMessage.payerKey.equals(octaneService.getSettings().feePayerPublicKey)).toBe(true);
+      expect(decompiledMessage.payerKey.equals(jupiterService.getSettings().feePayerPublicKey)).toBe(true);
       expect(decompiledMessage.instructions.length).toBeGreaterThan(0);
       expect(decompiledMessage.recentBlockhash).toBeDefined();
     } catch (error) {
@@ -254,7 +254,7 @@ describe("Jupiter Quote Integration Test", () => {
       console.log("User Public Key:", userPublicKey.toBase58());
       console.log("Quote Request:", quoteRequest);
 
-      const swapInstructions = await octaneService.getSwapInstructions(quoteRequest, userPublicKey);
+      const swapInstructions = await jupiterService.getSwapInstructions(quoteRequest, userPublicKey);
 
       console.log("\nSwap Instructions Response:");
       console.log({
@@ -265,7 +265,7 @@ describe("Jupiter Quote Integration Test", () => {
       });
 
       // Build complete swap transaction
-      const message = await octaneService.buildSwapMessage(
+      const message = await jupiterService.buildSwapMessage(
         swapInstructions.instructions,
         swapInstructions.addressLookupTableAccounts,
       );
@@ -286,7 +286,7 @@ describe("Jupiter Quote Integration Test", () => {
       expect(swapInstructions).toBeDefined();
       expect(swapInstructions.instructions).toBeDefined();
       expect(transaction).toBeDefined();
-      expect(decompiledMessage.payerKey.equals(octaneService.getSettings().feePayerPublicKey)).toBe(true);
+      expect(decompiledMessage.payerKey.equals(jupiterService.getSettings().feePayerPublicKey)).toBe(true);
       expect(decompiledMessage.instructions.length).toBeGreaterThan(0);
       expect(decompiledMessage.recentBlockhash).toBeDefined();
     } catch (error) {
@@ -318,7 +318,7 @@ describe("Jupiter Quote Integration Test", () => {
       asLegacyTransaction: false,
     };
 
-    const swapInstructions = await octaneService.getSwapInstructions(quoteRequest, userPublicKey);
+    const swapInstructions = await jupiterService.getSwapInstructions(quoteRequest, userPublicKey);
     console.info("content:", swapInstructions.instructions?.length);
   });
 });

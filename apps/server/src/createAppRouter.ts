@@ -2,14 +2,13 @@ import { initTRPC } from "@trpc/server";
 import { observable } from "@trpc/server/observable";
 import { z } from "zod";
 import { TubService } from "./TubService";
-import { PrebuildSwapResponse } from "../types/PrebuildSwapRequest";
+import { PrebuildSwapResponse } from "./types";
 
 export type AppContext = {
   tubService: TubService;
   jwtToken: string;
 };
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 /**
  * Creates and configures the main tRPC router with all API endpoints.
  * @returns A configured tRPC router with all procedures
@@ -101,9 +100,9 @@ export function createAppRouter() {
     updateSwapRequest: t.procedure
       .input(
         z.object({
-          buyTokenId: z.string().optional(),
-          sellTokenId: z.string().optional(),
-          sellQuantity: z.number().optional(),
+          buyTokenId: z.string(),
+          sellTokenId: z.string(),
+          sellQuantity: z.number(),
         }),
       )
       .mutation(async ({ ctx, input }) => {

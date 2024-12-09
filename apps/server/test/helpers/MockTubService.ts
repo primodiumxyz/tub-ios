@@ -1,15 +1,15 @@
 import { TubService } from "../../src/TubService";
 import { GqlClient } from "@tub/gql";
 import { Codex } from "@codex-data/sdk";
-import { OctaneService } from "../../src/OctaneService";
+import { JupiterService } from "../../src/JupiterService";
 
 export class MockTubService extends TubService {
   private testWalletAddress: string;
 
-  constructor(gqlClient: GqlClient["db"], codexSdk: Codex, octane: OctaneService, testWalletAddress: string) {
+  constructor(gqlClient: GqlClient["db"], codexSdk: Codex, jupiter: JupiterService, testWalletAddress: string) {
     // Pass empty objects for Privy since we won't use it
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    super(gqlClient, {} as any, codexSdk, octane);
+    super(gqlClient, {} as any, codexSdk, jupiter);
     this.testWalletAddress = testWalletAddress;
   }
 
