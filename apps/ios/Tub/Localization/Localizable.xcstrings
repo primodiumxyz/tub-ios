@@ -7,6 +7,12 @@
     " " : {
 
     },
+    "_J_Temp: Login to Start Trading" : {
+
+    },
+    "_J_Your Balance" : {
+
+    },
     "#8612373299412" : {
 
     },
@@ -205,9 +211,6 @@
     "Support" : {
 
     },
-    "Temp: Login to Start Trading" : {
-
-    },
     "This token is still writing its autobiography... 📝" : {
 
     },
@@ -247,9 +250,6 @@
           }
         }
       }
-    },
-    "Your Balance" : {
-
     }
   },
   "version" : "1.0"

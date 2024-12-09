@@ -31,10 +31,10 @@ struct TokenListView: View {
     @State private var dragGestureOffset: CGFloat = 0
     @State private var activeOffset: CGFloat = 0
     @State private var dragging = false
-    @State private var isDragStarting = true
     @State private var animateCurrentTokenModel = true
     private let offsetThresholdToDragToAnotherToken = 125.0
-    private let scrollAnimationDuration = 0.3
+	private let scrollAnimationDuration = 0.5
+	private let scrollAnimationAbortedDuration = 0.15
     private let scrollSpringAnimationBounce = 0.35  // [0,1] where 1 is very springy
     private let moveToDragGestureOffsetAnimationDuration = 0.25
 
@@ -200,11 +200,6 @@ struct TokenListView: View {
                                     let dragDirection =
                                         value.translation.height > 0 ? SwipeDirection.up : SwipeDirection.down
                                     if canSwipe(direction: dragDirection) {
-                                        if isDragStarting {
-                                            isDragStarting = false
-                                            // todo: show the next token
-                                        }
-
                                         dragging = true
 
                                         withAnimation(.easeOut(duration: moveToDragGestureOffsetAnimationDuration)) {
@@ -213,8 +208,6 @@ struct TokenListView: View {
                                     }
                                 }
                                 .onEnded { value in
-                                    isDragStarting = true
-
                                     let dragDirection =
                                         value.translation.height > 0 ? SwipeDirection.up : SwipeDirection.down
                                     if canSwipe(direction: dragDirection) {
@@ -227,7 +220,7 @@ struct TokenListView: View {
                                         else
                         				{
 											//withAnimation(.spring(duration: scrollAnimationDuration, bounce: scrollSpringAnimationBounce)) {
-											withAnimation(.easeOut(duration: scrollAnimationDuration)) {
+											withAnimation(.easeOut(duration: scrollAnimationAbortedDuration)) {
                         						dragGestureOffset = 0
                         					} completion: {
                         						dragging = false
