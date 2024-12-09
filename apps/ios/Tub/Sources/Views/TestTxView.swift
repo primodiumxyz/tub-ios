@@ -77,3 +77,20 @@ struct TestTxView: View {
         }
     }
 }
+
+
+#Preview {
+    @Previewable @StateObject var priceModel = {
+        let model = SolPriceModel.shared
+        spoofPriceModelData(model)
+        return model
+    }()
+
+    @Previewable @StateObject var userModel = UserModel.shared
+
+    TestTxView()
+        .environmentObject(priceModel)
+        .environmentObject(userModel)
+
+        .preferredColorScheme(.light)
+}

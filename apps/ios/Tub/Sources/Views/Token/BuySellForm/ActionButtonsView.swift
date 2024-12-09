@@ -97,7 +97,7 @@ struct ActionButtonsView: View {
                         }
                     }
                     else {
-                        SellButtons(onSell: handleSell)
+                        SellButton(onSell: handleSell)
                     }
                 case .connecting:
                     ConnectingButton()
@@ -182,12 +182,14 @@ private struct BuyButton: View {
     @EnvironmentObject var priceModel: SolPriceModel
     @State private var showOnrampView = false
     @StateObject private var settingsManager = SettingsManager.shared
+    @StateObject private var txManager = TxManager.shared
 
     var handleBuy: () async -> Void
 
     var body: some View {
         PrimaryButton(
             text: "Buy \(priceModel.formatPrice(usdc: settingsManager.defaultBuyValueUsdc))",
+            loading: txManager.submittingTx,
             action: {
                 Task {
                     await handleBuy()
@@ -197,8 +199,9 @@ private struct BuyButton: View {
     }
 }
 
-struct SellButtons: View {
+struct SellButton: View {
     @EnvironmentObject var priceModel: SolPriceModel
+    @StateObject private var txManager = TxManager.shared
 
     var onSell: () async -> Void
 
@@ -208,6 +211,7 @@ struct SellButtons: View {
                 text: "Sell",
                 textColor: .white,
                 backgroundColor: .tubSellPrimary,
+                loading: txManager.submittingTx,
                 action: {
                     Task {
                         await onSell()

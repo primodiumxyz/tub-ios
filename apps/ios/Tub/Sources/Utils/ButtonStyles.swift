@@ -379,8 +379,9 @@ struct ContentButtonStyle<Content: View>: ButtonStyle {
 
     func makeBody(configuration: Self.Configuration) -> some View {
         // Wrap the content in another view to extend the tap area
-        VStack {
-            content
+        ZStack {
+            ProgressView().opacity(loading ? 1 : 0)
+            content.opacity(loading ? 0 : 1)
         }
         .frame(maxWidth: maxWidth)
         .padding(.horizontal, 16)
@@ -398,7 +399,7 @@ struct ContentButtonStyle<Content: View>: ButtonStyle {
             }
         )
         .contentShape(Rectangle())
-        .scaleEffect(!disabled && configuration.isPressed ? 0.95 : 1)
+        .scaleEffect(!disabled && !loading && configuration.isPressed ? 0.95 : 1)
         .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
     }
 }
@@ -432,11 +433,7 @@ struct ContentButton<Content: View>: View {
 
     var body: some View {
         Button(action: self.disabled || self.loading ? {} : action) {
-            if loading {
-                ProgressView()
-            } else {
-                content
-            }
+            EmptyView()
         }
         .buttonStyle(
             ContentButtonStyle(
