@@ -50,7 +50,7 @@ import { getAssociatedTokenAddress } from "@solana/spl-token";
       const jupiterService = new JupiterService(
         connection,
         jupiterQuoteApi,
-        feePayerKeypair,
+        feePayerKeypair.publicKey,
         new PublicKey(process.env.OCTANE_TRADE_FEE_RECIPIENT!),
         Number(process.env.OCTANE_BUY_FEE),
         0, // sell fee
@@ -116,7 +116,7 @@ import { getAssociatedTokenAddress } from "@solana/spl-token";
     }
   });
 
-  describe.skip("should complete a full USDC to SOL swap flow", () => {
+  describe("should complete a full USDC to SOL swap flow", () => {
     it("should complete a full USDC to SOL swap flow", async () => {
       try {
         console.log("\nStarting USDC to SOL swap flow test");

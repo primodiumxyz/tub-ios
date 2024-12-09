@@ -150,7 +150,9 @@ export class TransactionService {
     });
 
     if (!confirmation || confirmation.meta?.err) {
-      throw new Error(`Transaction failed: ${confirmation?.meta?.err || "Not found"}`);
+      throw new Error(
+        `Transaction failed: ${confirmation?.meta?.err || "Tx submitted but not found in confirmed block"}`,
+      );
     }
 
     this.messageRegistry.delete(base64Message);
