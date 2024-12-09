@@ -82,11 +82,17 @@ struct TokenView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Spacer().frame(height: 20)
                     tokenInfoView
+					// Help visually debug tokenModel.isReady state changes while scroll anim is still in flight.
+					//.border(tokenModel.isReady ? .green : .red)
+
                     chartView
                         .padding(.top, 5)
-                    intervalButtons
+					//.border(tokenModel.isReady ? .green : .red)
+
+					intervalButtons
                         .padding(.horizontal)
                         .padding(.vertical, 12)
+					//.border(tokenModel.isReady ? .green : .red)
                 }
 
                 VStack(spacing: 0) {
