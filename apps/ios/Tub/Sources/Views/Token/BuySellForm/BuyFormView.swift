@@ -81,17 +81,17 @@ struct BuyFormView: View {
     }
 
     var body: some View {
-        VStack {
+        ZStack(alignment: .top) {
+            Rectangle()
+                .foregroundStyle(.clear)
+                .frame(height: Self.formHeight)
+                .background(.tubTextInverted)
+                .cornerRadius(30)
+                .zIndex(0)
+            
             formContent
-                .padding()
-
+                .zIndex(1)
         }
-        .background(Gradients.cardBgGradient)
-        .onAppear { resetForm() }
-        .dismissKeyboardOnTap()
-        .cornerRadius(30)
-        .presentationDetents([.height(Self.formHeight)])
-        .presentationBackground(.clear)
     }
 
     private var formContent: some View {
@@ -113,10 +113,14 @@ struct BuyFormView: View {
                 buyButton
             }
         }
-        .frame(maxWidth: .infinity)
-        .padding(.horizontal, 8)
+        .padding()
+        .background(Gradients.cardBgGradient)
+        .onAppear { resetForm() }
+        .cornerRadius(30)
+        .presentationDetents([.height(Self.formHeight)])
+        .presentationBackground(.clear)
     }
-
+    
     private var buyButton: some View {
         OutlineButton(
             text: "Buy",
@@ -300,8 +304,12 @@ extension String {
         return model
     }()
 
-    BuyFormView(isVisible: .constant(true), tokenModel: tokenModel, onBuy: { })
-        .environmentObject(userModel)
-        .environmentObject(priceModel)
-        .preferredColorScheme(.light)
+    ZStack {
+        Color.red
+        BuyFormView(isVisible: .constant(true), tokenModel: tokenModel, onBuy: { })
+            .environmentObject(userModel)
+            .environmentObject(priceModel)
+        
+            .preferredColorScheme(.dark)
+    }
 }
