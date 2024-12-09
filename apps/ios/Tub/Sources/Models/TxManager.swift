@@ -106,6 +106,9 @@ final class TxManager: ObservableObject {
         }
         catch {
             print("error updating tx data \(error.localizedDescription)")
+            await MainActor.run {
+                self.fetchingTxData = false
+            }
         }
     }
 

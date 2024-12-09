@@ -73,6 +73,16 @@ final class TokenListModel: ObservableObject {
             return tokenQueue[currentTokenIndex + 1]
         }
 
+        if let userModel {
+            let priorityTokenMint = userModel.tokenPortfolio.keys.first { tokenId in
+                tokenId != currentId
+            }
+            
+            if let mint = priorityTokenMint, let tokenData = userModel.tokenPortfolio[mint] {
+                return tokenDataToToken(tokenData: tokenData)
+            }
+        }
+
         // If this is the first token (no currentId), return the first non-cooldown token
         var nextToken = self.pendingTokens.first { token in
             !self.tokenQueue.contains { $0.id == token.id } && token.id != currentId

@@ -4,7 +4,6 @@
     "" : {
 
     },
-
     " " : {
 
     },
@@ -200,7 +199,6 @@
     "Settings" : {
 
     },
-
     "Show Less" : {
 
     },
@@ -210,10 +208,10 @@
     "Solana Address is invalid" : {
 
     },
-    "Submit Transaction" : {
+    "Support" : {
 
     },
-    "Support" : {
+    "Test Tx" : {
 
     },
     "This token is still writing its autobiography... 📝" : {
@@ -241,9 +239,6 @@
 
     },
     "Unfilled" : {
-
-    },
-    "Update Tx Data" : {
 
     },
     "Welcome to tub" : {

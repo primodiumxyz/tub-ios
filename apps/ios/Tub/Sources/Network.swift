@@ -177,7 +177,7 @@ class Network {
         return Int(res)
     }
 
-    func getTokenBalances(address: String) async throws -> [TokenBalanceData] {
+    func getTokenBalances(address: String) async throws -> [(mint: String, balanceToken: Int)] {
         let params = OwnerInfoParams(
             mint: nil,
             programId: TOKEN_PROGRAM_ID
@@ -188,20 +188,17 @@ class Network {
             configs: RequestConfiguration(encoding: "base64")
         )
 
-        let val = tokenAccounts.map { account in
-            TokenBalanceData(
-                mint: account.account.data.mint.base58EncodedString,
-                amountToken: Int(account.account.data.lamports)
-            )
+        return tokenAccounts.map { account in
+            (mint: account.account.data.mint.base58EncodedString,
+            Int(account.account.data.lamports))
         }
-        return val
     }
 
-    func getUsdcBalance(address: String) async throws -> TokenBalanceData {
+    func getUsdcBalance(address: String) async throws -> Int {
         return try await getTokenBalance(address: address, tokenMint: USDC_MINT)
     }
 
-    func getTokenBalance(address: String, tokenMint: String) async throws -> TokenBalanceData {
+    func getTokenBalance(address: String, tokenMint: String) async throws -> Int {
         let params = OwnerInfoParams(
             mint: tokenMint,
             programId: nil
@@ -217,10 +214,7 @@ class Network {
             throw TubError.emptyTokenList
         }
 
-        return TokenBalanceData(
-            mint: firstAccount.account.data.mint.base58EncodedString,
-            amountToken: Int(firstAccount.account.data.lamports)
-        )
+        return Int(firstAccount.account.data.lamports)
     }
 
     func getTestTxData() async throws -> TxData {

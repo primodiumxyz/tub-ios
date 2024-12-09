@@ -38,6 +38,7 @@
 		999ACA732CF50F13008D765B /* TxManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999ACA722CF50EEA008D765B /* TxManager.swift */; };
 		999F59562CA6F97100E7AE9F /* TokenModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999F59552CA6F96D00E7AE9F /* TokenModel.swift */; };
 		999F595B2CA754FB00E7AE9F /* ChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999F595A2CA754F900E7AE9F /* ChartView.swift */; };
+		99A4271E2D0799E800F6EA43 /* TokenDataToToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A4271D2D0799E100F6EA43 /* TokenDataToToken.swift */; };
 		99A4AAB22CF4FEBF002D0027 /* TestTxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A4AAB12CF4FEBA002D0027 /* TestTxView.swift */; };
 		99B147FE2CDFE5B200DFDB96 /* ShimmeringView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B147FD2CDFE5B200DFDB96 /* ShimmeringView.swift */; };
 		99BB98562CC1798600658059 /* CandleChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99BB98552CC1798400658059 /* CandleChartView.swift */; };
@@ -128,6 +129,7 @@
 		999ACA722CF50EEA008D765B /* TxManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxManager.swift; sourceTree = "<group>"; };
 		999F59552CA6F96D00E7AE9F /* TokenModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenModel.swift; sourceTree = "<group>"; };
 		999F595A2CA754F900E7AE9F /* ChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartView.swift; sourceTree = "<group>"; };
+		99A4271D2D0799E100F6EA43 /* TokenDataToToken.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenDataToToken.swift; sourceTree = "<group>"; };
 		99A4AAB12CF4FEBA002D0027 /* TestTxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestTxView.swift; sourceTree = "<group>"; };
 		99B147FD2CDFE5B200DFDB96 /* ShimmeringView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShimmeringView.swift; sourceTree = "<group>"; };
 		99BB98552CC1798400658059 /* CandleChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CandleChartView.swift; sourceTree = "<group>"; };
@@ -241,6 +243,7 @@
 		9979D2F02CB57B840040DF41 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				99A4271D2D0799E100F6EA43 /* TokenDataToToken.swift */,
 				99DBD8ED2CF781E50098C296 /* spoofModelData.swift */,
 				995D05652CF3C7C800627E81 /* retry.swift */,
 				5D8EFC2B2CE529AC002D8210 /* AppDwellTimeTracker.swift */,
@@ -666,6 +669,7 @@
 				99FB68342CC003FC00070D2A /* LoadingView.swift in Sources */,
 				DFDA138A2CEDF04000057A29 /* TransactionGroupView.swift in Sources */,
 				999F59562CA6F97100E7AE9F /* TokenModel.swift in Sources */,
+				99A4271E2D0799E800F6EA43 /* TokenDataToToken.swift in Sources */,
 				99BB98562CC1798600658059 /* CandleChartView.swift in Sources */,
 				99E789492CC147C000C3CEEB /* ImageView.swift in Sources */,
 				DFEBC3DD2CE443CA00EA4C84 /* AccountDetailsView.swift in Sources */,

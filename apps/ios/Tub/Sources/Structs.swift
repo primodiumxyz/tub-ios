@@ -105,21 +105,16 @@ struct StatValue: Identifiable {
     }
 }
 
-struct TokenBalanceData {
-    var mint: String
-    var amountToken: Int
-}
-
 struct TokenMetadata {
     var name: String?
     var symbol: String?
     var imageUrl: String?
-    
 }
 
 struct TokenData: Identifiable {
-    let id: String
-    var balanceData: TokenBalanceData
+    var id: String { mint }  
+    let mint: String
+    var balanceToken: Int
     var metadata: TokenMetadata
 }
 
