@@ -1,17 +1,18 @@
-import { Connection, PublicKey, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
+import { Connection, PublicKey, TransactionMessage, VersionedTransaction, Keypair } from "@solana/web3.js";
 import { DefaultApi, Configuration } from "@jup-ag/api";
 import { JupiterService } from "../src/JupiterService";
-import { Keypair } from "@solana/web3.js";
+import { TransactionService } from "../src/services/TransactionService";
 import { Cache } from "cache-manager";
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll } from "vitest";
 import { AxiosError } from "axios";
 
 const createTestKeypair = () => Keypair.generate();
 
 describe("Jupiter Quote Integration Test", () => {
-  let jupiterService: JupiterService;
-  let jupiterQuoteApi: DefaultApi;
   let connection: Connection;
+  let jupiterQuoteApi: DefaultApi;
+  let jupiterService: JupiterService;
+  let transactionService: TransactionService;
   let cache: Cache;
 
   beforeAll(async () => {
@@ -26,16 +27,20 @@ describe("Jupiter Quote Integration Test", () => {
         }),
       );
 
+      const feePayerKeypair = createTestKeypair();
+      const feePayerPublicKey = feePayerKeypair.publicKey;
+
       jupiterService = new JupiterService(
         connection,
         jupiterQuoteApi,
-        createTestKeypair(),
+        feePayerPublicKey,
         new PublicKey("11111111111111111111111111111111"),
         100,
         0,
         15,
         cache,
       );
+      transactionService = new TransactionService(connection, feePayerKeypair, feePayerPublicKey);
     } catch (error) {
       console.error("Error in test setup:", error);
       if (error instanceof Error) {
@@ -43,14 +48,6 @@ describe("Jupiter Quote Integration Test", () => {
         console.error("Stack trace:", error.stack);
       }
       throw error;
-    }
-  });
-
-  afterAll(async () => {
-    try {
-      // Clear the cache
-    } catch (error) {
-      console.error("Error in test cleanup:", error);
     }
   });
 
@@ -103,16 +100,7 @@ describe("Jupiter Quote Integration Test", () => {
       expect(quote.inAmount).toBe(quoteRequest.amount.toString());
       expect(Number(quote.outAmount)).toBeGreaterThan(0);
     } catch (error) {
-      console.error("Error getting SOL->USDC quote:");
-      if (error instanceof AxiosError) {
-        console.error("Status:", error.response?.status);
-        console.error("Status Text:", error.response?.statusText);
-        console.error("Response Headers:", error.response?.headers);
-        console.error("Response Data:", JSON.stringify(error.response?.data, null, 2));
-      } else if (error instanceof Error) {
-        console.error("Error message:", error.message);
-        console.error("Stack trace:", error.stack);
-      }
+      console.error("Error getting quote:", error);
       throw error;
     }
   }, 30000);
@@ -201,7 +189,8 @@ describe("Jupiter Quote Integration Test", () => {
         swapInstructions.instructions?.length,
         swapInstructions.addressLookupTableAccounts?.length,
       );
-      const message = await jupiterService.buildSwapMessage(
+
+      const message = await transactionService.buildTransactionMessage(
         swapInstructions.instructions,
         swapInstructions.addressLookupTableAccounts,
       );
@@ -213,6 +202,7 @@ describe("Jupiter Quote Integration Test", () => {
       const decompiledMessage = TransactionMessage.decompile(message, {
         addressLookupTableAccounts: swapInstructions.addressLookupTableAccounts,
       });
+
       // Assertions
       expect(swapInstructions).toBeDefined();
       expect(swapInstructions.instructions).toBeDefined();
@@ -265,7 +255,7 @@ describe("Jupiter Quote Integration Test", () => {
       });
 
       // Build complete swap transaction
-      const message = await jupiterService.buildSwapMessage(
+      const message = await transactionService.buildTransactionMessage(
         swapInstructions.instructions,
         swapInstructions.addressLookupTableAccounts,
       );
