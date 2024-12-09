@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - release/*
+      - 0xpolarzero/pri-1416-ci-apply-metadata-migrations-on-merge
 
 jobs:
   apply-migrations-and-metadata:
