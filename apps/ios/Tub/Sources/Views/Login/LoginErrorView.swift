@@ -12,7 +12,7 @@ struct LoginErrorView: View {
     let errorMessage: String
     let retryAction: () async -> Void
     let logoutAction: (() -> Void)?
-    @State var retrying = false
+    @State var retrying = false 
 
     init(
         title: String = "Something went wrong. ",
@@ -50,9 +50,7 @@ struct LoginErrorView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
 
-            PrimaryButton(text: "Try again", maxWidth: 200, loading: retrying, action: handleRetry
-                
-            )
+            PrimaryButton(text: "Try again", maxWidth: 200, loading: retrying, action: handleRetry)
         }
         .padding(8)
         .background(Color(UIColor.systemBackground))
@@ -62,6 +60,7 @@ struct LoginErrorView: View {
             RoundedRectangle(cornerRadius: 12)
                 .stroke(.tubError, lineWidth: 2)
                 .background(.tubError.opacity(0.1))
+                .allowsHitTesting(false)
         )
     }
 }
