@@ -85,7 +85,7 @@ export const start = async () => {
     const jupiterService = new JupiterService(
       connection,
       jupiterQuoteApi,
-      feePayerKeypair,
+      feePayerKeypair.publicKey,
       new PublicKey(env.OCTANE_TRADE_FEE_RECIPIENT),
       env.OCTANE_BUY_FEE,
       env.OCTANE_SELL_FEE,

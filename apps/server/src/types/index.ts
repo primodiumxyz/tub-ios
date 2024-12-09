@@ -33,3 +33,33 @@ export interface SwapSubscription {
   /** Current active swap request */
   request: ActiveSwapRequest;
 }
+
+// Analytics types
+export interface ClientEvent {
+  userAgent: string;
+  eventName: string;
+  metadata?: string;
+  errorDetails?: string;
+  source?: string;
+  buildVersion?: string;
+}
+
+// Transfer types
+export interface TransferRequest {
+  fromAddress: string;
+  toAddress: string;
+  amount: bigint;
+  tokenId: string;
+}
+
+export interface SignedTransfer {
+  transactionBase64: string;
+  signatureBase64: string;
+  signerBase58: string;
+}
+
+// Codex types
+export interface CodexTokenResponse {
+  token: string;
+  expiry: string;
+}

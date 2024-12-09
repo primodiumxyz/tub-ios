@@ -1,4 +1,4 @@
-import { Connection, VersionedTransaction, Keypair } from "@solana/web3.js";
+import { Connection, Keypair, VersionedTransaction } from "@solana/web3.js";
 import { GqlClient } from "@tub/gql";
 import { PrivyClient } from "@privy-io/server-auth";
 import { Codex } from "@codex-data/sdk";
@@ -7,8 +7,18 @@ import { SwapService } from "./services/SwapService";
 import { TransactionService } from "./services/TransactionService";
 import { FeeService } from "./services/FeeService";
 import { AuthService } from "./services/AuthService";
+import { AnalyticsService } from "./services/AnalyticsService";
+import { CodexService } from "./services/CodexService";
+import { TransferService } from "./services/TransferService";
 import { env } from "../bin/tub-server";
-import { UserPrebuildSwapRequest, PrebuildSwapResponse, PrebuildSignedSwapResponse } from "./types";
+import {
+  UserPrebuildSwapRequest,
+  PrebuildSwapResponse,
+  PrebuildSignedSwapResponse,
+  ClientEvent,
+  TransferRequest,
+  SignedTransfer,
+} from "./types";
 import { deriveTokenAccounts } from "./utils/tokenAccounts";
 import { SOL_MAINNET_PUBLIC_KEY, USDC_MAINNET_PUBLIC_KEY } from "./constants/tokens";
 import bs58 from "bs58";
@@ -26,6 +36,9 @@ export class TubService {
   private authService: AuthService;
   private transactionService: TransactionService;
   private feeService: FeeService;
+  private analyticsService: AnalyticsService;
+  private codexService: CodexService;
+  private transferService: TransferService;
 
   /**
    * Creates a new instance of TubService
@@ -57,6 +70,32 @@ export class TubService {
     });
 
     this.swapService = new SwapService(jupiter, this.transactionService, this.feeService, this.connection);
+
+    this.analyticsService = new AnalyticsService(gqlClient);
+    this.codexService = new CodexService(codexSdk);
+    this.transferService = new TransferService(this.connection, feePayerKeypair);
+  }
+
+  // Status endpoint
+  getStatus(): { status: number } {
+    return { status: 200 };
+  }
+
+  // Analytics methods
+  async recordClientEvent(event: ClientEvent, jwtToken: string): Promise<string> {
+    const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
+    return this.analyticsService.recordClientEvent(event, walletPublicKey.toBase58());
+  }
+
+  // Codex methods
+  async requestCodexToken(expiration?: number) {
+    return this.codexService.requestToken(expiration);
+  }
+
+  // Transfer methods
+  async getSignedTransfer(jwtToken: string, request: TransferRequest): Promise<SignedTransfer> {
+    await this.authService.getUserContext(jwtToken); // Verify user is authenticated
+    return this.transferService.getSignedTransfer(request);
   }
 
   /**

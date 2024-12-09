@@ -2,12 +2,20 @@ import { initTRPC } from "@trpc/server";
 import { observable } from "@trpc/server/observable";
 import { z } from "zod";
 import { TubService } from "./TubService";
-import { PrebuildSwapResponse } from "./types";
+import { PrebuildSwapResponse, UserPrebuildSwapRequest } from "./types";
+import { Subject } from "rxjs";
 
 export type AppContext = {
   tubService: TubService;
   jwtToken: string;
 };
+
+// Validation schemas
+const swapRequestSchema = z.object({
+  buyTokenId: z.string(),
+  sellTokenId: z.string(),
+  sellQuantity: z.number(),
+}) satisfies z.ZodType<UserPrebuildSwapRequest>;
 
 /**
  * Creates and configures the main tRPC router with all API endpoints.
@@ -44,6 +52,47 @@ export function createAppRouter() {
       .mutation(async ({ ctx, input }) => {
         return await ctx.tubService.requestCodexToken(input.expiration);
       }),
+
+    swapStream: t.procedure.input(z.object({ request: swapRequestSchema })).subscription(async ({ ctx, input }) => {
+      return observable<PrebuildSwapResponse>((emit) => {
+        let subject: Subject<PrebuildSwapResponse> | undefined;
+        let cleanup: (() => void) | undefined;
+
+        ctx.tubService
+          .startSwapStream(ctx.jwtToken, input.request)
+          .then((s) => {
+            if (!s) {
+              emit.error(new Error("Failed to start swap stream"));
+              return;
+            }
+
+            subject = s;
+            const subscription = subject.subscribe({
+              next: (response: PrebuildSwapResponse) => {
+                emit.next(response);
+              },
+              error: (error: Error) => {
+                emit.error(error);
+              },
+              complete: () => {
+                emit.complete();
+              },
+            });
+
+            cleanup = () => {
+              subscription.unsubscribe();
+              subject?.complete();
+            };
+          })
+          .catch((error) => {
+            emit.error(error);
+          });
+
+        return () => {
+          cleanup?.();
+        };
+      });
+    }),
 
     /**
      * Creates a subscription stream for token swaps
