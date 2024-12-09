@@ -173,7 +173,8 @@ struct TokenListView: View {
                         VStack(spacing: 0) {
                             // Previous TokenView that's offscreen above
                             TokenView(
-                                tokenModel: tokenListModel.previousTokenModel ?? emptyTokenModel
+                                tokenModel: tokenListModel.previousTokenModel ?? emptyTokenModel,
+								animate: $animateCurrentTokenModel
                             )
                             .frame(height: geometry.size.height)
                             .opacity(dragging ? 1 : 0)
@@ -181,7 +182,7 @@ struct TokenListView: View {
                             // Current focused TokenModel that's centered onscreen
                             TokenView(
                                 tokenModel: tokenListModel.currentTokenModel,
-                                animate: animateCurrentTokenModel,
+                                animate: $animateCurrentTokenModel,
                                 showBubbles: $showBubbles,
                                 onSellSuccess: {
                                     withAnimation {
@@ -196,7 +197,8 @@ struct TokenListView: View {
 
                             // Next TokenView that's offscreen below
                             TokenView(
-                                tokenModel: tokenListModel.nextTokenModel ?? emptyTokenModel
+                                tokenModel: tokenListModel.nextTokenModel ?? emptyTokenModel,
+								animate: $animateCurrentTokenModel
                             )
                             .frame(height: geometry.size.height)
                             .opacity(dragging ? 1 : 0)

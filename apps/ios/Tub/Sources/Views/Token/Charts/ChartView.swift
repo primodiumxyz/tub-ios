@@ -11,7 +11,7 @@ import SwiftUI
 
 struct ChartView: View {
     @EnvironmentObject var priceModel: SolPriceModel
-    let animate: Bool
+	@Binding var animate: Bool
     let rawPrices: [Price]
     let height: CGFloat
     let purchaseData: PurchaseData?
@@ -31,10 +31,10 @@ struct ChartView: View {
             return nil
         }
     }
-    init(rawPrices: [Price], purchaseData: PurchaseData? = nil, animate: Bool, height: CGFloat = 330) {
+    init(rawPrices: [Price], purchaseData: PurchaseData? = nil, animate: Binding<Bool>, height: CGFloat = 330) {
 		self.rawPrices = rawPrices
         self.purchaseData = purchaseData
-        self.animate = animate
+		self._animate = animate
         self.height = height
     }
 
@@ -240,7 +240,7 @@ struct PillView: View {
                 ChartView(
 					rawPrices: spoofPrices,
                     purchaseData: showPurchaseData ? purchaseData : nil,
-                    animate: false,
+					animate: Binding.constant(false),
                     height: 330
                 )
                 .border(.red)

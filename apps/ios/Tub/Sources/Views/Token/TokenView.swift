@@ -20,7 +20,7 @@ struct TokenView: View {
     @State private var showBuySheet: Bool = false
     @State private var keyboardHeight: CGFloat = 0
 
-    let animate: Bool
+	@Binding var animate: Bool
     var onSellSuccess: (() -> Void)?
 
     var activeTab: PurchaseState {
@@ -30,12 +30,12 @@ struct TokenView: View {
 
     init(
         tokenModel: TokenModel,
-        animate: Bool = false,
+		animate: Binding<Bool> = Binding.constant(false),
         showBubbles: Binding<Bool> = Binding.constant(false),
         onSellSuccess: (() -> Void)? = nil
     ) {
         self.tokenModel = tokenModel
-        self.animate = animate
+		self._animate = animate
         self._showBubbles = showBubbles
         self.onSellSuccess = onSellSuccess
     }
@@ -220,7 +220,7 @@ struct TokenView: View {
                 ChartView(
                     rawPrices: tokenModel.prices,
                     purchaseData: userModel.purchaseData,
-                    animate: animate,
+                    animate: $animate,
                     height: height
                 )
                 //				.id(tokenModel.prices.count) // results in odd behavior: toggles between prices.count = 0 and prices.count = correct value
@@ -228,7 +228,7 @@ struct TokenView: View {
             else {
                 CandleChartView(
                     candles: tokenModel.candles,
-                    animate: animate,
+                    animate: $animate,
                     timeframeMins: 30,
                     height: height
                 )
