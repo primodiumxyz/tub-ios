@@ -151,7 +151,7 @@ struct WithdrawView: View {
                 
                 Text("Your Balance \(priceModel.formatPrice(usdc: userModel.balanceUsdc ?? 0))")
                     .font(.sfRounded(size: .lg, weight: .medium))
-                    .foregroundStyle(.tubPurple)
+                    .foregroundStyle(.tubBuyPrimary)
                 
                 Spacer().frame(height: UIScreen.height(Layout.Spacing.lg))
                 RecipientSelectView(vm: vm)
@@ -159,8 +159,8 @@ struct WithdrawView: View {
                 
                 PrimaryButton(
                     text: "Confirm",
-                    textColor: .white,
-                    backgroundColor: .tubPurple,
+                    textColor: .tubTextInverted,
+                    backgroundColor: .tubBuyPrimary,
                     disabled: !vm.validateAddress(vm.recipient) ||
                              vm.buyAmountUsd == 0 ||
                              (userModel.balanceUsdc ?? 0) < priceModel.usdToUsdc(usd: vm.buyAmountUsd),
@@ -202,7 +202,7 @@ struct RecipientSelectView: View {
         VStack(alignment: .leading, spacing: UIScreen.height(Layout.Spacing.xs)) {
             Text("To")
                 .font(.sfRounded(size: .lg, weight: .medium))
-                .foregroundStyle(.tubPurple)
+                .foregroundStyle(.tubBuyPrimary)
             
             VStack(alignment: .leading, spacing: UIScreen.height(Layout.Spacing.tiny)) {
                 HStack(spacing: UIScreen.width(Layout.Spacing.xs)) {
