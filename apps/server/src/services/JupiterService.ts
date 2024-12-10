@@ -2,6 +2,7 @@ import { Connection, PublicKey, TransactionInstruction, AddressLookupTableAccoun
 import { DefaultApi, QuoteGetRequest, SwapInstructionsPostRequest } from "@jup-ag/api";
 import { EventEmitter } from "events";
 import { SOL_USD_PRICE_UPDATE_INTERVAL } from "../constants/registry";
+import { SOL_MAINNET_PUBLIC_KEY, USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
 
 export type JupiterSettings = {
   connection: Connection;
@@ -163,8 +164,8 @@ export class JupiterService {
   private async updateSolUsdPrice(): Promise<void> {
     try {
       const res = await this.jupiterQuoteApi.quoteGet({
-        inputMint: "So11111111111111111111111111111111111111112",
-        outputMint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        inputMint: SOL_MAINNET_PUBLIC_KEY.toString(),
+        outputMint: USDC_MAINNET_PUBLIC_KEY.toString(),
         amount: 1 * 1e9, // convert to lamports
       });
 
