@@ -118,16 +118,22 @@ export function createAppRouter() {
           ctx.tubService
             .startSwapStream(ctx.jwtToken, input)
             .then((s) => {
+              if (!s) {
+                emit.error(new Error("Failed to start swap stream"));
+                return;
+              }
               subject = s;
-              subject.subscribe({
-                next: (response: PrebuildSwapResponse) => {
-                  emit.next(response);
-                },
-                error: (error: Error) => {
-                  console.error("Swap stream error:", error);
-                  emit.error(error);
-                },
-              });
+              if (subject) {
+                subject.subscribe({
+                  next: (response: PrebuildSwapResponse) => {
+                    emit.next(response);
+                  },
+                  error: (error: Error) => {
+                    console.error("Swap stream error:", error);
+                    emit.error(error);
+                  },
+                });
+              }
             })
             .catch((error) => {
               console.error("Failed to start swap stream:", error);

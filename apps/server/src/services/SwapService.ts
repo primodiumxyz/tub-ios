@@ -1,4 +1,4 @@
-import { Connection, PublicKey } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import { Subject, interval, switchMap } from "rxjs";
 import { JupiterService } from "./JupiterService";
 import { TransactionService } from "./TransactionService";
@@ -13,7 +13,6 @@ export class SwapService {
     private jupiter: JupiterService,
     private transactionService: TransactionService,
     private feeService: FeeService,
-    private connection: Connection,
   ) {}
 
   async buildSwapResponse(request: ActiveSwapRequest): Promise<PrebuildSwapResponse> {

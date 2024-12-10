@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { TubService } from "../src/services/TubService";
 import { JupiterService } from "../src/services/JupiterService";
-import { Connection, Keypair, PublicKey, VersionedTransaction, VersionedMessage } from "@solana/web3.js";
+import { Connection, Keypair, VersionedTransaction, VersionedMessage } from "@solana/web3.js";
 import { createJupiterApiClient } from "@jup-ag/api";
 import { MockPrivyClient } from "./helpers/MockPrivyClient";
 import { Codex } from "@codex-data/sdk";
@@ -31,15 +31,6 @@ import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY } from "../src/constant
         basePath: process.env.JUPITER_URL,
       });
 
-      // Create cache for JupiterService
-      const cache = await (
-        await import("cache-manager")
-      ).caching({
-        store: "memory",
-        max: 100,
-        ttl: 10 * 1000, // 10 seconds
-      });
-
       // Create test fee payer keypair
       const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(process.env.FEE_PAYER_PRIVATE_KEY!));
 
@@ -48,16 +39,7 @@ import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY } from "../src/constant
       mockJwtToken = "test_jwt_token";
 
       // Initialize services
-      const jupiterService = new JupiterService(
-        connection,
-        jupiterQuoteApi,
-        feePayerKeypair.publicKey,
-        new PublicKey(process.env.OCTANE_TRADE_FEE_RECIPIENT!),
-        Number(process.env.OCTANE_BUY_FEE),
-        0, // sell fee
-        15, // min trade size
-        cache,
-      );
+      const jupiterService = new JupiterService(connection, jupiterQuoteApi);
 
       const gqlClient = (
         await createGqlClient({

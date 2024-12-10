@@ -16,8 +16,6 @@ import { config } from "dotenv";
 import fastify from "fastify";
 import bs58 from "bs58";
 
-const cacheManager = await import("cache-manager");
-
 config({ path: "../../.env" });
 
 export const env = parseEnv();
@@ -57,13 +55,6 @@ export const start = async () => {
   try {
     const connection = new Connection(env.QUICKNODE_MAINNET_URL, "confirmed");
 
-    // Initialize cache for JupiterService
-    const cache = cacheManager.default.caching({
-      store: "memory",
-      max: 100,
-      ttl: 10 /*seconds*/,
-    });
-
     // Initialize fee payer keypair from base58 private key
     const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY));
 
@@ -82,16 +73,7 @@ export const start = async () => {
     const jupiterQuoteApi = createJupiterApiClient(jupiterConfig);
 
     // Initialize JupiterService
-    const jupiterService = new JupiterService(
-      connection,
-      jupiterQuoteApi,
-      feePayerKeypair.publicKey,
-      new PublicKey(env.OCTANE_TRADE_FEE_RECIPIENT),
-      env.OCTANE_BUY_FEE,
-      env.OCTANE_SELL_FEE,
-      env.OCTANE_MIN_TRADE_SIZE,
-      cache,
-    );
+    const jupiterService = new JupiterService(connection, jupiterQuoteApi);
 
     if (!process.env.GRAPHQL_URL && env.NODE_ENV === "production") {
       throw new Error("GRAPHQL_URL is not set");
