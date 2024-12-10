@@ -58,7 +58,7 @@ The server can be configured with the following environment variables:
 | `GRAPHQL_URL`         | URL of the GraphQL endpoint          | `http://localhost:8080/v1/graphql` |
 | `PRIVATE_KEY`         | Private key for solana wallet        | (a default key is provided)        |
 | `JWT_SECRET`          | Secret for JWT signing               | `secret`                           |
-| `CODEX_API_KEY`       | API key for Codex                    |                                    |
+| `JUPITER_URL`         | Endpoint for the Jupiter V6 Swap API |                                    |
 
 ## Development
 

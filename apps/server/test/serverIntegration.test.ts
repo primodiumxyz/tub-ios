@@ -1,5 +1,6 @@
 import { PrivyClient } from "@privy-io/server-auth";
 import { createTRPCProxyClient, createWSClient, httpBatchLink, splitLink, wsLink } from "@trpc/client";
+import { Unsubscribable } from "@trpc/server/observable";
 import { config } from "dotenv";
 import { beforeAll, describe, expect, it, afterAll } from "vitest";
 import WebSocket from "ws";
@@ -120,14 +121,35 @@ describe("Server Integration Tests", () => {
       expect(result).toBeDefined();
     });
 
-    it("should request a Codex API token", async () => {
-      const result = await client.requestCodexToken.mutate({
-        expiration: 3600 * 1000,
+    it("should get the SOL/USD price", async () => {
+      const result = await client.getSolUsdPrice.query();
+      expect(result).toBeGreaterThan(0);
+    });
+
+    it("should subscribe to the SOL/USD price", async () => {
+      const initialPrice = await client.getSolUsdPrice.query();
+
+      // Create a promise that resolves when we get a new price
+      const priceUpdatePromise = new Promise<Unsubscribable>((resolve, reject) => {
+        const subscription = client.subscribeSolPrice.subscribe(undefined, {
+          onData: (price) => {
+            if (price !== initialPrice) {
+              resolve(subscription);
+            }
+
+            setTimeout(() => {
+              reject(new Error("Timeout"));
+            }, 10_000);
+          },
+        });
       });
 
-      expect(result).toBeDefined();
+      // Wait for first & next price from subscription
+      const subscription = await priceUpdatePromise;
+      subscription.unsubscribe();
     });
   });
+
   describe("getPresignedTransfer", () => {
     // privy dev key
     const fromAddress = "EeP7gjHGjHTMEShEA8YgPXmYp6S3XvCDfQvkc8gy2kcL";

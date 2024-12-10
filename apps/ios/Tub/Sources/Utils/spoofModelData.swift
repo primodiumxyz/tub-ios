@@ -20,12 +20,12 @@ func spoofTokenModelData(_ model: TokenModel) {
         symbol: "MOCK",
         description: "A mock token for preview",
         imageUri: "https://example.com/mock.png",
-        liquidityUsd: 1_000_000,
-        marketCapUsd: 5_000_000,
-        volumeUsd: 750_000,
-        pairId: "mock_pair_id",
-        socials: (discord: nil, instagram: nil, telegram: nil, twitter: nil, website: nil),
-        uniqueHolders: 1500
+        externalUrl: "https://example.com/mock",
+        decimals: 6,
+        supply: 1_000_000_000,
+        latestPriceUsd: 0.0075,
+        stats: IntervalStats(volumeUsd: 750_000, trades: 370, priceChangePct: 17.3),
+        recentStats: IntervalStats(volumeUsd: 8_000, trades: 27, priceChangePct: 3.46)
     )
 
     // Set isReady to true
@@ -58,7 +58,7 @@ func spoofTokenModelData(_ model: TokenModel) {
             close: basePrice + variation + 1,
             high: basePrice + variation + 2,
             low: basePrice + variation - 1,
-            volume: 1000 + (i * 100)
+            volume: Double(1000 + (i * 100))
         )
     }.reversed()
 }
