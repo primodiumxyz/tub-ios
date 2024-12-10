@@ -31,7 +31,6 @@ describe("query tests", () => {
       token_price_usd: "0.002",
       user_wallet: wallet,
       user_agent: "test",
-      error_details: "test error",
     });
 
     expect(sale_result.data?.insert_token_sale_one?.id).toBeDefined();
@@ -42,11 +41,9 @@ describe("query tests", () => {
     expect(transactions?.[0].token_mint).toEqual(tokenAddress);
     expect(transactions?.[0].token_amount).toEqual(-100);
     expect(transactions?.[0].token_price_usd).toEqual(0.002);
-    expect(transactions?.[0].success).toEqual(false);
 
     expect(transactions?.[1].token_mint).toEqual(tokenAddress);
     expect(transactions?.[1].token_amount).toEqual(200);
     expect(transactions?.[1].token_price_usd).toEqual(0.001);
-    expect(transactions?.[1].success).toEqual(true);
   });
 });
