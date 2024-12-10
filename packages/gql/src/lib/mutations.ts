@@ -1,22 +1,16 @@
 import { graphql } from "./init";
 
-// TODO: refactor to use token_purchase
-export const BuyTokenMutation = graphql(`
-  mutation BuyToken($wallet: String!, $token: String!, $amount: numeric!, $token_price: float8!) {
-    buy_token(
-      args: { user_wallet: $wallet, token_address: $token, amount_to_buy: $amount, token_price: $token_price }
-    ) {
+export const AddTokenPurchaseMutation = graphql(`
+  mutation AddTokenPurchase($insert_token_purchase_one: token_purchase_insert_input!) {
+    insert_token_purchase_one(object: $insert_token_purchase_one) {
       id
     }
   }
 `);
 
-// TODO: refactor to use token_sale
-export const SellTokenMutation = graphql(`
-  mutation SellToken($wallet: String!, $token: String!, $amount: numeric!, $token_price: float8!) {
-    sell_token(
-      args: { user_wallet: $wallet, token_address: $token, amount_to_sell: $amount, token_price: $token_price }
-    ) {
+export const AddTokenSaleMutation = graphql(`
+  mutation AddTokenSale($insert_token_sale_one: token_sale_insert_input!) {
+    insert_token_sale_one(object: $insert_token_sale_one) {
       id
     }
   }

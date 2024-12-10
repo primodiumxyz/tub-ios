@@ -8,4 +8,40 @@
       use_prepared_statements: false
   customization:
     naming_convention: hasura-default
+  logical_models:
+    - fields:
+        - name: id
+          type:
+            nullable: false
+            scalar: uuid
+        - name: created_at
+          type:
+            nullable: false
+            scalar: timestamptz
+        - name: user_wallet
+          type:
+            nullable: false
+            scalar: text
+        - name: token_mint
+          type:
+            nullable: false
+            scalar: text
+        - name: token_price_usd
+          type:
+            nullable: false
+            scalar: numeric
+        - name: token_amount
+          type:
+            nullable: false
+            scalar: numeric
+        - name: success
+          type:
+            nullable: false
+            scalar: boolean
+      name: transaction_model
+  native_queries:
+    - arguments: {}
+      code: "SELECT \n    id,\n    created_at,\n    user_wallet,\n    token_mint,\n    token_price_usd,\n    token_amount,\n    error_details IS NULL as success\nFROM token_purchase\n\nUNION ALL\n\nSELECT \n    id,\n    created_at,\n    user_wallet,\n    token_mint,\n    token_price_usd,\n    -token_amount as token_amount,  -- Negative amount for sales\n    error_details IS NULL as success\nFROM token_sale;"
+      returns: transaction_model
+      root_field_name: transactions
   tables: "!include default/tables/tables.yaml"

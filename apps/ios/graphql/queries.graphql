@@ -1,16 +1,12 @@
-// TODO: refactor to use token_purchase and token_sale
 query GetWalletTransactions($wallet: String!) {
-  token_transaction(
-    order_by: { wallet_transaction_data: { created_at: desc } }
-    where: { wallet_transaction_data: { wallet: { _eq: $wallet } } }
+  transactions(
+    where: { user_wallet: { _eq: $wallet }, success: { _eq: true } }
+    order_by: { created_at: desc }
   ) {
-    wallet_transaction
-    amount
     id
-    token
-    token_price
-    wallet_transaction_data {
-      created_at
-    }
+    created_at
+    token_mint
+    token_amount
+    token_price_usd
   }
 }

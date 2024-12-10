@@ -1,1 +1,3 @@
 - "!include public_analytics_client_event.yaml"
+- "!include public_token_purchase.yaml"
+- "!include public_token_sale.yaml"

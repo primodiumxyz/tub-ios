@@ -1,0 +1,2 @@
+CREATE TABLE "public"."token_sale" ("id" uuid NOT NULL DEFAULT gen_random_uuid(), "created_at" timestamptz NOT NULL DEFAULT now(), "user_wallet" text NOT NULL, "user_agent" text NOT NULL, "source" text NOT NULL, "error_details" text, "build" text NOT NULL, "token_mint" text NOT NULL, "token_price_usd" numeric NOT NULL, "token_amount" numeric NOT NULL, PRIMARY KEY ("id") );
+CREATE EXTENSION IF NOT EXISTS pgcrypto;

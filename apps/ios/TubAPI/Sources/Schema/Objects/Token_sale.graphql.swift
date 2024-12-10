@@ -4,8 +4,9 @@
 import ApolloAPI
 
 public extension Objects {
-  static let Subscription_root = ApolloAPI.Object(
-    typename: "subscription_root",
+  /// columns and relationships of "token_sale"
+  static let Token_sale = ApolloAPI.Object(
+    typename: "token_sale",
     implementedInterfaces: []
   )
 }
