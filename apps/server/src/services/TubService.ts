@@ -1,14 +1,12 @@
 import { Connection, Keypair, PublicKey, VersionedTransaction } from "@solana/web3.js";
 import { GqlClient } from "@tub/gql";
 import { PrivyClient } from "@privy-io/server-auth";
-import { Codex } from "@codex-data/sdk";
 import { JupiterService } from "./JupiterService";
 import { SwapService } from "./SwapService";
 import { TransactionService } from "./TransactionService";
 import { FeeService } from "./FeeService";
 import { AuthService } from "./AuthService";
 import { AnalyticsService } from "./AnalyticsService";
-import { CodexService } from "./CodexService";
 import { TransferService } from "./TransferService";
 import { env } from "../../bin/tub-server";
 import {
@@ -33,8 +31,8 @@ export class TubService {
   private transactionService: TransactionService;
   private feeService: FeeService;
   private analyticsService: AnalyticsService;
-  private codexService: CodexService;
   private transferService: TransferService;
+  private jupiterService: JupiterService;
 
   /**
    * Creates a new instance of TubService
@@ -42,8 +40,8 @@ export class TubService {
    * @param privy - Privy client for authentication
    * @param jupiter - JupiterService instance for transaction handling
    */
-  constructor(gqlClient: GqlClient["db"], privy: PrivyClient, codexSdk: Codex, jupiter: JupiterService) {
-    this.connection = new Connection(env.QUICKNODE_MAINNET_URL);
+  constructor(gqlClient: GqlClient["db"], privy: PrivyClient, jupiter: JupiterService) {
+    this.connection = new Connection(`${env.QUICKNODE_ENDPOINT}/${env.QUICKNODE_TOKEN}`);
     this.authService = new AuthService(privy);
 
     // Initialize fee payer
@@ -64,8 +62,8 @@ export class TubService {
     this.swapService = new SwapService(jupiter, this.transactionService, this.feeService);
 
     this.analyticsService = new AnalyticsService(gqlClient);
-    this.codexService = new CodexService(codexSdk);
     this.transferService = new TransferService(this.connection, feePayerKeypair);
+    this.jupiterService = jupiter;
   }
 
   // Status endpoint
@@ -79,9 +77,13 @@ export class TubService {
     return this.analyticsService.recordClientEvent(event, walletPublicKey.toBase58());
   }
 
-  // Codex methods
-  async requestCodexToken(expiration?: number) {
-    return this.codexService.requestToken(expiration);
+  // Price methods
+  async getSolUsdPrice(): Promise<number | undefined> {
+    return this.jupiterService.getSolUsdPrice();
+  }
+
+  subscribeSolPrice(callback: (price: number) => void): () => void {
+    return this.jupiterService.subscribeSolPrice(callback);
   }
 
   // Transfer methods
