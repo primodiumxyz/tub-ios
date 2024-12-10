@@ -135,7 +135,8 @@ export class TransactionService {
     // Simulate transaction
     const simulation = await this.connection.simulateTransaction(transaction);
     if (simulation.value?.err) {
-      throw new Error(`Transaction simulation failed: ${simulation.value.err.toString()}`);
+      console.error("Simulation error:", JSON.stringify(simulation.value.err, null, 2));
+      throw new Error(`Transaction simulation failed: ${JSON.stringify(simulation.value.err)}`);
     }
 
     // Send and confirm transaction
