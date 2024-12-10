@@ -1,41 +1,13 @@
-mutation BuyToken(
-  $wallet: String!
-  $token: String!
-  $amount: numeric!
-  $token_price: float8!
+mutation AddTokenPurchase(
+  $insert_token_purchase_one: token_purchase_insert_input!
 ) {
-  buy_token(
-    args: {
-      user_wallet: $wallet
-      token_address: $token
-      amount_to_buy: $amount
-      token_price: $token_price
-    }
-  ) {
+  insert_token_purchase_one(object: $insert_token_purchase_one) {
     id
   }
 }
 
-mutation SellToken(
-  $wallet: String!
-  $token: String!
-  $amount: numeric!
-  $token_price: float8!
-) {
-  sell_token(
-    args: {
-      user_wallet: $wallet
-      token_address: $token
-      amount_to_sell: $amount
-      token_price: $token_price
-    }
-  ) {
-    id
-  }
-}
-
-mutation AirdropNativeToUser($wallet: String!, $amount: numeric!) {
-  insert_wallet_transaction_one(object: { wallet: $wallet, amount: $amount }) {
+mutation AddTokenSale($insert_token_sale_one: token_sale_insert_input!) {
+  insert_token_sale_one(object: $insert_token_sale_one) {
     id
   }
 }

@@ -1,12 +1,13 @@
 import { describe, it, expect, beforeAll } from "vitest";
-import { TubService } from "../src/TubService";
-import { OctaneService } from "../src/OctaneService";
-import { Connection, Keypair, PublicKey, VersionedTransaction, VersionedMessage } from "@solana/web3.js";
+import { TubService } from "../src/services/TubService";
+import { JupiterService } from "../src/services/JupiterService";
+import { Connection, Keypair, VersionedTransaction, VersionedMessage } from "@solana/web3.js";
 import { createJupiterApiClient } from "@jup-ag/api";
 import { MockPrivyClient } from "./helpers/MockPrivyClient";
 import { createClient as createGqlClient } from "@tub/gql";
 import bs58 from "bs58";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
+import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY } from "../src/constants/tokens";
 
 // Skip entire suite in CI, because it would perform a live transaction each deployment
 (process.env.CI ? describe.skip : describe)("TubService Integration Test", () => {
@@ -29,15 +30,6 @@ import { getAssociatedTokenAddress } from "@solana/spl-token";
         basePath: process.env.JUPITER_URL,
       });
 
-      // Create cache for OctaneService
-      const cache = await (
-        await import("cache-manager")
-      ).caching({
-        store: "memory",
-        max: 100,
-        ttl: 10 * 1000, // 10 seconds
-      });
-
       // Create test fee payer keypair
       const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(process.env.FEE_PAYER_PRIVATE_KEY!));
 
@@ -46,16 +38,7 @@ import { getAssociatedTokenAddress } from "@solana/spl-token";
       mockJwtToken = "test_jwt_token";
 
       // Initialize services
-      const octaneService = new OctaneService(
-        connection,
-        jupiterQuoteApi,
-        feePayerKeypair,
-        new PublicKey(process.env.OCTANE_TRADE_FEE_RECIPIENT!),
-        Number(process.env.OCTANE_BUY_FEE),
-        0, // sell fee
-        15, // min trade size
-        cache,
-      );
+      const jupiterService = new JupiterService(connection, jupiterQuoteApi);
 
       const gqlClient = (
         await createGqlClient({
@@ -71,22 +54,18 @@ import { getAssociatedTokenAddress } from "@solana/spl-token";
         gqlClient,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockPrivyClient as any,
-        octaneService,
+        jupiterService,
       );
 
       console.log("\nTest setup complete with user public key:", userKeypair.publicKey.toBase58());
 
-      // Log all relevant token accounts
-      const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
-      const SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
-
       // Get fee payer token accounts
-      const feePayerUsdcAta = await getAssociatedTokenAddress(USDC_MINT, feePayerKeypair.publicKey);
-      const feePayerSolAta = await getAssociatedTokenAddress(SOL_MINT, feePayerKeypair.publicKey);
+      const feePayerUsdcAta = await getAssociatedTokenAddress(USDC_MAINNET_PUBLIC_KEY, feePayerKeypair.publicKey);
+      const feePayerSolAta = await getAssociatedTokenAddress(SOL_MAINNET_PUBLIC_KEY, feePayerKeypair.publicKey);
 
       // Get user token accounts
-      const userUsdcAta = await getAssociatedTokenAddress(USDC_MINT, userKeypair.publicKey);
-      const userSolAta = await getAssociatedTokenAddress(SOL_MINT, userKeypair.publicKey);
+      const userUsdcAta = await getAssociatedTokenAddress(USDC_MAINNET_PUBLIC_KEY, userKeypair.publicKey);
+      const userSolAta = await getAssociatedTokenAddress(SOL_MAINNET_PUBLIC_KEY, userKeypair.publicKey);
 
       console.log("\nToken Accounts:");
       console.log("Fee Payer:", feePayerKeypair.publicKey.toBase58());
@@ -112,7 +91,7 @@ import { getAssociatedTokenAddress } from "@solana/spl-token";
     }
   });
 
-  describe.skip("should complete a full USDC to SOL swap flow", () => {
+  describe("should complete a full USDC to SOL swap flow", () => {
     it("should complete a full USDC to SOL swap flow", async () => {
       try {
         console.log("\nStarting USDC to SOL swap flow test");

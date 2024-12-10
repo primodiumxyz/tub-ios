@@ -1,13 +1,21 @@
 import { initTRPC } from "@trpc/server";
 import { observable } from "@trpc/server/observable";
 import { z } from "zod";
-import { TubService } from "./TubService";
-import { PrebuildSwapResponse } from "../types/PrebuildSwapRequest";
+import { TubService } from "./services/TubService";
+import { PrebuildSwapResponse, UserPrebuildSwapRequest } from "./types";
+import { Subject } from "rxjs";
 
 export type AppContext = {
   tubService: TubService;
   jwtToken: string;
 };
+
+// Validation schemas
+const swapRequestSchema = z.object({
+  buyTokenId: z.string(),
+  sellTokenId: z.string(),
+  sellQuantity: z.number(),
+}) satisfies z.ZodType<UserPrebuildSwapRequest>;
 
 /**
  * Creates and configures the main tRPC router with all API endpoints.
@@ -56,6 +64,47 @@ export function createAppRouter() {
       });
     }),
 
+    swapStream: t.procedure.input(z.object({ request: swapRequestSchema })).subscription(async ({ ctx, input }) => {
+      return observable<PrebuildSwapResponse>((emit) => {
+        let subject: Subject<PrebuildSwapResponse> | undefined;
+        let cleanup: (() => void) | undefined;
+
+        ctx.tubService
+          .startSwapStream(ctx.jwtToken, input.request)
+          .then((s) => {
+            if (!s) {
+              emit.error(new Error("Failed to start swap stream"));
+              return;
+            }
+
+            subject = s;
+            const subscription = subject.subscribe({
+              next: (response: PrebuildSwapResponse) => {
+                emit.next(response);
+              },
+              error: (error: Error) => {
+                emit.error(error);
+              },
+              complete: () => {
+                emit.complete();
+              },
+            });
+
+            cleanup = () => {
+              subscription.unsubscribe();
+              subject?.complete();
+            };
+          })
+          .catch((error) => {
+            emit.error(error);
+          });
+
+        return () => {
+          cleanup?.();
+        };
+      });
+    }),
+
     /**
      * Creates a subscription stream for token swaps
      * @param buyTokenId - The token ID to buy
@@ -80,16 +129,22 @@ export function createAppRouter() {
           ctx.tubService
             .startSwapStream(ctx.jwtToken, input)
             .then((s) => {
+              if (!s) {
+                emit.error(new Error("Failed to start swap stream"));
+                return;
+              }
               subject = s;
-              subject.subscribe({
-                next: (response: PrebuildSwapResponse) => {
-                  emit.next(response);
-                },
-                error: (error: Error) => {
-                  console.error("Swap stream error:", error);
-                  emit.error(error);
-                },
-              });
+              if (subject) {
+                subject.subscribe({
+                  next: (response: PrebuildSwapResponse) => {
+                    emit.next(response);
+                  },
+                  error: (error: Error) => {
+                    console.error("Swap stream error:", error);
+                    emit.error(error);
+                  },
+                });
+              }
             })
             .catch((error) => {
               console.error("Failed to start swap stream:", error);
@@ -111,9 +166,9 @@ export function createAppRouter() {
     updateSwapRequest: t.procedure
       .input(
         z.object({
-          buyTokenId: z.string().optional(),
-          sellTokenId: z.string().optional(),
-          sellQuantity: z.number().optional(),
+          buyTokenId: z.string(),
+          sellTokenId: z.string(),
+          sellQuantity: z.number(),
         }),
       )
       .mutation(async ({ ctx, input }) => {
@@ -175,6 +230,40 @@ export function createAppRouter() {
       .mutation(async ({ ctx, input }) => {
         const amountBigInt = BigInt(input.amount);
         return await ctx.tubService.getSignedTransfer(ctx.jwtToken, { ...input, amount: amountBigInt });
+      }),
+
+    recordTokenPurchase: t.procedure
+      .input(
+        z.object({
+          tokenMint: z.string(),
+          tokenAmount: z.string(),
+          tokenPriceUsd: z.string(),
+          source: z.string(),
+          errorDetails: z.string().optional(),
+          userAgent: z.string(),
+          buildVersion: z.string(),
+          userWallet: z.string(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        return await ctx.tubService.recordTokenPurchase(input, ctx.jwtToken);
+      }),
+
+    recordTokenSale: t.procedure
+      .input(
+        z.object({
+          tokenMint: z.string(),
+          tokenAmount: z.string(),
+          tokenPriceUsd: z.string(),
+          source: z.string(),
+          errorDetails: z.string().optional(),
+          userAgent: z.string(),
+          buildVersion: z.string(),
+          userWallet: z.string(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        return await ctx.tubService.recordTokenSale(input, ctx.jwtToken);
       }),
   });
 }
