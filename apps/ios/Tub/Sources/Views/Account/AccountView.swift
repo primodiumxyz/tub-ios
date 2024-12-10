@@ -36,9 +36,11 @@ struct AccountView: View {
             .background(Color(UIColor.systemBackground))
             .sheet(isPresented: $showWithdrawView) {
                 WithdrawView()
+                    .withNotificationBanner()
             }
             .sheet(isPresented: $showOnrampView) {
                 CoinbaseOnrampView()
+                    .withNotificationBanner()
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

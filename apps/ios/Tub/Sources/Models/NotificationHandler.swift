@@ -41,41 +41,31 @@ class NotificationHandler: ObservableObject {
     @Published var notificationType: NotificationType = .info
 
     private var hideWorkItem: DispatchWorkItem?
-    private var notificationWindow: UIWindow?
 
     func show(_ message: String, type: NotificationType) {
-        hideWorkItem?.cancel()
-
-        let notificationView = _NotificationBanner(
-            message: message,
-            type: type,
-            onClose: { [weak self] in
-                self?.hide()
-            }
-        )
-
-        let hostingController = UIHostingController(rootView: notificationView)
-        hostingController.view.backgroundColor = .clear
-        hostingController.modalPresentationStyle = .overFullScreen
-
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-            let window = UIWindow(windowScene: windowScene)
-            window.backgroundColor = .clear
-            window.windowLevel = .alert + 1
-            window.rootViewController = hostingController
-            window.isHidden = false
-            self.notificationWindow = window
-
-            let workItem = DispatchWorkItem { [weak self] in
-                self?.hide()
-            }
-            hideWorkItem = workItem
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: workItem)
-        }
+        showNotification(message, type: type)
 
         if type == .error {
             os_log("Error: %{public}@", log: .default, type: .error, message)
         }
+    }
+
+    private func showNotification(_ message: String, type: NotificationType) {
+        hideWorkItem?.cancel()
+
+        self.message = message
+        self.notificationType = type
+        self.isShowingNotification = true
+
+        let workItem = DispatchWorkItem { [weak self] in
+            withAnimation {
+                self?.isShowingNotification = false
+                self?.message = nil
+            }
+        }
+        hideWorkItem = workItem
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: workItem)
     }
 
     func hide() {
@@ -83,8 +73,8 @@ class NotificationHandler: ObservableObject {
         hideWorkItem = nil
 
         withAnimation {
-            notificationWindow?.isHidden = true
-            notificationWindow = nil
+            isShowingNotification = false
+            message = nil
         }
     }
 }
