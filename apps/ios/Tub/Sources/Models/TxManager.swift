@@ -152,7 +152,7 @@ final class TxManager: ObservableObject {
             
             let provider = try privy.embeddedWallet.getSolanaProvider(for: walletAddress)
             let signature = try await provider.signMessage(message: txData.transactionMessageBase64)
-            let res = try await Network.shared.submitSignedTx(
+            let _ = try await Network.shared.submitSignedTx(
                 txBase64: txData.transactionMessageBase64,
                 signature: signature
             )

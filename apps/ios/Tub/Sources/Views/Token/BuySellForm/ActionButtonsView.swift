@@ -12,6 +12,7 @@ struct ActionButtonsView: View {
     @EnvironmentObject var userModel: UserModel
     @EnvironmentObject var priceModel: SolPriceModel
     @ObservedObject var tokenModel: TokenModel
+    
     @Binding var showBuySheet: Bool
     @StateObject private var settingsManager = SettingsManager.shared
     @State private var isLoginPresented = false
@@ -92,15 +93,16 @@ struct ActionButtonsView: View {
                                     color: .tubBuyPrimary,
                                     iconSize: 20,
                                     iconWeight: .bold,
+                                    disabled: !tokenModel.isReady,
                                     action: { showBuySheet = true }
                                 )
 
-                                BuyButton(handleBuy: handleBuy)
+                                BuyButton(handleBuy: handleBuy, disabled: !tokenModel.isReady)
                             }
                         }
                     }
                     else {
-                        SellButton(onSell: handleSell)
+                        SellButton(onSell: handleSell, disabled: !tokenModel.isReady)
                     }
                 case .connecting:
                     ConnectingButton()
@@ -188,10 +190,12 @@ private struct BuyButton: View {
     @StateObject private var txManager = TxManager.shared
 
     var handleBuy: () async -> Void
+    var disabled = false
 
     var body: some View {
         PrimaryButton(
             text: "Buy \(priceModel.formatPrice(usdc: settingsManager.defaultBuyValueUsdc))",
+            disabled: disabled,
             loading: txManager.submittingTx,
             action: {
                 Task {
@@ -205,15 +209,15 @@ private struct BuyButton: View {
 struct SellButton: View {
     @EnvironmentObject var priceModel: SolPriceModel
     @StateObject private var txManager = TxManager.shared
-
     var onSell: () async -> Void
+    var disabled: Bool = false
 
     var body: some View {
-        HStack(spacing: 8) {
             PrimaryButton(
                 text: "Sell",
                 textColor: .white,
                 backgroundColor: .tubSellPrimary,
+                disabled: disabled,
                 loading: txManager.submittingTx,
                 action: {
                     Task {
@@ -221,7 +225,6 @@ struct SellButton: View {
                     }
                 }
             )
-        }
     }
 }
 
@@ -270,6 +273,13 @@ extension ActionButtonsView: Equatable {
             }
         }
 
+        var tokenModel = {
+            let model = TokenModel()
+            model.isReady = true
+            return model
+        }()
+        
+            
         var body: some View {
             VStack {
                 VStack {
@@ -283,7 +293,7 @@ extension ActionButtonsView: Equatable {
                 }.padding(16).background(.tubBuySecondary)
                 Spacer().frame(height: 50)
                 ActionButtonsView(
-                    tokenModel: TokenModel(),
+                    tokenModel: tokenModel,
                     showBuySheet: $show,
                     showBubbles: Binding.constant(false),
                     handleBuy: { },
