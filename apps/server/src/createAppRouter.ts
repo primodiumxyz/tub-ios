@@ -47,11 +47,22 @@ export function createAppRouter() {
         return await ctx.tubService.recordClientEvent(input, ctx.jwtToken);
       }),
 
-    requestCodexToken: t.procedure
-      .input(z.object({ expiration: z.number().optional() }))
-      .mutation(async ({ ctx, input }) => {
-        return await ctx.tubService.requestCodexToken(input.expiration);
-      }),
+    getSolUsdPrice: t.procedure.query(async ({ ctx }) => {
+      return await ctx.tubService.getSolUsdPrice();
+    }),
+
+    subscribeSolPrice: t.procedure.subscription(({ ctx }) => {
+      return observable<number>((emit) => {
+        const onPrice = (price: number) => {
+          emit.next(price);
+        };
+
+        const cleanup = ctx.tubService.subscribeSolPrice(onPrice);
+        return () => {
+          cleanup();
+        };
+      });
+    }),
 
     swapStream: t.procedure.input(z.object({ request: swapRequestSchema })).subscription(async ({ ctx, input }) => {
       return observable<PrebuildSwapResponse>((emit) => {

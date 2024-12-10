@@ -1,5 +1,7 @@
 import { Connection, PublicKey, TransactionInstruction, AddressLookupTableAccount } from "@solana/web3.js";
 import { DefaultApi, QuoteGetRequest, SwapInstructionsPostRequest } from "@jup-ag/api";
+import { EventEmitter } from "events";
+import { SOL_USD_PRICE_UPDATE_INTERVAL } from "../constants/registry";
 
 export type JupiterSettings = {
   connection: Connection;
@@ -20,6 +22,9 @@ interface JupiterInstruction {
  * Service for interacting with Jupiter API
  */
 export class JupiterService {
+  private solUsdPrice: number | undefined;
+  private priceEmitter = new EventEmitter();
+
   /**
    * Creates a new instance of JupiterService
    * @param connection - Solana RPC connection
@@ -28,7 +33,15 @@ export class JupiterService {
   constructor(
     private connection: Connection,
     private jupiterQuoteApi: DefaultApi,
-  ) {}
+  ) {
+    // Update the SOL/USD price at every interval
+    const interval = setInterval(() => {
+      this.updateSolUsdPrice();
+    }, SOL_USD_PRICE_UPDATE_INTERVAL);
+    this.updateSolUsdPrice();
+
+    interval.unref(); // allow Node.js to exit if only this interval is still running
+  }
 
   getSettings(): JupiterSettings {
     return {
@@ -128,6 +141,39 @@ export class JupiterService {
     } catch (error) {
       console.error("[getSwapInstructions] Error getting swap instructions:", error);
       throw new Error(`Failed to get swap instructions: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
+  }
+
+  async getSolUsdPrice(): Promise<number | undefined> {
+    if (!this.solUsdPrice) await this.updateSolUsdPrice();
+    return this.solUsdPrice;
+  }
+
+  subscribeSolPrice(callback: (price: number) => void): () => void {
+    this.priceEmitter.on("price", callback);
+    // Send current price immediately if available
+    if (this.solUsdPrice !== undefined) callback(this.solUsdPrice);
+
+    // Return cleanup function
+    return () => {
+      this.priceEmitter.off("price", callback);
+    };
+  }
+
+  private async updateSolUsdPrice(): Promise<void> {
+    try {
+      const res = await this.jupiterQuoteApi.quoteGet({
+        inputMint: "So11111111111111111111111111111111111111112",
+        outputMint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        amount: 1 * 1e9, // convert to lamports
+      });
+
+      this.solUsdPrice = Number(res.outAmount) / 1e6; // convert to USD from USDC (6 decimals)
+      this.priceEmitter.emit("price", this.solUsdPrice);
+
+      console.log(`SOL/USD price updated: ${this.solUsdPrice?.toLocaleString("en-US", { maximumFractionDigits: 2 })}`);
+    } catch (error) {
+      console.error("Error updating SOL/USD price:", error);
     }
   }
 }
