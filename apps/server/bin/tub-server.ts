@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { AppRouter, createAppRouter } from "../src/createAppRouter";
-import { JupiterService } from "../src/JupiterService";
-import { TubService } from "../src/TubService";
+import { JupiterService } from "../src/services/JupiterService";
+import { TubService } from "../src/services/TubService";
 import { parseEnv } from "../bin/parseEnv";
 import { Codex } from "@codex-data/sdk";
 import fastifyWebsocket from "@fastify/websocket";

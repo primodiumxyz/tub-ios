@@ -1,7 +1,7 @@
 import { initTRPC } from "@trpc/server";
 import { observable } from "@trpc/server/observable";
 import { z } from "zod";
-import { TubService } from "./TubService";
+import { TubService } from "./services/TubService";
 import { PrebuildSwapResponse, UserPrebuildSwapRequest } from "./types";
 import { Subject } from "rxjs";
 

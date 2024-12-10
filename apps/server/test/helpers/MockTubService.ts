@@ -1,7 +1,7 @@
-import { TubService } from "../../src/TubService";
+import { TubService } from "../../src/services/TubService";
 import { GqlClient } from "@tub/gql";
 import { Codex } from "@codex-data/sdk";
-import { JupiterService } from "../../src/JupiterService";
+import { JupiterService } from "../../src/services/JupiterService";
 
 export class MockTubService extends TubService {
   private testWalletAddress: string;
