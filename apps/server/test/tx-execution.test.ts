@@ -1,7 +1,6 @@
 import { Connection, PublicKey, Keypair } from "@solana/web3.js";
 import { DefaultApi, Configuration } from "@jup-ag/api";
 import { JupiterService } from "../src/services/JupiterService";
-import { TransactionService } from "../src/services/TransactionService";
 import { Cache } from "cache-manager";
 import { describe, it, beforeAll } from "vitest";
 import { env } from "@bin/tub-server";
@@ -12,7 +11,6 @@ describe.skip("Tx Execution Test", () => {
   let connection: Connection;
   let jupiterQuoteApi: DefaultApi;
   let jupiterService: JupiterService;
-  let transactionService: TransactionService;
   let cache: Cache;
 
   beforeAll(async () => {
@@ -40,7 +38,6 @@ describe.skip("Tx Execution Test", () => {
         15,
         cache,
       );
-      transactionService = new TransactionService(connection, feePayerKeypair, feePayerPublicKey);
     } catch (error) {
       console.error("Error in test setup:", error);
       if (error instanceof Error) {
@@ -66,25 +63,5 @@ describe.skip("Tx Execution Test", () => {
   it("should get instructions for USDC to GRIFT", async () => {
     const swapInstructions = await jupiterService.getSwapInstructions(quoteRequest, testKeypair.publicKey);
     console.info("content:", swapInstructions.instructions?.length);
-  });
-
-  it("should execute the tx", async () => {
-    // Get swap instructions
-    const swapInstructions = await jupiterService.getSwapInstructions(quoteRequest, testKeypair.publicKey);
-
-    // Build transaction message
-    const message = await transactionService.buildTransactionMessage(
-      swapInstructions.instructions,
-      swapInstructions.addressLookupTableAccounts,
-    );
-
-    // Register transaction
-    const base64Message = transactionService.registerTransaction(message);
-
-    // Sign and send transaction
-    const userSignature = "user_signature_base64"; // Replace with actual user signature
-    const tx = await transactionService.signAndSendTransaction(testKeypair.publicKey, userSignature, base64Message);
-
-    console.info("tx:", tx);
   });
 });

@@ -112,8 +112,8 @@ import { env } from "@bin/tub-server";
     }
   });
 
-  describe.only("should complete a full USDC to SOL swap flow", () => {
-    it("should complete a full USDC to SOL swap flow", async () => {
+  describe.skip("swap execution", () => {
+    it("should complete a USDC to SOL swap", async () => {
       try {
         console.log("\nStarting USDC to SOL swap flow test");
         console.log("User public key:", userKeypair.publicKey.toBase58());
@@ -160,6 +160,44 @@ import { env } from "@bin/tub-server";
         console.error("Error in swap flow test:", error);
         throw error;
       }
-    }, 30000);
+    }, 11000);
+
+    it("should complete a USDC to GRIFT swap", async () => {
+      const GRIFT_MINT = "DcRHumYETnVKowMmDSXQ5RcGrFZFAnaqrQ1AZCHXpump";
+      // Get swap instructions
+      const swapResponse = await tubService.fetchSwap(mockJwtToken, {
+        buyTokenId: GRIFT_MINT,
+        sellTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
+        sellQuantity: 1e6 / 1000, // 0.001 USDC
+      });
+
+      // Decode transaction
+      const handoff = Buffer.from(swapResponse.transactionMessageBase64, "base64");
+      const message = VersionedMessage.deserialize(handoff);
+      const transaction = new VersionedTransaction(message);
+
+      // User signs
+      transaction.sign([userKeypair]);
+      const userSignature = transaction.signatures![1];
+      if (!userSignature) {
+        throw new Error("Failed to get signature from transaction");
+      }
+
+      // Convert raw signature to base64
+      const base64Signature = Buffer.from(userSignature).toString("base64");
+
+      // --- End Simulating Mock Privy Interaction ---
+
+      const result = await tubService.signAndSendTransaction(
+        mockJwtToken,
+        base64Signature,
+        swapResponse.transactionMessageBase64, // Send original unsigned transaction
+      );
+
+      console.log("Transaction result:", result);
+
+      expect(result).toBeDefined();
+      expect(result.signature).toBeDefined();
+    }, 11000);
   });
 });
