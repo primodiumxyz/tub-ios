@@ -1,16 +1,56 @@
 import { graphql } from "./init";
 
 export const AddTokenPurchaseMutation = graphql(`
-  mutation AddTokenPurchase($insert_token_purchase_one: token_purchase_insert_input!) {
-    insert_token_purchase_one(object: $insert_token_purchase_one) {
+  mutation AddTokenPurchase(
+    $token_mint: String!
+    $token_amount: numeric!
+    $token_price_usd: numeric!
+    $user_wallet: String!
+    $user_agent: String!
+    $source: String
+    $error_details: String
+    $build: String
+  ) {
+    insert_token_purchase_one(
+      object: {
+        token_mint: $token_mint
+        token_amount: $token_amount
+        token_price_usd: $token_price_usd
+        user_wallet: $user_wallet
+        user_agent: $user_agent
+        source: $source
+        error_details: $error_details
+        build: $build
+      }
+    ) {
       id
     }
   }
 `);
 
 export const AddTokenSaleMutation = graphql(`
-  mutation AddTokenSale($insert_token_sale_one: token_sale_insert_input!) {
-    insert_token_sale_one(object: $insert_token_sale_one) {
+  mutation AddTokenSale(
+    $token_mint: String!
+    $token_amount: numeric!
+    $token_price_usd: numeric!
+    $user_wallet: String!
+    $user_agent: String!
+    $source: String
+    $error_details: String
+    $build: String
+  ) {
+    insert_token_sale_one(
+      object: {
+        token_mint: $token_mint
+        token_amount: $token_amount
+        token_price_usd: $token_price_usd
+        user_wallet: $user_wallet
+        user_agent: $user_agent
+        source: $source
+        error_details: $error_details
+        build: $build
+      }
+    ) {
       id
     }
   }

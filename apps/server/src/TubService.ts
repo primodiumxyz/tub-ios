@@ -7,7 +7,7 @@ import { SwapService } from "./services/SwapService";
 import { TransactionService } from "./services/TransactionService";
 import { FeeService } from "./services/FeeService";
 import { AuthService } from "./services/AuthService";
-import { AnalyticsService } from "./services/AnalyticsService";
+import { AnalyticsService, TokenPurchaseOrSaleEvent } from "./services/AnalyticsService";
 import { CodexService } from "./services/CodexService";
 import { TransferService } from "./services/TransferService";
 import { env } from "../bin/tub-server";
@@ -85,6 +85,16 @@ export class TubService {
   async recordClientEvent(event: ClientEvent, jwtToken: string): Promise<string> {
     const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
     return this.analyticsService.recordClientEvent(event, walletPublicKey.toBase58());
+  }
+
+  async recordTokenPurchase(event: TokenPurchaseOrSaleEvent, jwtToken: string): Promise<string> {
+    const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
+    return this.analyticsService.recordTokenPurchase(event, walletPublicKey.toBase58());
+  }
+
+  async recordTokenSale(event: TokenPurchaseOrSaleEvent, jwtToken: string): Promise<string> {
+    const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
+    return this.analyticsService.recordTokenSale(event, walletPublicKey.toBase58());
   }
 
   // Codex methods
