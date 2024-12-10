@@ -1,0 +1,20 @@
+table:
+  name: token_purchase
+  schema: public
+select_permissions:
+  - role: public
+    permission:
+      columns:
+        - token_amount
+        - token_price_usd
+        - build
+        - error_details
+        - source
+        - token_mint
+        - user_agent
+        - user_wallet
+        - created_at
+        - id
+      filter: {}
+      allow_aggregations: true
+    comment: ""

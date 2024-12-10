@@ -85,9 +85,9 @@ struct HistoryView: View {
                 do {
                     switch result {
                     case .success(let graphQLResult):
-                        if let tokenTransactions = graphQLResult.data?.token_transaction {
+                        if let tokenTransactions = graphQLResult.data?.transactions {
                             // Get unique token addresses
-                            let uniqueTokens = Set(tokenTransactions.map { $0.token })
+                            let uniqueTokens = Set(tokenTransactions.map { $0.token_mint })
                             
                             // Fetch all metadata in one call
                             let metadata = try await fetchTokenMetadata(addresses: Array(uniqueTokens))
@@ -98,20 +98,28 @@ struct HistoryView: View {
                             var processedTxs: [TransactionData] = []
 
                             for transaction in tokenTransactions {
-                                guard let date = formatDateString(transaction.wallet_transaction_data.created_at)
+                                guard let date = formatDateString(transaction.created_at)
                                 else {
                                     continue
                                 }
 
-                                if abs(transaction.amount) == 0 {
+                                if abs(transaction.token_amount) == 0 {
                                     continue
                                 }
 
-                                let metadata = self.tokenMetadata[transaction.token]
-                                let isBuy = transaction.amount >= 0
-                                let mint = transaction.token
-                                let priceUsdc = transaction.token_price
-                                let valueUsdc = Int(transaction.amount) * Int(priceUsdc) / Int(1e9)
+                                // Fetch token metadata if not cached
+                                if tokenMetadata[transaction.token_mint] == nil {
+                                    let metadata = try await fetchTokenMetadata(address: transaction.token_mint)
+                                    await MainActor.run {
+                                        tokenMetadata[transaction.token_mint] = metadata
+                                    }
+                                }
+
+                                let mint = transaction.token_mint
+                                let metadata = tokenMetadata[mint]
+                                let isBuy = transaction.token_amount >= 0
+                                let priceUsdc = transaction.token_price_usd
+                                let valueUsdc = Int(transaction.token_amount) * Int(priceUsdc) / Int(1e9)
 
                                 let newTransaction = TransactionData(
                                     name: metadata?.name ?? "",
@@ -120,7 +128,7 @@ struct HistoryView: View {
                                     date: date,
                                     valueUsd: priceModel.usdcToUsd(usdc: -valueUsdc),
                                     valueUsdc: -valueUsdc,
-                                    quantityTokens: Int(transaction.amount),
+                                    quantityTokens: Int(transaction.token_amount),
                                     isBuy: isBuy,
                                     mint: mint
                                 )

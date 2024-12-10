@@ -345,8 +345,8 @@ final class UserModel: ObservableObject {
             }
         }
     }
-    
-    func buyTokens(buyQuantityUsdc: Int, tokenPriceUsdc: Int) async throws {
+
+    func buyTokens(buyQuantityUsdc: Int, tokenPriceUsdc: Int, tokenPriceUsd: Double) async throws {
         guard let walletAddress else {
             throw TubError.notLoggedIn
         }
@@ -378,17 +378,12 @@ final class UserModel: ObservableObject {
         }
         
         do {
-            try await Network.shared.recordClientEvent(
-                event: ClientEvent(
-                    eventName: "buy_tokens",
-                    source: "token_model",
-                    metadata: [
-                        ["buy_amount": buyQuantityToken],
-                        ["price": tokenPriceUsdc],
-                        ["token_id": tokenId],
-                    ],
-                    errorDetails: err?.localizedDescription
-                )
+            try await Network.shared.recordTokenPurchase(
+                tokenMint: tokenId,
+                tokenAmount: Double(buyQuantityToken),
+                tokenPriceUsd: tokenPriceUsd,
+                source: "user_model",
+                errorDetails: err?.localizedDescription
             )
             print("Successfully recorded buy event")
         }
@@ -400,8 +395,8 @@ final class UserModel: ObservableObject {
             throw err
         }
     }
-    
-    func sellTokens(price: Int) async throws {
+
+    func sellTokens(tokenPriceUsd: Double) async throws {
         guard let walletAddress else {
             throw TubError.notLoggedIn
         }
@@ -426,16 +421,12 @@ final class UserModel: ObservableObject {
         }
         
         do {
-            try await Network.shared.recordClientEvent(
-                event: ClientEvent(
-                    eventName: "sell_tokens",
-                    source: "token_model",
-                    metadata: [
-                        ["sell_amount": balanceToken],
-                        ["token_id": tokenId],
-                    ],
-                    errorDetails: err?.localizedDescription
-                )
+            try await Network.shared.recordTokenSale(
+                tokenMint: tokenId,
+                tokenAmount: Double(balance),
+                tokenPriceUsd: tokenPriceUsd,
+                source: "user_model",
+                errorDetails: err?.localizedDescription
             )
             print("Successfully recorded sell event")
         }

@@ -60,7 +60,8 @@ struct TokenView: View {
         do {
             try await userModel.buyTokens(
                 buyQuantityUsdc: buyQuantityUsdc,
-                tokenPriceUsdc: priceUsdc
+                tokenPriceUsdc: priceUsdc,
+                tokenPriceUsd: priceUsd
             )
             await MainActor.run {
                 showBuySheet = false

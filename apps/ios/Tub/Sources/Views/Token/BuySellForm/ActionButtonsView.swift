@@ -55,10 +55,8 @@ struct ActionButtonsView: View {
             return
         }
 
-        let priceUsdc = priceModel.usdToUsdc(usd: tokenPriceUsd)
-
         do {
-            try await userModel.sellTokens(price: priceUsdc)
+            try await userModel.sellTokens(tokenPriceUsd: tokenPriceUsd)
             await MainActor.run {
                 showBubbles = true
                 onSellSuccess?()
