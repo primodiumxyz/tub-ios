@@ -3,14 +3,14 @@ import { GqlClient } from "@tub/gql";
 import { PrivyClient } from "@privy-io/server-auth";
 import { Codex } from "@codex-data/sdk";
 import { JupiterService } from "./JupiterService";
-import { SwapService } from "./services/SwapService";
-import { TransactionService } from "./services/TransactionService";
-import { FeeService } from "./services/FeeService";
-import { AuthService } from "./services/AuthService";
-import { AnalyticsService } from "./services/AnalyticsService";
-import { CodexService } from "./services/CodexService";
-import { TransferService } from "./services/TransferService";
-import { env } from "../bin/tub-server";
+import { SwapService } from "./SwapService";
+import { TransactionService } from "./TransactionService";
+import { FeeService } from "./FeeService";
+import { AuthService } from "./AuthService";
+import { AnalyticsService } from "./AnalyticsService";
+import { CodexService } from "./CodexService";
+import { TransferService } from "./TransferService";
+import { env } from "../../bin/tub-server";
 import {
   UserPrebuildSwapRequest,
   PrebuildSwapResponse,
@@ -18,9 +18,9 @@ import {
   ClientEvent,
   TransferRequest,
   SignedTransfer,
-} from "./types";
-import { deriveTokenAccounts } from "./utils/tokenAccounts";
-import { SOL_MAINNET_PUBLIC_KEY, USDC_MAINNET_PUBLIC_KEY } from "./constants/tokens";
+} from "../types";
+import { deriveTokenAccounts } from "../utils/tokenAccounts";
+import { SOL_MAINNET_PUBLIC_KEY, USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
 import bs58 from "bs58";
 
 /**

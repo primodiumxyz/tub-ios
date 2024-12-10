@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll } from "vitest";
-import { TubService } from "../src/TubService";
-import { JupiterService } from "../src/JupiterService";
+import { TubService } from "../src/services/TubService";
+import { JupiterService } from "../src/services/JupiterService";
 import { Connection, Keypair, PublicKey, VersionedTransaction, VersionedMessage } from "@solana/web3.js";
 import { createJupiterApiClient } from "@jup-ag/api";
 import { MockPrivyClient } from "./helpers/MockPrivyClient";

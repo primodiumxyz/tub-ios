@@ -1,6 +1,6 @@
 import { Connection, PublicKey, TransactionMessage, VersionedTransaction, Keypair } from "@solana/web3.js";
 import { DefaultApi, Configuration } from "@jup-ag/api";
-import { JupiterService } from "../src/JupiterService";
+import { JupiterService } from "../src/services/JupiterService";
 import { TransactionService } from "../src/services/TransactionService";
 import { Cache } from "cache-manager";
 import { describe, it, expect, beforeAll } from "vitest";
