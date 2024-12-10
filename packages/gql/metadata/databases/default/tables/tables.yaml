@@ -1,3 +1,1 @@
 - "!include public_analytics_client_event.yaml"
-- "!include public_token_transaction.yaml"
-- "!include public_wallet_transaction.yaml"

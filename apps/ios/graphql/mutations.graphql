@@ -1,3 +1,4 @@
+# TODO: modify to insert in token_purchase
 mutation BuyToken(
   $wallet: String!
   $token: String!
@@ -16,6 +17,7 @@ mutation BuyToken(
   }
 }
 
+# TODO: modify to insert in token_sale
 mutation SellToken(
   $wallet: String!
   $token: String!
@@ -30,12 +32,6 @@ mutation SellToken(
       token_price: $token_price
     }
   ) {
-    id
-  }
-}
-
-mutation AirdropNativeToUser($wallet: String!, $amount: numeric!) {
-  insert_wallet_transaction_one(object: { wallet: $wallet, amount: $amount }) {
     id
   }
 }
