@@ -20,6 +20,7 @@ struct AccountBalanceView: View {
         let usdcBalanceUsd =
             userModel.balanceUsdc == nil
             ? nil : priceModel.usdcToUsd(usdc: userModel.balanceUsdc!)
+        // todo: replace hardcoded 9 decimals with decimals from token
         let tokenBalanceUsd =
             Double(balanceToken) * (currentTokenModel.prices.last?.priceUsd ?? 0) / 1e9
 

@@ -97,6 +97,8 @@ struct AppContent: View {
             }
             // we wait to begin the token subscription until the user is ready (either logged in or not) 
             Task(priority: .high) {
+                // we clear the queue when the user logs in/out to force showing owned tokens first
+                tokenListModel.clearQueue()
                 await tokenListModel.startTokenSubscription()
             }
         }

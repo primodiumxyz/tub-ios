@@ -97,13 +97,14 @@ struct TokenListView: View {
                 BubbleEffect(isActive: $showBubbles)
                     .zIndex(10)
             }
+            
             AccountBalanceView(
                 userModel: userModel,
                 currentTokenModel: tokenListModel.currentTokenModel
             )
             .zIndex(3)
 
-            if !tokenListModel.isReady {
+            if tokenListModel.totalTokenCount == 0 && tokenListModel.fetching {
 
                 GeometryReader { geometry in
                     TokenView(
@@ -114,8 +115,7 @@ struct TokenListView: View {
                     .frame(height: geometry.size.height)
                     .offset(y: OFFSET)
                 }
-            }
-            else {
+            } else {
                 // Main content
 
                 VStack(spacing: 0) {

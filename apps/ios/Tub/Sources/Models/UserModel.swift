@@ -89,6 +89,7 @@ final class UserModel: ObservableObject {
                         self.walletState = state
                     }
                 default:
+                    
                     self.logout(skipPrivy: true)
                 }
                 
@@ -123,6 +124,7 @@ final class UserModel: ObservableObject {
         DispatchQueue.main.async {
             self.initialTime = Date()
             self.initializingUser = false
+            print("finished initializing user")
         }
     }
     
@@ -313,8 +315,12 @@ final class UserModel: ObservableObject {
             self.balanceUsdc = 0
             self.initialBalanceUsdc = nil
             self.balanceChangeUsdc = 0
-            self.stopTimer()
             self.elapsedSeconds = 0
+            self.tokenPortfolio = [:]
+            
+            self.stopTimer()
+            self.stopPollingUsdcBalance()
+            self.stopPollingTokenPortfolio()
         }
         if !skipPrivy {
             privy.logout()

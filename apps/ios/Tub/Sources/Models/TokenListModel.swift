@@ -18,8 +18,6 @@ import TubAPI
 final class TokenListModel: ObservableObject {
     static let shared = TokenListModel()
 
-    @Published var isReady = false
-
     @Published var pendingTokens: [Token] = []
     @Published var tokenQueue: [Token] = []
     var currentTokenIndex = -1
@@ -189,12 +187,13 @@ final class TokenListModel: ObservableObject {
         timer = nil
     }
 
-    private var fetching = false
+    @Published var fetching = false
 
     private func fetchHotTokens(setLoading: Bool? = false) async throws {
         let client = await CodexNetwork.shared.apolloClient
-
-        self.fetching = true
+        await MainActor.run {
+            self.fetching = true
+        }
 
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             client.fetch(
@@ -251,14 +250,12 @@ final class TokenListModel: ObservableObject {
                         }
                     }()
 
-                    self.fetching = false
-
                     DispatchQueue.main.sync {
+                        self.fetching = false
                         self.updatePendingTokens(hotTokens)
                         if self.tokenQueue.isEmpty {
                             self.initializeTokenQueue()
                         }
-                        self.isReady = true
                     }
 
                 }
@@ -328,6 +325,15 @@ final class TokenListModel: ObservableObject {
                 )
             )
         }
+    }
+
+    public func clearQueue() {
+        self.tokenQueue = []
+        self.pendingTokens = []
+        self.currentTokenIndex = -1
+        self.previousTokenModel = nil
+        self.nextTokenModel = nil
+        self.currentTokenModel = TokenModel()
     }
 
     deinit {
