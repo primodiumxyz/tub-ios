@@ -14,7 +14,7 @@ import CodexAPI
 final class UserModel: ObservableObject {
     static let shared = UserModel()
     
-    @Published var isLoading: Bool = false
+    @Published var initializingUser: Bool = false
     @Published var userId: String?
     @Published var walletState: EmbeddedWalletState = .notCreated
     @Published var walletAddress: String?
@@ -69,9 +69,11 @@ final class UserModel: ObservableObject {
                     if let solanaWallet = wallets.first(where: { $0.chainType == .solana }) {
                         await MainActor.run {
                             self.walletAddress = solanaWallet.address
-                            self.walletState = state
                         }
                         await self.initializeUser()
+                        await MainActor.run {
+                            self.walletState = state
+                        }
                     }
                     else {
                         do {
@@ -97,30 +99,30 @@ final class UserModel: ObservableObject {
     func initializeUser() async {
         let timeoutTask = DispatchWorkItem { [weak self] in
             guard let self = self else { return }
-            self.isLoading = true
+            self.initializingUser = true
             
             // Schedule the timeout
             DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-                if self.isLoading {
-                    self.isLoading = false
+                if self.initializingUser {
+                    self.initializingUser = false
                 }
             }
         }
         
-        Task {
+        do {
             try await fetchInitialUsdcBalance()
             startPollingUsdcBalance()
-        }
-        
-        Task {
+            
             try await refreshPortfolio()
             startPollingTokenPortfolio()
+        } catch {
+            print("error initializing:", error.localizedDescription)
         }
         
         timeoutTask.cancel()  // Cancel timeout if successful
         DispatchQueue.main.async {
             self.initialTime = Date()
-            self.isLoading = false
+            self.initializingUser = false
         }
     }
     
@@ -324,12 +326,18 @@ final class UserModel: ObservableObject {
     
     @Published var tokenId: String? = nil
     
-    @Published var balanceToken: Int? = nil
-    
     @Published var purchaseData: PurchaseData? = nil
     
     func initToken(tokenId: String) {
         self.tokenId = tokenId
+        if tokenId != "" {
+            Task {
+                try! await TxManager.shared.updateTxData(
+                    tokenId: tokenId,
+                    sellQuantity: SettingsManager.shared.defaultBuyValueUsdc
+                )
+            }
+        }
     }
     
     func buyTokens(buyQuantityUsdc: Int, tokenPriceUsdc: Int) async throws {
@@ -392,11 +400,13 @@ final class UserModel: ObservableObject {
             throw TubError.notLoggedIn
         }
         
-        guard let tokenId = self.tokenId, let balance = self.balanceToken else {
-            throw TubError.notLoggedIn
+        
+        guard let tokenId = self.tokenId, let balanceToken = tokenPortfolio[tokenId]?.balanceToken, balanceToken > 0 else {
+            throw TubError.insufficientBalance
         }
         
         var err: (any Error)? = nil
+        
         do {
             try await TxManager.shared.submitTx(walletAddress: walletAddress)
             
@@ -415,7 +425,7 @@ final class UserModel: ObservableObject {
                     eventName: "sell_tokens",
                     source: "token_model",
                     metadata: [
-                        ["sell_amount": balance],
+                        ["sell_amount": balanceToken],
                         ["token_id": tokenId],
                     ],
                     errorDetails: err?.localizedDescription

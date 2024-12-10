@@ -35,10 +35,13 @@ struct TokenListView: View {
     @State private var isDragStarting = true
 
     let OFFSET: Double = 5
-
+    
+    var balanceToken: Int {
+        userModel.tokenPortfolio[tokenListModel.currentTokenModel.token.id]?.balanceToken ?? 0
+    }
+    
     var activeTab: PurchaseState {
-        let balance: Int = userModel.balanceToken ?? 0
-        return balance > 0 ? .sell : .buy
+        return balanceToken > 0 ? .sell : .buy
     }
 
     @EnvironmentObject var tokenListModel: TokenListModel

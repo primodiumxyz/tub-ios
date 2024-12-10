@@ -17,6 +17,10 @@ struct TokenInfoPreview: View {
 
     var activeTab: PurchaseState
     @State private var showInfoOverlay: Bool = false
+    
+    var balanceToken: Int {
+        userModel.tokenPortfolio[tokenModel.token.id]?.balanceToken ?? 0
+    }
 
     private var sellStats: [StatValue]? {
         guard
@@ -30,7 +34,7 @@ struct TokenInfoPreview: View {
         }
         var stats = [StatValue]()
         // Calculate current value
-        let tokenBalance = Double(userModel.balanceToken ?? 0) / 1e9
+        let tokenBalance = Double(balanceToken) / 1e9
         let tokenBalanceUsd = tokenBalance * (tokenModel.prices.last?.priceUsd ?? 0)
         let initialValueUsd = priceModel.usdcToUsd(usdc: purchaseData.amountUsdc)
 
@@ -178,8 +182,7 @@ private struct StatView: View {
     }()
 
     var activeTab: PurchaseState {
-        let balance: Int = userModel.balanceToken ?? 0
-        return balance > 0 ? .sell : .buy
+        return balanceToken > 0 ? .sell : .buy
     }
 
     // Create mock token model with sample data
@@ -189,16 +192,19 @@ private struct StatView: View {
         return model
     }()
 
+    var balanceToken : Int {
+       userModel.tokenPortfolio[tokenModel.token.id]?.balanceToken ?? 0
+    }
     VStack {
         VStack {
             Text("Modifiers")
             PrimaryButton(text: "Toggle Buy/Sell") {
-                if userModel.balanceToken ?? 0 > 0 {
-                    userModel.balanceToken = 0
+                if balanceToken > 0 {
+                    userModel.tokenPortfolio[tokenModel.token.id]?.balanceToken = 0
                     userModel.purchaseData = nil
                 }
                 else {
-                    userModel.balanceToken = 100
+                    userModel.tokenPortfolio[tokenModel.token.id]?.balanceToken = 100
                     userModel.purchaseData = PurchaseData(
                         timestamp: Date().addingTimeInterval(-60 * 60),
                         amountUsdc: 1000,

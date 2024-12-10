@@ -61,6 +61,9 @@ struct AppContent: View {
             }
             else if !tokenManager.isReady {
                 LoadingView(identifier: "Fetching Codex token", message: "Fetching auth token")
+            } else if userModel.walletState == .connecting || userModel.initializingUser {
+                    LoadingView(identifier: "Logging in", message: "Logging in")
+                
             }
             else {
                 HomeTabsView().font(.sfRounded())
@@ -82,15 +85,19 @@ struct AppContent: View {
                     }
             }
         }.onAppear {
+            tokenListModel.configure(with: userModel)
             Task(priority: .high) {
-                // we cannot start token subscription until we have the api key
                 await tokenManager.refreshToken()
-                tokenListModel.configure(with: userModel)
-                await tokenListModel.startTokenSubscription()
             }
         }.onChange(of: userModel.walletState) { _, newState in
+            if newState == .connecting { return }
             if newState == .error {
                 notificationHandler.show("Error connecting to wallet.", type: .error)
+                return
+            }
+            // we wait to begin the token subscription until the user is ready (either logged in or not) 
+            Task(priority: .high) {
+                await tokenListModel.startTokenSubscription()
             }
         }
     }

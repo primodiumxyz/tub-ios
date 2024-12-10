@@ -35,9 +35,12 @@ struct ActionButtonsView: View {
         self.onSellSuccess = onSellSuccess
     }
 
+    var balanceToken: Int {
+        userModel.tokenPortfolio[tokenModel.token.id]?.balanceToken ?? 0
+    }
+    
     var activeTab: PurchaseState {
-        let balance: Int = userModel.balanceToken ?? 0
-        return balance > 0 ? .sell : .buy
+        return balanceToken > 0 ? .sell : .buy
     }
 
     func handleSell() async {
@@ -251,14 +254,6 @@ extension ActionButtonsView: Equatable {
 
         @State var isDark: Bool = true
 
-        func toggleBuySell() {
-            if userModel.balanceToken ?? 0 > 0 {
-                userModel.balanceToken = 0
-            }
-            else {
-                userModel.balanceToken = 100
-            }
-        }
         func toggleWalletConnectionState() {
             // You can add your function implementation here
             if userModel.walletState.toString == "connected" {
@@ -279,9 +274,6 @@ extension ActionButtonsView: Equatable {
             VStack {
                 VStack {
                     Text("Modifiers")
-                    PrimaryButton(text: "Toggle Buy/Sell") {
-                        toggleBuySell()
-                    }
                     PrimaryButton(text: "Toggle Connection") {
                         toggleWalletConnectionState()
                     }

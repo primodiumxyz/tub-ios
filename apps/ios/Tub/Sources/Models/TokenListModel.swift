@@ -58,14 +58,7 @@ final class TokenListModel: ObservableObject {
         // initialize current model
         self.currentTokenModel.initialize(with: token)
         self.userModel?.initToken(tokenId: token.id)
-        if token.id != "" {
-            Task {
-                try! await TxManager.shared.updateTxData(
-                    tokenId: token.id,
-                    sellQuantity: SettingsManager.shared.defaultBuyValueUsdc
-                )
-            }
-        }
+        
     }
 
     private func getNextToken(excluding currentId: String? = nil) -> Token {
@@ -74,11 +67,12 @@ final class TokenListModel: ObservableObject {
         }
 
         if let userModel {
-            let priorityTokenMint = userModel.tokenPortfolio.keys.first { tokenId in
+            let portfolio = userModel.tokenPortfolio
+            let priorityTokenMint = portfolio.keys.first { tokenId in
                 tokenId != currentId
             }
             
-            if let mint = priorityTokenMint, let tokenData = userModel.tokenPortfolio[mint] {
+            if let mint = priorityTokenMint, let tokenData = portfolio[mint] {
                 return tokenDataToToken(tokenData: tokenData)
             }
         }
