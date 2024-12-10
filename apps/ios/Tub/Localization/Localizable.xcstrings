@@ -7,6 +7,7 @@
     " " : {
 
     },
+
     "#8612373299412" : {
 
     },
@@ -100,9 +101,6 @@
     "Date" : {
 
     },
-    "Deposit" : {
-
-    },
     "Deposit with" : {
 
     },
@@ -181,9 +179,6 @@
     "Sell Details" : {
 
     },
-    "Sending" : {
-
-    },
     "Set Default" : {
 
     },
@@ -199,6 +194,9 @@
     "Solana Address is invalid" : {
 
     },
+    "Solana Wallet" : {
+
+    },
     "Submit Transaction" : {
 
     },
@@ -211,7 +209,7 @@
     "Time" : {
 
     },
-    "to" : {
+    "To" : {
 
     },
     "Token" : {
