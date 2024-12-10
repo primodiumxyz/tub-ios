@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { TubService } from "../src/services/TubService";
 import { JupiterService } from "../src/services/JupiterService";
-import { Connection, Keypair, VersionedTransaction, VersionedMessage } from "@solana/web3.js";
+import { Connection, Keypair, VersionedTransaction, VersionedMessage, PublicKey } from "@solana/web3.js";
 import { createJupiterApiClient } from "@jup-ag/api";
 import { MockPrivyClient } from "./helpers/MockPrivyClient";
 import { Codex } from "@codex-data/sdk";
@@ -10,6 +10,7 @@ import bs58 from "bs58";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
 import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY } from "@/constants/tokens";
 import { env } from "@bin/tub-server";
+import { PrebuildSwapResponse } from "@/types";
 
 // Skip entire suite in CI, because it would perform a live transaction each deployment
 (env.CI ? describe.skip : describe)("TubService Integration Test", () => {
@@ -93,92 +94,86 @@ import { env } from "@bin/tub-server";
     }
   });
 
-  describe.skip("swap execution", () => {
-    it("should complete a USDC to SOL swap", async () => {
-      try {
-        console.log("\nStarting USDC to SOL swap flow test");
-        console.log("User public key:", userKeypair.publicKey.toBase58());
+  const executeTx = async (swapResponse: PrebuildSwapResponse) => {
+    const handoff = Buffer.from(swapResponse.transactionMessageBase64, "base64");
+    const message = VersionedMessage.deserialize(handoff);
+    const transaction = new VersionedTransaction(message);
 
-        // Get the constructed swap transaction
-        console.log("\nGetting 1 USDC to SOL swap transaction...");
+    // User signs
+    transaction.sign([userKeypair]);
+    const userSignature = transaction.signatures![1];
+    if (!userSignature) {
+      throw new Error("Failed to get signature from transaction");
+    }
 
-        const swapResponse = await tubService.fetchSwap(mockJwtToken, {
-          buyTokenId: SOL_MAINNET_PUBLIC_KEY.toString(),
-          sellTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
-          sellQuantity: 1e6 / 1000, // 0.001 USDC
-        });
+    // Convert raw signature to base64
+    const base64Signature = Buffer.from(userSignature).toString("base64");
 
-        // --- Begin Simulating Mock Privy Interaction ---
+    // --- End Simulating Mock Privy Interaction ---
 
-        // Decode transaction
-        const handoff = Buffer.from(swapResponse.transactionMessageBase64, "base64");
-        const message = VersionedMessage.deserialize(handoff);
-        const transaction = new VersionedTransaction(message);
+    const result = await tubService.signAndSendTransaction(
+      mockJwtToken,
+      base64Signature,
+      swapResponse.transactionMessageBase64, // Send original unsigned transaction
+    );
 
-        // User signs
-        transaction.sign([userKeypair]);
-        const userSignature = transaction.signatures![1];
-        if (!userSignature) {
-          throw new Error("Failed to get signature from transaction");
-        }
+    console.log("Transaction result:", result);
 
-        // Convert raw signature to base64
-        const base64Signature = Buffer.from(userSignature).toString("base64");
+    expect(result).toBeDefined();
+    expect(result.signature).toBeDefined();
+  };
 
-        // --- End Simulating Mock Privy Interaction ---
+  describe("swap execution", () => {
+    it.skip("should complete a USDC to SOL swap", async () => {
+      console.log("\nStarting USDC to SOL swap flow test");
+      console.log("User public key:", userKeypair.publicKey.toBase58());
 
-        const result = await tubService.signAndSendTransaction(
-          mockJwtToken,
-          base64Signature,
-          swapResponse.transactionMessageBase64, // Send original unsigned transaction
-        );
+      // Get the constructed swap transaction
+      console.log("\nGetting 1 USDC to SOL swap transaction...");
 
-        console.log("Transaction result:", result);
-
-        expect(result).toBeDefined();
-        expect(result.signature).toBeDefined();
-      } catch (error) {
-        console.error("Error in swap flow test:", error);
-        throw error;
-      }
-    }, 11000);
-
-    it("should complete a USDC to GRIFT swap", async () => {
-      const GRIFT_MINT = "DcRHumYETnVKowMmDSXQ5RcGrFZFAnaqrQ1AZCHXpump";
-      // Get swap instructions
       const swapResponse = await tubService.fetchSwap(mockJwtToken, {
-        buyTokenId: GRIFT_MINT,
+        buyTokenId: SOL_MAINNET_PUBLIC_KEY.toString(),
         sellTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
         sellQuantity: 1e6 / 1000, // 0.001 USDC
       });
 
-      // Decode transaction
-      const handoff = Buffer.from(swapResponse.transactionMessageBase64, "base64");
-      const message = VersionedMessage.deserialize(handoff);
-      const transaction = new VersionedTransaction(message);
-
-      // User signs
-      transaction.sign([userKeypair]);
-      const userSignature = transaction.signatures![1];
-      if (!userSignature) {
-        throw new Error("Failed to get signature from transaction");
-      }
-
-      // Convert raw signature to base64
-      const base64Signature = Buffer.from(userSignature).toString("base64");
-
-      // --- End Simulating Mock Privy Interaction ---
-
-      const result = await tubService.signAndSendTransaction(
-        mockJwtToken,
-        base64Signature,
-        swapResponse.transactionMessageBase64, // Send original unsigned transaction
-      );
-
-      console.log("Transaction result:", result);
-
-      expect(result).toBeDefined();
-      expect(result.signature).toBeDefined();
+      await executeTx(swapResponse);
     }, 11000);
+
+    describe("GRIFT swaps", () => {
+      const GRIFT_MINT = "DcRHumYETnVKowMmDSXQ5RcGrFZFAnaqrQ1AZCHXpump";
+
+      it.skip("should complete a USDC to GRIFT swap", async () => {
+        // Get swap instructions
+        const swapResponse = await tubService.fetchSwap(mockJwtToken, {
+          buyTokenId: GRIFT_MINT,
+          sellTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
+          sellQuantity: 1e6 / 1000, // 0.001 USDC
+        });
+
+        await executeTx(swapResponse);
+      }, 11000);
+
+      it("should transfer all GRIFT to USDC", async () => {
+        const GRIFT_MINT = "DcRHumYETnVKowMmDSXQ5RcGrFZFAnaqrQ1AZCHXpump";
+        const griftPublicKey = new PublicKey(GRIFT_MINT);
+        const userGriftAta = await getAssociatedTokenAddress(griftPublicKey, userKeypair.publicKey);
+        const griftBalance = await connection.getTokenAccountBalance(userGriftAta);
+        const decimals = griftBalance.value.decimals;
+        console.log("GRIFT balance:", griftBalance.value.uiAmount);
+        if (!griftBalance.value.uiAmount) {
+          console.log("GRIFT balance is 0, skipping transfer");
+          return;
+        }
+
+        const swapResponse = await tubService.fetchSwap(mockJwtToken, {
+          buyTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
+          sellTokenId: GRIFT_MINT,
+          sellQuantity: griftBalance.value.uiAmount * 10 ** decimals,
+        });
+
+        await executeTx(swapResponse);
+      });
+    });
   });
 });
