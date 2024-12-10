@@ -19,6 +19,8 @@ const commonSchema = z.object({
   OCTANE_BUY_FEE: z.coerce.number().default(100),
   OCTANE_SELL_FEE: z.coerce.number().default(0),
   OCTANE_MIN_TRADE_SIZE: z.coerce.number().default(15),
+  CI: z.boolean().default(false),
+  TEST_USER_PRIVATE_KEY: z.string(),
 });
 
 export function parseEnv<TSchema extends ZodTypeAny | undefined = undefined>(

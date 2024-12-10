@@ -11,8 +11,8 @@ const envPath = resolve(__dirname, "../../../.env");
 console.log("Loading .env file from:", envPath);
 config({ path: envPath });
 const env = parseEnv();
-const host = process.env.SERVER_HOST || "0.0.0.0";
-const port = process.env.SERVER_PORT || "8888";
+const host = env.SERVER_HOST || "0.0.0.0";
+const port = env.SERVER_PORT || "8888";
 
 describe.skip("Server Integration Tests", () => {
   let client: ReturnType<typeof createTRPCProxyClient<AppRouter>>;

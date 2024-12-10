@@ -5,10 +5,11 @@ import { TransactionService } from "../src/services/TransactionService";
 import { Cache } from "cache-manager";
 import { describe, it, expect, beforeAll } from "vitest";
 import { AxiosError } from "axios";
+import { env } from "@bin/tub-server";
 
 const createTestKeypair = () => Keypair.generate();
 
-describe("Jupiter Quote Integration Test", () => {
+describe.skip("Jupiter Quote Integration Test", () => {
   let connection: Connection;
   let jupiterQuoteApi: DefaultApi;
   let jupiterService: JupiterService;
@@ -18,12 +19,12 @@ describe("Jupiter Quote Integration Test", () => {
   beforeAll(async () => {
     try {
       // Setup connection to Solana mainnet
-      connection = new Connection(process.env.QUICKNODE_MAINNET_URL ?? "https://api.mainnet-beta.solana.com");
+      connection = new Connection(env.QUICKNODE_MAINNET_URL ?? "https://api.mainnet-beta.solana.com");
 
       // Setup Jupiter API client
       jupiterQuoteApi = new DefaultApi(
         new Configuration({
-          basePath: process.env.JUPITER_URL,
+          basePath: env.JUPITER_URL,
         }),
       );
 

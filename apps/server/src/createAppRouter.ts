@@ -119,7 +119,7 @@ export function createAppRouter() {
             .startSwapStream(ctx.jwtToken, input)
             .then((s) => {
               subject = s;
-              subject.subscribe({
+              subject?.subscribe({
                 next: (response: PrebuildSwapResponse) => {
                   emit.next(response);
                 },
@@ -199,10 +199,6 @@ export function createAppRouter() {
       .mutation(async ({ ctx, input }) => {
         return await ctx.tubService.fetchPresignedSwap(ctx.jwtToken, input);
       }),
-
-    get1USDCToSOLTransaction: t.procedure.mutation(async ({ ctx }) => {
-      return await ctx.tubService.get1USDCToSOLTransaction(ctx.jwtToken);
-    }),
 
     stopSwapStream: t.procedure.mutation(async ({ ctx }) => {
       await ctx.tubService.stopSwapStream(ctx.jwtToken);

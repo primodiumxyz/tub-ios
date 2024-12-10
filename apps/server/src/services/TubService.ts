@@ -20,7 +20,6 @@ import {
   SignedTransfer,
 } from "../types";
 import { deriveTokenAccounts } from "../utils/tokenAccounts";
-import { SOL_MAINNET_PUBLIC_KEY, USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
 import bs58 from "bs58";
 
 /**
@@ -184,19 +183,6 @@ export class TubService {
     };
 
     return fetchSignedSwapResponse;
-  }
-
-  /**
-   * A test transaction with hardcoded 1 USDC to sell into SOL
-   * @param jwtToken - The user's JWT token
-   * @returns A constructed, signable transaction
-   */
-  async get1USDCToSOLTransaction(jwtToken: string) {
-    return this.fetchSwap(jwtToken, {
-      buyTokenId: SOL_MAINNET_PUBLIC_KEY.toString(),
-      sellTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
-      sellQuantity: 1e6, // 1 USDC
-    });
   }
 
   /**

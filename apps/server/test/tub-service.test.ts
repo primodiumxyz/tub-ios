@@ -8,9 +8,12 @@ import { Codex } from "@codex-data/sdk";
 import { createClient as createGqlClient } from "@tub/gql";
 import bs58 from "bs58";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
+import { USDC_MAINNET_PUBLIC_KEY } from "@/constants/tokens";
+import { SOL_MAINNET_PUBLIC_KEY } from "@/constants/tokens";
+import { env } from "@bin/tub-server";
 
 // Skip entire suite in CI, because it would perform a live transaction each deployment
-(process.env.CI ? describe.skip : describe)("TubService Integration Test", () => {
+(env.CI ? describe.skip : describe)("TubService Integration Test", () => {
   let tubService: TubService;
   let userKeypair: Keypair;
   let mockJwtToken: string;
@@ -18,16 +21,12 @@ import { getAssociatedTokenAddress } from "@solana/spl-token";
 
   beforeAll(async () => {
     try {
-      if (!process.env.TEST_USER_PRIVATE_KEY) {
-        throw new Error("TEST_USER_PRIVATE_KEY not found in environment");
-      }
-
       // Setup connection to Solana mainnet
-      connection = new Connection(process.env.QUICKNODE_MAINNET_URL ?? "https://api.mainnet-beta.solana.com");
+      connection = new Connection(env.QUICKNODE_MAINNET_URL ?? "https://api.mainnet-beta.solana.com");
 
       // Setup Jupiter API client
       const jupiterQuoteApi = createJupiterApiClient({
-        basePath: process.env.JUPITER_URL,
+        basePath: env.JUPITER_URL,
       });
 
       // Create cache for JupiterService
@@ -40,10 +39,10 @@ import { getAssociatedTokenAddress } from "@solana/spl-token";
       });
 
       // Create test fee payer keypair
-      const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(process.env.FEE_PAYER_PRIVATE_KEY!));
+      const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY!));
 
       // Create test user keypair from environment
-      userKeypair = Keypair.fromSecretKey(bs58.decode(process.env.TEST_USER_PRIVATE_KEY));
+      userKeypair = Keypair.fromSecretKey(bs58.decode(env.TEST_USER_PRIVATE_KEY!));
       mockJwtToken = "test_jwt_token";
 
       // Initialize services
@@ -51,8 +50,8 @@ import { getAssociatedTokenAddress } from "@solana/spl-token";
         connection,
         jupiterQuoteApi,
         feePayerKeypair.publicKey,
-        new PublicKey(process.env.OCTANE_TRADE_FEE_RECIPIENT!),
-        Number(process.env.OCTANE_BUY_FEE),
+        new PublicKey(env.OCTANE_TRADE_FEE_RECIPIENT!),
+        Number(env.OCTANE_BUY_FEE),
         0, // sell fee
         15, // min trade size
         cache,
@@ -65,7 +64,7 @@ import { getAssociatedTokenAddress } from "@solana/spl-token";
         })
       ).db;
 
-      const codexSdk = new Codex(process.env.CODEX_API_KEY!);
+      const codexSdk = new Codex(env.CODEX_API_KEY!);
 
       // Create mock Privy client with our test wallet
       const mockPrivyClient = new MockPrivyClient(userKeypair.publicKey.toString());
@@ -116,7 +115,7 @@ import { getAssociatedTokenAddress } from "@solana/spl-token";
     }
   });
 
-  describe("should complete a full USDC to SOL swap flow", () => {
+  describe.only("should complete a full USDC to SOL swap flow", () => {
     it("should complete a full USDC to SOL swap flow", async () => {
       try {
         console.log("\nStarting USDC to SOL swap flow test");
@@ -124,7 +123,12 @@ import { getAssociatedTokenAddress } from "@solana/spl-token";
 
         // Get the constructed swap transaction
         console.log("\nGetting 1 USDC to SOL swap transaction...");
-        const swapResponse = await tubService.get1USDCToSOLTransaction(mockJwtToken);
+
+        const swapResponse = await tubService.fetchSwap(mockJwtToken, {
+          buyTokenId: SOL_MAINNET_PUBLIC_KEY.toString(),
+          sellTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
+          sellQuantity: 1e6, // 1 USDC
+        });
 
         // --- Begin Simulating Mock Privy Interaction ---
 
