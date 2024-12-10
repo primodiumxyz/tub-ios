@@ -225,7 +225,7 @@ final class TokenListModel: ObservableObject {
                             return []
                         }
                     }()
-                    DispatchQueue.main.sync {
+                    MainActor.run {
                         self.fetching = false
                         self.updatePendingTokens(hotTokens)
                         if self.tokenQueue.isEmpty {

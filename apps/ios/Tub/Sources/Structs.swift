@@ -91,7 +91,6 @@ struct TransactionData: Identifiable, Equatable {
     let symbol: String
     let imageUri: String
     let date: Date
-    let valueUsd: Double
     let valueUsdc: Int
     let quantityTokens: Int
     let isBuy: Bool
@@ -124,7 +123,7 @@ struct TokenData: Identifiable {
     var id: String { mint }  
     let mint: String
     var balanceToken: Int
-    var metadata: TokenMetadata
+    var metadata: TokenMetadata?
 }
 
 enum PurchaseState {
