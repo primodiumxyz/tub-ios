@@ -1,4 +1,0 @@
--- Could not auto-generate a down migration.
--- Please write an appropriate down migration for the SQL below:
--- DROP table IF EXISTS public.token_transaction CASCADE;
--- DROP table IF EXISTS public.wallet_transaction CASCADE;
