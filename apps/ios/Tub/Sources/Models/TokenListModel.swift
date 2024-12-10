@@ -87,19 +87,30 @@ final class TokenListModel: ObservableObject {
     // - Set the current token to the previously visited one
     // - Update the current token model
     // - Pop the last token in the array (swiping down should always be a fresh pumping token)
-    func loadPreviousToken() {
-        guard let prevModel = previousTokenModel, currentTokenIndex > 0 else { return }
-        currentTokenIndex -= 1
-
+    func loadPreviousTokenIntoCurrentTokenPhaseOne() -> Bool {
+		guard let prevModel = previousTokenModel, currentTokenIndex > 0 else {
+			return false
+		}
+		
         recordTokenDwellTime()
 
         // next
-        nextTokenModel = currentTokenModel
+        //	Build up a new TokenModel so that we start from a
+        //	known state: no leftover timers and/or subscriptions.
+        let newNextTokenModel = TokenModel()
+        newNextTokenModel.preload(with: currentTokenModel.token)
+        nextTokenModel = newNextTokenModel
 
         // current
         currentTokenStartTime = Date()
         currentTokenModel = prevModel
         initCurrentTokenModel(with: prevModel.token)
+		
+		return true
+    }
+
+    func loadPreviousTokenIntoCurrentTokenPhaseTwo() {
+        currentTokenIndex -= 1
 
         //previous
         if currentTokenIndex > 0 {
@@ -116,12 +127,15 @@ final class TokenListModel: ObservableObject {
     // - Move current to previous
     // - Move next to current and initialize
     // - If current is the end of the array, append a new one and preload it
-    func loadNextToken() {
+    func loadNextTokenIntoCurrentTokenPhaseOne() {
         self.recordTokenDwellTime()
-        self.currentTokenIndex += 1
 
         // previous
-        previousTokenModel = currentTokenModel
+        //	Build up a new TokenModel so that we start from a
+        //	known state: no leftover timers and/or subscriptions.
+        let newPreviousTokenModel = TokenModel()
+        newPreviousTokenModel.preload(with: currentTokenModel.token)
+        previousTokenModel = newPreviousTokenModel
 
         // current
         currentTokenStartTime = Date()
@@ -136,6 +150,10 @@ final class TokenListModel: ObservableObject {
             initCurrentTokenModel(with: newToken)
             removePendingToken(newToken.id)
         }
+    }
+
+    func loadNextTokenIntoCurrentTokenPhaseTwo() {
+        self.currentTokenIndex += 1
 
         // next
         let newToken = getNextToken(excluding: currentTokenModel.token.id)
@@ -244,7 +262,7 @@ final class TokenListModel: ObservableObject {
         // first model
         let firstToken = getNextToken()
         tokenQueue.append(firstToken)
-        self.currentTokenIndex += 1
+        self.currentTokenIndex = 0
         removePendingToken(firstToken.id)
         initCurrentTokenModel(with: firstToken)
 
