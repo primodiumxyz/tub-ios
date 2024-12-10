@@ -95,15 +95,15 @@ import { PrebuildSwapResponse } from "@/types";
     const message = VersionedMessage.deserialize(handoff);
     const transaction = new VersionedTransaction(message);
 
+    console.log("message:", message);
     // User signs
     transaction.sign([userKeypair]);
     const userSignature = transaction.signatures![1];
-    if (!userSignature) {
-      throw new Error("Failed to get signature from transaction");
-    }
+    expect(transaction.signatures).toHaveLength(2);
+    expect(userSignature).toBeDefined();
 
     // Convert raw signature to base64
-    const base64Signature = Buffer.from(userSignature).toString("base64");
+    const base64Signature = Buffer.from(userSignature!).toString("base64");
 
     // --- End Simulating Mock Privy Interaction ---
 
@@ -151,7 +151,6 @@ import { PrebuildSwapResponse } from "@/types";
       }, 11000);
 
       it("should transfer all GRIFT to USDC", async () => {
-        const GRIFT_MINT = "DcRHumYETnVKowMmDSXQ5RcGrFZFAnaqrQ1AZCHXpump";
         const griftPublicKey = new PublicKey(GRIFT_MINT);
         const userGriftAta = await getAssociatedTokenAddress(griftPublicKey, userKeypair.publicKey);
         const griftBalance = await connection.getTokenAccountBalance(userGriftAta);
@@ -162,11 +161,14 @@ import { PrebuildSwapResponse } from "@/types";
           return;
         }
 
-        const swapResponse = await tubService.fetchSwap(mockJwtToken, {
+        const balanceToken = griftBalance.value.uiAmount * 10 ** decimals;
+        const swap = {
           buyTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
           sellTokenId: GRIFT_MINT,
-          sellQuantity: griftBalance.value.uiAmount * 10 ** decimals,
-        });
+          sellQuantity: Math.round(balanceToken / 2),
+        };
+        console.log("GRIFT swap:", swap);
+        const swapResponse = await tubService.fetchSwap(mockJwtToken, swap);
 
         await executeTx(swapResponse);
       });

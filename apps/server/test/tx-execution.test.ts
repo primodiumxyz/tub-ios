@@ -1,7 +1,6 @@
-import { Connection, PublicKey, Keypair } from "@solana/web3.js";
+import { Connection, Keypair } from "@solana/web3.js";
 import { DefaultApi, Configuration } from "@jup-ag/api";
 import { JupiterService } from "../src/services/JupiterService";
-import { Cache } from "cache-manager";
 import { describe, it, beforeAll } from "vitest";
 import { env } from "@bin/tub-server";
 
@@ -11,7 +10,6 @@ describe.skip("Tx Execution Test", () => {
   let connection: Connection;
   let jupiterQuoteApi: DefaultApi;
   let jupiterService: JupiterService;
-  let cache: Cache;
 
   beforeAll(async () => {
     try {
@@ -25,19 +23,7 @@ describe.skip("Tx Execution Test", () => {
         }),
       );
 
-      const feePayerKeypair = createTestKeypair();
-      const feePayerPublicKey = feePayerKeypair.publicKey;
-
-      jupiterService = new JupiterService(
-        connection,
-        jupiterQuoteApi,
-        feePayerPublicKey,
-        new PublicKey("11111111111111111111111111111111"),
-        100,
-        0,
-        15,
-        cache,
-      );
+      jupiterService = new JupiterService(connection, jupiterQuoteApi);
     } catch (error) {
       console.error("Error in test setup:", error);
       if (error instanceof Error) {
