@@ -39,11 +39,11 @@ describe("query tests", () => {
 
     expect(transactions?.length).toEqual(2);
     expect(transactions?.[0].token_mint).toEqual(tokenAddress);
-    expect(transactions?.[0].token_amount).toEqual("200");
-    expect(transactions?.[0].token_price_usd).toEqual("0.001");
+    expect(transactions?.[0].token_amount).toEqual("-100");
+    expect(transactions?.[0].token_price_usd).toEqual("0.002");
 
     expect(transactions?.[1].token_mint).toEqual(tokenAddress);
-    expect(transactions?.[1].token_amount).toEqual("-100");
-    expect(transactions?.[1].token_price_usd).toEqual("0.002");
+    expect(transactions?.[1].token_amount).toEqual("200");
+    expect(transactions?.[1].token_price_usd).toEqual("0.001");
   });
 });
