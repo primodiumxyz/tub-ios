@@ -6,6 +6,7 @@ import { Cache } from "cache-manager";
 import { describe, it, expect, beforeAll } from "vitest";
 import { AxiosError } from "axios";
 import { env } from "@bin/tub-server";
+import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY, VALUE_MAINNET_PUBLIC_KEY } from "../src/constants/tokens";
 
 const createTestKeypair = () => Keypair.generate();
 
@@ -54,8 +55,8 @@ describe.skip("Jupiter Quote Integration Test", () => {
 
   it("should get a valid quote for SOL to USDC", async () => {
     const quoteRequest = {
-      inputMint: "So11111111111111111111111111111111111111112", // SOL
-      outputMint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
+      inputMint: SOL_MAINNET_PUBLIC_KEY.toString(), // SOL
+      outputMint: USDC_MAINNET_PUBLIC_KEY.toString(), // USDC
       amount: 100000000, // 0.1 SOL
       slippageBps: 50,
       onlyDirectRoutes: true,
@@ -108,8 +109,8 @@ describe.skip("Jupiter Quote Integration Test", () => {
 
   it("should get a valid quote for USDC to SOL", async () => {
     const quoteRequest = {
-      inputMint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
-      outputMint: "So11111111111111111111111111111111111111112", // SOL
+      inputMint: USDC_MAINNET_PUBLIC_KEY.toString(), // USDC
+      outputMint: SOL_MAINNET_PUBLIC_KEY.toString(), // SOL
       amount: 1000000, // 1 USDC
       slippageBps: 50,
       onlyDirectRoutes: true,
@@ -159,8 +160,8 @@ describe.skip("Jupiter Quote Integration Test", () => {
     const userPublicKey = createTestKeypair().publicKey;
 
     const quoteRequest = {
-      inputMint: "So11111111111111111111111111111111111111112", // SOL
-      outputMint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
+      inputMint: SOL_MAINNET_PUBLIC_KEY.toString(), // SOL
+      outputMint: USDC_MAINNET_PUBLIC_KEY.toString(), // USDC
       amount: 100000000, // 0.1 SOL
       slippageBps: 50,
       onlyDirectRoutes: true,
@@ -230,8 +231,8 @@ describe.skip("Jupiter Quote Integration Test", () => {
     const userPublicKey = createTestKeypair().publicKey;
 
     const quoteRequest = {
-      inputMint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
-      outputMint: "So11111111111111111111111111111111111111112", // SOL
+      inputMint: USDC_MAINNET_PUBLIC_KEY.toString(), // USDC
+      outputMint: SOL_MAINNET_PUBLIC_KEY.toString(), // SOL
       amount: 1000000, // 1 USDC
       slippageBps: 50,
       onlyDirectRoutes: true,
@@ -295,12 +296,12 @@ describe.skip("Jupiter Quote Integration Test", () => {
     }
   }, 30000);
 
-  it("should get instructions for USDC to GRIFT", async () => {
+  it("should get instructions for USDC to VALUE", async () => {
     const userPublicKey = createTestKeypair().publicKey;
 
     const quoteRequest = {
-      inputMint: "DcRHumYETnVKowMmDSXQ5RcGrFZFAnaqrQ1AZCHXpump", // USDC
-      outputMint: "So11111111111111111111111111111111111111112", // SOL
+      inputMint: USDC_MAINNET_PUBLIC_KEY.toString(), // USDC
+      outputMint: VALUE_MAINNET_PUBLIC_KEY.toString(), // VALUE
       amount: 1000000, // 1 USDC
       slippageBps: 50,
       onlyDirectRoutes: false,
