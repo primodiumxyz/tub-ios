@@ -84,21 +84,14 @@ export const fetchPriceAndMetadata = async (
   }
 
   // Process each batch in parallel and collect account info
+  const beforeAllAccounts = Date.now();
   const swapsWithAccountInfo = (
     await Promise.all(
       batches.map(async (batchSwaps) => {
-        // Get parsed accounts for both vaults of each swap
-        const beforeAccounts = Date.now();
         const parsedAccounts = await connection.getMultipleParsedAccounts(
           batchSwaps.map((swap) => [swap.vaultA, swap.vaultB]).flat(),
           { commitment: "confirmed" },
         );
-        const afterAccounts = Date.now();
-        accountsCallTimes.push((afterAccounts - beforeAccounts) / 1000);
-        console.log(
-          `[${(afterAccounts - beforeAccounts) / 1000}s] 'getMultipleParsedAccounts' (avg: ${calculateAverage(accountsCallTimes)}s)`,
-        );
-
         return batchSwaps.map((swap, i) => {
           // Extract mint info from parsed accounts
           const mintA = (parsedAccounts.value[i * 2]?.data as ParsedAccountData | undefined)?.parsed.info as
@@ -147,6 +140,13 @@ export const fetchPriceAndMetadata = async (
     .flat()
     .filter((swap): swap is NonNullable<typeof swap> => swap !== undefined);
 
+  const afterAllAccounts = Date.now();
+  const accountsTime = (afterAllAccounts - beforeAllAccounts) / 1000;
+  accountsCallTimes.push(accountsTime);
+  console.log(
+    `[${accountsTime.toFixed(3)}s] 'getMultipleParsedAccounts': ${swaps.length} entries in ${batches.length} batches (avg: ${calculateAverage(accountsCallTimes)}s)`,
+  );
+
   // Get unique token mints for price lookup (excluding WSOL)
   const uniqueMints = new Set(swapsWithAccountInfo.map((swap) => swap.tokenMint));
 
@@ -159,13 +159,10 @@ export const fetchPriceAndMetadata = async (
   }
 
   // Process each mint batch in parallel
+  const beforeAllPrices = Date.now();
   const priceAndMetadataResponses = await Promise.all(
     mintBatches.map(async (mintBatch) => {
       const mintIds = mintBatch.join(",");
-      console.log(`Fetching prices for ${mintBatch.length} mints`);
-
-      // Fetch prices from Jupiter API and metadata from QuickNode DAS API
-      const before = Date.now();
       const [priceResponse, metadataResponse] = await Promise.all([
         fetchWithRetry(
           `${env.JUPITER_URL}/price?ids=${mintIds}`,
@@ -190,14 +187,14 @@ export const fetchPriceAndMetadata = async (
           1_000,
         ),
       ]);
-      const after = Date.now();
-      jupiterAndGetAssetsCallTimes.push((after - before) / 1000);
-      console.log(
-        `[${(after - before) / 1000}s] Jupiter '/price' (avg: ${calculateAverage(jupiterAndGetAssetsCallTimes)}s)`,
-      );
-
       return { priceResponse, metadataResponse };
     }),
+  );
+  const afterAllPrices = Date.now();
+  const pricesTime = (afterAllPrices - beforeAllPrices) / 1000;
+  jupiterAndGetAssetsCallTimes.push(pricesTime);
+  console.log(
+    `[${pricesTime.toFixed(3)}s] Jupiter/Assets API: ${uniqueMints.size} tokens in ${mintBatches.length} batches (avg: ${calculateAverage(jupiterAndGetAssetsCallTimes)}s)`,
   );
 
   // Parse price and metadata responses and create a lookup map
