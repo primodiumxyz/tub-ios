@@ -127,10 +127,18 @@ final class TxManager: ObservableObject {
             throw TubError.invalidInput(reason: "Missing transaction data")
         }
         
+         await MainActor.run {
+                self.submittingTx = true
+         }
+            
         // Await fetch completion
         let startTime = Date()
         while fetchingTxData {
             if Date().timeIntervalSince(startTime) > 2.0 {
+                await MainActor.run {
+                    self.submittingTx = false
+                }
+                
                 throw TubError.invalidInput(reason: "Timeout waiting for transaction data fetch")
             }
             try await Task.sleep(nanoseconds: 50_000_000)  // 50ms delay
@@ -146,10 +154,6 @@ final class TxManager: ObservableObject {
         // Sign and send the tx
         var txError : Error? = nil
         do {
-            await MainActor.run {
-                self.submittingTx = true
-            }
-            
             let provider = try privy.embeddedWallet.getSolanaProvider(for: walletAddress)
             let signature = try await provider.signMessage(message: txData.transactionMessageBase64)
             let _ = try await Network.shared.submitSignedTx(

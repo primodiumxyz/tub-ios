@@ -211,7 +211,7 @@ class Network {
 
         // Return 0 if no token account found
         guard let firstAccount = tokenAccounts.first else {
-            throw TubError.emptyTokenList
+            return 0
         }
 
         return Int(firstAccount.account.data.lamports)
