@@ -12,51 +12,38 @@ describe("query tests", () => {
     gql = await createClient({ url: "http://localhost:8080/v1/graphql", hasuraAdminSecret: "password" });
   });
 
-  it("should be able to get the balance of the account before and after a buy executed", async () => {
+  it("should be able to query the transactions of a wallet", async () => {
     const wallet = createWallet();
-    const result = await gql.db.AirdropNativeToWalletMutation({ amount: "100", wallet: wallet });
-    expect(result.data?.insert_wallet_transaction_one?.id).toBeDefined();
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    await gql.db.BuyTokenMutation({
-      wallet,
-      amount: "100",
-      token_price: "1000000000",
-      token: tokenAddress,
+    const purchase_result = await gql.db.AddTokenPurchaseMutation({
+      token_mint: tokenAddress,
+      token_amount: "200",
+      token_price_usd: "0.001",
+      user_wallet: wallet,
+      user_agent: "test",
     });
 
-    const balance_before = await gql.db.GetWalletBalanceIgnoreIntervalQuery({ wallet, interval: "500ms" });
+    expect(purchase_result.data?.insert_token_purchase_one?.id).toBeDefined();
 
-    expect(balance_before.data?.balance[0].value).toBe(100);
-
-    const balance_after = await gql.db.GetWalletBalanceQuery({ wallet });
-
-    expect(balance_after.data?.balance[0].value).toBe(0);
-  });
-
-  it("should be able to get the account token balance between intervals", async () => {
-    const wallet = createWallet();
-    const result = await gql.db.AirdropNativeToWalletMutation({ amount: "200", wallet });
-    expect(result.data?.insert_wallet_transaction_one?.id).toBeDefined();
-
-    await gql.db.BuyTokenMutation({
-      wallet,
-      amount: "100",
-      token_price: "1000000000",
-      token: tokenAddress,
+    const sale_result = await gql.db.AddTokenSaleMutation({
+      token_mint: tokenAddress,
+      token_amount: "100",
+      token_price_usd: "0.002",
+      user_wallet: wallet,
+      user_agent: "test",
     });
 
-    const balance_before = await gql.db.GetWalletTokenBalanceIgnoreIntervalQuery({
-      token: tokenAddress,
-      wallet,
-      interval: "100ms",
-    });
+    expect(sale_result.data?.insert_token_sale_one?.id).toBeDefined();
 
-    expect(balance_before.data?.balance[0].value).toBe(0);
+    const transactions = (await gql.db.GetWalletTransactionsQuery({ wallet: wallet })).data?.transactions;
 
-    const balance_after = await gql.db.GetWalletTokenBalanceQuery({ token: tokenAddress, wallet });
+    expect(transactions?.length).toEqual(2);
+    expect(transactions?.[0].token_mint).toEqual(tokenAddress);
+    expect(transactions?.[0].token_amount).toEqual("200");
+    expect(transactions?.[0].token_price_usd).toEqual("0.001");
 
-    expect(balance_after.data?.balance[0].value).toBe(100);
+    expect(transactions?.[1].token_mint).toEqual(tokenAddress);
+    expect(transactions?.[1].token_amount).toEqual("-100");
+    expect(transactions?.[1].token_price_usd).toEqual("0.002");
   });
 });
