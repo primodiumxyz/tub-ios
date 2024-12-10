@@ -136,8 +136,8 @@ export const fetchPriceAndMetadata = async (
   // Get unique token mints for price lookup (excluding WSOL)
   const uniqueMints = new Set(swapsWithAccountInfo.map((swap) => swap.tokenMint));
 
-  // Break unique mints into batches of 10
-  const mintBatchSize = 10; // max 49 as from 50+ accounts it jumps +4s
+  // Break unique mints into batches of 49
+  const mintBatchSize = 49; // max 49 as from 50+ accounts it jumps +4s
   const mintBatches = [];
   const uniqueMintsArray = Array.from(uniqueMints);
   for (let i = 0; i < uniqueMintsArray.length; i += mintBatchSize) {
