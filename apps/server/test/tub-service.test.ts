@@ -80,17 +80,13 @@ import { env } from "@bin/tub-server";
 
       console.log("\nTest setup complete with user public key:", userKeypair.publicKey.toBase58());
 
-      // Log all relevant token accounts
-      const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
-      const SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
-
       // Get fee payer token accounts
-      const feePayerUsdcAta = await getAssociatedTokenAddress(USDC_MINT, feePayerKeypair.publicKey);
-      const feePayerSolAta = await getAssociatedTokenAddress(SOL_MINT, feePayerKeypair.publicKey);
+      const feePayerUsdcAta = await getAssociatedTokenAddress(USDC_MAINNET_PUBLIC_KEY, feePayerKeypair.publicKey);
+      const feePayerSolAta = await getAssociatedTokenAddress(SOL_MAINNET_PUBLIC_KEY, feePayerKeypair.publicKey);
 
       // Get user token accounts
-      const userUsdcAta = await getAssociatedTokenAddress(USDC_MINT, userKeypair.publicKey);
-      const userSolAta = await getAssociatedTokenAddress(SOL_MINT, userKeypair.publicKey);
+      const userUsdcAta = await getAssociatedTokenAddress(USDC_MAINNET_PUBLIC_KEY, userKeypair.publicKey);
+      const userSolAta = await getAssociatedTokenAddress(SOL_MAINNET_PUBLIC_KEY, userKeypair.publicKey);
 
       console.log("\nToken Accounts:");
       console.log("Fee Payer:", feePayerKeypair.publicKey.toBase58());
