@@ -22,15 +22,6 @@ interface JupiterInstruction {
   data: string;
 }
 
-// interface SwapInstructionsResponse {
-//   tokenLedgerInstruction: JupiterInstruction | null;
-//   computeBudgetInstructions: JupiterInstruction[];
-//   setupInstructions: JupiterInstruction[];
-//   swapInstruction: JupiterInstruction;
-//   cleanupInstruction: JupiterInstruction | null;
-//   addressLookupTableAddresses: string[] | undefined;
-// }
-
 /**
  * Service for interacting with Jupiter API
  */

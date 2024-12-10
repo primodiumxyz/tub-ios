@@ -8,6 +8,8 @@ import {
   VersionedTransaction,
   AddressLookupTableAccount,
 } from "@solana/web3.js";
+import { ATA_PROGRAM_PUBLIC_KEY, TOKEN_PROGRAM_PUBLIC_KEY } from "../constants/tokens";
+import { CLEANUP_INTERVAL, REGISTRY_TIMEOUT } from "../constants/registry";
 import bs58 from "bs58";
 
 export type TransactionRegistryEntry = {
@@ -20,20 +22,19 @@ export type TransactionRegistryEntry = {
  */
 export class TransactionService {
   private messageRegistry: Map<string, TransactionRegistryEntry> = new Map();
-  private readonly REGISTRY_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 
   constructor(
     private connection: Connection,
     private feePayerKeypair: Keypair,
     private feePayerPublicKey: PublicKey,
   ) {
-    setInterval(() => this.cleanupRegistry(), 60 * 1000);
+    setInterval(() => this.cleanupRegistry(), CLEANUP_INTERVAL);
   }
 
   private cleanupRegistry() {
     const now = Date.now();
     for (const [key, value] of this.messageRegistry.entries()) {
-      if (now - value.timestamp > this.REGISTRY_TIMEOUT) {
+      if (now - value.timestamp > REGISTRY_TIMEOUT) {
         this.messageRegistry.delete(key);
       }
     }
@@ -165,7 +166,7 @@ export class TransactionService {
   reassignRentInstructions(instructions: TransactionInstruction[]): TransactionInstruction[] {
     return instructions.map((instruction) => {
       // If this is an ATA creation instruction, modify it to make fee payer pay for rent
-      if (instruction.programId.equals(new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"))) {
+      if (instruction.programId.equals(ATA_PROGRAM_PUBLIC_KEY)) {
         return new TransactionInstruction({
           programId: instruction.programId,
           keys: [
@@ -182,7 +183,7 @@ export class TransactionService {
 
       // This is a CloseAccount instruction, receive the residual funds as the FeePayer
       if (
-        instruction.programId.equals(new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA")) &&
+        instruction.programId.equals(TOKEN_PROGRAM_PUBLIC_KEY) &&
         instruction.data.length === 1 &&
         instruction.data[0] === 9
       ) {
