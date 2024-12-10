@@ -32,58 +32,63 @@ const handleSubscribeUpdate = async (data: SubscribeUpdate, batchManager: BatchM
 
 /* ------------------------------- SETUP GEYSER ------------------------------ */
 const setupGeyserClient = async (batchManager: BatchManager, connectionId: string) => {
-  return new Promise(async (_, reject) => {
+  return new Promise((_, reject) => {
     // @ts-expect-error This is a known issue; see https://github.com/rpcpool/yellowstone-grpc/issues/428
     const client = new Client.default(`${env.QUICKNODE_ENDPOINT}:10000`, env.QUICKNODE_TOKEN, {});
-    const stream = await client.subscribe();
 
-    stream.on("error", (error: unknown) => {
-      console.error(`[${connectionId}] Stream error:`, error);
-      stream.end();
-      reject(error);
-    });
+    client
+      .subscribe()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .then((stream: any) => {
+        stream.on("error", (error: unknown) => {
+          console.error(`[${connectionId}] Stream error:`, error);
+          stream.end();
+          reject(error);
+        });
 
-    stream.on("end", () => {
-      console.log(`[${connectionId}] Stream ended`);
-      reject(new Error("Stream ended"));
-    });
+        stream.on("end", () => {
+          console.log(`[${connectionId}] Stream ended`);
+          reject(new Error("Stream ended"));
+        });
 
-    stream.on("data", async (data: SubscribeUpdate) => {
-      await handleSubscribeUpdate(data, batchManager);
-    });
+        stream.on("data", async (data: SubscribeUpdate) => {
+          await handleSubscribeUpdate(data, batchManager);
+        });
 
-    const request: SubscribeRequest = {
-      slots: { client: { filterByCommitment: true } },
-      transactions: {
-        client: {
-          vote: false,
-          failed: false,
-          signature: undefined,
-          accountInclude: [RaydiumAmmParser.PROGRAM_ID.toString()],
-          accountExclude: [],
-          accountRequired: [],
-        },
-      },
-      commitment: CommitmentLevel.CONFIRMED,
-      accounts: {},
-      transactionsStatus: {},
-      entry: {},
-      blocks: {},
-      blocksMeta: {},
-      accountsDataSlice: [],
-      ping: undefined,
-    };
+        const request: SubscribeRequest = {
+          slots: { client: { filterByCommitment: true } },
+          transactions: {
+            client: {
+              vote: false,
+              failed: false,
+              signature: undefined,
+              accountInclude: [RaydiumAmmParser.PROGRAM_ID.toString()],
+              accountExclude: [],
+              accountRequired: [],
+            },
+          },
+          commitment: CommitmentLevel.CONFIRMED,
+          accounts: {},
+          transactionsStatus: {},
+          entry: {},
+          blocks: {},
+          blocksMeta: {},
+          accountsDataSlice: [],
+          ping: undefined,
+        };
 
-    stream.write(request, (err: unknown) => {
-      if (err) {
-        console.error(`[${connectionId}] Error sending subscription request:`, err);
-        stream.end();
-        reject(err);
-        return;
-      }
+        stream.write(request, (err: unknown) => {
+          if (err) {
+            console.error(`[${connectionId}] Error sending subscription request:`, err);
+            stream.end();
+            reject(err);
+            return;
+          }
 
-      console.log(`[${connectionId}] Subscription started at ${new Date().toISOString()}`);
-    });
+          console.log(`[${connectionId}] Subscription started at ${new Date().toISOString()}`);
+        });
+      })
+      .catch(reject);
   });
 };
 

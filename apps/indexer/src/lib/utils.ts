@@ -20,15 +20,6 @@ config({ path: "../../.env" });
 
 const env = parseEnv();
 
-const jupiterAndGetAssetsCallTimes: number[] = [];
-const accountsCallTimes: number[] = [];
-
-const calculateAverage = (times: number[]): string => {
-  if (times.length === 0) return "0";
-  const avg = times.reduce((a, b) => a + b, 0) / times.length;
-  return avg.toFixed(3);
-};
-
 /* --------------------------------- DECODER -------------------------------- */
 export const decodeSwapInfo = (txsWithParsedIxs: TransactionWithParsed[], timestamp: number): Swap[] => {
   // Filter out the instructions that are not related to a Raydium swap
@@ -73,8 +64,8 @@ export const decodeSwapInfo = (txsWithParsedIxs: TransactionWithParsed[], timest
 export const fetchPriceAndMetadata = async (
   connection: Connection,
   swaps: Swap[],
-): Promise<SwapWithPriceAndMetadata[]> => {
-  if (swaps.length === 0) return [];
+): Promise<{ swaps: SwapWithPriceAndMetadata[]; accountsLatency: number; pricesLatency: number }> => {
+  if (swaps.length === 0) return { swaps: [], accountsLatency: 0, pricesLatency: 0 };
 
   // Break swaps into batches of 50 (max 100 accounts passed to `getMultipleParsedAccounts`)
   const batchSize = 50;
@@ -84,21 +75,14 @@ export const fetchPriceAndMetadata = async (
   }
 
   // Process each batch in parallel and collect account info
+  const beforeAllAccounts = Date.now();
   const swapsWithAccountInfo = (
     await Promise.all(
       batches.map(async (batchSwaps) => {
-        // Get parsed accounts for both vaults of each swap
-        const beforeAccounts = Date.now();
         const parsedAccounts = await connection.getMultipleParsedAccounts(
           batchSwaps.map((swap) => [swap.vaultA, swap.vaultB]).flat(),
           { commitment: "confirmed" },
         );
-        const afterAccounts = Date.now();
-        accountsCallTimes.push((afterAccounts - beforeAccounts) / 1000);
-        console.log(
-          `[${(afterAccounts - beforeAccounts) / 1000}s] 'getMultipleParsedAccounts' (avg: ${calculateAverage(accountsCallTimes)}s)`,
-        );
-
         return batchSwaps.map((swap, i) => {
           // Extract mint info from parsed accounts
           const mintA = (parsedAccounts.value[i * 2]?.data as ParsedAccountData | undefined)?.parsed.info as
@@ -147,12 +131,13 @@ export const fetchPriceAndMetadata = async (
     .flat()
     .filter((swap): swap is NonNullable<typeof swap> => swap !== undefined);
 
+  const accountsLatency = (Date.now() - beforeAllAccounts) / 1000;
+
   // Get unique token mints for price lookup (excluding WSOL)
   const uniqueMints = new Set(swapsWithAccountInfo.map((swap) => swap.tokenMint));
 
-  // Break unique mints into batches of 49
-  // TODO: remove when QuickNode Jupiter API is fixed (time here is already long but from 50+ accounts it jumps +4s)
-  const mintBatchSize = 49;
+  // Break unique mints into batches of 10
+  const mintBatchSize = 10; // max 49 as from 50+ accounts it jumps +4s
   const mintBatches = [];
   const uniqueMintsArray = Array.from(uniqueMints);
   for (let i = 0; i < uniqueMintsArray.length; i += mintBatchSize) {
@@ -160,13 +145,10 @@ export const fetchPriceAndMetadata = async (
   }
 
   // Process each mint batch in parallel
+  const beforeAllPrices = Date.now();
   const priceAndMetadataResponses = await Promise.all(
     mintBatches.map(async (mintBatch) => {
       const mintIds = mintBatch.join(",");
-      console.log(`Fetching prices for ${mintBatch.length} mints`);
-
-      // Fetch prices from Jupiter API and metadata from QuickNode DAS API
-      const before = Date.now();
       const [priceResponse, metadataResponse] = await Promise.all([
         fetchWithRetry(
           `${env.JUPITER_URL}/price?ids=${mintIds}`,
@@ -191,15 +173,11 @@ export const fetchPriceAndMetadata = async (
           1_000,
         ),
       ]);
-      const after = Date.now();
-      jupiterAndGetAssetsCallTimes.push((after - before) / 1000);
-      console.log(
-        `[${(after - before) / 1000}s] Jupiter '/price' (avg: ${calculateAverage(jupiterAndGetAssetsCallTimes)}s)`,
-      );
-
       return { priceResponse, metadataResponse };
     }),
   );
+
+  const pricesLatency = (Date.now() - beforeAllPrices) / 1000;
 
   // Parse price and metadata responses and create a lookup map
   const priceMap = new Map();
@@ -222,35 +200,39 @@ export const fetchPriceAndMetadata = async (
   }
 
   // Map final results with price data
-  return swapsWithAccountInfo
-    .map((swap) => {
-      const price = priceMap.get(swap.tokenMint);
-      const metadata = metadataMap.get(swap.tokenMint);
-      // TODO: idem (remove when QuickNode DAS API is fixed)
-      if (price === undefined /* || metadata === undefined */) return;
+  return {
+    swaps: swapsWithAccountInfo
+      .map((swap) => {
+        const price = priceMap.get(swap.tokenMint);
+        const metadata = metadataMap.get(swap.tokenMint);
+        // TODO: idem (remove when QuickNode DAS API is fixed)
+        if (price === undefined /* || metadata === undefined */) return;
 
-      // TODO: idem (remove when QuickNode DAS API is fixed)
-      const tokenMetadata = metadata
-        ? formatTokenMetadata(metadata)
-        : {
-            name: "",
-            symbol: "",
-            description: "",
-            isPumpToken: false,
-          };
+        // TODO: idem (remove when QuickNode DAS API is fixed)
+        const tokenMetadata = metadata
+          ? formatTokenMetadata(metadata)
+          : {
+              name: "",
+              symbol: "",
+              description: "",
+              isPumpToken: false,
+            };
 
-      return {
-        vaultA: swap.vaultA,
-        vaultB: swap.vaultB,
-        timestamp: swap.timestamp,
-        mint: new PublicKey(swap.tokenMint),
-        priceUsd: price,
-        amount: swap.amount,
-        tokenDecimals: swap.tokenDecimals,
-        metadata: tokenMetadata,
-      };
-    })
-    .filter((swap) => swap !== undefined);
+        return {
+          vaultA: swap.vaultA,
+          vaultB: swap.vaultB,
+          timestamp: swap.timestamp,
+          mint: new PublicKey(swap.tokenMint),
+          priceUsd: price,
+          amount: swap.amount,
+          tokenDecimals: swap.tokenDecimals,
+          metadata: tokenMetadata,
+        };
+      })
+      .filter((swap) => swap !== undefined),
+    accountsLatency,
+    pricesLatency,
+  };
 };
 
 const formatTokenMetadata = (data: GetAssetsResponse["result"][number]): SwapTokenMetadata => {

@@ -1,7 +1,7 @@
 import { Connection } from "@solana/web3.js";
 
 import { GqlClient } from "@tub/gql";
-import { MAX_BATCH_SIZE, MIN_BATCH_FREQUENCY } from "@/lib/constants";
+import { MAX_BATCH_SIZE, MIN_BATCH_FREQUENCY, PROCESSING_MODE, ProcessingMode } from "@/lib/constants";
 import { Swap } from "@/lib/types";
 import { fetchPriceAndMetadata, upsertTrades } from "@/lib/utils";
 
@@ -27,33 +27,89 @@ export class BatchManager {
   }
 
   private async processIfNeeded() {
-    if (this.processing || this.batch.length === 0) return;
+    if (this.batch.length === 0) return;
+    // Don't process if in queue mode and already processing
+    if (PROCESSING_MODE === ProcessingMode.QUEUE && this.processing) return;
 
     const now = Date.now();
-    const shouldProcessTime = this.lastProcessTime === 0 || now - this.lastProcessTime >= MIN_BATCH_FREQUENCY;
+    const timeSinceLastProcess = now - this.lastProcessTime;
+    const shouldProcessTime = timeSinceLastProcess >= MIN_BATCH_FREQUENCY;
     const shouldProcessSize = this.batch.length >= MAX_BATCH_SIZE;
 
-    if (shouldProcessTime || shouldProcessSize) {
-      this.processing = true;
-      const batchToProcess = this.batch.splice(0, MAX_BATCH_SIZE);
-      const oldestSwapTime = Math.min(...batchToProcess.map((swap) => swap.timestamp));
+    // Only process if EITHER:
+    // 1. We've hit the max batch size
+    // 2. We have items AND enough time has passed since last process
+    if (!shouldProcessSize && !(this.batch.length > 0 && shouldProcessTime)) return;
 
-      try {
-        const SwapWithPriceAndMetadata = await fetchPriceAndMetadata(this.connection, batchToProcess);
-        const res = await upsertTrades(this.gql, SwapWithPriceAndMetadata);
-        if (res.error) throw res.error.message;
+    // Update last process time before processing
+    this.lastProcessTime = now;
 
-        this.lastProcessTime = Date.now();
-        const latency = ((Date.now() - oldestSwapTime) / 1000).toFixed(2);
-        console.log(`[${latency}s] Processed batch of ${res.data?.insert_api_trade_history?.affected_rows} swaps`);
-      } catch (error) {
-        console.error("Error processing batch:", error);
-        // On error, add failed items back at the start of the batch
-        this.batch.unshift(...batchToProcess);
-      } finally {
-        this.processing = false;
-      }
+    try {
+      await this.process();
+    } catch (error) {
+      console.error("Error processing batch:", error);
     }
+  }
+
+  private async process() {
+    this.processing = true;
+    const batchToProcess = this.batch.splice(0, MAX_BATCH_SIZE);
+    const oldestSwapTime = Math.min(...batchToProcess.map((swap) => swap.timestamp));
+    const queueLatency = (Date.now() - oldestSwapTime) / 1000;
+
+    try {
+      const {
+        swaps: swapsWithData,
+        accountsLatency,
+        pricesLatency,
+      } = await fetchPriceAndMetadata(this.connection, batchToProcess);
+      const upsertStartTime = Date.now();
+      const res = await upsertTrades(this.gql, swapsWithData);
+      if (res.error) throw res.error.message;
+
+      this.logBatchMetrics({
+        batchSize: batchToProcess.length,
+        affectedRows: res.data?.insert_api_trade_history?.affected_rows ?? 0,
+        queueLatency,
+        accountsLatency,
+        pricesLatency,
+        upsertLatency: (Date.now() - upsertStartTime) / 1000,
+      });
+    } catch (error) {
+      console.error("Error processing batch:", error);
+      this.batch.unshift(...batchToProcess);
+    } finally {
+      this.processing = false;
+    }
+  }
+
+  private logBatchMetrics({
+    batchSize,
+    affectedRows,
+    queueLatency,
+    accountsLatency,
+    pricesLatency,
+    upsertLatency,
+  }: {
+    batchSize: number;
+    affectedRows: number;
+    queueLatency: number;
+    accountsLatency: number;
+    pricesLatency: number;
+    upsertLatency: number;
+  }) {
+    console.log(
+      [
+        "\n=== Batch Processing Metrics ===",
+        `Batch size: ${batchSize} | Affected rows: ${affectedRows}`,
+        `Queue latency: ${queueLatency.toFixed(2)}s`,
+        `Fetch accounts latency: ${accountsLatency.toFixed(2)}s`,
+        `Fetch prices latency: ${pricesLatency.toFixed(2)}s`,
+        `Upsert latency: ${upsertLatency.toFixed(2)}s`,
+        `Total processing time: ${(queueLatency + accountsLatency + pricesLatency + upsertLatency).toFixed(2)}s`,
+        "================================\n",
+      ].join("\n"),
+    );
   }
 
   cleanup() {
