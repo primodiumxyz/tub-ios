@@ -2,7 +2,7 @@
 // Also to avoid errors probably due to cyclical dependencies: "TypeError: (0 , codecs_strings_1.getStringCodec) is not a function"
 // - replaced BN with BigInt (BN not compatible with node)
 
-import { BorshInstructionCoder, Idl, SystemProgram as SystemProgramIdl } from "@coral-xyz/anchor";
+import { BorshInstructionCoder, Idl } from "@coral-xyz/anchor";
 import {
   compiledInstructionToInstruction,
   flattenParsedTransaction,
@@ -36,6 +36,7 @@ import {
 } from "@solana/web3.js";
 
 import { flattenIdlAccounts } from "@/lib/parsers/helpers";
+import { TransactionWithParsed } from "@/lib/types";
 
 const MEMO_PROGRAM_V1 = "Memo1UhkJRfHyvLMcVucJwxXeuD728EqVDDwQDxFMNo";
 const MEMO_PROGRAM_V2 = "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr";
@@ -179,7 +180,7 @@ export class SolanaParser {
 
         // @ts-expect-error: type difference @coral-xyz/anchor -> @project-serum/anchor
         return parser(instruction, decoder);
-      } catch (error) {
+      } catch {
         console.error("Parser does not match the instruction args", {
           programId: instruction.programId.toBase58(),
           instructionData: instruction.data.toString("hex"),
@@ -195,10 +196,7 @@ export class SolanaParser {
    * @param tx response to parse
    * @returns list of parsed instructions
    */
-  parseTransactionWithInnerInstructions<T extends VersionedTransactionResponse>(
-    tx: T,
-    // @ts-expect-error: type difference @coral-xyz/anchor -> @project-serum/anchor
-  ): ParsedInstruction<Idl, string>[] {
+  parseTransactionWithInnerInstructions<T extends VersionedTransactionResponse>(tx: T): TransactionWithParsed[] {
     const flattened = flattenTransactionResponse(tx);
 
     return flattened.map(({ parentProgramId, ...ix }) => {
@@ -207,7 +205,7 @@ export class SolanaParser {
         parsedIx.parentProgramId = parentProgramId;
       }
 
-      return parsedIx;
+      return { raw: ix, parsed: parsedIx };
     });
   }
 

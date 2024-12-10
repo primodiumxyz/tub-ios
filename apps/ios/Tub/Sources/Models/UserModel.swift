@@ -13,39 +13,39 @@ import CodexAPI
 
 final class UserModel: ObservableObject {
     static let shared = UserModel()
-
-    @Published var isLoading: Bool = false
+    
+    @Published var initializingUser: Bool = false
     @Published var userId: String?
     @Published var walletState: EmbeddedWalletState = .notCreated
     @Published var walletAddress: String?
-
+    
     @Published var balanceUsdc: Int? = nil
     @Published var initialTime = Date()
     @Published var elapsedSeconds: TimeInterval = 0
     @Published var initialBalanceUsdc: Int? = nil
     @Published var balanceChangeUsdc: Int = 0
-
+    
     @Published var tokenPortfolio: [String : TokenData] = [:]
     
     private var timer: Timer?
-
+    
     @Published var hasSeenOnboarding: Bool {
         didSet {
             UserDefaults.standard.set(hasSeenOnboarding, forKey: "hasSeenOnboarding")
         }
     }
-
+    
     private init() {
         self.hasSeenOnboarding = UserDefaults.standard.bool(forKey: "hasSeenOnboarding")
-
+        
         setupAuthStateListener()
         setupWalletStateListener()
     }
-
+    
     private func setupAuthStateListener() {
         privy.setAuthStateChangeCallback { [weak self] state in
             guard let self = self else { return }
-
+            
             switch state {
             case .authenticated(let authSession):
                 self.userId = authSession.user.id
@@ -59,7 +59,7 @@ final class UserModel: ObservableObject {
             }
         }
     }
-
+    
     private func setupWalletStateListener() {
         privy.embeddedWallet.setEmbeddedWalletStateChangeCallback { [weak self] state in
             guard let self = self else { return }
@@ -69,9 +69,11 @@ final class UserModel: ObservableObject {
                     if let solanaWallet = wallets.first(where: { $0.chainType == .solana }) {
                         await MainActor.run {
                             self.walletAddress = solanaWallet.address
-                            self.walletState = state
                         }
                         await self.initializeUser()
+                        await MainActor.run {
+                            self.walletState = state
+                        }
                     }
                     else {
                         do {
@@ -87,44 +89,46 @@ final class UserModel: ObservableObject {
                         self.walletState = state
                     }
                 default:
+                    
                     self.logout(skipPrivy: true)
                 }
-
+                
             }
         }
     }
-
+    
     func initializeUser() async {
         let timeoutTask = DispatchWorkItem { [weak self] in
             guard let self = self else { return }
-            self.isLoading = true
-
+            self.initializingUser = true
+            
             // Schedule the timeout
             DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-                if self.isLoading {
-                    self.isLoading = false
+                if self.initializingUser {
+                    self.initializingUser = false
                 }
             }
         }
-
-            Task {
-                try await fetchInitialUsdcBalance()
-                startPollingUsdcBalance()
-            }
+        
+        do {
+            try await fetchInitialUsdcBalance()
+            startPollingUsdcBalance()
             
-            Task {
-                try await refreshPortfolio()
-                startPollingTokenPortfolio()
-            }
-            
-            timeoutTask.cancel()  // Cancel timeout if successful
-            DispatchQueue.main.async {
-                self.initialTime = Date()
-                self.isLoading = false
-            }
+            try await refreshPortfolio()
+            startPollingTokenPortfolio()
+        } catch {
+            print("error initializing:", error.localizedDescription)
+        }
+        
+        timeoutTask.cancel()  // Cancel timeout if successful
+        DispatchQueue.main.async {
+            self.initialTime = Date()
+            self.initializingUser = false
+            print("finished initializing user")
+        }
     }
-
-
+    
+    
     private var tokenPortfolioTimer: Timer?
     let PORTFOLIO_POLL_INTERVAL: TimeInterval = 60
     
@@ -132,7 +136,7 @@ final class UserModel: ObservableObject {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             self.stopPollingTokenPortfolio()  // Ensure any existing timer is invalidated
-
+            
             self.tokenPortfolioTimer = Timer.scheduledTimer(withTimeInterval: self.PORTFOLIO_POLL_INTERVAL, repeats: true) { [weak self] _ in
                 guard let self = self else { return }
                 Task {
@@ -153,12 +157,12 @@ final class UserModel: ObservableObject {
         
         let tokenBalances = try await Network.shared.getTokenBalances(address: walletAddress)
         
-        for balance in tokenBalances {
-            if balance.mint == USDC_MINT {
+        for (mint, balance) in tokenBalances {
+            if mint == USDC_MINT {
                 continue
             }
             Task {
-                try await updateTokenData(balance: balance)
+                try await updateTokenData(mint: mint, balance: balance)
             }
         }
     }
@@ -166,81 +170,81 @@ final class UserModel: ObservableObject {
     public func refreshTokenData(tokenMint: String) async throws {
         guard let walletAddress else { return }
         let balanceData = try await Network.shared.getTokenBalance(address: walletAddress, tokenMint: tokenMint)
-        try await updateTokenData(balance: balanceData)
+        try await updateTokenData(mint: tokenMint, balance: balanceData)
     }
     
-    private func updateTokenData(balance: TokenBalanceData) async throws {
-        if let tokenData = tokenPortfolio[balance.mint] {
-            let newData = TokenData(id: balance.mint, balanceData: balance, metadata: tokenData.metadata)
+    private func updateTokenData(mint: String, balance: Int) async throws {
+        if let tokenData = tokenPortfolio[mint] {
+            let newData = TokenData(mint: mint, balanceToken: balance, metadata: tokenData.metadata)
             await MainActor.run {
-                self.tokenPortfolio[balance.mint] = newData
+                self.tokenPortfolio[mint] = newData
             }
         } else {
-            let tokenData = try await createTokenData(from: balance)
-            let newToken = TokenData(id: balance.mint, balanceData: balance, metadata: tokenData)
+            let tokenData = try await createTokenMetadata(from: mint)
+            let newToken = TokenData(mint: mint, balanceToken: balance, metadata: tokenData)
             await MainActor.run {
-                self.tokenPortfolio[balance.mint] = newToken
+                self.tokenPortfolio[mint] = newToken
             }
         }
     }
-
-    private func createTokenData(from tokenBalance: TokenBalanceData) async throws -> TokenMetadata {
+    
+    private func createTokenMetadata(from mint: String) async throws -> TokenMetadata {
         let client = await CodexNetwork.shared.apolloClient
-        let query = GetTokenMetadataQuery(address: tokenBalance.mint)
-
+        let query = GetTokenMetadataQuery(address: mint)
+        
         return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<TokenMetadata, Error>) in
             client.fetch(query: query) { result in
                 switch result {
                 case .success(let response):
-                    let tokenData = TokenMetadata(
+                    let metadata = TokenMetadata(
                         name: response.data?.token.info?.name,
                         symbol: response.data?.token.info?.symbol,
                         imageUrl: response.data?.token.info?.imageLargeUrl
                     )
-                    continuation.resume(returning: tokenData)
+                    continuation.resume(returning: metadata)
                 case .failure(let error):
                     continuation.resume(throwing: error)
                 }
             }
         }
     }
-
+    
     public func fetchUsdcBalance () async throws {
-                        guard let walletAddress = self.walletAddress else { return }
-                        if self.initialBalanceUsdc == nil {
-                            try await self.fetchInitialUsdcBalance()
-                        } else {
-                            let usdcData = try await Network.shared.getUsdcBalance(address: walletAddress)
-                            await MainActor.run {
-                                self.balanceUsdc = usdcData.amountToken
-                                if let initialBalanceUsdc = self.initialBalanceUsdc {
-                                    self.balanceChangeUsdc = usdcData.amountToken - initialBalanceUsdc
-                                }
-                            }
-                        }
+        guard let walletAddress = self.walletAddress else { return }
+        if self.initialBalanceUsdc == nil {
+            try await self.fetchInitialUsdcBalance()
+        } else {
+            let balanceUsdc = try await Network.shared.getUsdcBalance(address: walletAddress)
+            await MainActor.run {
+                self.balanceUsdc = balanceUsdc
+                if let initialBalanceUsdc = self.initialBalanceUsdc {
+                    self.balanceChangeUsdc = balanceUsdc - initialBalanceUsdc
+                }
+            }
+        }
     }
-
+    
     private func fetchInitialUsdcBalance() async throws {
         guard let walletAddress = self.walletAddress else { return }
         do {
-            let usdcData = try await Network.shared.getUsdcBalance(address: walletAddress)
+            let balanceUsdc = try await Network.shared.getUsdcBalance(address: walletAddress)
             await MainActor.run {
-                self.initialBalanceUsdc = usdcData.amountToken
-                self.balanceUsdc = usdcData.amountToken
+                self.initialBalanceUsdc = balanceUsdc
+                self.balanceUsdc = balanceUsdc
             }
         } catch {
             print("Error fetching initial balance: \(error)")
         }
     }
-
+    
     private var usdcBalanceTimer: Timer?
     private let POLL_INTERVAL: TimeInterval = 10.0  // Set your desired interval here
-
+    
     private func startPollingUsdcBalance() {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             self.stopPollingUsdcBalance()  // Ensure any existing timer is invalidated
-
+            
             self.usdcBalanceTimer = Timer.scheduledTimer(withTimeInterval: self.POLL_INTERVAL, repeats: true) { [weak self] _ in
                 guard let self = self else { return }
                 Task {
@@ -249,18 +253,18 @@ final class UserModel: ObservableObject {
             }
         }
     }
-
+    
     private func stopPollingUsdcBalance() {
         usdcBalanceTimer?.invalidate()
         usdcBalanceTimer = nil
     }
-
+    
     func getLinkedAccounts() -> (email: String?, phone: String?, embeddedWallets: [PrivySDK.EmbeddedWallet]) {
-
+        
         switch privy.authState {
         case .authenticated(let session):
             let linkedAccounts = session.user.linkedAccounts
-
+            
             var email: String? {
                 linkedAccounts.first { account in
                     if case .email(_) = account {
@@ -274,7 +278,7 @@ final class UserModel: ObservableObject {
                     return nil
                 }
             }
-
+            
             var phone: String? {
                 linkedAccounts.first { account in
                     if case .phone = account {
@@ -288,7 +292,7 @@ final class UserModel: ObservableObject {
                     return nil
                 }
             }
-
+            
             var embeddedWallets: [PrivySDK.EmbeddedWallet] {
                 linkedAccounts.compactMap { account in
                     if case .embeddedWallet(let wallet) = account {
@@ -302,7 +306,7 @@ final class UserModel: ObservableObject {
             return (nil, nil, [])
         }
     }
-
+    
     func logout(skipPrivy: Bool = false) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self, self.userId != nil else { return }
@@ -311,27 +315,37 @@ final class UserModel: ObservableObject {
             self.balanceUsdc = 0
             self.initialBalanceUsdc = nil
             self.balanceChangeUsdc = 0
-            self.stopTimer()
             self.elapsedSeconds = 0
+            self.tokenPortfolio = [:]
+            
+            self.stopTimer()
+            self.stopPollingUsdcBalance()
+            self.stopPollingTokenPortfolio()
         }
         if !skipPrivy {
             privy.logout()
-
+            
         }
     }
-
+    
     /* ------------------------------- USER TOKEN ------------------------------- */
-
+    
     @Published var tokenId: String? = nil
-
-    @Published var balanceToken: Int? = nil
-
+    
     @Published var purchaseData: PurchaseData? = nil
-
+    
     func initToken(tokenId: String) {
         self.tokenId = tokenId
+        if tokenId != "" {
+            Task {
+                try! await TxManager.shared.updateTxData(
+                    tokenId: tokenId,
+                    sellQuantity: SettingsManager.shared.defaultBuyValueUsdc
+                )
+            }
+        }
     }
-
+    
     func buyTokens(buyQuantityUsdc: Int, tokenPriceUsdc: Int) async throws {
         guard let walletAddress else {
             throw TubError.notLoggedIn
@@ -339,30 +353,30 @@ final class UserModel: ObservableObject {
         guard let tokenId = self.tokenId, let balanceUsdc = self.balanceUsdc else {
             throw TubError.invalidInput(reason: "No balance")
         }
-
+        
         if buyQuantityUsdc > balanceUsdc {
             throw TubError.insufficientBalance
         }
-
+        
         // TODO: Pull the decimals in the token metadata instead of assuming 9
         let buyQuantityToken = (buyQuantityUsdc / tokenPriceUsdc) * Int(1e9)
-
+        
         var err: (any Error)? = nil
         do {
             try await TxManager.shared.submitTx(walletAddress: walletAddress)
-
+            
             await MainActor.run {
                 self.purchaseData = PurchaseData(
                     timestamp: Date(),
                     amountUsdc: buyQuantityUsdc,
-                    priceUsdc: Int(tokenPriceUsdc)
+                    priceUsdc: tokenPriceUsdc
                 )
             }
         }
         catch {
             err = error
         }
-
+        
         do {
             try await Network.shared.recordClientEvent(
                 event: ClientEvent(
@@ -381,22 +395,24 @@ final class UserModel: ObservableObject {
         catch {
             print("Failed to record buy event: \(error)")
         }
-
+        
         if let err {
             throw err
         }
     }
-
+    
     func sellTokens(price: Int) async throws {
         guard let walletAddress else {
             throw TubError.notLoggedIn
         }
         
-        guard let tokenId = self.tokenId, let balance = self.balanceToken else {
-            throw TubError.notLoggedIn
+        
+        guard let tokenId = self.tokenId, let balanceToken = tokenPortfolio[tokenId]?.balanceToken, balanceToken > 0 else {
+            throw TubError.insufficientBalance
         }
-
+        
         var err: (any Error)? = nil
+        
         do {
             try await TxManager.shared.submitTx(walletAddress: walletAddress)
             
@@ -408,14 +424,14 @@ final class UserModel: ObservableObject {
             err = error
             print("Error selling tokens: \(error)")
         }
-
+        
         do {
             try await Network.shared.recordClientEvent(
                 event: ClientEvent(
                     eventName: "sell_tokens",
                     source: "token_model",
                     metadata: [
-                        ["sell_amount": balance],
+                        ["sell_amount": balanceToken],
                         ["token_id": tokenId],
                     ],
                     errorDetails: err?.localizedDescription
@@ -426,23 +442,23 @@ final class UserModel: ObservableObject {
         catch {
             print("Failed to record sell event: \(error)")
         }
-
+        
         if let err {
             throw err
         }
     }
-
+    
     private func startTimer() {
         stopTimer()  // Ensure any existing timer is invalidated
         self.initialTime = Date()
         self.elapsedSeconds = 0
-
+        
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             guard let self = self else { return }
             self.elapsedSeconds = Date().timeIntervalSince(self.initialTime)
         }
     }
-
+    
     private func stopTimer() {
         timer?.invalidate()
         timer = nil

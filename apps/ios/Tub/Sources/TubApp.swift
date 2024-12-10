@@ -36,31 +36,23 @@ struct AppContent: View {
     @StateObject private var notificationHandler = NotificationHandler()
     @StateObject private var userModel = UserModel.shared
     @StateObject private var priceModel = SolPriceModel.shared
-    @StateObject private var tokenManager = CodexTokenManager.shared
     @StateObject private var tokenListModel = TokenListModel.shared
 
     var body: some View {
         Group {
-            if tokenManager.fetchFailed {
-                LoginErrorView(
-                    errorMessage: "Failed to connect to Codex",
-                    retryAction: {
-                        await tokenManager.refreshToken(hard: true)
-                    }
-                )
-            }
-            else if let _ = priceModel.error {
+            if let _ = priceModel.error {
                 LoginErrorView(
                     errorMessage: "Failed to get price data",
                     retryAction: {
                         Task {
-                            await priceModel.fetchCurrentPrice()
+                            await priceModel.fetchPrice()
                         }
                     }
                 )
-            }
-            else if !tokenManager.isReady {
+            } else if !tokenManager.isReady {
                 LoadingView(identifier: "Fetching Codex token", message: "Fetching auth token")
+            } else if userModel.walletState == .connecting || userModel.initializingUser {
+                LoadingView(identifier: "Logging in", message: "Logging in")
             }
             else {
                 HomeTabsView().font(.sfRounded())
@@ -82,15 +74,21 @@ struct AppContent: View {
                     }
             }
         }.onAppear {
+            tokenListModel.configure(with: userModel)
             Task(priority: .high) {
-                // we cannot start token subscription until we have the api key
                 await tokenManager.refreshToken()
-                tokenListModel.configure(with: userModel)
-                await tokenListModel.startTokenSubscription()
             }
         }.onChange(of: userModel.walletState) { _, newState in
+            if newState == .connecting { return }
             if newState == .error {
                 notificationHandler.show("Error connecting to wallet.", type: .error)
+                return
+            }
+            // we wait to begin the token subscription until the user is ready (either logged in or not) 
+            Task(priority: .high) {
+                // we clear the queue when the user logs in/out to force showing owned tokens first
+                tokenListModel.clearQueue()
+                await tokenListModel.startTokenSubscription()
             }
         }
     }

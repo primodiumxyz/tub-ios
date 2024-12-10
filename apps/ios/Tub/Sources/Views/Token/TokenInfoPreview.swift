@@ -17,11 +17,14 @@ struct TokenInfoPreview: View {
 
     var activeTab: PurchaseState
     @State private var showInfoOverlay: Bool = false
+    
+    var balanceToken: Int {
+        userModel.tokenPortfolio[tokenModel.token.id]?.balanceToken ?? 0
+    }
 
     private var sellStats: [StatValue]? {
         guard
             tokenModel.isReady,
-            let purchaseData = userModel.purchaseData,
             let priceUsd = tokenModel.prices.last?.priceUsd,
             priceUsd > 0,
             activeTab == .sell
@@ -30,14 +33,15 @@ struct TokenInfoPreview: View {
         }
         var stats = [StatValue]()
         // Calculate current value
-        let tokenBalance = Double(userModel.balanceToken ?? 0) / 1e9
+        // todo: replace hard coded decimals with token decimals
+        let tokenBalance = Double(balanceToken) / 1e9
         let tokenBalanceUsd = tokenBalance * (tokenModel.prices.last?.priceUsd ?? 0)
-        let initialValueUsd = priceModel.usdcToUsd(usdc: purchaseData.amountUsdc)
 
         // Calculate profit
-        let gains = tokenBalanceUsd - initialValueUsd
 
-        if purchaseData.amountUsdc > 0, initialValueUsd > 0 {
+        if let amountUsdc = userModel.purchaseData?.amountUsdc, amountUsdc > 0 {
+            let initialValueUsd = priceModel.usdcToUsd(usdc: amountUsdc)
+            let gains = tokenBalanceUsd - initialValueUsd
             let percentageGain = gains / initialValueUsd * 100
             stats.append(
                 StatValue(
@@ -62,14 +66,12 @@ struct TokenInfoPreview: View {
 
     private var generalStats: [StatValue] {
         let token = tokenModel.token
-        //        print(token)
         let ret = [
             StatValue(title: "Market Cap", value: priceModel.formatPrice(usd: token.marketCapUsd, formatLarge: true)),
-            StatValue(title: "Volume (1h)", value: priceModel.formatPrice(usd: token.volumeUsd, formatLarge: true)),
-            StatValue(title: "Liquidity", value: priceModel.formatPrice(usd: token.liquidityUsd, formatLarge: true)),
-            StatValue(title: "Unique holders", value: formatLargeNumber(Double(token.uniqueHolders))),
+            StatValue(title: "Change", caption: HOT_TOKENS_INTERVAL, value: String(format: "%.2f%%", token.stats.priceChangePct)),
+            StatValue(title: "Volume", caption: HOT_TOKENS_INTERVAL, value: priceModel.formatPrice(usd: token.stats.volumeUsd, formatLarge: true)),
+            StatValue(title: "Trades", caption: HOT_TOKENS_INTERVAL, value: token.stats.trades.formatted()),
         ]
-        //        print(ret)
         return ret
     }
 
@@ -147,17 +149,24 @@ private struct StatView: View {
 
     var body: some View {
         VStack(spacing: 4) {
-            HStack(spacing: 0) {
+            HStack(spacing: 3) {
                 Text(stat.title)
                     .font(.sfRounded(size: .xs, weight: .regular))
                     .foregroundStyle(.tubText)
                     .fixedSize(horizontal: true, vertical: false)
+                
+                if let caption = stat.caption {
+                    Text(caption)
+                        .font(.sfRounded(size: .xxs, weight: .regular))
+                        .foregroundStyle(.tubText.opacity(0.7))
+                }
 
                 Text(stat.value)
                     .font(.sfRounded(size: .sm, weight: .semibold))
                     .foregroundStyle(stat.color ?? .primary)
                     .frame(maxWidth: .infinity, alignment: .topTrailing)
             }
+            .alignmentGuide(.firstTextBaseline) { d in d[.firstTextBaseline] }
 
             Divider().padding(.top, 2)
                 .frame(height: 0.5)
@@ -178,8 +187,7 @@ private struct StatView: View {
     }()
 
     var activeTab: PurchaseState {
-        let balance: Int = userModel.balanceToken ?? 0
-        return balance > 0 ? .sell : .buy
+        return balanceToken > 0 ? .sell : .buy
     }
 
     // Create mock token model with sample data
@@ -189,16 +197,19 @@ private struct StatView: View {
         return model
     }()
 
+    var balanceToken : Int {
+       userModel.tokenPortfolio[tokenModel.token.id]?.balanceToken ?? 0
+    }
     VStack {
         VStack {
             Text("Modifiers")
             PrimaryButton(text: "Toggle Buy/Sell") {
-                if userModel.balanceToken ?? 0 > 0 {
-                    userModel.balanceToken = 0
+                if balanceToken > 0 {
+                    userModel.tokenPortfolio[tokenModel.token.id]?.balanceToken = 0
                     userModel.purchaseData = nil
                 }
                 else {
-                    userModel.balanceToken = 100
+                    userModel.tokenPortfolio[tokenModel.token.id]?.balanceToken = 100
                     userModel.purchaseData = PurchaseData(
                         timestamp: Date().addingTimeInterval(-60 * 60),
                         amountUsdc: 1000,

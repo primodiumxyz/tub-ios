@@ -4,7 +4,6 @@ import { JupiterService } from "../src/services/JupiterService";
 import { Connection, Keypair, VersionedTransaction, VersionedMessage, PublicKey } from "@solana/web3.js";
 import { createJupiterApiClient } from "@jup-ag/api";
 import { MockPrivyClient } from "./helpers/MockPrivyClient";
-import { Codex } from "@codex-data/sdk";
 import { createClient as createGqlClient } from "@tub/gql";
 import bs58 from "bs58";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
@@ -22,7 +21,7 @@ import { PrebuildSwapResponse } from "@/types";
   beforeAll(async () => {
     try {
       // Setup connection to Solana mainnet
-      connection = new Connection(env.QUICKNODE_MAINNET_URL ?? "https://api.mainnet-beta.solana.com");
+      connection = new Connection(`${env.QUICKNODE_ENDPOINT}/${env.QUICKNODE_TOKEN}`);
 
       // Setup Jupiter API client
       const jupiterQuoteApi = createJupiterApiClient({
@@ -47,8 +46,6 @@ import { PrebuildSwapResponse } from "@/types";
         })
       ).db;
 
-      const codexSdk = new Codex(env.CODEX_API_KEY!);
-
       // Create mock Privy client with our test wallet
       const mockPrivyClient = new MockPrivyClient(userKeypair.publicKey.toString());
 
@@ -56,7 +53,6 @@ import { PrebuildSwapResponse } from "@/types";
         gqlClient,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockPrivyClient as any,
-        codexSdk,
         jupiterService,
       );
 

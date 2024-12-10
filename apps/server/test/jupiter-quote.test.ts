@@ -18,7 +18,7 @@ describe.skip("Jupiter Quote Integration Test", () => {
   beforeAll(async () => {
     try {
       // Setup connection to Solana mainnet
-      connection = new Connection(env.QUICKNODE_MAINNET_URL);
+      connection = new Connection(`${env.QUICKNODE_ENDPOINT}/${env.QUICKNODE_TOKEN}`);
 
       // Setup Jupiter API client
       jupiterQuoteApi = new DefaultApi(

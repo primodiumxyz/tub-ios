@@ -8,7 +8,14 @@ import Foundation
 
 var iso8601Formatter: ISO8601DateFormatter = {
     let formatter = ISO8601DateFormatter()
-    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds, .withTimeZone]
+    return formatter
+}()
+
+// Custom formatted for candles (without fractional seconds)
+var iso8601FormatterNoFractional: ISO8601DateFormatter = {
+    let formatter = ISO8601DateFormatter()
+    formatter.formatOptions = [.withInternetDateTime, .withTimeZone]
     return formatter
 }()
 

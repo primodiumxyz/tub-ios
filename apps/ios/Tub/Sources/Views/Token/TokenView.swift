@@ -15,27 +15,31 @@ struct TokenView: View {
     @EnvironmentObject private var userModel: UserModel
     @EnvironmentObject private var notificationHandler: NotificationHandler
 
+	@State private var showInfoCard = false
+	@State private var showBuySheet: Bool = false
+	@State private var keyboardHeight: CGFloat = 0
+
     @Binding private var showBubbles: Bool
-    @State private var showInfoCard = false
-    @State private var showBuySheet: Bool = false
-    @State private var keyboardHeight: CGFloat = 0
-
-    @Binding var animate: Bool
+	@Binding var animate: Bool
+	
     var onSellSuccess: (() -> Void)?
-
+    
+    var balanceToken: Int {
+        userModel.tokenPortfolio[tokenModel.token.id]?.balanceToken ?? 0
+    }
+    
     var activeTab: PurchaseState {
-        let balance: Int = userModel.balanceToken ?? 0
-        return balance > 0 ? PurchaseState.sell : PurchaseState.buy
+        return balanceToken > 0 ? PurchaseState.sell : PurchaseState.buy
     }
 
     init(
         tokenModel: TokenModel,
-        animate: Binding<Bool>,
-        showBubbles: Binding<Bool>,
+		animate: Binding<Bool> = Binding.constant(false),
+        showBubbles: Binding<Bool> = Binding.constant(false),
         onSellSuccess: (() -> Void)? = nil
     ) {
         self.tokenModel = tokenModel
-        self._animate = animate
+		self._animate = animate
         self._showBubbles = showBubbles
         self.onSellSuccess = onSellSuccess
     }
@@ -81,11 +85,17 @@ struct TokenView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Spacer().frame(height: 20)
                     tokenInfoView
+					// Help visually debug tokenModel.isReady state changes while scroll anim is still in flight.
+					//.border(tokenModel.isReady ? .green : .red)
+
                     chartView
                         .padding(.top, 5)
-                    intervalButtons
+					//.border(tokenModel.isReady ? .green : .red)
+
+					intervalButtons
                         .padding(.horizontal)
                         .padding(.vertical, 12)
+					//.border(tokenModel.isReady ? .green : .red)
                 }
 
                 VStack(spacing: 0) {
@@ -104,8 +114,7 @@ struct TokenView: View {
             .frame(maxWidth: .infinity)
             .foregroundStyle(.primary)
         }
-        .onChange(of: userModel.balanceToken) {
-            guard let balanceToken = userModel.balanceToken else { return }
+        .onChange(of: balanceToken) {
             let purchaseState = balanceToken > 0 ? PurchaseState.sell : PurchaseState.buy
             Task {
                 if purchaseState == .sell {
@@ -218,11 +227,12 @@ struct TokenView: View {
             }
             else if tokenModel.selectedTimespan == .live {
                 ChartView(
-                    prices: tokenModel.prices,
+                    rawPrices: tokenModel.prices,
                     purchaseData: userModel.purchaseData,
                     animate: $animate,
                     height: height
                 )
+                //				.id(tokenModel.prices.count) // results in odd behavior: toggles between prices.count = 0 and prices.count = correct value
             }
             else {
                 CandleChartView(
@@ -231,7 +241,7 @@ struct TokenView: View {
                     timeframeMins: 30,
                     height: height
                 )
-                .id(tokenModel.prices.count)
+                .id(tokenModel.prices.count)  // should be tokenModel.candles.count?
             }
         }
     }

@@ -6,7 +6,6 @@
 //
 
 import Apollo
-import CodexAPI
 import SwiftUI
 import TubAPI
 
@@ -18,8 +17,6 @@ import TubAPI
 final class TokenListModel: ObservableObject {
     static let shared = TokenListModel()
 
-    @Published var isReady = false
-
     @Published var pendingTokens: [Token] = []
     @Published var tokenQueue: [Token] = []
     var currentTokenIndex = -1
@@ -29,7 +26,7 @@ final class TokenListModel: ObservableObject {
     @Published var currentTokenModel: TokenModel
     var userModel: UserModel?  // Make optional since we'll set it after init
 
-    private var timer: Timer?
+    private var hotTokensSubscription: Apollo.Cancellable?
 
     private var currentTokenStartTime: Date?
 
@@ -58,19 +55,23 @@ final class TokenListModel: ObservableObject {
         // initialize current model
         self.currentTokenModel.initialize(with: token)
         self.userModel?.initToken(tokenId: token.id)
-        if token.id != "" {
-            Task {
-                try! await TxManager.shared.updateTxData(
-                    tokenId: token.id,
-                    sellQuantity: SettingsManager.shared.defaultBuyValueUsdc
-                )
-            }
-        }
+        
     }
 
     private func getNextToken(excluding currentId: String? = nil) -> Token {
         if self.currentTokenIndex < self.tokenQueue.count - 1 {
             return tokenQueue[currentTokenIndex + 1]
+        }
+
+        if let userModel {
+            let portfolio = userModel.tokenPortfolio
+            let priorityTokenMint = portfolio.keys.first { tokenId in
+                tokenId != currentId
+            }
+            
+            if let mint = priorityTokenMint, let tokenData = portfolio[mint] {
+                return tokenDataToToken(tokenData: tokenData)
+            }
         }
 
         // If this is the first token (no currentId), return the first non-cooldown token
@@ -93,19 +94,30 @@ final class TokenListModel: ObservableObject {
     // - Set the current token to the previously visited one
     // - Update the current token model
     // - Pop the last token in the array (swiping down should always be a fresh pumping token)
-    func loadPreviousToken() {
-        guard let prevModel = previousTokenModel, currentTokenIndex > 0 else { return }
-        currentTokenIndex -= 1
-
+    func loadPreviousTokenIntoCurrentTokenPhaseOne() -> Bool {
+		guard let prevModel = previousTokenModel, currentTokenIndex > 0 else {
+			return false
+		}
+		
         recordTokenDwellTime()
 
         // next
-        nextTokenModel = currentTokenModel
+        //	Build up a new TokenModel so that we start from a
+        //	known state: no leftover timers and/or subscriptions.
+        let newNextTokenModel = TokenModel()
+        newNextTokenModel.preload(with: currentTokenModel.token)
+        nextTokenModel = newNextTokenModel
 
         // current
         currentTokenStartTime = Date()
         currentTokenModel = prevModel
         initCurrentTokenModel(with: prevModel.token)
+		
+		return true
+    }
+
+    func loadPreviousTokenIntoCurrentTokenPhaseTwo() {
+        currentTokenIndex -= 1
 
         //previous
         if currentTokenIndex > 0 {
@@ -122,12 +134,15 @@ final class TokenListModel: ObservableObject {
     // - Move current to previous
     // - Move next to current and initialize
     // - If current is the end of the array, append a new one and preload it
-    func loadNextToken() {
+    func loadNextTokenIntoCurrentTokenPhaseOne() {
         self.recordTokenDwellTime()
-        self.currentTokenIndex += 1
 
         // previous
-        previousTokenModel = currentTokenModel
+        //	Build up a new TokenModel so that we start from a
+        //	known state: no leftover timers and/or subscriptions.
+        let newPreviousTokenModel = TokenModel()
+        newPreviousTokenModel.preload(with: currentTokenModel.token)
+        previousTokenModel = newPreviousTokenModel
 
         // current
         currentTokenStartTime = Date()
@@ -142,6 +157,10 @@ final class TokenListModel: ObservableObject {
             initCurrentTokenModel(with: newToken)
             removePendingToken(newToken.id)
         }
+    }
+
+    func loadNextTokenIntoCurrentTokenPhaseTwo() {
+        self.currentTokenIndex += 1
 
         // next
         let newToken = getNextToken(excluding: currentTokenModel.token.id)
@@ -154,89 +173,49 @@ final class TokenListModel: ObservableObject {
         }
     }
 
+
+    @Published var fetching = false
     public func startTokenSubscription() async {
-        if let _ = timer { return }
         do {
-            try await fetchHotTokens()
-
-            // Set up timer for 1-second updates
-            self.timer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { [weak self] _ in
-                guard let self = self else { return }
-                if !self.fetching {
-                    Task {
-                        do {
-                            try await self.fetchHotTokens()
-                        }
-                        catch {
-                            print("Error fetching tokens: \(error.localizedDescription)")
-                        }
-                    }
-                }
-            }
-        }
-        catch {
-            print("Error starting token subscription: \(error.localizedDescription)")
-        }
-    }
-
-    func stopTokenSubscription() {
-        // Stop the timer
-        timer?.invalidate()
-        timer = nil
-    }
-
-    private var fetching = false
-
-    private func fetchHotTokens(setLoading: Bool? = false) async throws {
-        let client = await CodexNetwork.shared.apolloClient
-
-        self.fetching = true
-
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            client.fetch(
-                query: GetFilterTokensQuery(
-                    rankingAttribute: .some(.init(TokenRankingAttribute.trendingScore))
-                ),
-                cachePolicy: .fetchIgnoringCacheData
+            self.hotTokensSubscription = Network.shared.apollo.subscribe(
+                subscription: SubTopTokensByVolumeSubscription(
+                    interval: .some(HOT_TOKENS_INTERVAL),
+                    recentInterval: .some(FILTERING_INTERVAL),
+                    minRecentTrades: .some(FILTERING_MIN_TRADES),
+                    minRecentVolume: .some(FILTERING_MIN_VOLUME_USD)
+                )
             ) { [weak self] result in
-                guard let self = self else {
-                    continuation.resume(throwing: TubError.unknown)
-                    return
-                }
-
+                guard let self = self else { return }
+                
                 // Process data in background queue
-                DispatchQueue.global(qos: .userInitiated).async {
+                DispatchQueue.global(qos: .userInitiated).async(execute: DispatchWorkItem {
                     // Prepare data in background
                     let hotTokens: [Token] = {
                         switch result {
                         case .success(let graphQLResult):
-                            if let tokens = graphQLResult.data?.filterTokens?.results {
-                                let mappedTokens =
-                                    tokens
-                                    .sorted(by: { Double($0?.volume1 ?? "0") ?? 0 > Double($1?.volume1 ?? "0") ?? 0 })
+                            if let tokens = graphQLResult.data?.token_stats_interval_comp {
+                                let mappedTokens = tokens
                                     .map { elem in
                                         Token(
-                                            id: elem?.token?.address,
-                                            name: elem?.token?.info?.name,
-                                            symbol: elem?.token?.info?.symbol,
-                                            description: elem?.token?.info?.description,
-                                            imageUri: elem?.token?.info?.imageLargeUrl ?? elem?.token?.info?
-                                                .imageSmallUrl
-                                                ?? elem?.token?.info?.imageThumbUrl,
-                                            liquidityUsd: Double(elem?.liquidity ?? "0"),
-                                            marketCapUsd: Double(elem?.marketCap ?? "0"),
-                                            volumeUsd: Double(elem?.volume1 ?? "0"),
-                                            pairId: elem?.pair?.id,
-                                            socials: (
-                                                discord: elem?.token?.socialLinks?.discord,
-                                                instagram: elem?.token?.socialLinks?.instagram,
-                                                telegram: elem?.token?.socialLinks?.telegram,
-                                                twitter: elem?.token?.socialLinks?.twitter,
-                                                website: elem?.token?.socialLinks?.website
-                                            ),
-                                            uniqueHolders: nil
+                                            id: elem.token_mint,
+                                            name: elem.token_metadata_name,
+                                            symbol: elem.token_metadata_symbol,
+                                            description: elem.token_metadata_description,
+                                            imageUri: elem.token_metadata_image_uri,
+                                            externalUrl: elem.token_metadata_external_url,
+                                            decimals: Int(elem.token_metadata_decimals ?? 0),
+                                            supply: Int(elem.token_metadata_supply ?? 0),
+                                            latestPriceUsd: elem.latest_price_usd,
+                                            stats: IntervalStats(volumeUsd: elem.total_volume_usd, trades: Int(elem.total_trades), priceChangePct: elem.price_change_pct),
+                                            recentStats: IntervalStats(volumeUsd: elem.recent_volume_usd, trades: Int(elem.recent_trades), priceChangePct: elem.recent_price_change_pct)
                                         )
                                     }
+                                
+                                // Update the current token
+                                let currentToken = self.currentTokenModel.token
+                                if let updatedToken = mappedTokens.first(where: { $0.id == currentToken.id }) {
+                                self.currentTokenModel.updateTokenDetails(updatedToken)
+                                }
 
                                 return mappedTokens
                             }
@@ -246,22 +225,20 @@ final class TokenListModel: ObservableObject {
                             return []
                         }
                     }()
-
-                    self.fetching = false
-
                     DispatchQueue.main.sync {
+                        self.fetching = false
                         self.updatePendingTokens(hotTokens)
                         if self.tokenQueue.isEmpty {
                             self.initializeTokenQueue()
                         }
-                        self.isReady = true
                     }
-
-                }
-
-                continuation.resume()
+                })
             }
         }
+    }
+
+    func stopTokenSubscription() {
+        self.hotTokensSubscription?.cancel()
     }
 
     private func removePendingToken(_ tokenId: String) {
@@ -290,7 +267,7 @@ final class TokenListModel: ObservableObject {
         // first model
         let firstToken = getNextToken()
         tokenQueue.append(firstToken)
-        self.currentTokenIndex += 1
+        self.currentTokenIndex = 0
         removePendingToken(firstToken.id)
         initCurrentTokenModel(with: firstToken)
 
@@ -326,12 +303,20 @@ final class TokenListModel: ObservableObject {
         }
     }
 
+    public func clearQueue() {
+        self.tokenQueue = []
+        self.pendingTokens = []
+        self.currentTokenIndex = -1
+        self.previousTokenModel = nil
+        self.nextTokenModel = nil
+        self.currentTokenModel = TokenModel()
+    }
+
     deinit {
         // Record final dwell time before cleanup
         recordTokenDwellTime()
 
-        timer?.invalidate()
-        timer = nil
+        stopTokenSubscription()
     }
 }
 
