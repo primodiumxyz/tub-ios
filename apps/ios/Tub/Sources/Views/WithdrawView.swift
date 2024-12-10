@@ -206,8 +206,9 @@ struct RecipientSelectView: View {
             
             VStack(alignment: .leading, spacing: UIScreen.height(Layout.Spacing.tiny)) {
                 HStack(spacing: UIScreen.width(Layout.Spacing.xs)) {
-                    Image(systemName: "wallet.bifold.fill")
-                        .foregroundStyle(.tubText)
+                    Image("Solana")
+                        .resizable()
+                        .frame(width: 32, height: 32, alignment: .center)
                     
                     Text("Solana Wallet")
                         .font(.sfRounded(size: .lg, weight: .medium))

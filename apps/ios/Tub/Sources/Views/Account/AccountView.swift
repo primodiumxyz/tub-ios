@@ -37,42 +37,12 @@ struct AccountView: View {
             .sheet(isPresented: $showWithdrawView) {
                 WithdrawView()
             }
-            .fullScreenCover(isPresented: $showOnrampView) {
-                VStack {
-                    HStack {
-                        Button(action: { showOnrampView = false }) {
-                            Image(systemName: "xmark")
-                                .foregroundStyle(.tubBuyPrimary)
-                                .font(.system(size: 16, weight: .medium))
-                        }
-                        Spacer()
-
-                    }.padding(24)
-
-                    CoinbaseOnrampView()
-                }.background(Color(UIColor.systemBackground))
+            .sheet(isPresented: $showOnrampView) {
+                CoinbaseOnrampView()
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(UIColor.systemBackground))
-        .sheet(isPresented: $showOnrampView) {
-
-            VStack {
-                HStack {
-                    Text("Deposit")
-                        .font(.sfRounded(size: .xl, weight: .semibold))
-                        .foregroundStyle(.primary)
-                    Spacer()
-                    Button(action: { showOnrampView = false }) {
-                        Image(systemName: "xmark")
-                            .foregroundStyle(.primary)
-                            .font(.system(size: 16, weight: .medium))
-                    }
-                }.padding(24)
-
-                CoinbaseOnrampView()
-            }.background(Color(UIColor.systemBackground))
-        }
         .presentationDragIndicator(.visible)
         .presentationBackground(Color(UIColor.systemBackground))
 
