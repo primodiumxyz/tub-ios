@@ -9,6 +9,12 @@ export interface ClientEvent {
   buildVersion?: string;
 }
 
+export type TokenPurchaseOrSaleEvent = Omit<ClientEvent, "eventName" | "metadata"> & {
+  tokenMint: string;
+  tokenAmount: string;
+  tokenPriceUsd: string;
+};
+
 export class AnalyticsService {
   constructor(private gql: GqlClient["db"]) {}
 
@@ -31,6 +37,48 @@ export class AnalyticsService {
 
     if (result.error) {
       throw new Error(result.error.message);
+    }
+
+    return id;
+  }
+
+  async recordTokenPurchase(event: TokenPurchaseOrSaleEvent, userWallet: string): Promise<string> {
+    const result = await this.gql.AddTokenPurchaseMutation({
+      token_mint: event.tokenMint,
+      token_amount: event.tokenAmount,
+      token_price_usd: event.tokenPriceUsd,
+      user_agent: event.userAgent,
+      user_wallet: userWallet,
+      error_details: event.errorDetails,
+      source: event.source,
+      build: event.buildVersion,
+    });
+
+    const id = result.data?.insert_token_purchase_one?.id;
+
+    if (!id) {
+      throw new Error("Failed to record token purchase. Missing ID.");
+    }
+
+    return id;
+  }
+
+  async recordTokenSale(event: TokenPurchaseOrSaleEvent, userWallet: string): Promise<string> {
+    const result = await this.gql.AddTokenSaleMutation({
+      token_mint: event.tokenMint,
+      token_amount: event.tokenAmount,
+      token_price_usd: event.tokenPriceUsd,
+      user_agent: event.userAgent,
+      user_wallet: userWallet,
+      error_details: event.errorDetails,
+      source: event.source,
+      build: event.buildVersion,
+    });
+
+    const id = result.data?.insert_token_sale_one?.id;
+
+    if (!id) {
+      throw new Error("Failed to record token sale. Missing ID.");
     }
 
     return id;

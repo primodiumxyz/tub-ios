@@ -4,9 +4,8 @@
 import ApolloAPI
 
 public extension Objects {
-  /// columns and relationships of "token_transaction"
-  static let Token_transaction = ApolloAPI.Object(
-    typename: "token_transaction",
+  static let Transaction_model = ApolloAPI.Object(
+    typename: "transaction_model",
     implementedInterfaces: []
   )
 }
