@@ -1,8 +1,7 @@
-import { Connection, PublicKey, TransactionMessage, VersionedTransaction, Keypair } from "@solana/web3.js";
+import { Connection, TransactionMessage, VersionedTransaction, Keypair, PublicKey } from "@solana/web3.js";
 import { DefaultApi, Configuration } from "@jup-ag/api";
 import { JupiterService } from "../src/services/JupiterService";
 import { TransactionService } from "../src/services/TransactionService";
-import { Cache } from "cache-manager";
 import { describe, it, expect, beforeAll } from "vitest";
 import { AxiosError } from "axios";
 import { env } from "@bin/tub-server";
@@ -15,8 +14,7 @@ describe.skip("Jupiter Quote Integration Test", () => {
   let jupiterQuoteApi: DefaultApi;
   let jupiterService: JupiterService;
   let transactionService: TransactionService;
-  let cache: Cache;
-
+  let feePayerPublicKey: PublicKey;
   beforeAll(async () => {
     try {
       // Setup connection to Solana mainnet
@@ -30,18 +28,9 @@ describe.skip("Jupiter Quote Integration Test", () => {
       );
 
       const feePayerKeypair = createTestKeypair();
-      const feePayerPublicKey = feePayerKeypair.publicKey;
+      feePayerPublicKey = feePayerKeypair.publicKey;
 
-      jupiterService = new JupiterService(
-        connection,
-        jupiterQuoteApi,
-        feePayerPublicKey,
-        new PublicKey("11111111111111111111111111111111"),
-        100,
-        0,
-        15,
-        cache,
-      );
+      jupiterService = new JupiterService(connection, jupiterQuoteApi);
       transactionService = new TransactionService(connection, feePayerKeypair, feePayerPublicKey);
     } catch (error) {
       console.error("Error in test setup:", error);
@@ -209,7 +198,7 @@ describe.skip("Jupiter Quote Integration Test", () => {
       expect(swapInstructions).toBeDefined();
       expect(swapInstructions.instructions).toBeDefined();
       expect(transaction).toBeDefined();
-      expect(decompiledMessage.payerKey.equals(jupiterService.getSettings().feePayerPublicKey)).toBe(true);
+      expect(decompiledMessage.payerKey.equals(feePayerPublicKey)).toBe(true);
       expect(decompiledMessage.instructions.length).toBeGreaterThan(0);
       expect(decompiledMessage.recentBlockhash).toBeDefined();
     } catch (error) {
@@ -278,7 +267,7 @@ describe.skip("Jupiter Quote Integration Test", () => {
       expect(swapInstructions).toBeDefined();
       expect(swapInstructions.instructions).toBeDefined();
       expect(transaction).toBeDefined();
-      expect(decompiledMessage.payerKey.equals(jupiterService.getSettings().feePayerPublicKey)).toBe(true);
+      expect(decompiledMessage.payerKey.equals(feePayerPublicKey)).toBe(true);
       expect(decompiledMessage.instructions.length).toBeGreaterThan(0);
       expect(decompiledMessage.recentBlockhash).toBeDefined();
     } catch (error) {

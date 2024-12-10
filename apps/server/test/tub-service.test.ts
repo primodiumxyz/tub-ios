@@ -1,15 +1,14 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { TubService } from "../src/services/TubService";
 import { JupiterService } from "../src/services/JupiterService";
-import { Connection, Keypair, PublicKey, VersionedTransaction, VersionedMessage } from "@solana/web3.js";
+import { Connection, Keypair, VersionedTransaction, VersionedMessage } from "@solana/web3.js";
 import { createJupiterApiClient } from "@jup-ag/api";
 import { MockPrivyClient } from "./helpers/MockPrivyClient";
 import { Codex } from "@codex-data/sdk";
 import { createClient as createGqlClient } from "@tub/gql";
 import bs58 from "bs58";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
-import { USDC_MAINNET_PUBLIC_KEY } from "@/constants/tokens";
-import { SOL_MAINNET_PUBLIC_KEY } from "@/constants/tokens";
+import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY } from "@/constants/tokens";
 import { env } from "@bin/tub-server";
 
 // Skip entire suite in CI, because it would perform a live transaction each deployment
@@ -29,15 +28,6 @@ import { env } from "@bin/tub-server";
         basePath: env.JUPITER_URL,
       });
 
-      // Create cache for JupiterService
-      const cache = await (
-        await import("cache-manager")
-      ).caching({
-        store: "memory",
-        max: 100,
-        ttl: 10 * 1000, // 10 seconds
-      });
-
       // Create test fee payer keypair
       const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY!));
 
@@ -47,16 +37,7 @@ import { env } from "@bin/tub-server";
       mockJwtToken = "test_jwt_token";
 
       // Initialize services
-      const jupiterService = new JupiterService(
-        connection,
-        jupiterQuoteApi,
-        feePayerKeypair.publicKey,
-        new PublicKey(env.OCTANE_TRADE_FEE_RECIPIENT!),
-        Number(env.OCTANE_BUY_FEE),
-        0, // sell fee
-        15, // min trade size
-        cache,
-      );
+      const jupiterService = new JupiterService(connection, jupiterQuoteApi);
 
       const gqlClient = (
         await createGqlClient({

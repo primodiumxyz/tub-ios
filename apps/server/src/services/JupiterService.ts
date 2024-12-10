@@ -1,13 +1,7 @@
 import { Connection, PublicKey, TransactionInstruction, AddressLookupTableAccount } from "@solana/web3.js";
 import { DefaultApi, QuoteGetRequest, SwapInstructionsPostRequest } from "@jup-ag/api";
-import { Cache } from "cache-manager";
 
 export type JupiterSettings = {
-  feePayerPublicKey: PublicKey;
-  tradeFeeRecipient: PublicKey;
-  buyFee: number;
-  sellFee: number;
-  minTradeSize: number;
   connection: Connection;
   jupiterQuoteApi: DefaultApi;
 };
@@ -30,31 +24,14 @@ export class JupiterService {
    * Creates a new instance of JupiterService
    * @param connection - Solana RPC connection
    * @param jupiterQuoteApi - Jupiter API client
-   * @param feePayerPublicKey - Public key for the fee payer
-   * @param tradeFeeRecipient - Public key to receive (USDC) trade fees
-   * @param buyFee - Fee amount for buy operations
-   * @param sellFee - Fee amount for sell operations (not utilized yet, should be 0)
-   * @param minTradeSize - Minimum allowed trade size
-   * @param cache - Cache manager instance
    */
   constructor(
     private connection: Connection,
     private jupiterQuoteApi: DefaultApi,
-    private feePayerPublicKey: PublicKey,
-    private tradeFeeRecipient: PublicKey,
-    private buyFee: number,
-    private sellFee: number,
-    private minTradeSize: number,
-    private cache: Cache,
   ) {}
 
   getSettings(): JupiterSettings {
     return {
-      feePayerPublicKey: this.feePayerPublicKey,
-      tradeFeeRecipient: this.tradeFeeRecipient,
-      buyFee: this.buyFee,
-      sellFee: this.sellFee,
-      minTradeSize: this.minTradeSize,
       connection: this.connection,
       jupiterQuoteApi: this.jupiterQuoteApi,
     };

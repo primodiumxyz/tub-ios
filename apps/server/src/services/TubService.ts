@@ -1,4 +1,4 @@
-import { Connection, Keypair, VersionedTransaction } from "@solana/web3.js";
+import { Connection, Keypair, PublicKey, VersionedTransaction } from "@solana/web3.js";
 import { GqlClient } from "@tub/gql";
 import { PrivyClient } from "@privy-io/server-auth";
 import { Codex } from "@codex-data/sdk";
@@ -26,10 +26,6 @@ import bs58 from "bs58";
  * Service class handling token trading, swaps, and user operations
  */
 export class TubService {
-  private gql: GqlClient["db"];
-  private jupiter: JupiterService;
-  private privy: PrivyClient;
-  private codexSdk: Codex;
   private connection: Connection;
   private swapService: SwapService;
   private authService: AuthService;
@@ -46,10 +42,6 @@ export class TubService {
    * @param jupiter - JupiterService instance for transaction handling
    */
   constructor(gqlClient: GqlClient["db"], privy: PrivyClient, codexSdk: Codex, jupiter: JupiterService) {
-    this.gql = gqlClient;
-    this.jupiter = jupiter;
-    this.privy = privy;
-    this.codexSdk = codexSdk;
     this.connection = new Connection(env.QUICKNODE_MAINNET_URL);
     this.authService = new AuthService(privy);
 
@@ -61,14 +53,14 @@ export class TubService {
     this.transactionService = new TransactionService(this.connection, feePayerKeypair, feePayerPublicKey);
 
     this.feeService = new FeeService({
-      buyFee: jupiter.getSettings().buyFee,
-      sellFee: jupiter.getSettings().sellFee,
-      minTradeSize: jupiter.getSettings().minTradeSize,
+      buyFee: env.OCTANE_BUY_FEE,
+      sellFee: env.OCTANE_SELL_FEE,
+      minTradeSize: env.OCTANE_MIN_TRADE_SIZE,
       feePayerPublicKey: feePayerPublicKey,
-      tradeFeeRecipient: jupiter.getSettings().tradeFeeRecipient,
+      tradeFeeRecipient: new PublicKey(env.OCTANE_TRADE_FEE_RECIPIENT),
     });
 
-    this.swapService = new SwapService(jupiter, this.transactionService, this.feeService, this.connection);
+    this.swapService = new SwapService(jupiter, this.transactionService, this.feeService);
 
     this.analyticsService = new AnalyticsService(gqlClient);
     this.codexService = new CodexService(codexSdk);
