@@ -7,6 +7,8 @@ import {
   TransactionMessage,
   VersionedTransaction,
   AddressLookupTableAccount,
+  SimulateTransactionConfig,
+  TransactionConfirmationStatus,
 } from "@solana/web3.js";
 import bs58 from "bs58";
 
@@ -132,27 +134,56 @@ export class TransactionService {
     transaction.addSignature(this.feePayerPublicKey, feePayerSignatureBytes);
 
     // Simulate transaction
-    const simulation = await this.connection.simulateTransaction(transaction);
+    const simConfig: SimulateTransactionConfig = {
+      /** Optional parameter used to enable signature verification before simulation */
+      sigVerify: true,
+      /** Optional parameter used to replace the simulated transaction's recent blockhash with the latest blockhash */
+      replaceRecentBlockhash: false,
+      /** Optional parameter used to set the commitment level when selecting the latest block */
+      commitment: "processed",
+      /** Optional parameter used to specify a list of account addresses to return post simulation state for */
+      accounts: {
+        encoding: "base64",
+        addresses: [userPublicKey.toBase58()],
+      },
+    };
+    const simulation = await this.connection.simulateTransaction(transaction, simConfig);
     if (simulation.value?.err) {
-      throw new Error(`Transaction simulation failed: ${simulation.value.err.toString()}`);
+      throw new Error(`Transaction simulation failed: ${JSON.stringify(simulation.value.err)}`);
     }
 
     // Send and confirm transaction
     const txid = await this.connection.sendTransaction(transaction, {
       skipPreflight: false,
       maxRetries: 3,
-      preflightCommitment: "confirmed",
+      preflightCommitment: "processed",
     });
 
-    const confirmation = await this.connection.getTransaction(txid, {
-      commitment: "confirmed",
-      maxSupportedTransactionVersion: 0,
-    });
+    let confirmation = null;
+    const RETRY_ATTEMPTS = 10;
+    for (let attempt = 0; attempt < RETRY_ATTEMPTS; attempt++) {
+      console.log(`Attempt ${attempt + 1} of ${RETRY_ATTEMPTS}`);
+      try {
+        const status = await this.connection.getSignatureStatus(txid, {
+          searchTransactionHistory: true,
+        });
 
-    if (!confirmation || confirmation.meta?.err) {
-      throw new Error(
-        `Transaction failed: ${confirmation?.meta?.err || "Tx submitted but not found in confirmed block"}`,
-      );
+        const acceptedStates: TransactionConfirmationStatus[] = ["confirmed", "finalized", "processed"];
+
+        if (status.value?.confirmationStatus && acceptedStates.includes(status.value.confirmationStatus)) {
+          confirmation = status;
+          break; // Exit loop if successful
+        }
+      } catch (error) {
+        console.log(`Attempt ${attempt + 1} failed:`, error);
+        if (attempt === RETRY_ATTEMPTS - 1)
+          throw new Error(`Failed to get transaction confirmation after ${RETRY_ATTEMPTS} attempts`);
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1 second before retrying
+    }
+
+    if (!confirmation || confirmation.value?.err) {
+      throw new Error(`Transaction failed: ${JSON.stringify(confirmation?.value?.err)}`);
     }
 
     this.messageRegistry.delete(base64Message);

@@ -43,6 +43,7 @@ import { env } from "@bin/tub-server";
 
       // Create test user keypair from environment
       userKeypair = Keypair.fromSecretKey(bs58.decode(env.TEST_USER_PRIVATE_KEY!));
+      console.log("User keypair:", userKeypair.publicKey.toBase58());
       mockJwtToken = "test_jwt_token";
 
       // Initialize services
@@ -127,7 +128,7 @@ import { env } from "@bin/tub-server";
         const swapResponse = await tubService.fetchSwap(mockJwtToken, {
           buyTokenId: SOL_MAINNET_PUBLIC_KEY.toString(),
           sellTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
-          sellQuantity: 1e6, // 1 USDC
+          sellQuantity: 1e6 / 1000, // 0.001 USDC
         });
 
         // --- Begin Simulating Mock Privy Interaction ---
