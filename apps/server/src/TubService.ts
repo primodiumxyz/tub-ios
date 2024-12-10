@@ -1,4 +1,4 @@
-import { Codex } from "@codex-data/sdk";
+import { EventEmitter } from "events";
 import { PrivyClient, WalletWithMetadata } from "@privy-io/server-auth";
 import { createTransferInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { Connection, Keypair, MessageV0, PublicKey, Transaction, VersionedTransaction } from "@solana/web3.js";
@@ -44,12 +44,15 @@ export class TubService {
   private gql: GqlClient["db"];
   private octane: OctaneService;
   private privy: PrivyClient;
-  private codexSdk: Codex;
+  private solUsdPrice: number | undefined;
+  private priceEmitter = new EventEmitter();
+
   private connection: Connection;
   private activeSwapRequests: Map<string, ActiveSwapRequest> = new Map();
   private messageRegistry: Map<string, PrebuildSwapResponse & { message: MessageV0 }> = new Map();
   private swapSubscriptions: Map<string, SwapSubscription> = new Map();
 
+  private readonly SOL_USD_UPDATE_INTERVAL = 5 * 1000; // 10 seconds
   private readonly REGISTRY_TIMEOUT = 5 * 60 * 1000; // 5 minutes in milliseconds
 
   /**
@@ -58,12 +61,19 @@ export class TubService {
    * @param privy - Privy client for authentication
    * @param octane - OctaneService instance for transaction handling
    */
-  constructor(gqlClient: GqlClient["db"], privy: PrivyClient, codexSdk: Codex, octane: OctaneService) {
+  constructor(gqlClient: GqlClient["db"], privy: PrivyClient, octane: OctaneService) {
     this.gql = gqlClient;
     this.octane = octane;
     this.privy = privy;
-    this.codexSdk = codexSdk;
-    this.connection = new Connection(env.QUICKNODE_MAINNET_URL);
+
+    // Update the SOL/USD price every 10 seconds
+    const interval = setInterval(() => {
+      this.updateSolUsdPrice();
+    }, this.SOL_USD_UPDATE_INTERVAL);
+    this.updateSolUsdPrice();
+
+    interval.unref(); // allow Node.js to exit if only this interval is still running
+    this.connection = new Connection(`${env.QUICKNODE_ENDPOINT}/${env.QUICKNODE_TOKEN}`);
 
     // Start cleanup interval
     setInterval(() => this.cleanupRegistry(), 60 * 1000); // Run cleanup every minute
@@ -210,18 +220,30 @@ export class TubService {
     return id;
   }
 
-  async requestCodexToken(expiration?: number) {
-    expiration = expiration ?? 3600 * 1000;
-    const res = await this.codexSdk.mutations.createApiTokens({
-      input: { expiresIn: expiration },
-    });
+  async getSolUsdPrice(): Promise<number | undefined> {
+    if (!this.solUsdPrice) await this.updateSolUsdPrice();
+    return this.solUsdPrice;
+  }
 
-    const token = res.createApiTokens[0]?.token;
-    const expiry = res.createApiTokens[0]?.expiresTimeString;
-    if (!token || !expiry) {
-      throw new Error("Failed to create Codex API token");
-    }
-    return { token: `Bearer ${token}`, expiry };
+  subscribeSolPrice(callback: (price: number) => void): () => void {
+    this.priceEmitter.on("price", callback);
+    // Send current price immediately if available
+    if (this.solUsdPrice !== undefined) callback(this.solUsdPrice);
+
+    // Return cleanup function
+    return () => {
+      this.priceEmitter.off("price", callback);
+    };
+  }
+
+  private async updateSolUsdPrice(): Promise<void> {
+    const res = await fetch(`${process.env.JUPITER_URL}/price?ids=SOL`);
+    const data = (await res.json()) as { data: { [id: string]: { price: number } } };
+
+    this.solUsdPrice = data.data["SOL"]?.price;
+    if (this.solUsdPrice !== undefined) this.priceEmitter.emit("price", this.solUsdPrice);
+
+    console.log(`SOL/USD price updated: ${this.solUsdPrice?.toLocaleString("en-US", { maximumFractionDigits: 2 })}`);
   }
 
   /**

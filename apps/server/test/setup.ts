@@ -26,7 +26,8 @@ export default async function () {
 
   // Set any missing required variables with defaults
   process.env.NODE_ENV = process.env.NODE_ENV || "test";
-  process.env.QUICKNODE_MAINNET_URL = process.env.QUICKNODE_MAINNET_URL || "https://api.mainnet-beta.solana.com";
+  process.env.QUICKNODE_ENDPOINT =
+    process.env.QUICKNODE_ENDPOINT || "https://blue-hardworking-paper.solana-mainnet.quiknode.pro";
   process.env.JUPITER_URL = process.env.JUPITER_URL || "https://quote-api.jup.ag/v6";
   process.env.PRIVY_APP_ID = process.env.PRIVY_APP_ID || "dummy-privy-app-id";
   process.env.PRIVY_APP_SECRET = process.env.PRIVY_APP_SECRET || "dummy-privy-secret";
