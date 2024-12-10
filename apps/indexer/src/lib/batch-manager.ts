@@ -58,27 +58,58 @@ export class BatchManager {
     const queueLatency = (Date.now() - oldestSwapTime) / 1000;
 
     try {
-      const latencyBefore = (Date.now() - oldestSwapTime) / 1000;
-      console.log(`[${latencyBefore.toFixed(2)}s] Processing batch of ${batchToProcess.length} swaps...`);
-
-      const SwapWithPriceAndMetadata = await fetchPriceAndMetadata(this.connection, batchToProcess);
-      const res = await upsertTrades(this.gql, SwapWithPriceAndMetadata);
+      const {
+        swaps: swapsWithData,
+        accountsLatency,
+        pricesLatency,
+      } = await fetchPriceAndMetadata(this.connection, batchToProcess);
+      const upsertStartTime = Date.now();
+      const res = await upsertTrades(this.gql, swapsWithData);
       if (res.error) throw res.error.message;
 
-      const processingLatency = (Date.now() - oldestSwapTime) / 1000;
-      console.log(
-        `[${processingLatency.toFixed(2)}s] Processed batch of ${res.data?.insert_api_trade_history?.affected_rows} swaps`,
-      );
-      console.log(
-        `Queue latency: ${queueLatency.toFixed(2)}s | Processing latency: ${(processingLatency - queueLatency).toFixed(2)}s`,
-      );
-      console.log("--------------------------------");
+      this.logBatchMetrics({
+        batchSize: batchToProcess.length,
+        affectedRows: res.data?.insert_api_trade_history?.affected_rows ?? 0,
+        queueLatency,
+        accountsLatency,
+        pricesLatency,
+        upsertLatency: (Date.now() - upsertStartTime) / 1000,
+      });
     } catch (error) {
       console.error("Error processing batch:", error);
       this.batch.unshift(...batchToProcess);
     } finally {
       this.processing = false;
     }
+  }
+
+  private logBatchMetrics({
+    batchSize,
+    affectedRows,
+    queueLatency,
+    accountsLatency,
+    pricesLatency,
+    upsertLatency,
+  }: {
+    batchSize: number;
+    affectedRows: number;
+    queueLatency: number;
+    accountsLatency: number;
+    pricesLatency: number;
+    upsertLatency: number;
+  }) {
+    console.log(
+      [
+        "\n=== Batch Processing Metrics ===",
+        `Batch size: ${batchSize} | Affected rows: ${affectedRows}`,
+        `Queue latency: ${queueLatency.toFixed(2)}s`,
+        `Fetch accounts latency: ${accountsLatency.toFixed(2)}s`,
+        `Fetch prices latency: ${pricesLatency.toFixed(2)}s`,
+        `Upsert latency: ${upsertLatency.toFixed(2)}s`,
+        `Total processing time: ${(queueLatency + accountsLatency + pricesLatency + upsertLatency).toFixed(2)}s`,
+        "================================\n",
+      ].join("\n"),
+    );
   }
 
   cleanup() {
