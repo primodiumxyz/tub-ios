@@ -3,7 +3,6 @@ import { AppRouter, createAppRouter } from "../src/createAppRouter";
 import { JupiterService } from "../src/services/JupiterService";
 import { TubService } from "../src/services/TubService";
 import { parseEnv } from "../bin/parseEnv";
-import { Codex } from "@codex-data/sdk";
 import fastifyWebsocket from "@fastify/websocket";
 import { PrivyClient } from "@privy-io/server-auth";
 import { Connection, Keypair, PublicKey } from "@solana/web3.js";
@@ -53,7 +52,7 @@ const getBearerToken = (req: IncomingMessage) => {
 
 export const start = async () => {
   try {
-    const connection = new Connection(env.QUICKNODE_MAINNET_URL, "confirmed");
+    const connection = new Connection(`${env.QUICKNODE_ENDPOINT}/${env.QUICKNODE_TOKEN}`, "confirmed");
 
     // Initialize fee payer keypair from base58 private key
     const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY));
@@ -86,9 +85,8 @@ export const start = async () => {
     ).db;
 
     const privy = new PrivyClient(env.PRIVY_APP_ID, env.PRIVY_APP_SECRET);
-    const codexSdk = new Codex(env.CODEX_API_KEY);
 
-    const tubService = new TubService(gqlClient, privy, codexSdk, jupiterService);
+    const tubService = new TubService(gqlClient, privy, jupiterService);
 
     // @see https://trpc.io/docs/server/adapters/fastify
     server.register(fastifyTRPCPlugin<AppRouter>, {

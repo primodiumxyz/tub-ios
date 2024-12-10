@@ -1,5 +1,6 @@
 import { PrivyClient } from "@privy-io/server-auth";
 import { createTRPCProxyClient, createWSClient, httpBatchLink, splitLink, wsLink } from "@trpc/client";
+import { Unsubscribable } from "@trpc/server/observable";
 import { config } from "dotenv";
 import { beforeAll, describe, afterAll } from "vitest";
 import WebSocket from "ws";

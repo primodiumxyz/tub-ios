@@ -4,7 +4,6 @@ import { JupiterService } from "../src/services/JupiterService";
 import { Connection, Keypair, VersionedTransaction, VersionedMessage } from "@solana/web3.js";
 import { createJupiterApiClient } from "@jup-ag/api";
 import { MockPrivyClient } from "./helpers/MockPrivyClient";
-import { Codex } from "@codex-data/sdk";
 import { createClient as createGqlClient } from "@tub/gql";
 import bs58 from "bs58";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
@@ -24,7 +23,7 @@ import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY } from "../src/constant
       }
 
       // Setup connection to Solana mainnet
-      connection = new Connection(process.env.QUICKNODE_MAINNET_URL ?? "https://api.mainnet-beta.solana.com");
+      connection = new Connection(`${process.env.QUICKNODE_ENDPOINT}/${process.env.QUICKNODE_TOKEN}`);
 
       // Setup Jupiter API client
       const jupiterQuoteApi = createJupiterApiClient({
@@ -48,8 +47,6 @@ import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY } from "../src/constant
         })
       ).db;
 
-      const codexSdk = new Codex(process.env.CODEX_API_KEY!);
-
       // Create mock Privy client with our test wallet
       const mockPrivyClient = new MockPrivyClient(userKeypair.publicKey.toString());
 
@@ -57,7 +54,6 @@ import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY } from "../src/constant
         gqlClient,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockPrivyClient as any,
-        codexSdk,
         jupiterService,
       );
 
