@@ -97,7 +97,13 @@ public let solanaUrl: String = {
     return "https://blue-hardworking-paper.solana-mainnet.quiknode.pro/4240df2ab8f252905cfef06e20240f563e84418d"
 }()
 
-public let NETWORK_FILTER: Int = 1_399_811_149  // Solana filter for Codex
+// Filtering
+public let HOT_TOKENS_INTERVAL: Interval = "30m" // main interval to aggregate and sort by volume
+public let FILTERING_INTERVAL: Interval = "20s" // additional interval for filtering (min trades/volume)
+public let FILTERING_MIN_TRADES: Numeric = 20 // minimum amount of trades during the above interval to be included
+public let FILTERING_MIN_VOLUME_USD: Numeric = 0 // minimum volume during the above interval to be included
+
+// Charts
 public let CHART_INTERVAL: Double = 60 * 2  // live 2m
 public let CANDLES_INTERVAL: Double = 60 * 30  // candles 30m
 public let PRICE_UPDATE_INTERVAL: Double = 0.5  // Update price every half second
@@ -155,5 +161,34 @@ enum Timespan: String, CaseIterable {
         case .live: return CHART_INTERVAL
         case .candles: return CANDLES_INTERVAL
         }
+    }
+}
+
+// Layout constants for spacing and sizing
+enum Layout {
+    enum Spacing {
+        static let tiny = 0.01  // 1%
+        static let xs = 0.015  // 1.5%
+        static let sm = 0.035  // 3.5%
+        static let md = 0.05  // 5%
+        static let lg = 0.08  // 8%
+        static let xl = 0.1  // 10%
+    }
+
+    enum Size {
+        static let quarter = 0.25  // 25%
+        static let third = 0.33  // 33%
+        static let half = 0.5  // 50%
+        static let twoThirds = 0.66  // 66%
+        static let threeQuarters = 0.75  // 75%
+        static let full = 1.0  // 100%
+    }
+
+    // Fixed dimensions
+    enum Fixed {
+        static let buttonHeight: CGFloat = 50
+        static let smallButtonHeight: CGFloat = 40
+        static let cornerRadius: CGFloat = 30
+        static let borderWidth: CGFloat = 0.5
     }
 }

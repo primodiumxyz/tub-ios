@@ -21,7 +21,6 @@ struct TokenListView: View {
 
     @EnvironmentObject private var userModel: UserModel
     @EnvironmentObject private var notificationHandler: NotificationHandler
-    @StateObject private var tokenManager = CodexTokenManager.shared
 
     var emptyTokenModel = TokenModel()
     // chevron animation
@@ -255,7 +254,6 @@ struct TokenListView: View {
 
 }
 struct TokenLoadErrorView: View {
-    @StateObject var tokenManager = CodexTokenManager.shared
     @EnvironmentObject var tokenListModel: TokenListModel
 
     var body: some View {
@@ -266,7 +264,6 @@ struct TokenLoadErrorView: View {
                 .padding(.bottom, 24)
             Button(action: {
                 Task {
-                    await tokenManager.refreshToken(hard: true)
                     await tokenListModel.startTokenSubscription()
                 }
             }) {

@@ -38,31 +38,35 @@ struct OnboardingView: View {
             VStack(spacing: 0) {
                 TabView(selection: $currentPage) {
                     ForEach(0..<onboardingData.count, id: \.self) { index in
-                        VStack(spacing: 16) {
+                        VStack(spacing: UIScreen.height(Layout.Spacing.xs)) {
                             Spacer()
 
                             Text(onboardingData[index].title)
                                 .font(.sfRounded(size: .xl2, weight: .semibold))
                                 .foregroundStyle(.tubBuyPrimary)
-                                .padding(.top, 30)
+                                .padding(.top, UIScreen.height(Layout.Spacing.sm))
+                                .multilineTextAlignment(.center)
 
                             if let subtitle = onboardingData[index].subtitle {
                                 Text(subtitle)
                                     .font(.sfRounded(size: .lg, weight: .regular))
                                     .foregroundStyle(.tubSellPrimary)
                                     .multilineTextAlignment(.center)
-                                    .padding(.horizontal, 40)
+                                    .padding(.horizontal, UIScreen.width(Layout.Spacing.md))
+                                    .padding(.bottom, UIScreen.height(Layout.Spacing.xs))
                             }
 
                             if let mediaTitle = onboardingData[index].mediaTitle {
-
                                 VideoPlayerView(videoName: mediaTitle)
-                                    .padding(.top, 16)
-                                    .padding(.horizontal, 4)
-                                    .frame(width: 200, height: 412.2)
+                                    .frame(
+                                        width: min(UIScreen.width(Layout.Size.half), 300),
+                                        height: min(UIScreen.height(Layout.Size.half), 400)
+                                    )
+                                    .padding(.top, UIScreen.height(Layout.Spacing.xs))
+                                    .padding(.horizontal, UIScreen.width(Layout.Spacing.sm))
                                     .overlay(
-                                        RoundedRectangle(cornerRadius: 24)
-                                            .stroke(Color.gray, lineWidth: 2)
+                                        RoundedRectangle(cornerRadius: Layout.Fixed.cornerRadius)
+                                            .stroke(Color.gray, lineWidth: Layout.Fixed.borderWidth)
                                     )
                             }
                             Spacer()
@@ -97,8 +101,8 @@ struct OnboardingView: View {
                         }
                     }
                 )
-                .padding(.horizontal, 20)
-                .padding(.bottom, 40)
+                .padding(.horizontal, UIScreen.width(Layout.Spacing.sm))
+                .padding(.bottom, UIScreen.height(Layout.Spacing.md))
             }
             .navigationBarHidden(true)
         }
