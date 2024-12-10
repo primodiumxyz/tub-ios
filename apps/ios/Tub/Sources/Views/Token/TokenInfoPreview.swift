@@ -25,7 +25,6 @@ struct TokenInfoPreview: View {
     private var sellStats: [StatValue]? {
         guard
             tokenModel.isReady,
-            let purchaseData = userModel.purchaseData,
             let priceUsd = tokenModel.prices.last?.priceUsd,
             priceUsd > 0,
             activeTab == .sell
@@ -34,14 +33,15 @@ struct TokenInfoPreview: View {
         }
         var stats = [StatValue]()
         // Calculate current value
+        // todo: replace hard coded decimals with token decimals
         let tokenBalance = Double(balanceToken) / 1e9
         let tokenBalanceUsd = tokenBalance * (tokenModel.prices.last?.priceUsd ?? 0)
-        let initialValueUsd = priceModel.usdcToUsd(usdc: purchaseData.amountUsdc)
 
         // Calculate profit
-        let gains = tokenBalanceUsd - initialValueUsd
 
-        if purchaseData.amountUsdc > 0, initialValueUsd > 0 {
+        if let amountUsdc = userModel.purchaseData?.amountUsdc, amountUsdc > 0 {
+            let initialValueUsd = priceModel.usdcToUsd(usdc: amountUsdc)
+            let gains = tokenBalanceUsd - initialValueUsd
             let percentageGain = gains / initialValueUsd * 100
             stats.append(
                 StatValue(
