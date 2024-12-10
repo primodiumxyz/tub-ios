@@ -369,7 +369,7 @@ final class UserModel: ObservableObject {
                 self.purchaseData = PurchaseData(
                     timestamp: Date(),
                     amountUsdc: buyQuantityUsdc,
-                    priceUsdc: Int(tokenPriceUsdc)
+                    priceUsdc: tokenPriceUsdc
                 )
             }
         }

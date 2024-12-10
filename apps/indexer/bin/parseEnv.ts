@@ -6,7 +6,9 @@ const commonSchema = z.object({
   SERVER_PORT: z.coerce.number().positive().default(8888),
   HASURA_ADMIN_SECRET: z.string(),
   GRAPHQL_URL: z.string().default("https://tub-graphql.primodium.ai/v1/graphql"),
-  HELIUS_API_KEY: z.string(),
+  QUICKNODE_ENDPOINT: z.string(),
+  QUICKNODE_TOKEN: z.string(),
+  JUPITER_URL: z.string(),
 });
 
 export function parseEnv<TSchema extends ZodTypeAny | undefined = undefined>(

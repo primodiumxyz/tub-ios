@@ -9,12 +9,20 @@ import { useTokens } from "@/hooks/use-tokens";
 import { INTERVALS } from "@/lib/constants";
 import { Interval, Token } from "@/lib/types";
 
-export const TokensTable = ({ onRowClick }: { onRowClick?: (row: Row<Token>) => void }) => {
-  const { tokens, fetching, error } = useTokens();
+export const TokensTable = ({
+  onRowClick,
+  selectedInterval,
+  setSelectedInterval,
+}: {
+  onRowClick?: (row: Row<Token>) => void;
+  selectedInterval: Interval;
+  setSelectedInterval: (interval: Interval) => void;
+}) => {
   const [globalFilter, setGlobalFilter] = useState<string>("");
   const [frozen, setFrozen] = useState(false);
   const [frozenTokens, setFrozenTokens] = useState<Token[]>([]);
-  const [selectedInterval, setSelectedInterval] = useState<Interval>(60);
+
+  const { tokens, fetching, error } = useTokens(selectedInterval);
 
   useEffect(() => {
     if (frozen) setFrozenTokens(tokens);
@@ -46,11 +54,11 @@ export const TokensTable = ({ onRowClick }: { onRowClick?: (row: Row<Token>) => 
         <span className="grow" />
         <select
           value={selectedInterval}
-          onChange={(e) => setSelectedInterval(Number(e.target.value) as Interval)}
+          onChange={(e) => setSelectedInterval(e.target.value as Interval)}
           className="rounded-md border p-2"
         >
           {INTERVALS.map((interval) => (
-            <option value={interval}>{interval / 60}h</option>
+            <option value={interval}>{interval}</option>
           ))}
         </select>
         <Input
@@ -63,7 +71,7 @@ export const TokensTable = ({ onRowClick }: { onRowClick?: (row: Row<Token>) => 
       <DataTable
         columns={getColumns(selectedInterval)}
         data={filteredTokens}
-        caption={`List of the first 50 trending tokens during the last hour.`}
+        caption={`List of the first 50 trending tokens by volume during the last ${selectedInterval}.`}
         loading={fetching}
         pagination={true}
         onRowClick={onRowClick}

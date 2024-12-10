@@ -107,15 +107,24 @@ private struct StatView: View {
     var body: some View {
         VStack(spacing: 4) {
             HStack(spacing: 0) {
+                HStack(spacing: 3) {
                 Text(stat.title)
                     .font(.sfRounded(size: .xs, weight: .regular))
                     .foregroundStyle(.tubText)
                     .fixedSize(horizontal: true, vertical: false)
+                
+                if let caption = stat.caption {
+                    Text(caption)
+                        .font(.sfRounded(size: .xxs, weight: .regular))
+                        .foregroundStyle(.tubText.opacity(0.7))
+                }
 
                 Text(stat.value)
                     .font(.sfRounded(size: .sm, weight: .semibold))
                     .foregroundStyle(stat.color ?? .primary)
                     .frame(maxWidth: .infinity, alignment: .topTrailing)
+                }
+                .alignmentGuide(.firstTextBaseline) { d in d[.firstTextBaseline] }
             }
 
             Divider().padding(.top, 2)

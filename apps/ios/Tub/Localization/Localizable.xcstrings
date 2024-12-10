@@ -4,9 +4,6 @@
     "" : {
 
     },
-    " " : {
-
-    },
     "#8612373299412" : {
 
     },
@@ -103,9 +100,6 @@
     "Date" : {
 
     },
-    "Deposit" : {
-
-    },
     "Deposit with" : {
 
     },
@@ -190,9 +184,6 @@
     "Sell Details" : {
 
     },
-    "Sending" : {
-
-    },
     "Set Default" : {
 
     },
@@ -208,10 +199,16 @@
     "Solana Address is invalid" : {
 
     },
-    "Support" : {
+    "Solana Wallet" : {
+
+    },
+    "Submit Transaction" : {
 
     },
     "Test Tx" : {
+
+    },
+    "Temp: Login to Start Trading" : {
 
     },
     "This token is still writing its autobiography... 📝" : {
@@ -220,7 +217,7 @@
     "Time" : {
 
     },
-    "to" : {
+    "To" : {
 
     },
     "Token" : {
@@ -252,6 +249,9 @@
       }
     },
     "Your Balance" : {
+
+    },
+    "Your Balance %@" : {
 
     }
   },

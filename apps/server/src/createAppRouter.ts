@@ -1,15 +1,22 @@
 import { initTRPC } from "@trpc/server";
 import { observable } from "@trpc/server/observable";
 import { z } from "zod";
-import { TubService } from "./TubService";
-import { PrebuildSwapResponse } from "../types/PrebuildSwapRequest";
+import { TubService } from "./services/TubService";
+import { PrebuildSwapResponse, UserPrebuildSwapRequest } from "./types";
+import { Subject } from "rxjs";
 
 export type AppContext = {
   tubService: TubService;
   jwtToken: string;
 };
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// Validation schemas
+const swapRequestSchema = z.object({
+  buyTokenId: z.string(),
+  sellTokenId: z.string(),
+  sellQuantity: z.number(),
+}) satisfies z.ZodType<UserPrebuildSwapRequest>;
+
 /**
  * Creates and configures the main tRPC router with all API endpoints.
  * @returns A configured tRPC router with all procedures
@@ -40,11 +47,63 @@ export function createAppRouter() {
         return await ctx.tubService.recordClientEvent(input, ctx.jwtToken);
       }),
 
-    requestCodexToken: t.procedure
-      .input(z.object({ expiration: z.number().optional() }))
-      .mutation(async ({ ctx, input }) => {
-        return await ctx.tubService.requestCodexToken(input.expiration);
-      }),
+    getSolUsdPrice: t.procedure.query(async ({ ctx }) => {
+      return await ctx.tubService.getSolUsdPrice();
+    }),
+
+    subscribeSolPrice: t.procedure.subscription(({ ctx }) => {
+      return observable<number>((emit) => {
+        const onPrice = (price: number) => {
+          emit.next(price);
+        };
+
+        const cleanup = ctx.tubService.subscribeSolPrice(onPrice);
+        return () => {
+          cleanup();
+        };
+      });
+    }),
+
+    swapStream: t.procedure.input(z.object({ request: swapRequestSchema })).subscription(async ({ ctx, input }) => {
+      return observable<PrebuildSwapResponse>((emit) => {
+        let subject: Subject<PrebuildSwapResponse> | undefined;
+        let cleanup: (() => void) | undefined;
+
+        ctx.tubService
+          .startSwapStream(ctx.jwtToken, input.request)
+          .then((s) => {
+            if (!s) {
+              emit.error(new Error("Failed to start swap stream"));
+              return;
+            }
+
+            subject = s;
+            const subscription = subject.subscribe({
+              next: (response: PrebuildSwapResponse) => {
+                emit.next(response);
+              },
+              error: (error: Error) => {
+                emit.error(error);
+              },
+              complete: () => {
+                emit.complete();
+              },
+            });
+
+            cleanup = () => {
+              subscription.unsubscribe();
+              subject?.complete();
+            };
+          })
+          .catch((error) => {
+            emit.error(error);
+          });
+
+        return () => {
+          cleanup?.();
+        };
+      });
+    }),
 
     /**
      * Creates a subscription stream for token swaps
@@ -70,16 +129,22 @@ export function createAppRouter() {
           ctx.tubService
             .startSwapStream(ctx.jwtToken, input)
             .then((s) => {
+              if (!s) {
+                emit.error(new Error("Failed to start swap stream"));
+                return;
+              }
               subject = s;
-              subject.subscribe({
-                next: (response: PrebuildSwapResponse) => {
-                  emit.next(response);
-                },
-                error: (error: Error) => {
-                  console.error("Swap stream error:", error);
-                  emit.error(error);
-                },
-              });
+              if (subject) {
+                subject.subscribe({
+                  next: (response: PrebuildSwapResponse) => {
+                    emit.next(response);
+                  },
+                  error: (error: Error) => {
+                    console.error("Swap stream error:", error);
+                    emit.error(error);
+                  },
+                });
+              }
             })
             .catch((error) => {
               console.error("Failed to start swap stream:", error);
@@ -101,9 +166,9 @@ export function createAppRouter() {
     updateSwapRequest: t.procedure
       .input(
         z.object({
-          buyTokenId: z.string().optional(),
-          sellTokenId: z.string().optional(),
-          sellQuantity: z.number().optional(),
+          buyTokenId: z.string(),
+          sellTokenId: z.string(),
+          sellQuantity: z.number(),
         }),
       )
       .mutation(async ({ ctx, input }) => {

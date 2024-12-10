@@ -36,30 +36,20 @@ struct AppContent: View {
     @StateObject private var notificationHandler = NotificationHandler()
     @StateObject private var userModel = UserModel.shared
     @StateObject private var priceModel = SolPriceModel.shared
-    @StateObject private var tokenManager = CodexTokenManager.shared
     @StateObject private var tokenListModel = TokenListModel.shared
 
     var body: some View {
         Group {
-            if tokenManager.fetchFailed {
-                LoginErrorView(
-                    errorMessage: "Failed to connect to Codex",
-                    retryAction: {
-                        await tokenManager.refreshToken(hard: true)
-                    }
-                )
-            }
-            else if let _ = priceModel.error {
+            if let _ = priceModel.error {
                 LoginErrorView(
                     errorMessage: "Failed to get price data",
                     retryAction: {
                         Task {
-                            await priceModel.fetchCurrentPrice()
+                            await priceModel.fetchPrice()
                         }
                     }
                 )
-            }
-            else if !tokenManager.isReady {
+            } else if !tokenManager.isReady {
                 LoadingView(identifier: "Fetching Codex token", message: "Fetching auth token")
             } else if userModel.walletState == .connecting || userModel.initializingUser {
                 LoadingView(identifier: "Logging in", message: "Logging in")

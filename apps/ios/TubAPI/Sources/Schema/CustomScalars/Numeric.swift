@@ -7,4 +7,4 @@
 
 import ApolloAPI
 
-public typealias Numeric = Int
+public typealias Numeric = Double
