@@ -1,0 +1,63 @@
+name: Dry Run and Apply Migrations and Metadata to Hasura Dev Instance
+
+on:
+  push:
+    branches:
+      - main
+      - release/*
+
+jobs:
+  apply-migrations-and-metadata:
+    runs-on: ubuntu-latest
+    environment: DEV
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: pnpm install
+        run: pnpm install --frozen-lockfile
+
+      # First do dry runs
+      - name: Dry run checks
+        id: dry-run
+        run: |
+          echo "Running migration dry run for default database..."
+          cd packages/gql
+          if ! pnpm hasura migrate apply --endpoint "$HASURA_ENDPOINT" --admin-secret "$HASURA_ADMIN_SECRET" --disable-interactive --database-name default --dry-run; then
+            echo "Migration dry run failed"
+            exit 1
+          fi
+
+          echo "Running migration dry run for timescaledb database..."
+          if ! pnpm hasura migrate apply --endpoint "$HASURA_ENDPOINT" --admin-secret "$HASURA_ADMIN_SECRET" --disable-interactive --database-name timescaledb --dry-run; then
+            echo "Migration dry run failed"
+            exit 1
+          fi
+
+          echo "Running metadata dry run..."
+          if ! pnpm hasura metadata apply --endpoint "$HASURA_ENDPOINT" --admin-secret "$HASURA_ADMIN_SECRET" --dry-run --disallow-inconsistent-metadata; then
+            echo "Metadata dry run failed"
+            exit 1
+          fi
+
+          echo "All dry runs successful"
+        env:
+          HASURA_ENDPOINT: ${{ secrets.HASURA_ENDPOINT }}
+          HASURA_ADMIN_SECRET: ${{ secrets.HASURA_ADMIN_SECRET }}
+
+      # If dry runs succeed, apply the changes
+      - name: Apply changes
+        if: success()
+        run: |
+          cd packages/gql
+          echo "Applying migrations..."
+          pnpm hasura migrate apply --endpoint "$HASURA_ENDPOINT" --admin-secret "$HASURA_ADMIN_SECRET" --disable-interactive --all-databases
+
+          echo "Applying metadata..."
+          pnpm hasura metadata apply --endpoint "$HASURA_ENDPOINT" --admin-secret "$HASURA_ADMIN_SECRET" --disallow-inconsistent-metadata
+        env:
+          HASURA_ENDPOINT: ${{ secrets.HASURA_ENDPOINT }}
+          HASURA_ADMIN_SECRET: ${{ secrets.HASURA_ADMIN_SECRET }}
