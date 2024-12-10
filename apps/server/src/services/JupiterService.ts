@@ -1,7 +1,7 @@
 import { Connection, PublicKey, TransactionInstruction, AddressLookupTableAccount } from "@solana/web3.js";
 import { DefaultApi, QuoteGetRequest, SwapInstructionsPostRequest } from "@jup-ag/api";
 import { EventEmitter } from "events";
-import { SOL_USD_PRICE_UPDATE_INTERVAL } from "@/constants/registry";
+import { SOL_USD_PRICE_UPDATE_INTERVAL } from "../constants/registry";
 
 export type JupiterSettings = {
   connection: Connection;
