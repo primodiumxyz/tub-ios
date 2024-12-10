@@ -206,18 +206,18 @@ final class UserModel: ObservableObject {
     }
 
     public func fetchUsdcBalance () async throws {
-                        guard let walletAddress = self.walletAddress else { return }
-                        if self.initialBalanceUsdc == nil {
-                            try await self.fetchInitialUsdcBalance()
-                        } else {
-                            let usdcData = try await Network.shared.getUsdcBalance(address: walletAddress)
-                            await MainActor.run {
-                                self.balanceUsdc = usdcData.amountToken
-                                if let initialBalanceUsdc = self.initialBalanceUsdc {
-                                    self.balanceChangeUsdc = usdcData.amountToken - initialBalanceUsdc
-                                }
-                            }
-                        }
+        guard let walletAddress = self.walletAddress else { return }
+        if self.initialBalanceUsdc == nil {
+            try await self.fetchInitialUsdcBalance()
+        } else {
+            let usdcData = try await Network.shared.getUsdcBalance(address: walletAddress)
+            await MainActor.run {
+                self.balanceUsdc = usdcData.amountToken
+                if let initialBalanceUsdc = self.initialBalanceUsdc {
+                    self.balanceChangeUsdc = usdcData.amountToken - initialBalanceUsdc
+                }
+            }
+        }
     }
 
     private func fetchInitialUsdcBalance() async throws {

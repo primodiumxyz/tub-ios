@@ -47,11 +47,22 @@ export function createAppRouter() {
         return await ctx.tubService.recordClientEvent(input, ctx.jwtToken);
       }),
 
-    requestCodexToken: t.procedure
-      .input(z.object({ expiration: z.number().optional() }))
-      .mutation(async ({ ctx, input }) => {
-        return await ctx.tubService.requestCodexToken(input.expiration);
-      }),
+    getSolUsdPrice: t.procedure.query(async ({ ctx }) => {
+      return await ctx.tubService.getSolUsdPrice();
+    }),
+
+    subscribeSolPrice: t.procedure.subscription(({ ctx }) => {
+      return observable<number>((emit) => {
+        const onPrice = (price: number) => {
+          emit.next(price);
+        };
+
+        const cleanup = ctx.tubService.subscribeSolPrice(onPrice);
+        return () => {
+          cleanup();
+        };
+      });
+    }),
 
     swapStream: t.procedure.input(z.object({ request: swapRequestSchema })).subscription(async ({ ctx, input }) => {
       return observable<PrebuildSwapResponse>((emit) => {
@@ -118,16 +129,22 @@ export function createAppRouter() {
           ctx.tubService
             .startSwapStream(ctx.jwtToken, input)
             .then((s) => {
+              if (!s) {
+                emit.error(new Error("Failed to start swap stream"));
+                return;
+              }
               subject = s;
-              subject?.subscribe({
-                next: (response: PrebuildSwapResponse) => {
-                  emit.next(response);
-                },
-                error: (error: Error) => {
-                  console.error("Swap stream error:", error);
-                  emit.error(error);
-                },
-              });
+              if (subject) {
+                subject.subscribe({
+                  next: (response: PrebuildSwapResponse) => {
+                    emit.next(response);
+                  },
+                  error: (error: Error) => {
+                    console.error("Swap stream error:", error);
+                    emit.error(error);
+                  },
+                });
+              }
             })
             .catch((error) => {
               console.error("Failed to start swap stream:", error);

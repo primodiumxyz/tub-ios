@@ -97,7 +97,13 @@ public let solanaUrl: String = {
     return "https://blue-hardworking-paper.solana-mainnet.quiknode.pro/4240df2ab8f252905cfef06e20240f563e84418d"
 }()
 
-public let NETWORK_FILTER: Int = 1_399_811_149  // Solana filter for Codex
+// Filtering
+public let HOT_TOKENS_INTERVAL: Interval = "30m" // main interval to aggregate and sort by volume
+public let FILTERING_INTERVAL: Interval = "20s" // additional interval for filtering (min trades/volume)
+public let FILTERING_MIN_TRADES: Numeric = 20 // minimum amount of trades during the above interval to be included
+public let FILTERING_MIN_VOLUME_USD: Numeric = 0 // minimum volume during the above interval to be included
+
+// Charts
 public let CHART_INTERVAL: Double = 60 * 2  // live 2m
 public let CANDLES_INTERVAL: Double = 60 * 30  // candles 30m
 public let PRICE_UPDATE_INTERVAL: Double = 0.5  // Update price every half second

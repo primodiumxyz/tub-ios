@@ -36,6 +36,7 @@ import {
 } from "@solana/web3.js";
 
 import { flattenIdlAccounts } from "@/lib/parsers/helpers";
+import { TransactionWithParsed } from "@/lib/types";
 
 const MEMO_PROGRAM_V1 = "Memo1UhkJRfHyvLMcVucJwxXeuD728EqVDDwQDxFMNo";
 const MEMO_PROGRAM_V2 = "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr";
@@ -195,10 +196,7 @@ export class SolanaParser {
    * @param tx response to parse
    * @returns list of parsed instructions
    */
-  parseTransactionWithInnerInstructions<T extends VersionedTransactionResponse>(
-    tx: T,
-    // @ts-expect-error: type difference @coral-xyz/anchor -> @project-serum/anchor
-  ): ParsedInstruction<Idl, string>[] {
+  parseTransactionWithInnerInstructions<T extends VersionedTransactionResponse>(tx: T): TransactionWithParsed[] {
     const flattened = flattenTransactionResponse(tx);
 
     return flattened.map(({ parentProgramId, ...ix }) => {
@@ -207,7 +205,7 @@ export class SolanaParser {
         parsedIx.parentProgramId = parentProgramId;
       }
 
-      return parsedIx;
+      return { raw: ix, parsed: parsedIx };
     });
   }
 

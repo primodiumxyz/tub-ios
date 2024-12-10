@@ -1,10 +1,9 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { TubService } from "../src/services/TubService";
 import { JupiterService } from "../src/services/JupiterService";
-import { Connection, Keypair, PublicKey, VersionedTransaction, VersionedMessage } from "@solana/web3.js";
+import { Connection, Keypair, VersionedTransaction, VersionedMessage } from "@solana/web3.js";
 import { createJupiterApiClient } from "@jup-ag/api";
 import { MockPrivyClient } from "./helpers/MockPrivyClient";
-import { Codex } from "@codex-data/sdk";
 import { createClient as createGqlClient } from "@tub/gql";
 import bs58 from "bs58";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
@@ -24,20 +23,11 @@ import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY } from "../src/constant
       }
 
       // Setup connection to Solana mainnet
-      connection = new Connection(process.env.QUICKNODE_MAINNET_URL ?? "https://api.mainnet-beta.solana.com");
+      connection = new Connection(`${process.env.QUICKNODE_ENDPOINT}/${process.env.QUICKNODE_TOKEN}`);
 
       // Setup Jupiter API client
       const jupiterQuoteApi = createJupiterApiClient({
         basePath: process.env.JUPITER_URL,
-      });
-
-      // Create cache for JupiterService
-      const cache = await (
-        await import("cache-manager")
-      ).caching({
-        store: "memory",
-        max: 100,
-        ttl: 10 * 1000, // 10 seconds
       });
 
       // Create test fee payer keypair
@@ -48,16 +38,7 @@ import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY } from "../src/constant
       mockJwtToken = "test_jwt_token";
 
       // Initialize services
-      const jupiterService = new JupiterService(
-        connection,
-        jupiterQuoteApi,
-        feePayerKeypair.publicKey,
-        new PublicKey(process.env.OCTANE_TRADE_FEE_RECIPIENT!),
-        Number(process.env.OCTANE_BUY_FEE),
-        0, // sell fee
-        15, // min trade size
-        cache,
-      );
+      const jupiterService = new JupiterService(connection, jupiterQuoteApi);
 
       const gqlClient = (
         await createGqlClient({
@@ -66,8 +47,6 @@ import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY } from "../src/constant
         })
       ).db;
 
-      const codexSdk = new Codex(process.env.CODEX_API_KEY!);
-
       // Create mock Privy client with our test wallet
       const mockPrivyClient = new MockPrivyClient(userKeypair.publicKey.toString());
 
@@ -75,7 +54,6 @@ import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY } from "../src/constant
         gqlClient,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockPrivyClient as any,
-        codexSdk,
         jupiterService,
       );
 
