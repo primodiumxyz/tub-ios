@@ -296,13 +296,17 @@ export class TubService {
   }
 
   private async updateSolUsdPrice(): Promise<void> {
-    const res = await fetch(`${process.env.JUPITER_URL}/price?ids=SOL`);
-    const data = (await res.json()) as { data: { [id: string]: { price: number } } };
+    try {
+      const res = await fetch(`${process.env.JUPITER_URL}/price?ids=SOL`);
+      const data = (await res.json()) as { data: { [id: string]: { price: number } } };
 
-    this.solUsdPrice = data.data["SOL"]?.price;
-    if (this.solUsdPrice !== undefined) this.priceEmitter.emit("price", this.solUsdPrice);
+      this.solUsdPrice = data.data["SOL"]?.price;
+      if (this.solUsdPrice !== undefined) this.priceEmitter.emit("price", this.solUsdPrice);
 
-    console.log(`SOL/USD price updated: ${this.solUsdPrice?.toLocaleString("en-US", { maximumFractionDigits: 2 })}`);
+      console.log(`SOL/USD price updated: ${this.solUsdPrice?.toLocaleString("en-US", { maximumFractionDigits: 2 })}`);
+    } catch (error) {
+      console.error("Error updating SOL/USD price:", error);
+    }
   }
 
   /**
