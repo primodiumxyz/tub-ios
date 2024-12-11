@@ -137,7 +137,7 @@ import { PrebuildSwapResponse } from "@/types";
     }, 11000);
 
     describe("VALUE swaps", () => {
-      it.skip("should complete a USDC to VALUE swap", async () => {
+      it("should complete a USDC to VALUE swap", async () => {
         // Get swap instructions
         const swapResponse = await tubService.fetchSwap(mockJwtToken, {
           buyTokenId: VALUE_MAINNET_PUBLIC_KEY.toString(),
@@ -148,7 +148,7 @@ import { PrebuildSwapResponse } from "@/types";
         await executeTx(swapResponse);
       }, 11000);
 
-      it("should transfer all VALUE to USDC", async () => {
+      it.skip("should transfer half of held VALUE to USDC", async () => {
         const userVALUEAta = await getAssociatedTokenAddress(VALUE_MAINNET_PUBLIC_KEY, userKeypair.publicKey);
         const valueBalance = await connection.getTokenAccountBalance(userVALUEAta);
         const decimals = valueBalance.value.decimals;

@@ -1,5 +1,5 @@
 import { Connection, PublicKey, TransactionInstruction, AddressLookupTableAccount } from "@solana/web3.js";
-import { DefaultApi, QuoteGetRequest, SwapInstructionsPostRequest } from "@jup-ag/api";
+import { DefaultApi, QuoteGetRequest, QuoteResponse, SwapInstructionsPostRequest } from "@jup-ag/api";
 import { EventEmitter } from "events";
 import { SOL_USD_PRICE_UPDATE_INTERVAL } from "../constants/registry";
 import { SOL_MAINNET_PUBLIC_KEY, USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
@@ -88,17 +88,24 @@ export class JupiterService {
    * Gets swap instructions for a quoted trade
    * @param quoteAndSwapParams - Parameters for quote and swap
    * @param userPublicKey - User's public key
+   * @param autoPriorityFeeMultiplier - Auto priority fee multiplier
    * @returns Swap instructions from Jupiter
    */
   async getSwapInstructions(
     quoteAndSwapParams: QuoteGetRequest,
     userPublicKey: PublicKey,
+    autoPriorityFeeMultiplier: number,
   ): Promise<{
     instructions: TransactionInstruction[];
     addressLookupTableAccounts: AddressLookupTableAccount[];
+    quote: QuoteResponse;
   }> {
     try {
       const quote = await this.getQuote(quoteAndSwapParams);
+
+      if (!quote) {
+        throw new Error("No quote received");
+      }
 
       const swapInstructionsRequest: SwapInstructionsPostRequest = {
         swapRequest: {
@@ -106,7 +113,7 @@ export class JupiterService {
           userPublicKey: userPublicKey.toBase58(),
           asLegacyTransaction: quoteAndSwapParams.asLegacyTransaction,
           wrapAndUnwrapSol: true,
-          prioritizationFeeLamports: { autoMultiplier: 3 },
+          prioritizationFeeLamports: { autoMultiplier: autoPriorityFeeMultiplier },
         },
       };
 
@@ -138,6 +145,7 @@ export class JupiterService {
       return {
         instructions: allInstructions,
         addressLookupTableAccounts,
+        quote,
       };
     } catch (error) {
       console.error("[getSwapInstructions] Error getting swap instructions:", error);
