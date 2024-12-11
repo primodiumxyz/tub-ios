@@ -42,12 +42,13 @@ private var installationSource: InstallationSource {
 // GraphQL URLs
 // Accessing environment variables happens at runtime, so cannot use a compiler directive conditional for graphqlUrlHost
 // (See the next conditional, graphqlHttpUrl, for a compiler directive example.)
-private let graphqlUrlHost: String = "tub-graphql.primodium.ai"
+private let graphqlUrlHost: String = "localhost:8080"
+//private let graphqlUrlHost: String = "tub-graphql.primodium.ai"
 
 // We use a compiler directive so the condition is only run once, during compilation, instead of on every import
-public let graphqlHttpUrl: String = "https://\(graphqlUrlHost)/v1/graphql"
+public let graphqlHttpUrl: String = "http://\(graphqlUrlHost)/v1/graphql"
 
-public let graphqlWsUrl: String = "wss://\(graphqlUrlHost)/v1/graphql"
+public let graphqlWsUrl: String = "ws://\(graphqlUrlHost)/v1/graphql"
 
 // Server URLs
 private let serverUrlHost: String = {
