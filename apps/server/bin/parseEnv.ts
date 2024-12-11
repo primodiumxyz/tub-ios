@@ -5,6 +5,7 @@ const commonSchema = z.object({
   SERVER_HOST: z.string().default("0.0.0.0"),
   SERVER_PORT: z.coerce.number().positive().default(8888),
   QUICKNODE_ENDPOINT: z.string().default("https://blue-hardworking-paper.solana-mainnet.quiknode.pro"),
+  QUICKNODE_TOKEN: z.string(),
   HASURA_ADMIN_SECRET: z.string().default("password"),
   GRAPHQL_URL: z.string().default("http://localhost:8080/v1/graphql"),
   JWT_SECRET: z.string().default("secret"),
@@ -16,16 +17,12 @@ const commonSchema = z.object({
   CI: z.boolean().default(false),
   TEST_USER_PRIVATE_KEY: z.string().default("set TEST_USER_PRIVATE_KEY in .env before running server tests"),
 
-  QUICKNODE_TOKEN: z.string(),
-  QUICKNODE_MAINNET_URL: z.string(),
   JUPITER_URL: z.string(),
   FEE_PAYER_PRIVATE_KEY: z.string(),
   PRIVY_APP_ID: z.string(),
   PRIVY_APP_SECRET: z.string(),
   OCTANE_TRADE_FEE_RECIPIENT: z.string(),
-})
-  ;
-
+});
 export function parseEnv<TSchema extends ZodTypeAny | undefined = undefined>(
   schema?: TSchema,
 ): z.infer<TSchema extends ZodTypeAny ? ZodIntersection<typeof commonSchema, TSchema> : typeof commonSchema> {
