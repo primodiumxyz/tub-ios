@@ -11,7 +11,7 @@ import {
   TransactionConfirmationStatus,
 } from "@solana/web3.js";
 import { ATA_PROGRAM_PUBLIC_KEY, TOKEN_PROGRAM_PUBLIC_KEY } from "../constants/tokens";
-import { CLEANUP_INTERVAL, REGISTRY_TIMEOUT } from "../constants/registry";
+import { CLEANUP_INTERVAL, REGISTRY_TIMEOUT, RETRY_ATTEMPTS, RETRY_DELAY } from "../constants/registry";
 import bs58 from "bs58";
 
 export type TransactionRegistryEntry = {
@@ -161,9 +161,8 @@ export class TransactionService {
     });
 
     let confirmation = null;
-    const RETRY_ATTEMPTS = 10;
     for (let attempt = 0; attempt < RETRY_ATTEMPTS; attempt++) {
-      console.log(`Attempt ${attempt + 1} of ${RETRY_ATTEMPTS}`);
+      console.log(`Tx Confirmation Attempt ${attempt + 1} of ${RETRY_ATTEMPTS}`);
       try {
         const status = await this.connection.getSignatureStatus(txid, {
           searchTransactionHistory: true,
@@ -180,7 +179,7 @@ export class TransactionService {
         if (attempt === RETRY_ATTEMPTS - 1)
           throw new Error(`Failed to get transaction confirmation after ${RETRY_ATTEMPTS} attempts`);
       }
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1 second before retrying
+      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY)); // Wait 1 second before retrying
     }
 
     if (!confirmation || confirmation.value?.err) {
