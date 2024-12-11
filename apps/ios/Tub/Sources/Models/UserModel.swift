@@ -24,8 +24,9 @@ final class UserModel: ObservableObject {
     @Published var initialBalanceUsdc: Int? = nil
     @Published var balanceChangeUsdc: Int = 0
     
-    @Published var tokenPortfolio: [String: TokenData] = [:]
-    
+    @Published var tokenPortfolio: [String] = []
+    @Published var tokenData: [String: TokenData] = [:]
+
     private var timer: Timer?
     
     @Published var hasSeenOnboarding: Bool {
@@ -155,13 +156,19 @@ final class UserModel: ObservableObject {
         
         let tokenBalances = try await Network.shared.getTokenBalances(address: walletAddress)
         
+        await MainActor.run {
+            self.tokenPortfolio = tokenBalances.map { $0.mint }
+        }
+        
         for (mint, balance) in tokenBalances {
             if mint == USDC_MINT {
                 continue
             }
-            Task {
-                try await updateTokenData(mint: mint, balance: balance)
-            }
+
+            // bulk update token data
+            let tokenMetadata = try await fetchTokenMetadata(addresses: self.tokenPortfolio)
+            // update token data. since we already have fetched the metadata, this function will always have the metadata cached
+            try await updateTokenData(mint: mint, balance: balance, metadata: tokenMetadata[mint])
         }
     }
     
@@ -172,18 +179,33 @@ final class UserModel: ObservableObject {
         try await updateTokenData(mint: tokenMint, balance: balanceData)
     }
     
-    private func updateTokenData(mint: String, balance: Int) async throws {
-        if let tokenData = tokenPortfolio[mint] {
-            let newData = TokenData(mint: mint, balanceToken: balance, metadata: tokenData.metadata)
+    public func updateTokenData(mint: String, balance: Int? = nil, metadata: TokenMetadata? = nil, liveData: TokenLiveData? = nil) async throws {
+        let portfolioContainsToken = self.tokenPortfolio.contains(mint) 
+        if let tokenData = tokenData[mint] {
+            let newLiveData =  liveData ?? tokenData.liveData
+            let newBalance = balance ?? tokenData.balanceToken
             await MainActor.run {
-                self.tokenPortfolio[mint] = newData
+                if newBalance == 0 && portfolioContainsToken {
+                    self.tokenPortfolio = self.tokenPortfolio.filter { $0 != mint }
+                } else if newBalance > 0 && !portfolioContainsToken {
+                    self.tokenPortfolio.append(mint)
+                }
+                self.tokenData[mint] = TokenData(mint: mint, balanceToken: newBalance, metadata: metadata ?? tokenData.metadata, liveData: newLiveData)
             }
         } else {
-            let tokenData = try await fetchTokenMetadata(addresses: [mint])
-            let metadata = tokenData[mint]
-            let newToken = TokenData(mint: mint, balanceToken: balance, metadata: metadata)
+            var newMetadata : TokenMetadata?
+            if let metadata {newMetadata = metadata }
+            else { newMetadata =  try await fetchTokenMetadata(addresses: [mint])[mint]}
+            
+            guard let newMetadata  else { return }
+            
+            let tokenData = TokenData(mint: mint, balanceToken: balance ?? 0, metadata: newMetadata, liveData: liveData)
             await MainActor.run {
-                self.tokenPortfolio[mint] = newToken
+                if balance ?? 0 > 0 && !portfolioContainsToken {
+                    self.tokenPortfolio.append(mint)
+                }
+
+                self.tokenData[mint] = tokenData
             }
         }
     }
@@ -299,7 +321,7 @@ final class UserModel: ObservableObject {
             self.initialBalanceUsdc = nil
             self.balanceChangeUsdc = 0
             self.elapsedSeconds = 0
-            self.tokenPortfolio = [:]
+            self.tokenPortfolio = []
             
             self.stopTimer()
             self.stopPollingUsdcBalance()
@@ -382,7 +404,7 @@ final class UserModel: ObservableObject {
             throw TubError.notLoggedIn
         }
         
-        guard let tokenId = self.tokenId, let balanceToken = tokenPortfolio[tokenId]?.balanceToken,
+        guard let tokenId = self.tokenId, let balanceToken = tokenData[tokenId]?.balanceToken,
               balanceToken > 0
         else {
             throw TubError.insufficientBalance
@@ -451,7 +473,7 @@ final class UserModel: ObservableObject {
                             
                             // Fetch all metadata in one call
                             do {
-                                let _ = try await self.fetchTokenMetadata(addresses: Array(uniqueTokens))
+                                let tokens = try await self.fetchTokenMetadata(addresses: Array(uniqueTokens))
                                 
                                 var processedTxs: [TransactionData] = []
                                 
@@ -466,7 +488,7 @@ final class UserModel: ObservableObject {
                                     }
                                     
                                     let mint = transaction.token_mint
-                                    let metadata = self.tokenMetadata[mint]
+                                    let metadata = tokens[mint]
                                     let isBuy = transaction.token_amount >= 0
                                     let priceUsdc = transaction.token_price_usd
                                     let valueUsdc = Int(transaction.token_amount) * Int(priceUsdc) / Int(1e9)
@@ -498,12 +520,14 @@ final class UserModel: ObservableObject {
         }
     }
     
-    private var tokenMetadata: [ String : TokenMetadata]  = [:]
-    
-    func fetchTokenMetadata(addresses: [String]) async throws -> [ String : TokenMetadata] {
-        let uncachedTokens = addresses.filter { !tokenMetadata.keys.contains($0) }
-        
+    func fetchTokenMetadata(addresses: [String]) async throws -> [String : TokenMetadata] {
+        let uncachedTokens = addresses.filter { !tokenData.keys.contains($0) }
+        let cachedTokens = addresses.filter { tokenData.keys.contains($0) }
+
         // Only fetch metadata for uncached tokens
+        var ret = [String : TokenMetadata]()
+        
+        cachedTokens.forEach { ret[$0] = tokenData[$0]!.metadata }
         if uncachedTokens.count > 0 {
             try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
                 Network.shared.apollo.fetch(
@@ -518,13 +542,13 @@ final class UserModel: ObservableObject {
                         
                         if let tokens = graphQLResult.data?.token_metadata_formatted {
                             for metadata in tokens {
-                                self.tokenMetadata[metadata.mint] = TokenMetadata(
+                                ret[metadata.mint] = TokenMetadata(
                                     name: metadata.name,
                                     symbol: metadata.symbol,
-                                    description: "",
+                                    description: metadata.symbol,
                                     imageUri: metadata.image_uri,
-                                    externalUrl: "",
-                                    decimals: 6
+                                    externalUrl: metadata.external_url,
+                                    decimals: Int(metadata.decimals ?? 6)
                                 )
                             }
                             continuation.resume()  // Resume without returning a value
@@ -538,11 +562,6 @@ final class UserModel: ObservableObject {
             }
         }
         
-        var ret : [String: TokenMetadata] = [:]
-        
-        addresses.forEach { address in
-            ret[address] = tokenMetadata[address]
-        }
         return ret
     }
 }

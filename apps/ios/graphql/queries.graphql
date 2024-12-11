@@ -17,6 +17,11 @@ query GetTokensMetadata($tokens: [String!]!) {
     name
     symbol
     image_uri
+    supply
+    decimals
+    description
+    external_url
+    is_pump_token
   }
 }
 

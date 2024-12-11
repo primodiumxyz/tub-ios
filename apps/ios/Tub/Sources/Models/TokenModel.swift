@@ -3,13 +3,10 @@ import Combine
 import SwiftUI
 import TubAPI
 
-let emptyToken = TokenData(
-    mint: "",
-    balanceToken: 0
-)
+
 
 class TokenModel: ObservableObject {
-    @Published var token: TokenData = emptyToken
+    @Published var tokenId: String = ""
     @Published var isReady = false
 
     @Published var prices: [Price] = []
@@ -29,18 +26,18 @@ class TokenModel: ObservableObject {
     private var preloaded = false
     private var initialized = false
 
-    func preload(with newToken: TokenData, timeframeSecs: Double = CHART_INTERVAL) {
+    func preload(with tokenId: String, timeframeSecs: Double = CHART_INTERVAL) {
         cleanup()
         preloaded = true
-        token = newToken
+        self.tokenId = tokenId
 
         func fetchPrices() async throws {
             // Fetch both types of data
-            let prices = try await fetchInitialPrices(newToken.id)
+            let prices = try await fetchInitialPrices(tokenId)
             if prices.isEmpty {
                 throw TubError.emptyTokenList
             }
-            await subscribeToTokenPrices(newToken.id)
+            await subscribeToTokenPrices(tokenId)
             // Move final status update to main thread
             await MainActor.run {
                 self.prices = prices
@@ -67,17 +64,15 @@ class TokenModel: ObservableObject {
 
     }
 
-    func initialize(with newToken: TokenData, timeframeSecs: Double = CHART_INTERVAL) {
-        let now = Date()
+    func initialize(with tokenId: String, timeframeSecs: Double = CHART_INTERVAL) {
         if initialized { return }
         initialized = true
         if !self.preloaded {
-            self.preload(with: newToken, timeframeSecs: timeframeSecs)
+            self.preload(with: tokenId, timeframeSecs: timeframeSecs)
         }
 
         func fetchCandles() async throws {
-            await self.subscribeToCandles(newToken.id)
-            print("\(newToken.metadata?.name ?? newToken.mint) candle fetch took \(Date().timeIntervalSince(now)) seconds")
+            await self.subscribeToCandles(tokenId)
         }
 
         Task {
@@ -219,9 +214,9 @@ class TokenModel: ObservableObject {
         }
     }
 
-    public func updateTokenDetails(_ newToken: TokenData) {
+    public func updateTokenDetails(_ tokenId: String) {
         DispatchQueue.main.async {
-            self.token = newToken
+            self.tokenId = tokenId
         }
     }
 

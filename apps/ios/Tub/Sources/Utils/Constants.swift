@@ -171,3 +171,9 @@ enum Layout {
         static let borderWidth: CGFloat = 0.5
     }
 }
+
+let emptyToken = TokenData(
+    mint: "",
+    balanceToken: 0,
+    metadata: TokenMetadata(name: "", symbol: "", description: "", imageUri: "", externalUrl: "", decimals: 6)
+)

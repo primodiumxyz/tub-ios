@@ -24,8 +24,12 @@ struct TokenView: View {
 	
     var onSellSuccess: (() -> Void)?
     
+    var tokenData : TokenData? {
+        userModel.tokenData[tokenModel.tokenId]
+    }
+    
     var balanceToken: Int {
-        userModel.tokenPortfolio[tokenModel.token.id]?.balanceToken ?? 0
+        tokenData?.balanceToken ?? 0
     }
     
     var activeTab: PurchaseState {
@@ -133,16 +137,16 @@ struct TokenView: View {
     private var tokenInfoView: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .center) {
-                if tokenModel.token.imageUri != "" {
-                    ImageView(imageUri: tokenModel.token.imageUri, size: 30)
+                if let image = tokenData?.metadata.imageUri, image != "" {
+                    ImageView(imageUri: image, size: 30)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                 }
                 else {
                     LoadingBox(width: 30, height: 30)
                 }
 
-                if tokenModel.token.symbol != "" {
-                    Text("$\(tokenModel.token.symbol)")
+                if let symbol = tokenData?.metadata.symbol, symbol != "" {
+                    Text("$\(symbol)")
                         .font(.sfRounded(size: .lg, weight: .semibold))
                 }
                 else {

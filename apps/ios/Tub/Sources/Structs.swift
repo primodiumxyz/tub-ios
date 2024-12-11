@@ -76,11 +76,12 @@ struct StatValue: Identifiable {
 struct TokenData: Identifiable {
     var id: String { mint }  
     let mint: String
-    var balanceToken: Int
-    var metadata: TokenMetadata?
+    let metadata: TokenMetadata
     var liveData: TokenLiveData?
     
-    init(mint: String, balanceToken: Int = 0, metadata: TokenMetadata? = nil, liveData: TokenLiveData? = nil) {
+    var balanceToken: Int
+    
+    init(mint: String, balanceToken: Int = 0, metadata: TokenMetadata, liveData: TokenLiveData? = nil) {
         self.mint = mint
         self.balanceToken = balanceToken
         self.metadata = metadata
