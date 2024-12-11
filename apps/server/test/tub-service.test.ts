@@ -131,6 +131,7 @@ import { PrebuildSwapResponse } from "@/types";
         buyTokenId: SOL_MAINNET_PUBLIC_KEY.toString(),
         sellTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
         sellQuantity: 1e6 / 1000, // 0.001 USDC
+        slippageBps: undefined,
       });
 
       await executeTx(swapResponse);
@@ -143,6 +144,7 @@ import { PrebuildSwapResponse } from "@/types";
           buyTokenId: VALUE_MAINNET_PUBLIC_KEY.toString(),
           sellTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
           sellQuantity: 1e6 / 1000, // 0.001 USDC
+          slippageBps: undefined,
         });
 
         await executeTx(swapResponse);
@@ -163,6 +165,7 @@ import { PrebuildSwapResponse } from "@/types";
           buyTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
           sellTokenId: VALUE_MAINNET_PUBLIC_KEY.toString(),
           sellQuantity: Math.round(balanceToken / 2),
+          slippageBps: 100,
         };
         console.log("VALUE swap:", swap);
         const swapResponse = await tubService.fetchSwap(mockJwtToken, swap);
