@@ -74,7 +74,7 @@ export const start = async () => {
     // Initialize JupiterService
     const jupiterService = new JupiterService(connection, jupiterQuoteApi);
 
-    if (!process.env.GRAPHQL_URL && env.NODE_ENV === "production") {
+    if (!env.GRAPHQL_URL && env.NODE_ENV === "production") {
       throw new Error("GRAPHQL_URL is not set");
     }
     const gqlClient = (

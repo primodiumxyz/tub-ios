@@ -229,11 +229,6 @@ class Network {
         return Int(firstAccount.account.data.lamports)
     }
 
-    func getTestTxData() async throws -> TxData {
-        let res: TxData = try await callProcedure("get1USDCToSOLTransaction")
-        return res
-    }
-
     func getTxData(buyTokenId: String, sellTokenId: String, sellQuantity: Int) async throws -> TxData {
         let input = SwapInput(buyTokenId: buyTokenId, sellTokenId: sellTokenId, sellQuantity: sellQuantity)
         let res: TxData = try await callProcedure("fetchSwap", input: input)

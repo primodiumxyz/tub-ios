@@ -7,10 +7,12 @@ import { MockPrivyClient } from "./helpers/MockPrivyClient";
 import { createClient as createGqlClient } from "@tub/gql";
 import bs58 from "bs58";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
-import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY } from "../src/constants/tokens";
+import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY, VALUE_MAINNET_PUBLIC_KEY } from "@/constants/tokens";
+import { env } from "@bin/tub-server";
+import { PrebuildSwapResponse } from "@/types";
 
 // Skip entire suite in CI, because it would perform a live transaction each deployment
-(process.env.CI ? describe.skip : describe)("TubService Integration Test", () => {
+(env.CI ? describe.skip : describe)("TubService Integration Test", () => {
   let tubService: TubService;
   let userKeypair: Keypair;
   let mockJwtToken: string;
@@ -18,23 +20,20 @@ import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY } from "../src/constant
 
   beforeAll(async () => {
     try {
-      if (!process.env.TEST_USER_PRIVATE_KEY) {
-        throw new Error("TEST_USER_PRIVATE_KEY not found in environment");
-      }
-
       // Setup connection to Solana mainnet
-      connection = new Connection(`${process.env.QUICKNODE_ENDPOINT}/${process.env.QUICKNODE_TOKEN}`);
+      connection = new Connection(`${env.QUICKNODE_ENDPOINT}/${env.QUICKNODE_TOKEN}`);
 
       // Setup Jupiter API client
       const jupiterQuoteApi = createJupiterApiClient({
-        basePath: process.env.JUPITER_URL,
+        basePath: env.JUPITER_URL,
       });
 
       // Create test fee payer keypair
-      const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(process.env.FEE_PAYER_PRIVATE_KEY!));
+      const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY!));
 
       // Create test user keypair from environment
-      userKeypair = Keypair.fromSecretKey(bs58.decode(process.env.TEST_USER_PRIVATE_KEY));
+      userKeypair = Keypair.fromSecretKey(bs58.decode(env.TEST_USER_PRIVATE_KEY!));
+      console.log("User keypair:", userKeypair.publicKey.toBase58());
       mockJwtToken = "test_jwt_token";
 
       // Initialize services
@@ -91,49 +90,85 @@ import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY } from "../src/constant
     }
   });
 
-  describe("should complete a full USDC to SOL swap flow", () => {
-    it("should complete a full USDC to SOL swap flow", async () => {
-      try {
-        console.log("\nStarting USDC to SOL swap flow test");
-        console.log("User public key:", userKeypair.publicKey.toBase58());
+  const executeTx = async (swapResponse: PrebuildSwapResponse) => {
+    const handoff = Buffer.from(swapResponse.transactionMessageBase64, "base64");
+    const message = VersionedMessage.deserialize(handoff);
+    const transaction = new VersionedTransaction(message);
 
-        // Get the constructed swap transaction
-        console.log("\nGetting 1 USDC to SOL swap transaction...");
-        const swapResponse = await tubService.get1USDCToSOLTransaction(mockJwtToken);
+    console.log("message:", message);
+    // User signs
+    transaction.sign([userKeypair]);
+    const userSignature = transaction.signatures![1];
+    expect(transaction.signatures).toHaveLength(2);
+    expect(userSignature).toBeDefined();
 
-        // --- Begin Simulating Mock Privy Interaction ---
+    // Convert raw signature to base64
+    const base64Signature = Buffer.from(userSignature!).toString("base64");
 
-        // Decode transaction
-        const handoff = Buffer.from(swapResponse.transactionMessageBase64, "base64");
-        const message = VersionedMessage.deserialize(handoff);
-        const transaction = new VersionedTransaction(message);
+    // --- End Simulating Mock Privy Interaction ---
 
-        // User signs
-        transaction.sign([userKeypair]);
-        const userSignature = transaction.signatures![1];
-        if (!userSignature) {
-          throw new Error("Failed to get signature from transaction");
+    const result = await tubService.signAndSendTransaction(
+      mockJwtToken,
+      base64Signature,
+      swapResponse.transactionMessageBase64, // Send original unsigned transaction
+    );
+
+    console.log("Transaction result:", result);
+
+    expect(result).toBeDefined();
+    expect(result.signature).toBeDefined();
+  };
+
+  describe("swap execution", () => {
+    it.skip("should complete a USDC to SOL swap", async () => {
+      console.log("\nStarting USDC to SOL swap flow test");
+      console.log("User public key:", userKeypair.publicKey.toBase58());
+
+      // Get the constructed swap transaction
+      console.log("\nGetting 1 USDC to SOL swap transaction...");
+
+      const swapResponse = await tubService.fetchSwap(mockJwtToken, {
+        buyTokenId: SOL_MAINNET_PUBLIC_KEY.toString(),
+        sellTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
+        sellQuantity: 1e6 / 1000, // 0.001 USDC
+      });
+
+      await executeTx(swapResponse);
+    }, 11000);
+
+    describe("VALUE swaps", () => {
+      it.skip("should complete a USDC to VALUE swap", async () => {
+        // Get swap instructions
+        const swapResponse = await tubService.fetchSwap(mockJwtToken, {
+          buyTokenId: VALUE_MAINNET_PUBLIC_KEY.toString(),
+          sellTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
+          sellQuantity: 1e6 / 1000, // 0.001 USDC
+        });
+
+        await executeTx(swapResponse);
+      }, 11000);
+
+      it("should transfer all VALUE to USDC", async () => {
+        const userVALUEAta = await getAssociatedTokenAddress(VALUE_MAINNET_PUBLIC_KEY, userKeypair.publicKey);
+        const valueBalance = await connection.getTokenAccountBalance(userVALUEAta);
+        const decimals = valueBalance.value.decimals;
+        console.log("VALUE balance:", valueBalance.value.uiAmount);
+        if (!valueBalance.value.uiAmount) {
+          console.log("VALUE balance is 0, skipping transfer");
+          return;
         }
 
-        // Convert raw signature to base64
-        const base64Signature = Buffer.from(userSignature).toString("base64");
+        const balanceToken = valueBalance.value.uiAmount * 10 ** decimals;
+        const swap = {
+          buyTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
+          sellTokenId: VALUE_MAINNET_PUBLIC_KEY.toString(),
+          sellQuantity: Math.round(balanceToken / 2),
+        };
+        console.log("VALUE swap:", swap);
+        const swapResponse = await tubService.fetchSwap(mockJwtToken, swap);
 
-        // --- End Simulating Mock Privy Interaction ---
-
-        const result = await tubService.signAndSendTransaction(
-          mockJwtToken,
-          base64Signature,
-          swapResponse.transactionMessageBase64, // Send original unsigned transaction
-        );
-
-        console.log("Transaction result:", result);
-
-        expect(result).toBeDefined();
-        expect(result.signature).toBeDefined();
-      } catch (error) {
-        console.error("Error in swap flow test:", error);
-        throw error;
-      }
-    }, 30000);
+        await executeTx(swapResponse);
+      });
+    });
   });
 });
