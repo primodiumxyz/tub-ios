@@ -6,6 +6,14 @@ import { FeeService } from "../services/FeeService";
 import { ActiveSwapRequest, PrebuildSwapResponse, SwapSubscription } from "../types";
 import { USDC_DEV_PUBLIC_KEY, USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
 import { QuoteGetRequest } from "@jup-ag/api";
+import {
+  MAX_ACCOUNTS,
+  MAX_AUTO_SLIPPAGE_BPS,
+  MAX_SLIPPAGE_BPS,
+  AUTO_SLIPPAGE,
+  AUTO_SLIPPAGE_COLLISION_USD_VALUE,
+  AUTO_PRIORITY_FEE_MULTIPLIER,
+} from "../constants/swap";
 
 export class SwapService {
   private swapSubscriptions: Map<string, SwapSubscription> = new Map();
@@ -28,6 +36,7 @@ export class SwapService {
       usdcDevPubKey,
       usdcMainPubKey,
     ]);
+    const swapAmount = request.sellQuantity - feeAmount;
 
     // Create fee transfer instruction if needed
     const feeTransferInstruction = this.feeService.createFeeTransferInstruction(
@@ -36,23 +45,39 @@ export class SwapService {
       feeAmount,
     );
 
+    // TODO: autoSlippageCollisionUsdValue should be based on the estimated value of the swap amount.
+    // This is already accomplished when selling USDC, but need to query our internal price feed for other tokens.
+
     // Get swap instructions from Jupiter
     const swapInstructionRequest: QuoteGetRequest = {
       inputMint: request.sellTokenId,
       outputMint: request.buyTokenId,
-      amount: request.sellQuantity - feeAmount,
-      autoSlippage: true,
-      maxAutoSlippageBps: 200,
+      amount: swapAmount,
+      slippageBps: AUTO_SLIPPAGE ? undefined : MAX_SLIPPAGE_BPS,
+      autoSlippage: AUTO_SLIPPAGE,
+      maxAutoSlippageBps: MAX_AUTO_SLIPPAGE_BPS,
+      autoSlippageCollisionUsdValue:
+        request.sellTokenId === USDC_MAINNET_PUBLIC_KEY.toString()
+          ? Math.floor(swapAmount / 1e6)
+          : AUTO_SLIPPAGE_COLLISION_USD_VALUE,
       onlyDirectRoutes: false,
       restrictIntermediateTokens: true,
-      maxAccounts: 50,
+      maxAccounts: MAX_ACCOUNTS,
       asLegacyTransaction: false,
     };
 
-    const { instructions: swapInstructions, addressLookupTableAccounts } = await this.jupiter.getSwapInstructions(
+    const {
+      instructions: swapInstructions,
+      addressLookupTableAccounts,
+      quote,
+    } = await this.jupiter.getSwapInstructions(
       swapInstructionRequest,
       request.userPublicKey,
+      AUTO_PRIORITY_FEE_MULTIPLIER,
     );
+    console.log("Quoted auto slippage", quote.computedAutoSlippage);
+    console.log("Quoted slippage bps", quote.slippageBps);
+    console.log("Quoted outAmount", quote.outAmount);
 
     if (!swapInstructions?.length) {
       throw new Error("No swap instruction received");
