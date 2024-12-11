@@ -17,7 +17,9 @@ struct HistoryView: View {
     func handleFetchTxs() {
         Task {
             do {
-                txs = await userModel.fetchTxs()
+                txs = try await userModel.fetchTxs()
+            } catch {
+                print("Error fetching transactions: \(error)")
             }
         }
     }
@@ -54,11 +56,8 @@ struct HistoryView: View {
                 Spacer()
             }
         }
-        .refreshable {
-            Task {
-                await userModel.fetchTxs()
-            }
-        }
+        .refreshable(action: {handleFetchTxs()})
+        
         .navigationTitle("History")
         .navigationBarTitleDisplayMode(.inline)
     }

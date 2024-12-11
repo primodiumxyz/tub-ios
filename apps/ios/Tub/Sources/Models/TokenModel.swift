@@ -3,22 +3,13 @@ import Combine
 import SwiftUI
 import TubAPI
 
-let emptyToken = Token(
-    id: "",
-    name: "",
-    symbol: "",
-    description: "",
-    imageUri: "",
-    externalUrl: "",
-    decimals: 0,
-    supply: 0,
-    latestPriceUsd: 0,
-    stats: IntervalStats(volumeUsd: 0, trades: 0, priceChangePct: 0),
-    recentStats: IntervalStats(volumeUsd: 0, trades: 0, priceChangePct: 0)
+let emptyToken = TokenData(
+    mint: "",
+    balanceToken: 0
 )
 
 class TokenModel: ObservableObject {
-    @Published var token: Token = emptyToken
+    @Published var token: TokenData = emptyToken
     @Published var isReady = false
 
     @Published var prices: [Price] = []
@@ -38,7 +29,7 @@ class TokenModel: ObservableObject {
     private var preloaded = false
     private var initialized = false
 
-    func preload(with newToken: Token, timeframeSecs: Double = CHART_INTERVAL) {
+    func preload(with newToken: TokenData, timeframeSecs: Double = CHART_INTERVAL) {
         cleanup()
         preloaded = true
         token = newToken
@@ -76,7 +67,7 @@ class TokenModel: ObservableObject {
 
     }
 
-    func initialize(with newToken: Token, timeframeSecs: Double = CHART_INTERVAL) {
+    func initialize(with newToken: TokenData, timeframeSecs: Double = CHART_INTERVAL) {
         let now = Date()
         if initialized { return }
         initialized = true
@@ -86,7 +77,7 @@ class TokenModel: ObservableObject {
 
         func fetchCandles() async throws {
             await self.subscribeToCandles(newToken.id)
-            print("\(newToken.name) candle fetch took \(Date().timeIntervalSince(now)) seconds")
+            print("\(newToken.metadata?.name ?? newToken.mint) candle fetch took \(Date().timeIntervalSince(now)) seconds")
         }
 
         Task {
@@ -228,7 +219,7 @@ class TokenModel: ObservableObject {
         }
     }
 
-    public func updateTokenDetails(_ newToken: Token) {
+    public func updateTokenDetails(_ newToken: TokenData) {
         DispatchQueue.main.async {
             self.token = newToken
         }

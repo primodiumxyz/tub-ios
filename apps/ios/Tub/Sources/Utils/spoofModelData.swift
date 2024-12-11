@@ -14,7 +14,7 @@ func spoofPriceModelData(_ model: SolPriceModel) {
 
 func spoofTokenModelData(_ model: TokenModel) {
     // Mock token data
-    model.token = Token(
+    model.token = TokenData(
         id: "mock_token_id",
         name: "Mock Token",
         symbol: "MOCK",

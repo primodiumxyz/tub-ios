@@ -5,7 +5,6 @@
 //  Created by Henry on 12/4/24.
 //
 
-import CodexAPI
 import SwiftUI
 
 struct TokenBalancesView: View {
@@ -24,7 +23,7 @@ struct TokenBalancesView: View {
                         if let token = userModel.tokenPortfolio[key], token.balanceToken > 0 {
                         
                         HStack {
-                            if let imageUrl = token.metadata.imageUrl, let url = URL(string: imageUrl) {
+                            if let imageUrl = token.metadata?.imageUrl, let url = URL(string: imageUrl) {
                                 AsyncImage(url: url) { image in
                                     image
                                         .resizable()
@@ -45,11 +44,11 @@ struct TokenBalancesView: View {
 
 
                             VStack(alignment: .leading) {
-                                if let name = token.metadata.name {
+                                if let name = token.metadata?.name {
                                     Text(name)
                                         .font(.sfRounded(size: .lg, weight: .medium))
                                 }
-                                if let symbol = token.metadata.symbol {
+                                if let symbol = token.metadata?.symbol {
                                     Text(symbol)
                                         .font(.sfRounded(size: .sm))
                                         .foregroundStyle(.secondary)
