@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { TubService } from "../src/services/TubService";
 import { JupiterService } from "../src/services/JupiterService";
-import { Connection, Keypair, VersionedTransaction, VersionedMessage, PublicKey } from "@solana/web3.js";
+import { Connection, Keypair, VersionedTransaction, VersionedMessage } from "@solana/web3.js";
 import { createJupiterApiClient } from "@jup-ag/api";
 import { MockPrivyClient } from "./helpers/MockPrivyClient";
 import { createClient as createGqlClient } from "@tub/gql";
 import bs58 from "bs58";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
-import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY } from "@/constants/tokens";
+import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY, VALUE_MAINNET_PUBLIC_KEY } from "@/constants/tokens";
 import { env } from "@bin/tub-server";
 import { PrebuildSwapResponse } from "@/types";
 
@@ -136,13 +136,11 @@ import { PrebuildSwapResponse } from "@/types";
       await executeTx(swapResponse);
     }, 11000);
 
-    describe("GRIFT swaps", () => {
-      const GRIFT_MINT = "DcRHumYETnVKowMmDSXQ5RcGrFZFAnaqrQ1AZCHXpump";
-
-      it.skip("should complete a USDC to GRIFT swap", async () => {
+    describe("VALUE swaps", () => {
+      it.skip("should complete a USDC to VALUE swap", async () => {
         // Get swap instructions
         const swapResponse = await tubService.fetchSwap(mockJwtToken, {
-          buyTokenId: GRIFT_MINT,
+          buyTokenId: VALUE_MAINNET_PUBLIC_KEY.toString(),
           sellTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
           sellQuantity: 1e6 / 1000, // 0.001 USDC
         });
@@ -150,24 +148,23 @@ import { PrebuildSwapResponse } from "@/types";
         await executeTx(swapResponse);
       }, 11000);
 
-      it("should transfer all GRIFT to USDC", async () => {
-        const griftPublicKey = new PublicKey(GRIFT_MINT);
-        const userGriftAta = await getAssociatedTokenAddress(griftPublicKey, userKeypair.publicKey);
-        const griftBalance = await connection.getTokenAccountBalance(userGriftAta);
-        const decimals = griftBalance.value.decimals;
-        console.log("GRIFT balance:", griftBalance.value.uiAmount);
-        if (!griftBalance.value.uiAmount) {
-          console.log("GRIFT balance is 0, skipping transfer");
+      it("should transfer all VALUE to USDC", async () => {
+        const userVALUEAta = await getAssociatedTokenAddress(VALUE_MAINNET_PUBLIC_KEY, userKeypair.publicKey);
+        const valueBalance = await connection.getTokenAccountBalance(userVALUEAta);
+        const decimals = valueBalance.value.decimals;
+        console.log("VALUE balance:", valueBalance.value.uiAmount);
+        if (!valueBalance.value.uiAmount) {
+          console.log("VALUE balance is 0, skipping transfer");
           return;
         }
 
-        const balanceToken = griftBalance.value.uiAmount * 10 ** decimals;
+        const balanceToken = valueBalance.value.uiAmount * 10 ** decimals;
         const swap = {
           buyTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
-          sellTokenId: GRIFT_MINT,
+          sellTokenId: VALUE_MAINNET_PUBLIC_KEY.toString(),
           sellQuantity: Math.round(balanceToken / 2),
         };
-        console.log("GRIFT swap:", swap);
+        console.log("VALUE swap:", swap);
         const swapResponse = await tubService.fetchSwap(mockJwtToken, swap);
 
         await executeTx(swapResponse);
