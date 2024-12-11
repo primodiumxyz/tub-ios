@@ -15,14 +15,6 @@ subscription SubTopTokensByVolume(
     limit: 50
   ) {
     token_mint
-    latest_price_usd
-    total_volume_usd
-    total_trades
-    price_change_pct
-    recent_volume_usd
-    recent_trades
-    recent_price_change_pct
-    token_metadata_supply
   }
 }
 

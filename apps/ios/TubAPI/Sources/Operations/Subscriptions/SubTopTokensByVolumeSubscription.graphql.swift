@@ -7,7 +7,7 @@ public class SubTopTokensByVolumeSubscription: GraphQLSubscription {
   public static let operationName: String = "SubTopTokensByVolume"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"subscription SubTopTokensByVolume($interval: interval = "30m", $recentInterval: interval = "20s", $minRecentTrades: numeric = 0, $minRecentVolume: numeric = 0) { token_stats_interval_comp( args: { interval: $interval, recent_interval: $recentInterval } where: { token_metadata_is_pump_token: { _eq: true } recent_trades: { _gte: $minRecentTrades } recent_volume_usd: { _gte: $minRecentVolume } } order_by: { total_volume_usd: desc } limit: 50 ) { __typename token_mint latest_price_usd total_volume_usd total_trades price_change_pct recent_volume_usd recent_trades recent_price_change_pct token_metadata_supply } }"#
+      #"subscription SubTopTokensByVolume($interval: interval = "30m", $recentInterval: interval = "20s", $minRecentTrades: numeric = 0, $minRecentVolume: numeric = 0) { token_stats_interval_comp( args: { interval: $interval, recent_interval: $recentInterval } where: { token_metadata_is_pump_token: { _eq: true } recent_trades: { _gte: $minRecentTrades } recent_volume_usd: { _gte: $minRecentVolume } } order_by: { total_volume_usd: desc } limit: 50 ) { __typename token_mint } }"#
     ))
 
   public var interval: GraphQLNullable<Interval>
@@ -68,25 +68,9 @@ public class SubTopTokensByVolumeSubscription: GraphQLSubscription {
       public static var __selections: [ApolloAPI.Selection] { [
         .field("__typename", String.self),
         .field("token_mint", String.self),
-        .field("latest_price_usd", TubAPI.Numeric.self),
-        .field("total_volume_usd", TubAPI.Numeric.self),
-        .field("total_trades", TubAPI.Numeric.self),
-        .field("price_change_pct", TubAPI.Numeric.self),
-        .field("recent_volume_usd", TubAPI.Numeric.self),
-        .field("recent_trades", TubAPI.Numeric.self),
-        .field("recent_price_change_pct", TubAPI.Numeric.self),
-        .field("token_metadata_supply", TubAPI.Numeric?.self),
       ] }
 
       public var token_mint: String { __data["token_mint"] }
-      public var latest_price_usd: TubAPI.Numeric { __data["latest_price_usd"] }
-      public var total_volume_usd: TubAPI.Numeric { __data["total_volume_usd"] }
-      public var total_trades: TubAPI.Numeric { __data["total_trades"] }
-      public var price_change_pct: TubAPI.Numeric { __data["price_change_pct"] }
-      public var recent_volume_usd: TubAPI.Numeric { __data["recent_volume_usd"] }
-      public var recent_trades: TubAPI.Numeric { __data["recent_trades"] }
-      public var recent_price_change_pct: TubAPI.Numeric { __data["recent_price_change_pct"] }
-      public var token_metadata_supply: TubAPI.Numeric? { __data["token_metadata_supply"] }
     }
   }
 }

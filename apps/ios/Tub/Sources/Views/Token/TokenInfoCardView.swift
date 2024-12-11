@@ -178,6 +178,12 @@ private struct StatView: View {
         return ret
     }
 
+    let emptyToken = TokenData(
+        mint: "",
+        balanceToken: 0,
+        metadata: TokenMetadata(name: "", symbol: "", description: "", imageUri: "", externalUrl: "", decimals: 6)
+    )
+
     VStack {
         VStack {
             PrimaryButton(text: "Toggle Dark Mode") {

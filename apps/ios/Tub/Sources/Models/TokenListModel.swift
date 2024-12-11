@@ -193,19 +193,7 @@ final class TokenListModel: ObservableObject {
                         if let tokens = graphQLResult.data?.token_stats_interval_comp, let userModel = self.userModel {
                             let mappedTokens = tokens
                                 .map { elem in
-                                    let liveData = TokenLiveData(
-                                        supply: Int(elem.token_metadata_supply ?? 0),
-                                        latestPriceUsd: elem.latest_price_usd,
-                                        stats: IntervalStats(volumeUsd: elem.total_volume_usd, trades: Int(elem.total_trades), priceChangePct: elem.price_change_pct),
-                                        recentStats: IntervalStats(volumeUsd: elem.recent_volume_usd, trades: Int(elem.recent_trades), priceChangePct: elem.recent_price_change_pct)
-                                        )
-                                    Task {
-                                        await userModel.updateTokenData(
-                                            mint: elem.token_mint,
-                                            liveData: liveData
-                                        )
-                                    }
-                                    return elem.token_mint
+                                    elem.token_mint
                                 }
                             
                             // Update the current token
