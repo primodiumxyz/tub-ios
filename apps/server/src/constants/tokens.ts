@@ -7,3 +7,4 @@ export const VALUE_MAINNET_PUBLIC_KEY = new PublicKey("DcRHumYETnVKowMmDSXQ5RcGr
 
 export const ATA_PROGRAM_PUBLIC_KEY = new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
 export const TOKEN_PROGRAM_PUBLIC_KEY = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+export const JUPITER_PROGRAM_PUBLIC_KEY = new PublicKey("JUP7MJ4JQfof3k52aMz3LpLQe74EJ9Q8xqjP88H1Y");
