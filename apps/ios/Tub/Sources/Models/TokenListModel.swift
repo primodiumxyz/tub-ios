@@ -58,7 +58,7 @@ final class TokenListModel: ObservableObject {
         
     }
     
-    private func getNextToken(excluding currentId: String? = nil) -> String {
+    private func getNextToken(excluding currentId: String? = nil) -> String? {
         if self.currentTokenIndex < self.tokenQueue.count - 1 {
             return tokenQueue[currentTokenIndex + 1]
         }
@@ -84,11 +84,7 @@ final class TokenListModel: ObservableObject {
             repeat { nextToken = self.tokenQueue.randomElement() }
             while currentId != nil && nextToken == currentId
         }
-        
-        // Final fallback: return first token
-        if let nextToken { return nextToken }
-        
-        return ""
+        return nil
     }
     
     // - Set the current token to the previously visited one
@@ -153,9 +149,10 @@ final class TokenListModel: ObservableObject {
         }
         else {
             currentTokenModel = TokenModel()
-            let newToken = getNextToken()
-            initCurrentTokenModel(with: newToken)
-            removePendingToken(newToken)
+            if let newToken = getNextToken() {
+                initCurrentTokenModel(with: newToken)
+                removePendingToken(newToken)
+            }
         }
     }
     
@@ -163,7 +160,9 @@ final class TokenListModel: ObservableObject {
         self.currentTokenIndex += 1
         
         // next
-        let newToken = getNextToken(excluding: currentTokenModel.tokenId)
+        guard let newToken = getNextToken(excluding: currentTokenModel.tokenId) else {
+            return
+        }
         // Add delay before loading next model
         let newModel = TokenModel()
         newModel.preload(with: newToken)
@@ -260,14 +259,14 @@ final class TokenListModel: ObservableObject {
         if !self.tokenQueue.isEmpty { return }
         
         // first model
-        let firstToken = getNextToken()
+        guard let firstToken = getNextToken() else { return}
         tokenQueue.append(firstToken)
         self.currentTokenIndex = 0
         removePendingToken(firstToken)
         initCurrentTokenModel(with: firstToken)
         
         // second model
-        let secondToken = getNextToken(excluding: firstToken)
+        guard let secondToken = getNextToken(excluding: firstToken) else { return }
         tokenQueue.append(secondToken)
         currentTokenStartTime = Date()
         removePendingToken(secondToken)
