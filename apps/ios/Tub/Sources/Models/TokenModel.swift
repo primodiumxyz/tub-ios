@@ -218,17 +218,22 @@ class TokenModel: ObservableObject {
 
     private func subscribeToSingleTokenData(_ tokenId: String) async {
         singleTokenDataSubscription?.cancel()
-
+        
         singleTokenDataSubscription = Network.shared.apollo.subscribe(
             subscription: SubSingleTokenDataSubscription(token: tokenId)
-        ) { [weak self] result in
-            guard let self = self else { return }
-
+        ) { result in
+            
             switch result {
             case .success(let graphQLResult):
                 if let tokenData = graphQLResult.data?.token_stats_interval_comp.first {
-                    Task { @MainActor in
-                        self.latestPrice = tokenData.latest_price_usd
+                    let liveData = TokenLiveData(
+                        supply: Int(tokenData.token_metadata_supply ?? 0),
+                        latestPriceUsd: tokenData.latest_price_usd,
+                        stats: IntervalStats(volumeUsd: tokenData.total_volume_usd, trades: Int(tokenData.total_trades), priceChangePct: tokenData.price_change_pct),
+                        recentStats: IntervalStats(volumeUsd: tokenData.recent_volume_usd, trades: Int(tokenData.recent_trades), priceChangePct: tokenData.recent_price_change_pct)
+                    )
+                    Task {
+                        await UserModel.shared.updateTokenData(mint: tokenId, liveData: liveData)
                     }
                 }
             case .failure(let error):

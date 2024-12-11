@@ -109,7 +109,7 @@ struct TokenInfoPreview: View {
                     }
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: 80)
+            .frame(maxWidth: .infinity, maxHeight: 60)
             .padding(24)
             .background(colorScheme == .dark ? Gradients.grayGradient : Gradients.clearGradient)
             .overlay(
