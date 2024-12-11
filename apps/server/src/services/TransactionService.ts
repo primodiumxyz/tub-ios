@@ -169,17 +169,17 @@ export class TransactionService {
               data: Buffer.from(failedInstruction.data).toString("hex"),
             });
 
-            let errorMessage = `Transaction simulation failed: ${errorStr}`;
+            let errorMessage = `Tx sim failed: ${errorStr}`;
 
             if (programId === TOKEN_PROGRAM_PUBLIC_KEY) {
-              errorMessage = `Simulation failed, Token Program Error: ${errorStr}. This usually means there's an issue with token accounts or balances.`;
+              errorMessage = `Sim failed, Token Program Error: ${errorStr}`; // This usually means there's an issue with token accounts or balances.
             } else if (programId === ATA_PROGRAM_PUBLIC_KEY) {
-              errorMessage = `Simulation failed, Associated Token Account Error: ${errorStr}. This usually means there's an issue creating or accessing a token account.`;
+              errorMessage = `Sim failed, ATA Error: ${errorStr}`; // This usually means there's an issue creating or accessing a token account.
             } else if (programId === JUPITER_PROGRAM_PUBLIC_KEY) {
               if (errorStr.includes("6001")) {
-                errorMessage = `Simulation failed, Jupiter Slippage Error: The price moved unfavorably beyond your slippage tolerance.`;
+                errorMessage = `Sim failed, Slippage Tolerance Exceeded`;
               } else {
-                errorMessage = `Simulation failed, Jupiter Program Error: ${errorStr}. This usually indicates an issue with the swap parameters or market conditions.`;
+                errorMessage = `Sim failed, Jupiter Program Error: ${errorStr}`; // This usually indicates an issue with the swap parameters or market conditions.
               }
             }
 
