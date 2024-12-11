@@ -5,6 +5,7 @@ import { TransactionService } from "./TransactionService";
 import { FeeService } from "../services/FeeService";
 import { ActiveSwapRequest, PrebuildSwapResponse, SwapSubscription } from "../types";
 import { USDC_DEV_PUBLIC_KEY, USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
+import { QuoteGetRequest } from "@jup-ag/api";
 
 export class SwapService {
   private swapSubscriptions: Map<string, SwapSubscription> = new Map();
@@ -36,11 +37,12 @@ export class SwapService {
     );
 
     // Get swap instructions from Jupiter
-    const swapInstructionRequest = {
+    const swapInstructionRequest: QuoteGetRequest = {
       inputMint: request.sellTokenId,
       outputMint: request.buyTokenId,
       amount: request.sellQuantity - feeAmount,
-      slippageBps: 50,
+      autoSlippage: true,
+      maxAutoSlippageBps: 200,
       onlyDirectRoutes: false,
       restrictIntermediateTokens: true,
       maxAccounts: 50,
