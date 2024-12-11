@@ -17,8 +17,6 @@ import TubAPI
 final class TokenListModel: ObservableObject {
     static let shared = TokenListModel()
 
-    @Published var isReady = false
-
     @Published var pendingTokens: [Token] = []
     @Published var tokenQueue: [Token] = []
     var currentTokenIndex = -1
@@ -57,19 +55,23 @@ final class TokenListModel: ObservableObject {
         // initialize current model
         self.currentTokenModel.initialize(with: token)
         self.userModel?.initToken(tokenId: token.id)
-        if token.id != "" {
-            Task {
-                try! await TxManager.shared.updateTxData(
-                    tokenId: token.id,
-                    sellQuantity: SettingsManager.shared.defaultBuyValueUsdc
-                )
-            }
-        }
+        
     }
 
     private func getNextToken(excluding currentId: String? = nil) -> Token {
         if self.currentTokenIndex < self.tokenQueue.count - 1 {
             return tokenQueue[currentTokenIndex + 1]
+        }
+
+        if let userModel {
+            let portfolio = userModel.tokenPortfolio
+            let priorityTokenMint = portfolio.keys.first { tokenId in
+                tokenId != currentId
+            }
+            
+            if let mint = priorityTokenMint, let tokenData = portfolio[mint] {
+                return tokenDataToToken(tokenData: tokenData)
+            }
         }
 
         // If this is the first token (no currentId), return the first non-cooldown token
@@ -171,7 +173,8 @@ final class TokenListModel: ObservableObject {
         }
     }
 
-    private var fetching = false
+
+    @Published var fetching = false
     public func startTokenSubscription() async {
         do {
             self.hotTokensSubscription = Network.shared.apollo.subscribe(
@@ -222,15 +225,12 @@ final class TokenListModel: ObservableObject {
                             return []
                         }
                     }()
-                    
-                    self.fetching = false
-                    
                     DispatchQueue.main.sync {
+                        self.fetching = false
                         self.updatePendingTokens(hotTokens)
                         if self.tokenQueue.isEmpty {
                             self.initializeTokenQueue()
                         }
-                        self.isReady = true
                     }
                 })
             }
@@ -301,6 +301,15 @@ final class TokenListModel: ObservableObject {
                 )
             )
         }
+    }
+
+    public func clearQueue() {
+        self.tokenQueue = []
+        self.pendingTokens = []
+        self.currentTokenIndex = -1
+        self.previousTokenModel = nil
+        self.nextTokenModel = nil
+        self.currentTokenModel = TokenModel()
     }
 
     deinit {

@@ -49,6 +49,10 @@ struct AppContent: View {
                         }
                     }
                 )
+            } else if !tokenManager.isReady {
+                LoadingView(identifier: "Fetching Codex token", message: "Fetching auth token")
+            } else if userModel.walletState == .connecting || userModel.initializingUser {
+                LoadingView(identifier: "Logging in", message: "Logging in")
             }
             else {
                 HomeTabsView().font(.sfRounded())
@@ -70,13 +74,21 @@ struct AppContent: View {
                     }
             }
         }.onAppear {
+            tokenListModel.configure(with: userModel)
             Task(priority: .high) {
-                tokenListModel.configure(with: userModel)
-                await tokenListModel.startTokenSubscription()
+                await tokenManager.refreshToken()
             }
         }.onChange(of: userModel.walletState) { _, newState in
+            if newState == .connecting { return }
             if newState == .error {
                 notificationHandler.show("Error connecting to wallet.", type: .error)
+                return
+            }
+            // we wait to begin the token subscription until the user is ready (either logged in or not) 
+            Task(priority: .high) {
+                // we clear the queue when the user logs in/out to force showing owned tokens first
+                tokenListModel.clearQueue()
+                await tokenListModel.startTokenSubscription()
             }
         }
     }

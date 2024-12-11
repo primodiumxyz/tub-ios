@@ -39,10 +39,13 @@ struct TokenListView: View {
     private let moveToDragGestureOffsetAnimationDuration = 0.25
 
     let OFFSET: Double = 5
-
+    
+    var balanceToken: Int {
+        userModel.tokenPortfolio[tokenListModel.currentTokenModel.token.id]?.balanceToken ?? 0
+    }
+    
     var activeTab: PurchaseState {
-        let balance: Int = userModel.balanceToken ?? 0
-        return balance > 0 ? .sell : .buy
+        return balanceToken > 0 ? .sell : .buy
     }
 
     @EnvironmentObject var tokenListModel: TokenListModel
@@ -140,13 +143,14 @@ struct TokenListView: View {
                 BubbleEffect(isActive: $showBubbles)
                     .zIndex(10)
             }
+            
             AccountBalanceView(
                 userModel: userModel,
                 currentTokenModel: tokenListModel.currentTokenModel
             )
             .zIndex(3)
 
-            if !tokenListModel.isReady {
+            if tokenListModel.totalTokenCount == 0 && tokenListModel.fetching {
 
                 GeometryReader { geometry in
                     TokenView(
@@ -155,8 +159,7 @@ struct TokenListView: View {
                     .frame(height: geometry.size.height)
                     .offset(y: OFFSET)
                 }
-            }
-            else {
+            } else {
                 // Main content
 
                 VStack(spacing: 0) {

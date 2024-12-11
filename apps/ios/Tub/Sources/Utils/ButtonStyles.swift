@@ -86,6 +86,7 @@ struct CircleButtonStyle: ButtonStyle {
     var size: CGFloat = 50
     var iconSize: CGFloat = 24
     var iconWeight: Font.Weight = .regular
+    var disabled = false
 
     func makeBody(configuration: Self.Configuration) -> some View {
         ZStack {
@@ -97,8 +98,8 @@ struct CircleButtonStyle: ButtonStyle {
                 .foregroundStyle(color)
                 .font(.system(size: iconSize, weight: iconWeight))
         }
-        .opacity(configuration.isPressed ? 0.5 : 1.0)
-        .scaleEffect(configuration.isPressed ? 0.95 : 1)
+        .opacity(configuration.isPressed || disabled ? 0.5 : 1.0)
+        .scaleEffect(configuration.isPressed && !disabled ? 0.95 : 1)
         .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
     }
 }
@@ -109,10 +110,11 @@ struct CircleButton: View {
     var size: CGFloat = 50
     var iconSize: CGFloat = 24
     var iconWeight: Font.Weight = .regular
+    var disabled = false
     var action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button(action: disabled ? {} : action) {
             EmptyView()
         }
         .buttonStyle(
@@ -121,7 +123,8 @@ struct CircleButton: View {
                 color: color,
                 size: size,
                 iconSize: iconSize,
-                iconWeight: iconWeight
+                iconWeight: iconWeight,
+                disabled: disabled
             )
         )
     }
@@ -133,6 +136,7 @@ struct CapsuleButtonStyle: ButtonStyle {
     var textColor: Color
     var backgroundColor: Color
     var font: Font = .sfRounded(size: .base, weight: .bold)
+    var disabled = false
 
     func makeBody(configuration: Self.Configuration) -> some View {
         Text(text)

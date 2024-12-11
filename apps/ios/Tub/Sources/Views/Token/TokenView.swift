@@ -23,10 +23,13 @@ struct TokenView: View {
 	@Binding var animate: Bool
 	
     var onSellSuccess: (() -> Void)?
-
+    
+    var balanceToken: Int {
+        userModel.tokenPortfolio[tokenModel.token.id]?.balanceToken ?? 0
+    }
+    
     var activeTab: PurchaseState {
-        let balance: Int = userModel.balanceToken ?? 0
-        return balance > 0 ? PurchaseState.sell : PurchaseState.buy
+        return balanceToken > 0 ? PurchaseState.sell : PurchaseState.buy
     }
 
     init(
@@ -112,8 +115,7 @@ struct TokenView: View {
             .frame(maxWidth: .infinity)
             .foregroundStyle(.primary)
         }
-        .onChange(of: userModel.balanceToken) {
-            guard let balanceToken = userModel.balanceToken else { return }
+        .onChange(of: balanceToken) {
             let purchaseState = balanceToken > 0 ? PurchaseState.sell : PurchaseState.buy
             Task {
                 if purchaseState == .sell {
