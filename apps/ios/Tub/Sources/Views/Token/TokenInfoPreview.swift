@@ -109,6 +109,7 @@ struct TokenInfoPreview: View {
                     }
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: 80)
             .padding(24)
             .background(colorScheme == .dark ? Gradients.grayGradient : Gradients.clearGradient)
             .overlay(
@@ -140,7 +141,6 @@ struct TokenInfoPreview: View {
                 .frame(maxWidth: .infinity, maxHeight: 8)
                 .padding(.bottom, -4)
         }
-        .frame(maxHeight: 100)
         .onTapGesture {
             self.showInfoOverlay.toggle()
         }
@@ -188,59 +188,61 @@ private struct StatView: View {
     }
 }
 
-//#Preview {
-//    @Previewable @State var isDark = false
-//
-//    @Previewable @StateObject var userModel = UserModel.shared
-//    @Previewable @StateObject var priceModel = {
-//        let model = SolPriceModel.shared
-//        spoofPriceModelData(model)
-//        return model
-//    }()
-//
-//    var activeTab: PurchaseState {
-//        return balanceToken > 0 ? .sell : .buy
-//    }
-//
-//    // Create mock token model with sample data
-//    let tokenModel = {
-//        let model = TokenModel()
-//        spoofTokenModelData(userModel: userModel, tokenModel: model)
-//        return model
-//    }()
-//
-//    var balanceToken : Int {
-//       userModel.tokenData[tokenModel.tokenId]?.balanceToken ?? 0
-//    }
-//    
-//    VStack {
-//        VStack {
-//            Text("Modifiers")
-//            PrimaryButton(text: "Toggle Buy/Sell") {
-//                if balanceToken > 0 {
-//                    userModel.updateTokenData(mint: tokenModel.tokenId, balance: 0)
-//                    userModel.purchaseData = nil
-//                }
-//                else {
-//                    userModel.updateTokenData(mint: tokenModel.tokenId, balance: 100)
-//                    userModel.purchaseData = PurchaseData(
-//                        timestamp: Date().addingTimeInterval(-60 * 60),
-//                        amountUsdc: 1000,
-//                        priceUsdc: 100
-//                    )
-//                }
-//            }
-//            PrimaryButton(text: "Toggle Dark Mode") {
-//                isDark.toggle()
-//            }
-//        }.padding(16).background(.tubBuySecondary)
-//        Spacer().frame(height: 50)
-//
-//        TokenInfoPreview(tokenModel: tokenModel, activeTab: activeTab)
-//            .padding(8)
-//            .border(.red)
-//            .environmentObject(userModel)
-//            .environmentObject(priceModel)
-//            .preferredColorScheme(isDark ? .dark : .light)
-//    }
-//}
+#Preview {
+    @Previewable @State var isDark = false
+
+    @Previewable @StateObject var userModel = UserModel.shared
+    @Previewable @StateObject var priceModel = {
+        let model = SolPriceModel.shared
+        spoofPriceModelData(model)
+        return model
+    }()
+
+    var activeTab: PurchaseState {
+        return balanceToken > 0 ? .sell : .buy
+    }
+
+    // Create mock token model with sample data
+    let tokenModel = {
+        let model = TokenModel()
+        spoofTokenModelData(userModel: userModel, tokenModel: model)
+        return model
+    }()
+
+    var balanceToken : Int {
+       userModel.tokenData[tokenModel.tokenId]?.balanceToken ?? 0
+    }
+    
+    VStack {
+        VStack {
+            Text("Modifiers")
+            PrimaryButton(text: "Toggle Buy/Sell") {
+                Task{
+                    if balanceToken > 0 {
+                        await userModel.updateTokenData(mint: tokenModel.tokenId, balance: 0)
+                        userModel.purchaseData = nil
+                    }
+                    else {
+                        await userModel.updateTokenData(mint: tokenModel.tokenId, balance: 100)
+                        userModel.purchaseData = PurchaseData(
+                            timestamp: Date().addingTimeInterval(-60 * 60),
+                            amountUsdc: 1000,
+                            priceUsdc: 100
+                        )
+                    }
+                }
+            }
+            PrimaryButton(text: "Toggle Dark Mode") {
+                isDark.toggle()
+            }
+        }.padding(16).background(.tubBuySecondary)
+        Spacer().frame(height: 50)
+
+        TokenInfoPreview(tokenModel: tokenModel, activeTab: activeTab)
+            .padding(8)
+            .border(.red)
+            .environmentObject(userModel)
+            .environmentObject(priceModel)
+            .preferredColorScheme(isDark ? .dark : .light)
+    }
+}

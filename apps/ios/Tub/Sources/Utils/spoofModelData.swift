@@ -15,7 +15,7 @@ func spoofPriceModelData(_ model: SolPriceModel) {
 func spoofTokenModelData(userModel: UserModel, tokenModel: TokenModel) {
     // Mock token data
     Task { @MainActor in
-        try? await userModel.updateTokenData(
+        await userModel.updateTokenData(
             mint: "mock_token_id",
             balance: 0,
             metadata: TokenMetadata(

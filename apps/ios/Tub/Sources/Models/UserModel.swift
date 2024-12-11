@@ -168,18 +168,22 @@ final class UserModel: ObservableObject {
             // bulk update token data
             let tokenMetadata = try await fetchTokenMetadata(addresses: self.tokenPortfolio)
             // update token data. since we already have fetched the metadata, this function will always have the metadata cached
-            try await updateTokenData(mint: mint, balance: balance, metadata: tokenMetadata[mint])
+            await updateTokenData(mint: mint, balance: balance, metadata: tokenMetadata[mint])
         }
     }
     
-    public func refreshTokenData(tokenMint: String) async throws {
+    public func refreshTokenData(tokenMint: String) async {
         guard let walletAddress else { return }
-        let balanceData = try await Network.shared.getTokenBalance(
-            address: walletAddress, tokenMint: tokenMint)
-        try await updateTokenData(mint: tokenMint, balance: balanceData)
+        do {
+            let balanceData = try await Network.shared.getTokenBalance(
+                address: walletAddress, tokenMint: tokenMint)
+            await updateTokenData(mint: tokenMint, balance: balanceData)
+        } catch {
+            return
+        }
     }
     
-    public func updateTokenData(mint: String, balance: Int? = nil, metadata: TokenMetadata? = nil, liveData: TokenLiveData? = nil) async throws {
+    public func updateTokenData(mint: String, balance: Int? = nil, metadata: TokenMetadata? = nil, liveData: TokenLiveData? = nil) async {
         let portfolioContainsToken = self.tokenPortfolio.contains(mint) 
         if let tokenData = tokenData[mint] {
             let newLiveData =  liveData ?? tokenData.liveData
@@ -195,7 +199,7 @@ final class UserModel: ObservableObject {
         } else {
             var newMetadata : TokenMetadata?
             if let metadata {newMetadata = metadata }
-            else { newMetadata =  try await fetchTokenMetadata(addresses: [mint])[mint]}
+            else {  do {newMetadata = try await fetchTokenMetadata(addresses: [mint])[mint]} catch { return }}
             
             guard let newMetadata  else { return }
             

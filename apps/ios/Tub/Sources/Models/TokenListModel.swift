@@ -201,7 +201,7 @@ final class TokenListModel: ObservableObject {
                                         recentStats: IntervalStats(volumeUsd: elem.recent_volume_usd, trades: Int(elem.recent_trades), priceChangePct: elem.recent_price_change_pct)
                                         )
                                     Task {
-                                        try? await userModel.updateTokenData(
+                                        await userModel.updateTokenData(
                                             mint: elem.token_mint,
                                             liveData: liveData
                                         )

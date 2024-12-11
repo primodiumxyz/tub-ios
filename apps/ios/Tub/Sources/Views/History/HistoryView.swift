@@ -12,19 +12,21 @@ import TubAPI
 struct HistoryView: View {
     @EnvironmentObject private var userModel: UserModel
     @EnvironmentObject private var priceModel: SolPriceModel
-    @State private var txs: [TransactionData]
+    @State private var txs: [TransactionData] = []
+    @State private var isReady = false
     
     func handleFetchTxs() {
         Task {
             do {
                 txs = try await userModel.fetchTxs()
+                
             } catch {
                 print("Error fetching transactions: \(error)")
             }
+            isReady = true
         }
     }
     
-    @Binding var isReady: Bool
     @State private var filterState = FilterState()
 
     var body: some View {

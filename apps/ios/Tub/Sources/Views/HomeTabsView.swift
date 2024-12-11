@@ -81,6 +81,8 @@ struct HomeTabsView: View {
     @State private var refreshCounter = 0  // Tracks re-taps on the same tab
 
     var body: some View {
+                     
+       
         Group {
             if !priceModel.isReady {
                 LoadingView(
@@ -104,55 +106,55 @@ struct HomeTabsView: View {
                             }
                             .tag(0)
 
-//                        NavigationStack {
-//                            HistoryView()
-//                                .id(refreshCounter)
-//                        }
-//                        .tabItem {
-//                            VStack {
-//                                Image(systemName: "clock")
-//                                    .font(.system(size: 24))
-//                                Text("History")
-//                                    .font(.system(size: 12))
-//                            }
-//                        }
-//                        .tag(1)
-//
-//                        NavigationStack {
-//                            AccountView()
-//                                .id(refreshCounter)
-//                        }
-//                        .tabItem {
-//                            VStack {
-//                                Image(systemName: "person")
-//                                    .font(.system(size: 24))
-//                                Text("Account")
-//                                    .font(.system(size: 12))
-//                            }
-//                        }
-//                        .tag(2)
-//                        
-//                        TokenBalancesView()
-//                        .tabItem {
-//                            VStack {
-//                                Image(systemName: "book.closed.fill")
-//                                    .font(.system(size: 24))
-//                                Text("Portfolio")
-//                                    .font(.system(size: 12))
-//                            }
-//                        }
-//                        .tag(3)
-//                        
-//                        TestTxView()
-//                        .tabItem {
-//                            VStack {
-//                                Image(systemName: "testtube.2")
-//                                    .font(.system(size: 24))
-//                                Text("Test Tx")
-//                                    .font(.system(size: 12))
-//                            }
-//                        }
-//                        .tag(4)
+                       NavigationStack {
+                           HistoryView()
+                               .id(refreshCounter)
+                       }
+                       .tabItem {
+                           VStack {
+                               Image(systemName: "clock")
+                                   .font(.system(size: 24))
+                               Text("History")
+                                   .font(.system(size: 12))
+                           }
+                       }
+                       .tag(1)
+
+                       NavigationStack {
+                           AccountView()
+                               .id(refreshCounter)
+                       }
+                       .tabItem {
+                           VStack {
+                               Image(systemName: "person")
+                                   .font(.system(size: 24))
+                               Text("Account")
+                                   .font(.system(size: 12))
+                           }
+                       }
+                       .tag(2)
+                       
+                       TokenBalancesView()
+                       .tabItem {
+                           VStack {
+                               Image(systemName: "book.closed.fill")
+                                   .font(.system(size: 24))
+                               Text("Portfolio")
+                                   .font(.system(size: 12))
+                           }
+                       }
+                       .tag(3)
+                       
+                       TestTxView()
+                       .tabItem {
+                           VStack {
+                               Image(systemName: "testtube.2")
+                                   .font(.system(size: 24))
+                               Text("Test Tx")
+                                   .font(.system(size: 12))
+                           }
+                       }
+                       .tag(4)
                         
 
 

@@ -151,7 +151,6 @@ struct TokenListView: View {
             .zIndex(3)
 
             if tokenListModel.totalTokenCount == 0 && tokenListModel.fetching {
-
                 GeometryReader { geometry in
                     TokenView(
                         tokenModel: TokenModel()
