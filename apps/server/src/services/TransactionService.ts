@@ -10,7 +10,7 @@ import {
   SimulateTransactionConfig,
   TransactionConfirmationStatus,
 } from "@solana/web3.js";
-import { ATA_PROGRAM_PUBLIC_KEY, TOKEN_PROGRAM_PUBLIC_KEY } from "../constants/tokens";
+import { ATA_PROGRAM_PUBLIC_KEY, JUPITER_PROGRAM_PUBLIC_KEY, TOKEN_PROGRAM_PUBLIC_KEY } from "../constants/tokens";
 import { CLEANUP_INTERVAL, REGISTRY_TIMEOUT, RETRY_ATTEMPTS, RETRY_DELAY } from "../constants/registry";
 import bs58 from "bs58";
 
@@ -150,6 +150,43 @@ export class TransactionService {
     };
     const simulation = await this.connection.simulateTransaction(transaction, simConfig);
     if (simulation.value?.err) {
+      if (simulation.value.err.toString().includes("InstructionError")) {
+        const errorStr = JSON.stringify(simulation.value.err);
+        const match = errorStr.match(/\{"InstructionError":\[(\d+)/);
+        const failedInstructionIndex = match?.[1] ? parseInt(match[1]) : -1;
+
+        if (failedInstructionIndex >= 0) {
+          const failedInstruction = entry.message.compiledInstructions[failedInstructionIndex];
+
+          if (failedInstruction) {
+            const programId = entry.message.staticAccountKeys[failedInstruction.programIdIndex];
+
+            console.log("Failed Instruction Details:", {
+              programId: programId!.toBase58(),
+              accounts: failedInstruction.accountKeyIndexes.map((index) =>
+                entry.message.staticAccountKeys[index]!.toBase58(),
+              ),
+              data: Buffer.from(failedInstruction.data).toString("hex"),
+            });
+
+            let errorMessage = `Transaction simulation failed: ${errorStr}`;
+
+            if (programId === TOKEN_PROGRAM_PUBLIC_KEY) {
+              errorMessage = `Simulation failed, Token Program Error: ${errorStr}. This usually means there's an issue with token accounts or balances.`;
+            } else if (programId === ATA_PROGRAM_PUBLIC_KEY) {
+              errorMessage = `Simulation failed, Associated Token Account Error: ${errorStr}. This usually means there's an issue creating or accessing a token account.`;
+            } else if (programId === JUPITER_PROGRAM_PUBLIC_KEY) {
+              if (errorStr.includes("6001")) {
+                errorMessage = `Simulation failed, Jupiter Slippage Error: The price moved unfavorably beyond your slippage tolerance.`;
+              } else {
+                errorMessage = `Simulation failed, Jupiter Program Error: ${errorStr}. This usually indicates an issue with the swap parameters or market conditions.`;
+              }
+            }
+
+            throw new Error(errorMessage);
+          }
+        }
+      }
       throw new Error(`Transaction simulation failed: ${JSON.stringify(simulation.value.err)}`);
     }
 
