@@ -156,10 +156,6 @@ final class UserModel: ObservableObject {
         
         let tokenBalances = try await Network.shared.getTokenBalances(address: walletAddress)
         
-        await MainActor.run {
-            self.tokenPortfolio = tokenBalances.map { $0.mint }
-        }
-        
         for (mint, balance) in tokenBalances {
             if mint == USDC_MINT {
                 continue
@@ -184,7 +180,9 @@ final class UserModel: ObservableObject {
     }
     
     public func updateTokenData(mint: String, balance: Int? = nil, metadata: TokenMetadata? = nil, liveData: TokenLiveData? = nil) async {
-        let portfolioContainsToken = self.tokenPortfolio.contains(mint) 
+        if mint == USDC_MINT { return }
+        
+        let portfolioContainsToken = self.tokenPortfolio.contains(mint)
         if let tokenData = tokenData[mint] {
             let newLiveData =  liveData ?? tokenData.liveData
             let newBalance = balance ?? tokenData.balanceToken

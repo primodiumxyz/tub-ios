@@ -20,6 +20,7 @@ class TokenModel: ObservableObject {
 
     private var priceSubscription: Apollo.Cancellable?
     private var candleSubscription: Apollo.Cancellable?
+    private var singleTokenDataSubscription: Apollo.Cancellable?
 
     private var latestPrice: Double?
     private var priceUpdateTimer: Timer?
@@ -78,6 +79,7 @@ class TokenModel: ObservableObject {
         Task {
             do {
                 try await retry(fetchCandles)
+                await subscribeToSingleTokenData(tokenId)
             }
             catch {
                 print("Error fetching candles: \(error)")
@@ -214,6 +216,27 @@ class TokenModel: ObservableObject {
         }
     }
 
+    private func subscribeToSingleTokenData(_ tokenId: String) async {
+        singleTokenDataSubscription?.cancel()
+
+        singleTokenDataSubscription = Network.shared.apollo.subscribe(
+            subscription: SubSingleTokenDataSubscription(token: tokenId)
+        ) { [weak self] result in
+            guard let self = self else { return }
+
+            switch result {
+            case .success(let graphQLResult):
+                if let tokenData = graphQLResult.data?.token_stats_interval_comp.first {
+                    Task { @MainActor in
+                        self.latestPrice = tokenData.latest_price_usd
+                    }
+                }
+            case .failure(let error):
+                print("Error in single token data subscription: \(error.localizedDescription)")
+            }
+        }
+    }
+
     public func updateTokenDetails(_ tokenId: String) {
         DispatchQueue.main.async {
             self.tokenId = tokenId
@@ -254,6 +277,7 @@ class TokenModel: ObservableObject {
         // Clean up subscriptions when the object is deallocated
         priceSubscription?.cancel()
         candleSubscription?.cancel()
+        singleTokenDataSubscription?.cancel()
 
         isReady = false
         prices = []

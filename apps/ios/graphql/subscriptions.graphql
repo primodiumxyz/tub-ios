@@ -56,3 +56,22 @@ subscription SubTokenCandles(
     volume_usd
   }
 }
+
+subscription SubSingleTokenData(
+  $token: String!
+) {
+  token_stats_interval_comp(
+    args: { interval: "30m", recent_interval: "2m" }
+    where: { token_mint: { _eq: $token } }
+  ) {
+    token_mint
+    latest_price_usd
+    total_volume_usd
+    total_trades
+    price_change_pct
+    recent_volume_usd
+    recent_trades
+    recent_price_change_pct
+    token_metadata_supply
+  }
+}
