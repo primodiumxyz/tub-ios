@@ -227,6 +227,40 @@ export function createAppRouter() {
         const amountBigInt = BigInt(input.amount);
         return await ctx.tubService.getSignedTransfer(ctx.jwtToken, { ...input, amount: amountBigInt });
       }),
+
+    recordTokenPurchase: t.procedure
+      .input(
+        z.object({
+          tokenMint: z.string(),
+          tokenAmount: z.string(),
+          tokenPriceUsd: z.string(),
+          source: z.string(),
+          errorDetails: z.string().optional(),
+          userAgent: z.string(),
+          buildVersion: z.string(),
+          userWallet: z.string(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        return await ctx.tubService.recordTokenPurchase(input, ctx.jwtToken);
+      }),
+
+    recordTokenSale: t.procedure
+      .input(
+        z.object({
+          tokenMint: z.string(),
+          tokenAmount: z.string(),
+          tokenPriceUsd: z.string(),
+          source: z.string(),
+          errorDetails: z.string().optional(),
+          userAgent: z.string(),
+          buildVersion: z.string(),
+          userWallet: z.string(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        return await ctx.tubService.recordTokenSale(input, ctx.jwtToken);
+      }),
   });
 }
 

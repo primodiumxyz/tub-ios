@@ -297,6 +297,84 @@ class Network {
 
         return txId
     }
+
+    struct TokenPurchaseInput: Codable {
+        let tokenMint: String
+        let tokenAmount: String
+        let tokenPriceUsd: String
+        let source: String
+        let errorDetails: String?
+        let userAgent: String
+        let buildVersion: String
+        let userWallet: String?
+    }
+
+    struct TokenSaleInput: Codable {
+        let tokenMint: String
+        let tokenAmount: String
+        let tokenPriceUsd: String
+        let source: String
+        let errorDetails: String?
+        let userAgent: String
+        let buildVersion: String
+        let userWallet: String?
+    }
+
+    private func getClientMetadata() -> [String: String] {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "unknown"
+        let buildVersion = "\(version)(\(build))"
+        let userAgent = "iOS/\(UIDevice.current.systemVersion)"
+        
+        return [
+            "buildVersion": buildVersion,
+            "userAgent": userAgent
+        ]
+    }
+
+    func recordTokenPurchase(
+        tokenMint: String,
+        tokenAmount: Double,
+        tokenPriceUsd: Double,
+        source: String,
+        errorDetails: String? = nil
+    ) async throws {
+        let metadata = getClientMetadata()
+        let input = TokenPurchaseInput(
+            tokenMint: tokenMint,
+            tokenAmount: String(tokenAmount),
+            tokenPriceUsd: String(tokenPriceUsd),
+            source: source,
+            errorDetails: errorDetails,
+            userAgent: metadata["userAgent"] ?? "unknown",
+            buildVersion: metadata["buildVersion"] ?? "unknown",
+            userWallet: await getStoredToken()
+        )
+        
+        let _: EmptyResponse = try await callProcedure("recordTokenPurchase", input: input)
+    }
+
+    func recordTokenSale(
+        tokenMint: String,
+        tokenAmount: Double,
+        tokenPriceUsd: Double,
+        source: String,
+        errorDetails: String? = nil
+    ) async throws {
+        let metadata = getClientMetadata()
+        let input = TokenSaleInput(
+            tokenMint: tokenMint,
+            tokenAmount: String(tokenAmount),
+            tokenPriceUsd: String(tokenPriceUsd),
+            source: source,
+            errorDetails: errorDetails,
+            userAgent: metadata["userAgent"] ?? "unknown",
+            buildVersion: metadata["buildVersion"] ?? "unknown",
+            userWallet: await getStoredToken()
+        )
+        
+        let _: EmptyResponse = try await callProcedure("recordTokenSale", input: input)
+    }
 }
 
 // MARK: - Response Types

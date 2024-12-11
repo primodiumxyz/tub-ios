@@ -7,7 +7,7 @@ public class GetWalletTransactionsQuery: GraphQLQuery {
   public static let operationName: String = "GetWalletTransactions"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetWalletTransactions($wallet: String!) { token_transaction( order_by: { wallet_transaction_data: { created_at: desc } } where: { wallet_transaction_data: { wallet: { _eq: $wallet } } } ) { __typename wallet_transaction amount id token token_price wallet_transaction_data { __typename created_at } } }"#
+      #"query GetWalletTransactions($wallet: String!) { transactions( where: { user_wallet: { _eq: $wallet }, success: { _eq: true } } order_by: { created_at: desc } ) { __typename id created_at token_mint token_amount token_price_usd } }"#
     ))
 
   public var wallet: String
@@ -24,56 +24,39 @@ public class GetWalletTransactionsQuery: GraphQLQuery {
 
     public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Query_root }
     public static var __selections: [ApolloAPI.Selection] { [
-      .field("token_transaction", [Token_transaction].self, arguments: [
-        "order_by": ["wallet_transaction_data": ["created_at": "desc"]],
-        "where": ["wallet_transaction_data": ["wallet": ["_eq": .variable("wallet")]]]
+      .field("transactions", [Transaction].self, arguments: [
+        "where": [
+          "user_wallet": ["_eq": .variable("wallet")],
+          "success": ["_eq": true]
+        ],
+        "order_by": ["created_at": "desc"]
       ]),
     ] }
 
-    /// fetch data from the table: "token_transaction"
-    public var token_transaction: [Token_transaction] { __data["token_transaction"] }
+    public var transactions: [Transaction] { __data["transactions"] }
 
-    /// Token_transaction
+    /// Transaction
     ///
-    /// Parent Type: `Token_transaction`
-    public struct Token_transaction: TubAPI.SelectionSet {
+    /// Parent Type: `Transaction_model`
+    public struct Transaction: TubAPI.SelectionSet {
       public let __data: DataDict
       public init(_dataDict: DataDict) { __data = _dataDict }
 
-      public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Token_transaction }
+      public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Transaction_model }
       public static var __selections: [ApolloAPI.Selection] { [
         .field("__typename", String.self),
-        .field("wallet_transaction", TubAPI.Uuid.self),
-        .field("amount", TubAPI.Numeric.self),
         .field("id", TubAPI.Uuid.self),
-        .field("token", String.self),
-        .field("token_price", TubAPI.Float8.self),
-        .field("wallet_transaction_data", Wallet_transaction_data.self),
+        .field("created_at", TubAPI.Timestamptz.self),
+        .field("token_mint", String.self),
+        .field("token_amount", TubAPI.Numeric.self),
+        .field("token_price_usd", TubAPI.Numeric.self),
       ] }
 
-      public var wallet_transaction: TubAPI.Uuid { __data["wallet_transaction"] }
-      public var amount: TubAPI.Numeric { __data["amount"] }
       public var id: TubAPI.Uuid { __data["id"] }
-      public var token: String { __data["token"] }
-      public var token_price: TubAPI.Float8 { __data["token_price"] }
-      /// An object relationship
-      public var wallet_transaction_data: Wallet_transaction_data { __data["wallet_transaction_data"] }
-
-      /// Token_transaction.Wallet_transaction_data
-      ///
-      /// Parent Type: `Wallet_transaction`
-      public struct Wallet_transaction_data: TubAPI.SelectionSet {
-        public let __data: DataDict
-        public init(_dataDict: DataDict) { __data = _dataDict }
-
-        public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Wallet_transaction }
-        public static var __selections: [ApolloAPI.Selection] { [
-          .field("__typename", String.self),
-          .field("created_at", TubAPI.Timestamptz.self),
-        ] }
-
-        public var created_at: TubAPI.Timestamptz { __data["created_at"] }
-      }
+      public var created_at: TubAPI.Timestamptz { __data["created_at"] }
+      public var token_mint: String { __data["token_mint"] }
+      public var token_amount: TubAPI.Numeric { __data["token_amount"] }
+      public var token_price_usd: TubAPI.Numeric { __data["token_price_usd"] }
     }
   }
 }

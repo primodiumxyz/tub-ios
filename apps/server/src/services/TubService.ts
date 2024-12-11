@@ -6,7 +6,7 @@ import { SwapService } from "./SwapService";
 import { TransactionService } from "./TransactionService";
 import { FeeService } from "./FeeService";
 import { AuthService } from "./AuthService";
-import { AnalyticsService } from "./AnalyticsService";
+import { AnalyticsService, TokenPurchaseOrSaleEvent } from "./AnalyticsService";
 import { TransferService } from "./TransferService";
 import { env } from "../../bin/tub-server";
 import {
@@ -74,6 +74,16 @@ export class TubService {
   async recordClientEvent(event: ClientEvent, jwtToken: string): Promise<string> {
     const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
     return this.analyticsService.recordClientEvent(event, walletPublicKey.toBase58());
+  }
+
+  async recordTokenPurchase(event: TokenPurchaseOrSaleEvent, jwtToken: string): Promise<string> {
+    const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
+    return this.analyticsService.recordTokenPurchase(event, walletPublicKey.toBase58());
+  }
+
+  async recordTokenSale(event: TokenPurchaseOrSaleEvent, jwtToken: string): Promise<string> {
+    const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
+    return this.analyticsService.recordTokenSale(event, walletPublicKey.toBase58());
   }
 
   // Price methods
