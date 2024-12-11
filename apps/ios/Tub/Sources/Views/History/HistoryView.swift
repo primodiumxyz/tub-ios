@@ -23,7 +23,9 @@ struct HistoryView: View {
             } catch {
                 print("Error fetching transactions: \(error)")
             }
-            isReady = true
+            await MainActor.run {
+                isReady = true
+            }
         }
     }
     
@@ -58,6 +60,7 @@ struct HistoryView: View {
                 Spacer()
             }
         }
+        .onAppear(perform: handleFetchTxs)
         .refreshable(action: {handleFetchTxs()})
         
         .navigationTitle("History")
