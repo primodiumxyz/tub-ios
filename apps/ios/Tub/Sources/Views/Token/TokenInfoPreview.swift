@@ -74,7 +74,8 @@ struct TokenInfoPreview: View {
         if let token = userModel.tokenData[tokenModel.tokenId]
         , let liveData = token.liveData {
             return [
-                StatValue(title: "Market Cap", value: priceModel.formatPrice(usd: liveData.marketCapUsd, formatLarge: true)),
+                // todo: readd when quicknode fixes this value
+//                StatValue(title: "Market Cap", value: priceModel.formatPrice(usd: liveData.marketCapUsd, formatLarge: true)),
                 StatValue(title: "Change", caption: HOT_TOKENS_INTERVAL, value: String(format: "%.2f%%", liveData.stats.priceChangePct)),
                 StatValue(title: "Volume", caption: HOT_TOKENS_INTERVAL, value: priceModel.formatPrice(usd: liveData.stats.volumeUsd, formatLarge: true)),
                 StatValue(title: "Trades", caption: HOT_TOKENS_INTERVAL, value: liveData.stats.trades.formatted()),
