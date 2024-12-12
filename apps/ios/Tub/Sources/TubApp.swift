@@ -57,6 +57,7 @@ struct AppContent: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Color(UIColor.systemBackground))
                     .withNotificationBanner()
+                    .bubbleEffect()
                     .environmentObject(notificationHandler)
                     .environmentObject(userModel)
                     .environmentObject(tokenListModel)

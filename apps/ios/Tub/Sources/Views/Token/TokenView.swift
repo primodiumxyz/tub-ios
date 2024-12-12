@@ -16,14 +16,10 @@ struct TokenView: View {
     @EnvironmentObject private var notificationHandler: NotificationHandler
 
 	@State private var showInfoCard = false
-	@State private var showBuySheet: Bool = false
 	@State private var keyboardHeight: CGFloat = 0
 
-    @Binding private var showBubbles: Bool
 	@Binding var animate: Bool
 	
-    var onSellSuccess: (() -> Void)?
-    
     var tokenData : TokenData? {
         userModel.tokenData[tokenModel.tokenId]
     }
@@ -38,50 +34,12 @@ struct TokenView: View {
 
     init(
         tokenModel: TokenModel,
-		animate: Binding<Bool> = Binding.constant(false),
-        showBubbles: Binding<Bool> = Binding.constant(false),
-        onSellSuccess: (() -> Void)? = nil
+		animate: Binding<Bool> = Binding.constant(false)
     ) {
         self.tokenModel = tokenModel
 		self._animate = animate
-        self._showBubbles = showBubbles
-        self.onSellSuccess = onSellSuccess
     }
 
-    func handleBuy() async {
-        guard let priceUsd = tokenModel.prices.last?.priceUsd, priceUsd > 0
-        else {
-            notificationHandler.show(
-                "Something went wrong.",
-                type: .error
-            )
-            return
-        }
-
-        let priceUsdc = priceModel.usdToUsdc(usd: priceUsd)
-        let buyQuantityUsdc = SettingsManager.shared.defaultBuyValueUsdc
-
-        do {
-            try await userModel.buyTokens(
-                buyQuantityUsdc: buyQuantityUsdc,
-                tokenPriceUsdc: priceUsdc,
-                tokenPriceUsd: priceUsd
-            )
-            await MainActor.run {
-                showBuySheet = false
-                notificationHandler.show(
-                    "Successfully bought tokens!",
-                    type: .success
-                )
-            }
-        }
-        catch {
-            notificationHandler.show(
-                error.localizedDescription,
-                type: .error
-            )
-        }
-    }
 
     var body: some View {
         ZStack {
@@ -107,11 +65,7 @@ struct TokenView: View {
                     TokenInfoPreview(tokenModel: tokenModel, activeTab: activeTab)
                         .opacity(0.8)
                     ActionButtonsView(
-                        tokenModel: tokenModel,
-                        showBuySheet: $showBuySheet,
-                        showBubbles: $showBubbles,
-                        handleBuy: handleBuy,
-                        onSellSuccess: onSellSuccess
+                        tokenModel: tokenModel
                     )
                     .equatable()
                 }.padding(.horizontal, 8)

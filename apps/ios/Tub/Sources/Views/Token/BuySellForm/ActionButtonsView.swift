@@ -13,27 +13,15 @@ struct ActionButtonsView: View {
     @EnvironmentObject var priceModel: SolPriceModel
     @ObservedObject var tokenModel: TokenModel
     
-    @Binding var showBuySheet: Bool
+    @State var showBuySheet = false
     @StateObject private var settingsManager = SettingsManager.shared
     @State private var isLoginPresented = false
 
-    @Binding var showBubbles: Bool
-
-    var handleBuy: () async -> Void
-    var onSellSuccess: (() -> Void)?
 
     init(
-        tokenModel: TokenModel,
-        showBuySheet: Binding<Bool>,
-        showBubbles: Binding<Bool>,
-        handleBuy: @escaping () async -> Void,
-        onSellSuccess: (() -> Void)? = nil
+        tokenModel: TokenModel
     ) {
         self.tokenModel = tokenModel
-        self._showBuySheet = showBuySheet
-        self._showBubbles = showBubbles
-        self.handleBuy = handleBuy
-        self.onSellSuccess = onSellSuccess
     }
 
     var balanceToken: Int {
@@ -43,6 +31,44 @@ struct ActionButtonsView: View {
     var activeTab: PurchaseState {
         return balanceToken > 0 ? .sell : .buy
     }
+
+    func handleBuy() {
+        guard let priceUsd = tokenModel.prices.last?.priceUsd, priceUsd > 0
+        else {
+            notificationHandler.show(
+                "Something went wrong.",
+                type: .error
+            )
+            return
+        }
+
+        let priceUsdc = priceModel.usdToUsdc(usd: priceUsd)
+        let buyQuantityUsdc = SettingsManager.shared.defaultBuyValueUsdc
+
+        Task {
+            do {
+                try await userModel.buyTokens(
+                    buyQuantityUsdc: buyQuantityUsdc,
+                    tokenPriceUsdc: priceUsdc,
+                    tokenPriceUsd: priceUsd
+                )
+                await MainActor.run {
+                    showBuySheet = false
+                    notificationHandler.show(
+                        "Successfully bought tokens!",
+                        type: .success
+                    )
+                }
+            }
+            catch {
+                notificationHandler.show(
+                    error.localizedDescription,
+                    type: .error
+                )
+            }
+        }
+    }
+    
 
     func handleSell() async {
         // Only trigger haptic feedback if vibration is enabled
@@ -58,8 +84,11 @@ struct ActionButtonsView: View {
         do {
             try await userModel.sellTokens(tokenPriceUsd: tokenPriceUsd)
             await MainActor.run {
-                showBubbles = true
-                onSellSuccess?()
+                BubbleManager.shared.trigger()
+                notificationHandler.show(
+                                            "Successfully sold tokens!",
+                                            type: .success
+                                        )
             }
         }
         catch {
@@ -117,7 +146,7 @@ struct ActionButtonsView: View {
             BuyFormView(
                 isVisible: $showBuySheet,
                 tokenModel: tokenModel,
-                onBuy: handleBuy
+                handleBuy: handleBuy
             )
         }
     }
@@ -187,7 +216,7 @@ private struct BuyButton: View {
     @StateObject private var settingsManager = SettingsManager.shared
     @StateObject private var txManager = TxManager.shared
 
-    var handleBuy: () async -> Void
+    var handleBuy: () -> Void
     var disabled = false
 
     var body: some View {
@@ -195,11 +224,7 @@ private struct BuyButton: View {
             text: "Buy \(priceModel.formatPrice(usdc: settingsManager.defaultBuyValueUsdc))",
             disabled: disabled,
             loading: txManager.submittingTx,
-            action: {
-                Task {
-                    await handleBuy()
-                }
-            }
+            action: handleBuy
         )
     }
 }
@@ -291,11 +316,7 @@ extension ActionButtonsView: Equatable {
                 }.padding(16).background(.tubBuySecondary)
                 Spacer().frame(height: 50)
                 ActionButtonsView(
-                    tokenModel: tokenModel,
-                    showBuySheet: $show,
-                    showBubbles: Binding.constant(false),
-                    handleBuy: { },
-                    onSellSuccess: nil
+                    tokenModel: tokenModel
                 )
                 .border(.red)
             }

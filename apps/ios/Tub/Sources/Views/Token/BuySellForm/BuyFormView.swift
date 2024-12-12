@@ -12,7 +12,7 @@ struct BuyFormView: View {
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject var notificationHandler: NotificationHandler
     @ObservedObject var tokenModel: TokenModel
-    var onBuy: () async -> Void
+    var handleBuy: () -> Void
 
     @EnvironmentObject private var userModel: UserModel
     @State private var buyQuantityUsdString: String = ""
@@ -25,27 +25,6 @@ struct BuyFormView: View {
 
     @State private var updateTimer: Timer?
     static let formHeight: CGFloat = 250
-
-    private func handleBuy() {
-        guard let balanceUsdc = userModel.balanceUsdc else { return }
-        // Use 10 as default if no amount is entered
-        let buyQuantityUsd = buyQuantityUsdString.isEmpty ? 10.0 : self.buyQuantityUsd
-
-        let buyQuantityUsdc = priceModel.usdToUsdc(usd: buyQuantityUsd)
-
-        // Check if the user has enough balance
-        if balanceUsdc >= buyQuantityUsdc {
-            if isDefaultOn {
-                settingsManager.defaultBuyValueUsdc = buyQuantityUsdc
-            }
-            Task {
-                await onBuy()
-            }
-        }
-        else {
-            notificationHandler.show("Insufficient Balance", type: .error)
-        }
-    }
 
     func updateTxData(buyQuantityUsd: Double) {
         updateTimer?.invalidate()
@@ -306,7 +285,7 @@ extension String {
 
     ZStack {
         Color.red
-        BuyFormView(isVisible: .constant(true), tokenModel: tokenModel, onBuy: { })
+        BuyFormView(isVisible: .constant(true), tokenModel: tokenModel, handleBuy: { })
             .environmentObject(userModel)
             .environmentObject(priceModel)
         

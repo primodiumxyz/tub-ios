@@ -49,7 +49,6 @@ struct TokenListView: View {
     }
 
     @EnvironmentObject var tokenListModel: TokenListModel
-    @State private var showBubbles = false
 
     @State private var isLoading = false
 
@@ -139,11 +138,6 @@ struct TokenListView: View {
     var body: some View {
 
         ZStack(alignment: .top) {
-            if showBubbles {
-                BubbleEffect(isActive: $showBubbles)
-                    .zIndex(10)
-            }
-            
             AccountBalanceView(
                 userModel: userModel,
                 currentTokenModel: tokenListModel.currentTokenModel
@@ -184,16 +178,7 @@ struct TokenListView: View {
                             // Current focused TokenModel that's centered onscreen
                             TokenView(
                                 tokenModel: tokenListModel.currentTokenModel,
-                                animate: $animateCurrentTokenModel,
-                                showBubbles: $showBubbles,
-                                onSellSuccess: {
-                                    withAnimation {
-                                        notificationHandler.show(
-                                            "Successfully sold tokens!",
-                                            type: .success
-                                        )
-                                    }
-                                }
+                                animate: $animateCurrentTokenModel
                             )
                             .frame(height: geometry.size.height)
 
