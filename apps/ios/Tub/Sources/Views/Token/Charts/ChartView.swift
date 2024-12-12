@@ -40,7 +40,7 @@ struct ChartView: View {
 
     private func updatePrices() {
         let cutoffTime = Date().addingTimeInterval(-Timespan.live.seconds)
-        prices = rawPrices.filter { $0.timestamp > cutoffTime }
+        prices = rawPrices.sorted(by: { $0.timestamp < $1.timestamp }).filter { $0.timestamp > cutoffTime }
     }
 
     private var xDomain: ClosedRange<Date> {
@@ -78,7 +78,7 @@ struct ChartView: View {
                 )
                 .foregroundStyle(.tubBuyPrimary.opacity(0.8))
                 .lineStyle(StrokeStyle(lineWidth: 2))
-                .interpolationMethod(.cardinal(tension: 0.9))
+                .interpolationMethod(.cardinal(tension: 0.8))
             }
 
             if let currentPrice = prices.last, prices.count >= 2 {
