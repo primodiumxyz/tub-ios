@@ -229,17 +229,7 @@ class Network {
         return Int(firstAccount.account.data.lamports)
     }
 
-    func getTxData(buyTokenId: String, sellTokenId: String, sellQuantity: Int, slippageBps: Int? = nil) async throws -> TxData {
-        let input = SwapInput(buyTokenId: buyTokenId, sellTokenId: sellTokenId, sellQuantity: sellQuantity, slippageBps: slippageBps)
-        let res: TxData = try await callProcedure("fetchSwap", input: input)
-        return res
-    }
 
-    func submitSignedTx(txBase64: String, signature: String) async throws -> TxIdResponse {
-        let input = signedTxInput(signature: signature, base64Transaction: txBase64)
-        let res: TxIdResponse = try await callProcedure("submitSignedTransaction", input: input)
-        return res
-    }
 
     func transferUsdc(fromAddress: String, toAddress: String, amount: Int) async throws -> String {
         // 1. Constants and input preparation
@@ -296,6 +286,18 @@ class Network {
         let txId = try await solana.sendTransaction(transaction: tx.serialize().base64EncodedString())
 
         return txId
+    }
+
+    func getTxData(buyTokenId: String, sellTokenId: String, sellQuantity: Int, slippageBps: Int? = nil) async throws -> TxData {
+        let input = SwapInput(buyTokenId: buyTokenId, sellTokenId: sellTokenId, sellQuantity: sellQuantity, slippageBps: slippageBps)
+        let res: TxData = try await callProcedure("fetchSwap", input: input)
+        return res
+    }
+
+    func submitSignedTx(txBase64: String, signature: String) async throws -> TxIdResponse {
+        let input = signedTxInput(signature: signature, base64Transaction: txBase64)
+        let res: TxIdResponse = try await callProcedure("submitSignedTransaction", input: input)
+        return res
     }
 
     struct TokenPurchaseInput: Codable {

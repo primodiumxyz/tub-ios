@@ -16,18 +16,18 @@ struct CandleChartView: View {
     let height: CGFloat
     @State private var currentTime = Date().timeIntervalSince1970
 
-	@Binding var animate: Bool
+	let animate: Bool
     @State private var timerCancellable: Cancellable?
     @State private var timer: Timer.TimerPublisher = Timer.publish(every: 0.1, on: .main, in: .common)
 
     init(
         candles: [CandleData],
-        animate: Binding<Bool>,
+        animate: Bool,
         timeframeMins: Double = 30,
         height: CGFloat = 330
     ) {
         self.rawCandles = candles
-		self._animate = animate
+		self.animate = animate
         self.timeframeMins = timeframeMins
         self.height = height
     }
@@ -124,4 +124,30 @@ struct CandleChartView: View {
             }
         }
     }
+}
+
+#Preview {
+    @Previewable @StateObject var priceModel = {
+        let model = SolPriceModel.shared
+        spoofPriceModelData(model)
+        return model
+    }()
+
+    let candles = [
+        // add 10 more candles
+        CandleData(start: Date().addingTimeInterval(-120 * 60), end: Date().addingTimeInterval(-110 * 60), open: 100, close: 105, high: 110, low: 90, volume: 100),
+        CandleData(start: Date().addingTimeInterval(-110 * 60), end: Date().addingTimeInterval(-100 * 60), open: 105, close: 110, high: 115, low: 95, volume: 100),
+        CandleData(start: Date().addingTimeInterval(-100 * 60), end: Date().addingTimeInterval(-90 * 60), open: 110, close: 115, high: 120, low: 100, volume: 100),
+        CandleData(start: Date().addingTimeInterval(-90 * 60), end: Date().addingTimeInterval(-80 * 60), open: 115, close: 120, high: 125, low: 105, volume: 100),
+        CandleData(start: Date().addingTimeInterval(-80 * 60), end: Date().addingTimeInterval(-70 * 60), open: 120, close: 125, high: 130, low: 110, volume: 100),
+        CandleData(start: Date().addingTimeInterval(-70 * 60), end: Date().addingTimeInterval(-60 * 60), open: 125, close: 130, high: 135, low: 115, volume: 100),
+        CandleData(start: Date().addingTimeInterval(-60 * 60), end: Date().addingTimeInterval(-50 * 60), open: 130, close: 135, high: 140, low: 120, volume: 100),
+        CandleData(start: Date().addingTimeInterval(-50 * 60), end: Date().addingTimeInterval(-40 * 60), open: 135, close: 140, high: 145, low: 125, volume: 100),
+        CandleData(start: Date().addingTimeInterval(-40 * 60), end: Date().addingTimeInterval(-30 * 60), open: 140, close: 145, high: 150, low: 130, volume: 100),
+        CandleData(start: Date().addingTimeInterval(-30 * 60), end: Date().addingTimeInterval(-20 * 60), open: 145, close: 150, high: 155, low: 135, volume: 100),
+        CandleData(start: Date().addingTimeInterval(-20 * 60), end: Date().addingTimeInterval(-10 * 60), open: 105, close: 110, high: 115, low: 95, volume: 100),
+        CandleData(start: Date().addingTimeInterval(-10 * 60), end: Date().addingTimeInterval(-0 * 60), open: 110, close: 115, high: 120, low: 100, volume: 100),
+    ]
+    CandleChartView(candles: candles, animate: true, timeframeMins: 120)
+        .environmentObject(priceModel)
 }

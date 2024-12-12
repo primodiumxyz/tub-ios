@@ -170,7 +170,7 @@ struct TokenListView: View {
                             // Previous TokenView that's offscreen above
                             TokenView(
                                 tokenModel: tokenListModel.previousTokenModel ?? emptyTokenModel,
-								animate: $animateCurrentTokenModel
+								animate: false
                             )
                             .frame(height: geometry.size.height)
                             .opacity(dragging ? 1 : 0)
@@ -178,23 +178,18 @@ struct TokenListView: View {
                             // Current focused TokenModel that's centered onscreen
                             TokenView(
                                 tokenModel: tokenListModel.currentTokenModel,
-                                animate: $animateCurrentTokenModel
+                                animate: animateCurrentTokenModel
                             )
                             .frame(height: geometry.size.height)
 
                             // Next TokenView that's offscreen below
                             TokenView(
                                 tokenModel: tokenListModel.nextTokenModel ?? emptyTokenModel,
-								animate: $animateCurrentTokenModel
+								animate: false
                             )
                             .frame(height: geometry.size.height)
                             .opacity(dragging ? 1 : 0)
                         }
-                        //						.overlay {
-                        //							Text("drag offset = \(dragGestureOffset)")
-                        //								.font(.title)
-                        //								.bold()
-                        //						}
                         .zIndex(1)
                         .offset(y: -geometry.size.height + OFFSET + dragGestureOffset + activeOffset)
                         .highPriorityGesture(

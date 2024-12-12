@@ -14,7 +14,7 @@ final class TxManager: ObservableObject {
     @Published var submittingTx: Bool = false
     
     func buyToken(tokenId: String, buyAmountUsdc: Int, tokenPriceUsdc: Int? = nil) async throws {
-        guard let balanceUsdc = UserModel.shared.balanceUsdc, buyAmountUsdc > balanceUsdc else {
+        guard let balanceUsdc = UserModel.shared.balanceUsdc, buyAmountUsdc <= balanceUsdc else {
             throw TubError.insufficientBalance
         }
         var err: (any Error)? = nil

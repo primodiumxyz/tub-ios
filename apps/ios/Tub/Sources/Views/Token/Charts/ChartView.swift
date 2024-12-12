@@ -11,7 +11,7 @@ import SwiftUI
 
 struct ChartView: View {
     @EnvironmentObject var priceModel: SolPriceModel
-	@Binding var animate: Bool
+	let animate: Bool
     let rawPrices: [Price]
     let height: CGFloat
     let purchaseData: PurchaseData?
@@ -31,10 +31,10 @@ struct ChartView: View {
             return nil
         }
     }
-    init(rawPrices: [Price], purchaseData: PurchaseData? = nil, animate: Binding<Bool>, height: CGFloat = 330) {
+    init(rawPrices: [Price], purchaseData: PurchaseData? = nil, animate: Bool, height: CGFloat = 330) {
 		self.rawPrices = rawPrices
         self.purchaseData = purchaseData
-		self._animate = animate
+		self.animate = animate
         self.height = height
     }
 
@@ -78,8 +78,7 @@ struct ChartView: View {
                 )
                 .foregroundStyle(.tubBuyPrimary.opacity(0.8))
                 .lineStyle(StrokeStyle(lineWidth: 2))
-                // todo: resolve graph flickering issues
-//                .interpolationMethod(.cardinal(tension: 0.9))
+                .interpolationMethod(.cardinal(tension: 0.9))
             }
 
             if let currentPrice = prices.last, prices.count >= 2 {
@@ -241,7 +240,7 @@ struct PillView: View {
                 ChartView(
 					rawPrices: spoofPrices,
                     purchaseData: showPurchaseData ? purchaseData : nil,
-					animate: Binding.constant(false),
+					animate: false,
                     height: 330
                 )
                 .border(.red)

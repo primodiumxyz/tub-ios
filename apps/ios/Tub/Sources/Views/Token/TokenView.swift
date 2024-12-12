@@ -18,7 +18,7 @@ struct TokenView: View {
 	@State private var showInfoCard = false
 	@State private var keyboardHeight: CGFloat = 0
 
-	@Binding var animate: Bool
+	let animate: Bool
 	
     var tokenData : TokenData? {
         userModel.tokenData[tokenModel.tokenId]
@@ -34,10 +34,10 @@ struct TokenView: View {
 
     init(
         tokenModel: TokenModel,
-		animate: Binding<Bool> = Binding.constant(false)
+		animate: Bool = false
     ) {
         self.tokenModel = tokenModel
-		self._animate = animate
+		self.animate = animate
     }
 
 
@@ -176,7 +176,7 @@ struct TokenView: View {
                 ChartView(
                     rawPrices: tokenModel.prices,
                     purchaseData: userModel.purchaseData,
-                    animate: $animate,
+                    animate: animate,
                     height: height
                 )
                 //				.id(tokenModel.prices.count) // results in odd behavior: toggles between prices.count = 0 and prices.count = correct value
@@ -184,7 +184,7 @@ struct TokenView: View {
             else {
                 CandleChartView(
                     candles: tokenModel.candles,
-                    animate: $animate,
+                    animate: animate,
                     timeframeMins: 30,
                     height: height
                 )
