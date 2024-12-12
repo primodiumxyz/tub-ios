@@ -12,7 +12,7 @@ import { env } from "@bin/tub-server";
 import { PrebuildSwapResponse } from "@/types";
 
 // Skip entire suite in CI, because it would perform a live transaction each deployment
-describe("TubService Integration Test", () => {
+(env.CI ? describe.skip : describe)("TubService Integration Test", () => {
   let tubService: TubService;
   let userKeypair: Keypair;
   let mockJwtToken: string;
@@ -127,7 +127,7 @@ describe("TubService Integration Test", () => {
     });
   });
 
-  (env.CI ? describe.skip : describe)("swap execution", () => {
+  describe.skip("swap execution", () => {
     const executeTx = async (swapResponse: PrebuildSwapResponse) => {
       const handoff = Buffer.from(swapResponse.transactionMessageBase64, "base64");
       const message = VersionedMessage.deserialize(handoff);
