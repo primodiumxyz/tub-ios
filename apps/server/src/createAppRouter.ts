@@ -261,6 +261,24 @@ export function createAppRouter() {
       .mutation(async ({ ctx, input }) => {
         return await ctx.tubService.recordTokenSale(input, ctx.jwtToken);
       }),
+
+    getBalance: t.procedure.query(async ({ ctx }) => {
+      return await ctx.tubService.getBalance(ctx.jwtToken);
+    }),
+
+    getTokenBalances: t.procedure.query(async ({ ctx }) => {
+      return await ctx.tubService.getTokenBalances(ctx.jwtToken);
+    }),
+
+    getTokenBalance: t.procedure
+      .input(
+        z.object({
+          tokenMint: z.string(),
+        }),
+      )
+      .query(async ({ ctx, input }) => {
+        return await ctx.tubService.getTokenBalance(ctx.jwtToken, input.tokenMint);
+      }),
   });
 }
 

@@ -19,6 +19,7 @@ import {
 } from "../types";
 import { deriveTokenAccounts } from "../utils/tokenAccounts";
 import bs58 from "bs58";
+import { TOKEN_PROGRAM_PUBLIC_KEY } from "@/constants/tokens";
 
 /**
  * Service class handling token trading, swaps, and user operations
@@ -266,5 +267,43 @@ export class TubService {
 
     this.swapService.updateActiveRequest(userId, updatedRequest);
     return response;
+  }
+
+  async getBalance(jwtToken: string): Promise<{ balance: number }> {
+    const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
+
+    const balance = await this.connection.getBalance(walletPublicKey, "processed");
+    return { balance };
+  }
+
+  async getTokenBalances(jwtToken: string): Promise<Array<{ mint: string; balanceToken: number }>> {
+    const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
+
+    const tokenAccounts = await this.connection.getParsedTokenAccountsByOwner(
+      walletPublicKey,
+      { programId: TOKEN_PROGRAM_PUBLIC_KEY },
+      "processed",
+    );
+
+    return tokenAccounts.value.map((account) => ({
+      mint: account.account.data.parsed.info.mint,
+      balanceToken: Number(account.account.data.parsed.info.tokenAmount.amount),
+    }));
+  }
+
+  async getTokenBalance(jwtToken: string, tokenMint: string): Promise<{ balance: number }> {
+    const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
+
+    const tokenAccounts = await this.connection.getParsedTokenAccountsByOwner(
+      walletPublicKey,
+      { mint: new PublicKey(tokenMint) },
+      "processed",
+    );
+
+    if (tokenAccounts.value.length === 0 || !tokenAccounts.value[0]?.account.data.parsed.info.tokenAmount.amount)
+      return { balance: 0 };
+
+    const balance = Number(tokenAccounts.value[0].account.data.parsed.info.tokenAmount.amount);
+    return { balance };
   }
 }
