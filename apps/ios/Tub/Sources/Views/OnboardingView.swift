@@ -123,6 +123,14 @@ struct OnboardingPage {
 
 struct VideoPlayerView: UIViewRepresentable {
     let videoName: String
+	
+	class Coordinator: NSObject {
+		var notificationObserver: NSObjectProtocol?
+	}
+	
+	func makeCoordinator() -> Coordinator {
+		Coordinator()
+	}
 
     func makeUIView(context: Context) -> UIView {
         let containerView = UIView(frame: .zero)
@@ -139,8 +147,8 @@ struct VideoPlayerView: UIViewRepresentable {
             containerView.layer.setValue(playerLayer, forKey: "playerLayer")
             containerView.layer.setValue(player, forKey: "player")
 
-            NotificationCenter.default.addObserver(
-                forName: .AVPlayerItemDidPlayToEndTime,
+			context.coordinator.notificationObserver = NotificationCenter.default.addObserver(
+				forName: AVPlayerItem.didPlayToEndTimeNotification,
                 object: player.currentItem,
                 queue: .main
             ) { _ in
@@ -162,11 +170,14 @@ struct VideoPlayerView: UIViewRepresentable {
         }
     }
 
-    static func dismantleUIView(_ uiView: UIView, coordinator: ()) {
+	static func dismantleUIView(_ uiView: UIView, coordinator: Coordinator) {
         if let player = uiView.layer.value(forKey: "player") as? AVPlayer {
             player.pause()
-
         }
+		
+		if let notificationObserver = coordinator.notificationObserver as Any? {
+			NotificationCenter.default.removeObserver(notificationObserver)
+		}
     }
 }
 
