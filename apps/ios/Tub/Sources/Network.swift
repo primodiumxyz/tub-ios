@@ -406,7 +406,7 @@ struct signedTxInput: Codable {
 }
 
 struct TxIdResponse: Codable {
-    let txId: String
+    let signature: String
 }
 private struct ErrorResponse: Codable {
     let error: ErrorDetails

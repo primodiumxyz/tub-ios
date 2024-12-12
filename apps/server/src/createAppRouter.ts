@@ -190,7 +190,7 @@ export function createAppRouter() {
         }),
       )
       .mutation(async ({ ctx, input }) => {
-        await ctx.tubService.signAndSendTransaction(ctx.jwtToken, input.signature, input.base64Transaction);
+        return await ctx.tubService.signAndSendTransaction(ctx.jwtToken, input.signature, input.base64Transaction);
       }),
 
     fetchSwap: t.procedure
