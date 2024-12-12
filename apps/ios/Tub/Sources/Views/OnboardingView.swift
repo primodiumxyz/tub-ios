@@ -148,7 +148,7 @@ struct VideoPlayerView: UIViewRepresentable {
             containerView.layer.setValue(player, forKey: "player")
 
 			context.coordinator.notificationObserver = NotificationCenter.default.addObserver(
-                forName: .AVPlayerItemDidPlayToEndTime,
+				forName: AVPlayerItem.didPlayToEndTimeNotification,
                 object: player.currentItem,
                 queue: .main
             ) { _ in
