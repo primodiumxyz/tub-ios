@@ -14,6 +14,12 @@ struct BuyFormView: View {
     @ObservedObject var tokenModel: TokenModel
     var handleBuy: () -> Void
 
+    @StateObject var txManager = TxManager.shared
+
+    var buttonLoading: Bool {
+        txManager.submittingTx
+    }
+
     @EnvironmentObject private var userModel: UserModel
     @State private var buyQuantityUsdString: String = ""
     @State private var buyQuantityUsd: Double = 0
@@ -107,6 +113,7 @@ struct BuyFormView: View {
             strokeColor: .tubBuyPrimary,
             backgroundColor: .clear,
             maxWidth: .infinity,
+            loading: buttonLoading,
             action: handleBuy
         )
         .disabled((userModel.balanceUsdc ?? 0) < priceModel.usdToUsdc(usd: buyQuantityUsd))

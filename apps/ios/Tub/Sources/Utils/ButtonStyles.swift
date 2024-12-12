@@ -61,6 +61,7 @@ struct OutlineButton: View {
     var backgroundColor: Color
     var maxWidth: CGFloat = 50
     var disabled: Bool = false
+    var loading: Bool = false
     var action: () -> Void
 
     var body: some View {
@@ -69,6 +70,7 @@ struct OutlineButton: View {
             strokeColor: strokeColor,
             maxWidth: maxWidth,
             disabled: disabled,
+            loading: loading,
             action: action
         ) {
             Text(text)

@@ -43,7 +43,7 @@ class BubbleManager: ObservableObject {
         let randomX = CGFloat.random(in: 0...geometry.size.width)
         let randomStartY = geometry.size.height + 200
         
-        var bubble = Bubble(
+        let bubble = Bubble(
             position: CGPoint(x: randomX, y: randomStartY),
             scale: CGFloat.random(in: 0.6...2.5),
             opacity: 0.8
