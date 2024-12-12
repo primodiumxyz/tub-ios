@@ -5,7 +5,6 @@
 //  Created by Henry on 10/4/24.
 //
 
-import SolanaSwift
 import SwiftUI
 
 class WithdrawModel: ObservableObject {
@@ -22,16 +21,20 @@ class WithdrawModel: ObservableObject {
     }
 
     func validateAddress(_ address: String) -> Bool {
-        if address.isEmpty { return false }
-        do {
-            let _ = try PublicKey(string: address)
-            return true
-        }
-        catch {
-            return false
-        }
+        // Check if address is empty
+        guard !address.isEmpty else { return false }
+        
+        // Check length (Solana addresses are 32-byte public keys encoded in base58, resulting in 44 characters)
+        guard address.count == 44 else { return false }
+        
+        // Check if address contains only valid base58 characters
+        let base58Charset = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+        let addressCharSet = CharacterSet(charactersIn: address)
+        let validCharSet = CharacterSet(charactersIn: base58Charset)
+        
+        return addressCharSet.isSubset(of: validCharSet)
     }
-
+    
     func onComplete() async throws -> String {
         guard let walletAddress else {
             throw TubError.somethingWentWrong(reason: "Cannot transfer: not logged in")

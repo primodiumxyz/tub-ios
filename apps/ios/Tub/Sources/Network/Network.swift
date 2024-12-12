@@ -9,8 +9,6 @@ import Apollo
 import ApolloWebSocket
 import Foundation
 import Security
-import SolanaSwift
-import UIKit
 
 class Network {
     static let shared = Network()
@@ -19,7 +17,6 @@ class Network {
     // graphql
     private let httpTransport: RequestChainNetworkTransport
     private let webSocketTransport: WebSocketTransport
-    private let solana: JSONRPCAPIClient
     
     private(set) lazy var apollo: ApolloClient = {
         let splitNetworkTransport = SplitNetworkTransport(
@@ -51,7 +48,6 @@ class Network {
         // setup tRPC
         baseURL = URL(string: serverBaseUrl)!
         session = URLSession(configuration: .default)
-        solana = JSONRPCAPIClient(endpoint: APIEndPoint(address: solanaUrl, network: .mainnetBeta))
     }
     
     // MARK: - Calls

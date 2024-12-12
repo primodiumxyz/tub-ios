@@ -4,8 +4,6 @@
 //
 //  Created by Henry on 12/12/24.
 //
-import Security
-import SolanaSwift
 import UIKit
 
 extension Network {

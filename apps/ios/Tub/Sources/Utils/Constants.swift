@@ -70,10 +70,6 @@ public let serverBaseUrl: String = {
     #endif
 }()
 
-public let solanaUrl: String = {
-    return "https://blue-hardworking-paper.solana-mainnet.quiknode.pro/4240df2ab8f252905cfef06e20240f563e84418d"
-}()
-
 // Filtering
 public let HOT_TOKENS_INTERVAL: Interval = "30m" // main interval to aggregate and sort by volume
 public let FILTERING_INTERVAL: Interval = "20s" // additional interval for filtering (min trades/volume)

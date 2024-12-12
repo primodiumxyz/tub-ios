@@ -26,7 +26,6 @@
 		995FCA1F2CDA5ED70018A76D /* CoinbaseOnrampView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995FCA1E2CDA5ED20018A76D /* CoinbaseOnrampView.swift */; };
 		996772FE2CEB85820029B298 /* LoadingBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996772FD2CEB857C0029B298 /* LoadingBox.swift */; };
 		9971F29B2CFF836700BA48C0 /* WithdrawView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9971F29A2CFF835D00BA48C0 /* WithdrawView.swift */; };
-		9971F2F52CFFA88A00BA48C0 /* SolanaSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 9971F2F42CFFA88A00BA48C0 /* SolanaSwift */; };
 		997DE8F42CDAC86500164366 /* NotificationBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 997DE8F32CDAC86000164366 /* NotificationBanner.swift */; };
 		99856DA42CD27E1F004B9D40 /* Privy in Frameworks */ = {isa = PBXBuildFile; productRef = 99856DA32CD27E1F004B9D40 /* Privy */; };
 		99856DA62CD27E2E004B9D40 /* Privy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99856DA52CD27E27004B9D40 /* Privy.swift */; };
@@ -47,7 +46,6 @@
 		99DDF62D2CB02816000234DA /* AccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99DDF62C2CB0280D000234DA /* AccountView.swift */; };
 		99DED2512CAF2A6B0055FC60 /* ApolloCombine in Frameworks */ = {isa = PBXBuildFile; productRef = 99DED2502CAF2A6B0055FC60 /* ApolloCombine */; };
 		99E789492CC147C000C3CEEB /* ImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E789482CC147BD00C3CEEB /* ImageView.swift */; };
-		99EE82AA2CFE485A00615572 /* SolanaSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 99EE82A92CFE485A00615572 /* SolanaSwift */; };
 		99F3D7A62CE6D937005B895C /* UserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99F3D7A52CE6D934005B895C /* UserModel.swift */; };
 		99FB68342CC003FC00070D2A /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FB68332CC003FC00070D2A /* LoadingView.swift */; };
 		DB10A95D2CA5AA1B00B1E4F3 /* TokenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB10A95C2CA5AA1B00B1E4F3 /* TokenView.swift */; };
@@ -178,11 +176,9 @@
 			files = (
 				99DED2512CAF2A6B0055FC60 /* ApolloCombine in Frameworks */,
 				99C26C1C2CAEE263004807A2 /* ApolloAPI in Frameworks */,
-				9971F2F52CFFA88A00BA48C0 /* SolanaSwift in Frameworks */,
 				993E5D902CAEE423000E23A9 /* ApolloWebSocket in Frameworks */,
 				99856DA42CD27E1F004B9D40 /* Privy in Frameworks */,
 				DFA4D6512CAC500B00AEDC73 /* Apollo in Frameworks */,
-				99EE82AA2CFE485A00615572 /* SolanaSwift in Frameworks */,
 				DB458DB12CAC824A00C5EC18 /* TubAPI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -474,7 +470,6 @@
 				993E5D8F2CAEE423000E23A9 /* ApolloWebSocket */,
 				99DED2502CAF2A6B0055FC60 /* ApolloCombine */,
 				99856DA32CD27E1F004B9D40 /* Privy */,
-				9971F2F42CFFA88A00BA48C0 /* SolanaSwift */,
 			);
 			productName = Tub;
 			productReference = DB6D29012CA1C8F70099951A /* Tub.app */;
@@ -556,7 +551,6 @@
 				DB458DAE2CAC821D00C5EC18 /* XCLocalSwiftPackageReference "TubAPI" */,
 				99DED24F2CAF2A6B0055FC60 /* XCRemoteSwiftPackageReference "ApolloCombine" */,
 				99856DA22CD27E1F004B9D40 /* XCRemoteSwiftPackageReference "privy-ios" */,
-				9971F2F32CFFA88A00BA48C0 /* XCRemoteSwiftPackageReference "solana-swift" */,
 			);
 			productRefGroup = DB6D29022CA1C8F70099951A /* Products */;
 			projectDirPath = "";
@@ -1036,14 +1030,6 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		9971F2F32CFFA88A00BA48C0 /* XCRemoteSwiftPackageReference "solana-swift" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/p2p-org/solana-swift";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 5.0.0;
-			};
-		};
 		99856DA22CD27E1F004B9D40 /* XCRemoteSwiftPackageReference "privy-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/privy-io/privy-ios";
@@ -1100,11 +1086,6 @@
 			package = DFA4D64F2CAC500B00AEDC73 /* XCRemoteSwiftPackageReference "apollo-ios" */;
 			productName = ApolloWebSocket;
 		};
-		9971F2F42CFFA88A00BA48C0 /* SolanaSwift */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 9971F2F32CFFA88A00BA48C0 /* XCRemoteSwiftPackageReference "solana-swift" */;
-			productName = SolanaSwift;
-		};
 		99856DA32CD27E1F004B9D40 /* Privy */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 99856DA22CD27E1F004B9D40 /* XCRemoteSwiftPackageReference "privy-ios" */;
@@ -1124,11 +1105,7 @@
 			package = 99DED24F2CAF2A6B0055FC60 /* XCRemoteSwiftPackageReference "ApolloCombine" */;
 			productName = ApolloCombine;
 		};
-		99EE82A92CFE485A00615572 /* SolanaSwift */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 99EE82A82CFE485A00615572 /* XCRemoteSwiftPackageReference "solana-swift" */;
-			productName = SolanaSwift;
-		};
+		
 		DB458DB02CAC824A00C5EC18 /* TubAPI */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = DB458DAE2CAC821D00C5EC18 /* XCLocalSwiftPackageReference "TubAPI" */;
