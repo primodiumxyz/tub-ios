@@ -6,6 +6,7 @@ export type UserPrebuildSwapRequest = {
   buyTokenId: string;
   sellTokenId: string;
   sellQuantity: number;
+  slippageBps?: number;
 };
 
 export type PrebuildSwapResponse = UserPrebuildSwapRequest & {

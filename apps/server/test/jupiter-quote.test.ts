@@ -164,7 +164,7 @@ describe.skip("Jupiter Quote Integration Test", () => {
       console.log("User Public Key:", userPublicKey.toBase58());
       console.log("Quote Request:", quoteRequest);
 
-      const swapInstructions = await jupiterService.getSwapInstructions(quoteRequest, userPublicKey);
+      const swapInstructions = await jupiterService.getSwapInstructions(quoteRequest, userPublicKey, 1);
 
       console.log("\nSwap Instructions Response:");
       console.log({
@@ -235,7 +235,7 @@ describe.skip("Jupiter Quote Integration Test", () => {
       console.log("User Public Key:", userPublicKey.toBase58());
       console.log("Quote Request:", quoteRequest);
 
-      const swapInstructions = await jupiterService.getSwapInstructions(quoteRequest, userPublicKey);
+      const swapInstructions = await jupiterService.getSwapInstructions(quoteRequest, userPublicKey, 1);
 
       console.log("\nSwap Instructions Response:");
       console.log({
@@ -299,7 +299,7 @@ describe.skip("Jupiter Quote Integration Test", () => {
       asLegacyTransaction: false,
     };
 
-    const swapInstructions = await jupiterService.getSwapInstructions(quoteRequest, userPublicKey);
+    const swapInstructions = await jupiterService.getSwapInstructions(quoteRequest, userPublicKey, 1);
     console.info("content:", swapInstructions.instructions?.length);
   });
 });

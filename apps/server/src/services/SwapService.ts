@@ -5,6 +5,16 @@ import { TransactionService } from "./TransactionService";
 import { FeeService } from "../services/FeeService";
 import { ActiveSwapRequest, PrebuildSwapResponse, SwapSubscription } from "../types";
 import { USDC_DEV_PUBLIC_KEY, USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
+import { QuoteGetRequest } from "@jup-ag/api";
+import {
+  MAX_ACCOUNTS,
+  MAX_DEFAULT_SLIPPAGE_BPS,
+  MAX_AUTO_SLIPPAGE_BPS,
+  AUTO_SLIPPAGE,
+  AUTO_SLIPPAGE_COLLISION_USD_VALUE,
+  AUTO_PRIORITY_FEE_MULTIPLIER,
+  USER_SLIPPAGE_BPS_MAX,
+} from "../constants/swap";
 
 export class SwapService {
   private swapSubscriptions: Map<string, SwapSubscription> = new Map();
@@ -20,6 +30,14 @@ export class SwapService {
       throw new Error("Sell token account is required but was not provided");
     }
 
+    if (request.slippageBps && request.slippageBps > USER_SLIPPAGE_BPS_MAX) {
+      throw new Error("Slippage bps is too high");
+    }
+
+    if (request.slippageBps && request.slippageBps <= 0) {
+      throw new Error("Slippage bps must be greater than 0");
+    }
+
     // Calculate fee if selling USDC
     const usdcDevPubKey = USDC_DEV_PUBLIC_KEY.toString();
     const usdcMainPubKey = USDC_MAINNET_PUBLIC_KEY.toString();
@@ -27,6 +45,7 @@ export class SwapService {
       usdcDevPubKey,
       usdcMainPubKey,
     ]);
+    const swapAmount = request.sellQuantity - feeAmount;
 
     // Create fee transfer instruction if needed
     const feeTransferInstruction = this.feeService.createFeeTransferInstruction(
@@ -35,22 +54,53 @@ export class SwapService {
       feeAmount,
     );
 
+    // TODO: autoSlippageCollisionUsdValue should be based on the estimated value of the swap amount.
+    // This is already accomplished when selling USDC, but need to query our internal price feed for other tokens.
+
+    // there are 3 different forms of slippage settings, ordered by priority
+    // 1. user provided slippage bps
+    // 2. auto slippage set to true with a max slippage bps
+    // 3. auto slippage set to false, use MAX_DEFAULT_SLIPPAGE_BPS
+
+    const slippageSettings = {
+      slippageBps: request.slippageBps ? request.slippageBps : AUTO_SLIPPAGE ? undefined : MAX_DEFAULT_SLIPPAGE_BPS,
+      autoSlippage: request.slippageBps ? false : AUTO_SLIPPAGE,
+      maxAutoSlippageBps: MAX_AUTO_SLIPPAGE_BPS,
+      autoSlippageCollisionUsdValue:
+        request.sellTokenId === USDC_MAINNET_PUBLIC_KEY.toString()
+          ? Math.floor(swapAmount / 1e6)
+          : AUTO_SLIPPAGE_COLLISION_USD_VALUE,
+    };
+
     // Get swap instructions from Jupiter
-    const swapInstructionRequest = {
+    // if slippageBps is provided, use it
+    // if slippageBps is not provided, use autoSlippage if its true, otherwise use MAX_DEFAULT_SLIPPAGE_BPS
+    const swapInstructionRequest: QuoteGetRequest = {
       inputMint: request.sellTokenId,
       outputMint: request.buyTokenId,
-      amount: request.sellQuantity - feeAmount,
-      slippageBps: 50,
+      amount: swapAmount,
+      slippageBps: slippageSettings.slippageBps,
+      autoSlippage: slippageSettings.autoSlippage,
+      maxAutoSlippageBps: slippageSettings.maxAutoSlippageBps,
+      autoSlippageCollisionUsdValue: slippageSettings.autoSlippageCollisionUsdValue,
       onlyDirectRoutes: false,
       restrictIntermediateTokens: true,
-      maxAccounts: 50,
+      maxAccounts: MAX_ACCOUNTS,
       asLegacyTransaction: false,
     };
 
-    const { instructions: swapInstructions, addressLookupTableAccounts } = await this.jupiter.getSwapInstructions(
+    const {
+      instructions: swapInstructions,
+      addressLookupTableAccounts,
+      quote,
+    } = await this.jupiter.getSwapInstructions(
       swapInstructionRequest,
       request.userPublicKey,
+      AUTO_PRIORITY_FEE_MULTIPLIER,
     );
+    console.log("Quoted auto slippage", quote.computedAutoSlippage);
+    console.log("Quoted slippage bps", quote.slippageBps);
+    console.log("Quoted outAmount", quote.outAmount);
 
     if (!swapInstructions?.length) {
       throw new Error("No swap instruction received");
