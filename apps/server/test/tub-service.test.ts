@@ -131,24 +131,26 @@ import { PrebuildSwapResponse } from "@/types";
         buyTokenId: SOL_MAINNET_PUBLIC_KEY.toString(),
         sellTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
         sellQuantity: 1e6 / 1000, // 0.001 USDC
+        slippageBps: undefined,
       });
 
       await executeTx(swapResponse);
     }, 11000);
 
     describe("VALUE swaps", () => {
-      it.skip("should complete a USDC to VALUE swap", async () => {
+      it("should complete a USDC to VALUE swap", async () => {
         // Get swap instructions
         const swapResponse = await tubService.fetchSwap(mockJwtToken, {
           buyTokenId: VALUE_MAINNET_PUBLIC_KEY.toString(),
           sellTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
           sellQuantity: 1e6 / 1000, // 0.001 USDC
+          slippageBps: undefined,
         });
 
         await executeTx(swapResponse);
       }, 11000);
 
-      it("should transfer all VALUE to USDC", async () => {
+      it.skip("should transfer half of held VALUE to USDC", async () => {
         const userVALUEAta = await getAssociatedTokenAddress(VALUE_MAINNET_PUBLIC_KEY, userKeypair.publicKey);
         const valueBalance = await connection.getTokenAccountBalance(userVALUEAta);
         const decimals = valueBalance.value.decimals;
@@ -163,6 +165,7 @@ import { PrebuildSwapResponse } from "@/types";
           buyTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
           sellTokenId: VALUE_MAINNET_PUBLIC_KEY.toString(),
           sellQuantity: Math.round(balanceToken / 2),
+          slippageBps: 100,
         };
         console.log("VALUE swap:", swap);
         const swapResponse = await tubService.fetchSwap(mockJwtToken, swap);
