@@ -49,7 +49,7 @@ import { PrebuildSwapResponse } from "@/types";
       // Create mock Privy client with our test wallet
       const mockPrivyClient = new MockPrivyClient(userKeypair.publicKey.toString());
 
-      tubService = new TubService(
+      tubService = await TubService.create(
         gqlClient,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockPrivyClient as any,
