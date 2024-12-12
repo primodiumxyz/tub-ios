@@ -73,18 +73,6 @@ struct TokenView: View {
             .frame(maxWidth: .infinity)
             .foregroundStyle(.primary)
         }
-        .onChange(of: balanceToken) {
-            let purchaseState = balanceToken > 0 ? PurchaseState.sell : PurchaseState.buy
-            Task {
-                if purchaseState == .sell {
-                    try! await TxManager.shared.updateTxData(purchaseState: .sell, sellQuantity: balanceToken)
-                }
-                else {
-                    let defaultBuyValueUsdc = SettingsManager.shared.defaultBuyValueUsdc
-                    try! await TxManager.shared.updateTxData(purchaseState: .buy, sellQuantity: defaultBuyValueUsdc)
-                }
-            }
-        }
         .dismissKeyboardOnTap()
     }
 

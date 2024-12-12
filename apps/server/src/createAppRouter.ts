@@ -199,6 +199,7 @@ export function createAppRouter() {
           buyTokenId: z.string(),
           sellTokenId: z.string(),
           sellQuantity: z.number(),
+          slippageBps: z.number().optional(),
         }),
       )
       .mutation(async ({ ctx, input }) => {

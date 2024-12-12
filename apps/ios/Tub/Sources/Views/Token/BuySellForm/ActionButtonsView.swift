@@ -43,14 +43,12 @@ struct ActionButtonsView: View {
         }
 
         let priceUsdc = priceModel.usdToUsdc(usd: priceUsd)
-        let buyQuantityUsdc = SettingsManager.shared.defaultBuyValueUsdc
+        let buyAmountUsdc = SettingsManager.shared.defaultBuyValueUsdc
 
         Task {
             do {
-                try await userModel.buyTokens(
-                    buyQuantityUsdc: buyQuantityUsdc,
-                    tokenPriceUsdc: priceUsdc,
-                    tokenPriceUsd: priceUsd
+                try await TxManager.shared.buyToken(
+                    tokenId: tokenModel.tokenId, buyAmountUsdc: buyAmountUsdc, tokenPriceUsdc: priceUsdc
                 )
                 await MainActor.run {
                     showBuySheet = false
@@ -69,6 +67,7 @@ struct ActionButtonsView: View {
         }
     }
     
+    
 
     func handleSell() async {
         // Only trigger haptic feedback if vibration is enabled
@@ -82,7 +81,7 @@ struct ActionButtonsView: View {
         }
 
         do {
-            try await userModel.sellTokens(tokenPriceUsd: tokenPriceUsd)
+            try await TxManager.shared.sellToken(tokenId: tokenModel.tokenId, tokenPriceUsd: tokenPriceUsd)
             await MainActor.run {
                 BubbleManager.shared.trigger()
                 notificationHandler.show(
@@ -145,8 +144,7 @@ struct ActionButtonsView: View {
         .sheet(isPresented: $showBuySheet) {
             BuyFormView(
                 isVisible: $showBuySheet,
-                tokenModel: tokenModel,
-                handleBuy: handleBuy
+                tokenModel: tokenModel
             )
         }
     }

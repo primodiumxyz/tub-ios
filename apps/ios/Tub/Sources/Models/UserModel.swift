@@ -123,7 +123,6 @@ final class UserModel: ObservableObject {
         DispatchQueue.main.async {
             self.initialTime = Date()
             self.initializingUser = false
-            print("finished initializing user")
         }
     }
     
@@ -151,7 +150,7 @@ final class UserModel: ObservableObject {
         tokenPortfolioTimer = nil
     }
     
-    private func refreshPortfolio() async throws {
+    public func refreshPortfolio() async throws {
         guard let walletAddress else { return }
         
         let tokenBalances = try await Network.shared.getTokenBalances(address: walletAddress)
@@ -343,107 +342,9 @@ final class UserModel: ObservableObject {
     
     func initToken(tokenId: String) {
         self.tokenId = tokenId
-        if tokenId != "" {
-            Task {
-                try! await TxManager.shared.updateTxData(
-                    tokenId: tokenId,
-                    sellQuantity: SettingsManager.shared.defaultBuyValueUsdc
-                )
-            }
-        }
     }
     
-    func buyTokens(buyQuantityUsdc: Int, tokenPriceUsdc: Int, tokenPriceUsd: Double) async throws {
-        guard let walletAddress else {
-            throw TubError.notLoggedIn
-        }
-        guard let tokenId = self.tokenId, let balanceUsdc = self.balanceUsdc else {
-            throw TubError.invalidInput(reason: "No balance")
-        }
-        
-        if buyQuantityUsdc > balanceUsdc {
-            throw TubError.insufficientBalance
-        }
-        
-        // TODO: Pull the decimals in the token metadata instead of assuming 9
-        let decimals = tokenData[tokenId]?.metadata.decimals ?? 9
-        let buyQuantityToken = (buyQuantityUsdc / tokenPriceUsdc) * Int(pow(10.0,Double(decimals)))
-        
-        var err: (any Error)? = nil
-        do {
-            try await TxManager.shared.submitTx(walletAddress: walletAddress)
-            
-            await MainActor.run {
-                self.purchaseData = PurchaseData(
-                    timestamp: Date(),
-                    amountUsdc: buyQuantityUsdc,
-                    priceUsdc: tokenPriceUsdc
-                )
-            }
-        } catch {
-            err = error
-        }
-        
-        do {
-            try await Network.shared.recordTokenPurchase(
-                tokenMint: tokenId,
-                tokenAmount: Double(buyQuantityToken),
-                tokenPriceUsd: tokenPriceUsd,
-                source: "user_model",
-                errorDetails: err?.localizedDescription
-            )
-            print("Successfully recorded buy event")
-        } catch {
-            print("Failed to record buy event: \(error)")
-        }
-        
-        if let err {
-            throw err
-        }
-    }
-    
-    func sellTokens(tokenPriceUsd: Double) async throws {
-        guard let walletAddress else {
-            throw TubError.notLoggedIn
-        }
-        
-        guard let tokenId = self.tokenId, let balanceToken = tokenData[tokenId]?.balanceToken,
-              balanceToken > 0
-        else {
-            throw TubError.insufficientBalance
-        }
-        
-        var err: (any Error)? = nil
-        
-        do {
-            try await TxManager.shared.submitTx(walletAddress: walletAddress)
-            
-            await MainActor.run {
-                self.purchaseData = nil
-            }
-        } catch {
-            err = error
-            print("Error selling tokens: \(error)")
-        }
-        
-        do {
-            try await Network.shared.recordTokenSale(
-                tokenMint: tokenId,
-                tokenAmount: Double(balanceToken),
-                tokenPriceUsd: tokenPriceUsd,
-                source: "user_model",
-                errorDetails: err?.localizedDescription
-            )
-            print("Successfully recorded sell event")
-        } catch {
-            print("Failed to record sell event: \(error)")
-        }
-        
-        if let err {
-            throw err
-        }
-    }
-    
+
     private func startTimer() {
         stopTimer()  // Ensure any existing timer is invalidated
         self.initialTime = Date()

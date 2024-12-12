@@ -10,9 +10,26 @@ import SwiftUI
 struct TokenBalancesView: View {
     @EnvironmentObject private var userModel: UserModel
     @EnvironmentObject private var priceModel: SolPriceModel
+    @State private var isRefreshing = false
 
     var body: some View {
         VStack {
+            HStack {
+                Spacer()
+                Button {
+                    Task {
+                        isRefreshing = true
+                        try? await userModel.refreshPortfolio()
+                        isRefreshing = false
+                    }
+                } label: {
+                    Image(systemName: "arrow.clockwise")
+                        .rotationEffect(.degrees(isRefreshing ? 360 : 0))
+                        .animation(isRefreshing ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: isRefreshing)
+                }
+                .padding(.horizontal)
+            }
+            
             if userModel.tokenPortfolio.count == 0 {
                 Text("No tokens").foregroundStyle(.tubText)
             }

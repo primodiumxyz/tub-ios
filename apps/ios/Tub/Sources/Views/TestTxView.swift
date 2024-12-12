@@ -14,27 +14,12 @@ struct TestTxView: View {
     @EnvironmentObject var userModel: UserModel
     @StateObject var txManager = TxManager.shared
 
+    let solTokenId = "So11111111111111111111111111111111111111112"
+    let quantity = Int(1e5)
     func handleTxSubmission() {
         Task {
             do {
-                guard let walletAddress = userModel.walletAddress else { throw TubError.notLoggedIn }
-                try await txManager.submitTx(walletAddress: walletAddress)
-            }
-            catch {
-                notificationHandler.show(error.localizedDescription, type: .error)
-            }
-        }
-    }
-
-    func handleAppear() {
-        Task {
-            let solTokenId = "So11111111111111111111111111111111111111112"
-            do {
-                try await txManager.updateTxData(
-                    purchaseState: .buy,
-                    tokenId: solTokenId,
-                    sellQuantity: priceModel.usdToUsdc(usd: 1.0)
-                )
+                try await txManager.buyToken(tokenId: solTokenId, buyAmountUsdc: quantity)
             }
             catch {
                 notificationHandler.show(error.localizedDescription, type: .error)
@@ -44,21 +29,14 @@ struct TestTxView: View {
 
     var body: some View {
         VStack(spacing: 10) {
-            PrimaryButton(text: "Update Tx Data", loading: txManager.submittingTx, action: handleAppear)
-            
-            if let txData = txManager.txData {
-                DataRow(title: "Buy Token ID", content: txData.buyTokenId)
-                DataRow(title: "Sell Token ID", content: txData.sellTokenId)
+                DataRow(title: "Buy Token ID", content: solTokenId)
+                DataRow(title: "Sell Token ID", content: USDC_MINT)
                 DataRow(
                     title: "Sell Quantity",
-                    content: priceModel.formatPrice(usdc: txData.sellQuantity)
+                    content: priceModel.formatPrice(usdc: quantity)
                 )
                 
                 PrimaryButton(text: "Submit Tx", loading: txManager.submittingTx, action: handleTxSubmission)
-            }
-            else {
-                Text("no data")
-            }
         }.foregroundStyle(.tubText).frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 

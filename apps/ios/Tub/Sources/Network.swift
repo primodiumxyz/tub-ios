@@ -229,8 +229,8 @@ class Network {
         return Int(firstAccount.account.data.lamports)
     }
 
-    func getTxData(buyTokenId: String, sellTokenId: String, sellQuantity: Int) async throws -> TxData {
-        let input = SwapInput(buyTokenId: buyTokenId, sellTokenId: sellTokenId, sellQuantity: sellQuantity)
+    func getTxData(buyTokenId: String, sellTokenId: String, sellQuantity: Int, slippageBps: Int? = nil) async throws -> TxData {
+        let input = SwapInput(buyTokenId: buyTokenId, sellTokenId: sellTokenId, sellQuantity: sellQuantity, slippageBps: slippageBps)
         let res: TxData = try await callProcedure("fetchSwap", input: input)
         return res
     }
@@ -389,6 +389,7 @@ struct SwapInput: Codable {
     let buyTokenId: String
     let sellTokenId: String
     let sellQuantity: Int
+    let slippageBps: Int?
 }
 
 struct TxData: Codable {
