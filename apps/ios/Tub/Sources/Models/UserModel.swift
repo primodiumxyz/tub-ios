@@ -152,9 +152,7 @@ final class UserModel: ObservableObject {
     }
     
     private func refreshPortfolio() async throws {
-        guard let walletAddress else { return }
-        
-        let tokenBalances = try await Network.shared.getTokenBalances(address: walletAddress)
+        let tokenBalances = try await Network.shared.getAllTokenBalances()
         
         for (mint, balance) in tokenBalances {
             if mint == USDC_MINT {

@@ -22,7 +22,6 @@ struct TokenActionInput: Codable {
 }
 
 struct TransferInput: Codable {
-    let fromAddress: String
     let toAddress: String
     let amount: String
     let tokenId: String
@@ -60,10 +59,6 @@ struct TokenSaleInput: Codable {
     let userWallet: String?
 }
 
-
-
-
-
 // MARK: - Response Types
 struct ResponseWrapper<T: Codable>: Codable {
     struct ResultWrapper: Codable {
@@ -88,7 +83,7 @@ struct signedTxInput: Codable {
 }
 
 struct TxIdResponse: Codable {
-    let txId: String
+    let signature: String
 }
 
 struct ErrorResponse: Codable {
@@ -111,9 +106,7 @@ struct ErrorResponse: Codable {
 struct EmptyResponse: Codable {}
 
 struct TransferResponse: Codable {
-    let transactionBase64: String
-    let signatureBase64: String
-    let signerBase58: String
+    let transactionMessageBase64: String
 }
 
 struct StatusResponse: Codable {

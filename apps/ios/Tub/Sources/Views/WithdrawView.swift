@@ -15,6 +15,7 @@ class WithdrawModel: ObservableObject {
     @Published var buyAmountUsd: Double = 0
     @Published var recipient: String = ""
     @Published var continueDisabled: Bool = true
+    @Published var sending: Bool = false
 
     func initialize(walletAddress: String) {
         self.walletAddress = walletAddress
@@ -43,14 +44,24 @@ class WithdrawModel: ObservableObject {
         let buyAmountUsdc = Int(buyAmountUsd * 1e6)
 
         do {
+            await MainActor.run {
+            sending = true
+            }
             let txId = try await Network.shared.transferUsdc(
                 fromAddress: walletAddress,
                 toAddress: recipient,
                 amount: buyAmountUsdc
             )
+            await MainActor.run {
+                sending = false
+            }
             return txId
         }
+
         catch {
+            await MainActor.run {
+                sending = false
+            }
             throw error
         }
     }
@@ -164,6 +175,7 @@ struct WithdrawView: View {
                     disabled: !vm.validateAddress(vm.recipient) ||
                              vm.buyAmountUsd == 0 ||
                              (userModel.balanceUsdc ?? 0) < priceModel.usdToUsdc(usd: vm.buyAmountUsd),
+                    loading: vm.sending,
                     action: handleContinue
                 )
             }
