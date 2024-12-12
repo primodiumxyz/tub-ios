@@ -103,13 +103,13 @@ describe("TubService Integration Test", () => {
     });
 
     it("should get the user's token balances", async () => {
-      const balances = await tubService.getTokenBalances(mockJwtToken);
+      const balances = await tubService.getAllTokenBalances(mockJwtToken);
       expect(balances).toBeDefined();
       expect(balances.length).toBeGreaterThan(0);
     });
 
     it("should get the user's usdc balance", async () => {
-      const balances = await tubService.getTokenBalances(mockJwtToken);
+      const balances = await tubService.getAllTokenBalances(mockJwtToken);
       if (balances.length === 0) {
         console.log("No token balances found, skipping test");
         return;
