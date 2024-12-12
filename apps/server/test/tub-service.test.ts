@@ -29,10 +29,10 @@ describe("TubService Integration Test", () => {
       });
 
       // Create test fee payer keypair
-      const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY!));
+      const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY));
 
       // Create test user keypair from environment
-      userKeypair = Keypair.fromSecretKey(bs58.decode(env.TEST_USER_PRIVATE_KEY!));
+      userKeypair = Keypair.fromSecretKey(bs58.decode(env.TEST_USER_PRIVATE_KEY));
       console.log("User keypair:", userKeypair.publicKey.toBase58());
       mockJwtToken = "test_jwt_token";
 
@@ -127,13 +127,12 @@ describe("TubService Integration Test", () => {
     });
   });
 
-  (env.CI ? describe.skip : describe.skip)("swap execution", () => {
+  (env.CI ? describe.skip : describe)("swap execution", () => {
     const executeTx = async (swapResponse: PrebuildSwapResponse) => {
       const handoff = Buffer.from(swapResponse.transactionMessageBase64, "base64");
       const message = VersionedMessage.deserialize(handoff);
       const transaction = new VersionedTransaction(message);
 
-      console.log("message:", message);
       // User signs
       transaction.sign([userKeypair]);
       const userSignature = transaction.signatures![1];

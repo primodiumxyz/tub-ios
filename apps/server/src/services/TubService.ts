@@ -12,7 +12,7 @@ import { env } from "../../bin/tub-server";
 import { UserPrebuildSwapRequest, PrebuildSwapResponse, PrebuildSignedSwapResponse, ClientEvent } from "../types";
 import { deriveTokenAccounts } from "../utils/tokenAccounts";
 import bs58 from "bs58";
-import { TOKEN_PROGRAM_PUBLIC_KEY } from "@/constants/tokens";
+import { TOKEN_PROGRAM_PUBLIC_KEY } from "../constants/tokens";
 
 /**
  * Service class handling token trading, swaps, and user operations
