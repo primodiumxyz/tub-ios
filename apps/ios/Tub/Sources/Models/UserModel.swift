@@ -131,9 +131,9 @@ final class UserModel: ObservableObject {
     let PORTFOLIO_POLL_INTERVAL: TimeInterval = 60
     
     private func startPollingTokenPortfolio() {
+        self.stopPollingTokenPortfolio()  // Ensure any existing timer is invalidated
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            self.stopPollingTokenPortfolio()  // Ensure any existing timer is invalidated
             
             self.tokenPortfolioTimer = Timer.scheduledTimer(
                 withTimeInterval: self.PORTFOLIO_POLL_INTERVAL, repeats: true

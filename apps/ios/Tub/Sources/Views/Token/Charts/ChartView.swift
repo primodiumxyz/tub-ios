@@ -78,7 +78,8 @@ struct ChartView: View {
                 )
                 .foregroundStyle(.tubBuyPrimary.opacity(0.8))
                 .lineStyle(StrokeStyle(lineWidth: 2))
-                .interpolationMethod(.cardinal(tension: 0.8))
+                // todo: resolve graph flickering issues
+//                .interpolationMethod(.cardinal(tension: 0.9))
             }
 
             if let currentPrice = prices.last, prices.count >= 2 {

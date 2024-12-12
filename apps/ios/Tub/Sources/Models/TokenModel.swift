@@ -78,6 +78,7 @@ class TokenModel: ObservableObject {
 
         Task {
             do {
+                startPollingTokenBalance()
                 try await retry(fetchCandles)
                 await subscribeToSingleTokenData(tokenId)
             }
@@ -248,6 +249,38 @@ class TokenModel: ObservableObject {
         }
     }
 
+    private var tokenBalanceTimer: Timer?
+    let BALANCE_POLL_INTERVAL: TimeInterval = 30
+    
+    private func startPollingTokenBalance() {
+        self.stopPollingTokenBalance()  // Ensure any existing timer is invalidated
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            self.tokenBalanceTimer = Timer.scheduledTimer(
+                withTimeInterval: self.BALANCE_POLL_INTERVAL, repeats: true
+            ) { [weak self] _ in
+                guard let self = self else { return }
+                Task {
+                    try await self.refreshTokenBalance()
+                }
+            }
+        }
+    }
+    
+    private func stopPollingTokenBalance() {
+        tokenBalanceTimer?.invalidate()
+        tokenBalanceTimer = nil
+    }
+    
+    private func refreshTokenBalance() async throws {
+        guard let walletAddress = UserModel.shared.walletAddress else { return }
+        
+        let tokenBalance = try await Network.shared.getTokenBalance(address: walletAddress, tokenMint: tokenId)
+            
+        await UserModel.shared.updateTokenData(mint: tokenId, balance: tokenBalance)
+    }
+    
     private func calculatePriceChange() {
         let latestPrice = prices.last?.priceUsd ?? 0
         let startTime = Date().addingTimeInterval(-selectedTimespan.seconds)
@@ -279,6 +312,8 @@ class TokenModel: ObservableObject {
     func cleanup() {
         priceUpdateTimer?.invalidate()
         priceUpdateTimer = nil
+        stopPollingTokenBalance()
+        
         // Clean up subscriptions when the object is deallocated
         priceSubscription?.cancel()
         candleSubscription?.cancel()
