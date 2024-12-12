@@ -24,7 +24,6 @@ final class TokenListModel: ObservableObject {
     @Published var previousTokenModel: TokenModel?
     @Published var nextTokenModel: TokenModel?
     @Published var currentTokenModel: TokenModel
-    var userModel: UserModel?  // Make optional since we'll set it after init
     
     private var hotTokensSubscription: Apollo.Cancellable?
     
@@ -46,15 +45,11 @@ final class TokenListModel: ObservableObject {
     private init() {
         self.currentTokenModel = TokenModel()
     }
-    // Add method to set user model
-    func configure(with userModel: UserModel) {
-        self.userModel = userModel
-    }
     
     private func initCurrentTokenModel(with tokenId: String) {
         // initialize current model
         self.currentTokenModel.initialize(with: tokenId)
-        self.userModel?.initToken(tokenId: tokenId)
+        UserModel.shared.initToken(tokenId: tokenId)
         
     }
     
@@ -63,8 +58,7 @@ final class TokenListModel: ObservableObject {
             return tokenQueue[currentTokenIndex + 1]
         }
         
-        if let userModel {
-            let portfolio = userModel.tokenPortfolio
+        let portfolio = UserModel.shared.tokenPortfolio
             let priorityTokenMint = portfolio.first { tokenId in
                 tokenId != currentId
             }
@@ -72,7 +66,6 @@ final class TokenListModel: ObservableObject {
             if let mint = priorityTokenMint {
                 return mint
             }
-        }
         
         // If this is the first token (no currentId), return the first non-cooldown token
         var nextToken = self.pendingTokens.first { token in
@@ -190,7 +183,7 @@ final class TokenListModel: ObservableObject {
                 let hotTokens: [String] = {
                     switch result {
                     case .success(let graphQLResult):
-                        if let tokens = graphQLResult.data?.token_stats_interval_comp, let userModel = self.userModel {
+                        if let tokens = graphQLResult.data?.token_stats_interval_comp {
                             let mappedTokens = tokens
                                 .map { elem in
                                     elem.token_mint

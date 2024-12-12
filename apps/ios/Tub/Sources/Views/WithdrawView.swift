@@ -40,7 +40,7 @@ class WithdrawModel: ObservableObject {
             throw TubError.somethingWentWrong(reason: "Invalid recipient address")
         }
 
-        let buyAmountUsdc = Int(buyAmountUsd * 1e6)
+        let buyAmountUsdc = Int(buyAmountUsd * USDC_DECIMALS)
 
         do {
             let txId = try await Network.shared.transferUsdc(

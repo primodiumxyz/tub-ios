@@ -243,7 +243,7 @@ extension ActionButtonsView: Equatable {
         @StateObject var notificationHandler = NotificationHandler()
         var userModel = {
             let model = UserModel.shared
-            model.balanceUsdc = 100 * Int(1e9)
+            model.balanceUsdc = 100 * Int(SOL_DECIMALS)
             return model
         }()
 

@@ -39,7 +39,8 @@ struct TokenInfoPreview: View {
         var stats = [StatValue]()
         // Calculate current value
         // todo: replace hard coded decimals with token decimals
-        let tokenBalance = Double(balanceToken) / 1e9
+        let decimals = tokenData.metadata.decimals 
+        let tokenBalance = Double(balanceToken) / pow(10.0, Double(decimals))
         let tokenBalanceUsd = tokenBalance * (tokenModel.prices.last?.priceUsd ?? 0)
 
         // Calculate profit

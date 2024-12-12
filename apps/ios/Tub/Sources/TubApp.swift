@@ -71,8 +71,6 @@ struct AppContent: View {
                             .interactiveDismissDisabled()
                     }
             }
-        }.onAppear {
-            tokenListModel.configure(with: userModel)
         }.onChange(of: userModel.walletState) { _, newState in
             if newState == .connecting { return }
             if newState == .error {

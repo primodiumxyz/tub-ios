@@ -26,7 +26,7 @@ final class UserModel: ObservableObject {
     
     @Published var tokenPortfolio: [String] = []
     @Published var tokenData: [String: TokenData] = [:]
-
+    
     private var timer: Timer?
     
     @Published var hasSeenOnboarding: Bool {
@@ -160,7 +160,7 @@ final class UserModel: ObservableObject {
             if mint == USDC_MINT {
                 continue
             }
-
+            
             // bulk update token data
             let tokenMetadata = try await fetchTokenMetadata(addresses: self.tokenPortfolio)
             // update token data. since we already have fetched the metadata, this function will always have the metadata cached
@@ -206,7 +206,7 @@ final class UserModel: ObservableObject {
                 if balance ?? 0 > 0 && !portfolioContainsToken {
                     self.tokenPortfolio.append(mint)
                 }
-
+                
                 self.tokenData[mint] = tokenData
             }
         }
@@ -366,7 +366,8 @@ final class UserModel: ObservableObject {
         }
         
         // TODO: Pull the decimals in the token metadata instead of assuming 9
-        let buyQuantityToken = (buyQuantityUsdc / tokenPriceUsdc) * Int(1e9)
+        let decimals = tokenData[tokenId]?.metadata.decimals ?? 9
+        let buyQuantityToken = (buyQuantityUsdc / tokenPriceUsdc) * Int(pow(10.0,Double(decimals)))
         
         var err: (any Error)? = nil
         do {
@@ -468,52 +469,16 @@ final class UserModel: ObservableObject {
                 switch result {
                 case .success(let graphQLResult):
                     Task {
-                        let processedTxs : [TransactionData] = []
-                        if let tokenTransactions = graphQLResult.data?.transactions {
-                            // Get unique token addresses
-                            let uniqueTokens = Set(tokenTransactions.map { $0.token_mint })
-                            
-                            // Fetch all metadata in one call
-                            do {
-                                let tokens = try await self.fetchTokenMetadata(addresses: Array(uniqueTokens))
-                                
-                                var processedTxs: [TransactionData] = []
-                                
-                                for transaction in tokenTransactions {
-                                    guard let date = formatDateString(transaction.created_at)
-                                    else {
-                                        continue
-                                    }
-                                    
-                                    if abs(transaction.token_amount) == 0 {
-                                        continue
-                                    }
-                                    
-                                    let mint = transaction.token_mint
-                                    let metadata = tokens[mint]
-                                    let isBuy = transaction.token_amount >= 0
-                                    let priceUsdc = transaction.token_price_usd
-                                    let valueUsdc = Int(transaction.token_amount) * Int(priceUsdc) / Int(1e9)
-                                    
-                                    let newTransaction = TransactionData(
-                                        name: metadata?.name ?? "",
-                                        symbol: metadata?.symbol ?? "",
-                                        imageUri: metadata?.imageUri ?? "",
-                                        date: date,
-                                        valueUsdc: -valueUsdc,
-                                        quantityTokens: Int(transaction.token_amount),
-                                        isBuy: isBuy,
-                                        mint: mint
-                                    )
-                                    
-                                    processedTxs.append(newTransaction)
-                                }
-                            }catch {
-                                continuation.resume(throwing: error)
+                        do {
+                            guard let transactions = graphQLResult.data?.transactions else {
+                                let ret = [TransactionData]()
+                                return continuation.resume(returning: ret)
                             }
-                            
+                            let processedTxs = try await self.processTxs(tokenTransactions: transactions)
+                            continuation.resume(returning: processedTxs)
+                        }catch {
+                            continuation.resume(throwing: error)
                         }
-                        continuation.resume(returning: processedTxs)
                     }
                 case .failure(let error):
                     continuation.resume(throwing: error)
@@ -522,10 +487,52 @@ final class UserModel: ObservableObject {
         }
     }
     
+    private func processTxs(tokenTransactions:[GetWalletTransactionsQuery.Data.Transaction]) async throws -> [TransactionData] {
+        var processedTxs : [TransactionData] = []
+        // Get unique token addresses
+        let uniqueTokens = Set(tokenTransactions.map { $0.token_mint })
+        
+        // Fetch all metadata in one call
+        let tokens = try await self.fetchTokenMetadata(addresses: Array(uniqueTokens))
+        
+        
+        for transaction in tokenTransactions {
+            guard let date = formatDateString(transaction.created_at)
+            else {
+                continue
+            }
+            
+            if abs(transaction.token_amount) == 0 {
+                continue
+            }
+            
+            let mint = transaction.token_mint
+            let metadata = tokens[mint]
+            let isBuy = transaction.token_amount >= 0
+            let priceUsdc = transaction.token_price_usd
+            let decimals = metadata?.decimals ?? 9
+            let valueUsdc = Int(transaction.token_amount) * Int(priceUsdc) / Int(pow(10.0,Double(decimals)))
+            
+            let newTransaction = TransactionData(
+                name: metadata?.name ?? "",
+                symbol: metadata?.symbol ?? "",
+                imageUri: metadata?.imageUri ?? "",
+                date: date,
+                valueUsdc: -valueUsdc,
+                quantityTokens: Int(transaction.token_amount),
+                isBuy: isBuy,
+                mint: mint
+            )
+            
+            processedTxs.append(newTransaction)
+        }
+        return processedTxs
+    }
+    
     func fetchTokenMetadata(addresses: [String]) async throws -> [String : TokenMetadata] {
         let uncachedTokens = addresses.filter { !tokenData.keys.contains($0) }
         let cachedTokens = addresses.filter { tokenData.keys.contains($0) }
-
+        
         // Only fetch metadata for uncached tokens
         var ret = [String : TokenMetadata]()
         

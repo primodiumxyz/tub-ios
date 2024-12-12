@@ -17,6 +17,9 @@ enum InstallationSource {
     case invalid
 }
 
+let USDC_DECIMALS = 1e6
+let SOL_DECIMALS = 1e9
+
 private var installationSource: InstallationSource {
     if let receiptUrl = Bundle.main.appStoreReceiptURL {
         let path = receiptUrl.path
