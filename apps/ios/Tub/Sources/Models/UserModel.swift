@@ -169,10 +169,8 @@ final class UserModel: ObservableObject {
     }
     
     public func refreshTokenData(tokenMint: String) async {
-        guard let walletAddress else { return }
         do {
-            let balanceData = try await Network.shared.getTokenBalance(
-                address: walletAddress, tokenMint: tokenMint)
+            let balanceData = try await Network.shared.getTokenBalance(tokenMint: tokenMint)
             await updateTokenData(mint: tokenMint, balance: balanceData)
         } catch {
             return
@@ -213,11 +211,10 @@ final class UserModel: ObservableObject {
     }
     
     public func fetchUsdcBalance() async throws {
-        guard let walletAddress = self.walletAddress else { return }
         if self.initialBalanceUsdc == nil {
             try await self.fetchInitialUsdcBalance()
         } else {
-            let balanceUsdc = try await Network.shared.getUsdcBalance(address: walletAddress)
+            let balanceUsdc = try await Network.shared.getUsdcBalance()
             await MainActor.run {
                 self.balanceUsdc = balanceUsdc
                 if let initialBalanceUsdc = self.initialBalanceUsdc {
@@ -228,9 +225,8 @@ final class UserModel: ObservableObject {
     }
     
     private func fetchInitialUsdcBalance() async throws {
-        guard let walletAddress = self.walletAddress else { return }
         do {
-            let balanceUsdc = try await Network.shared.getUsdcBalance(address: walletAddress)
+            let balanceUsdc = try await Network.shared.getUsdcBalance()
             await MainActor.run {
                 self.initialBalanceUsdc = balanceUsdc
                 self.balanceUsdc = balanceUsdc

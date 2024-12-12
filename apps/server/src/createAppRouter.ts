@@ -201,7 +201,7 @@ export function createAppRouter() {
           sellQuantity: z.number(),
         }),
       )
-      .mutation(async ({ ctx, input }) => {
+      .query(async ({ ctx, input }) => {
         return await ctx.tubService.fetchSwap(ctx.jwtToken, input);
       }),
 
@@ -213,7 +213,7 @@ export function createAppRouter() {
           sellQuantity: z.number(),
         }),
       )
-      .mutation(async ({ ctx, input }) => {
+      .query(async ({ ctx, input }) => {
         return await ctx.tubService.fetchPresignedSwap(ctx.jwtToken, input);
       }),
 
@@ -223,7 +223,7 @@ export function createAppRouter() {
 
     getSignedTransfer: t.procedure
       .input(z.object({ fromAddress: z.string(), toAddress: z.string(), amount: z.string(), tokenId: z.string() }))
-      .mutation(async ({ ctx, input }) => {
+      .query(async ({ ctx, input }) => {
         const amountBigInt = BigInt(input.amount);
         return await ctx.tubService.getSignedTransfer(ctx.jwtToken, { ...input, amount: amountBigInt });
       }),
