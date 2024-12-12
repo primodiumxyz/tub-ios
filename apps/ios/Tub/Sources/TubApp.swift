@@ -41,7 +41,7 @@ struct AppContent: View {
     var body: some View {
         Group {
             if let _ = priceModel.error {
-                LoginErrorView(
+                ErrorView(
                     errorMessage: "Failed to get price data",
                     retryAction: {
                         Task {

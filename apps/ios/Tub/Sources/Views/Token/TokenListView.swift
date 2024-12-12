@@ -164,8 +164,9 @@ struct TokenListView: View {
                 VStack(spacing: 0) {
                     // Rest of the content
                     if tokenListModel.totalTokenCount == 0 {
-                        TokenLoadErrorView()
-                    }
+                        ErrorView(errorMessage: "No tokens found.", retryAction: tokenListModel.startTokenSubscription)
+                    .frame(maxHeight: .infinity)
+                        }
 
                 }
 
@@ -254,35 +255,4 @@ struct TokenListView: View {
         }
     }
 
-}
-struct TokenLoadErrorView: View {
-    @EnvironmentObject var tokenListModel: TokenListModel
-
-    var body: some View {
-        VStack {
-            Spacer()
-            Text("Failed to load tokens.")
-                .multilineTextAlignment(.center)
-                .padding(.bottom, 24)
-            Button(action: {
-                Task {
-                    await tokenListModel.startTokenSubscription()
-                }
-            }) {
-                Text("Retry")
-                    .font(.sfRounded(size: .lg, weight: .semibold))
-                    .frame(maxWidth: 300)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .background(Color.purple)
-                    .cornerRadius(30)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 30)
-                            .inset(by: 0.5)
-                            .stroke(Color.purple, lineWidth: 1)
-                    )
-            }
-            Spacer()
-        }
-    }
 }

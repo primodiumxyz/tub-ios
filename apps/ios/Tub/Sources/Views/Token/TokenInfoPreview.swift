@@ -151,7 +151,7 @@ struct TokenInfoPreview: View {
                     TokenInfoCardView(tokenData: tokenData, stats: generalStats)
                         .presentationDetents([.height(400)])
                 } else {
-                    LoginErrorView(errorMessage: "Couldn't find token information.", retryAction: {})
+                    ErrorView(errorMessage: "Couldn't find token information.", retryAction: {})
                         .presentationDetents([.height(400)])
                 }
         }
