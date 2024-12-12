@@ -150,7 +150,7 @@ struct TokenListView: View {
             )
             .zIndex(3)
 
-            if tokenListModel.totalTokenCount == 0 && tokenListModel.fetching {
+            if tokenListModel.totalTokenCount == 0 && !tokenListModel.initialFetchComplete {
                 GeometryReader { geometry in
                     TokenView(
                         tokenModel: TokenModel()
@@ -246,9 +246,7 @@ struct TokenListView: View {
                 }
             }
         }.onAppear {
-            Task {
-                await tokenListModel.startTokenSubscription()
-            }
+            tokenListModel.startTokenSubscription()
         }
         .onDisappear {
             tokenListModel.stopTokenSubscription()

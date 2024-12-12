@@ -166,9 +166,9 @@ final class TokenListModel: ObservableObject {
     }
     
     
-    @Published var fetching = false
-    public func startTokenSubscription() async {
-        do {
+    @Published var initialFetchComplete = false
+    
+    public func startTokenSubscription() {
             self.hotTokensSubscription = Network.shared.apollo.subscribe(
                 subscription: SubTopTokensByVolumeSubscription(
                     interval: .some(HOT_TOKENS_INTERVAL),
@@ -203,13 +203,13 @@ final class TokenListModel: ObservableObject {
                         return []
                     }
                 }()
-                self.fetching = false
+                
+                if !self.initialFetchComplete { self.initialFetchComplete = true }
                 self.updatePendingTokens(hotTokens)
                 if self.tokenQueue.isEmpty {
                     self.initializeTokenQueue()
                 }
             }
-        }
     }
     
     func stopTokenSubscription() {
