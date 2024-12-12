@@ -59,8 +59,9 @@ struct CandleChartView: View {
         }
 
         let endTime = candles.last?.end ?? Date()
+        let rightMargin = timeframeMins * 60 * 0.1 
         let startTime = endTime.addingTimeInterval(-timeframeMins * 60)
-        return startTime...endTime
+        return startTime...endTime.addingTimeInterval(rightMargin)
     }
 
     var body: some View {

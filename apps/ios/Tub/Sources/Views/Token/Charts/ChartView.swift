@@ -21,7 +21,7 @@ struct ChartView: View {
     let initialPointSize: Double = 35
     @State private var pointSize: Double = 35
 
-    private let xAxisPadding: Double = Timespan.live.seconds * 0.13
+    private let xAxisPadding: Double = Timespan.live.seconds * 0.1
 
     var purchasePriceUsd: Double? {
         if let priceUsdc = purchaseData?.priceUsdc {
