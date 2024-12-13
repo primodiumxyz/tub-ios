@@ -1,11 +1,8 @@
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import { createTransferInstruction } from "@solana/spl-token";
+import { config } from "../utils/config";
 
 export type FeeSettings = {
-  buyFee: number;
-  sellFee: number;
-  minTradeSize: number;
-  feePayerPublicKey: PublicKey;
   tradeFeeRecipient: PublicKey;
 };
 
@@ -29,11 +26,11 @@ export class FeeService {
   calculateFeeAmount(sellTokenId: string, sellQuantity: number, usdcTokenIds: string[]): number {
     const isUsdcSell = usdcTokenIds.includes(sellTokenId);
 
-    if (isUsdcSell && this.settings.minTradeSize * 1e6 < sellQuantity) {
+    if (isUsdcSell && config().MIN_TRADE_SIZE_USD * 1e6 < sellQuantity) {
       throw new Error("USDC sell quantity is below minimum trade size");
     }
 
-    const feeAmount = isUsdcSell ? (BigInt(this.settings.buyFee) * BigInt(sellQuantity)) / 10000n : 0;
+    const feeAmount = isUsdcSell ? (BigInt(config().BUY_FEE_BPS) * BigInt(sellQuantity)) / 10000n : 0;
 
     return Number(feeAmount);
   }

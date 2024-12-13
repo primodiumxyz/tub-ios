@@ -20,7 +20,8 @@ import {
 } from "../types";
 import { deriveTokenAccounts } from "../utils/tokenAccounts";
 import bs58 from "bs58";
-import { keyConfig } from "../utils/config";
+import { USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
+import { config } from "../utils/config";
 
 /**
  * Service class handling token trading, swaps, and user operations
@@ -68,15 +69,10 @@ export class TubService {
 
     // Initialize fee payer
     const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY));
-    const feePayerPublicKey = feePayerKeypair.publicKey;
 
     this.authService = new AuthService(this.privy);
-    this.transactionService = new TransactionService(this.connection, feePayerKeypair, feePayerPublicKey);
+    this.transactionService = new TransactionService(this.connection, feePayerKeypair);
     this.feeService = new FeeService({
-      buyFee: env.OCTANE_BUY_FEE,
-      sellFee: env.OCTANE_SELL_FEE,
-      minTradeSize: env.OCTANE_MIN_TRADE_SIZE,
-      feePayerPublicKey: feePayerPublicKey,
       tradeFeeRecipient: validatedTradeFeeRecipient,
     });
     this.swapService = new SwapService(this.jupiterService, this.transactionService, this.feeService);
@@ -92,7 +88,7 @@ export class TubService {
    * @throws Error if the trade fee recipient does not have a valid USDC ATA
    */
   private async validateTradeFeeRecipient(): Promise<PublicKey> {
-    let tradeFeeRecipientUsdcAtaAddress = new PublicKey(env.OCTANE_TRADE_FEE_RECIPIENT);
+    let tradeFeeRecipientUsdcAtaAddress = new PublicKey(config().TRADE_FEE_RECIPIENT);
 
     try {
       // Check if env is a USDC ATA address
@@ -102,8 +98,8 @@ export class TubService {
       try {
         // Check if env is a pubkey address that has a valid USDC ATA
         tradeFeeRecipientUsdcAtaAddress = getAssociatedTokenAddressSync(
-          keyConfig("USDC_MAINNET_PUBLIC_KEY"),
-          new PublicKey(env.OCTANE_TRADE_FEE_RECIPIENT),
+          USDC_MAINNET_PUBLIC_KEY,
+          new PublicKey(config().TRADE_FEE_RECIPIENT),
         );
         await getAccount(this.connection, tradeFeeRecipientUsdcAtaAddress);
       } catch {

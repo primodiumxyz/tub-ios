@@ -2,6 +2,7 @@ import { Connection, PublicKey, TransactionInstruction, AddressLookupTableAccoun
 import { DefaultApi, QuoteGetRequest, QuoteResponse, SwapInstructionsPostRequest } from "@jup-ag/api";
 import { EventEmitter } from "events";
 import { config } from "../utils/config";
+import { SOL_MAINNET_PUBLIC_KEY, USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
 
 export type JupiterSettings = {
   connection: Connection;
@@ -37,7 +38,7 @@ export class JupiterService {
     // Update the SOL/USD price at every interval
     const interval = setInterval(() => {
       this.updateSolUsdPrice();
-    }, config().registry.SOL_USD_PRICE_UPDATE_INTERVAL);
+    }, config().SOL_USD_PRICE_UPDATE_INTERVAL);
     this.updateSolUsdPrice();
 
     interval.unref(); // allow Node.js to exit if only this interval is still running
@@ -106,7 +107,7 @@ export class JupiterService {
         throw new Error("No quote received");
       }
 
-      const minSlippage = config().swap.MIN_SLIPPAGE_BPS;
+      const minSlippage = config().MIN_SLIPPAGE_BPS;
       let dynamicSlippage: undefined | { minBps: number; maxBps: number } = undefined;
       // override computedAutoSlippage if it is less than MIN_SLIPPAGE_BPS
       if (quote.computedAutoSlippage) {
@@ -181,8 +182,8 @@ export class JupiterService {
   private async updateSolUsdPrice(): Promise<void> {
     try {
       const res = await this.jupiterQuoteApi.quoteGet({
-        inputMint: config().tokens.SOL_MAINNET_PUBLIC_KEY,
-        outputMint: config().tokens.USDC_MAINNET_PUBLIC_KEY,
+        inputMint: SOL_MAINNET_PUBLIC_KEY.toString(),
+        outputMint: USDC_MAINNET_PUBLIC_KEY.toString(),
         amount: 1 * 1e9, // convert to lamports
       });
 

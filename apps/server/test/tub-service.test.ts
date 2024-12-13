@@ -8,8 +8,8 @@ import { createClient as createGqlClient } from "@tub/gql";
 import bs58 from "bs58";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
 import { env } from "../bin/tub-server";
-import { config, keyConfig } from "../src/utils/config";
 import { PrebuildSwapResponse } from "../src/types";
+import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY, MEMECOIN_MAINNET_PUBLIC_KEY } from "../src/constants/tokens";
 
 // Skip entire suite in CI, because it would perform a live transaction each deployment
 (env.CI ? describe.skip : describe)("TubService Integration Test", () => {
@@ -59,18 +59,12 @@ import { PrebuildSwapResponse } from "../src/types";
       console.log("\nTest setup complete with user public key:", userKeypair.publicKey.toBase58());
 
       // Get fee payer token accounts
-      const feePayerUsdcAta = await getAssociatedTokenAddress(
-        keyConfig("USDC_MAINNET_PUBLIC_KEY"),
-        feePayerKeypair.publicKey,
-      );
-      const feePayerSolAta = await getAssociatedTokenAddress(
-        keyConfig("SOL_MAINNET_PUBLIC_KEY"),
-        feePayerKeypair.publicKey,
-      );
+      const feePayerUsdcAta = await getAssociatedTokenAddress(USDC_MAINNET_PUBLIC_KEY, feePayerKeypair.publicKey);
+      const feePayerSolAta = await getAssociatedTokenAddress(SOL_MAINNET_PUBLIC_KEY, feePayerKeypair.publicKey);
 
       // Get user token accounts
-      const userUsdcAta = await getAssociatedTokenAddress(keyConfig("USDC_MAINNET_PUBLIC_KEY"), userKeypair.publicKey);
-      const userSolAta = await getAssociatedTokenAddress(keyConfig("SOL_MAINNET_PUBLIC_KEY"), userKeypair.publicKey);
+      const userUsdcAta = await getAssociatedTokenAddress(USDC_MAINNET_PUBLIC_KEY, userKeypair.publicKey);
+      const userSolAta = await getAssociatedTokenAddress(SOL_MAINNET_PUBLIC_KEY, userKeypair.publicKey);
 
       console.log("\nToken Accounts:");
       console.log("Fee Payer:", feePayerKeypair.publicKey.toBase58());
@@ -134,8 +128,8 @@ import { PrebuildSwapResponse } from "../src/types";
       console.log("\nGetting 1 USDC to SOL swap transaction...");
 
       const swapResponse = await tubService.fetchSwap(mockJwtToken, {
-        buyTokenId: config().tokens.SOL_MAINNET_PUBLIC_KEY,
-        sellTokenId: config().tokens.USDC_MAINNET_PUBLIC_KEY,
+        buyTokenId: SOL_MAINNET_PUBLIC_KEY.toString(),
+        sellTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
         sellQuantity: 1e6 / 1000, // 0.001 USDC
         slippageBps: undefined,
       });
@@ -147,8 +141,8 @@ import { PrebuildSwapResponse } from "../src/types";
       it("should complete a USDC to MEMECOIN swap", async () => {
         // Get swap instructions
         const swapResponse = await tubService.fetchSwap(mockJwtToken, {
-          buyTokenId: config().tokens.MEMECOIN_MAINNET_PUBLIC_KEY,
-          sellTokenId: config().tokens.USDC_MAINNET_PUBLIC_KEY,
+          buyTokenId: MEMECOIN_MAINNET_PUBLIC_KEY.toString(),
+          sellTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
           sellQuantity: 1e6 / 1000, // 0.001 USDC
           slippageBps: undefined,
         });
@@ -157,10 +151,7 @@ import { PrebuildSwapResponse } from "../src/types";
       }, 11000);
 
       it.skip("should transfer half of held MEMECOIN to USDC", async () => {
-        const userMEMECOINAta = await getAssociatedTokenAddress(
-          keyConfig("MEMECOIN_MAINNET_PUBLIC_KEY"),
-          userKeypair.publicKey,
-        );
+        const userMEMECOINAta = await getAssociatedTokenAddress(MEMECOIN_MAINNET_PUBLIC_KEY, userKeypair.publicKey);
         const valueBalance = await connection.getTokenAccountBalance(userMEMECOINAta);
         const decimals = valueBalance.value.decimals;
         console.log("MEMECOIN balance:", valueBalance.value.uiAmount);
@@ -171,8 +162,8 @@ import { PrebuildSwapResponse } from "../src/types";
 
         const balanceToken = valueBalance.value.uiAmount * 10 ** decimals;
         const swap = {
-          buyTokenId: config().tokens.USDC_MAINNET_PUBLIC_KEY,
-          sellTokenId: config().tokens.MEMECOIN_MAINNET_PUBLIC_KEY,
+          buyTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
+          sellTokenId: MEMECOIN_MAINNET_PUBLIC_KEY.toString(),
           sellQuantity: Math.round(balanceToken / 2),
           slippageBps: 100,
         };

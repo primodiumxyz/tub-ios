@@ -22,6 +22,10 @@ const commonSchema = z.object({
   PRIVY_APP_ID: z.string(),
   PRIVY_APP_SECRET: z.string(),
   OCTANE_TRADE_FEE_RECIPIENT: z.string(),
+
+  REDIS_HOST: z.string().default("localhost"),
+  REDIS_PORT: z.coerce.number().default(6379),
+  REDIS_PASSWORD: z.string().optional(),
 });
 export function parseEnv<TSchema extends ZodTypeAny | undefined = undefined>(
   schema?: TSchema,

@@ -12,6 +12,7 @@ import {
 } from "@solana/web3.js";
 import bs58 from "bs58";
 import { config } from "../utils/config";
+import { ATA_PROGRAM_PUBLIC_KEY, JUPITER_PROGRAM_PUBLIC_KEY, TOKEN_PROGRAM_PUBLIC_KEY } from "../constants/tokens";
 
 export type TransactionRegistryEntry = {
   message: MessageV0;
@@ -27,15 +28,14 @@ export class TransactionService {
   constructor(
     private connection: Connection,
     private feePayerKeypair: Keypair,
-    private feePayerPublicKey: PublicKey,
   ) {
-    setInterval(() => this.cleanupRegistry(), config().registry.CLEANUP_INTERVAL);
+    setInterval(() => this.cleanupRegistry(), config().CLEANUP_INTERVAL);
   }
 
   private cleanupRegistry() {
     const now = Date.now();
     for (const [key, value] of this.messageRegistry.entries()) {
-      if (now - value.timestamp > config().registry.REGISTRY_TIMEOUT) {
+      if (now - value.timestamp > config().REGISTRY_TIMEOUT) {
         this.messageRegistry.delete(key);
       }
     }
@@ -51,7 +51,7 @@ export class TransactionService {
     const { blockhash } = await this.connection.getLatestBlockhash();
 
     const message = new TransactionMessage({
-      payerKey: this.feePayerPublicKey,
+      payerKey: this.feePayerKeypair.publicKey,
       recentBlockhash: blockhash,
       instructions,
     }).compileToV0Message(addressLookupTableAccounts);
@@ -121,9 +121,6 @@ export class TransactionService {
     if (!entry) {
       throw new Error("Transaction not found in registry");
     }
-
-    const { registry: registryConfig, tokens } = config();
-
     const transaction = new VersionedTransaction(entry.message);
 
     // Add user signature
@@ -133,7 +130,7 @@ export class TransactionService {
     // Add fee payer signature
     const feePayerSignature = await this.signTransaction(transaction);
     const feePayerSignatureBytes = Buffer.from(bs58.decode(feePayerSignature));
-    transaction.addSignature(this.feePayerPublicKey, feePayerSignatureBytes);
+    transaction.addSignature(this.feePayerKeypair.publicKey, feePayerSignatureBytes);
 
     // Simulate transaction
     const simConfig: SimulateTransactionConfig = {
@@ -172,11 +169,11 @@ export class TransactionService {
 
             let errorMessage = `Tx sim failed: ${errorStr}`;
 
-            if (programId === new PublicKey(tokens.TOKEN_PROGRAM_PUBLIC_KEY)) {
+            if (programId === TOKEN_PROGRAM_PUBLIC_KEY) {
               errorMessage = `Sim failed, Token Program Error: ${errorStr}`; // This usually means there's an issue with token accounts or balances.
-            } else if (programId === new PublicKey(tokens.ATA_PROGRAM_PUBLIC_KEY)) {
+            } else if (programId === ATA_PROGRAM_PUBLIC_KEY) {
               errorMessage = `Sim failed, ATA Error: ${errorStr}`; // This usually means there's an issue creating or accessing a token account.
-            } else if (programId === new PublicKey(tokens.JUPITER_PROGRAM_PUBLIC_KEY)) {
+            } else if (programId === JUPITER_PROGRAM_PUBLIC_KEY) {
               if (errorStr.includes("6001")) {
                 errorMessage = `Sim failed, Slippage Tolerance Exceeded`;
               } else {
@@ -199,8 +196,8 @@ export class TransactionService {
     });
 
     let confirmation = null;
-    for (let attempt = 0; attempt < registryConfig.RETRY_ATTEMPTS; attempt++) {
-      console.log(`Tx Confirmation Attempt ${attempt + 1} of ${registryConfig.RETRY_ATTEMPTS}`);
+    for (let attempt = 0; attempt < config().RETRY_ATTEMPTS; attempt++) {
+      console.log(`Tx Confirmation Attempt ${attempt + 1} of ${config().RETRY_ATTEMPTS}`);
       try {
         const status = await this.connection.getSignatureStatus(txid, {
           searchTransactionHistory: true,
@@ -214,10 +211,10 @@ export class TransactionService {
         }
       } catch (error) {
         console.log(`Attempt ${attempt + 1} failed:`, error);
-        if (attempt === registryConfig.RETRY_ATTEMPTS - 1)
-          throw new Error(`Failed to get transaction confirmation after ${registryConfig.RETRY_ATTEMPTS} attempts`);
+        if (attempt === config().RETRY_ATTEMPTS - 1)
+          throw new Error(`Failed to get transaction confirmation after ${config().RETRY_ATTEMPTS} attempts`);
       }
-      await new Promise((resolve) => setTimeout(resolve, registryConfig.RETRY_DELAY)); // Wait 1 second before retrying
+      await new Promise((resolve) => setTimeout(resolve, config().RETRY_DELAY)); // Wait 1 second before retrying
     }
 
     if (!confirmation || confirmation.value?.err) {
@@ -232,15 +229,14 @@ export class TransactionService {
    * Reassigns rent payer in instructions to the fee payer
    */
   reassignRentInstructions(instructions: TransactionInstruction[]): TransactionInstruction[] {
-    const { tokens } = config();
     return instructions.map((instruction) => {
       // If this is an ATA creation instruction, modify it to make fee payer pay for rent
-      if (instruction.programId.equals(new PublicKey(tokens.ATA_PROGRAM_PUBLIC_KEY))) {
+      if (instruction.programId.equals(ATA_PROGRAM_PUBLIC_KEY)) {
         return new TransactionInstruction({
           programId: instruction.programId,
           keys: [
             {
-              pubkey: this.feePayerPublicKey,
+              pubkey: this.feePayerKeypair.publicKey,
               isSigner: true,
               isWritable: true,
             },
@@ -252,7 +248,7 @@ export class TransactionService {
 
       // This is a CloseAccount instruction, receive the residual funds as the FeePayer
       if (
-        instruction.programId.equals(new PublicKey(tokens.TOKEN_PROGRAM_PUBLIC_KEY)) &&
+        instruction.programId.equals(TOKEN_PROGRAM_PUBLIC_KEY) &&
         instruction.data.length === 1 &&
         instruction.data[0] === 9
       ) {
@@ -266,7 +262,7 @@ export class TransactionService {
           keys: [
             firstKey,
             {
-              pubkey: this.feePayerPublicKey,
+              pubkey: this.feePayerKeypair.publicKey,
               isSigner: false,
               isWritable: true,
             },
