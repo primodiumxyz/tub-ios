@@ -105,7 +105,7 @@ final class TxManager: ObservableObject {
         Task {
             try? await UserModel.shared.fetchUsdcBalance()
         }
-        if let tokenId {
+        if tokenId != "" {
             Task {
                 await UserModel.shared.refreshTokenData(tokenMint: tokenId)
             }
