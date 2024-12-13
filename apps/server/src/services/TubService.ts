@@ -1,4 +1,5 @@
 import { Connection, Keypair, PublicKey, VersionedTransaction } from "@solana/web3.js";
+import { getAccount, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { GqlClient } from "@tub/gql";
 import { PrivyClient } from "@privy-io/server-auth";
 import { JupiterService } from "./JupiterService";
@@ -13,50 +14,98 @@ import { UserPrebuildSwapRequest, PrebuildSwapResponse, PrebuildSignedSwapRespon
 import { deriveTokenAccounts } from "../utils/tokenAccounts";
 import bs58 from "bs58";
 import { TOKEN_PROGRAM_PUBLIC_KEY } from "../constants/tokens";
+import { USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
 
 /**
  * Service class handling token trading, swaps, and user operations
  */
 export class TubService {
-  private connection: Connection;
-  private swapService: SwapService;
-  private authService: AuthService;
-  private transactionService: TransactionService;
-  private feeService: FeeService;
-  private analyticsService: AnalyticsService;
-  private transferService: TransferService;
-  private jupiterService: JupiterService;
+  private connection!: Connection;
+  private swapService!: SwapService;
+  private authService!: AuthService;
+  private transactionService!: TransactionService;
+  private feeService!: FeeService;
+  private analyticsService!: AnalyticsService;
+  private transferService!: TransferService;
 
   /**
    * Creates a new instance of TubService
    * @param gqlClient - GraphQL client for database operations
    * @param privy - Privy client for authentication
-   * @param jupiter - JupiterService instance for transaction handling
+   * @param jupiterService - JupiterService instance for transaction handling
    */
-  constructor(gqlClient: GqlClient["db"], privy: PrivyClient, jupiter: JupiterService) {
+  private constructor(
+    private readonly gqlClient: GqlClient["db"],
+    private readonly privy: PrivyClient,
+    private readonly jupiterService: JupiterService,
+  ) {}
+
+  /**
+   * Factory method to create a fully initialized TubService
+   */
+  static async create(
+    gqlClient: GqlClient["db"],
+    privy: PrivyClient,
+    jupiterService: JupiterService,
+  ): Promise<TubService> {
+    const service = new TubService(gqlClient, privy, jupiterService);
+    await service.initialize();
+    return service;
+  }
+
+  private async initialize(): Promise<void> {
+    // initialize connection
     this.connection = new Connection(`${env.QUICKNODE_ENDPOINT}/${env.QUICKNODE_TOKEN}`);
-    this.authService = new AuthService(privy);
+
+    // validate trade fee recipient
+    const validatedTradeFeeRecipient = await this.validateTradeFeeRecipient();
 
     // Initialize fee payer
     const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY));
     const feePayerPublicKey = feePayerKeypair.publicKey;
 
-    // Initialize services
+    this.authService = new AuthService(this.privy);
     this.transactionService = new TransactionService(this.connection, feePayerKeypair, feePayerPublicKey);
-
     this.feeService = new FeeService({
       buyFee: env.OCTANE_BUY_FEE,
       sellFee: env.OCTANE_SELL_FEE,
       minTradeSize: env.OCTANE_MIN_TRADE_SIZE,
       feePayerPublicKey: feePayerPublicKey,
-      tradeFeeRecipient: new PublicKey(env.OCTANE_TRADE_FEE_RECIPIENT),
+      tradeFeeRecipient: validatedTradeFeeRecipient,
     });
-
-    this.swapService = new SwapService(jupiter, this.transactionService, this.feeService);
-
-    this.analyticsService = new AnalyticsService(gqlClient);
+    this.swapService = new SwapService(this.jupiterService, this.transactionService, this.feeService);
+    this.analyticsService = new AnalyticsService(this.gqlClient);
     this.transferService = new TransferService(this.connection, feePayerKeypair, this.transactionService);
-    this.jupiterService = jupiter;
+  }
+
+  /**
+   * Validates that the trade fee recipient has a valid USDC ATA
+   * @remarks
+   * This method checks if the trade fee recipient is an initialized USDC ATA address. If not, checks that if the trade fee recipient is a pubkey address that has a valid USDC ATA.
+   * @returns The public key of the trade fee recipient USDC ATA
+   * @throws Error if the trade fee recipient does not have a valid USDC ATA
+   */
+  private async validateTradeFeeRecipient(): Promise<PublicKey> {
+    let tradeFeeRecipientUsdcAtaAddress = new PublicKey(env.OCTANE_TRADE_FEE_RECIPIENT);
+
+    try {
+      // Check if env is a USDC ATA address
+      await getAccount(this.connection, tradeFeeRecipientUsdcAtaAddress);
+      return tradeFeeRecipientUsdcAtaAddress;
+    } catch {
+      try {
+        // Check if env is a pubkey address that has a valid USDC ATA
+        tradeFeeRecipientUsdcAtaAddress = getAssociatedTokenAddressSync(
+          new PublicKey(USDC_MAINNET_PUBLIC_KEY),
+          new PublicKey(env.OCTANE_TRADE_FEE_RECIPIENT),
+        );
+        await getAccount(this.connection, tradeFeeRecipientUsdcAtaAddress);
+      } catch {
+        throw new Error("Trade fee recipient not a valid USDC ATA");
+      }
+    }
+
+    return tradeFeeRecipientUsdcAtaAddress;
   }
 
   // Status endpoint
