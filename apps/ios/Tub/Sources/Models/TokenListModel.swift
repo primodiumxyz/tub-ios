@@ -138,13 +138,18 @@ final class TokenListModel: ObservableObject {
         if let nextModel = nextTokenModel {
             currentTokenModel = nextModel
             initCurrentTokenModel(with: nextModel.tokenId)
-            removePendingToken(nextModel.tokenId)
+            DispatchQueue.main.sync {
+                removePendingToken(nextModel.tokenId)
+            }
         }
         else {
             currentTokenModel = TokenModel()
             if let newToken = getNextToken() {
                 initCurrentTokenModel(with: newToken)
-                removePendingToken(newToken)
+                
+                DispatchQueue.main.sync {
+                    removePendingToken(newToken)
+                }
             }
         }
     }
@@ -200,11 +205,12 @@ final class TokenListModel: ObservableObject {
                     }()
                     await MainActor.run {
                         if !self.initialFetchComplete { self.initialFetchComplete = true }
-                    }
+                    
                         self.updatePendingTokens(hotTokens)
                         if self.tokenQueue.isEmpty {
                             self.initializeTokenQueue()
                         }
+}
                }
                 
                 
@@ -215,10 +221,12 @@ final class TokenListModel: ObservableObject {
         self.hotTokensSubscription?.cancel()
     }
     
+    @MainActor
     private func removePendingToken(_ tokenId: String) {
         self.pendingTokens = self.pendingTokens.filter { $0 != tokenId }
     }
     
+    @MainActor
     private func updatePendingTokens(_ newTokens: [String]) {
         guard !newTokens.isEmpty else { return }
         
@@ -235,6 +243,7 @@ final class TokenListModel: ObservableObject {
         self.pendingTokens = Array((unqueuedNewTokens + uniqueOldTokens).prefix(20))
     }
     
+    @MainActor
     private func initializeTokenQueue() {
         if !self.tokenQueue.isEmpty { return }
         
