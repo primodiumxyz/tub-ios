@@ -8,6 +8,7 @@ export const GetWalletTransactionsQuery = graphql(`
       token_mint
       token_amount
       token_price_usd
+      token_value_usd
     }
   }
 `);
