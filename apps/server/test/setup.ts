@@ -30,7 +30,6 @@ export default async function () {
   env.JUPITER_URL = env.JUPITER_URL || "https://quote-api.jup.ag/v6";
   env.PRIVY_APP_ID = env.PRIVY_APP_ID || "dummy-privy-app-id";
   env.PRIVY_APP_SECRET = env.PRIVY_APP_SECRET || "dummy-privy-secret";
-  env.OCTANE_TRADE_FEE_RECIPIENT = env.OCTANE_TRADE_FEE_RECIPIENT || "11111111111111111111111111111111";
   env.OCTANE_BUY_FEE = Number(env.OCTANE_BUY_FEE) || 100;
   env.OCTANE_SELL_FEE = Number(env.OCTANE_SELL_FEE) || 0;
   env.OCTANE_MIN_TRADE_SIZE = Number(env.OCTANE_MIN_TRADE_SIZE) || 15;
