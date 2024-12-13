@@ -10,16 +10,10 @@ import { AuthService } from "./AuthService";
 import { AnalyticsService, TokenPurchaseOrSaleEvent } from "./AnalyticsService";
 import { TransferService } from "./TransferService";
 import { env } from "../../bin/tub-server";
-import {
-  UserPrebuildSwapRequest,
-  PrebuildSwapResponse,
-  PrebuildSignedSwapResponse,
-  ClientEvent,
-  TransferRequest,
-  SignedTransfer,
-} from "../types";
+import { UserPrebuildSwapRequest, PrebuildSwapResponse, PrebuildSignedSwapResponse, ClientEvent } from "../types";
 import { deriveTokenAccounts } from "../utils/tokenAccounts";
 import bs58 from "bs58";
+import { TOKEN_PROGRAM_PUBLIC_KEY } from "../constants/tokens";
 import { USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
 import { config } from "../utils/config";
 
@@ -77,7 +71,7 @@ export class TubService {
     });
     this.swapService = new SwapService(this.jupiterService, this.transactionService, this.feeService);
     this.analyticsService = new AnalyticsService(this.gqlClient);
-    this.transferService = new TransferService(this.connection, feePayerKeypair);
+    this.transferService = new TransferService(this.connection, feePayerKeypair, this.transactionService);
   }
 
   /**
@@ -138,12 +132,6 @@ export class TubService {
 
   subscribeSolPrice(callback: (price: number) => void): () => void {
     return this.jupiterService.subscribeSolPrice(callback);
-  }
-
-  // Transfer methods
-  async getSignedTransfer(jwtToken: string, request: TransferRequest): Promise<SignedTransfer> {
-    await this.authService.getUserContext(jwtToken); // Verify user is authenticated
-    return this.transferService.getSignedTransfer(request);
   }
 
   /**
@@ -266,7 +254,7 @@ export class TubService {
 
   async signAndSendTransaction(jwtToken: string, userSignature: string, base64TransactionMessage: string) {
     const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
-    return this.swapService.signAndSendTransaction(walletPublicKey, userSignature, base64TransactionMessage);
+    return this.transactionService.signAndSendTransaction(walletPublicKey, userSignature, base64TransactionMessage);
   }
 
   /**
@@ -311,5 +299,67 @@ export class TubService {
 
     this.swapService.updateActiveRequest(userId, updatedRequest);
     return response;
+  }
+
+  async getBalance(jwtToken: string): Promise<{ balance: number }> {
+    const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
+
+    const balance = await this.connection.getBalance(walletPublicKey, "processed");
+    return { balance };
+  }
+
+  async getAllTokenBalances(jwtToken: string): Promise<Array<{ mint: string; balanceToken: number }>> {
+    const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
+
+    const tokenAccounts = await this.connection.getParsedTokenAccountsByOwner(
+      walletPublicKey,
+      { programId: TOKEN_PROGRAM_PUBLIC_KEY },
+      "processed",
+    );
+
+    return tokenAccounts.value.map((account) => ({
+      mint: account.account.data.parsed.info.mint,
+      balanceToken: Number(account.account.data.parsed.info.tokenAmount.amount),
+    }));
+  }
+
+  async getTokenBalance(jwtToken: string, tokenMint: string): Promise<{ balance: number }> {
+    const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
+
+    const tokenAccounts = await this.connection.getParsedTokenAccountsByOwner(
+      walletPublicKey,
+      { mint: new PublicKey(tokenMint) },
+      "processed",
+    );
+
+    if (tokenAccounts.value.length === 0 || !tokenAccounts.value[0]?.account.data.parsed.info.tokenAmount.amount)
+      return { balance: 0 };
+
+    const balance = Number(tokenAccounts.value[0].account.data.parsed.info.tokenAmount.amount);
+    return { balance };
+  }
+
+  /**
+   * Creates a transaction for transferring USDC
+   */
+  async fetchTransferTx(
+    jwtToken: string,
+    request: {
+      toAddress: string;
+      amount: string;
+      tokenId: string;
+    },
+  ): Promise<{ transactionMessageBase64: string }> {
+    const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
+
+    const transferRequest = {
+      fromAddress: walletPublicKey.toBase58(),
+      toAddress: request.toAddress,
+      amount: BigInt(request.amount),
+      tokenId: request.tokenId,
+    };
+
+    // Get the transfer transaction from the transfer service
+    return await this.transferService.getTransfer(transferRequest);
   }
 }

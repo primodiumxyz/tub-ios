@@ -13,7 +13,7 @@ struct AccountBalanceView: View {
     @ObservedObject var currentTokenModel: TokenModel
     
     var balanceToken: Int {
-        userModel.tokenPortfolio[currentTokenModel.token.id]?.balanceToken ?? 0
+        userModel.tokenData[currentTokenModel.tokenId]?.balanceToken ?? 0
     }
     
     var balances: (usdcBalanceUsd: Double?, tokenBalanceUsd: Double, deltaUsd: Double) {

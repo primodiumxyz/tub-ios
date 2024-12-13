@@ -7,14 +7,14 @@
 import SwiftUI
 
 struct TokenInfoCardView: View {
-    @ObservedObject var tokenModel: TokenModel
     @EnvironmentObject var priceModel: SolPriceModel
     var stats: [StatValue]
     @State private var isDescriptionExpanded = false
     var sellStats: [StatValue]?
+    let tokenData: TokenData
 
-    init(tokenModel: TokenModel, stats: [StatValue], sellStats: [StatValue]? = nil) {
-        self.tokenModel = tokenModel
+    init(tokenData: TokenData, stats: [StatValue], sellStats: [StatValue]? = nil) {
+        self.tokenData = tokenData
         self.stats = stats
         self.sellStats = sellStats
     }
@@ -34,7 +34,7 @@ struct TokenInfoCardView: View {
 
             ScrollView(.vertical, showsIndicators: true) {
                 VStack(alignment: .leading, spacing: 0) {
-                    Text(tokenModel.token.name)
+                    Text(tokenData.metadata.name)
                         .font(.sfRounded(size: .xl, weight: .semibold))
                         .frame(maxWidth: .infinity, alignment: .topLeading)
                         .padding(.bottom, 4)
@@ -64,12 +64,12 @@ struct TokenInfoCardView: View {
                             .frame(maxWidth: .infinity, alignment: .topLeading)
 
                         VStack(alignment: .leading, spacing: 8) {
-                            if !tokenModel.token.description.isEmpty {
-                                JustifiedText(text: tokenModel.token.description, isExpanded: $isDescriptionExpanded)
+                            if !tokenData.metadata.description.isEmpty {
+                                JustifiedText(text: tokenData.metadata.description, isExpanded: $isDescriptionExpanded)
                                     .font(.sfRounded(size: .sm, weight: .regular))
                                     .foregroundStyle(.secondary)
 
-                                if tokenModel.token.description.count > 200 {
+                                if tokenData.metadata.description.count > 200 {
                                     Button(action: {
                                         withAnimation {
                                             isDescriptionExpanded.toggle()
@@ -137,6 +137,7 @@ private struct StatView: View {
 
 #Preview {
     @Previewable @State var isDarkMode = false
+    @Previewable @StateObject var userModel = UserModel.shared
     @Previewable @StateObject var priceModel = {
         let model = SolPriceModel.shared
         spoofPriceModelData(model)
@@ -144,6 +145,7 @@ private struct StatView: View {
     }()
 
     var sellStats: [StatValue] {
+        
         var stats: [StatValue] = []
         stats.append(
             StatValue(
@@ -159,7 +161,7 @@ private struct StatView: View {
             StatValue(
                 title: "You own",
                 value:
-                    "\(priceModel.formatPrice(usd: 69, maxDecimals: 2, minDecimals: 2)) (\(formatLargeNumber(1e8)) \(tokenModel.token.symbol))"
+                    "\(priceModel.formatPrice(usd: 69, maxDecimals: 2, minDecimals: 2)) (\(formatLargeNumber(1e8)) TOK)"
             )
         )
         return stats
@@ -175,12 +177,12 @@ private struct StatView: View {
         //        print(ret)
         return ret
     }
-    // Create mock token model with sample data
-    let tokenModel = {
-        let model = TokenModel()
-        spoofTokenModelData(model)
-        return model
-    }()
+
+    let emptyToken = TokenData(
+        mint: "",
+        balanceToken: 0,
+        metadata: TokenMetadata(name: "", symbol: "", description: "", imageUri: "", externalUrl: "", decimals: 6)
+    )
 
     VStack {
         VStack {
@@ -191,7 +193,7 @@ private struct StatView: View {
         .frame(maxHeight: 400)
         .padding(16)
         .background(.tubBuySecondary)
-        TokenInfoCardView(tokenModel: tokenModel, stats: generalStats, sellStats: sellStats)
+        TokenInfoCardView(tokenData: emptyToken, stats: generalStats, sellStats: sellStats)
             .environmentObject(priceModel)
             .preferredColorScheme(isDarkMode ? .dark : .light)
     }

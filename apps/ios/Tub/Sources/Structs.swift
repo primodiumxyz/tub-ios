@@ -7,46 +7,6 @@ struct IntervalStats {
     var priceChangePct: Double
 }
 
-struct Token: Identifiable {
-    var id: String // also mint
-    var name: String
-    var symbol: String
-    var description: String
-    var imageUri: String
-    var externalUrl: String
-    var decimals: Int
-    var marketCapUsd: Double
-    var stats: IntervalStats
-    var recentStats: IntervalStats
-
-    init(
-        id: String,
-        name: String,
-        symbol: String,
-        description: String,
-        imageUri: String?,
-        externalUrl: String?,
-        decimals: Int,
-        supply: Int,
-        latestPriceUsd: Double,
-        stats: IntervalStats,
-        recentStats: IntervalStats
-    ) {
-        self.id = id
-        self.name = name
-        self.symbol = symbol
-        self.description = description
-        self.imageUri = imageUri ?? ""
-        self.externalUrl = externalUrl ?? ""
-        self.decimals = decimals
-        // TODO: check if it's correct when QuickNode fixes their DAS API
-        // 1. Is this ok to use that supply? do we need to use the circulating supply (that we don't have)?
-        // 2. Does the supply need to be divided by 10 ** tokenDecimals?
-        self.marketCapUsd = Double(supply) * latestPriceUsd
-        self.stats = stats
-        self.recentStats = recentStats
-    }
-}
 
 struct PurchaseData {
     let timestamp: Date
@@ -91,7 +51,6 @@ struct TransactionData: Identifiable, Equatable {
     let symbol: String
     let imageUri: String
     let date: Date
-    let valueUsd: Double
     let valueUsdc: Int
     let quantityTokens: Int
     let isBuy: Bool
@@ -114,17 +73,63 @@ struct StatValue: Identifiable {
     }
 }
 
-struct TokenMetadata {
-    var name: String?
-    var symbol: String?
-    var imageUrl: String?
-}
-
 struct TokenData: Identifiable {
     var id: String { mint }  
     let mint: String
+    let metadata: TokenMetadata
+    var liveData: TokenLiveData?
+    
     var balanceToken: Int
-    var metadata: TokenMetadata
+    
+    init(mint: String, balanceToken: Int = 0, metadata: TokenMetadata, liveData: TokenLiveData? = nil) {
+        self.mint = mint
+        self.balanceToken = balanceToken
+        self.metadata = metadata
+        self.liveData = liveData
+    }
+}
+
+struct TokenMetadata {
+    var name: String
+    var symbol: String
+    var description: String
+    var imageUri: String
+    var externalUrl: String
+    var decimals: Int
+    init(
+        name: String,
+        symbol: String,
+        description: String,
+        imageUri: String?,
+        externalUrl: String?,
+        decimals: Int
+    ) {
+        self.name = name
+        self.symbol = symbol
+        self.description = description
+        self.imageUri = imageUri ?? ""
+        self.externalUrl = externalUrl ?? ""
+        self.decimals = decimals
+
+    }
+}
+
+struct TokenLiveData {
+    var marketCapUsd: Double
+    var stats: IntervalStats
+    var recentStats: IntervalStats
+    
+    init(supply: Int,
+        latestPriceUsd: Double,
+        stats: IntervalStats,
+        recentStats: IntervalStats) {
+        // TODO: check if it's correct when QuickNode fixes their DAS API
+        // 1. Is this ok to use that supply? do we need to use the circulating supply (that we don't have)?
+        // 2. Does the supply need to be divided by 10 ** tokenDecimals?
+        self.marketCapUsd = Double(supply) * latestPriceUsd
+        self.stats = stats
+        self.recentStats = recentStats
+    }
 }
 
 enum PurchaseState {

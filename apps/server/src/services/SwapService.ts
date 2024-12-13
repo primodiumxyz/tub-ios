@@ -1,4 +1,3 @@
-import { PublicKey } from "@solana/web3.js";
 import { Subject, interval, switchMap } from "rxjs";
 import { JupiterService } from "./JupiterService";
 import { TransactionService } from "./TransactionService";
@@ -181,13 +180,5 @@ export class SwapService {
       subscription.subject.complete();
       this.swapSubscriptions.delete(userId);
     }
-  }
-
-  async signAndSendTransaction(
-    userPublicKey: PublicKey,
-    userSignature: string,
-    base64TransactionMessage: string,
-  ): Promise<{ signature: string }> {
-    return this.transactionService.signAndSendTransaction(userPublicKey, userSignature, base64TransactionMessage);
   }
 }

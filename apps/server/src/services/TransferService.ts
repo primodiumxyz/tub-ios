@@ -1,5 +1,6 @@
-import { Connection, Keypair, PublicKey, Transaction } from "@solana/web3.js";
+import { Connection, Keypair, PublicKey, TransactionMessage } from "@solana/web3.js";
 import { createTransferInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token";
+import { TransactionService } from "./TransactionService";
 
 export interface TransferRequest {
   fromAddress: string;
@@ -9,7 +10,7 @@ export interface TransferRequest {
 }
 
 export interface SignedTransfer {
-  transactionBase64: string;
+  transactionMessageBase64: string;
   signatureBase64: string;
   signerBase58: string;
 }
@@ -18,9 +19,10 @@ export class TransferService {
   constructor(
     private connection: Connection,
     private feePayerKeypair: Keypair,
+    private transactionService: TransactionService,
   ) {}
 
-  async getSignedTransfer(request: TransferRequest): Promise<SignedTransfer> {
+  async getTransfer(request: TransferRequest): Promise<{ transactionMessageBase64: string }> {
     const tokenMint = new PublicKey(request.tokenId);
     const fromPublicKey = new PublicKey(request.fromAddress);
     const toPublicKey = new PublicKey(request.toAddress);
@@ -35,29 +37,18 @@ export class TransferService {
       request.amount,
     );
 
-    const transaction = new Transaction();
-    transaction.feePayer = this.feePayerKeypair.publicKey;
-    transaction.add(transferInstruction);
+    const { blockhash } = await this.connection.getLatestBlockhash();
 
-    const blockhash = await this.connection.getLatestBlockhash();
-    transaction.recentBlockhash = blockhash.blockhash;
+    const message = new TransactionMessage({
+      payerKey: this.feePayerKeypair.publicKey,
+      recentBlockhash: blockhash,
+      instructions: [transferInstruction],
+    }).compileToV0Message([]);
 
-    transaction.sign(this.feePayerKeypair);
-
-    const sigData = transaction.signatures[0];
-    if (!sigData) {
-      throw new Error("Transaction is not signed by feePayer");
-    }
-    const { signature: rawSignature, publicKey } = sigData;
-
-    if (!rawSignature) {
-      throw new Error("Transaction is not signed by feePayer");
-    }
+    const base64Message = this.transactionService.registerTransaction(message);
 
     return {
-      transactionBase64: transaction.serialize({ requireAllSignatures: false }).toString("base64"),
-      signatureBase64: Buffer.from(rawSignature).toString("base64"),
-      signerBase58: publicKey.toBase58(),
+      transactionMessageBase64: base64Message,
     };
   }
 }

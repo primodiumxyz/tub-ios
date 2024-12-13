@@ -39,6 +39,18 @@
             nullable: false
             scalar: boolean
       name: transaction_model
+      select_permissions:
+        - permission:
+            columns:
+              - id
+              - created_at
+              - user_wallet
+              - token_mint
+              - token_price_usd
+              - token_amount
+              - success
+            filter: {}
+          role: public
   native_queries:
     - arguments: {}
       code: "SELECT \n    id,\n    created_at,\n    user_wallet,\n    token_mint,\n    token_price_usd,\n    token_amount,\n    error_details IS NULL as success\nFROM token_purchase\n\nUNION ALL\n\nSELECT \n    id,\n    created_at,\n    user_wallet,\n    token_mint,\n    token_price_usd,\n    -token_amount as token_amount,  -- Negative amount for sales\n    error_details IS NULL as success\nFROM token_sale;"
