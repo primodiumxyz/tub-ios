@@ -47,37 +47,6 @@ describe("query tests", () => {
     expect(transactions?.[1].token_value_usd).toEqual(200 * 0.001);
   });
 
-  it("should correctly calculate total trade value", async () => {
-    const testWallet = createWallet();
-    const timestamp = new Date().toISOString();
-
-    // Create multiple transactions
-    await gql.db.AddTokenPurchaseMutation({
-      token_mint: tokenAddress,
-      token_amount: "100",
-      token_price_usd: "0.001",
-      user_wallet: testWallet,
-      user_agent: "test",
-    });
-
-    await gql.db.AddTokenSaleMutation({
-      token_mint: tokenAddress,
-      token_amount: "50",
-      token_price_usd: "0.002",
-      user_wallet: testWallet,
-      user_agent: "test",
-    });
-
-    const result = await gql.db.GetTotalTradeValueQuery({
-      wallet: testWallet,
-      mint: tokenAddress,
-      since: new Date(timestamp),
-    });
-
-    // Expected: (100 * 0.001) + (-50 * 0.002) = 0.1 - 0.1 = 0
-    expect(result.data?.transactions_aggregate.aggregate?.sum?.token_value_usd).toEqual(0);
-  });
-
   it("should fetch only the latest token purchase", async () => {
     const testWallet = createWallet();
 

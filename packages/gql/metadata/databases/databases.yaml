@@ -43,15 +43,19 @@
             nullable: false
             scalar: numeric
       name: transaction_model
-      aggregate_query_root: transactions_aggregate
-      aggregate_permissions:
-        - role: public
+      select_permissions:
           permission:
             columns:
-              - token_value_usd
-              - token_amount
+              - id
+              - created_at
+              - user_wallet
+              - token_mint
               - token_price_usd
+              - token_amount
+              - success
+              - token_value_usd
             filter: {}
+          role: public
   native_queries:
     - arguments: {}
       code: "SELECT \n    id,\n    created_at,\n    user_wallet,\n    token_mint,\n    token_price_usd,\n    token_amount,\n    token_amount * token_price_usd as token_value_usd,\n\n    error_details IS NULL as success\nFROM token_purchase\n\nUNION ALL\n\nSELECT \n    id,\n    created_at,\n    user_wallet,\n    token_mint,\n    token_price_usd,\n    -token_amount as token_amount,  -- Negative amount for sales\n    -token_amount * token_price_usd as token_value_usd,\n\n    error_details IS NULL as success\nFROM token_sale;"

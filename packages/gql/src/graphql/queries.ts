@@ -13,25 +13,6 @@ export const GetWalletTransactionsQuery = graphql(`
   }
 `);
 
-export const GetTotalTradeValueQuery = graphql(`
-  query GetTotalTradeValue($wallet: String!, $mint: String!, $since: timestamptz = "now()") {
-    transactions_aggregate(
-      where: {
-        user_wallet: { _eq: $wallet }
-        token_mint: { _eq: $mint }
-        success: { _eq: true }
-        created_at: { _gte: $since }
-      }
-    ) {
-      aggregate {
-        sum {
-          token_value_usd
-        }
-      }
-    }
-  }
-`);
-
 export const GetLatestTokenPurchaseQuery = graphql(`
   query GetLatestTokenPurchase($wallet: String!, $mint: String!) {
     transactions(
