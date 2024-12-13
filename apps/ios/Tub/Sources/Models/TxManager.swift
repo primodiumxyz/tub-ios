@@ -104,7 +104,11 @@ final class TxManager: ObservableObject {
         let tokenId = buyTokenId == USDC_MINT ? sellTokenId : buyTokenId
         Task {
             try? await UserModel.shared.fetchUsdcBalance()
-            await UserModel.shared.refreshTokenData(tokenMint: tokenId)
+        }
+        if let tokenId {
+            Task {
+                await UserModel.shared.refreshTokenData(tokenMint: tokenId)
+            }
         }
         if let txError { throw txError }
     }

@@ -177,6 +177,7 @@ final class TokenListModel: ObservableObject {
                     minRecentVolume: .some(FILTERING_MIN_VOLUME_USD)
                 )
             ) { [weak self] result in
+            Task{
                 guard let self = self else { return }
                 
                 // Prepare data in background
@@ -188,27 +189,25 @@ final class TokenListModel: ObservableObject {
                                 .map { elem in
                                     elem.token_mint
                                 }
-                            
-                            // Update the current token
-                            let currentToken = self.currentTokenModel.tokenId
-                            if let updatedToken = mappedTokens.first(where: { $0 == currentToken }) {
-                                self.currentTokenModel.updateTokenDetails(updatedToken)
+                                
+                                return mappedTokens
                             }
-                            
-                            return mappedTokens
+                            return []
+                        case .failure(let error):
+                            print("Error fetching tokens: \(error.localizedDescription)")
+                            return []
                         }
-                        return []
-                    case .failure(let error):
-                        print("Error fetching tokens: \(error.localizedDescription)")
-                        return []
+                    }()
+                    await MainActor.run {
+                        if !self.initialFetchComplete { self.initialFetchComplete = true }
                     }
-                }()
+                        self.updatePendingTokens(hotTokens)
+                        if self.tokenQueue.isEmpty {
+                            self.initializeTokenQueue()
+                        }
+               }
                 
-                if !self.initialFetchComplete { self.initialFetchComplete = true }
-                self.updatePendingTokens(hotTokens)
-                if self.tokenQueue.isEmpty {
-                    self.initializeTokenQueue()
-                }
+                
             }
     }
     
