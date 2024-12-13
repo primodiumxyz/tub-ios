@@ -49,9 +49,7 @@ struct AppContent: View {
                         }
                     }
                 )
-            } else if !tokenManager.isReady {
-                LoadingView(identifier: "Fetching Codex token", message: "Fetching auth token")
-            } else if userModel.walletState == .connecting || userModel.initializingUser {
+            }  else if userModel.walletState == .connecting || userModel.initializingUser {
                 LoadingView(identifier: "Logging in", message: "Logging in")
             }
             else {
@@ -75,9 +73,6 @@ struct AppContent: View {
             }
         }.onAppear {
             tokenListModel.configure(with: userModel)
-            Task(priority: .high) {
-                await tokenManager.refreshToken()
-            }
         }.onChange(of: userModel.walletState) { _, newState in
             if newState == .connecting { return }
             if newState == .error {

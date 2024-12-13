@@ -9,7 +9,6 @@ import Combine
 import PrivySDK
 import SwiftUI
 import TubAPI
-import CodexAPI
 
 final class UserModel: ObservableObject {
     static let shared = UserModel()
@@ -25,8 +24,9 @@ final class UserModel: ObservableObject {
     @Published var initialBalanceUsdc: Int? = nil
     @Published var balanceChangeUsdc: Int = 0
     
-    @Published var tokenPortfolio: [String : TokenData] = [:]
-    
+    @Published var tokenPortfolio: [String] = []
+    @Published var tokenData: [String: TokenData] = [:]
+
     private var timer: Timer?
     
     @Published var hasSeenOnboarding: Bool {
@@ -74,8 +74,7 @@ final class UserModel: ObservableObject {
                         await MainActor.run {
                             self.walletState = state
                         }
-                    }
-                    else {
+                    } else {
                         do {
                             let _ = try await privy.embeddedWallet.createWallet(chainType: .solana)
                         }
@@ -128,7 +127,6 @@ final class UserModel: ObservableObject {
         }
     }
     
-    
     private var tokenPortfolioTimer: Timer?
     let PORTFOLIO_POLL_INTERVAL: TimeInterval = 60
     
@@ -137,7 +135,9 @@ final class UserModel: ObservableObject {
             guard let self = self else { return }
             self.stopPollingTokenPortfolio()  // Ensure any existing timer is invalidated
             
-            self.tokenPortfolioTimer = Timer.scheduledTimer(withTimeInterval: self.PORTFOLIO_POLL_INTERVAL, repeats: true) { [weak self] _ in
+            self.tokenPortfolioTimer = Timer.scheduledTimer(
+                withTimeInterval: self.PORTFOLIO_POLL_INTERVAL, repeats: true
+            ) { [weak self] _ in
                 guard let self = self else { return }
                 Task {
                     try await self.refreshPortfolio()
@@ -151,7 +151,6 @@ final class UserModel: ObservableObject {
         tokenPortfolioTimer = nil
     }
     
-    
     private func refreshPortfolio() async throws {
         guard let walletAddress else { return }
         
@@ -161,55 +160,59 @@ final class UserModel: ObservableObject {
             if mint == USDC_MINT {
                 continue
             }
-            Task {
-                try await updateTokenData(mint: mint, balance: balance)
-            }
+
+            // bulk update token data
+            let tokenMetadata = try await fetchTokenMetadata(addresses: self.tokenPortfolio)
+            // update token data. since we already have fetched the metadata, this function will always have the metadata cached
+            await updateTokenData(mint: mint, balance: balance, metadata: tokenMetadata[mint])
         }
     }
     
-    public func refreshTokenData(tokenMint: String) async throws {
+    public func refreshTokenData(tokenMint: String) async {
         guard let walletAddress else { return }
-        let balanceData = try await Network.shared.getTokenBalance(address: walletAddress, tokenMint: tokenMint)
-        try await updateTokenData(mint: tokenMint, balance: balanceData)
+        do {
+            let balanceData = try await Network.shared.getTokenBalance(
+                address: walletAddress, tokenMint: tokenMint)
+            await updateTokenData(mint: tokenMint, balance: balanceData)
+        } catch {
+            return
+        }
     }
     
-    private func updateTokenData(mint: String, balance: Int) async throws {
-        if let tokenData = tokenPortfolio[mint] {
-            let newData = TokenData(mint: mint, balanceToken: balance, metadata: tokenData.metadata)
+    public func updateTokenData(mint: String, balance: Int? = nil, metadata: TokenMetadata? = nil, liveData: TokenLiveData? = nil) async {
+        if mint == USDC_MINT { return }
+        
+        let portfolioContainsToken = self.tokenPortfolio.contains(mint)
+        if let tokenData = tokenData[mint] {
+            let newLiveData =  liveData ?? tokenData.liveData
+            let newBalance = balance ?? tokenData.balanceToken
             await MainActor.run {
-                self.tokenPortfolio[mint] = newData
+                if newBalance == 0 && portfolioContainsToken {
+                    self.tokenPortfolio = self.tokenPortfolio.filter { $0 != mint }
+                } else if newBalance > 0 && !portfolioContainsToken {
+                    self.tokenPortfolio.append(mint)
+                }
+                self.tokenData[mint] = TokenData(mint: mint, balanceToken: newBalance, metadata: metadata ?? tokenData.metadata, liveData: newLiveData)
             }
         } else {
-            let tokenData = try await createTokenMetadata(from: mint)
-            let newToken = TokenData(mint: mint, balanceToken: balance, metadata: tokenData)
+            var newMetadata : TokenMetadata?
+            if let metadata {newMetadata = metadata }
+            else {  do {newMetadata = try await fetchTokenMetadata(addresses: [mint])[mint]} catch { return }}
+            
+            guard let newMetadata  else { return }
+            
+            let tokenData = TokenData(mint: mint, balanceToken: balance ?? 0, metadata: newMetadata, liveData: liveData)
             await MainActor.run {
-                self.tokenPortfolio[mint] = newToken
-            }
-        }
-    }
-    
-    private func createTokenMetadata(from mint: String) async throws -> TokenMetadata {
-        let client = await CodexNetwork.shared.apolloClient
-        let query = GetTokenMetadataQuery(address: mint)
-        
-        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<TokenMetadata, Error>) in
-            client.fetch(query: query) { result in
-                switch result {
-                case .success(let response):
-                    let metadata = TokenMetadata(
-                        name: response.data?.token.info?.name,
-                        symbol: response.data?.token.info?.symbol,
-                        imageUrl: response.data?.token.info?.imageLargeUrl
-                    )
-                    continuation.resume(returning: metadata)
-                case .failure(let error):
-                    continuation.resume(throwing: error)
+                if balance ?? 0 > 0 && !portfolioContainsToken {
+                    self.tokenPortfolio.append(mint)
                 }
+
+                self.tokenData[mint] = tokenData
             }
         }
     }
     
-    public func fetchUsdcBalance () async throws {
+    public func fetchUsdcBalance() async throws {
         guard let walletAddress = self.walletAddress else { return }
         if self.initialBalanceUsdc == nil {
             try await self.fetchInitialUsdcBalance()
@@ -245,7 +248,9 @@ final class UserModel: ObservableObject {
             guard let self = self else { return }
             self.stopPollingUsdcBalance()  // Ensure any existing timer is invalidated
             
-            self.usdcBalanceTimer = Timer.scheduledTimer(withTimeInterval: self.POLL_INTERVAL, repeats: true) { [weak self] _ in
+            self.usdcBalanceTimer = Timer.scheduledTimer(
+                withTimeInterval: self.POLL_INTERVAL, repeats: true
+            ) { [weak self] _ in
                 guard let self = self else { return }
                 Task {
                     try await self.fetchUsdcBalance()
@@ -259,7 +264,9 @@ final class UserModel: ObservableObject {
         usdcBalanceTimer = nil
     }
     
-    func getLinkedAccounts() -> (email: String?, phone: String?, embeddedWallets: [PrivySDK.EmbeddedWallet]) {
+    func getLinkedAccounts() -> (
+        email: String?, phone: String?, embeddedWallets: [PrivySDK.EmbeddedWallet]
+    ) {
         
         switch privy.authState {
         case .authenticated(let session):
@@ -316,7 +323,7 @@ final class UserModel: ObservableObject {
             self.initialBalanceUsdc = nil
             self.balanceChangeUsdc = 0
             self.elapsedSeconds = 0
-            self.tokenPortfolio = [:]
+            self.tokenPortfolio = []
             
             self.stopTimer()
             self.stopPollingUsdcBalance()
@@ -345,7 +352,7 @@ final class UserModel: ObservableObject {
             }
         }
     }
-
+    
     func buyTokens(buyQuantityUsdc: Int, tokenPriceUsdc: Int, tokenPriceUsd: Double) async throws {
         guard let walletAddress else {
             throw TubError.notLoggedIn
@@ -372,8 +379,7 @@ final class UserModel: ObservableObject {
                     priceUsdc: tokenPriceUsdc
                 )
             }
-        }
-        catch {
+        } catch {
             err = error
         }
         
@@ -386,8 +392,7 @@ final class UserModel: ObservableObject {
                 errorDetails: err?.localizedDescription
             )
             print("Successfully recorded buy event")
-        }
-        catch {
+        } catch {
             print("Failed to record buy event: \(error)")
         }
         
@@ -395,14 +400,15 @@ final class UserModel: ObservableObject {
             throw err
         }
     }
-
-    func sellTokens(price: Int) async throws {
+    
+    func sellTokens(tokenPriceUsd: Double) async throws {
         guard let walletAddress else {
             throw TubError.notLoggedIn
         }
         
-        
-        guard let tokenId = self.tokenId, let balanceToken = tokenPortfolio[tokenId]?.balanceToken, balanceToken > 0 else {
+        guard let tokenId = self.tokenId, let balanceToken = tokenData[tokenId]?.balanceToken,
+              balanceToken > 0
+        else {
             throw TubError.insufficientBalance
         }
         
@@ -414,27 +420,21 @@ final class UserModel: ObservableObject {
             await MainActor.run {
                 self.purchaseData = nil
             }
-        }
-        catch {
+        } catch {
             err = error
             print("Error selling tokens: \(error)")
         }
         
         do {
-            try await Network.shared.recordClientEvent(
-                event: ClientEvent(
-                    eventName: "sell_tokens",
-                    source: "token_model",
-                    metadata: [
-                        ["sell_amount": balance],
-                        ["token_id": tokenId],
-                    ],
-                    errorDetails: err?.localizedDescription
-                )
+            try await Network.shared.recordTokenSale(
+                tokenMint: tokenId,
+                tokenAmount: Double(balanceToken),
+                tokenPriceUsd: tokenPriceUsd,
+                source: "user_model",
+                errorDetails: err?.localizedDescription
             )
             print("Successfully recorded sell event")
-        }
-        catch {
+        } catch {
             print("Failed to record sell event: \(error)")
         }
         
@@ -457,5 +457,113 @@ final class UserModel: ObservableObject {
     private func stopTimer() {
         timer?.invalidate()
         timer = nil
+    }
+    
+    public func fetchTxs() async throws -> [TransactionData] {
+        guard let walletAddress else { return [] }
+        let query = GetWalletTransactionsQuery(wallet: walletAddress)
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { result in
+                switch result {
+                case .success(let graphQLResult):
+                    Task {
+                        let processedTxs : [TransactionData] = []
+                        if let tokenTransactions = graphQLResult.data?.transactions {
+                            // Get unique token addresses
+                            let uniqueTokens = Set(tokenTransactions.map { $0.token_mint })
+                            
+                            // Fetch all metadata in one call
+                            do {
+                                let tokens = try await self.fetchTokenMetadata(addresses: Array(uniqueTokens))
+                                
+                                var processedTxs: [TransactionData] = []
+                                
+                                for transaction in tokenTransactions {
+                                    guard let date = formatDateString(transaction.created_at)
+                                    else {
+                                        continue
+                                    }
+                                    
+                                    if abs(transaction.token_amount) == 0 {
+                                        continue
+                                    }
+                                    
+                                    let mint = transaction.token_mint
+                                    let metadata = tokens[mint]
+                                    let isBuy = transaction.token_amount >= 0
+                                    let priceUsdc = transaction.token_price_usd
+                                    let valueUsdc = Int(transaction.token_amount) * Int(priceUsdc) / Int(1e9)
+                                    
+                                    let newTransaction = TransactionData(
+                                        name: metadata?.name ?? "",
+                                        symbol: metadata?.symbol ?? "",
+                                        imageUri: metadata?.imageUri ?? "",
+                                        date: date,
+                                        valueUsdc: -valueUsdc,
+                                        quantityTokens: Int(transaction.token_amount),
+                                        isBuy: isBuy,
+                                        mint: mint
+                                    )
+                                    
+                                    processedTxs.append(newTransaction)
+                                }
+                            }catch {
+                                continuation.resume(throwing: error)
+                            }
+                            
+                        }
+                        continuation.resume(returning: processedTxs)
+                    }
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+    
+    func fetchTokenMetadata(addresses: [String]) async throws -> [String : TokenMetadata] {
+        let uncachedTokens = addresses.filter { !tokenData.keys.contains($0) }
+        let cachedTokens = addresses.filter { tokenData.keys.contains($0) }
+
+        // Only fetch metadata for uncached tokens
+        var ret = [String : TokenMetadata]()
+        
+        cachedTokens.forEach { ret[$0] = tokenData[$0]!.metadata }
+        if uncachedTokens.count > 0 {
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                Network.shared.apollo.fetch(
+                    query: GetTokensMetadataQuery(tokens: uncachedTokens)
+                ) { result in
+                    switch result {
+                    case .success(let graphQLResult):
+                        if graphQLResult.errors != nil {
+                            continuation.resume(throwing: TubError.unknown)
+                            return
+                        }
+                        
+                        if let tokens = graphQLResult.data?.token_metadata_formatted {
+                            for metadata in tokens {
+                                ret[metadata.mint] = TokenMetadata(
+                                    name: metadata.name,
+                                    symbol: metadata.symbol,
+                                    description: metadata.symbol,
+                                    imageUri: metadata.image_uri,
+                                    externalUrl: metadata.external_url,
+                                    decimals: Int(metadata.decimals ?? 6)
+                                )
+                            }
+                            continuation.resume()  // Resume without returning a value
+                        } else {
+                            continuation.resume(throwing: TubError.networkFailure)
+                        }
+                    case .failure(let error):
+                        continuation.resume(throwing: error)
+                    }
+                }
+            }
+        }
+        
+        return ret
     }
 }

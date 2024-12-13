@@ -53,7 +53,7 @@ struct HistoryDetailsView: View {
                         Text("Price")
                             .foregroundStyle(.secondary)
                             .font(.sfRounded(size: .sm, weight: .medium))
-                        Text(priceModel.formatPrice(usd: transaction.valueUsd))
+                        Text(priceModel.formatPrice(usdc: transaction.valueUsdc))
                             .font(.sfRounded(size: .lg, weight: .regular))
                     }
 

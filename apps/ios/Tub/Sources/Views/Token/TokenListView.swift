@@ -41,7 +41,7 @@ struct TokenListView: View {
     let OFFSET: Double = 5
     
     var balanceToken: Int {
-        userModel.tokenPortfolio[tokenListModel.currentTokenModel.token.id]?.balanceToken ?? 0
+        userModel.tokenData[tokenListModel.currentTokenModel.tokenId]?.balanceToken ?? 0
     }
     
     var activeTab: PurchaseState {
@@ -151,7 +151,6 @@ struct TokenListView: View {
             .zIndex(3)
 
             if tokenListModel.totalTokenCount == 0 && tokenListModel.fetching {
-
                 GeometryReader { geometry in
                     TokenView(
                         tokenModel: TokenModel()

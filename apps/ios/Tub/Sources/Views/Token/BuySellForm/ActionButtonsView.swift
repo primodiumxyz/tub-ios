@@ -37,7 +37,7 @@ struct ActionButtonsView: View {
     }
 
     var balanceToken: Int {
-        userModel.tokenPortfolio[tokenModel.token.id]?.balanceToken ?? 0
+        userModel.tokenData[tokenModel.tokenId]?.balanceToken ?? 0
     }
     
     var activeTab: PurchaseState {
@@ -232,7 +232,7 @@ struct SellButton: View {
 /// It's used to optimize SwiftUI's view updates by preventing unnecessary redraws.
 extension ActionButtonsView: Equatable {
     static func == (lhs: ActionButtonsView, rhs: ActionButtonsView) -> Bool {
-        lhs.tokenModel.token.id == rhs.tokenModel.token.id
+        lhs.tokenModel.tokenId == rhs.tokenModel.tokenId
     }
 }
 

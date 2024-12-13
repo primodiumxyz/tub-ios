@@ -300,7 +300,7 @@ extension String {
 
     let tokenModel = {
         let model = TokenModel()
-        spoofTokenModelData(model)
+        spoofTokenModelData(userModel: userModel, tokenModel : model)
         return model
     }()
 

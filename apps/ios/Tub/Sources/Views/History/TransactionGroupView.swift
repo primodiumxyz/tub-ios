@@ -74,7 +74,7 @@ struct TransactionDetailRow: View {
                 Spacer()
 
                 VStack(alignment: .trailing) {
-                    let price = priceModel.formatPrice(usd: transaction.valueUsd, showSign: true)
+                    let price = priceModel.formatPrice(usdc: transaction.valueUsdc, showSign: true)
                     Text(price)
                         .font(.sfRounded(size: .sm, weight: .bold))
                         .foregroundStyle(transaction.isBuy ? Color.red : Color.green)
@@ -88,30 +88,7 @@ struct TransactionDetailRow: View {
             .padding(.vertical, 8)
         }
     }
+
 }
 
-// Helper function to group transactions
-func groupTransactions(_ transactions: [TransactionData]) -> [TransactionGroup] {
-    let grouped = Dictionary(grouping: transactions) { transaction in
-        let calendar = Calendar.current
-        let date = calendar.startOfDay(for: transaction.date)
-        return "\(transaction.mint)_\(date)"
-    }
 
-    return grouped.map { _, transactions in
-        let netProfit = transactions.reduce(0.0) { sum, tx in
-            sum + tx.valueUsd
-        }
-
-        let firstTx = transactions.sorted { $0.date > $1.date }.first!
-
-        return TransactionGroup(
-            transactions: transactions.sorted { $0.date > $1.date },
-            netProfit: netProfit,
-            date: firstTx.date,
-            token: firstTx.mint,
-            symbol: firstTx.symbol,
-            imageUri: firstTx.imageUri
-        )
-    }.sorted { $0.date > $1.date }
-}

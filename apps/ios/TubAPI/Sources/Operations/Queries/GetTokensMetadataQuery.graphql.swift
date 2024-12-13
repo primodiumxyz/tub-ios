@@ -7,7 +7,7 @@ public class GetTokensMetadataQuery: GraphQLQuery {
   public static let operationName: String = "GetTokensMetadata"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetTokensMetadata($tokens: [String!]!) { token_metadata_formatted(where: { mint: { _in: $tokens } }) { __typename mint name symbol image_uri } }"#
+      #"query GetTokensMetadata($tokens: [String!]!) { token_metadata_formatted(where: { mint: { _in: $tokens } }) { __typename mint name symbol image_uri supply decimals description external_url is_pump_token } }"#
     ))
 
   public var tokens: [String]
@@ -43,12 +43,22 @@ public class GetTokensMetadataQuery: GraphQLQuery {
         .field("name", String.self),
         .field("symbol", String.self),
         .field("image_uri", String?.self),
+        .field("supply", TubAPI.Numeric?.self),
+        .field("decimals", TubAPI.Numeric?.self),
+        .field("description", String.self),
+        .field("external_url", String?.self),
+        .field("is_pump_token", Bool.self),
       ] }
 
       public var mint: String { __data["mint"] }
       public var name: String { __data["name"] }
       public var symbol: String { __data["symbol"] }
       public var image_uri: String? { __data["image_uri"] }
+      public var supply: TubAPI.Numeric? { __data["supply"] }
+      public var decimals: TubAPI.Numeric? { __data["decimals"] }
+      public var description: String { __data["description"] }
+      public var external_url: String? { __data["external_url"] }
+      public var is_pump_token: Bool { __data["is_pump_token"] }
     }
   }
 }
