@@ -36,7 +36,7 @@ class AppDwellTimeTracker: ObservableObject {
         
         Task {
             try? await Network.shared.recordClientEvent(
-                event: ClientEvent(
+                event: Network.ClientEvent(
                     eventName: "app_dwell_time",
                     source: "app",
                     metadata: [

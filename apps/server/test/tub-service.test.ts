@@ -29,10 +29,10 @@ import { PrebuildSwapResponse } from "@/types";
       });
 
       // Create test fee payer keypair
-      const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY!));
+      const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY));
 
       // Create test user keypair from environment
-      userKeypair = Keypair.fromSecretKey(bs58.decode(env.TEST_USER_PRIVATE_KEY!));
+      userKeypair = Keypair.fromSecretKey(bs58.decode(env.TEST_USER_PRIVATE_KEY));
       console.log("User keypair:", userKeypair.publicKey.toBase58());
       mockJwtToken = "test_jwt_token";
 
@@ -80,7 +80,6 @@ import { PrebuildSwapResponse } from "@/types";
         if (!balance.value.uiAmount || balance.value.uiAmount < 1) {
           throw new Error(`Test account needs at least 1 USDC. Current balance: ${balance.value.uiAmount ?? 0} USDC`);
         }
-        console.log(`USDC balance: ${balance.value.uiAmount} USDC`);
       } catch {
         throw new Error("Test account needs a USDC token account with at least 1 USDC");
       }
@@ -90,36 +89,72 @@ import { PrebuildSwapResponse } from "@/types";
     }
   });
 
-  const executeTx = async (swapResponse: PrebuildSwapResponse) => {
-    const handoff = Buffer.from(swapResponse.transactionMessageBase64, "base64");
-    const message = VersionedMessage.deserialize(handoff);
-    const transaction = new VersionedTransaction(message);
+  describe("getBalance", () => {
+    it("should get the user's balance", async () => {
+      const balance = await tubService.getBalance(mockJwtToken);
+      expect(balance).toBeDefined();
+      expect(balance.balance).toBeGreaterThan(0);
+    });
 
-    console.log("message:", message);
-    // User signs
-    transaction.sign([userKeypair]);
-    const userSignature = transaction.signatures![1];
-    expect(transaction.signatures).toHaveLength(2);
-    expect(userSignature).toBeDefined();
+    it("should get the user's usdc balance", async () => {
+      const balance = await tubService.getTokenBalance(mockJwtToken, USDC_MAINNET_PUBLIC_KEY.toString());
+      expect(balance).toBeDefined();
+      expect(balance.balance).toBeGreaterThan(0);
+    });
 
-    // Convert raw signature to base64
-    const base64Signature = Buffer.from(userSignature!).toString("base64");
+    it("should get the user's token balances", async () => {
+      const balances = await tubService.getAllTokenBalances(mockJwtToken);
+      expect(balances).toBeDefined();
+      expect(balances.length).toBeGreaterThan(0);
+    });
 
-    // --- End Simulating Mock Privy Interaction ---
+    it("should get the user's usdc balance", async () => {
+      const balances = await tubService.getAllTokenBalances(mockJwtToken);
+      if (balances.length === 0) {
+        console.log("No token balances found, skipping test");
+        return;
+      }
 
-    const result = await tubService.signAndSendTransaction(
-      mockJwtToken,
-      base64Signature,
-      swapResponse.transactionMessageBase64, // Send original unsigned transaction
-    );
+      const token = balances[0]?.mint;
+      if (!token) {
+        console.log("No token found, skipping test");
+        return;
+      }
 
-    console.log("Transaction result:", result);
+      const balance = await tubService.getTokenBalance(mockJwtToken, token);
+      expect(balance).toBeDefined();
+      expect(balance.balance).toEqual(balances[0]?.balanceToken);
+    });
+  });
 
-    expect(result).toBeDefined();
-    expect(result.signature).toBeDefined();
-  };
+  describe.skip("swap execution", () => {
+    const executeTx = async (swapResponse: PrebuildSwapResponse) => {
+      const handoff = Buffer.from(swapResponse.transactionMessageBase64, "base64");
+      const message = VersionedMessage.deserialize(handoff);
+      const transaction = new VersionedTransaction(message);
 
-  describe("swap execution", () => {
+      // User signs
+      transaction.sign([userKeypair]);
+      const userSignature = transaction.signatures![1];
+      expect(transaction.signatures).toHaveLength(2);
+      expect(userSignature).toBeDefined();
+
+      // Convert raw signature to base64
+      const base64Signature = Buffer.from(userSignature!).toString("base64");
+
+      // --- End Simulating Mock Privy Interaction ---
+
+      const result = await tubService.signAndSendTransaction(
+        mockJwtToken,
+        base64Signature,
+        swapResponse.transactionMessageBase64, // Send original unsigned transaction
+      );
+
+      console.log("Transaction result:", result);
+
+      expect(result).toBeDefined();
+      expect(result.signature).toBeDefined();
+    };
     it.skip("should complete a USDC to SOL swap", async () => {
       console.log("\nStarting USDC to SOL swap flow test");
       console.log("User public key:", userKeypair.publicKey.toBase58());

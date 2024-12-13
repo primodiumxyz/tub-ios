@@ -20,7 +20,7 @@ class TabsViewModel: ObservableObject {
         Task(priority: .low) {
             do {
                 try await Network.shared.recordClientEvent(
-                    event: ClientEvent(
+                    event: Network.ClientEvent(
                         eventName: "tab_dwell_time",
                         source: "home_tabs_view",
                         metadata: [
@@ -54,7 +54,7 @@ class TabsViewModel: ObservableObject {
         Task {
             do {
                 try await Network.shared.recordClientEvent(
-                    event: ClientEvent(
+                    event: Network.ClientEvent(
                         eventName: "tab_selected",
                         source: "home_tabs_view",
                         metadata: [
