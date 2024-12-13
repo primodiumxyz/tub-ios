@@ -145,18 +145,14 @@ final class TokenListModel: ObservableObject {
         if let nextModel = nextTokenModel {
             currentTokenModel = nextModel
             initCurrentTokenModel(with: nextModel.tokenId)
-            DispatchQueue.main.sync {
-                removePendingToken(nextModel.tokenId)
-            }
+            removePendingToken(nextModel.tokenId)
         }
         else {
             currentTokenModel = TokenModel()
             if let newToken = getNextToken() {
                 initCurrentTokenModel(with: newToken)
                 
-                DispatchQueue.main.sync {
-                    removePendingToken(newToken)
-                }
+                removePendingToken(newToken)
             }
         }
     }
