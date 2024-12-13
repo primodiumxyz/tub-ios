@@ -143,11 +143,11 @@ import { PrebuildSwapResponse } from "../src/types";
       await executeTx(swapResponse);
     }, 11000);
 
-    describe("VALUE swaps", () => {
-      it("should complete a USDC to VALUE swap", async () => {
+    describe("MEMECOIN swaps", () => {
+      it("should complete a USDC to MEMECOIN swap", async () => {
         // Get swap instructions
         const swapResponse = await tubService.fetchSwap(mockJwtToken, {
-          buyTokenId: config().tokens.VALUE_MAINNET_PUBLIC_KEY,
+          buyTokenId: config().tokens.MEMECOIN_MAINNET_PUBLIC_KEY,
           sellTokenId: config().tokens.USDC_MAINNET_PUBLIC_KEY,
           sellQuantity: 1e6 / 1000, // 0.001 USDC
           slippageBps: undefined,
@@ -156,27 +156,27 @@ import { PrebuildSwapResponse } from "../src/types";
         await executeTx(swapResponse);
       }, 11000);
 
-      it.skip("should transfer half of held VALUE to USDC", async () => {
-        const userVALUEAta = await getAssociatedTokenAddress(
-          keyConfig("VALUE_MAINNET_PUBLIC_KEY"),
+      it.skip("should transfer half of held MEMECOIN to USDC", async () => {
+        const userMEMECOINAta = await getAssociatedTokenAddress(
+          keyConfig("MEMECOIN_MAINNET_PUBLIC_KEY"),
           userKeypair.publicKey,
         );
-        const valueBalance = await connection.getTokenAccountBalance(userVALUEAta);
+        const valueBalance = await connection.getTokenAccountBalance(userMEMECOINAta);
         const decimals = valueBalance.value.decimals;
-        console.log("VALUE balance:", valueBalance.value.uiAmount);
+        console.log("MEMECOIN balance:", valueBalance.value.uiAmount);
         if (!valueBalance.value.uiAmount) {
-          console.log("VALUE balance is 0, skipping transfer");
+          console.log("MEMECOIN balance is 0, skipping transfer");
           return;
         }
 
         const balanceToken = valueBalance.value.uiAmount * 10 ** decimals;
         const swap = {
           buyTokenId: config().tokens.USDC_MAINNET_PUBLIC_KEY,
-          sellTokenId: config().tokens.VALUE_MAINNET_PUBLIC_KEY,
+          sellTokenId: config().tokens.MEMECOIN_MAINNET_PUBLIC_KEY,
           sellQuantity: Math.round(balanceToken / 2),
           slippageBps: 100,
         };
-        console.log("VALUE swap:", swap);
+        console.log("MEMECOIN swap:", swap);
         const swapResponse = await tubService.fetchSwap(mockJwtToken, swap);
 
         await executeTx(swapResponse);

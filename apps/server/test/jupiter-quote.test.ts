@@ -285,12 +285,12 @@ describe("Jupiter Quote Integration Test", () => {
     }
   }, 30000);
 
-  it("should get instructions for USDC to VALUE", async () => {
+  it("should get instructions for USDC to MEMECOIN", async () => {
     const userPublicKey = createTestKeypair().publicKey;
 
     const quoteRequest = {
       inputMint: config().tokens.USDC_MAINNET_PUBLIC_KEY, // USDC
-      outputMint: config().tokens.VALUE_MAINNET_PUBLIC_KEY, // VALUE
+      outputMint: config().tokens.MEMECOIN_MAINNET_PUBLIC_KEY, // MEMECOIN
       amount: 1000000, // 1 USDC
       slippageBps: 50,
       onlyDirectRoutes: false,
