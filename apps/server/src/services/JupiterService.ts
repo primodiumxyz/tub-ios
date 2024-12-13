@@ -3,6 +3,7 @@ import { DefaultApi, QuoteGetRequest, QuoteResponse, SwapInstructionsPostRequest
 import { EventEmitter } from "events";
 import { SOL_USD_PRICE_UPDATE_INTERVAL } from "../constants/registry";
 import { SOL_MAINNET_PUBLIC_KEY, USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
+import { MIN_SLIPPAGE_BPS } from "../constants/swap";
 
 export type JupiterSettings = {
   connection: Connection;
@@ -107,6 +108,15 @@ export class JupiterService {
         throw new Error("No quote received");
       }
 
+      let dynamicSlippage: undefined | { minBps: number; maxBps: number } = undefined;
+
+      // override computedAutoSlippage if it is less than MIN_SLIPPAGE_BPS
+      if (quote.computedAutoSlippage) {
+        if (quote.computedAutoSlippage <= MIN_SLIPPAGE_BPS) {
+          dynamicSlippage = { minBps: MIN_SLIPPAGE_BPS, maxBps: MIN_SLIPPAGE_BPS };
+        }
+      }
+
       const swapInstructionsRequest: SwapInstructionsPostRequest = {
         swapRequest: {
           quoteResponse: quote,
@@ -114,6 +124,7 @@ export class JupiterService {
           asLegacyTransaction: quoteAndSwapParams.asLegacyTransaction,
           wrapAndUnwrapSol: true,
           prioritizationFeeLamports: { autoMultiplier: autoPriorityFeeMultiplier },
+          dynamicSlippage: dynamicSlippage,
         },
       };
 
