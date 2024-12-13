@@ -4,18 +4,8 @@ import { JupiterService } from "./JupiterService";
 import { TransactionService } from "./TransactionService";
 import { FeeService } from "../services/FeeService";
 import { ActiveSwapRequest, PrebuildSwapResponse, SwapSubscription } from "../types";
-import { USDC_DEV_PUBLIC_KEY, USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
 import { QuoteGetRequest } from "@jup-ag/api";
-import {
-  MAX_ACCOUNTS,
-  MAX_DEFAULT_SLIPPAGE_BPS,
-  MAX_AUTO_SLIPPAGE_BPS,
-  AUTO_SLIPPAGE,
-  AUTO_SLIPPAGE_COLLISION_USD_VALUE,
-  AUTO_PRIORITY_FEE_MULTIPLIER,
-  USER_SLIPPAGE_BPS_MAX,
-  MIN_SLIPPAGE_BPS,
-} from "../constants/swap";
+import { config } from "../utils/config";
 
 export class SwapService {
   private swapSubscriptions: Map<string, SwapSubscription> = new Map();
@@ -27,24 +17,23 @@ export class SwapService {
   ) {}
 
   async buildSwapResponse(request: ActiveSwapRequest): Promise<PrebuildSwapResponse> {
+    const { swap: swapConfig, tokens } = config();
     if (!request.sellTokenAccount) {
       throw new Error("Sell token account is required but was not provided");
     }
 
-    if (request.slippageBps && request.slippageBps > USER_SLIPPAGE_BPS_MAX) {
+    if (request.slippageBps && request.slippageBps > swapConfig.USER_SLIPPAGE_BPS_MAX) {
       throw new Error("Slippage bps is too high");
     }
 
-    if (request.slippageBps && request.slippageBps <= MIN_SLIPPAGE_BPS) {
-      throw new Error("Slippage bps must be greater than " + MIN_SLIPPAGE_BPS);
+    if (request.slippageBps && request.slippageBps <= swapConfig.MIN_SLIPPAGE_BPS) {
+      throw new Error("Slippage bps must be greater than " + swapConfig.MIN_SLIPPAGE_BPS);
     }
 
     // Calculate fee if selling USDC
-    const usdcDevPubKey = USDC_DEV_PUBLIC_KEY.toString();
-    const usdcMainPubKey = USDC_MAINNET_PUBLIC_KEY.toString();
     const feeAmount = this.feeService.calculateFeeAmount(request.sellTokenId, request.sellQuantity, [
-      usdcDevPubKey,
-      usdcMainPubKey,
+      tokens.USDC_DEV_PUBLIC_KEY,
+      tokens.USDC_MAINNET_PUBLIC_KEY,
     ]);
     const swapAmount = request.sellQuantity - feeAmount;
 
@@ -64,13 +53,17 @@ export class SwapService {
     // 3. auto slippage set to false, use MAX_DEFAULT_SLIPPAGE_BPS
 
     const slippageSettings = {
-      slippageBps: request.slippageBps ? request.slippageBps : AUTO_SLIPPAGE ? undefined : MAX_DEFAULT_SLIPPAGE_BPS,
-      autoSlippage: request.slippageBps ? false : AUTO_SLIPPAGE,
-      maxAutoSlippageBps: MAX_AUTO_SLIPPAGE_BPS,
+      slippageBps: request.slippageBps
+        ? request.slippageBps
+        : swapConfig.AUTO_SLIPPAGE
+          ? undefined
+          : swapConfig.MAX_DEFAULT_SLIPPAGE_BPS,
+      autoSlippage: request.slippageBps ? false : swapConfig.AUTO_SLIPPAGE,
+      maxAutoSlippageBps: swapConfig.MAX_AUTO_SLIPPAGE_BPS,
       autoSlippageCollisionUsdValue:
-        request.sellTokenId === USDC_MAINNET_PUBLIC_KEY.toString()
+        request.sellTokenId === tokens.USDC_MAINNET_PUBLIC_KEY
           ? Math.ceil(swapAmount / 1e6)
-          : AUTO_SLIPPAGE_COLLISION_USD_VALUE,
+          : swapConfig.AUTO_SLIPPAGE_COLLISION_USD_VALUE,
     };
 
     // Get swap instructions from Jupiter
@@ -86,7 +79,7 @@ export class SwapService {
       autoSlippageCollisionUsdValue: slippageSettings.autoSlippageCollisionUsdValue,
       onlyDirectRoutes: false,
       restrictIntermediateTokens: true,
-      maxAccounts: MAX_ACCOUNTS,
+      maxAccounts: swapConfig.MAX_ACCOUNTS,
       asLegacyTransaction: false,
     };
 
@@ -97,7 +90,7 @@ export class SwapService {
     } = await this.jupiter.getSwapInstructions(
       swapInstructionRequest,
       request.userPublicKey,
-      AUTO_PRIORITY_FEE_MULTIPLIER,
+      swapConfig.AUTO_PRIORITY_FEE_MULTIPLIER,
     );
     console.log("Quoted auto slippage", quote.computedAutoSlippage);
     console.log("Quoted slippage bps", quote.slippageBps);

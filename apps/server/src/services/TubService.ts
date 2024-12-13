@@ -20,13 +20,15 @@ import {
 } from "../types";
 import { deriveTokenAccounts } from "../utils/tokenAccounts";
 import bs58 from "bs58";
-import { USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
+import { keyConfig } from "../utils/config";
+import { ConfigService } from "./ConfigService";
 
 /**
  * Service class handling token trading, swaps, and user operations
  */
 export class TubService {
   private connection!: Connection;
+  private configService!: ConfigService;
   private swapService!: SwapService;
   private authService!: AuthService;
   private transactionService!: TransactionService;
@@ -71,6 +73,7 @@ export class TubService {
     const feePayerPublicKey = feePayerKeypair.publicKey;
 
     this.authService = new AuthService(this.privy);
+    this.configService = ConfigService.getInstance();
     this.transactionService = new TransactionService(this.connection, feePayerKeypair, feePayerPublicKey);
     this.feeService = new FeeService({
       buyFee: env.OCTANE_BUY_FEE,
@@ -102,7 +105,7 @@ export class TubService {
       try {
         // Check if env is a pubkey address that has a valid USDC ATA
         tradeFeeRecipientUsdcAtaAddress = getAssociatedTokenAddressSync(
-          new PublicKey(USDC_MAINNET_PUBLIC_KEY),
+          keyConfig("USDC_MAINNET_PUBLIC_KEY"),
           new PublicKey(env.OCTANE_TRADE_FEE_RECIPIENT),
         );
         await getAccount(this.connection, tradeFeeRecipientUsdcAtaAddress);

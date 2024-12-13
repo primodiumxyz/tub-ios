@@ -10,9 +10,8 @@ import {
   SimulateTransactionConfig,
   TransactionConfirmationStatus,
 } from "@solana/web3.js";
-import { ATA_PROGRAM_PUBLIC_KEY, JUPITER_PROGRAM_PUBLIC_KEY, TOKEN_PROGRAM_PUBLIC_KEY } from "../constants/tokens";
-import { CLEANUP_INTERVAL, REGISTRY_TIMEOUT, RETRY_ATTEMPTS, RETRY_DELAY } from "../constants/registry";
 import bs58 from "bs58";
+import { config } from "../utils/config";
 
 export type TransactionRegistryEntry = {
   message: MessageV0;
@@ -30,13 +29,13 @@ export class TransactionService {
     private feePayerKeypair: Keypair,
     private feePayerPublicKey: PublicKey,
   ) {
-    setInterval(() => this.cleanupRegistry(), CLEANUP_INTERVAL);
+    setInterval(() => this.cleanupRegistry(), config().registry.CLEANUP_INTERVAL);
   }
 
   private cleanupRegistry() {
     const now = Date.now();
     for (const [key, value] of this.messageRegistry.entries()) {
-      if (now - value.timestamp > REGISTRY_TIMEOUT) {
+      if (now - value.timestamp > config().registry.REGISTRY_TIMEOUT) {
         this.messageRegistry.delete(key);
       }
     }
@@ -123,6 +122,8 @@ export class TransactionService {
       throw new Error("Transaction not found in registry");
     }
 
+    const { registry: registryConfig, tokens } = config();
+
     const transaction = new VersionedTransaction(entry.message);
 
     // Add user signature
@@ -171,11 +172,11 @@ export class TransactionService {
 
             let errorMessage = `Tx sim failed: ${errorStr}`;
 
-            if (programId === TOKEN_PROGRAM_PUBLIC_KEY) {
+            if (programId === new PublicKey(tokens.TOKEN_PROGRAM_PUBLIC_KEY)) {
               errorMessage = `Sim failed, Token Program Error: ${errorStr}`; // This usually means there's an issue with token accounts or balances.
-            } else if (programId === ATA_PROGRAM_PUBLIC_KEY) {
+            } else if (programId === new PublicKey(tokens.ATA_PROGRAM_PUBLIC_KEY)) {
               errorMessage = `Sim failed, ATA Error: ${errorStr}`; // This usually means there's an issue creating or accessing a token account.
-            } else if (programId === JUPITER_PROGRAM_PUBLIC_KEY) {
+            } else if (programId === new PublicKey(tokens.JUPITER_PROGRAM_PUBLIC_KEY)) {
               if (errorStr.includes("6001")) {
                 errorMessage = `Sim failed, Slippage Tolerance Exceeded`;
               } else {
@@ -198,8 +199,8 @@ export class TransactionService {
     });
 
     let confirmation = null;
-    for (let attempt = 0; attempt < RETRY_ATTEMPTS; attempt++) {
-      console.log(`Tx Confirmation Attempt ${attempt + 1} of ${RETRY_ATTEMPTS}`);
+    for (let attempt = 0; attempt < registryConfig.RETRY_ATTEMPTS; attempt++) {
+      console.log(`Tx Confirmation Attempt ${attempt + 1} of ${registryConfig.RETRY_ATTEMPTS}`);
       try {
         const status = await this.connection.getSignatureStatus(txid, {
           searchTransactionHistory: true,
@@ -213,10 +214,10 @@ export class TransactionService {
         }
       } catch (error) {
         console.log(`Attempt ${attempt + 1} failed:`, error);
-        if (attempt === RETRY_ATTEMPTS - 1)
-          throw new Error(`Failed to get transaction confirmation after ${RETRY_ATTEMPTS} attempts`);
+        if (attempt === registryConfig.RETRY_ATTEMPTS - 1)
+          throw new Error(`Failed to get transaction confirmation after ${registryConfig.RETRY_ATTEMPTS} attempts`);
       }
-      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY)); // Wait 1 second before retrying
+      await new Promise((resolve) => setTimeout(resolve, registryConfig.RETRY_DELAY)); // Wait 1 second before retrying
     }
 
     if (!confirmation || confirmation.value?.err) {
@@ -231,9 +232,10 @@ export class TransactionService {
    * Reassigns rent payer in instructions to the fee payer
    */
   reassignRentInstructions(instructions: TransactionInstruction[]): TransactionInstruction[] {
+    const { tokens } = config();
     return instructions.map((instruction) => {
       // If this is an ATA creation instruction, modify it to make fee payer pay for rent
-      if (instruction.programId.equals(ATA_PROGRAM_PUBLIC_KEY)) {
+      if (instruction.programId.equals(new PublicKey(tokens.ATA_PROGRAM_PUBLIC_KEY))) {
         return new TransactionInstruction({
           programId: instruction.programId,
           keys: [
@@ -250,7 +252,7 @@ export class TransactionService {
 
       // This is a CloseAccount instruction, receive the residual funds as the FeePayer
       if (
-        instruction.programId.equals(TOKEN_PROGRAM_PUBLIC_KEY) &&
+        instruction.programId.equals(new PublicKey(tokens.TOKEN_PROGRAM_PUBLIC_KEY)) &&
         instruction.data.length === 1 &&
         instruction.data[0] === 9
       ) {

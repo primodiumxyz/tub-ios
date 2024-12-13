@@ -5,11 +5,11 @@ import { TransactionService } from "../src/services/TransactionService";
 import { describe, it, expect, beforeAll } from "vitest";
 import { AxiosError } from "axios";
 import { env } from "@bin/tub-server";
-import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY, VALUE_MAINNET_PUBLIC_KEY } from "../src/constants/tokens";
+import { config } from "../src/utils/config";
 
 const createTestKeypair = () => Keypair.generate();
 
-describe.skip("Jupiter Quote Integration Test", () => {
+describe("Jupiter Quote Integration Test", () => {
   let connection: Connection;
   let jupiterQuoteApi: DefaultApi;
   let jupiterService: JupiterService;
@@ -44,8 +44,8 @@ describe.skip("Jupiter Quote Integration Test", () => {
 
   it("should get a valid quote for SOL to USDC", async () => {
     const quoteRequest = {
-      inputMint: SOL_MAINNET_PUBLIC_KEY.toString(), // SOL
-      outputMint: USDC_MAINNET_PUBLIC_KEY.toString(), // USDC
+      inputMint: config().tokens.SOL_MAINNET_PUBLIC_KEY, // SOL
+      outputMint: config().tokens.USDC_MAINNET_PUBLIC_KEY, // USDC
       amount: 100000000, // 0.1 SOL
       slippageBps: 50,
       onlyDirectRoutes: true,
@@ -98,8 +98,8 @@ describe.skip("Jupiter Quote Integration Test", () => {
 
   it("should get a valid quote for USDC to SOL", async () => {
     const quoteRequest = {
-      inputMint: USDC_MAINNET_PUBLIC_KEY.toString(), // USDC
-      outputMint: SOL_MAINNET_PUBLIC_KEY.toString(), // SOL
+      inputMint: config().tokens.USDC_MAINNET_PUBLIC_KEY, // USDC
+      outputMint: config().tokens.SOL_MAINNET_PUBLIC_KEY, // SOL
       amount: 1000000, // 1 USDC
       slippageBps: 50,
       onlyDirectRoutes: true,
@@ -149,8 +149,8 @@ describe.skip("Jupiter Quote Integration Test", () => {
     const userPublicKey = createTestKeypair().publicKey;
 
     const quoteRequest = {
-      inputMint: SOL_MAINNET_PUBLIC_KEY.toString(), // SOL
-      outputMint: USDC_MAINNET_PUBLIC_KEY.toString(), // USDC
+      inputMint: config().tokens.SOL_MAINNET_PUBLIC_KEY, // SOL
+      outputMint: config().tokens.USDC_MAINNET_PUBLIC_KEY, // USDC
       amount: 100000000, // 0.1 SOL
       slippageBps: 50,
       onlyDirectRoutes: true,
@@ -220,8 +220,8 @@ describe.skip("Jupiter Quote Integration Test", () => {
     const userPublicKey = createTestKeypair().publicKey;
 
     const quoteRequest = {
-      inputMint: USDC_MAINNET_PUBLIC_KEY.toString(), // USDC
-      outputMint: SOL_MAINNET_PUBLIC_KEY.toString(), // SOL
+      inputMint: config().tokens.USDC_MAINNET_PUBLIC_KEY, // USDC
+      outputMint: config().tokens.SOL_MAINNET_PUBLIC_KEY, // SOL
       amount: 1000000, // 1 USDC
       slippageBps: 50,
       onlyDirectRoutes: true,
@@ -289,8 +289,8 @@ describe.skip("Jupiter Quote Integration Test", () => {
     const userPublicKey = createTestKeypair().publicKey;
 
     const quoteRequest = {
-      inputMint: USDC_MAINNET_PUBLIC_KEY.toString(), // USDC
-      outputMint: VALUE_MAINNET_PUBLIC_KEY.toString(), // VALUE
+      inputMint: config().tokens.USDC_MAINNET_PUBLIC_KEY, // USDC
+      outputMint: config().tokens.VALUE_MAINNET_PUBLIC_KEY, // VALUE
       amount: 1000000, // 1 USDC
       slippageBps: 50,
       onlyDirectRoutes: false,
