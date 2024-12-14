@@ -1,4 +1,3 @@
-import { PublicKey } from "@solana/web3.js";
 import { Subject, interval, switchMap } from "rxjs";
 import { JupiterService } from "./JupiterService";
 import { TransactionService } from "./TransactionService";
@@ -14,6 +13,7 @@ import {
   AUTO_SLIPPAGE_COLLISION_USD_VALUE,
   AUTO_PRIORITY_FEE_MULTIPLIER,
   USER_SLIPPAGE_BPS_MAX,
+  MIN_SLIPPAGE_BPS,
 } from "../constants/swap";
 
 export class SwapService {
@@ -34,8 +34,8 @@ export class SwapService {
       throw new Error("Slippage bps is too high");
     }
 
-    if (request.slippageBps && request.slippageBps <= 0) {
-      throw new Error("Slippage bps must be greater than 0");
+    if (request.slippageBps && request.slippageBps <= MIN_SLIPPAGE_BPS) {
+      throw new Error("Slippage bps must be greater than " + MIN_SLIPPAGE_BPS);
     }
 
     // Calculate fee if selling USDC
@@ -68,7 +68,7 @@ export class SwapService {
       maxAutoSlippageBps: MAX_AUTO_SLIPPAGE_BPS,
       autoSlippageCollisionUsdValue:
         request.sellTokenId === USDC_MAINNET_PUBLIC_KEY.toString()
-          ? Math.floor(swapAmount / 1e6)
+          ? Math.ceil(swapAmount / 1e6)
           : AUTO_SLIPPAGE_COLLISION_USD_VALUE,
     };
 
@@ -187,13 +187,5 @@ export class SwapService {
       subscription.subject.complete();
       this.swapSubscriptions.delete(userId);
     }
-  }
-
-  async signAndSendTransaction(
-    userPublicKey: PublicKey,
-    userSignature: string,
-    base64TransactionMessage: string,
-  ): Promise<{ signature: string }> {
-    return this.transactionService.signAndSendTransaction(userPublicKey, userSignature, base64TransactionMessage);
   }
 }

@@ -202,7 +202,7 @@ export function createAppRouter() {
           slippageBps: z.number().optional(),
         }),
       )
-      .mutation(async ({ ctx, input }) => {
+      .query(async ({ ctx, input }) => {
         return await ctx.tubService.fetchSwap(ctx.jwtToken, input);
       }),
 
@@ -214,20 +214,13 @@ export function createAppRouter() {
           sellQuantity: z.number(),
         }),
       )
-      .mutation(async ({ ctx, input }) => {
+      .query(async ({ ctx, input }) => {
         return await ctx.tubService.fetchPresignedSwap(ctx.jwtToken, input);
       }),
 
     stopSwapStream: t.procedure.mutation(async ({ ctx }) => {
       await ctx.tubService.stopSwapStream(ctx.jwtToken);
     }),
-
-    getSignedTransfer: t.procedure
-      .input(z.object({ fromAddress: z.string(), toAddress: z.string(), amount: z.string(), tokenId: z.string() }))
-      .mutation(async ({ ctx, input }) => {
-        const amountBigInt = BigInt(input.amount);
-        return await ctx.tubService.getSignedTransfer(ctx.jwtToken, { ...input, amount: amountBigInt });
-      }),
 
     recordTokenPurchase: t.procedure
       .input(
@@ -261,6 +254,36 @@ export function createAppRouter() {
       )
       .mutation(async ({ ctx, input }) => {
         return await ctx.tubService.recordTokenSale(input, ctx.jwtToken);
+      }),
+
+    getBalance: t.procedure.query(async ({ ctx }) => {
+      return await ctx.tubService.getBalance(ctx.jwtToken);
+    }),
+
+    getAllTokenBalances: t.procedure.query(async ({ ctx }) => {
+      return await ctx.tubService.getAllTokenBalances(ctx.jwtToken);
+    }),
+
+    getTokenBalance: t.procedure
+      .input(
+        z.object({
+          tokenMint: z.string(),
+        }),
+      )
+      .query(async ({ ctx, input }) => {
+        return await ctx.tubService.getTokenBalance(ctx.jwtToken, input.tokenMint);
+      }),
+
+    fetchTransferTx: t.procedure
+      .input(
+        z.object({
+          toAddress: z.string(),
+          amount: z.string(),
+          tokenId: z.string(),
+        }),
+      )
+      .query(async ({ ctx, input }) => {
+        return await ctx.tubService.fetchTransferTx(ctx.jwtToken, input);
       }),
   });
 }
