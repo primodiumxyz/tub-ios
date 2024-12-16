@@ -66,6 +66,12 @@
 		DF3D43D22D00DEB1004DAE81 /* JustifiedText.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF3D43D12D00DEB1004DAE81 /* JustifiedText.swift */; };
 		DF5A2FC32CAF165D00508A56 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5A2FC22CAF165D00508A56 /* HistoryView.swift */; };
 		DF5A2FC52CAF2DEF00508A56 /* HistoryDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5A2FC42CAF2DEF00508A56 /* HistoryDetailsView.swift */; };
+		DF6D28BF2D108A5900810F8B /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DF6D28BE2D108A5900810F8B /* WidgetKit.framework */; };
+		DF6D28C12D108A5900810F8B /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DF6D28C02D108A5900810F8B /* SwiftUI.framework */; };
+		DF6D28D22D108A5A00810F8B /* TubWidgetExtensionExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = DF6D28BD2D108A5900810F8B /* TubWidgetExtensionExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		DF6D28E22D108B5500810F8B /* TubActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF6D28E02D108B5500810F8B /* TubActivityAttributes.swift */; };
+		DF6D28E42D108B8300810F8B /* LiveActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF6D28E32D108B8300810F8B /* LiveActivityManager.swift */; };
+		DF6D28E62D108E9600810F8B /* TubActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF6D28E02D108B5500810F8B /* TubActivityAttributes.swift */; };
 		DF8C84ED2CDFDCA700E8FA7B /* DismissKeyboardModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF8C84EC2CDFDCA700E8FA7B /* DismissKeyboardModifier.swift */; };
 		DFA4D6512CAC500B00AEDC73 /* Apollo in Frameworks */ = {isa = PBXBuildFile; productRef = DFA4D6502CAC500B00AEDC73 /* Apollo */; };
 		DFC723E32CB9A86C003A915C /* TokenInfoCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFC723E22CB9A86C003A915C /* TokenInfoCardView.swift */; };
@@ -92,7 +98,28 @@
 			remoteGlobalIDString = DB6D29002CA1C8F70099951A;
 			remoteInfo = Tub;
 		};
+		DF6D28D02D108A5A00810F8B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DB6D28F92CA1C8F70099951A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DF6D28BC2D108A5900810F8B;
+			remoteInfo = TubWidgetExtensionExtension;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		DF6D28D72D108A5A00810F8B /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				DF6D28D22D108A5A00810F8B /* TubWidgetExtensionExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		282A6AB22CEEE8490039133F /* ButtonStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonStyles.swift; sourceTree = "<group>"; };
@@ -153,6 +180,11 @@
 		DF3D43D12D00DEB1004DAE81 /* JustifiedText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JustifiedText.swift; sourceTree = "<group>"; };
 		DF5A2FC22CAF165D00508A56 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		DF5A2FC42CAF2DEF00508A56 /* HistoryDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryDetailsView.swift; sourceTree = "<group>"; };
+		DF6D28BD2D108A5900810F8B /* TubWidgetExtensionExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TubWidgetExtensionExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		DF6D28BE2D108A5900810F8B /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		DF6D28C02D108A5900810F8B /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		DF6D28E02D108B5500810F8B /* TubActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TubActivityAttributes.swift; sourceTree = "<group>"; };
+		DF6D28E32D108B8300810F8B /* LiveActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityManager.swift; sourceTree = "<group>"; };
 		DF7C361B2CD941FD00A4B27A /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		DF8C84EC2CDFDCA700E8FA7B /* DismissKeyboardModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DismissKeyboardModifier.swift; sourceTree = "<group>"; };
 		DFC723E22CB9A86C003A915C /* TokenInfoCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenInfoCardView.swift; sourceTree = "<group>"; };
@@ -164,12 +196,23 @@
 		DFF5292A2CC0121B007DC43F /* Gradients.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Gradients.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		DF6D28D32D108A5A00810F8B /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = DF6D28BC2D108A5900810F8B /* TubWidgetExtensionExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		282A6A612CEEDDEB0039133F /* Localization */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Localization; sourceTree = "<group>"; };
 		46B4B4532CD542DB00D8175A /* Extensions */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Extensions; sourceTree = "<group>"; };
 		995DE48A2CE6A268001B3C3F /* Login */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Login; sourceTree = "<group>"; };
 		99DDF62E2CB0333D000234DA /* BuySellForm */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = BuySellForm; sourceTree = "<group>"; };
 		DF627D192CF0FB4500A4500B /* Media */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Media; sourceTree = "<group>"; };
+		DF6D28C22D108A5900810F8B /* TubWidgetExtension */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (DF6D28D32D108A5A00810F8B /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = TubWidgetExtension; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -200,6 +243,15 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DF6D28BA2D108A5900810F8B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DF6D28C12D108A5900810F8B /* SwiftUI.framework in Frameworks */,
+				DF6D28BF2D108A5900810F8B /* WidgetKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -293,6 +345,7 @@
 				DB6D29042CA1C8F70099951A /* TubApp.swift */,
 				9979D2F02CB57B840040DF41 /* Utils */,
 				99856DA52CD27E27004B9D40 /* Privy.swift */,
+				DF6D28E12D108B5500810F8B /* Dynamic Island */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -366,6 +419,8 @@
 		DB458DAF2CAC824A00C5EC18 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				DF6D28BE2D108A5900810F8B /* WidgetKit.framework */,
+				DF6D28C02D108A5900810F8B /* SwiftUI.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -373,10 +428,12 @@
 		DB6D28F82CA1C8F70099951A = {
 			isa = PBXGroup;
 			children = (
+				DF6D28E52D108E4300810F8B /* Shared */,
 				DB391A1D2CC377FC002EFA78 /* LaunchScreen.storyboard */,
 				DB458DAB2CAC7F0100C5EC18 /* graphql */,
 				DB6D29032CA1C8F70099951A /* Tub */,
 				DB6D291F2CA1C8F80099951A /* TubUITests */,
+				DF6D28C22D108A5900810F8B /* TubWidgetExtension */,
 				DB458DAF2CAC824A00C5EC18 /* Frameworks */,
 				DB6D29022CA1C8F70099951A /* Products */,
 				46442B892CDD72DF009A6F0B /* Recovered References */,
@@ -389,6 +446,7 @@
 				DB6D29012CA1C8F70099951A /* Tub.app */,
 				DB6D29122CA1C8F80099951A /* TubTests.xctest */,
 				DB6D291C2CA1C8F80099951A /* TubUITests.xctest */,
+				DF6D28BD2D108A5900810F8B /* TubWidgetExtensionExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -435,6 +493,22 @@
 			path = TubUITests;
 			sourceTree = "<group>";
 		};
+		DF6D28E12D108B5500810F8B /* Dynamic Island */ = {
+			isa = PBXGroup;
+			children = (
+				DF6D28E32D108B8300810F8B /* LiveActivityManager.swift */,
+			);
+			path = "Dynamic Island";
+			sourceTree = "<group>";
+		};
+		DF6D28E52D108E4300810F8B /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				DF6D28E02D108B5500810F8B /* TubActivityAttributes.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
 		DFEBC3E72CE44D1100EA4C84 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
@@ -454,10 +528,12 @@
 				DB6D28FD2CA1C8F70099951A /* Sources */,
 				DB6D28FE2CA1C8F70099951A /* Frameworks */,
 				DB6D28FF2CA1C8F70099951A /* Resources */,
+				DF6D28D72D108A5A00810F8B /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				DF6D28D12D108A5A00810F8B /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				282A6A612CEEDDEB0039133F /* Localization */,
@@ -516,6 +592,28 @@
 			productReference = DB6D291C2CA1C8F80099951A /* TubUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		DF6D28BC2D108A5900810F8B /* TubWidgetExtensionExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DF6D28D42D108A5A00810F8B /* Build configuration list for PBXNativeTarget "TubWidgetExtensionExtension" */;
+			buildPhases = (
+				DF6D28B92D108A5900810F8B /* Sources */,
+				DF6D28BA2D108A5900810F8B /* Frameworks */,
+				DF6D28BB2D108A5900810F8B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				DF6D28C22D108A5900810F8B /* TubWidgetExtension */,
+			);
+			name = TubWidgetExtensionExtension;
+			packageProductDependencies = (
+			);
+			productName = TubWidgetExtensionExtension;
+			productReference = DF6D28BD2D108A5900810F8B /* TubWidgetExtensionExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -523,7 +621,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1520;
+				LastSwiftUpdateCheck = 1600;
 				LastUpgradeCheck = 1610;
 				TargetAttributes = {
 					DB6D29002CA1C8F70099951A = {
@@ -536,6 +634,9 @@
 					DB6D291B2CA1C8F80099951A = {
 						CreatedOnToolsVersion = 15.2;
 						TestTargetID = DB6D29002CA1C8F70099951A;
+					};
+					DF6D28BC2D108A5900810F8B = {
+						CreatedOnToolsVersion = 16.0;
 					};
 				};
 			};
@@ -565,6 +666,7 @@
 				DB6D29002CA1C8F70099951A /* Tub */,
 				DB6D29112CA1C8F80099951A /* TubTests */,
 				DB6D291B2CA1C8F80099951A /* TubUITests */,
+				DF6D28BC2D108A5900810F8B /* TubWidgetExtensionExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -596,6 +698,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		DF6D28BB2D108A5900810F8B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -615,6 +724,7 @@
 				9971F29B2CFF836700BA48C0 /* WithdrawView.swift in Sources */,
 				995FCA1F2CDA5ED70018A76D /* CoinbaseOnrampView.swift in Sources */,
 				996772FE2CEB85820029B298 /* LoadingBox.swift in Sources */,
+				DF6D28E42D108B8300810F8B /* LiveActivityManager.swift in Sources */,
 				282A6AB32CEEE8490039133F /* ButtonStyles.swift in Sources */,
 				99DDF62D2CB02816000234DA /* AccountView.swift in Sources */,
 				9936FC582CADCA5200E21B8A /* Structs.swift in Sources */,
@@ -623,6 +733,7 @@
 				DB675A332CA2B73D006FC9B3 /* HomeTabsView.swift in Sources */,
 				46442B952CDD7380009A6F0B /* Constants.swift in Sources */,
 				4619A8182CCA4E25003CD119 /* TokenListModel.swift in Sources */,
+				DF6D28E22D108B5500810F8B /* TubActivityAttributes.swift in Sources */,
 				DF5A2FC32CAF165D00508A56 /* HistoryView.swift in Sources */,
 				994AE5F72CD2AB3F00553A32 /* GoogleLogoView.swift in Sources */,
 				DF3D43D22D00DEB1004DAE81 /* JustifiedText.swift in Sources */,
@@ -674,6 +785,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		DF6D28B92D108A5900810F8B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DF6D28E62D108E9600810F8B /* TubActivityAttributes.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -686,6 +805,11 @@
 			isa = PBXTargetDependency;
 			target = DB6D29002CA1C8F70099951A /* Tub */;
 			targetProxy = DB6D291D2CA1C8F80099951A /* PBXContainerItemProxy */;
+		};
+		DF6D28D12D108A5A00810F8B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DF6D28BC2D108A5900810F8B /* TubWidgetExtensionExtension */;
+			targetProxy = DF6D28D02D108A5A00810F8B /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -988,6 +1112,65 @@
 			};
 			name = Release;
 		};
+		DF6D28D52D108A5A00810F8B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YQ22J47VA8;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TubWidgetExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TubWidgetExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.primodium.tub.TubWidgetExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		DF6D28D62D108A5A00810F8B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YQ22J47VA8;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TubWidgetExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TubWidgetExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.primodium.tub.TubWidgetExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1023,6 +1206,15 @@
 			buildConfigurations = (
 				DB6D292D2CA1C8F80099951A /* Debug */,
 				DB6D292E2CA1C8F80099951A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DF6D28D42D108A5A00810F8B /* Build configuration list for PBXNativeTarget "TubWidgetExtensionExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DF6D28D52D108A5A00810F8B /* Debug */,
+				DF6D28D62D108A5A00810F8B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
