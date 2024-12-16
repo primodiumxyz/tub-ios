@@ -5,7 +5,6 @@
 //  Created by yixintan on 10/3/24.
 //
 
-import CodexAPI
 import SwiftUI
 import TubAPI
 
@@ -20,8 +19,8 @@ struct HistoryView: View {
     @State private var tokenMetadata: [String: TokenMetadata] = [:]  // Cache for token metadata
 
     struct TokenMetadata {
-        let name: String?
-        let symbol: String?
+        let name: String
+        let symbol: String
         let imageUri: String?
     }
 
@@ -31,26 +30,42 @@ struct HistoryView: View {
         self._error = State(initialValue: nil)  // Add this line
     }
 
-    func fetchTokenMetadata(address: String) async throws -> TokenMetadata {
-        let client = await CodexNetwork.shared.apolloClient
+    func fetchTokenMetadata(addresses: [String]) async throws -> [String: TokenMetadata] {
+        // Find which tokens we need to fetch (not in cache)
+        let uncachedTokens = addresses.filter { !tokenMetadata.keys.contains($0) }
+        
+        // If all tokens are cached, return existing metadata
+        if uncachedTokens.isEmpty {
+            return tokenMetadata
+        }
+        
+        // Only fetch metadata for uncached tokens
         return try await withCheckedThrowingContinuation { continuation in
-            client.fetch(
-                query: GetTokenMetadataQuery(
-                    address: address
-                )
+            Network.shared.apollo.fetch(
+                query: GetTokensMetadataQuery(tokens: uncachedTokens)
             ) { result in
                 switch result {
-                case .success(let response):
-                    if let token = response.data?.token {
-                        let metadata = TokenMetadata(
-                            name: token.info?.name,
-                            symbol: token.info?.symbol,
-                            imageUri: token.info?.imageLargeUrl ?? token.info?.imageSmallUrl ?? token.info?
-                                .imageThumbUrl ?? nil
-                        )
-                        continuation.resume(returning: metadata)
+                case .success(let graphQLResult):
+                    if let _ = graphQLResult.errors {
+                        continuation.resume(throwing: TubError.unknown)
+                        return
                     }
-                    else {
+                    
+                    // Create new metadata from fetched data
+                    var updatedMetadata = self.tokenMetadata
+                    
+                    if let tokens = graphQLResult.data?.token_metadata_formatted {
+                        for metadata in tokens {
+                            do {
+                                updatedMetadata[metadata.mint] = TokenMetadata(
+                                    name: metadata.name,
+                                    symbol: metadata.symbol,
+                                    imageUri: metadata.image_uri
+                                )
+                            }
+                        }
+                        continuation.resume(returning: updatedMetadata)
+                    } else {
                         continuation.resume(throwing: TubError.networkFailure)
                     }
                 case .failure(let error):
@@ -71,6 +86,15 @@ struct HistoryView: View {
                     switch result {
                     case .success(let graphQLResult):
                         if let tokenTransactions = graphQLResult.data?.token_transaction {
+                            // Get unique token addresses
+                            let uniqueTokens = Set(tokenTransactions.map { $0.token })
+                            
+                            // Fetch all metadata in one call
+                            let metadata = try await fetchTokenMetadata(addresses: Array(uniqueTokens))
+                            await MainActor.run {
+                                self.tokenMetadata = metadata
+                            }
+                            
                             var processedTxs: [TransactionData] = []
 
                             for transaction in tokenTransactions {
@@ -83,19 +107,11 @@ struct HistoryView: View {
                                     continue
                                 }
 
-                                // Fetch token metadata if not cached
-                                if tokenMetadata[transaction.token] == nil {
-                                    let metadata = try await fetchTokenMetadata(address: transaction.token)
-                                    await MainActor.run {
-                                        tokenMetadata[transaction.token] = metadata
-                                    }
-                                }
-
-                                let metadata = tokenMetadata[transaction.token]
+                                let metadata = self.tokenMetadata[transaction.token]
                                 let isBuy = transaction.amount >= 0
                                 let mint = transaction.token
                                 let priceUsdc = transaction.token_price
-                                let valueUsdc = transaction.amount * Int(priceUsdc) / Int(1e9)
+                                let valueUsdc = Int(transaction.amount) * Int(priceUsdc) / Int(1e9)
 
                                 let newTransaction = TransactionData(
                                     name: metadata?.name ?? "",
@@ -104,7 +120,7 @@ struct HistoryView: View {
                                     date: date,
                                     valueUsd: priceModel.usdcToUsd(usdc: -valueUsdc),
                                     valueUsdc: -valueUsdc,
-                                    quantityTokens: transaction.amount,
+                                    quantityTokens: Int(transaction.amount),
                                     isBuy: isBuy,
                                     mint: mint
                                 )

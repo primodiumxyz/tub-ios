@@ -42,35 +42,12 @@ private var installationSource: InstallationSource {
 // GraphQL URLs
 // Accessing environment variables happens at runtime, so cannot use a compiler directive conditional for graphqlUrlHost
 // (See the next conditional, graphqlHttpUrl, for a compiler directive example.)
-private let graphqlUrlHost: String = {
-    if installationSource == .appStore || installationSource == .testFlight {
-        return "tub-graphql.primodium.ai"
-    }
-    else if let ngrokUrl = ProcessInfo.processInfo.environment["NGROK_GRAPHQL_URL_HOST"] {
-        return ngrokUrl
-    }
-    else {
-        // Use remote for testing
-        return "tub-graphql.primodium.ai"
-    }
-}()
+private let graphqlUrlHost: String = "tub-graphql.primodium.ai"
 
 // We use a compiler directive so the condition is only run once, during compilation, instead of on every import
-public let graphqlHttpUrl: String = {
-    #if targetEnvironment(simulator)
-        return "http://localhost:8080/v1/graphql"
-    #else
-        return "https://\(graphqlUrlHost)/v1/graphql"
-    #endif
-}()
+public let graphqlHttpUrl: String = "https://\(graphqlUrlHost)/v1/graphql"
 
-public let graphqlWsUrl: String = {
-    #if targetEnvironment(simulator)
-        return "ws://localhost:8080/v1/graphql"
-    #else
-        return "wss://\(graphqlUrlHost)/v1/graphql"
-    #endif
-}()
+public let graphqlWsUrl: String = "wss://\(graphqlUrlHost)/v1/graphql"
 
 // Server URLs
 private let serverUrlHost: String = {
@@ -97,10 +74,17 @@ public let solanaUrl: String = {
     return "https://blue-hardworking-paper.solana-mainnet.quiknode.pro/4240df2ab8f252905cfef06e20240f563e84418d"
 }()
 
-public let NETWORK_FILTER: Int = 1_399_811_149  // Solana filter for Codex
+// Filtering
+public let HOT_TOKENS_INTERVAL: Interval = "30m" // main interval to aggregate and sort by volume
+public let FILTERING_INTERVAL: Interval = "20s" // additional interval for filtering (min trades/volume)
+public let FILTERING_MIN_TRADES: Numeric = 20 // minimum amount of trades during the above interval to be included
+public let FILTERING_MIN_VOLUME_USD: Numeric = 0 // minimum volume during the above interval to be included
+
+// Charts
 public let CHART_INTERVAL: Double = 60 * 2  // live 2m
 public let CANDLES_INTERVAL: Double = 60 * 30  // candles 30m
 public let PRICE_UPDATE_INTERVAL: Double = 0.5  // Update price every half second
+public let MAX_NUM_PRICES_TO_KEEP: Int = 100
 
 public let WSOL_ADDRESS: String = "So11111111111111111111111111111111111111112"
 
