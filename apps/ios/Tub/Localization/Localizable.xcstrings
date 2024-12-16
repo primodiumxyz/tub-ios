@@ -118,9 +118,6 @@
     "Enter your Phone Number" : {
 
     },
-    "Failed to load tokens." : {
-
-    },
     "Filled" : {
 
     },
@@ -133,16 +130,10 @@
     "Low" : {
 
     },
-    "no data" : {
-
-    },
     "No tokens" : {
 
     },
     "No transactions found" : {
-
-    },
-    "Oops! Something went wrong" : {
 
     },
     "Open" : {
@@ -167,9 +158,6 @@
 
     },
     "Quantity" : {
-
-    },
-    "Retry" : {
 
     },
     "Save" : {
@@ -230,9 +218,6 @@
 
     },
     "Transfer" : {
-
-    },
-    "Try Again" : {
 
     },
     "Unfilled" : {

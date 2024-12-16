@@ -12,7 +12,12 @@ struct BuyFormView: View {
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject var notificationHandler: NotificationHandler
     @ObservedObject var tokenModel: TokenModel
-    var onBuy: () async -> Void
+
+    @StateObject var txManager = TxManager.shared
+
+    var buttonLoading: Bool {
+        txManager.submittingTx
+    }
 
     @EnvironmentObject private var userModel: UserModel
     @State private var buyQuantityUsdString: String = ""
@@ -23,42 +28,46 @@ struct BuyFormView: View {
 
     @ObservedObject private var settingsManager = SettingsManager.shared
 
+    func handleBuy(amountUsdc: Int) {
+        guard let priceUsd = tokenModel.prices.last?.priceUsd, priceUsd > 0
+        else {
+            notificationHandler.show(
+                "Something went wrong.",
+                type: .error
+            )
+            return
+        }
+
+        let priceUsdc = priceModel.usdToUsdc(usd: priceUsd)
+
+        Task {
+            do {
+                if isDefaultOn {
+                    SettingsManager.shared.defaultBuyValueUsdc = amountUsdc
+                } 
+                try await TxManager.shared.buyToken(
+                    tokenId: tokenModel.tokenId,
+                    buyAmountUsdc: amountUsdc,
+                    tokenPriceUsdc: priceUsdc
+                )
+                await MainActor.run {
+                    notificationHandler.show(
+                        "Successfully bought tokens!",
+                        type: .success
+                    )
+                }
+            }
+            catch {
+                notificationHandler.show(
+                    error.localizedDescription,
+                    type: .error
+                )
+            }
+        }
+    }
+    
     @State private var updateTimer: Timer?
     static let formHeight: CGFloat = 250
-
-    private func handleBuy() {
-        guard let balanceUsdc = userModel.balanceUsdc else { return }
-        // Use 10 as default if no amount is entered
-        let buyQuantityUsd = buyQuantityUsdString.isEmpty ? 10.0 : self.buyQuantityUsd
-
-        let buyQuantityUsdc = priceModel.usdToUsdc(usd: buyQuantityUsd)
-
-        // Check if the user has enough balance
-        if balanceUsdc >= buyQuantityUsdc {
-            if isDefaultOn {
-                settingsManager.defaultBuyValueUsdc = buyQuantityUsdc
-            }
-            Task {
-                await onBuy()
-            }
-        }
-        else {
-            notificationHandler.show("Insufficient Balance", type: .error)
-        }
-    }
-
-    func updateTxData(buyQuantityUsd: Double) {
-        updateTimer?.invalidate()
-
-        // only update the amountLamps if the user hasnt updated the amount for more than 0.5 second
-        updateTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { _ in
-            let buyQuantityUsdc = priceModel.usdToUsdc(usd: buyQuantityUsd)
-            Task {
-                try! await TxManager.shared.updateTxData(sellQuantity: buyQuantityUsdc)
-            }
-        }
-
-    }
 
     func updateBuyAmount(_ quantityUsdc: Int) {
         if quantityUsdc == 0 {
@@ -67,7 +76,6 @@ struct BuyFormView: View {
         }
 
         self.buyQuantityUsd = priceModel.usdcToUsd(usdc: quantityUsdc)
-        updateTxData(buyQuantityUsd: self.buyQuantityUsd)
 
         self.buyQuantityUsdString = String(format: "%.2f", floor(buyQuantityUsd * 100) / 100)
         isValidInput = true
@@ -128,7 +136,8 @@ struct BuyFormView: View {
             strokeColor: .tubBuyPrimary,
             backgroundColor: .clear,
             maxWidth: .infinity,
-            action: handleBuy
+            loading: buttonLoading,
+            action: { handleBuy(amountUsdc: priceModel.usdToUsdc(usd:buyQuantityUsd)) }
         )
         .disabled((userModel.balanceUsdc ?? 0) < priceModel.usdToUsdc(usd: buyQuantityUsd))
     }
@@ -171,7 +180,6 @@ struct BuyFormView: View {
                         let amount = text.doubleValue
                         if amount > 0 {
                             buyQuantityUsd = amount
-                            updateTxData(buyQuantityUsd: buyQuantityUsd)
                             // Only format if the value has changed
                             buyQuantityUsdString = text
                         }
@@ -306,7 +314,7 @@ extension String {
 
     ZStack {
         Color.red
-        BuyFormView(isVisible: .constant(true), tokenModel: tokenModel, onBuy: { })
+        BuyFormView(isVisible: .constant(true), tokenModel: tokenModel)
             .environmentObject(userModel)
             .environmentObject(priceModel)
         

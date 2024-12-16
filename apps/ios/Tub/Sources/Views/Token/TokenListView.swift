@@ -49,7 +49,6 @@ struct TokenListView: View {
     }
 
     @EnvironmentObject var tokenListModel: TokenListModel
-    @State private var showBubbles = false
 
     @State private var isLoading = false
 
@@ -139,18 +138,13 @@ struct TokenListView: View {
     var body: some View {
 
         ZStack(alignment: .top) {
-            if showBubbles {
-                BubbleEffect(isActive: $showBubbles)
-                    .zIndex(10)
-            }
-            
             AccountBalanceView(
                 userModel: userModel,
                 currentTokenModel: tokenListModel.currentTokenModel
             )
             .zIndex(3)
 
-            if tokenListModel.totalTokenCount == 0 && tokenListModel.fetching {
+            if tokenListModel.totalTokenCount == 0 && !tokenListModel.initialFetchComplete {
                 GeometryReader { geometry in
                     TokenView(
                         tokenModel: TokenModel()
@@ -164,8 +158,9 @@ struct TokenListView: View {
                 VStack(spacing: 0) {
                     // Rest of the content
                     if tokenListModel.totalTokenCount == 0 {
-                        TokenLoadErrorView()
-                    }
+                        ErrorView(errorMessage: "No tokens found.", retryAction: tokenListModel.startTokenSubscription)
+                    .frame(maxHeight: .infinity)
+                        }
 
                 }
 
@@ -175,7 +170,7 @@ struct TokenListView: View {
                             // Previous TokenView that's offscreen above
                             TokenView(
                                 tokenModel: tokenListModel.previousTokenModel ?? emptyTokenModel,
-								animate: $animateCurrentTokenModel
+								animate: false
                             )
                             .frame(height: geometry.size.height)
                             .opacity(dragging ? 1 : 0)
@@ -183,32 +178,18 @@ struct TokenListView: View {
                             // Current focused TokenModel that's centered onscreen
                             TokenView(
                                 tokenModel: tokenListModel.currentTokenModel,
-                                animate: $animateCurrentTokenModel,
-                                showBubbles: $showBubbles,
-                                onSellSuccess: {
-                                    withAnimation {
-                                        notificationHandler.show(
-                                            "Successfully sold tokens!",
-                                            type: .success
-                                        )
-                                    }
-                                }
+                                animate: animateCurrentTokenModel
                             )
                             .frame(height: geometry.size.height)
 
                             // Next TokenView that's offscreen below
                             TokenView(
                                 tokenModel: tokenListModel.nextTokenModel ?? emptyTokenModel,
-								animate: $animateCurrentTokenModel
+								animate: false
                             )
                             .frame(height: geometry.size.height)
                             .opacity(dragging ? 1 : 0)
                         }
-                        //						.overlay {
-                        //							Text("drag offset = \(dragGestureOffset)")
-                        //								.font(.title)
-                        //								.bold()
-                        //						}
                         .zIndex(1)
                         .offset(y: -geometry.size.height + OFFSET + dragGestureOffset + activeOffset)
                         .highPriorityGesture(
@@ -245,44 +226,11 @@ struct TokenListView: View {
                 }
             }
         }.onAppear {
-            Task {
-                await tokenListModel.startTokenSubscription()
-            }
+            tokenListModel.startTokenSubscription()
         }
         .onDisappear {
             tokenListModel.stopTokenSubscription()
         }
     }
 
-}
-struct TokenLoadErrorView: View {
-    @EnvironmentObject var tokenListModel: TokenListModel
-
-    var body: some View {
-        VStack {
-            Spacer()
-            Text("Failed to load tokens.")
-                .multilineTextAlignment(.center)
-                .padding(.bottom, 24)
-            Button(action: {
-                Task {
-                    await tokenListModel.startTokenSubscription()
-                }
-            }) {
-                Text("Retry")
-                    .font(.sfRounded(size: .lg, weight: .semibold))
-                    .frame(maxWidth: 300)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .background(Color.purple)
-                    .cornerRadius(30)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 30)
-                            .inset(by: 0.5)
-                            .stroke(Color.purple, lineWidth: 1)
-                    )
-            }
-            Spacer()
-        }
-    }
 }

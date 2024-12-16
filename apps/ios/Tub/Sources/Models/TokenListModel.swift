@@ -24,7 +24,6 @@ final class TokenListModel: ObservableObject {
     @Published var previousTokenModel: TokenModel?
     @Published var nextTokenModel: TokenModel?
     @Published var currentTokenModel: TokenModel
-    var userModel: UserModel?  // Make optional since we'll set it after init
     
     private var hotTokensSubscription: Apollo.Cancellable?
     
@@ -46,15 +45,11 @@ final class TokenListModel: ObservableObject {
     private init() {
         self.currentTokenModel = TokenModel()
     }
-    // Add method to set user model
-    func configure(with userModel: UserModel) {
-        self.userModel = userModel
-    }
     
     private func initCurrentTokenModel(with tokenId: String) {
         // initialize current model
         self.currentTokenModel.initialize(with: tokenId)
-        self.userModel?.initToken(tokenId: tokenId)
+        UserModel.shared.initToken(tokenId: tokenId)
         
     }
     
@@ -63,8 +58,7 @@ final class TokenListModel: ObservableObject {
             return tokenQueue[currentTokenIndex + 1]
         }
         
-        if let userModel {
-            let portfolio = userModel.tokenPortfolio
+        let portfolio = UserModel.shared.tokenPortfolio
             let priorityTokenMint = portfolio.first { tokenId in
                 tokenId != currentId
             }
@@ -72,7 +66,6 @@ final class TokenListModel: ObservableObject {
             if let mint = priorityTokenMint {
                 return mint
             }
-        }
         
         // If this is the first token (no currentId), return the first non-cooldown token
         var nextToken = self.pendingTokens.first { token in
@@ -130,6 +123,7 @@ final class TokenListModel: ObservableObject {
     // - Move current to previous
     // - Move next to current and initialize
     // - If current is the end of the array, append a new one and preload it
+    @MainActor
     func loadNextTokenIntoCurrentTokenPhaseOne() {
         self.recordTokenDwellTime()
         
@@ -174,9 +168,9 @@ final class TokenListModel: ObservableObject {
     }
     
     
-    @Published var fetching = false
-    public func startTokenSubscription() async {
-        do {
+    @Published var initialFetchComplete = false
+    
+    public func startTokenSubscription() {
             self.hotTokensSubscription = Network.shared.apollo.subscribe(
                 subscription: SubTopTokensByVolumeSubscription(
                     interval: .some(HOT_TOKENS_INTERVAL),
@@ -185,23 +179,17 @@ final class TokenListModel: ObservableObject {
                     minRecentVolume: .some(FILTERING_MIN_VOLUME_USD)
                 )
             ) { [weak self] result in
-                // move to background thread to offload computation in main thread
-                Task {
-                    guard let self = self else { return }
-                    
-                    let hotTokens: [String] = {
-                        switch result {
-                        case .success(let graphQLResult):
-                            if let tokens = graphQLResult.data?.token_stats_interval_comp  {
-                                let mappedTokens = tokens
-                                    .map { elem in
-                                        elem.token_mint
-                                    }
-                                
-                                // Update the current token
-                                let currentToken = self.currentTokenModel.tokenId
-                                if let updatedToken = mappedTokens.first(where: { $0 == currentToken }) {
-                                    self.currentTokenModel.updateTokenDetails(updatedToken)
+            Task{
+                guard let self = self else { return }
+                
+                // Prepare data in background
+                let hotTokens: [String] = {
+                    switch result {
+                    case .success(let graphQLResult):
+                        if let tokens = graphQLResult.data?.token_stats_interval_comp {
+                            let mappedTokens = tokens
+                                .map { elem in
+                                    elem.token_mint
                                 }
                                 
                                 return mappedTokens
@@ -213,15 +201,17 @@ final class TokenListModel: ObservableObject {
                         }
                     }()
                     await MainActor.run {
-                        self.fetching = false
+                        if !self.initialFetchComplete { self.initialFetchComplete = true }
+                    
                         self.updatePendingTokens(hotTokens)
                         if self.tokenQueue.isEmpty {
                             self.initializeTokenQueue()
                         }
-                    }
-                }
+}
+               }
+                
+                
             }
-        }
     }
     
     func stopTokenSubscription() {

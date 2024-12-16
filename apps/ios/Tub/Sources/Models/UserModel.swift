@@ -26,7 +26,7 @@ final class UserModel: ObservableObject {
     
     @Published var tokenPortfolio: [String] = []
     @Published var tokenData: [String: TokenData] = [:]
-
+    
     private var timer: Timer?
     
     @Published var hasSeenOnboarding: Bool {
@@ -123,7 +123,6 @@ final class UserModel: ObservableObject {
         DispatchQueue.main.async {
             self.initialTime = Date()
             self.initializingUser = false
-            print("finished initializing user")
         }
     }
     
@@ -131,9 +130,9 @@ final class UserModel: ObservableObject {
     let PORTFOLIO_POLL_INTERVAL: TimeInterval = 60
     
     private func startPollingTokenPortfolio() {
+        self.stopPollingTokenPortfolio()  // Ensure any existing timer is invalidated
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            self.stopPollingTokenPortfolio()  // Ensure any existing timer is invalidated
             
             self.tokenPortfolioTimer = Timer.scheduledTimer(
                 withTimeInterval: self.PORTFOLIO_POLL_INTERVAL, repeats: true
@@ -151,14 +150,14 @@ final class UserModel: ObservableObject {
         tokenPortfolioTimer = nil
     }
     
-    private func refreshPortfolio() async throws {
+    public func refreshPortfolio() async throws {
         let tokenBalances = try await Network.shared.getAllTokenBalances()
         
         for (mint, balance) in tokenBalances {
             if mint == USDC_MINT {
                 continue
             }
-
+            
             // bulk update token data
             let tokenMetadata = try await fetchTokenMetadata(addresses: self.tokenPortfolio)
             // update token data. since we already have fetched the metadata, this function will always have the metadata cached
@@ -202,7 +201,7 @@ final class UserModel: ObservableObject {
                 if balance ?? 0 > 0 && !portfolioContainsToken {
                     self.tokenPortfolio.append(mint)
                 }
-
+                
                 self.tokenData[mint] = tokenData
             }
         }
@@ -337,106 +336,9 @@ final class UserModel: ObservableObject {
     
     func initToken(tokenId: String) {
         self.tokenId = tokenId
-        if tokenId != "" {
-            Task {
-                try! await TxManager.shared.updateTxData(
-                    tokenId: tokenId,
-                    sellQuantity: SettingsManager.shared.defaultBuyValueUsdc
-                )
-            }
-        }
     }
     
-    func buyTokens(buyQuantityUsdc: Int, tokenPriceUsdc: Int, tokenPriceUsd: Double) async throws {
-        guard let walletAddress else {
-            throw TubError.notLoggedIn
-        }
-        guard let tokenId = self.tokenId, let balanceUsdc = self.balanceUsdc else {
-            throw TubError.invalidInput(reason: "No balance")
-        }
-        
-        if buyQuantityUsdc > balanceUsdc {
-            throw TubError.insufficientBalance
-        }
-        
-        // TODO: Pull the decimals in the token metadata instead of assuming 9
-        let buyQuantityToken = (buyQuantityUsdc / tokenPriceUsdc) * Int(1e9)
-        
-        var err: (any Error)? = nil
-        do {
-            try await TxManager.shared.submitTx(walletAddress: walletAddress)
-            
-            await MainActor.run {
-                self.purchaseData = PurchaseData(
-                    timestamp: Date(),
-                    amountUsdc: buyQuantityUsdc,
-                    priceUsdc: tokenPriceUsdc
-                )
-            }
-        } catch {
-            err = error
-        }
-        
-        do {
-            try await Network.shared.recordTokenPurchase(
-                tokenMint: tokenId,
-                tokenAmount: Double(buyQuantityToken),
-                tokenPriceUsd: tokenPriceUsd,
-                source: "user_model",
-                errorDetails: err?.localizedDescription
-            )
-            print("Successfully recorded buy event")
-        } catch {
-            print("Failed to record buy event: \(error)")
-        }
-        
-        if let err {
-            throw err
-        }
-    }
-    
-    func sellTokens(tokenPriceUsd: Double) async throws {
-        guard let walletAddress else {
-            throw TubError.notLoggedIn
-        }
-        
-        guard let tokenId = self.tokenId, let balanceToken = tokenData[tokenId]?.balanceToken,
-              balanceToken > 0
-        else {
-            throw TubError.insufficientBalance
-        }
-        
-        var err: (any Error)? = nil
-        
-        do {
-            try await TxManager.shared.submitTx(walletAddress: walletAddress)
-            
-            await MainActor.run {
-                self.purchaseData = nil
-            }
-        } catch {
-            err = error
-            print("Error selling tokens: \(error)")
-        }
-        
-        do {
-            try await Network.shared.recordTokenSale(
-                tokenMint: tokenId,
-                tokenAmount: Double(balanceToken),
-                tokenPriceUsd: tokenPriceUsd,
-                source: "user_model",
-                errorDetails: err?.localizedDescription
-            )
-            print("Successfully recorded sell event")
-        } catch {
-            print("Failed to record sell event: \(error)")
-        }
-        
-        if let err {
-            throw err
-        }
-    }
-    
+
     private func startTimer() {
         stopTimer()  // Ensure any existing timer is invalidated
         self.initialTime = Date()
@@ -462,52 +364,16 @@ final class UserModel: ObservableObject {
                 switch result {
                 case .success(let graphQLResult):
                     Task {
-                        let processedTxs : [TransactionData] = []
-                        if let tokenTransactions = graphQLResult.data?.transactions {
-                            // Get unique token addresses
-                            let uniqueTokens = Set(tokenTransactions.map { $0.token_mint })
-                            
-                            // Fetch all metadata in one call
-                            do {
-                                let tokens = try await self.fetchTokenMetadata(addresses: Array(uniqueTokens))
-                                
-                                var processedTxs: [TransactionData] = []
-                                
-                                for transaction in tokenTransactions {
-                                    guard let date = formatDateString(transaction.created_at)
-                                    else {
-                                        continue
-                                    }
-                                    
-                                    if abs(transaction.token_amount) == 0 {
-                                        continue
-                                    }
-                                    
-                                    let mint = transaction.token_mint
-                                    let metadata = tokens[mint]
-                                    let isBuy = transaction.token_amount >= 0
-                                    let priceUsdc = transaction.token_price_usd
-                                    let valueUsdc = Int(transaction.token_amount) * Int(priceUsdc) / Int(1e9)
-                                    
-                                    let newTransaction = TransactionData(
-                                        name: metadata?.name ?? "",
-                                        symbol: metadata?.symbol ?? "",
-                                        imageUri: metadata?.imageUri ?? "",
-                                        date: date,
-                                        valueUsdc: -valueUsdc,
-                                        quantityTokens: Int(transaction.token_amount),
-                                        isBuy: isBuy,
-                                        mint: mint
-                                    )
-                                    
-                                    processedTxs.append(newTransaction)
-                                }
-                            }catch {
-                                continuation.resume(throwing: error)
+                        do {
+                            guard let transactions = graphQLResult.data?.transactions else {
+                                let ret = [TransactionData]()
+                                return continuation.resume(returning: ret)
                             }
-                            
+                            let processedTxs = try await self.processTxs(tokenTransactions: transactions)
+                            continuation.resume(returning: processedTxs)
+                        }catch {
+                            continuation.resume(throwing: error)
                         }
-                        continuation.resume(returning: processedTxs)
                     }
                 case .failure(let error):
                     continuation.resume(throwing: error)
@@ -516,10 +382,52 @@ final class UserModel: ObservableObject {
         }
     }
     
+    private func processTxs(tokenTransactions:[GetWalletTransactionsQuery.Data.Transaction]) async throws -> [TransactionData] {
+        var processedTxs : [TransactionData] = []
+        // Get unique token addresses
+        let uniqueTokens = Set(tokenTransactions.map { $0.token_mint })
+        
+        // Fetch all metadata in one call
+        let tokens = try await self.fetchTokenMetadata(addresses: Array(uniqueTokens))
+        
+        
+        for transaction in tokenTransactions {
+            guard let date = formatDateString(transaction.created_at)
+            else {
+                continue
+            }
+            
+            if abs(transaction.token_amount) == 0 {
+                continue
+            }
+            
+            let mint = transaction.token_mint
+            let metadata = tokens[mint]
+            let isBuy = transaction.token_amount >= 0
+            let priceUsdc = transaction.token_price_usd
+            let decimals = metadata?.decimals ?? 9
+            let valueUsdc = Int(transaction.token_amount) * Int(priceUsdc) / Int(pow(10.0,Double(decimals)))
+            
+            let newTransaction = TransactionData(
+                name: metadata?.name ?? "",
+                symbol: metadata?.symbol ?? "",
+                imageUri: metadata?.imageUri ?? "",
+                date: date,
+                valueUsdc: -valueUsdc,
+                quantityTokens: Int(transaction.token_amount),
+                isBuy: isBuy,
+                mint: mint
+            )
+            
+            processedTxs.append(newTransaction)
+        }
+        return processedTxs
+    }
+    
     func fetchTokenMetadata(addresses: [String]) async throws -> [String : TokenMetadata] {
         let uncachedTokens = addresses.filter { !tokenData.keys.contains($0) }
         let cachedTokens = addresses.filter { tokenData.keys.contains($0) }
-
+        
         // Only fetch metadata for uncached tokens
         var ret = [String : TokenMetadata]()
         
