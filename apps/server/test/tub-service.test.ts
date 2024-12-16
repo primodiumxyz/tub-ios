@@ -10,7 +10,7 @@ import { getAssociatedTokenAddress } from "@solana/spl-token";
 import { env } from "../bin/tub-server";
 import { PrebuildSwapResponse } from "../src/types";
 import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY, MEMECOIN_MAINNET_PUBLIC_KEY } from "../src/constants/tokens";
-
+import { ConfigService } from "../src/services/ConfigService";
 // Skip entire suite in CI, because it would perform a live transaction each deployment
 (env.CI ? describe.skip : describe)("TubService Integration Test", () => {
   let tubService: TubService;
@@ -22,6 +22,7 @@ import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY, MEMECOIN_MAINNET_PUBLI
     try {
       // Setup connection to Solana mainnet
       connection = new Connection(`${env.QUICKNODE_ENDPOINT}/${env.QUICKNODE_TOKEN}`);
+      await ConfigService.getInstance();
 
       // Setup Jupiter API client
       const jupiterQuoteApi = createJupiterApiClient({
@@ -173,7 +174,7 @@ import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY, MEMECOIN_MAINNET_PUBLI
     }, 11000);
 
     describe("MEMECOIN swaps", () => {
-      it("should complete a USDC to MEMECOIN swap", async () => {
+      it.skip("should complete a USDC to MEMECOIN swap", async () => {
         // Get swap instructions
         const swapResponse = await tubService.fetchSwap(mockJwtToken, {
           buyTokenId: MEMECOIN_MAINNET_PUBLIC_KEY.toString(),
@@ -185,7 +186,7 @@ import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY, MEMECOIN_MAINNET_PUBLI
         await executeTx(swapResponse);
       }, 11000);
 
-      it.skip("should transfer half of held MEMECOIN to USDC", async () => {
+      it("should transfer half of held MEMECOIN to USDC", async () => {
         const userMEMECOINAta = await getAssociatedTokenAddress(MEMECOIN_MAINNET_PUBLIC_KEY, userKeypair.publicKey);
         const valueBalance = await connection.getTokenAccountBalance(userMEMECOINAta);
         const decimals = valueBalance.value.decimals;
@@ -206,7 +207,7 @@ import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY, MEMECOIN_MAINNET_PUBLI
         const swapResponse = await tubService.fetchSwap(mockJwtToken, swap);
 
         await executeTx(swapResponse);
-      });
+      }, 11000);
     });
   });
 });

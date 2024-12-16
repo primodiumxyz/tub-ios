@@ -13,6 +13,7 @@ import {
 import bs58 from "bs58";
 import { config } from "../utils/config";
 import { ATA_PROGRAM_PUBLIC_KEY, JUPITER_PROGRAM_PUBLIC_KEY, TOKEN_PROGRAM_PUBLIC_KEY } from "../constants/tokens";
+import { Config } from "./ConfigService";
 
 export type TransactionRegistryEntry = {
   message: MessageV0;
@@ -124,8 +125,8 @@ export class TransactionService {
     userPublicKey: PublicKey,
     userSignature: string,
     base64Message: string,
+    cfg: Config,
   ): Promise<{ signature: string }> {
-    const cfg = await config();
     const entry = this.messageRegistry.get(base64Message);
     if (!entry) {
       throw new Error("Transaction not found in registry");

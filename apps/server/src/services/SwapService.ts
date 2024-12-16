@@ -5,6 +5,7 @@ import { FeeService } from "../services/FeeService";
 import { ActiveSwapRequest, PrebuildSwapResponse, SwapSubscription } from "../types";
 import { QuoteGetRequest } from "@jup-ag/api";
 import { USDC_MAINNET_PUBLIC_KEY, USDC_DEV_PUBLIC_KEY } from "../constants/tokens";
+import { Config } from "./ConfigService";
 import { config } from "../utils/config";
 
 export class SwapService {
@@ -16,8 +17,7 @@ export class SwapService {
     private feeService: FeeService,
   ) {}
 
-  async buildSwapResponse(request: ActiveSwapRequest): Promise<PrebuildSwapResponse> {
-    const cfg = await config();
+  async buildSwapResponse(request: ActiveSwapRequest, cfg: Config): Promise<PrebuildSwapResponse> {
     if (!request.sellTokenAccount) {
       throw new Error("Sell token account is required but was not provided");
     }
@@ -31,10 +31,12 @@ export class SwapService {
     }
 
     // Calculate fee if selling USDC
-    const feeAmount = await this.feeService.calculateFeeAmount(request.sellTokenId, request.sellQuantity, [
-      USDC_DEV_PUBLIC_KEY.toString(),
-      USDC_MAINNET_PUBLIC_KEY.toString(),
-    ]);
+    const feeAmount = await this.feeService.calculateFeeAmount(
+      request.sellTokenId,
+      request.sellQuantity,
+      [USDC_DEV_PUBLIC_KEY.toString(), USDC_MAINNET_PUBLIC_KEY.toString()],
+      cfg,
+    );
     const swapAmount = request.sellQuantity - feeAmount;
 
     // Create fee transfer instruction if needed
@@ -159,7 +161,8 @@ export class SwapService {
           switchMap(async () => {
             const currentRequest = this.swapSubscriptions.get(userId)?.request;
             if (!currentRequest) return null;
-            return this.buildSwapResponse(currentRequest);
+            const cfg = await config();
+            return this.buildSwapResponse(currentRequest, cfg);
           }),
         )
         .subscribe((response: PrebuildSwapResponse | null) => {

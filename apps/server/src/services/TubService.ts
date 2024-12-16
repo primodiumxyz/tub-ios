@@ -178,7 +178,8 @@ export class TubService {
     };
 
     try {
-      const response = await this.swapService.buildSwapResponse(activeRequest);
+      const cfg = await config();
+      const response = await this.swapService.buildSwapResponse(activeRequest, cfg);
       return response;
     } catch (error) {
       throw new Error(`Failed to build swap response: ${error}`);
@@ -259,7 +260,13 @@ export class TubService {
 
   async signAndSendTransaction(jwtToken: string, userSignature: string, base64TransactionMessage: string) {
     const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
-    return this.transactionService.signAndSendTransaction(walletPublicKey, userSignature, base64TransactionMessage);
+    const cfg = await config();
+    return this.transactionService.signAndSendTransaction(
+      walletPublicKey,
+      userSignature,
+      base64TransactionMessage,
+      cfg,
+    );
   }
 
   /**
