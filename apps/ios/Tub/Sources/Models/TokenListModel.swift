@@ -32,7 +32,7 @@ final class TokenListModel: ObservableObject {
     private var currentTokenId: String? {
         return self.currentTokenModel.tokenId
     }
-    
+   
     private var nextTokenId: String? {
         return self.nextTokenModel?.tokenId
     }

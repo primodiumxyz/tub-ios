@@ -128,6 +128,7 @@ class Network {
         
         let (data, _) = try await session.data(for: request)
         
+        print(String(data: data, encoding: .utf8) ?? "No data")
         if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
             print("Error: \(errorResponse.error.message)")
             throw TubError.serverError(reason: errorResponse.error.message)

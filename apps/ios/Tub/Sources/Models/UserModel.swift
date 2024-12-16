@@ -156,10 +156,8 @@ final class UserModel: ObservableObject {
 
     public func refreshPortfolio() async throws {
         let tokenBalances = try await Network.shared.getAllTokenBalances()
-        try await refreshBulkTokenData(tokenMints: Array(tokenBalances.keys))
-    }
-
-    public func refreshBulkTokenData(tokenMints: [String]) async throws {
+        
+        let tokenMints = Array(tokenBalances.keys)
         let tokenMetadata = try await fetchBulkTokenMetadata(tokenMints: tokenMints)
         let tokenLiveData = try await fetchBulkTokenLiveData(tokenMints: tokenMints)
         
@@ -167,7 +165,20 @@ final class UserModel: ObservableObject {
             if mint == USDC_MINT {
                 continue
             }
-            await updateTokenData(mint: mint, metadata: tokenMetadata[mint], liveData: tokenLiveData[mint])
+            await updateTokenData(mint: mint, balance: tokenBalances[mint], metadata: tokenMetadata[mint], liveData: tokenLiveData[mint])
+        }
+    }
+
+    public func refreshBulkTokenData(tokenMints: [String], withBalances: Bool = false) async throws {
+        let balances = withBalances ? try await Network.shared.getAllTokenBalances() : nil
+        let tokenMetadata = try await fetchBulkTokenMetadata(tokenMints: tokenMints)
+        let tokenLiveData = try await fetchBulkTokenLiveData(tokenMints: tokenMints)
+        
+        for mint in tokenMints {
+            if mint == USDC_MINT {
+                continue
+            }
+            await updateTokenData(mint: mint, balance: balances?[mint], metadata: tokenMetadata[mint], liveData: tokenLiveData[mint])
         }
     }
     

@@ -81,11 +81,11 @@ final class TxManager: ObservableObject {
          }
             
         // Update tx data if its stale
-        let txData = try await Network.shared.getTxData(buyTokenId: buyTokenId, sellTokenId: sellTokenId, sellQuantity: sellQuantity, slippageBps: 2000)
         
         // Sign and send the tx
         var txError : Error? = nil
         do {
+            let txData = try await Network.shared.getTxData(buyTokenId: buyTokenId, sellTokenId: sellTokenId, sellQuantity: sellQuantity, slippageBps: 2000)
             let provider = try privy.embeddedWallet.getSolanaProvider(for: walletAddress)
             let signature = try await provider.signMessage(message: txData.transactionMessageBase64)
             let _ = try await Network.shared.submitSignedTx(

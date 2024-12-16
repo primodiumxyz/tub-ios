@@ -29,7 +29,7 @@ export class FeeService {
   calculateFeeAmount(sellTokenId: string, sellQuantity: number, usdcTokenIds: string[]): number {
     const isUsdcSell = usdcTokenIds.includes(sellTokenId);
 
-    if (isUsdcSell && this.settings.minTradeSize * 1e6 < sellQuantity) {
+    if (isUsdcSell && this.settings.minTradeSize * 1e6 > sellQuantity) {
       throw new Error("USDC sell quantity is below minimum trade size");
     }
 
