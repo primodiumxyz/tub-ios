@@ -52,7 +52,7 @@
     "10.00" : {
       "comment" : "placeholder"
     },
-    "100" : {
+    "100.00" : {
 
     },
     "About" : {
@@ -95,6 +95,9 @@
 
     },
     "Date" : {
+
+    },
+    "Deposit" : {
 
     },
     "Deposit with" : {

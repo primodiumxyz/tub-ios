@@ -146,35 +146,36 @@ struct BuyFormView: View {
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.leading)
                 .textFieldStyle(PlainTextFieldStyle())
-                .onReceive(NotificationCenter.default.publisher(for: UITextField.textDidChangeNotification)) { obj in
-                    guard let textField = obj.object as? UITextField else { return }
-
-                    if let text = textField.text {
-                        // Validate decimal places
-                        let components = text.components(separatedBy: ".")
-                        if components.count > 1 {
-                            let decimals = components[1]
-                            if decimals.count > 2 {
-                                textField.text = String(text.dropLast())
-                            }
+                .onChange(of: buyQuantityUsdString) {
+                    var text = buyQuantityUsdString
+                    
+                    // Validate decimal places
+                    let components = text.components(separatedBy: ".")
+                    if components.count > 1 {
+                        let decimals = components[1]
+                        if decimals.count > 2 {
+                            text = String(text.dropLast())
+                            buyQuantityUsdString = text  
                         }
-
-                        // Validate if it's a decimal
-                        if !text.isEmpty && !text.isDecimal() {
-                            textField.text = String(text.dropLast())
-                        }
-
-                        let amount = text.doubleValue
-                        if amount > 0 {
-                            buyQuantityUsd = amount
-                            updateTxData(buyQuantityUsd: buyQuantityUsd)
-                            // Only format if the value has changed
-                            buyQuantityUsdString = text
-                        }
-                        isValidInput = true
                     }
-                    else {
-                        buyQuantityUsd = 0
+                    
+                    // Validate if it's a decimal
+                    if !text.isEmpty && !text.isDecimal() {
+                        text = String(text.dropLast())
+                        buyQuantityUsdString = text  
+                    }
+                    
+                    let amount = text.doubleValue
+                    if amount > 0 {
+                        buyQuantityUsd = amount
+                        updateTxData(buyQuantityUsd: buyQuantityUsd)
+                        // Only format if the value has changed
+                        buyQuantityUsdString = text
+                        
+                        // Check if amount exceeds balance
+                        let buyQuantityUsdc = priceModel.usdToUsdc(usd: amount)
+                        isValidInput = (userModel.balanceUsdc ?? 0) >= buyQuantityUsdc
+                    } else {
                         isValidInput = false
                     }
                 }
