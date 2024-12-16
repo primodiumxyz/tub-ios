@@ -224,6 +224,7 @@ struct TransactionFilters: View {
                 }
             }
             .padding()
+            .foregroundStyle(.tubTextSecondary)
         }
         .frame(height: 44)
     }
