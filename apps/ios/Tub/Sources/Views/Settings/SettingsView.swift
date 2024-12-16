@@ -43,6 +43,7 @@ struct CustomToggleStyle: ToggleStyle {
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var settingsManager = SettingsManager.shared
+    @EnvironmentObject var priceModel : SolPriceModel
 
     // Add temporary state for editing
     @State private var tempDefaultValueUsd: String = ""
@@ -61,11 +62,11 @@ struct SettingsView: View {
     // Create a computed binding to handle validation
     private var validatedDefaultBuyValue: Binding<Double> {
         Binding(
-            get: { settingsManager.defaultBuyValueUsd },
+            get: { priceModel.usdcToUsd(usdc: settingsManager.defaultBuyValueUsdc) },
             set: { newValue in
                 // Round to 2 decimal places
                 let rounded = (newValue * 100).rounded() / 100
-                settingsManager.defaultBuyValueUsd = max(0, rounded)
+                settingsManager.defaultBuyValueUsdc = priceModel.usdToUsdc(usd: max(0, rounded))
             }
         )
     }
@@ -108,10 +109,12 @@ struct SettingsView: View {
                                     }
                                 }
                                 .onAppear {
-                                    tempDefaultValueUsd = String(format: "%.2f", settingsManager.defaultBuyValueUsd)
+                                    tempDefaultValueUsd = String(format: "%.2f", validatedDefaultBuyValue.wrappedValue)
                                 }
                                 .onSubmit {
-                                    updateDefaultValue()
+                                    if let newValue = Double(tempDefaultValueUsd) {
+                                        validatedDefaultBuyValue.wrappedValue = newValue
+                                    }
                                 }
                             Image(systemName: "pencil")
                                 .foregroundStyle(.tubBuyPrimary)
@@ -140,7 +143,9 @@ struct SettingsView: View {
                 ToolbarItem(placement: .keyboard) {
                     Button("Save") {
                         isEditing = false
-                        updateDefaultValue()
+                        if let newValue = Double(tempDefaultValueUsd) {
+                            validatedDefaultBuyValue.wrappedValue = newValue
+                        }
                     }
                     .foregroundStyle(.tubSellPrimary)
                     .font(.system(size: 20))
@@ -150,12 +155,6 @@ struct SettingsView: View {
         }
     }
 
-    private func updateDefaultValue() {
-        if let newValue = Double(tempDefaultValueUsd) {
-            let rounded = (newValue * 100).rounded() / 100
-            settingsManager.defaultBuyValueUsd = max(0, rounded)
-        }
-    }
 
     private func textWidth(for text: String) -> CGFloat {
         let font = UIFont.systemFont(ofSize: 17, weight: .semibold)

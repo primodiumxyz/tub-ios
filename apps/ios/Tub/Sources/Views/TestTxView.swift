@@ -14,27 +14,12 @@ struct TestTxView: View {
     @EnvironmentObject var userModel: UserModel
     @StateObject var txManager = TxManager.shared
 
+    let solTokenId = "So11111111111111111111111111111111111111112"
+    let quantity = Int(1e5)
     func handleTxSubmission() {
         Task {
             do {
-                guard let walletAddress = userModel.walletAddress else { throw TubError.notLoggedIn }
-                try await txManager.submitTx(walletAddress: walletAddress)
-            }
-            catch {
-                notificationHandler.show(error.localizedDescription, type: .error)
-            }
-        }
-    }
-
-    func handleAppear() {
-        Task {
-            let solTokenId = "So11111111111111111111111111111111111111112"
-            do {
-                try await txManager.updateTxData(
-                    purchaseState: .buy,
-                    tokenId: solTokenId,
-                    sellQuantity: priceModel.usdToUsdc(usd: 1.0)
-                )
+                try await txManager.buyToken(tokenId: solTokenId, buyAmountUsdc: quantity)
             }
             catch {
                 notificationHandler.show(error.localizedDescription, type: .error)
@@ -44,24 +29,15 @@ struct TestTxView: View {
 
     var body: some View {
         VStack(spacing: 10) {
-            Button(action: handleAppear) {
-                Text("Update Tx Data")
-            }.padding().background(.blue)
-            if let txData = txManager.txData {
-                DataRow(title: "Buy Token ID", content: txData.buyTokenId)
-                DataRow(title: "Sell Token ID", content: txData.sellTokenId)
+                DataRow(title: "Buy Token ID", content: solTokenId)
+                DataRow(title: "Sell Token ID", content: USDC_MINT)
                 DataRow(
                     title: "Sell Quantity",
-                    content: priceModel.formatPrice(usdc: txData.sellQuantity)
+                    content: priceModel.formatPrice(usdc: quantity)
                 )
-                Button(action: handleTxSubmission) {
-                    Text("Submit Transaction")
-                }.padding().background(.red)
-            }
-            else {
-                Text("no data")
-            }
-        }.foregroundStyle(.white).frame(maxWidth: .infinity, maxHeight: .infinity)
+                
+                PrimaryButton(text: "Submit Tx", loading: txManager.submittingTx, action: handleTxSubmission)
+        }.foregroundStyle(.tubText).frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private struct DataRow: View {
@@ -78,4 +54,22 @@ struct TestTxView: View {
             }.frame(maxWidth: .infinity)
         }
     }
+}
+
+
+#Preview {
+    @Previewable @StateObject var priceModel = {
+        let model = SolPriceModel.shared
+        spoofPriceModelData(model)
+        return model
+    }()
+
+    @Previewable @StateObject var userModel = UserModel.shared
+    @Previewable @StateObject var notificationHandler = NotificationHandler()
+
+    TestTxView()
+        .environmentObject(priceModel)
+        .environmentObject(notificationHandler)
+        .environmentObject(userModel)
+        .preferredColorScheme(.light)
 }

@@ -11,15 +11,19 @@ struct AccountBalanceView: View {
     @EnvironmentObject var priceModel: SolPriceModel
     @ObservedObject var userModel: UserModel
     @ObservedObject var currentTokenModel: TokenModel
-
+    
+    var balanceToken: Int {
+        userModel.tokenData[currentTokenModel.tokenId]?.balanceToken ?? 0
+    }
+    
     var balances: (usdcBalanceUsd: Double?, tokenBalanceUsd: Double, deltaUsd: Double) {
         let usdcBalanceUsd =
             userModel.balanceUsdc == nil
             ? nil : priceModel.usdcToUsd(usdc: userModel.balanceUsdc!)
+
+        let decimals = userModel.tokenData[currentTokenModel.tokenId]?.metadata.decimals ?? 9
         let tokenBalanceUsd =
-            userModel.balanceToken == nil
-            ? 0
-            : Double(userModel.balanceToken!) * (currentTokenModel.prices.last?.priceUsd ?? 0) / 1e9
+        Double(balanceToken) * (currentTokenModel.prices.last?.priceUsd ?? 0) / pow(10.0 , Double(decimals))
 
         let deltaUsd =
             (tokenBalanceUsd) + priceModel.usdcToUsd(usdc: userModel.balanceChangeUsdc)

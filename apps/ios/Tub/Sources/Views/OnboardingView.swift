@@ -13,7 +13,6 @@ struct OnboardingView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject private var userModel: UserModel
     @State private var currentPage = 0
-    @State private var showBubbles = false
 
     let onboardingData = [
         OnboardingPage(
@@ -74,10 +73,7 @@ struct OnboardingView: View {
                         .tag(index)
                         .onChange(of: currentPage) { oldValue, newValue in
                             if newValue == 1 {
-                                showBubbles = false
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 6.8) {
-                                    showBubbles = true
-                                }
+                                BubbleManager.shared.trigger() 
                             }
                         }
                     }

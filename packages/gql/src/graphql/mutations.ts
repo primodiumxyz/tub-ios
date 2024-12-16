@@ -1,28 +1,56 @@
 import { graphql } from "./init";
 
-export const BuyTokenMutation = graphql(`
-  mutation BuyToken($wallet: String!, $token: String!, $amount: numeric!, $token_price: float8!) {
-    buy_token(
-      args: { user_wallet: $wallet, token_address: $token, amount_to_buy: $amount, token_price: $token_price }
+export const AddTokenPurchaseMutation = graphql(`
+  mutation AddTokenPurchase(
+    $token_mint: String!
+    $token_amount: numeric!
+    $token_price_usd: numeric!
+    $user_wallet: String!
+    $user_agent: String!
+    $source: String
+    $error_details: String
+    $build: String
+  ) {
+    insert_token_purchase_one(
+      object: {
+        token_mint: $token_mint
+        token_amount: $token_amount
+        token_price_usd: $token_price_usd
+        user_wallet: $user_wallet
+        user_agent: $user_agent
+        source: $source
+        error_details: $error_details
+        build: $build
+      }
     ) {
       id
     }
   }
 `);
 
-export const SellTokenMutation = graphql(`
-  mutation SellToken($wallet: String!, $token: String!, $amount: numeric!, $token_price: float8!) {
-    sell_token(
-      args: { user_wallet: $wallet, token_address: $token, amount_to_sell: $amount, token_price: $token_price }
+export const AddTokenSaleMutation = graphql(`
+  mutation AddTokenSale(
+    $token_mint: String!
+    $token_amount: numeric!
+    $token_price_usd: numeric!
+    $user_wallet: String!
+    $user_agent: String!
+    $source: String
+    $error_details: String
+    $build: String
+  ) {
+    insert_token_sale_one(
+      object: {
+        token_mint: $token_mint
+        token_amount: $token_amount
+        token_price_usd: $token_price_usd
+        user_wallet: $user_wallet
+        user_agent: $user_agent
+        source: $source
+        error_details: $error_details
+        build: $build
+      }
     ) {
-      id
-    }
-  }
-`);
-
-export const AirdropNativeToWalletMutation = graphql(`
-  mutation AirdropNativeToUser($wallet: String!, $amount: numeric!) {
-    insert_wallet_transaction_one(object: { wallet: $wallet, amount: $amount }) {
       id
     }
   }

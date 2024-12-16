@@ -10,123 +10,63 @@
     naming_convention: hasura-default
   logical_models:
     - fields:
-        - name: balance
-          type:
-            nullable: false
-            scalar: numeric
-      name: balance_offset_model
-      select_permissions:
-        - permission:
-            columns:
-              - balance
-            filter: {}
-          role: public
-    - fields:
         - name: id
           type:
             nullable: false
             scalar: uuid
-        - name: token
+        - name: created_at
+          type:
+            nullable: false
+            scalar: timestamptz
+        - name: user_wallet
           type:
             nullable: false
             scalar: text
-        - name: amount
+        - name: token_mint
+          type:
+            nullable: false
+            scalar: text
+        - name: token_price_usd
           type:
             nullable: false
             scalar: numeric
-        - name: wallet
+        - name: token_amount
           type:
             nullable: false
-            scalar: varchar
-        - name: created_at
+            scalar: numeric
+        - name: success
           type:
             nullable: false
-            scalar: timestamptz
-        - name: created_at_offset
+            scalar: boolean
+        - name: token_value_usd
           type:
-            nullable: false
-            scalar: timestamptz
-      name: token_transaction_offset_model
+            nullable: true
+            scalar: numeric
+      name: transaction_model
     - fields:
-        - name: id
-          type:
-            nullable: false
-            scalar: uuid
-        - name: wallet
-          type:
-            nullable: false
-            scalar: varchar
-        - name: amount
+        - name: total_value_usd
           type:
             nullable: false
             scalar: numeric
-        - name: created_at
+        - name: user_wallet
           type:
             nullable: false
-            scalar: timestamptz
-        - name: created_at_offset
+            scalar: text
+        - name: token_mint
           type:
             nullable: false
-            scalar: timestamptz
-      name: wallet_transaction_offset_model
+            scalar: text
+      name: wallet_token_pnl_model
   native_queries:
-    - arguments:
-        offset:
-          description: ""
-          nullable: false
-          type: interval
-      code: SELECT  token_transaction.id,  token_transaction.token,  token_transaction.amount, wallet_transaction.wallet, created_at, created_at + {{offset}} as created_at_offset from token_transaction inner JOIN wallet_transaction on token_transaction.wallet_transaction = wallet_transaction.id
-      returns: token_transaction_offset_model
-      root_field_name: token_transaction_offset
-    - arguments:
-        interval:
-          description: ""
-          nullable: false
-          type: interval
-        start:
-          description: ""
-          nullable: false
-          type: timestamptz
-        wallet:
-          description: ""
-          nullable: false
-          type: varchar
-      code: |-
-        SELECT COALESCE(SUM(wallet_transaction_offset.amount), 0) as balance
-        from  (SELECT *, created_at + {{interval}} as created_at_offset from wallet_transaction) as wallet_transaction_offset
-        where wallet_transaction_offset.wallet = {{wallet}} and wallet_transaction_offset.created_at_offset <= {{start}}
-      returns: balance_offset_model
-      root_field_name: wallet_balance_ignore_interval
-    - arguments:
-        interval:
-          description: ""
-          nullable: false
-          type: interval
-        start:
-          description: ""
-          nullable: false
-          type: timestamptz
-        token:
-          description: ""
-          nullable: false
-          type: text
-        wallet:
-          description: ""
-          nullable: false
-          type: varchar
-      code: "SELECT \n    COALESCE(SUM(token_transaction_offset.amount), 0) AS balance\nFROM (\n    SELECT  \n        token_transaction.id,  \n        token_transaction.token,  \n        token_transaction.amount, \n        wallet_transaction.wallet, \n        wallet_transaction.created_at, \n        wallet_transaction.created_at + {{interval}} AS created_at_offset\n    FROM \n        token_transaction\n    INNER JOIN \n        wallet_transaction \n    ON \n        token_transaction.wallet_transaction = wallet_transaction.id\n) AS token_transaction_offset\nWHERE \n    token_transaction_offset.wallet = {{wallet}} \n    AND token_transaction_offset.token = {{token}} \n    AND token_transaction_offset.created_at_offset <= {{start}};"
-      returns: balance_offset_model
-      root_field_name: wallet_token_balance_ignore_interval
-    - arguments:
-        offset:
-          description: ""
-          nullable: false
-          type: interval
-      code: select *, created_at + {{offset}} as created_at_offset from wallet_transaction
-      returns: wallet_transaction_offset_model
-      root_field_name: wallet_transaction_offset
+    - arguments: {}
+      code: "SELECT \n    id,\n    created_at,\n    user_wallet,\n    token_mint,\n    token_price_usd,\n    token_amount,\n    token_amount * token_price_usd as token_value_usd,\n    error_details IS NULL as success\nFROM token_purchase\n\nUNION ALL\n\nSELECT \n    id,\n    created_at,\n    user_wallet,\n    token_mint,\n    token_price_usd,\n    -token_amount as token_amount,  -- Negative amount for sales\n    -token_amount * token_price_usd as token_value_usd,\n\n    error_details IS NULL as success\nFROM token_sale;"
+      returns: transaction_model
+      root_field_name: transactions
+    - arguments: {}
+      code: "SELECT \n    user_wallet,\n    token_mint,\n    SUM(token_value_usd) as total_value_usd\nFROM (\n    SELECT \n        user_wallet,\n        token_mint,\n        token_amount * token_price_usd as token_value_usd\n    FROM token_purchase\n    WHERE error_details IS NULL\n\n    UNION ALL\n\n    SELECT \n        user_wallet,\n        token_mint,\n        -token_amount * token_price_usd as token_value_usd\n    FROM token_sale\n    WHERE error_details IS NULL\n) combined_transactions\nGROUP BY user_wallet, token_mint\nORDER BY user_wallet, token_mint;"
+      returns: wallet_token_pnl_model
+      root_field_name: transactions_value_aggregate
   tables: "!include default/tables/tables.yaml"
-  functions: "!include default/functions/functions.yaml"
 - name: timescaledb
   kind: postgres
   configuration:

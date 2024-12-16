@@ -53,21 +53,6 @@ input Boolean_comparison_exp {
 }
 
 """
-Boolean expression to compare columns of type "Int". All fields are combined with logical 'AND'.
-"""
-input Int_comparison_exp {
-  _eq: Int
-  _gt: Int
-  _gte: Int
-  _in: [Int!]
-  _is_null: Boolean
-  _lt: Int
-  _lte: Int
-  _neq: Int
-  _nin: [Int!]
-}
-
-"""
 Boolean expression to compare columns of type "String". All fields are combined with logical 'AND'.
 """
 input String_comparison_exp {
@@ -966,30 +951,6 @@ type api_trade_history_variance_fields {
   volume_usd: Float
 }
 
-type balance_offset_model {
-  balance: numeric!
-}
-
-"""
-Boolean expression to filter rows from the logical model for "balance_offset_model". All fields are combined with a logical 'AND'.
-"""
-input balance_offset_model_bool_exp_bool_exp {
-  _and: [balance_offset_model_bool_exp_bool_exp!]
-  _not: balance_offset_model_bool_exp_bool_exp
-  _or: [balance_offset_model_bool_exp_bool_exp!]
-  balance: numeric_comparison_exp
-}
-
-enum balance_offset_model_enum_name {
-  """column name"""
-  balance
-}
-
-"""Ordering options when selecting data from "balance_offset_model"."""
-input balance_offset_model_order_by {
-  balance: order_by
-}
-
 scalar bigint
 
 """
@@ -1007,13 +968,6 @@ input bigint_comparison_exp {
   _nin: [bigint!]
 }
 
-input buy_token_args {
-  amount_to_buy: numeric
-  token_address: String
-  token_price: float8
-  user_wallet: String
-}
-
 """ordering argument of a cursor"""
 enum cursor_ordering {
   """ascending ordering of the cursor"""
@@ -1021,23 +975,6 @@ enum cursor_ordering {
 
   """descending ordering of the cursor"""
   DESC
-}
-
-scalar float8
-
-"""
-Boolean expression to compare columns of type "float8". All fields are combined with logical 'AND'.
-"""
-input float8_comparison_exp {
-  _eq: float8
-  _gt: float8
-  _gte: float8
-  _in: [float8!]
-  _is_null: Boolean
-  _lt: float8
-  _lte: float8
-  _neq: float8
-  _nin: [float8!]
 }
 
 scalar interval
@@ -1082,31 +1019,6 @@ input jsonb_comparison_exp {
 """mutation root"""
 type mutation_root {
   """
-  execute VOLATILE function "buy_token" which returns "token_transaction"
-  """
-  buy_token(
-    """
-    input parameters for function "buy_token"
-    """
-    args: buy_token_args!
-
-    """distinct select on columns"""
-    distinct_on: [token_transaction_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [token_transaction_order_by!]
-
-    """filter the rows returned"""
-    where: token_transaction_bool_exp
-  ): token_transaction
-
-  """
   delete data from the table: "analytics_client_event"
   """
   delete_analytics_client_event(
@@ -1141,30 +1053,30 @@ type mutation_root {
   delete_api_trade_history_by_pk(created_at: timestamptz!, id: uuid!, token_mint: String!): api_trade_history
 
   """
-  delete data from the table: "token_transaction"
+  delete data from the table: "token_purchase"
   """
-  delete_token_transaction(
+  delete_token_purchase(
     """filter the rows which have to be deleted"""
-    where: token_transaction_bool_exp!
-  ): token_transaction_mutation_response
+    where: token_purchase_bool_exp!
+  ): token_purchase_mutation_response
 
   """
-  delete single row from the table: "token_transaction"
+  delete single row from the table: "token_purchase"
   """
-  delete_token_transaction_by_pk(id: uuid!): token_transaction
+  delete_token_purchase_by_pk(id: uuid!): token_purchase
 
   """
-  delete data from the table: "wallet_transaction"
+  delete data from the table: "token_sale"
   """
-  delete_wallet_transaction(
+  delete_token_sale(
     """filter the rows which have to be deleted"""
-    where: wallet_transaction_bool_exp!
-  ): wallet_transaction_mutation_response
+    where: token_sale_bool_exp!
+  ): token_sale_mutation_response
 
   """
-  delete single row from the table: "wallet_transaction"
+  delete single row from the table: "token_sale"
   """
-  delete_wallet_transaction_by_pk(id: uuid!): wallet_transaction
+  delete_token_sale_by_pk(id: uuid!): token_sale
 
   """
   insert data into the table: "analytics_client_event"
@@ -1227,73 +1139,48 @@ type mutation_root {
   ): api_trade_history
 
   """
-  insert data into the table: "token_transaction"
+  insert data into the table: "token_purchase"
   """
-  insert_token_transaction(
+  insert_token_purchase(
     """the rows to be inserted"""
-    objects: [token_transaction_insert_input!]!
+    objects: [token_purchase_insert_input!]!
 
     """upsert condition"""
-    on_conflict: token_transaction_on_conflict
-  ): token_transaction_mutation_response
+    on_conflict: token_purchase_on_conflict
+  ): token_purchase_mutation_response
 
   """
-  insert a single row into the table: "token_transaction"
+  insert a single row into the table: "token_purchase"
   """
-  insert_token_transaction_one(
+  insert_token_purchase_one(
     """the row to be inserted"""
-    object: token_transaction_insert_input!
+    object: token_purchase_insert_input!
 
     """upsert condition"""
-    on_conflict: token_transaction_on_conflict
-  ): token_transaction
+    on_conflict: token_purchase_on_conflict
+  ): token_purchase
 
   """
-  insert data into the table: "wallet_transaction"
+  insert data into the table: "token_sale"
   """
-  insert_wallet_transaction(
+  insert_token_sale(
     """the rows to be inserted"""
-    objects: [wallet_transaction_insert_input!]!
+    objects: [token_sale_insert_input!]!
 
     """upsert condition"""
-    on_conflict: wallet_transaction_on_conflict
-  ): wallet_transaction_mutation_response
+    on_conflict: token_sale_on_conflict
+  ): token_sale_mutation_response
 
   """
-  insert a single row into the table: "wallet_transaction"
+  insert a single row into the table: "token_sale"
   """
-  insert_wallet_transaction_one(
+  insert_token_sale_one(
     """the row to be inserted"""
-    object: wallet_transaction_insert_input!
+    object: token_sale_insert_input!
 
     """upsert condition"""
-    on_conflict: wallet_transaction_on_conflict
-  ): wallet_transaction
-
-  """
-  execute VOLATILE function "sell_token" which returns "token_transaction"
-  """
-  sell_token(
-    """
-    input parameters for function "sell_token"
-    """
-    args: sell_token_args!
-
-    """distinct select on columns"""
-    distinct_on: [token_transaction_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [token_transaction_order_by!]
-
-    """filter the rows returned"""
-    where: token_transaction_bool_exp
-  ): token_transaction
+    on_conflict: token_sale_on_conflict
+  ): token_sale
 
   """
   update data of the table: "analytics_client_event"
@@ -1422,72 +1309,72 @@ type mutation_root {
   ): [api_trade_history_mutation_response]
 
   """
-  update data of the table: "token_transaction"
+  update data of the table: "token_purchase"
   """
-  update_token_transaction(
+  update_token_purchase(
     """increments the numeric columns with given value of the filtered values"""
-    _inc: token_transaction_inc_input
+    _inc: token_purchase_inc_input
 
     """sets the columns of the filtered rows to the given values"""
-    _set: token_transaction_set_input
+    _set: token_purchase_set_input
 
     """filter the rows which have to be updated"""
-    where: token_transaction_bool_exp!
-  ): token_transaction_mutation_response
+    where: token_purchase_bool_exp!
+  ): token_purchase_mutation_response
 
   """
-  update single row of the table: "token_transaction"
+  update single row of the table: "token_purchase"
   """
-  update_token_transaction_by_pk(
+  update_token_purchase_by_pk(
     """increments the numeric columns with given value of the filtered values"""
-    _inc: token_transaction_inc_input
+    _inc: token_purchase_inc_input
 
     """sets the columns of the filtered rows to the given values"""
-    _set: token_transaction_set_input
-    pk_columns: token_transaction_pk_columns_input!
-  ): token_transaction
+    _set: token_purchase_set_input
+    pk_columns: token_purchase_pk_columns_input!
+  ): token_purchase
 
   """
-  update multiples rows of table: "token_transaction"
+  update multiples rows of table: "token_purchase"
   """
-  update_token_transaction_many(
+  update_token_purchase_many(
     """updates to execute, in order"""
-    updates: [token_transaction_updates!]!
-  ): [token_transaction_mutation_response]
+    updates: [token_purchase_updates!]!
+  ): [token_purchase_mutation_response]
 
   """
-  update data of the table: "wallet_transaction"
+  update data of the table: "token_sale"
   """
-  update_wallet_transaction(
+  update_token_sale(
     """increments the numeric columns with given value of the filtered values"""
-    _inc: wallet_transaction_inc_input
+    _inc: token_sale_inc_input
 
     """sets the columns of the filtered rows to the given values"""
-    _set: wallet_transaction_set_input
+    _set: token_sale_set_input
 
     """filter the rows which have to be updated"""
-    where: wallet_transaction_bool_exp!
-  ): wallet_transaction_mutation_response
+    where: token_sale_bool_exp!
+  ): token_sale_mutation_response
 
   """
-  update single row of the table: "wallet_transaction"
+  update single row of the table: "token_sale"
   """
-  update_wallet_transaction_by_pk(
+  update_token_sale_by_pk(
     """increments the numeric columns with given value of the filtered values"""
-    _inc: wallet_transaction_inc_input
+    _inc: token_sale_inc_input
 
     """sets the columns of the filtered rows to the given values"""
-    _set: wallet_transaction_set_input
-    pk_columns: wallet_transaction_pk_columns_input!
-  ): wallet_transaction
+    _set: token_sale_set_input
+    pk_columns: token_sale_pk_columns_input!
+  ): token_sale
 
   """
-  update multiples rows of table: "wallet_transaction"
+  update multiples rows of table: "token_sale"
   """
-  update_wallet_transaction_many(
+  update_token_sale_many(
     """updates to execute, in order"""
-    updates: [wallet_transaction_updates!]!
-  ): [wallet_transaction_mutation_response]
+    updates: [token_sale_updates!]!
+  ): [token_sale_mutation_response]
 }
 
 scalar numeric
@@ -1674,6 +1561,92 @@ type query_root {
     """filter the rows returned"""
     where: token_metadata_model_bool_exp_bool_exp
   ): [token_metadata_model!]!
+
+  """
+  fetch data from the table: "token_purchase"
+  """
+  token_purchase(
+    """distinct select on columns"""
+    distinct_on: [token_purchase_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_purchase_order_by!]
+
+    """filter the rows returned"""
+    where: token_purchase_bool_exp
+  ): [token_purchase!]!
+
+  """
+  fetch aggregated fields from the table: "token_purchase"
+  """
+  token_purchase_aggregate(
+    """distinct select on columns"""
+    distinct_on: [token_purchase_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_purchase_order_by!]
+
+    """filter the rows returned"""
+    where: token_purchase_bool_exp
+  ): token_purchase_aggregate!
+
+  """fetch data from the table: "token_purchase" using primary key columns"""
+  token_purchase_by_pk(id: uuid!): token_purchase
+
+  """
+  fetch data from the table: "token_sale"
+  """
+  token_sale(
+    """distinct select on columns"""
+    distinct_on: [token_sale_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_sale_order_by!]
+
+    """filter the rows returned"""
+    where: token_sale_bool_exp
+  ): [token_sale!]!
+
+  """
+  fetch aggregated fields from the table: "token_sale"
+  """
+  token_sale_aggregate(
+    """distinct select on columns"""
+    distinct_on: [token_sale_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_sale_order_by!]
+
+    """filter the rows returned"""
+    where: token_sale_bool_exp
+  ): token_sale_aggregate!
+
+  """fetch data from the table: "token_sale" using primary key columns"""
+  token_sale_by_pk(id: uuid!): token_sale
   token_stats_interval_agg(
     """token_stats_interval_aggNative Query Arguments"""
     args: token_stats_interval_agg_arguments!
@@ -1731,13 +1704,9 @@ type query_root {
     """filter the rows returned"""
     where: trade_history_candle_model_bool_exp_bool_exp
   ): [trade_history_candle_model!]!
-
-  """
-  fetch data from the table: "token_transaction"
-  """
-  token_transaction(
+  transactions(
     """distinct select on columns"""
-    distinct_on: [token_transaction_select_column!]
+    distinct_on: [transaction_model_enum_name!]
 
     """limit the number of rows returned"""
     limit: Int
@@ -1746,164 +1715,11 @@ type query_root {
     offset: Int
 
     """sort the rows by one or more columns"""
-    order_by: [token_transaction_order_by!]
+    order_by: [transaction_model_order_by!]
 
     """filter the rows returned"""
-    where: token_transaction_bool_exp
-  ): [token_transaction!]!
-
-  """
-  fetch aggregated fields from the table: "token_transaction"
-  """
-  token_transaction_aggregate(
-    """distinct select on columns"""
-    distinct_on: [token_transaction_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [token_transaction_order_by!]
-
-    """filter the rows returned"""
-    where: token_transaction_bool_exp
-  ): token_transaction_aggregate!
-
-  """
-  fetch data from the table: "token_transaction" using primary key columns
-  """
-  token_transaction_by_pk(id: uuid!): token_transaction
-  token_transaction_offset(
-    """token_transaction_offsetNative Query Arguments"""
-    args: token_transaction_offset_arguments!
-
-    """distinct select on columns"""
-    distinct_on: [token_transaction_offset_model_enum_name!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [token_transaction_offset_model_order_by!]
-
-    """filter the rows returned"""
-    where: token_transaction_offset_model_bool_exp_bool_exp
-  ): [token_transaction_offset_model!]!
-  wallet_balance_ignore_interval(
-    """wallet_balance_ignore_intervalNative Query Arguments"""
-    args: wallet_balance_ignore_interval_arguments!
-
-    """distinct select on columns"""
-    distinct_on: [balance_offset_model_enum_name!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [balance_offset_model_order_by!]
-
-    """filter the rows returned"""
-    where: balance_offset_model_bool_exp_bool_exp
-  ): [balance_offset_model!]!
-  wallet_token_balance_ignore_interval(
-    """wallet_token_balance_ignore_intervalNative Query Arguments"""
-    args: wallet_token_balance_ignore_interval_arguments!
-
-    """distinct select on columns"""
-    distinct_on: [balance_offset_model_enum_name!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [balance_offset_model_order_by!]
-
-    """filter the rows returned"""
-    where: balance_offset_model_bool_exp_bool_exp
-  ): [balance_offset_model!]!
-
-  """
-  fetch data from the table: "wallet_transaction"
-  """
-  wallet_transaction(
-    """distinct select on columns"""
-    distinct_on: [wallet_transaction_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [wallet_transaction_order_by!]
-
-    """filter the rows returned"""
-    where: wallet_transaction_bool_exp
-  ): [wallet_transaction!]!
-
-  """
-  fetch aggregated fields from the table: "wallet_transaction"
-  """
-  wallet_transaction_aggregate(
-    """distinct select on columns"""
-    distinct_on: [wallet_transaction_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [wallet_transaction_order_by!]
-
-    """filter the rows returned"""
-    where: wallet_transaction_bool_exp
-  ): wallet_transaction_aggregate!
-
-  """
-  fetch data from the table: "wallet_transaction" using primary key columns
-  """
-  wallet_transaction_by_pk(id: uuid!): wallet_transaction
-  wallet_transaction_offset(
-    """wallet_transaction_offsetNative Query Arguments"""
-    args: wallet_transaction_offset_arguments!
-
-    """distinct select on columns"""
-    distinct_on: [wallet_transaction_offset_model_enum_name!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [wallet_transaction_offset_model_order_by!]
-
-    """filter the rows returned"""
-    where: wallet_transaction_offset_model_bool_exp_bool_exp
-  ): [wallet_transaction_offset_model!]!
-}
-
-input sell_token_args {
-  amount_to_sell: numeric
-  token_address: String
-  token_price: float8
-  user_wallet: String
+    where: transaction_model_bool_exp_bool_exp
+  ): [transaction_model!]!
 }
 
 type subscription_root {
@@ -2094,6 +1910,120 @@ type subscription_root {
     """filter the rows returned"""
     where: token_metadata_model_bool_exp_bool_exp
   ): [token_metadata_model!]!
+
+  """
+  fetch data from the table: "token_purchase"
+  """
+  token_purchase(
+    """distinct select on columns"""
+    distinct_on: [token_purchase_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_purchase_order_by!]
+
+    """filter the rows returned"""
+    where: token_purchase_bool_exp
+  ): [token_purchase!]!
+
+  """
+  fetch aggregated fields from the table: "token_purchase"
+  """
+  token_purchase_aggregate(
+    """distinct select on columns"""
+    distinct_on: [token_purchase_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_purchase_order_by!]
+
+    """filter the rows returned"""
+    where: token_purchase_bool_exp
+  ): token_purchase_aggregate!
+
+  """fetch data from the table: "token_purchase" using primary key columns"""
+  token_purchase_by_pk(id: uuid!): token_purchase
+
+  """
+  fetch data from the table in a streaming manner: "token_purchase"
+  """
+  token_purchase_stream(
+    """maximum number of rows returned in a single batch"""
+    batch_size: Int!
+
+    """cursor to stream the results returned by the query"""
+    cursor: [token_purchase_stream_cursor_input]!
+
+    """filter the rows returned"""
+    where: token_purchase_bool_exp
+  ): [token_purchase!]!
+
+  """
+  fetch data from the table: "token_sale"
+  """
+  token_sale(
+    """distinct select on columns"""
+    distinct_on: [token_sale_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_sale_order_by!]
+
+    """filter the rows returned"""
+    where: token_sale_bool_exp
+  ): [token_sale!]!
+
+  """
+  fetch aggregated fields from the table: "token_sale"
+  """
+  token_sale_aggregate(
+    """distinct select on columns"""
+    distinct_on: [token_sale_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_sale_order_by!]
+
+    """filter the rows returned"""
+    where: token_sale_bool_exp
+  ): token_sale_aggregate!
+
+  """fetch data from the table: "token_sale" using primary key columns"""
+  token_sale_by_pk(id: uuid!): token_sale
+
+  """
+  fetch data from the table in a streaming manner: "token_sale"
+  """
+  token_sale_stream(
+    """maximum number of rows returned in a single batch"""
+    batch_size: Int!
+
+    """cursor to stream the results returned by the query"""
+    cursor: [token_sale_stream_cursor_input]!
+
+    """filter the rows returned"""
+    where: token_sale_bool_exp
+  ): [token_sale!]!
   token_stats_interval_agg(
     """token_stats_interval_aggNative Query Arguments"""
     args: token_stats_interval_agg_arguments!
@@ -2151,13 +2081,9 @@ type subscription_root {
     """filter the rows returned"""
     where: trade_history_candle_model_bool_exp_bool_exp
   ): [trade_history_candle_model!]!
-
-  """
-  fetch data from the table: "token_transaction"
-  """
-  token_transaction(
+  transactions(
     """distinct select on columns"""
-    distinct_on: [token_transaction_select_column!]
+    distinct_on: [transaction_model_enum_name!]
 
     """limit the number of rows returned"""
     limit: Int
@@ -2166,185 +2092,11 @@ type subscription_root {
     offset: Int
 
     """sort the rows by one or more columns"""
-    order_by: [token_transaction_order_by!]
+    order_by: [transaction_model_order_by!]
 
     """filter the rows returned"""
-    where: token_transaction_bool_exp
-  ): [token_transaction!]!
-
-  """
-  fetch aggregated fields from the table: "token_transaction"
-  """
-  token_transaction_aggregate(
-    """distinct select on columns"""
-    distinct_on: [token_transaction_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [token_transaction_order_by!]
-
-    """filter the rows returned"""
-    where: token_transaction_bool_exp
-  ): token_transaction_aggregate!
-
-  """
-  fetch data from the table: "token_transaction" using primary key columns
-  """
-  token_transaction_by_pk(id: uuid!): token_transaction
-  token_transaction_offset(
-    """token_transaction_offsetNative Query Arguments"""
-    args: token_transaction_offset_arguments!
-
-    """distinct select on columns"""
-    distinct_on: [token_transaction_offset_model_enum_name!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [token_transaction_offset_model_order_by!]
-
-    """filter the rows returned"""
-    where: token_transaction_offset_model_bool_exp_bool_exp
-  ): [token_transaction_offset_model!]!
-
-  """
-  fetch data from the table in a streaming manner: "token_transaction"
-  """
-  token_transaction_stream(
-    """maximum number of rows returned in a single batch"""
-    batch_size: Int!
-
-    """cursor to stream the results returned by the query"""
-    cursor: [token_transaction_stream_cursor_input]!
-
-    """filter the rows returned"""
-    where: token_transaction_bool_exp
-  ): [token_transaction!]!
-  wallet_balance_ignore_interval(
-    """wallet_balance_ignore_intervalNative Query Arguments"""
-    args: wallet_balance_ignore_interval_arguments!
-
-    """distinct select on columns"""
-    distinct_on: [balance_offset_model_enum_name!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [balance_offset_model_order_by!]
-
-    """filter the rows returned"""
-    where: balance_offset_model_bool_exp_bool_exp
-  ): [balance_offset_model!]!
-  wallet_token_balance_ignore_interval(
-    """wallet_token_balance_ignore_intervalNative Query Arguments"""
-    args: wallet_token_balance_ignore_interval_arguments!
-
-    """distinct select on columns"""
-    distinct_on: [balance_offset_model_enum_name!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [balance_offset_model_order_by!]
-
-    """filter the rows returned"""
-    where: balance_offset_model_bool_exp_bool_exp
-  ): [balance_offset_model!]!
-
-  """
-  fetch data from the table: "wallet_transaction"
-  """
-  wallet_transaction(
-    """distinct select on columns"""
-    distinct_on: [wallet_transaction_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [wallet_transaction_order_by!]
-
-    """filter the rows returned"""
-    where: wallet_transaction_bool_exp
-  ): [wallet_transaction!]!
-
-  """
-  fetch aggregated fields from the table: "wallet_transaction"
-  """
-  wallet_transaction_aggregate(
-    """distinct select on columns"""
-    distinct_on: [wallet_transaction_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [wallet_transaction_order_by!]
-
-    """filter the rows returned"""
-    where: wallet_transaction_bool_exp
-  ): wallet_transaction_aggregate!
-
-  """
-  fetch data from the table: "wallet_transaction" using primary key columns
-  """
-  wallet_transaction_by_pk(id: uuid!): wallet_transaction
-  wallet_transaction_offset(
-    """wallet_transaction_offsetNative Query Arguments"""
-    args: wallet_transaction_offset_arguments!
-
-    """distinct select on columns"""
-    distinct_on: [wallet_transaction_offset_model_enum_name!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [wallet_transaction_offset_model_order_by!]
-
-    """filter the rows returned"""
-    where: wallet_transaction_offset_model_bool_exp_bool_exp
-  ): [wallet_transaction_offset_model!]!
-
-  """
-  fetch data from the table in a streaming manner: "wallet_transaction"
-  """
-  wallet_transaction_stream(
-    """maximum number of rows returned in a single batch"""
-    batch_size: Int!
-
-    """cursor to stream the results returned by the query"""
-    cursor: [wallet_transaction_stream_cursor_input]!
-
-    """filter the rows returned"""
-    where: wallet_transaction_bool_exp
-  ): [wallet_transaction!]!
+    where: transaction_model_bool_exp_bool_exp
+  ): [transaction_model!]!
 }
 
 scalar timestamptz
@@ -2451,6 +2203,668 @@ input token_metadata_scalar_comparison_exp {
   _lte: token_metadata_scalar
   _neq: token_metadata_scalar
   _nin: [token_metadata_scalar!]
+}
+
+"""
+columns and relationships of "token_purchase"
+"""
+type token_purchase {
+  build: String
+  created_at: timestamptz!
+  error_details: String
+  id: uuid!
+  source: String
+  token_amount: numeric!
+  token_mint: String!
+  token_price_usd: numeric!
+  user_agent: String!
+  user_wallet: String!
+}
+
+"""
+aggregated selection of "token_purchase"
+"""
+type token_purchase_aggregate {
+  aggregate: token_purchase_aggregate_fields
+  nodes: [token_purchase!]!
+}
+
+"""
+aggregate fields of "token_purchase"
+"""
+type token_purchase_aggregate_fields {
+  avg: token_purchase_avg_fields
+  count(columns: [token_purchase_select_column!], distinct: Boolean): Int!
+  max: token_purchase_max_fields
+  min: token_purchase_min_fields
+  stddev: token_purchase_stddev_fields
+  stddev_pop: token_purchase_stddev_pop_fields
+  stddev_samp: token_purchase_stddev_samp_fields
+  sum: token_purchase_sum_fields
+  var_pop: token_purchase_var_pop_fields
+  var_samp: token_purchase_var_samp_fields
+  variance: token_purchase_variance_fields
+}
+
+"""aggregate avg on columns"""
+type token_purchase_avg_fields {
+  token_amount: Float
+  token_price_usd: Float
+}
+
+"""
+Boolean expression to filter rows from the table "token_purchase". All fields are combined with a logical 'AND'.
+"""
+input token_purchase_bool_exp {
+  _and: [token_purchase_bool_exp!]
+  _not: token_purchase_bool_exp
+  _or: [token_purchase_bool_exp!]
+  build: String_comparison_exp
+  created_at: timestamptz_comparison_exp
+  error_details: String_comparison_exp
+  id: uuid_comparison_exp
+  source: String_comparison_exp
+  token_amount: numeric_comparison_exp
+  token_mint: String_comparison_exp
+  token_price_usd: numeric_comparison_exp
+  user_agent: String_comparison_exp
+  user_wallet: String_comparison_exp
+}
+
+"""
+unique or primary key constraints on table "token_purchase"
+"""
+enum token_purchase_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  token_purchase_pkey
+}
+
+"""
+input type for incrementing numeric columns in table "token_purchase"
+"""
+input token_purchase_inc_input {
+  token_amount: numeric
+  token_price_usd: numeric
+}
+
+"""
+input type for inserting data into table "token_purchase"
+"""
+input token_purchase_insert_input {
+  build: String
+  created_at: timestamptz
+  error_details: String
+  id: uuid
+  source: String
+  token_amount: numeric
+  token_mint: String
+  token_price_usd: numeric
+  user_agent: String
+  user_wallet: String
+}
+
+"""aggregate max on columns"""
+type token_purchase_max_fields {
+  build: String
+  created_at: timestamptz
+  error_details: String
+  id: uuid
+  source: String
+  token_amount: numeric
+  token_mint: String
+  token_price_usd: numeric
+  user_agent: String
+  user_wallet: String
+}
+
+"""aggregate min on columns"""
+type token_purchase_min_fields {
+  build: String
+  created_at: timestamptz
+  error_details: String
+  id: uuid
+  source: String
+  token_amount: numeric
+  token_mint: String
+  token_price_usd: numeric
+  user_agent: String
+  user_wallet: String
+}
+
+"""
+response of any mutation on the table "token_purchase"
+"""
+type token_purchase_mutation_response {
+  """number of rows affected by the mutation"""
+  affected_rows: Int!
+
+  """data from the rows affected by the mutation"""
+  returning: [token_purchase!]!
+}
+
+"""
+on_conflict condition type for table "token_purchase"
+"""
+input token_purchase_on_conflict {
+  constraint: token_purchase_constraint!
+  update_columns: [token_purchase_update_column!]! = []
+  where: token_purchase_bool_exp
+}
+
+"""Ordering options when selecting data from "token_purchase"."""
+input token_purchase_order_by {
+  build: order_by
+  created_at: order_by
+  error_details: order_by
+  id: order_by
+  source: order_by
+  token_amount: order_by
+  token_mint: order_by
+  token_price_usd: order_by
+  user_agent: order_by
+  user_wallet: order_by
+}
+
+"""primary key columns input for table: token_purchase"""
+input token_purchase_pk_columns_input {
+  id: uuid!
+}
+
+"""
+select columns of table "token_purchase"
+"""
+enum token_purchase_select_column {
+  """column name"""
+  build
+
+  """column name"""
+  created_at
+
+  """column name"""
+  error_details
+
+  """column name"""
+  id
+
+  """column name"""
+  source
+
+  """column name"""
+  token_amount
+
+  """column name"""
+  token_mint
+
+  """column name"""
+  token_price_usd
+
+  """column name"""
+  user_agent
+
+  """column name"""
+  user_wallet
+}
+
+"""
+input type for updating data in table "token_purchase"
+"""
+input token_purchase_set_input {
+  build: String
+  created_at: timestamptz
+  error_details: String
+  id: uuid
+  source: String
+  token_amount: numeric
+  token_mint: String
+  token_price_usd: numeric
+  user_agent: String
+  user_wallet: String
+}
+
+"""aggregate stddev on columns"""
+type token_purchase_stddev_fields {
+  token_amount: Float
+  token_price_usd: Float
+}
+
+"""aggregate stddev_pop on columns"""
+type token_purchase_stddev_pop_fields {
+  token_amount: Float
+  token_price_usd: Float
+}
+
+"""aggregate stddev_samp on columns"""
+type token_purchase_stddev_samp_fields {
+  token_amount: Float
+  token_price_usd: Float
+}
+
+"""
+Streaming cursor of the table "token_purchase"
+"""
+input token_purchase_stream_cursor_input {
+  """Stream column input with initial value"""
+  initial_value: token_purchase_stream_cursor_value_input!
+
+  """cursor ordering"""
+  ordering: cursor_ordering
+}
+
+"""Initial value of the column from where the streaming should start"""
+input token_purchase_stream_cursor_value_input {
+  build: String
+  created_at: timestamptz
+  error_details: String
+  id: uuid
+  source: String
+  token_amount: numeric
+  token_mint: String
+  token_price_usd: numeric
+  user_agent: String
+  user_wallet: String
+}
+
+"""aggregate sum on columns"""
+type token_purchase_sum_fields {
+  token_amount: numeric
+  token_price_usd: numeric
+}
+
+"""
+update columns of table "token_purchase"
+"""
+enum token_purchase_update_column {
+  """column name"""
+  build
+
+  """column name"""
+  created_at
+
+  """column name"""
+  error_details
+
+  """column name"""
+  id
+
+  """column name"""
+  source
+
+  """column name"""
+  token_amount
+
+  """column name"""
+  token_mint
+
+  """column name"""
+  token_price_usd
+
+  """column name"""
+  user_agent
+
+  """column name"""
+  user_wallet
+}
+
+input token_purchase_updates {
+  """increments the numeric columns with given value of the filtered values"""
+  _inc: token_purchase_inc_input
+
+  """sets the columns of the filtered rows to the given values"""
+  _set: token_purchase_set_input
+
+  """filter the rows which have to be updated"""
+  where: token_purchase_bool_exp!
+}
+
+"""aggregate var_pop on columns"""
+type token_purchase_var_pop_fields {
+  token_amount: Float
+  token_price_usd: Float
+}
+
+"""aggregate var_samp on columns"""
+type token_purchase_var_samp_fields {
+  token_amount: Float
+  token_price_usd: Float
+}
+
+"""aggregate variance on columns"""
+type token_purchase_variance_fields {
+  token_amount: Float
+  token_price_usd: Float
+}
+
+"""
+columns and relationships of "token_sale"
+"""
+type token_sale {
+  build: String
+  created_at: timestamptz!
+  error_details: String
+  id: uuid!
+  source: String
+  token_amount: numeric!
+  token_mint: String!
+  token_price_usd: numeric!
+  user_agent: String!
+  user_wallet: String!
+}
+
+"""
+aggregated selection of "token_sale"
+"""
+type token_sale_aggregate {
+  aggregate: token_sale_aggregate_fields
+  nodes: [token_sale!]!
+}
+
+"""
+aggregate fields of "token_sale"
+"""
+type token_sale_aggregate_fields {
+  avg: token_sale_avg_fields
+  count(columns: [token_sale_select_column!], distinct: Boolean): Int!
+  max: token_sale_max_fields
+  min: token_sale_min_fields
+  stddev: token_sale_stddev_fields
+  stddev_pop: token_sale_stddev_pop_fields
+  stddev_samp: token_sale_stddev_samp_fields
+  sum: token_sale_sum_fields
+  var_pop: token_sale_var_pop_fields
+  var_samp: token_sale_var_samp_fields
+  variance: token_sale_variance_fields
+}
+
+"""aggregate avg on columns"""
+type token_sale_avg_fields {
+  token_amount: Float
+  token_price_usd: Float
+}
+
+"""
+Boolean expression to filter rows from the table "token_sale". All fields are combined with a logical 'AND'.
+"""
+input token_sale_bool_exp {
+  _and: [token_sale_bool_exp!]
+  _not: token_sale_bool_exp
+  _or: [token_sale_bool_exp!]
+  build: String_comparison_exp
+  created_at: timestamptz_comparison_exp
+  error_details: String_comparison_exp
+  id: uuid_comparison_exp
+  source: String_comparison_exp
+  token_amount: numeric_comparison_exp
+  token_mint: String_comparison_exp
+  token_price_usd: numeric_comparison_exp
+  user_agent: String_comparison_exp
+  user_wallet: String_comparison_exp
+}
+
+"""
+unique or primary key constraints on table "token_sale"
+"""
+enum token_sale_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  token_sale_pkey
+}
+
+"""
+input type for incrementing numeric columns in table "token_sale"
+"""
+input token_sale_inc_input {
+  token_amount: numeric
+  token_price_usd: numeric
+}
+
+"""
+input type for inserting data into table "token_sale"
+"""
+input token_sale_insert_input {
+  build: String
+  created_at: timestamptz
+  error_details: String
+  id: uuid
+  source: String
+  token_amount: numeric
+  token_mint: String
+  token_price_usd: numeric
+  user_agent: String
+  user_wallet: String
+}
+
+"""aggregate max on columns"""
+type token_sale_max_fields {
+  build: String
+  created_at: timestamptz
+  error_details: String
+  id: uuid
+  source: String
+  token_amount: numeric
+  token_mint: String
+  token_price_usd: numeric
+  user_agent: String
+  user_wallet: String
+}
+
+"""aggregate min on columns"""
+type token_sale_min_fields {
+  build: String
+  created_at: timestamptz
+  error_details: String
+  id: uuid
+  source: String
+  token_amount: numeric
+  token_mint: String
+  token_price_usd: numeric
+  user_agent: String
+  user_wallet: String
+}
+
+"""
+response of any mutation on the table "token_sale"
+"""
+type token_sale_mutation_response {
+  """number of rows affected by the mutation"""
+  affected_rows: Int!
+
+  """data from the rows affected by the mutation"""
+  returning: [token_sale!]!
+}
+
+"""
+on_conflict condition type for table "token_sale"
+"""
+input token_sale_on_conflict {
+  constraint: token_sale_constraint!
+  update_columns: [token_sale_update_column!]! = []
+  where: token_sale_bool_exp
+}
+
+"""Ordering options when selecting data from "token_sale"."""
+input token_sale_order_by {
+  build: order_by
+  created_at: order_by
+  error_details: order_by
+  id: order_by
+  source: order_by
+  token_amount: order_by
+  token_mint: order_by
+  token_price_usd: order_by
+  user_agent: order_by
+  user_wallet: order_by
+}
+
+"""primary key columns input for table: token_sale"""
+input token_sale_pk_columns_input {
+  id: uuid!
+}
+
+"""
+select columns of table "token_sale"
+"""
+enum token_sale_select_column {
+  """column name"""
+  build
+
+  """column name"""
+  created_at
+
+  """column name"""
+  error_details
+
+  """column name"""
+  id
+
+  """column name"""
+  source
+
+  """column name"""
+  token_amount
+
+  """column name"""
+  token_mint
+
+  """column name"""
+  token_price_usd
+
+  """column name"""
+  user_agent
+
+  """column name"""
+  user_wallet
+}
+
+"""
+input type for updating data in table "token_sale"
+"""
+input token_sale_set_input {
+  build: String
+  created_at: timestamptz
+  error_details: String
+  id: uuid
+  source: String
+  token_amount: numeric
+  token_mint: String
+  token_price_usd: numeric
+  user_agent: String
+  user_wallet: String
+}
+
+"""aggregate stddev on columns"""
+type token_sale_stddev_fields {
+  token_amount: Float
+  token_price_usd: Float
+}
+
+"""aggregate stddev_pop on columns"""
+type token_sale_stddev_pop_fields {
+  token_amount: Float
+  token_price_usd: Float
+}
+
+"""aggregate stddev_samp on columns"""
+type token_sale_stddev_samp_fields {
+  token_amount: Float
+  token_price_usd: Float
+}
+
+"""
+Streaming cursor of the table "token_sale"
+"""
+input token_sale_stream_cursor_input {
+  """Stream column input with initial value"""
+  initial_value: token_sale_stream_cursor_value_input!
+
+  """cursor ordering"""
+  ordering: cursor_ordering
+}
+
+"""Initial value of the column from where the streaming should start"""
+input token_sale_stream_cursor_value_input {
+  build: String
+  created_at: timestamptz
+  error_details: String
+  id: uuid
+  source: String
+  token_amount: numeric
+  token_mint: String
+  token_price_usd: numeric
+  user_agent: String
+  user_wallet: String
+}
+
+"""aggregate sum on columns"""
+type token_sale_sum_fields {
+  token_amount: numeric
+  token_price_usd: numeric
+}
+
+"""
+update columns of table "token_sale"
+"""
+enum token_sale_update_column {
+  """column name"""
+  build
+
+  """column name"""
+  created_at
+
+  """column name"""
+  error_details
+
+  """column name"""
+  id
+
+  """column name"""
+  source
+
+  """column name"""
+  token_amount
+
+  """column name"""
+  token_mint
+
+  """column name"""
+  token_price_usd
+
+  """column name"""
+  user_agent
+
+  """column name"""
+  user_wallet
+}
+
+input token_sale_updates {
+  """increments the numeric columns with given value of the filtered values"""
+  _inc: token_sale_inc_input
+
+  """sets the columns of the filtered rows to the given values"""
+  _set: token_sale_set_input
+
+  """filter the rows which have to be updated"""
+  where: token_sale_bool_exp!
+}
+
+"""aggregate var_pop on columns"""
+type token_sale_var_pop_fields {
+  token_amount: Float
+  token_price_usd: Float
+}
+
+"""aggregate var_samp on columns"""
+type token_sale_var_samp_fields {
+  token_amount: Float
+  token_price_usd: Float
+}
+
+"""aggregate variance on columns"""
+type token_sale_variance_fields {
+  token_amount: Float
+  token_price_usd: Float
 }
 
 """token_stats_interval_aggNative Query Arguments"""
@@ -2597,597 +3011,6 @@ input token_trade_history_candles_arguments {
   candle_interval: interval!
 }
 
-"""
-columns and relationships of "token_transaction"
-"""
-type token_transaction {
-  amount: numeric!
-  id: uuid!
-  token: String!
-  token_price: float8!
-  wallet_transaction: uuid!
-
-  """An object relationship"""
-  wallet_transaction_data: wallet_transaction!
-}
-
-"""
-aggregated selection of "token_transaction"
-"""
-type token_transaction_aggregate {
-  aggregate: token_transaction_aggregate_fields
-  nodes: [token_transaction!]!
-}
-
-input token_transaction_aggregate_bool_exp {
-  avg: token_transaction_aggregate_bool_exp_avg
-  corr: token_transaction_aggregate_bool_exp_corr
-  count: token_transaction_aggregate_bool_exp_count
-  covar_samp: token_transaction_aggregate_bool_exp_covar_samp
-  max: token_transaction_aggregate_bool_exp_max
-  min: token_transaction_aggregate_bool_exp_min
-  stddev_samp: token_transaction_aggregate_bool_exp_stddev_samp
-  sum: token_transaction_aggregate_bool_exp_sum
-  var_samp: token_transaction_aggregate_bool_exp_var_samp
-}
-
-input token_transaction_aggregate_bool_exp_avg {
-  arguments: token_transaction_select_column_token_transaction_aggregate_bool_exp_avg_arguments_columns!
-  distinct: Boolean
-  filter: token_transaction_bool_exp
-  predicate: float8_comparison_exp!
-}
-
-input token_transaction_aggregate_bool_exp_corr {
-  arguments: token_transaction_aggregate_bool_exp_corr_arguments!
-  distinct: Boolean
-  filter: token_transaction_bool_exp
-  predicate: float8_comparison_exp!
-}
-
-input token_transaction_aggregate_bool_exp_corr_arguments {
-  X: token_transaction_select_column_token_transaction_aggregate_bool_exp_corr_arguments_columns!
-  Y: token_transaction_select_column_token_transaction_aggregate_bool_exp_corr_arguments_columns!
-}
-
-input token_transaction_aggregate_bool_exp_count {
-  arguments: [token_transaction_select_column!]
-  distinct: Boolean
-  filter: token_transaction_bool_exp
-  predicate: Int_comparison_exp!
-}
-
-input token_transaction_aggregate_bool_exp_covar_samp {
-  arguments: token_transaction_aggregate_bool_exp_covar_samp_arguments!
-  distinct: Boolean
-  filter: token_transaction_bool_exp
-  predicate: float8_comparison_exp!
-}
-
-input token_transaction_aggregate_bool_exp_covar_samp_arguments {
-  X: token_transaction_select_column_token_transaction_aggregate_bool_exp_covar_samp_arguments_columns!
-  Y: token_transaction_select_column_token_transaction_aggregate_bool_exp_covar_samp_arguments_columns!
-}
-
-input token_transaction_aggregate_bool_exp_max {
-  arguments: token_transaction_select_column_token_transaction_aggregate_bool_exp_max_arguments_columns!
-  distinct: Boolean
-  filter: token_transaction_bool_exp
-  predicate: float8_comparison_exp!
-}
-
-input token_transaction_aggregate_bool_exp_min {
-  arguments: token_transaction_select_column_token_transaction_aggregate_bool_exp_min_arguments_columns!
-  distinct: Boolean
-  filter: token_transaction_bool_exp
-  predicate: float8_comparison_exp!
-}
-
-input token_transaction_aggregate_bool_exp_stddev_samp {
-  arguments: token_transaction_select_column_token_transaction_aggregate_bool_exp_stddev_samp_arguments_columns!
-  distinct: Boolean
-  filter: token_transaction_bool_exp
-  predicate: float8_comparison_exp!
-}
-
-input token_transaction_aggregate_bool_exp_sum {
-  arguments: token_transaction_select_column_token_transaction_aggregate_bool_exp_sum_arguments_columns!
-  distinct: Boolean
-  filter: token_transaction_bool_exp
-  predicate: float8_comparison_exp!
-}
-
-input token_transaction_aggregate_bool_exp_var_samp {
-  arguments: token_transaction_select_column_token_transaction_aggregate_bool_exp_var_samp_arguments_columns!
-  distinct: Boolean
-  filter: token_transaction_bool_exp
-  predicate: float8_comparison_exp!
-}
-
-"""
-aggregate fields of "token_transaction"
-"""
-type token_transaction_aggregate_fields {
-  avg: token_transaction_avg_fields
-  count(columns: [token_transaction_select_column!], distinct: Boolean): Int!
-  max: token_transaction_max_fields
-  min: token_transaction_min_fields
-  stddev: token_transaction_stddev_fields
-  stddev_pop: token_transaction_stddev_pop_fields
-  stddev_samp: token_transaction_stddev_samp_fields
-  sum: token_transaction_sum_fields
-  var_pop: token_transaction_var_pop_fields
-  var_samp: token_transaction_var_samp_fields
-  variance: token_transaction_variance_fields
-}
-
-"""
-order by aggregate values of table "token_transaction"
-"""
-input token_transaction_aggregate_order_by {
-  avg: token_transaction_avg_order_by
-  count: order_by
-  max: token_transaction_max_order_by
-  min: token_transaction_min_order_by
-  stddev: token_transaction_stddev_order_by
-  stddev_pop: token_transaction_stddev_pop_order_by
-  stddev_samp: token_transaction_stddev_samp_order_by
-  sum: token_transaction_sum_order_by
-  var_pop: token_transaction_var_pop_order_by
-  var_samp: token_transaction_var_samp_order_by
-  variance: token_transaction_variance_order_by
-}
-
-"""
-input type for inserting array relation for remote table "token_transaction"
-"""
-input token_transaction_arr_rel_insert_input {
-  data: [token_transaction_insert_input!]!
-
-  """upsert condition"""
-  on_conflict: token_transaction_on_conflict
-}
-
-"""aggregate avg on columns"""
-type token_transaction_avg_fields {
-  amount: Float
-  token_price: Float
-}
-
-"""
-order by avg() on columns of table "token_transaction"
-"""
-input token_transaction_avg_order_by {
-  amount: order_by
-  token_price: order_by
-}
-
-"""
-Boolean expression to filter rows from the table "token_transaction". All fields are combined with a logical 'AND'.
-"""
-input token_transaction_bool_exp {
-  _and: [token_transaction_bool_exp!]
-  _not: token_transaction_bool_exp
-  _or: [token_transaction_bool_exp!]
-  amount: numeric_comparison_exp
-  id: uuid_comparison_exp
-  token: String_comparison_exp
-  token_price: float8_comparison_exp
-  wallet_transaction: uuid_comparison_exp
-  wallet_transaction_data: wallet_transaction_bool_exp
-}
-
-"""
-unique or primary key constraints on table "token_transaction"
-"""
-enum token_transaction_constraint {
-  """
-  unique or primary key constraint on columns "id"
-  """
-  token_transaction_pkey
-}
-
-"""
-input type for incrementing numeric columns in table "token_transaction"
-"""
-input token_transaction_inc_input {
-  amount: numeric
-  token_price: float8
-}
-
-"""
-input type for inserting data into table "token_transaction"
-"""
-input token_transaction_insert_input {
-  amount: numeric
-  id: uuid
-  token: String
-  token_price: float8
-  wallet_transaction: uuid
-  wallet_transaction_data: wallet_transaction_obj_rel_insert_input
-}
-
-"""aggregate max on columns"""
-type token_transaction_max_fields {
-  amount: numeric
-  id: uuid
-  token: String
-  token_price: float8
-  wallet_transaction: uuid
-}
-
-"""
-order by max() on columns of table "token_transaction"
-"""
-input token_transaction_max_order_by {
-  amount: order_by
-  id: order_by
-  token: order_by
-  token_price: order_by
-  wallet_transaction: order_by
-}
-
-"""aggregate min on columns"""
-type token_transaction_min_fields {
-  amount: numeric
-  id: uuid
-  token: String
-  token_price: float8
-  wallet_transaction: uuid
-}
-
-"""
-order by min() on columns of table "token_transaction"
-"""
-input token_transaction_min_order_by {
-  amount: order_by
-  id: order_by
-  token: order_by
-  token_price: order_by
-  wallet_transaction: order_by
-}
-
-"""
-response of any mutation on the table "token_transaction"
-"""
-type token_transaction_mutation_response {
-  """number of rows affected by the mutation"""
-  affected_rows: Int!
-
-  """data from the rows affected by the mutation"""
-  returning: [token_transaction!]!
-}
-
-"""token_transaction_offsetNative Query Arguments"""
-input token_transaction_offset_arguments {
-  """"""
-  offset: interval!
-}
-
-type token_transaction_offset_model {
-  amount: numeric!
-  created_at: timestamptz!
-  created_at_offset: timestamptz!
-  id: uuid!
-  token: String!
-  wallet: String!
-}
-
-"""
-Boolean expression to filter rows from the logical model for "token_transaction_offset_model". All fields are combined with a logical 'AND'.
-"""
-input token_transaction_offset_model_bool_exp_bool_exp {
-  _and: [token_transaction_offset_model_bool_exp_bool_exp!]
-  _not: token_transaction_offset_model_bool_exp_bool_exp
-  _or: [token_transaction_offset_model_bool_exp_bool_exp!]
-  amount: numeric_comparison_exp
-  created_at: timestamptz_comparison_exp
-  created_at_offset: timestamptz_comparison_exp
-  id: uuid_comparison_exp
-  token: String_comparison_exp
-  wallet: String_comparison_exp
-}
-
-enum token_transaction_offset_model_enum_name {
-  """column name"""
-  amount
-
-  """column name"""
-  created_at
-
-  """column name"""
-  created_at_offset
-
-  """column name"""
-  id
-
-  """column name"""
-  token
-
-  """column name"""
-  wallet
-}
-
-"""
-Ordering options when selecting data from "token_transaction_offset_model".
-"""
-input token_transaction_offset_model_order_by {
-  amount: order_by
-  created_at: order_by
-  created_at_offset: order_by
-  id: order_by
-  token: order_by
-  wallet: order_by
-}
-
-"""
-on_conflict condition type for table "token_transaction"
-"""
-input token_transaction_on_conflict {
-  constraint: token_transaction_constraint!
-  update_columns: [token_transaction_update_column!]! = []
-  where: token_transaction_bool_exp
-}
-
-"""Ordering options when selecting data from "token_transaction"."""
-input token_transaction_order_by {
-  amount: order_by
-  id: order_by
-  token: order_by
-  token_price: order_by
-  wallet_transaction: order_by
-  wallet_transaction_data: wallet_transaction_order_by
-}
-
-"""primary key columns input for table: token_transaction"""
-input token_transaction_pk_columns_input {
-  id: uuid!
-}
-
-"""
-select columns of table "token_transaction"
-"""
-enum token_transaction_select_column {
-  """column name"""
-  amount
-
-  """column name"""
-  id
-
-  """column name"""
-  token
-
-  """column name"""
-  token_price
-
-  """column name"""
-  wallet_transaction
-}
-
-"""
-select "token_transaction_aggregate_bool_exp_avg_arguments_columns" columns of table "token_transaction"
-"""
-enum token_transaction_select_column_token_transaction_aggregate_bool_exp_avg_arguments_columns {
-  """column name"""
-  token_price
-}
-
-"""
-select "token_transaction_aggregate_bool_exp_corr_arguments_columns" columns of table "token_transaction"
-"""
-enum token_transaction_select_column_token_transaction_aggregate_bool_exp_corr_arguments_columns {
-  """column name"""
-  token_price
-}
-
-"""
-select "token_transaction_aggregate_bool_exp_covar_samp_arguments_columns" columns of table "token_transaction"
-"""
-enum token_transaction_select_column_token_transaction_aggregate_bool_exp_covar_samp_arguments_columns {
-  """column name"""
-  token_price
-}
-
-"""
-select "token_transaction_aggregate_bool_exp_max_arguments_columns" columns of table "token_transaction"
-"""
-enum token_transaction_select_column_token_transaction_aggregate_bool_exp_max_arguments_columns {
-  """column name"""
-  token_price
-}
-
-"""
-select "token_transaction_aggregate_bool_exp_min_arguments_columns" columns of table "token_transaction"
-"""
-enum token_transaction_select_column_token_transaction_aggregate_bool_exp_min_arguments_columns {
-  """column name"""
-  token_price
-}
-
-"""
-select "token_transaction_aggregate_bool_exp_stddev_samp_arguments_columns" columns of table "token_transaction"
-"""
-enum token_transaction_select_column_token_transaction_aggregate_bool_exp_stddev_samp_arguments_columns {
-  """column name"""
-  token_price
-}
-
-"""
-select "token_transaction_aggregate_bool_exp_sum_arguments_columns" columns of table "token_transaction"
-"""
-enum token_transaction_select_column_token_transaction_aggregate_bool_exp_sum_arguments_columns {
-  """column name"""
-  token_price
-}
-
-"""
-select "token_transaction_aggregate_bool_exp_var_samp_arguments_columns" columns of table "token_transaction"
-"""
-enum token_transaction_select_column_token_transaction_aggregate_bool_exp_var_samp_arguments_columns {
-  """column name"""
-  token_price
-}
-
-"""
-input type for updating data in table "token_transaction"
-"""
-input token_transaction_set_input {
-  amount: numeric
-  id: uuid
-  token: String
-  token_price: float8
-  wallet_transaction: uuid
-}
-
-"""aggregate stddev on columns"""
-type token_transaction_stddev_fields {
-  amount: Float
-  token_price: Float
-}
-
-"""
-order by stddev() on columns of table "token_transaction"
-"""
-input token_transaction_stddev_order_by {
-  amount: order_by
-  token_price: order_by
-}
-
-"""aggregate stddev_pop on columns"""
-type token_transaction_stddev_pop_fields {
-  amount: Float
-  token_price: Float
-}
-
-"""
-order by stddev_pop() on columns of table "token_transaction"
-"""
-input token_transaction_stddev_pop_order_by {
-  amount: order_by
-  token_price: order_by
-}
-
-"""aggregate stddev_samp on columns"""
-type token_transaction_stddev_samp_fields {
-  amount: Float
-  token_price: Float
-}
-
-"""
-order by stddev_samp() on columns of table "token_transaction"
-"""
-input token_transaction_stddev_samp_order_by {
-  amount: order_by
-  token_price: order_by
-}
-
-"""
-Streaming cursor of the table "token_transaction"
-"""
-input token_transaction_stream_cursor_input {
-  """Stream column input with initial value"""
-  initial_value: token_transaction_stream_cursor_value_input!
-
-  """cursor ordering"""
-  ordering: cursor_ordering
-}
-
-"""Initial value of the column from where the streaming should start"""
-input token_transaction_stream_cursor_value_input {
-  amount: numeric
-  id: uuid
-  token: String
-  token_price: float8
-  wallet_transaction: uuid
-}
-
-"""aggregate sum on columns"""
-type token_transaction_sum_fields {
-  amount: numeric
-  token_price: float8
-}
-
-"""
-order by sum() on columns of table "token_transaction"
-"""
-input token_transaction_sum_order_by {
-  amount: order_by
-  token_price: order_by
-}
-
-"""
-update columns of table "token_transaction"
-"""
-enum token_transaction_update_column {
-  """column name"""
-  amount
-
-  """column name"""
-  id
-
-  """column name"""
-  token
-
-  """column name"""
-  token_price
-
-  """column name"""
-  wallet_transaction
-}
-
-input token_transaction_updates {
-  """increments the numeric columns with given value of the filtered values"""
-  _inc: token_transaction_inc_input
-
-  """sets the columns of the filtered rows to the given values"""
-  _set: token_transaction_set_input
-
-  """filter the rows which have to be updated"""
-  where: token_transaction_bool_exp!
-}
-
-"""aggregate var_pop on columns"""
-type token_transaction_var_pop_fields {
-  amount: Float
-  token_price: Float
-}
-
-"""
-order by var_pop() on columns of table "token_transaction"
-"""
-input token_transaction_var_pop_order_by {
-  amount: order_by
-  token_price: order_by
-}
-
-"""aggregate var_samp on columns"""
-type token_transaction_var_samp_fields {
-  amount: Float
-  token_price: Float
-}
-
-"""
-order by var_samp() on columns of table "token_transaction"
-"""
-input token_transaction_var_samp_order_by {
-  amount: order_by
-  token_price: order_by
-}
-
-"""aggregate variance on columns"""
-type token_transaction_variance_fields {
-  amount: Float
-  token_price: Float
-}
-
-"""
-order by variance() on columns of table "token_transaction"
-"""
-input token_transaction_variance_order_by {
-  amount: order_by
-  token_price: order_by
-}
-
 type trade_history_candle_model {
   bucket: timestamptz!
   close_price_usd: numeric!
@@ -3250,6 +3073,66 @@ input trade_history_candle_model_order_by {
   volume_usd: order_by
 }
 
+type transaction_model {
+  created_at: timestamptz!
+  id: uuid!
+  success: Boolean!
+  token_amount: numeric!
+  token_mint: String!
+  token_price_usd: numeric!
+  user_wallet: String!
+}
+
+"""
+Boolean expression to filter rows from the logical model for "transaction_model". All fields are combined with a logical 'AND'.
+"""
+input transaction_model_bool_exp_bool_exp {
+  _and: [transaction_model_bool_exp_bool_exp!]
+  _not: transaction_model_bool_exp_bool_exp
+  _or: [transaction_model_bool_exp_bool_exp!]
+  created_at: timestamptz_comparison_exp
+  id: uuid_comparison_exp
+  success: Boolean_comparison_exp
+  token_amount: numeric_comparison_exp
+  token_mint: String_comparison_exp
+  token_price_usd: numeric_comparison_exp
+  user_wallet: String_comparison_exp
+}
+
+enum transaction_model_enum_name {
+  """column name"""
+  created_at
+
+  """column name"""
+  id
+
+  """column name"""
+  success
+
+  """column name"""
+  token_amount
+
+  """column name"""
+  token_mint
+
+  """column name"""
+  token_price_usd
+
+  """column name"""
+  user_wallet
+}
+
+"""Ordering options when selecting data from "transaction_model"."""
+input transaction_model_order_by {
+  created_at: order_by
+  id: order_by
+  success: order_by
+  token_amount: order_by
+  token_mint: order_by
+  token_price_usd: order_by
+  user_wallet: order_by
+}
+
 scalar uuid
 
 """
@@ -3265,375 +3148,4 @@ input uuid_comparison_exp {
   _lte: uuid
   _neq: uuid
   _nin: [uuid!]
-}
-
-"""wallet_balance_ignore_intervalNative Query Arguments"""
-input wallet_balance_ignore_interval_arguments {
-  """"""
-  interval: interval!
-
-  """"""
-  start: timestamptz!
-
-  """"""
-  wallet: String!
-}
-
-"""wallet_token_balance_ignore_intervalNative Query Arguments"""
-input wallet_token_balance_ignore_interval_arguments {
-  """"""
-  interval: interval!
-
-  """"""
-  start: timestamptz!
-
-  """"""
-  token: String!
-
-  """"""
-  wallet: String!
-}
-
-"""
-columns and relationships of "wallet_transaction"
-"""
-type wallet_transaction {
-  amount: numeric!
-  created_at: timestamptz!
-  id: uuid!
-
-  """An array relationship"""
-  token_transactions(
-    """distinct select on columns"""
-    distinct_on: [token_transaction_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [token_transaction_order_by!]
-
-    """filter the rows returned"""
-    where: token_transaction_bool_exp
-  ): [token_transaction!]!
-
-  """An aggregate relationship"""
-  token_transactions_aggregate(
-    """distinct select on columns"""
-    distinct_on: [token_transaction_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [token_transaction_order_by!]
-
-    """filter the rows returned"""
-    where: token_transaction_bool_exp
-  ): token_transaction_aggregate!
-  wallet: String!
-}
-
-"""
-aggregated selection of "wallet_transaction"
-"""
-type wallet_transaction_aggregate {
-  aggregate: wallet_transaction_aggregate_fields
-  nodes: [wallet_transaction!]!
-}
-
-"""
-aggregate fields of "wallet_transaction"
-"""
-type wallet_transaction_aggregate_fields {
-  avg: wallet_transaction_avg_fields
-  count(columns: [wallet_transaction_select_column!], distinct: Boolean): Int!
-  max: wallet_transaction_max_fields
-  min: wallet_transaction_min_fields
-  stddev: wallet_transaction_stddev_fields
-  stddev_pop: wallet_transaction_stddev_pop_fields
-  stddev_samp: wallet_transaction_stddev_samp_fields
-  sum: wallet_transaction_sum_fields
-  var_pop: wallet_transaction_var_pop_fields
-  var_samp: wallet_transaction_var_samp_fields
-  variance: wallet_transaction_variance_fields
-}
-
-"""aggregate avg on columns"""
-type wallet_transaction_avg_fields {
-  amount: Float
-}
-
-"""
-Boolean expression to filter rows from the table "wallet_transaction". All fields are combined with a logical 'AND'.
-"""
-input wallet_transaction_bool_exp {
-  _and: [wallet_transaction_bool_exp!]
-  _not: wallet_transaction_bool_exp
-  _or: [wallet_transaction_bool_exp!]
-  amount: numeric_comparison_exp
-  created_at: timestamptz_comparison_exp
-  id: uuid_comparison_exp
-  token_transactions: token_transaction_bool_exp
-  token_transactions_aggregate: token_transaction_aggregate_bool_exp
-  wallet: String_comparison_exp
-}
-
-"""
-unique or primary key constraints on table "wallet_transaction"
-"""
-enum wallet_transaction_constraint {
-  """
-  unique or primary key constraint on columns "id"
-  """
-  account_transaction_pkey
-}
-
-"""
-input type for incrementing numeric columns in table "wallet_transaction"
-"""
-input wallet_transaction_inc_input {
-  amount: numeric
-}
-
-"""
-input type for inserting data into table "wallet_transaction"
-"""
-input wallet_transaction_insert_input {
-  amount: numeric
-  created_at: timestamptz
-  id: uuid
-  token_transactions: token_transaction_arr_rel_insert_input
-  wallet: String
-}
-
-"""aggregate max on columns"""
-type wallet_transaction_max_fields {
-  amount: numeric
-  created_at: timestamptz
-  id: uuid
-  wallet: String
-}
-
-"""aggregate min on columns"""
-type wallet_transaction_min_fields {
-  amount: numeric
-  created_at: timestamptz
-  id: uuid
-  wallet: String
-}
-
-"""
-response of any mutation on the table "wallet_transaction"
-"""
-type wallet_transaction_mutation_response {
-  """number of rows affected by the mutation"""
-  affected_rows: Int!
-
-  """data from the rows affected by the mutation"""
-  returning: [wallet_transaction!]!
-}
-
-"""
-input type for inserting object relation for remote table "wallet_transaction"
-"""
-input wallet_transaction_obj_rel_insert_input {
-  data: wallet_transaction_insert_input!
-
-  """upsert condition"""
-  on_conflict: wallet_transaction_on_conflict
-}
-
-"""wallet_transaction_offsetNative Query Arguments"""
-input wallet_transaction_offset_arguments {
-  """"""
-  offset: interval!
-}
-
-type wallet_transaction_offset_model {
-  amount: numeric!
-  created_at: timestamptz!
-  created_at_offset: timestamptz!
-  id: uuid!
-  wallet: String!
-}
-
-"""
-Boolean expression to filter rows from the logical model for "wallet_transaction_offset_model". All fields are combined with a logical 'AND'.
-"""
-input wallet_transaction_offset_model_bool_exp_bool_exp {
-  _and: [wallet_transaction_offset_model_bool_exp_bool_exp!]
-  _not: wallet_transaction_offset_model_bool_exp_bool_exp
-  _or: [wallet_transaction_offset_model_bool_exp_bool_exp!]
-  amount: numeric_comparison_exp
-  created_at: timestamptz_comparison_exp
-  created_at_offset: timestamptz_comparison_exp
-  id: uuid_comparison_exp
-  wallet: String_comparison_exp
-}
-
-enum wallet_transaction_offset_model_enum_name {
-  """column name"""
-  amount
-
-  """column name"""
-  created_at
-
-  """column name"""
-  created_at_offset
-
-  """column name"""
-  id
-
-  """column name"""
-  wallet
-}
-
-"""
-Ordering options when selecting data from "wallet_transaction_offset_model".
-"""
-input wallet_transaction_offset_model_order_by {
-  amount: order_by
-  created_at: order_by
-  created_at_offset: order_by
-  id: order_by
-  wallet: order_by
-}
-
-"""
-on_conflict condition type for table "wallet_transaction"
-"""
-input wallet_transaction_on_conflict {
-  constraint: wallet_transaction_constraint!
-  update_columns: [wallet_transaction_update_column!]! = []
-  where: wallet_transaction_bool_exp
-}
-
-"""Ordering options when selecting data from "wallet_transaction"."""
-input wallet_transaction_order_by {
-  amount: order_by
-  created_at: order_by
-  id: order_by
-  token_transactions_aggregate: token_transaction_aggregate_order_by
-  wallet: order_by
-}
-
-"""primary key columns input for table: wallet_transaction"""
-input wallet_transaction_pk_columns_input {
-  id: uuid!
-}
-
-"""
-select columns of table "wallet_transaction"
-"""
-enum wallet_transaction_select_column {
-  """column name"""
-  amount
-
-  """column name"""
-  created_at
-
-  """column name"""
-  id
-
-  """column name"""
-  wallet
-}
-
-"""
-input type for updating data in table "wallet_transaction"
-"""
-input wallet_transaction_set_input {
-  amount: numeric
-  created_at: timestamptz
-  id: uuid
-  wallet: String
-}
-
-"""aggregate stddev on columns"""
-type wallet_transaction_stddev_fields {
-  amount: Float
-}
-
-"""aggregate stddev_pop on columns"""
-type wallet_transaction_stddev_pop_fields {
-  amount: Float
-}
-
-"""aggregate stddev_samp on columns"""
-type wallet_transaction_stddev_samp_fields {
-  amount: Float
-}
-
-"""
-Streaming cursor of the table "wallet_transaction"
-"""
-input wallet_transaction_stream_cursor_input {
-  """Stream column input with initial value"""
-  initial_value: wallet_transaction_stream_cursor_value_input!
-
-  """cursor ordering"""
-  ordering: cursor_ordering
-}
-
-"""Initial value of the column from where the streaming should start"""
-input wallet_transaction_stream_cursor_value_input {
-  amount: numeric
-  created_at: timestamptz
-  id: uuid
-  wallet: String
-}
-
-"""aggregate sum on columns"""
-type wallet_transaction_sum_fields {
-  amount: numeric
-}
-
-"""
-update columns of table "wallet_transaction"
-"""
-enum wallet_transaction_update_column {
-  """column name"""
-  amount
-
-  """column name"""
-  created_at
-
-  """column name"""
-  id
-
-  """column name"""
-  wallet
-}
-
-input wallet_transaction_updates {
-  """increments the numeric columns with given value of the filtered values"""
-  _inc: wallet_transaction_inc_input
-
-  """sets the columns of the filtered rows to the given values"""
-  _set: wallet_transaction_set_input
-
-  """filter the rows which have to be updated"""
-  where: wallet_transaction_bool_exp!
-}
-
-"""aggregate var_pop on columns"""
-type wallet_transaction_var_pop_fields {
-  amount: Float
-}
-
-"""aggregate var_samp on columns"""
-type wallet_transaction_var_samp_fields {
-  amount: Float
-}
-
-"""aggregate variance on columns"""
-type wallet_transaction_variance_fields {
-  amount: Float
 }

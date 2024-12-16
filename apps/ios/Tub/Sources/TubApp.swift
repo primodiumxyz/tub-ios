@@ -49,7 +49,7 @@ struct AppContent: View {
     var body: some View {
         Group {
             if let _ = priceModel.error {
-                LoginErrorView(
+                ErrorView(
                     errorMessage: "Failed to get price data",
                     retryAction: {
                         Task {
@@ -57,12 +57,15 @@ struct AppContent: View {
                         }
                     }
                 )
+            }  else if userModel.walletState == .connecting || userModel.initializingUser {
+                LoadingView(identifier: "Logging in", message: "Logging in")
             }
             else {
                 HomeTabsView().font(.sfRounded())
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Color(UIColor.systemBackground))
                     .withNotificationBanner()
+                    .bubbleEffect()
                     .environmentObject(notificationHandler)
                     .environmentObject(userModel)
                     .environmentObject(tokenListModel)
@@ -77,15 +80,16 @@ struct AppContent: View {
                             .interactiveDismissDisabled()
                     }
             }
-        }.onAppear {
-            Task(priority: .high) {
-                tokenListModel.configure(with: userModel)
-                await tokenListModel.startTokenSubscription()
-            }
         }.onChange(of: userModel.walletState) { _, newState in
+            if newState == .connecting { return }
             if newState == .error {
                 notificationHandler.show("Error connecting to wallet.", type: .error)
+                return
             }
+            // we wait to begin the token subscription until the user is ready (either logged in or not) 
+            // we clear the queue when the user logs in/out to force showing owned tokens first
+            tokenListModel.clearQueue()
+            tokenListModel.startTokenSubscription()
         }
     }
 }

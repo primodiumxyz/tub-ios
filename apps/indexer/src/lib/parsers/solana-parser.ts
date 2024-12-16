@@ -2,7 +2,7 @@
 // Also to avoid errors probably due to cyclical dependencies: "TypeError: (0 , codecs_strings_1.getStringCodec) is not a function"
 // - replaced BN with BigInt (BN not compatible with node)
 
-import { BorshInstructionCoder, Idl, SystemProgram as SystemProgramIdl } from "@coral-xyz/anchor";
+import { BorshInstructionCoder, Idl } from "@coral-xyz/anchor";
 import {
   compiledInstructionToInstruction,
   flattenParsedTransaction,
@@ -180,7 +180,7 @@ export class SolanaParser {
 
         // @ts-expect-error: type difference @coral-xyz/anchor -> @project-serum/anchor
         return parser(instruction, decoder);
-      } catch (error) {
+      } catch {
         console.error("Parser does not match the instruction args", {
           programId: instruction.programId.toBase58(),
           instructionData: instruction.data.toString("hex"),
