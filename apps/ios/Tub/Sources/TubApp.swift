@@ -14,6 +14,14 @@ struct TubApp: App {
     private let dwellTimeTracker = AppDwellTimeTracker.shared
     @StateObject private var userModel = UserModel.shared
 
+    init() {
+        let appearance = UITabBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = UIColor.systemBackground
+        UITabBar.appearance().standardAppearance = appearance
+        UITabBar.appearance().scrollEdgeAppearance = appearance
+    }
+
     var body: some Scene {
         WindowGroup {
             AppContent()
