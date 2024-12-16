@@ -137,6 +137,8 @@ struct CapsuleButtonStyle: ButtonStyle {
     var text: String
     var textColor: Color
     var backgroundColor: Color
+    var borderColor: Color?
+    var borderWidth: CGFloat = 1
     var font: Font = .sfRounded(size: .base, weight: .bold)
     var disabled = false
 
@@ -148,6 +150,14 @@ struct CapsuleButtonStyle: ButtonStyle {
             .padding(.vertical, 9)
             .background(backgroundColor.opacity(configuration.isPressed ? 0.1 : 1))
             .clipShape(Capsule())
+            .overlay(
+                Group {
+                    if let borderColor = borderColor {
+                        Capsule()
+                            .stroke(borderColor, lineWidth: borderWidth)
+                    }
+                }
+            )
     }
 }
 
@@ -155,6 +165,8 @@ struct CapsuleButton: View {
     var text: String
     var textColor: Color = .tubText
     var backgroundColor: Color = .tubText.opacity(0.15)
+    var borderColor: Color? = nil
+    var borderWidth: CGFloat = 1
     var font: Font = .sfRounded(size: .base, weight: .bold)
     var action: () -> Void
 
@@ -167,6 +179,8 @@ struct CapsuleButton: View {
                 text: text,
                 textColor: textColor,
                 backgroundColor: backgroundColor,
+                borderColor: borderColor,
+                borderWidth: borderWidth,
                 font: font
             )
         )

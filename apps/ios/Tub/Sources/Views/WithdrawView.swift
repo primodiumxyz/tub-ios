@@ -23,15 +23,14 @@ class WithdrawModel: ObservableObject {
     func validateAddress(_ address: String) -> Bool {
         // Check if address is empty
         guard !address.isEmpty else { return false }
-        
+
         // Check length (Solana addresses are 32-byte public keys encoded in base58, resulting in 44 characters)
         guard address.count == 44 else { return false }
-        
+
         // Check if address contains only valid base58 characters
         let base58Charset = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
         let addressCharSet = CharacterSet(charactersIn: address)
         let validCharSet = CharacterSet(charactersIn: base58Charset)
-        
         return addressCharSet.isSubset(of: validCharSet)
     }
     
@@ -107,39 +106,25 @@ struct WithdrawView: View {
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.leading)
                 .textFieldStyle(PlainTextFieldStyle())
-                .onReceive(NotificationCenter.default.publisher(for: UITextField.textDidChangeNotification)) { obj in
-                    guard let textField = obj.object as? UITextField,
-                          textField.keyboardType == .decimalPad else { return }
+                .onChange(of: vm.buyAmountUsdString) { 
+                    let text = vm.buyAmountUsdString
                     
-                    if let text = textField.text {
-                        // Validate decimal places
-                        let components = text.components(separatedBy: ".")
-                        if components.count > 1 {
-                            let decimals = components[1]
-                            if decimals.count > 2 {
-                                textField.text = String(text.dropLast())
-                            }
-                        }
-                        
-                        // Validate if it's a decimal
-                        if !text.isEmpty && !text.isDecimal() {
-                            textField.text = String(text.dropLast())
-                        }
-                        
-                        let amount = text.doubleValue
-                        if amount > 0 {
-                            // Convert to USDC and back to ensure proper rounding
-                            let amountUsdc = priceModel.usdToUsdc(usd: amount)
-                            vm.buyAmountUsd = priceModel.usdcToUsd(usdc: amountUsdc)
-                            // Format to 2 decimal places
-                            vm.buyAmountUsdString = String(format: "%.2f", vm.buyAmountUsd)
-                        } else {
-                            vm.buyAmountUsd = 0
+                    // Validate decimal places
+                    let components = text.components(separatedBy: ".")
+                    if components.count > 1 {
+                        let decimals = components[1]
+                        if decimals.count > 2 {
+                            vm.buyAmountUsdString = String(text.dropLast())
                         }
                     }
-                    else {
-                        vm.buyAmountUsd = 0
+                    
+                    // Validate if it's a decimal
+                    if !text.isEmpty && !text.isDecimal() {
+                        vm.buyAmountUsdString = String(text.dropLast())
                     }
+                    
+                    let amount = text.doubleValue
+                    vm.buyAmountUsd = amount  // Update the numeric value
                 }
                 .font(.sfRounded(size: .xl5, weight: .semibold))
                 .foregroundStyle(
