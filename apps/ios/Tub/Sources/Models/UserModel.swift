@@ -150,7 +150,7 @@ final class UserModel: ObservableObject {
         tokenPortfolioTimer = nil
     }
     
-    private func refreshPortfolio() async throws {
+    public func refreshPortfolio() async throws {
         let tokenBalances = try await Network.shared.getAllTokenBalances()
         
         for (mint, balance) in tokenBalances {

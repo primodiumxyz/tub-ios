@@ -123,6 +123,7 @@ final class TokenListModel: ObservableObject {
     // - Move current to previous
     // - Move next to current and initialize
     // - If current is the end of the array, append a new one and preload it
+    @MainActor
     func loadNextTokenIntoCurrentTokenPhaseOne() {
         self.recordTokenDwellTime()
         

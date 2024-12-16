@@ -274,9 +274,7 @@ class TokenModel: ObservableObject {
     }
     
     private func refreshTokenBalance() async throws {
-        guard let walletAddress = UserModel.shared.walletAddress else { return }
-        
-        let tokenBalance = try await Network.shared.getTokenBalance(address: walletAddress, tokenMint: tokenId)
+        let tokenBalance = try await Network.shared.getTokenBalance(tokenMint: tokenId)
             
         await UserModel.shared.updateTokenData(mint: tokenId, balance: tokenBalance)
     }

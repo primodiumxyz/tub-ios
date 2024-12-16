@@ -53,7 +53,7 @@ class TabsViewModel: ObservableObject {
         // Record selection of new tab
         Task {
             try? await Network.shared.recordClientEvent(
-                event: ClientEvent(
+                event: Network.ClientEvent(
                     eventName: "tab_selected",
                     source: "home_tabs_view",
                     metadata: [

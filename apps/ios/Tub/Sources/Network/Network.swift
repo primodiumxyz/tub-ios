@@ -242,10 +242,8 @@ class Network {
         return res.balance
     }
     
-    func getTxData(buyTokenId: String, sellTokenId: String, sellQuantity: Int) async throws -> TxData
-    {
-        let input = SwapInput(
-            buyTokenId: buyTokenId, sellTokenId: sellTokenId, sellQuantity: sellQuantity)
+    func getTxData(buyTokenId: String, sellTokenId: String, sellQuantity: Int, slippageBps: Int? = nil) async throws -> TxData {
+        let input = SwapInput(buyTokenId: buyTokenId, sellTokenId: sellTokenId, sellQuantity: sellQuantity, slippageBps: slippageBps)
         let res: TxData = try await callQuery("fetchSwap", input: input)
         return res
     }
