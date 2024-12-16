@@ -34,3 +34,11 @@ export const GetLatestTokenPurchaseQuery = graphql(`
     }
   }
 `);
+
+export const GetWalletTokenPnlQuery = graphql(`
+  query GetWalletTokenPnl($wallet: String!, $token_mint: String!) {
+    transactions_value_aggregate(where: { user_wallet: { _eq: $wallet }, token_mint: { _eq: $token_mint } }) {
+      total_value_usd
+    }
+  }
+`);
