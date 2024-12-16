@@ -27,7 +27,7 @@ export class FeeService {
     const isUsdcSell = usdcTokenIds.includes(sellTokenId);
     const cfg = await config();
 
-    if (isUsdcSell && cfg.MIN_TRADE_SIZE_USD * 1e6 < sellQuantity) {
+    if (isUsdcSell && cfg.MIN_TRADE_SIZE_USD * 1e6 > sellQuantity) {
       throw new Error("USDC sell quantity is below minimum trade size");
     }
 
