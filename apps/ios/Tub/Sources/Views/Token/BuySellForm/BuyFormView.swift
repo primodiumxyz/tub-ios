@@ -181,7 +181,6 @@ struct BuyFormView: View {
                     let amount = text.doubleValue
                     if amount > 0 {
                         buyQuantityUsd = amount
-                        updateTxData(buyQuantityUsd: buyQuantityUsd)
                         // Only format if the value has changed
                         buyQuantityUsdString = text
                         
