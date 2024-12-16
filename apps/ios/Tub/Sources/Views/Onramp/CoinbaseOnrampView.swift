@@ -29,7 +29,7 @@ struct CoinbaseOnrampView: View {
 
                         numberInput
                         
-                        Text("Your Balance \(priceModel.formatPrice(usdc: userModel.balanceUsdc ?? 0))")
+                        Text("Your Balance \(priceModel.formatPrice(usdc: userModel.usdcBalance ?? 0))")
                             .font(.sfRounded(size: .lg, weight: .medium))
                             .foregroundStyle(.tubBuyPrimary)
                         

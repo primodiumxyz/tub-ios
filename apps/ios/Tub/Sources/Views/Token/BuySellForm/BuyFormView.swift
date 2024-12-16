@@ -186,7 +186,7 @@ struct BuyFormView: View {
                         
                         // Check if amount exceeds balance
                         let buyQuantityUsdc = priceModel.usdToUsdc(usd: amount)
-                        isValidInput = (userModel.balanceUsdc ?? 0) >= buyQuantityUsdc
+                        isValidInput = (userModel.usdcBalance ?? 0) >= buyQuantityUsdc
                     } else {
                         isValidInput = false
                     }
