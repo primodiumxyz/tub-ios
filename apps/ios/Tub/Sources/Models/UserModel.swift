@@ -13,22 +13,23 @@ import TubAPI
 final class UserModel: ObservableObject {
     static let shared = UserModel()
     
-    @Published var initializingUser: Bool = false
     @Published var userId: String?
     @Published var walletState: EmbeddedWalletState = .notCreated
     @Published var walletAddress: String?
     
+    @Published var initializingUser: Bool = false
+    
     @Published var usdcBalance: Int? = nil
     @Published var initialTime = Date()
     @Published var elapsedSeconds: TimeInterval = 0
-    @Published var initialUsdcBalance: Int? = nil
-    @Published var usdcBalanceChange: Int = 0
     
     @Published var tokenPortfolio: [String] = []
     @Published var tokenData: [String: TokenData] = [:]
     
     private var timer: Timer?
 
+    @Published var initialPortfolioBalance: Double? = nil
+    
     var portfolioBalanceUsd : Double? {
         guard let usdcBalance else { return nil }
         let usdcBalanceUsd = SolPriceModel.shared.usdcToUsd(usdc: usdcBalance)
@@ -129,17 +130,24 @@ final class UserModel: ObservableObject {
         }
         
         do {
-            try await fetchInitialUsdcBalance()
-            startPollingUsdcBalance()
+            async let usdcBalanceTask : () = fetchUsdcBalance()
+            async let portfolioTask : () = refreshPortfolio()
+            let _ = try await (usdcBalanceTask, portfolioTask)
             
-            try await refreshPortfolio()
+            await MainActor.run {
+                self.initialPortfolioBalance = self.portfolioBalanceUsd
+            }
+
+            startPollingUsdcBalance()
             startPollingTokenPortfolio()
+
         } catch {
             print("error initializing:", error.localizedDescription)
         }
         
         timeoutTask.cancel()  // Cancel timeout if successful
-        DispatchQueue.main.async {
+        
+        await MainActor.run {
             self.initialTime = Date()
             self.initializingUser = false
         }
@@ -208,6 +216,16 @@ final class UserModel: ObservableObject {
         } catch {
             return
         }
+    }
+    
+    @MainActor
+    public func updateTokenPrice(mint: String, priceUsd: Double) {
+        if mint == USDC_MINT { return }
+        guard var tokenData = self.tokenData[mint], var liveData = tokenData.liveData else { return }
+        
+        liveData.priceUsd = priceUsd
+        tokenData.liveData = liveData
+        self.tokenData[mint] = tokenData
     }
     
     public func updateTokenData(mint: String, balance: Int? = nil, metadata: TokenMetadata? = nil, liveData: TokenLiveData? = nil) async {
@@ -410,30 +428,12 @@ final class UserModel: ObservableObject {
     /*                                   Balance                                  */
     /* -------------------------------------------------------------------------- */
     public func fetchUsdcBalance() async throws {
-        if self.usdcBalance == nil {
-            try await self.fetchInitialUsdcBalance()
-        } else {
-            let balanceUsdc = try await Network.shared.getUsdcBalance()
-            await MainActor.run {
-                self.usdcBalance = balanceUsdc
-                if let initialUsdcBalance = self.initialUsdcBalance {
-                    self.usdcBalanceChange = balanceUsdc - initialUsdcBalance
-                }
-            }
+        let balanceUsdc = try await Network.shared.getUsdcBalance()
+        await MainActor.run {
+            self.usdcBalance = balanceUsdc
         }
     }
     
-    private func fetchInitialUsdcBalance() async throws {
-        do {
-            let balanceUsdc = try await Network.shared.getUsdcBalance()
-            await MainActor.run {
-                self.initialUsdcBalance = balanceUsdc
-                self.usdcBalance = balanceUsdc
-            }
-        } catch {
-            print("Error fetching initial balance: \(error)")
-        }
-    }
     
     private var usdcBalanceTimer: Timer?
     private let POLL_INTERVAL: TimeInterval = 10.0  // Set your desired interval here
@@ -515,8 +515,7 @@ final class UserModel: ObservableObject {
             self.walletState = .notCreated
             self.walletAddress = nil
             self.usdcBalance = 0
-            self.initialUsdcBalance = nil
-            self.usdcBalanceChange = 0
+            self.initialPortfolioBalance = nil
             self.elapsedSeconds = 0
             self.tokenPortfolio = []
             

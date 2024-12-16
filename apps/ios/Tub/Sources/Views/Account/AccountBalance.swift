@@ -13,7 +13,8 @@ struct AccountBalanceView: View {
     @ObservedObject var currentTokenModel: TokenModel
     
     var deltaUsd : Double {
-        1.0
+        guard let initialBalance  = userModel.initialPortfolioBalance, let currentBalanceUsd = userModel.portfolioBalanceUsd else { return 0 }
+        return currentBalanceUsd - initialBalance
     }
     
     var body: some View {
