@@ -13,7 +13,7 @@ struct TokenBalancesView: View {
   @State private var isRefreshing = false
 
   var totalPortfolioValue: Double {
-    let usdcValue = priceModel.usdcToUsd(usdc: userModel.balanceUsdc ?? 0)
+    let usdcValue = priceModel.usdcToUsd(usdc: userModel.usdcBalance ?? 0)
     let tokenValue = userModel.tokenPortfolio.reduce(0.0) { total, key in
       if let token = userModel.tokenData[key] {
         let price = token.liveData?.priceUsd ?? 0
@@ -73,8 +73,8 @@ struct TokenBalancesView: View {
         Spacer()
 
         VStack {
-          Text("Value: \(priceModel.formatPrice(usdc: userModel.balanceUsdc ?? 0))")
-          Text("\(userModel.balanceUsdc ?? 0)")
+          Text("Value: \(priceModel.formatPrice(usdc: userModel.usdcBalance ?? 0))")
+          Text("\(userModel.usdcBalance ?? 0)")
         }
       }
       .padding()

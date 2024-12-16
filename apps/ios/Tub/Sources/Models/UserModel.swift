@@ -18,16 +18,31 @@ final class UserModel: ObservableObject {
     @Published var walletState: EmbeddedWalletState = .notCreated
     @Published var walletAddress: String?
     
-    @Published var balanceUsdc: Int? = nil
+    @Published var usdcBalance: Int? = nil
     @Published var initialTime = Date()
     @Published var elapsedSeconds: TimeInterval = 0
-    @Published var initialBalanceUsdc: Int? = nil
-    @Published var balanceChangeUsdc: Int = 0
+    @Published var initialUsdcBalance: Int? = nil
+    @Published var usdcBalanceChange: Int = 0
     
     @Published var tokenPortfolio: [String] = []
     @Published var tokenData: [String: TokenData] = [:]
     
     private var timer: Timer?
+
+    var portfolioBalanceUsd : Double? {
+        guard let usdcBalance else { return nil }
+        let usdcBalanceUsd = SolPriceModel.shared.usdcToUsd(usdc: usdcBalance)
+        let tokenValue = self.tokenPortfolio.reduce(0.0) { total, key in
+              if let token = tokenData[key] {
+                let price = token.liveData?.priceUsd ?? 0
+                let balance = Double(token.balanceToken)
+                let decimals = Double(token.metadata.decimals)
+                return total + (price * balance / pow(10, decimals))
+              }
+              return total
+            }
+        return usdcBalanceUsd + tokenValue
+    }
     
     @Published var hasSeenOnboarding: Bool {
         didSet {
@@ -395,14 +410,14 @@ final class UserModel: ObservableObject {
     /*                                   Balance                                  */
     /* -------------------------------------------------------------------------- */
     public func fetchUsdcBalance() async throws {
-        if self.initialBalanceUsdc == nil {
+        if self.usdcBalance == nil {
             try await self.fetchInitialUsdcBalance()
         } else {
             let balanceUsdc = try await Network.shared.getUsdcBalance()
             await MainActor.run {
-                self.balanceUsdc = balanceUsdc
-                if let initialBalanceUsdc = self.initialBalanceUsdc {
-                    self.balanceChangeUsdc = balanceUsdc - initialBalanceUsdc
+                self.usdcBalance = balanceUsdc
+                if let initialUsdcBalance = self.initialUsdcBalance {
+                    self.usdcBalanceChange = balanceUsdc - initialUsdcBalance
                 }
             }
         }
@@ -412,8 +427,8 @@ final class UserModel: ObservableObject {
         do {
             let balanceUsdc = try await Network.shared.getUsdcBalance()
             await MainActor.run {
-                self.initialBalanceUsdc = balanceUsdc
-                self.balanceUsdc = balanceUsdc
+                self.initialUsdcBalance = balanceUsdc
+                self.usdcBalance = balanceUsdc
             }
         } catch {
             print("Error fetching initial balance: \(error)")
@@ -499,9 +514,9 @@ final class UserModel: ObservableObject {
             guard let self = self, self.userId != nil else { return }
             self.walletState = .notCreated
             self.walletAddress = nil
-            self.balanceUsdc = 0
-            self.initialBalanceUsdc = nil
-            self.balanceChangeUsdc = 0
+            self.usdcBalance = 0
+            self.initialUsdcBalance = nil
+            self.usdcBalanceChange = 0
             self.elapsedSeconds = 0
             self.tokenPortfolio = []
             

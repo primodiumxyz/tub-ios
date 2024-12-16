@@ -144,7 +144,7 @@ struct WithdrawView: View {
                 .font(.sfRounded(size: .xl5, weight: .semibold))
                 .foregroundStyle(
                     vm.buyAmountUsd == 0 ||
-                    (userModel.balanceUsdc ?? 0) < priceModel.usdToUsdc(usd: vm.buyAmountUsd)
+                    (userModel.usdcBalance ?? 0) < priceModel.usdToUsdc(usd: vm.buyAmountUsd)
                     ? .tubError
                     : .tubText
                 )
@@ -163,7 +163,7 @@ struct WithdrawView: View {
                 Spacer().frame(height: UIScreen.height(Layout.Spacing.md))
                 numberInput
                 
-                Text("Your Balance \(priceModel.formatPrice(usdc: userModel.balanceUsdc ?? 0))")
+                Text("Your Balance \(priceModel.formatPrice(usdc: userModel.usdcBalance ?? 0))")
                     .font(.sfRounded(size: .lg, weight: .medium))
                     .foregroundStyle(.tubBuyPrimary)
                 
@@ -177,7 +177,7 @@ struct WithdrawView: View {
                     backgroundColor: .tubBuyPrimary,
                     disabled: !vm.validateAddress(vm.recipient) ||
                              vm.buyAmountUsd == 0 ||
-                             (userModel.balanceUsdc ?? 0) < priceModel.usdToUsdc(usd: vm.buyAmountUsd),
+                             (userModel.usdcBalance ?? 0) < priceModel.usdToUsdc(usd: vm.buyAmountUsd),
                     loading: vm.sending,
                     action: handleContinue
                 )

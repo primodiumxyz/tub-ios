@@ -66,22 +66,14 @@ private struct BalanceSection: View {
     @EnvironmentObject private var userModel: UserModel
     @EnvironmentObject private var priceModel: SolPriceModel
 
-    var accountBalance: (balance: Int?, change: Int) {
-        let balance = userModel.balanceUsdc
-
-        let adjustedChange = userModel.balanceChangeUsdc
-
-        return (balance, adjustedChange)
-    }
-
     var body: some View {
         VStack(spacing: 8) {
             Text("Account Balance")
                 .font(.sfRounded(size: .lg, weight: .regular))
                 .foregroundStyle(.secondary)
 
-            if let balance = accountBalance.balance {
-                let formattedBalance = priceModel.formatPrice(usdc: balance, maxDecimals: 2, minDecimals: 2)
+            if let balance = userModel.portfolioBalanceUsd {
+                let formattedBalance = priceModel.formatPrice(usd: balance, maxDecimals: 2, minDecimals: 2)
 
                 Text(formattedBalance)
                     .font(.sfRounded(size: .xl5, weight: .bold))
@@ -91,15 +83,15 @@ private struct BalanceSection: View {
                 ProgressView()
             }
 
-            if accountBalance.change > 0 {
-                Text("\(priceModel.formatPrice(usdc: accountBalance.change, showSign: true, maxDecimals: 2))")
-
-                // Format time elapsed
-                Text("\(formatDuration(userModel.elapsedSeconds))")
-                    .foregroundStyle(.secondary)
-                    .font(.sfRounded(size: .sm, weight: .regular))
-
-            }
+//            if accountBalance.change > 0 {
+//                Text("\(priceModel.formatPrice(usdc: accountBalance.change, showSign: true, maxDecimals: 2))")
+//
+//                // Format time elapsed
+//                Text("\(formatDuration(userModel.elapsedSeconds))")
+//                    .foregroundStyle(.secondary)
+//                    .font(.sfRounded(size: .sm, weight: .regular))
+//
+//            }
         }
         .padding(.top, 16)
         .padding(.bottom, 12)

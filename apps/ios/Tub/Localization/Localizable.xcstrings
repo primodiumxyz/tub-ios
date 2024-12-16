@@ -79,6 +79,9 @@
     "B" : {
 
     },
+    "Balance: %@" : {
+
+    },
     "Buy" : {
 
     },
@@ -154,6 +157,9 @@
     "Price" : {
 
     },
+    "Price: %lf" : {
+
+    },
     "Purchase Price" : {
 
     },
@@ -221,6 +227,12 @@
 
     },
     "Unfilled" : {
+
+    },
+    "USDC" : {
+
+    },
+    "Value: %@" : {
 
     },
     "Welcome to tub" : {
