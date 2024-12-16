@@ -35,13 +35,21 @@ export class JupiterService {
     private connection: Connection,
     private jupiterQuoteApi: DefaultApi,
   ) {
-    // Update the SOL/USD price at every interval
-    const interval = setInterval(() => {
-      this.updateSolUsdPrice();
-    }, config().SOL_USD_PRICE_UPDATE_INTERVAL);
-    this.updateSolUsdPrice();
+    this.initializePriceUpdates();
+  }
 
-    interval.unref(); // allow Node.js to exit if only this interval is still running
+  private initializePriceUpdates(): void {
+    (async () => {
+      const interval = setInterval(
+        async () => {
+          await this.updateSolUsdPrice();
+        },
+        (await config()).SOL_USD_PRICE_UPDATE_INTERVAL,
+      );
+
+      this.updateSolUsdPrice();
+      interval.unref();
+    })();
   }
 
   getSettings(): JupiterSettings {

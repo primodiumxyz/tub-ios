@@ -16,6 +16,7 @@ import bs58 from "bs58";
 import { TOKEN_PROGRAM_PUBLIC_KEY } from "../constants/tokens";
 import { USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
 import { config } from "../utils/config";
+import { ConfigService } from "../services/ConfigService";
 
 /**
  * Service class handling token trading, swaps, and user operations
@@ -60,6 +61,9 @@ export class TubService {
 
     // validate trade fee recipient
     const validatedTradeFeeRecipient = await this.validateTradeFeeRecipient();
+
+    // initialize config service first since other services might need it
+    await ConfigService.getInstance();
 
     // Initialize fee payer
     const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY));

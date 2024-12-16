@@ -31,10 +31,31 @@ export class ConfigService {
   private redis = RedisService.getInstance().getClient();
   private readonly REDIS_KEY = "app:config";
   private localConfig: Config | null = null;
+  private initialized = false;
 
   private constructor() {
-    this.syncWithRedis();
+    this.init();
+  }
+
+  private async init() {
+    await this.syncWithRedis();
     this.startPeriodicSync();
+    this.initialized = true;
+  }
+
+  public static async getInstance(): Promise<ConfigService> {
+    if (!ConfigService.instance) {
+      ConfigService.instance = new ConfigService();
+      await ConfigService.instance.init();
+    }
+    return ConfigService.instance;
+  }
+
+  public getConfig(): Config {
+    if (!this.initialized || !this.localConfig) {
+      throw new Error("Config not initialized");
+    }
+    return this.localConfig;
   }
 
   private async syncWithRedis() {
@@ -49,19 +70,5 @@ export class ConfigService {
     setInterval(() => {
       this.syncWithRedis();
     }, this.localConfig?.CONFIG_UPDATE_INTERVAL ?? 60_000);
-  }
-
-  public static getInstance(): ConfigService {
-    if (!ConfigService.instance) {
-      ConfigService.instance = new ConfigService();
-    }
-    return ConfigService.instance;
-  }
-
-  public getConfig(): Config {
-    if (!this.localConfig) {
-      throw new Error("Config not initialized");
-    }
-    return this.localConfig;
   }
 }
