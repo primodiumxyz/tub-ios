@@ -17,20 +17,21 @@ export class SwapService {
   ) {}
 
   async buildSwapResponse(request: ActiveSwapRequest): Promise<PrebuildSwapResponse> {
+    const cfg = await config();
     if (!request.sellTokenAccount) {
       throw new Error("Sell token account is required but was not provided");
     }
 
-    if (request.slippageBps && request.slippageBps > config().USER_SLIPPAGE_BPS_MAX) {
+    if (request.slippageBps && request.slippageBps > cfg.USER_SLIPPAGE_BPS_MAX) {
       throw new Error("Slippage bps is too high");
     }
 
-    if (request.slippageBps && request.slippageBps <= config().MIN_SLIPPAGE_BPS) {
-      throw new Error("Slippage bps must be greater than " + config().MIN_SLIPPAGE_BPS);
+    if (request.slippageBps && request.slippageBps <= cfg.MIN_SLIPPAGE_BPS) {
+      throw new Error("Slippage bps must be greater than " + cfg.MIN_SLIPPAGE_BPS);
     }
 
     // Calculate fee if selling USDC
-    const feeAmount = this.feeService.calculateFeeAmount(request.sellTokenId, request.sellQuantity, [
+    const feeAmount = await this.feeService.calculateFeeAmount(request.sellTokenId, request.sellQuantity, [
       USDC_DEV_PUBLIC_KEY.toString(),
       USDC_MAINNET_PUBLIC_KEY.toString(),
     ]);
@@ -54,15 +55,15 @@ export class SwapService {
     const slippageSettings = {
       slippageBps: request.slippageBps
         ? request.slippageBps
-        : config().AUTO_SLIPPAGE
+        : cfg.AUTO_SLIPPAGE
           ? undefined
-          : config().MAX_DEFAULT_SLIPPAGE_BPS,
-      autoSlippage: request.slippageBps ? false : config().AUTO_SLIPPAGE,
-      maxAutoSlippageBps: config().MAX_AUTO_SLIPPAGE_BPS,
+          : cfg.MAX_DEFAULT_SLIPPAGE_BPS,
+      autoSlippage: request.slippageBps ? false : cfg.AUTO_SLIPPAGE,
+      maxAutoSlippageBps: cfg.MAX_AUTO_SLIPPAGE_BPS,
       autoSlippageCollisionUsdValue:
         request.sellTokenId === USDC_MAINNET_PUBLIC_KEY.toString()
           ? Math.ceil(swapAmount / 1e6)
-          : config().AUTO_SLIPPAGE_COLLISION_USD_VALUE,
+          : cfg.AUTO_SLIPPAGE_COLLISION_USD_VALUE,
     };
 
     // Get swap instructions from Jupiter
@@ -78,7 +79,7 @@ export class SwapService {
       autoSlippageCollisionUsdValue: slippageSettings.autoSlippageCollisionUsdValue,
       onlyDirectRoutes: false,
       restrictIntermediateTokens: true,
-      maxAccounts: config().MAX_ACCOUNTS,
+      maxAccounts: cfg.MAX_ACCOUNTS,
       asLegacyTransaction: false,
     };
 
@@ -89,7 +90,7 @@ export class SwapService {
     } = await this.jupiter.getSwapInstructions(
       swapInstructionRequest,
       request.userPublicKey,
-      config().AUTO_PRIORITY_FEE_MULTIPLIER,
+      cfg.AUTO_PRIORITY_FEE_MULTIPLIER,
     );
     console.log("Quoted auto slippage", quote.computedAutoSlippage);
     console.log("Quoted slippage bps", quote.slippageBps);

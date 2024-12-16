@@ -62,7 +62,7 @@ export const start = async () => {
       throw new Error("Fee payer keypair not found");
     }
 
-    if (!configUtils().TRADE_FEE_RECIPIENT) {
+    if (!(await configUtils()).TRADE_FEE_RECIPIENT) {
       throw new Error("TRADE_FEE_RECIPIENT is not set");
     }
 

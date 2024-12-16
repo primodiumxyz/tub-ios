@@ -29,13 +29,21 @@ export class TransactionService {
     private connection: Connection,
     private feePayerKeypair: Keypair,
   ) {
-    setInterval(() => this.cleanupRegistry(), config().CLEANUP_INTERVAL);
+    this.initializeCleanup();
   }
 
-  private cleanupRegistry() {
+  private initializeCleanup(): void {
+    (async () => {
+      const cfg = await config();
+      setInterval(() => this.cleanupRegistry(), cfg.CLEANUP_INTERVAL);
+    })();
+  }
+
+  private async cleanupRegistry() {
+    const cfg = await config();
     const now = Date.now();
     for (const [key, value] of this.messageRegistry.entries()) {
-      if (now - value.timestamp > config().REGISTRY_TIMEOUT) {
+      if (now - value.timestamp > cfg.REGISTRY_TIMEOUT) {
         this.messageRegistry.delete(key);
       }
     }
@@ -117,6 +125,7 @@ export class TransactionService {
     userSignature: string,
     base64Message: string,
   ): Promise<{ signature: string }> {
+    const cfg = await config();
     const entry = this.messageRegistry.get(base64Message);
     if (!entry) {
       throw new Error("Transaction not found in registry");
@@ -196,8 +205,8 @@ export class TransactionService {
     });
 
     let confirmation = null;
-    for (let attempt = 0; attempt < config().RETRY_ATTEMPTS; attempt++) {
-      console.log(`Tx Confirmation Attempt ${attempt + 1} of ${config().RETRY_ATTEMPTS}`);
+    for (let attempt = 0; attempt < cfg.RETRY_ATTEMPTS; attempt++) {
+      console.log(`Tx Confirmation Attempt ${attempt + 1} of ${cfg.RETRY_ATTEMPTS}`);
       try {
         const status = await this.connection.getSignatureStatus(txid, {
           searchTransactionHistory: true,
@@ -211,10 +220,10 @@ export class TransactionService {
         }
       } catch (error) {
         console.log(`Attempt ${attempt + 1} failed:`, error);
-        if (attempt === config().RETRY_ATTEMPTS - 1)
-          throw new Error(`Failed to get transaction confirmation after ${config().RETRY_ATTEMPTS} attempts`);
+        if (attempt === cfg.RETRY_ATTEMPTS - 1)
+          throw new Error(`Failed to get transaction confirmation after ${cfg.RETRY_ATTEMPTS} attempts`);
       }
-      await new Promise((resolve) => setTimeout(resolve, config().RETRY_DELAY)); // Wait 1 second before retrying
+      await new Promise((resolve) => setTimeout(resolve, cfg.RETRY_DELAY)); // Wait 1 second before retrying
     }
 
     if (!confirmation || confirmation.value?.err) {

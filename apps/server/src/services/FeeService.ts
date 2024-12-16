@@ -23,14 +23,15 @@ export class FeeService {
    * @param usdcTokenIds - Array of USDC token IDs (mainnet and devnet)
    * @returns Fee amount in token's base units
    */
-  calculateFeeAmount(sellTokenId: string, sellQuantity: number, usdcTokenIds: string[]): number {
+  async calculateFeeAmount(sellTokenId: string, sellQuantity: number, usdcTokenIds: string[]): Promise<number> {
     const isUsdcSell = usdcTokenIds.includes(sellTokenId);
+    const cfg = await config();
 
-    if (isUsdcSell && config().MIN_TRADE_SIZE_USD * 1e6 < sellQuantity) {
+    if (isUsdcSell && cfg.MIN_TRADE_SIZE_USD * 1e6 < sellQuantity) {
       throw new Error("USDC sell quantity is below minimum trade size");
     }
 
-    const feeAmount = isUsdcSell ? (BigInt(config().BUY_FEE_BPS) * BigInt(sellQuantity)) / 10000n : 0;
+    const feeAmount = isUsdcSell ? (BigInt(cfg.BUY_FEE_BPS) * BigInt(sellQuantity)) / 10000n : 0;
 
     return Number(feeAmount);
   }

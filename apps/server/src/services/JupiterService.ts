@@ -109,13 +109,14 @@ export class JupiterService {
     quote: QuoteResponse;
   }> {
     try {
+      const minSlippage = (await config()).MIN_SLIPPAGE_BPS;
+
       const quote = await this.getQuote(quoteAndSwapParams);
 
       if (!quote) {
         throw new Error("No quote received");
       }
 
-      const minSlippage = config().MIN_SLIPPAGE_BPS;
       let dynamicSlippage: undefined | { minBps: number; maxBps: number } = undefined;
       // override computedAutoSlippage if it is less than MIN_SLIPPAGE_BPS
       if (quote.computedAutoSlippage) {

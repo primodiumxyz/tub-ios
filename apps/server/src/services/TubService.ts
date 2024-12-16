@@ -86,7 +86,8 @@ export class TubService {
    * @throws Error if the trade fee recipient does not have a valid USDC ATA
    */
   private async validateTradeFeeRecipient(): Promise<PublicKey> {
-    let tradeFeeRecipientUsdcAtaAddress = new PublicKey(config().TRADE_FEE_RECIPIENT);
+    const cfg = await config();
+    let tradeFeeRecipientUsdcAtaAddress = new PublicKey(cfg.TRADE_FEE_RECIPIENT);
 
     try {
       // Check if env is a USDC ATA address
@@ -97,7 +98,7 @@ export class TubService {
         // Check if env is a pubkey address that has a valid USDC ATA
         tradeFeeRecipientUsdcAtaAddress = getAssociatedTokenAddressSync(
           USDC_MAINNET_PUBLIC_KEY,
-          new PublicKey(config().TRADE_FEE_RECIPIENT),
+          new PublicKey(cfg.TRADE_FEE_RECIPIENT),
         );
         await getAccount(this.connection, tradeFeeRecipientUsdcAtaAddress);
       } catch {
