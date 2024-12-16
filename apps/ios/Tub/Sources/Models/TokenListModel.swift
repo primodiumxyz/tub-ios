@@ -203,9 +203,6 @@ final class TokenListModel: ObservableObject {
                     try? await UserModel.shared.refreshBulkTokenData(tokenMints: hotTokens)
                     await MainActor.run {
                         if !self.initialFetchComplete { self.initialFetchComplete = true }
-                    
-                        // bulk update token metadata
-                        
 
                         self.updatePendingTokens(hotTokens)
                         if self.tokenQueue.isEmpty {

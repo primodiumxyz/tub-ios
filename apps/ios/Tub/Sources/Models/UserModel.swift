@@ -181,8 +181,9 @@ final class UserModel: ObservableObject {
         let tokenBalances = try await Network.shared.getAllTokenBalances()
         
         let tokenMints = Array(tokenBalances.keys)
-        let tokenMetadata = try await fetchBulkTokenMetadata(tokenMints: tokenMints)
-        let tokenLiveData = try await fetchBulkTokenLiveData(tokenMints: tokenMints)
+        async let metadataFetch = fetchBulkTokenMetadata(tokenMints: tokenMints)
+        async let liveDataFetch = fetchBulkTokenLiveData(tokenMints: tokenMints)
+        let (tokenMetadata, tokenLiveData) = try await (metadataFetch, liveDataFetch)
         
         for mint in tokenMints {
             if mint == USDC_MINT {
