@@ -150,16 +150,31 @@ describe("query tests", () => {
       user_agent: "test",
     });
 
+    await gql.db.AddTokenSaleMutation({
+      token_mint: "0x0000000000000000000000000000000000000000",
+      token_amount: "75",
+      token_price_usd: "2.00",
+      user_wallet: testWallet,
+      user_agent: "test",
+    });
+    await gql.db.AddTokenSaleMutation({
+      token_mint: tokenAddress,
+      token_amount: "75",
+      token_price_usd: "2.00",
+      user_wallet: "0x0000000000000000000000000000000000000000",
+      user_agent: "test",
+    });
+
     const result = await gql.db.GetWalletTokenPnlQuery({
       wallet: testWallet,
       token_mint: tokenAddress,
     });
 
     // Calculate expected PnL:
-    // Purchase 1: -100 tokens * $1.00 = -$100
-    // Purchase 2: -50 tokens * $1.50 = -$75
-    // Sale: 75 tokens * $2.00 = +$150
-    // Total PnL = -$25
+    // Purchase 1: 100 tokens * $1.00 = $100
+    // Purchase 2: 50 tokens * $1.50 = $75
+    // Sale: 75 tokens * $2.00 = $150
+    // Total PnL = $25
     expect(result.data?.transactions_value_aggregate.length).toEqual(1);
     expect(result.data?.transactions_value_aggregate[0]?.total_value_usd).toEqual(25);
   });
