@@ -502,6 +502,14 @@ final class UserModel: ObservableObject {
             
             self.stopTimer()
             self.stopPollingTokenPortfolio()
+            self.usdcBalance = 0
+            self.tokenData.forEach { (key, val) in
+                guard val.balanceToken > 0 else { return }
+                var newVal = val
+                newVal.balanceToken = 0
+                self.tokenData[key] = newVal
+            }
+            
             TokenListModel.shared.clearQueue()
         }
         if !skipPrivy {

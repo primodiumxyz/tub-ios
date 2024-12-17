@@ -107,8 +107,7 @@ struct ActionButtonsView: View {
                 switch userModel.walletState {
                 case .connected(_):
                     if activeTab == .buy {
-                        if let usdcBalance = userModel.usdcBalance,
-                            priceModel.usdcToUsd(usdc: usdcBalance) < 0.1
+                        if priceModel.usdcToUsd(usdc: userModel.usdcBalance ?? 0) < 0.1
                         {
                             AirdropButton()
                         }
