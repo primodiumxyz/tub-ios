@@ -43,6 +43,19 @@
             nullable: false
             scalar: numeric
       name: transaction_model
+      select_permissions:
+        - permission:
+            columns:
+              - id
+              - created_at
+              - user_wallet
+              - token_mint
+              - token_price_usd
+              - token_amount
+              - success
+              - token_value_usd
+            filter: {}
+          role: public
     - fields:
         - name: total_value_usd
           type:
