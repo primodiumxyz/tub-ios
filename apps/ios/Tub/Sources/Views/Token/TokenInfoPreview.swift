@@ -38,15 +38,12 @@ struct TokenInfoPreview: View {
         }
         var stats = [StatValue]()
         // Calculate current value
-        // todo: replace hard coded decimals with token decimals
-        let decimals = tokenData.metadata.decimals 
-        let tokenBalance = Double(balanceToken) / pow(10.0, Double(decimals))
-        let tokenBalanceUsd = tokenBalance * (tokenModel.prices.last?.priceUsd ?? 0)
-
-        // Calculate profit
-
+        
+            let decimals = pow(10.0, Double(tokenData.metadata.decimals))
         if let purchaseData = tokenModel.purchaseData {
-            let initialValueUsd = purchaseData.priceUsd * Double(purchaseData.amountToken) / pow(10.0, Double(decimals))
+            let tokenBalance = Double(purchaseData.amountToken) / decimals
+            let tokenBalanceUsd = tokenBalance * (tokenModel.prices.last?.priceUsd ?? 0)
+            let initialValueUsd = tokenBalance * purchaseData.priceUsd
             let gains = tokenBalanceUsd - initialValueUsd
             let percentageGain = gains / initialValueUsd * 100
             stats.append(
@@ -60,6 +57,10 @@ struct TokenInfoPreview: View {
         }
 
         // Add position stats
+
+        let tokenBalance = Double(balanceToken) / decimals
+        let tokenBalanceUsd = tokenBalance * (tokenModel.prices.last?.priceUsd ?? 0)
+
         stats.append(
             StatValue(
                 title: "You own",
