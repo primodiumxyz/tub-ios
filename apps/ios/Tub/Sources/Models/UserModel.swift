@@ -296,6 +296,7 @@ final class UserModel: ObservableObject {
                             decimals: Int(token.decimals ?? 6)
                         )
                         continuation.resume(returning: metadata)
+                        return
                     }
                     continuation.resume(throwing: TubError.somethingWentWrong(reason: "Metadata not found"))
                 case .failure(let error):

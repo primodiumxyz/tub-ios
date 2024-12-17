@@ -198,11 +198,9 @@ final class TokenListModel: ObservableObject {
                             return []
                         }
                     }()
-                    try? await UserModel.shared.refreshBulkTokenData(tokenMints: hotTokens, options: .init(withBalances: false, withLiveData: true))
+                    await self.updatePendingTokens(hotTokens)
                     await MainActor.run {
-                        if !self.initialFetchComplete { self.initialFetchComplete = true }
 
-                        self.updatePendingTokens(hotTokens)
                         if self.tokenQueue.isEmpty {
                             self.initializeTokenQueue()
                         }
@@ -222,8 +220,7 @@ final class TokenListModel: ObservableObject {
         self.pendingTokens = self.pendingTokens.filter { $0 != tokenId }
     }
     
-    @MainActor
-    private func updatePendingTokens(_ newTokens: [String]) {
+    private func updatePendingTokens(_ newTokens: [String]) async {
         guard !newTokens.isEmpty else { return }
         
         // Filter out any tokens that are already in the queue
@@ -236,7 +233,24 @@ final class TokenListModel: ObservableObject {
             !unqueuedNewTokens.contains { $0 == oldToken }
         }
         
-        self.pendingTokens = Array((unqueuedNewTokens + uniqueOldTokens).prefix(20))
+        let newTokens = Array((unqueuedNewTokens + uniqueOldTokens))
+        let tokens = UserModel.shared.tokenData
+        let newTokensToRefresh = newTokens.filter { tokens[$0] == nil }
+
+        if newTokensToRefresh.count > 0 {
+            try? await UserModel.shared.refreshBulkTokenData(tokenMints: Array(newTokensToRefresh.prefix(3)), options: .init(withLiveData: false))
+        }
+        
+        if newTokensToRefresh.count > 3 {
+            Task {
+                try? await UserModel.shared.refreshBulkTokenData(tokenMints: Array(newTokensToRefresh.suffix(newTokensToRefresh.count - 3)), options: .init(withLiveData: false))
+            }
+        }
+        
+        await MainActor.run {
+            if !self.initialFetchComplete { self.initialFetchComplete = true }
+            self.pendingTokens = newTokens
+        }
     }
     
     @MainActor
