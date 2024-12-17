@@ -12,7 +12,7 @@ struct PurchaseData: RawRepresentable {
     
     let tokenId: String
     let timestamp: Date
-    let amountUsdc: Int
+    let amountToken: Int
     let priceUsd: Double
     
     init?(rawValue: RawValue) {
@@ -21,15 +21,15 @@ struct PurchaseData: RawRepresentable {
         let dict = json as? [String: Any]
         let timestampSeconds = dict?["timestamp"] as? TimeInterval ?? Date.now.timeIntervalSince1970
         self.timestamp = Date.init(timeIntervalSince1970: timestampSeconds)
-        self.amountUsdc = dict?["amountUsdc"] as? Int ?? 0
+        self.amountToken = dict?["amountToken"] as? Int ?? 0
         self.priceUsd = dict?["priceUsd"] as? Double ?? 0
         self.tokenId = dict?["tokenId"] as? String ?? ""
     }
     
-    init(tokenId: String, timestamp: Date, amountUsdc: Int, priceUsd: Double) {
+    init(tokenId: String, timestamp: Date, amountToken: Int, priceUsd: Double) {
         self.tokenId = tokenId
         self.timestamp = timestamp
-        self.amountUsdc = amountUsdc
+        self.amountToken = amountToken
         self.priceUsd = priceUsd
     }
 
@@ -37,7 +37,7 @@ struct PurchaseData: RawRepresentable {
         // convert properties to a JSON string
         let dict: [String: Any] = [
             "timestamp": timestamp.timeIntervalSince1970,
-            "amountUsdc": amountUsdc,
+            "amountToken": amountToken,
             "priceUsd": priceUsd,
             "tokenId": tokenId
         ]

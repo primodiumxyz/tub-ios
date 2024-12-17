@@ -24,32 +24,21 @@ class TokenModel: ObservableObject {
     private var preloaded = false
     private var initialized = false
     
-    @AppStorage("purchaseData") private var storedPurchaseData: PurchaseData?
     @Published var purchaseData: PurchaseData? {
         didSet {
             DispatchQueue.main.async {
-                self.storedPurchaseData = self.purchaseData
+                self.purchaseData = self.purchaseData
             }
         }
     }
 
     func fetchPurchaseData(hard: Bool = false) async throws {
-        print("fetching purchase data")
         if self.purchaseData != nil {
-            print("purchase data ready")
-            return
-        }
-        if self.storedPurchaseData != nil {
-            await MainActor.run {
-                print("purchase data stored")
-                self.purchaseData = self.storedPurchaseData
-            }
             return
         }
         
         guard let walletAddress = UserModel.shared.walletAddress else { return }
         
-        print("fetching purchase data", walletAddress, tokenId)
         let query = GetLatestTokenPurchaseQuery(wallet: walletAddress, mint: tokenId)
         let purchaseData = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<PurchaseData, Error>) in
             Network.shared.apollo.fetch(query: query) {
@@ -63,7 +52,7 @@ class TokenModel: ObservableObject {
                         continuation.resume(throwing: TubError.serverError(reason:"No purchases found"))
                         return
                     }
-                    let purchaseData = PurchaseData(tokenId: tx.token_mint, timestamp: timestamp, amountUsdc: Int(tx.token_amount), priceUsd: tx.token_price_usd)
+                    let purchaseData = PurchaseData(tokenId: tx.token_mint, timestamp: timestamp, amountToken: Int(tx.token_amount), priceUsd: tx.token_price_usd)
                     continuation.resume(returning: purchaseData)
                 case .failure(let error):
                     continuation.resume(throwing: error)
@@ -72,6 +61,7 @@ class TokenModel: ObservableObject {
         }
         
         await MainActor.run {
+            print("purchase data:", purchaseData)
             self.purchaseData = purchaseData
         }
     }
@@ -321,9 +311,12 @@ class TokenModel: ObservableObject {
     
     private func refreshTokenBalance() async throws {
         let tokenBalance = try await Network.shared.getTokenBalance(tokenMint: tokenId)
-        print("refreshing balance", tokenBalance, self.purchaseData)
         if tokenBalance > 0 && self.purchaseData == nil {
             try await self.fetchPurchaseData()
+        } else if tokenBalance == 0 {
+            await MainActor.run {
+                self.purchaseData = nil
+            }
         }
             
         await UserModel.shared.updateTokenData(mint: tokenId, balance: tokenBalance)

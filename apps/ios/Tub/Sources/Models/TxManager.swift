@@ -105,10 +105,12 @@ final class TxManager: ObservableObject {
                 await MainActor.run {
                     if let priceUsd = priceData?.priceUsd ?? UserModel.shared.tokenData[tokenId]?.liveData?.priceUsd {
                         
+                        let sellQuantityUsd = SolPriceModel.shared.usdcToUsd(usdc: sellQuantity)
+                        let sellQuantityToken = Int(sellQuantityUsd / priceUsd)
                         tokenModel.purchaseData =  PurchaseData(
                             tokenId: tokenModel.tokenId,
                             timestamp: priceData?.timestamp ?? Date.now,
-                            amountUsdc: sellQuantity,
+                            amountToken: sellQuantityToken,
                             priceUsd: priceUsd
                         )
                     }

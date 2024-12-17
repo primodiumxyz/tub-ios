@@ -235,6 +235,7 @@ export class TransactionService {
         console.error("[signAndSendTransaction] Error getting block time:", error);
       }
     }
+
     return { signature: txid, timestamp };
   }
 
