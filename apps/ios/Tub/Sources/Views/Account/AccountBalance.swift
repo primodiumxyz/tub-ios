@@ -11,6 +11,7 @@ struct AccountBalanceView: View {
     @EnvironmentObject var priceModel: SolPriceModel
     @ObservedObject var userModel: UserModel
     @ObservedObject var currentTokenModel: TokenModel
+    @StateObject private var activityManager = LiveActivityManager.shared
 
     var balances: (usdcBalanceUsd: Double?, tokenBalanceUsd: Double, deltaUsd: Double) {
         let usdcBalanceUsd =
@@ -68,6 +69,21 @@ struct AccountBalanceView: View {
 									.font(.sfRounded(size: .lg))
 									.fontWeight(.bold)
 								
+								// Start/Stop live activity
+								Button(action: {
+									if activityManager.isActivityActive {
+										activityManager.stopActivity()
+									} else {
+										activityManager.startActivity(
+											name: "Account Balance",
+											symbol: "USD",
+											initialValue: usdcBalanceUsd + balances.tokenBalanceUsd
+										)
+									}
+								}) {
+									Image(systemName: activityManager.isActivityActive ? "stop.circle.fill" : "play.circle.fill")
+										.foregroundStyle(.tubAccent)
+								}
 							}
 						}
 					}

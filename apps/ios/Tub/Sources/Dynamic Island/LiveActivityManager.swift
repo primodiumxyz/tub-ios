@@ -8,7 +8,7 @@
 import ActivityKit
 import SwiftUI
 
-@Observable class LiveActivityManager {
+@Observable class LiveActivityManager: ObservableObject {
     static let shared = LiveActivityManager()
     private var activity: Activity<TubActivityAttributes>?
     

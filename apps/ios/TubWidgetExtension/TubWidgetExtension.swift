@@ -11,21 +11,29 @@ import ActivityKit
 
 struct Provider: AppIntentTimelineProvider {
     func placeholder(in context: Context) -> SimpleEntry {
-        SimpleEntry(date: Date(), configuration: ConfigurationAppIntent())
+        SimpleEntry(date: Date(), configuration: ConfigurationAppIntent(), balance: 1234.56, priceChange: 2.34)
     }
 
     func snapshot(for configuration: ConfigurationAppIntent, in context: Context) async -> SimpleEntry {
-        SimpleEntry(date: Date(), configuration: configuration)
+        // Need to fetch actual data here!
+        SimpleEntry(date: Date(), configuration: configuration, balance: 1234.56, priceChange: 2.34)
     }
     
     func timeline(for configuration: ConfigurationAppIntent, in context: Context) async -> Timeline<SimpleEntry> {
         var entries: [SimpleEntry] = []
-
-        // Generate a timeline consisting of five entries an hour apart, starting from the current date.
         let currentDate = Date()
-        for hourOffset in 0 ..< 5 {
-            let entryDate = Calendar.current.date(byAdding: .hour, value: hourOffset, to: currentDate)!
-            let entry = SimpleEntry(date: entryDate, configuration: configuration)
+        
+        let balance = 1234.56  // Replace with real data!!
+        let priceChange = 2.34 // Replace with real data!!
+
+        for secondOffset in stride(from: 0, to: 300, by: 10) {
+            let entryDate = Calendar.current.date(byAdding: .second, value: secondOffset, to: currentDate)!
+            let entry = SimpleEntry(
+                date: entryDate,
+                configuration: configuration,
+                balance: balance,
+                priceChange: priceChange
+            )
             entries.append(entry)
         }
 
@@ -36,19 +44,39 @@ struct Provider: AppIntentTimelineProvider {
 struct SimpleEntry: TimelineEntry {
     let date: Date
     let configuration: ConfigurationAppIntent
+    let balance: Double
+    let priceChange: Double
 }
 
 struct TubWidgetExtensionEntryView : View {
     var entry: Provider.Entry
 
     var body: some View {
-        VStack {
-            Text("Time:")
-            Text(entry.date, style: .time)
-
-            Text("Favorite Emoji:")
-            Text(entry.configuration.favoriteEmoji)
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Balance")
+                .font(.caption2)
+                .foregroundStyle(.gray)
+            
+            Text("$\(entry.balance, specifier: "%.2f")")
+                .font(.system(.body, design: .rounded))
+                .bold()
+                .foregroundStyle(.white)
+                .minimumScaleFactor(0.8)
+            
+            Spacer(minLength: 2)
+            
+            HStack(spacing: 4) {
+                Image(systemName: entry.priceChange >= 0 ? "arrow.up.right" : "arrow.down.right")
+                    .font(.caption2)
+                    .foregroundStyle(entry.priceChange >= 0 ? .green : .red)
+                
+                Text("\(abs(entry.priceChange), specifier: "%.2f")%")
+                    .font(.caption2)
+                    .foregroundStyle(entry.priceChange >= 0 ? .green : .red)
+            }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .padding(12)
     }
 }
 
@@ -58,28 +86,15 @@ struct TubWidgetExtension: Widget {
     var body: some WidgetConfiguration {
         AppIntentConfiguration(kind: kind, intent: ConfigurationAppIntent.self, provider: Provider()) { entry in
             TubWidgetExtensionEntryView(entry: entry)
-                .containerBackground(.fill.tertiary, for: .widget)
+                .containerBackground(.black, for: .widget)
         }
-    }
-}
-
-extension ConfigurationAppIntent {
-    fileprivate static var smiley: ConfigurationAppIntent {
-        let intent = ConfigurationAppIntent()
-        intent.favoriteEmoji = "😀"
-        return intent
-    }
-    
-    fileprivate static var starEyes: ConfigurationAppIntent {
-        let intent = ConfigurationAppIntent()
-        intent.favoriteEmoji = "🤩"
-        return intent
+        .supportedFamilies([.systemSmall])
     }
 }
 
 #Preview(as: .systemSmall) {
     TubWidgetExtension()
 } timeline: {
-    SimpleEntry(date: .now, configuration: .smiley)
-    SimpleEntry(date: .now, configuration: .starEyes)
+    SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), balance: 1234.56, priceChange: 2.34)
+    SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), balance: 1234.56, priceChange: -1.23)
 }
