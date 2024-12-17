@@ -204,6 +204,7 @@ struct PillView: View {
 
         var purchaseData: PurchaseData {
             PurchaseData(
+                tokenId: "",
                 timestamp: spoofPrices[20].timestamp,
                 amountUsdc: 1000,
                 priceUsd: spoofPrices[20].priceUsd

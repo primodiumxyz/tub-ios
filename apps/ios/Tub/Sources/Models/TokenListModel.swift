@@ -49,10 +49,7 @@ final class TokenListModel: ObservableObject {
     }
     
     private func initCurrentTokenModel(with tokenId: String) {
-        // initialize current model
         self.currentTokenModel.initialize(with: tokenId)
-        UserModel.shared.initToken(tokenId: tokenId)
-        
     }
     
     private func getNextToken(excluding currentId: String? = nil) -> String? {

@@ -510,16 +510,6 @@ final class UserModel: ObservableObject {
         }
     }
     
-    @Published var tokenId: String? = nil
-    
-    @Published var purchaseData: PurchaseData? = nil
-    
-    func initToken(tokenId: String) {
-        self.tokenId = tokenId
-    }
-    
-
-
     /* -------------------------------------------------------------------------- */
     /*                             Transaction History                            */
     /* -------------------------------------------------------------------------- */

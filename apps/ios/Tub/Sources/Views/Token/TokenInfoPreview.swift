@@ -45,7 +45,7 @@ struct TokenInfoPreview: View {
 
         // Calculate profit
 
-        if let amountUsdc = userModel.purchaseData?.amountUsdc, amountUsdc > 0 {
+        if let amountUsdc = tokenModel.purchaseData?.amountUsdc, amountUsdc > 0 {
             let initialValueUsd = priceModel.usdcToUsd(usdc: amountUsdc)
             let gains = tokenBalanceUsd - initialValueUsd
             let percentageGain = gains / initialValueUsd * 100
@@ -222,11 +222,12 @@ private struct StatView: View {
                 Task{
                     if balanceToken > 0 {
                         await userModel.updateTokenData(mint: tokenModel.tokenId, balance: 0)
-                        userModel.purchaseData = nil
+                        tokenModel.purchaseData = nil
                     }
                     else {
                         await userModel.updateTokenData(mint: tokenModel.tokenId, balance: 100)
-                        userModel.purchaseData = PurchaseData(
+                        tokenModel.purchaseData = PurchaseData(
+                            tokenId: tokenModel.tokenId,
                             timestamp: Date().addingTimeInterval(-60 * 60),
                             amountUsdc: 1000,
                             priceUsd: 1

@@ -98,14 +98,15 @@ final class TxManager: ObservableObject {
             try? await UserModel.shared.refreshBulkTokenData(tokenMints: [USDC_MINT, tokenId], options: .init(withBalances: true, withLiveData: false))
             
             if buyTokenId == USDC_MINT {
-                UserModel.shared.purchaseData =  nil
+                tokenModel.purchaseData =  nil
             } else {
                 let date = response.timestamp != nil ? Date(timeIntervalSince1970: TimeInterval(response.timestamp! / 1000)) : Date.now
                 let priceData = tokenModel.getPrice(at: date)
                 await MainActor.run {
                     if let priceUsd = priceData?.priceUsd ?? UserModel.shared.tokenData[tokenId]?.liveData?.priceUsd {
                         
-                        UserModel.shared.purchaseData =  PurchaseData(
+                        tokenModel.purchaseData =  PurchaseData(
+                            tokenId: tokenModel.tokenId,
                             timestamp: priceData?.timestamp ?? Date.now,
                             amountUsdc: sellQuantity,
                             priceUsd: priceUsd
