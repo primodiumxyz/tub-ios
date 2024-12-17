@@ -162,20 +162,26 @@ private struct LoginButton: View {
 
 private struct ConnectButton: View {
     @EnvironmentObject private var notificationHandler: NotificationHandler
+    func handleConnect() {
+        Task {
+            do {
+                do {
+                    try await privy.embeddedWallet.connectWallet()
+                } catch {
+                    let _ = try await privy.embeddedWallet.createWallet(chainType: .solana)
+                }
+                notificationHandler.show("Connection successful", type: .success)
+            }
+            catch {
+                notificationHandler.show(error.localizedDescription, type: .error)
+            }
+        }
+    }
+
     var body: some View {
         PrimaryButton(
             text: "Connect to wallet",
-            action: {
-                Task {
-                    do {
-                        try await privy.embeddedWallet.connectWallet()
-                        notificationHandler.show("Connection successful", type: .success)
-                    }
-                    catch {
-                        notificationHandler.show(error.localizedDescription, type: .error)
-                    }
-                }
-            }
+            action: handleConnect
         )
 
     }
