@@ -3,11 +3,11 @@
 
 @_exported import ApolloAPI
 
-public class GetTokensMetadataQuery: GraphQLQuery {
-  public static let operationName: String = "GetTokensMetadata"
+public class GetBulkTokenMetadataQuery: GraphQLQuery {
+  public static let operationName: String = "GetBulkTokenMetadata"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetTokensMetadata($tokens: [String!]!) { token_metadata_formatted(where: { mint: { _in: $tokens } }) { __typename mint name symbol image_uri supply decimals description external_url is_pump_token } }"#
+      #"query GetBulkTokenMetadata($tokens: [String!]!) { token_metadata_formatted(where: { mint: { _in: $tokens } }) { __typename mint name symbol image_uri supply decimals description external_url is_pump_token } }"#
     ))
 
   public var tokens: [String]

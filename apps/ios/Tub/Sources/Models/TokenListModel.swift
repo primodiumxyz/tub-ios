@@ -32,7 +32,7 @@ final class TokenListModel: ObservableObject {
     private var currentTokenId: String? {
         return self.currentTokenModel.tokenId
     }
-    
+   
     private var nextTokenId: String? {
         return self.nextTokenModel?.tokenId
     }
@@ -200,9 +200,10 @@ final class TokenListModel: ObservableObject {
                             return []
                         }
                     }()
+                    try? await UserModel.shared.refreshBulkTokenData(tokenMints: hotTokens)
                     await MainActor.run {
                         if !self.initialFetchComplete { self.initialFetchComplete = true }
-                    
+
                         self.updatePendingTokens(hotTokens)
                         if self.tokenQueue.isEmpty {
                             self.initializeTokenQueue()

@@ -48,17 +48,13 @@ struct TokenView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Spacer().frame(height: 20)
                     tokenInfoView
-					// Help visually debug tokenModel.isReady state changes while scroll anim is still in flight.
-					//.border(tokenModel.isReady ? .green : .red)
 
                     chartView
                         .padding(.top, 5)
-					//.border(tokenModel.isReady ? .green : .red)
 
 					intervalButtons
                         .padding(.horizontal)
                         .padding(.vertical, 12)
-					//.border(tokenModel.isReady ? .green : .red)
                 }
 
                 VStack(spacing: 0) {
@@ -171,8 +167,10 @@ struct TokenView: View {
         Group {
             if !tokenModel.isReady {
                 LoadingBox(height: height)
-            }
-            else if tokenModel.selectedTimespan == .live {
+            } else if tokenModel.prices.isEmpty {
+                Text("No trades found").font(.sfRounded(size: .base, weight: .semibold)).frame(height: height)
+                
+            } else if tokenModel.selectedTimespan == .live {
                 ChartView(
                     rawPrices: tokenModel.prices,
                     purchaseData: userModel.purchaseData,

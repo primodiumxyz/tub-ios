@@ -12,25 +12,11 @@ struct AccountBalanceView: View {
     @ObservedObject var userModel: UserModel
     @ObservedObject var currentTokenModel: TokenModel
     
-    var balanceToken: Int {
-        userModel.tokenData[currentTokenModel.tokenId]?.balanceToken ?? 0
+    var deltaUsd : Double {
+        guard let initialBalance  = userModel.initialPortfolioBalance, let currentBalanceUsd = userModel.portfolioBalanceUsd else { return 0 }
+        return currentBalanceUsd - initialBalance
     }
     
-    var balances: (usdcBalanceUsd: Double?, tokenBalanceUsd: Double, deltaUsd: Double) {
-        let usdcBalanceUsd =
-            userModel.balanceUsdc == nil
-            ? nil : priceModel.usdcToUsd(usdc: userModel.balanceUsdc!)
-
-        let decimals = userModel.tokenData[currentTokenModel.tokenId]?.metadata.decimals ?? 9
-        let tokenBalanceUsd =
-        Double(balanceToken) * (currentTokenModel.prices.last?.priceUsd ?? 0) / pow(10.0 , Double(decimals))
-
-        let deltaUsd =
-            (tokenBalanceUsd) + priceModel.usdcToUsd(usdc: userModel.balanceChangeUsdc)
-
-        return (usdcBalanceUsd, tokenBalanceUsd, deltaUsd)
-    }
-
     var body: some View {
         VStack(spacing: 4) {
 			Group {
@@ -41,11 +27,11 @@ struct AccountBalanceView: View {
 						
 						Spacer()
 						HStack(alignment: .center, spacing: 10) {
-							if let usdcBalanceUsd = balances.usdcBalanceUsd {
+                            if let balanceUsd = userModel.portfolioBalanceUsd {
 								
-								if balances.deltaUsd != 0 {
+								if deltaUsd != 0 {
 									let formattedChange = priceModel.formatPrice(
-										usd: balances.deltaUsd,
+										usd: deltaUsd,
 										showSign: true,
 										maxDecimals: 2
 									)
@@ -53,7 +39,7 @@ struct AccountBalanceView: View {
 									Text(formattedChange)
 										.font(.sfRounded(size: .xs, weight: .light))
 										.fontWeight(.bold)
-										.foregroundStyle(balances.deltaUsd >= 0 ? .tubSuccess : .tubError)
+										.foregroundStyle(deltaUsd >= 0 ? .tubSuccess : .tubError)
 										.opacity(0.7)
 										.frame(height: 10)
 										.padding(0)
@@ -63,7 +49,7 @@ struct AccountBalanceView: View {
 								}
 								
 								let formattedBalance = priceModel.formatPrice(
-									usd: usdcBalanceUsd + balances.tokenBalanceUsd,
+									usd: balanceUsd,
 									maxDecimals: 2,
 									minDecimals: 2
 								)

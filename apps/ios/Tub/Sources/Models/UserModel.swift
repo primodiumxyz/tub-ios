@@ -13,21 +13,37 @@ import TubAPI
 final class UserModel: ObservableObject {
     static let shared = UserModel()
     
-    @Published var initializingUser: Bool = false
     @Published var userId: String?
     @Published var walletState: EmbeddedWalletState = .notCreated
     @Published var walletAddress: String?
     
-    @Published var balanceUsdc: Int? = nil
+    @Published var initializingUser: Bool = false
+    
+    @Published var usdcBalance: Int? = nil
     @Published var initialTime = Date()
     @Published var elapsedSeconds: TimeInterval = 0
-    @Published var initialBalanceUsdc: Int? = nil
-    @Published var balanceChangeUsdc: Int = 0
     
     @Published var tokenPortfolio: [String] = []
     @Published var tokenData: [String: TokenData] = [:]
     
     private var timer: Timer?
+
+    @Published var initialPortfolioBalance: Double? = nil
+    
+    var portfolioBalanceUsd : Double? {
+        guard let usdcBalance else { return nil }
+        let usdcBalanceUsd = SolPriceModel.shared.usdcToUsd(usdc: usdcBalance)
+        let tokenValue = self.tokenPortfolio.reduce(0.0) { total, key in
+              if let token = tokenData[key] {
+                let price = token.liveData?.priceUsd ?? 0
+                let balance = Double(token.balanceToken)
+                let decimals = Double(token.metadata.decimals)
+                return total + (price * balance / pow(10, decimals))
+              }
+              return total
+            }
+        return usdcBalanceUsd + tokenValue
+    }
     
     @Published var hasSeenOnboarding: Bool {
         didSet {
@@ -35,6 +51,10 @@ final class UserModel: ObservableObject {
         }
     }
     
+    /* -------------------------------------------------------------------------- */
+    /*                               Initialization                               */
+    /* -------------------------------------------------------------------------- */
+
     private init() {
         self.hasSeenOnboarding = UserDefaults.standard.bool(forKey: "hasSeenOnboarding")
         
@@ -110,17 +130,24 @@ final class UserModel: ObservableObject {
         }
         
         do {
-            try await fetchInitialUsdcBalance()
-            startPollingUsdcBalance()
+            async let usdcBalanceTask : () = fetchUsdcBalance()
+            async let portfolioTask : () = refreshPortfolio()
+            let _ = try await (usdcBalanceTask, portfolioTask)
             
-            try await refreshPortfolio()
+            await MainActor.run {
+                self.initialPortfolioBalance = self.portfolioBalanceUsd
+            }
+
+            startPollingUsdcBalance()
             startPollingTokenPortfolio()
+
         } catch {
             print("error initializing:", error.localizedDescription)
         }
         
         timeoutTask.cancel()  // Cancel timeout if successful
-        DispatchQueue.main.async {
+        
+        await MainActor.run {
             self.initialTime = Date()
             self.initializingUser = false
         }
@@ -145,33 +172,61 @@ final class UserModel: ObservableObject {
         }
     }
     
-    private func stopPollingTokenPortfolio() {
-        tokenPortfolioTimer?.invalidate()
-        tokenPortfolioTimer = nil
-    }
-    
+
+    /* -------------------------------------------------------------------------- */
+    /*                          Token Data and Portfolio                          */
+    /* -------------------------------------------------------------------------- */
+
     public func refreshPortfolio() async throws {
         let tokenBalances = try await Network.shared.getAllTokenBalances()
         
-        for (mint, balance) in tokenBalances {
+        let tokenMints = Array(tokenBalances.keys)
+        async let metadataFetch = fetchBulkTokenMetadata(tokenMints: tokenMints)
+        async let liveDataFetch = fetchBulkTokenLiveData(tokenMints: tokenMints)
+        let (tokenMetadata, tokenLiveData) = try await (metadataFetch, liveDataFetch)
+        
+        for mint in tokenMints {
             if mint == USDC_MINT {
                 continue
             }
-            
-            // bulk update token data
-            let tokenMetadata = try await fetchTokenMetadata(addresses: self.tokenPortfolio)
-            // update token data. since we already have fetched the metadata, this function will always have the metadata cached
-            await updateTokenData(mint: mint, balance: balance, metadata: tokenMetadata[mint])
+            await updateTokenData(mint: mint, balance: tokenBalances[mint], metadata: tokenMetadata[mint], liveData: tokenLiveData[mint])
+        }
+    }
+
+    public func refreshBulkTokenData(tokenMints: [String], withBalances: Bool = false) async throws {
+        let balances = withBalances ? try await Network.shared.getAllTokenBalances() : nil
+        let tokenMetadata = try await fetchBulkTokenMetadata(tokenMints: tokenMints)
+        let tokenLiveData = try await fetchBulkTokenLiveData(tokenMints: tokenMints)
+        
+        for mint in tokenMints {
+            if mint == USDC_MINT {
+                continue
+            }
+            await updateTokenData(mint: mint, balance: balances?[mint], metadata: tokenMetadata[mint], liveData: tokenLiveData[mint])
         }
     }
     
     public func refreshTokenData(tokenMint: String) async {
         do {
             let balanceData = try await Network.shared.getTokenBalance(tokenMint: tokenMint)
-            await updateTokenData(mint: tokenMint, balance: balanceData)
+
+            let tokenMetadata = try await fetchTokenMetadata(tokenMint: tokenMint)
+            let tokenLiveData = try await fetchTokenLiveData(tokenMint: tokenMint)
+
+            await updateTokenData(mint: tokenMint, balance: balanceData, metadata: tokenMetadata, liveData: tokenLiveData)
         } catch {
             return
         }
+    }
+    
+    @MainActor
+    public func updateTokenPrice(mint: String, priceUsd: Double) {
+        if mint == USDC_MINT { return }
+        guard var tokenData = self.tokenData[mint], var liveData = tokenData.liveData else { return }
+        
+        liveData.priceUsd = priceUsd
+        tokenData.liveData = liveData
+        self.tokenData[mint] = tokenData
     }
     
     public func updateTokenData(mint: String, balance: Int? = nil, metadata: TokenMetadata? = nil, liveData: TokenLiveData? = nil) async {
@@ -192,7 +247,7 @@ final class UserModel: ObservableObject {
         } else {
             var newMetadata : TokenMetadata?
             if let metadata {newMetadata = metadata }
-            else {  do {newMetadata = try await fetchTokenMetadata(addresses: [mint])[mint]} catch { return }}
+            else {  do {newMetadata = try await fetchTokenMetadata(tokenMint: mint)} catch { return }}
             
             guard let newMetadata  else { return }
             
@@ -206,32 +261,180 @@ final class UserModel: ObservableObject {
             }
         }
     }
-    
-    public func fetchUsdcBalance() async throws {
-        if self.initialBalanceUsdc == nil {
-            try await self.fetchInitialUsdcBalance()
-        } else {
-            let balanceUsdc = try await Network.shared.getUsdcBalance()
-            await MainActor.run {
-                self.balanceUsdc = balanceUsdc
-                if let initialBalanceUsdc = self.initialBalanceUsdc {
-                    self.balanceChangeUsdc = balanceUsdc - initialBalanceUsdc
+
+    func fetchTokenMetadata(tokenMint: String) async throws -> TokenMetadata {
+        if let data = tokenData[tokenMint] {
+            return data.metadata
+        }
+        let query = GetTokenMetadataQuery(token: tokenMint)
+        
+        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<TokenMetadata, Error>) in
+            Network.shared.apollo.fetch(query: query) {
+                result in switch result {
+                    case .success(let response):
+                    
+                    if response.errors != nil {
+                        continuation.resume(throwing: TubError.unknown)
+                        return
+                    }
+                    
+                    if let token = response.data?.token_metadata_formatted.first(where: { $0.mint == tokenMint }) {
+                        let metadata = TokenMetadata(
+                            name: token.name,
+                            symbol: token.symbol,
+                            description: token.description,
+                            imageUri: token.image_uri,
+                            externalUrl: token.external_url,
+                            decimals: Int(token.decimals ?? 6)
+                        )
+                        continuation.resume(returning: metadata)
+                    }
+                    continuation.resume(throwing: TubError.somethingWentWrong(reason: "Metadata not found"))
+                case .failure(let error):
+                    continuation.resume(throwing: error)
                 }
             }
         }
     }
     
-    private func fetchInitialUsdcBalance() async throws {
-        do {
-            let balanceUsdc = try await Network.shared.getUsdcBalance()
-            await MainActor.run {
-                self.initialBalanceUsdc = balanceUsdc
-                self.balanceUsdc = balanceUsdc
+    func fetchBulkTokenMetadata(tokenMints: [String]) async throws -> [String : TokenMetadata] {
+        let uncachedTokens = tokenMints.filter { !tokenData.keys.contains($0) }
+        let cachedTokens = tokenMints.filter { tokenData.keys.contains($0) }
+        
+        // Only fetch metadata for uncached tokens
+        var ret = [String : TokenMetadata]()
+        
+        cachedTokens.forEach { ret[$0] = tokenData[$0]!.metadata }
+        if uncachedTokens.count > 0 {
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                Network.shared.apollo.fetch(
+                    query: GetBulkTokenMetadataQuery(tokens: uncachedTokens)
+                ) { result in
+                    switch result {
+                    case .success(let graphQLResult):
+                        if graphQLResult.errors != nil {
+                            continuation.resume(throwing: TubError.unknown)
+                            return
+                        }
+                        
+                        if let tokens = graphQLResult.data?.token_metadata_formatted {
+                            for metadata in tokens {
+                                ret[metadata.mint] = TokenMetadata(
+                                    name: metadata.name,
+                                    symbol: metadata.symbol,
+                                    description: metadata.symbol,
+                                    imageUri: metadata.image_uri,
+                                    externalUrl: metadata.external_url,
+                                    decimals: Int(metadata.decimals ?? 6)
+                                )
+                            }
+                            continuation.resume()  // Resume without returning a value
+                        } else {
+                            continuation.resume(throwing: TubError.networkFailure)
+                        }
+                    case .failure(let error):
+                        continuation.resume(throwing: error)
+                    }
+                }
             }
-        } catch {
-            print("Error fetching initial balance: \(error)")
+        }
+        
+        return ret
+    }
+
+    func fetchTokenLiveData(tokenMint: String) async throws -> TokenLiveData {
+        let query = GetTokenLiveDataQuery(token: tokenMint)
+        
+        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<TokenLiveData, Error>) in
+            Network.shared.apollo.fetch(query: query) { result in
+                switch result {
+                case .success(let response):
+                    if response.errors != nil {
+                        continuation.resume(throwing: TubError.unknown)
+                        return
+                    }
+                    
+                    if let token = response.data?.token_stats_interval_comp.first {
+                        let liveData = TokenLiveData(
+                            supply: Int(token.token_metadata_supply ?? 0),
+                            priceUsd: token.latest_price_usd,
+                            stats: IntervalStats(
+                                volumeUsd: token.total_volume_usd,
+                                trades: Int(token.total_trades),
+                                priceChangePct: token.price_change_pct
+                            ),
+                            recentStats: IntervalStats(
+                                volumeUsd: token.recent_volume_usd,
+                                trades: Int(token.recent_trades),
+                                priceChangePct: token.recent_price_change_pct
+                            )
+                        )
+                        continuation.resume(returning: liveData)
+                    } else {
+                        continuation.resume(throwing: TubError.somethingWentWrong(reason: "Live data not found"))
+                    }
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            }
         }
     }
+
+    func fetchBulkTokenLiveData(tokenMints: [String]) async throws -> [String : TokenLiveData] {
+        // note: no caching here because we want to fetch the latest data every time
+
+        var ret = [String : TokenLiveData]()
+        
+        for mint in tokenMints {
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                Network.shared.apollo.fetch(
+                    query: GetBulkTokenLiveDataQuery(tokens: [mint])
+                ) { result in
+                    switch result {
+                    case .success(let graphQLResult):
+                        if graphQLResult.errors != nil {
+                            continuation.resume(throwing: TubError.unknown)
+                            return
+                        }
+                        
+                        if let tokens = graphQLResult.data?.token_stats_interval_comp {
+                            for token in tokens {
+                                ret[token.token_mint] = TokenLiveData(
+                                    supply: Int(token.token_metadata_supply ?? 0),
+                                    priceUsd: token.latest_price_usd,
+                                    stats: IntervalStats(volumeUsd: token.total_volume_usd, trades: Int(token.total_trades), priceChangePct: token.price_change_pct),
+                                    recentStats: IntervalStats(volumeUsd: token.recent_volume_usd, trades: Int(token.recent_trades), priceChangePct: token.recent_price_change_pct)
+                                    )
+                                }
+                            continuation.resume()
+                        } else {
+                            continuation.resume(throwing: TubError.networkFailure)
+                        }
+                    case .failure(let error):
+                        continuation.resume(throwing: error)
+                    }
+                }
+            }
+        }
+        return ret
+    }
+    
+    
+    private func stopPollingTokenPortfolio() {
+        tokenPortfolioTimer?.invalidate()
+        tokenPortfolioTimer = nil
+    }
+    
+    /* -------------------------------------------------------------------------- */
+    /*                                   Balance                                  */
+    /* -------------------------------------------------------------------------- */
+    public func fetchUsdcBalance() async throws {
+        let balanceUsdc = try await Network.shared.getUsdcBalance()
+        await MainActor.run {
+            self.usdcBalance = balanceUsdc
+        }
+    }
+    
     
     private var usdcBalanceTimer: Timer?
     private let POLL_INTERVAL: TimeInterval = 10.0  // Set your desired interval here
@@ -312,9 +515,8 @@ final class UserModel: ObservableObject {
             guard let self = self, self.userId != nil else { return }
             self.walletState = .notCreated
             self.walletAddress = nil
-            self.balanceUsdc = 0
-            self.initialBalanceUsdc = nil
-            self.balanceChangeUsdc = 0
+            self.usdcBalance = 0
+            self.initialPortfolioBalance = nil
             self.elapsedSeconds = 0
             self.tokenPortfolio = []
             
@@ -328,8 +530,6 @@ final class UserModel: ObservableObject {
         }
     }
     
-    /* ------------------------------- USER TOKEN ------------------------------- */
-    
     @Published var tokenId: String? = nil
     
     @Published var purchaseData: PurchaseData? = nil
@@ -339,22 +539,11 @@ final class UserModel: ObservableObject {
     }
     
 
-    private func startTimer() {
-        stopTimer()  // Ensure any existing timer is invalidated
-        self.initialTime = Date()
-        self.elapsedSeconds = 0
-        
-        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            guard let self = self else { return }
-            self.elapsedSeconds = Date().timeIntervalSince(self.initialTime)
-        }
-    }
-    
-    private func stopTimer() {
-        timer?.invalidate()
-        timer = nil
-    }
-    
+
+    /* -------------------------------------------------------------------------- */
+    /*                             Transaction History                            */
+    /* -------------------------------------------------------------------------- */
+
     public func fetchTxs() async throws -> [TransactionData] {
         guard let walletAddress else { return [] }
         let query = GetWalletTransactionsQuery(wallet: walletAddress)
@@ -388,7 +577,7 @@ final class UserModel: ObservableObject {
         let uniqueTokens = Set(tokenTransactions.map { $0.token_mint })
         
         // Fetch all metadata in one call
-        let tokens = try await self.fetchTokenMetadata(addresses: Array(uniqueTokens))
+        let tokens = try await self.fetchBulkTokenMetadata(tokenMints: Array(uniqueTokens))
         
         
         for transaction in tokenTransactions {
@@ -424,48 +613,25 @@ final class UserModel: ObservableObject {
         return processedTxs
     }
     
-    func fetchTokenMetadata(addresses: [String]) async throws -> [String : TokenMetadata] {
-        let uncachedTokens = addresses.filter { !tokenData.keys.contains($0) }
-        let cachedTokens = addresses.filter { tokenData.keys.contains($0) }
+
+    /* -------------------------------------------------------------------------- */
+    /*                           Session Duration Timer                           */
+    /* -------------------------------------------------------------------------- */
+    private func startTimer() {
+        stopTimer()  // Ensure any existing timer is invalidated
+        self.initialTime = Date()
+        self.elapsedSeconds = 0
         
-        // Only fetch metadata for uncached tokens
-        var ret = [String : TokenMetadata]()
-        
-        cachedTokens.forEach { ret[$0] = tokenData[$0]!.metadata }
-        if uncachedTokens.count > 0 {
-            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-                Network.shared.apollo.fetch(
-                    query: GetTokensMetadataQuery(tokens: uncachedTokens)
-                ) { result in
-                    switch result {
-                    case .success(let graphQLResult):
-                        if graphQLResult.errors != nil {
-                            continuation.resume(throwing: TubError.unknown)
-                            return
-                        }
-                        
-                        if let tokens = graphQLResult.data?.token_metadata_formatted {
-                            for metadata in tokens {
-                                ret[metadata.mint] = TokenMetadata(
-                                    name: metadata.name,
-                                    symbol: metadata.symbol,
-                                    description: metadata.symbol,
-                                    imageUri: metadata.image_uri,
-                                    externalUrl: metadata.external_url,
-                                    decimals: Int(metadata.decimals ?? 6)
-                                )
-                            }
-                            continuation.resume()  // Resume without returning a value
-                        } else {
-                            continuation.resume(throwing: TubError.networkFailure)
-                        }
-                    case .failure(let error):
-                        continuation.resume(throwing: error)
-                    }
-                }
-            }
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            self.elapsedSeconds = Date().timeIntervalSince(self.initialTime)
         }
-        
-        return ret
     }
+    
+    private func stopTimer() {
+        timer?.invalidate()
+        timer = nil
+    }
+    
+
 }

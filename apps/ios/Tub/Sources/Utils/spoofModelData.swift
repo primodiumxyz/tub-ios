@@ -28,7 +28,7 @@ func spoofTokenModelData(userModel: UserModel, tokenModel: TokenModel) {
             ),
             liveData: TokenLiveData(
                 supply: 1_000_000_000,
-                latestPriceUsd: 0.0075,
+                priceUsd: 0.0075,
                 stats: IntervalStats(volumeUsd: 750_000, trades: 370, priceChangePct: 17.3),
                 recentStats: IntervalStats(volumeUsd: 8_000, trades: 27, priceChangePct: 3.46)
             )

@@ -64,7 +64,7 @@ final class SolPriceModel: ObservableObject {
         showSign: Bool = false,
         showUnit: Bool = true,
         maxDecimals: Int = 9,
-        minDecimals: Int = 0,
+        minDecimals: Int = 2,
         formatLarge: Bool = true
     ) -> String {
         if usd.isNaN || usd.isInfinite || usd == 0 {
@@ -105,7 +105,7 @@ final class SolPriceModel: ObservableObject {
         showSign: Bool = false,
         showUnit: Bool = true,
         maxDecimals: Int = 9,
-        minDecimals: Int = 0,
+        minDecimals: Int = 2,
         formatLarge: Bool = true
     ) -> String {
         return formatPrice(
@@ -123,7 +123,7 @@ final class SolPriceModel: ObservableObject {
         showSign: Bool = false,
         showUnit: Bool = true,
         maxDecimals: Int = 2,
-        minDecimals: Int = 0,
+        minDecimals: Int = 2,
         formatLarge: Bool = true
     ) -> String {
         if let price = self.price, price > 0 {
@@ -146,7 +146,7 @@ final class SolPriceModel: ObservableObject {
         showSign: Bool = false,
         showUnit: Bool = true,
         maxDecimals: Int = 2,
-        minDecimals: Int = 0,
+        minDecimals: Int = 2,
         formatLarge: Bool = true
     ) -> String {
         if let price = self.price, price > 0 {

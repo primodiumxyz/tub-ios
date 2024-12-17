@@ -79,6 +79,9 @@
     "B" : {
 
     },
+    "Balance: %@" : {
+
+    },
     "Buy" : {
 
     },
@@ -136,6 +139,9 @@
     "No tokens" : {
 
     },
+    "No trades found" : {
+
+    },
     "No transactions found" : {
 
     },
@@ -155,6 +161,9 @@
 
     },
     "Price" : {
+
+    },
+    "Price: %lf" : {
 
     },
     "Purchase Price" : {
@@ -224,6 +233,12 @@
 
     },
     "Unfilled" : {
+
+    },
+    "USDC" : {
+
+    },
+    "Value: %@" : {
 
     },
     "Welcome to tub" : {

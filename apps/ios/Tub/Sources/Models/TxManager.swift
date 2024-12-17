@@ -14,7 +14,7 @@ final class TxManager: ObservableObject {
     @Published var submittingTx: Bool = false
     
     func buyToken(tokenId: String, buyAmountUsdc: Int, tokenPriceUsdc: Int? = nil) async throws {
-        guard let balanceUsdc = UserModel.shared.balanceUsdc, buyAmountUsdc <= balanceUsdc else {
+        guard let usdcBalance = UserModel.shared.usdcBalance, buyAmountUsdc <= usdcBalance else {
             throw TubError.insufficientBalance
         }
         var err: (any Error)? = nil
@@ -81,11 +81,11 @@ final class TxManager: ObservableObject {
          }
             
         // Update tx data if its stale
-        let txData = try await Network.shared.getTxData(buyTokenId: buyTokenId, sellTokenId: sellTokenId, sellQuantity: sellQuantity, slippageBps: 2000)
         
         // Sign and send the tx
         var txError : Error? = nil
         do {
+            let txData = try await Network.shared.getTxData(buyTokenId: buyTokenId, sellTokenId: sellTokenId, sellQuantity: sellQuantity, slippageBps: 2000)
             let provider = try privy.embeddedWallet.getSolanaProvider(for: walletAddress)
             let signature = try await provider.signMessage(message: txData.transactionMessageBase64)
             let _ = try await Network.shared.submitSignedTx(

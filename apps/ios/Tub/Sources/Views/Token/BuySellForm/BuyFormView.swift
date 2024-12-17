@@ -139,7 +139,7 @@ struct BuyFormView: View {
             loading: buttonLoading,
             action: { handleBuy(amountUsdc: priceModel.usdToUsdc(usd:buyQuantityUsd)) }
         )
-        .disabled((userModel.balanceUsdc ?? 0) < priceModel.usdToUsdc(usd: buyQuantityUsd))
+        .disabled((userModel.usdcBalance ?? 0) < priceModel.usdToUsdc(usd: buyQuantityUsd))
     }
 
     private var numberInput: some View {
@@ -186,7 +186,7 @@ struct BuyFormView: View {
                         
                         // Check if amount exceeds balance
                         let buyQuantityUsdc = priceModel.usdToUsdc(usd: amount)
-                        isValidInput = (userModel.balanceUsdc ?? 0) >= buyQuantityUsdc
+                        isValidInput = (userModel.usdcBalance ?? 0) >= buyQuantityUsdc
                     } else {
                         isValidInput = false
                     }
@@ -224,7 +224,7 @@ struct BuyFormView: View {
     private var amountButtons: some View {
         HStack(spacing: 10) {
             ForEach(amounts, id: \.self) { amount in
-                let balance = userModel.balanceUsdc ?? 0
+                let balance = userModel.usdcBalance ?? 0
                 let selectedAmountUsd = priceModel.usdcToUsd(usdc: balance * Int(amount) / 100)
                 let selected = balance > 0 && selectedAmountUsd == buyQuantityUsd
                 CapsuleButton(
@@ -232,7 +232,7 @@ struct BuyFormView: View {
                     textColor: .white,
                     backgroundColor: selected ? .tubAltPrimary : .tubAltSecondary,
                     action: {
-                        guard let balance = userModel.balanceUsdc else { return }
+                        guard let balance = userModel.usdcBalance else { return }
                         updateBuyAmount(balance * amount / 100)
                     }
                 )

@@ -312,7 +312,9 @@ export class TubService {
     return { balance };
   }
 
-  async getAllTokenBalances(jwtToken: string): Promise<Array<{ mint: string; balanceToken: number }>> {
+  async getAllTokenBalances(
+    jwtToken: string,
+  ): Promise<{ tokenBalances: Array<{ mint: string; balanceToken: number }> }> {
     const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
 
     const tokenAccounts = await this.connection.getParsedTokenAccountsByOwner(
@@ -321,10 +323,11 @@ export class TubService {
       "processed",
     );
 
-    return tokenAccounts.value.map((account) => ({
+    const tokenBalances = tokenAccounts.value.map((account) => ({
       mint: account.account.data.parsed.info.mint,
-      balanceToken: Number(account.account.data.parsed.info.tokenAmount.amount),
+      balanceToken: Math.round(Number(account.account.data.parsed.info.tokenAmount.amount)),
     }));
+    return { tokenBalances };
   }
 
   async getTokenBalance(jwtToken: string, tokenMint: string): Promise<{ balance: number }> {
