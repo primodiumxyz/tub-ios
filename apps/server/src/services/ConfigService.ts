@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { RedisService } from "./RedisService";
-import defaultConfig from "../../test/default-redis-config.json";
+import defaultConfig from "../../default-redis-config.json";
 
 export const configSchema = z
   .object({
