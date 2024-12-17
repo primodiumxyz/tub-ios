@@ -87,25 +87,42 @@ final class TxManager: ObservableObject {
             let txData = try await Network.shared.getTxData(buyTokenId: buyTokenId, sellTokenId: sellTokenId, sellQuantity: sellQuantity, slippageBps: 2000)
             let provider = try privy.embeddedWallet.getSolanaProvider(for: walletAddress)
             let signature = try await provider.signMessage(message: txData.transactionMessageBase64)
-            let _ = try await Network.shared.submitSignedTx(
+            let response = try await Network.shared.submitSignedTx(
                 txBase64: txData.transactionMessageBase64,
                 signature: signature
             )
+            let tokenModel = TokenListModel.shared.currentTokenModel
             
+            let tokenId = buyTokenId == USDC_MINT ? sellTokenId : buyTokenId
+            
+            try? await UserModel.shared.refreshBulkTokenData(tokenMints: [USDC_MINT, tokenId], options: .init(withBalances: true, withLiveData: false))
+            
+            if buyTokenId == USDC_MINT {
+                UserModel.shared.purchaseData =  nil
+            } else {
+                let date = response.timestamp != nil ? Date(timeIntervalSince1970: TimeInterval(response.timestamp! / 1000)) : Date.now
+                let priceData = tokenModel.getPrice(at: date)
+                await MainActor.run {
+                    if let priceUsd = priceData?.priceUsd ?? UserModel.shared.tokenData[tokenId]?.liveData?.priceUsd {
+                        
+                        UserModel.shared.purchaseData =  PurchaseData(
+                            timestamp: priceData?.timestamp ?? Date.now,
+                            amountUsdc: sellQuantity,
+                            priceUsd: priceUsd
+                        )
+                    }
+                }
+            }
+            
+            await MainActor.run { self.submittingTx = false }
+
         } catch {
             await MainActor.run { self.submittingTx = false }
             throw error
         }
-        let tokenId = buyTokenId == USDC_MINT ? sellTokenId : buyTokenId
-        try? await UserModel.shared.refreshBulkTokenData(tokenMints: [USDC_MINT, tokenId], options: .init(withBalances: true, withLiveData: false))
         
         // todo: update swap history in the indexer and fetch the latest sale from a gql query
-        if sellTokenId == USDC_MINT, let priceUsd = UserModel.shared.tokenData[tokenId]?.liveData?.priceUsd {
-            UserModel.shared.purchaseData =  PurchaseData(timestamp:Date.now, amountUsdc: sellQuantity, priceUsd: priceUsd)
-        } else {
-            UserModel.shared.purchaseData =  nil
-        }
-        await MainActor.run { self.submittingTx = false }
+        
             
 
     }

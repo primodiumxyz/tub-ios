@@ -117,7 +117,7 @@ export class TransactionService {
     userPublicKey: PublicKey,
     userSignature: string,
     base64Message: string,
-  ): Promise<{ signature: string }> {
+  ): Promise<{ signature: string; timestamp: number | null }> {
     const entry = this.messageRegistry.get(base64Message);
     if (!entry) {
       throw new Error("Transaction not found in registry");
@@ -227,7 +227,15 @@ export class TransactionService {
     }
 
     this.messageRegistry.delete(base64Message);
-    return { signature: txid };
+    let timestamp: number | null = null;
+    if (confirmation.value?.slot) {
+      try {
+        timestamp = await this.connection.getBlockTime(confirmation.value.slot);
+      } catch (error) {
+        console.error("[signAndSendTransaction] Error getting block time:", error);
+      }
+    }
+    return { signature: txid, timestamp };
   }
 
   /**

@@ -165,7 +165,7 @@ private struct StatView: View {
         VStack(spacing: 4) {
             HStack(spacing: 3) {
                 Text(stat.title)
-                    .font(.sfRounded(size: .xs, weight: .regular))
+                    .font(.sfRounded(size: .sm, weight: .regular))
                     .foregroundStyle(.tubText)
                     .fixedSize(horizontal: true, vertical: false)
                 
@@ -176,7 +176,7 @@ private struct StatView: View {
                 }
 
                 Text(stat.value)
-                    .font(.sfRounded(size: .sm, weight: .semibold))
+                    .font(.sfRounded(size: .base, weight: .semibold))
                     .foregroundStyle(stat.color ?? .primary)
                     .frame(maxWidth: .infinity, alignment: .topTrailing)
             }

@@ -31,8 +31,8 @@ class TokenModel: ObservableObject {
         UserModel.shared.updateTokenPrice(mint: tokenId, priceUsd: priceUsd)
     }
 
-    func getPrice(at timestamp: Date) -> Double? {
-        return prices.first(where: { $0.timestamp <= timestamp })?.priceUsd
+    func getPrice(at timestamp: Date) -> Price? {
+        return prices.first(where: { $0.timestamp <= timestamp }) ?? prices.last
     }
 
     func preload(with tokenId: String, timeframeSecs: Double = CHART_INTERVAL) {

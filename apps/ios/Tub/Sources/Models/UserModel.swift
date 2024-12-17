@@ -107,7 +107,6 @@ final class UserModel: ObservableObject {
                         self.walletState = state
                     }
                 default:
-                    
                     self.logout(skipPrivy: true)
                 }
                 
@@ -503,6 +502,7 @@ final class UserModel: ObservableObject {
             
             self.stopTimer()
             self.stopPollingTokenPortfolio()
+            TokenListModel.shared.clearQueue()
         }
         if !skipPrivy {
             privy.logout()

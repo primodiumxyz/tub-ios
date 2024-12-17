@@ -6,4 +6,4 @@ export const MAX_ACCOUNTS = 50;
 export const AUTO_SLIPPAGE_COLLISION_USD_VALUE = 1000; // 1000 USD
 export const MIN_SLIPPAGE_BPS = 50;
 
-export const AUTO_PRIORITY_FEE_MULTIPLIER = 3;
+export const AUTO_PRIORITY_FEE_MULTIPLIER = 10;

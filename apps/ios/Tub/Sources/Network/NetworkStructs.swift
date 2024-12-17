@@ -85,6 +85,7 @@ struct signedTxInput: Codable {
 
 struct TxIdResponse: Codable {
     let signature: String
+    let timestamp: Int?
 }
 
 struct ErrorResponse: Codable {
