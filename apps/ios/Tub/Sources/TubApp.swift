@@ -14,6 +14,14 @@ struct TubApp: App {
     private let dwellTimeTracker = AppDwellTimeTracker.shared
     @StateObject private var userModel = UserModel.shared
 
+    init() {
+        let appearance = UITabBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = UIColor.systemBackground
+        UITabBar.appearance().standardAppearance = appearance
+        UITabBar.appearance().scrollEdgeAppearance = appearance
+    }
+
     var body: some Scene {
         WindowGroup {
             AppContent()
@@ -41,7 +49,7 @@ struct AppContent: View {
     var body: some View {
         Group {
             if let _ = priceModel.error {
-                LoginErrorView(
+                ErrorView(
                     errorMessage: "Failed to get price data",
                     retryAction: {
                         Task {
@@ -57,6 +65,7 @@ struct AppContent: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Color(UIColor.systemBackground))
                     .withNotificationBanner()
+                    .bubbleEffect()
                     .environmentObject(notificationHandler)
                     .environmentObject(userModel)
                     .environmentObject(tokenListModel)
@@ -71,8 +80,6 @@ struct AppContent: View {
                             .interactiveDismissDisabled()
                     }
             }
-        }.onAppear {
-            tokenListModel.configure(with: userModel)
         }.onChange(of: userModel.walletState) { _, newState in
             if newState == .connecting { return }
             if newState == .error {
@@ -80,11 +87,9 @@ struct AppContent: View {
                 return
             }
             // we wait to begin the token subscription until the user is ready (either logged in or not) 
-            Task(priority: .high) {
-                // we clear the queue when the user logs in/out to force showing owned tokens first
-                tokenListModel.clearQueue()
-                await tokenListModel.startTokenSubscription()
-            }
+            // we clear the queue when the user logs in/out to force showing owned tokens first
+            tokenListModel.clearQueue()
+            tokenListModel.startTokenSubscription()
         }
     }
 }

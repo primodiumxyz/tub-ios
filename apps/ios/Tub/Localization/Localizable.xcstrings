@@ -55,7 +55,7 @@
     "10.00" : {
       "comment" : "placeholder"
     },
-    "100" : {
+    "100.00" : {
 
     },
     "About" : {
@@ -79,6 +79,9 @@
     "B" : {
 
     },
+    "Balance: %@" : {
+
+    },
     "Buy" : {
 
     },
@@ -100,6 +103,9 @@
     "Date" : {
 
     },
+    "Deposit" : {
+
+    },
     "Deposit with" : {
 
     },
@@ -118,9 +124,6 @@
     "Enter your Phone Number" : {
 
     },
-    "Failed to load tokens." : {
-
-    },
     "Filled" : {
 
     },
@@ -133,16 +136,13 @@
     "Low" : {
 
     },
-    "no data" : {
-
-    },
     "No tokens" : {
 
     },
-    "No transactions found" : {
+    "No trades found" : {
 
     },
-    "Oops! Something went wrong" : {
+    "No transactions found" : {
 
     },
     "Open" : {
@@ -163,13 +163,13 @@
     "Price" : {
 
     },
+    "Price: %lf" : {
+
+    },
     "Purchase Price" : {
 
     },
     "Quantity" : {
-
-    },
-    "Retry" : {
 
     },
     "Save" : {
@@ -232,10 +232,13 @@
     "Transfer" : {
 
     },
-    "Try Again" : {
+    "Unfilled" : {
 
     },
-    "Unfilled" : {
+    "USDC" : {
+
+    },
+    "Value: %@" : {
 
     },
     "Welcome to tub" : {

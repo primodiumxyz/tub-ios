@@ -8,20 +8,7 @@ query GetWalletTransactions($wallet: String!) {
     token_mint
     token_amount
     token_price_usd
-  }
-}
-
-query GetTokensMetadata($tokens: [String!]!) {
-  token_metadata_formatted(where: { mint: { _in: $tokens } }) {
-    mint
-    name
-    symbol
-    image_uri
-    supply
-    decimals
-    description
-    external_url
-    is_pump_token
+    token_value_usd
   }
 }
 
@@ -50,5 +37,88 @@ query GetTokenCandles(
     high_price_usd
     low_price_usd
     volume_usd
+  }
+}
+
+query GetBulkTokenMetadata($tokens: [String!]!) {
+  token_metadata_formatted(where: { mint: { _in: $tokens } }) {
+    mint
+    name
+    symbol
+    image_uri
+    supply
+    decimals
+    description
+    external_url
+    is_pump_token
+  }
+}
+
+query GetTokenMetadata($token: String!) {
+  token_metadata_formatted(where: { mint: { _eq: $token } }) {
+    mint
+    name
+    symbol
+    image_uri
+    supply
+    decimals
+    description
+    external_url
+    is_pump_token
+  }
+}
+
+query GetBulkTokenLiveData($tokens: [String!]!) {
+  token_stats_interval_comp(
+    where: { token_mint: { _in: $tokens } }
+    args: { interval: "30m", recent_interval: "2m" }
+  ) {
+    token_mint
+    latest_price_usd
+    total_volume_usd
+    total_trades
+    price_change_pct
+    recent_volume_usd
+    recent_trades
+    recent_price_change_pct
+    token_metadata_supply
+  }
+}
+
+query GetTokenLiveData($token: String!) {
+  token_stats_interval_comp(
+    where: { token_mint: { _eq: $token } }
+    args: { interval: "30m", recent_interval: "2m" }
+  ) {
+    token_mint
+    latest_price_usd
+    total_volume_usd
+    total_trades
+    price_change_pct
+    recent_volume_usd
+    recent_trades
+    recent_price_change_pct
+    token_metadata_supply
+  }
+}
+
+
+query GetLatestTokenPurchase($wallet: String!, $mint: String!) {
+  transactions(
+    where: {
+      user_wallet: { _eq: $wallet }
+      token_mint: { _eq: $mint }
+      success: { _eq: true }
+      token_amount: { _gt: 0 }
+    }
+    order_by: { created_at: desc }
+    limit: 1
+  ) {
+    id
+    created_at
+    token_mint
+    token_amount
+    token_price_usd
+    token_value_usd
   }
 }

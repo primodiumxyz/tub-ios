@@ -65,13 +65,10 @@ private struct AccountHeaderView: View {
 private struct BalanceSection: View {
     @EnvironmentObject private var userModel: UserModel
     @EnvironmentObject private var priceModel: SolPriceModel
-
-    var accountBalance: (balance: Int?, change: Int) {
-        let balance = userModel.balanceUsdc
-
-        let adjustedChange = userModel.balanceChangeUsdc
-
-        return (balance, adjustedChange)
+    
+    var deltaUsd : Double {
+        guard let initialBalance  = userModel.initialPortfolioBalance, let currentBalanceUsd = userModel.portfolioBalanceUsd else { return 0 }
+        return currentBalanceUsd - initialBalance
     }
 
     var body: some View {
@@ -80,8 +77,8 @@ private struct BalanceSection: View {
                 .font(.sfRounded(size: .lg, weight: .regular))
                 .foregroundStyle(.secondary)
 
-            if let balance = accountBalance.balance {
-                let formattedBalance = priceModel.formatPrice(usdc: balance, maxDecimals: 2, minDecimals: 2)
+            if let balance = userModel.portfolioBalanceUsd {
+                let formattedBalance = priceModel.formatPrice(usd: balance, maxDecimals: 2, minDecimals: 2)
 
                 Text(formattedBalance)
                     .font(.sfRounded(size: .xl5, weight: .bold))
@@ -91,8 +88,8 @@ private struct BalanceSection: View {
                 ProgressView()
             }
 
-            if accountBalance.change > 0 {
-                Text("\(priceModel.formatPrice(usdc: accountBalance.change, showSign: true, maxDecimals: 2))")
+            if deltaUsd > 0 {
+                Text("\(priceModel.formatPrice(usd: deltaUsd, showSign: true, maxDecimals: 2))")
 
                 // Format time elapsed
                 Text("\(formatDuration(userModel.elapsedSeconds))")

@@ -16,16 +16,20 @@ class TokenModel: ObservableObject {
     @Published var selectedTimespan: Timespan = .live
 
     @Published var loadFailed = false
-    private var lastPriceTimestamp: Date?
 
     private var priceSubscription: Apollo.Cancellable?
     private var candleSubscription: Apollo.Cancellable?
     private var singleTokenDataSubscription: Apollo.Cancellable?
 
-    private var latestPrice: Double?
-    private var priceUpdateTimer: Timer?
     private var preloaded = false
     private var initialized = false
+    
+    @MainActor
+    func updatePrice(timestamp: Date, priceUsd: Double?) {
+        guard let priceUsd, priceUsd != self.prices.last?.priceUsd else { return }
+        self.prices.append(Price(timestamp: timestamp, priceUsd: priceUsd))
+        UserModel.shared.updateTokenPrice(mint: tokenId, priceUsd: priceUsd)
+    }
 
     func preload(with tokenId: String, timeframeSecs: Double = CHART_INTERVAL) {
         cleanup()
@@ -35,19 +39,16 @@ class TokenModel: ObservableObject {
         func fetchPrices() async throws {
             // Fetch both types of data
             let prices = try await fetchInitialPrices(tokenId)
-            if prices.isEmpty {
-                throw TubError.emptyTokenList
-            }
-            await subscribeToTokenPrices(tokenId)
             // Move final status update to main thread
             await MainActor.run {
                 self.prices = prices
                 self.isReady = true
-                self.lastPriceTimestamp = self.prices.last?.timestamp
-                self.latestPrice = self.prices.last?.priceUsd
+                if let timestamp = prices.last?.timestamp {
+                    self.updatePrice(timestamp: timestamp, priceUsd: prices.last?.priceUsd)
+                }
                 self.calculatePriceChange()
             }
-
+            subscribeToTokenPrices(tokenId)
         }
 
         Task(priority: .userInitiated) {
@@ -78,6 +79,7 @@ class TokenModel: ObservableObject {
 
         Task {
             do {
+                startPollingTokenBalance()
                 try await retry(fetchCandles)
                 await subscribeToSingleTokenData(tokenId)
             }
@@ -117,62 +119,36 @@ class TokenModel: ObservableObject {
         }
     }
 
-    private func subscribeToTokenPrices(_ tokenId: String) async {
+    private func subscribeToTokenPrices(_ tokenId: String) {
         priceSubscription?.cancel()
-        self.priceUpdateTimer?.invalidate()
-
-        DispatchQueue.main.async { [weak self] in
-            guard let self else { return }
-
-            self.priceUpdateTimer = Timer.scheduledTimer(withTimeInterval: PRICE_UPDATE_INTERVAL, repeats: true) {
-                [weak self] _ in
-                guard let self else {
-                    return
-                }
-
-                let now = Date()
-                if let price = self.latestPrice {
-                    // Add a new price point at each interval
-                    let newPrice = Price(timestamp: now, priceUsd: price)
-                    Task { @MainActor in
-						self.prices.append(newPrice)
-						self.prices = self.prices.suffix(MAX_NUM_PRICES_TO_KEEP)
-                        self.lastPriceTimestamp = now
-                    }
-                    self.calculatePriceChange()
-                }
-
-            }
-
-            // Make sure the timer is retained
-            if let timer = self.priceUpdateTimer {
-                RunLoop.main.add(timer, forMode: .common)
-            }
-        }
-
+        
         let now = Date()
-        priceSubscription = Network.shared.apollo.subscribe(
-            subscription: SubTokenPricesSinceSubscription(
-                token: tokenId,
-                since: .some(iso8601Formatter.string(from: now))
-            )
-        ) { [weak self] result in
-            guard let self = self else { return }
-
-            switch result {
-            case .success(let graphQLResult):
-                if let _ = graphQLResult.errors {
-                    return
-                }
-
-                if let trades = graphQLResult.data?.api_trade_history,
-                   let lastTrade = trades.last {
-                    Task { @MainActor in
-                        self.latestPrice = lastTrade.token_price_usd
+        
+        DispatchQueue.main.async { [weak self] in
+            guard let self else {return}
+            self.priceSubscription = Network.shared.apollo.subscribe(
+                subscription: SubTokenPricesSinceSubscription(
+                    token: tokenId,
+                    since: .some(iso8601Formatter.string(from: now))
+                )
+            ) { [weak self] result in
+                guard let self = self else { return }
+                
+                switch result {
+                case .success(let graphQLResult):
+                    if let _ = graphQLResult.errors {
+                        return
                     }
+                    
+                    if let trades = graphQLResult.data?.api_trade_history,
+                       let lastTrade = trades.last {
+                        Task { @MainActor in
+                            self.updatePrice(timestamp: .now, priceUsd: lastTrade.token_price_usd)
+                        }
+                    }
+                case .failure(let error):
+                    print("Error in price subscription: \(error.localizedDescription)")
                 }
-            case .failure(let error):
-                print("Error in price subscription: \(error.localizedDescription)")
             }
         }
     }
@@ -228,7 +204,7 @@ class TokenModel: ObservableObject {
                 if let tokenData = graphQLResult.data?.token_stats_interval_comp.first {
                     let liveData = TokenLiveData(
                         supply: Int(tokenData.token_metadata_supply ?? 0),
-                        latestPriceUsd: tokenData.latest_price_usd,
+                        priceUsd: tokenData.latest_price_usd,
                         stats: IntervalStats(volumeUsd: tokenData.total_volume_usd, trades: Int(tokenData.total_trades), priceChangePct: tokenData.price_change_pct),
                         recentStats: IntervalStats(volumeUsd: tokenData.recent_volume_usd, trades: Int(tokenData.recent_trades), priceChangePct: tokenData.recent_price_change_pct)
                     )
@@ -248,6 +224,36 @@ class TokenModel: ObservableObject {
         }
     }
 
+    private var tokenBalanceTimer: Timer?
+    let BALANCE_POLL_INTERVAL: TimeInterval = 30
+    
+    private func startPollingTokenBalance() {
+        self.stopPollingTokenBalance()  // Ensure any existing timer is invalidated
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            self.tokenBalanceTimer = Timer.scheduledTimer(
+                withTimeInterval: self.BALANCE_POLL_INTERVAL, repeats: true
+            ) { [weak self] _ in
+                guard let self = self else { return }
+                Task {
+                    try await self.refreshTokenBalance()
+                }
+            }
+        }
+    }
+    
+    private func stopPollingTokenBalance() {
+        tokenBalanceTimer?.invalidate()
+        tokenBalanceTimer = nil
+    }
+    
+    private func refreshTokenBalance() async throws {
+        let tokenBalance = try await Network.shared.getTokenBalance(tokenMint: tokenId)
+            
+        await UserModel.shared.updateTokenData(mint: tokenId, balance: tokenBalance)
+    }
+    
     private func calculatePriceChange() {
         let latestPrice = prices.last?.priceUsd ?? 0
         let startTime = Date().addingTimeInterval(-selectedTimespan.seconds)
@@ -277,8 +283,8 @@ class TokenModel: ObservableObject {
     }
 
     func cleanup() {
-        priceUpdateTimer?.invalidate()
-        priceUpdateTimer = nil
+        stopPollingTokenBalance()
+        
         // Clean up subscriptions when the object is deallocated
         priceSubscription?.cancel()
         candleSubscription?.cancel()

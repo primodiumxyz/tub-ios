@@ -169,7 +169,8 @@ private struct StatView: View {
 
     var generalStats: [StatValue] {
         let ret = [
-            StatValue(title: "Market Cap", value: priceModel.formatPrice(usd: 1e9, formatLarge: true)),
+//            todo: readd when quicknode fixes value
+//            StatValue(title: "Market Cap", value: priceModel.formatPrice(usd: 1e9, formatLarge: true)),
             StatValue(title: "Volume (1h)", value: priceModel.formatPrice(usd: 1e8, formatLarge: true)),
             StatValue(title: "Liquidity", value: priceModel.formatPrice(usd: 1e8, formatLarge: true)),
             StatValue(title: "Unique holders", value: formatLargeNumber(1e5)),

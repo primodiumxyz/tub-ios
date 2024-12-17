@@ -39,7 +39,8 @@ struct TokenInfoPreview: View {
         var stats = [StatValue]()
         // Calculate current value
         // todo: replace hard coded decimals with token decimals
-        let tokenBalance = Double(balanceToken) / 1e9
+        let decimals = tokenData.metadata.decimals 
+        let tokenBalance = Double(balanceToken) / pow(10.0, Double(decimals))
         let tokenBalanceUsd = tokenBalance * (tokenModel.prices.last?.priceUsd ?? 0)
 
         // Calculate profit
@@ -73,7 +74,8 @@ struct TokenInfoPreview: View {
         if let token = userModel.tokenData[tokenModel.tokenId]
         , let liveData = token.liveData {
             return [
-                StatValue(title: "Market Cap", value: priceModel.formatPrice(usd: liveData.marketCapUsd, formatLarge: true)),
+                // todo: readd when quicknode fixes this value
+//                StatValue(title: "Market Cap", value: priceModel.formatPrice(usd: liveData.marketCapUsd, formatLarge: true)),
                 StatValue(title: "Change", caption: HOT_TOKENS_INTERVAL, value: String(format: "%.2f%%", liveData.stats.priceChangePct)),
                 StatValue(title: "Volume", caption: HOT_TOKENS_INTERVAL, value: priceModel.formatPrice(usd: liveData.stats.volumeUsd, formatLarge: true)),
                 StatValue(title: "Trades", caption: HOT_TOKENS_INTERVAL, value: liveData.stats.trades.formatted()),
@@ -149,7 +151,7 @@ struct TokenInfoPreview: View {
                     TokenInfoCardView(tokenData: tokenData, stats: generalStats)
                         .presentationDetents([.height(400)])
                 } else {
-                    LoginErrorView(errorMessage: "Couldn't find token information.", retryAction: {})
+                    ErrorView(errorMessage: "Couldn't find token information.", retryAction: {})
                         .presentationDetents([.height(400)])
                 }
         }

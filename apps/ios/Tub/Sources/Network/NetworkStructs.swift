@@ -31,6 +31,7 @@ struct SwapInput: Codable {
     let buyTokenId: String
     let sellTokenId: String
     let sellQuantity: Int
+    let slippageBps: Int?
 }
 
 struct TokenBalanceInput: Codable {

@@ -52,24 +52,15 @@ class TabsViewModel: ObservableObject {
 
         // Record selection of new tab
         Task {
-            do {
-                try await Network.shared.recordClientEvent(
-                    event: Network.ClientEvent(
-                        eventName: "tab_selected",
-                        source: "home_tabs_view",
-                        metadata: [
-                            ["tab_name": tabName]
-                        ]
-                    )
+            try? await Network.shared.recordClientEvent(
+                event: Network.ClientEvent(
+                    eventName: "tab_selected",
+                    source: "home_tabs_view",
+                    metadata: [
+                        ["tab_name": tabName]
+                    ]
                 )
-                print("Successfully recorded tab selection")
-                // Start timing for new tab
-            }
-            catch {
-                print("Failed to record tab selection: \(error)")
-            }
-            tabStartTime = Date()
-
+            )
         }
     }
 }

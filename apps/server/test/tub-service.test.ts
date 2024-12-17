@@ -104,19 +104,19 @@ import { ConfigService } from "../src/services/ConfigService";
     });
 
     it("should get the user's token balances", async () => {
-      const balances = await tubService.getAllTokenBalances(mockJwtToken);
-      expect(balances).toBeDefined();
-      expect(balances.length).toBeGreaterThan(0);
+      const { tokenBalances } = await tubService.getAllTokenBalances(mockJwtToken);
+      expect(tokenBalances).toBeDefined();
+      expect(tokenBalances.length).toBeGreaterThan(0);
     });
 
     it("should get the user's usdc balance", async () => {
-      const balances = await tubService.getAllTokenBalances(mockJwtToken);
-      if (balances.length === 0) {
+      const { tokenBalances } = await tubService.getAllTokenBalances(mockJwtToken);
+      if (tokenBalances.length === 0) {
         console.log("No token balances found, skipping test");
         return;
       }
 
-      const token = balances[0]?.mint;
+      const token = tokenBalances[0]?.mint;
       if (!token) {
         console.log("No token found, skipping test");
         return;
@@ -124,7 +124,7 @@ import { ConfigService } from "../src/services/ConfigService";
 
       const balance = await tubService.getTokenBalance(mockJwtToken, token);
       expect(balance).toBeDefined();
-      expect(balance.balance).toEqual(balances[0]?.balanceToken);
+      expect(balance.balance).toEqual(tokenBalances[0]?.balanceToken);
     });
   });
 
