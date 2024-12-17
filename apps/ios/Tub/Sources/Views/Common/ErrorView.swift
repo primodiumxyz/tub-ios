@@ -2,47 +2,74 @@
 //  ErrorView.swift
 //  Tub
 //
-//  Created by Henry on 10/24/24.
+//  Created by Henry on 11/12/24.
 //
 
 import SwiftUI
 
 struct ErrorView: View {
-    let error: Error
-    var retryAction: (() -> Void)? = nil
+    let title: String
+    let errorMessage: String
+    let retryAction: () async -> Void
+    let logoutAction: (() -> Void)?
+    @State var retrying = false 
 
-    init(error: Error, retryAction: (() -> Void)? = nil) {
-        self.error = error
+    init(
+        title: String = "Something went wrong. ",
+        errorMessage: String,
+        retryAction: @escaping () async -> Void,
+        logoutAction: (() -> Void)? = nil
+    ) {
+        self.title = title
+        self.errorMessage = errorMessage
         self.retryAction = retryAction
+        self.logoutAction = logoutAction
+    }
+    
+    func handleRetry() {
+        retrying = true
+        Task {
+            await retryAction()
+            await MainActor.run {
+                retrying = false
+            }
+        }
     }
 
     var body: some View {
-        VStack {
-            Image(systemName: "exclamationmark.triangle")
-                .font(.system(size: 50))
-                .foregroundStyle(.yellow)
-                .padding()
+        VStack(spacing: 18) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 48))
+                .foregroundStyle(.red)
 
-            Text("Oops! Something went wrong")
-                .font(.title)
+            Text(title)
+                .font(.sfRounded(size: .xl, weight: .bold))
+                .foregroundStyle(.tubError)
+
+            Text(errorMessage)
+                .font(.sfRounded(size: .base))
                 .multilineTextAlignment(.center)
+                .padding(.horizontal)
 
-            Text(error.localizedDescription)
-                .font(.body)
-                .multilineTextAlignment(.center)
-                .padding()
-
-            if let retryAction = retryAction {
-                Button(action: retryAction) {
-                    Text("Try Again")
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(10)
-                }
-            }
+            PrimaryButton(text: "Try again", maxWidth: 200, loading: retrying, action: handleRetry)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(UIColor.systemBackground))
-        .foregroundStyle(.tubText)
+        .padding(8)
+        .foregroundStyle(.tubBuyPrimary)
+        .frame(maxWidth: 350, maxHeight: .infinity)
     }
+}
+
+#Preview("Light") {
+    ErrorView(
+        errorMessage: "Unable to connect to your account. Please check your connection and try again.",
+        retryAction: {}
+    )
+    .preferredColorScheme(.light)
+}
+
+#Preview("Dark") {
+    ErrorView(
+        errorMessage: "Unable to connect to your account. Please check your connection and try again.",
+        retryAction: {}
+    ).preferredColorScheme(.dark)
 }

@@ -17,6 +17,9 @@ enum InstallationSource {
     case invalid
 }
 
+let USDC_DECIMALS = 1e6
+let SOL_DECIMALS = 1e9
+
 private var installationSource: InstallationSource {
     if let receiptUrl = Bundle.main.appStoreReceiptURL {
         let path = receiptUrl.path
@@ -70,10 +73,6 @@ public let serverBaseUrl: String = {
     #endif
 }()
 
-public let solanaUrl: String = {
-    return "https://blue-hardworking-paper.solana-mainnet.quiknode.pro/4240df2ab8f252905cfef06e20240f563e84418d"
-}()
-
 // Filtering
 public let HOT_TOKENS_INTERVAL: Interval = "30m" // main interval to aggregate and sort by volume
 public let FILTERING_INTERVAL: Interval = "20s" // additional interval for filtering (min trades/volume)
@@ -87,6 +86,8 @@ public let PRICE_UPDATE_INTERVAL: Double = 0.5  // Update price every half secon
 public let MAX_NUM_PRICES_TO_KEEP: Int = 100
 
 public let WSOL_ADDRESS: String = "So11111111111111111111111111111111111111112"
+public let USDC_MINT: String = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+public let TOKEN_PROGRAM_ID: String = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
 
 enum TubError: LocalizedError {
     case somethingWentWrong(reason: String)
@@ -111,8 +112,8 @@ enum TubError: LocalizedError {
             return "Not logged in"
         case .networkFailure:
             return "Couldn't connect"
-        case .invalidInput:
-            return "Invalid input"
+        case .invalidInput(let reason):
+            return "Invalid input \(reason)"
         case .parsingError:
             return "Parsing error"
         case .actionInProgress(let actionDescription):
@@ -169,3 +170,4 @@ enum Layout {
         static let borderWidth: CGFloat = 0.5
     }
 }
+

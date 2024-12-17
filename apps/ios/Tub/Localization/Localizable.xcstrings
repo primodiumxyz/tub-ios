@@ -40,6 +40,9 @@
         }
       }
     },
+    "%lld" : {
+
+    },
     "$" : {
 
     },
@@ -52,7 +55,7 @@
     "10.00" : {
       "comment" : "placeholder"
     },
-    "100" : {
+    "100.00" : {
 
     },
     "About" : {
@@ -76,6 +79,9 @@
     "B" : {
 
     },
+    "Balance: %@" : {
+
+    },
     "Buy" : {
 
     },
@@ -97,6 +103,9 @@
     "Date" : {
 
     },
+    "Deposit" : {
+
+    },
     "Deposit with" : {
 
     },
@@ -115,9 +124,6 @@
     "Enter your Phone Number" : {
 
     },
-    "Failed to load tokens." : {
-
-    },
     "Filled" : {
 
     },
@@ -130,13 +136,13 @@
     "Low" : {
 
     },
-    "no data" : {
+    "No tokens" : {
+
+    },
+    "No trades found" : {
 
     },
     "No transactions found" : {
-
-    },
-    "Oops! Something went wrong" : {
 
     },
     "Open" : {
@@ -151,16 +157,19 @@
     "Please enter a valid phone number." : {
 
     },
+    "Portfolio" : {
+
+    },
     "Price" : {
+
+    },
+    "Price: %lf" : {
 
     },
     "Purchase Price" : {
 
     },
     "Quantity" : {
-
-    },
-    "Retry" : {
 
     },
     "Save" : {
@@ -193,13 +202,13 @@
     "Solana Wallet" : {
 
     },
-    "Submit Transaction" : {
-
-    },
     "Support" : {
 
     },
     "Temp: Login to Start Trading" : {
+
+    },
+    "Test Tx" : {
 
     },
     "This token is still writing its autobiography... 📝" : {
@@ -223,13 +232,13 @@
     "Transfer" : {
 
     },
-    "Try Again" : {
-
-    },
     "Unfilled" : {
 
     },
-    "Update Tx Data" : {
+    "USDC" : {
+
+    },
+    "Value: %@" : {
 
     },
     "Welcome to tub" : {

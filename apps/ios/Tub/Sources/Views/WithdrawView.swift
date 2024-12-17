@@ -5,7 +5,6 @@
 //  Created by Henry on 10/4/24.
 //
 
-import SolanaSwift
 import SwiftUI
 
 class WithdrawModel: ObservableObject {
@@ -15,22 +14,26 @@ class WithdrawModel: ObservableObject {
     @Published var buyAmountUsd: Double = 0
     @Published var recipient: String = ""
     @Published var continueDisabled: Bool = true
+    @Published var sending: Bool = false
 
     func initialize(walletAddress: String) {
         self.walletAddress = walletAddress
     }
 
     func validateAddress(_ address: String) -> Bool {
-        if address.isEmpty { return false }
-        do {
-            let _ = try PublicKey(string: address)
-            return true
-        }
-        catch {
-            return false
-        }
-    }
+        // Check if address is empty
+        guard !address.isEmpty else { return false }
 
+        // Check length (Solana addresses are 32-byte public keys encoded in base58, resulting in 44 characters)
+        guard address.count == 44 else { return false }
+
+        // Check if address contains only valid base58 characters
+        let base58Charset = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+        let addressCharSet = CharacterSet(charactersIn: address)
+        let validCharSet = CharacterSet(charactersIn: base58Charset)
+        return addressCharSet.isSubset(of: validCharSet)
+    }
+    
     func onComplete() async throws -> String {
         guard let walletAddress else {
             throw TubError.somethingWentWrong(reason: "Cannot transfer: not logged in")
@@ -40,17 +43,27 @@ class WithdrawModel: ObservableObject {
             throw TubError.somethingWentWrong(reason: "Invalid recipient address")
         }
 
-        let buyAmountUsdc = Int(buyAmountUsd * 1e6)
+        let buyAmountUsdc = Int(buyAmountUsd * USDC_DECIMALS)
 
         do {
+            await MainActor.run {
+            sending = true
+            }
             let txId = try await Network.shared.transferUsdc(
                 fromAddress: walletAddress,
                 toAddress: recipient,
                 amount: buyAmountUsdc
             )
+            await MainActor.run {
+                sending = false
+            }
             return txId
         }
+
         catch {
+            await MainActor.run {
+                sending = false
+            }
             throw error
         }
     }
@@ -93,44 +106,30 @@ struct WithdrawView: View {
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.leading)
                 .textFieldStyle(PlainTextFieldStyle())
-                .onReceive(NotificationCenter.default.publisher(for: UITextField.textDidChangeNotification)) { obj in
-                    guard let textField = obj.object as? UITextField,
-                          textField.keyboardType == .decimalPad else { return }
+                .onChange(of: vm.buyAmountUsdString) { 
+                    let text = vm.buyAmountUsdString
                     
-                    if let text = textField.text {
-                        // Validate decimal places
-                        let components = text.components(separatedBy: ".")
-                        if components.count > 1 {
-                            let decimals = components[1]
-                            if decimals.count > 2 {
-                                textField.text = String(text.dropLast())
-                            }
-                        }
-                        
-                        // Validate if it's a decimal
-                        if !text.isEmpty && !text.isDecimal() {
-                            textField.text = String(text.dropLast())
-                        }
-                        
-                        let amount = text.doubleValue
-                        if amount > 0 {
-                            // Convert to USDC and back to ensure proper rounding
-                            let amountUsdc = priceModel.usdToUsdc(usd: amount)
-                            vm.buyAmountUsd = priceModel.usdcToUsd(usdc: amountUsdc)
-                            // Format to 2 decimal places
-                            vm.buyAmountUsdString = String(format: "%.2f", vm.buyAmountUsd)
-                        } else {
-                            vm.buyAmountUsd = 0
+                    // Validate decimal places
+                    let components = text.components(separatedBy: ".")
+                    if components.count > 1 {
+                        let decimals = components[1]
+                        if decimals.count > 2 {
+                            vm.buyAmountUsdString = String(text.dropLast())
                         }
                     }
-                    else {
-                        vm.buyAmountUsd = 0
+                    
+                    // Validate if it's a decimal
+                    if !text.isEmpty && !text.isDecimal() {
+                        vm.buyAmountUsdString = String(text.dropLast())
                     }
+                    
+                    let amount = text.doubleValue
+                    vm.buyAmountUsd = amount  // Update the numeric value
                 }
                 .font(.sfRounded(size: .xl5, weight: .semibold))
                 .foregroundStyle(
                     vm.buyAmountUsd == 0 ||
-                    (userModel.balanceUsdc ?? 0) < priceModel.usdToUsdc(usd: vm.buyAmountUsd)
+                    (userModel.usdcBalance ?? 0) < priceModel.usdToUsdc(usd: vm.buyAmountUsd)
                     ? .tubError
                     : .tubText
                 )
@@ -149,7 +148,7 @@ struct WithdrawView: View {
                 Spacer().frame(height: UIScreen.height(Layout.Spacing.md))
                 numberInput
                 
-                Text("Your Balance \(priceModel.formatPrice(usdc: userModel.balanceUsdc ?? 0))")
+                Text("Your Balance \(priceModel.formatPrice(usdc: userModel.usdcBalance ?? 0))")
                     .font(.sfRounded(size: .lg, weight: .medium))
                     .foregroundStyle(.tubBuyPrimary)
                 
@@ -163,7 +162,8 @@ struct WithdrawView: View {
                     backgroundColor: .tubBuyPrimary,
                     disabled: !vm.validateAddress(vm.recipient) ||
                              vm.buyAmountUsd == 0 ||
-                             (userModel.balanceUsdc ?? 0) < priceModel.usdToUsdc(usd: vm.buyAmountUsd),
+                             (userModel.usdcBalance ?? 0) < priceModel.usdToUsdc(usd: vm.buyAmountUsd),
+                    loading: vm.sending,
                     action: handleContinue
                 )
             }

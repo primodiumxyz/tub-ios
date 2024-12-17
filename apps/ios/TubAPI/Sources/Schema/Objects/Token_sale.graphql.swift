@@ -4,8 +4,9 @@
 import ApolloAPI
 
 public extension Objects {
-  static let Balance_offset_model = ApolloAPI.Object(
-    typename: "balance_offset_model",
+  /// columns and relationships of "token_sale"
+  static let Token_sale = ApolloAPI.Object(
+    typename: "token_sale",
     implementedInterfaces: []
   )
 }

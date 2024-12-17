@@ -64,7 +64,7 @@ final class SolPriceModel: ObservableObject {
         showSign: Bool = false,
         showUnit: Bool = true,
         maxDecimals: Int = 9,
-        minDecimals: Int = 0,
+        minDecimals: Int = 2,
         formatLarge: Bool = true
     ) -> String {
         if usd.isNaN || usd.isInfinite || usd == 0 {
@@ -105,7 +105,7 @@ final class SolPriceModel: ObservableObject {
         showSign: Bool = false,
         showUnit: Bool = true,
         maxDecimals: Int = 9,
-        minDecimals: Int = 0,
+        minDecimals: Int = 2,
         formatLarge: Bool = true
     ) -> String {
         return formatPrice(
@@ -123,7 +123,7 @@ final class SolPriceModel: ObservableObject {
         showSign: Bool = false,
         showUnit: Bool = true,
         maxDecimals: Int = 2,
-        minDecimals: Int = 0,
+        minDecimals: Int = 2,
         formatLarge: Bool = true
     ) -> String {
         if let price = self.price, price > 0 {
@@ -146,7 +146,7 @@ final class SolPriceModel: ObservableObject {
         showSign: Bool = false,
         showUnit: Bool = true,
         maxDecimals: Int = 2,
-        minDecimals: Int = 0,
+        minDecimals: Int = 2,
         formatLarge: Bool = true
     ) -> String {
         if let price = self.price, price > 0 {
@@ -166,7 +166,7 @@ final class SolPriceModel: ObservableObject {
 
     func usdToLamports(usd: Double) -> Int {
         if let price = self.price, price > 0 {
-            return Int(usd * 1e9 / price)
+            return Int(usd * SOL_DECIMALS / price)
         }
         else {
             return 0
@@ -175,7 +175,7 @@ final class SolPriceModel: ObservableObject {
 
     func lamportsToUsd(lamports: Int) -> Double {
         if let price = self.price, price > 0 {
-            return Double(lamports) * price / 1e9
+            return Double(lamports) * price / SOL_DECIMALS
         }
         else {
             return 0
@@ -183,10 +183,10 @@ final class SolPriceModel: ObservableObject {
     }
 
     func usdcToUsd(usdc: Int) -> Double {
-        return Double(usdc) / 1e6
+        return Double(usdc) / USDC_DECIMALS
     }
 
     func usdToUsdc(usd: Double) -> Int {
-        return Int(usd * 1e6)
+        return Int(usd * USDC_DECIMALS)
     }
 }

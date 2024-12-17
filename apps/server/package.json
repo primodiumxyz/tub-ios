@@ -13,6 +13,7 @@
   ],
   "scripts": {
     "lint": "eslint .",
+    "dev": "nodemon",
     "start": "tsx bin/index",
     "types:dev": "tsc --watch",
     "types:test": "tsc --noEmit --skipLibCheck",
@@ -59,7 +60,9 @@
     "@vitest/coverage-v8": "^0.34.0",
     "@vitest/utils": "^2.1.1",
     "axios": "^1.7.7",
+    "nodemon": "^3.1.7",
     "prettier": "^3.3.3",
+    "ts-node": "^10.9.2",
     "tsx": "^3.12.6",
     "vite-tsconfig-paths": "^4.2.0",
     "vitest": "2.1.4"

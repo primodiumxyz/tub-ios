@@ -16,64 +16,30 @@ struct TokenView: View {
     @EnvironmentObject private var notificationHandler: NotificationHandler
 
 	@State private var showInfoCard = false
-	@State private var showBuySheet: Bool = false
 	@State private var keyboardHeight: CGFloat = 0
 
-    @Binding private var showBubbles: Bool
-	@Binding var animate: Bool
+	let animate: Bool
 	
-    var onSellSuccess: (() -> Void)?
-
+    var tokenData : TokenData? {
+        userModel.tokenData[tokenModel.tokenId]
+    }
+    
+    var balanceToken: Int {
+        tokenData?.balanceToken ?? 0
+    }
+    
     var activeTab: PurchaseState {
-        let balance: Int = userModel.balanceToken ?? 0
-        return balance > 0 ? PurchaseState.sell : PurchaseState.buy
+        return balanceToken > 0 ? PurchaseState.sell : PurchaseState.buy
     }
 
     init(
         tokenModel: TokenModel,
-		animate: Binding<Bool> = Binding.constant(false),
-        showBubbles: Binding<Bool> = Binding.constant(false),
-        onSellSuccess: (() -> Void)? = nil
+		animate: Bool = false
     ) {
         self.tokenModel = tokenModel
-		self._animate = animate
-        self._showBubbles = showBubbles
-        self.onSellSuccess = onSellSuccess
+		self.animate = animate
     }
 
-    func handleBuy(buyQuantityUsd: Double) async {
-        guard let priceUsd = tokenModel.prices.last?.priceUsd, priceUsd > 0
-        else {
-            notificationHandler.show(
-                "Something went wrong.",
-                type: .error
-            )
-            return
-        }
-
-        let priceUsdc = priceModel.usdToUsdc(usd: priceUsd)
-        let buyQuantityUsdc = priceModel.usdToUsdc(usd: buyQuantityUsd)
-
-        do {
-            try await userModel.buyTokens(
-                buyQuantityUsdc: buyQuantityUsdc,
-                tokenPriceUsdc: priceUsdc
-            )
-            await MainActor.run {
-                showBuySheet = false
-                notificationHandler.show(
-                    "Successfully bought tokens!",
-                    type: .success
-                )
-            }
-        }
-        catch {
-            notificationHandler.show(
-                error.localizedDescription,
-                type: .error
-            )
-        }
-    }
 
     var body: some View {
         ZStack {
@@ -82,28 +48,20 @@ struct TokenView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Spacer().frame(height: 20)
                     tokenInfoView
-					// Help visually debug tokenModel.isReady state changes while scroll anim is still in flight.
-					//.border(tokenModel.isReady ? .green : .red)
 
                     chartView
                         .padding(.top, 5)
-					//.border(tokenModel.isReady ? .green : .red)
 
 					intervalButtons
                         .padding(.horizontal)
                         .padding(.vertical, 12)
-					//.border(tokenModel.isReady ? .green : .red)
                 }
 
                 VStack(spacing: 0) {
                     TokenInfoPreview(tokenModel: tokenModel, activeTab: activeTab)
                         .opacity(0.8)
                     ActionButtonsView(
-                        tokenModel: tokenModel,
-                        showBuySheet: $showBuySheet,
-                        showBubbles: $showBubbles,
-                        handleBuy: handleBuy,
-                        onSellSuccess: onSellSuccess
+                        tokenModel: tokenModel
                     )
                     .equatable()
                 }.padding(.horizontal, 8)
@@ -111,35 +69,22 @@ struct TokenView: View {
             .frame(maxWidth: .infinity)
             .foregroundStyle(.primary)
         }
-        .onChange(of: userModel.balanceToken) {
-            guard let balanceToken = userModel.balanceToken else { return }
-            let purchaseState = balanceToken > 0 ? PurchaseState.sell : PurchaseState.buy
-            Task {
-                if purchaseState == .sell {
-                    try! await TxManager.shared.updateTxData(purchaseState: .sell, sellQuantity: balanceToken)
-                }
-                else {
-                    let defaultBuyValueUsdc = priceModel.usdToUsdc(usd: SettingsManager.shared.defaultBuyValueUsd)
-                    try! await TxManager.shared.updateTxData(purchaseState: .buy, sellQuantity: defaultBuyValueUsdc)
-                }
-            }
-        }
         .dismissKeyboardOnTap()
     }
 
     private var tokenInfoView: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .center) {
-                if tokenModel.token.imageUri != "" {
-                    ImageView(imageUri: tokenModel.token.imageUri, size: 30)
+                if let image = tokenData?.metadata.imageUri, image != "" {
+                    ImageView(imageUri: image, size: 30)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                 }
                 else {
                     LoadingBox(width: 30, height: 30)
                 }
 
-                if tokenModel.token.symbol != "" {
-                    Text("$\(tokenModel.token.symbol)")
+                if let symbol = tokenData?.metadata.symbol, symbol != "" {
+                    Text("$\(symbol)")
                         .font(.sfRounded(size: .lg, weight: .semibold))
                 }
                 else {
@@ -222,12 +167,14 @@ struct TokenView: View {
         Group {
             if !tokenModel.isReady {
                 LoadingBox(height: height)
-            }
-            else if tokenModel.selectedTimespan == .live {
+            } else if tokenModel.prices.isEmpty {
+                Text("No trades found").font(.sfRounded(size: .base, weight: .semibold)).frame(height: height)
+                
+            } else if tokenModel.selectedTimespan == .live {
                 ChartView(
                     rawPrices: tokenModel.prices,
                     purchaseData: userModel.purchaseData,
-                    animate: $animate,
+                    animate: animate,
                     height: height
                 )
                 //				.id(tokenModel.prices.count) // results in odd behavior: toggles between prices.count = 0 and prices.count = correct value
@@ -235,7 +182,7 @@ struct TokenView: View {
             else {
                 CandleChartView(
                     candles: tokenModel.candles,
-                    animate: $animate,
+                    animate: animate,
                     timeframeMins: 30,
                     height: height
                 )

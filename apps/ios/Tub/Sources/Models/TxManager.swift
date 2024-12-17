@@ -10,131 +10,106 @@ import SwiftUI
 
 final class TxManager: ObservableObject {
     static let shared = TxManager()
-
-    @Published var txData: TxData?
-
-    @Published var fetchingTxData: Bool = false
+    
     @Published var submittingTx: Bool = false
-    @Published var txs: [String] = []
-
-    var purchaseState: PurchaseState = .buy
-    var tokenId: String?
-    var sellQuantity: Int?
-    var lastUpdated = Date()
-    let tokenIdUsdc = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
-    private var currentFetchTask: Task<Void, Error>?
-
-    func updateTxData(purchaseState: PurchaseState? = nil, tokenId: String? = nil, sellQuantity: Int? = nil)
-        async throws
-    {
-        currentFetchTask?.cancel()
-
-        currentFetchTask = Task {
-            do {
-                try await _updateTxData(purchaseState: purchaseState, tokenId: tokenId, sellQuantity: sellQuantity)
-            }
-            catch {
-                if !Task.isCancelled {
-                    throw error
-                }
-            }
+    
+    func buyToken(tokenId: String, buyAmountUsdc: Int, tokenPriceUsdc: Int? = nil) async throws {
+        guard let usdcBalance = UserModel.shared.usdcBalance, buyAmountUsdc <= usdcBalance else {
+            throw TubError.insufficientBalance
         }
-        try await currentFetchTask?.value
-    }
-
-    let UPDATE_SECONDS = 1
-    private func _updateTxData(purchaseState: PurchaseState?, tokenId: String?, sellQuantity: Int?) async throws {
-        // if nothing is getting updated return without updating
-        if Date().timeIntervalSince1970 < lastUpdated.timeIntervalSince1970 + Double(UPDATE_SECONDS)
-            && self.purchaseState == (purchaseState ?? self.purchaseState) && self.tokenId == (tokenId ?? self.tokenId)
-            && self.sellQuantity == (sellQuantity ?? self.sellQuantity)
-        {
-            return
-        }
-
-        self.tokenId = tokenId ?? self.tokenId
-        self.sellQuantity = sellQuantity ?? self.sellQuantity
-        self.purchaseState = purchaseState ?? self.purchaseState
-
-        guard let tokenId = self.tokenId, let sellQuantity = self.sellQuantity else { return }
-
-        let buyTokenId = self.purchaseState == .buy ? tokenId : tokenIdUsdc
-        let sellTokenId = self.purchaseState == .sell ? tokenId : tokenIdUsdc
-
+        var err: (any Error)? = nil
         do {
-            await MainActor.run {
-                self.fetchingTxData = true
-            }
-
-            let tx = try await Network.shared.getTxData(
-                buyTokenId: buyTokenId,
-                sellTokenId: sellTokenId,
-                sellQuantity: sellQuantity
-            )
-
-            await MainActor.run {
-                print("successfully fetched tx data!")
-                self.txData = tx
-                self.tokenId = self.purchaseState == .buy ? tx.buyTokenId : tx.sellTokenId
-                self.sellQuantity = tx.sellQuantity
-                self.fetchingTxData = false
+            try await submitTx(buyTokenId: tokenId, sellTokenId: USDC_MINT, sellQuantity: buyAmountUsdc)
+        } catch {
+            err = error
+        }
+        
+        if let tokenPriceUsdc {
+            Task {
+                let decimals = UserModel.shared.tokenData[tokenId]?.metadata.decimals ?? 9
+                let buyQuantityToken = (buyAmountUsdc / tokenPriceUsdc) * Int(pow(10.0,Double(decimals)))
+                try? await Network.shared.recordTokenPurchase(
+                    tokenMint: tokenId,
+                    tokenAmount: Double(buyQuantityToken),
+                    tokenPriceUsd: SolPriceModel.shared.usdcToUsd(usdc: tokenPriceUsdc),
+                    source: "user_model",
+                    errorDetails: err?.localizedDescription
+                )
             }
         }
-        catch {
-            print("error updating tx data \(error.localizedDescription)")
+        
+        if let err { throw err }
+    }
+    
+    func sellToken(tokenId: String, tokenPriceUsd: Double? = nil) async throws {
+        guard let balanceToken = UserModel.shared.tokenData[tokenId]?.balanceToken, balanceToken > 0 else {
+            throw TubError.insufficientBalance
         }
+        
+        var err: (any Error)? = nil
+        do {
+            try await submitTx(buyTokenId: USDC_MINT, sellTokenId: tokenId, sellQuantity: balanceToken)
+        } catch {
+            err = error
+        }
+        
+        if let tokenPriceUsd {
+            Task {
+                try? await Network.shared.recordTokenSale(
+                    tokenMint: tokenId,
+                    tokenAmount: Double(balanceToken),
+                    tokenPriceUsd: tokenPriceUsd,
+                    source: "user_model",
+                    errorDetails: err?.localizedDescription
+                )
+            }
+        }
+        if let err { throw err }
     }
-
-    func clearTxData() {
-        txData = nil
-        sellQuantity = nil
-        tokenId = nil
-        purchaseState = .buy
-    }
-
-    func submitTx(walletAddress: String) async throws {
+    
+    func submitTx(buyTokenId: String, sellTokenId: String, sellQuantity: Int) async throws {
+        guard let walletAddress = UserModel.shared.walletAddress else {
+            throw TubError.notLoggedIn
+        }
+        
         if submittingTx {
-            throw TubError.actionInProgress(actionDescription: "Submit transaction")
+            throw TubError.actionInProgress(actionDescription: "Transaction submission")
         }
-
-        // Wait while fetching is in progress, with 2 second timeout
-        let startTime = Date()
-        while fetchingTxData {
-            if Date().timeIntervalSince(startTime) > 2.0 {
-                throw TubError.invalidInput(reason: "Timeout waiting for transaction data fetch")
-            }
-            try await Task.sleep(nanoseconds: 50_000_000)  // 50ms delay
-        }
-
-        guard let txData else {
-            throw TubError.invalidInput(reason: "Missing transaction data")
-        }
-
-        let token = self.purchaseState == .sell ? txData.sellTokenId : txData.buyTokenId
-        if txData.sellQuantity != self.sellQuantity || token != self.tokenId {
-            do {
-                try await self.updateTxData(sellQuantity: sellQuantity)
-            }
-            catch {
-
-            }
-        }
-
+        
+         await MainActor.run {
+                self.submittingTx = true
+         }
+            
+        // Update tx data if its stale
+        
+        // Sign and send the tx
+        var txError : Error? = nil
         do {
+            let txData = try await Network.shared.getTxData(buyTokenId: buyTokenId, sellTokenId: sellTokenId, sellQuantity: sellQuantity, slippageBps: 2000)
             let provider = try privy.embeddedWallet.getSolanaProvider(for: walletAddress)
             let signature = try await provider.signMessage(message: txData.transactionMessageBase64)
-            let res = try await Network.shared.submitSignedTx(
+            let _ = try await Network.shared.submitSignedTx(
                 txBase64: txData.transactionMessageBase64,
                 signature: signature
             )
-            await MainActor.run {
-                txs.append(res.txId)
+        } catch {
+            txError = error
+        }
+
+        await MainActor.run {
+            self.submittingTx = false
+        }
+        
+        // Update USDC balance & token balance
+        let tokenId = buyTokenId == USDC_MINT ? sellTokenId : buyTokenId
+        Task {
+            try? await UserModel.shared.fetchUsdcBalance()
+        }
+        if tokenId != "" {
+            Task {
+                await UserModel.shared.refreshTokenData(tokenMint: tokenId)
             }
         }
-        catch {
-            print(error.localizedDescription)
-            throw error
-        }
+        if let txError { throw txError }
     }
-
 }

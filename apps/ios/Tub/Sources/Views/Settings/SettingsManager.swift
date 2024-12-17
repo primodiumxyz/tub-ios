@@ -16,14 +16,14 @@ class SettingsManager: ObservableObject {
         }
     }
 
-    @Published var defaultBuyValueUsd: Double {
+    @Published var defaultBuyValueUsdc: Int {
         didSet {
-            UserDefaults.standard.set(defaultBuyValueUsd, forKey: "defaultBuyValue")
+            UserDefaults.standard.set(defaultBuyValueUsdc, forKey: "defaultBuyValue")
         }
     }
 
     init() {
         self.isVibrationEnabled = UserDefaults.standard.object(forKey: "isVibrationEnabled") as? Bool ?? true
-        self.defaultBuyValueUsd = UserDefaults.standard.object(forKey: "defaultBuyValue") as? Double ?? 10.00
+        self.defaultBuyValueUsdc = UserDefaults.standard.object(forKey: "defaultBuyValue") as? Int ?? SolPriceModel.shared.usdToUsdc(usd: 10)
     }
 }

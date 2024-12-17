@@ -15,6 +15,7 @@ struct PrimaryButton: View {
     var maxWidth: CGFloat? = nil
     var action: () -> Void
     var disabled: Bool = false
+    var loading: Bool = false
 
     init(
         text: String,
@@ -23,6 +24,7 @@ struct PrimaryButton: View {
         strokeColor: Color? = nil,
         maxWidth: CGFloat? = .infinity,
         disabled: Bool = false,
+        loading: Bool = false,
         action: @escaping () -> Void
     ) {
         self.text = text
@@ -32,6 +34,7 @@ struct PrimaryButton: View {
         self.maxWidth = maxWidth
         self.action = action
         self.disabled = disabled
+        self.loading = loading
     }
 
     var body: some View {
@@ -40,6 +43,7 @@ struct PrimaryButton: View {
             strokeColor: strokeColor,
             maxWidth: maxWidth,
             disabled: disabled,
+            loading: loading,
             action: action
         ) {
             Text(text)
@@ -57,6 +61,7 @@ struct OutlineButton: View {
     var backgroundColor: Color
     var maxWidth: CGFloat = 50
     var disabled: Bool = false
+    var loading: Bool = false
     var action: () -> Void
 
     var body: some View {
@@ -65,6 +70,7 @@ struct OutlineButton: View {
             strokeColor: strokeColor,
             maxWidth: maxWidth,
             disabled: disabled,
+            loading: loading,
             action: action
         ) {
             Text(text)
@@ -82,6 +88,7 @@ struct CircleButtonStyle: ButtonStyle {
     var size: CGFloat = 50
     var iconSize: CGFloat = 24
     var iconWeight: Font.Weight = .regular
+    var disabled = false
 
     func makeBody(configuration: Self.Configuration) -> some View {
         ZStack {
@@ -93,8 +100,8 @@ struct CircleButtonStyle: ButtonStyle {
                 .foregroundStyle(color)
                 .font(.system(size: iconSize, weight: iconWeight))
         }
-        .opacity(configuration.isPressed ? 0.5 : 1.0)
-        .scaleEffect(configuration.isPressed ? 0.95 : 1)
+        .opacity(configuration.isPressed || disabled ? 0.5 : 1.0)
+        .scaleEffect(configuration.isPressed && !disabled ? 0.95 : 1)
         .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
     }
 }
@@ -105,10 +112,11 @@ struct CircleButton: View {
     var size: CGFloat = 50
     var iconSize: CGFloat = 24
     var iconWeight: Font.Weight = .regular
+    var disabled = false
     var action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button(action: disabled ? {} : action) {
             EmptyView()
         }
         .buttonStyle(
@@ -117,7 +125,8 @@ struct CircleButton: View {
                 color: color,
                 size: size,
                 iconSize: iconSize,
-                iconWeight: iconWeight
+                iconWeight: iconWeight,
+                disabled: disabled
             )
         )
     }
@@ -128,7 +137,10 @@ struct CapsuleButtonStyle: ButtonStyle {
     var text: String
     var textColor: Color
     var backgroundColor: Color
+    var borderColor: Color?
+    var borderWidth: CGFloat = 1
     var font: Font = .sfRounded(size: .base, weight: .bold)
+    var disabled = false
 
     func makeBody(configuration: Self.Configuration) -> some View {
         Text(text)
@@ -138,6 +150,14 @@ struct CapsuleButtonStyle: ButtonStyle {
             .padding(.vertical, 9)
             .background(backgroundColor.opacity(configuration.isPressed ? 0.1 : 1))
             .clipShape(Capsule())
+            .overlay(
+                Group {
+                    if let borderColor = borderColor {
+                        Capsule()
+                            .stroke(borderColor, lineWidth: borderWidth)
+                    }
+                }
+            )
     }
 }
 
@@ -145,6 +165,8 @@ struct CapsuleButton: View {
     var text: String
     var textColor: Color = .tubText
     var backgroundColor: Color = .tubText.opacity(0.15)
+    var borderColor: Color? = nil
+    var borderWidth: CGFloat = 1
     var font: Font = .sfRounded(size: .base, weight: .bold)
     var action: () -> Void
 
@@ -157,6 +179,8 @@ struct CapsuleButton: View {
                 text: text,
                 textColor: textColor,
                 backgroundColor: backgroundColor,
+                borderColor: borderColor,
+                borderWidth: borderWidth,
                 font: font
             )
         )
@@ -371,17 +395,19 @@ struct ContentButtonStyle<Content: View>: ButtonStyle {
     var strokeColor: Color?
     var maxWidth: CGFloat?
     var disabled: Bool
+    var loading: Bool
 
     func makeBody(configuration: Self.Configuration) -> some View {
         // Wrap the content in another view to extend the tap area
-        VStack {
-            content
+        ZStack {
+            ProgressView().opacity(loading ? 1 : 0)
+            content.opacity(loading ? 0 : 1)
         }
         .frame(maxWidth: maxWidth)
         .padding(.horizontal, 16)
         .padding(.vertical, 13)
-        .opacity(disabled ? 0.5 : 1.0)
-        .background(backgroundColor.opacity(configuration.isPressed || disabled ? 0.5 : 1.0))
+        .opacity(disabled || loading ? 0.5 : 1.0)
+        .background(backgroundColor.opacity(configuration.isPressed || disabled || loading ? 0.5 : 1.0))
         .cornerRadius(30)
         .overlay(
             Group {
@@ -393,7 +419,7 @@ struct ContentButtonStyle<Content: View>: ButtonStyle {
             }
         )
         .contentShape(Rectangle())
-        .scaleEffect(!disabled && configuration.isPressed ? 0.95 : 1)
+        .scaleEffect(!disabled && !loading && configuration.isPressed ? 0.95 : 1)
         .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
     }
 }
@@ -405,12 +431,14 @@ struct ContentButton<Content: View>: View {
     var maxWidth: CGFloat? = nil
     var action: () -> Void
     var disabled: Bool = false
+    var loading: Bool = false
 
     init(
         backgroundColor: Color = .tubBuyPrimary,
         strokeColor: Color? = nil,
         maxWidth: CGFloat? = .infinity,
         disabled: Bool = false,
+        loading: Bool = false,
         action: @escaping () -> Void,
         @ViewBuilder content: () -> Content
     ) {
@@ -420,11 +448,12 @@ struct ContentButton<Content: View>: View {
         self.maxWidth = maxWidth
         self.action = action
         self.disabled = disabled
+        self.loading = loading
     }
 
     var body: some View {
-        Button(action: self.disabled ? {} : action) {
-            content
+        Button(action: self.disabled || self.loading ? {} : action) {
+            EmptyView()
         }
         .buttonStyle(
             ContentButtonStyle(
@@ -432,7 +461,8 @@ struct ContentButton<Content: View>: View {
                 backgroundColor: backgroundColor,
                 strokeColor: strokeColor,
                 maxWidth: maxWidth,
-                disabled: disabled
+                disabled: disabled,
+                loading: loading
             )
         )
     }

@@ -17,11 +17,19 @@ struct TokenInfoPreview: View {
 
     var activeTab: PurchaseState
     @State private var showInfoOverlay: Bool = false
+    
+    var tokenData : TokenData? {
+        userModel.tokenData[tokenModel.tokenId]
+    }
+    
+    var balanceToken: Int {
+        userModel.tokenData[tokenModel.tokenId]?.balanceToken ?? 0
+    }
 
     private var sellStats: [StatValue]? {
         guard
+            let tokenData,
             tokenModel.isReady,
-            let purchaseData = userModel.purchaseData,
             let priceUsd = tokenModel.prices.last?.priceUsd,
             priceUsd > 0,
             activeTab == .sell
@@ -30,14 +38,16 @@ struct TokenInfoPreview: View {
         }
         var stats = [StatValue]()
         // Calculate current value
-        let tokenBalance = Double(userModel.balanceToken ?? 0) / 1e9
+        // todo: replace hard coded decimals with token decimals
+        let decimals = tokenData.metadata.decimals 
+        let tokenBalance = Double(balanceToken) / pow(10.0, Double(decimals))
         let tokenBalanceUsd = tokenBalance * (tokenModel.prices.last?.priceUsd ?? 0)
-        let initialValueUsd = priceModel.usdcToUsd(usdc: purchaseData.amountUsdc)
 
         // Calculate profit
-        let gains = tokenBalanceUsd - initialValueUsd
 
-        if purchaseData.amountUsdc > 0, initialValueUsd > 0 {
+        if let amountUsdc = userModel.purchaseData?.amountUsdc, amountUsdc > 0 {
+            let initialValueUsd = priceModel.usdcToUsd(usdc: amountUsdc)
+            let gains = tokenBalanceUsd - initialValueUsd
             let percentageGain = gains / initialValueUsd * 100
             stats.append(
                 StatValue(
@@ -54,21 +64,24 @@ struct TokenInfoPreview: View {
             StatValue(
                 title: "You own",
                 value:
-                    "\(priceModel.formatPrice(usd: tokenBalanceUsd, maxDecimals: 2, minDecimals: 2)) (\(formatLargeNumber(tokenBalance)) \(tokenModel.token.symbol))"
+                    "\(priceModel.formatPrice(usd: tokenBalanceUsd, maxDecimals: 2, minDecimals: 2)) (\(formatLargeNumber(tokenBalance)) \(tokenData.metadata.symbol))"
             )
         )
         return stats
     }
 
     private var generalStats: [StatValue] {
-        let token = tokenModel.token
-        let ret = [
-            StatValue(title: "Market Cap", value: priceModel.formatPrice(usd: token.marketCapUsd, formatLarge: true)),
-            StatValue(title: "Change", caption: HOT_TOKENS_INTERVAL, value: String(format: "%.2f%%", token.stats.priceChangePct)),
-            StatValue(title: "Volume", caption: HOT_TOKENS_INTERVAL, value: priceModel.formatPrice(usd: token.stats.volumeUsd, formatLarge: true)),
-            StatValue(title: "Trades", caption: HOT_TOKENS_INTERVAL, value: token.stats.trades.formatted()),
-        ]
-        return ret
+        if let token = userModel.tokenData[tokenModel.tokenId]
+        , let liveData = token.liveData {
+            return [
+                // todo: readd when quicknode fixes this value
+//                StatValue(title: "Market Cap", value: priceModel.formatPrice(usd: liveData.marketCapUsd, formatLarge: true)),
+                StatValue(title: "Change", caption: HOT_TOKENS_INTERVAL, value: String(format: "%.2f%%", liveData.stats.priceChangePct)),
+                StatValue(title: "Volume", caption: HOT_TOKENS_INTERVAL, value: priceModel.formatPrice(usd: liveData.stats.volumeUsd, formatLarge: true)),
+                StatValue(title: "Trades", caption: HOT_TOKENS_INTERVAL, value: liveData.stats.trades.formatted()),
+            ]
+        }
+        return []
     }
 
     private var statRows: Int { (generalStats.count + 1) / 2 }
@@ -98,6 +111,7 @@ struct TokenInfoPreview: View {
                     }
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: 60)
             .padding(24)
             .background(colorScheme == .dark ? Gradients.grayGradient : Gradients.clearGradient)
             .overlay(
@@ -129,13 +143,17 @@ struct TokenInfoPreview: View {
                 .frame(maxWidth: .infinity, maxHeight: 8)
                 .padding(.bottom, -4)
         }
-        .frame(maxHeight: 100)
         .onTapGesture {
             self.showInfoOverlay.toggle()
         }
         .sheet(isPresented: $showInfoOverlay) {
-            TokenInfoCardView(tokenModel: tokenModel, stats: generalStats)
-                .presentationDetents([.height(400)])
+                if let tokenData {
+                    TokenInfoCardView(tokenData: tokenData, stats: generalStats)
+                        .presentationDetents([.height(400)])
+                } else {
+                    ErrorView(errorMessage: "Couldn't find token information.", retryAction: {})
+                        .presentationDetents([.height(400)])
+                }
         }
     }
 }
@@ -183,32 +201,37 @@ private struct StatView: View {
     }()
 
     var activeTab: PurchaseState {
-        let balance: Int = userModel.balanceToken ?? 0
-        return balance > 0 ? .sell : .buy
+        return balanceToken > 0 ? .sell : .buy
     }
 
     // Create mock token model with sample data
     let tokenModel = {
         let model = TokenModel()
-        spoofTokenModelData(model)
+        spoofTokenModelData(userModel: userModel, tokenModel: model)
         return model
     }()
 
+    var balanceToken : Int {
+       userModel.tokenData[tokenModel.tokenId]?.balanceToken ?? 0
+    }
+    
     VStack {
         VStack {
             Text("Modifiers")
             PrimaryButton(text: "Toggle Buy/Sell") {
-                if userModel.balanceToken ?? 0 > 0 {
-                    userModel.balanceToken = 0
-                    userModel.purchaseData = nil
-                }
-                else {
-                    userModel.balanceToken = 100
-                    userModel.purchaseData = PurchaseData(
-                        timestamp: Date().addingTimeInterval(-60 * 60),
-                        amountUsdc: 1000,
-                        priceUsdc: 100
-                    )
+                Task{
+                    if balanceToken > 0 {
+                        await userModel.updateTokenData(mint: tokenModel.tokenId, balance: 0)
+                        userModel.purchaseData = nil
+                    }
+                    else {
+                        await userModel.updateTokenData(mint: tokenModel.tokenId, balance: 100)
+                        userModel.purchaseData = PurchaseData(
+                            timestamp: Date().addingTimeInterval(-60 * 60),
+                            amountUsdc: 1000,
+                            priceUsdc: 100
+                        )
+                    }
                 }
             }
             PrimaryButton(text: "Toggle Dark Mode") {

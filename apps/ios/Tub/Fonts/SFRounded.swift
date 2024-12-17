@@ -29,7 +29,6 @@ extension Font {
         let screenHeight = UIScreen.main.bounds.height
         
         // iPhone SE height is around 667, iPhone 16 Pro Max is 1024
-        let minHeight: CGFloat = 667
         let maxHeight: CGFloat = 1024
         
         // Scale font size based on screen height

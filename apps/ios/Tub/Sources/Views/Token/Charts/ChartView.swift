@@ -11,7 +11,7 @@ import SwiftUI
 
 struct ChartView: View {
     @EnvironmentObject var priceModel: SolPriceModel
-	@Binding var animate: Bool
+	let animate: Bool
     let rawPrices: [Price]
     let height: CGFloat
     let purchaseData: PurchaseData?
@@ -21,7 +21,7 @@ struct ChartView: View {
     let initialPointSize: Double = 35
     @State private var pointSize: Double = 35
 
-    private let xAxisPadding: Double = Timespan.live.seconds * 0.13
+    private let xAxisPadding: Double = Timespan.live.seconds * 0.1
 
     var purchasePriceUsd: Double? {
         if let priceUsdc = purchaseData?.priceUsdc {
@@ -31,16 +31,16 @@ struct ChartView: View {
             return nil
         }
     }
-    init(rawPrices: [Price], purchaseData: PurchaseData? = nil, animate: Binding<Bool>, height: CGFloat = 330) {
+    init(rawPrices: [Price], purchaseData: PurchaseData? = nil, animate: Bool, height: CGFloat = 330) {
 		self.rawPrices = rawPrices
         self.purchaseData = purchaseData
-		self._animate = animate
+		self.animate = animate
         self.height = height
     }
 
     private func updatePrices() {
         let cutoffTime = Date().addingTimeInterval(-Timespan.live.seconds)
-        prices = rawPrices.filter { $0.timestamp > cutoffTime }
+        prices = rawPrices.sorted(by: { $0.timestamp < $1.timestamp }).filter { $0.timestamp > cutoffTime }
     }
 
     private var xDomain: ClosedRange<Date> {
@@ -240,7 +240,7 @@ struct PillView: View {
                 ChartView(
 					rawPrices: spoofPrices,
                     purchaseData: showPurchaseData ? purchaseData : nil,
-					animate: Binding.constant(false),
+					animate: false,
                     height: 330
                 )
                 .border(.red)

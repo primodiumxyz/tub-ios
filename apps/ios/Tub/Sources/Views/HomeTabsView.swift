@@ -20,7 +20,7 @@ class TabsViewModel: ObservableObject {
         Task(priority: .low) {
             do {
                 try await Network.shared.recordClientEvent(
-                    event: ClientEvent(
+                    event: Network.ClientEvent(
                         eventName: "tab_dwell_time",
                         source: "home_tabs_view",
                         metadata: [
@@ -52,36 +52,28 @@ class TabsViewModel: ObservableObject {
 
         // Record selection of new tab
         Task {
-            do {
-                try await Network.shared.recordClientEvent(
-                    event: ClientEvent(
-                        eventName: "tab_selected",
-                        source: "home_tabs_view",
-                        metadata: [
-                            ["tab_name": tabName]
-                        ]
-                    )
+            try? await Network.shared.recordClientEvent(
+                event: Network.ClientEvent(
+                    eventName: "tab_selected",
+                    source: "home_tabs_view",
+                    metadata: [
+                        ["tab_name": tabName]
+                    ]
                 )
-                print("Successfully recorded tab selection")
-                // Start timing for new tab
-            }
-            catch {
-                print("Failed to record tab selection: \(error)")
-            }
-            tabStartTime = Date()
-
+            )
         }
     }
 }
 
 struct HomeTabsView: View {
-    var color = Color(red: 0.43, green: 0.97, blue: 0.98)
     @EnvironmentObject private var userModel: UserModel
     @EnvironmentObject private var priceModel: SolPriceModel
     @StateObject private var vm = TabsViewModel()
     @State private var refreshCounter = 0  // Tracks re-taps on the same tab
 
     var body: some View {
+                     
+       
         Group {
             if !priceModel.isReady {
                 LoadingView(
@@ -93,7 +85,7 @@ struct HomeTabsView: View {
                 ZStack {
                     // Main content with TabView
                     TabView(selection: $vm.selectedTab) {
-                        TokenListView()
+                          TokenListView()
                             .id(refreshCounter)
                             .tabItem {
                                 VStack {
@@ -105,33 +97,58 @@ struct HomeTabsView: View {
                             }
                             .tag(0)
 
-                        NavigationStack {
-                            HistoryView()
-                                .id(refreshCounter)
-                        }
-                        .tabItem {
-                            VStack {
-                                Image(systemName: "clock")
-                                    .font(.system(size: 24))
-                                Text("History")
-                                    .font(.system(size: 12))
-                            }
-                        }
-                        .tag(1)
+                       NavigationStack {
+                           HistoryView()
+                               .id(refreshCounter)
+                       }
+                       .tabItem {
+                           VStack {
+                               Image(systemName: "clock")
+                                   .font(.system(size: 24))
+                               Text("History")
+                                   .font(.system(size: 12))
+                           }
+                       }
+                       .tag(1)
 
-                        NavigationStack {
-                            AccountView()
-                                .id(refreshCounter)
-                        }
-                        .tabItem {
-                            VStack {
-                                Image(systemName: "person")
-                                    .font(.system(size: 24))
-                                Text("Account")
-                                    .font(.system(size: 12))
-                            }
-                        }
-                        .tag(2)
+                       NavigationStack {
+                           AccountView()
+                               .id(refreshCounter)
+                       }
+                       .tabItem {
+                           VStack {
+                               Image(systemName: "person")
+                                   .font(.system(size: 24))
+                               Text("Account")
+                                   .font(.system(size: 12))
+                           }
+                       }
+                       .tag(2)
+                       
+                       TokenBalancesView()
+                       .tabItem {
+                           VStack {
+                               Image(systemName: "book.closed.fill")
+                                   .font(.system(size: 24))
+                               Text("Portfolio")
+                                   .font(.system(size: 12))
+                           }
+                       }
+                       .tag(3)
+                       
+                       TestTxView()
+                       .tabItem {
+                           VStack {
+                               Image(systemName: "testtube.2")
+                                   .font(.system(size: 24))
+                               Text("Test Tx")
+                                   .font(.system(size: 12))
+                           }
+                       }
+                       .tag(4)
+                        
+
+
                     }
                     .background(Color(UIColor.systemBackground))
                     .ignoresSafeArea(.keyboard)
@@ -175,7 +192,7 @@ struct TabTapOverlay: View {
     var body: some View {
         GeometryReader { proxy in
             HStack(spacing: 0) {
-                ForEach(0..<3, id: \.self) { index in
+                ForEach(0..<5, id: \.self) { index in
                     Rectangle()
                         .fill(Color.clear)
                         .contentShape(Rectangle())

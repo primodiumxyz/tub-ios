@@ -56,7 +56,7 @@ class LoadingTracker: ObservableObject {
         // Record loading metrics as client event
         Task(priority: .low) {
             try? await Network.shared.recordClientEvent(
-                event: ClientEvent(
+                event: Network.ClientEvent(
                     eventName: "loading_time",
                     source: "loading_tracker",
                     metadata: [

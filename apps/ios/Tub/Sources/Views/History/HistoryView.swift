@@ -8,169 +8,28 @@
 import SwiftUI
 import TubAPI
 
-struct HistoryView: View {
 
+struct HistoryView: View {
     @EnvironmentObject private var userModel: UserModel
     @EnvironmentObject private var priceModel: SolPriceModel
-
-    @State private var txs: [TransactionData]
-    @State private var isReady: Bool
-    @State private var error: Error?
-    @State private var tokenMetadata: [String: TokenMetadata] = [:]  // Cache for token metadata
-
-    struct TokenMetadata {
-        let name: String
-        let symbol: String
-        let imageUri: String?
-    }
-
-    init(txs: [TransactionData]? = []) {
-        self._txs = State(initialValue: txs!.isEmpty ? [] : txs!)
-        self._isReady = State(initialValue: txs != nil)
-        self._error = State(initialValue: nil)  // Add this line
-    }
-
-    func fetchTokenMetadata(addresses: [String]) async throws -> [String: TokenMetadata] {
-        // Find which tokens we need to fetch (not in cache)
-        let uncachedTokens = addresses.filter { !tokenMetadata.keys.contains($0) }
-        
-        // If all tokens are cached, return existing metadata
-        if uncachedTokens.isEmpty {
-            return tokenMetadata
-        }
-        
-        // Only fetch metadata for uncached tokens
-        return try await withCheckedThrowingContinuation { continuation in
-            Network.shared.apollo.fetch(
-                query: GetTokensMetadataQuery(tokens: uncachedTokens)
-            ) { result in
-                switch result {
-                case .success(let graphQLResult):
-                    if let _ = graphQLResult.errors {
-                        continuation.resume(throwing: TubError.unknown)
-                        return
-                    }
-                    
-                    // Create new metadata from fetched data
-                    var updatedMetadata = self.tokenMetadata
-                    
-                    if let tokens = graphQLResult.data?.token_metadata_formatted {
-                        for metadata in tokens {
-                            do {
-                                updatedMetadata[metadata.mint] = TokenMetadata(
-                                    name: metadata.name,
-                                    symbol: metadata.symbol,
-                                    imageUri: metadata.image_uri
-                                )
-                            }
-                        }
-                        continuation.resume(returning: updatedMetadata)
-                    } else {
-                        continuation.resume(throwing: TubError.networkFailure)
-                    }
-                case .failure(let error):
-                    continuation.resume(throwing: error)
-                }
+    @State private var txs: [TransactionData] = []
+    @State private var isReady = false
+    
+    func handleFetchTxs() {
+        Task {
+            do {
+                txs = try await userModel.fetchTxs()
+                
+            } catch {
+                print("Error fetching transactions: \(error)")
+            }
+            await MainActor.run {
+                isReady = true
             }
         }
     }
-
-    func fetchUserTxs(_ walletAddress: String) {
-        isReady = false
-        error = nil
-        let query = GetWalletTransactionsQuery(wallet: walletAddress)
-
-        Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { result in
-            Task {
-                do {
-                    switch result {
-                    case .success(let graphQLResult):
-                        if let tokenTransactions = graphQLResult.data?.token_transaction {
-                            // Get unique token addresses
-                            let uniqueTokens = Set(tokenTransactions.map { $0.token })
-                            
-                            // Fetch all metadata in one call
-                            let metadata = try await fetchTokenMetadata(addresses: Array(uniqueTokens))
-                            await MainActor.run {
-                                self.tokenMetadata = metadata
-                            }
-                            
-                            var processedTxs: [TransactionData] = []
-
-                            for transaction in tokenTransactions {
-                                guard let date = formatDateString(transaction.wallet_transaction_data.created_at)
-                                else {
-                                    continue
-                                }
-
-                                if abs(transaction.amount) == 0 {
-                                    continue
-                                }
-
-                                let metadata = self.tokenMetadata[transaction.token]
-                                let isBuy = transaction.amount >= 0
-                                let mint = transaction.token
-                                let priceUsdc = transaction.token_price
-                                let valueUsdc = Int(transaction.amount) * Int(priceUsdc) / Int(1e9)
-
-                                let newTransaction = TransactionData(
-                                    name: metadata?.name ?? "",
-                                    symbol: metadata?.symbol ?? "",
-                                    imageUri: metadata?.imageUri ?? "",
-                                    date: date,
-                                    valueUsd: priceModel.usdcToUsd(usdc: -valueUsdc),
-                                    valueUsdc: -valueUsdc,
-                                    quantityTokens: Int(transaction.amount),
-                                    isBuy: isBuy,
-                                    mint: mint
-                                )
-
-                                processedTxs.append(newTransaction)
-                            }
-
-                            await MainActor.run {
-                                self.txs = processedTxs
-                                self.isReady = true
-                            }
-                        }
-                    case .failure(let error):
-                        throw error
-                    }
-                }
-                catch {
-                    await MainActor.run {
-                        self.error = error
-                        self.isReady = true
-                    }
-                }
-            }
-        }
-    }
-
-    var body: some View {
-        Group {
-            if let error = error {
-                ErrorView(error: error)
-            }
-            else {
-                HistoryViewContent(
-                    txs: txs,
-                    isReady: $isReady,
-                    fetchUserTxs: fetchUserTxs
-                )
-            }
-        }.onAppear {
-            if let wallet = userModel.walletAddress { fetchUserTxs(wallet) }
-        }
-    }
-}
-
-struct HistoryViewContent: View {
-    @EnvironmentObject private var userModel: UserModel
-    var txs: [TransactionData]
-    @Binding var isReady: Bool
+    
     @State private var filterState = FilterState()
-    var fetchUserTxs: (String) -> Void
 
     var body: some View {
         ScrollView {
@@ -201,11 +60,9 @@ struct HistoryViewContent: View {
                 Spacer()
             }
         }
-        .refreshable {
-            if let wallet = userModel.walletAddress {
-                fetchUserTxs(wallet)
-            }
-        }
+        .onAppear(perform: handleFetchTxs)
+        .refreshable(action: {handleFetchTxs()})
+        
         .navigationTitle("History")
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -270,9 +127,9 @@ struct HistoryViewContent: View {
         if filterState.selectedAmountRange != "All" {
             switch filterState.selectedAmountRange {
             case "< $100":
-                filteredData = filteredData.filter { abs($0.valueUsd) < 100 }
+                filteredData = filteredData.filter { abs(priceModel.usdcToUsd(usdc: $0.valueUsdc)) < 100 }
             case "> $100":
-                filteredData = filteredData.filter { abs($0.valueUsd) > 100 }
+                filteredData = filteredData.filter { abs(priceModel.usdcToUsd(usdc: $0.valueUsdc)) > 100 }
             default:
                 break
             }
@@ -280,6 +137,32 @@ struct HistoryViewContent: View {
 
         return filteredData
     }
+
+    // Helper function to group transactions
+func groupTransactions(_ transactions: [TransactionData]) -> [TransactionGroup] {
+    let grouped = Dictionary(grouping: transactions) { transaction in
+        let calendar = Calendar.current
+        let date = calendar.startOfDay(for: transaction.date)
+        return "\(transaction.mint)_\(date)"
+    }
+
+    return grouped.map { _, transactions in
+        let netProfit = transactions.reduce(0) { sum, tx in
+            sum + tx.valueUsdc
+        }
+
+        let firstTx = transactions.sorted { $0.date > $1.date }.first!
+
+        return TransactionGroup(
+            transactions: transactions.sorted { $0.date > $1.date },
+            netProfit: priceModel.usdcToUsd(usdc: netProfit),
+            date: firstTx.date,
+            token: firstTx.mint,
+            symbol: firstTx.symbol,
+            imageUri: firstTx.imageUri
+        )
+    }.sorted { $0.date > $1.date }
+}
 }
 
 struct FilterState {
@@ -341,6 +224,7 @@ struct TransactionFilters: View {
                 }
             }
             .padding()
+            .foregroundStyle(.tubTextSecondary)
         }
         .frame(height: 44)
     }
@@ -405,7 +289,7 @@ struct TransactionRow: View {
             }
             Spacer()
             VStack(alignment: .trailing) {
-                let price = priceModel.formatPrice(usd: transaction.valueUsd, showSign: true)
+                let price = priceModel.formatPrice(usdc: transaction.valueUsdc, showSign: true)
                 Text(price)
                     .font(.sfRounded(size: .base, weight: .bold))
                     .foregroundStyle(transaction.isBuy ? Color.red : Color.green)

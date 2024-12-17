@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { AppRouter, createAppRouter } from "../src/createAppRouter";
-import { OctaneService } from "../src/OctaneService";
-import { TubService } from "../src/TubService";
+import { JupiterService } from "../src/services/JupiterService";
+import { TubService } from "../src/services/TubService";
 import { parseEnv } from "../bin/parseEnv";
 import fastifyWebsocket from "@fastify/websocket";
 import { PrivyClient } from "@privy-io/server-auth";
@@ -14,8 +14,6 @@ import { createClient as createGqlClient } from "@tub/gql";
 import { config } from "dotenv";
 import fastify from "fastify";
 import bs58 from "bs58";
-
-const cacheManager = await import("cache-manager");
 
 config({ path: "../../.env" });
 
@@ -56,13 +54,6 @@ export const start = async () => {
   try {
     const connection = new Connection(`${env.QUICKNODE_ENDPOINT}/${env.QUICKNODE_TOKEN}`, "confirmed");
 
-    // Initialize cache for OctaneService
-    const cache = cacheManager.default.caching({
-      store: "memory",
-      max: 100,
-      ttl: 10 /*seconds*/,
-    });
-
     // Initialize fee payer keypair from base58 private key
     const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY));
 
@@ -80,19 +71,10 @@ export const start = async () => {
 
     const jupiterQuoteApi = createJupiterApiClient(jupiterConfig);
 
-    // Initialize OctaneService
-    const octaneService = new OctaneService(
-      connection,
-      jupiterQuoteApi,
-      feePayerKeypair,
-      new PublicKey(env.OCTANE_TRADE_FEE_RECIPIENT),
-      env.OCTANE_BUY_FEE,
-      env.OCTANE_SELL_FEE,
-      env.OCTANE_MIN_TRADE_SIZE,
-      cache,
-    );
+    // Initialize JupiterService
+    const jupiterService = new JupiterService(connection, jupiterQuoteApi);
 
-    if (!process.env.GRAPHQL_URL && env.NODE_ENV === "production") {
+    if (!env.GRAPHQL_URL && env.NODE_ENV === "production") {
       throw new Error("GRAPHQL_URL is not set");
     }
     const gqlClient = (
@@ -104,7 +86,7 @@ export const start = async () => {
 
     const privy = new PrivyClient(env.PRIVY_APP_ID, env.PRIVY_APP_SECRET);
 
-    const tubService = new TubService(gqlClient, privy, octaneService);
+    const tubService = await TubService.create(gqlClient, privy, jupiterService);
 
     // @see https://trpc.io/docs/server/adapters/fastify
     server.register(fastifyTRPCPlugin<AppRouter>, {

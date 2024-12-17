@@ -12,33 +12,62 @@ struct ActionButtonsView: View {
     @EnvironmentObject var userModel: UserModel
     @EnvironmentObject var priceModel: SolPriceModel
     @ObservedObject var tokenModel: TokenModel
-    @Binding var showBuySheet: Bool
+    
+    @State var showBuySheet = false
     @StateObject private var settingsManager = SettingsManager.shared
     @State private var isLoginPresented = false
 
-    @Binding var showBubbles: Bool
-
-    var handleBuy: (Double) async -> Void
-    var onSellSuccess: (() -> Void)?
 
     init(
-        tokenModel: TokenModel,
-        showBuySheet: Binding<Bool>,
-        showBubbles: Binding<Bool>,
-        handleBuy: @escaping (Double) async -> Void,
-        onSellSuccess: (() -> Void)? = nil
+        tokenModel: TokenModel
     ) {
         self.tokenModel = tokenModel
-        self._showBuySheet = showBuySheet
-        self._showBubbles = showBubbles
-        self.handleBuy = handleBuy
-        self.onSellSuccess = onSellSuccess
     }
 
-    var activeTab: PurchaseState {
-        let balance: Int = userModel.balanceToken ?? 0
-        return balance > 0 ? .sell : .buy
+    var balanceToken: Int {
+        userModel.tokenData[tokenModel.tokenId]?.balanceToken ?? 0
     }
+    
+    var activeTab: PurchaseState {
+        return balanceToken > 0 ? .sell : .buy
+    }
+
+    func handleBuy() {
+        guard let priceUsd = tokenModel.prices.last?.priceUsd, priceUsd > 0
+        else {
+            notificationHandler.show(
+                "Something went wrong.",
+                type: .error
+            )
+            return
+        }
+
+        let priceUsdc = priceModel.usdToUsdc(usd: priceUsd)
+        let buyAmountUsdc = SettingsManager.shared.defaultBuyValueUsdc
+
+        Task {
+            do {
+                try await TxManager.shared.buyToken(
+                    tokenId: tokenModel.tokenId, buyAmountUsdc: buyAmountUsdc, tokenPriceUsdc: priceUsdc
+                )
+                await MainActor.run {
+                    showBuySheet = false
+                    notificationHandler.show(
+                        "Successfully bought tokens!",
+                        type: .success
+                    )
+                }
+            }
+            catch {
+                notificationHandler.show(
+                    error.localizedDescription,
+                    type: .error
+                )
+            }
+        }
+    }
+    
+    
 
     func handleSell() async {
         // Only trigger haptic feedback if vibration is enabled
@@ -51,13 +80,14 @@ struct ActionButtonsView: View {
             return
         }
 
-        let priceUsdc = priceModel.usdToUsdc(usd: tokenPriceUsd)
-
         do {
-            try await userModel.sellTokens(price: priceUsdc)
+            try await TxManager.shared.sellToken(tokenId: tokenModel.tokenId, tokenPriceUsd: tokenPriceUsd)
             await MainActor.run {
-                showBubbles = true
-                onSellSuccess?()
+                BubbleManager.shared.trigger()
+                notificationHandler.show(
+                                            "Successfully sold tokens!",
+                                            type: .success
+                                        )
             }
         }
         catch {
@@ -77,8 +107,8 @@ struct ActionButtonsView: View {
                 switch userModel.walletState {
                 case .connected(_):
                     if activeTab == .buy {
-                        if let balanceUsdc = userModel.balanceUsdc,
-                            priceModel.usdcToUsd(usdc: balanceUsdc) < 0.1
+                        if let usdcBalance = userModel.usdcBalance,
+                            priceModel.usdcToUsd(usdc: usdcBalance) < 0.1
                         {
                             AirdropButton()
                         }
@@ -89,15 +119,16 @@ struct ActionButtonsView: View {
                                     color: .tubBuyPrimary,
                                     iconSize: 20,
                                     iconWeight: .bold,
+                                    disabled: !tokenModel.isReady,
                                     action: { showBuySheet = true }
                                 )
 
-                                BuyButton(handleBuy: handleBuy)
+                                BuyButton(handleBuy: handleBuy, disabled: !tokenModel.isReady)
                             }
                         }
                     }
                     else {
-                        SellButtons(onSell: handleSell)
+                        SellButton(onSell: handleSell, disabled: !tokenModel.isReady)
                     }
                 case .connecting:
                     ConnectingButton()
@@ -113,8 +144,7 @@ struct ActionButtonsView: View {
         .sheet(isPresented: $showBuySheet) {
             BuyFormView(
                 isVisible: $showBuySheet,
-                tokenModel: tokenModel,
-                onBuy: handleBuy
+                tokenModel: tokenModel
             )
         }
     }
@@ -166,21 +196,10 @@ private struct AirdropButton: View {
     @EnvironmentObject private var notificationHandler: NotificationHandler
     @State var showOnrampView = false
 
-    func handleAirdrop() {
-        Task {
-            do {
-                try await userModel.performAirdrop()
-                notificationHandler.show("Airdrop successful!", type: .success)
-            }
-            catch {
-                notificationHandler.show("Airdrop failed \(error.localizedDescription)", type: .error)
-            }
-        }
-    }
     var body: some View {
         PrimaryButton(
-            text: "Get 1 test SOL",
-            action: handleAirdrop
+            text: "Deposit to buy",
+            action: { showOnrampView.toggle() }
         )
         .sheet(isPresented: $showOnrampView) {
             CoinbaseOnrampView()
@@ -193,39 +212,40 @@ private struct BuyButton: View {
     @EnvironmentObject var priceModel: SolPriceModel
     @State private var showOnrampView = false
     @StateObject private var settingsManager = SettingsManager.shared
+    @StateObject private var txManager = TxManager.shared
 
-    var handleBuy: (Double) async -> Void
+    var handleBuy: () -> Void
+    var disabled = false
 
     var body: some View {
         PrimaryButton(
-            text: "Buy \(priceModel.formatPrice(usd: settingsManager.defaultBuyValueUsd))",
-            action: {
-                Task {
-                    await handleBuy(settingsManager.defaultBuyValueUsd)
-                }
-            }
+            text: "Buy \(priceModel.formatPrice(usdc: settingsManager.defaultBuyValueUsdc))",
+            disabled: disabled,
+            loading: txManager.submittingTx,
+            action: handleBuy
         )
     }
 }
 
-struct SellButtons: View {
+struct SellButton: View {
     @EnvironmentObject var priceModel: SolPriceModel
-
+    @StateObject private var txManager = TxManager.shared
     var onSell: () async -> Void
+    var disabled: Bool = false
 
     var body: some View {
-        HStack(spacing: 8) {
             PrimaryButton(
                 text: "Sell",
                 textColor: .white,
                 backgroundColor: .tubSellPrimary,
+                disabled: disabled,
+                loading: txManager.submittingTx,
                 action: {
                     Task {
                         await onSell()
                     }
                 }
             )
-        }
     }
 }
 
@@ -235,7 +255,7 @@ struct SellButtons: View {
 /// It's used to optimize SwiftUI's view updates by preventing unnecessary redraws.
 extension ActionButtonsView: Equatable {
     static func == (lhs: ActionButtonsView, rhs: ActionButtonsView) -> Bool {
-        lhs.tokenModel.token.id == rhs.tokenModel.token.id
+        lhs.tokenModel.tokenId == rhs.tokenModel.tokenId
     }
 }
 
@@ -246,7 +266,7 @@ extension ActionButtonsView: Equatable {
         @StateObject var notificationHandler = NotificationHandler()
         var userModel = {
             let model = UserModel.shared
-            model.balanceUsdc = 100 * Int(1e9)
+            model.usdcBalance = 100 * Int(SOL_DECIMALS)
             return model
         }()
 
@@ -258,14 +278,6 @@ extension ActionButtonsView: Equatable {
 
         @State var isDark: Bool = true
 
-        func toggleBuySell() {
-            if userModel.balanceToken ?? 0 > 0 {
-                userModel.balanceToken = 0
-            }
-            else {
-                userModel.balanceToken = 100
-            }
-        }
         func toggleWalletConnectionState() {
             // You can add your function implementation here
             if userModel.walletState.toString == "connected" {
@@ -282,13 +294,17 @@ extension ActionButtonsView: Equatable {
             }
         }
 
+        var tokenModel = {
+            let model = TokenModel()
+            model.isReady = true
+            return model
+        }()
+        
+            
         var body: some View {
             VStack {
                 VStack {
                     Text("Modifiers")
-                    PrimaryButton(text: "Toggle Buy/Sell") {
-                        toggleBuySell()
-                    }
                     PrimaryButton(text: "Toggle Connection") {
                         toggleWalletConnectionState()
                     }
@@ -298,11 +314,7 @@ extension ActionButtonsView: Equatable {
                 }.padding(16).background(.tubBuySecondary)
                 Spacer().frame(height: 50)
                 ActionButtonsView(
-                    tokenModel: TokenModel(),
-                    showBuySheet: $show,
-                    showBubbles: Binding.constant(false),
-                    handleBuy: { _ in },
-                    onSellSuccess: nil
+                    tokenModel: tokenModel
                 )
                 .border(.red)
             }

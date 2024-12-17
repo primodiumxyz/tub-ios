@@ -12,28 +12,36 @@ func spoofPriceModelData(_ model: SolPriceModel) {
     model.isReady = true
 }
 
-func spoofTokenModelData(_ model: TokenModel) {
+func spoofTokenModelData(userModel: UserModel, tokenModel: TokenModel) {
     // Mock token data
-    model.token = Token(
-        id: "mock_token_id",
-        name: "Mock Token",
-        symbol: "MOCK",
-        description: "A mock token for preview",
-        imageUri: "https://example.com/mock.png",
-        externalUrl: "https://example.com/mock",
-        decimals: 6,
-        supply: 1_000_000_000,
-        latestPriceUsd: 0.0075,
-        stats: IntervalStats(volumeUsd: 750_000, trades: 370, priceChangePct: 17.3),
-        recentStats: IntervalStats(volumeUsd: 8_000, trades: 27, priceChangePct: 3.46)
-    )
-
-    // Set isReady to true
-    model.isReady = true
+    Task { @MainActor in
+        await userModel.updateTokenData(
+            mint: "mock_token_id",
+            balance: 0,
+            metadata: TokenMetadata(
+                name: "Mock Token",
+                symbol: "MOCK",
+                description: "A mock token for preview",
+                imageUri: "https://example.com/mock.png",
+                externalUrl: "https://example.com/mock",
+                decimals: 6
+            ),
+            liveData: TokenLiveData(
+                supply: 1_000_000_000,
+                priceUsd: 0.0075,
+                stats: IntervalStats(volumeUsd: 750_000, trades: 370, priceChangePct: 17.3),
+                recentStats: IntervalStats(volumeUsd: 8_000, trades: 27, priceChangePct: 3.46)
+            )
+        )
+        
+        // Set isReady to true
+        tokenModel.updateTokenDetails("mock_token_id")
+        tokenModel.isReady = true
+    }
 
     // Mock price data for the last hour (using CHART_INTERVAL)
     let now = Date()
-    model.prices = (0..<60).map { i in
+    tokenModel.prices = (0..<60).map { i in
         let timestamp = now.addingTimeInterval(-Double(i) * PRICE_UPDATE_INTERVAL)
         // Create a sine wave pattern for visual interest
         let basePrice = 100.0
@@ -45,7 +53,7 @@ func spoofTokenModelData(_ model: TokenModel) {
     }.reversed()
 
     // Mock candle data for the last 30 minutes (using CANDLES_INTERVAL)
-    model.candles = (0..<30).map { i in
+    tokenModel.candles = (0..<30).map { i in
         let start = now.addingTimeInterval(-Double(i) * 60)
         let end = start.addingTimeInterval(60)
         // Create some variation in the candle data

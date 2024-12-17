@@ -1,5 +1,3 @@
-import { PrivyClient } from "@privy-io/server-auth";
-
 export class MockPrivyClient {
   private testWalletAddress: string;
 
@@ -7,19 +5,21 @@ export class MockPrivyClient {
     this.testWalletAddress = testWalletAddress;
   }
 
-  async verifyAuthToken(_token: string) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async verifyAuthToken(_: string) {
     return { userId: "test_user_id" };
   }
 
-  async getUserById(_userId: string) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async getUserById(_: string) {
     return {
       linkedAccounts: [
         {
           type: "wallet",
           chainType: "solana",
-          address: this.testWalletAddress
-        }
-      ]
+          address: this.testWalletAddress,
+        },
+      ],
     };
   }
-} 
+}
