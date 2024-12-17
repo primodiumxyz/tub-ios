@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { RedisService } from "./RedisService";
+import defaultConfig from "../../test/default-redis-config.json";
 
 export const configSchema = z
   .object({
@@ -38,7 +39,17 @@ export class ConfigService {
   }
 
   private async init() {
-    await this.syncWithRedis();
+    // Try to sync first
+    try {
+      await this.syncWithRedis();
+    } catch (e) {
+      // If sync fails, initialize with defaults
+      console.log("Initializing Redis with default configuration...");
+      await this.redis.set(this.REDIS_KEY, JSON.stringify(defaultConfig));
+      await this.syncWithRedis();
+      throw e;
+    }
+
     this.startPeriodicSync();
     this.initialized = true;
   }
