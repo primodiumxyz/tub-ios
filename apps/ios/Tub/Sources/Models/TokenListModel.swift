@@ -200,7 +200,7 @@ final class TokenListModel: ObservableObject {
                             return []
                         }
                     }()
-                    try? await UserModel.shared.refreshBulkTokenData(tokenMints: hotTokens)
+                    try? await UserModel.shared.refreshBulkTokenData(tokenMints: hotTokens, options: .init(withBalances: false, withLiveData: true))
                     await MainActor.run {
                         if !self.initialFetchComplete { self.initialFetchComplete = true }
 

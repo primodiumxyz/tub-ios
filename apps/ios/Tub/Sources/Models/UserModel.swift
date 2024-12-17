@@ -19,7 +19,6 @@ final class UserModel: ObservableObject {
     
     @Published var initializingUser: Bool = false
     
-    @Published var usdcBalance: Int? = nil
     @Published var initialTime = Date()
     @Published var elapsedSeconds: TimeInterval = 0
     
@@ -31,9 +30,7 @@ final class UserModel: ObservableObject {
     @Published var initialPortfolioBalance: Double? = nil
     
     var portfolioBalanceUsd : Double? {
-        guard let usdcBalance else { return nil }
-        let usdcBalanceUsd = SolPriceModel.shared.usdcToUsd(usdc: usdcBalance)
-        let tokenValue = self.tokenPortfolio.reduce(0.0) { total, key in
+        let tokenValueUsd = self.tokenPortfolio.reduce(0.0) { total, key in
               if let token = tokenData[key] {
                 let price = token.liveData?.priceUsd ?? 0
                 let balance = Double(token.balanceToken)
@@ -42,9 +39,11 @@ final class UserModel: ObservableObject {
               }
               return total
             }
-        return usdcBalanceUsd + tokenValue
+        let usdcValueUsd = SolPriceModel.shared.usdcToUsd(usdc: usdcBalance ?? 0)
+        return usdcValueUsd + tokenValueUsd
     }
-    
+
+    @Published var usdcBalance: Int? = nil
     @Published var hasSeenOnboarding: Bool {
         didSet {
             UserDefaults.standard.set(hasSeenOnboarding, forKey: "hasSeenOnboarding")
@@ -130,15 +129,12 @@ final class UserModel: ObservableObject {
         }
         
         do {
-            async let usdcBalanceTask : () = fetchUsdcBalance()
-            async let portfolioTask : () = refreshPortfolio()
-            let _ = try await (usdcBalanceTask, portfolioTask)
+            try await refreshPortfolio()
             
             await MainActor.run {
                 self.initialPortfolioBalance = self.portfolioBalanceUsd
             }
 
-            startPollingUsdcBalance()
             startPollingTokenPortfolio()
 
         } catch {
@@ -152,7 +148,11 @@ final class UserModel: ObservableObject {
             self.initializingUser = false
         }
     }
-    
+
+    /* -------------------------------------------------------------------------- */
+    /*                          Token Data and Portfolio                          */
+    /* -------------------------------------------------------------------------- */
+
     private var tokenPortfolioTimer: Timer?
     let PORTFOLIO_POLL_INTERVAL: TimeInterval = 60
     
@@ -172,36 +172,39 @@ final class UserModel: ObservableObject {
         }
     }
     
-
-    /* -------------------------------------------------------------------------- */
-    /*                          Token Data and Portfolio                          */
-    /* -------------------------------------------------------------------------- */
-
+    
     public func refreshPortfolio() async throws {
         let tokenBalances = try await Network.shared.getAllTokenBalances()
         
-        let tokenMints = Array(tokenBalances.keys)
+        let tokenMints = tokenBalances.filter { $0.value > 0 && $0.key != USDC_MINT }.map { $0.key }
+        
         async let metadataFetch = fetchBulkTokenMetadata(tokenMints: tokenMints)
         async let liveDataFetch = fetchBulkTokenLiveData(tokenMints: tokenMints)
         let (tokenMetadata, tokenLiveData) = try await (metadataFetch, liveDataFetch)
         
-        for mint in tokenMints {
-            if mint == USDC_MINT {
-                continue
-            }
+        for mint in tokenMints + [USDC_MINT] {
             await updateTokenData(mint: mint, balance: tokenBalances[mint], metadata: tokenMetadata[mint], liveData: tokenLiveData[mint])
         }
     }
 
-    public func refreshBulkTokenData(tokenMints: [String], withBalances: Bool = false) async throws {
+    struct RefreshOptions {
+        let withBalances: Bool
+        let withLiveData: Bool
+        
+        init(withBalances: Bool? = nil, withLiveData: Bool? = nil) {
+            self.withBalances = withBalances ?? false
+            self.withLiveData = withLiveData ?? true
+        }
+    }
+    public func refreshBulkTokenData(tokenMints: [String], options: RefreshOptions? = nil) async throws {
+        let withBalances  = options?.withBalances ?? false
+        let withLiveData = options?.withLiveData ?? false
+        
         let balances = withBalances ? try await Network.shared.getAllTokenBalances() : nil
         let tokenMetadata = try await fetchBulkTokenMetadata(tokenMints: tokenMints)
-        let tokenLiveData = try await fetchBulkTokenLiveData(tokenMints: tokenMints)
+        let tokenLiveData = withLiveData ? try await fetchBulkTokenLiveData(tokenMints: tokenMints) : [:]
         
         for mint in tokenMints {
-            if mint == USDC_MINT {
-                continue
-            }
             await updateTokenData(mint: mint, balance: balances?[mint], metadata: tokenMetadata[mint], liveData: tokenLiveData[mint])
         }
     }
@@ -221,7 +224,6 @@ final class UserModel: ObservableObject {
     
     @MainActor
     public func updateTokenPrice(mint: String, priceUsd: Double) {
-        if mint == USDC_MINT { return }
         guard var tokenData = self.tokenData[mint], var liveData = tokenData.liveData else { return }
         
         liveData.priceUsd = priceUsd
@@ -230,7 +232,14 @@ final class UserModel: ObservableObject {
     }
     
     public func updateTokenData(mint: String, balance: Int? = nil, metadata: TokenMetadata? = nil, liveData: TokenLiveData? = nil) async {
-        if mint == USDC_MINT { return }
+        
+        if mint == USDC_MINT {
+            guard let balance else { return }
+            await MainActor.run{
+                self.usdcBalance = balance
+            }
+            return
+        }
         
         let portfolioContainsToken = self.tokenPortfolio.contains(mint)
         if let tokenData = tokenData[mint] {
@@ -298,6 +307,7 @@ final class UserModel: ObservableObject {
     }
     
     func fetchBulkTokenMetadata(tokenMints: [String]) async throws -> [String : TokenMetadata] {
+        if tokenMints.count == 0 { return [:] }
         let uncachedTokens = tokenMints.filter { !tokenData.keys.contains($0) }
         let cachedTokens = tokenMints.filter { tokenData.keys.contains($0) }
         
@@ -381,6 +391,9 @@ final class UserModel: ObservableObject {
     }
 
     func fetchBulkTokenLiveData(tokenMints: [String]) async throws -> [String : TokenLiveData] {
+        if tokenMints.count == 0 {
+            return [:]
+        }
         // note: no caching here because we want to fetch the latest data every time
 
         var ret = [String : TokenLiveData]()
@@ -424,42 +437,11 @@ final class UserModel: ObservableObject {
         tokenPortfolioTimer?.invalidate()
         tokenPortfolioTimer = nil
     }
+
     
     /* -------------------------------------------------------------------------- */
-    /*                                   Balance                                  */
+    /*                               Linked Accounts                              */
     /* -------------------------------------------------------------------------- */
-    public func fetchUsdcBalance() async throws {
-        let balanceUsdc = try await Network.shared.getUsdcBalance()
-        await MainActor.run {
-            self.usdcBalance = balanceUsdc
-        }
-    }
-    
-    
-    private var usdcBalanceTimer: Timer?
-    private let POLL_INTERVAL: TimeInterval = 10.0  // Set your desired interval here
-    
-    private func startPollingUsdcBalance() {
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            self.stopPollingUsdcBalance()  // Ensure any existing timer is invalidated
-            
-            self.usdcBalanceTimer = Timer.scheduledTimer(
-                withTimeInterval: self.POLL_INTERVAL, repeats: true
-            ) { [weak self] _ in
-                guard let self = self else { return }
-                Task {
-                    try await self.fetchUsdcBalance()
-                }
-            }
-        }
-    }
-    
-    private func stopPollingUsdcBalance() {
-        usdcBalanceTimer?.invalidate()
-        usdcBalanceTimer = nil
-    }
-    
     func getLinkedAccounts() -> (
         email: String?, phone: String?, embeddedWallets: [PrivySDK.EmbeddedWallet]
     ) {
@@ -515,13 +497,11 @@ final class UserModel: ObservableObject {
             guard let self = self, self.userId != nil else { return }
             self.walletState = .notCreated
             self.walletAddress = nil
-            self.usdcBalance = 0
             self.initialPortfolioBalance = nil
             self.elapsedSeconds = 0
             self.tokenPortfolio = []
             
             self.stopTimer()
-            self.stopPollingUsdcBalance()
             self.stopPollingTokenPortfolio()
         }
         if !skipPrivy {
@@ -571,7 +551,7 @@ final class UserModel: ObservableObject {
         }
     }
     
-    private func processTxs(tokenTransactions:[GetWalletTransactionsQuery.Data.Transaction]) async throws -> [TransactionData] {
+    private func processTxs(tokenTransactions : [GetWalletTransactionsQuery.Data.Transaction]) async throws -> [TransactionData] {
         var processedTxs : [TransactionData] = []
         // Get unique token addresses
         let uniqueTokens = Set(tokenTransactions.map { $0.token_mint })
@@ -593,9 +573,9 @@ final class UserModel: ObservableObject {
             let mint = transaction.token_mint
             let metadata = tokens[mint]
             let isBuy = transaction.token_amount >= 0
-            let priceUsdc = transaction.token_price_usd
+            let priceUsd = transaction.token_price_usd
             let decimals = metadata?.decimals ?? 9
-            let valueUsdc = Int(transaction.token_amount) * Int(priceUsdc) / Int(pow(10.0,Double(decimals)))
+            let valueUsdc = Int(transaction.token_amount) * Int(priceUsd) / Int(pow(10.0,Double(decimals)))
             
             let newTransaction = TransactionData(
                 name: metadata?.name ?? "",

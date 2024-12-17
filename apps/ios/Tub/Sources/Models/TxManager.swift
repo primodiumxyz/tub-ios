@@ -83,7 +83,6 @@ final class TxManager: ObservableObject {
         // Update tx data if its stale
         
         // Sign and send the tx
-        var txError : Error? = nil
         do {
             let txData = try await Network.shared.getTxData(buyTokenId: buyTokenId, sellTokenId: sellTokenId, sellQuantity: sellQuantity, slippageBps: 2000)
             let provider = try privy.embeddedWallet.getSolanaProvider(for: walletAddress)
@@ -92,24 +91,14 @@ final class TxManager: ObservableObject {
                 txBase64: txData.transactionMessageBase64,
                 signature: signature
             )
+            
+            let tokenId = buyTokenId == USDC_MINT ? sellTokenId : buyTokenId
+            try? await UserModel.shared.refreshBulkTokenData(tokenMints: [USDC_MINT, tokenId], options: .init(withBalances: true, withLiveData: false))
+            
+            await MainActor.run { self.submittingTx = false }
         } catch {
-            txError = error
+            await MainActor.run { self.submittingTx = false }
+            throw error
         }
-
-        await MainActor.run {
-            self.submittingTx = false
-        }
-        
-        // Update USDC balance & token balance
-        let tokenId = buyTokenId == USDC_MINT ? sellTokenId : buyTokenId
-        Task {
-            try? await UserModel.shared.fetchUsdcBalance()
-        }
-        if tokenId != "" {
-            Task {
-                await UserModel.shared.refreshTokenData(tokenMint: tokenId)
-            }
-        }
-        if let txError { throw txError }
     }
 }

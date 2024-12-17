@@ -266,7 +266,10 @@ extension ActionButtonsView: Equatable {
         @StateObject var notificationHandler = NotificationHandler()
         var userModel = {
             let model = UserModel.shared
-            model.usdcBalance = 100 * Int(SOL_DECIMALS)
+            
+            Task {
+                await model.updateTokenData(mint: USDC_MINT, balance: 100 * Int(1e6))
+            }
             return model
         }()
 

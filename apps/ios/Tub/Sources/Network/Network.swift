@@ -232,10 +232,6 @@ class Network {
         }
     }
     
-    func getUsdcBalance() async throws -> Int {
-        return try await getTokenBalance(tokenMint: USDC_MINT)
-    }
-    
     func getTokenBalance(tokenMint: String) async throws -> Int {
         let input = TokenBalanceInput(tokenMint: tokenMint)
         let res: BalanceResponse = try await callQuery("getTokenBalance", input: input)
