@@ -1,5 +1,5 @@
 name: Setup prerequisites
-description: Setup pnpm and Node.js
+description: Setup pnpm, Node.js, and Redis
 runs:
   using: composite
   steps:
@@ -14,3 +14,16 @@ runs:
         node-version: 20.x
         registry-url: https://registry.npmjs.org
         cache: pnpm
+
+    - name: Setup Redis and initialize defaults
+      shell: bash
+      run: |
+        # Install Redis
+        sudo apt-get update
+        sudo apt-get install -y redis-server jq
+        
+        # Start Redis
+        sudo systemctl start redis-server
+        
+        # Initialize with defaults
+        jq -r 'to_entries | .[] | "redis-cli set \(.key) \(.value)"' apps/server/test/default-redis-config.json | sh
