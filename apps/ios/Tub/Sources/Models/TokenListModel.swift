@@ -17,13 +17,15 @@ import TubAPI
 final class TokenListModel: ObservableObject {
     static let shared = TokenListModel()
     
+    var currentTokenIndex = -1
+    
     @Published var pendingTokens: [String] = []
     @Published var tokenQueue: [String] = []
-    var currentTokenIndex = -1
     
     @Published var previousTokenModel: TokenModel?
     @Published var nextTokenModel: TokenModel?
     @Published var currentTokenModel: TokenModel
+    @Published var initialFetchComplete = false
     
     private var hotTokensSubscription: Apollo.Cancellable?
     
@@ -168,7 +170,6 @@ final class TokenListModel: ObservableObject {
     }
     
     
-    @Published var initialFetchComplete = false
     
     public func startTokenSubscription() {
             self.hotTokensSubscription = Network.shared.apollo.subscribe(
@@ -284,7 +285,9 @@ final class TokenListModel: ObservableObject {
         }
     }
     
+    @MainActor
     public func clearQueue() {
+        self.initialFetchComplete = false
         self.tokenQueue = []
         self.pendingTokens = []
         self.currentTokenIndex = -1
