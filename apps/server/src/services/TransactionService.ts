@@ -219,7 +219,10 @@ export class TransactionService {
       await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY)); // Wait 1 second before retrying
     }
 
-    if (!confirmation || confirmation.value?.err) {
+    if (!confirmation) {
+      throw new Error(`Transaction timed out.`);
+    }
+    if (confirmation.value?.err) {
       throw new Error(`Transaction failed: ${JSON.stringify(confirmation?.value?.err)}`);
     }
 

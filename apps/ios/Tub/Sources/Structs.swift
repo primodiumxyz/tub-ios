@@ -10,7 +10,7 @@ struct IntervalStats {
 struct PurchaseData {
   let timestamp: Date
   let amountUsdc: Int
-  let priceUsdc: Int
+  let priceUsd: Double
 }
 
 struct Price: Identifiable, Equatable {

@@ -229,7 +229,7 @@ private struct StatView: View {
                         userModel.purchaseData = PurchaseData(
                             timestamp: Date().addingTimeInterval(-60 * 60),
                             amountUsdc: 1000,
-                            priceUsdc: 100
+                            priceUsd: 1
                         )
                     }
                 }

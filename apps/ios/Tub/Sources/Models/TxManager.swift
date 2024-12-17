@@ -92,13 +92,21 @@ final class TxManager: ObservableObject {
                 signature: signature
             )
             
-            let tokenId = buyTokenId == USDC_MINT ? sellTokenId : buyTokenId
-            try? await UserModel.shared.refreshBulkTokenData(tokenMints: [USDC_MINT, tokenId], options: .init(withBalances: true, withLiveData: false))
-            
-            await MainActor.run { self.submittingTx = false }
         } catch {
             await MainActor.run { self.submittingTx = false }
             throw error
         }
+        let tokenId = buyTokenId == USDC_MINT ? sellTokenId : buyTokenId
+        try? await UserModel.shared.refreshBulkTokenData(tokenMints: [USDC_MINT, tokenId], options: .init(withBalances: true, withLiveData: false))
+        
+        // todo: update swap history in the indexer and fetch the latest sale from a gql query
+        if sellTokenId == USDC_MINT, let priceUsd = UserModel.shared.tokenData[tokenId]?.liveData?.priceUsd {
+            UserModel.shared.purchaseData =  PurchaseData(timestamp:Date.now, amountUsdc: sellQuantity, priceUsd: priceUsd)
+        } else {
+            UserModel.shared.purchaseData =  nil
+        }
+        await MainActor.run { self.submittingTx = false }
+            
+
     }
 }

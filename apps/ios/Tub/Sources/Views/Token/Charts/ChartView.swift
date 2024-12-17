@@ -23,14 +23,6 @@ struct ChartView: View {
 
     private let xAxisPadding: Double = Timespan.live.seconds * 0.1
 
-    var purchasePriceUsd: Double? {
-        if let priceUsdc = purchaseData?.priceUsdc {
-            return priceModel.usdcToUsd(usdc: priceUsdc)
-        }
-        else {
-            return nil
-        }
-    }
     init(rawPrices: [Price], purchaseData: PurchaseData? = nil, animate: Bool, height: CGFloat = 330) {
 		self.rawPrices = rawPrices
         self.purchaseData = purchaseData
@@ -56,8 +48,7 @@ struct ChartView: View {
 
         var pricesWithPurchase = prices
         if let data = purchaseData {
-            let purchasePriceUsd = priceModel.usdcToUsd(usdc: data.priceUsdc)
-            let price = Price(timestamp: data.timestamp, priceUsd: purchasePriceUsd)
+            let price = Price(timestamp: data.timestamp, priceUsd: data.priceUsd)
             pricesWithPurchase.append(price)
         }
 
@@ -96,8 +87,8 @@ struct ChartView: View {
                 .foregroundStyle(.tubBuyPrimary)
                 .symbolSize(initialPointSize)
                 .annotation(position: .top, spacing: 6) {
-                    if let purchasePriceUsd {
-                        let purchaseIncrease = (currentPrice.priceUsd - purchasePriceUsd) / purchasePriceUsd
+                    if let priceUsd = purchaseData?.priceUsd {
+                        let purchaseIncrease = (currentPrice.priceUsd - priceUsd) / priceUsd
                         Text("\(purchaseIncrease >= 0 ? "+" : "")\(String(format: "%.1f%%", purchaseIncrease * 100))")
                             .foregroundStyle(.tubText.opacity(0.9))
                             .padding(8)
@@ -116,7 +107,7 @@ struct ChartView: View {
                 .symbolSize(pointSize)
             }
 
-            if let purchaseData, let purchasePriceUsd {
+            if let purchaseData {
                 // Calculate x position as max of purchase time and earliest chart time
                 let xPosition = max(
                     purchaseData.timestamp,
@@ -124,13 +115,13 @@ struct ChartView: View {
                 )
 
                 // Add horizontal dashed line
-                RuleMark(y: .value("Purchase Price", purchasePriceUsd))
+                RuleMark(y: .value("Purchase Price", purchaseData.priceUsd))
                     .foregroundStyle(.tubSellPrimary.opacity(0.8))
                     .lineStyle(StrokeStyle(lineWidth: 1, dash: [2, 2]))
 
                 PointMark(
                     x: .value("Date", xPosition),  // Updated x-value
-                    y: .value("Price", purchasePriceUsd)
+                    y: .value("Price", purchaseData.priceUsd)
                 )
                 .foregroundStyle(.tubSellPrimary)
                 .symbolSize(initialPointSize)
@@ -215,7 +206,7 @@ struct PillView: View {
             PurchaseData(
                 timestamp: spoofPrices[20].timestamp,
                 amountUsdc: 1000,
-                priceUsdc: priceModel.usdToUsdc(usd: spoofPrices[20].priceUsd)
+                priceUsd: spoofPrices[20].priceUsd
             )
         }
 
