@@ -43,11 +43,16 @@ export class ConfigService {
     try {
       await this.syncWithRedis();
     } catch (e) {
+      console.log(e);
+      // check if redis is running
+      const redisStatus = await this.redis.ping();
+      if (redisStatus !== "PONG") {
+        throw new Error("Redis is not running");
+      }
       // If sync fails, initialize with defaults
       console.log("Initializing Redis with default configuration...");
       await this.redis.set(this.REDIS_KEY, JSON.stringify(defaultConfig));
       await this.syncWithRedis();
-      throw e;
     }
 
     this.startPeriodicSync();
