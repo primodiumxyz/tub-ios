@@ -24,11 +24,16 @@ class TokenModel: ObservableObject {
     private var preloaded = false
     private var initialized = false
     
+    private let activityManager = LiveActivityManager.shared
+    private var purchasePrice: Double?
+    
     @MainActor
     func updatePrice(timestamp: Date, priceUsd: Double?) {
         guard let priceUsd, priceUsd != self.prices.last?.priceUsd else { return }
         self.prices.append(Price(timestamp: timestamp, priceUsd: priceUsd))
         UserModel.shared.updateTokenPrice(mint: tokenId, priceUsd: priceUsd)
+        
+        calculatePriceChange()
     }
 
     func preload(with tokenId: String, timeframeSecs: Double = CHART_INTERVAL) {
@@ -261,12 +266,9 @@ class TokenModel: ObservableObject {
 
         // Find first price corresponding to the selected timespan
         if selectedTimespan == .live {
-            initialPriceUsd =
-                prices.first(where: { $0.timestamp >= startTime })?.priceUsd ?? prices.first?.priceUsd ?? 0
-        }
-        else {
-            // Find the price within the candles data
-            initialPriceUsd = candles.first(where: { $0.start >= startTime })?.close ?? prices.first?.priceUsd ?? 0
+            initialPriceUsd = purchasePrice ?? prices.first(where: { $0.timestamp >= startTime })?.priceUsd ?? prices.first?.priceUsd ?? 0
+        } else {
+            initialPriceUsd = purchasePrice ?? candles.first(where: { $0.start >= startTime })?.close ?? prices.first?.priceUsd ?? 0
         }
 
         if latestPrice == 0 || initialPriceUsd == 0 {
@@ -277,13 +279,28 @@ class TokenModel: ObservableObject {
         let priceChangeUsd = latestPrice - initialPriceUsd
         let priceChangePercentage = Double(priceChangeUsd) / Double(initialPriceUsd) * 100
 
-        DispatchQueue.main.async {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
             self.priceChange = (priceChangeUsd, priceChangePercentage)
+            
+            // Update Dynamic Island if active
+            if self.activityManager.isActivityActive {
+                self.activityManager.updatePriceChange(
+                    currentPrice: latestPrice,
+                    purchasePrice: initialPriceUsd
+                )
+            }
         }
+    }
+
+    func setPurchasePrice(_ price: Double) {
+        purchasePrice = price
     }
 
     func cleanup() {
         stopPollingTokenBalance()
+        purchasePrice = nil
         
         // Clean up subscriptions when the object is deallocated
         priceSubscription?.cancel()

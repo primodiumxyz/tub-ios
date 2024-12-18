@@ -14,6 +14,7 @@ struct BuyFormView: View {
     @ObservedObject var tokenModel: TokenModel
 
     @StateObject var txManager = TxManager.shared
+    @StateObject var activityManager = LiveActivityManager.shared
 
     var buttonLoading: Bool {
         txManager.submittingTx
@@ -50,6 +51,16 @@ struct BuyFormView: View {
                     buyAmountUsdc: amountUsdc,
                     tokenPriceUsdc: priceUsdc
                 )
+                
+                if let tokenData = userModel.tokenData[tokenModel.tokenId] {
+                    activityManager.startTrackingPurchase(
+                        tokenName: tokenData.metadata.name,
+                        symbol: tokenData.metadata.symbol,
+                        imageUrl: tokenData.metadata.imageUri,
+                        purchasePrice: priceUsd
+                    )
+                }
+                
                 await MainActor.run {
                     notificationHandler.show(
                         "Successfully bought tokens!",

@@ -16,13 +16,17 @@ import SwiftUI
         activity != nil
     }
     
-    func startActivity(name: String, symbol: String, initialValue: Double) {
+    func startTrackingPurchase(tokenName: String, symbol: String, imageUrl: String, purchasePrice: Double) {
         // End any existing activity
         stopActivity()
         
-        let attributes = TubActivityAttributes(name: name, symbol: symbol)
+        let attributes = TubActivityAttributes(
+            name: tokenName, 
+            symbol: symbol,
+            imageUrl: imageUrl
+        )
         let contentState = TubActivityAttributes.ContentState(
-            value: initialValue,
+            value: 0.0, // Initial percentage change
             trend: "up",
             timestamp: Date()
         )
@@ -32,20 +36,22 @@ import SwiftUI
                 attributes: attributes,
                 content: .init(state: contentState, staleDate: nil)
             )
-            print("Started live activity: \(String(describing: activity?.id))")
+            print("Started tracking purchase: \(String(describing: activity?.id))")
         } catch {
-            print("Error starting live activity: \(error.localizedDescription)")
+            print("Error starting purchase tracking: \(error.localizedDescription)")
         }
     }
     
-    func updateActivity(newValue: Double, trend: Double) {
+    func updatePriceChange(currentPrice: Double, purchasePrice: Double) {
+        let percentageChange = ((currentPrice - purchasePrice) / purchasePrice) * 100
+        
         Task {
             let contentState = TubActivityAttributes.ContentState(
-                value: newValue,
-                trend: trend > 0 ? "up" : "down",
+                value: percentageChange,
+                trend: percentageChange >= 0 ? "up" : "down",
                 timestamp: Date()
             )
-            print("Updating activity with new value: \(newValue)")
+            print("Updating price change: \(percentageChange)%")
             await activity?.update(.init(state: contentState, staleDate: nil))
         }
     }

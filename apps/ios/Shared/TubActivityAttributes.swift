@@ -17,6 +17,7 @@ struct TubActivityAttributes: ActivityAttributes {
     
     var name: String
     var symbol: String
+    var imageUrl: String
 }
 
 public struct TubWidgetAttributes: ActivityAttributes {

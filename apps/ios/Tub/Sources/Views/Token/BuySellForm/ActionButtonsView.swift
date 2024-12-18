@@ -16,6 +16,7 @@ struct ActionButtonsView: View {
     @State var showBuySheet = false
     @StateObject private var settingsManager = SettingsManager.shared
     @State private var isLoginPresented = false
+    @StateObject private var activityManager = LiveActivityManager.shared
 
 
     init(
@@ -50,6 +51,18 @@ struct ActionButtonsView: View {
                 try await TxManager.shared.buyToken(
                     tokenId: tokenModel.tokenId, buyAmountUsdc: buyAmountUsdc, tokenPriceUsdc: priceUsdc
                 )
+                
+                tokenModel.setPurchasePrice(priceUsd)
+                
+                if let tokenData = userModel.tokenData[tokenModel.tokenId] {
+                    activityManager.startTrackingPurchase(
+                        tokenName: tokenData.metadata.name,
+                        symbol: tokenData.metadata.symbol,
+                        imageUrl: tokenData.metadata.imageUri,
+                        purchasePrice: priceUsd
+                    )
+                }
+                
                 await MainActor.run {
                     showBuySheet = false
                     notificationHandler.show(
@@ -84,10 +97,11 @@ struct ActionButtonsView: View {
             try await TxManager.shared.sellToken(tokenId: tokenModel.tokenId, tokenPriceUsd: tokenPriceUsd)
             await MainActor.run {
                 BubbleManager.shared.trigger()
+                LiveActivityManager.shared.stopActivity()
                 notificationHandler.show(
-                                            "Successfully sold tokens!",
-                                            type: .success
-                                        )
+                    "Successfully sold tokens!",
+                    type: .success
+                )
             }
         }
         catch {

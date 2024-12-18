@@ -22,14 +22,22 @@ struct TubWidgetExtensionLiveActivity: Widget {
                         Text(context.attributes.name)
                             .font(.caption)
                     } icon: {
-                        Image(systemName: "dollarsign.circle.fill")
-                            .foregroundStyle(.green)
+                        AsyncImage(url: URL(string: context.attributes.imageUrl)) { image in
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 20, height: 20)
+                                .clipShape(Circle())
+                        } placeholder: {
+                            Image(systemName: "circle.fill")
+                                .foregroundStyle(.blue)
+                        }
                     }
                 }
                 
                 DynamicIslandExpandedRegion(.trailing) {
                     Label {
-                        Text(String(format: "$%.2f", context.state.value))
+                        Text(String(format: "%.2f%%", context.state.value))
                             .font(.caption)
                     } icon: {
                         Image(systemName: context.state.trend == "up" ? "arrow.up.circle.fill" : "arrow.down.circle.fill")
@@ -44,16 +52,34 @@ struct TubWidgetExtensionLiveActivity: Widget {
                 }
             } compactLeading: {
                 Label {
-                    Text(String(format: "%.2f", context.state.value))
+                    Text(String(format: "%.1f%%", context.state.value))
                 } icon: {
-                    Image(systemName: "dollarsign.circle.fill")
+                    AsyncImage(url: URL(string: context.attributes.imageUrl)) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 18, height: 18)
+                            .clipShape(Circle())
+                    } placeholder: {
+                        Image(systemName: "circle.fill")
+                            .foregroundStyle(.blue)
+                    }
                 }
                 .font(.caption2)
             } compactTrailing: {
                 Image(systemName: context.state.trend == "up" ? "arrow.up.circle.fill" : "arrow.down.circle.fill")
                     .foregroundStyle(context.state.trend == "up" ? .green : .red)
             } minimal: {
-                Image(systemName: "dollarsign.circle.fill")
+                AsyncImage(url: URL(string: context.attributes.imageUrl)) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 16, height: 16)
+                        .clipShape(Circle())
+                } placeholder: {
+                    Image(systemName: "circle.fill")
+                        .foregroundStyle(.blue)
+                }
             }
         }
     }
