@@ -1,11 +1,12 @@
 FROM node:21.4.0-bookworm-slim
 ENV NODE_ENV=production
 
-# install build dependencies for bigint-buffer (https://solana.stackexchange.com/questions/4077/bigint-failed-to-load-bindings-pure-js-will-be-used-try-npm-run-rebuild-whe)
+# install build dependencies for bigint-buffer (https://solana.stackexchange.com/questions/4077/bigint-failed-to-load-bindings-pure-js-will-be-used-try-npm-run-rebuild-whe) and Redis
 RUN apt update \
   && apt install --assume-yes --no-install-recommends \
   build-essential \
-  python3
+  python3 \
+  redis-server
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
@@ -35,6 +36,9 @@ RUN pnpm install --frozen-lockfile
 WORKDIR /app/apps/server
 
 EXPOSE $SERVER_PORT
+
+# Start Redis server
+CMD ["service", "redis-server", "start"]
 
 # Command to run the server
 CMD ["pnpm", "start"]
