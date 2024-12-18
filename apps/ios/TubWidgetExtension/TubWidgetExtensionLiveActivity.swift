@@ -11,63 +11,59 @@ import SwiftUI
 
 struct TubWidgetExtensionLiveActivity: Widget {
     var body: some WidgetConfiguration {
-        ActivityConfiguration(for: TubActivityAttributes.self) { context in
+        ActivityConfiguration<TubActivityAttributes>(for: TubActivityAttributes.self) { context in
             // Lock screen/banner UI
             LockScreenLiveActivityView(context: context)
         } dynamicIsland: { context in
             DynamicIsland {
-                // Expanded UI
-                DynamicIslandExpandedRegion(.leading) {
-                    Label {
-                        Text(context.attributes.name)
-                            .font(.caption)
-                    } icon: {
+                DynamicIslandExpandedRegion(.leading, priority: 1) {
+                    HStack(spacing: 8) {
                         AsyncImage(url: URL(string: context.attributes.imageUrl)) { image in
                             image
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
-                                .frame(width: 20, height: 20)
-                                .clipShape(Circle())
+                                .frame(width: 50, height: 50)
                         } placeholder: {
                             Image(systemName: "circle.fill")
                                 .foregroundStyle(.blue)
+                                .frame(width: 50, height: 50)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(context.attributes.symbol)
+                                .font(.system(size: 15))
+                                .foregroundStyle(.secondary)
+                            Text(String(format: "$%.6f", context.state.currentPrice))
+                                .font(.title2)
+                                .fontWeight(.medium)
                         }
                     }
+                    .dynamicIsland(verticalPlacement: .belowIfTooWide)
                 }
                 
                 DynamicIslandExpandedRegion(.trailing) {
-                    Label {
-                        Text(String(format: "%.2f%%", context.state.value))
-                            .font(.caption)
-                    } icon: {
-                        Image(systemName: context.state.trend == "up" ? "arrow.up.circle.fill" : "arrow.down.circle.fill")
+                    VStack {
+                        Spacer()
+                        Text(String(format: "%+.1f%%", context.state.value))
+                            .font(.title)
+                            .fontWeight(.medium)
                             .foregroundStyle(context.state.trend == "up" ? .green : .red)
                     }
                 }
-                
-                DynamicIslandExpandedRegion(.center) {
-                    Text(context.attributes.symbol)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                }
             } compactLeading: {
-                Label {
-                    Text(String(format: "%.1f%%", context.state.value))
-                } icon: {
-                    AsyncImage(url: URL(string: context.attributes.imageUrl)) { image in
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 18, height: 18)
-                            .clipShape(Circle())
-                    } placeholder: {
-                        Image(systemName: "circle.fill")
-                            .foregroundStyle(.blue)
-                    }
+                AsyncImage(url: URL(string: context.attributes.imageUrl)) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 20, height: 20)
+                        .clipShape(Circle())
+                } placeholder: {
+                    Image(systemName: "circle.fill")
+                        .foregroundStyle(.blue)
                 }
-                .font(.caption2)
             } compactTrailing: {
-                Image(systemName: context.state.trend == "up" ? "arrow.up.circle.fill" : "arrow.down.circle.fill")
+                Text(String(format: "%+.1f%%", context.state.value))
+                    .font(.caption2)
                     .foregroundStyle(context.state.trend == "up" ? .green : .red)
             } minimal: {
                 AsyncImage(url: URL(string: context.attributes.imageUrl)) { image in

@@ -13,6 +13,7 @@ struct TubActivityAttributes: ActivityAttributes {
         var value: Double
         var trend: String // "up" or "down"
         var timestamp: Date
+        var currentPrice: Double
     }
     
     var name: String

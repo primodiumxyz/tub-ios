@@ -28,7 +28,8 @@ import SwiftUI
         let contentState = TubActivityAttributes.ContentState(
             value: 0.0, // Initial percentage change
             trend: "up",
-            timestamp: Date()
+            timestamp: Date(),
+            currentPrice: purchasePrice
         )
         
         do {
@@ -49,7 +50,8 @@ import SwiftUI
             let contentState = TubActivityAttributes.ContentState(
                 value: percentageChange,
                 trend: percentageChange >= 0 ? "up" : "down",
-                timestamp: Date()
+                timestamp: Date(),
+                currentPrice: currentPrice
             )
             print("Updating price change: \(percentageChange)%")
             await activity?.update(.init(state: contentState, staleDate: nil))
