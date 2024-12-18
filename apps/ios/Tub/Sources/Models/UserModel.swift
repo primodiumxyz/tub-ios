@@ -197,25 +197,32 @@ final class UserModel: ObservableObject {
     }
     public func refreshBulkTokenData(tokenMints: [String], options: RefreshOptions? = nil) async throws {
         let withBalances  = options?.withBalances ?? false
-        let withLiveData = options?.withLiveData ?? false
+        let withLiveData = options?.withLiveData ?? true
         
-        let balances = withBalances ? try await Network.shared.getAllTokenBalances() : nil
-        let tokenMetadata = try await fetchBulkTokenMetadata(tokenMints: tokenMints)
-        let tokenLiveData = withLiveData ? try await fetchBulkTokenLiveData(tokenMints: tokenMints) : [:]
+        async let balances = withBalances ? Network.shared.getAllTokenBalances() : nil
+        async let tokenMetadata = fetchBulkTokenMetadata(tokenMints: tokenMints)
+        async let tokenLiveData = withLiveData ? fetchBulkTokenLiveData(tokenMints: tokenMints) : [:]
+
+        let (fetchedBalances, fetchedTokenMetadata, fetchedTokenLiveData) = try await (balances, tokenMetadata, tokenLiveData)
         
         for mint in tokenMints {
-            await updateTokenData(mint: mint, balance: balances?[mint], metadata: tokenMetadata[mint], liveData: tokenLiveData[mint])
+            await updateTokenData(mint: mint, balance: fetchedBalances?[mint], metadata: fetchedTokenMetadata[mint], liveData: fetchedTokenLiveData[mint])
         }
     }
     
     public func refreshTokenData(tokenMint: String) async {
         do {
-            let balanceData = try await Network.shared.getTokenBalance(tokenMint: tokenMint)
+            async let balanceData = Network.shared.getTokenBalance(tokenMint: tokenMint)
+            async let tokenMetadata = fetchTokenMetadata(tokenMint: tokenMint)
+            async let tokenLiveData = fetchTokenLiveData(tokenMint: tokenMint)
 
-            let tokenMetadata = try await fetchTokenMetadata(tokenMint: tokenMint)
-            let tokenLiveData = try await fetchTokenLiveData(tokenMint: tokenMint)
-
-            await updateTokenData(mint: tokenMint, balance: balanceData, metadata: tokenMetadata, liveData: tokenLiveData)
+            do {
+                let (balance, metadata, liveData) = try await (balanceData, tokenMetadata, tokenLiveData)
+                await updateTokenData(mint: tokenMint, balance: balance, metadata: metadata, liveData: liveData)
+            } catch {
+                // Handle error
+                print("Error fetching token data: \(error.localizedDescription)")
+            }
         } catch {
             return
         }

@@ -238,12 +238,12 @@ final class TokenListModel: ObservableObject {
         let newTokensToRefresh = newTokens.filter { tokens[$0] == nil }
 
         if newTokensToRefresh.count > 0 {
-            try? await UserModel.shared.refreshBulkTokenData(tokenMints: Array(newTokensToRefresh.prefix(3)), options: .init(withLiveData: false))
+            try? await UserModel.shared.refreshBulkTokenData(tokenMints: Array(newTokensToRefresh.prefix(3)))
         }
         
         if newTokensToRefresh.count > 3 {
             Task {
-                try? await UserModel.shared.refreshBulkTokenData(tokenMints: Array(newTokensToRefresh.suffix(newTokensToRefresh.count - 3)), options: .init(withLiveData: false))
+                try? await UserModel.shared.refreshBulkTokenData(tokenMints: Array(newTokensToRefresh.suffix(newTokensToRefresh.count - 3)))
             }
         }
         
