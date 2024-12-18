@@ -70,10 +70,12 @@ To set up the project for development:
    pnpm install
    ```
 
-2. Run in development mode:
+2. This `server` application depends on `redis-server`. In development, this `server` application is typically run via `pnpm run dev` or `pnpm run dev:fullstack` in the parent repository, which also starts a `redis-server`. The root `package.json` runs `pnpm dev`, which only starts the `nodemon` without Redis.
+
+   To run this application in a standalone environment with Redis, run the following which starts both `redis-server` and the `server` application.
 
    ```
-   pnpm start
+   pnpm dev:standalone
    ```
 
 3. For testing:
