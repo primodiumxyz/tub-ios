@@ -38,16 +38,14 @@ struct HistoryView: View {
                 // Transaction List
                 if !isReady {
                     ProgressView()
-                }
-                else if filteredTransactions().isEmpty {
+                } else if filteredTransactions().isEmpty {
                     TransactionFilters(filterState: $filterState)
                         .background(Color(UIColor.systemBackground))
                     Text("No transactions found")
                         .padding()
                         .font(.sfRounded(size: .base, weight: .regular))
                         .foregroundStyle(Color.gray)
-                }
-                else {
+                } else {
                     TransactionFilters(filterState: $filterState)
                         .background(Color(UIColor.systemBackground))
                     LazyVStack(spacing: 0) {
@@ -127,9 +125,9 @@ struct HistoryView: View {
         if filterState.selectedAmountRange != "All" {
             switch filterState.selectedAmountRange {
             case "< $100":
-                filteredData = filteredData.filter { abs(priceModel.usdcToUsd(usdc: $0.valueUsdc)) < 100 }
+                filteredData = filteredData.filter { abs($0.valueUsd) < 100.0 }
             case "> $100":
-                filteredData = filteredData.filter { abs(priceModel.usdcToUsd(usdc: $0.valueUsdc)) > 100 }
+                filteredData = filteredData.filter { abs($0.valueUsd) > 100.0 }
             default:
                 break
             }
@@ -147,15 +145,15 @@ func groupTransactions(_ transactions: [TransactionData]) -> [TransactionGroup] 
     }
 
     return grouped.map { _, transactions in
-        let netProfit = transactions.reduce(0) { sum, tx in
-            sum + tx.valueUsdc
+        let netProfit = transactions.reduce(0.0) { sum, tx in
+            sum + tx.valueUsd
         }
 
         let firstTx = transactions.sorted { $0.date > $1.date }.first!
 
         return TransactionGroup(
             transactions: transactions.sorted { $0.date > $1.date },
-            netProfit: priceModel.usdcToUsd(usdc: netProfit),
+            netProfit: netProfit,
             date: firstTx.date,
             token: firstTx.mint,
             symbol: firstTx.symbol,
@@ -289,7 +287,7 @@ struct TransactionRow: View {
             }
             Spacer()
             VStack(alignment: .trailing) {
-                let price = priceModel.formatPrice(usdc: transaction.valueUsdc, showSign: true)
+                let price = priceModel.formatPrice(usd: transaction.valueUsd, showSign: true)
                 Text(price)
                     .font(.sfRounded(size: .base, weight: .bold))
                     .foregroundStyle(transaction.isBuy ? Color.red : Color.green)

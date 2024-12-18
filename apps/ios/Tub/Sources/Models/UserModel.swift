@@ -590,14 +590,14 @@ final class UserModel: ObservableObject {
             let isBuy = transaction.token_amount >= 0
             let priceUsd = transaction.token_price_usd
             let decimals = metadata?.decimals ?? 9
-            let valueUsdc = Int(transaction.token_amount) * Int(priceUsd) / Int(pow(10.0,Double(decimals)))
+            let valueUsd = transaction.token_amount * priceUsd / pow(10.0,Double(decimals))
             
             let newTransaction = TransactionData(
                 name: metadata?.name ?? "",
                 symbol: metadata?.symbol ?? "",
                 imageUri: metadata?.imageUri ?? "",
                 date: date,
-                valueUsdc: -valueUsdc,
+                valueUsd: -valueUsd,
                 quantityTokens: Int(transaction.token_amount),
                 isBuy: isBuy,
                 mint: mint

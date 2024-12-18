@@ -74,8 +74,7 @@ struct TransactionDetailRow: View {
                 Spacer()
 
                 VStack(alignment: .trailing) {
-                    let price = priceModel.formatPrice(usdc: transaction.valueUsdc, showSign: true)
-                    Text(price)
+                    Text(priceModel.formatPrice(usd:transaction.valueUsd))
                         .font(.sfRounded(size: .sm, weight: .bold))
                         .foregroundStyle(transaction.isBuy ? Color.red : Color.green)
 
