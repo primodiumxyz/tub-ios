@@ -127,9 +127,10 @@ private struct StatView: View {
                 .alignmentGuide(.firstTextBaseline) { d in d[.firstTextBaseline] }
             }
 
-            Divider().padding(.top, 2)
-                .frame(height: 0.5)
-                .overlay(Color.tubText)
+            Rectangle()
+                .fill(.tubText)
+                .opacity(0.5)
+                .frame(maxWidth: .infinity, maxHeight: 1)
         }
         .padding(.vertical, 6)
     }

@@ -112,8 +112,8 @@ struct TokenInfoPreview: View {
                     }
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: 60)
-            .padding(24)
+            .frame(maxWidth: .infinity, maxHeight: 70)
+            .padding(18)
             .background(colorScheme == .dark ? Gradients.grayGradient : Gradients.clearGradient)
             .overlay(
                 UnevenRoundedRectangle(
@@ -149,7 +149,7 @@ struct TokenInfoPreview: View {
         }
         .sheet(isPresented: $showInfoOverlay) {
                 if let tokenData {
-                    TokenInfoCardView(tokenData: tokenData, stats: generalStats)
+                    TokenInfoCardView(tokenData: tokenData, stats: generalStats, sellStats: sellStats)
                         .presentationDetents([.height(400)])
                 } else {
                     ErrorView(errorMessage: "Couldn't find token information.", retryAction: {})
@@ -183,9 +183,11 @@ private struct StatView: View {
             }
             .alignmentGuide(.firstTextBaseline) { d in d[.firstTextBaseline] }
 
-            Divider().padding(.top, 2)
-                .frame(height: 0.5)
-                .overlay(Color.tubText)
+            Rectangle()
+                .fill(.tubText)
+                .opacity(0.5)
+                .frame(maxWidth: .infinity, maxHeight: 1)
+
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
