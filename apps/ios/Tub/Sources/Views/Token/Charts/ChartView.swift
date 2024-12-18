@@ -19,7 +19,6 @@ struct ChartView: View {
     @State private var prices: [Price] = []
 
     let initialPointSize: Double = 35
-    @State private var pointSize: Double = 35
 
     private let xAxisPadding: Double = Timespan.live.seconds * 0.1
 
@@ -99,12 +98,7 @@ struct ChartView: View {
                     }
                 }
 
-                PointMark(
-                    x: .value("Date", currentPrice.timestamp),
-                    y: .value("Price", currentPrice.priceUsd)
-                )
-                .foregroundStyle(.tubBuySecondary)
-                .symbolSize(pointSize)
+                
             }
 
             if let purchaseData, let firstPriceTimestamp = prices.first?.timestamp {
@@ -174,9 +168,6 @@ struct ChartView: View {
         .frame(maxWidth: .infinity, minHeight: height, maxHeight: height)
         .onAppear {
             updatePrices()
-            withAnimation(.easeInOut(duration: 2).repeatForever()) {
-                pointSize = 150
-            }
         }
         .onChange(of: rawPrices) {
             updatePrices()

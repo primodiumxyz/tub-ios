@@ -24,15 +24,9 @@ class TokenModel: ObservableObject {
     private var preloaded = false
     private var initialized = false
     
-    @Published var purchaseData: PurchaseData? {
-        didSet {
-            DispatchQueue.main.async {
-                self.purchaseData = self.purchaseData
-            }
-        }
-    }
+    @Published var purchaseData: PurchaseData? 
 
-    func fetchPurchaseData(hard: Bool = false) async throws {
+    private func fetchPurchaseData() async throws {
         if self.purchaseData != nil {
             return
         }
@@ -61,7 +55,6 @@ class TokenModel: ObservableObject {
         }
         
         await MainActor.run {
-            print("purchase data:", purchaseData)
             self.purchaseData = purchaseData
         }
     }
@@ -123,12 +116,12 @@ class TokenModel: ObservableObject {
         }
 
         func fetchCandles() async throws {
-            await self.subscribeToCandles(tokenId)
+           await self.subscribeToCandles(tokenId)
         }
 
         Task {
             do {
-                startPollingTokenBalance()
+                await startPollingTokenBalance()
                 try await retry(fetchCandles)
                 await subscribeToSingleTokenData(tokenId)
             }
@@ -137,6 +130,10 @@ class TokenModel: ObservableObject {
             }
         }
     }
+
+    /* -------------------------------------------------------------------------- */
+    /*                                Token Prices                                */
+    /* -------------------------------------------------------------------------- */
 
     func fetchInitialPrices(_ tokenId: String) async throws -> [Price] {
         let now = Date()
@@ -154,13 +151,23 @@ class TokenModel: ObservableObject {
                         return
                     }
 
-                    let prices = graphQLResult.data?.api_trade_history.map { trade in
-                        Price(
-                            timestamp: iso8601Formatter.date(from: trade.created_at) ?? now,
-                            priceUsd: trade.token_price_usd
-                        )
-                    } ?? []
+                    var lastTimestamp: Date?
+                    let rawPrices = graphQLResult.data?.api_trade_history ?? []
+                    let prices = rawPrices
+                        .sorted(by: { $0.created_at < $1.created_at })
+                        .reduce(into: [Price]()) { (accumulator, trade) in
+                            let timestamp = iso8601Formatter.date(from: trade.created_at) ?? now
+                            if let lastTimestamp, abs(timestamp.timeIntervalSince(lastTimestamp)) < 1 {
+                                return
+                            }
+                            lastTimestamp = timestamp
+                            accumulator.append(Price(
+                                timestamp: timestamp,
+                                priceUsd: trade.token_price_usd
+                            ))
+                        }
                     continuation.resume(returning: prices)
+                    return
                 case .failure(let error):
                     continuation.resume(throwing: error)
                 }
@@ -171,14 +178,12 @@ class TokenModel: ObservableObject {
     private func subscribeToTokenPrices(_ tokenId: String) {
         priceSubscription?.cancel()
         
-        let now = Date()
-        
         DispatchQueue.main.async { [weak self] in
             guard let self else {return}
             self.priceSubscription = Network.shared.apollo.subscribe(
                 subscription: SubTokenPricesSinceSubscription(
                     token: tokenId,
-                    since: .some(iso8601Formatter.string(from: now))
+                    since: .some(iso8601Formatter.string(from: .now))
                 )
             ) { [weak self] result in
                 guard let self = self else { return }
@@ -201,6 +206,10 @@ class TokenModel: ObservableObject {
             }
         }
     }
+
+    /* -------------------------------------------------------------------------- */
+    /*                                Token Candles                               */
+    /* -------------------------------------------------------------------------- */
 
     private func subscribeToCandles(_ tokenId: String) async {
         candleSubscription?.cancel()
@@ -276,32 +285,28 @@ class TokenModel: ObservableObject {
     private var tokenBalanceTimer: Timer?
     let BALANCE_POLL_INTERVAL: TimeInterval = 30
     
-    private func startPollingTokenBalance() {
-        self.stopPollingTokenBalance()  // Ensure any existing timer is invalidated
-        
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            Task{
-                do {
-                    try await self.refreshTokenBalance()
-                } catch {
-                    print("error fetching token balance: \(error)")
-                }
-            }
-
-            self.tokenBalanceTimer = Timer.scheduledTimer(
-                withTimeInterval: self.BALANCE_POLL_INTERVAL, repeats: true
-            ) { [weak self] _ in
-                guard let self = self else { return }
-                Task {
-                    do {
-                        try await self.refreshTokenBalance()
-                    } catch {
-                        print("error fetching token balance: \(error)")
-                    }
-                }
-            }
+    private func startPollingTokenBalance() async {
+        do {
+            try await self.refreshTokenBalance()
+        } catch {
+            print("error fetching token balance: \(error)")
         }
+        
+        await MainActor.run {
+             self.stopPollingTokenBalance()  // Ensure any existing timer is invalidated
+             self.tokenBalanceTimer = Timer.scheduledTimer(
+                 withTimeInterval: self.BALANCE_POLL_INTERVAL, repeats: true
+             ) { [weak self] _ in
+                 guard let self = self else { return }
+                 Task {
+                     do {
+                         try await self.refreshTokenBalance()
+                     } catch {
+                         print("error fetching token balance: \(error)")
+                     }
+                 }
+             }
+         }
     }
     
     private func stopPollingTokenBalance() {
@@ -311,6 +316,7 @@ class TokenModel: ObservableObject {
     
     private func refreshTokenBalance() async throws {
         let tokenBalance = try await Network.shared.getTokenBalance(tokenMint: tokenId)
+
         if tokenBalance > 0 && self.purchaseData == nil {
             try await self.fetchPurchaseData()
         } else if tokenBalance == 0 {

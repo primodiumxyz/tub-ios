@@ -197,18 +197,27 @@ final class UserModel: ObservableObject {
     }
     public func refreshBulkTokenData(tokenMints: [String], options: RefreshOptions? = nil) async throws {
         let withBalances  = options?.withBalances ?? false
-        let withLiveData = options?.withLiveData ?? true
         
         async let balances = withBalances ? Network.shared.getAllTokenBalances() : nil
         async let tokenMetadata = fetchBulkTokenMetadata(tokenMints: tokenMints)
-        async let tokenLiveData = withLiveData ? fetchBulkTokenLiveData(tokenMints: tokenMints) : [:]
 
-        let (fetchedBalances, fetchedTokenMetadata, fetchedTokenLiveData) = try await (balances, tokenMetadata, tokenLiveData)
+        let (fetchedBalances, fetchedTokenMetadata) = try await (balances, tokenMetadata)
         
         for mint in tokenMints {
-            await updateTokenData(mint: mint, balance: fetchedBalances?[mint], metadata: fetchedTokenMetadata[mint], liveData: fetchedTokenLiveData[mint])
+            await updateTokenData(mint: mint, balance: fetchedBalances?[mint], metadata: fetchedTokenMetadata[mint])
+        }
+        
+        let withLiveData = options?.withLiveData ?? true
+        if withLiveData {
+            Task{
+                let tokenLiveData = try await fetchBulkTokenLiveData(tokenMints: tokenMints)
+                for mint in tokenMints {
+                    await updateTokenData(mint: mint, liveData: tokenLiveData[mint])
+                }
+            }
         }
     }
+    
     
     public func refreshTokenData(tokenMint: String) async {
         do {

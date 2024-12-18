@@ -171,13 +171,12 @@ struct TokenView: View {
                 Text("No trades found").font(.sfRounded(size: .base, weight: .semibold)).frame(height: height)
                 
             } else if tokenModel.selectedTimespan == .live {
-                ChartView(
-                    rawPrices: tokenModel.prices,
-                    purchaseData: tokenModel.purchaseData,
-                    animate: animate,
-                    height: height
-                )
-                //				.id(tokenModel.prices.count) // results in odd behavior: toggles between prices.count = 0 and prices.count = correct value
+               ChartView(
+                   rawPrices: tokenModel.prices,
+                   purchaseData: tokenModel.purchaseData,
+                   animate: animate,
+                   height: height
+               )
             }
             else {
                 CandleChartView(
@@ -186,7 +185,6 @@ struct TokenView: View {
                     timeframeMins: 30,
                     height: height
                 )
-                .id(tokenModel.prices.count)  // should be tokenModel.candles.count?
             }
         }
     }
