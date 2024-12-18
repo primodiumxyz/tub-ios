@@ -13,13 +13,17 @@
   ],
   "scripts": {
     "lint": "eslint .",
-    "dev": "nodemon",
+    "dev": "pnpm dev:nodemon",
+    "dev:standalone": "run-pty % pnpm dev:nodemon % pnpm dev:redis",
+    "dev:nodemon": "nodemon",
+    "dev:redis": "redis-server",
     "start": "tsx bin/index",
     "types:dev": "tsc --watch",
     "types:test": "tsc --noEmit --skipLibCheck",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "prepare": "[ \"$NODE_ENV\" = local ] || { [ $(uname) = 'Darwin' ] && brew install redis || sudo apt install redis-server; }"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.1",
