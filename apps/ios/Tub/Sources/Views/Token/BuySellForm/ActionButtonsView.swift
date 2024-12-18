@@ -107,8 +107,7 @@ struct ActionButtonsView: View {
                 switch userModel.walletState {
                 case .connected(_):
                     if activeTab == .buy {
-                        if let usdcBalance = userModel.usdcBalance,
-                            priceModel.usdcToUsd(usdc: usdcBalance) < 0.1
+                        if priceModel.usdcToUsd(usdc: userModel.usdcBalance ?? 0) < 0.1
                         {
                             AirdropButton()
                         }
@@ -162,20 +161,26 @@ private struct LoginButton: View {
 
 private struct ConnectButton: View {
     @EnvironmentObject private var notificationHandler: NotificationHandler
+    func handleConnect() {
+        Task {
+            do {
+                do {
+                    try await privy.embeddedWallet.connectWallet()
+                } catch {
+                    let _ = try await privy.embeddedWallet.createWallet(chainType: .solana)
+                }
+                notificationHandler.show("Connection successful", type: .success)
+            }
+            catch {
+                notificationHandler.show(error.localizedDescription, type: .error)
+            }
+        }
+    }
+
     var body: some View {
         PrimaryButton(
             text: "Connect to wallet",
-            action: {
-                Task {
-                    do {
-                        try await privy.embeddedWallet.connectWallet()
-                        notificationHandler.show("Connection successful", type: .success)
-                    }
-                    catch {
-                        notificationHandler.show(error.localizedDescription, type: .error)
-                    }
-                }
-            }
+            action: handleConnect
         )
 
     }
@@ -266,7 +271,10 @@ extension ActionButtonsView: Equatable {
         @StateObject var notificationHandler = NotificationHandler()
         var userModel = {
             let model = UserModel.shared
-            model.usdcBalance = 100 * Int(SOL_DECIMALS)
+            
+            Task {
+                await model.updateTokenData(mint: USDC_MINT, balance: 100 * Int(1e6))
+            }
             return model
         }()
 

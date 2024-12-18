@@ -62,7 +62,7 @@ struct AccountBalanceView: View {
 						}
 					}
 				} else {
-					Text("Temp: Login to Start Trading")
+					Text("")
 						.font(.sfRounded(size: .lg, weight: .semibold))
 						.multilineTextAlignment(.center)
 				}

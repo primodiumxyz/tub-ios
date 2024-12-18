@@ -24,17 +24,59 @@ class TokenModel: ObservableObject {
     private var preloaded = false
     private var initialized = false
     
+    @Published var purchaseData: PurchaseData? 
+
+    private func fetchPurchaseData() async throws {
+        if self.purchaseData != nil {
+            return
+        }
+        
+        guard let walletAddress = UserModel.shared.walletAddress else { return }
+        
+        let query = GetLatestTokenPurchaseQuery(wallet: walletAddress, mint: tokenId)
+        let purchaseData = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<PurchaseData, Error>) in
+            Network.shared.apollo.fetch(query: query) {
+                result in switch result {
+                case .success(let response):
+                    if let err = response.errors?.first?.message {
+                        continuation.resume(throwing: TubError.serverError(reason:err))
+                        return
+                    }
+                    guard let tx = response.data?.transactions.first, let timestamp = iso8601Formatter.date(from: tx.created_at) else {
+                        continuation.resume(throwing: TubError.serverError(reason:"No purchases found"))
+                        return
+                    }
+                    let purchaseData = PurchaseData(tokenId: tx.token_mint, timestamp: timestamp, amountToken: Int(tx.token_amount), priceUsd: tx.token_price_usd)
+                    continuation.resume(returning: purchaseData)
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+        
+        await MainActor.run {
+            self.purchaseData = purchaseData
+        }
+    }
+
     @MainActor
     func updatePrice(timestamp: Date, priceUsd: Double?) {
-        guard let priceUsd, priceUsd != self.prices.last?.priceUsd else { return }
+        guard let priceUsd, timestamp != self.prices.last?.timestamp else { return }
         self.prices.append(Price(timestamp: timestamp, priceUsd: priceUsd))
         UserModel.shared.updateTokenPrice(mint: tokenId, priceUsd: priceUsd)
     }
+
+    func getPrice(at timestamp: Date) -> Price? {
+        return prices.first(where: { $0.timestamp <= timestamp }) ?? prices.last
+    }
+
+
 
     func preload(with tokenId: String, timeframeSecs: Double = CHART_INTERVAL) {
         cleanup()
         preloaded = true
         self.tokenId = tokenId
+  
 
         func fetchPrices() async throws {
             // Fetch both types of data
@@ -74,12 +116,12 @@ class TokenModel: ObservableObject {
         }
 
         func fetchCandles() async throws {
-            await self.subscribeToCandles(tokenId)
+           await self.subscribeToCandles(tokenId)
         }
 
         Task {
             do {
-                startPollingTokenBalance()
+                await startPollingTokenBalance()
                 try await retry(fetchCandles)
                 await subscribeToSingleTokenData(tokenId)
             }
@@ -88,6 +130,10 @@ class TokenModel: ObservableObject {
             }
         }
     }
+
+    /* -------------------------------------------------------------------------- */
+    /*                                Token Prices                                */
+    /* -------------------------------------------------------------------------- */
 
     func fetchInitialPrices(_ tokenId: String) async throws -> [Price] {
         let now = Date()
@@ -105,13 +151,23 @@ class TokenModel: ObservableObject {
                         return
                     }
 
-                    let prices = graphQLResult.data?.api_trade_history.map { trade in
-                        Price(
-                            timestamp: iso8601Formatter.date(from: trade.created_at) ?? now,
-                            priceUsd: trade.token_price_usd
-                        )
-                    } ?? []
+                    var lastTimestamp: Date?
+                    let rawPrices = graphQLResult.data?.api_trade_history ?? []
+                    let prices = rawPrices
+                        .sorted(by: { $0.created_at < $1.created_at })
+                        .reduce(into: [Price]()) { (accumulator, trade) in
+                            let timestamp = iso8601Formatter.date(from: trade.created_at) ?? now
+                            if let lastTimestamp, abs(timestamp.timeIntervalSince(lastTimestamp)) < 1 {
+                                return
+                            }
+                            lastTimestamp = timestamp
+                            accumulator.append(Price(
+                                timestamp: timestamp,
+                                priceUsd: trade.token_price_usd
+                            ))
+                        }
                     continuation.resume(returning: prices)
+                    return
                 case .failure(let error):
                     continuation.resume(throwing: error)
                 }
@@ -122,14 +178,12 @@ class TokenModel: ObservableObject {
     private func subscribeToTokenPrices(_ tokenId: String) {
         priceSubscription?.cancel()
         
-        let now = Date()
-        
         DispatchQueue.main.async { [weak self] in
             guard let self else {return}
             self.priceSubscription = Network.shared.apollo.subscribe(
                 subscription: SubTokenPricesSinceSubscription(
                     token: tokenId,
-                    since: .some(iso8601Formatter.string(from: now))
+                    since: .some(iso8601Formatter.string(from: .now))
                 )
             ) { [weak self] result in
                 guard let self = self else { return }
@@ -152,6 +206,10 @@ class TokenModel: ObservableObject {
             }
         }
     }
+
+    /* -------------------------------------------------------------------------- */
+    /*                                Token Candles                               */
+    /* -------------------------------------------------------------------------- */
 
     private func subscribeToCandles(_ tokenId: String) async {
         candleSubscription?.cancel()
@@ -227,20 +285,28 @@ class TokenModel: ObservableObject {
     private var tokenBalanceTimer: Timer?
     let BALANCE_POLL_INTERVAL: TimeInterval = 30
     
-    private func startPollingTokenBalance() {
-        self.stopPollingTokenBalance()  // Ensure any existing timer is invalidated
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            
-            self.tokenBalanceTimer = Timer.scheduledTimer(
-                withTimeInterval: self.BALANCE_POLL_INTERVAL, repeats: true
-            ) { [weak self] _ in
-                guard let self = self else { return }
-                Task {
-                    try await self.refreshTokenBalance()
-                }
-            }
+    private func startPollingTokenBalance() async {
+        do {
+            try await self.refreshTokenBalance()
+        } catch {
+            print("error fetching token balance: \(error)")
         }
+        
+        await MainActor.run {
+             self.stopPollingTokenBalance()  // Ensure any existing timer is invalidated
+             self.tokenBalanceTimer = Timer.scheduledTimer(
+                 withTimeInterval: self.BALANCE_POLL_INTERVAL, repeats: true
+             ) { [weak self] _ in
+                 guard let self = self else { return }
+                 Task {
+                     do {
+                         try await self.refreshTokenBalance()
+                     } catch {
+                         print("error fetching token balance: \(error)")
+                     }
+                 }
+             }
+         }
     }
     
     private func stopPollingTokenBalance() {
@@ -250,6 +316,14 @@ class TokenModel: ObservableObject {
     
     private func refreshTokenBalance() async throws {
         let tokenBalance = try await Network.shared.getTokenBalance(tokenMint: tokenId)
+
+        if tokenBalance > 0 && self.purchaseData == nil {
+            try await self.fetchPurchaseData()
+        } else if tokenBalance == 0 {
+            await MainActor.run {
+                self.purchaseData = nil
+            }
+        }
             
         await UserModel.shared.updateTokenData(mint: tokenId, balance: tokenBalance)
     }

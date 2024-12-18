@@ -8,7 +8,6 @@ query GetWalletTransactions($wallet: String!) {
     token_mint
     token_amount
     token_price_usd
-    token_value_usd
   }
 }
 
@@ -119,6 +118,5 @@ query GetLatestTokenPurchase($wallet: String!, $mint: String!) {
     token_mint
     token_amount
     token_price_usd
-    token_value_usd
   }
 }

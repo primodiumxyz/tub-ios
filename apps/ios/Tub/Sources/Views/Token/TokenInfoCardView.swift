@@ -109,27 +109,28 @@ private struct StatView: View {
             HStack(spacing: 0) {
                 HStack(spacing: 3) {
                 Text(stat.title)
-                    .font(.sfRounded(size: .xs, weight: .regular))
+                    .font(.sfRounded(size: .sm, weight: .regular))
                     .foregroundStyle(.tubText)
                     .fixedSize(horizontal: true, vertical: false)
                 
                 if let caption = stat.caption {
                     Text(caption)
-                        .font(.sfRounded(size: .xxs, weight: .regular))
+                        .font(.sfRounded(size: .xs, weight: .regular))
                         .foregroundStyle(.tubText.opacity(0.7))
                 }
 
                 Text(stat.value)
-                    .font(.sfRounded(size: .sm, weight: .semibold))
+                    .font(.sfRounded(size: .base, weight: .semibold))
                     .foregroundStyle(stat.color ?? .primary)
                     .frame(maxWidth: .infinity, alignment: .topTrailing)
                 }
                 .alignmentGuide(.firstTextBaseline) { d in d[.firstTextBaseline] }
             }
 
-            Divider().padding(.top, 2)
-                .frame(height: 0.5)
-                .overlay(Color.tubText)
+            Rectangle()
+                .fill(.tubText)
+                .opacity(0.5)
+                .frame(maxWidth: .infinity, maxHeight: 1)
         }
         .padding(.vertical, 6)
     }

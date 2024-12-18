@@ -148,7 +148,7 @@ struct TokenListView: View {
 
                 VStack(spacing: 0) {
                     // Rest of the content
-                    if tokenListModel.totalTokenCount == 0 {
+                    if tokenListModel.totalTokenCount == 0 && tokenListModel.initialFetchComplete {
                         ErrorView(errorMessage: "No tokens found.", retryAction: tokenListModel.startTokenSubscription)
                     .frame(maxHeight: .infinity)
                         }
