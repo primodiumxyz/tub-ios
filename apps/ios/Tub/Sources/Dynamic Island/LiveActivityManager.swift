@@ -11,22 +11,22 @@ import SwiftUI
 @Observable class LiveActivityManager: ObservableObject {
     static let shared = LiveActivityManager()
     private var activity: Activity<TubActivityAttributes>?
+    private var backgroundTask: Task<Void, Never>?
     
     var isActivityActive: Bool {
         activity != nil
     }
     
     func startTrackingPurchase(tokenName: String, symbol: String, imageUrl: String, purchasePrice: Double) {
-        // End any existing activity
         stopActivity()
         
         let attributes = TubActivityAttributes(
-            name: tokenName, 
+            name: tokenName,
             symbol: symbol,
             imageUrl: imageUrl
         )
         let contentState = TubActivityAttributes.ContentState(
-            value: 0.0, // Initial percentage change
+            value: 0.0,
             trend: "up",
             timestamp: Date(),
             currentPrice: purchasePrice
@@ -38,8 +38,21 @@ import SwiftUI
                 content: .init(state: contentState, staleDate: nil)
             )
             print("Started tracking purchase: \(String(describing: activity?.id))")
+            
+            // Start background updates
+            startBackgroundUpdates(purchasePrice: purchasePrice)
         } catch {
             print("Error starting purchase tracking: \(error.localizedDescription)")
+        }
+    }
+    
+    private func startBackgroundUpdates(purchasePrice: Double) {
+        backgroundTask = Task {
+            while true {
+                let currentPrice = purchasePrice + Double.random(in: -0.01...0.01)
+                updatePriceChange(currentPrice: currentPrice, purchasePrice: purchasePrice)
+                try? await Task.sleep(for: .seconds(1))
+            }
         }
     }
     
