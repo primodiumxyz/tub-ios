@@ -181,12 +181,12 @@ Once the pull request has been approved by another team member and merged into `
 1. Check the status of the migrations with the following command. Make sure that the migration is not already applied:
 
 ```
-pnpm run remote:migrate-status
+pnpm run db:remote:migrate-status
 ```
 
 2. Apply the migrations and metadata to the production instance with the following commands:
 
 ```
-pnpm run remote:apply-migrations
-pnpm run remote:apply-metadata
+pnpm run db:remote:apply-migrations
+pnpm run db:remote:apply-metadata
 ```
