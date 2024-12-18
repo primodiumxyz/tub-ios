@@ -28,10 +28,9 @@ import SwiftUI
         )
         
         do {
-            activity = try Activity.request(
+            activity = try Activity<TubActivityAttributes>.request(
                 attributes: attributes,
-                contentState: contentState,
-                pushType: nil
+                content: .init(state: contentState, staleDate: nil)
             )
             print("Started live activity: \(String(describing: activity?.id))")
         } catch {
@@ -39,21 +38,21 @@ import SwiftUI
         }
     }
     
-    func updateActivity(newValue: Double, trend: String) {
+    func updateActivity(newValue: Double, trend: Double) {
         Task {
-            let updatedContentState = TubActivityAttributes.ContentState(
+            let contentState = TubActivityAttributes.ContentState(
                 value: newValue,
-                trend: trend,
+                trend: trend > 0 ? "up" : "down",
                 timestamp: Date()
             )
-            
-            await activity?.update(using: updatedContentState)
+            print("Updating activity with new value: \(newValue)")
+            await activity?.update(.init(state: contentState, staleDate: nil))
         }
     }
     
     func stopActivity() {
         Task {
-            await activity?.end(dismissalPolicy: .immediate)
+            await activity?.end(nil, dismissalPolicy: .immediate)
             activity = nil
         }
     }

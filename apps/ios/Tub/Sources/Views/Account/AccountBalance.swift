@@ -13,6 +13,12 @@ struct AccountBalanceView: View {
     @ObservedObject var currentTokenModel: TokenModel
 	@StateObject private var activityManager = LiveActivityManager.shared
 
+    private func updateLiveActivity() {
+        if activityManager.isActivityActive, let balanceUsd = userModel.portfolioBalanceUsd {
+            activityManager.updateActivity(newValue: balanceUsd, trend: deltaUsd)
+        }
+    }
+    
     var deltaUsd : Double {
         guard let initialBalance  = userModel.initialPortfolioBalance, let currentBalanceUsd = userModel.portfolioBalanceUsd else { return 0 }
         return currentBalanceUsd - initialBalance
@@ -58,6 +64,16 @@ struct AccountBalanceView: View {
 								Text(formattedBalance)
 									.font(.sfRounded(size: .lg))
 									.fontWeight(.bold)
+									.onAppear {
+										// Start Live Activity when balance first appears
+										if !activityManager.isActivityActive {
+											activityManager.startActivity(
+												name: "Account Balance",
+												symbol: "USD",
+												initialValue: balanceUsd
+											)
+										}
+									}
 								
 								// Start/Stop live activity
 								Button(action: {
@@ -90,5 +106,8 @@ struct AccountBalanceView: View {
         }
         .padding(.horizontal, 16)
         .background(Color(UIColor.systemBackground))
+        .onChange(of: userModel.portfolioBalanceUsd) { value in
+            updateLiveActivity()
+        }
     }
 }

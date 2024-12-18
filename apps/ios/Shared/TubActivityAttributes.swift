@@ -18,3 +18,19 @@ struct TubActivityAttributes: ActivityAttributes {
     var name: String
     var symbol: String
 }
+
+public struct TubWidgetAttributes: ActivityAttributes {
+    public struct ContentState: Codable, Hashable {
+        public var portfolioBalanceUsd: Double
+        
+        public init(portfolioBalanceUsd: Double) {
+            self.portfolioBalanceUsd = portfolioBalanceUsd
+        }
+    }
+    
+    public var name: String
+    
+    public init(name: String) {
+        self.name = name
+    }
+} 
