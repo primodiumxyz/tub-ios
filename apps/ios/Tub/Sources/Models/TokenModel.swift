@@ -65,6 +65,9 @@ class TokenModel: ObservableObject {
     func updatePrice(timestamp: Date, priceUsd: Double?) {
         guard let priceUsd, timestamp != self.prices.last?.timestamp else { return }
         self.prices.append(Price(timestamp: timestamp, priceUsd: priceUsd))
+        let timespan = Timespan.live.seconds
+        self.prices = self.prices.filter { $0.timestamp >= timestamp.addingTimeInterval(-timespan) }
+
         UserModel.shared.updateTokenPrice(mint: tokenId, priceUsd: priceUsd)
     }
 
