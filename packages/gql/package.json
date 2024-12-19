@@ -11,7 +11,7 @@
     "src"
   ],
   "scripts": {
-    "prepare": "[ \"$NODE_ENV\" = production ] && exit 0; pnpm hasura update-cli --version v2.44.0-beta.1",
+    "prepare": "dotenvx run -f ./../../.env --quiet -- sh -c '[ \"$NODE_ENV\" = production ] && exit 0; pnpm hasura update-cli --version v2.44.0-beta.1'",
     "dev": "./bin/start-db.sh",
     "dev:ci": "./bin/start-db-ci.sh",
     "teardown": "docker compose down --remove-orphans --volumes",
