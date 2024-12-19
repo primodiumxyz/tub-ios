@@ -26,6 +26,8 @@ class TokenModel: ObservableObject {
     
     @Published var purchaseData: PurchaseData? 
 
+    private var priceTimer: Timer? = nil
+
     private func fetchPurchaseData() async throws {
         if self.purchaseData != nil {
             return
@@ -175,9 +177,21 @@ class TokenModel: ObservableObject {
         }
     }
 
+    private func updatePriceIfStale() {
+        guard let lastPrice = prices.last else { return }
+        let now = Date()
+        if now.timeIntervalSince(lastPrice.timestamp) >= PRICE_UPDATE_INTERVAL {
+            // Update the price with the last known price
+            Task { @MainActor in
+                self.updatePrice(timestamp: now, priceUsd: lastPrice.priceUsd)
+            }
+        }
+    }
+    
     private func subscribeToTokenPrices(_ tokenId: String) {
-        priceSubscription?.cancel()
-        
+        unsubscribeFromTokenPrices()
+
+        // subscribe to price updates
         DispatchQueue.main.async { [weak self] in
             guard let self else {return}
             self.priceSubscription = Network.shared.apollo.subscribe(
@@ -204,7 +218,21 @@ class TokenModel: ObservableObject {
                     print("Error in price subscription: \(error.localizedDescription)")
                 }
             }
+             // add timer to update price if stale
+            priceTimer = Timer.scheduledTimer(withTimeInterval: PRICE_UPDATE_INTERVAL, repeats: true) { [weak self] _ in
+                guard let self = self else { return }
+                self.updatePriceIfStale()
+            }
         }
+
+       
+    }
+
+    private func unsubscribeFromTokenPrices() {
+        priceTimer?.invalidate()
+        priceTimer = nil
+        priceSubscription?.cancel()
+        priceSubscription = nil
     }
 
     /* -------------------------------------------------------------------------- */
@@ -358,9 +386,10 @@ class TokenModel: ObservableObject {
 
     func cleanup() {
         stopPollingTokenBalance()
+        unsubscribeFromTokenPrices()
+
         
         // Clean up subscriptions when the object is deallocated
-        priceSubscription?.cancel()
         candleSubscription?.cancel()
         singleTokenDataSubscription?.cancel()
 
@@ -373,5 +402,4 @@ class TokenModel: ObservableObject {
     deinit {
         cleanup()
     }
-
 }
