@@ -64,13 +64,15 @@ The server can be configured with the following environment variables:
 
 To set up the project for development:
 
-1. Install dependencies:
+1. If Redis is not installed, make sure that `NODE_ENV` is set to `local` for Redis to be installed in the `pnpm prepare` step.
+
+2. Install dependencies:
 
    ```
    pnpm install
    ```
 
-2. This `server` application depends on `redis-server`. In development, this `server` application is typically run via `pnpm run dev` or `pnpm run dev:fullstack` in the parent repository, which also starts a `redis-server`. The root `package.json` runs `pnpm dev`, which only starts the `nodemon` without Redis.
+3. This `server` application depends on `redis-server`. In development, this `server` application is typically run via `pnpm run dev` or `pnpm run dev:fullstack` in the parent repository, which also starts a `redis-server`. The root `package.json` runs `pnpm dev`, which only starts the `nodemon` without Redis.
 
    To run this application in a standalone environment with Redis, run the following which starts both `redis-server` and the `server` application.
 
@@ -78,7 +80,7 @@ To set up the project for development:
    pnpm dev:standalone
    ```
 
-3. For testing:
+4. For testing:
    ```
    pnpm test
    ```
