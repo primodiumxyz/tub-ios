@@ -516,6 +516,7 @@ final class UserModel: ObservableObject {
             self.initialPortfolioBalance = nil
             self.elapsedSeconds = 0
             self.tokenPortfolio = []
+            self.txs = nil
             
             self.stopTimer()
             self.stopPollingTokenPortfolio()
@@ -540,30 +541,59 @@ final class UserModel: ObservableObject {
     /*                             Transaction History                            */
     /* -------------------------------------------------------------------------- */
 
-    public func fetchTxs() async throws -> [TransactionData] {
-        guard let walletAddress else { return [] }
-        let query = GetWalletTransactionsQuery(wallet: walletAddress)
+    @Published var txs: [TransactionData]? = nil
+    
+    private var refreshingTxs: Bool = false
+    private var lastFetchedTxsAt: Date = Date.init(timeIntervalSince1970: 0)
+    private var TX_STALE_TIME: TimeInterval = 10
+    
+    public func refreshTxs(hard: Bool = false) async throws {
         
-        return try await withCheckedThrowingContinuation { continuation in
-            Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { result in
-                switch result {
-                case .success(let graphQLResult):
-                    Task {
-                        do {
-                            guard let transactions = graphQLResult.data?.transactions else {
-                                let ret = [TransactionData]()
-                                return continuation.resume(returning: ret)
+        if refreshingTxs {
+            return }
+        if !hard, Date().timeIntervalSince(lastFetchedTxsAt) < TX_STALE_TIME {
+            return
+        }
+        guard let walletAddress = self.walletAddress else { return  }
+        await MainActor.run {
+            self.refreshingTxs = true
+            self.lastFetchedTxsAt = Date()
+        }
+
+        let query = GetWalletTransactionsQuery(wallet: walletAddress)
+        do {
+            
+            let newTxs = try await withCheckedThrowingContinuation { continuation in
+                Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { result in
+                    switch result {
+                    case .success(let graphQLResult):
+                        Task {
+                            do {
+                                guard let transactions = graphQLResult.data?.transactions else {
+                                    let ret = [TransactionData]()
+                                    return continuation.resume(returning: ret)
+                                }
+                                let processedTxs = try await self.processTxs(tokenTransactions: transactions)
+                                continuation.resume(returning: processedTxs)
+                            } catch {
+                                continuation.resume(throwing: error)
                             }
-                            let processedTxs = try await self.processTxs(tokenTransactions: transactions)
-                            continuation.resume(returning: processedTxs)
-                        }catch {
-                            continuation.resume(throwing: error)
                         }
+                    case .failure(let error):
+                        print("Error fetching txs", error)
+                        continuation.resume(throwing: error)
                     }
-                case .failure(let error):
-                    continuation.resume(throwing: error)
                 }
             }
+            await MainActor.run {
+                self.txs = newTxs
+                self.refreshingTxs = false
+            }
+        } catch {
+            await MainActor.run {
+                self.refreshingTxs = false
+            }
+            throw error
         }
     }
     

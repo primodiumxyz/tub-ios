@@ -17,18 +17,26 @@ struct AccountView: View {
     @State private var showOnrampView = false
     @State private var showWithdrawView = false
     @State private var errorMessage: String = ""
-
+    
     var body: some View {
-        VStack(spacing: 24) {
+        Group {
             if userModel.userId != nil {
-                AccountContentView(
-                    isAirdropping: $isAirdropping,
-                    showOnrampView: $showOnrampView,
-                    showWithdrawView: $showWithdrawView
-                )
+                VStack(spacing: 18) {
+                    BalanceSection()
+                    ActionButtons(
+                        isAirdropping: isAirdropping,
+                        showOnrampView: $showOnrampView,
+                        showWithdrawView: $showWithdrawView
+                    )
+                    
+                    TokenHistoryPreview()
+                    
+                    AccountSettingsView()
+                    Spacer()
+                }
             }
             else {
-                UnregisteredAccountView()
+                RegisterView().frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -45,17 +53,7 @@ struct AccountView: View {
         .presentationBackground(Color(UIColor.systemBackground))
         .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
-
-    }
-}
-
-// New component for the header section
-private struct AccountHeaderView: View {
-
-    var body: some View {
-        VStack(spacing: 8) {
-            BalanceSection()
-        }
+        
     }
 }
 
@@ -68,16 +66,16 @@ private struct BalanceSection: View {
         guard let initialBalance  = userModel.initialPortfolioBalance, let currentBalanceUsd = userModel.portfolioBalanceUsd else { return 0 }
         return currentBalanceUsd - initialBalance
     }
-
+    
     var body: some View {
         VStack(spacing: 8) {
             Text("Account Balance")
                 .font(.sfRounded(size: .lg, weight: .regular))
                 .foregroundStyle(.secondary)
-
+            
             if let balance = userModel.portfolioBalanceUsd {
                 let formattedBalance = priceModel.formatPrice(usd: balance, maxDecimals: 2, minDecimals: 2)
-
+                
                 Text(formattedBalance)
                     .font(.sfRounded(size: .xl5, weight: .bold))
                     .foregroundStyle(.primary)
@@ -85,19 +83,134 @@ private struct BalanceSection: View {
             else {
                 ProgressView()
             }
-
+            
             if deltaUsd > 0 {
                 Text("\(priceModel.formatPrice(usd: deltaUsd, showSign: true, maxDecimals: 2))")
-
+                
                 // Format time elapsed
                 Text("\(formatDuration(userModel.elapsedSeconds))")
                     .foregroundStyle(.secondary)
                     .font(.sfRounded(size: .sm, weight: .regular))
-
+                
             }
         }
         .padding(.top, 16)
         .padding(.bottom, 12)
+    }
+}
+
+
+private struct TokenHistoryPreview: View {
+    @EnvironmentObject private var userModel: UserModel
+    @State private var height: CGFloat? = 0
+  
+    func handleRefreshTxs () {
+        Task {
+            try? await userModel.refreshTxs()
+        }
+    }
+    
+    var body: some View {
+        VStack {
+            if userModel.txs == nil || userModel.txs?.count == 0 {
+                EmptyView()
+            } else {
+                NavigationLink(destination: HistoryView()) {
+                    VStack(alignment: .leading) {
+                        Rectangle()
+                            .fill(.tubText.opacity(0.3))
+                            .frame(height: 1)
+                            .padding(.bottom, 8)
+                        HStack {
+                            Text("Last Trade")
+                                .font(.sfRounded(size: .lg, weight: .regular))
+                            Spacer()
+                            Text("View All")
+                                .font(.sfRounded(size: .base, weight: .regular))
+                            Image(systemName: "chevron.right")
+                        }.foregroundStyle(.tubText)
+                        
+                        if let txs = userModel.txs, txs.count > 0 {
+                            TransactionRow(transaction: txs[0])
+                                .frame(height: 40)
+                        } else {
+                            HStack{
+                                Spacer()
+                                ProgressView().frame(maxHeight: 40)
+                                Spacer()
+                            }
+                        }
+                        
+                        Rectangle()
+                            .fill(.tubText.opacity(0.3))
+                            .frame(height: 1)
+                            .padding(.top, 8)
+                    }
+                }
+            }
+        }
+        .frame(height: height)
+        .clipped()
+        .padding(.horizontal)
+        .onAppear{
+            handleRefreshTxs()
+        }
+        .onChange(of: userModel.walletAddress) { handleRefreshTxs() }
+        .onChange(of : userModel.txs) {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                height = userModel.txs == nil || userModel.txs?.count == 0 ? 0 : nil
+            }
+        }
+    }
+}
+
+private struct TransactionRow: View {
+    let transaction: TransactionData
+    @EnvironmentObject private var priceModel: SolPriceModel
+
+    var body: some View {
+        HStack {
+            ImageView(imageUri: transaction.imageUri, size: 40)
+                .cornerRadius(8)
+
+            VStack(alignment: .leading) {
+                HStack {
+                    Text(transaction.isBuy ? "Buy" : "Sell")
+                        .font(.sfRounded(size: .lg, weight: .bold))
+                        .foregroundStyle(.tubNeutral)
+                    Text(transaction.name.isEmpty ? transaction.mint.truncatedAddress() : transaction.name)
+                        .font(.sfRounded(size: .lg, weight: .bold))
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                        .offset(x: -2)
+                }
+
+
+            }
+            Spacer()
+            VStack(alignment: .trailing) {
+                let price = priceModel.formatPrice(usdc: transaction.valueUsdc, showSign: true)
+                Text(price)
+                    .font(.sfRounded(size: .base, weight: .bold))
+                    .foregroundStyle(transaction.isBuy ? Color.red : Color.green)
+
+                let quantity = priceModel.formatPrice(
+                    lamports: abs(transaction.quantityTokens),
+                    showUnit: false
+                )
+                HStack {
+                    Text(quantity)
+                        .font(.sfRounded(size: .xs, weight: .regular))
+                        .foregroundStyle(.secondary)
+                        .offset(x: 4, y: 2)
+
+                    Text(transaction.symbol)
+                        .font(.sfRounded(size: .xs, weight: .regular))
+                        .foregroundStyle(.secondary)
+                        .offset(y: 2)
+                }
+            }
+        }
     }
 }
 
@@ -106,11 +219,11 @@ private struct ActionButtons: View {
     let isAirdropping: Bool
     @Binding var showOnrampView: Bool
     @Binding var showWithdrawView: Bool
-
+    
     var body: some View {
         HStack(spacing: 24) {
             Spacer()
-
+            
             // Add Transfer Button
             VStack(spacing: 8) {
                 CircleButton(
@@ -119,13 +232,13 @@ private struct ActionButtons: View {
                     iconSize: 22,
                     action: { showWithdrawView.toggle() }
                 )
-
+                
                 Text("Transfer")
                     .font(.sfRounded(size: .sm, weight: .medium))
                     .foregroundStyle(.tubAccent)
                     .multilineTextAlignment(.center)
             }.frame(width: 90)
-
+            
             // Add Funds Button
             VStack(spacing: 8) {
                 CircleButton(
@@ -133,29 +246,30 @@ private struct ActionButtons: View {
                     color: .tubAccent,
                     action: { showOnrampView = true }
                 )
-
+                
                 Text("Add Funds")
                     .font(.sfRounded(size: .sm, weight: .medium))
                     .foregroundStyle(.tubAccent)
                     .multilineTextAlignment(.center)
             }.frame(width: 90)
-
+            
             Spacer()
         }
         .padding(.horizontal)
     }
 }
 
+
 // New component for account settings
 private struct AccountSettingsView: View {
     @EnvironmentObject private var userModel: UserModel
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
             Text("Account Settings")
                 .font(.sfRounded(size: .xl, weight: .medium))
                 .foregroundStyle(.primary)
-
+            
             NavigationLink(destination: AccountDetailsView()) {
                 HStack(spacing: 16) {
                     Image(systemName: "person.circle")
@@ -181,21 +295,10 @@ private struct AccountSettingsView: View {
                 }
                 .foregroundStyle(Color.primary)
             }
-
-            NavigationLink(destination: HistoryView()) {
-                HStack(spacing: 16) {
-                    Image(systemName: "clock.arrow.circlepath")
-                        .resizable()
-                        .frame(width: 24, height: 24, alignment: .center)
-                    Text("History")
-                        .font(.sfRounded(size: .lg, weight: .regular))
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                }
-                .foregroundStyle(Color.primary)
-            }
-
-
+            
+            
+            
+            
             NavigationLink(destination: SettingsView()) {
                 HStack(spacing: 16) {
                     Image(systemName: "gear")
@@ -208,7 +311,7 @@ private struct AccountSettingsView: View {
                 }
                 .foregroundStyle(Color.primary)
             }
-
+            
             HStack(spacing: 16) {
                 Image(systemName: "questionmark.circle")
                     .resizable()
@@ -225,7 +328,7 @@ private struct AccountSettingsView: View {
                     .font(.sfRounded(size: .lg, weight: .medium))
             }
             .foregroundStyle(.primary)
-
+            
             // Logout Button
             IconTextButton(
                 icon: "rectangle.portrait.and.arrow.right",
@@ -233,9 +336,7 @@ private struct AccountSettingsView: View {
                 textColor: Color.red,
                 action: { userModel.logout() }
             )
-
-            Text(serverBaseUrl).foregroundStyle(.primary)
-                .font(.caption)
+            
         }
         .padding()
         .navigationTitle("Account")
@@ -243,29 +344,20 @@ private struct AccountSettingsView: View {
     }
 }
 
-// New component for unregistered users
-private struct UnregisteredAccountView: View {
-    var body: some View {
-        RegisterView().frame(maxWidth: .infinity, maxHeight: .infinity)
+#Preview {
+    @Previewable @StateObject var userModel = UserModel.shared
+    @Previewable @StateObject var priceModel = {
+        let model = SolPriceModel.shared
+        spoofPriceModelData(model)
+        return model
+    }()
+    
+    @Previewable @StateObject var notificationHandler = NotificationHandler()
+    
+    NavigationStack {
+        AccountView()
     }
-}
-
-// Main content view for registered users
-private struct AccountContentView: View {
-    @Binding var isAirdropping: Bool
-    @Binding var showOnrampView: Bool
-    @Binding var showWithdrawView: Bool
-
-    var body: some View {
-        VStack(spacing: 24) {
-            AccountHeaderView()
-            ActionButtons(
-                isAirdropping: isAirdropping,
-                showOnrampView: $showOnrampView,
-                showWithdrawView: $showWithdrawView
-            )
-            AccountSettingsView()
-            Spacer()
-        }
-    }
+    .environmentObject(priceModel)
+    .environmentObject(userModel)
+    .environmentObject(notificationHandler)
 }

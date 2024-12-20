@@ -76,6 +76,9 @@
     "Add Funds" : {
 
     },
+    "All Trades" : {
+
+    },
     "B" : {
 
     },
@@ -130,7 +133,7 @@
     "High" : {
 
     },
-    "History" : {
+    "Last Trade" : {
 
     },
     "Login" : {
@@ -208,9 +211,6 @@
     "Support" : {
 
     },
-    "Test Tx" : {
-
-    },
     "This token is still writing its autobiography... 📝" : {
 
     },
@@ -221,9 +221,6 @@
 
     },
     "Token" : {
-
-    },
-    "Trade" : {
 
     },
     "Transaction number" : {
@@ -239,6 +236,9 @@
 
     },
     "Value: %@" : {
+
+    },
+    "View All" : {
 
     },
     "Welcome to tub" : {
