@@ -33,7 +33,6 @@
 		999ACA732CF50F13008D765B /* TxManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999ACA722CF50EEA008D765B /* TxManager.swift */; };
 		999F59562CA6F97100E7AE9F /* TokenModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999F59552CA6F96D00E7AE9F /* TokenModel.swift */; };
 		999F595B2CA754FB00E7AE9F /* ChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999F595A2CA754F900E7AE9F /* ChartView.swift */; };
-		99A4AAB22CF4FEBF002D0027 /* TestTxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A4AAB12CF4FEBA002D0027 /* TestTxView.swift */; };
 		99B147FE2CDFE5B200DFDB96 /* ShimmeringView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B147FD2CDFE5B200DFDB96 /* ShimmeringView.swift */; };
 		99BB98562CC1798600658059 /* CandleChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99BB98552CC1798400658059 /* CandleChartView.swift */; };
 		99BE72B02CEBB223006BB157 /* BubbleEffect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99BE72AE2CEBB223006BB157 /* BubbleEffect.swift */; };
@@ -118,7 +117,6 @@
 		999ACA722CF50EEA008D765B /* TxManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxManager.swift; sourceTree = "<group>"; };
 		999F59552CA6F96D00E7AE9F /* TokenModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenModel.swift; sourceTree = "<group>"; };
 		999F595A2CA754F900E7AE9F /* ChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartView.swift; sourceTree = "<group>"; };
-		99A4AAB12CF4FEBA002D0027 /* TestTxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestTxView.swift; sourceTree = "<group>"; };
 		99B147FD2CDFE5B200DFDB96 /* ShimmeringView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShimmeringView.swift; sourceTree = "<group>"; };
 		99BB98552CC1798400658059 /* CandleChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CandleChartView.swift; sourceTree = "<group>"; };
 		99BE72AE2CEBB223006BB157 /* BubbleEffect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BubbleEffect.swift; sourceTree = "<group>"; };
@@ -247,7 +245,6 @@
 			isa = PBXGroup;
 			children = (
 				9995E9BE2D01025A005B9179 /* PortfolioView.swift */,
-				99A4AAB12CF4FEBA002D0027 /* TestTxView.swift */,
 				9971F29A2CFF835D00BA48C0 /* WithdrawView.swift */,
 				995DE48A2CE6A268001B3C3F /* Login */,
 				997DE8F32CDAC86000164366 /* NotificationBanner.swift */,
@@ -618,7 +615,6 @@
 				DF5A2FC32CAF165D00508A56 /* HistoryView.swift in Sources */,
 				994AE5F72CD2AB3F00553A32 /* GoogleLogoView.swift in Sources */,
 				DF3D43D22D00DEB1004DAE81 /* JustifiedText.swift in Sources */,
-				99A4AAB22CF4FEBF002D0027 /* TestTxView.swift in Sources */,
 				99DBD8EE2CF781EA0098C296 /* spoofModelData.swift in Sources */,
 				466945ED2CDFDB1F008E8B99 /* LoadingTracker.swift in Sources */,
 				DF5A2FC52CAF2DEF00508A56 /* HistoryDetailsView.swift in Sources */,

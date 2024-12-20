@@ -170,7 +170,18 @@ private struct AccountSettingsView: View {
                 }
                 .foregroundStyle(Color.primary)
             }
-
+            NavigationLink(destination: PortfolioView()) {
+                HStack(spacing: 16) {
+                    Image(systemName: "book.closed.fill")
+                        .resizable()
+                        .frame(width: 24, height: 24, alignment: .center)
+                    Text("Portfolio")
+                        .font(.sfRounded(size: .lg, weight: .regular))
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                }
+                .foregroundStyle(Color.primary)
+            }
             NavigationLink(destination: SettingsView()) {
                 HStack(spacing: 16) {
                     Image(systemName: "gear")

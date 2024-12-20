@@ -116,29 +116,6 @@ struct HomeTabsView: View {
                     }
                 }
                 .tag(2)
-                
-                TokenBalancesView()
-                    .tabItem {
-                        VStack {
-                            Image(systemName: "book.closed.fill")
-                                .font(.system(size: 24))
-                            Text("Portfolio")
-                                .font(.system(size: 12))
-                        }
-                    }
-                    .tag(3)
-                
-                TestTxView()
-                    .tabItem {
-                        VStack {
-                            Image(systemName: "testtube.2")
-                                .font(.system(size: 24))
-                            Text("Test Tx")
-                                .font(.system(size: 12))
-                        }
-                    }
-                    .tag(4)
-                
             }
             .background(Color(UIColor.systemBackground))
             .ignoresSafeArea(.keyboard)
@@ -180,7 +157,7 @@ struct TabTapOverlay: View {
     var body: some View {
         GeometryReader { proxy in
             HStack(spacing: 0) {
-                ForEach(0..<5, id: \.self) { index in
+                ForEach(0..<3, id: \.self) { index in
                     Rectangle()
                         .fill(Color.clear)
                         .contentShape(Rectangle())
