@@ -242,8 +242,45 @@ class TokenModel: ObservableObject {
     /*                                Token Candles                               */
     /* -------------------------------------------------------------------------- */
 
+    private func fetchInitialCandles(_ tokenId: String) async throws -> [CandleData] {
+        let candles = try await withCheckedThrowingContinuation { continuation in
+            Network.shared.apollo.fetch(query: GetTokenCandlesQuery(token: tokenId, since: .some(iso8601Formatter.string(from: .now)), candle_interval: .some("1m"))) { result in
+                switch result {
+                case .success(let graphQLResult):
+                    if let candles = graphQLResult.data?.token_trade_history_candles {
+                        let now = Date()
+                        let updatedCandles = candles.map { candle in
+                            CandleData(
+                                start: iso8601FormatterNoFractional.date(from: candle.bucket) ?? now,
+                                end: (iso8601FormatterNoFractional.date(from: candle.bucket) ?? now).addingTimeInterval(60),
+                                open: candle.open_price_usd,
+                                close: candle.close_price_usd,
+                                high: candle.high_price_usd,
+                                low: candle.low_price_usd,
+                                volume: candle.volume_usd
+                            )
+                        }
+                        continuation.resume(returning: updatedCandles)
+                    }
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+        return candles
+    }
+
     private func subscribeToCandles(_ tokenId: String) async {
         candleSubscription?.cancel()
+        candleSubscription = nil
+        do {
+            let candles = try await fetchInitialCandles(tokenId)
+            Task { @MainActor in
+                self.candles = candles
+            }
+        } catch {
+            print("Error fetching initial candles: \(error), starting subscription")
+        }
 
         let now = Date()
         let since = now.addingTimeInterval(-Timespan.candles.seconds)

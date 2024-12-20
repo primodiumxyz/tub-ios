@@ -50,20 +50,12 @@ class Network {
         session = URLSession(configuration: .default)
     }
     
-    // MARK: - Calls
-    func getStatus() async throws -> Int {
-        let response: StatusResponse = try await callQuery("getStatus")
-        return response.status
-    }
-    
-    func recordClientEvent(event: ClientEvent) async throws {
-        let input = EventInput(event: event)
-        let _: EmptyResponse = try await callMutation("recordClientEvent", input: input)
-    }
-    
+    // MARK: - API 
+
     func callMutation<T: Codable, I: Codable>(
         _ mutation: String,
-        input: I? = nil
+        input: I? = nil,
+        tokenRequired: Bool = false
     ) async throws -> T {
         // Get token asynchronously
         let token = await getStoredToken()
@@ -73,8 +65,11 @@ class Network {
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         
+        
         if let token = token {
             request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        } else if tokenRequired {
+            throw TubError.somethingWentWrong(reason: "JWT token required")
         }
         
         if let input = input {
@@ -100,12 +95,14 @@ class Network {
         }
     }
     
-    private func callMutation<T: Codable>(_ mutation: String) async throws -> T {
-        return try await callMutation(mutation, input: Optional<EmptyInput>.none)
+    func callMutation<T: Codable>(_ mutation: String, tokenRequired: Bool = false) async throws -> T {
+        return try await callMutation(mutation, input: Optional<EmptyInput>.none, tokenRequired: tokenRequired)
     }
+
     func callQuery<T: Codable, I: Codable>(
         _ query: String,
-        input: I? = nil
+        input: I? = nil,
+        tokenRequired: Bool = false
     ) async throws -> T {
         let token = await getStoredToken()
         
@@ -124,6 +121,8 @@ class Network {
         
         if let token = token {
             request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        } else if tokenRequired {
+            throw TubError.somethingWentWrong(reason: "JWT token required")
         }
         
         let (data, _) = try await session.data(for: request)
@@ -137,8 +136,8 @@ class Network {
         return decodedResponse.result.data
     }
     
-    private func callQuery<T: Codable>(_ query: String) async throws -> T {
-        return try await callQuery(query, input: Optional<EmptyInput>.none)
+    private func callQuery<T: Codable>(_ query: String, tokenRequired: Bool = false) async throws -> T {
+        return try await callQuery(query, input: Optional<EmptyInput>.none, tokenRequired: tokenRequired)
     }
     
     
@@ -201,6 +200,18 @@ class Network {
             return nil
         }
     }
+
+    // MARK - Calls
+
+   func getStatus() async throws -> Int {
+        let response: StatusResponse = try await callQuery("getStatus")
+        return response.status
+    }
+    
+    func recordClientEvent(event: ClientEvent) async throws {
+        let input = EventInput(event: event)
+        let _: EmptyResponse = try await callMutation("recordClientEvent", input: input)
+    }
     
     func getSolPrice() async throws -> Double {
         let url = baseURL.appendingPathComponent("getSolUsdPrice")
@@ -221,12 +232,12 @@ class Network {
     }
     
     func getBalance() async throws -> Int {
-        let res: BalanceResponse = try await callQuery("getBalance")
+        let res: BalanceResponse = try await callQuery("getBalance", tokenRequired: true)
         return res.balance
     }
     
     func getAllTokenBalances() async throws -> [String : Int] {
-        let res: BulkTokenBalanceResponse = try await callQuery("getAllTokenBalances")
+        let res: BulkTokenBalanceResponse = try await callQuery("getAllTokenBalances", tokenRequired: true)
         return res.tokenBalances.reduce(into: [String : Int]()) { dict, item in
             dict[item.mint] = item.balanceToken
         }
@@ -234,19 +245,19 @@ class Network {
     
     func getTokenBalance(tokenMint: String) async throws -> Int {
         let input = TokenBalanceInput(tokenMint: tokenMint)
-        let res: BalanceResponse = try await callQuery("getTokenBalance", input: input)
+        let res: BalanceResponse = try await callQuery("getTokenBalance", input: input, tokenRequired: true)
         return res.balance
     }
     
     func getTxData(buyTokenId: String, sellTokenId: String, sellQuantity: Int, slippageBps: Int? = nil) async throws -> TxData {
         let input = SwapInput(buyTokenId: buyTokenId, sellTokenId: sellTokenId, sellQuantity: sellQuantity, slippageBps: slippageBps)
-        let res: TxData = try await callQuery("fetchSwap", input: input)
+        let res: TxData = try await callQuery("fetchSwap", input: input, tokenRequired: true)
         return res
     }
     
     func submitSignedTx(txBase64: String, signature: String) async throws -> TxIdResponse {
         let input = signedTxInput(signature: signature, base64Transaction: txBase64)
-        let res: TxIdResponse = try await callMutation("submitSignedTransaction", input: input)
+        let res: TxIdResponse = try await callMutation("submitSignedTransaction", input: input, tokenRequired: true)
         return res
     }
     
@@ -257,7 +268,7 @@ class Network {
             amount: String(amount),
             tokenId: USDC_MINT
         )
-        let transfer: TransferResponse = try await callQuery("fetchTransferTx", input: input)
+        let transfer: TransferResponse = try await callQuery("fetchTransferTx", input: input, tokenRequired: true)
         
         // 3. Sign using the Privy Embedded Wallet
         let provider = try privy.embeddedWallet.getSolanaProvider(for: fromAddress)
@@ -269,7 +280,8 @@ class Network {
             input: signedTxInput(
                 signature: userSignature,
                 base64Transaction: transfer.transactionMessageBase64
-            )
+            ),
+            tokenRequired: true
         )
         
         return response.signature

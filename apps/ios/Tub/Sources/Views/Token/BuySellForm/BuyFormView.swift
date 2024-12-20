@@ -42,7 +42,6 @@ struct BuyFormView: View {
         if isDefaultOn {
             SettingsManager.shared.defaultBuyValueUsdc = amountUsdc
         } 
-        return;
         Task {
             do {
                 try await TxManager.shared.buyToken(

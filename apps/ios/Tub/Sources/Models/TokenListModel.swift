@@ -214,7 +214,6 @@ final class TokenListModel: ObservableObject {
 
         // Prepare data in background
         let hotTokens: [String] = {
-          let newFetch = Date()
           switch result {
           case .success(let graphQLResult):
             if let tokens = graphQLResult.data?.token_stats_interval_comp {
