@@ -242,9 +242,9 @@ class TokenModel: ObservableObject {
     /*                                Token Candles                               */
     /* -------------------------------------------------------------------------- */
 
-    private func fetchInitialCandles(_ tokenId: String) async throws -> [CandleData] {
+    private func fetchInitialCandles(_ tokenId: String, since: Date, candleInterval: String) async throws -> [CandleData] {
         let candles = try await withCheckedThrowingContinuation { continuation in
-            Network.shared.apollo.fetch(query: GetTokenCandlesQuery(token: tokenId, since: .some(iso8601Formatter.string(from: .now)), candle_interval: .some("1m"))) { result in
+            Network.shared.apollo.fetch(query: GetTokenCandlesQuery(token: tokenId, since: .some(iso8601Formatter.string(from: since)), candle_interval: .some(candleInterval))) { result in
                 switch result {
                 case .success(let graphQLResult):
                     if let candles = graphQLResult.data?.token_trade_history_candles {
@@ -273,8 +273,13 @@ class TokenModel: ObservableObject {
     private func subscribeToCandles(_ tokenId: String) async {
         candleSubscription?.cancel()
         candleSubscription = nil
+
+        let now = Date()
+        let since: Date = now.addingTimeInterval(-Timespan.candles.seconds)
+        let candleInterval = "1m"
+
         do {
-            let candles = try await fetchInitialCandles(tokenId)
+            let candles = try await fetchInitialCandles(tokenId, since: since, candleInterval: candleInterval)
             Task { @MainActor in
                 self.candles = candles
             }
@@ -282,13 +287,11 @@ class TokenModel: ObservableObject {
             print("Error fetching initial candles: \(error), starting subscription")
         }
 
-        let now = Date()
-        let since = now.addingTimeInterval(-Timespan.candles.seconds)
         candleSubscription = Network.shared.apollo.subscribe(
             subscription: SubTokenCandlesSubscription(
                 token: tokenId,
                 since: .some(iso8601Formatter.string(from: since)),
-                candle_interval: .some("1m")
+                candle_interval: .some(candleInterval)
             )
         ) { [weak self] result in
             guard let self = self else { return }
