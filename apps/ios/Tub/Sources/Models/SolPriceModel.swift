@@ -148,7 +148,6 @@ final class SolPriceModel: ObservableObject {
         minDecimals: Int = 2,
         formatLarge: Bool = true
     ) -> String {
-        if let price = self.price, price > 0 {
             return formatPrice(
                 usd: usdcToUsd(usdc: usdc),
                 showSign: showSign,
@@ -157,10 +156,6 @@ final class SolPriceModel: ObservableObject {
                 minDecimals: minDecimals,
                 formatLarge: formatLarge
             )
-        }
-        else {
-            return "$0.00"
-        }
     }
 
     func usdToLamports(usd: Double) -> Int {
