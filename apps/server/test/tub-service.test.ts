@@ -207,6 +207,44 @@ import { PrebuildSwapResponse } from "@/types";
 
         await executeTx(swapResponse);
       });
+
+      it.skip("should transfer all held VALUE to USDC and close the VALUE account", async () => {
+        const userVALUEAta = await getAssociatedTokenAddress(VALUE_MAINNET_PUBLIC_KEY, userKeypair.publicKey);
+        const valueBalance = await connection.getTokenAccountBalance(userVALUEAta);
+
+        const decimals = valueBalance.value.decimals;
+        console.log("VALUE balance:", valueBalance.value.uiAmount);
+        if (!valueBalance.value.uiAmount) {
+          console.log("VALUE balance is 0, skipping transfer");
+          return;
+        }
+
+        const initSolBalanceinVALUEAta = await connection.getBalance(userVALUEAta);
+        if (initSolBalanceinVALUEAta === 0) {
+          console.log("VALUE ATA appears closed, skipping test");
+          return;
+        }
+
+        const balanceToken = valueBalance.value.uiAmount * 10 ** decimals;
+        const swap = {
+          buyTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
+          sellTokenId: VALUE_MAINNET_PUBLIC_KEY.toString(),
+          sellQuantity: balanceToken,
+          slippageBps: 100,
+        };
+        console.log("VALUE swap:", swap);
+        const swapResponse = await tubService.fetchSwap(mockJwtToken, swap);
+
+        await executeTx(swapResponse);
+
+        // wait 5 extra seconds for the transaction to be processed by most nodes
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+
+        // get balance of SOL in the VALUE account
+        const valueSolBalanceLamports = await connection.getBalance(userVALUEAta, "processed");
+        console.log("VALUE SOL balance lamports:", valueSolBalanceLamports);
+        expect(valueSolBalanceLamports).toBe(0);
+      }, 20000);
     });
   });
 });
