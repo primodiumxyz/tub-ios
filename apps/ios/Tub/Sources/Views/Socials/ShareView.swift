@@ -26,20 +26,33 @@ struct ShareView: View {
     
     var body: some View {
         NavigationStack {
-            ShareLink(
-                item: shareText,
-                preview: SharePreview(
-                    "Share \(tokenName)",
-                    image: Image("Logo")
-                )
-            ) {
+            HStack {
                 PillImageButton(
-                    icon: "square.and.arrow.up",
-                    color: .white,
+                    icon: "square.and.arrow.down",
+                    color: .tubSellPrimary,
                     iconSize: 20,
-                    text: "Share",
-                    backgroundColor: .tubSellPrimary
+                    horizontalPadding: 16,
+                    text: "Save",
+                    backgroundColor: .white,
+                    strokeColor: .tubSellPrimary
                 )
+                
+                ShareLink(
+                    item: shareText,
+                    preview: SharePreview(
+                        "Share \(tokenName)",
+                        image: Image("Logo")
+                    )
+                ) {
+                    PillImageButton(
+                        icon: "square.and.arrow.up",
+                        color: .white,
+                        iconSize: 20,
+                        horizontalPadding: 32,
+                        text: "Share",
+                        backgroundColor: .tubSellPrimary
+                    )
+                }
             }
         }
     }

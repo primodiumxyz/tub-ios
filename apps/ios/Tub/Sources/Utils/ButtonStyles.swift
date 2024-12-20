@@ -473,8 +473,11 @@ struct PillImageButtonStyle: ViewModifier {
     var icon: String
     var color: Color
     var iconSize: CGFloat = 24
+    var horizontalPadding: CGFloat = 24
     var text: String
-    
+    var backgroundColor: Color = .clear
+    var strokeColor: Color = .clear
+
     func body(content: Content) -> some View {
         HStack(spacing: 8) {
             Image(systemName: icon)
@@ -485,30 +488,7 @@ struct PillImageButtonStyle: ViewModifier {
                 .font(.sfRounded(size: .base, weight: .semibold))
                 .foregroundStyle(color)
         }
-    }
-}
-
-struct PillImageButton: View {
-    var icon: String
-    var color: Color
-    var iconSize: CGFloat = 24
-    var buttonWidth: CGFloat = .infinity
-    var text: String
-    var backgroundColor: Color = .clear
-    var strokeColor: Color = .clear
-    
-    var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: icon)
-                .foregroundStyle(color)
-                .font(.system(size: iconSize))
-            
-            Text(text)
-                .font(.sfRounded(size: .base, weight: .semibold))
-                .foregroundStyle(color)
-        }
-        .frame(width: buttonWidth)  
-        .padding(.horizontal, 24)
+        .padding(.horizontal, horizontalPadding)
         .padding(.vertical, 8)
         .background(backgroundColor)
         .clipShape(Capsule())
@@ -516,5 +496,30 @@ struct PillImageButton: View {
             Capsule()
                 .stroke(strokeColor, lineWidth: 1)
         )
+    }
+}
+
+struct PillImageButton: View {
+    var icon: String
+    var color: Color
+    var iconSize: CGFloat = 24
+    var horizontalPadding: CGFloat = 24
+    var text: String
+    var backgroundColor: Color = .clear
+    var strokeColor: Color = .clear
+    
+    var body: some View {
+        Button(action: {}) {  // You might want to add an action parameter
+            EmptyView()
+        }
+        .modifier(PillImageButtonStyle(
+            icon: icon,
+            color: color,
+            iconSize: iconSize,
+            horizontalPadding: horizontalPadding,
+            text: text,
+            backgroundColor: backgroundColor,
+            strokeColor: strokeColor
+        ))
     }
 }
