@@ -115,11 +115,12 @@ final class UserModel: ObservableObject {
     }
     
     func initializeUser() async {
-        let timeoutTask = DispatchWorkItem { [weak self] in
-            guard let self = self else { return }
+        await MainActor.run {
             self.initializingUser = true
-            
-            // Schedule the timeout
+        }
+
+        let timeoutTask = DispatchWorkItem { [weak self] in
+            guard let self else { return }
             DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
                 if self.initializingUser {
                     self.initializingUser = false

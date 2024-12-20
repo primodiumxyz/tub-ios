@@ -71,7 +71,7 @@ struct TokenInfoPreview: View {
         return stats
     }
 
-    private var generalStats: [StatValue] {
+    private var generalStats: [StatValue]? {
         if let token = userModel.tokenData[tokenModel.tokenId]
         , let liveData = token.liveData {
             return [
@@ -82,15 +82,21 @@ struct TokenInfoPreview: View {
                 StatValue(title: "Trades", caption: HOT_TOKENS_INTERVAL, value: liveData.stats.trades.formatted()),
             ]
         }
-        return []
+        return nil
     }
 
-    private var statRows: Int { (generalStats.count + 1) / 2 }
+    private var statRows: Int { if let generalStats { (generalStats.count + 1) / 2 } else { 0 } }
 
     var body: some View {
         ZStack(alignment: .bottom) {
             VStack(alignment: .leading, spacing: 0) {
-                if let sellStats, activeTab == .sell {
+                if generalStats == nil {
+                    ProgressView()
+                        .progressViewStyle(.circular)
+                        .frame(maxWidth: .infinity, maxHeight: 70)
+                        .padding(18)
+                }
+                else if let sellStats, activeTab == .sell {
                     ForEach(sellStats) { stat in
                         VStack(spacing: 0) {
                             StatView(stat: stat)
@@ -98,7 +104,7 @@ struct TokenInfoPreview: View {
                         .padding(.vertical, 4)
                     }
                 }
-                else {
+                else if let generalStats {
                     ForEach(0..<statRows, id: \.self) { rowIndex in
                         HStack(spacing: 20) {
                             ForEach(0..<2) { columnIndex in
@@ -145,10 +151,13 @@ struct TokenInfoPreview: View {
                 .padding(.bottom, -4)
         }
         .onTapGesture {
+            if generalStats == nil {
+                return
+            }
             self.showInfoOverlay.toggle()
         }
         .sheet(isPresented: $showInfoOverlay) {
-                if let tokenData {
+                if let tokenData, let generalStats {
                     TokenInfoCardView(tokenData: tokenData, stats: generalStats, sellStats: sellStats)
                         .presentationDetents([.height(400)])
                 } else {

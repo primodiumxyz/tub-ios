@@ -11,12 +11,12 @@ import SwiftUI
 class TabsViewModel: ObservableObject {
     var tabStartTime: Date? = nil
     @Published var selectedTab: Int = 0  // Track the selected tab
-
+    
     public func recordTabDwellTime(_ previousTab: String) {
         guard let startTime = tabStartTime else { return }
-
+        
         let dwellTimeMs = Int(Date().timeIntervalSince(startTime) * 1000)
-
+        
         Task(priority: .low) {
             do {
                 try await Network.shared.recordClientEvent(
@@ -35,7 +35,7 @@ class TabsViewModel: ObservableObject {
             }
         }
     }
-
+    
     func recordTabSelection(_ tabName: String) {
         // Record dwell time for previous tab
         let previousTab: String
@@ -45,11 +45,11 @@ class TabsViewModel: ObservableObject {
         case 2: previousTab = "account"
         default: previousTab = "unknown"
         }
-
+        
         if tabStartTime != nil {
             recordTabDwellTime(previousTab)
         }
-
+        
         // Record selection of new tab
         Task {
             try? await Network.shared.recordClientEvent(
@@ -70,97 +70,85 @@ struct HomeTabsView: View {
     @EnvironmentObject private var priceModel: SolPriceModel
     @StateObject private var vm = TabsViewModel()
     @State private var refreshCounter = 0  // Tracks re-taps on the same tab
-
+    
     var body: some View {
-                     
-       
-        Group {
-            if !priceModel.isReady {
-                LoadingView(
-                    identifier: "HomeTabsView - waiting priceModel",
-                    message: "Connecting to Solana"
-                )
-            }
-            else {
-                ZStack {
-                    // Main content with TabView
-                    TabView(selection: $vm.selectedTab) {
-                          TokenListView()
-                            .id(refreshCounter)
-                            .tabItem {
-                                VStack {
-                                    Image(systemName: "chart.line.uptrend.xyaxis")
-                                        .font(.system(size: 24))
-                                    Text("Trade")
-                                        .font(.system(size: 12))
-                                }
-                            }
-                            .tag(0)
-
-                       NavigationStack {
-                           HistoryView()
-                               .id(refreshCounter)
-                       }
-                       .tabItem {
-                           VStack {
-                               Image(systemName: "clock")
-                                   .font(.system(size: 24))
-                               Text("History")
-                                   .font(.system(size: 12))
-                           }
-                       }
-                       .tag(1)
-
-                       NavigationStack {
-                           AccountView()
-                               .id(refreshCounter)
-                       }
-                       .tabItem {
-                           VStack {
-                               Image(systemName: "person")
-                                   .font(.system(size: 24))
-                               Text("Account")
-                                   .font(.system(size: 12))
-                           }
-                       }
-                       .tag(2)
-                       
-                       TokenBalancesView()
-                       .tabItem {
-                           VStack {
-                               Image(systemName: "book.closed.fill")
-                                   .font(.system(size: 24))
-                               Text("Portfolio")
-                                   .font(.system(size: 12))
-                           }
-                       }
-                       .tag(3)
-                       
-                       TestTxView()
-                       .tabItem {
-                           VStack {
-                               Image(systemName: "testtube.2")
-                                   .font(.system(size: 24))
-                               Text("Test Tx")
-                                   .font(.system(size: 12))
-                           }
-                       }
-                       .tag(4)
-                        
-
-
+        
+        
+        ZStack {
+            // Main content with TabView
+            TabView(selection: $vm.selectedTab) {
+                TokenListView()
+                    .id(refreshCounter)
+                    .tabItem {
+                        VStack {
+                            Image(systemName: "chart.line.uptrend.xyaxis")
+                                .font(.system(size: 24))
+                            Text("Trade")
+                                .font(.system(size: 12))
+                        }
                     }
-                    .background(Color(UIColor.systemBackground))
-                    .ignoresSafeArea(.keyboard)
-                    .onChange(of: vm.selectedTab) { oldTab, newTab in
-                        handleTabSelection(oldTab: oldTab, newTab: newTab)
-                    }
-
-                    // Transparent overlay to capture tab item taps
-                    TabTapOverlay(selectedTab: $vm.selectedTab) {
-                        refreshCounter += 1
+                    .tag(0)
+                
+                NavigationStack {
+                    HistoryView()
+                        .id(refreshCounter)
+                }
+                .tabItem {
+                    VStack {
+                        Image(systemName: "clock")
+                            .font(.system(size: 24))
+                        Text("History")
+                            .font(.system(size: 12))
                     }
                 }
+                .tag(1)
+                
+                NavigationStack {
+                    AccountView()
+                        .id(refreshCounter)
+                }
+                .tabItem {
+                    VStack {
+                        Image(systemName: "person")
+                            .font(.system(size: 24))
+                        Text("Account")
+                            .font(.system(size: 12))
+                    }
+                }
+                .tag(2)
+                
+                TokenBalancesView()
+                    .tabItem {
+                        VStack {
+                            Image(systemName: "book.closed.fill")
+                                .font(.system(size: 24))
+                            Text("Portfolio")
+                                .font(.system(size: 12))
+                        }
+                    }
+                    .tag(3)
+                
+                TestTxView()
+                    .tabItem {
+                        VStack {
+                            Image(systemName: "testtube.2")
+                                .font(.system(size: 24))
+                            Text("Test Tx")
+                                .font(.system(size: 12))
+                        }
+                    }
+                    .tag(4)
+                
+            }
+            .background(Color(UIColor.systemBackground))
+            .ignoresSafeArea(.keyboard)
+            .onChange(of: vm.selectedTab) { oldTab, newTab in
+                handleTabSelection(oldTab: oldTab, newTab: newTab)
+            }
+            
+            // Transparent overlay to capture tab item taps
+            TabTapOverlay(selectedTab: $vm.selectedTab) {
+                refreshCounter += 1
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -172,7 +160,7 @@ struct HomeTabsView: View {
             }
         }
     }
-
+    
     private func handleTabSelection(oldTab: Int, newTab: Int) {
         let tabName: String
         switch newTab {
@@ -188,7 +176,7 @@ struct HomeTabsView: View {
 struct TabTapOverlay: View {
     @Binding var selectedTab: Int
     let onSameTabTapped: () -> Void
-
+    
     var body: some View {
         GeometryReader { proxy in
             HStack(spacing: 0) {

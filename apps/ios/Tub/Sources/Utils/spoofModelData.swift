@@ -9,7 +9,6 @@ import Foundation
 
 func spoofPriceModelData(_ model: SolPriceModel) {
     model.price = 100
-    model.isReady = true
 }
 
 func spoofTokenModelData(userModel: UserModel, tokenModel: TokenModel) {

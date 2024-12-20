@@ -34,7 +34,7 @@ final class TokenListModel: ObservableObject {
     private var currentTokenId: String? {
         return self.currentTokenModel.tokenId
     }
-   
+    
     private var nextTokenId: String? {
         return self.nextTokenModel?.tokenId
     }
@@ -58,13 +58,13 @@ final class TokenListModel: ObservableObject {
         }
         
         let portfolio = UserModel.shared.tokenPortfolio
-            let priorityTokenMint = portfolio.first { tokenId in
-                tokenId != currentId
-            }
-            
-            if let mint = priorityTokenMint {
-                return mint
-            }
+        let priorityTokenMint = portfolio.first { tokenId in
+            tokenId != currentId
+        }
+        
+        if let mint = priorityTokenMint {
+            return mint
+        }
         
         // If this is the first token (no currentId), return the first non-cooldown token
         var nextToken = self.pendingTokens.first { token in
@@ -169,14 +169,14 @@ final class TokenListModel: ObservableObject {
     
     
     public func startTokenSubscription() {
-            self.hotTokensSubscription = Network.shared.apollo.subscribe(
-                subscription: SubTopTokensByVolumeSubscription(
-                    interval: .some(HOT_TOKENS_INTERVAL),
-                    recentInterval: .some(FILTERING_INTERVAL),
-                    minRecentTrades: .some(FILTERING_MIN_TRADES),
-                    minRecentVolume: .some(FILTERING_MIN_VOLUME_USD)
-                )
-            ) { [weak self] result in
+        self.hotTokensSubscription = Network.shared.apollo.subscribe(
+            subscription: SubTopTokensByVolumeSubscription(
+                interval: .some(HOT_TOKENS_INTERVAL),
+                recentInterval: .some(FILTERING_INTERVAL),
+                minRecentTrades: .some(FILTERING_MIN_TRADES),
+                minRecentVolume: .some(FILTERING_MIN_VOLUME_USD)
+            )
+        ) { [weak self] result in
             Task{
                 guard let self = self else { return }
                 
@@ -185,30 +185,25 @@ final class TokenListModel: ObservableObject {
                     switch result {
                     case .success(let graphQLResult):
                         if let tokens = graphQLResult.data?.token_stats_interval_comp {
-                            let mappedTokens = tokens
-                                .map { elem in
-                                    elem.token_mint
-                                }
-                                
-                                return mappedTokens
-                            }
-                            return []
-                        case .failure(let error):
-                            print("Error fetching tokens: \(error.localizedDescription)")
-                            return []
+                            return tokens.map { elem in elem.token_mint }
                         }
-                    }()
-                    await self.updatePendingTokens(hotTokens)
-                    await MainActor.run {
-
-                        if self.tokenQueue.isEmpty {
-                            self.initializeTokenQueue()
-                        }
-}
-               }
-                
-                
+                        return []
+                    case .failure(let error):
+                        print("Error fetching tokens: \(error.localizedDescription)")
+                        return []
+                    }
+                }()
+                await self.updatePendingTokens(hotTokens)
+                await MainActor.run {
+                    
+                    if self.tokenQueue.isEmpty {
+                        self.initializeTokenQueue()
+                    }
+                }
             }
+            
+            
+        }
     }
     
     func stopTokenSubscription() {
@@ -236,7 +231,6 @@ final class TokenListModel: ObservableObject {
         let newTokens = Array((unqueuedNewTokens + uniqueOldTokens))
         let tokens = UserModel.shared.tokenData
         let newTokensToRefresh = newTokens.filter { tokens[$0] == nil }
-
         if newTokensToRefresh.count > 0 {
             try? await UserModel.shared.refreshBulkTokenData(tokenMints: Array(newTokensToRefresh.prefix(3)))
         }
