@@ -1,17 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "discord_icon.png",
+      "filename" : "Logo.svg",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "discord_icon@2x.png",
+      "filename" : "Logo 1.svg",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "discord_icon@3x.png",
+      "filename" : "Logo 2.svg",
       "idiom" : "universal",
       "scale" : "3x"
     }
