@@ -467,3 +467,54 @@ struct ContentButton<Content: View>: View {
         )
     }
 }
+
+// MARK: - Pill Image Button Style - Eg. Share or action buttons with icons
+struct PillImageButtonStyle: ViewModifier {
+    var icon: String
+    var color: Color
+    var iconSize: CGFloat = 24
+    var text: String
+    
+    func body(content: Content) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .foregroundStyle(color)
+                .font(.system(size: iconSize))
+            
+            Text(text)
+                .font(.sfRounded(size: .base, weight: .semibold))
+                .foregroundStyle(color)
+        }
+    }
+}
+
+struct PillImageButton: View {
+    var icon: String
+    var color: Color
+    var iconSize: CGFloat = 24
+    var buttonWidth: CGFloat = .infinity
+    var text: String
+    var backgroundColor: Color = .clear
+    var strokeColor: Color = .clear
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .foregroundStyle(color)
+                .font(.system(size: iconSize))
+            
+            Text(text)
+                .font(.sfRounded(size: .base, weight: .semibold))
+                .foregroundStyle(color)
+        }
+        .frame(width: buttonWidth)  
+        .padding(.horizontal, 24)
+        .padding(.vertical, 8)
+        .background(backgroundColor)
+        .clipShape(Capsule())
+        .overlay(
+            Capsule()
+                .stroke(strokeColor, lineWidth: 1)
+        )
+    }
+}

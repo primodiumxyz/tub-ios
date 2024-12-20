@@ -82,7 +82,12 @@ struct AccountBalanceView: View {
                                     }
                                     
                                     // Share Button
-                                    NavigationLink(destination: EmptyView()) {
+                                    NavigationLink(destination: ShareView(
+                                        tokenName: "TOKEN NAME",
+                                        tokenSymbol: "USD",
+                                        price: userModel.portfolioBalanceUsd ?? 0,
+                                        priceChange: deltaUsd
+                                    )) {
                                         ZStack {
                                             Circle()
                                                 .stroke(.tubNeutral, lineWidth: 0.5)
