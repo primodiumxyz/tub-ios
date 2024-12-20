@@ -161,7 +161,7 @@ struct TokenView: View {
         }
     }
 
-    let height = UIScreen.main.bounds.height * 0.38
+    let height = UIScreen.main.bounds.height * 0.42
 
     private var chartView: some View {
         Group {

@@ -519,6 +519,7 @@ final class UserModel: ObservableObject {
             
             self.stopTimer()
             self.stopPollingTokenPortfolio()
+            TokenListModel.shared.initialFetchComplete = false
             self.usdcBalance = 0
             self.tokenData.forEach { (key, val) in
                 guard val.balanceToken > 0 else { return }

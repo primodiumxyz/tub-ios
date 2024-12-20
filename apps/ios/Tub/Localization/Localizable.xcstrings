@@ -82,13 +82,13 @@
     "Balance: %@" : {
 
     },
+    "Bought for %@" : {
+
+    },
     "Buy" : {
 
     },
     "Buy Details" : {
-
-    },
-    "Cancel" : {
 
     },
     "Close" : {
@@ -131,6 +131,9 @@
 
     },
     "History" : {
+
+    },
+    "Login" : {
 
     },
     "Low" : {

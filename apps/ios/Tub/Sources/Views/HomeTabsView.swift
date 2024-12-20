@@ -125,7 +125,7 @@ struct HomeTabsView: View {
                        }
                        .tag(2)
                        
-                       TokenBalancesView()
+                        PortfolioView()
                        .tabItem {
                            VStack {
                                Image(systemName: "book.closed.fill")

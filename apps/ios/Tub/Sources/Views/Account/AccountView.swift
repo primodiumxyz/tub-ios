@@ -19,34 +19,32 @@ struct AccountView: View {
     @State private var errorMessage: String = ""
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 24) {
-                if userModel.userId != nil {
-                    AccountContentView(
-                        isAirdropping: $isAirdropping,
-                        showOnrampView: $showOnrampView,
-                        showWithdrawView: $showWithdrawView
-                    )
-                }
-                else {
-                    UnregisteredAccountView()
-                }
+        VStack(spacing: 24) {
+            if userModel.userId != nil {
+                AccountContentView(
+                    isAirdropping: $isAirdropping,
+                    showOnrampView: $showOnrampView,
+                    showWithdrawView: $showWithdrawView
+                )
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color(UIColor.systemBackground))
-            .sheet(isPresented: $showWithdrawView) {
-                WithdrawView()
-                    .withNotificationBanner()
-            }
-            .sheet(isPresented: $showOnrampView) {
-                CoinbaseOnrampView()
-                    .withNotificationBanner()
+            else {
+                UnregisteredAccountView()
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(UIColor.systemBackground))
+        .sheet(isPresented: $showWithdrawView) {
+            WithdrawView()
+                .withNotificationBanner()
+        }
+        .sheet(isPresented: $showOnrampView) {
+            CoinbaseOnrampView()
+                .withNotificationBanner()
+        }
         .presentationDragIndicator(.visible)
         .presentationBackground(Color(UIColor.systemBackground))
+        .navigationTitle("")
+        .navigationBarTitleDisplayMode(.inline)
 
     }
 }
@@ -170,6 +168,33 @@ private struct AccountSettingsView: View {
                 }
                 .foregroundStyle(Color.primary)
             }
+            
+            NavigationLink(destination: PortfolioView()) {
+                HStack(spacing: 16) {
+                    Image(systemName: "book.circle")
+                        .resizable()
+                        .frame(width: 24, height: 24, alignment: .center)
+                    Text("Portfolio")
+                        .font(.sfRounded(size: .lg, weight: .regular))
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                }
+                .foregroundStyle(Color.primary)
+            }
+
+            NavigationLink(destination: HistoryView()) {
+                HStack(spacing: 16) {
+                    Image(systemName: "clock.arrow.circlepath")
+                        .resizable()
+                        .frame(width: 24, height: 24, alignment: .center)
+                    Text("History")
+                        .font(.sfRounded(size: .lg, weight: .regular))
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                }
+                .foregroundStyle(Color.primary)
+            }
+
 
             NavigationLink(destination: SettingsView()) {
                 HStack(spacing: 16) {
