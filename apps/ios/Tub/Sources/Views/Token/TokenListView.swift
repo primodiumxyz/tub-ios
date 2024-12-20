@@ -29,8 +29,6 @@ struct TokenListView: View {
     private let autoScrollSpringAnimationBounce = 0.35  // [0,1] where 1 is very springy
     private let moveToDragGestureOffsetAnimationDuration = 0.25
 
-    let OFFSET: Double = 5
-    
     var balanceToken: Int {
         userModel.tokenData[tokenListModel.currentTokenModel.tokenId]?.balanceToken ?? 0
     }
@@ -128,7 +126,7 @@ struct TokenListView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack(alignment: .top) {
+            VStack {
                 AccountBalanceView(
                     userModel: userModel
                 )
@@ -140,7 +138,6 @@ struct TokenListView: View {
                             tokenModel: TokenModel()
                         )
                         .frame(height: geometry.size.height)
-                        .offset(y: OFFSET)
                     }
                 } else {
                     // Main content
@@ -181,7 +178,7 @@ struct TokenListView: View {
                                 .opacity(dragging ? 1 : 0)
                             }
                             .zIndex(1)
-                            .offset(y: -geometry.size.height + OFFSET + dragGestureOffset + activeOffset)
+                            .offset(y: -geometry.size.height + dragGestureOffset + activeOffset)
                             .highPriorityGesture(
                                 DragGesture()
                                     .onChanged { value in
@@ -213,6 +210,8 @@ struct TokenListView: View {
                                     }
                             )
                         }.zIndex(1)
+                        .clipped()
+
                     }
                 }
             }.onAppear {
