@@ -5,7 +5,6 @@
 //  Created by Emerson Hsieh on 2024/9/24.
 //
 
-import PrivySDK
 import SwiftUI
 
 @main

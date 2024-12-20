@@ -84,10 +84,7 @@ struct ActionButtonsView: View {
             try await TxManager.shared.sellToken(tokenId: tokenModel.tokenId, tokenPriceUsd: tokenPriceUsd)
             await MainActor.run {
                 BubbleManager.shared.trigger()
-                notificationHandler.show(
-                                            "Successfully sold tokens!",
-                                            type: .success
-                                        )
+                notificationHandler.show("Successfully sold tokens!", type: .success)
             }
         }
         catch {

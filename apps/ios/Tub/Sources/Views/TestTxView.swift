@@ -5,7 +5,6 @@
 //  Created by Henry on 11/25/24.
 //
 
-import PrivySDK
 import SwiftUI
 
 struct TestTxView: View {

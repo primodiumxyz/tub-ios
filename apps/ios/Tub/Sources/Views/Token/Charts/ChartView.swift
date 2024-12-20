@@ -90,9 +90,9 @@ struct ChartView: View {
                         let purchaseIncrease = (currentPrice.priceUsd - priceUsd) / priceUsd
                         Text("\(purchaseIncrease >= 0 ? "+" : "")\(String(format: "%.1f%%", purchaseIncrease * 100))")
                             .foregroundStyle(.tubText.opacity(0.9))
-                            .padding(8)
+                            .padding(4)
                             .background(.tubSellSecondary)
-                            .font(.sfRounded(size: .xxs))
+                            .font(.sfRounded(size: .xs))
                             .fontWeight(.bold)
                             .clipShape(Capsule())
                     }
@@ -172,25 +172,6 @@ struct ChartView: View {
         .onChange(of: rawPrices) {
             updatePrices()
         }
-    }
-}
-
-struct PillView: View {
-    let value: String
-    let color: Color
-    let foregroundColor: Color
-    let fontSize: Font.TwSize
-
-    var body: some View {
-        Text(value)
-            .font(.caption)
-            .foregroundStyle(foregroundColor)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(color)
-            .font(.sfRounded(size: fontSize))
-            .fontWeight(.bold)
-            .clipShape(Capsule())
     }
 }
 

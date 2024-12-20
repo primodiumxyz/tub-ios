@@ -51,6 +51,7 @@ struct BuyFormView: View {
                     tokenPriceUsdc: priceUsdc
                 )
                 await MainActor.run {
+                    self.isVisible = false
                     notificationHandler.show(
                         "Successfully bought tokens!",
                         type: .success
