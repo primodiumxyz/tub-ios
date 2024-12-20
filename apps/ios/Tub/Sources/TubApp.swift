@@ -85,8 +85,10 @@ struct AppContent: View {
             case .error:
                 notificationHandler.show("Error connecting to wallet.", type: .error)
             case .connected, .disconnected, .notCreated, .needsRecovery:
-                tokenListModel.clearQueue()
-                tokenListModel.startTokenSubscription()
+                Task {
+                    tokenListModel.clearQueue()
+                    await tokenListModel.startTokenSubscription()
+                }
             default:
                 break
             }

@@ -216,11 +216,6 @@ struct TokenListView: View {
                     }.zIndex(1)
                 }
             }
-        }.onAppear {
-            tokenListModel.startTokenSubscription()
-        }
-        .onDisappear {
-            tokenListModel.stopTokenSubscription()
         }
     }
 
