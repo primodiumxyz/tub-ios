@@ -40,7 +40,7 @@ func cleanupFormattedString(_ str: String) -> String {
 
     // Add subscript for small numbers
     let absPrice = abs(Double(str) ?? 0.0)
-    if absPrice < 0.0001 && str.starts(with: "0.") {
+    if absPrice < 0.0001 && absPrice > 0 {
         let parts = result.dropFirst(2).split(separator: "")
         var leadingZeros = 0
         for char in parts {
