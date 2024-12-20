@@ -181,7 +181,6 @@ final class TokenListModel: ObservableObject {
         switch result {
         case .success(let graphQLResult):
           if let tokens = graphQLResult.data?.token_stats_interval_comp {
-            let end = Date()
             continuation.resume(returning: tokens.map { elem in elem.token_mint })
           }
         case .failure(let error):
@@ -203,7 +202,6 @@ final class TokenListModel: ObservableObject {
       )
     }
 
-    var lastFetch = Date()
     self.hotTokensSubscription = Network.shared.apollo.subscribe(
       subscription: SubTopTokensByVolumeSubscription(
         interval: .some(HOT_TOKENS_INTERVAL),
@@ -217,7 +215,6 @@ final class TokenListModel: ObservableObject {
         // Prepare data in background
         let hotTokens: [String] = {
           let newFetch = Date()
-          lastFetch = newFetch
           switch result {
           case .success(let graphQLResult):
             if let tokens = graphQLResult.data?.token_stats_interval_comp {
@@ -239,9 +236,7 @@ final class TokenListModel: ObservableObject {
     await self.updatePendingTokens(hotTokens)
     await MainActor.run {
       if self.tokenQueue.isEmpty {
-        if self.tokenQueue.isEmpty {
-          self.initializeTokenQueue()
-        }
+        self.initializeTokenQueue()
       }
     }
   }

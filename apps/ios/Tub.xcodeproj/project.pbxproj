@@ -25,8 +25,8 @@
 		995FCA1F2CDA5ED70018A76D /* CoinbaseOnrampView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995FCA1E2CDA5ED20018A76D /* CoinbaseOnrampView.swift */; };
 		996772FE2CEB85820029B298 /* LoadingBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996772FD2CEB857C0029B298 /* LoadingBox.swift */; };
 		9971F29B2CFF836700BA48C0 /* WithdrawView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9971F29A2CFF835D00BA48C0 /* WithdrawView.swift */; };
+		9979A6CD2D0B2CD100DFDBE5 /* ErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9979A6C62D0B2CD100DFDBE5 /* ErrorView.swift */; };
 		997DE8F42CDAC86500164366 /* NotificationBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 997DE8F32CDAC86000164366 /* NotificationBanner.swift */; };
-				9979A6CD2D0B2CD100DFDBE5 /* ErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9979A6C62D0B2CD100DFDBE5 /* ErrorView.swift */; };
 		99856DA42CD27E1F004B9D40 /* Privy in Frameworks */ = {isa = PBXBuildFile; productRef = 99856DA32CD27E1F004B9D40 /* Privy */; };
 		99856DA62CD27E2E004B9D40 /* Privy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99856DA52CD27E27004B9D40 /* Privy.swift */; };
 		9995E9BF2D01025D005B9179 /* PortfolioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9995E9BE2D01025A005B9179 /* PortfolioView.swift */; };
@@ -1054,14 +1054,6 @@
 				minimumVersion = 0.8.0;
 			};
 		};
-		99EE82A82CFE485A00615572 /* XCRemoteSwiftPackageReference "solana-swift" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/p2p-org/solana-swift";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 5.0.0;
-			};
-		};
 		DFA4D64F2CAC500B00AEDC73 /* XCRemoteSwiftPackageReference "apollo-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/apollographql/apollo-ios";
@@ -1105,7 +1097,6 @@
 			package = 99DED24F2CAF2A6B0055FC60 /* XCRemoteSwiftPackageReference "ApolloCombine" */;
 			productName = ApolloCombine;
 		};
-		
 		DB458DB02CAC824A00C5EC18 /* TubAPI */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = DB458DAE2CAC821D00C5EC18 /* XCLocalSwiftPackageReference "TubAPI" */;
