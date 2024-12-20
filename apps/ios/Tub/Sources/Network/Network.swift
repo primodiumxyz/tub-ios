@@ -184,16 +184,17 @@ class Network {
                 let expirationDate = Date(timeIntervalSince1970: exp)
                 if expirationDate > Date() && hardRefresh != true {
                     return token
-                } else {
-                    do {
-                        print("Token expired, refreshing session")
-                        let newSession = try await privy.refreshSession()
-                        return newSession.authToken
-                    } catch {
-                        print("Failed to refresh session: \(error)")
-                        return nil
-                    }
                 }
+                
+                do {
+                    print("Token expired, refreshing session")
+                    let newSession = try await privy.refreshSession()
+                    return newSession.authToken
+                } catch {
+                    print("Failed to refresh session: \(error)")
+                    return nil
+                }
+                
             }
             return nil
         default:
