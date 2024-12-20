@@ -304,7 +304,7 @@ private struct AccountSettingsView: View {
                     Image(systemName: "gear")
                         .resizable()
                         .frame(width: 24, height: 24, alignment: .center)
-                    Text("Settings")
+                    Text("Preferences")
                         .font(.sfRounded(size: .lg, weight: .regular))
                     Spacer()
                     Image(systemName: "chevron.right")
