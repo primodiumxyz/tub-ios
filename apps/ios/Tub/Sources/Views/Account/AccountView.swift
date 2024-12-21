@@ -32,6 +32,7 @@ struct AccountView: View {
                     TokenHistoryPreview()
                     
                     AccountSettingsView()
+                        .padding(.top, -12)
                     Spacer()
                 }
             }
@@ -118,12 +119,12 @@ private struct TokenHistoryPreview: View {
                 NavigationLink(destination: HistoryView()) {
                     VStack(alignment: .leading) {
                         Rectangle()
-                            .fill(.tubText.opacity(0.3))
+                            .fill(.tubText.opacity(0.25))
                             .frame(height: 1)
-                            .padding(.bottom, 8)
+                            .padding(.bottom, 6)
                         HStack {
                             Text("Last Trade")
-                                .font(.sfRounded(size: .lg, weight: .regular))
+                                .font(.sfRounded(size: .xl, weight: .medium))
                             Spacer()
                             Text("View All")
                                 .font(.sfRounded(size: .base, weight: .regular))
@@ -142,9 +143,9 @@ private struct TokenHistoryPreview: View {
                         }
                         
                         Rectangle()
-                            .fill(.tubText.opacity(0.3))
+                            .fill(.tubText.opacity(0.25))
                             .frame(height: 1)
-                            .padding(.top, 8)
+                            .padding(.top, 6)
                     }
                 }
             }
@@ -170,16 +171,16 @@ private struct TransactionRow: View {
 
     var body: some View {
         HStack {
-            ImageView(imageUri: transaction.imageUri, size: 40)
+            ImageView(imageUri: transaction.imageUri, size: 32)
                 .cornerRadius(8)
 
             VStack(alignment: .leading) {
                 HStack {
                     Text(transaction.isBuy ? "Buy" : "Sell")
-                        .font(.sfRounded(size: .lg, weight: .bold))
-                        .foregroundStyle(.tubNeutral)
+                        .font(.sfRounded(size: .base, weight: .bold))
+                        .foregroundStyle(.tubText)
                     Text(transaction.name.isEmpty ? transaction.mint.truncatedAddress() : transaction.name)
-                        .font(.sfRounded(size: .lg, weight: .bold))
+                        .font(.sfRounded(size: .base, weight: .bold))
                         .lineLimit(1)
                         .truncationMode(.tail)
                         .offset(x: -2)
@@ -201,15 +202,16 @@ private struct TransactionRow: View {
                 HStack {
                     Text(quantity)
                         .font(.sfRounded(size: .xs, weight: .regular))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.tubBuyPrimary)
                         .offset(x: 4, y: 2)
 
                     Text(transaction.symbol)
                         .font(.sfRounded(size: .xs, weight: .regular))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.tubBuyPrimary)
                         .offset(y: 2)
                 }
             }
+            .padding(.horizontal, 8)
         }
     }
 }
@@ -295,9 +297,6 @@ private struct AccountSettingsView: View {
                 }
                 .foregroundStyle(Color.primary)
             }
-            
-            
-            
             
             NavigationLink(destination: SettingsView()) {
                 HStack(spacing: 16) {
