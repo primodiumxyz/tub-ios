@@ -76,19 +76,22 @@
     "Add Funds" : {
 
     },
+    "All Trades" : {
+
+    },
     "B" : {
 
     },
     "Balance: %@" : {
 
     },
+    "Bought for %@" : {
+
+    },
     "Buy" : {
 
     },
     "Buy Details" : {
-
-    },
-    "Cancel" : {
 
     },
     "Close" : {
@@ -130,7 +133,10 @@
     "High" : {
 
     },
-    "History" : {
+    "Last Trade" : {
+
+    },
+    "Login" : {
 
     },
     "Low" : {
@@ -158,6 +164,9 @@
 
     },
     "Portfolio" : {
+
+    },
+    "Preferences" : {
 
     },
     "Price" : {
@@ -205,9 +214,6 @@
     "Support" : {
 
     },
-    "Test Tx" : {
-
-    },
     "This token is still writing its autobiography... 📝" : {
 
     },
@@ -218,9 +224,6 @@
 
     },
     "Token" : {
-
-    },
-    "Trade" : {
 
     },
     "Transaction number" : {
@@ -236,6 +239,9 @@
 
     },
     "Value: %@" : {
+
+    },
+    "View All" : {
 
     },
     "Welcome to tub" : {

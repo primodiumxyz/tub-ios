@@ -61,7 +61,7 @@ struct AppContent: View {
                 LoadingView(identifier: "Logging in", message: "Logging in")
             }
             else {
-                HomeTabsView().font(.sfRounded())
+                TokenListView().font(.sfRounded())
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Color(UIColor.systemBackground))
                     .withNotificationBanner()

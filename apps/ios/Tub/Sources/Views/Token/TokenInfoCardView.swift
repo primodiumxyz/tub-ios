@@ -98,6 +98,16 @@ struct TokenInfoCardView: View {
             }
         }
         .background(Gradients.cardBgGradient)
+        .clipShape(
+            UnevenRoundedRectangle(
+                cornerRadii: RectangleCornerRadii(
+                    topLeading: 30,
+                    bottomLeading: 0,
+                    bottomTrailing: 0,
+                    topTrailing: 30
+                )
+            )
+        )
     }
 }
 
