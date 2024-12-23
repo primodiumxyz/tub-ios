@@ -86,7 +86,8 @@ struct AccountBalanceView: View {
                             price: UserModel.shared.tokenData[tokenListModel.currentTokenModel.tokenId]?.liveData?.priceUsd ?? (userModel.portfolioBalanceUsd ?? 0),
                             priceChange: UserModel.shared.tokenData[tokenListModel.currentTokenModel.tokenId]?.balanceToken ?? 0 > 0 
                                 ? tokenListModel.currentTokenModel.priceChange.percentage 
-                                : nil
+                                : nil,
+                            tokenImageUrl: UserModel.shared.tokenData[tokenListModel.currentTokenModel.tokenId]?.metadata.imageUri ?? ""
                         )) {
                             ZStack {
                                 Circle()

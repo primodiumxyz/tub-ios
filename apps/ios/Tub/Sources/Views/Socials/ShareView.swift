@@ -13,7 +13,9 @@ struct ShareView: View {
     let tokenSymbol: String
     let price: Double
     let priceChange: Double?
+    let tokenImageUrl: String
     @State private var showingSaveSuccess = false
+    @State private var loadedImage: Image?
     
     var shareText: String {
         """
@@ -54,14 +56,33 @@ struct ShareView: View {
     private var shareCardView: some View {
         VStack(spacing: 0) {
             HStack(spacing: 8) {
-                Image(uiImage: UIImage(named: "Logo") ?? UIImage())
-                    .resizable()
-                    .frame(width: 70, height: 70)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                if let loadedImage = loadedImage {
+                    loadedImage
+                        .resizable()
+                        .frame(width: 70, height: 70)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                } else {
+                    AsyncImage(url: URL(string: tokenImageUrl)) { phase in
+                        switch phase {
+                        case .success(let image):
+                            let _ = DispatchQueue.main.async {
+                                loadedImage = image
+                            }
+                            image
+                                .resizable()
+                                .frame(width: 70, height: 70)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                        default:
+                            Color.gray
+                                .frame(width: 70, height: 70)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                        }
+                    }
+                }
                 
                 VStack(alignment: .leading, spacing: 4){
                     Text("$\(tokenSymbol)")
-                        .font(.sfRounded(size: .xl2, weight: .bold))
+                        .font(.sfRounded(size: .xl3, weight: .bold))
                         .foregroundStyle(Color(uiColor: UIColor(named: "tubNeutral")!))
                                         
                     if let priceChange = priceChange {
@@ -79,7 +100,7 @@ struct ShareView: View {
             }
             .padding(.horizontal, 16)
             .padding(.top, 32)
-            .padding(.bottom, 12)
+            .padding(.bottom, 16)
             
             // Chart view
 //            ChartView() 
@@ -173,6 +194,7 @@ struct ShareView: View {
                         }
                     }
                 }
+                .padding(.bottom, 32)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
@@ -184,6 +206,7 @@ struct ShareView: View {
         tokenName: "Sample Token",
         tokenSymbol: "TOK",
         price: 0.123456,
-        priceChange: 5.43
+        priceChange: 5.43,
+        tokenImageUrl: "https://example.com/token-image.png"
     )
 }
