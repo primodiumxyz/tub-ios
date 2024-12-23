@@ -41,7 +41,7 @@ struct AccountBalanceView: View {
                                             .fontWeight(.bold)
                                             .foregroundStyle(deltaUsd >= 0 ? .tubSuccess : .tubError)
                                             .opacity(0.7)
-                                            .frame(height: 10)
+                                            .frame(maxWidth:.infinity)
                                             .padding(0)
                                     }
                                     else {

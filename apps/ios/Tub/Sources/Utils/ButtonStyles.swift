@@ -468,8 +468,8 @@ struct ContentButton<Content: View>: View {
     }
 }
 
-// MARK: - Pill Image Button Style - Eg. Share or action buttons with icons
-struct PillImageButtonStyle: ViewModifier {
+// MARK: - Pill Image Button - For interactive buttons
+struct PillImageButton: View {
     var icon: String
     var color: Color
     var iconSize: CGFloat = 24
@@ -477,8 +477,43 @@ struct PillImageButtonStyle: ViewModifier {
     var text: String
     var backgroundColor: Color = .clear
     var strokeColor: Color = .clear
+    var action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                Image(systemName: icon)
+                    .foregroundStyle(color)
+                    .font(.system(size: iconSize))
+                
+                Text(text)
+                    .font(.sfRounded(size: .base, weight: .semibold))
+                    .foregroundStyle(color)
+            }
+            .padding(.horizontal, horizontalPadding)
+            .padding(.vertical, 8)
+            .background(backgroundColor)
+            .clipShape(Capsule())
+            .overlay(
+                Capsule()
+                    .stroke(strokeColor, lineWidth: 1)
+            )
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
 
-    func body(content: Content) -> some View {
+// MARK: - Pill Image Label - For non-interactive styling Eg. Share button in ShareView
+struct PillImageLabel: View {
+    var icon: String
+    var color: Color
+    var iconSize: CGFloat = 24
+    var horizontalPadding: CGFloat = 24
+    var text: String
+    var backgroundColor: Color = .clear
+    var strokeColor: Color = .clear
+    
+    var body: some View {
         HStack(spacing: 8) {
             Image(systemName: icon)
                 .foregroundStyle(color)
@@ -496,30 +531,5 @@ struct PillImageButtonStyle: ViewModifier {
             Capsule()
                 .stroke(strokeColor, lineWidth: 1)
         )
-    }
-}
-
-struct PillImageButton: View {
-    var icon: String
-    var color: Color
-    var iconSize: CGFloat = 24
-    var horizontalPadding: CGFloat = 24
-    var text: String
-    var backgroundColor: Color = .clear
-    var strokeColor: Color = .clear
-    
-    var body: some View {
-        Button(action: {}) {  // You might want to add an action parameter
-            EmptyView()
-        }
-        .modifier(PillImageButtonStyle(
-            icon: icon,
-            color: color,
-            iconSize: iconSize,
-            horizontalPadding: horizontalPadding,
-            text: text,
-            backgroundColor: backgroundColor,
-            strokeColor: strokeColor
-        ))
     }
 }

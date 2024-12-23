@@ -4,6 +4,9 @@
     "" : {
 
     },
+    "@tub" : {
+
+    },
     "#8612373299412" : {
 
     },
@@ -41,6 +44,9 @@
       }
     },
     "%lld" : {
+
+    },
+    "+%@%%" : {
 
     },
     "$" : {
@@ -127,10 +133,16 @@
     "Filled" : {
 
     },
+    "Flex your gains and trades to your friends" : {
+
+    },
     "High" : {
 
     },
     "History" : {
+
+    },
+    "Image saved!" : {
 
     },
     "Login" : {
@@ -194,6 +206,9 @@
 
     },
     "Share %@" : {
+
+    },
+    "Share Your Wins" : {
 
     },
     "Show Less" : {
