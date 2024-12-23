@@ -41,7 +41,7 @@ struct LoadingBox: View {
         else {
             RoundedRectangle(cornerRadius: cornerRadius)
                 .fill(Color.white.opacity(0.1))
-                .frame(width: width, height: height)
+                .frame(maxWidth: width, maxHeight: height)
                 .shimmering(opacity: opacity)
         }
     }

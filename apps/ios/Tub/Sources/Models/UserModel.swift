@@ -176,6 +176,15 @@ final class UserModel: ObservableObject {
         let tokenBalances = try await Network.shared.getAllTokenBalances()
         
         let tokenMints = tokenBalances.filter { $0.value > 0 && $0.key != USDC_MINT }.map { $0.key }
+        for mint in self.tokenPortfolio {
+            if !tokenMints.contains(mint) {
+                await updateTokenData(mint: mint, balance: 0)
+            }
+        }
+        
+        await MainActor.run {
+            self.tokenPortfolio = tokenMints
+        }
         
         async let metadataFetch = fetchBulkTokenMetadata(tokenMints: tokenMints)
         async let liveDataFetch = fetchBulkTokenLiveData(tokenMints: tokenMints)
@@ -195,6 +204,7 @@ final class UserModel: ObservableObject {
             self.withLiveData = withLiveData ?? true
         }
     }
+    
     public func refreshBulkTokenData(tokenMints: [String], options: RefreshOptions? = nil) async throws {
         let withBalances  = options?.withBalances ?? false
         
@@ -202,6 +212,15 @@ final class UserModel: ObservableObject {
         async let tokenMetadata = fetchBulkTokenMetadata(tokenMints: tokenMints)
 
         let (fetchedBalances, fetchedTokenMetadata) = try await (balances, tokenMetadata)
+        
+        if withBalances, let fetchedBalances {
+            let balancesMap = fetchedBalances.map { $0.key }
+            for mint in self.tokenPortfolio {
+                if !balancesMap.contains(mint) {
+                    await updateTokenData(mint: mint, balance: 0)
+                }
+            }
+        }
         
         for mint in tokenMints {
             await updateTokenData(mint: mint, balance: fetchedBalances?[mint], metadata: fetchedTokenMetadata[mint])
