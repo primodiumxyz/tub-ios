@@ -61,7 +61,6 @@ struct AccountBalanceView: View {
                 .background(
                     RoundedRectangle(cornerRadius: 30)
                         .stroke(.tubNeutral, lineWidth: 0.5)
-
                 )
                 .frame(maxWidth: .infinity)
                 
@@ -79,24 +78,25 @@ struct AccountBalanceView: View {
                             }
                         }
                         
-                        // Share Button
-                        NavigationLink(destination: ShareView(
-                            tokenName: UserModel.shared.tokenData[tokenListModel.currentTokenModel.tokenId]?.metadata.name ?? "TOKEN NAME",
-                            tokenSymbol: UserModel.shared.tokenData[tokenListModel.currentTokenModel.tokenId]?.metadata.symbol ?? "USD",
-                            price: UserModel.shared.tokenData[tokenListModel.currentTokenModel.tokenId]?.liveData?.priceUsd ?? (userModel.portfolioBalanceUsd ?? 0),
-                            priceChange: UserModel.shared.tokenData[tokenListModel.currentTokenModel.tokenId]?.balanceToken ?? 0 > 0 
-                                ? tokenListModel.currentTokenModel.priceChange.percentage 
-                                : nil,
-                            tokenImageUrl: UserModel.shared.tokenData[tokenListModel.currentTokenModel.tokenId]?.metadata.imageUri ?? ""
-                        )) {
-                            ZStack {
-                                Circle()
-                                    .stroke(.tubNeutral, lineWidth: 0.5)
-                                    .frame(width: 44, height: 44)
-
-                                Image(systemName: "square.and.arrow.up")
-                                    .foregroundStyle(.tubNeutral)
-                                    .font(.system(size: 18))
+                        // Only show share button if there are transactions
+                        if let txs = userModel.txs, !txs.isEmpty {
+                            let lastTx = txs[0]
+                            NavigationLink(destination: ShareView(
+                                tokenName: lastTx.name,
+                                tokenSymbol: lastTx.symbol,
+                                price: Double(lastTx.valueUsdc) / 1_000_000.0, 
+                                priceChange: lastTx.isBuy ? nil : deltaUsd,
+                                tokenImageUrl: lastTx.imageUri
+                            )) {
+                                ZStack {
+                                    Circle()
+                                        .stroke(.tubNeutral, lineWidth: 0.5)
+                                        .frame(width: 44, height: 44)
+                                    
+                                    Image(systemName: "square.and.arrow.up")
+                                        .foregroundStyle(.tubNeutral)
+                                        .font(.system(size: 18))
+                                }
                             }
                         }
                     }

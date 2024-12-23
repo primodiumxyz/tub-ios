@@ -85,15 +85,10 @@ struct ShareView: View {
                         .font(.sfRounded(size: .xl3, weight: .bold))
                         .foregroundStyle(Color(uiColor: UIColor(named: "tubNeutral")!))
                                         
-                    if let priceChange = priceChange {
-                        Text("\(String(format: "%.2f", priceChange))%")
-                            .font(.sfRounded(size: .xl2, weight: .bold))
-                            .foregroundStyle(Color(uiColor: UIColor(named: "tubSuccess")!))
-                    } else {
-                        Text("$\(String(format: "%.6f", price))")
-                            .font(.sfRounded(size: .xl2, weight: .bold))
-                            .foregroundStyle(Color(uiColor: UIColor(named: "tubSuccess")!))
-                    }
+                    let priceChange = priceChange ?? 0
+                    Text("\(String(format: "%.2f", priceChange))%")
+                        .font(.sfRounded(size: .xl2, weight: .bold))
+                        .foregroundStyle(Color(uiColor: UIColor(named: "tubSuccess")!))
                 }
                 .padding(.leading, 16)
 
@@ -101,11 +96,6 @@ struct ShareView: View {
             .padding(.horizontal, 16)
             .padding(.top, 32)
             .padding(.bottom, 16)
-            
-            // Chart view
-//            ChartView() 
-//                .frame(maxWidth: .infinity)
-//                .frame(height: 200)
             
             
             // Tub icon
@@ -141,10 +131,6 @@ struct ShareView: View {
                     Text("Share Your Wins")
                         .font(.sfRounded(size: .xl2, weight: .bold))
                         .foregroundStyle(.tubBuyPrimary)
-                    
-                    Text("Flex your gains and trades to your friends")
-                        .font(.sfRounded(size: .base, weight: .medium))
-                        .foregroundStyle(.secondary)
                     
                     shareCardView
                         .padding(.top, 24)
