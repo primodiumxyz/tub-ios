@@ -317,7 +317,11 @@ export class TransactionService {
     // Check if the sell quantity is equal to the token account balance
     const balance = await this.getTokenBalance(userPublicKey, sellTokenId);
     if (sellQuantity === balance) {
-      const closeInstruction = createCloseAccountInstruction(tokenAccount, this.feePayerPublicKey, userPublicKey);
+      const closeInstruction = createCloseAccountInstruction(
+        tokenAccount,
+        this.feePayerKeypair.publicKey,
+        userPublicKey,
+      );
       return closeInstruction;
     }
     return null;
