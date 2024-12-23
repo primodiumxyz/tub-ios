@@ -61,9 +61,6 @@
     "About" : {
 
     },
-    "Account" : {
-
-    },
     "Account Balance" : {
 
     },
@@ -74,6 +71,9 @@
 
     },
     "Add Funds" : {
+
+    },
+    "All Trades" : {
 
     },
     "B" : {
@@ -89,9 +89,6 @@
 
     },
     "Buy Details" : {
-
-    },
-    "Cancel" : {
 
     },
     "Close" : {
@@ -130,10 +127,13 @@
     "High" : {
 
     },
-    "History" : {
+    "Join Telegram" : {
 
     },
-    "Join our Telegram" : {
+    "Last Trade" : {
+
+    },
+    "Login" : {
 
     },
     "Low" : {
@@ -161,6 +161,9 @@
 
     },
     "Portfolio" : {
+
+    },
+    "Preferences" : {
 
     },
     "Price" : {
@@ -217,9 +220,6 @@
     "Token" : {
 
     },
-    "Trade" : {
-
-    },
     "Transaction number" : {
 
     },
@@ -233,6 +233,9 @@
 
     },
     "Value: %@" : {
+
+    },
+    "View All" : {
 
     },
     "Welcome to tub" : {

@@ -81,7 +81,9 @@ struct PortfolioView: View {
       .padding(.horizontal)
 
       if userModel.tokenPortfolio.count == 0 {
-          Text("No tokens").foregroundStyle(.tubText).frame(maxHeight: .infinity)
+        Text("No tokens")
+              .foregroundStyle(.tubText)
+              .frame(maxHeight: .infinity)
       } else {
 
         List {

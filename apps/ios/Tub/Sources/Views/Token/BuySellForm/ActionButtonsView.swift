@@ -15,8 +15,6 @@ struct ActionButtonsView: View {
     
     @State var showBuySheet = false
     @StateObject private var settingsManager = SettingsManager.shared
-    @State private var isLoginPresented = false
-
 
     init(
         tokenModel: TokenModel
@@ -98,7 +96,7 @@ struct ActionButtonsView: View {
     var body: some View {
         VStack {
             if userModel.userId == nil {
-                LoginButton(isLoginPresented: $isLoginPresented)
+                LoginButton()
             }
             else {
                 switch userModel.walletState {
@@ -134,9 +132,6 @@ struct ActionButtonsView: View {
             }
         }
         .padding(.horizontal, 8)
-        .fullScreenCover(isPresented: $isLoginPresented) {
-            RegisterView(isRedirected: true)
-        }
         .sheet(isPresented: $showBuySheet) {
             BuyFormView(
                 isVisible: $showBuySheet,
@@ -147,12 +142,15 @@ struct ActionButtonsView: View {
 }
 
 private struct LoginButton: View {
-    @Binding var isLoginPresented: Bool
+    @State var isLoginPresented = false
     var body: some View {
         PrimaryButton(
             text: "Login to Buy",
             action: { isLoginPresented = true }
         )
+        .navigationDestination(isPresented: $isLoginPresented) {
+            AccountView()
+        }
     }
 }
 

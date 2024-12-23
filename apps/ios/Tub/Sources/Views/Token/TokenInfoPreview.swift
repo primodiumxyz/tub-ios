@@ -118,7 +118,7 @@ struct TokenInfoPreview: View {
                     }
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: 70)
+            .frame(maxWidth: .infinity, maxHeight: 80)
             .padding(18)
             .background(colorScheme == .dark ? Gradients.grayGradient : Gradients.clearGradient)
             .overlay(
@@ -160,6 +160,7 @@ struct TokenInfoPreview: View {
                 if let tokenData, let generalStats {
                     TokenInfoCardView(tokenData: tokenData, stats: generalStats, sellStats: sellStats)
                         .presentationDetents([.height(400)])
+                        .presentationCornerRadius(30)
                 } else {
                     ErrorView(errorMessage: "Couldn't find token information.", retryAction: {})
                         .presentationDetents([.height(400)])
