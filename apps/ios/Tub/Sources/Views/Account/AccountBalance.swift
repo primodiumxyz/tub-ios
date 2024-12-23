@@ -9,6 +9,7 @@ import SwiftUI
 
 struct AccountBalanceView: View {
     @EnvironmentObject var priceModel: SolPriceModel
+    @EnvironmentObject var tokenListModel: TokenListModel
     @ObservedObject var userModel: UserModel
     
     var deltaUsd : Double {
@@ -83,10 +84,12 @@ struct AccountBalanceView: View {
                                     
                                     // Share Button
                                     NavigationLink(destination: ShareView(
-                                        tokenName: "TOKEN NAME",
-                                        tokenSymbol: "USD",
-                                        price: userModel.portfolioBalanceUsd ?? 0,
-                                        priceChange: deltaUsd
+                                        tokenName: UserModel.shared.tokenData[tokenListModel.currentTokenModel.tokenId]?.metadata.name ?? "TOKEN NAME",
+                                        tokenSymbol: UserModel.shared.tokenData[tokenListModel.currentTokenModel.tokenId]?.metadata.symbol ?? "USD",
+                                        price: UserModel.shared.tokenData[tokenListModel.currentTokenModel.tokenId]?.liveData?.priceUsd ?? (userModel.portfolioBalanceUsd ?? 0),
+                                        priceChange: UserModel.shared.tokenData[tokenListModel.currentTokenModel.tokenId]?.balanceToken ?? 0 > 0 
+                                            ? tokenListModel.currentTokenModel.priceChange.percentage 
+                                            : nil
                                     )) {
                                         ZStack {
                                             Circle()

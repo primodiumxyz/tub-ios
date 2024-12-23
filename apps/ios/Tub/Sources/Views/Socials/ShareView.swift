@@ -27,6 +27,7 @@ struct ShareView: View {
     
     private func saveImage() {
         let renderer = ImageRenderer(content: shareCardView)
+        renderer.scale = UIScreen.main.scale
         
         // Ensure we get a valid UIImage
         guard let uiImage = renderer.uiImage else {
@@ -34,8 +35,14 @@ struct ShareView: View {
             return
         }
         
+        guard let imageData = uiImage.pngData(),
+              let compatibleImage = UIImage(data: imageData) else {
+            print("Failed to convert image format")
+            return
+        }
+        
         // Save to photo library
-        UIImageWriteToSavedPhotosAlbum(uiImage, nil, nil, nil)
+        UIImageWriteToSavedPhotosAlbum(compatibleImage, nil, nil, nil)
         showingSaveSuccess = true
         
         // Hide success message after delay
@@ -47,7 +54,7 @@ struct ShareView: View {
     private var shareCardView: some View {
         VStack(spacing: 0) {
             HStack(spacing: 8) {
-                Image("Logo", bundle: Bundle.main)
+                Image(uiImage: UIImage(named: "Logo") ?? UIImage())
                     .resizable()
                     .frame(width: 70, height: 70)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -58,13 +65,13 @@ struct ShareView: View {
                         .foregroundStyle(Color(uiColor: UIColor(named: "tubNeutral")!))
                                         
                     if let priceChange = priceChange {
-                        Text("+\(String(format: "%.2f", priceChange))%")
+                        Text("\(String(format: "%.2f", priceChange))%")
                             .font(.sfRounded(size: .xl2, weight: .bold))
                             .foregroundStyle(Color(uiColor: UIColor(named: "tubSuccess")!))
                     } else {
-                        Text("$\(String(format: "%.2f", price))")
+                        Text("$\(String(format: "%.6f", price))")
                             .font(.sfRounded(size: .xl2, weight: .bold))
-                            .foregroundStyle(Color(uiColor: UIColor(named: "tubNeutral")!))
+                            .foregroundStyle(Color(uiColor: UIColor(named: "tubSuccess")!))
                     }
                 }
                 .padding(.leading, 16)
@@ -85,7 +92,7 @@ struct ShareView: View {
                     .font(.sfRounded(size: .base, weight: .medium))
                     .foregroundStyle(Color(uiColor: UIColor(named: "tubBuyPrimary")!))
                 
-                Image("Logo", bundle: Bundle.main)
+                Image(uiImage: UIImage(named: "Logo") ?? UIImage())
                     .resizable()
                     .frame(width: 32, height: 32)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
