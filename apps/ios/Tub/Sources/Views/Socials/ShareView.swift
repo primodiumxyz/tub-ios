@@ -79,6 +79,7 @@ struct ShareView: View {
             }
             .padding(.horizontal, 16)
             .padding(.top, 32)
+            .padding(.bottom, 12)
             
             // Chart view
 //            ChartView() 
@@ -101,7 +102,7 @@ struct ShareView: View {
             .padding(.horizontal, 16)
             .frame(maxWidth: .infinity, alignment: .trailing)
         }
-        .background(Color.black.opacity(0.1))
+        .background(Color.primary.opacity(0.1))
         .cornerRadius(16)
         .frame(width: 300)
     }
@@ -154,7 +155,7 @@ struct ShareView: View {
                     if showingSaveSuccess {
                         Text("Image saved!")
                             .font(.sfRounded(size: .base, weight: .medium))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(.tubTextInverted)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 8)
                             .background(.primary)
