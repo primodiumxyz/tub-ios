@@ -39,20 +39,32 @@ export class ConfigService {
   }
 
   private async init() {
-    // Try to sync first
+    console.log("Initializing ConfigService...");
+
     try {
       await this.syncWithRedis();
     } catch (e) {
-      console.log(e);
+      console.log("Initial sync failed:", e);
+
       // check if redis is running
-      const redisStatus = await this.redis.ping();
-      if (redisStatus !== "PONG") {
-        throw new Error("Redis is not running");
+      try {
+        console.log("Checking Redis connection...");
+        const redisStatus = await this.redis.ping();
+        console.log("Redis status:", redisStatus);
+
+        if (redisStatus !== "PONG") {
+          throw new Error("Redis is not running");
+        }
+
+        // If we get here, Redis is running but config doesn't exist
+        console.log("Redis is running but config not found. Setting default configuration...");
+        await this.redis.set(this.REDIS_KEY, JSON.stringify(defaultConfig));
+        console.log("Default config set. Attempting to sync again...");
+        await this.syncWithRedis();
+      } catch (redisError) {
+        console.error("Redis connection error:", redisError);
+        throw new Error("Failed to initialize Redis connection");
       }
-      // If sync fails, initialize with defaults
-      console.log("Initializing Redis with default configuration...");
-      await this.redis.set(this.REDIS_KEY, JSON.stringify(defaultConfig));
-      await this.syncWithRedis();
     }
 
     this.startPeriodicSync();
@@ -79,7 +91,15 @@ export class ConfigService {
     if (!config) {
       throw new Error("Redis config not found");
     }
-    this.localConfig = JSON.parse(config) as Config;
+
+    const parsedConfig = JSON.parse(config);
+
+    try {
+      this.localConfig = configSchema.parse(parsedConfig);
+    } catch (e) {
+      console.error("Config validation failed:", e);
+      throw new Error("Invalid config format in Redis");
+    }
   }
 
   private startPeriodicSync() {
