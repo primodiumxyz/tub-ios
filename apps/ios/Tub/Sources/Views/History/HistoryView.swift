@@ -12,32 +12,24 @@ import TubAPI
 struct HistoryView: View {
     @EnvironmentObject private var userModel: UserModel
     @EnvironmentObject private var priceModel: SolPriceModel
-    @State private var txs: [TransactionData] = []
-    @State private var isReady = false
     
-    func handleFetchTxs() {
+    func handleFetchTxs(hardRefresh: Bool) {
         Task {
-            do {
-                txs = try await userModel.fetchTxs()
-                
-            } catch {
-                print("Error fetching transactions: \(error)")
-            }
-            await MainActor.run {
-                isReady = true
-            }
+            try? await userModel.refreshTxs(hard: hardRefresh)
         }
     }
     
     @State private var filterState = FilterState()
 
     var body: some View {
-        ScrollView {
             VStack(spacing: 0) {
-
                 // Transaction List
-                if !isReady {
-                    ProgressView()
+                if userModel.txs == nil {
+                    VStack {
+                        Spacer()
+                        ProgressView()
+                        Spacer()
+                    }.frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
                 else if filteredTransactions().isEmpty {
                     TransactionFilters(filterState: $filterState)
@@ -50,25 +42,28 @@ struct HistoryView: View {
                 else {
                     TransactionFilters(filterState: $filterState)
                         .background(Color(UIColor.systemBackground))
-                    LazyVStack(spacing: 0) {
-                        ForEach(groupTransactions(filteredTransactions()), id: \.date) { group in
-                            TransactionGroupRow(group: group)
+                    ScrollView {
+                        LazyVStack(spacing: 0) {
+                            ForEach(groupTransactions(filteredTransactions()), id: \.date) { group in
+                                TransactionGroupRow(group: group)
                         }
                     }
                     .padding(.horizontal, 16)
-                }
-                Spacer()
             }
+                }
         }
-        .onAppear(perform: handleFetchTxs)
-        .refreshable(action: {handleFetchTxs()})
+            .onAppear{
+                handleFetchTxs(hardRefresh: false)
+            }
+            .refreshable(action: {handleFetchTxs(hardRefresh: true)})
         
-        .navigationTitle("History")
+        .navigationTitle("All Trades")
         .navigationBarTitleDisplayMode(.inline)
     }
 
     // Helper function to filter transactions
     func filteredTransactions() -> [TransactionData] {
+        guard let txs = userModel.txs else { return [] }
         var filteredData = txs
 
         // Filter by search text
@@ -260,66 +255,7 @@ struct TransactionFilters: View {
     }
 }
 
-struct TransactionRow: View {
-    let transaction: TransactionData
-    @EnvironmentObject private var priceModel: SolPriceModel
 
-    var body: some View {
-        HStack {
-            ImageView(imageUri: transaction.imageUri, size: 40)
-                .cornerRadius(8)
-
-            VStack(alignment: .leading) {
-                HStack {
-                    Text(transaction.isBuy ? "Buy" : "Sell")
-                        .font(.sfRounded(size: .base, weight: .bold))
-                        .foregroundStyle(.tubNeutral)
-                    Text(transaction.name.isEmpty ? transaction.mint.truncatedAddress() : transaction.name)
-                        .font(.sfRounded(size: .base, weight: .bold))
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                        .offset(x: -2)
-                }
-
-                Text(formatDate(transaction.date))
-                    .font(.sfRounded(size: .xs, weight: .regular))
-                    .foregroundStyle(Color.gray)
-                    .offset(y: 2)
-
-            }
-            Spacer()
-            VStack(alignment: .trailing) {
-                let price = priceModel.formatPrice(usdc: transaction.valueUsdc, showSign: true)
-                Text(price)
-                    .font(.sfRounded(size: .base, weight: .bold))
-                    .foregroundStyle(transaction.isBuy ? Color.red : Color.green)
-
-                let quantity = priceModel.formatPrice(
-                    lamports: abs(transaction.quantityTokens),
-                    showUnit: false
-                )
-                HStack {
-                    Text(quantity)
-                        .font(.sfRounded(size: .xs, weight: .regular))
-                        .foregroundStyle(.secondary)
-                        .offset(x: 4, y: 2)
-
-                    Text(transaction.symbol)
-                        .font(.sfRounded(size: .xs, weight: .regular))
-                        .foregroundStyle(.secondary)
-                        .offset(y: 2)
-                }
-            }
-        }
-        .padding(.bottom, 10.0)
-    }
-
-    func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        return formatter.string(from: date)
-    }
-}
 
 // Separate search filter component
 struct SearchFilter: View {
@@ -370,3 +306,4 @@ struct SearchFilter: View {
         }
     }
 }
+

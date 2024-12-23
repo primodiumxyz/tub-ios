@@ -133,6 +133,9 @@ struct SettingsView: View {
                 .padding(.horizontal, 16)
                 .padding(.top, 24)
 
+                Text(serverBaseUrl).foregroundStyle(.tubText)
+                    .font(.caption)
+                    .opacity(0.5)
                 Spacer()
             }
             .navigationBarBackButtonHidden(false)

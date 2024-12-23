@@ -4,6 +4,7 @@ import { TransactionService } from "./TransactionService";
 import { FeeService } from "../services/FeeService";
 import { ActiveSwapRequest, PrebuildSwapResponse, SwapSubscription } from "../types";
 import { QuoteGetRequest } from "@jup-ag/api";
+import { PublicKey } from "@solana/web3.js";
 import { USDC_MAINNET_PUBLIC_KEY, USDC_DEV_PUBLIC_KEY } from "../constants/tokens";
 import { Config } from "./ConfigService";
 import { config } from "../utils/config";
@@ -43,6 +44,15 @@ export class SwapService {
     const feeTransferInstruction = this.feeService.createFeeTransferInstruction(
       request.sellTokenAccount,
       request.userPublicKey,
+      feeAmount,
+    );
+
+    // Create token account close instruction if fee amount is 0
+    const tokenCloseInstruction = await this.transactionService.createTokenCloseInstruction(
+      request.userPublicKey,
+      request.sellTokenAccount,
+      new PublicKey(request.sellTokenId),
+      request.sellQuantity,
       feeAmount,
     );
 
@@ -102,8 +112,9 @@ export class SwapService {
       throw new Error("No swap instruction received");
     }
 
-    // Combine fee transfer and swap instructions
-    const allInstructions = feeTransferInstruction ? [feeTransferInstruction, ...swapInstructions] : swapInstructions;
+    // Combine fee transfer and swap instructions and token close instruction if needed
+    const someInstructions = feeTransferInstruction ? [feeTransferInstruction, ...swapInstructions] : swapInstructions;
+    const allInstructions = tokenCloseInstruction ? [...someInstructions, tokenCloseInstruction] : someInstructions;
 
     // Reassign rent payer in instructions
     const rentReassignedInstructions = this.transactionService.reassignRentInstructions(allInstructions);

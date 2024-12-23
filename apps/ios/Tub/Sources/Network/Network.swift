@@ -174,7 +174,7 @@ class Network {
         SecItemAdd(query as CFDictionary, nil)
     }
     
-    func getStoredToken() async -> String? {
+    func getStoredToken(hardRefresh: Bool? = false) async -> String? {
         switch privy.authState {
         case .authenticated(let authSession):
             let token = authSession.authToken
@@ -183,7 +183,7 @@ class Network {
                let exp = decodedToken["exp"] as? TimeInterval
             {
                 let expirationDate = Date(timeIntervalSince1970: exp)
-                if expirationDate > Date() {
+                if expirationDate > Date() && hardRefresh != true {
                     return token
                 } else {
                     do {
@@ -230,10 +230,6 @@ class Network {
         return res.tokenBalances.reduce(into: [String : Int]()) { dict, item in
             dict[item.mint] = item.balanceToken
         }
-    }
-    
-    func getUsdcBalance() async throws -> Int {
-        return try await getTokenBalance(tokenMint: USDC_MINT)
     }
     
     func getTokenBalance(tokenMint: String) async throws -> Int {

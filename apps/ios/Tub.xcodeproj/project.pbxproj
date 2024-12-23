@@ -25,8 +25,8 @@
 		995FCA1F2CDA5ED70018A76D /* CoinbaseOnrampView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995FCA1E2CDA5ED20018A76D /* CoinbaseOnrampView.swift */; };
 		996772FE2CEB85820029B298 /* LoadingBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996772FD2CEB857C0029B298 /* LoadingBox.swift */; };
 		9971F29B2CFF836700BA48C0 /* WithdrawView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9971F29A2CFF835D00BA48C0 /* WithdrawView.swift */; };
+		9979A6CD2D0B2CD100DFDBE5 /* ErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9979A6C62D0B2CD100DFDBE5 /* ErrorView.swift */; };
 		997DE8F42CDAC86500164366 /* NotificationBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 997DE8F32CDAC86000164366 /* NotificationBanner.swift */; };
-				9979A6CD2D0B2CD100DFDBE5 /* ErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9979A6C62D0B2CD100DFDBE5 /* ErrorView.swift */; };
 		99856DA42CD27E1F004B9D40 /* Privy in Frameworks */ = {isa = PBXBuildFile; productRef = 99856DA32CD27E1F004B9D40 /* Privy */; };
 		99856DA62CD27E2E004B9D40 /* Privy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99856DA52CD27E27004B9D40 /* Privy.swift */; };
 		9995E9BF2D01025D005B9179 /* PortfolioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9995E9BE2D01025A005B9179 /* PortfolioView.swift */; };
@@ -51,7 +51,6 @@
 		DB10A95D2CA5AA1B00B1E4F3 /* TokenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB10A95C2CA5AA1B00B1E4F3 /* TokenView.swift */; };
 		DB391A1E2CC377FC002EFA78 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = DB391A1D2CC377FC002EFA78 /* LaunchScreen.storyboard */; };
 		DB458DB12CAC824A00C5EC18 /* TubAPI in Frameworks */ = {isa = PBXBuildFile; productRef = DB458DB02CAC824A00C5EC18 /* TubAPI */; };
-		DB675A332CA2B73D006FC9B3 /* HomeTabsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB675A322CA2B73D006FC9B3 /* HomeTabsView.swift */; };
 		DB6D29052CA1C8F70099951A /* TubApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6D29042CA1C8F70099951A /* TubApp.swift */; };
 		DB6D29092CA1C8F80099951A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DB6D29082CA1C8F80099951A /* Assets.xcassets */; };
 		DB6D290D2CA1C8F80099951A /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DB6D290C2CA1C8F80099951A /* Preview Assets.xcassets */; };
@@ -133,7 +132,6 @@
 		DB10A95C2CA5AA1B00B1E4F3 /* TokenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenView.swift; sourceTree = "<group>"; };
 		DB391A1D2CC377FC002EFA78 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		DB458DAA2CAC7F0100C5EC18 /* schema.graphqls */ = {isa = PBXFileReference; lastKnownFileType = text; path = schema.graphqls; sourceTree = "<group>"; };
-		DB675A322CA2B73D006FC9B3 /* HomeTabsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeTabsView.swift; sourceTree = "<group>"; };
 		DB6D29012CA1C8F70099951A /* Tub.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tub.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DB6D29042CA1C8F70099951A /* TubApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TubApp.swift; sourceTree = "<group>"; };
 		DB6D29082CA1C8F80099951A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -255,7 +253,6 @@
 				99DD66012CB80D3D00B56450 /* Token */,
 				99DD65FF2CB80D1100B56450 /* History */,
 				99DD65FE2CB80D0300B56450 /* Account */,
-				DB675A322CA2B73D006FC9B3 /* HomeTabsView.swift */,
 				DFDA13BB2CEF9ACA00057A29 /* OnboardingView.swift */,
 				DFEBC3E72CE44D1100EA4C84 /* Settings */,
 				995FCA1D2CDA5ECB0018A76D /* Onramp */,
@@ -612,7 +609,6 @@
 				99DDF62D2CB02816000234DA /* AccountView.swift in Sources */,
 				9936FC582CADCA5200E21B8A /* Structs.swift in Sources */,
 				997DE8F42CDAC86500164366 /* NotificationBanner.swift in Sources */,
-				DB675A332CA2B73D006FC9B3 /* HomeTabsView.swift in Sources */,
 				46442B952CDD7380009A6F0B /* Constants.swift in Sources */,
 				4619A8182CCA4E25003CD119 /* TokenListModel.swift in Sources */,
 				DF5A2FC32CAF165D00508A56 /* HistoryView.swift in Sources */,
@@ -1054,14 +1050,6 @@
 				minimumVersion = 0.8.0;
 			};
 		};
-		99EE82A82CFE485A00615572 /* XCRemoteSwiftPackageReference "solana-swift" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/p2p-org/solana-swift";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 5.0.0;
-			};
-		};
 		DFA4D64F2CAC500B00AEDC73 /* XCRemoteSwiftPackageReference "apollo-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/apollographql/apollo-ios";
@@ -1105,7 +1093,6 @@
 			package = 99DED24F2CAF2A6B0055FC60 /* XCRemoteSwiftPackageReference "ApolloCombine" */;
 			productName = ApolloCombine;
 		};
-		
 		DB458DB02CAC824A00C5EC18 /* TubAPI */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = DB458DAE2CAC821D00C5EC18 /* XCLocalSwiftPackageReference "TubAPI" */;

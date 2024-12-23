@@ -14,6 +14,7 @@ import bs58 from "bs58";
 import { config } from "../utils/config";
 import { ATA_PROGRAM_PUBLIC_KEY, JUPITER_PROGRAM_PUBLIC_KEY, TOKEN_PROGRAM_PUBLIC_KEY } from "../constants/tokens";
 import { Config } from "./ConfigService";
+import { createCloseAccountInstruction } from "@solana/spl-token";
 
 export type TransactionRegistryEntry = {
   message: MessageV0;
@@ -126,7 +127,7 @@ export class TransactionService {
     userSignature: string,
     base64Message: string,
     cfg: Config,
-  ): Promise<{ signature: string }> {
+  ): Promise<{ signature: string; timestamp: number | null }> {
     const entry = this.messageRegistry.get(base64Message);
     if (!entry) {
       throw new Error("Transaction not found in registry");
@@ -227,12 +228,24 @@ export class TransactionService {
       await new Promise((resolve) => setTimeout(resolve, cfg.RETRY_DELAY)); // Wait 1 second before retrying
     }
 
-    if (!confirmation || confirmation.value?.err) {
+    if (!confirmation) {
+      throw new Error(`Transaction timed out.`);
+    }
+    if (confirmation.value?.err) {
       throw new Error(`Transaction failed: ${JSON.stringify(confirmation?.value?.err)}`);
     }
 
     this.messageRegistry.delete(base64Message);
-    return { signature: txid };
+    let timestamp: number | null = null;
+    if (confirmation.value?.slot) {
+      try {
+        timestamp = await this.connection.getBlockTime(confirmation.value.slot);
+      } catch (error) {
+        console.error("[signAndSendTransaction] Error getting block time:", error);
+      }
+    }
+
+    return { signature: txid, timestamp };
   }
 
   /**
@@ -284,5 +297,43 @@ export class TransactionService {
 
       return instruction;
     });
+  }
+
+  /**
+   * Creates a token close instruction if needed
+   */
+  async createTokenCloseInstruction(
+    userPublicKey: PublicKey,
+    tokenAccount: PublicKey,
+    sellTokenId: PublicKey,
+    sellQuantity: number,
+    feeAmount: number,
+  ): Promise<TransactionInstruction | null> {
+    // Skip if user is buying memecoins
+    if (feeAmount > 0) {
+      return null;
+    }
+
+    // Check if the sell quantity is equal to the token account balance
+    const balance = await this.getTokenBalance(userPublicKey, sellTokenId);
+    if (sellQuantity === balance) {
+      const closeInstruction = createCloseAccountInstruction(tokenAccount, this.feePayerPublicKey, userPublicKey);
+      return closeInstruction;
+    }
+    return null;
+  }
+
+  async getTokenBalance(userPublicKey: PublicKey, tokenMint: PublicKey): Promise<number> {
+    const tokenAccounts = await this.connection.getParsedTokenAccountsByOwner(
+      userPublicKey,
+      { mint: new PublicKey(tokenMint) },
+      "processed",
+    );
+
+    if (tokenAccounts.value.length === 0 || !tokenAccounts.value[0]?.account.data.parsed.info.tokenAmount.amount)
+      return 0;
+
+    const balance = Number(tokenAccounts.value[0].account.data.parsed.info.tokenAmount.amount);
+    return balance;
   }
 }

@@ -188,15 +188,15 @@ import { ConfigService } from "../src/services/ConfigService";
 
       it("should transfer half of held MEMECOIN to USDC", async () => {
         const userMEMECOINAta = await getAssociatedTokenAddress(MEMECOIN_MAINNET_PUBLIC_KEY, userKeypair.publicKey);
-        const valueBalance = await connection.getTokenAccountBalance(userMEMECOINAta);
-        const decimals = valueBalance.value.decimals;
-        console.log("MEMECOIN balance:", valueBalance.value.uiAmount);
-        if (!valueBalance.value.uiAmount) {
+        const memecoinBalance = await connection.getTokenAccountBalance(userMEMECOINAta);
+        const decimals = memecoinBalance.value.decimals;
+        console.log("MEMECOIN balance:", memecoinBalance.value.uiAmount);
+        if (!memecoinBalance.value.uiAmount) {
           console.log("MEMECOIN balance is 0, skipping transfer");
           return;
         }
 
-        const balanceToken = valueBalance.value.uiAmount * 10 ** decimals;
+        const balanceToken = memecoinBalance.value.uiAmount * 10 ** decimals;
         const swap = {
           buyTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
           sellTokenId: MEMECOIN_MAINNET_PUBLIC_KEY.toString(),
@@ -208,6 +208,44 @@ import { ConfigService } from "../src/services/ConfigService";
 
         await executeTx(swapResponse);
       }, 11000);
+
+      it.skip("should transfer all held MEMECOIN to USDC and close the MEMECOIN account", async () => {
+        const userMemecoinAta = await getAssociatedTokenAddress(MEMECOIN_MAINNET_PUBLIC_KEY, userKeypair.publicKey);
+        const memecoinBalance = await connection.getTokenAccountBalance(userMemecoinAta);
+
+        const decimals = memecoinBalance.value.decimals;
+        console.log("Memecoin balance:", memecoinBalance.value.uiAmount);
+        if (!memecoinBalance.value.uiAmount) {
+          console.log("Memecoin balance is 0, skipping transfer");
+          return;
+        }
+
+        const initSolBalanceinMemecoinAta = await connection.getBalance(userMemecoinAta);
+        if (initSolBalanceinMemecoinAta === 0) {
+          console.log("Memecoin ATA appears closed, skipping test");
+          return;
+        }
+
+        const balanceToken = memecoinBalance.value.uiAmount * 10 ** decimals;
+        const swap = {
+          buyTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
+          sellTokenId: MEMECOIN_MAINNET_PUBLIC_KEY.toString(),
+          sellQuantity: balanceToken,
+          slippageBps: 100,
+        };
+        console.log("Memecoin swap:", swap);
+        const swapResponse = await tubService.fetchSwap(mockJwtToken, swap);
+
+        await executeTx(swapResponse);
+
+        // wait 5 extra seconds for the transaction to be processed by most nodes
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+
+        // get balance of SOL in the Memecoin account
+        const memecoinSolBalanceLamports = await connection.getBalance(userMemecoinAta, "processed");
+        console.log("Memecoin SOL balance lamports:", memecoinSolBalanceLamports);
+        expect(memecoinSolBalanceLamports).toBe(0);
+      }, 20000);
     });
   });
 });

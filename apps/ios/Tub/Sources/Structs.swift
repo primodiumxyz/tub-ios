@@ -7,10 +7,42 @@ struct IntervalStats {
   var priceChangePct: Double
 }
 
-struct PurchaseData {
-  let timestamp: Date
-  let amountUsdc: Int
-  let priceUsdc: Int
+struct PurchaseData: RawRepresentable {
+    typealias RawValue = String
+    
+    let tokenId: String
+    let timestamp: Date
+    let amountToken: Int
+    let priceUsd: Double
+    
+    init?(rawValue: RawValue) {
+        // parse a JSON string to initialize the properties
+        let json = try? JSONSerialization.jsonObject(with: rawValue.data(using: .utf8)!, options: [])
+        let dict = json as? [String: Any]
+        let timestampSeconds = dict?["timestamp"] as? TimeInterval ?? Date.now.timeIntervalSince1970
+        self.timestamp = Date.init(timeIntervalSince1970: timestampSeconds)
+        self.amountToken = dict?["amountToken"] as? Int ?? 0
+        self.priceUsd = dict?["priceUsd"] as? Double ?? 0
+        self.tokenId = dict?["tokenId"] as? String ?? ""
+    }
+    
+    init(tokenId: String, timestamp: Date, amountToken: Int, priceUsd: Double) {
+        self.tokenId = tokenId
+        self.timestamp = timestamp
+        self.amountToken = amountToken
+        self.priceUsd = priceUsd
+    }
+
+    var rawValue: RawValue {
+        // convert properties to a JSON string
+        let dict: [String: Any] = [
+            "timestamp": timestamp.timeIntervalSince1970,
+            "amountToken": amountToken,
+            "priceUsd": priceUsd,
+            "tokenId": tokenId
+        ]
+        return try! JSONSerialization.data(withJSONObject: dict, options: []).base64EncodedString()
+    }
 }
 
 struct Price: Identifiable, Equatable {

@@ -38,15 +38,12 @@ struct TokenInfoPreview: View {
         }
         var stats = [StatValue]()
         // Calculate current value
-        // todo: replace hard coded decimals with token decimals
-        let decimals = tokenData.metadata.decimals 
-        let tokenBalance = Double(balanceToken) / pow(10.0, Double(decimals))
-        let tokenBalanceUsd = tokenBalance * (tokenModel.prices.last?.priceUsd ?? 0)
-
-        // Calculate profit
-
-        if let amountUsdc = userModel.purchaseData?.amountUsdc, amountUsdc > 0 {
-            let initialValueUsd = priceModel.usdcToUsd(usdc: amountUsdc)
+        
+            let decimals = pow(10.0, Double(tokenData.metadata.decimals))
+        if let purchaseData = tokenModel.purchaseData {
+            let tokenBalance = Double(purchaseData.amountToken) / decimals
+            let tokenBalanceUsd = tokenBalance * (tokenModel.prices.last?.priceUsd ?? 0)
+            let initialValueUsd = tokenBalance * purchaseData.priceUsd
             let gains = tokenBalanceUsd - initialValueUsd
             let percentageGain = gains / initialValueUsd * 100
             stats.append(
@@ -60,6 +57,10 @@ struct TokenInfoPreview: View {
         }
 
         // Add position stats
+
+        let tokenBalance = Double(balanceToken) / decimals
+        let tokenBalanceUsd = tokenBalance * (tokenModel.prices.last?.priceUsd ?? 0)
+
         stats.append(
             StatValue(
                 title: "You own",
@@ -111,8 +112,8 @@ struct TokenInfoPreview: View {
                     }
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: 60)
-            .padding(24)
+            .frame(maxWidth: .infinity, maxHeight: 80)
+            .padding(18)
             .background(colorScheme == .dark ? Gradients.grayGradient : Gradients.clearGradient)
             .overlay(
                 UnevenRoundedRectangle(
@@ -148,8 +149,9 @@ struct TokenInfoPreview: View {
         }
         .sheet(isPresented: $showInfoOverlay) {
                 if let tokenData {
-                    TokenInfoCardView(tokenData: tokenData, stats: generalStats)
+                    TokenInfoCardView(tokenData: tokenData, stats: generalStats, sellStats: sellStats)
                         .presentationDetents([.height(400)])
+                        .presentationCornerRadius(30)
                 } else {
                     ErrorView(errorMessage: "Couldn't find token information.", retryAction: {})
                         .presentationDetents([.height(400)])
@@ -165,7 +167,7 @@ private struct StatView: View {
         VStack(spacing: 4) {
             HStack(spacing: 3) {
                 Text(stat.title)
-                    .font(.sfRounded(size: .xs, weight: .regular))
+                    .font(.sfRounded(size: .sm, weight: .regular))
                     .foregroundStyle(.tubText)
                     .fixedSize(horizontal: true, vertical: false)
                 
@@ -176,15 +178,17 @@ private struct StatView: View {
                 }
 
                 Text(stat.value)
-                    .font(.sfRounded(size: .sm, weight: .semibold))
+                    .font(.sfRounded(size: .base, weight: .semibold))
                     .foregroundStyle(stat.color ?? .primary)
                     .frame(maxWidth: .infinity, alignment: .topTrailing)
             }
             .alignmentGuide(.firstTextBaseline) { d in d[.firstTextBaseline] }
 
-            Divider().padding(.top, 2)
-                .frame(height: 0.5)
-                .overlay(Color.tubText)
+            Rectangle()
+                .fill(.tubText)
+                .opacity(0.5)
+                .frame(maxWidth: .infinity, maxHeight: 1)
+
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -222,14 +226,15 @@ private struct StatView: View {
                 Task{
                     if balanceToken > 0 {
                         await userModel.updateTokenData(mint: tokenModel.tokenId, balance: 0)
-                        userModel.purchaseData = nil
+                        tokenModel.purchaseData = nil
                     }
                     else {
                         await userModel.updateTokenData(mint: tokenModel.tokenId, balance: 100)
-                        userModel.purchaseData = PurchaseData(
+                        tokenModel.purchaseData = PurchaseData(
+                            tokenId: tokenModel.tokenId,
                             timestamp: Date().addingTimeInterval(-60 * 60),
-                            amountUsdc: 1000,
-                            priceUsdc: 100
+                            amountToken: Int(1e9),
+                            priceUsd: 1
                         )
                     }
                 }

@@ -45,8 +45,6 @@ struct TokenView: View {
         ZStack {
             // Main content
             VStack(alignment: .leading) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Spacer().frame(height: 20)
                     tokenInfoView
 
                     chartView
@@ -55,17 +53,18 @@ struct TokenView: View {
 					intervalButtons
                         .padding(.horizontal)
                         .padding(.vertical, 12)
-                }
 
-                VStack(spacing: 0) {
+                    Spacer()
                     TokenInfoPreview(tokenModel: tokenModel, activeTab: activeTab)
                         .opacity(0.8)
                     ActionButtonsView(
                         tokenModel: tokenModel
                     )
                     .equatable()
-                }.padding(.horizontal, 8)
             }
+            .padding(.top, 8)
+            .padding(.bottom, 2)
+            .padding(.horizontal, 8)
             .frame(maxWidth: .infinity)
             .foregroundStyle(.primary)
         }
@@ -161,7 +160,7 @@ struct TokenView: View {
         }
     }
 
-    let height = UIScreen.main.bounds.height * 0.38
+    let height = UIScreen.main.bounds.height * 0.4
 
     private var chartView: some View {
         Group {
@@ -171,13 +170,12 @@ struct TokenView: View {
                 Text("No trades found").font(.sfRounded(size: .base, weight: .semibold)).frame(height: height)
                 
             } else if tokenModel.selectedTimespan == .live {
-                ChartView(
-                    rawPrices: tokenModel.prices,
-                    purchaseData: userModel.purchaseData,
-                    animate: animate,
-                    height: height
-                )
-                //				.id(tokenModel.prices.count) // results in odd behavior: toggles between prices.count = 0 and prices.count = correct value
+               ChartView(
+                   rawPrices: tokenModel.prices,
+                   purchaseData: tokenModel.purchaseData,
+                   animate: animate,
+                   height: height
+               )
             }
             else {
                 CandleChartView(
@@ -186,7 +184,6 @@ struct TokenView: View {
                     timeframeMins: 30,
                     height: height
                 )
-                .id(tokenModel.prices.count)  // should be tokenModel.candles.count?
             }
         }
     }
