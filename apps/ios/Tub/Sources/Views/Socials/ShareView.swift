@@ -102,69 +102,78 @@ struct ShareView: View {
             .padding(.horizontal, 16)
             .frame(maxWidth: .infinity, alignment: .trailing)
         }
-        .background(Color.primary.opacity(0.1))
+        .background(Color(uiColor: .systemGray6))
         .cornerRadius(16)
         .frame(width: 300)
     }
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 8) {
-                Text("Share Your Wins")
-                    .font(.sfRounded(size: .xl2, weight: .bold))
-                    .foregroundStyle(.tubBuyPrimary)
+            ZStack {
+                // Background with bubbles
+                Color(UIColor.systemBackground)
+                    .backgroundBubbleEffect()
+                    .ignoresSafeArea()
                 
-                Text("Flex your gains and trades to your friends")
-                    .font(.sfRounded(size: .base, weight: .medium))
-                    .foregroundStyle(.secondary)
-                
-                shareCardView
-                    .padding(.top, 24)
-                    .padding(.bottom, -30)
-                
-                HStack {
-                    PillImageButton(
-                        icon: "square.and.arrow.down",
-                        color: .tubSellPrimary,
-                        iconSize: 20,
-                        horizontalPadding: 16,
-                        text: "Save",
-                        backgroundColor: .white,
-                        strokeColor: .tubSellPrimary,
-                        action: saveImage
-                    )
+                // Content
+                VStack(spacing: 8) {
+                    Text("Share Your Wins")
+                        .font(.sfRounded(size: .xl2, weight: .bold))
+                        .foregroundStyle(.tubBuyPrimary)
                     
-                    ShareLink(
-                        item: shareText,
-                        preview: SharePreview(
-                            "Share \(tokenName)",
-                            image: Image("Logo")
-                        )
-                    ) {
-                        PillImageLabel(
-                            icon: "square.and.arrow.up",
-                            color: .white,
+                    Text("Flex your gains and trades to your friends")
+                        .font(.sfRounded(size: .base, weight: .medium))
+                        .foregroundStyle(.secondary)
+                    
+                    shareCardView
+                        .padding(.top, 24)
+                        .padding(.bottom, -30)
+                    
+                    HStack {
+                        PillImageButton(
+                            icon: "square.and.arrow.down",
+                            color: .tubSellPrimary,
                             iconSize: 20,
-                            horizontalPadding: 32,
-                            text: "Share",
-                            backgroundColor: .tubSellPrimary
+                            horizontalPadding: 16,
+                            text: "Save",
+                            backgroundColor: .white,
+                            strokeColor: .tubSellPrimary,
+                            action: saveImage
                         )
+                        
+                        ShareLink(
+                            item: shareText,
+                            preview: SharePreview(
+                                "Share \(tokenName)",
+                                image: Image("Logo")
+                            )
+                        ) {
+                            PillImageLabel(
+                                icon: "square.and.arrow.up",
+                                color: .white,
+                                iconSize: 20,
+                                horizontalPadding: 32,
+                                text: "Share",
+                                backgroundColor: .tubSellPrimary
+                            )
+                        }
+                    }
+                    .overlay {
+                        if showingSaveSuccess {
+                            Text("Image saved!")
+                                .font(.sfRounded(size: .base, weight: .medium))
+                                .foregroundStyle(.tubTextInverted)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                                .background(.primary)
+                                .cornerRadius(8)
+                                .transition(.move(edge: .top).combined(with: .opacity))
+                                .animation(.easeInOut, value: showingSaveSuccess)
+                                .zIndex(1)
+                        }
                     }
                 }
-                .overlay {
-                    if showingSaveSuccess {
-                        Text("Image saved!")
-                            .font(.sfRounded(size: .base, weight: .medium))
-                            .foregroundStyle(.tubTextInverted)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
-                            .background(.primary)
-                            .cornerRadius(8)
-                            .transition(.move(edge: .top).combined(with: .opacity))
-                            .animation(.easeInOut, value: showingSaveSuccess)
-                            .zIndex(1)
-                    }
-                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
     }
