@@ -141,15 +141,12 @@ final class TokenListModel: ObservableObject {
             currentTokenModel = nextModel
             initCurrentTokenModel(with: nextModel.tokenId)
             removePendingToken(nextModel.tokenId)
-            success = true
         } else {
             currentTokenModel = TokenModel()
             if let newToken = getNextToken() {
                 initCurrentTokenModel(with: newToken)
                 
                 removePendingToken(newToken)
-            } else {
-                success = false
             }
         }
         // previous
