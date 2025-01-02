@@ -55,7 +55,7 @@ struct ActionButtonsView: View {
                 tokenModel.setPurchasePrice(priceUsd)
                 
                 if let tokenData = userModel.tokenData[tokenModel.tokenId] {
-                    activityManager.startTrackingPurchase(
+                    try activityManager.startTrackingPurchase(
                         tokenName: tokenData.metadata.name,
                         symbol: tokenData.metadata.symbol,
                         imageUrl: tokenData.metadata.imageUri,

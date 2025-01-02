@@ -25,7 +25,7 @@ struct TubWidgetExtensionLiveActivity: Widget {
                                 .frame(width: 50, height: 50)
                         } placeholder: {
                             Image(systemName: "circle.fill")
-                                .foregroundStyle(.blue)
+                                .foregroundStyle(.accent)
                                 .frame(width: 50, height: 50)
                         }
                         
@@ -47,7 +47,7 @@ struct TubWidgetExtensionLiveActivity: Widget {
                         Text(String(format: "%+.1f%%", context.state.value))
                             .font(.title)
                             .fontWeight(.medium)
-                            .foregroundStyle(context.state.trend == "up" ? .green : .red)
+                            .foregroundStyle(context.state.trend == "up" ? .tubSuccess : .tubError)
                     }
                 }
             } compactLeading: {
@@ -59,12 +59,12 @@ struct TubWidgetExtensionLiveActivity: Widget {
                         .clipShape(Circle())
                 } placeholder: {
                     Image(systemName: "circle.fill")
-                        .foregroundStyle(.blue)
+                        .foregroundStyle(.accent)
                 }
             } compactTrailing: {
                 Text(String(format: "%+.1f%%", context.state.value))
                     .font(.caption2)
-                    .foregroundStyle(context.state.trend == "up" ? .green : .red)
+                    .foregroundStyle(context.state.trend == "up" ? .tubSuccess : .tubError)
             } minimal: {
                 AsyncImage(url: URL(string: context.attributes.imageUrl)) { image in
                     image
@@ -74,7 +74,7 @@ struct TubWidgetExtensionLiveActivity: Widget {
                         .clipShape(Circle())
                 } placeholder: {
                     Image(systemName: "circle.fill")
-                        .foregroundStyle(.blue)
+                        .foregroundStyle(.accent)
                 }
             }
         }
@@ -88,7 +88,7 @@ struct LockScreenLiveActivityView: View {
     var body: some View {
         HStack {
             Image(systemName: "dollarsign.circle.fill")
-                .foregroundStyle(.green)
+                .foregroundStyle(.tubSuccess)
             
             VStack(alignment: .leading) {
                 Text(context.attributes.name)
@@ -106,7 +106,7 @@ struct LockScreenLiveActivityView: View {
                     .bold()
             } icon: {
                 Image(systemName: context.state.trend == "up" ? "arrow.up.circle.fill" : "arrow.down.circle.fill")
-                    .foregroundStyle(context.state.trend == "up" ? .green : .red)
+                    .foregroundStyle(context.state.trend == "up" ? .tubSuccess : .tubError)
             }
         }
         .padding()

@@ -17,7 +17,7 @@ import SwiftUI
         activity != nil
     }
     
-    func startTrackingPurchase(tokenName: String, symbol: String, imageUrl: String, purchasePrice: Double) {
+    func startTrackingPurchase(tokenName: String, symbol: String, imageUrl: String, purchasePrice: Double) throws {
         stopActivity()
         
         let attributes = TubActivityAttributes(
@@ -32,24 +32,22 @@ import SwiftUI
             currentPrice: purchasePrice
         )
         
-        do {
-            activity = try Activity<TubActivityAttributes>.request(
-                attributes: attributes,
-                content: .init(state: contentState, staleDate: nil)
-            )
-            print("Started tracking purchase: \(String(describing: activity?.id))")
-            
-            // Start background updates
-            startBackgroundUpdates(purchasePrice: purchasePrice)
-        } catch {
-            print("Error starting purchase tracking: \(error.localizedDescription)")
-        }
+        activity = try Activity<TubActivityAttributes>.request(
+            attributes: attributes,
+            content: .init(state: contentState, staleDate: nil)
+        )
+        print("Started tracking purchase: \(String(describing: activity?.id))")
+        
+        // Start background updates
+        startBackgroundUpdates(purchasePrice: purchasePrice)
     }
     
     private func startBackgroundUpdates(purchasePrice: Double) {
         backgroundTask = Task {
             while true {
-                let currentPrice = purchasePrice + Double.random(in: -0.01...0.01)
+                // Generate random change between -1% and +1% of purchase price
+                let randomChange = purchasePrice * Double.random(in: -0.01...0.01)
+                let currentPrice = purchasePrice + randomChange
                 updatePriceChange(currentPrice: currentPrice, purchasePrice: purchasePrice)
                 try? await Task.sleep(for: .seconds(1))
             }
@@ -60,14 +58,18 @@ import SwiftUI
         let percentageChange = ((currentPrice - purchasePrice) / purchasePrice) * 100
         
         Task {
-            let contentState = TubActivityAttributes.ContentState(
-                value: percentageChange,
-                trend: percentageChange >= 0 ? "up" : "down",
-                timestamp: Date(),
-                currentPrice: currentPrice
-            )
-            print("Updating price change: \(percentageChange)%")
-            await activity?.update(.init(state: contentState, staleDate: nil))
+            do {
+                let contentState = TubActivityAttributes.ContentState(
+                    value: percentageChange,
+                    trend: percentageChange >= 0 ? "up" : "down",
+                    timestamp: Date(),
+                    currentPrice: currentPrice
+                )
+                print("Updating price change: \(percentageChange)%")
+                try await activity?.update(.init(state: contentState, staleDate: nil))
+            } catch {
+                print("Error updating activity: \(error.localizedDescription)")
+            }
         }
     }
     

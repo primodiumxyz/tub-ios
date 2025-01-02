@@ -11,50 +11,66 @@ import ActivityKit
 
 struct Provider: AppIntentTimelineProvider {
     func placeholder(in context: Context) -> SimpleEntry {
-        // Use 0 as placeholder values
-        SimpleEntry(date: Date(), configuration: ConfigurationAppIntent(), balance: 0, priceChange: 0)
+        SimpleEntry(
+            date: Date(),
+            configuration: ConfigurationAppIntent(),
+            symbol: "Loading...",
+            imageUrl: "",
+            currentPrice: 0,
+            priceChange: 0
+        )
     }
 
     func snapshot(for configuration: ConfigurationAppIntent, in context: Context) async -> SimpleEntry {
         guard let activity = Activity<TubActivityAttributes>.activities.first else {
-            return SimpleEntry(date: Date(), configuration: configuration, balance: 0, priceChange: 0)
+            return SimpleEntry(
+                date: Date(),
+                configuration: configuration,
+                symbol: "No Data",
+                imageUrl: "",
+                currentPrice: 0,
+                priceChange: 0
+            )
         }
         
-        let balance = activity.content.state.value
-        
-        return SimpleEntry(date: Date(), configuration: configuration, balance: balance, priceChange: 0)
+        return SimpleEntry(
+            date: Date(),
+            configuration: configuration,
+            symbol: activity.attributes.symbol,
+            imageUrl: activity.attributes.imageUrl,
+            currentPrice: activity.content.state.currentPrice,
+            priceChange: activity.content.state.value
+        )
     }
     
     func timeline(for configuration: ConfigurationAppIntent, in context: Context) async -> Timeline<SimpleEntry> {
         var entries: [SimpleEntry] = []
         let currentDate = Date()
         
-        // Debug: Print all activities
-        print("All activities: \(Activity<TubActivityAttributes>.activities)")
-        
         guard let activity = Activity<TubActivityAttributes>.activities.first else {
-            print("No activity found")
             return Timeline(entries: [
-                SimpleEntry(date: currentDate, configuration: configuration, balance: 0, priceChange: 0)
-            ], policy: .atEnd)
+                SimpleEntry(
+                    date: currentDate,
+                    configuration: configuration,
+                    symbol: "No Data",
+                    imageUrl: "",
+                    currentPrice: 0,
+                    priceChange: 0
+                )
+            ], policy: .after(currentDate.addingTimeInterval(60)))
         }
         
-        let balance = activity.content.state.value
-        print("Found activity with balance: \(balance)")
-
-        // Create timeline entries
-        for secondOffset in stride(from: 0, to: 300, by: 10) {
-            let entryDate = Calendar.current.date(byAdding: .second, value: secondOffset, to: currentDate)!
-            let entry = SimpleEntry(
-                date: entryDate,
-                configuration: configuration,
-                balance: balance,
-                priceChange: 0 // need to fetch actual data!!
-            )
-            entries.append(entry)
-        }
-
-        return Timeline(entries: entries, policy: .atEnd)
+        let entry = SimpleEntry(
+            date: currentDate,
+            configuration: configuration,
+            symbol: activity.attributes.symbol,
+            imageUrl: activity.attributes.imageUrl,
+            currentPrice: activity.content.state.currentPrice,
+            priceChange: activity.content.state.value
+        )
+        entries.append(entry)
+        
+        return Timeline(entries: entries, policy: .after(currentDate.addingTimeInterval(10)))
     }
     
     private func calculatePriceChange(initialValue: Double, currentValue: Double) -> Double {
@@ -66,7 +82,9 @@ struct Provider: AppIntentTimelineProvider {
 struct SimpleEntry: TimelineEntry {
     let date: Date
     let configuration: ConfigurationAppIntent
-    let balance: Double
+    let symbol: String
+    let imageUrl: String
+    let currentPrice: Double
     let priceChange: Double
 }
 
@@ -75,26 +93,39 @@ struct TubWidgetExtensionEntryView : View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("Balance")
-                .font(.caption2)
-                .foregroundStyle(.gray)
+            HStack(spacing: 8) {
+                AsyncImage(url: URL(string: entry.imageUrl)) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 32, height: 32)
+                } placeholder: {
+                    Image(systemName: "circle.fill")
+                        .foregroundStyle(.accent)
+                        .frame(width: 32, height: 32)
+                        .padding(.horizontal, -6)
+                }
+                
+                Text(entry.symbol)
+                    .font(.system(.body, design: .rounded))
+                    .bold()
+                    .foregroundStyle(.white)
+            }
             
-            Text("$\(entry.balance, specifier: "%.2f")")
-                .font(.system(.body, design: .rounded))
+            Text(String(format: "$%.6f", entry.currentPrice))
+                .font(.system(.title3, design: .rounded))
                 .bold()
                 .foregroundStyle(.white)
                 .minimumScaleFactor(0.8)
             
-            Spacer(minLength: 2)
-            
             HStack(spacing: 4) {
                 Image(systemName: entry.priceChange >= 0 ? "arrow.up.right" : "arrow.down.right")
                     .font(.caption2)
-                    .foregroundStyle(entry.priceChange >= 0 ? .green : .red)
+                    .foregroundStyle(entry.priceChange >= 0 ? .tubSuccess : .tubError)
                 
                 Text("\(abs(entry.priceChange), specifier: "%.2f")%")
                     .font(.caption2)
-                    .foregroundStyle(entry.priceChange >= 0 ? .green : .red)
+                    .foregroundStyle(entry.priceChange >= 0 ? .tubSuccess : .tubError)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
@@ -117,6 +148,6 @@ struct TubWidgetExtension: Widget {
 #Preview(as: .systemSmall) {
     TubWidgetExtension()
 } timeline: {
-    SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), balance: 1234.56, priceChange: 2.34)
-    SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), balance: 1234.56, priceChange: -1.23)
+    SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), symbol: "", imageUrl: "", currentPrice: 0.5612, priceChange: 2.34)
+    SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), symbol: "", imageUrl: "", currentPrice: 0.5612, priceChange: -1.23)
 }

@@ -25,8 +25,8 @@
 		995FCA1F2CDA5ED70018A76D /* CoinbaseOnrampView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995FCA1E2CDA5ED20018A76D /* CoinbaseOnrampView.swift */; };
 		996772FE2CEB85820029B298 /* LoadingBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996772FD2CEB857C0029B298 /* LoadingBox.swift */; };
 		9971F29B2CFF836700BA48C0 /* WithdrawView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9971F29A2CFF835D00BA48C0 /* WithdrawView.swift */; };
+		9979A6CD2D0B2CD100DFDBE5 /* ErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9979A6C62D0B2CD100DFDBE5 /* ErrorView.swift */; };
 		997DE8F42CDAC86500164366 /* NotificationBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 997DE8F32CDAC86000164366 /* NotificationBanner.swift */; };
-				9979A6CD2D0B2CD100DFDBE5 /* ErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9979A6C62D0B2CD100DFDBE5 /* ErrorView.swift */; };
 		99856DA42CD27E1F004B9D40 /* Privy in Frameworks */ = {isa = PBXBuildFile; productRef = 99856DA32CD27E1F004B9D40 /* Privy */; };
 		99856DA62CD27E2E004B9D40 /* Privy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99856DA52CD27E27004B9D40 /* Privy.swift */; };
 		9995E9BF2D01025D005B9179 /* PortfolioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9995E9BE2D01025A005B9179 /* PortfolioView.swift */; };
@@ -63,12 +63,12 @@
 		DF3D43D22D00DEB1004DAE81 /* JustifiedText.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF3D43D12D00DEB1004DAE81 /* JustifiedText.swift */; };
 		DF5A2FC32CAF165D00508A56 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5A2FC22CAF165D00508A56 /* HistoryView.swift */; };
 		DF5A2FC52CAF2DEF00508A56 /* HistoryDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5A2FC42CAF2DEF00508A56 /* HistoryDetailsView.swift */; };
+		DF5AC8ED2D26E2A20054C187 /* TubActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5AC8EB2D26E2A20054C187 /* TubActivityAttributes.swift */; };
+		DF5AC8EE2D26E2A20054C187 /* TubActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5AC8EB2D26E2A20054C187 /* TubActivityAttributes.swift */; };
 		DF6D28BF2D108A5900810F8B /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DF6D28BE2D108A5900810F8B /* WidgetKit.framework */; };
 		DF6D28C12D108A5900810F8B /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DF6D28C02D108A5900810F8B /* SwiftUI.framework */; };
 		DF6D28D22D108A5A00810F8B /* TubWidgetExtensionExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = DF6D28BD2D108A5900810F8B /* TubWidgetExtensionExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		DF6D28E22D108B5500810F8B /* TubActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF6D28E02D108B5500810F8B /* TubActivityAttributes.swift */; };
 		DF6D28E42D108B8300810F8B /* LiveActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF6D28E32D108B8300810F8B /* LiveActivityManager.swift */; };
-		DF6D28E62D108E9600810F8B /* TubActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF6D28E02D108B5500810F8B /* TubActivityAttributes.swift */; };
 		DF8C84ED2CDFDCA700E8FA7B /* DismissKeyboardModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF8C84EC2CDFDCA700E8FA7B /* DismissKeyboardModifier.swift */; };
 		DFA4D6512CAC500B00AEDC73 /* Apollo in Frameworks */ = {isa = PBXBuildFile; productRef = DFA4D6502CAC500B00AEDC73 /* Apollo */; };
 		DFC723E32CB9A86C003A915C /* TokenInfoCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFC723E22CB9A86C003A915C /* TokenInfoCardView.swift */; };
@@ -176,10 +176,10 @@
 		DF3D43D12D00DEB1004DAE81 /* JustifiedText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JustifiedText.swift; sourceTree = "<group>"; };
 		DF5A2FC22CAF165D00508A56 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		DF5A2FC42CAF2DEF00508A56 /* HistoryDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryDetailsView.swift; sourceTree = "<group>"; };
+		DF5AC8EB2D26E2A20054C187 /* TubActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TubActivityAttributes.swift; sourceTree = "<group>"; };
 		DF6D28BD2D108A5900810F8B /* TubWidgetExtensionExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TubWidgetExtensionExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		DF6D28BE2D108A5900810F8B /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		DF6D28C02D108A5900810F8B /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
-		DF6D28E02D108B5500810F8B /* TubActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TubActivityAttributes.swift; sourceTree = "<group>"; };
 		DF6D28E32D108B8300810F8B /* LiveActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityManager.swift; sourceTree = "<group>"; };
 		DF7C361B2CD941FD00A4B27A /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		DF8C84EC2CDFDCA700E8FA7B /* DismissKeyboardModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DismissKeyboardModifier.swift; sourceTree = "<group>"; };
@@ -423,7 +423,7 @@
 		DB6D28F82CA1C8F70099951A = {
 			isa = PBXGroup;
 			children = (
-				DF6D28E52D108E4300810F8B /* Shared */,
+				DF5AC8EC2D26E2A20054C187 /* Shared */,
 				DB391A1D2CC377FC002EFA78 /* LaunchScreen.storyboard */,
 				DB458DAB2CAC7F0100C5EC18 /* graphql */,
 				DB6D29032CA1C8F70099951A /* Tub */,
@@ -488,20 +488,20 @@
 			path = TubUITests;
 			sourceTree = "<group>";
 		};
+		DF5AC8EC2D26E2A20054C187 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				DF5AC8EB2D26E2A20054C187 /* TubActivityAttributes.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
 		DF6D28E12D108B5500810F8B /* Dynamic Island */ = {
 			isa = PBXGroup;
 			children = (
 				DF6D28E32D108B8300810F8B /* LiveActivityManager.swift */,
 			);
 			path = "Dynamic Island";
-			sourceTree = "<group>";
-		};
-		DF6D28E52D108E4300810F8B /* Shared */ = {
-			isa = PBXGroup;
-			children = (
-				DF6D28E02D108B5500810F8B /* TubActivityAttributes.swift */,
-			);
-			path = Shared;
 			sourceTree = "<group>";
 		};
 		DFEBC3E72CE44D1100EA4C84 /* Settings */ = {
@@ -725,7 +725,6 @@
 				DB675A332CA2B73D006FC9B3 /* HomeTabsView.swift in Sources */,
 				46442B952CDD7380009A6F0B /* Constants.swift in Sources */,
 				4619A8182CCA4E25003CD119 /* TokenListModel.swift in Sources */,
-				DF6D28E22D108B5500810F8B /* TubActivityAttributes.swift in Sources */,
 				DF5A2FC32CAF165D00508A56 /* HistoryView.swift in Sources */,
 				994AE5F72CD2AB3F00553A32 /* GoogleLogoView.swift in Sources */,
 				DF3D43D22D00DEB1004DAE81 /* JustifiedText.swift in Sources */,
@@ -733,6 +732,7 @@
 				99DBD8EE2CF781EA0098C296 /* spoofModelData.swift in Sources */,
 				466945ED2CDFDB1F008E8B99 /* LoadingTracker.swift in Sources */,
 				DF5A2FC52CAF2DEF00508A56 /* HistoryDetailsView.swift in Sources */,
+				DF5AC8ED2D26E2A20054C187 /* TubActivityAttributes.swift in Sources */,
 				99BE72BB2CEBB279006BB157 /* SolPriceModel.swift in Sources */,
 				99856DA62CD27E2E004B9D40 /* Privy.swift in Sources */,
 				999F595B2CA754FB00E7AE9F /* ChartView.swift in Sources */,
@@ -782,7 +782,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DF6D28E62D108E9600810F8B /* TubActivityAttributes.swift in Sources */,
+				DF5AC8EE2D26E2A20054C187 /* TubActivityAttributes.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1246,14 +1246,6 @@
 				minimumVersion = 0.8.0;
 			};
 		};
-		99EE82A82CFE485A00615572 /* XCRemoteSwiftPackageReference "solana-swift" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/p2p-org/solana-swift";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 5.0.0;
-			};
-		};
 		DFA4D64F2CAC500B00AEDC73 /* XCRemoteSwiftPackageReference "apollo-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/apollographql/apollo-ios";
@@ -1297,7 +1289,6 @@
 			package = 99DED24F2CAF2A6B0055FC60 /* XCRemoteSwiftPackageReference "ApolloCombine" */;
 			productName = ApolloCombine;
 		};
-		
 		DB458DB02CAC824A00C5EC18 /* TubAPI */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = DB458DAE2CAC821D00C5EC18 /* XCLocalSwiftPackageReference "TubAPI" */;
