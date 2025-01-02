@@ -19,18 +19,9 @@ struct ChartView: View {
     @State private var prices: [Price] = []
 
     let initialPointSize: Double = 35
-    @State private var pointSize: Double = 35
 
     private let xAxisPadding: Double = Timespan.live.seconds * 0.1
 
-    var purchasePriceUsd: Double? {
-        if let priceUsdc = purchaseData?.priceUsdc {
-            return priceModel.usdcToUsd(usdc: priceUsdc)
-        }
-        else {
-            return nil
-        }
-    }
     init(rawPrices: [Price], purchaseData: PurchaseData? = nil, animate: Bool, height: CGFloat = 330) {
 		self.rawPrices = rawPrices
         self.purchaseData = purchaseData
@@ -56,8 +47,7 @@ struct ChartView: View {
 
         var pricesWithPurchase = prices
         if let data = purchaseData {
-            let purchasePriceUsd = priceModel.usdcToUsd(usdc: data.priceUsdc)
-            let price = Price(timestamp: data.timestamp, priceUsd: purchasePriceUsd)
+            let price = Price(timestamp: data.timestamp, priceUsd: data.priceUsd)
             pricesWithPurchase.append(price)
         }
 
@@ -96,8 +86,8 @@ struct ChartView: View {
                 .foregroundStyle(.tubBuyPrimary)
                 .symbolSize(initialPointSize)
                 .annotation(position: .top, spacing: 6) {
-                    if let purchasePriceUsd {
-                        let purchaseIncrease = (currentPrice.priceUsd - purchasePriceUsd) / purchasePriceUsd
+                    if let priceUsd = purchaseData?.priceUsd {
+                        let purchaseIncrease = (currentPrice.priceUsd - priceUsd) / priceUsd
                         Text("\(purchaseIncrease >= 0 ? "+" : "")\(String(format: "%.1f%%", purchaseIncrease * 100))")
                             .foregroundStyle(.tubText.opacity(0.9))
                             .padding(8)
@@ -108,51 +98,59 @@ struct ChartView: View {
                     }
                 }
 
-                PointMark(
-                    x: .value("Date", currentPrice.timestamp),
-                    y: .value("Price", currentPrice.priceUsd)
-                )
-                .foregroundStyle(.tubBuySecondary)
-                .symbolSize(pointSize)
+                
             }
 
-            if let purchaseData, let purchasePriceUsd {
+            if let purchaseData, let firstPriceTimestamp = prices.first?.timestamp {
                 // Calculate x position as max of purchase time and earliest chart time
-                let xPosition = max(
-                    purchaseData.timestamp,
-                    prices.first?.timestamp ?? purchaseData.timestamp
-                )
-
-                // Add horizontal dashed line
-                RuleMark(y: .value("Purchase Price", purchasePriceUsd))
-                    .foregroundStyle(.tubSellPrimary.opacity(0.8))
-                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [2, 2]))
-
-                PointMark(
-                    x: .value("Date", xPosition),  // Updated x-value
-                    y: .value("Price", purchasePriceUsd)
-                )
-                .foregroundStyle(.tubSellPrimary)
-                .symbolSize(initialPointSize)
-                .symbol(.circle)
-                .annotation(position: .bottom, spacing: 2) {
-                    VStack(spacing: -2.5) {
-                        // Add triangle
-                        Image(systemName: "triangle.fill")
-                            .resizable()
-                            .frame(width: 12, height: 6)
-                            .foregroundStyle(.tubSellPrimary)
-
-                        Text("B")
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(.tubSellPrimary)
-                            .font(.sfRounded(size: .sm))
-                            .fontWeight(.bold)
-                            .clipShape(Circle())
+                
+                if firstPriceTimestamp < purchaseData.timestamp {
+                    PointMark(
+                        x: .value("Date", purchaseData.timestamp),  // Updated x-value
+                        y: .value("Price", purchaseData.priceUsd)
+                    )
+                    .foregroundStyle(.tubSellPrimary)
+                    .symbolSize(initialPointSize)
+                    .symbol(.circle)
+                    .annotation(position: .bottom, spacing: 2) {
+                        VStack(spacing: -2.5) {
+                            // Add triangle
+                            Image(systemName: "triangle.fill")
+                                .resizable()
+                                .frame(width: 12, height: 6)
+                                .foregroundStyle(.tubSellPrimary)
+                            
+                            Text("B")
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(.tubSellPrimary)
+                                .font(.sfRounded(size: .sm))
+                                .fontWeight(.bold)
+                                .clipShape(Circle())
+                        }
+                    }
+                } else {
+                    PointMark(
+                        x: .value("Date", firstPriceTimestamp),  // Updated x-value
+                        y: .value("Price", purchaseData.priceUsd)
+                    )
+                    .foregroundStyle(.tubSellPrimary)
+                    
+                        .symbolSize(0)
+                    .annotation(position: .bottomTrailing, spacing: 2) {
+                        VStack {
+                            Text("Bought for \(SolPriceModel.shared.formatPrice(usd: purchaseData.priceUsd))")
+                                .font(.sfRounded(size: .xs, weight: .light))
+                                .opacity(0.8)
+                                .foregroundStyle(.tubSellPrimary)
+                        }
                     }
                 }
+                // Add horizontal dashed line
+                RuleMark(y: .value("Purchase Price", purchaseData.priceUsd))
+                    .foregroundStyle(.tubSellPrimary.opacity(0.8))
+                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [2, 2]))
             }
         }
         // The animated visual "swipe-chart-glitch" prob occurs here. It happens
@@ -170,9 +168,6 @@ struct ChartView: View {
         .frame(maxWidth: .infinity, minHeight: height, maxHeight: height)
         .onAppear {
             updatePrices()
-            withAnimation(.easeInOut(duration: 2).repeatForever()) {
-                pointSize = 150
-            }
         }
         .onChange(of: rawPrices) {
             updatePrices()
@@ -213,9 +208,10 @@ struct PillView: View {
 
         var purchaseData: PurchaseData {
             PurchaseData(
+                tokenId: "",
                 timestamp: spoofPrices[20].timestamp,
-                amountUsdc: 1000,
-                priceUsdc: priceModel.usdToUsdc(usd: spoofPrices[20].priceUsd)
+                amountToken: Int(1e9),
+                priceUsd: spoofPrices[20].priceUsd
             )
         }
 

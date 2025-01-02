@@ -17,13 +17,15 @@ import TubAPI
 final class TokenListModel: ObservableObject {
     static let shared = TokenListModel()
     
+    var currentTokenIndex = -1
+    
     @Published var pendingTokens: [String] = []
     @Published var tokenQueue: [String] = []
-    var currentTokenIndex = -1
     
     @Published var previousTokenModel: TokenModel?
     @Published var nextTokenModel: TokenModel?
     @Published var currentTokenModel: TokenModel
+    @Published var initialFetchComplete = false
     
     private var hotTokensSubscription: Apollo.Cancellable?
     
@@ -47,10 +49,7 @@ final class TokenListModel: ObservableObject {
     }
     
     private func initCurrentTokenModel(with tokenId: String) {
-        // initialize current model
         self.currentTokenModel.initialize(with: tokenId)
-        UserModel.shared.initToken(tokenId: tokenId)
-        
     }
     
     private func getNextToken(excluding currentId: String? = nil) -> String? {
@@ -168,7 +167,6 @@ final class TokenListModel: ObservableObject {
     }
     
     
-    @Published var initialFetchComplete = false
     
     public func startTokenSubscription() {
             self.hotTokensSubscription = Network.shared.apollo.subscribe(
@@ -200,11 +198,9 @@ final class TokenListModel: ObservableObject {
                             return []
                         }
                     }()
-                    try? await UserModel.shared.refreshBulkTokenData(tokenMints: hotTokens)
+                    await self.updatePendingTokens(hotTokens)
                     await MainActor.run {
-                        if !self.initialFetchComplete { self.initialFetchComplete = true }
 
-                        self.updatePendingTokens(hotTokens)
                         if self.tokenQueue.isEmpty {
                             self.initializeTokenQueue()
                         }
@@ -224,8 +220,7 @@ final class TokenListModel: ObservableObject {
         self.pendingTokens = self.pendingTokens.filter { $0 != tokenId }
     }
     
-    @MainActor
-    private func updatePendingTokens(_ newTokens: [String]) {
+    private func updatePendingTokens(_ newTokens: [String]) async {
         guard !newTokens.isEmpty else { return }
         
         // Filter out any tokens that are already in the queue
@@ -238,7 +233,24 @@ final class TokenListModel: ObservableObject {
             !unqueuedNewTokens.contains { $0 == oldToken }
         }
         
-        self.pendingTokens = Array((unqueuedNewTokens + uniqueOldTokens).prefix(20))
+        let newTokens = Array((unqueuedNewTokens + uniqueOldTokens))
+        let tokens = UserModel.shared.tokenData
+        let newTokensToRefresh = newTokens.filter { tokens[$0] == nil }
+
+        if newTokensToRefresh.count > 0 {
+            try? await UserModel.shared.refreshBulkTokenData(tokenMints: Array(newTokensToRefresh.prefix(3)))
+        }
+        
+        if newTokensToRefresh.count > 3 {
+            Task {
+                try? await UserModel.shared.refreshBulkTokenData(tokenMints: Array(newTokensToRefresh.suffix(newTokensToRefresh.count - 3)))
+            }
+        }
+        
+        await MainActor.run {
+            if !self.initialFetchComplete { self.initialFetchComplete = true }
+            self.pendingTokens = newTokens
+        }
     }
     
     @MainActor
@@ -284,7 +296,9 @@ final class TokenListModel: ObservableObject {
         }
     }
     
+    @MainActor
     public func clearQueue() {
+        self.initialFetchComplete = false
         self.tokenQueue = []
         self.pendingTokens = []
         self.currentTokenIndex = -1

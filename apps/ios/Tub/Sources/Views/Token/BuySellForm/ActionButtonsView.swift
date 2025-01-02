@@ -51,9 +51,7 @@ struct ActionButtonsView: View {
                 try await TxManager.shared.buyToken(
                     tokenId: tokenModel.tokenId, buyAmountUsdc: buyAmountUsdc, tokenPriceUsdc: priceUsdc
                 )
-                
-                tokenModel.setPurchasePrice(priceUsd)
-                
+                                
                 if let tokenData = userModel.tokenData[tokenModel.tokenId] {
                     try activityManager.startTrackingPurchase(
                         tokenName: tokenData.metadata.name,
@@ -115,14 +113,13 @@ struct ActionButtonsView: View {
     var body: some View {
         VStack {
             if userModel.userId == nil {
-                LoginButton(isLoginPresented: $isLoginPresented)
+                LoginButton()
             }
             else {
                 switch userModel.walletState {
                 case .connected(_):
                     if activeTab == .buy {
-                        if let usdcBalance = userModel.usdcBalance,
-                            priceModel.usdcToUsd(usdc: usdcBalance) < 0.1
+                        if priceModel.usdcToUsd(usdc: userModel.usdcBalance ?? 0) < 0.1
                         {
                             AirdropButton()
                         }
@@ -152,9 +149,6 @@ struct ActionButtonsView: View {
             }
         }
         .padding(.horizontal, 8)
-        .fullScreenCover(isPresented: $isLoginPresented) {
-            RegisterView(isRedirected: true)
-        }
         .sheet(isPresented: $showBuySheet) {
             BuyFormView(
                 isVisible: $showBuySheet,
@@ -165,31 +159,40 @@ struct ActionButtonsView: View {
 }
 
 private struct LoginButton: View {
-    @Binding var isLoginPresented: Bool
+    @State var isLoginPresented = false
     var body: some View {
         PrimaryButton(
             text: "Login to Buy",
             action: { isLoginPresented = true }
         )
+        .navigationDestination(isPresented: $isLoginPresented) {
+            AccountView()
+        }
     }
 }
 
 private struct ConnectButton: View {
     @EnvironmentObject private var notificationHandler: NotificationHandler
+    func handleConnect() {
+        Task {
+            do {
+                do {
+                    try await privy.embeddedWallet.connectWallet()
+                } catch {
+                    let _ = try await privy.embeddedWallet.createWallet(chainType: .solana)
+                }
+                notificationHandler.show("Connection successful", type: .success)
+            }
+            catch {
+                notificationHandler.show(error.localizedDescription, type: .error)
+            }
+        }
+    }
+
     var body: some View {
         PrimaryButton(
             text: "Connect to wallet",
-            action: {
-                Task {
-                    do {
-                        try await privy.embeddedWallet.connectWallet()
-                        notificationHandler.show("Connection successful", type: .success)
-                    }
-                    catch {
-                        notificationHandler.show(error.localizedDescription, type: .error)
-                    }
-                }
-            }
+            action: handleConnect
         )
 
     }
@@ -280,7 +283,10 @@ extension ActionButtonsView: Equatable {
         @StateObject var notificationHandler = NotificationHandler()
         var userModel = {
             let model = UserModel.shared
-            model.usdcBalance = 100 * Int(SOL_DECIMALS)
+            
+            Task {
+                await model.updateTokenData(mint: USDC_MINT, balance: 100 * Int(1e6))
+            }
             return model
         }()
 

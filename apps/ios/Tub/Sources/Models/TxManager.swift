@@ -83,33 +83,55 @@ final class TxManager: ObservableObject {
         // Update tx data if its stale
         
         // Sign and send the tx
-        var txError : Error? = nil
         do {
             let txData = try await Network.shared.getTxData(buyTokenId: buyTokenId, sellTokenId: sellTokenId, sellQuantity: sellQuantity, slippageBps: 2000)
             let provider = try privy.embeddedWallet.getSolanaProvider(for: walletAddress)
             let signature = try await provider.signMessage(message: txData.transactionMessageBase64)
-            let _ = try await Network.shared.submitSignedTx(
+            let response = try await Network.shared.submitSignedTx(
                 txBase64: txData.transactionMessageBase64,
                 signature: signature
             )
-        } catch {
-            txError = error
-        }
+            let tokenModel = TokenListModel.shared.currentTokenModel
+            
+            let tokenId = buyTokenId == USDC_MINT ? sellTokenId : buyTokenId
+            
+            try? await UserModel.shared.refreshBulkTokenData(tokenMints: [USDC_MINT, tokenId], options: .init(withBalances: true, withLiveData: false))
+            
+            if buyTokenId == USDC_MINT {
+                await MainActor.run {
+                    tokenModel.purchaseData =  nil
+                }
+            } else {
+                let date = response.timestamp != nil ? Date(timeIntervalSince1970: TimeInterval(response.timestamp! / 1000)) : Date.now
+                let priceData = tokenModel.getPrice(at: date)
+                await MainActor.run {
+                    if let priceUsd = priceData?.priceUsd ?? UserModel.shared.tokenData[tokenId]?.liveData?.priceUsd {
+                        
+                        let sellQuantityUsd = SolPriceModel.shared.usdcToUsd(usdc: sellQuantity)
+                        
+                        let decimals = UserModel.shared.tokenData[tokenId]?.metadata.decimals ?? 9
+                        let buyQuantityToken = Int((sellQuantityUsd / priceUsd) * pow(10.0,Double(decimals)))
+                        
+                        tokenModel.purchaseData =  PurchaseData(
+                            tokenId: tokenModel.tokenId,
+                            timestamp: priceData?.timestamp ?? Date.now,
+                            amountToken: buyQuantityToken,
+                            priceUsd: priceUsd
+                        )
+                    }
+                }
+            }
+            
+            await MainActor.run { self.submittingTx = false }
 
-        await MainActor.run {
-            self.submittingTx = false
+        } catch {
+            await MainActor.run { self.submittingTx = false }
+            throw error
         }
         
-        // Update USDC balance & token balance
-        let tokenId = buyTokenId == USDC_MINT ? sellTokenId : buyTokenId
-        Task {
-            try? await UserModel.shared.fetchUsdcBalance()
-        }
-        if tokenId != "" {
-            Task {
-                await UserModel.shared.refreshTokenData(tokenMint: tokenId)
-            }
-        }
-        if let txError { throw txError }
+        // todo: update swap history in the indexer and fetch the latest sale from a gql query
+        
+            
+
     }
 }

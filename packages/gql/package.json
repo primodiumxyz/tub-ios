@@ -11,7 +11,7 @@
     "src"
   ],
   "scripts": {
-    "prepare": "[ \"$NODE_ENV\" = production ] && exit 0; pnpm hasura update-cli --version v2.44.0-beta.1",
+    "prepare": "dotenvx run -f ./../../.env --quiet -- sh -c '[ \"$NODE_ENV\" = production ] && exit 0; pnpm hasura update-cli --version v2.44.0-beta.1'",
     "dev": "./bin/start-db.sh",
     "dev:ci": "./bin/start-db-ci.sh",
     "teardown": "docker compose down --remove-orphans --volumes",
@@ -38,13 +38,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@dotenvx/dotenvx": "^1.14.1",
     "@urql/core": "^5.0.6",
     "gql.tada": "^1.8.9",
     "graphql-ws": "^5.16.0",
     "ws": "^8.18.0"
   },
   "devDependencies": {
-    "@dotenvx/dotenvx": "^1.14.1",
     "@solana/web3.js": "^1.95.2",
     "@types/node": "^22.7.0",
     "@types/ws": "^8.5.12",

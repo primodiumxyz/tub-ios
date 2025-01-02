@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct TokenBalancesView: View {
+struct PortfolioView: View {
   @EnvironmentObject private var userModel: UserModel
   @EnvironmentObject private var priceModel: SolPriceModel
   @State private var isRefreshing = false
@@ -83,7 +83,9 @@ struct TokenBalancesView: View {
       .padding(.horizontal)
 
       if userModel.tokenPortfolio.count == 0 {
-        Text("No tokens").foregroundStyle(.tubText)
+        Text("No tokens")
+              .foregroundStyle(.tubText)
+              .frame(maxHeight: .infinity)
       } else {
 
         List {
@@ -160,7 +162,7 @@ struct TokenRowView: View {
   }()
 
   @Previewable @StateObject var userModel = UserModel.shared
-  TokenBalancesView()
-    .environmentObject(priceModel)
-    .environmentObject(userModel)
+    PortfolioView()
+        .environmentObject(priceModel)
+        .environmentObject(userModel)
 }

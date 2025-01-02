@@ -29,8 +29,6 @@ struct TokenListView: View {
     private let autoScrollSpringAnimationBounce = 0.35  // [0,1] where 1 is very springy
     private let moveToDragGestureOffsetAnimationDuration = 0.25
 
-    let OFFSET: Double = 5
-    
     var balanceToken: Int {
         userModel.tokenData[tokenListModel.currentTokenModel.tokenId]?.balanceToken ?? 0
     }
@@ -127,101 +125,101 @@ struct TokenListView: View {
     }
 
     var body: some View {
-
-        ZStack(alignment: .top) {
-            AccountBalanceView(
-                userModel: userModel,
-                currentTokenModel: tokenListModel.currentTokenModel
-            )
-            .zIndex(3)
-
-            if tokenListModel.totalTokenCount == 0 && !tokenListModel.initialFetchComplete {
-                GeometryReader { geometry in
-                    TokenView(
-                        tokenModel: TokenModel()
-                    )
-                    .frame(height: geometry.size.height)
-                    .offset(y: OFFSET)
-                }
-            } else {
-                // Main content
-
-                VStack(spacing: 0) {
-                    // Rest of the content
-                    if tokenListModel.totalTokenCount == 0 {
-                        ErrorView(errorMessage: "No tokens found.", retryAction: tokenListModel.startTokenSubscription)
-                    .frame(maxHeight: .infinity)
-                        }
-
-                }
-
-                if tokenListModel.totalTokenCount > 0 {
+        NavigationStack {
+            VStack {
+                AccountBalanceView(
+                    userModel: userModel
+                )
+                .zIndex(3)
+                
+                if tokenListModel.totalTokenCount == 0 && !tokenListModel.initialFetchComplete {
                     GeometryReader { geometry in
-                        VStack(spacing: 0) {
-                            // Previous TokenView that's offscreen above
-                            TokenView(
-                                tokenModel: tokenListModel.previousTokenModel ?? emptyTokenModel,
-								animate: false
-                            )
-                            .frame(height: geometry.size.height)
-                            .opacity(dragging ? 1 : 0)
-
-                            // Current focused TokenModel that's centered onscreen
-                            TokenView(
-                                tokenModel: tokenListModel.currentTokenModel,
-                                animate: animateCurrentTokenModel
-                            )
-                            .frame(height: geometry.size.height)
-
-                            // Next TokenView that's offscreen below
-                            TokenView(
-                                tokenModel: tokenListModel.nextTokenModel ?? emptyTokenModel,
-								animate: false
-                            )
-                            .frame(height: geometry.size.height)
-                            .opacity(dragging ? 1 : 0)
-                        }
-                        .zIndex(1)
-                        .offset(y: -geometry.size.height + OFFSET + dragGestureOffset + activeOffset)
-                        .highPriorityGesture(
-                            DragGesture()
-                                .onChanged { value in
-                                    let dragDirection = value.translation.height > 0 ? SwipeDirection.up : SwipeDirection.down
-                                    if canSwipe(direction: dragDirection) {
-                                        dragging = true
-										dragGestureOffset = value.translation.height
-                                    }
-                                }
-                                .onEnded { value in
-                                    let dragDirection = value.translation.height > 0 ? SwipeDirection.up : SwipeDirection.down
-                                    if canSwipe(direction: dragDirection) {
-                                        if value.translation.height > offsetThresholdToDragToAnotherToken {
-                                            loadToken(geometry, .up)
-                                        }
-                                        else if value.translation.height < -offsetThresholdToDragToAnotherToken {
-                                            loadToken(geometry, .down)
-                                        }
-                                        else
-                        				{
-											//withAnimation(.spring(duration: autoScrollAnimationDuration, bounce: autoScrollSpringAnimationBounce)) {
-											withAnimation(.easeOut(duration: autoScrollAnimationAbortedDuration)) {
-                        						dragGestureOffset = 0
-                        					} completion: {
-                        						dragging = false
-                        					}
-                        				}
-                                    }
-                                }
+                        TokenView(
+                            tokenModel: TokenModel()
                         )
-                    }.zIndex(1)
+                        .frame(height: geometry.size.height)
+                    }
+                } else {
+                    // Main content
+                    
+                    VStack(spacing: 0) {
+                        // Rest of the content
+                        if tokenListModel.totalTokenCount == 0 && tokenListModel.initialFetchComplete {
+                            ErrorView(errorMessage: "No tokens found.", retryAction: tokenListModel.startTokenSubscription)
+                                .frame(maxHeight: .infinity)
+                        }
+                        
+                    }
+                    
+                    if tokenListModel.totalTokenCount > 0 {
+                        GeometryReader { geometry in
+                            VStack(spacing: 0) {
+                                // Previous TokenView that's offscreen above
+                                TokenView(
+                                    tokenModel: tokenListModel.previousTokenModel ?? emptyTokenModel,
+                                    animate: false
+                                )
+                                .frame(height: geometry.size.height)
+                                .opacity(dragging ? 1 : 0)
+                                
+                                // Current focused TokenModel that's centered onscreen
+                                TokenView(
+                                    tokenModel: tokenListModel.currentTokenModel,
+                                    animate: animateCurrentTokenModel
+                                )
+                                .frame(height: geometry.size.height)
+                                
+                                // Next TokenView that's offscreen below
+                                TokenView(
+                                    tokenModel: tokenListModel.nextTokenModel ?? emptyTokenModel,
+                                    animate: false
+                                )
+                                .frame(height: geometry.size.height)
+                                .opacity(dragging ? 1 : 0)
+                            }
+                            .zIndex(1)
+                            .offset(y: -geometry.size.height + dragGestureOffset + activeOffset)
+                            .highPriorityGesture(
+                                DragGesture()
+                                    .onChanged { value in
+                                        let dragDirection = value.translation.height > 0 ? SwipeDirection.up : SwipeDirection.down
+                                        if canSwipe(direction: dragDirection) {
+                                            dragging = true
+                                            dragGestureOffset = value.translation.height
+                                        }
+                                    }
+                                    .onEnded { value in
+                                        let dragDirection = value.translation.height > 0 ? SwipeDirection.up : SwipeDirection.down
+                                        if canSwipe(direction: dragDirection) {
+                                            if value.translation.height > offsetThresholdToDragToAnotherToken {
+                                                loadToken(geometry, .up)
+                                            }
+                                            else if value.translation.height < -offsetThresholdToDragToAnotherToken {
+                                                loadToken(geometry, .down)
+                                            }
+                                            else
+                                            {
+                                                //withAnimation(.spring(duration: autoScrollAnimationDuration, bounce: autoScrollSpringAnimationBounce)) {
+                                                withAnimation(.easeOut(duration: autoScrollAnimationAbortedDuration)) {
+                                                    dragGestureOffset = 0
+                                                } completion: {
+                                                    dragging = false
+                                                }
+                                            }
+                                        }
+                                    }
+                            )
+                        }.zIndex(1)
+                        .clipped()
+
+                    }
                 }
+            }.onAppear {
+                tokenListModel.startTokenSubscription()
             }
-        }.onAppear {
-            tokenListModel.startTokenSubscription()
-        }
-        .onDisappear {
-            tokenListModel.stopTokenSubscription()
+            .onDisappear {
+                tokenListModel.stopTokenSubscription()
+            }
         }
     }
-
 }
