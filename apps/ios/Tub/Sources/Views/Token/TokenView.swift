@@ -166,18 +166,22 @@ struct TokenView: View {
         Group {
             if !tokenModel.isReady {
                 LoadingBox(height: height)
-            } else if tokenModel.prices.isEmpty {
-                Text("No trades found").font(.sfRounded(size: .base, weight: .semibold)).frame(height: height)
-                
-            } else if tokenModel.selectedTimespan == .live {
-               ChartView(
-                   rawPrices: tokenModel.prices,
-                   purchaseData: tokenModel.purchaseData,
-                   animate: animate,
-                   height: height
-               )
             }
-            else {
+            else if tokenModel.selectedTimespan == .live {
+                if tokenModel.prices.isEmpty {
+                    Text("No trades found").font(.sfRounded(size: .base, weight: .semibold)).frame(height: height)
+                } else {
+                    ChartView(
+                        rawPrices: tokenModel.prices,
+                        purchaseData: tokenModel.purchaseData,
+                        animate: animate,
+                        height: height
+                    )
+                }
+            }
+            else if tokenModel.candles.count == 0 {
+                LoadingBox(height: height)
+            } else {
                 CandleChartView(
                     candles: tokenModel.candles,
                     animate: animate,

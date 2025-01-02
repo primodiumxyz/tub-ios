@@ -5,7 +5,6 @@
 //  Created by Emerson Hsieh on 2024/9/24.
 //
 
-import PrivySDK
 import SwiftUI
 
 @main
@@ -81,15 +80,17 @@ struct AppContent: View {
                     }
             }
         }.onChange(of: userModel.walletState) { _, newState in
-            if newState == .connecting { return }
-            if newState == .error {
+            switch newState {
+            case .error:
                 notificationHandler.show("Error connecting to wallet.", type: .error)
-                return
+            case .connected, .disconnected, .notCreated, .needsRecovery:
+                Task {
+                    tokenListModel.clearQueue()
+                    await tokenListModel.startTokenSubscription()
+                }
+            default:
+                break
             }
-            // we wait to begin the token subscription until the user is ready (either logged in or not) 
-            // we clear the queue when the user logs in/out to force showing owned tokens first
-            tokenListModel.clearQueue()
-            tokenListModel.startTokenSubscription()
         }
     }
 }

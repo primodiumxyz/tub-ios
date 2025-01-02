@@ -39,18 +39,18 @@ struct BuyFormView: View {
         }
 
         let priceUsdc = priceModel.usdToUsdc(usd: priceUsd)
-
+        if isDefaultOn {
+            SettingsManager.shared.defaultBuyValueUsdc = amountUsdc
+        } 
         Task {
             do {
-                if isDefaultOn {
-                    SettingsManager.shared.defaultBuyValueUsdc = amountUsdc
-                } 
                 try await TxManager.shared.buyToken(
                     tokenId: tokenModel.tokenId,
                     buyAmountUsdc: amountUsdc,
                     tokenPriceUsdc: priceUsdc
                 )
                 await MainActor.run {
+                    self.isVisible = false
                     notificationHandler.show(
                         "Successfully bought tokens!",
                         type: .success
@@ -215,7 +215,7 @@ struct BuyFormView: View {
 
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(isDefaultOn ? .tubSuccess : .tubNeutral)
-                }
+                }.opacity(isDefaultOn ? 1 : 0.7)
             }
         }
     }
