@@ -44,7 +44,7 @@ struct TubWidgetExtensionLiveActivity: Widget {
                 DynamicIslandExpandedRegion(.trailing) {
                     VStack {
                         Spacer()
-                        Text(String(format: "%+.1f%%", context.state.value))
+                        Text(String(format: "%+.2f%%", context.state.value))
                             .font(.title)
                             .fontWeight(.medium)
                             .foregroundStyle(context.state.trend == "up" ? .tubSuccess : .tubError)

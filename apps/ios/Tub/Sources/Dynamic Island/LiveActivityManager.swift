@@ -37,34 +37,18 @@ import SwiftUI
             content: .init(state: contentState, staleDate: nil)
         )
         print("Started tracking purchase: \(String(describing: activity?.id))")
-        
-        // Start background updates
-        startBackgroundUpdates(purchasePrice: purchasePrice)
     }
     
-    private func startBackgroundUpdates(purchasePrice: Double) {
-        backgroundTask = Task {
-            while true {
-                // Generate random change between -1% and +1% of purchase price
-                let randomChange = purchasePrice * Double.random(in: -0.01...0.01)
-                let currentPrice = purchasePrice + randomChange
-                updatePriceChange(currentPrice: currentPrice, purchasePrice: purchasePrice)
-                try? await Task.sleep(for: .seconds(1))
-            }
-        }
-    }
-    
-    func updatePriceChange(currentPrice: Double, purchasePrice: Double) {
-        let percentageChange = ((currentPrice - purchasePrice) / purchasePrice) * 100
-        
+    func updatePriceChange(currentPrice: Double, gainsPercentage: Double) {
         Task {
+            let formattedPercentage = String(format: "%.2f", abs(gainsPercentage))
             let contentState = TubActivityAttributes.ContentState(
-                value: percentageChange,
-                trend: percentageChange >= 0 ? "up" : "down",
+                value: gainsPercentage,
+                trend: gainsPercentage >= 0 ? "up" : "down",
                 timestamp: Date(),
                 currentPrice: currentPrice
             )
-            print("Updating price change: \(percentageChange)%")
+            print("Updating gains: \(formattedPercentage)%")
             await activity?.update(.init(state: contentState, staleDate: nil))
         }
     }

@@ -66,6 +66,17 @@ class TokenModel: ObservableObject {
         guard let priceUsd, timestamp != self.prices.last?.timestamp else { return }
         self.prices.append(Price(timestamp: timestamp, priceUsd: priceUsd))
         UserModel.shared.updateTokenPrice(mint: tokenId, priceUsd: priceUsd)
+        
+        if let purchaseData = self.purchaseData {
+            let gains = priceUsd - purchaseData.priceUsd
+            let gainsPercentage = (gains / purchaseData.priceUsd) * 100
+            Task {
+                LiveActivityManager.shared.updatePriceChange(
+                    currentPrice: priceUsd,
+                    gainsPercentage: gainsPercentage
+                )
+            }
+        }
     }
 
     func getPrice(at timestamp: Date) -> Price? {
