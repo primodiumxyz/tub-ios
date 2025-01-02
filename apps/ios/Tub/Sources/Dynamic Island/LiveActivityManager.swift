@@ -58,18 +58,14 @@ import SwiftUI
         let percentageChange = ((currentPrice - purchasePrice) / purchasePrice) * 100
         
         Task {
-            do {
-                let contentState = TubActivityAttributes.ContentState(
-                    value: percentageChange,
-                    trend: percentageChange >= 0 ? "up" : "down",
-                    timestamp: Date(),
-                    currentPrice: currentPrice
-                )
-                print("Updating price change: \(percentageChange)%")
-                try await activity?.update(.init(state: contentState, staleDate: nil))
-            } catch {
-                print("Error updating activity: \(error.localizedDescription)")
-            }
+            let contentState = TubActivityAttributes.ContentState(
+                value: percentageChange,
+                trend: percentageChange >= 0 ? "up" : "down",
+                timestamp: Date(),
+                currentPrice: currentPrice
+            )
+            print("Updating price change: \(percentageChange)%")
+            await activity?.update(.init(state: contentState, staleDate: nil))
         }
     }
     
