@@ -79,7 +79,7 @@ struct AppContent: View {
                             .interactiveDismissDisabled()
                     }
             }
-        }.onChange(of: userModel.walletState) { _, newState in
+        }.onChange(of: userModel.walletState, initial: true) { _, newState in
             switch newState {
             case .error:
                 notificationHandler.show("Error connecting to wallet.", type: .error)

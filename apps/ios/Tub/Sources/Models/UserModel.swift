@@ -98,14 +98,24 @@ final class UserModel: ObservableObject {
                         }
                     }
                 case .notCreated:
+                    await MainActor.run {
+                        self.walletState = state
+                    }
+                    if privy.authState == .unauthenticated {
+                        return
+                    }
                     do {
                         let _ = try await privy.embeddedWallet.createWallet(chainType: .solana)
+                    } catch {
                     }
                 case .connecting:
                     await MainActor.run {
                         self.walletState = state
                     }
                 default:
+                    await MainActor.run {
+                        self.walletState = state
+                    }
                     self.logout(skipPrivy: true)
                 }
                 

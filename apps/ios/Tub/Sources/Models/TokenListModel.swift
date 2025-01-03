@@ -260,7 +260,10 @@ final class TokenListModel: ObservableObject {
     }
     
     private func updatePendingTokens(_ newTokens: [String]) async {
-        guard !newTokens.isEmpty else { return }
+        guard !newTokens.isEmpty else {
+            if !self.initialFetchComplete { self.initialFetchComplete = true }
+            return
+        }
         
         // Filter out any tokens that are already in the queue
         let unqueuedNewTokens = newTokens.filter { newToken in
