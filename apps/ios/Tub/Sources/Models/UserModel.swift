@@ -326,7 +326,7 @@ final class UserModel: ObservableObject {
                             name: token.name,
                             symbol: token.symbol,
                             description: token.description,
-                            imageUri: self.convertToDwebLink(token.image_uri),
+                            imageUri: convertToDwebLink(token.image_uri),
                             externalUrl: token.external_url,
                             decimals: Int(token.decimals ?? 6)
                         )
@@ -368,7 +368,7 @@ final class UserModel: ObservableObject {
                                     name: metadata.name,
                                     symbol: metadata.symbol,
                                     description: metadata.symbol,
-                                    imageUri: self.convertToDwebLink(metadata.image_uri),
+                                    imageUri: convertToDwebLink(metadata.image_uri),
                                     externalUrl: metadata.external_url,
                                     decimals: Int(metadata.decimals ?? 6)
                                 )
@@ -676,14 +676,5 @@ final class UserModel: ObservableObject {
     private func stopTimer() {
         timer?.invalidate()
         timer = nil
-    }
-    
-    /* -------------------------------------------------------------------------- */
-    /*                                   HELPERS                                  */
-    /* -------------------------------------------------------------------------- */
-
-    private func convertToDwebLink(_ uri: String?) -> String? {
-        guard let uri = uri else { return nil }
-        return uri.replacingOccurrences(of: "https://ipfs.io/ipfs/", with: "https://dweb.link/ipfs/")
     }
 }
