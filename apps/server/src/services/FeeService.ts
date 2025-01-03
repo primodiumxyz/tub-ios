@@ -1,6 +1,6 @@
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import { createTransferInstruction } from "@solana/spl-token";
-import { SwapType } from "@/types";
+import { SwapType } from "../types";
 
 export type FeeSettings = {
   buyFee: number;
