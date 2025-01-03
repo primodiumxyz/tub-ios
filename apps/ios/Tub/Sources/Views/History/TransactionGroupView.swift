@@ -62,7 +62,6 @@ struct TransactionDetailRow: View {
     @EnvironmentObject private var priceModel: SolPriceModel
 
     var body: some View {
-        NavigationLink(destination: HistoryDetailsView(transaction: transaction)) {
             HStack {
                 VStack(alignment: .leading) {
                     Text(transaction.isBuy ? "Buy" : "Sell")
@@ -86,8 +85,6 @@ struct TransactionDetailRow: View {
             }
             .padding(.vertical, 8)
         }
-    }
-
 }
 
 
