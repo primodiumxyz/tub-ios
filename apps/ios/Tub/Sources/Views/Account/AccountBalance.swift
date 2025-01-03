@@ -84,9 +84,8 @@ struct AccountBalanceView: View {
                             NavigationLink(destination: ShareView(
                                 tokenName: lastTx.name,
                                 tokenSymbol: lastTx.symbol,
-                                price: Double(lastTx.valueUsdc) / 1_000_000.0, 
-                                priceChange: lastTx.isBuy ? nil : deltaUsd,
-                                tokenImageUrl: lastTx.imageUri
+                                tokenImageUrl: lastTx.imageUri,
+                                tokenMint: lastTx.mint
                             )) {
                                 ZStack {
                                     Circle()

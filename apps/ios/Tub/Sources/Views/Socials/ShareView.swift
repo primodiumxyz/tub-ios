@@ -11,9 +11,9 @@ import Photos
 struct ShareView: View {
     let tokenName: String
     let tokenSymbol: String
-    let price: Double
-    let priceChange: Double?
     let tokenImageUrl: String
+    let tokenMint: String
+    @StateObject private var tokenModel = TokenModel()
     @State private var showingSaveSuccess = false
     @State private var loadedImage: Image?
     
@@ -85,10 +85,13 @@ struct ShareView: View {
                         .font(.sfRounded(size: .xl3, weight: .bold))
                         .foregroundStyle(Color(uiColor: UIColor(named: "tubNeutral")!))
                                         
-                    let priceChange = priceChange ?? 0
-                    Text("\(String(format: "%.2f", priceChange))%")
-                        .font(.sfRounded(size: .xl2, weight: .bold))
-                        .foregroundStyle(Color(uiColor: UIColor(named: "tubSuccess")!))
+                    if tokenModel.isReady {
+                        Text("\(String(format: "%.2f", tokenModel.priceChange.percentage))%")
+                            .font(.sfRounded(size: .xl2, weight: .bold))
+                            .foregroundStyle(tokenModel.priceChange.percentage >= 0 ? 
+                                Color(uiColor: UIColor(named: "tubSuccess")!) :
+                                Color(uiColor: UIColor(named: "tubError")!))
+                    }
                 }
                 .padding(.leading, 16)
 
@@ -184,6 +187,9 @@ struct ShareView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
+        .onAppear {
+            tokenModel.initialize(with: tokenMint)
+        }
     }
 }
 
@@ -191,8 +197,7 @@ struct ShareView: View {
     ShareView(
         tokenName: "Sample Token",
         tokenSymbol: "TOK",
-        price: 0.123456,
-        priceChange: 5.43,
-        tokenImageUrl: "https://example.com/token-image.png"
+        tokenImageUrl: "https://example.com/token-image.png",
+        tokenMint: "sample_mint"
     )
 }
