@@ -60,8 +60,6 @@ struct PortfolioView: View {
           .font(.sfRounded(size: .lg, weight: .medium))
       }
       .padding()
-      .background(Color.gray.opacity(0.1))
-      .clipShape(RoundedRectangle(cornerRadius: 8))
       .padding(.horizontal)
 
       HStack {
@@ -162,7 +160,7 @@ struct TokenRowView: View {
   }()
 
   @Previewable @StateObject var userModel = UserModel.shared
-    PortfolioView()
-        .environmentObject(priceModel)
-        .environmentObject(userModel)
+  PortfolioView()
+    .environmentObject(priceModel)
+    .environmentObject(userModel)
 }

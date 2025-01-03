@@ -38,8 +38,7 @@ struct HistoryView: View {
                         .padding()
                         .font(.sfRounded(size: .base, weight: .regular))
                         .foregroundStyle(Color.gray)
-                }
-                else {
+                } else {
                     TransactionFilters(filterState: $filterState)
                         .background(Color(UIColor.systemBackground))
                     ScrollView {
@@ -122,9 +121,9 @@ struct HistoryView: View {
         if filterState.selectedAmountRange != "All" {
             switch filterState.selectedAmountRange {
             case "< $100":
-                filteredData = filteredData.filter { abs(priceModel.usdcToUsd(usdc: $0.valueUsdc)) < 100 }
+                filteredData = filteredData.filter { abs($0.valueUsd) < 100.0 }
             case "> $100":
-                filteredData = filteredData.filter { abs(priceModel.usdcToUsd(usdc: $0.valueUsdc)) > 100 }
+                filteredData = filteredData.filter { abs($0.valueUsd) > 100.0 }
             default:
                 break
             }
@@ -142,15 +141,15 @@ func groupTransactions(_ transactions: [TransactionData]) -> [TransactionGroup] 
     }
 
     return grouped.map { _, transactions in
-        let netProfit = transactions.reduce(0) { sum, tx in
-            sum + tx.valueUsdc
+        let netProfit = transactions.reduce(0.0) { sum, tx in
+            sum + tx.valueUsd
         }
 
         let firstTx = transactions.sorted { $0.date > $1.date }.first!
 
         return TransactionGroup(
             transactions: transactions.sorted { $0.date > $1.date },
-            netProfit: priceModel.usdcToUsd(usdc: netProfit),
+            netProfit: netProfit,
             date: firstTx.date,
             token: firstTx.mint,
             symbol: firstTx.symbol,

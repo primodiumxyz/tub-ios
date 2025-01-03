@@ -28,6 +28,8 @@ class TokenModel: ObservableObject {
     private let activityManager = LiveActivityManager.shared
 
 
+    private var priceTimer: Timer? = nil
+
     private func fetchPurchaseData() async throws {
         if self.purchaseData != nil {
             return
@@ -65,6 +67,9 @@ class TokenModel: ObservableObject {
     func updatePrice(timestamp: Date, priceUsd: Double?) {
         guard let priceUsd, timestamp != self.prices.last?.timestamp else { return }
         self.prices.append(Price(timestamp: timestamp, priceUsd: priceUsd))
+        let timespan = Timespan.live.seconds
+        self.prices = self.prices.filter { $0.timestamp >= timestamp.addingTimeInterval(-timespan) }
+
         UserModel.shared.updateTokenPrice(mint: tokenId, priceUsd: priceUsd)
         
         if let purchaseData = self.purchaseData {
@@ -188,9 +193,21 @@ class TokenModel: ObservableObject {
         }
     }
 
+    private func updatePriceIfStale() {
+        guard let lastPrice = prices.last else { return }
+        let now = Date()
+        if now.timeIntervalSince(lastPrice.timestamp) >= PRICE_UPDATE_INTERVAL {
+            // Update the price with the last known price
+            Task { @MainActor in
+                self.updatePrice(timestamp: now, priceUsd: lastPrice.priceUsd)
+            }
+        }
+    }
+    
     private func subscribeToTokenPrices(_ tokenId: String) {
-        priceSubscription?.cancel()
-        
+        unsubscribeFromTokenPrices()
+
+        // subscribe to price updates
         DispatchQueue.main.async { [weak self] in
             guard let self else {return}
             self.priceSubscription = Network.shared.apollo.subscribe(
@@ -217,23 +234,77 @@ class TokenModel: ObservableObject {
                     print("Error in price subscription: \(error.localizedDescription)")
                 }
             }
+             // add timer to update price if stale
+            priceTimer = Timer.scheduledTimer(withTimeInterval: PRICE_UPDATE_INTERVAL, repeats: true) { [weak self] _ in
+                guard let self = self else { return }
+                self.updatePriceIfStale()
+            }
         }
+
+       
+    }
+
+    private func unsubscribeFromTokenPrices() {
+        priceTimer?.invalidate()
+        priceTimer = nil
+        priceSubscription?.cancel()
+        priceSubscription = nil
     }
 
     /* -------------------------------------------------------------------------- */
     /*                                Token Candles                               */
     /* -------------------------------------------------------------------------- */
 
+    private func fetchInitialCandles(_ tokenId: String, since: Date, candleInterval: String) async throws -> [CandleData] {
+        let candles = try await withCheckedThrowingContinuation { continuation in
+            Network.shared.apollo.fetch(query: GetTokenCandlesQuery(token: tokenId, since: .some(iso8601Formatter.string(from: since)), candle_interval: .some(candleInterval))) { result in
+                switch result {
+                case .success(let graphQLResult):
+                    if let candles = graphQLResult.data?.token_trade_history_candles {
+                        let now = Date()
+                        let updatedCandles = candles.map { candle in
+                            CandleData(
+                                start: iso8601FormatterNoFractional.date(from: candle.bucket) ?? now,
+                                end: (iso8601FormatterNoFractional.date(from: candle.bucket) ?? now).addingTimeInterval(60),
+                                open: candle.open_price_usd,
+                                close: candle.close_price_usd,
+                                high: candle.high_price_usd,
+                                low: candle.low_price_usd,
+                                volume: candle.volume_usd
+                            )
+                        }
+                        continuation.resume(returning: updatedCandles)
+                    }
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+        return candles
+    }
+
     private func subscribeToCandles(_ tokenId: String) async {
         candleSubscription?.cancel()
+        candleSubscription = nil
 
         let now = Date()
-        let since = now.addingTimeInterval(-Timespan.candles.seconds)
+        let since: Date = now.addingTimeInterval(-Timespan.candles.seconds)
+        let candleInterval = "1m"
+
+        do {
+            let candles = try await fetchInitialCandles(tokenId, since: since, candleInterval: candleInterval)
+            Task { @MainActor in
+                self.candles = candles
+            }
+        } catch {
+            print("Error fetching initial candles: \(error), starting subscription")
+        }
+
         candleSubscription = Network.shared.apollo.subscribe(
             subscription: SubTokenCandlesSubscription(
                 token: tokenId,
                 since: .some(iso8601Formatter.string(from: since)),
-                candle_interval: .some("1m")
+                candle_interval: .some(candleInterval)
             )
         ) { [weak self] result in
             guard let self = self else { return }
@@ -371,9 +442,10 @@ class TokenModel: ObservableObject {
 
     func cleanup() {
         stopPollingTokenBalance()
+        unsubscribeFromTokenPrices()
+
         
         // Clean up subscriptions when the object is deallocated
-        priceSubscription?.cancel()
         candleSubscription?.cancel()
         singleTokenDataSubscription?.cancel()
 
@@ -386,5 +458,4 @@ class TokenModel: ObservableObject {
     deinit {
         cleanup()
     }
-
 }

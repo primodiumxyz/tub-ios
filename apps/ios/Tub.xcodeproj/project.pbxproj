@@ -23,6 +23,7 @@
 		994AE5F72CD2AB3F00553A32 /* GoogleLogoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994AE5F62CD2AB3F00553A32 /* GoogleLogoView.swift */; };
 		995D05662CF3C7C900627E81 /* retry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D05652CF3C7C800627E81 /* retry.swift */; };
 		995FCA1F2CDA5ED70018A76D /* CoinbaseOnrampView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995FCA1E2CDA5ED20018A76D /* CoinbaseOnrampView.swift */; };
+		9965F7692D19E2D30063C773 /* JWTActor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9965F7682D19E2CE0063C773 /* JWTActor.swift */; };
 		996772FE2CEB85820029B298 /* LoadingBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996772FD2CEB857C0029B298 /* LoadingBox.swift */; };
 		9971F29B2CFF836700BA48C0 /* WithdrawView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9971F29A2CFF835D00BA48C0 /* WithdrawView.swift */; };
 		9979A6CD2D0B2CD100DFDBE5 /* ErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9979A6C62D0B2CD100DFDBE5 /* ErrorView.swift */; };
@@ -33,7 +34,6 @@
 		999ACA732CF50F13008D765B /* TxManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999ACA722CF50EEA008D765B /* TxManager.swift */; };
 		999F59562CA6F97100E7AE9F /* TokenModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999F59552CA6F96D00E7AE9F /* TokenModel.swift */; };
 		999F595B2CA754FB00E7AE9F /* ChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999F595A2CA754F900E7AE9F /* ChartView.swift */; };
-		99A4AAB22CF4FEBF002D0027 /* TestTxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A4AAB12CF4FEBA002D0027 /* TestTxView.swift */; };
 		99B147FE2CDFE5B200DFDB96 /* ShimmeringView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B147FD2CDFE5B200DFDB96 /* ShimmeringView.swift */; };
 		99BB98562CC1798600658059 /* CandleChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99BB98552CC1798400658059 /* CandleChartView.swift */; };
 		99BE72B02CEBB223006BB157 /* BubbleEffect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99BE72AE2CEBB223006BB157 /* BubbleEffect.swift */; };
@@ -133,6 +133,7 @@
 		994AE5F62CD2AB3F00553A32 /* GoogleLogoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleLogoView.swift; sourceTree = "<group>"; };
 		995D05652CF3C7C800627E81 /* retry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = retry.swift; sourceTree = "<group>"; };
 		995FCA1E2CDA5ED20018A76D /* CoinbaseOnrampView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoinbaseOnrampView.swift; sourceTree = "<group>"; };
+		9965F7682D19E2CE0063C773 /* JWTActor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JWTActor.swift; sourceTree = "<group>"; };
 		996772FD2CEB857C0029B298 /* LoadingBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingBox.swift; sourceTree = "<group>"; };
 		9971F29A2CFF835D00BA48C0 /* WithdrawView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WithdrawView.swift; sourceTree = "<group>"; };
 		9979A6C62D0B2CD100DFDBE5 /* ErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorView.swift; sourceTree = "<group>"; };
@@ -144,7 +145,6 @@
 		999ACA722CF50EEA008D765B /* TxManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TxManager.swift; sourceTree = "<group>"; };
 		999F59552CA6F96D00E7AE9F /* TokenModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenModel.swift; sourceTree = "<group>"; };
 		999F595A2CA754F900E7AE9F /* ChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartView.swift; sourceTree = "<group>"; };
-		99A4AAB12CF4FEBA002D0027 /* TestTxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestTxView.swift; sourceTree = "<group>"; };
 		99B147FD2CDFE5B200DFDB96 /* ShimmeringView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShimmeringView.swift; sourceTree = "<group>"; };
 		99BB98552CC1798400658059 /* CandleChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CandleChartView.swift; sourceTree = "<group>"; };
 		99BE72AE2CEBB223006BB157 /* BubbleEffect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BubbleEffect.swift; sourceTree = "<group>"; };
@@ -297,7 +297,6 @@
 			isa = PBXGroup;
 			children = (
 				9995E9BE2D01025A005B9179 /* PortfolioView.swift */,
-				99A4AAB12CF4FEBA002D0027 /* TestTxView.swift */,
 				9971F29A2CFF835D00BA48C0 /* WithdrawView.swift */,
 				995DE48A2CE6A268001B3C3F /* Login */,
 				997DE8F32CDAC86000164366 /* NotificationBanner.swift */,
@@ -315,6 +314,7 @@
 		999F59532CA6F70C00E7AE9F /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				9965F7682D19E2CE0063C773 /* JWTActor.swift */,
 				999ACA722CF50EEA008D765B /* TxManager.swift */,
 				99BE72BC2CEBB4CA006BB157 /* NotificationHandler.swift */,
 				99BE72BA2CEBB279006BB157 /* SolPriceModel.swift */,
@@ -724,7 +724,6 @@
 				DF5A2FC32CAF165D00508A56 /* HistoryView.swift in Sources */,
 				994AE5F72CD2AB3F00553A32 /* GoogleLogoView.swift in Sources */,
 				DF3D43D22D00DEB1004DAE81 /* JustifiedText.swift in Sources */,
-				99A4AAB22CF4FEBF002D0027 /* TestTxView.swift in Sources */,
 				99DBD8EE2CF781EA0098C296 /* spoofModelData.swift in Sources */,
 				466945ED2CDFDB1F008E8B99 /* LoadingTracker.swift in Sources */,
 				DF5A2FC52CAF2DEF00508A56 /* HistoryDetailsView.swift in Sources */,
@@ -746,6 +745,7 @@
 				DB6D29052CA1C8F70099951A /* TubApp.swift in Sources */,
 				990337052CC94175002D3A25 /* AccountBalance.swift in Sources */,
 				9941CD6F2CCAA30D0009E5ED /* FormatPrice.swift in Sources */,
+				9965F7692D19E2D30063C773 /* JWTActor.swift in Sources */,
 				99FB68342CC003FC00070D2A /* LoadingView.swift in Sources */,
 				9979A6CD2D0B2CD100DFDBE5 /* ErrorView.swift in Sources */,
 				DFDA138A2CEDF04000057A29 /* TransactionGroupView.swift in Sources */,

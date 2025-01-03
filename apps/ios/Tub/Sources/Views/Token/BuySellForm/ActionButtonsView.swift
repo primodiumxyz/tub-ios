@@ -63,10 +63,12 @@ struct ActionButtonsView: View {
                 
                 await MainActor.run {
                     showBuySheet = false
-                    notificationHandler.show(
-                        "Successfully bought tokens!",
-                        type: .success
-                    )
+                    if let tokenName = userModel.tokenData[tokenModel.tokenId]?.metadata.name  {
+                        notificationHandler.show(
+                            "Successfully bought \(tokenName)!",
+                            type: .success
+                        )
+                    }
                 }
             }
             catch {
@@ -96,10 +98,10 @@ struct ActionButtonsView: View {
             await MainActor.run {
                 BubbleManager.shared.trigger()
                 LiveActivityManager.shared.stopActivity()
-                notificationHandler.show(
-                    "Successfully sold tokens!",
-                    type: .success
-                )
+
+                if let tokenName = userModel.tokenData[tokenModel.tokenId]?.metadata.name  {
+                    notificationHandler.show("Successfully sold \(tokenName)!", type: .success)
+                }
             }
         }
         catch {
