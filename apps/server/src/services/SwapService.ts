@@ -47,12 +47,11 @@ export class SwapService {
     const buyFeeAmount = this.feeService.calculateBuyFeeAmount(request.sellQuantity, swapType);
     const swapAmount = request.sellQuantity - buyFeeAmount;
 
-    // Create fee transfer instruction if needed
-    const feeTransferInstruction = this.feeService.createFeeTransferInstruction(
-      request.sellTokenAccount,
-      request.userPublicKey,
-      buyFeeAmount,
-    );
+    // Create fee transfer instruction if swap type is buy
+    const buyFeeTransferInstruction =
+      swapType === SwapType.BUY
+        ? this.feeService.createFeeTransferInstruction(request.sellTokenAccount, request.userPublicKey, buyFeeAmount)
+        : null;
 
     // Create token account close instruction if fee amount is 0
     const tokenCloseInstruction = await this.transactionService.createTokenCloseInstruction(
@@ -60,7 +59,7 @@ export class SwapService {
       request.sellTokenAccount,
       new PublicKey(request.sellTokenId),
       request.sellQuantity,
-      buyFeeAmount,
+      swapType,
     );
 
     // TODO: autoSlippageCollisionUsdValue should be based on the estimated value of the swap amount.
@@ -116,7 +115,9 @@ export class SwapService {
     }
 
     // Combine fee transfer and swap instructions and token close instruction if needed
-    const someInstructions = feeTransferInstruction ? [feeTransferInstruction, ...swapInstructions] : swapInstructions;
+    const someInstructions = buyFeeTransferInstruction
+      ? [buyFeeTransferInstruction, ...swapInstructions]
+      : swapInstructions;
     const allInstructions = tokenCloseInstruction ? [...someInstructions, tokenCloseInstruction] : someInstructions;
 
     // Reassign rent payer in instructions
@@ -134,7 +135,7 @@ export class SwapService {
     const response: PrebuildSwapResponse = {
       transactionMessageBase64: base64Message,
       ...request,
-      hasFee: buyFeeAmount > 0,
+      hasFee: swapType === SwapType.BUY,
       timestamp: Date.now(),
     };
 

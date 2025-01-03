@@ -13,6 +13,7 @@ import { ATA_PROGRAM_PUBLIC_KEY, JUPITER_PROGRAM_PUBLIC_KEY, TOKEN_PROGRAM_PUBLI
 import { CLEANUP_INTERVAL, REGISTRY_TIMEOUT, RETRY_ATTEMPTS, RETRY_DELAY } from "../constants/registry";
 import bs58 from "bs58";
 import { createCloseAccountInstruction } from "@solana/spl-token";
+import { SwapType } from "../types";
 
 export type TransactionRegistryEntry = {
   message: MessageV0;
@@ -287,10 +288,10 @@ export class TransactionService {
     tokenAccount: PublicKey,
     sellTokenId: PublicKey,
     sellQuantity: number,
-    feeAmount: number,
+    swapType: SwapType,
   ): Promise<TransactionInstruction | null> {
-    // Skip if user is buying memecoins
-    if (feeAmount > 0) {
+    // Skip if user is not selling their entire memecoin stack
+    if (swapType !== SwapType.SELL_ALL) {
       return null;
     }
 
