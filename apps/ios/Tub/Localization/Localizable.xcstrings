@@ -4,9 +4,6 @@
     "" : {
 
     },
-    "#8612373299412" : {
-
-    },
     "%@" : {
 
     },
@@ -16,16 +13,6 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "%1$@ %2$@"
-          }
-        }
-      }
-    },
-    "%@ at %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ at %2$@"
           }
         }
       }
@@ -86,9 +73,6 @@
 
     },
     "Buy" : {
-
-    },
-    "Buy Details" : {
 
     },
     "Close" : {
@@ -175,9 +159,6 @@
     "Purchase Price" : {
 
     },
-    "Quantity" : {
-
-    },
     "Save" : {
 
     },
@@ -185,9 +166,6 @@
 
     },
     "Sell" : {
-
-    },
-    "Sell Details" : {
 
     },
     "Set Default" : {
@@ -217,13 +195,10 @@
     "To" : {
 
     },
-    "Token" : {
-
-    },
-    "Transaction number" : {
-
-    },
     "Transfer" : {
+
+    },
+    "tx history: %lld" : {
 
     },
     "Unfilled" : {

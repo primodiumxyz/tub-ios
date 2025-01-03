@@ -591,7 +591,6 @@ final class UserModel: ObservableObject {
 
         let query = GetWalletTransactionsQuery(wallet: walletAddress)
         do {
-            
             let newTxs = try await withCheckedThrowingContinuation { continuation in
                 Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { result in
                     switch result {
