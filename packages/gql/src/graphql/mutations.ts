@@ -56,23 +56,129 @@ export const AddTokenSaleMutation = graphql(`
   }
 `);
 
-export const AddClientEventMutation = graphql(`
-  mutation AddClientEvent(
-    $user_agent: String!
-    $event_name: String!
+export const AddTabSelectedMutation = graphql(`
+  mutation AddTabSelected(
+    $tab_name: String!
     $user_wallet: String!
+    $user_agent: String!
     $source: String
-    $metadata: jsonb
     $error_details: String
     $build: String
   ) {
-    insert_analytics_client_event_one(
+    insert_tab_selected_one(
       object: {
+        tab_name: $tab_name
+        user_wallet: $user_wallet
         user_agent: $user_agent
-        name: $event_name
-        metadata: $metadata
         source: $source
-        user: $user_wallet
+        error_details: $error_details
+        build: $build
+      }
+    ) {
+      id
+    }
+  }
+`);
+
+export const AddLoadingTimeMutation = graphql(`
+  mutation AddLoadingTime(
+    $identifier: String!
+    $time_elapsed_ms: numeric!
+    $attempt_number: numeric!
+    $total_time_ms: numeric!
+    $average_time_ms: numeric!
+    $user_wallet: String!
+    $user_agent: String!
+    $source: String
+    $error_details: String
+    $build: String
+  ) {
+    insert_loading_time_one(
+      object: {
+        identifier: $identifier
+        time_elapsed_ms: $time_elapsed_ms
+        attempt_number: $attempt_number
+        total_time_ms: $total_time_ms
+        average_time_ms: $average_time_ms
+        user_wallet: $user_wallet
+        user_agent: $user_agent
+        source: $source
+        error_details: $error_details
+        build: $build
+      }
+    ) {
+      id
+    }
+  }
+`);
+
+export const AddAppDwellTimeMutation = graphql(`
+  mutation AddAppDwellTime(
+    $dwell_time_ms: numeric!
+    $user_wallet: String!
+    $user_agent: String!
+    $source: String
+    $error_details: String
+    $build: String
+  ) {
+    insert_app_dwell_time_one(
+      object: {
+        dwell_time_ms: $dwell_time_ms
+        user_wallet: $user_wallet
+        user_agent: $user_agent
+        source: $source
+        error_details: $error_details
+        build: $build
+      }
+    ) {
+      id
+    }
+  }
+`);
+
+export const AddTabDwellTimeMutation = graphql(`
+  mutation AddTabDwellTime(
+    $tab_name: String!
+    $dwell_time_ms: numeric!
+    $user_wallet: String!
+    $user_agent: String!
+    $source: String
+    $error_details: String
+    $build: String
+  ) {
+    insert_tab_dwell_time_one(
+      object: {
+        tab_name: $tab_name
+        dwell_time_ms: $dwell_time_ms
+        user_wallet: $user_wallet
+        user_agent: $user_agent
+        source: $source
+        error_details: $error_details
+        build: $build
+      }
+    ) {
+      id
+    }
+  }
+`);
+
+export const AddTokenDwellTimeMutation = graphql(`
+  mutation AddTokenDwellTime(
+    $token_mint: String!
+    $dwell_time_ms: numeric!
+    $user_wallet: String!
+    $user_agent: String!
+    $source: String
+    $error_details: String
+    $build: String
+  ) {
+    insert_token_dwell_time_one(
+      object: {
+        token_mint: $token_mint
+        dwell_time_ms: $dwell_time_ms
+        user_wallet: $user_wallet
+        user_agent: $user_agent
+        source: $source
         error_details: $error_details
         build: $build
       }
