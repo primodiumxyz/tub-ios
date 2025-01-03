@@ -142,7 +142,9 @@ export class TransactionService {
     const feePayerSignatureBytes = Buffer.from(bs58.decode(feePayerSignature));
     transaction.addSignature(this.feePayerKeypair.publicKey, feePayerSignatureBytes);
 
-    const simulation = await this.connection.simulateTransaction(transaction);
+    const simulation = await this.connection.simulateTransaction(transaction, {
+      commitment: "processed",
+    });
     if (simulation.value?.err) {
       console.log("Simulation Error:", simulation.value);
       if (simulation.value.err.toString().includes("InstructionError")) {
