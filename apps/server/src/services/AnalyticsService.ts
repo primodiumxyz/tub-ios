@@ -16,11 +16,10 @@ export class AnalyticsService {
       build: event.buildVersion,
     });
 
-    const id = result.data?.insert_token_purchase_one?.id;
+    if (result.error) throw new Error(result.error.message);
 
-    if (!id) {
-      throw new Error("Failed to record token purchase. Missing ID.");
-    }
+    const id = result.data?.insert_token_purchase_one?.id;
+    if (!id) throw new Error("Failed to record token purchase. Missing ID.");
 
     return id;
   }
@@ -37,11 +36,10 @@ export class AnalyticsService {
       build: event.buildVersion,
     });
 
-    const id = result.data?.insert_token_sale_one?.id;
+    if (result.error) throw new Error(result.error.message);
 
-    if (!id) {
-      throw new Error("Failed to record token sale. Missing ID.");
-    }
+    const id = result.data?.insert_token_sale_one?.id;
+    if (!id) throw new Error("Failed to record token sale. Missing ID.");
 
     return id;
   }
@@ -60,11 +58,10 @@ export class AnalyticsService {
       build: event.buildVersion,
     });
 
-    const id = result.data?.insert_loading_time_one?.id;
+    if (result.error) throw new Error(result.error.message);
 
-    if (!id) {
-      throw new Error("Failed to record loading time. Missing ID.");
-    }
+    const id = result.data?.insert_loading_time_one?.id;
+    if (!id) throw new Error("Failed to record loading time. Missing ID.");
 
     return id;
   }
@@ -79,11 +76,10 @@ export class AnalyticsService {
       build: event.buildVersion,
     });
 
-    const id = result.data?.insert_app_dwell_time_one?.id;
+    if (result.error) throw new Error(result.error.message);
 
-    if (!id) {
-      throw new Error("Failed to record app dwell time. Missing ID.");
-    }
+    const id = result.data?.insert_app_dwell_time_one?.id;
+    if (!id) throw new Error("Failed to record app dwell time. Missing ID.");
 
     return id;
   }
@@ -99,11 +95,10 @@ export class AnalyticsService {
       build: event.buildVersion,
     });
 
-    const id = result.data?.insert_token_dwell_time_one?.id;
+    if (result.error) throw new Error(result.error.message);
 
-    if (!id) {
-      throw new Error("Failed to record token dwell time. Missing ID.");
-    }
+    const id = result.data?.insert_token_dwell_time_one?.id;
+    if (!id) throw new Error("Failed to record token dwell time. Missing ID.");
 
     return id;
   }

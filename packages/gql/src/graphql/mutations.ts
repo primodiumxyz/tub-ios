@@ -60,7 +60,7 @@ export const AddLoadingTimeMutation = graphql(`
   mutation AddLoadingTime(
     $identifier: String!
     $time_elapsed_ms: numeric!
-    $attempt_number: numeric!
+    $attempt_number: Int!
     $total_time_ms: numeric!
     $average_time_ms: numeric!
     $user_wallet: String!
