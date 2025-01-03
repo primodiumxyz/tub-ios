@@ -70,10 +70,6 @@ export type TokenPurchaseOrSaleEvent = ClientEvent & {
   tokenPriceUsd: string;
 };
 
-export type TabSelectedEvent = ClientEvent & {
-  tabName: string;
-};
-
 export type LoadingTimeEvent = ClientEvent & {
   identifier: string;
   timeElapsedMs: number;
@@ -83,11 +79,6 @@ export type LoadingTimeEvent = ClientEvent & {
 };
 
 export type AppDwellTimeEvent = ClientEvent & {
-  dwellTimeMs: number;
-};
-
-export type TabDwellTimeEvent = ClientEvent & {
-  tabName: string;
   dwellTimeMs: number;
 };
 

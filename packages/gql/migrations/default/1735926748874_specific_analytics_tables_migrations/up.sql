@@ -1,4 +1,5 @@
 
+
 CREATE TABLE "public"."tab_selected" ("id" uuid NOT NULL DEFAULT gen_random_uuid(), "created_at" timestamptz NOT NULL DEFAULT now(), "user_wallet" text NOT NULL, "user_agent" text NOT NULL, "source" text, "error_details" text, "build" text, "tab_name" text NOT NULL, PRIMARY KEY ("id") );
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
@@ -23,3 +24,7 @@ CREATE TABLE "public"."token_dwell_time" ("id" uuid NOT NULL DEFAULT gen_random_
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 DROP table "public"."analytics_client_event";
+
+DROP table "public"."tab_dwell_time";
+
+DROP table "public"."tab_selected";

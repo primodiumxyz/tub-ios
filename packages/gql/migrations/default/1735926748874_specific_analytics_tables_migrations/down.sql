@@ -1,6 +1,15 @@
 
 -- Could not auto-generate a down migration.
 -- Please write an appropriate down migration for the SQL below:
+-- DROP table "public"."tab_selected";
+
+-- Could not auto-generate a down migration.
+-- Please write an appropriate down migration for the SQL below:
+-- DROP table "public"."tab_dwell_time";
+
+
+-- Could not auto-generate a down migration.
+-- Please write an appropriate down migration for the SQL below:
 -- DROP table "public"."analytics_client_event";
 
 DROP TABLE "public"."token_dwell_time";

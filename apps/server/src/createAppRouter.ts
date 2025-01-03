@@ -241,17 +241,6 @@ export function createAppRouter() {
         return await ctx.tubService.recordTokenSale(input, ctx.jwtToken);
       }),
 
-    recordTabSelected: t.procedure
-      .input(
-        z.object({
-          ...clientEventSchema.shape,
-          tabName: z.string(),
-        }),
-      )
-      .mutation(async ({ ctx, input }) => {
-        return await ctx.tubService.recordTabSelected(input, ctx.jwtToken);
-      }),
-
     recordLoadingTime: t.procedure
       .input(
         z.object({
@@ -276,18 +265,6 @@ export function createAppRouter() {
       )
       .mutation(async ({ ctx, input }) => {
         return await ctx.tubService.recordAppDwellTime(input, ctx.jwtToken);
-      }),
-
-    recordTabDwellTime: t.procedure
-      .input(
-        z.object({
-          ...clientEventSchema.shape,
-          tabName: z.string(),
-          dwellTimeMs: z.number(),
-        }),
-      )
-      .mutation(async ({ ctx, input }) => {
-        return await ctx.tubService.recordTabDwellTime(input, ctx.jwtToken);
       }),
 
     recordTokenDwellTime: t.procedure

@@ -1,7 +1,5 @@
 - "!include public_app_dwell_time.yaml"
 - "!include public_loading_time.yaml"
-- "!include public_tab_dwell_time.yaml"
-- "!include public_tab_selected.yaml"
 - "!include public_token_dwell_time.yaml"
 - "!include public_token_purchase.yaml"
 - "!include public_token_sale.yaml"

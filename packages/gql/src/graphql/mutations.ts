@@ -56,30 +56,6 @@ export const AddTokenSaleMutation = graphql(`
   }
 `);
 
-export const AddTabSelectedMutation = graphql(`
-  mutation AddTabSelected(
-    $tab_name: String!
-    $user_wallet: String!
-    $user_agent: String!
-    $source: String
-    $error_details: String
-    $build: String
-  ) {
-    insert_tab_selected_one(
-      object: {
-        tab_name: $tab_name
-        user_wallet: $user_wallet
-        user_agent: $user_agent
-        source: $source
-        error_details: $error_details
-        build: $build
-      }
-    ) {
-      id
-    }
-  }
-`);
-
 export const AddLoadingTimeMutation = graphql(`
   mutation AddLoadingTime(
     $identifier: String!
@@ -123,32 +99,6 @@ export const AddAppDwellTimeMutation = graphql(`
   ) {
     insert_app_dwell_time_one(
       object: {
-        dwell_time_ms: $dwell_time_ms
-        user_wallet: $user_wallet
-        user_agent: $user_agent
-        source: $source
-        error_details: $error_details
-        build: $build
-      }
-    ) {
-      id
-    }
-  }
-`);
-
-export const AddTabDwellTimeMutation = graphql(`
-  mutation AddTabDwellTime(
-    $tab_name: String!
-    $dwell_time_ms: numeric!
-    $user_wallet: String!
-    $user_agent: String!
-    $source: String
-    $error_details: String
-    $build: String
-  ) {
-    insert_tab_dwell_time_one(
-      object: {
-        tab_name: $tab_name
         dwell_time_ms: $dwell_time_ms
         user_wallet: $user_wallet
         user_agent: $user_agent

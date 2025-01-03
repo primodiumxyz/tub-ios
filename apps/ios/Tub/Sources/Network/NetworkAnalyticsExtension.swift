@@ -51,24 +51,6 @@ extension Network {
         let _: EmptyResponse = try await callMutation("recordTokenSale", input: input)
     }
 
-    func recordTabSelected(
-        tabName: String,
-        source: String,
-        errorDetails: String? = nil
-    ) async throws {
-        let metadata = getClientMetadata()
-        let input = TabSelectedInput(
-            tabName: tabName,
-            source: source,
-            errorDetails: errorDetails,
-            userAgent: metadata["userAgent"] ?? "unknown",
-            buildVersion: metadata["buildVersion"] ?? "unknown",
-            userWallet: await getStoredToken() ?? ""
-        )
-
-        let _: EmptyResponse = try await callMutation("recordTabSelected", input: input)
-    }
-
     func recordLoadingTime(
         identifier: String,
         timeElapsedMs: Int,
@@ -111,26 +93,6 @@ extension Network {
         )
 
         let _: EmptyResponse = try await callMutation("recordAppDwellTime", input: input)
-    }
-
-    func recordTabDwellTime(
-        tabName: String,
-        dwellTimeMs: Int,
-        source: String,
-        errorDetails: String? = nil
-    ) async throws {
-        let metadata = getClientMetadata()
-        let input = TabDwellTimeInput(
-            tabName: tabName,
-            dwellTimeMs: dwellTimeMs,
-            source: source,
-            errorDetails: errorDetails,
-            userAgent: metadata["userAgent"] ?? "unknown",
-            buildVersion: metadata["buildVersion"] ?? "unknown",
-            userWallet: await getStoredToken() ?? ""
-        )
-
-        let _: EmptyResponse = try await callMutation("recordTabDwellTime", input: input)
     }
 
     func recordTokenDwellTime(

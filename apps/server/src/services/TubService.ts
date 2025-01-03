@@ -16,8 +16,6 @@ import {
   PrebuildSignedSwapResponse,
   AppDwellTimeEvent,
   LoadingTimeEvent,
-  TabDwellTimeEvent,
-  TabSelectedEvent,
   TokenDwellTimeEvent,
   TokenPurchaseOrSaleEvent,
 } from "../types";
@@ -134,11 +132,6 @@ export class TubService {
     return this.analyticsService.recordTokenSale(event, walletPublicKey.toBase58());
   }
 
-  async recordTabSelected(event: TabSelectedEvent, jwtToken: string): Promise<string> {
-    const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
-    return this.analyticsService.recordTabSelected(event, walletPublicKey.toBase58());
-  }
-
   async recordLoadingTime(event: LoadingTimeEvent, jwtToken: string): Promise<string> {
     const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
     return this.analyticsService.recordLoadingTime(event, walletPublicKey.toBase58());
@@ -147,11 +140,6 @@ export class TubService {
   async recordAppDwellTime(event: AppDwellTimeEvent, jwtToken: string): Promise<string> {
     const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
     return this.analyticsService.recordAppDwellTime(event, walletPublicKey.toBase58());
-  }
-
-  async recordTabDwellTime(event: TabDwellTimeEvent, jwtToken: string): Promise<string> {
-    const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
-    return this.analyticsService.recordTabDwellTime(event, walletPublicKey.toBase58());
   }
 
   async recordTokenDwellTime(event: TokenDwellTimeEvent, jwtToken: string): Promise<string> {
