@@ -324,7 +324,7 @@ final class UserModel: ObservableObject {
             return data.metadata
         }
 
-        if let cachedData = loadMetadataFromCache(for: tokenMint) {
+        if let cachedData = TokenMetadata.loadFromCache(for: tokenMint) {
             return cachedData
         }
 
@@ -352,7 +352,7 @@ final class UserModel: ObservableObject {
                             decimals: Int(token.decimals ?? 6),
                             cachedAt: Date()  // Set cache timestamp
                         )
-                        saveMetadataToCache(metadata, for: tokenMint)  // Save to cache
+                        metadata.saveToCache(for: tokenMint)  // Save to cache
                         continuation.resume(returning: metadata)
                         return
                     }
