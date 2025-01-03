@@ -61,9 +61,6 @@
     "About" : {
 
     },
-    "Account" : {
-
-    },
     "Account Balance" : {
 
     },
@@ -112,9 +109,6 @@
     "Deposit with" : {
 
     },
-    "Discord Server" : {
-
-    },
     "Enter Solana address" : {
 
     },
@@ -133,6 +127,9 @@
     "High" : {
 
     },
+    "Join Telegram" : {
+
+    },
     "Last Trade" : {
 
     },
@@ -140,6 +137,9 @@
 
     },
     "Low" : {
+
+    },
+    "No recent trades" : {
 
     },
     "No tokens" : {
@@ -209,9 +209,6 @@
 
     },
     "Solana Wallet" : {
-
-    },
-    "Support" : {
 
     },
     "This token is still writing its autobiography... 📝" : {

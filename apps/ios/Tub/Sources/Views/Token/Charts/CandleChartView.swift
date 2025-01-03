@@ -14,7 +14,6 @@ struct CandleChartView: View {
     let rawCandles: [CandleData]
     let timeframeMins: Double
     let height: CGFloat
-    @State private var currentTime = Date().timeIntervalSince1970
 
 	let animate: Bool
     @State private var timerCancellable: Cancellable?
@@ -33,9 +32,9 @@ struct CandleChartView: View {
     }
 
     private var candles: [CandleData] {
-        let cutoffTime = currentTime - (timeframeMins * 60)
+        let cutoffTime = Date.now.addingTimeInterval(-timeframeMins * 60)
         if let firstIndex = rawCandles.firstIndex(where: {
-            $0.start.timeIntervalSince1970 >= cutoffTime
+            $0.start >= cutoffTime
         }) {
             return Array(rawCandles.suffix(from: firstIndex))
         }
@@ -58,8 +57,8 @@ struct CandleChartView: View {
             return Date().addingTimeInterval(-timeframeMins * 60)...Date()
         }
 
-        let endTime = candles.last?.end ?? Date()
-        let rightMargin = timeframeMins * 60 * 0.1 
+        let endTime = Date.now
+        let rightMargin = timeframeMins * 60 * 0.1
         let startTime = endTime.addingTimeInterval(-timeframeMins * 60)
         return startTime...endTime.addingTimeInterval(rightMargin)
     }

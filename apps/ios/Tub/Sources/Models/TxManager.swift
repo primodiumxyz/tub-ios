@@ -5,7 +5,6 @@
 //  Created by Henry on 11/25/24.
 //
 
-import PrivySDK
 import SwiftUI
 
 final class TxManager: ObservableObject {
@@ -95,7 +94,7 @@ final class TxManager: ObservableObject {
             
             let tokenId = buyTokenId == USDC_MINT ? sellTokenId : buyTokenId
             
-            try? await UserModel.shared.refreshBulkTokenData(tokenMints: [USDC_MINT, tokenId], options: .init(withBalances: true, withLiveData: false))
+            try? await UserModel.shared.refreshPortfolio()
             
             if buyTokenId == USDC_MINT {
                 await MainActor.run {

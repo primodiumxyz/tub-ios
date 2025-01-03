@@ -75,8 +75,8 @@ public let serverBaseUrl: String = {
 
 // Filtering
 public let HOT_TOKENS_INTERVAL: Interval = "30m" // main interval to aggregate and sort by volume
-public let FILTERING_INTERVAL: Interval = "20s" // additional interval for filtering (min trades/volume)
-public let FILTERING_MIN_TRADES: Numeric = 20 // minimum amount of trades during the above interval to be included
+public let FILTERING_INTERVAL: Interval = "60s" // additional interval for filtering (min trades/volume)
+public let FILTERING_MIN_TRADES: Numeric = 3 // minimum amount of trades during the above interval to be included
 public let FILTERING_MIN_VOLUME_USD: Numeric = 0 // minimum volume during the above interval to be included
 
 // Charts

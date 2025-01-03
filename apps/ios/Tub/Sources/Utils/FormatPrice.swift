@@ -40,8 +40,8 @@ func cleanupFormattedString(_ str: String) -> String {
 
     // Add subscript for small numbers
     let absPrice = abs(Double(str) ?? 0.0)
-    if absPrice < 0.0001 && str.starts(with: "0.") {
-        let parts = str.dropFirst(2).split(separator: "")
+    if absPrice < 0.0001 && absPrice > 0 {
+        let parts = result.dropFirst(2).split(separator: "")
         var leadingZeros = 0
         for char in parts {
             if char == "0" {
@@ -54,7 +54,7 @@ func cleanupFormattedString(_ str: String) -> String {
         if leadingZeros > 0 {
             let subscriptDigits = ["₀", "₁", "₂", "₃", "₄", "₅", "₆", "₇", "₈", "₉"]
             let subscriptNumber = String(leadingZeros).map { subscriptDigits[Int(String($0))!] }.joined()
-            result = "0.0\(subscriptNumber)" + str.dropFirst(2 + leadingZeros)
+            result = "0.0\(subscriptNumber)" + result.dropFirst(2 + leadingZeros)
         }
     }
 

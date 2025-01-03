@@ -34,7 +34,7 @@ final class TokenListModel: ObservableObject {
     private var currentTokenId: String? {
         return self.currentTokenModel.tokenId
     }
-   
+    
     private var nextTokenId: String? {
         return self.nextTokenModel?.tokenId
     }
@@ -58,13 +58,13 @@ final class TokenListModel: ObservableObject {
         }
         
         let portfolio = UserModel.shared.tokenPortfolio
-            let priorityTokenMint = portfolio.first { tokenId in
-                tokenId != currentId
-            }
-            
-            if let mint = priorityTokenMint {
-                return mint
-            }
+        let priorityTokenMint = portfolio.first { tokenId in
+            tokenId != currentId
+        }
+        
+        if let mint = priorityTokenMint {
+            return mint
+        }
         
         // If this is the first token (no currentId), return the first non-cooldown token
         var nextToken = self.pendingTokens.first { token in
@@ -73,8 +73,9 @@ final class TokenListModel: ObservableObject {
         if let nextToken { return nextToken }
         
         if self.tokenQueue.count >= 2 {
-            repeat { nextToken = self.tokenQueue.randomElement() }
-            while currentId != nil && nextToken == currentId
+            repeat {
+                nextToken = self.tokenQueue.randomElement()
+            } while currentId != nil && nextToken == currentId
         }
         return nil
     }
@@ -82,8 +83,17 @@ final class TokenListModel: ObservableObject {
     // - Set the current token to the previously visited one
     // - Update the current token model
     // - Pop the last token in the array (swiping down should always be a fresh pumping token)
+    
+    func canSwipeUp() -> Bool {
+        return previousTokenModel != nil && currentTokenIndex > 0 && tokenQueue.count > 1
+    }
+    
+    func canSwipeDown(currentId: String? = nil) -> Bool {
+        return getNextToken(excluding: currentId) != nil
+    }
+    
     func loadPreviousTokenIntoCurrentTokenPhaseOne() -> Bool {
-        guard let prevModel = previousTokenModel, currentTokenIndex > 0 else {
+        guard let prevModel = previousTokenModel, canSwipeUp() else {
             return false
         }
         
@@ -108,13 +118,13 @@ final class TokenListModel: ObservableObject {
         currentTokenIndex -= 1
         
         //previous
-        if currentTokenIndex > 0 {
+        if currentTokenIndex > 0  {
+            
             let previousToken = tokenQueue[currentTokenIndex - 1]
             let newPreviousTokenModel = TokenModel()
             newPreviousTokenModel.preload(with: previousToken)
             self.previousTokenModel = newPreviousTokenModel
-        }
-        else {
+        } else {
             previousTokenModel = nil
         }
     }
@@ -125,22 +135,13 @@ final class TokenListModel: ObservableObject {
     @MainActor
     func loadNextTokenIntoCurrentTokenPhaseOne() {
         self.recordTokenDwellTime()
-        
-        // previous
-        //	Build up a new TokenModel so that we start from a
-        //	known state: no leftover timers and/or subscriptions.
-        let newPreviousTokenModel = TokenModel()
-        newPreviousTokenModel.preload(with: currentTokenModel.tokenId)
-        previousTokenModel = newPreviousTokenModel
-        
         // current
         currentTokenStartTime = Date()
         if let nextModel = nextTokenModel {
             currentTokenModel = nextModel
             initCurrentTokenModel(with: nextModel.tokenId)
             removePendingToken(nextModel.tokenId)
-        }
-        else {
+        } else {
             currentTokenModel = TokenModel()
             if let newToken = getNextToken() {
                 initCurrentTokenModel(with: newToken)
@@ -148,6 +149,14 @@ final class TokenListModel: ObservableObject {
                 removePendingToken(newToken)
             }
         }
+        // previous
+        //	Build up a new TokenModel so that we start from a
+        //	known state: no leftover timers and/or subscriptions.
+        let newPreviousTokenModel = TokenModel()
+        newPreviousTokenModel.preload(with: currentTokenModel.tokenId)
+        previousTokenModel = newPreviousTokenModel
+        
+
     }
     
     func loadNextTokenIntoCurrentTokenPhaseTwo() {
@@ -166,49 +175,79 @@ final class TokenListModel: ObservableObject {
         }
     }
     
-    
-    
-    public func startTokenSubscription() {
-            self.hotTokensSubscription = Network.shared.apollo.subscribe(
-                subscription: SubTopTokensByVolumeSubscription(
+    private func getInitialHotTokens() async throws -> [String] {
+        let start = Date()
+        return try await withCheckedThrowingContinuation {
+            (continuation: CheckedContinuation<[String], Error>) in
+            Network.shared.apollo.fetch(
+                query: GetTopTokensByVolumeQuery(
                     interval: .some(HOT_TOKENS_INTERVAL),
                     recentInterval: .some(FILTERING_INTERVAL),
                     minRecentTrades: .some(FILTERING_MIN_TRADES),
                     minRecentVolume: .some(FILTERING_MIN_VOLUME_USD)
                 )
-            ) { [weak self] result in
-            Task{
-                guard let self = self else { return }
-                
-                // Prepare data in background
-                let hotTokens: [String] = {
-                    switch result {
-                    case .success(let graphQLResult):
-                        if let tokens = graphQLResult.data?.token_stats_interval_comp {
-                            let mappedTokens = tokens
-                                .map { elem in
-                                    elem.token_mint
-                                }
-                                
-                                return mappedTokens
-                            }
-                            return []
-                        case .failure(let error):
-                            print("Error fetching tokens: \(error.localizedDescription)")
-                            return []
-                        }
-                    }()
-                    await self.updatePendingTokens(hotTokens)
-                    await MainActor.run {
-
-                        if self.tokenQueue.isEmpty {
-                            self.initializeTokenQueue()
-                        }
-}
-               }
-                
-                
+            ) {
+                result in
+                switch result {
+                case .success(let graphQLResult):
+                    if let tokens = graphQLResult.data?.token_stats_interval_comp {
+                        continuation.resume(returning: tokens.map { elem in elem.token_mint })
+                    }
+                case .failure(let error):
+                    let end = Date()
+                    print("Error fetching initial hot tokens in \(end.timeIntervalSince(start)) seconds")
+                    continuation.resume(throwing: error)
+                }
             }
+        }
+    }
+    
+    public func startTokenSubscription() async {
+        do {
+            let hotTokens = try await getInitialHotTokens()
+            await handleHotTokenFetch(hotTokens: hotTokens)
+        } catch {
+            print(
+                "Error fetching initial hot tokens: \(error.localizedDescription). Proceeding with subscription."
+            )
+        }
+        
+        self.hotTokensSubscription = Network.shared.apollo.subscribe(
+            subscription: SubTopTokensByVolumeSubscription(
+                interval: .some(HOT_TOKENS_INTERVAL),
+                recentInterval: .some(FILTERING_INTERVAL),
+                minRecentTrades: .some(FILTERING_MIN_TRADES),
+                minRecentVolume: .some(FILTERING_MIN_VOLUME_USD)
+            )
+        ) { [weak self] result in
+            guard let self = self else { return }
+            
+            // Prepare data in background
+            let hotTokens: [String] = {
+                switch result {
+                case .success(let graphQLResult):
+                    if let tokens = graphQLResult.data?.token_stats_interval_comp {
+                        return tokens.map { elem in elem.token_mint }
+                    }
+                    return []
+                case .failure(let error):
+                    print("Error fetching tokens: \(error.localizedDescription)")
+                    return []
+                }
+            }()
+            Task {
+                await self.handleHotTokenFetch(hotTokens: hotTokens)
+            }
+        }
+    }
+    
+    func handleHotTokenFetch(hotTokens: [String]) async {
+        await self.updatePendingTokens(hotTokens)
+        await MainActor.run {
+            if self.tokenQueue.isEmpty {
+                self.initializeTokenQueue()
+            }
+        }
     }
     
     func stopTokenSubscription() {
@@ -236,14 +275,15 @@ final class TokenListModel: ObservableObject {
         let newTokens = Array((unqueuedNewTokens + uniqueOldTokens))
         let tokens = UserModel.shared.tokenData
         let newTokensToRefresh = newTokens.filter { tokens[$0] == nil }
-
         if newTokensToRefresh.count > 0 {
-            try? await UserModel.shared.refreshBulkTokenData(tokenMints: Array(newTokensToRefresh.prefix(3)))
+            try? await UserModel.shared.refreshBulkTokenData(
+                tokenMints: Array(newTokensToRefresh.prefix(3)))
         }
         
         if newTokensToRefresh.count > 3 {
             Task {
-                try? await UserModel.shared.refreshBulkTokenData(tokenMints: Array(newTokensToRefresh.suffix(newTokensToRefresh.count - 3)))
+                try? await UserModel.shared.refreshBulkTokenData(
+                    tokenMints: Array(newTokensToRefresh.suffix(newTokensToRefresh.count - 3)))
             }
         }
         
@@ -258,7 +298,7 @@ final class TokenListModel: ObservableObject {
         if !self.tokenQueue.isEmpty { return }
         
         // first model
-        guard let firstToken = getNextToken() else { return}
+        guard let firstToken = getNextToken() else { return }
         tokenQueue.append(firstToken)
         self.currentTokenIndex = 0
         removePendingToken(firstToken)

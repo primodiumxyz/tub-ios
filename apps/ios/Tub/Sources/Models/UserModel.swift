@@ -5,7 +5,6 @@
 //  Created by Henry on 11/14/24.
 //
 
-import Combine
 import PrivySDK
 import SwiftUI
 import TubAPI
@@ -115,11 +114,12 @@ final class UserModel: ObservableObject {
     }
     
     func initializeUser() async {
-        let timeoutTask = DispatchWorkItem { [weak self] in
-            guard let self = self else { return }
+        await MainActor.run {
             self.initializingUser = true
-            
-            // Schedule the timeout
+        }
+
+        let timeoutTask = DispatchWorkItem { [weak self] in
+            guard let self else { return }
             DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
                 if self.initializingUser {
                     self.initializingUser = false
@@ -176,6 +176,15 @@ final class UserModel: ObservableObject {
         let tokenBalances = try await Network.shared.getAllTokenBalances()
         
         let tokenMints = tokenBalances.filter { $0.value > 0 && $0.key != USDC_MINT }.map { $0.key }
+        for mint in self.tokenPortfolio {
+            if !tokenMints.contains(mint) {
+                await updateTokenData(mint: mint, balance: 0)
+            }
+        }
+        
+        await MainActor.run {
+            self.tokenPortfolio = tokenMints
+        }
         
         async let metadataFetch = fetchBulkTokenMetadata(tokenMints: tokenMints)
         async let liveDataFetch = fetchBulkTokenLiveData(tokenMints: tokenMints)
@@ -195,6 +204,7 @@ final class UserModel: ObservableObject {
             self.withLiveData = withLiveData ?? true
         }
     }
+    
     public func refreshBulkTokenData(tokenMints: [String], options: RefreshOptions? = nil) async throws {
         let withBalances  = options?.withBalances ?? false
         
@@ -202,6 +212,15 @@ final class UserModel: ObservableObject {
         async let tokenMetadata = fetchBulkTokenMetadata(tokenMints: tokenMints)
 
         let (fetchedBalances, fetchedTokenMetadata) = try await (balances, tokenMetadata)
+        
+        if withBalances, let fetchedBalances {
+            let balancesMap = fetchedBalances.map { $0.key }
+            for mint in self.tokenPortfolio {
+                if !balancesMap.contains(mint) {
+                    await updateTokenData(mint: mint, balance: 0)
+                }
+            }
+        }
         
         for mint in tokenMints {
             await updateTokenData(mint: mint, balance: fetchedBalances?[mint], metadata: fetchedTokenMetadata[mint])
@@ -621,14 +640,14 @@ final class UserModel: ObservableObject {
             let isBuy = transaction.token_amount >= 0
             let priceUsd = transaction.token_price_usd
             let decimals = metadata?.decimals ?? 9
-            let valueUsdc = Int(transaction.token_amount) * Int(priceUsd) / Int(pow(10.0,Double(decimals)))
+            let valueUsd = transaction.token_amount * priceUsd / pow(10.0,Double(decimals))
             
             let newTransaction = TransactionData(
                 name: metadata?.name ?? "",
                 symbol: metadata?.symbol ?? "",
                 imageUri: metadata?.imageUri ?? "",
                 date: date,
-                valueUsdc: -valueUsdc,
+                valueUsd: -valueUsd,
                 quantityTokens: Int(transaction.token_amount),
                 isBuy: isBuy,
                 mint: mint

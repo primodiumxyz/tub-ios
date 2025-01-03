@@ -11,7 +11,6 @@ import TubAPI
 final class SolPriceModel: ObservableObject {
     static let shared = SolPriceModel()
 
-    @Published var isReady = false
     @Published var price: Double? = nil
     @Published var error: String?
 
@@ -19,7 +18,8 @@ final class SolPriceModel: ObservableObject {
     private var fetching = false
 
     init() {
-        startPriceUpdates()
+        // we dont need this because we use usdc as the base unit
+        // startPriceUpdates()
     }
 
     deinit {
@@ -35,7 +35,6 @@ final class SolPriceModel: ObservableObject {
         do {
             let price = try await Network.shared.getSolPrice()
             self.price = price
-            self.isReady = true
             self.error = nil
         } catch {
             self.error = error.localizedDescription
@@ -149,7 +148,6 @@ final class SolPriceModel: ObservableObject {
         minDecimals: Int = 2,
         formatLarge: Bool = true
     ) -> String {
-        if let price = self.price, price > 0 {
             return formatPrice(
                 usd: usdcToUsd(usdc: usdc),
                 showSign: showSign,
@@ -158,10 +156,6 @@ final class SolPriceModel: ObservableObject {
                 minDecimals: minDecimals,
                 formatLarge: formatLarge
             )
-        }
-        else {
-            return "$0.00"
-        }
     }
 
     func usdToLamports(usd: Double) -> Int {
