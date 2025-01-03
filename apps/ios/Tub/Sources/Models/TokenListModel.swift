@@ -135,6 +135,14 @@ final class TokenListModel: ObservableObject {
     @MainActor
     func loadNextTokenIntoCurrentTokenPhaseOne() {
         self.recordTokenDwellTime()
+
+        // previous
+        //	Build up a new TokenModel so that we start from a
+        //	known state: no leftover timers and/or subscriptions.
+        let newPreviousTokenModel = TokenModel()
+        newPreviousTokenModel.preload(with: currentTokenModel.tokenId)
+        previousTokenModel = newPreviousTokenModel
+        
         // current
         currentTokenStartTime = Date()
         if let nextModel = nextTokenModel {
@@ -149,14 +157,6 @@ final class TokenListModel: ObservableObject {
                 removePendingToken(newToken)
             }
         }
-        // previous
-        //	Build up a new TokenModel so that we start from a
-        //	known state: no leftover timers and/or subscriptions.
-        let newPreviousTokenModel = TokenModel()
-        newPreviousTokenModel.preload(with: currentTokenModel.tokenId)
-        previousTokenModel = newPreviousTokenModel
-        
-
     }
     
     func loadNextTokenIntoCurrentTokenPhaseTwo() {
