@@ -2,10 +2,10 @@ import { Subject, interval, switchMap } from "rxjs";
 import { JupiterService } from "./JupiterService";
 import { TransactionService } from "./TransactionService";
 import { FeeService } from "../services/FeeService";
-import { ActiveSwapRequest, PrebuildSwapResponse, SwapSubscription } from "../types";
-import { USDC_DEV_PUBLIC_KEY, USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
+import { ActiveSwapRequest, PrebuildSwapResponse, SwapSubscription, SwapType } from "../types";
+import { USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
 import { QuoteGetRequest } from "@jup-ag/api";
-import { PublicKey } from "@solana/web3.js";
+import { Connection, PublicKey } from "@solana/web3.js";
 import {
   MAX_ACCOUNTS,
   MAX_DEFAULT_SLIPPAGE_BPS,
@@ -24,6 +24,7 @@ export class SwapService {
     private jupiter: JupiterService,
     private transactionService: TransactionService,
     private feeService: FeeService,
+    private connection: Connection,
   ) {}
 
   async buildSwapResponse(request: ActiveSwapRequest): Promise<PrebuildSwapResponse> {
@@ -39,20 +40,18 @@ export class SwapService {
       throw new Error("Slippage bps must be greater than " + MIN_SLIPPAGE_BPS);
     }
 
-    // Calculate fee if selling USDC
-    const usdcDevPubKey = USDC_DEV_PUBLIC_KEY.toString();
-    const usdcMainPubKey = USDC_MAINNET_PUBLIC_KEY.toString();
-    const feeAmount = this.feeService.calculateFeeAmount(request.sellTokenId, request.sellQuantity, [
-      usdcDevPubKey,
-      usdcMainPubKey,
-    ]);
-    const swapAmount = request.sellQuantity - feeAmount;
+    // Determine swap type
+    const swapType = await this.determineSwapType(request);
+
+    // Calculate fee if buying memecoin
+    const buyFeeAmount = this.feeService.calculateBuyFeeAmount(request.sellQuantity, swapType);
+    const swapAmount = request.sellQuantity - buyFeeAmount;
 
     // Create fee transfer instruction if needed
     const feeTransferInstruction = this.feeService.createFeeTransferInstruction(
       request.sellTokenAccount,
       request.userPublicKey,
-      feeAmount,
+      buyFeeAmount,
     );
 
     // Create token account close instruction if fee amount is 0
@@ -61,7 +60,7 @@ export class SwapService {
       request.sellTokenAccount,
       new PublicKey(request.sellTokenId),
       request.sellQuantity,
-      feeAmount,
+      buyFeeAmount,
     );
 
     // TODO: autoSlippageCollisionUsdValue should be based on the estimated value of the swap amount.
@@ -135,11 +134,32 @@ export class SwapService {
     const response: PrebuildSwapResponse = {
       transactionMessageBase64: base64Message,
       ...request,
-      hasFee: feeAmount > 0,
+      hasFee: buyFeeAmount > 0,
       timestamp: Date.now(),
     };
 
     return response;
+  }
+
+  private async determineSwapType(request: ActiveSwapRequest): Promise<SwapType> {
+    if (request.buyTokenId === USDC_MAINNET_PUBLIC_KEY.toString()) {
+      const sellTokenBalance = await this.connection.getTokenAccountBalance(request.sellTokenAccount, "processed");
+      if (!sellTokenBalance.value.uiAmount) {
+        throw new Error("Sell token balance is null");
+      }
+      // if balance is greater than sellQuantity, return SELL_PARTIAL
+      if (sellTokenBalance.value.uiAmount > request.sellQuantity) {
+        return SwapType.SELL_PARTIAL;
+      }
+      // if balance is equal to sellQuantity, return SELL_ALL
+      if (sellTokenBalance.value.uiAmount === request.sellQuantity) {
+        return SwapType.SELL_ALL;
+      }
+      // otherwise, throw error as not enough balance. show balance in thrown error.
+      throw new Error(`Not enough USDC balance. Observed balance: ${sellTokenBalance.value.uiAmount}`);
+    } else {
+      return SwapType.BUY;
+    }
   }
 
   getMessageFromRegistry(transactionMessageBase64: string) {

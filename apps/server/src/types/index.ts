@@ -1,6 +1,12 @@
 import { PublicKey } from "@solana/web3.js";
 import { Subject, Subscription } from "rxjs";
 
+export enum SwapType {
+  BUY = 1, // When buying any token with USDC
+  SELL_PARTIAL = 2, // When selling part of token balance for USDC
+  SELL_ALL = 3, // When selling entire token balance for USDC
+}
+
 // Base swap request types
 export type UserPrebuildSwapRequest = {
   buyTokenId: string;

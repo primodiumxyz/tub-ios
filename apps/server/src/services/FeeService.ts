@@ -1,5 +1,6 @@
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import { createTransferInstruction } from "@solana/spl-token";
+import { SwapType } from "@/types";
 
 export type FeeSettings = {
   buyFee: number;
@@ -20,14 +21,13 @@ export class FeeService {
   }
 
   /**
-   * Calculate fee amount for a trade
-   * @param sellTokenId - Token being sold
+   * Calculate fee amount for when buying any token with USDC
    * @param sellQuantity - Amount being sold
-   * @param usdcTokenIds - Array of USDC token IDs (mainnet and devnet)
+   * @param swapType - Type of swap
    * @returns Fee amount in token's base units
    */
-  calculateFeeAmount(sellTokenId: string, sellQuantity: number, usdcTokenIds: string[]): number {
-    const isUsdcSell = usdcTokenIds.includes(sellTokenId);
+  calculateBuyFeeAmount(sellQuantity: number, swapType: SwapType): number {
+    const isUsdcSell = swapType === SwapType.BUY;
 
     if (isUsdcSell && this.settings.minTradeSize * 1e6 > sellQuantity) {
       throw new Error("USDC sell quantity is below minimum trade size");
