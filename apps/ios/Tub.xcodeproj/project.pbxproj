@@ -11,7 +11,7 @@
 		4619A8182CCA4E25003CD119 /* TokenListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4619A8172CCA4E25003CD119 /* TokenListModel.swift */; };
 		46442B952CDD7380009A6F0B /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46442B942CDD737D009A6F0B /* Constants.swift */; };
 		466945ED2CDFDB1F008E8B99 /* LoadingTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 466945EC2CDFDB1C008E8B99 /* LoadingTracker.swift */; };
-		46BC477C2D282C0200117602 /* Miscellaneous.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46BC477B2D282BFE00117602 /* Miscellaneous.swift */; };
+		46BC477C2D282C0200117602 /* DwebLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46BC477B2D282BFE00117602 /* DwebLink.swift */; };
 		5D8EFC2C2CE529BB002D8210 /* AppDwellTimeTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D8EFC2B2CE529AC002D8210 /* AppDwellTimeTracker.swift */; };
 		990337052CC94175002D3A25 /* AccountBalance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990337042CC9416B002D3A25 /* AccountBalance.swift */; };
 		9910F1B62CAAE302005DEE6B /* SFRounded.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9910F1B52CAAE2FD005DEE6B /* SFRounded.swift */; };
@@ -96,7 +96,7 @@
 		4619A8172CCA4E25003CD119 /* TokenListModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenListModel.swift; sourceTree = "<group>"; };
 		46442B942CDD737D009A6F0B /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		466945EC2CDFDB1C008E8B99 /* LoadingTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingTracker.swift; sourceTree = "<group>"; };
-		46BC477B2D282BFE00117602 /* Miscellaneous.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Miscellaneous.swift; sourceTree = "<group>"; };
+		46BC477B2D282BFE00117602 /* DwebLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebLink.swift; sourceTree = "<group>"; };
 		5D8EFC2B2CE529AC002D8210 /* AppDwellTimeTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDwellTimeTracker.swift; sourceTree = "<group>"; };
 		990337042CC9416B002D3A25 /* AccountBalance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountBalance.swift; sourceTree = "<group>"; };
 		9910F1B52CAAE2FD005DEE6B /* SFRounded.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SFRounded.swift; sourceTree = "<group>"; };
@@ -228,7 +228,7 @@
 		9979D2F02CB57B840040DF41 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
-				46BC477B2D282BFE00117602 /* Miscellaneous.swift */,
+				46BC477B2D282BFE00117602 /* DwebLink.swift */,
 				99DBD8ED2CF781E50098C296 /* spoofModelData.swift */,
 				995D05652CF3C7C800627E81 /* retry.swift */,
 				5D8EFC2B2CE529AC002D8210 /* AppDwellTimeTracker.swift */,
@@ -596,7 +596,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				46BC477C2D282C0200117602 /* Miscellaneous.swift in Sources */,
+				46BC477C2D282C0200117602 /* DwebLink.swift in Sources */,
 				99F3D7A62CE6D937005B895C /* UserModel.swift in Sources */,
 				99BE72BD2CEBB4CA006BB157 /* NotificationHandler.swift in Sources */,
 				995D05662CF3C7C900627E81 /* retry.swift in Sources */,
