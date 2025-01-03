@@ -76,7 +76,7 @@ import { PrebuildSwapResponse } from "@/types";
 
       // Check USDC balance
       try {
-        const balance = await connection.getTokenAccountBalance(userUsdcAta);
+        const balance = await connection.getTokenAccountBalance(userUsdcAta, "processed");
         if (!balance.value.uiAmount || balance.value.uiAmount < 1) {
           throw new Error(`Test account needs at least 1 USDC. Current balance: ${balance.value.uiAmount ?? 0} USDC`);
         }
@@ -187,7 +187,7 @@ import { PrebuildSwapResponse } from "@/types";
 
       it.skip("should transfer half of held VALUE to USDC", async () => {
         const userVALUEAta = await getAssociatedTokenAddress(VALUE_MAINNET_PUBLIC_KEY, userKeypair.publicKey);
-        const valueBalance = await connection.getTokenAccountBalance(userVALUEAta);
+        const valueBalance = await connection.getTokenAccountBalance(userVALUEAta, "processed");
         const decimals = valueBalance.value.decimals;
         console.log("VALUE balance:", valueBalance.value.uiAmount);
         if (!valueBalance.value.uiAmount) {
@@ -210,7 +210,7 @@ import { PrebuildSwapResponse } from "@/types";
 
       it.skip("should transfer all held VALUE to USDC and close the VALUE account", async () => {
         const userVALUEAta = await getAssociatedTokenAddress(VALUE_MAINNET_PUBLIC_KEY, userKeypair.publicKey);
-        const valueBalance = await connection.getTokenAccountBalance(userVALUEAta);
+        const valueBalance = await connection.getTokenAccountBalance(userVALUEAta, "processed");
 
         const decimals = valueBalance.value.decimals;
         console.log("VALUE balance:", valueBalance.value.uiAmount);
@@ -219,7 +219,7 @@ import { PrebuildSwapResponse } from "@/types";
           return;
         }
 
-        const initSolBalanceinVALUEAta = await connection.getBalance(userVALUEAta);
+        const initSolBalanceinVALUEAta = await connection.getBalance(userVALUEAta, "processed");
         if (initSolBalanceinVALUEAta === 0) {
           console.log("VALUE ATA appears closed, skipping test");
           return;
