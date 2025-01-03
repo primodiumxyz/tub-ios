@@ -48,7 +48,7 @@ export class AnalyticsService {
     const result = await this.gql.AddLoadingTimeMutation({
       identifier: event.identifier,
       time_elapsed_ms: event.timeElapsedMs.toString(),
-      attempt_number: event.attemptNumber.toString(),
+      attempt_number: event.attemptNumber,
       total_time_ms: event.totalTimeMs.toString(),
       average_time_ms: event.averageTimeMs.toString(),
       user_agent: event.userAgent,
