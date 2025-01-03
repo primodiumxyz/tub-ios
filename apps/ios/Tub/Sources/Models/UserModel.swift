@@ -326,7 +326,7 @@ final class UserModel: ObservableObject {
                             name: token.name,
                             symbol: token.symbol,
                             description: token.description,
-                            imageUri: token.image_uri,
+                            imageUri: self.convertToDwebLink(token.image_uri),
                             externalUrl: token.external_url,
                             decimals: Int(token.decimals ?? 6)
                         )
@@ -368,7 +368,7 @@ final class UserModel: ObservableObject {
                                     name: metadata.name,
                                     symbol: metadata.symbol,
                                     description: metadata.symbol,
-                                    imageUri: metadata.image_uri,
+                                    imageUri: self.convertToDwebLink(metadata.image_uri),
                                     externalUrl: metadata.external_url,
                                     decimals: Int(metadata.decimals ?? 6)
                                 )
@@ -645,7 +645,7 @@ final class UserModel: ObservableObject {
             let newTransaction = TransactionData(
                 name: metadata?.name ?? "",
                 symbol: metadata?.symbol ?? "",
-                imageUri: metadata?.imageUri ?? "",
+                imageUri: convertToDwebLink(metadata?.imageUri) ?? "",
                 date: date,
                 valueUsd: -valueUsd,
                 quantityTokens: Int(transaction.token_amount),
@@ -678,5 +678,12 @@ final class UserModel: ObservableObject {
         timer = nil
     }
     
+    /* -------------------------------------------------------------------------- */
+    /*                                   HELPERS                                  */
+    /* -------------------------------------------------------------------------- */
 
+    private func convertToDwebLink(_ uri: String?) -> String? {
+        guard let uri = uri else { return nil }
+        return uri.replacingOccurrences(of: "https://ipfs.io/ipfs/", with: "https://dweb.link/ipfs/")
+    }
 }
