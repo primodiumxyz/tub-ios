@@ -5,7 +5,6 @@
 //  Created by Emerson Hsieh on 2024/9/24.
 //
 
-import PrivySDK
 import SwiftUI
 
 @main
@@ -13,7 +12,7 @@ struct TubApp: App {
     @Environment(\.scenePhase) private var scenePhase
     private let dwellTimeTracker = AppDwellTimeTracker.shared
     @StateObject private var userModel = UserModel.shared
-
+    
     init() {
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
@@ -21,7 +20,7 @@ struct TubApp: App {
         UITabBar.appearance().standardAppearance = appearance
         UITabBar.appearance().scrollEdgeAppearance = appearance
     }
-
+    
     var body: some Scene {
         WindowGroup {
             AppContent()
@@ -45,10 +44,10 @@ struct AppContent: View {
     @StateObject private var userModel = UserModel.shared
     @StateObject private var priceModel = SolPriceModel.shared
     @StateObject private var tokenListModel = TokenListModel.shared
-
+    
     var body: some View {
         Group {
-            if let _ = priceModel.error {
+            if priceModel.error != nil {
                 ErrorView(
                     errorMessage: "Failed to get price data",
                     retryAction: {
@@ -57,10 +56,9 @@ struct AppContent: View {
                         }
                     }
                 )
-            }  else if userModel.walletState == .connecting || userModel.initializingUser {
+            } else if userModel.walletState == .connecting || userModel.initializingUser {
                 LoadingView(identifier: "Logging in", message: "Logging in")
-            }
-            else {
+            } else {
                 TokenListView().font(.sfRounded())
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Color(UIColor.systemBackground))
@@ -80,16 +78,26 @@ struct AppContent: View {
                             .interactiveDismissDisabled()
                     }
             }
-        }.onChange(of: userModel.walletState) { _, newState in
-            if newState == .connecting { return }
-            if newState == .error {
+        }.onChange(of: userModel.walletState, initial: true) { _, newState in
+            switch newState {
+            case .error:
                 notificationHandler.show("Error connecting to wallet.", type: .error)
-                return
+            case .connected:
+                Task(priority: .low) {
+                    try? await userModel.refreshTxs(hard: true)
+                }
+                Task (priority: .userInitiated) {
+                    tokenListModel.clearQueue()
+                    await tokenListModel.startTokenSubscription()
+                }
+            case .disconnected, .notCreated, .needsRecovery:
+                Task (priority: .userInitiated) {
+                    tokenListModel.clearQueue()
+                    await tokenListModel.startTokenSubscription()
+                }
+            default:
+                break
             }
-            // we wait to begin the token subscription until the user is ready (either logged in or not) 
-            // we clear the queue when the user logs in/out to force showing owned tokens first
-            tokenListModel.clearQueue()
-            tokenListModel.startTokenSubscription()
         }
     }
 }
@@ -108,17 +116,18 @@ extension View {
     func withNotificationBanner() -> some View {
         modifier(NotificationBanner())
     }
-
+    
     /// Applies the given transform if the given condition evaluates to `true`.
     /// - Parameters:
     ///   - condition: The condition to evaluate.
     ///   - transform: The transform to apply to the source `View`.
     /// - Returns: Either the original `View` or the modified `View` if the condition is `true`.
-    @ViewBuilder func `if`<Content: View>(_ condition: Bool, transform: (Self) -> Content) -> some View {
+    @ViewBuilder func `if`<Content: View>(_ condition: Bool, transform: (Self) -> Content)
+    -> some View
+    {
         if condition {
             transform(self)
-        }
-        else {
+        } else {
             self
         }
     }

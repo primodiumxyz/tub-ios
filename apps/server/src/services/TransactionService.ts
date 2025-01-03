@@ -7,7 +7,6 @@ import {
   TransactionMessage,
   VersionedTransaction,
   AddressLookupTableAccount,
-  SimulateTransactionConfig,
   TransactionConfirmationStatus,
 } from "@solana/web3.js";
 import { ATA_PROGRAM_PUBLIC_KEY, JUPITER_PROGRAM_PUBLIC_KEY, TOKEN_PROGRAM_PUBLIC_KEY } from "../constants/tokens";
@@ -135,22 +134,11 @@ export class TransactionService {
     const feePayerSignatureBytes = Buffer.from(bs58.decode(feePayerSignature));
     transaction.addSignature(this.feePayerPublicKey, feePayerSignatureBytes);
 
-    // Simulate transaction
-    const simConfig: SimulateTransactionConfig = {
-      /** Optional parameter used to enable signature verification before simulation */
-      sigVerify: true,
-      /** Optional parameter used to replace the simulated transaction's recent blockhash with the latest blockhash */
-      replaceRecentBlockhash: false,
-      /** Optional parameter used to set the commitment level when selecting the latest block */
+    const simulation = await this.connection.simulateTransaction(transaction, {
       commitment: "processed",
-      /** Optional parameter used to specify a list of account addresses to return post simulation state for */
-      accounts: {
-        encoding: "base64",
-        addresses: [userPublicKey.toBase58()],
-      },
-    };
-    const simulation = await this.connection.simulateTransaction(transaction, simConfig);
+    });
     if (simulation.value?.err) {
+      console.log("Simulation Error:", simulation.value);
       if (simulation.value.err.toString().includes("InstructionError")) {
         const errorStr = JSON.stringify(simulation.value.err);
         const match = errorStr.match(/\{"InstructionError":\[(\d+)/);

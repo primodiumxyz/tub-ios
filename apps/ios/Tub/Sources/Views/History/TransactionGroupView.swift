@@ -62,7 +62,6 @@ struct TransactionDetailRow: View {
     @EnvironmentObject private var priceModel: SolPriceModel
 
     var body: some View {
-        NavigationLink(destination: HistoryDetailsView(transaction: transaction)) {
             HStack {
                 VStack(alignment: .leading) {
                     Text(transaction.isBuy ? "Buy" : "Sell")
@@ -74,8 +73,7 @@ struct TransactionDetailRow: View {
                 Spacer()
 
                 VStack(alignment: .trailing) {
-                    let price = priceModel.formatPrice(usdc: transaction.valueUsdc, showSign: true)
-                    Text(price)
+                    Text(priceModel.formatPrice(usd:transaction.valueUsd))
                         .font(.sfRounded(size: .sm, weight: .bold))
                         .foregroundStyle(transaction.isBuy ? Color.red : Color.green)
 
@@ -87,8 +85,6 @@ struct TransactionDetailRow: View {
             }
             .padding(.vertical, 8)
         }
-    }
-
 }
 
 

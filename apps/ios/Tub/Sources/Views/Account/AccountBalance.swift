@@ -100,10 +100,6 @@ struct AccountBalanceView: View {
                         }
                     }
                 }
-            } else {
-                Text("Login")
-                    .font(.sfRounded(size: .lg, weight: .semibold))
-                    .multilineTextAlignment(.center)
             }
         }
         .foregroundStyle(.tubText)

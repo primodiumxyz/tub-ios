@@ -7,9 +7,6 @@
     "@tub" : {
 
     },
-    "#8612373299412" : {
-
-    },
     "%@" : {
 
     },
@@ -19,16 +16,6 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "%1$@ %2$@"
-          }
-        }
-      }
-    },
-    "%@ at %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ at %2$@"
           }
         }
       }
@@ -67,9 +54,6 @@
     "About" : {
 
     },
-    "Account" : {
-
-    },
     "Account Balance" : {
 
     },
@@ -97,9 +81,6 @@
     "Buy" : {
 
     },
-    "Buy Details" : {
-
-    },
     "Close" : {
 
     },
@@ -116,9 +97,6 @@
 
     },
     "Deposit with" : {
-
-    },
-    "Discord Server" : {
 
     },
     "Enter Solana address" : {
@@ -142,13 +120,16 @@
     "Image saved!" : {
 
     },
+    "Join Telegram" : {
+
+    },
     "Last Trade" : {
 
     },
-    "Login" : {
+    "Low" : {
 
     },
-    "Low" : {
+    "No recent trades" : {
 
     },
     "No tokens" : {
@@ -187,9 +168,6 @@
     "Purchase Price" : {
 
     },
-    "Quantity" : {
-
-    },
     "Save" : {
 
     },
@@ -197,9 +175,6 @@
 
     },
     "Sell" : {
-
-    },
-    "Sell Details" : {
 
     },
     "Set Default" : {
@@ -226,9 +201,6 @@
     "Solana Wallet" : {
 
     },
-    "Support" : {
-
-    },
     "This token is still writing its autobiography... 📝" : {
 
     },
@@ -236,12 +208,6 @@
 
     },
     "To" : {
-
-    },
-    "Token" : {
-
-    },
-    "Transaction number" : {
 
     },
     "Transfer" : {
