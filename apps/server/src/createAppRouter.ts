@@ -245,7 +245,7 @@ export function createAppRouter() {
       .input(
         z.object({
           ...clientEventSchema.shape,
-          tab: z.string(),
+          tabName: z.string(),
         }),
       )
       .mutation(async ({ ctx, input }) => {
