@@ -7,10 +7,20 @@ import { SwapService } from "./SwapService";
 import { TransactionService } from "./TransactionService";
 import { FeeService } from "./FeeService";
 import { AuthService } from "./AuthService";
-import { AnalyticsService, TokenPurchaseOrSaleEvent } from "./AnalyticsService";
+import { AnalyticsService } from "./AnalyticsService";
 import { TransferService } from "./TransferService";
 import { env } from "../../bin/tub-server";
-import { UserPrebuildSwapRequest, PrebuildSwapResponse, PrebuildSignedSwapResponse, ClientEvent } from "../types";
+import {
+  UserPrebuildSwapRequest,
+  PrebuildSwapResponse,
+  PrebuildSignedSwapResponse,
+  AppDwellTimeEvent,
+  LoadingTimeEvent,
+  TabDwellTimeEvent,
+  TabSelectedEvent,
+  TokenDwellTimeEvent,
+  TokenPurchaseOrSaleEvent,
+} from "../types";
 import { deriveTokenAccounts } from "../utils/tokenAccounts";
 import bs58 from "bs58";
 import { TOKEN_PROGRAM_PUBLIC_KEY } from "../constants/tokens";
@@ -114,11 +124,6 @@ export class TubService {
   }
 
   // Analytics methods
-  async recordClientEvent(event: ClientEvent, jwtToken: string): Promise<string> {
-    const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
-    return this.analyticsService.recordClientEvent(event, walletPublicKey.toBase58());
-  }
-
   async recordTokenPurchase(event: TokenPurchaseOrSaleEvent, jwtToken: string): Promise<string> {
     const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
     return this.analyticsService.recordTokenPurchase(event, walletPublicKey.toBase58());
@@ -127,6 +132,31 @@ export class TubService {
   async recordTokenSale(event: TokenPurchaseOrSaleEvent, jwtToken: string): Promise<string> {
     const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
     return this.analyticsService.recordTokenSale(event, walletPublicKey.toBase58());
+  }
+
+  async recordTabSelected(event: TabSelectedEvent, jwtToken: string): Promise<string> {
+    const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
+    return this.analyticsService.recordTabSelected(event, walletPublicKey.toBase58());
+  }
+
+  async recordLoadingTime(event: LoadingTimeEvent, jwtToken: string): Promise<string> {
+    const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
+    return this.analyticsService.recordLoadingTime(event, walletPublicKey.toBase58());
+  }
+
+  async recordAppDwellTime(event: AppDwellTimeEvent, jwtToken: string): Promise<string> {
+    const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
+    return this.analyticsService.recordAppDwellTime(event, walletPublicKey.toBase58());
+  }
+
+  async recordTabDwellTime(event: TabDwellTimeEvent, jwtToken: string): Promise<string> {
+    const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
+    return this.analyticsService.recordTabDwellTime(event, walletPublicKey.toBase58());
+  }
+
+  async recordTokenDwellTime(event: TokenDwellTimeEvent, jwtToken: string): Promise<string> {
+    const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
+    return this.analyticsService.recordTokenDwellTime(event, walletPublicKey.toBase58());
   }
 
   // Price methods

@@ -2,7 +2,7 @@ import { initTRPC } from "@trpc/server";
 import { observable } from "@trpc/server/observable";
 import { z } from "zod";
 import { TubService } from "./services/TubService";
-import { PrebuildSwapResponse, UserPrebuildSwapRequest } from "./types";
+import { ClientEvent, PrebuildSwapResponse, UserPrebuildSwapRequest } from "./types";
 import { Subject } from "rxjs";
 
 export type AppContext = {
@@ -16,6 +16,14 @@ const swapRequestSchema = z.object({
   sellTokenId: z.string(),
   sellQuantity: z.number(),
 }) satisfies z.ZodType<UserPrebuildSwapRequest>;
+
+const clientEventSchema = z.object({
+  userWallet: z.string(),
+  userAgent: z.string(),
+  source: z.string().optional(),
+  errorDetails: z.string().optional(),
+  buildVersion: z.string().optional(),
+}) satisfies z.ZodType<ClientEvent>;
 
 /**
  * Creates and configures the main tRPC router with all API endpoints.
@@ -31,21 +39,6 @@ export function createAppRouter() {
     getStatus: t.procedure.query(({ ctx }) => {
       return ctx.tubService.getStatus();
     }),
-
-    recordClientEvent: t.procedure
-      .input(
-        z.object({
-          userAgent: z.string(),
-          eventName: z.string(),
-          buildVersion: z.string().optional(),
-          metadata: z.string().optional(),
-          errorDetails: z.string().optional(),
-          source: z.string().optional(),
-        }),
-      )
-      .mutation(async ({ ctx, input }) => {
-        return await ctx.tubService.recordClientEvent(input, ctx.jwtToken);
-      }),
 
     getSolUsdPrice: t.procedure.query(async ({ ctx }) => {
       return await ctx.tubService.getSolUsdPrice();
@@ -225,14 +218,10 @@ export function createAppRouter() {
     recordTokenPurchase: t.procedure
       .input(
         z.object({
+          ...clientEventSchema.shape,
           tokenMint: z.string(),
           tokenAmount: z.string(),
           tokenPriceUsd: z.string(),
-          source: z.string(),
-          errorDetails: z.string().optional(),
-          userAgent: z.string(),
-          buildVersion: z.string(),
-          userWallet: z.string(),
         }),
       )
       .mutation(async ({ ctx, input }) => {
@@ -242,18 +231,75 @@ export function createAppRouter() {
     recordTokenSale: t.procedure
       .input(
         z.object({
+          ...clientEventSchema.shape,
           tokenMint: z.string(),
           tokenAmount: z.string(),
           tokenPriceUsd: z.string(),
-          source: z.string(),
-          errorDetails: z.string().optional(),
-          userAgent: z.string(),
-          buildVersion: z.string(),
-          userWallet: z.string(),
         }),
       )
       .mutation(async ({ ctx, input }) => {
         return await ctx.tubService.recordTokenSale(input, ctx.jwtToken);
+      }),
+
+    recordTabSelected: t.procedure
+      .input(
+        z.object({
+          ...clientEventSchema.shape,
+          tab: z.string(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        return await ctx.tubService.recordTabSelected(input, ctx.jwtToken);
+      }),
+
+    recordLoadingTime: t.procedure
+      .input(
+        z.object({
+          ...clientEventSchema.shape,
+          identifier: z.string(),
+          timeElapsedMs: z.number(),
+          attemptNumber: z.number(),
+          totalTimeMs: z.number(),
+          averageTimeMs: z.number(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        return await ctx.tubService.recordLoadingTime(input, ctx.jwtToken);
+      }),
+
+    recordAppDwellTime: t.procedure
+      .input(
+        z.object({
+          ...clientEventSchema.shape,
+          dwellTimeMs: z.number(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        return await ctx.tubService.recordAppDwellTime(input, ctx.jwtToken);
+      }),
+
+    recordTabDwellTime: t.procedure
+      .input(
+        z.object({
+          ...clientEventSchema.shape,
+          tabName: z.string(),
+          dwellTimeMs: z.number(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        return await ctx.tubService.recordTabDwellTime(input, ctx.jwtToken);
+      }),
+
+    recordTokenDwellTime: t.procedure
+      .input(
+        z.object({
+          ...clientEventSchema.shape,
+          tokenMint: z.string(),
+          dwellTimeMs: z.number(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        return await ctx.tubService.recordTokenDwellTime(input, ctx.jwtToken);
       }),
 
     getBalance: t.procedure.query(async ({ ctx }) => {
