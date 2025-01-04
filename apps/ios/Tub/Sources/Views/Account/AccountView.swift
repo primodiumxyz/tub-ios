@@ -8,151 +8,337 @@
 import SwiftUI
 
 struct AccountView: View {
-    @EnvironmentObject private var errorHandler: ErrorHandler
-    @EnvironmentObject var priceModel: SolPriceModel
-    @EnvironmentObject private var userModel: UserModel
-    @State private var isNavigatingToRegister = false
-    @State private var isAirdropping = false
-    @State private var airdropResult: String?
-    @State private var errorMessage: String?
-    @Environment(\.presentationMode) var presentationMode
-    @State private var showOnrampView = false
-       
-    func performAirdrop() {
-        isAirdropping = true
-        airdropResult = nil
-        
-        Network.shared.airdropNativeToUser(amount: 1 * Int(1e9)) { result in
-            DispatchQueue.main.async {
-                isAirdropping = false
-                switch result {
-                case .success:
-                    airdropResult = "Airdrop successful!"
-                case .failure(let error):
-                    errorHandler.show(error)
-                }
-            }
+  @EnvironmentObject private var notificationHandler: NotificationHandler
+  @EnvironmentObject var priceModel: SolPriceModel
+  @EnvironmentObject private var userModel: UserModel
+  @State private var isNavigatingToRegister = false
+  @State private var isAirdropping = false
+  @Environment(\.presentationMode) var presentationMode
+  @State private var showOnrampView = false
+  @State private var showWithdrawView = false
+  @State private var errorMessage: String = ""
+
+  var body: some View {
+    Group {
+      if userModel.userId != nil {
+        VStack(spacing: 18) {
+          BalanceSection()
+          ActionButtons(
+            isAirdropping: isAirdropping,
+            showOnrampView: $showOnrampView,
+            showWithdrawView: $showWithdrawView
+          )
+
+          TokenHistoryPreview()
+
+          AccountSettingsView()
+            .padding(.top, -12)
+          Spacer()
         }
+      } else {
+        RegisterView().frame(maxWidth: .infinity, maxHeight: .infinity)
+      }
     }
-    
-    var body: some View {
-        NavigationStack {
-            VStack() {
-                Text(serverBaseUrl).foregroundStyle(.white)
-                if userModel.userId.isEmpty {
-                    Text("Please register to view your account details.")
-                        .font(.sfRounded(size: .lg, weight: .medium))
-                        .foregroundColor(.yellow)
-                        .multilineTextAlignment(.center)
-                        .padding()
-                    NavigationLink(destination: RegisterView()) {
-                        Text("Register Now")
-                            .font(.sfRounded(size: .base, weight: .semibold))
-                            .foregroundColor(AppColors.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(12)
-                            .background(AppColors.primaryPurple)
-                            .cornerRadius(26)
-                    }
-                } else {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Account Information")
-                            .font(.sfRounded(size: .xl2, weight: .medium))
-                            .foregroundColor(AppColors.white)
-                            .padding(.vertical)
-                        Text("User id: \(userModel.userId)")
-                            .font(.sfRounded(size: .lg, weight: .medium))
-                        Text("Wallet address: \(userModel.walletAddress)")
-                            .font(.sfRounded(size: .lg, weight: .medium))
-                        
-                        Text("Balance: \(priceModel.formatPrice(lamports: userModel.balanceLamps, minDecimals: 2))")
-                            .font(.sfRounded(size: .lg, weight: .medium))
-                            .padding(.bottom)
-                        if let result = airdropResult {
-                            Text(result).foregroundColor(AppColors.green).padding()
-                        }
-                        if isAirdropping {
-                            ProgressView()
-                        }
-                        else  {
-                            Button(action: performAirdrop) {
-                                Text("Request Airdrop")
-                                    .font(.sfRounded(size: .base, weight: .semibold))
-                                    .foregroundColor(AppColors.white)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(12)
-                                    .background(AppColors.primaryPurple)
-                                    .cornerRadius(26)
-                            }
-                            .disabled(isAirdropping)
-                            .padding(.bottom, 5.0)
-                        }
-                        
-                        Button(action: { showOnrampView = true }) {
-                            Text("Buy SOL")
-                                .font(.sfRounded(size: .base, weight: .semibold))
-                                .foregroundColor(AppColors.white)
-                                .frame(maxWidth: .infinity)
-                                .padding(12)
-                                .background(AppColors.primaryPurple)
-                                .cornerRadius(26)
-                        }
-                        .padding(.bottom, 5.0)
-                        
-                        Button(action: userModel.logout) {
-                            Text("Logout")
-                                .font(.sfRounded(size: .base, weight: .semibold))
-                                .foregroundColor(AppColors.white)
-                                .frame(maxWidth: .infinity)
-                                .padding(12)
-                                .background(AppColors.red)
-                                .cornerRadius(26)
-                        }
-                    }
-                    .foregroundColor(AppColors.white)
-                    .padding(20.0)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .cornerRadius(10)
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(AppColors.black)
-            .onChange(of: userModel.userId) { newValue in
-                if newValue.isEmpty {
-                    presentationMode.wrappedValue.dismiss()
-                }
-            }
-            .sheet(isPresented: $showOnrampView) {
-                CoinbaseOnrampView()
-            }
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .background(Color(UIColor.systemBackground))
+    .sheet(isPresented: $showWithdrawView) {
+      WithdrawView()
+        .withNotificationBanner()
+    }
+    .sheet(isPresented: $showOnrampView) {
+      CoinbaseOnrampView()
+        .withNotificationBanner()
+    }
+    .padding()
+    .presentationDragIndicator(.visible)
+    .presentationBackground(Color(UIColor.systemBackground))
+    .navigationTitle("")
+    .navigationBarTitleDisplayMode(.inline)
+
+  }
+}
+
+// New component for the balance section
+private struct BalanceSection: View {
+  @EnvironmentObject private var userModel: UserModel
+  @EnvironmentObject private var priceModel: SolPriceModel
+
+  var deltaUsd: Double {
+    guard let initialBalance = userModel.initialPortfolioBalance,
+      let currentBalanceUsd = userModel.portfolioBalanceUsd
+    else { return 0 }
+    return currentBalanceUsd - initialBalance
+  }
+
+  var body: some View {
+    VStack(spacing: 8) {
+      Text("Account Balance")
+        .font(.sfRounded(size: .lg, weight: .regular))
+        .foregroundStyle(.secondary)
+
+      if let balance = userModel.portfolioBalanceUsd {
+        let formattedBalance = priceModel.formatPrice(usd: balance, maxDecimals: 2, minDecimals: 2)
+
+        Text(formattedBalance)
+          .font(.sfRounded(size: .xl5, weight: .bold))
+          .foregroundStyle(.primary)
+      } else {
+        ProgressView()
+      }
+
+      if deltaUsd > 0 {
+        Text("\(priceModel.formatPrice(usd: deltaUsd, showSign: true, maxDecimals: 2))")
+
+        // Format time elapsed
+        Text("\(formatDuration(userModel.elapsedSeconds))")
+          .foregroundStyle(.secondary)
+          .font(.sfRounded(size: .sm, weight: .regular))
+
+      }
+    }
+    .padding(.top, 16)
+    .padding(.bottom, 12)
+  }
+}
+
+private struct TokenHistoryPreview: View {
+  @EnvironmentObject private var userModel: UserModel
+
+  func handleRefreshTxs() {
+    Task {
+      try? await userModel.refreshTxs()
+    }
+  }
+
+  var body: some View {
+    NavigationLink(destination: HistoryView()) {
+      VStack {
+        Rectangle()
+          .fill(.tubText.opacity(0.25))
+          .frame(height: 1)
+          .padding(.bottom, 6)
+        HStack {
+          Text("Last Trade")
+            .font(.sfRounded(size: .xl, weight: .medium))
+          Spacer()
+          Text("View All")
+            .font(.sfRounded(size: .base, weight: .regular))
+          Image(systemName: "chevron.right")
+        }.foregroundStyle(.tubText)
+        if userModel.txs == nil {
+          LoadingBox(height: 40)
+        }  else if let txs = userModel.txs, txs.count > 0 {
+              TransactionRow(transaction: txs[0])
+            .frame(height: 40)
+        } else {
+          HStack {
+            Spacer()
+            Text("No recent trades")
+              .font(.sfRounded(size: .base, weight: .regular))
+              .foregroundStyle(.secondary)
+            Spacer()
+          }.frame(height: 40)
         }
+
+        Rectangle()
+          .fill(.tubText.opacity(0.25))
+          .frame(height: 1)
+          .padding(.top, 6)
+      }
     }
- 
+    .clipped()
+    .padding(.horizontal)
+    .onAppear {
+      handleRefreshTxs()
+    }
+    .onChange(of: userModel.walletAddress) { handleRefreshTxs() }
+  }
+}
+
+private struct TransactionRow: View {
+  let transaction: TransactionData
+  @EnvironmentObject private var priceModel: SolPriceModel
+
+  var body: some View {
+    HStack {
+      ImageView(imageUri: transaction.imageUri, size: 32)
+        .cornerRadius(8)
+
+      VStack(alignment: .leading) {
+        HStack {
+          Text(transaction.isBuy ? "Buy" : "Sell")
+            .font(.sfRounded(size: .base, weight: .bold))
+            .foregroundStyle(.tubText)
+          Text(transaction.name.isEmpty ? transaction.mint.truncatedAddress() : transaction.name)
+            .font(.sfRounded(size: .base, weight: .bold))
+            .lineLimit(1)
+            .truncationMode(.tail)
+            .offset(x: -2)
+        }
+
+      }
+      Spacer()
+      VStack(alignment: .trailing) {
+        let price = priceModel.formatPrice(usd: transaction.valueUsd, showSign: true)
+        Text(price)
+          .font(.sfRounded(size: .base, weight: .bold))
+          .foregroundStyle(transaction.isBuy ? Color.red : Color.green)
+
+        let quantity = priceModel.formatPrice(
+          lamports: abs(transaction.quantityTokens),
+          showUnit: false
+        )
+        HStack {
+          Text(quantity)
+            .font(.sfRounded(size: .xs, weight: .regular))
+            .foregroundStyle(.tubBuyPrimary)
+            .offset(x: 4, y: 2)
+
+          Text(transaction.symbol)
+            .font(.sfRounded(size: .xs, weight: .regular))
+            .foregroundStyle(.tubBuyPrimary)
+            .offset(y: 2)
+        }
+      }
+      .padding(.horizontal, 8)
+    }
+  }
+}
+
+// New component for action buttons
+private struct ActionButtons: View {
+  let isAirdropping: Bool
+  @Binding var showOnrampView: Bool
+  @Binding var showWithdrawView: Bool
+
+  var body: some View {
+    HStack(spacing: 24) {
+      Spacer()
+
+      // Add Transfer Button
+      VStack(spacing: 8) {
+        CircleButton(
+          icon: "arrow.left.arrow.right",
+          color: .tubAccent,
+          iconSize: 22,
+          action: { showWithdrawView.toggle() }
+        )
+
+        Text("Transfer")
+          .font(.sfRounded(size: .sm, weight: .medium))
+          .foregroundStyle(.tubAccent)
+          .multilineTextAlignment(.center)
+      }.frame(width: 90)
+
+      // Add Funds Button
+      VStack(spacing: 8) {
+        CircleButton(
+          icon: "plus",
+          color: .tubAccent,
+          action: { showOnrampView = true }
+        )
+
+        Text("Add Funds")
+          .font(.sfRounded(size: .sm, weight: .medium))
+          .foregroundStyle(.tubAccent)
+          .multilineTextAlignment(.center)
+      }.frame(width: 90)
+
+      Spacer()
+    }
+    .padding(.horizontal)
+  }
+}
+
+// New component for account settings
+private struct AccountSettingsView: View {
+  @EnvironmentObject private var userModel: UserModel
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 24) {
+      Text("Account Settings")
+        .font(.sfRounded(size: .xl, weight: .medium))
+        .foregroundStyle(.primary)
+
+      NavigationLink(destination: AccountDetailsView()) {
+        HStack(spacing: 16) {
+          Image(systemName: "person.circle")
+            .resizable()
+            .frame(width: 24, height: 24, alignment: .center)
+          Text("Account Details")
+            .font(.sfRounded(size: .lg, weight: .regular))
+          Spacer()
+          Image(systemName: "chevron.right")
+        }
+        .foregroundStyle(Color.primary)
+      }
+
+      NavigationLink(destination: PortfolioView()) {
+        HStack(spacing: 16) {
+          Image(systemName: "book.circle")
+            .resizable()
+            .frame(width: 24, height: 24, alignment: .center)
+          Text("Portfolio")
+            .font(.sfRounded(size: .lg, weight: .regular))
+          Spacer()
+          Image(systemName: "chevron.right")
+        }
+        .foregroundStyle(Color.primary)
+      }
+
+      NavigationLink(destination: SettingsView()) {
+        HStack(spacing: 16) {
+          Image(systemName: "gear")
+            .resizable()
+            .frame(width: 24, height: 24, alignment: .center)
+          Text("Preferences")
+            .font(.sfRounded(size: .lg, weight: .regular))
+          Spacer()
+          Image(systemName: "chevron.right")
+        }
+        .foregroundStyle(Color.primary)
+      }
+
+      Link(destination: URL(string: "https://t.me/tubalpha")!) {
+        HStack(spacing: 16) {
+          Image("Telegram")
+            .resizable()
+            .frame(width: 24, height: 24, alignment: .center)
+          Text("Join Telegram")
+            .font(.sfRounded(size: .lg, weight: .regular))
+          Spacer()
+          Image(systemName: "chevron.right")
+        }
+      }
+      .foregroundStyle(.primary)
+
+      // Logout Button
+      IconTextButton(
+        icon: "rectangle.portrait.and.arrow.right",
+        text: "Logout",
+        textColor: Color.red,
+        action: { userModel.logout() }
+      )
+
+    }
+    .foregroundStyle(Color.primary)
+  }
 }
 
 #Preview {
-    @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
-    @Previewable @State var userId : String? = nil
-    @StateObject var errorHandler = ErrorHandler()
-    
-    Group {
-        if !priceModel.isReady || userId == nil {
-            LoadingView(identifier: "AccountView - waiting for priceModel & userId")
-        } else {
-            AccountView()
-                .environmentObject(UserModel(userId: userId!))
-                .environmentObject(priceModel)
-        }
-    }
-    .environmentObject(errorHandler)
-    .onAppear {
-        Task {
-            do {
-                userId = try await privy.refreshSession().user.id
-                print(userId)
-            } catch {
-                print("error in preview: \(error)")
-            }
-        }
-    }
+  @Previewable @StateObject var userModel = UserModel.shared
+  @Previewable @StateObject var priceModel = {
+    let model = SolPriceModel.shared
+    spoofPriceModelData(model)
+    return model
+  }()
+
+  @Previewable @StateObject var notificationHandler = NotificationHandler()
+
+  NavigationStack {
+    AccountView()
+  }
+  .environmentObject(priceModel)
+  .environmentObject(userModel)
+  .environmentObject(notificationHandler)
 }

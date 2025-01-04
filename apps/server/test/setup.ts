@@ -1,8 +1,8 @@
-import { start } from "@bin/tub-server";
-import type { GlobalSetupContext } from "vitest/node";
-import { AddressInfo } from "ws";
-
-let teardownHappened = false;
+import { Keypair } from "@solana/web3.js";
+import { config } from "dotenv";
+import { resolve } from "path";
+import bs58 from "bs58";
+import { env } from "@bin/tub-server";
 
 declare module "vitest" {
   export interface ProvidedContext {
@@ -11,25 +11,26 @@ declare module "vitest" {
   }
 }
 
-export default async function ({ provide }: GlobalSetupContext) {
-  console.log("Setting up server for tests");
-  const server = await start();
+export default async function () {
+  console.log("Setting up test environment");
 
-  const serverInfo = server.server.address();
+  // Load test environment variables first
+  config({
+    path: resolve(__dirname, "../.env.test"),
+  });
 
-  if (!serverInfo || typeof serverInfo !== "object") {
-    throw new Error("Server info not found");
+  // Generate and set private key if not already set
+  if (!env.FEE_PAYER_PRIVATE_KEY) {
+    const testKeypair = Keypair.generate();
+    env.FEE_PAYER_PRIVATE_KEY = bs58.encode(testKeypair.secretKey);
   }
 
-  provide("port", serverInfo.port);
-  provide("host", serverInfo.address);
-
-  return async () => {
-    if (teardownHappened) {
-      throw new Error("teardown called twice");
-    }
-    teardownHappened = true;
-
-    await server.close();
-  };
+  // Set any missing required variables with defaults
+  env.NODE_ENV = env.NODE_ENV || "test";
+  env.JUPITER_URL = env.JUPITER_URL || "https://quote-api.jup.ag/v6";
+  env.PRIVY_APP_ID = env.PRIVY_APP_ID || "dummy-privy-app-id";
+  env.PRIVY_APP_SECRET = env.PRIVY_APP_SECRET || "dummy-privy-secret";
+  env.OCTANE_BUY_FEE = Number(env.OCTANE_BUY_FEE) || 100;
+  env.OCTANE_SELL_FEE = Number(env.OCTANE_SELL_FEE) || 0;
+  env.OCTANE_MIN_TRADE_SIZE = Number(env.OCTANE_MIN_TRADE_SIZE) || 15;
 }

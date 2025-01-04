@@ -6,102 +6,181 @@
 //
 
 import Foundation
+import TubAPI
 
-class SolPriceModel: ObservableObject {
-    @Published var currentPrice: Double? = nil
-    @Published var isReady: Bool = false
+final class SolPriceModel: ObservableObject {
+    static let shared = SolPriceModel()
+
+    @Published var price: Double? = nil
     @Published var error: String?
-    
+
     private var timer: Timer?
-    
-    init(mock: Bool = false) {
-        if mock {
-            self.currentPrice = 175
-            isReady = true
-        } else {
-            fetchCurrentPrice()
-        }
+    private var fetching = false
+
+    init() {
+        // we dont need this because we use usdc as the base unit
+        // startPriceUpdates()
+    }
+
+    deinit {
+        timer?.invalidate()
     }
     
-    func fetchCurrentPrice() {
-        isReady = false
-        error = nil
+    @MainActor
+    public func fetchPrice() async {
+        guard !fetching else { return }
+        fetching = true
+        defer { fetching = false }
         
-        Network.shared.fetchSolPrice { [weak self] result in
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let price):
-                    self?.currentPrice = price
-                case .failure(let fetchError):
-                    self?.error = fetchError.localizedDescription
-                    print("Error fetching SOL price: \(fetchError.localizedDescription)")
-                }
-                self?.isReady = true
-            }
+        do {
+            let price = try await Network.shared.getSolPrice()
+            self.price = price
+            self.error = nil
+        } catch {
+            self.error = error.localizedDescription
+            print("Error fetching SOL price: \(error)")
         }
     }
+
+    private func startPriceUpdates() {
+        // Initial fetch
+        Task { @MainActor in
+            await fetchPrice()
+        }
+        
+        // Setup timer for subsequent fetches
+        timer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            Task { @MainActor in
+                await self.fetchPrice()
+            }
+        }
+        RunLoop.main.add(timer!, forMode: .common)
+    }
     
-    func formatPrice(sol: Double, showSign: Bool = false, showUnit: Bool = true, maxDecimals: Int = 9, minDecimals: Int = 0, formatLarge: Bool = true) -> String {
-        if let price = currentPrice, price > 0 {
-            if sol.isNaN || sol.isInfinite || sol == 0 {
-                return showUnit ? "$0.00" : "0.00"
-            }
-            
-            let usdPrice = sol * price
-            
-            // Handle large numbers
-            if usdPrice >= 10_000 && formatLarge {
-                return "\(showSign ? (usdPrice >= 0 ? "+" : "") : "")\(showUnit ? "$" : "")\(formatLargeNumber(usdPrice))"
-            }
-            
-            let (minFractionDigits, maxFractionDigits) = getFormattingParameters(for: usdPrice)
-            var result = formatInitial(usdPrice, minFractionDigits: max(minFractionDigits, minDecimals), maxFractionDigits: min(maxFractionDigits, maxDecimals))
-            
-            result = cleanupFormattedString(result)
-            
-            let isNegative = result.hasPrefix("-")
-            result = result.replacingOccurrences(of: "-", with: "")
-            
-            var prefix = ""
-            if showSign {
-                prefix += isNegative ? "-" : "+"
-            }
-            if showUnit {
-                prefix += "$"
-            }
-            
-            return prefix + result
-        } else {
-            return "0.00"
+    func formatPrice(
+        usd: Double,
+        showSign: Bool = false,
+        showUnit: Bool = true,
+        maxDecimals: Int = 9,
+        minDecimals: Int = 2,
+        formatLarge: Bool = true
+    ) -> String {
+        if usd.isNaN || usd.isInfinite || usd == 0 {
+            return showUnit ? "$0.00" : "0.00"
+        }
+
+        // Handle large numbers
+        if usd >= 10_000 && formatLarge {
+            return
+                "\(showSign ? (usd >= 0 ? "+" : "") : "")\(showUnit ? "$" : "")\(formatLargeNumber(usd))"
+        }
+
+        let (minFractionDigits, maxFractionDigits) = getFormattingParameters(for: usd)
+        var result = formatInitial(
+            usd,
+            minFractionDigits: max(minFractionDigits, minDecimals),
+            maxFractionDigits: min(maxFractionDigits, maxDecimals)
+        )
+
+        result = cleanupFormattedString(result)
+
+        let isNegative = result.hasPrefix("-")
+        result = result.replacingOccurrences(of: "-", with: "")
+
+        var prefix = ""
+        if showSign {
+            prefix += isNegative ? "-" : "+"
+        }
+        if showUnit {
+            prefix += "$"
+        }
+
+        return prefix + result
+    }
+
+    func formatPrice(
+        lamports: Int,
+        showSign: Bool = false,
+        showUnit: Bool = true,
+        maxDecimals: Int = 9,
+        minDecimals: Int = 2,
+        formatLarge: Bool = true
+    ) -> String {
+        return formatPrice(
+            usd: lamportsToUsd(lamports: lamports),
+            showSign: showSign,
+            showUnit: showUnit,
+            maxDecimals: maxDecimals,
+            minDecimals: minDecimals,
+            formatLarge: formatLarge
+        )
+    }
+
+    func formatPrice(
+        sol: Double,
+        showSign: Bool = false,
+        showUnit: Bool = true,
+        maxDecimals: Int = 2,
+        minDecimals: Int = 2,
+        formatLarge: Bool = true
+    ) -> String {
+        if let price = self.price, price > 0 {
+            return formatPrice(
+                usd: sol * price,
+                showSign: showSign,
+                showUnit: showUnit,
+                maxDecimals: maxDecimals,
+                minDecimals: minDecimals,
+                formatLarge: formatLarge
+            )
+        }
+        else {
+            return "$0.00"
         }
     }
-    
-    func formatPrice(lamports: Int, showSign: Bool = false, showUnit: Bool = true, maxDecimals: Int = 9, minDecimals: Int = 0, formatLarge: Bool = true) -> String {
-        let solPrice = Double(lamports) / 1e9
-        return formatPrice(sol: solPrice, showSign: showSign, showUnit: showUnit, maxDecimals: maxDecimals, minDecimals: minDecimals, formatLarge: formatLarge)
+
+    func formatPrice(
+        usdc: Int,
+        showSign: Bool = false,
+        showUnit: Bool = true,
+        maxDecimals: Int = 2,
+        minDecimals: Int = 2,
+        formatLarge: Bool = true
+    ) -> String {
+            return formatPrice(
+                usd: usdcToUsd(usdc: usdc),
+                showSign: showSign,
+                showUnit: showUnit,
+                maxDecimals: maxDecimals,
+                minDecimals: minDecimals,
+                formatLarge: formatLarge
+            )
     }
-    
-    func formatPrice(usd: Double, showSign: Bool = false, showUnit: Bool = true, maxDecimals: Int = 2, minDecimals: Int = 0, formatLarge: Bool = true) -> String {
-        if let price = currentPrice, price > 0 {
-            return formatPrice(sol: usd / price, showSign: showSign, showUnit: showUnit, maxDecimals: maxDecimals, minDecimals: minDecimals, formatLarge: formatLarge)
-        } else {
-            return "0.00"
-        }
-    }
-    
+
     func usdToLamports(usd: Double) -> Int {
-        if let price = currentPrice {
-            return Int(usd * 1e9 / price)
-        } else {
+        if let price = self.price, price > 0 {
+            return Int(usd * SOL_DECIMALS / price)
+        }
+        else {
             return 0
         }
     }
-    
+
     func lamportsToUsd(lamports: Int) -> Double {
-        if let price = currentPrice {
-            return Double(lamports) * price / 1e9
-        } else {
+        if let price = self.price, price > 0 {
+            return Double(lamports) * price / SOL_DECIMALS
+        }
+        else {
             return 0
         }
+    }
+
+    func usdcToUsd(usdc: Int) -> Double {
+        return Double(usdc) / USDC_DECIMALS
+    }
+
+    func usdToUsdc(usd: Double) -> Int {
+        return Int(usd * USDC_DECIMALS)
     }
 }

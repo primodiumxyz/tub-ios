@@ -7,6 +7,8 @@
 
 import XCTest
 
+@testable import Tub
+
 final class TubTests: XCTestCase {
 
     override func setUpWithError() throws {
@@ -32,4 +34,24 @@ final class TubTests: XCTestCase {
         }
     }
 
+    func testFormatPrice() throws {
+        let model = SolPriceModel.shared
+        
+        // Test cases
+        let testCases: [(usd: Double, showSign: Bool, showUnit: Bool, maxDecimals: Int, minDecimals: Int, formatLarge: Bool, expected: String)] = [
+            (usd: 0.00002, showSign: false, showUnit: true, maxDecimals: 2, minDecimals: 2, formatLarge: true, expected: "$0.00"),
+        ]
+
+        for (usd, showSign, showUnit, maxDecimals, minDecimals, formatLarge, expected) in testCases {
+            let result = model.formatPrice(
+                usd: usd,
+                showSign: showSign,
+                showUnit: showUnit,
+                maxDecimals: maxDecimals,
+                minDecimals: minDecimals,
+                formatLarge: formatLarge
+            )
+            XCTAssertEqual(result, expected, "Failed for USD: \(usd), showSign: \(showSign), showUnit: \(showUnit), maxDecimals: \(maxDecimals), minDecimals: \(minDecimals), formatLarge: \(formatLarge)")
+        }
+    }
 }

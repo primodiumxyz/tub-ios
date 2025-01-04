@@ -5,157 +5,227 @@
 //  Created by Henry on 9/27/24.
 //
 
-import SwiftUI
 import Charts
+import Combine
+import SwiftUI
 
 struct ChartView: View {
     @EnvironmentObject var priceModel: SolPriceModel
-    let prices: [Price]
-    let timeframeSecs: Double
-    let purchaseData: PurchaseData?
+	let animate: Bool
+    let rawPrices: [Price]
     let height: CGFloat
-    
-    init(prices: [Price], timeframeSecs: Double = 90.0, purchaseData: PurchaseData? = nil, height: CGFloat = 330) {
-        self.prices = prices
-        self.timeframeSecs = timeframeSecs
+    let purchaseData: PurchaseData?
+
+    @State private var prices: [Price] = []
+
+    let initialPointSize: Double = 35
+
+    private let xAxisPadding: Double = Timespan.live.seconds * 0.1
+
+    init(rawPrices: [Price], purchaseData: PurchaseData? = nil, animate: Bool, height: CGFloat = 330) {
+		self.rawPrices = rawPrices
         self.purchaseData = purchaseData
+		self.animate = animate
         self.height = height
     }
-    
-    @State private var currentTime = Date().timeIntervalSince1970
-    
-    private var dashedLineColor: Color {
-        guard let purchasePrice = purchaseData?.price,
-              let currentPrice = prices.last?.price else { return AppColors.white }
-        if currentPrice == purchasePrice {
-            return AppColors.white
-        }
-        return currentPrice < purchasePrice ? AppColors.lightRed : AppColors.lightGreen
+
+    private func updatePrices() {
+        let cutoffTime = Date().addingTimeInterval(-Timespan.live.seconds)
+        prices = rawPrices.sorted(by: { $0.timestamp < $1.timestamp }).filter { $0.timestamp > cutoffTime }
     }
-    
-    private var change: Int? {
-        guard let purchasePrice = purchaseData?.price,
-              let currentPrice = prices.last?.price else { return nil }
-        return (currentPrice - purchasePrice)
+
+    private var xDomain: ClosedRange<Date> {
+        guard let firstDate = prices.first?.timestamp,
+            let lastDate = prices.last?.timestamp
+        else { return Date()...Date() }
+
+        return firstDate...(lastDate.addingTimeInterval(xAxisPadding))
     }
-    
-    private var yDomain: ClosedRange<Int> {
+
+    private var yDomain: ClosedRange<Double> {
         if prices.isEmpty { return 0...100 }
 
         var pricesWithPurchase = prices
         if let data = purchaseData {
-            let price = Price(timestamp: data.timestamp, price: data.price)
+            let price = Price(timestamp: data.timestamp, priceUsd: data.priceUsd)
             pricesWithPurchase.append(price)
         }
-        
-        let minPrice = pricesWithPurchase.min { $0.price < $1.price }?.price ?? 0
-        let maxPrice = pricesWithPurchase.max { $0.price < $1.price }?.price ?? 100
-        let range = maxPrice - minPrice
-        let padding = Int(Double(range) * 0.25)
-        
-        return (minPrice - padding)...(maxPrice + padding)
+
+        let minPriceUsd = pricesWithPurchase.min { $0.priceUsd < $1.priceUsd }?.priceUsd ?? 0
+        let maxPriceUsd = pricesWithPurchase.max { $0.priceUsd < $1.priceUsd }?.priceUsd ?? 100
+        let range = maxPriceUsd - minPriceUsd
+        let padding = range * 0.10
+
+        return (minPriceUsd - padding)...(maxPriceUsd + padding)
     }
-    
+
     var body: some View {
         Chart {
-            ForEach(prices) { price in
+            ForEach(prices.dropLast()) { price in
                 LineMark(
                     x: .value("Date", price.timestamp),
-                    y: .value("Price", price.price)
+                    y: .value("Price", price.priceUsd)
                 )
-                .foregroundStyle(AppColors.aquaBlue.opacity(0.8))
-                .shadow(color: AppColors.aquaBlue, radius: 3, x: 2, y: 2)
-                .lineStyle(StrokeStyle(lineWidth: 3))
-//                .interpolationMethod(.catmullRom) 
+                .foregroundStyle(.tubBuyPrimary.opacity(0.8))
+                .lineStyle(StrokeStyle(lineWidth: 2))
+                .interpolationMethod(.cardinal(tension: 0.8))
             }
-            
+
             if let currentPrice = prices.last, prices.count >= 2 {
+                LineMark(
+                    x: .value("Date", currentPrice.timestamp),
+                    y: .value("Price", currentPrice.priceUsd)
+                )
+                .foregroundStyle(.tubBuyPrimary.opacity(0.8))
+                .lineStyle(StrokeStyle(lineWidth: 2))
+                .interpolationMethod(.cardinal(tension: 0.8))
                 PointMark(
                     x: .value("Date", currentPrice.timestamp),
-                    y: .value("Price", currentPrice.price)
+                    y: .value("Price", currentPrice.priceUsd)
                 )
-                .foregroundStyle(.white.opacity(0.5)) // Transparent fill
-                .symbolSize(100)
-                
-                PointMark(
-                    x: .value("Date", currentPrice.timestamp),
-                    y: .value("Price", currentPrice.price)
-                )
-                .annotation(position: .top, spacing: 4) {
-                    if purchaseData?.timestamp == currentPrice.timestamp {
-                        EmptyView()
-                    } else {
-                        PillView(
-                            value: "\(priceModel.formatPrice(lamports: abs(currentPrice.price)))",
-                             color: dashedLineColor,
-                             foregroundColor: AppColors.black
-                        )
+                .foregroundStyle(.tubBuyPrimary)
+                .symbolSize(initialPointSize)
+                .annotation(position: .top, spacing: 6) {
+                    if let priceUsd = purchaseData?.priceUsd {
+                        let purchaseIncrease = (currentPrice.priceUsd - priceUsd) / priceUsd
+                        Text("\(purchaseIncrease >= 0 ? "+" : "")\(String(format: "%.1f%%", purchaseIncrease * 100))")
+                            .foregroundStyle(.tubText.opacity(0.9))
+                            .padding(4)
+                            .background(.tubSellSecondary)
+                            .font(.sfRounded(size: .xs))
+                            .fontWeight(.bold)
+                            .clipShape(Capsule())
                     }
                 }
-            }
-            
-            if let data = purchaseData {
-                // Calculate x position as max of purchase time and earliest chart time
-                let xPosition = max(
-                    data.timestamp,
-                    prices.first?.timestamp ?? data.timestamp
-                )
 
-                // Add horizontal dashed line
-                RuleMark(y: .value("Purchase Price", data.price))
-                    .foregroundStyle(AppColors.primaryPink.opacity(0.8))
-                    .lineStyle(StrokeStyle(lineWidth: 2, dash: [5, 5]))
                 
-                PointMark(
-                    x: .value("Date", xPosition),  // Updated x-value
-                    y: .value("Price", data.price)
-                )
-                .foregroundStyle(AppColors.primaryPink)
-                .symbolSize(100)
-                .symbol(.circle)
-                
-                .annotation(position: .bottom, spacing: 0) {
-                    PillView(
-                        value: "\(priceModel.formatPrice(lamports: data.price))",
-                        color: AppColors.primaryPink.opacity(0.8), foregroundColor: AppColors.white)
-                }
             }
+
+            if let purchaseData, let firstPriceTimestamp = prices.first?.timestamp {
+                // Calculate x position as max of purchase time and earliest chart time
+                
+                if firstPriceTimestamp < purchaseData.timestamp {
+                    PointMark(
+                        x: .value("Date", purchaseData.timestamp),  // Updated x-value
+                        y: .value("Price", purchaseData.priceUsd)
+                    )
+                    .foregroundStyle(.tubSellPrimary)
+                    .symbolSize(initialPointSize)
+                    .symbol(.circle)
+                    .annotation(position: .bottom, spacing: 2) {
+                        VStack(spacing: -2.5) {
+                            // Add triangle
+                            Image(systemName: "triangle.fill")
+                                .resizable()
+                                .frame(width: 12, height: 6)
+                                .foregroundStyle(.tubSellPrimary)
+                            
+                            Text("B")
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(.tubSellPrimary)
+                                .font(.sfRounded(size: .sm))
+                                .fontWeight(.bold)
+                                .clipShape(Circle())
+                        }
+                    }
+                } else {
+                    PointMark(
+                        x: .value("Date", firstPriceTimestamp),  // Updated x-value
+                        y: .value("Price", purchaseData.priceUsd)
+                    )
+                    .foregroundStyle(.tubSellPrimary)
+                    
+                        .symbolSize(0)
+                    .annotation(position: .bottomTrailing, spacing: 2) {
+                        VStack {
+                            Text("Bought for \(SolPriceModel.shared.formatPrice(usd: purchaseData.priceUsd))")
+                                .font(.sfRounded(size: .xs, weight: .light))
+                                .opacity(0.8)
+                                .foregroundStyle(.tubSellPrimary)
+                        }
+                    }
+                }
+                // Add horizontal dashed line
+                RuleMark(y: .value("Purchase Price", purchaseData.priceUsd))
+                    .foregroundStyle(.tubSellPrimary.opacity(0.8))
+                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [2, 2]))
+            }
+        }
+        // The animated visual "swipe-chart-glitch" prob occurs here. It happens
+        //	because when we scrollTokenList view to focus on a new token,
+        //	we immediately replace the token price data previously plotted
+        //	by the graph with completely different token price data: the visual
+        //	glitch occurs when all of the plotted data changes at once.
+        .if(animate) { view in
+            view.animation(.linear(duration: PRICE_UPDATE_INTERVAL), value: prices)
         }
         .chartYScale(domain: yDomain)
+        .chartXScale(domain: xDomain)
         .chartYAxis(.hidden)
         .chartXAxis(.hidden)
-        .frame(width: .infinity, height: height)
-        .onReceive(Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()) { _ in
-            currentTime = Date().timeIntervalSince1970
+        .frame(maxWidth: .infinity, minHeight: height, maxHeight: height)
+        .onAppear {
+            updatePrices()
+        }
+        .onChange(of: rawPrices) {
+            updatePrices()
         }
     }
 }
 
-struct PillView: View {
-    let value: String
-    let color: Color
-    let foregroundColor : Color
-    
-    var body: some View {
-        Text(value)
-            .font(.caption)
-            .foregroundColor(foregroundColor)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(color)
-            .font(.sfRounded(size: .lg))
-            .fontWeight(.bold)
-            .clipShape(Capsule())
-    }
-}
+#Preview {
+    struct PreviewWrapper: View {
+        @StateObject var priceModel = {
+            let model = SolPriceModel.shared
+            spoofPriceModelData(model)
+            return model
+        }()
 
-struct Triangle: Shape {
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        path.move(to: CGPoint(x: rect.midX, y: rect.maxY))
-        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
-        path.closeSubpath()
-        return path
+        // Add state variables for controls
+        @State private var isDark = false
+        @State private var showPurchaseData = true
+
+        var purchaseData: PurchaseData {
+            PurchaseData(
+                tokenId: "",
+                timestamp: spoofPrices[20].timestamp,
+                amountToken: Int(1e9),
+                priceUsd: spoofPrices[20].priceUsd
+            )
+        }
+
+        var body: some View {
+            VStack {
+                // Add control buttons
+                VStack {
+                    Text("Modifiers")
+                    PrimaryButton(text: "Toggle Purchase Data") {
+                        showPurchaseData.toggle()
+                    }
+                    PrimaryButton(text: "Toggle Dark Mode") {
+                        isDark.toggle()
+                    }
+                }
+                .padding(16)
+                .background(.tubBuySecondary)
+
+                Spacer().frame(height: 50)
+
+                // Update ChartView to use the controls
+                ChartView(
+					rawPrices: spoofPrices,
+                    purchaseData: showPurchaseData ? purchaseData : nil,
+					animate: false,
+                    height: 330
+                )
+                .border(.red)
+                .environmentObject(priceModel)
+                .preferredColorScheme(isDark ? .dark : .light)
+            }
+        }
     }
+
+    return PreviewWrapper()
 }

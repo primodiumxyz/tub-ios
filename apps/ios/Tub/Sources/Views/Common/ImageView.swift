@@ -10,7 +10,7 @@ import SwiftUI
 struct ImageView: View {
     let imageUri: String
     let size: CGFloat
-    
+
     var body: some View {
         AsyncImage(url: URL(string: imageUri)) { phase in
             switch phase {
@@ -24,7 +24,7 @@ struct ImageView: View {
                 Image(systemName: "photo")
                     .resizable()
                     .scaledToFit()
-                    .foregroundColor(.gray)
+                    .foregroundStyle(.tubTextSecondary)
             @unknown default:
                 EmptyView()
             }

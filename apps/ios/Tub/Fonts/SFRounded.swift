@@ -9,7 +9,8 @@ import SwiftUI
 
 extension Font {
     // Add an enum for Tailwind-like font sizes
-    enum TailwindSize: CGFloat {
+    enum TwSize: CGFloat {
+        case xxs = 10
         case xs = 12
         case sm = 14
         case base = 16
@@ -23,7 +24,17 @@ extension Font {
     }
 
     // Update the font function to use the new TailwindSize enum and adjust kerning
-    static func sfRounded(size: TailwindSize = .base, weight: Font.Weight = .regular) -> Font {
-        return Font.system(size: size.rawValue, weight: weight, design: .rounded)
+    static func sfRounded(size: TwSize = .base, weight: Font.Weight = .regular) -> Font {
+        let baseSize = size.rawValue
+        let screenHeight = UIScreen.main.bounds.height
+        
+        // iPhone SE height is around 667, iPhone 16 Pro Max is 1024
+        let maxHeight: CGFloat = 1024
+        
+        // Scale font size based on screen height
+        let scale = min(max(screenHeight / maxHeight, 0.9), 1.0)
+        let scaledSize = baseSize * scale
+        
+        return Font.system(size: scaledSize, weight: weight, design: .rounded)
     }
 }

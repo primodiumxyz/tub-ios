@@ -1,47 +1,13 @@
-mutation RegisterNewToken($name: String!, $symbol: String!, $supply: numeric!, $uri: String) {
-  insert_token_one(object: { name: $name, symbol: $symbol, uri: $uri, supply: $supply }) {
+mutation AddTokenPurchase(
+  $insert_token_purchase_one: token_purchase_insert_input!
+) {
+  insert_token_purchase_one(object: $insert_token_purchase_one) {
     id
   }
 }
 
-mutation RegisterManyNewTokens($objects: [token_insert_input!]!) {
-  insert_token(objects: $objects, on_conflict: { constraint: token_mint_key, update_columns: [] }) {
-    affected_rows
-  }
-}
-
-mutation BuyToken($wallet: String!, $token: uuid!, $amount: numeric!, $override_token_price: numeric) {
-  buy_token(
-    args: { user_wallet: $wallet, token_id: $token, amount_to_buy: $amount, token_cost: $override_token_price }
-  ) {
+mutation AddTokenSale($insert_token_sale_one: token_sale_insert_input!) {
+  insert_token_sale_one(object: $insert_token_sale_one) {
     id
-  }
-}
-
-mutation SellToken($wallet: String!, $token: uuid!, $amount: numeric!, $override_token_price: numeric) {
-  sell_token(
-    args: { user_wallet: $wallet, token_id: $token, amount_to_sell: $amount, token_cost: $override_token_price }
-  ) {
-    id
-  }
-}
-
-mutation AirdropNativeToUser($wallet: String!, $amount: numeric!) {
-  insert_wallet_transaction_one(object: { wallet: $wallet, amount: $amount }) {
-    id
-  }
-}
-
-mutation AddTokenPriceHistory($token: uuid!, $price: numeric!) {
-  insert_token_price_history_one(object: { token: $token, price: $price }) {
-    id
-  }
-}
-
-mutation AddManyTokenPriceHistory($objects: [token_price_history_insert_input!]!) {
-  insert_token_price_history(objects: $objects) {
-    returning {
-      id
-    }
   }
 }

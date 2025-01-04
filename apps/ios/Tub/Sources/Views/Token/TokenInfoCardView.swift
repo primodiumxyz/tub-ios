@@ -7,188 +7,206 @@
 import SwiftUI
 
 struct TokenInfoCardView: View {
-    @ObservedObject var tokenModel: TokenModel
-    @Binding var isVisible: Bool
-    @Binding var activeTab: String
     @EnvironmentObject var priceModel: SolPriceModel
-    
-    @State private var dragOffset: CGFloat = 0.0
-    @State private var animatingSwipe: Bool = false
-    @State private var isClosing: Bool = false
-    
-    private struct StatValue {
-        let text: String
-        let color: Color?
-    }
-    
-    private var stats: [(String, StatValue)] {
-        var stats = [(String, StatValue)]()
-        
-        if let purchaseData = tokenModel.purchaseData, activeTab == "sell" {
-            // Calculate current value in lamports
-            let currentValueLamps = Int(Double(tokenModel.balanceLamps) / 1e9 * Double(tokenModel.prices.last?.price ?? 0))
-            
-            // Calculate profit
-            let initialValueUsd = priceModel.lamportsToUsd(lamports: purchaseData.price)
-            let currentValueUsd = priceModel.lamportsToUsd(lamports: currentValueLamps)
-            let gains = currentValueUsd - initialValueUsd
-            
+    var stats: [StatValue]
+    @State private var isDescriptionExpanded = false
+    var sellStats: [StatValue]?
+    let tokenData: TokenData
 
-            if purchaseData.amount > 0 {
-                let percentageGain = gains / initialValueUsd * 100
-                stats += [
-                    ("Gains", StatValue(
-                        text: "\(priceModel.formatPrice(usd: gains, showSign: true)) (\(String(format: "%.2f", percentageGain))%)",
-                        color: gains >= 0 ? AppColors.green : AppColors.red
-                    ))
-                ]
-            }
-                        // Add position stats
-            stats += [
-                ("You Own", StatValue(
-                    text: "\(priceModel.formatPrice(lamports: currentValueLamps, maxDecimals: 2, minDecimals: 2)) (\(priceModel.formatPrice(lamports: tokenModel.balanceLamps, showUnit: false)) \(tokenModel.token.symbol))",
-                    color: nil
-                ))
-            ]
-            
-        }
-        
-        // Add original stats from tokenModel
-        stats += tokenModel.getTokenStats(priceModel: priceModel).map { 
-            ($0.0, StatValue(text: $0.1, color: nil))
-        }
-        
-        return stats
+    init(tokenData: TokenData, stats: [StatValue], sellStats: [StatValue]? = nil) {
+        self.tokenData = tokenData
+        self.stats = stats
+        self.sellStats = sellStats
     }
-    
-    
+
+    private var statRows: Int { (self.stats.count + 1) / 2 }
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .center, spacing: 0) {
                 Rectangle()
-                .foregroundColor(.clear)
-                .frame(width: 60, height: 3)
-                .background(AppColors.lightGray)
-                .cornerRadius(100)
+                    .foregroundStyle(.clear)
+                    .frame(width: 60, height: 3)
+                    .background(.tubNeutral)
+                    .cornerRadius(100)
             }
             .padding()
             .frame(maxWidth: .infinity, minHeight: 22, maxHeight: 22, alignment: .center)
-            
+
             ScrollView(.vertical, showsIndicators: true) {
                 VStack(alignment: .leading, spacing: 0) {
-                    Text("Stats")
+                    Text(tokenData.metadata.name)
                         .font(.sfRounded(size: .xl, weight: .semibold))
-                        .foregroundColor(AppColors.white)
                         .frame(maxWidth: .infinity, alignment: .topLeading)
-                        .padding(.bottom,4)
-                    
-                    
-                    ForEach(stats, id: \.0) { stat in
-                        VStack(spacing:4) {
-                            HStack(alignment: .center)  {
-                                Text(stat.0)
-                                    .font(.sfRounded(size: .sm, weight: .regular))
-                                    .foregroundColor(AppColors.gray)
-                                    .fixedSize(horizontal: true, vertical: false)
-                                
-                                Text(stat.1.text)
-                                    .font(.sfRounded(size: .base, weight: .semibold))
-                                    .frame(maxWidth: .infinity, alignment: .topTrailing)
-                                    .foregroundColor(stat.1.color ?? AppColors.white)
+                        .padding(.bottom, 4)
+                    if let sellStats {
+                        ForEach(sellStats) { stat in
+                            VStack(spacing: 0) {
+                                StatView(stat: stat)
                             }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            
-                            //divider
-                            Rectangle()
-                                .foregroundColor(.clear)
-                                .frame(height: 0.5)
-                                .background(AppColors.gray.opacity(0.5))
+                            .padding(.vertical, 4)
                         }
-                        .padding(.vertical, 6)
                     }
-                    
+                    ForEach(0..<statRows, id: \.self) { rowIndex in
+                        HStack(spacing: 20) {
+                            ForEach(0..<2) { columnIndex in
+                                let statIndex = rowIndex * 2 + columnIndex
+                                if statIndex < stats.count {
+                                    StatView(stat: stats[statIndex])
+                                }
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+
                     VStack(alignment: .leading, spacing: 4) {
                         Text("About")
                             .font(.sfRounded(size: .xl, weight: .semibold))
-                            .foregroundColor(AppColors.white)
                             .frame(maxWidth: .infinity, alignment: .topLeading)
-                        
-                        Text("\(tokenModel.token.description)")
-                            .font(.sfRounded(size: .sm, weight: .regular))
-                            .foregroundColor(AppColors.lightGray)
-                            .multilineTextAlignment(.leading)
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            if !tokenData.metadata.description.isEmpty {
+                                JustifiedText(text: tokenData.metadata.description, isExpanded: $isDescriptionExpanded)
+                                    .font(.sfRounded(size: .sm, weight: .regular))
+                                    .foregroundStyle(.secondary)
+
+                                if tokenData.metadata.description.count > 200 {
+                                    Button(action: {
+                                        withAnimation {
+                                            isDescriptionExpanded.toggle()
+                                        }
+                                    }) {
+                                        Text(isDescriptionExpanded ? "Show Less" : "Show More")
+                                            .font(.sfRounded(size: .sm, weight: .medium))
+                                            .foregroundStyle(.tubBuyPrimary)
+                                    }
+                                }
+                            }
+                            else {
+                                Text("This token is still writing its autobiography... 📝")
+                                    .font(.sfRounded(size: .sm, weight: .regular))
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
                     }
-                    .padding(.vertical, 12)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    
-                    HStack(alignment: .center, spacing: 4) {
-                        Image("X-logo-white")
-                            .resizable()
-                            .frame(width: 20, height: 20)
-                        Text(" @ \(tokenModel.token.symbol)")
-                            .font(.sfRounded(size: .lg, weight: .semibold))
-                            .foregroundColor(AppColors.aquaGreen)
-                    }
-                    .padding(.top, 8.0)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                
+                    .padding(.top, 10)
                 }
-                .padding(.horizontal,20)
+                .padding(.horizontal, 20)
                 .padding(.vertical, 16)
+                .scrollBounceBehavior(.basedOnSize, axes: [.vertical])
                 .frame(maxWidth: .infinity, alignment: .topLeading)
-                .background(AppColors.darkGrayGradient)
-                .cornerRadius(20)
             }
         }
-        .padding(.vertical, 0)
-        .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height * 0.44, alignment: .topLeading)
-        .background(AppColors.black)
-        .overlay(
-            RoundedRectangle(cornerRadius: 30)
-                .inset(by: 0.5)
-                .stroke(AppColors.shadowGray, lineWidth: 1)
+        .background(Gradients.cardBgGradient)
+        .clipShape(
+            UnevenRoundedRectangle(
+                cornerRadii: RectangleCornerRadii(
+                    topLeading: 30,
+                    bottomLeading: 0,
+                    bottomTrailing: 0,
+                    topTrailing: 30
+                )
+            )
         )
-        .transition(.move(edge: .bottom))
-        .offset(y: dragOffset)
-        .ignoresSafeArea(edges: .horizontal)
-        .gesture(
-            DragGesture()
-                .onChanged { value in
-                    dragOffset = value.translation.height
+    }
+}
+
+private struct StatView: View {
+    var stat: StatValue
+
+    var body: some View {
+        VStack(spacing: 4) {
+            HStack(spacing: 0) {
+                HStack(spacing: 3) {
+                Text(stat.title)
+                    .font(.sfRounded(size: .sm, weight: .regular))
+                    .foregroundStyle(.tubText)
+                    .fixedSize(horizontal: true, vertical: false)
+                
+                if let caption = stat.caption {
+                    Text(caption)
+                        .font(.sfRounded(size: .xs, weight: .regular))
+                        .foregroundStyle(.tubText.opacity(0.7))
                 }
-                .onEnded { value in
-                    let threshold: CGFloat = 100
-                    let verticalAmount = value.translation.height
-                    
-                    if verticalAmount > threshold && !animatingSwipe {
-                        withAnimation(.easeInOut(duration: 0.4)) {
-                            dragOffset = UIScreen.main.bounds.height
-                        }
-                        animatingSwipe = true
-                        isClosing = true
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                            isVisible = false // Close the card
-                        }
-                    } else {
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            dragOffset = 0
-                        }
-                    }
+
+                Text(stat.value)
+                    .font(.sfRounded(size: .base, weight: .semibold))
+                    .foregroundStyle(stat.color ?? .primary)
+                    .frame(maxWidth: .infinity, alignment: .topTrailing)
                 }
+                .alignmentGuide(.firstTextBaseline) { d in d[.firstTextBaseline] }
+            }
+
+            Rectangle()
+                .fill(.tubText)
+                .opacity(0.5)
+                .frame(maxWidth: .infinity, maxHeight: 1)
+        }
+        .padding(.vertical, 6)
+    }
+}
+
+#Preview {
+    @Previewable @State var isDarkMode = false
+    @Previewable @StateObject var userModel = UserModel.shared
+    @Previewable @StateObject var priceModel = {
+        let model = SolPriceModel.shared
+        spoofPriceModelData(model)
+        return model
+    }()
+
+    var sellStats: [StatValue] {
+        
+        var stats: [StatValue] = []
+        stats.append(
+            StatValue(
+                title: "Gains",
+                value:
+                    "\(priceModel.formatPrice(usd: 100, showSign: true)) (\(String(format: "%.2f", 5.4))%)",
+                color: .tubSuccess
+            )
         )
-        .onChange(of: isVisible) { newValue in
-            if newValue {
-                // Reset when becoming visible
-                isClosing = false
-                dragOffset = 0
-                animatingSwipe = false
-            } else if !isClosing {
-                // Only animate closing if not already closing from gesture
-                withAnimation(.easeInOut(duration: 0.4)) {
-                    dragOffset = UIScreen.main.bounds.height
-                }
+
+        // Add position stats
+        stats.append(
+            StatValue(
+                title: "You own",
+                value:
+                    "\(priceModel.formatPrice(usd: 69, maxDecimals: 2, minDecimals: 2)) (\(formatLargeNumber(1e8)) TOK)"
+            )
+        )
+        return stats
+    }
+
+    var generalStats: [StatValue] {
+        let ret = [
+//            todo: readd when quicknode fixes value
+//            StatValue(title: "Market Cap", value: priceModel.formatPrice(usd: 1e9, formatLarge: true)),
+            StatValue(title: "Volume (1h)", value: priceModel.formatPrice(usd: 1e8, formatLarge: true)),
+            StatValue(title: "Liquidity", value: priceModel.formatPrice(usd: 1e8, formatLarge: true)),
+            StatValue(title: "Unique holders", value: formatLargeNumber(1e5)),
+        ]
+        //        print(ret)
+        return ret
+    }
+
+    let emptyToken = TokenData(
+        mint: "",
+        balanceToken: 0,
+        metadata: TokenMetadata(name: "", symbol: "", description: "", imageUri: "", externalUrl: "", decimals: 6)
+    )
+
+    VStack {
+        VStack {
+            PrimaryButton(text: "Toggle Dark Mode") {
+                isDarkMode.toggle()
             }
         }
-        .transition(.move(edge: .bottom))
+        .frame(maxHeight: 400)
+        .padding(16)
+        .background(.tubBuySecondary)
+        TokenInfoCardView(tokenData: emptyToken, stats: generalStats, sellStats: sellStats)
+            .environmentObject(priceModel)
+            .preferredColorScheme(isDarkMode ? .dark : .light)
     }
 }

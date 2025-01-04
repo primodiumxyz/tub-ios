@@ -1,0 +1,234 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "" : {
+
+    },
+    "%@" : {
+
+    },
+    "%@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ %2$@"
+          }
+        }
+      }
+    },
+    "%@%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@%2$@"
+          }
+        }
+      }
+    },
+    "%lld" : {
+
+    },
+    "$" : {
+
+    },
+    "$%@" : {
+
+    },
+    "10" : {
+      "comment" : "placeholder"
+    },
+    "10.00" : {
+      "comment" : "placeholder"
+    },
+    "100.00" : {
+
+    },
+    "About" : {
+
+    },
+    "Account Balance" : {
+
+    },
+    "Account Details" : {
+
+    },
+    "Account Settings" : {
+
+    },
+    "Add Funds" : {
+
+    },
+    "All Trades" : {
+
+    },
+    "B" : {
+
+    },
+    "Balance: %@" : {
+
+    },
+    "Bought for %@" : {
+
+    },
+    "Buy" : {
+
+    },
+    "Close" : {
+
+    },
+    "Connect a wallet to continue" : {
+
+    },
+    "Country Code" : {
+
+    },
+    "Date" : {
+
+    },
+    "Deposit" : {
+
+    },
+    "Deposit with" : {
+
+    },
+    "Enter Solana address" : {
+
+    },
+    "Enter verification code" : {
+
+    },
+    "Enter your email" : {
+
+    },
+    "Enter your Phone Number" : {
+
+    },
+    "Filled" : {
+
+    },
+    "High" : {
+
+    },
+    "Join Telegram" : {
+
+    },
+    "Last Trade" : {
+
+    },
+    "Low" : {
+
+    },
+    "No recent trades" : {
+
+    },
+    "No tokens" : {
+
+    },
+    "No trades found" : {
+
+    },
+    "No transactions found" : {
+
+    },
+    "Open" : {
+
+    },
+    "or" : {
+
+    },
+    "Please enter a valid email address." : {
+
+    },
+    "Please enter a valid phone number." : {
+
+    },
+    "Portfolio" : {
+
+    },
+    "Preferences" : {
+
+    },
+    "Price" : {
+
+    },
+    "Price: %lf" : {
+
+    },
+    "Purchase Price" : {
+
+    },
+    "Save" : {
+
+    },
+    "Search..." : {
+
+    },
+    "Sell" : {
+
+    },
+    "Set Default" : {
+
+    },
+    "Settings" : {
+
+    },
+    "Show Less" : {
+
+    },
+    "Show More" : {
+
+    },
+    "Solana Address is invalid" : {
+
+    },
+    "Solana Wallet" : {
+
+    },
+    "This token is still writing its autobiography... 📝" : {
+
+    },
+    "Time" : {
+
+    },
+    "To" : {
+
+    },
+    "Transfer" : {
+
+    },
+    "tx history: %lld" : {
+
+    },
+    "Unfilled" : {
+
+    },
+    "USDC" : {
+
+    },
+    "Value: %@" : {
+
+    },
+    "View All" : {
+
+    },
+    "Welcome to tub" : {
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "French: Tub welcomes you!"
+          }
+        }
+      }
+    },
+    "Your Balance" : {
+
+    },
+    "Your Balance %@" : {
+
+    }
+  },
+  "version" : "1.0"
+}

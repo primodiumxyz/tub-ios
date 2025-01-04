@@ -8,446 +8,301 @@
 import SwiftUI
 import TubAPI
 
-struct HistoryView : View {
-    
+
+struct HistoryView: View {
     @EnvironmentObject private var userModel: UserModel
     @EnvironmentObject private var priceModel: SolPriceModel
     
-    
-    @State private var txs: [Transaction]
-    @State private var loading : Bool
-    @State private var error: Error? // Add this line
-    
-    init(txs: [Transaction]? = []) {
-        self._txs = State(initialValue: txs!.isEmpty ? [] : txs!)
-        self._loading = State(initialValue: txs == nil)
-        self._error = State(initialValue: nil) // Add this line
-    }
-    
-    func fetchUserTxs(_ userId: String) {
-        loading = true
-        error = nil // Reset error state
-        let query = GetWalletTransactionsQuery(wallet: userModel.walletAddress)
-        
-        Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { result in
-            DispatchQueue.main.async {
-                self.loading = false
-                
-                switch result {
-                case .success(let graphQLResult):
-                    if let tokenTransactions = graphQLResult.data?.token_transaction {
-                        self.txs = tokenTransactions.reduce(into: []) { result, transaction in
-                            guard let date = formatDateString(transaction.wallet_transaction_data.created_at) else {
-                                return
-                            }
-                            if (abs(transaction.amount) == 0) {
-                                return
-                            }
-                            
-                            let isBuy = transaction.amount >= 0
-                            let symbol = transaction.token_data.symbol
-                            let name = transaction.token_data.name
-                            let mint = transaction.token_data.mint
-                            
-                            let imageUri = transaction.token_data.uri?.replacingOccurrences(of: "https://cdn.helius-rpc.com/cdn-cgi/image//", with: "").replacingOccurrences(of: "cf-ipfs.com", with: "ipfs.io") ?? "" // Helius cdn link doesn't work out for now
-                            let price = transaction.token_price?.price ?? 0
-                            
-                            var valueLamps = 0
-                            let maxSafeValue = Int.max / abs(transaction.amount)
-                            if Double(price) > Double(maxSafeValue) {
-                                valueLamps = maxSafeValue / Int(1e9)
-                            } else {
-                                valueLamps = Int(Double(price) * Double(transaction.amount) / Double(1e9))
-                            }
-                                
-                            let newTransaction = Transaction(
-                                name: name ?? "",
-                                symbol: symbol ?? "",
-                                imageUri: imageUri,
-                                date: date,
-                                valueUsd: priceModel.lamportsToUsd(lamports: -valueLamps),
-                                valueLamps: -valueLamps,
-                                quantityTokens: transaction.amount,
-                                isBuy: isBuy,
-                                mint: mint
-                            )
-                                
-                            result.append(newTransaction)
-                        }
-                    } else if let error = graphQLResult.errors?.first {
-                        print(error)
-                        self.error = error
-                    } else {
-                        self.txs = []
-                    }
-                case .failure(let error):
-                    print("Error fetching transactions: \(error)")
-                    self.error = error
-                }
-            }
+    func handleFetchTxs(hardRefresh: Bool) {
+        Task {
+            try? await userModel.refreshTxs(hard: hardRefresh)
         }
     }
     
+    @State private var filterState = FilterState()
+
     var body: some View {
-        Group {
-            if loading == true {
-                LoadingView(identifier: "HistoryView - loading")
-            } else if let error = error {
-                ErrorView(error: error)
-            } else {
-                HistoryViewContent(txs: txs)
-            }
-        }.onAppear {
-            fetchUserTxs(userModel.userId)
-        }
-    }
-}
-
-
-
-struct HistoryViewContent: View {
-    var txs: [Transaction]
-    @State private var showFilters = true
-    
-    // Filter state
-    @State private var searchText: String = ""
-    @State private var isSearching: Bool = false
-    @State private var selectedBuy: Bool = true
-    @State private var selectedSell: Bool = true
-    @State private var selectedPeriod: String = "All"
-    @State private var selectedAmountRange: String = "All"
-    @State private var selectedFilled: Bool = true
-    @State private var selectedUnfilled: Bool = true
-    
-    
-    var body: some View {
-        NavigationView {
-            VStack {
-                Text("History")
-                    .font(.sfRounded(size: .xl2, weight: .bold))
-                    .foregroundColor(AppColors.white)
-                
-                HStack {
-                    Text("Completed")
-                        .font(.sfRounded(size: .xl2, weight: .bold))
-                        .foregroundColor(AppColors.white)
-                        .padding(.leading, 10.0)
-                    Spacer()
-                    
-                    Button(action: {
-                        withAnimation {
-                            showFilters.toggle()
-                        }
-                    }) {
-                        Image(systemName: "line.horizontal.3.decrease.circle")
-                            .foregroundColor(AppColors.white)
-                            .font(.system(size: 24))
-                    }
-                }
-                .padding(.horizontal, 10)
-                .padding(.top, 10)
-                
-                if showFilters {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack {
-                            Button(action: {
-                                withAnimation { isSearching.toggle()}
-                            }) {
-                                Image(systemName: isSearching ? "xmark.circle.fill" : "magnifyingglass")
-                                    .foregroundColor(AppColors.white)
-                                    .font(.sfRounded(size: .lg, weight: .semibold))
-                                
-                            }
-                            
-                            if isSearching {
-                                ZStack {
-                                    if searchText.isEmpty {
-                                        Text("Search...")
-                                            .foregroundColor(AppColors.gray)
-                                            .font(.sfRounded(size: .base, weight: .regular))
-                                            .offset(x:-14)
-                                    }
-                                    TextField("", text: $searchText)
-                                        .textFieldStyle(PlainTextFieldStyle())
-                                        .foregroundColor(AppColors.white)
-                                        .frame(width: 100, height: 44)
-                                        .cornerRadius(0)
-                                        .transition(.move(edge: .trailing))
-                                        .font(.sfRounded(size: .base, weight: .regular))
-                                }
-                            }
-                            
-                            // Type Filter Dropdown (Buy/Sell Checkboxes)
-                            Menu {
-                                Toggle(isOn: $selectedBuy) { Text("Buy") }
-                                Toggle(isOn: $selectedSell) { Text("Sell") }
-                            } label: {
-                                Text(typeFilterLabel())
-                                    .font(.sfRounded(size: .sm, weight: .regular))
-                                    .foregroundColor(AppColors.white)
-                                    .padding(.horizontal)
-                                    .padding(.vertical, 6.0)
-                                    .fixedSize(horizontal: true, vertical: false)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .stroke(AppColors.lightGray, lineWidth: 1)
-                                    )
-                            }
-                            
-                            // Period Filter
-                            Menu {
-                                Button(action: { selectedPeriod = "All" }) { Text("All") }
-                                Button(action: { selectedPeriod = "Today" }) { Text("Today") }
-                                Button(action: { selectedPeriod = "This Week" }) { Text("This Week") }
-                                Button(action: { selectedPeriod = "This Month" }) { Text("This Month") }
-                                Button(action: { selectedPeriod = "This Year" }) { Text("This Year") }
-                            } label: {
-                                Text("Period: \(selectedPeriod)")
-                                    .font(.sfRounded(size: .sm, weight: .regular))
-                                    .foregroundColor(AppColors.white)
-                                    .padding(.horizontal)
-                                    .padding(.vertical, 6)
-                                    .fixedSize(horizontal: true, vertical: false)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .stroke(AppColors.lightGray, lineWidth: 1)
-                                    )
-                            }
-                            
-                            // Status Filter
-                            Menu {
-                                Toggle(isOn: $selectedFilled) { Text("Filled") }
-                                Toggle(isOn: $selectedUnfilled) { Text("Unfilled") }
-                            } label: {
-                                Text(statusFilterLabel())
-                                    .font(.sfRounded(size: .sm, weight: .regular))
-                                    .foregroundColor(AppColors.white)
-                                    .padding(.horizontal)
-                                    .padding(.vertical, 6)
-                                    .fixedSize(horizontal: true, vertical: false)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .stroke(AppColors.lightGray, lineWidth: 1)
-                                    )
-                            }
-                            
-                            // Amount Filter
-                            Menu {
-                                Button(action: { selectedAmountRange = "All" }) { Text("All") }
-                                Button(action: { selectedAmountRange = "< $100" }) { Text("< $100") }
-                                Button(action: { selectedAmountRange = "> $100" }) { Text("> $100") }
-                            } label: {
-                                Text("Amount: \(selectedAmountRange)")
-                                    .font(.sfRounded(size: .sm, weight: .regular))
-                                    .foregroundColor(AppColors.white)
-                                    .padding(.horizontal)
-                                    .padding(.vertical, 6)
-                                    .fixedSize(horizontal: true, vertical: false)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .stroke(AppColors.lightGray, lineWidth: 1)
-                                    )
-                            }
-                        }
-                        .padding(.horizontal, 20.0)
-                        .frame(height: 40.0)
-                        .offset(y: -5)
-                    }
-                }
-                
-                
+            VStack(spacing: 0) {
                 // Transaction List
-                if filteredTransactions().isEmpty {
+                if userModel.txs == nil {
+                    VStack {
+                        Spacer()
+                        ProgressView()
+                        Spacer()
+                    }.frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+                else if filteredTransactions().isEmpty {
+                    TransactionFilters(filterState: $filterState)
+                        .background(Color(UIColor.systemBackground))
                     Text("No transactions found")
+                        .padding()
                         .font(.sfRounded(size: .base, weight: .regular))
-                        .foregroundColor(AppColors.gray)
+                        .foregroundStyle(Color.gray)
                 } else {
-                    List {
-                        ForEach(filteredTransactions(), id: \.id) { transaction in
-                            NavigationLink(destination: HistoryDetailsView(transaction: transaction)) {
-                                
-                                VStack {
-                                    TransactionRow(transaction: transaction)
-                                        .padding(.bottom, 2.0)
-                                        .padding(.leading, 10.0)
-                                    
-                                    if transaction != txs.last  {
-                                        Divider()
-                                            .frame(width: 340.0, height: 1.0)
-                                            .background(Color(hue: 1.0, saturation: 0.0, brightness: 0.2))
-                                    }
-                                }
-                            }
-                            .listRowBackground(Color.black)
+                    TransactionFilters(filterState: $filterState)
+                        .background(Color(UIColor.systemBackground))
+                    ScrollView {
+                        LazyVStack(spacing: 0) {
+                            ForEach(groupTransactions(filteredTransactions()), id: \.date) { group in
+                                TransactionGroupRow(group: group)
                         }
                     }
-                    .listStyle(PlainListStyle())
-                }
-                Spacer()
-                
+                    .padding(.horizontal, 16)
             }
-            .background(Color.black.edgesIgnoringSafeArea(.all))
+                }
         }
-        .navigationTitle("History")
-    }
-    
-    // For Type filter label
-    func typeFilterLabel() -> String {
-        if selectedBuy && selectedSell {
-            return "Type: All"
-        } else if selectedBuy {
-            return "Type: Buy"
-        } else if selectedSell {
-            return "Type: Sell"
-        } else {
-            return "Type: None"
-        }
-    }
-    
-    // For Status filter label
-    func statusFilterLabel() -> String {
-        if selectedFilled && selectedUnfilled {
-            return "Status: All"
-        } else if selectedFilled {
-            return "Status: Filled"
-        } else if selectedUnfilled {
-            return "Status: Unfilled"
-        } else {
-            return "Status: None"
-        }
-    }
-    
-    // Helper function to filter transactions
-    func filteredTransactions() -> [Transaction] {
-        var filteredData = txs
+            .onAppear{
+                handleFetchTxs(hardRefresh: false)
+            }
+            .refreshable(action: {handleFetchTxs(hardRefresh: true)})
         
+        .navigationTitle("All Trades")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    // Helper function to filter transactions
+    func filteredTransactions() -> [TransactionData] {
+        guard let txs = userModel.txs else { return [] }
+        var filteredData = txs
+
         // Filter by search text
-        if !searchText.isEmpty {
+        if !filterState.searchText.isEmpty {
             filteredData = filteredData.filter { transaction in
                 let cleanedSymbol = transaction.symbol.replacingOccurrences(of: "$", with: "").lowercased()
-                return cleanedSymbol.hasPrefix(searchText.lowercased())
+                return cleanedSymbol.hasPrefix(filterState.searchText.lowercased())
             }
         }
-        
+
         // Filter by Type (checkboxes)
-        if selectedBuy && !selectedSell {
+        if filterState.selectedBuy && !filterState.selectedSell {
             filteredData = filteredData.filter { $0.isBuy }
-        } else if selectedSell && !selectedBuy {
+        }
+        else if filterState.selectedSell && !filterState.selectedBuy {
             filteredData = filteredData.filter { !$0.isBuy }
-        } else if !selectedBuy && !selectedSell {
+        }
+        else if !filterState.selectedBuy && !filterState.selectedSell {
             filteredData = []
         }
-        
+
         // Filter by Period
-        if selectedPeriod != "All" {
-            switch selectedPeriod {
+        if filterState.selectedPeriod != "All" {
+            switch filterState.selectedPeriod {
             case "Today":
                 filteredData = filteredData.filter { Calendar.current.isDateInToday($0.date) }
             case "This Week":
-                filteredData = filteredData.filter { Calendar.current.isDate($0.date, equalTo: Date(), toGranularity: .weekOfYear) }
+                filteredData = filteredData.filter {
+                    Calendar.current.isDate($0.date, equalTo: Date(), toGranularity: .weekOfYear)
+                }
             case "This Month":
-                filteredData = filteredData.filter { Calendar.current.isDate($0.date, equalTo: Date(), toGranularity: .month) }
+                filteredData = filteredData.filter {
+                    Calendar.current.isDate($0.date, equalTo: Date(), toGranularity: .month)
+                }
             case "This Year":
-                filteredData = filteredData.filter { Calendar.current.isDate($0.date, equalTo: Date(), toGranularity: .year) }
+                filteredData = filteredData.filter {
+                    Calendar.current.isDate($0.date, equalTo: Date(), toGranularity: .year)
+                }
             default:
                 break
             }
         }
-        
+
         // Filter by Status (checkboxes)
-        if selectedFilled && !selectedUnfilled {
+        if filterState.selectedFilled && !filterState.selectedUnfilled {
             filteredData = filteredData.filter { _ in true }
-        } else if selectedUnfilled && !selectedFilled {
+        }
+        else if filterState.selectedUnfilled && !filterState.selectedFilled {
             filteredData = filteredData.filter { _ in false }
-        } else if !selectedFilled && !selectedUnfilled {
+        }
+        else if !filterState.selectedFilled && !filterState.selectedUnfilled {
             filteredData = []
         }
-        
+
         // Filter by Amount
-        if selectedAmountRange != "All" {
-            switch selectedAmountRange {
+        if filterState.selectedAmountRange != "All" {
+            switch filterState.selectedAmountRange {
             case "< $100":
-                filteredData = filteredData.filter { abs($0.valueUsd) < 100 }
+                filteredData = filteredData.filter { abs($0.valueUsd) < 100.0 }
             case "> $100":
-                filteredData = filteredData.filter { abs($0.valueUsd) > 100 }
+                filteredData = filteredData.filter { abs($0.valueUsd) > 100.0 }
             default:
                 break
             }
         }
-        
+
         return filteredData
     }
-}
 
-struct TransactionRow: View {
-    let transaction: Transaction
-    @EnvironmentObject private var priceModel: SolPriceModel
-    
-    var body: some View {
-        HStack {
-            ImageView(imageUri: transaction.imageUri, size: 40)
-                .cornerRadius(8)
-            
-            VStack(alignment: .leading) {
-                HStack {
-                    Text(transaction.isBuy ? "Buy" : "Sell")
-                        .font(.sfRounded(size: .base, weight: .bold))
-                        .foregroundColor(AppColors.white)
-                    Text(transaction.name.isEmpty ? transaction.mint.truncatedAddress() : transaction.name)
-                        .font(.sfRounded(size: .base, weight: .bold))
-                        .foregroundColor(AppColors.lightYellow)
-                        .offset(x:-2)
-                }
-                
-                Text(formatDate(transaction.date))
-                    .font(.sfRounded(size: .xs, weight: .regular))
-                    .foregroundColor(AppColors.gray)
-                    .offset(y:2)
-                
-            }
-            Spacer()
-            VStack(alignment: .trailing) {
-                HStack {
-                    Text(priceModel.formatPrice(usd: transaction.valueUsd, showSign: true))
-                        .font(.sfRounded(size: .base, weight: .bold))
-                        .foregroundColor(transaction.isBuy ? AppColors.red: AppColors.green)
-                }
-                
-                HStack {
-                    Text(priceModel.formatPrice(lamports: abs(transaction.quantityTokens), showUnit: false))
-                        .font(.sfRounded(size: .xs, weight: .regular))
-                        .foregroundColor(AppColors.gray)
-                        .offset(x:4, y:2)
-                    
-                    Text(transaction.symbol)
-                        .font(.sfRounded(size: .xs, weight: .regular))
-                        .foregroundColor(AppColors.gray)
-                        .offset(y:2)
-                }
-            }
-            Image(systemName: "chevron.right")
-                .foregroundColor(AppColors.gray)
-                .offset(x: 12)
+    // Helper function to group transactions
+func groupTransactions(_ transactions: [TransactionData]) -> [TransactionGroup] {
+    let grouped = Dictionary(grouping: transactions) { transaction in
+        let calendar = Calendar.current
+        let date = calendar.startOfDay(for: transaction.date)
+        return "\(transaction.mint)_\(date)"
+    }
+
+    return grouped.map { _, transactions in
+        let netProfit = transactions.reduce(0.0) { sum, tx in
+            sum + tx.valueUsd
         }
-        .padding(.bottom, 10.0)
-        .background(Color.black)
+
+        let firstTx = transactions.sorted { $0.date > $1.date }.first!
+
+        return TransactionGroup(
+            transactions: transactions.sorted { $0.date > $1.date },
+            netProfit: netProfit,
+            date: firstTx.date,
+            token: firstTx.mint,
+            symbol: firstTx.symbol,
+            imageUri: firstTx.imageUri
+        )
+    }.sorted { $0.date > $1.date }
+}
+}
+
+struct FilterState {
+    var searchText: String = ""
+    var isSearching: Bool = false
+    var selectedBuy: Bool = true
+    var selectedSell: Bool = true
+    var selectedPeriod: String = "All"
+    var selectedAmountRange: String = "All"
+    var selectedFilled: Bool = true
+    var selectedUnfilled: Bool = true
+}
+
+struct TransactionFilters: View {
+    @Binding var filterState: FilterState
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                // Search Button and Field
+                SearchFilter(filterState: $filterState)
+
+                // Type Filter
+                Menu {
+                    Toggle(isOn: $filterState.selectedBuy) { Text("Buy") }
+                    Toggle(isOn: $filterState.selectedSell) { Text("Sell") }
+                } label: {
+                    FilterButton(text: typeFilterLabel())
+                }
+
+                // Period Filter
+                Menu {
+                    ForEach(["All", "Today", "This Week", "This Month", "This Year"], id: \.self) { period in
+                        Button(action: { filterState.selectedPeriod = period }) {
+                            Text(period)
+                        }
+                    }
+                } label: {
+                    FilterButton(text: "Period: \(filterState.selectedPeriod)")
+                }
+
+                // Status Filter
+                Menu {
+                    Toggle(isOn: $filterState.selectedFilled) { Text("Filled") }
+                    Toggle(isOn: $filterState.selectedUnfilled) { Text("Unfilled") }
+                } label: {
+                    FilterButton(text: statusFilterLabel())
+                }
+
+                // Amount Filter
+                Menu {
+                    ForEach(["All", "< $100", "> $100"], id: \.self) { amount in
+                        Button(action: { filterState.selectedAmountRange = amount }) {
+                            Text(amount)
+                        }
+                    }
+                } label: {
+                    FilterButton(text: "Amount: \(filterState.selectedAmountRange)")
+                }
+            }
+            .padding()
+            .foregroundStyle(.tubTextSecondary)
+        }
+        .frame(height: 44)
     }
-    
-    func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        return formatter.string(from: date)
+
+    func typeFilterLabel() -> String {
+        if filterState.selectedBuy && filterState.selectedSell {
+            return "Type: All"
+        }
+        else if filterState.selectedBuy {
+            return "Type: Buy"
+        }
+        else if filterState.selectedSell {
+            return "Type: Sell"
+        }
+        else {
+            return "Type: None"
+        }
+    }
+
+    func statusFilterLabel() -> String {
+        if filterState.selectedFilled && filterState.selectedUnfilled {
+            return "Status: All"
+        }
+        else if filterState.selectedFilled {
+            return "Status: Filled"
+        }
+        else if filterState.selectedUnfilled {
+            return "Status: Unfilled"
+        }
+        else {
+            return "Status: None"
+        }
     }
 }
 
 
-#Preview {
-    @Previewable @StateObject var errorHandler = ErrorHandler()
-    @Previewable @StateObject var priceModel = SolPriceModel(mock: true)
-    if !priceModel.isReady {
-        LoadingView(identifier: "HistoryView - waiting for priceModel")
-    } else {
-        HistoryView(txs: dummyData).environmentObject(priceModel).environmentObject(errorHandler)
+
+// Separate search filter component
+struct SearchFilter: View {
+    @Binding var filterState: FilterState
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: filterState.isSearching ? "xmark.circle.fill" : "magnifyingglass")
+                .foregroundStyle(.primary)
+                .font(.sfRounded(size: .base, weight: .semibold))
+                .onTapGesture {
+                    if filterState.isSearching {
+                        filterState.searchText = ""
+                    }
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        filterState.isSearching.toggle()
+                    }
+                }
+
+            if filterState.isSearching {
+                ZStack(alignment: .leading) {
+                    if filterState.searchText.isEmpty {
+                        Text("Search...")
+                            .foregroundStyle(.secondary)
+                            .font(.sfRounded(size: .base, weight: .regular))
+                    }
+                    TextField("", text: $filterState.searchText)
+                        .textFieldStyle(PlainTextFieldStyle())
+                        .foregroundStyle(.primary)
+                        .frame(width: 100)
+                        .font(.sfRounded(size: .base, weight: .regular))
+                }
+            }
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 6)
+        .background(Color.clear)
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(.tubNeutral, lineWidth: 1)
+        )
+        .onTapGesture {
+            if !filterState.isSearching {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    filterState.isSearching.toggle()
+                }
+            }
+        }
     }
 }
 

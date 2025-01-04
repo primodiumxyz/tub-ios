@@ -5,195 +5,149 @@
 //  Created by Henry on 10/17/24.
 //
 
-import SwiftUI
 import Charts
+import Combine
+import SwiftUI
 
 struct CandleChartView: View {
     @EnvironmentObject var priceModel: SolPriceModel
-    let prices: [Price]
-    let intervalSecs: Double
-    var timeframeMins: Double = 30
+    let rawCandles: [CandleData]
+    let timeframeMins: Double
     let height: CGFloat
 
-    @State private var candles: [CandleData] = []
-    @State private var transparentCandle: CandleData?
+	let animate: Bool
+    @State private var timerCancellable: Cancellable?
+    @State private var timer: Timer.TimerPublisher = Timer.publish(every: 0.1, on: .main, in: .common)
 
-    init(prices: [Price], intervalSecs: Double, timeframeMins: Double? = 30, maxCandleWidth: CGFloat = 10, height: CGFloat = 330) {
-        self.prices = prices
-        self.intervalSecs = intervalSecs > 0 ? intervalSecs : 1;
-        self.timeframeMins = timeframeMins ?? 30
+    init(
+        candles: [CandleData],
+        animate: Bool,
+        timeframeMins: Double = 30,
+        height: CGFloat = 330
+    ) {
+        self.rawCandles = candles
+		self.animate = animate
+        self.timeframeMins = timeframeMins
         self.height = height
     }
 
-    private var filteredPrices: [Price] {
-        let filteredPrices = filterPrices(prices: prices, timeframeSecs: timeframeMins * 60)
-        return filteredPrices
+    private var candles: [CandleData] {
+        let cutoffTime = Date.now.addingTimeInterval(-timeframeMins * 60)
+        if let firstIndex = rawCandles.firstIndex(where: {
+            $0.start >= cutoffTime
+        }) {
+            return Array(rawCandles.suffix(from: firstIndex))
+        }
+        return rawCandles
     }
-    
-    private func filterPrices(prices: [Price], timeframeSecs: Double) -> [Price] {
-        let cutoffDate = Date().addingTimeInterval(-timeframeSecs)
-        let filteredPrices = prices.filter { $0.timestamp >= cutoffDate }
-        
-        if filteredPrices.count < 2 {
-            return Array(prices.suffix(2))
-        }
-        
-        return filteredPrices
+
+    private var yDomain: ClosedRange<Double> {
+        if candles.isEmpty { return 0...100 }
+
+        let minPrice = candles.min { $0.low < $1.low }?.low ?? 0
+        let maxPrice = candles.max { $0.high < $1.high }?.high ?? 100
+        let range = maxPrice - minPrice
+        let padding = range * 0.10
+
+        return (minPrice - padding)...(maxPrice + padding)
     }
-    private func updateCandles() {
-        if prices.isEmpty { return }
-        let startTime = prices.first!.timestamp
-        let groupedPrices = Dictionary(grouping: prices) { price in
-            floor(price.timestamp.timeIntervalSince1970 / intervalSecs) * intervalSecs
+
+    private var xDomain: ClosedRange<Date> {
+        if candles.isEmpty {
+            return Date().addingTimeInterval(-timeframeMins * 60)...Date()
         }
 
-        let cutoffTime = Date().addingTimeInterval(-timeframeMins * 60)
-        let filteredGroupedPrices = groupedPrices.filter { key, values in
-            values.first!.timestamp >= cutoffTime
-        }
-
-        let sortedKeys = filteredGroupedPrices.keys.sorted()
-        candles = sortedKeys.enumerated().compactMap { (index, key) -> CandleData? in
-            let values = filteredGroupedPrices[key]!
-            let sortedValues = values.sorted(by: { $0.timestamp < $1.timestamp })
-            let open = sortedValues.first?.price ?? 0
-            let high = sortedValues.map { $0.price }.max() ?? 0
-            let low = sortedValues.map { $0.price }.min() ?? 0
-            
-            if index + 1 < sortedKeys.count {
-                let nextKey = sortedKeys[index + 1]
-                let nextValues = filteredGroupedPrices[nextKey]!
-                let nextOpen = nextValues.sorted(by: { $0.timestamp < $1.timestamp }).first?.price ?? 0
-                
-                return CandleData(
-                    start: Date(timeIntervalSince1970: key),
-                    end: Date(timeIntervalSince1970: nextKey),
-                    open: open,
-                    close: nextOpen,
-                    high: high,
-                    low: low
-                )
-            } else {
-                // Skip the last candle
-                return nil
-            }
-        }
-
-        // Add transparent candle if needed
-        let timeframeStart = Date().addingTimeInterval(-Double(timeframeMins) * 60)
-        if let firstCandle = candles.first, firstCandle.start > timeframeStart {
-            transparentCandle = CandleData(
-                start: timeframeStart,
-                end: firstCandle.start,
-                open: firstCandle.open,
-                close: firstCandle.open,
-                high: firstCandle.open,
-                low: firstCandle.open
-            )
-        } else {
-            transparentCandle = nil
-        }
+        let endTime = Date.now
+        let rightMargin = timeframeMins * 60 * 0.1
+        let startTime = endTime.addingTimeInterval(-timeframeMins * 60)
+        return startTime...endTime.addingTimeInterval(rightMargin)
     }
 
     var body: some View {
         Chart {
-            transparentCandleMark
-            candleMarks
-            highLowLines
-            lastCandleAnnotation
-        }
-        .chartYAxis(content: yAxisConfig)
-        .chartXAxis(content: xAxisConfig)
-        .chartYScale(domain: .automatic)
-        .frame(height: height)
-        .onAppear(perform: updateCandles)
-        .onChange(of: prices) { _ in updateCandles() }
-    }
-
-    private var transparentCandleMark: (some ChartContent)? {
-        if let transparentCandle = transparentCandle {
-            RectangleMark(
-                xStart: .value("Start", transparentCandle.start),
-                xEnd: .value("End", transparentCandle.end),
-                yStart: .value("Open", transparentCandle.open),
-                yEnd: .value("Close", transparentCandle.close)
-            )
-            .foregroundStyle(Color.gray.opacity(0.3))
-        } else {
-            nil
-        }
-    }
-
-    private var candleMarks: (some ChartContent)? {
-        ForEach(candles, id: \.start) { candle in
-            RectangleMark(
-                xStart: .value("Start", candle.start + 10),
-                xEnd: .value("End", candle.end - 10),
-                yStart: .value("Open", candle.open),
-                yEnd: .value("Close", candle.close)
-            )
-            .foregroundStyle(candle.close > candle.open ? Color.green : Color.red)
-        }
-    }
-
-    private var highLowLines: some ChartContent {
-        ForEach(candles, id: \.start) { candle in
-            RuleMark(
-                x: .value("Center", candle.start.addingTimeInterval(intervalSecs / 2)),
-                yStart: .value("High", candle.high),
-                yEnd: .value("Low", candle.low)
-            )
-            .foregroundStyle(candle.close > candle.open ? Color.green.opacity(0.5) : Color.red.opacity(0.5))
-            .lineStyle(StrokeStyle(lineWidth: 1))
-        }
-    }
-
-    private var lastCandleAnnotation: (some ChartContent)? {
-        if let lastCandle = candles.last {
-            PointMark(
-                x: .value("Middle", lastCandle.start.addingTimeInterval(intervalSecs / 2)),
-                y: .value("Close", lastCandle.close)
-            )
-            .symbolSize(10)
-            .foregroundStyle(AppColors.white.opacity(0.7))
-            .annotation(position: lastCandle.close >= lastCandle.open ? .top : .bottom, spacing: 4) {
-                PillView(
-                    value: priceModel.formatPrice(lamports: lastCandle.close),
-                    color: AppColors.white.opacity(0.7),
-                    foregroundColor: AppColors.black
+            ForEach(candles) { candle in
+                // Candlestick body
+                RectangleMark(
+                    x: .value("Time", candle.start),
+                    yStart: .value("Open", candle.open),
+                    yEnd: .value("Close", candle.close)
                 )
-            }
-        } else {
-            nil
-        }
-    }
+                .foregroundStyle(candle.close >= candle.open ? Color.green : Color.red)
 
+                // High-Low line
+                RuleMark(
+                    x: .value("Time", candle.start),
+                    yStart: .value("High", candle.high),
+                    yEnd: .value("Low", candle.low)
+                )
+                .foregroundStyle(candle.close >= candle.open ? Color.green : Color.red)
+                .opacity(0.5)
+            }
+        }
+        .if(animate) { view in view.animation(.linear(duration: PRICE_UPDATE_INTERVAL), value: candles)
+        }
+        .chartXScale(domain: xDomain)
+        .chartYScale(domain: yDomain)
+        .conditionalModifier(condition: false) { chart in
+            chart.animation(.easeInOut(duration: PRICE_UPDATE_INTERVAL), value: candles)
+        }
+        .chartXAxis(content: xAxisConfig)
+        .chartYAxis(content: yAxisConfig)
+        .frame(height: height)
+        .onAppear {
+            timerCancellable = timer.connect()
+        }
+        .onDisappear {
+            timerCancellable?.cancel()
+        }
+
+    }
     private func yAxisConfig() -> some AxisContent {
         AxisMarks(position: .leading) { value in
             AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
-                .foregroundStyle(.white.opacity(0.2))
+                .foregroundStyle(.tubBuyPrimary.opacity(0.2))
             AxisValueLabel {
-                if let intValue = value.as(Int.self) {
-                    Text(priceModel.formatPrice(lamports: intValue))
-                        .foregroundStyle(.white.opacity(0.5))
+                if let doubleValue = value.as(Double.self) {
+                    Text(priceModel.formatPrice(usd: doubleValue, maxDecimals: 6))
+                        .foregroundStyle(.tubBuyPrimary.opacity(0.5))
                 }
             }
         }
     }
 
     private func xAxisConfig() -> some AxisContent {
-        AxisMarks(values: .stride(by: .minute, count: Int(floor(timeframeMins / 4)))) { value in
-            AxisValueLabel(format: .dateTime.hour().minute())
-                .foregroundStyle(.white.opacity(0.5))
+        AxisMarks(values: .stride(by: .minute, count: 4)) { value in
+            // show the first 6 labels (after that it gets cutoff
+            if value.index <= 6 {
+                AxisValueLabel(format: .dateTime.hour().minute())
+                    .foregroundStyle(.tubBuyPrimary.opacity(0.5))
+            }
         }
     }
 }
 
-struct CandleData {
-    let start: Date
-    let end: Date
-    let open: Int
-    let close: Int
-    let high: Int
-    let low: Int
+#Preview {
+    @Previewable @StateObject var priceModel = {
+        let model = SolPriceModel.shared
+        spoofPriceModelData(model)
+        return model
+    }()
+
+    let candles = [
+        // add 10 more candles
+        CandleData(start: Date().addingTimeInterval(-120 * 60), end: Date().addingTimeInterval(-110 * 60), open: 100, close: 105, high: 110, low: 90, volume: 100),
+        CandleData(start: Date().addingTimeInterval(-110 * 60), end: Date().addingTimeInterval(-100 * 60), open: 105, close: 110, high: 115, low: 95, volume: 100),
+        CandleData(start: Date().addingTimeInterval(-100 * 60), end: Date().addingTimeInterval(-90 * 60), open: 110, close: 115, high: 120, low: 100, volume: 100),
+        CandleData(start: Date().addingTimeInterval(-90 * 60), end: Date().addingTimeInterval(-80 * 60), open: 115, close: 120, high: 125, low: 105, volume: 100),
+        CandleData(start: Date().addingTimeInterval(-80 * 60), end: Date().addingTimeInterval(-70 * 60), open: 120, close: 125, high: 130, low: 110, volume: 100),
+        CandleData(start: Date().addingTimeInterval(-70 * 60), end: Date().addingTimeInterval(-60 * 60), open: 125, close: 130, high: 135, low: 115, volume: 100),
+        CandleData(start: Date().addingTimeInterval(-60 * 60), end: Date().addingTimeInterval(-50 * 60), open: 130, close: 135, high: 140, low: 120, volume: 100),
+        CandleData(start: Date().addingTimeInterval(-50 * 60), end: Date().addingTimeInterval(-40 * 60), open: 135, close: 140, high: 145, low: 125, volume: 100),
+        CandleData(start: Date().addingTimeInterval(-40 * 60), end: Date().addingTimeInterval(-30 * 60), open: 140, close: 145, high: 150, low: 130, volume: 100),
+        CandleData(start: Date().addingTimeInterval(-30 * 60), end: Date().addingTimeInterval(-20 * 60), open: 145, close: 150, high: 155, low: 135, volume: 100),
+        CandleData(start: Date().addingTimeInterval(-20 * 60), end: Date().addingTimeInterval(-10 * 60), open: 105, close: 110, high: 115, low: 95, volume: 100),
+        CandleData(start: Date().addingTimeInterval(-10 * 60), end: Date().addingTimeInterval(-0 * 60), open: 110, close: 115, high: 120, low: 100, volume: 100),
+    ]
+    CandleChartView(candles: candles, animate: true, timeframeMins: 120)
+        .environmentObject(priceModel)
 }

@@ -10,109 +10,102 @@ import SwiftUI
 struct AccountBalanceView: View {
     @EnvironmentObject var priceModel: SolPriceModel
     @ObservedObject var userModel: UserModel
-    @ObservedObject var currentTokenModel: TokenModel
     
-    @State private var isExpanded: Bool = false
-    
-    var body: some View {
-        VStack(alignment: .leading) {
-            
-            // Collapsed view
-            if !isExpanded {
-                HStack {
-                    Text("Account Balance")
-                        .font(.sfRounded(size: .base, weight: .semibold))
-                        .foregroundColor(AppColors.white)
-                    
-                    Spacer()
-                    
-                    let tokenValue = 0
-                    Text("\(priceModel.formatPrice(lamports: userModel.balanceLamps + tokenValue, maxDecimals: 2, minDecimals: 2))")
-                        .font(.sfRounded(size: .lg))
-                        .fontWeight(.bold)
-                        .foregroundColor(AppColors.green)
-                        .padding(.trailing)
-                    
-                    Image("Vector")
-                        .resizable()
-                        .frame(width: 24, height: 24)
-                }
-                .padding()
-                .frame(maxWidth: .infinity, alignment: .topLeading)
-                .padding(.vertical, 6.0)
-            }
-            
-            // Expanded view
-            else {
-                HStack {
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text("Account Balance")
-                            .font(.sfRounded(size: .sm, weight: .semibold))
-                            .foregroundColor(AppColors.white)
-                        
-                        //    let tokenValue = currentTokenModel.balanceLamps * (currentTokenModel.prices.last?.price ?? 0) / Int(1e9)
-                        let tokenValue = 0
-                        Text("\(priceModel.formatPrice(lamports: userModel.balanceLamps + tokenValue, maxDecimals: 2, minDecimals: 2))")
-                            .font(.sfRounded(size: .xl2))
-                            .fontWeight(.bold)
-                            .foregroundColor(AppColors.white)
-                        
-                        let adjustedChange = userModel.balanceChangeLamps + tokenValue
-                        
-                        HStack {
-                            Text("\(priceModel.formatPrice(lamports: adjustedChange, showSign: true, maxDecimals: 2))")
-                            
-                            let adjustedPercentage = userModel.initialBalanceLamps != 0  ? 100 - (Double(userModel.balanceLamps) / Double(userModel.initialBalanceLamps)) * 100 : 100;
-                            Text("(\(abs(adjustedPercentage), specifier: "%.1f")%)")
-                            
-                            // Format time elapsed
-                            Text("\(formatTimeElapsed(userModel.timeElapsed))")
-                                .foregroundColor(.gray)
-                                .font(.sfRounded(size: .sm, weight: .regular))
-                        }
-                        .font(.sfRounded(size: .sm, weight: .semibold))
-                        .foregroundColor(adjustedChange >= 0 ? AppColors.green : AppColors.red)
-                    }
-                    .padding()
-                    .onTapGesture {
-                        withAnimation {
-                            isExpanded.toggle()
-                        }
-                    }
-                    Spacer()
-                    
-                    Image("Vector")
-                        .resizable()
-                        .frame(width: 44, height: 36)
-                }
-                .frame(maxWidth: .infinity, alignment: .topLeading)
-                .padding(.trailing)
-                .padding(.vertical, 3.0)
-            }
-        }
-        .padding(.horizontal, 16)
-        .background(AppColors.darkgray)
-        .cornerRadius(40)
-        .onTapGesture {
-            withAnimation {
-                isExpanded.toggle()
-            }
-        }
+    var deltaUsd : Double {
+        guard let initialBalance  = userModel.initialPortfolioBalance, let currentBalanceUsd = userModel.portfolioBalanceUsd else { return 0 }
+        return currentBalanceUsd - initialBalance
     }
     
-    private func formatTimeElapsed(_ timeInterval: TimeInterval) -> String {
-        let hours = Int(timeInterval) / 3600
-        let minutes = (Int(timeInterval) % 3600) / 60
+    var body: some View {
+        // Balance Section
+        HStack(alignment: .center) {
+            if userModel.userId != nil {
+                HStack(alignment: .center, spacing: 10) {
+                    Text("Your Balance")
+                        .font(.sfRounded(size: .base, weight: .semibold))
+                        .lineLimit(1)
+                    
+                    Spacer()
+                    if let balanceUsd = userModel.portfolioBalanceUsd {
+                        if deltaUsd != 0 {
+                            let formattedChange = priceModel.formatPrice(
+                                usd: deltaUsd,
+                                showSign: true,
+                                maxDecimals: 2
+                            )
+                            
+                            Text(formattedChange)
+                                .font(.sfRounded(size: .xs, weight: .light))
+                                .fontWeight(.bold)
+                                .foregroundStyle(deltaUsd >= 0 ? .tubSuccess : .tubError)
+                                .opacity(0.7)
+                                .frame(height: 10)
+                                .padding(0)
+                        }
+                        
+                        let formattedBalance = priceModel.formatPrice(
+                            usd: balanceUsd,
+                            maxDecimals: 2,
+                            minDecimals: 2
+                        )
+                        
+                        Text(formattedBalance)
+                            .font(.sfRounded(size: .lg))
+                            .fontWeight(.bold)
+                            .foregroundStyle(.tubSuccess)
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: 30)
+                        .stroke(.tubNeutral, lineWidth: 0.5)
 
-        if hours > 1 {
-            return "past \(hours) hours"
-        } else if hours > 0 {
-            return "past hour"
-        } else if minutes > 1 {
-            return "past \(minutes) minutes"
-        } else  {
-            return "past minute"
+                )
+                .frame(maxWidth: .infinity)
+                
+                if userModel.userId != nil {
+                    HStack(spacing: 8) {
+                        NavigationLink(destination: AccountView()) {
+                            ZStack {
+                                Circle()
+                                    .stroke(.tubNeutral, lineWidth: 0.5)
+                                    .frame(width: 44, height: 44)
+                                
+                                Image(systemName: "person.fill")
+                                    .foregroundStyle(.tubNeutral)
+                                    .font(.system(size: 18))
+                            }
+                        }
+                        
+                        // Share Button
+                        // NavigationLink(destination: EmptyView()) {
+                        //     ZStack {
+                        //         Circle()
+                        //             .stroke(.tubNeutral, lineWidth: 0.5)
+                        //             .frame(width: 44, height: 44)
+                                
+                        //         Image(systemName: "square.and.arrow.up")
+                        //             .foregroundStyle(.tubNeutral)
+                        //             .font(.system(size: 18))
+                        //     }.opacity(0.5)
+                        // }
+                    }
+                }
+            }
         }
+        .foregroundStyle(.tubText)
+        .padding(.horizontal, 12)
     }
 }
 
+#Preview {
+    let userModel = UserModel.shared
+    var priceModel : SolPriceModel {
+        let model = SolPriceModel.shared
+        spoofPriceModelData(model)
+        return model
+    }
+    
+    AccountBalanceView(userModel: userModel).environmentObject(priceModel)
+}

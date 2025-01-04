@@ -20,25 +20,16 @@ public enum SchemaMetadata: ApolloAPI.SchemaMetadata {
 
   public static func objectType(forTypename typename: String) -> ApolloAPI.Object? {
     switch typename {
-    case "subscription_root": return TubAPI.Objects.Subscription_root
-    case "token": return TubAPI.Objects.Token
-    case "token_price_history": return TubAPI.Objects.Token_price_history
-    case "formatted_tokens_model": return TubAPI.Objects.Formatted_tokens_model
-    case "balance_offset_model": return TubAPI.Objects.Balance_offset_model
-    case "token_price_history_offset": return TubAPI.Objects.Token_price_history_offset
-    case "query_root": return TubAPI.Objects.Query_root
-    case "token_transaction": return TubAPI.Objects.Token_transaction
-    case "wallet_transaction": return TubAPI.Objects.Wallet_transaction
-    case "token_price_history_aggregate": return TubAPI.Objects.Token_price_history_aggregate
-    case "token_price_history_aggregate_fields": return TubAPI.Objects.Token_price_history_aggregate_fields
-    case "hourly_swaps": return TubAPI.Objects.Hourly_swaps
-    case "token_aggregate": return TubAPI.Objects.Token_aggregate
-    case "token_aggregate_fields": return TubAPI.Objects.Token_aggregate_fields
-    case "hourly_new_tokens": return TubAPI.Objects.Hourly_new_tokens
-    case "formatted_tokens_with_performance_model": return TubAPI.Objects.Formatted_tokens_with_performance_model
+    case "api_trade_history": return TubAPI.Objects.Api_trade_history
     case "mutation_root": return TubAPI.Objects.Mutation_root
-    case "token_mutation_response": return TubAPI.Objects.Token_mutation_response
-    case "token_price_history_mutation_response": return TubAPI.Objects.Token_price_history_mutation_response
+    case "query_root": return TubAPI.Objects.Query_root
+    case "subscription_root": return TubAPI.Objects.Subscription_root
+    case "token_metadata_model": return TubAPI.Objects.Token_metadata_model
+    case "token_purchase": return TubAPI.Objects.Token_purchase
+    case "token_sale": return TubAPI.Objects.Token_sale
+    case "token_stats_model": return TubAPI.Objects.Token_stats_model
+    case "trade_history_candle_model": return TubAPI.Objects.Trade_history_candle_model
+    case "transaction_model": return TubAPI.Objects.Transaction_model
     default: return nil
     }
   }

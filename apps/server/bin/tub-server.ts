@@ -1,20 +1,23 @@
 #!/usr/bin/env node
-import { AppRouter, createAppRouter } from "@/createAppRouter";
-import { TubService } from "@/TubService";
-import { parseEnv } from "@bin/parseEnv";
-import { Wallet } from "@coral-xyz/anchor";
+import { AppRouter, createAppRouter } from "../src/createAppRouter";
+import { JupiterService } from "../src/services/JupiterService";
+import { TubService } from "../src/services/TubService";
+import { parseEnv } from "../bin/parseEnv";
 import fastifyWebsocket from "@fastify/websocket";
 import { PrivyClient } from "@privy-io/server-auth";
-import { clusterApiUrl, Connection, Keypair } from "@solana/web3.js";
+import { Connection, Keypair, PublicKey } from "@solana/web3.js";
+import { createJupiterApiClient, ConfigurationParameters } from "@jup-ag/api";
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import { applyWSSHandler } from "@trpc/server/adapters/ws";
+import { NodeHTTPCreateContextFnOptions } from "@trpc/server/adapters/node-http";
 import { createClient as createGqlClient } from "@tub/gql";
 import { config } from "dotenv";
 import fastify from "fastify";
+import bs58 from "bs58";
 
 config({ path: "../../.env" });
 
-const env = parseEnv();
+export const env = parseEnv();
 
 // @see https://fastify.dev/docs/latest/
 export const server = fastify({
@@ -22,19 +25,26 @@ export const server = fastify({
   logger: true,
 });
 
+export type FeeOptions = {
+  amount: number;
+  sourceAccount: PublicKey;
+  destinationAccount: PublicKey;
+};
+
 await server.register(import("@fastify/compress"));
 await server.register(import("@fastify/cors"));
 await server.register(fastifyWebsocket);
 
 // k8s healthchecks
-server.get("/healthz", (req, res) => res.code(200).send());
-server.get("/readyz", (req, res) => res.code(200).send());
-server.get("/", (req, res) => res.code(200).send("hello world"));
+server.get("/healthz", (_, res) => res.code(200).send());
+server.get("/readyz", (_, res) => res.code(200).send());
+server.get("/", (_, res) => res.code(200).send("hello world"));
 
 // Helper function to extract bearer token
-const getBearerToken = (req: any) => {
+// @ts-expect-error IncomingMessage is not typed
+const getBearerToken = (req: IncomingMessage) => {
   const authHeader = req.headers?.authorization;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
+  if (authHeader && authHeader.startsWith("Bearer ")) {
     return authHeader.substring(7);
   }
   return null;
@@ -42,16 +52,41 @@ const getBearerToken = (req: any) => {
 
 export const start = async () => {
   try {
-    // const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+    const connection = new Connection(`${env.QUICKNODE_ENDPOINT}/${env.QUICKNODE_TOKEN}`, "confirmed");
 
-    if (!process.env.GRAPHQL_URL && env.NODE_ENV === "production") {
+    // Initialize fee payer keypair from base58 private key
+    const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY));
+
+    if (!feePayerKeypair) {
+      throw new Error("Fee payer keypair not found");
+    }
+
+    if (!env.OCTANE_TRADE_FEE_RECIPIENT) {
+      throw new Error("OCTANE_TRADE_FEE_RECIPIENT is not set");
+    }
+
+    const jupiterConfig: ConfigurationParameters = {
+      basePath: env.JUPITER_URL,
+    };
+
+    const jupiterQuoteApi = createJupiterApiClient(jupiterConfig);
+
+    // Initialize JupiterService
+    const jupiterService = new JupiterService(connection, jupiterQuoteApi);
+
+    if (!env.GRAPHQL_URL && env.NODE_ENV === "production") {
       throw new Error("GRAPHQL_URL is not set");
     }
-    const gqlClient = (await createGqlClient({ url: env.NODE_ENV !== "production" ? "http://localhost:8080/v1/graphql" : env.GRAPHQL_URL, hasuraAdminSecret: env.NODE_ENV !== "production" ? "password" : env.HASURA_ADMIN_SECRET })).db;
+    const gqlClient = (
+      await createGqlClient({
+        url: env.NODE_ENV !== "production" ? "http://localhost:8080/v1/graphql" : env.GRAPHQL_URL,
+        hasuraAdminSecret: env.NODE_ENV !== "production" ? "password" : env.HASURA_ADMIN_SECRET,
+      })
+    ).db;
 
     const privy = new PrivyClient(env.PRIVY_APP_ID, env.PRIVY_APP_SECRET);
 
-    const tubService = new TubService(gqlClient, privy);
+    const tubService = await TubService.create(gqlClient, privy, jupiterService);
 
     // @see https://trpc.io/docs/server/adapters/fastify
     server.register(fastifyTRPCPlugin<AppRouter>, {
@@ -59,7 +94,10 @@ export const start = async () => {
       useWSS: true,
       trpcOptions: {
         router: createAppRouter(),
-        createContext: async (opt) => ({ tubService, jwtToken: getBearerToken(opt.req) }),
+        createContext: async (opt) => ({
+          tubService,
+          jwtToken: getBearerToken(opt.req) ?? "",
+        }),
       },
     });
     await server.listen({ host: env.SERVER_HOST, port: env.SERVER_PORT });
@@ -69,7 +107,11 @@ export const start = async () => {
     applyWSSHandler({
       wss: server.websocketServer,
       router: createAppRouter(),
-      createContext: async (opt) => ({ tubService, jwtToken: getBearerToken(opt.req) }),
+      // @ts-expect-error IncomingMessage is not typed
+      createContext: async (opt: NodeHTTPCreateContextFnOptions<IncomingMessage, WebSocket>) => ({
+        tubService,
+        jwtToken: getBearerToken(opt.req) ?? "",
+      }),
     });
 
     return server;

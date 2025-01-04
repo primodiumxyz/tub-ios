@@ -1,35 +1,20 @@
-export type FilteredTokensPerformancePerIntervalData = {
+import { INTERVALS } from "@/lib/constants";
+
+export type Interval = (typeof INTERVALS)[number];
+
+export type Token = {
   mint: string;
-  increase_pct: string;
-  trades: string;
-  volume: string;
-  increase_pct_after: string;
-  trades_after: string;
-  volume_after: string;
-  created_at: Date;
-  interval_start: Date;
+  name: string;
+  symbol: string;
+  imageUri?: string;
+  volumeUsd: number;
+  priceChangePct: number;
+  tradeCount: number;
+  latestPriceUsd: number;
+  supply: number;
 };
 
-export type AggregatedStats = {
-  byInterval: Map<string, TokenStats>; // key is interval_start
-  global: TokenStats;
-};
-
-export type TokenStats = {
-  byAfterInterval: IntervalStats[];
-  tokenCount: number;
-};
-
-type IntervalStats = {
-  increasePct: {
-    avg: number;
-    min: number;
-    max: number;
-  };
-  trades: {
-    avg: number;
-    min: number;
-    max: number;
-  };
-  tokenCount: number;
+export type TokenPrice = {
+  timestamp: number;
+  price: number;
 };
