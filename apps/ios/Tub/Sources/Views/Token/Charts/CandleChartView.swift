@@ -70,8 +70,8 @@ struct CandleChartView: View {
                     // For empty candles, show a small horizontal line or tiny candle
                     RectangleMark(
                         x: .value("Time", candle.start),
-                        yStart: .value("Price", candle.close * 0.99), // 1% below
-                        yEnd: .value("Price", candle.close * 1.01)    // 1% above
+                        yStart: .value("Price", candle.close - 0.00002),
+                        yEnd: .value("Price", candle.close + 0.00002)
                     )
                     .foregroundStyle(Color.green)
                 } else {
