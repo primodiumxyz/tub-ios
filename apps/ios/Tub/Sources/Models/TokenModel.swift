@@ -332,7 +332,7 @@ class TokenModel: ObservableObject {
             case .success(let graphQLResult):
                 if let tokenData = graphQLResult.data?.token_stats_interval_comp.first {
                     let liveData = TokenLiveData(
-                        supply: Int(tokenData.token_metadata_supply ?? 0),
+                        supply: Int(tokenData.token_metadata_supply ?? 0) / Int(pow(10, tokenData.token_metadata_decimals ?? 0)),
                         priceUsd: tokenData.latest_price_usd,
                         stats: IntervalStats(volumeUsd: tokenData.total_volume_usd, trades: Int(tokenData.total_trades), priceChangePct: tokenData.price_change_pct),
                         recentStats: IntervalStats(volumeUsd: tokenData.recent_volume_usd, trades: Int(tokenData.recent_trades), priceChangePct: tokenData.recent_price_change_pct)

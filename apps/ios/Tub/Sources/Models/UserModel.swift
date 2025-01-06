@@ -411,7 +411,7 @@ final class UserModel: ObservableObject {
                     
                     if let token = response.data?.token_stats_interval_comp.first {
                         let liveData = TokenLiveData(
-                            supply: Int(token.token_metadata_supply ?? 0),
+                            supply: Int(token.token_metadata_supply ?? 0) / Int(pow(10, token.token_metadata_decimals ?? 0)),
                             priceUsd: token.latest_price_usd,
                             stats: IntervalStats(
                                 volumeUsd: token.total_volume_usd,
@@ -458,7 +458,7 @@ final class UserModel: ObservableObject {
                         if let tokens = graphQLResult.data?.token_stats_interval_comp {
                             for token in tokens {
                                 ret[token.token_mint] = TokenLiveData(
-                                    supply: Int(token.token_metadata_supply ?? 0),
+                                    supply: Int(token.token_metadata_supply ?? 0) / Int(pow(10, token.token_metadata_decimals ?? 0)),
                                     priceUsd: token.latest_price_usd,
                                     stats: IntervalStats(volumeUsd: token.total_volume_usd, trades: Int(token.total_trades), priceChangePct: token.price_change_pct),
                                     recentStats: IntervalStats(volumeUsd: token.recent_volume_usd, trades: Int(token.recent_trades), priceChangePct: token.recent_price_change_pct)

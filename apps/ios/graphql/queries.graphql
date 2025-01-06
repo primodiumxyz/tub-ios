@@ -81,6 +81,7 @@ query GetBulkTokenLiveData($tokens: [String!]!) {
     recent_trades
     recent_price_change_pct
     token_metadata_supply
+    token_metadata_decimals
   }
 }
 
@@ -98,9 +99,9 @@ query GetTokenLiveData($token: String!) {
     recent_trades
     recent_price_change_pct
     token_metadata_supply
+    token_metadata_decimals
   }
 }
-
 
 query GetLatestTokenPurchase($wallet: String!, $mint: String!) {
   transactions(
@@ -121,8 +122,22 @@ query GetLatestTokenPurchase($wallet: String!, $mint: String!) {
   }
 }
 
-query GetTopTokensByVolume($interval: interval = "30m", $recentInterval: interval = "20s", $minRecentTrades: numeric = 0, $minRecentVolume: numeric = 0) {
-  token_stats_interval_comp(args: {interval: $interval, recent_interval: $recentInterval}, where: {token_metadata_is_pump_token: {_eq: true}, recent_trades: {_gte: $minRecentTrades}, recent_volume_usd: {_gte: $minRecentVolume}}, order_by: {total_volume_usd: desc}, limit: 50) {
+query GetTopTokensByVolume(
+  $interval: interval = "30m"
+  $recentInterval: interval = "20s"
+  $minRecentTrades: numeric = 0
+  $minRecentVolume: numeric = 0
+) {
+  token_stats_interval_comp(
+    args: { interval: $interval, recent_interval: $recentInterval }
+    where: {
+      token_metadata_is_pump_token: { _eq: true }
+      recent_trades: { _gte: $minRecentTrades }
+      recent_volume_usd: { _gte: $minRecentVolume }
+    }
+    order_by: { total_volume_usd: desc }
+    limit: 50
+  ) {
     token_mint
   }
 }
