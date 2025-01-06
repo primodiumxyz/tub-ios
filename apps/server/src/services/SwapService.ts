@@ -5,7 +5,7 @@ import { FeeService } from "../services/FeeService";
 import { ActiveSwapRequest, PrebuildSwapResponse, SwapSubscription, SwapType } from "../types";
 import { USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
 import { QuoteGetRequest } from "@jup-ag/api";
-import { Connection, PublicKey } from "@solana/web3.js";
+import { Connection, PublicKey, TransactionInstruction } from "@solana/web3.js";
 import {
   MAX_ACCOUNTS,
   MAX_DEFAULT_SLIPPAGE_BPS,
@@ -36,7 +36,7 @@ export class SwapService {
       throw new Error("Slippage bps is too high");
     }
 
-    if (request.slippageBps && request.slippageBps <= MIN_SLIPPAGE_BPS) {
+    if (request.slippageBps && request.slippageBps < MIN_SLIPPAGE_BPS) {
       throw new Error("Slippage bps must be greater than " + MIN_SLIPPAGE_BPS);
     }
 
@@ -114,14 +114,26 @@ export class SwapService {
       throw new Error("No swap instruction received");
     }
 
-    // Combine fee transfer and swap instructions and token close instruction if needed
-    const someInstructions = buyFeeTransferInstruction
-      ? [buyFeeTransferInstruction, ...swapInstructions]
-      : swapInstructions;
-    const allInstructions = tokenCloseInstruction ? [...someInstructions, tokenCloseInstruction] : someInstructions;
+    let sellFeeTransferInstruction: TransactionInstruction | null = null;
+
+    if (swapType === SwapType.SELL_ALL || swapType === SwapType.SELL_PARTIAL) {
+      const sellFeeAmount = this.feeService.calculateSellFeeAmount(request.sellQuantity);
+      sellFeeTransferInstruction = this.feeService.createFeeTransferInstruction(
+        request.sellTokenAccount,
+        request.userPublicKey,
+        sellFeeAmount,
+      );
+    }
+
+    const organizedInstructions = await this.organizeInstructions(
+      swapInstructions,
+      buyFeeTransferInstruction,
+      sellFeeTransferInstruction,
+      tokenCloseInstruction,
+    );
 
     // Reassign rent payer in instructions
-    const rentReassignedInstructions = this.transactionService.reassignRentInstructions(allInstructions);
+    const rentReassignedInstructions = this.transactionService.reassignRentInstructions(organizedInstructions);
 
     // Build transaction message
     const message = await this.transactionService.buildTransactionMessage(
@@ -135,7 +147,7 @@ export class SwapService {
     const response: PrebuildSwapResponse = {
       transactionMessageBase64: base64Message,
       ...request,
-      hasFee: swapType === SwapType.BUY,
+      hasFee: !!buyFeeTransferInstruction || !!sellFeeTransferInstruction,
       timestamp: Date.now(),
     };
 
@@ -145,22 +157,41 @@ export class SwapService {
   private async determineSwapType(request: ActiveSwapRequest): Promise<SwapType> {
     if (request.buyTokenId === USDC_MAINNET_PUBLIC_KEY.toString()) {
       const sellTokenBalance = await this.connection.getTokenAccountBalance(request.sellTokenAccount, "processed");
-      if (!sellTokenBalance.value.uiAmount) {
+      if (!sellTokenBalance.value.amount) {
         throw new Error("Sell token balance is null");
       }
       // if balance is greater than sellQuantity, return SELL_PARTIAL
-      if (sellTokenBalance.value.uiAmount > request.sellQuantity) {
+      if (Number(sellTokenBalance.value.amount) > request.sellQuantity) {
         return SwapType.SELL_PARTIAL;
       }
       // if balance is equal to sellQuantity, return SELL_ALL
-      if (sellTokenBalance.value.uiAmount === request.sellQuantity) {
+      if (Number(sellTokenBalance.value.amount) === request.sellQuantity) {
         return SwapType.SELL_ALL;
       }
       // otherwise, throw error as not enough balance. show balance in thrown error.
-      throw new Error(`Not enough USDC balance. Observed balance: ${sellTokenBalance.value.uiAmount}`);
+      throw new Error(`Not enough memecoin balance. Observed balance: ${Number(sellTokenBalance.value.amount)}`);
     } else {
       return SwapType.BUY;
     }
+  }
+
+  private async organizeInstructions(
+    swapInstructions: TransactionInstruction[],
+    buyFeeInstruction: TransactionInstruction | null,
+    sellFeeInstruction: TransactionInstruction | null,
+    tokenCloseInstruction: TransactionInstruction | null,
+  ): Promise<TransactionInstruction[]> {
+    const instructions = [...swapInstructions];
+    if (buyFeeInstruction) {
+      instructions.push(buyFeeInstruction);
+    }
+    if (sellFeeInstruction) {
+      instructions.push(sellFeeInstruction);
+    }
+    if (tokenCloseInstruction) {
+      instructions.push(tokenCloseInstruction);
+    }
+    return instructions;
   }
 
   getMessageFromRegistry(transactionMessageBase64: string) {

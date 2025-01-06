@@ -12,7 +12,7 @@ const commonSchema = z.object({
   COINBASE_CDP_API_KEY_NAME: z.string().default(""),
   COINBASE_CDP_API_KEY_PRIVATE_KEY: z.string().default(""),
   OCTANE_BUY_FEE: z.coerce.number().default(100),
-  OCTANE_SELL_FEE: z.coerce.number().default(0),
+  OCTANE_SELL_FEE: z.coerce.number().default(100),
   OCTANE_MIN_TRADE_SIZE: z.coerce.number().default(15),
   CI: z.coerce.boolean().default(false),
   TEST_USER_PRIVATE_KEY: z.string().default("set TEST_USER_PRIVATE_KEY in .env before running server tests"),

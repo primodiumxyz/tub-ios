@@ -38,6 +38,11 @@ export class FeeService {
     return Number(feeAmount);
   }
 
+  calculateSellFeeAmount(sellQuantity: number): number {
+    const feeAmount = (BigInt(this.settings.sellFee) * BigInt(sellQuantity)) / 10000n;
+    return Number(feeAmount);
+  }
+
   /**
    * Creates a transfer instruction for the fee if needed
    * @param sourceAccount - Account to transfer from

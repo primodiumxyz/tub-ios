@@ -178,12 +178,12 @@ import { PrebuildSwapResponse } from "@/types";
         const swapResponse = await tubService.fetchSwap(mockJwtToken, {
           buyTokenId: VALUE_MAINNET_PUBLIC_KEY.toString(),
           sellTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
-          sellQuantity: 1e6 / 1000, // 0.001 USDC
+          sellQuantity: 1e6, // 1 USDC
           slippageBps: undefined,
         });
 
         await executeTx(swapResponse);
-      }, 11000);
+      }, 13000);
 
       it.skip("should transfer half of held VALUE to USDC", async () => {
         const userVALUEAta = await getAssociatedTokenAddress(VALUE_MAINNET_PUBLIC_KEY, userKeypair.publicKey);
@@ -208,7 +208,12 @@ import { PrebuildSwapResponse } from "@/types";
         await executeTx(swapResponse);
       });
 
-      it.skip("should transfer all held VALUE to USDC and close the VALUE account", async () => {
+      it("should transfer all held VALUE to USDC and close the VALUE account", async () => {
+        // wait for 10 seconds and console log the countdown
+        for (let i = 10; i > 0; i--) {
+          console.log(`Waiting for ${i} seconds...`);
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
         const userVALUEAta = await getAssociatedTokenAddress(VALUE_MAINNET_PUBLIC_KEY, userKeypair.publicKey);
         const valueBalance = await connection.getTokenAccountBalance(userVALUEAta, "processed");
 
@@ -220,7 +225,7 @@ import { PrebuildSwapResponse } from "@/types";
         }
 
         const initSolBalanceinVALUEAta = await connection.getBalance(userVALUEAta, "processed");
-        if (initSolBalanceinVALUEAta === 0) {
+        if (!valueBalance.value.uiAmount && initSolBalanceinVALUEAta === 0) {
           console.log("VALUE ATA appears closed, skipping test");
           return;
         }
@@ -229,11 +234,13 @@ import { PrebuildSwapResponse } from "@/types";
         const swap = {
           buyTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
           sellTokenId: VALUE_MAINNET_PUBLIC_KEY.toString(),
-          sellQuantity: balanceToken,
-          slippageBps: 100,
+          sellQuantity: Math.round(balanceToken),
+          slippageBps: undefined,
         };
         console.log("VALUE swap:", swap);
         const swapResponse = await tubService.fetchSwap(mockJwtToken, swap);
+        // delay for 2 seconds
+        await new Promise((resolve) => setTimeout(resolve, 2000));
 
         await executeTx(swapResponse);
 
@@ -244,7 +251,7 @@ import { PrebuildSwapResponse } from "@/types";
         const valueSolBalanceLamports = await connection.getBalance(userVALUEAta, "processed");
         console.log("VALUE SOL balance lamports:", valueSolBalanceLamports);
         expect(valueSolBalanceLamports).toBe(0);
-      }, 20000);
+      }, 30000);
     });
   });
 });
