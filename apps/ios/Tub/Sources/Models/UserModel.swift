@@ -98,14 +98,24 @@ final class UserModel: ObservableObject {
                         }
                     }
                 case .notCreated:
+                    await MainActor.run {
+                        self.walletState = state
+                    }
+                    if privy.authState == .unauthenticated {
+                        return
+                    }
                     do {
                         let _ = try await privy.embeddedWallet.createWallet(chainType: .solana)
+                    } catch {
                     }
                 case .connecting:
                     await MainActor.run {
                         self.walletState = state
                     }
                 default:
+                    await MainActor.run {
+                        self.walletState = state
+                    }
                     self.logout(skipPrivy: true)
                 }
                 
@@ -347,7 +357,7 @@ final class UserModel: ObservableObject {
                             name: token.name,
                             symbol: token.symbol,
                             description: token.description,
-                            imageUri: token.image_uri,
+                            imageUri: convertToDwebLink(token.image_uri),
                             externalUrl: token.external_url,
                             decimals: Int(token.decimals ?? 6),
                             cachedAt: Date()  // Set cache timestamp
@@ -399,7 +409,7 @@ final class UserModel: ObservableObject {
                                     name: metadata.name,
                                     symbol: metadata.symbol,
                                     description: metadata.symbol,
-                                    imageUri: metadata.image_uri,
+                                    imageUri: convertToDwebLink(metadata.image_uri),
                                     externalUrl: metadata.external_url,
                                     decimals: Int(metadata.decimals ?? 6),
                                     cachedAt: Date()  // Set cache timestamp
@@ -621,7 +631,6 @@ final class UserModel: ObservableObject {
         
         let query = GetWalletTransactionsQuery(wallet: walletAddress)
         do {
-            
             let newTxs = try await withCheckedThrowingContinuation { continuation in
                 Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { result in
                     switch result {
@@ -686,7 +695,7 @@ final class UserModel: ObservableObject {
             let newTransaction = TransactionData(
                 name: metadata?.name ?? "",
                 symbol: metadata?.symbol ?? "",
-                imageUri: metadata?.imageUri ?? "",
+                imageUri: convertToDwebLink(metadata?.imageUri) ?? "",
                 date: date,
                 valueUsd: -valueUsd,
                 quantityTokens: Int(transaction.token_amount),
@@ -717,5 +726,4 @@ final class UserModel: ObservableObject {
         timer?.invalidate()
         timer = nil
     }
-    
 }

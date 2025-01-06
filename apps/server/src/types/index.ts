@@ -35,16 +35,6 @@ export interface SwapSubscription {
   request: ActiveSwapRequest;
 }
 
-// Analytics types
-export interface ClientEvent {
-  userAgent: string;
-  eventName: string;
-  metadata?: string;
-  errorDetails?: string;
-  source?: string;
-  buildVersion?: string;
-}
-
 // Transfer types
 export interface TransferRequest {
   fromAddress: string;
@@ -64,3 +54,35 @@ export interface CodexTokenResponse {
   token: string;
   expiry: string;
 }
+
+// Analytics types
+export interface ClientEvent {
+  userAgent: string;
+  userWallet: string;
+  source?: string;
+  errorDetails?: string;
+  buildVersion?: string;
+}
+
+export type TokenPurchaseOrSaleEvent = ClientEvent & {
+  tokenMint: string;
+  tokenAmount: string;
+  tokenPriceUsd: string;
+};
+
+export type LoadingTimeEvent = ClientEvent & {
+  identifier: string;
+  timeElapsedMs: number;
+  attemptNumber: number;
+  totalTimeMs: number;
+  averageTimeMs: number;
+};
+
+export type AppDwellTimeEvent = ClientEvent & {
+  dwellTimeMs: number;
+};
+
+export type TokenDwellTimeEvent = ClientEvent & {
+  tokenMint: string;
+  dwellTimeMs: number;
+};

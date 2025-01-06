@@ -135,6 +135,14 @@ final class TokenListModel: ObservableObject {
     @MainActor
     func loadNextTokenIntoCurrentTokenPhaseOne() {
         self.recordTokenDwellTime()
+
+        // previous
+        //	Build up a new TokenModel so that we start from a
+        //	known state: no leftover timers and/or subscriptions.
+        let newPreviousTokenModel = TokenModel()
+        newPreviousTokenModel.preload(with: currentTokenModel.tokenId)
+        previousTokenModel = newPreviousTokenModel
+        
         // current
         currentTokenStartTime = Date()
         if let nextModel = nextTokenModel {
@@ -149,14 +157,6 @@ final class TokenListModel: ObservableObject {
                 removePendingToken(newToken)
             }
         }
-        // previous
-        //	Build up a new TokenModel so that we start from a
-        //	known state: no leftover timers and/or subscriptions.
-        let newPreviousTokenModel = TokenModel()
-        newPreviousTokenModel.preload(with: currentTokenModel.tokenId)
-        previousTokenModel = newPreviousTokenModel
-        
-
     }
     
     func loadNextTokenIntoCurrentTokenPhaseTwo() {
@@ -260,7 +260,10 @@ final class TokenListModel: ObservableObject {
     }
     
     private func updatePendingTokens(_ newTokens: [String]) async {
-        guard !newTokens.isEmpty else { return }
+        guard !newTokens.isEmpty else {
+            if !self.initialFetchComplete { self.initialFetchComplete = true }
+            return
+        }
         
         // Filter out any tokens that are already in the queue
         let unqueuedNewTokens = newTokens.filter { newToken in
@@ -323,15 +326,11 @@ final class TokenListModel: ObservableObject {
         Task {
             let dwellTimeMs = Int(Date().timeIntervalSince(startTime) * 1000)  // Convert to milliseconds
             
-            try? await Network.shared.recordClientEvent(
-                event: Network.ClientEvent(
-                    eventName: "token_dwell_time",
-                    source: "token_list_model",
-                    metadata: [
-                        ["token_id": currentToken],
-                        ["dwell_time_ms": dwellTimeMs],
-                    ]
-                )
+            try? await Network.shared.recordTokenDwellTime(
+                tokenMint: currentToken,
+                dwellTimeMs: dwellTimeMs,
+                source: "token_list_model",
+                errorDetails: nil
             )
         }
     }

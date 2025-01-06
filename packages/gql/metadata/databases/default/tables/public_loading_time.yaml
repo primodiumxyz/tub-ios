@@ -1,0 +1,22 @@
+table:
+  name: loading_time
+  schema: public
+select_permissions:
+  - role: public
+    permission:
+      columns:
+        - attempt_number
+        - average_time_ms
+        - time_elapsed_ms
+        - total_time_ms
+        - build
+        - error_details
+        - identifier
+        - source
+        - user_agent
+        - user_wallet
+        - created_at
+        - id
+      filter: {}
+      allow_aggregations: true
+    comment: ""
