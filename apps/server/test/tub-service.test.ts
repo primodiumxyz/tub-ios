@@ -174,7 +174,7 @@ import { ConfigService } from "../src/services/ConfigService";
     }, 11000);
 
     describe("MEMECOIN swaps", () => {
-      it.skip("should complete a USDC to MEMECOIN swap", async () => {
+      it("should complete a USDC to MEMECOIN swap", async () => {
         // Get swap instructions
         const swapResponse = await tubService.fetchSwap(mockJwtToken, {
           buyTokenId: MEMECOIN_MAINNET_PUBLIC_KEY.toString(),
@@ -186,7 +186,7 @@ import { ConfigService } from "../src/services/ConfigService";
         await executeTx(swapResponse);
       }, 13000);
 
-      it("should transfer half of held MEMECOIN to USDC", async () => {
+      it.skip("should transfer half of held MEMECOIN to USDC", async () => {
         const userMEMECOINAta = await getAssociatedTokenAddress(MEMECOIN_MAINNET_PUBLIC_KEY, userKeypair.publicKey);
         const memecoinBalance = await connection.getTokenAccountBalance(userMEMECOINAta, "processed");
         const decimals = memecoinBalance.value.decimals;

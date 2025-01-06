@@ -36,8 +36,14 @@ export class FeeService {
     return Number(feeAmount);
   }
 
-  calculateSellFeeAmount(sellQuantity: number, cfg: Config): number {
-    const feeAmount = (BigInt(cfg.SELL_FEE_BPS) * BigInt(sellQuantity)) / 10000n;
+  /**
+   * Calculate fee amount for when selling any token and receiving USDC
+   * @param receivedUSDC - Amount received in USDC
+   * @param cfg - Config object, should be read as constant after high-level API call
+   * @returns Fee amount in USDC
+   */
+  calculateSellFeeAmount(receivedUSDC: number, cfg: Config): number {
+    const feeAmount = (BigInt(cfg.SELL_FEE_BPS) * BigInt(receivedUSDC)) / 10000n;
     return Number(feeAmount);
   }
 

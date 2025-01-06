@@ -113,9 +113,9 @@ export class SwapService {
     let sellFeeTransferInstruction: TransactionInstruction | null = null;
 
     if (swapType === SwapType.SELL_ALL || swapType === SwapType.SELL_PARTIAL) {
-      const sellFeeAmount = this.feeService.calculateSellFeeAmount(request.sellQuantity, cfg);
+      const sellFeeAmount = this.feeService.calculateSellFeeAmount(Number(quote.outAmount), cfg);
       sellFeeTransferInstruction = this.feeService.createFeeTransferInstruction(
-        request.sellTokenAccount,
+        request.buyTokenAccount,
         request.userPublicKey,
         sellFeeAmount,
       );
