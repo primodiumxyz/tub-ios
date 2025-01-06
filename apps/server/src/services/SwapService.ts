@@ -45,7 +45,7 @@ export class SwapService {
         ? this.feeService.createFeeTransferInstruction(request.sellTokenAccount, request.userPublicKey, buyFeeAmount)
         : null;
 
-    // Create token account close instruction if fee amount is 0
+    // Create token account close instruction if swap type is sell_all (conditional occurs within function)
     const tokenCloseInstruction = await this.transactionService.createTokenCloseInstruction(
       request.userPublicKey,
       request.sellTokenAccount,
@@ -121,7 +121,7 @@ export class SwapService {
       );
     }
 
-    const organizedInstructions = await this.organizeInstructions(
+    const organizedInstructions = this.organizeInstructions(
       swapInstructions,
       buyFeeTransferInstruction,
       sellFeeTransferInstruction,
@@ -171,12 +171,12 @@ export class SwapService {
     }
   }
 
-  private async organizeInstructions(
+  private organizeInstructions(
     swapInstructions: TransactionInstruction[],
     buyFeeInstruction: TransactionInstruction | null,
     sellFeeInstruction: TransactionInstruction | null,
     tokenCloseInstruction: TransactionInstruction | null,
-  ): Promise<TransactionInstruction[]> {
+  ): TransactionInstruction[] {
     const instructions = [...swapInstructions];
     if (buyFeeInstruction) {
       instructions.push(buyFeeInstruction);
