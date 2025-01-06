@@ -32,7 +32,6 @@ struct AccountView: View {
           TokenHistoryPreview()
 
           AccountSettingsView()
-            .padding(.top, -12)
           Spacer()
         }
       } else {
@@ -256,29 +255,12 @@ private struct AccountSettingsView: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 24) {
-      Text("Account Settings")
-        .font(.sfRounded(size: .xl, weight: .medium))
-        .foregroundStyle(.primary)
-
       NavigationLink(destination: AccountDetailsView()) {
         HStack(spacing: 16) {
           Image(systemName: "person.circle")
             .resizable()
             .frame(width: 24, height: 24, alignment: .center)
-          Text("Account Details")
-            .font(.sfRounded(size: .lg, weight: .regular))
-          Spacer()
-          Image(systemName: "chevron.right")
-        }
-        .foregroundStyle(Color.primary)
-      }
-
-      NavigationLink(destination: PortfolioView()) {
-        HStack(spacing: 16) {
-          Image(systemName: "book.circle")
-            .resizable()
-            .frame(width: 24, height: 24, alignment: .center)
-          Text("Portfolio")
+          Text("Profile")
             .font(.sfRounded(size: .lg, weight: .regular))
           Spacer()
           Image(systemName: "chevron.right")
