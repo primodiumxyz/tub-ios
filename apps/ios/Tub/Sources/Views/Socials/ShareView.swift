@@ -16,6 +16,7 @@ struct ShareView: View {
     @StateObject private var tokenModel = TokenModel()
     @State private var showingSaveSuccess = false
     @State private var loadedImage: Image?
+    @EnvironmentObject private var userModel: UserModel
     
     var shareText: String {
         """
@@ -25,6 +26,25 @@ struct ShareView: View {
         
         Download Tub: https://tub.app
         """
+    }
+    
+    var gainPercentage: Double {
+        guard let transactions = userModel.txs else {
+            print("DEBUG: No transactions found")
+            return 0 
+        }
+        
+        let tokenTxs = transactions.filter { $0.mint == tokenMint }
+        
+        if let latestBuy = tokenTxs.first(where: { $0.isBuy }),
+           let latestSell = tokenTxs.first(where: { !$0.isBuy }) {
+            
+            let buyValue = abs(latestBuy.valueUsd) 
+            let sellValue = latestSell.valueUsd
+
+            return ((sellValue - buyValue) / buyValue) * 100
+        }
+        return 0
     }
     
     private func saveImage() {
@@ -86,9 +106,9 @@ struct ShareView: View {
                         .foregroundStyle(Color(uiColor: UIColor(named: "tubNeutral")!))
                                         
                     if tokenModel.isReady {
-                        Text("\(String(format: "%.2f", tokenModel.priceChange.percentage))%")
+                        Text("\(String(format: "%.2f", gainPercentage))%")
                             .font(.sfRounded(size: .xl2, weight: .bold))
-                            .foregroundStyle(tokenModel.priceChange.percentage >= 0 ? 
+                            .foregroundStyle(gainPercentage >= 0 ? 
                                 Color(uiColor: UIColor(named: "tubSuccess")!) :
                                 Color(uiColor: UIColor(named: "tubError")!))
                     }
