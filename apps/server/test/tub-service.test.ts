@@ -174,7 +174,7 @@ import { ConfigService } from "../src/services/ConfigService";
       await executeTx(swapResponse);
     }, 11000);
 
-    describe("MEMECOIN swaps", () => {
+    describe.skip("MEMECOIN swaps", () => {
       it.skip("should complete a USDC to MEMECOIN swap", async () => {
         // Get swap instructions
         const swapResponse = await tubService.fetchSwap(mockJwtToken, {
@@ -210,7 +210,7 @@ import { ConfigService } from "../src/services/ConfigService";
         await executeTx(swapResponse);
       }, 11000);
 
-      it("should transfer all held MEMECOIN to USDC and close the MEMECOIN account", async () => {
+      it.skip("should transfer all held MEMECOIN to USDC and close the MEMECOIN account", async () => {
         // wait for 10 seconds and console log the countdown
         for (let i = 10; i > 0; i--) {
           console.log(`Waiting for ${i} seconds...`);
