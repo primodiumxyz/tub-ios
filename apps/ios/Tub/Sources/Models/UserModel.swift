@@ -25,23 +25,23 @@ final class UserModel: ObservableObject {
     @Published var tokenData: [String: TokenData] = [:]
     
     private var timer: Timer?
-
+    
     @Published var initialPortfolioBalance: Double? = nil
     
-    var portfolioBalanceUsd : Double? {
+    var portfolioBalanceUsd: Double? {
         let tokenValueUsd = self.tokenPortfolio.reduce(0.0) { total, key in
-              if let token = tokenData[key] {
+            if let token = tokenData[key] {
                 let price = token.liveData?.priceUsd ?? 0
                 let balance = Double(token.balanceToken)
                 let decimals = Double(token.metadata.decimals)
                 return total + (price * balance / pow(10, decimals))
-              }
-              return total
             }
+            return total
+        }
         let usdcValueUsd = SolPriceModel.shared.usdcToUsd(usdc: usdcBalance ?? 0)
         return usdcValueUsd + tokenValueUsd
     }
-
+    
     @Published var usdcBalance: Int? = nil
     @Published var hasSeenOnboarding: Bool {
         didSet {
@@ -52,7 +52,7 @@ final class UserModel: ObservableObject {
     /* -------------------------------------------------------------------------- */
     /*                               Initialization                               */
     /* -------------------------------------------------------------------------- */
-
+    
     private init() {
         self.hasSeenOnboarding = UserDefaults.standard.bool(forKey: "hasSeenOnboarding")
         
@@ -127,7 +127,7 @@ final class UserModel: ObservableObject {
         await MainActor.run {
             self.initializingUser = true
         }
-
+        
         let timeoutTask = DispatchWorkItem { [weak self] in
             guard let self else { return }
             DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
@@ -143,9 +143,9 @@ final class UserModel: ObservableObject {
             await MainActor.run {
                 self.initialPortfolioBalance = self.portfolioBalanceUsd
             }
-
+            
             startPollingTokenPortfolio()
-
+            
         } catch {
             print("error initializing:", error.localizedDescription)
         }
@@ -157,11 +157,11 @@ final class UserModel: ObservableObject {
             self.initializingUser = false
         }
     }
-
+    
     /* -------------------------------------------------------------------------- */
     /*                          Token Data and Portfolio                          */
     /* -------------------------------------------------------------------------- */
-
+    
     private var tokenPortfolioTimer: Timer?
     let PORTFOLIO_POLL_INTERVAL: TimeInterval = 60
     
@@ -180,7 +180,6 @@ final class UserModel: ObservableObject {
             }
         }
     }
-    
     
     public func refreshPortfolio() async throws {
         let tokenBalances = try await Network.shared.getAllTokenBalances()
@@ -201,10 +200,12 @@ final class UserModel: ObservableObject {
         let (tokenMetadata, tokenLiveData) = try await (metadataFetch, liveDataFetch)
         
         for mint in tokenMints + [USDC_MINT] {
-            await updateTokenData(mint: mint, balance: tokenBalances[mint], metadata: tokenMetadata[mint], liveData: tokenLiveData[mint])
+            await updateTokenData(
+                mint: mint, balance: tokenBalances[mint], metadata: tokenMetadata[mint],
+                liveData: tokenLiveData[mint])
         }
     }
-
+    
     struct RefreshOptions {
         let withBalances: Bool
         let withLiveData: Bool
@@ -215,12 +216,14 @@ final class UserModel: ObservableObject {
         }
     }
     
-    public func refreshBulkTokenData(tokenMints: [String], options: RefreshOptions? = nil) async throws {
-        let withBalances  = options?.withBalances ?? false
+    public func refreshBulkTokenData(tokenMints: [String], options: RefreshOptions? = nil)
+    async throws
+    {
+        let withBalances = options?.withBalances ?? false
         
         async let balances = withBalances ? Network.shared.getAllTokenBalances() : nil
         async let tokenMetadata = fetchBulkTokenMetadata(tokenMints: tokenMints)
-
+        
         let (fetchedBalances, fetchedTokenMetadata) = try await (balances, tokenMetadata)
         
         if withBalances, let fetchedBalances {
@@ -233,12 +236,13 @@ final class UserModel: ObservableObject {
         }
         
         for mint in tokenMints {
-            await updateTokenData(mint: mint, balance: fetchedBalances?[mint], metadata: fetchedTokenMetadata[mint])
+            await updateTokenData(
+                mint: mint, balance: fetchedBalances?[mint], metadata: fetchedTokenMetadata[mint])
         }
         
         let withLiveData = options?.withLiveData ?? true
         if withLiveData {
-            Task{
+            Task {
                 let tokenLiveData = try await fetchBulkTokenLiveData(tokenMints: tokenMints)
                 for mint in tokenMints {
                     await updateTokenData(mint: mint, liveData: tokenLiveData[mint])
@@ -247,16 +251,16 @@ final class UserModel: ObservableObject {
         }
     }
     
-    
     public func refreshTokenData(tokenMint: String) async {
         do {
             async let balanceData = Network.shared.getTokenBalance(tokenMint: tokenMint)
             async let tokenMetadata = fetchTokenMetadata(tokenMint: tokenMint)
             async let tokenLiveData = fetchTokenLiveData(tokenMint: tokenMint)
-
+            
             do {
                 let (balance, metadata, liveData) = try await (balanceData, tokenMetadata, tokenLiveData)
-                await updateTokenData(mint: tokenMint, balance: balance, metadata: metadata, liveData: liveData)
+                await updateTokenData(
+                    mint: tokenMint, balance: balance, metadata: metadata, liveData: liveData)
             } catch {
                 // Handle error
                 print("Error fetching token data: \(error.localizedDescription)")
@@ -275,11 +279,14 @@ final class UserModel: ObservableObject {
         self.tokenData[mint] = tokenData
     }
     
-    public func updateTokenData(mint: String, balance: Int? = nil, metadata: TokenMetadata? = nil, liveData: TokenLiveData? = nil) async {
+    public func updateTokenData(
+        mint: String, balance: Int? = nil, metadata: TokenMetadata? = nil,
+        liveData: TokenLiveData? = nil
+    ) async {
         
         if mint == USDC_MINT {
             guard let balance else { return }
-            await MainActor.run{
+            await MainActor.run {
                 self.usdcBalance = balance
             }
             return
@@ -287,7 +294,7 @@ final class UserModel: ObservableObject {
         
         let portfolioContainsToken = self.tokenPortfolio.contains(mint)
         if let tokenData = tokenData[mint] {
-            let newLiveData =  liveData ?? tokenData.liveData
+            let newLiveData = liveData ?? tokenData.liveData
             let newBalance = balance ?? tokenData.balanceToken
             await MainActor.run {
                 if newBalance == 0 && portfolioContainsToken {
@@ -295,16 +302,22 @@ final class UserModel: ObservableObject {
                 } else if newBalance > 0 && !portfolioContainsToken {
                     self.tokenPortfolio.append(mint)
                 }
-                self.tokenData[mint] = TokenData(mint: mint, balanceToken: newBalance, metadata: metadata ?? tokenData.metadata, liveData: newLiveData)
+                self.tokenData[mint] = TokenData(
+                    mint: mint, balanceToken: newBalance, metadata: metadata ?? tokenData.metadata,
+                    liveData: newLiveData)
             }
         } else {
-            var newMetadata : TokenMetadata?
-            if let metadata {newMetadata = metadata }
-            else {  do {newMetadata = try await fetchTokenMetadata(tokenMint: mint)} catch { return }}
+            var newMetadata: TokenMetadata?
+            if let metadata {
+                newMetadata = metadata
+            } else {
+                do { newMetadata = try await fetchTokenMetadata(tokenMint: mint) } catch { return }
+            }
             
-            guard let newMetadata  else { return }
+            guard let newMetadata else { return }
             
-            let tokenData = TokenData(mint: mint, balanceToken: balance ?? 0, metadata: newMetadata, liveData: liveData)
+            let tokenData = TokenData(
+                mint: mint, balanceToken: balance ?? 0, metadata: newMetadata, liveData: liveData)
             await MainActor.run {
                 if balance ?? 0 > 0 && !portfolioContainsToken {
                     self.tokenPortfolio.append(mint)
@@ -314,32 +327,42 @@ final class UserModel: ObservableObject {
             }
         }
     }
-
+    
     func fetchTokenMetadata(tokenMint: String) async throws -> TokenMetadata {
+        // Check local cache first
         if let data = tokenData[tokenMint] {
             return data.metadata
         }
+
+        if let cachedData = TokenMetadata.loadFromCache(for: tokenMint) {
+            return cachedData
+        }
+
         let query = GetTokenMetadataQuery(token: tokenMint)
         
-        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<TokenMetadata, Error>) in
-            Network.shared.apollo.fetch(query: query) {
-                result in switch result {
-                    case .success(let response):
-                    
+        return try await withCheckedThrowingContinuation {
+            (continuation: CheckedContinuation<TokenMetadata, Error>) in
+            Network.shared.apollo.fetch(query: query) { result in
+                switch result {
+                case .success(let response):
                     if response.errors != nil {
                         continuation.resume(throwing: TubError.unknown)
                         return
                     }
                     
-                    if let token = response.data?.token_metadata_formatted.first(where: { $0.mint == tokenMint }) {
+                    if let token = response.data?.token_metadata_formatted.first(where: {
+                        $0.mint == tokenMint
+                    }) {
                         let metadata = TokenMetadata(
                             name: token.name,
                             symbol: token.symbol,
                             description: token.description,
                             imageUri: convertToDwebLink(token.image_uri),
                             externalUrl: token.external_url,
-                            decimals: Int(token.decimals ?? 6)
+                            decimals: Int(token.decimals ?? 6),
+                            cachedAt: Date()  // Set cache timestamp
                         )
+                        metadata.saveToCache(for: tokenMint)  // Save to cache
                         continuation.resume(returning: metadata)
                         return
                     }
@@ -351,17 +374,25 @@ final class UserModel: ObservableObject {
         }
     }
     
-    func fetchBulkTokenMetadata(tokenMints: [String]) async throws -> [String : TokenMetadata] {
+    func fetchBulkTokenMetadata(tokenMints: [String]) async throws -> [String: TokenMetadata] {
         if tokenMints.count == 0 { return [:] }
-        let uncachedTokens = tokenMints.filter { !tokenData.keys.contains($0) }
-        let cachedTokens = tokenMints.filter { tokenData.keys.contains($0) }
+        var ret = [String: TokenMetadata]()
+
+        tokenMints.forEach { mint in
+            if let data = tokenData[mint] {
+                ret[mint] = data.metadata
+            }
+            if let cachedData = TokenMetadata.loadFromCache(for: mint) {
+                ret[mint] = cachedData
+            }
+        }
+
+        let uncachedTokens = tokenMints.filter { ret[$0] == nil }
         
-        // Only fetch metadata for uncached tokens
-        var ret = [String : TokenMetadata]()
-        
-        cachedTokens.forEach { ret[$0] = tokenData[$0]!.metadata }
+        // Fetch metadata for uncached tokens
         if uncachedTokens.count > 0 {
-            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            try await withCheckedThrowingContinuation {
+                (continuation: CheckedContinuation<Void, Error>) in
                 Network.shared.apollo.fetch(
                     query: GetBulkTokenMetadataQuery(tokens: uncachedTokens)
                 ) { result in
@@ -374,14 +405,17 @@ final class UserModel: ObservableObject {
                         
                         if let tokens = graphQLResult.data?.token_metadata_formatted {
                             for metadata in tokens {
-                                ret[metadata.mint] = TokenMetadata(
+                                let tokenMetadata = TokenMetadata(
                                     name: metadata.name,
                                     symbol: metadata.symbol,
                                     description: metadata.symbol,
                                     imageUri: convertToDwebLink(metadata.image_uri),
                                     externalUrl: metadata.external_url,
-                                    decimals: Int(metadata.decimals ?? 6)
+                                    decimals: Int(metadata.decimals ?? 6),
+                                    cachedAt: Date()  // Set cache timestamp
                                 )
+                                ret[metadata.mint] = tokenMetadata
+                                tokenMetadata.saveToCache(for: metadata.mint)  // Save to cache
                             }
                             continuation.resume()  // Resume without returning a value
                         } else {
@@ -396,11 +430,12 @@ final class UserModel: ObservableObject {
         
         return ret
     }
-
+    
     func fetchTokenLiveData(tokenMint: String) async throws -> TokenLiveData {
         let query = GetTokenLiveDataQuery(token: tokenMint)
         
-        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<TokenLiveData, Error>) in
+        return try await withCheckedThrowingContinuation {
+            (continuation: CheckedContinuation<TokenLiveData, Error>) in
             Network.shared.apollo.fetch(query: query) { result in
                 switch result {
                 case .success(let response):
@@ -426,7 +461,8 @@ final class UserModel: ObservableObject {
                         )
                         continuation.resume(returning: liveData)
                     } else {
-                        continuation.resume(throwing: TubError.somethingWentWrong(reason: "Live data not found"))
+                        continuation.resume(
+                            throwing: TubError.somethingWentWrong(reason: "Live data not found"))
                     }
                 case .failure(let error):
                     continuation.resume(throwing: error)
@@ -434,17 +470,18 @@ final class UserModel: ObservableObject {
             }
         }
     }
-
-    func fetchBulkTokenLiveData(tokenMints: [String]) async throws -> [String : TokenLiveData] {
+    
+    func fetchBulkTokenLiveData(tokenMints: [String]) async throws -> [String: TokenLiveData] {
         if tokenMints.count == 0 {
             return [:]
         }
         // note: no caching here because we want to fetch the latest data every time
-
-        var ret = [String : TokenLiveData]()
+        
+        var ret = [String: TokenLiveData]()
         
         for mint in tokenMints {
-            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            try await withCheckedThrowingContinuation {
+                (continuation: CheckedContinuation<Void, Error>) in
                 Network.shared.apollo.fetch(
                     query: GetBulkTokenLiveDataQuery(tokens: [mint])
                 ) { result in
@@ -460,10 +497,14 @@ final class UserModel: ObservableObject {
                                 ret[token.token_mint] = TokenLiveData(
                                     supply: Int(token.token_metadata_supply ?? 0),
                                     priceUsd: token.latest_price_usd,
-                                    stats: IntervalStats(volumeUsd: token.total_volume_usd, trades: Int(token.total_trades), priceChangePct: token.price_change_pct),
-                                    recentStats: IntervalStats(volumeUsd: token.recent_volume_usd, trades: Int(token.recent_trades), priceChangePct: token.recent_price_change_pct)
-                                    )
-                                }
+                                    stats: IntervalStats(
+                                        volumeUsd: token.total_volume_usd, trades: Int(token.total_trades),
+                                        priceChangePct: token.price_change_pct),
+                                    recentStats: IntervalStats(
+                                        volumeUsd: token.recent_volume_usd, trades: Int(token.recent_trades),
+                                        priceChangePct: token.recent_price_change_pct)
+                                )
+                            }
                             continuation.resume()
                         } else {
                             continuation.resume(throwing: TubError.networkFailure)
@@ -477,12 +518,10 @@ final class UserModel: ObservableObject {
         return ret
     }
     
-    
     private func stopPollingTokenPortfolio() {
         tokenPortfolioTimer?.invalidate()
         tokenPortfolioTimer = nil
     }
-
     
     /* -------------------------------------------------------------------------- */
     /*                               Linked Accounts                              */
@@ -569,7 +608,7 @@ final class UserModel: ObservableObject {
     /* -------------------------------------------------------------------------- */
     /*                             Transaction History                            */
     /* -------------------------------------------------------------------------- */
-
+    
     @Published var txs: [TransactionData]? = nil
     
     private var refreshingTxs: Bool = false
@@ -579,16 +618,17 @@ final class UserModel: ObservableObject {
     public func refreshTxs(hard: Bool = false) async throws {
         
         if refreshingTxs {
-            return }
+            return
+        }
         if !hard, Date().timeIntervalSince(lastFetchedTxsAt) < TX_STALE_TIME {
             return
         }
-        guard let walletAddress = self.walletAddress else { return  }
+        guard let walletAddress = self.walletAddress else { return }
         await MainActor.run {
             self.refreshingTxs = true
             self.lastFetchedTxsAt = Date()
         }
-
+        
         let query = GetWalletTransactionsQuery(wallet: walletAddress)
         do {
             let newTxs = try await withCheckedThrowingContinuation { continuation in
@@ -625,14 +665,15 @@ final class UserModel: ObservableObject {
         }
     }
     
-    private func processTxs(tokenTransactions : [GetWalletTransactionsQuery.Data.Transaction]) async throws -> [TransactionData] {
-        var processedTxs : [TransactionData] = []
+    private func processTxs(tokenTransactions: [GetWalletTransactionsQuery.Data.Transaction])
+    async throws -> [TransactionData]
+    {
+        var processedTxs: [TransactionData] = []
         // Get unique token addresses
         let uniqueTokens = Set(tokenTransactions.map { $0.token_mint })
         
         // Fetch all metadata in one call
         let tokens = try await self.fetchBulkTokenMetadata(tokenMints: Array(uniqueTokens))
-        
         
         for transaction in tokenTransactions {
             guard let date = formatDateString(transaction.created_at)
@@ -649,7 +690,7 @@ final class UserModel: ObservableObject {
             let isBuy = transaction.token_amount >= 0
             let priceUsd = transaction.token_price_usd
             let decimals = metadata?.decimals ?? 9
-            let valueUsd = transaction.token_amount * priceUsd / pow(10.0,Double(decimals))
+            let valueUsd = transaction.token_amount * priceUsd / pow(10.0, Double(decimals))
             
             let newTransaction = TransactionData(
                 name: metadata?.name ?? "",
@@ -667,7 +708,6 @@ final class UserModel: ObservableObject {
         return processedTxs
     }
     
-
     /* -------------------------------------------------------------------------- */
     /*                           Session Duration Timer                           */
     /* -------------------------------------------------------------------------- */
