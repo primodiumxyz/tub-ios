@@ -66,22 +66,32 @@ struct CandleChartView: View {
     var body: some View {
         Chart {
             ForEach(candles) { candle in
-                // Candlestick body
-                RectangleMark(
-                    x: .value("Time", candle.start),
-                    yStart: .value("Open", candle.open),
-                    yEnd: .value("Close", candle.close)
-                )
-                .foregroundStyle(candle.close >= candle.open ? Color.green : Color.red)
+                if candle.isEmptyCandle {
+                    // For empty candles, show a small horizontal line or tiny candle
+                    RectangleMark(
+                        x: .value("Time", candle.start),
+                        yStart: .value("Price", candle.close * 0.99), // 1% below
+                        yEnd: .value("Price", candle.close * 1.01)    // 1% above
+                    )
+                    .foregroundStyle(Color.green)
+                } else {
+                    // Normal candle body
+                    RectangleMark(
+                        x: .value("Time", candle.start),
+                        yStart: .value("Open", candle.open),
+                        yEnd: .value("Close", candle.close)
+                    )
+                    .foregroundStyle(candle.close >= candle.open ? Color.green : Color.red)
 
-                // High-Low line
-                RuleMark(
-                    x: .value("Time", candle.start),
-                    yStart: .value("High", candle.high),
-                    yEnd: .value("Low", candle.low)
-                )
-                .foregroundStyle(candle.close >= candle.open ? Color.green : Color.red)
-                .opacity(0.5)
+                    // High-Low line only for non-empty candles
+                    RuleMark(
+                        x: .value("Time", candle.start),
+                        yStart: .value("High", candle.high),
+                        yEnd: .value("Low", candle.low)
+                    )
+                    .foregroundStyle(candle.close >= candle.open ? Color.green : Color.red)
+                    .opacity(0.5)
+                }
             }
         }
         .if(animate) { view in view.animation(.linear(duration: PRICE_UPDATE_INTERVAL), value: candles)
