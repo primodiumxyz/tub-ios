@@ -9,9 +9,10 @@ import {
   AddressLookupTableAccount,
   TransactionConfirmationStatus,
 } from "@solana/web3.js";
-import { ATA_PROGRAM_PUBLIC_KEY, JUPITER_PROGRAM_PUBLIC_KEY, TOKEN_PROGRAM_PUBLIC_KEY } from "../constants/tokens";
-import { CLEANUP_INTERVAL, REGISTRY_TIMEOUT, RETRY_ATTEMPTS, RETRY_DELAY } from "../constants/registry";
 import bs58 from "bs58";
+import { config } from "../utils/config";
+import { ATA_PROGRAM_PUBLIC_KEY, JUPITER_PROGRAM_PUBLIC_KEY, TOKEN_PROGRAM_PUBLIC_KEY } from "../constants/tokens";
+import { Config } from "./ConfigService";
 import { createCloseAccountInstruction } from "@solana/spl-token";
 
 export type TransactionRegistryEntry = {
@@ -28,15 +29,22 @@ export class TransactionService {
   constructor(
     private connection: Connection,
     private feePayerKeypair: Keypair,
-    private feePayerPublicKey: PublicKey,
   ) {
-    setInterval(() => this.cleanupRegistry(), CLEANUP_INTERVAL);
+    this.initializeCleanup();
   }
 
-  private cleanupRegistry() {
+  private initializeCleanup(): void {
+    (async () => {
+      const cfg = await config();
+      setInterval(() => this.cleanupRegistry(), cfg.CLEANUP_INTERVAL);
+    })();
+  }
+
+  private async cleanupRegistry() {
+    const cfg = await config();
     const now = Date.now();
     for (const [key, value] of this.messageRegistry.entries()) {
-      if (now - value.timestamp > REGISTRY_TIMEOUT) {
+      if (now - value.timestamp > cfg.REGISTRY_TIMEOUT) {
         this.messageRegistry.delete(key);
       }
     }
@@ -52,7 +60,7 @@ export class TransactionService {
     const { blockhash } = await this.connection.getLatestBlockhash();
 
     const message = new TransactionMessage({
-      payerKey: this.feePayerPublicKey,
+      payerKey: this.feePayerKeypair.publicKey,
       recentBlockhash: blockhash,
       instructions,
     }).compileToV0Message(addressLookupTableAccounts);
@@ -117,12 +125,12 @@ export class TransactionService {
     userPublicKey: PublicKey,
     userSignature: string,
     base64Message: string,
+    cfg: Config,
   ): Promise<{ signature: string; timestamp: number | null }> {
     const entry = this.messageRegistry.get(base64Message);
     if (!entry) {
       throw new Error("Transaction not found in registry");
     }
-
     const transaction = new VersionedTransaction(entry.message);
 
     // Add user signature
@@ -132,7 +140,7 @@ export class TransactionService {
     // Add fee payer signature
     const feePayerSignature = await this.signTransaction(transaction);
     const feePayerSignatureBytes = Buffer.from(bs58.decode(feePayerSignature));
-    transaction.addSignature(this.feePayerPublicKey, feePayerSignatureBytes);
+    transaction.addSignature(this.feePayerKeypair.publicKey, feePayerSignatureBytes);
 
     const simulation = await this.connection.simulateTransaction(transaction, {
       commitment: "processed",
@@ -187,8 +195,8 @@ export class TransactionService {
     });
 
     let confirmation = null;
-    for (let attempt = 0; attempt < RETRY_ATTEMPTS; attempt++) {
-      console.log(`Tx Confirmation Attempt ${attempt + 1} of ${RETRY_ATTEMPTS}`);
+    for (let attempt = 0; attempt < cfg.RETRY_ATTEMPTS; attempt++) {
+      console.log(`Tx Confirmation Attempt ${attempt + 1} of ${cfg.RETRY_ATTEMPTS}`);
       try {
         const status = await this.connection.getSignatureStatus(txid, {
           searchTransactionHistory: true,
@@ -202,10 +210,10 @@ export class TransactionService {
         }
       } catch (error) {
         console.log(`Attempt ${attempt + 1} failed:`, error);
-        if (attempt === RETRY_ATTEMPTS - 1)
-          throw new Error(`Failed to get transaction confirmation after ${RETRY_ATTEMPTS} attempts`);
+        if (attempt === cfg.RETRY_ATTEMPTS - 1)
+          throw new Error(`Failed to get transaction confirmation after ${cfg.RETRY_ATTEMPTS} attempts`);
       }
-      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY)); // Wait 1 second before retrying
+      await new Promise((resolve) => setTimeout(resolve, cfg.RETRY_DELAY)); // Wait 1 second before retrying
     }
 
     if (!confirmation) {
@@ -239,7 +247,7 @@ export class TransactionService {
           programId: instruction.programId,
           keys: [
             {
-              pubkey: this.feePayerPublicKey,
+              pubkey: this.feePayerKeypair.publicKey,
               isSigner: true,
               isWritable: true,
             },
@@ -265,7 +273,7 @@ export class TransactionService {
           keys: [
             firstKey,
             {
-              pubkey: this.feePayerPublicKey,
+              pubkey: this.feePayerKeypair.publicKey,
               isSigner: false,
               isWritable: true,
             },
@@ -297,7 +305,11 @@ export class TransactionService {
     // Check if the sell quantity is equal to the token account balance
     const balance = await this.getTokenBalance(userPublicKey, sellTokenId);
     if (sellQuantity === balance) {
-      const closeInstruction = createCloseAccountInstruction(tokenAccount, this.feePayerPublicKey, userPublicKey);
+      const closeInstruction = createCloseAccountInstruction(
+        tokenAccount,
+        this.feePayerKeypair.publicKey,
+        userPublicKey,
+      );
       return closeInstruction;
     }
     return null;

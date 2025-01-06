@@ -23,6 +23,8 @@ import { deriveTokenAccounts } from "../utils/tokenAccounts";
 import bs58 from "bs58";
 import { TOKEN_PROGRAM_PUBLIC_KEY } from "../constants/tokens";
 import { USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
+import { config } from "../utils/config";
+import { ConfigService } from "../services/ConfigService";
 
 /**
  * Service class handling token trading, swaps, and user operations
@@ -68,17 +70,15 @@ export class TubService {
     // validate trade fee recipient
     const validatedTradeFeeRecipient = await this.validateTradeFeeRecipient();
 
+    // initialize config service first since other services might need it
+    await ConfigService.getInstance();
+
     // Initialize fee payer
     const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY));
-    const feePayerPublicKey = feePayerKeypair.publicKey;
 
     this.authService = new AuthService(this.privy);
-    this.transactionService = new TransactionService(this.connection, feePayerKeypair, feePayerPublicKey);
+    this.transactionService = new TransactionService(this.connection, feePayerKeypair);
     this.feeService = new FeeService({
-      buyFee: env.OCTANE_BUY_FEE,
-      sellFee: env.OCTANE_SELL_FEE,
-      minTradeSize: env.OCTANE_MIN_TRADE_SIZE,
-      feePayerPublicKey: feePayerPublicKey,
       tradeFeeRecipient: validatedTradeFeeRecipient,
     });
     this.swapService = new SwapService(this.jupiterService, this.transactionService, this.feeService);
@@ -94,7 +94,8 @@ export class TubService {
    * @throws Error if the trade fee recipient does not have a valid USDC ATA
    */
   private async validateTradeFeeRecipient(): Promise<PublicKey> {
-    let tradeFeeRecipientUsdcAtaAddress = new PublicKey(env.OCTANE_TRADE_FEE_RECIPIENT);
+    const cfg = await config();
+    let tradeFeeRecipientUsdcAtaAddress = new PublicKey(cfg.TRADE_FEE_RECIPIENT);
 
     try {
       // Check if env is a USDC ATA address
@@ -104,8 +105,8 @@ export class TubService {
       try {
         // Check if env is a pubkey address that has a valid USDC ATA
         tradeFeeRecipientUsdcAtaAddress = getAssociatedTokenAddressSync(
-          new PublicKey(USDC_MAINNET_PUBLIC_KEY),
-          new PublicKey(env.OCTANE_TRADE_FEE_RECIPIENT),
+          USDC_MAINNET_PUBLIC_KEY,
+          new PublicKey(cfg.TRADE_FEE_RECIPIENT),
         );
         await getAccount(this.connection, tradeFeeRecipientUsdcAtaAddress);
       } catch {
@@ -195,7 +196,8 @@ export class TubService {
     };
 
     try {
-      const response = await this.swapService.buildSwapResponse(activeRequest);
+      const cfg = await config();
+      const response = await this.swapService.buildSwapResponse(activeRequest, cfg);
       return response;
     } catch (error) {
       throw new Error(`Failed to build swap response: ${error}`);
@@ -276,7 +278,13 @@ export class TubService {
 
   async signAndSendTransaction(jwtToken: string, userSignature: string, base64TransactionMessage: string) {
     const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
-    return this.transactionService.signAndSendTransaction(walletPublicKey, userSignature, base64TransactionMessage);
+    const cfg = await config();
+    return this.transactionService.signAndSendTransaction(
+      walletPublicKey,
+      userSignature,
+      base64TransactionMessage,
+      cfg,
+    );
   }
 
   /**
