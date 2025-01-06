@@ -322,7 +322,7 @@
           description: ""
           nullable: false
           type: interval
-      code: "SELECT \n  time_bucket({{candle_interval}}::interval, created_at) as bucket,\n  token_mint,\n  FIRST(token_price_usd, created_at) as open_price_usd,\n  LAST(token_price_usd, created_at) as close_price_usd,\n  MAX(token_price_usd) as high_price_usd,\n  MIN(token_price_usd) as low_price_usd,\n  SUM(volume_usd) as volume_usd\nFROM api.trade_history\nGROUP BY 1, 2;"
+      code: "WITH base_candles AS (\n  SELECT \n    time_bucket({{candle_interval}}::interval, created_at) as bucket,\n    token_mint,\n    FIRST(token_price_usd, created_at) as first_price,\n    LAST(token_price_usd, created_at) as last_price,\n    MAX(token_price_usd) as high_price_usd,\n    MIN(token_price_usd) as low_price_usd,\n    SUM(volume_usd) as volume_usd\n  FROM api.trade_history\n  GROUP BY 1, 2\n  ORDER BY bucket\n)\nSELECT \n  bucket,\n  token_mint,\n  COALESCE(LAG(last_price) OVER w, first_price) as open_price_usd,\n  last_price as close_price_usd,\n  high_price_usd,\n  low_price_usd,\n  volume_usd\nFROM base_candles\nWINDOW w AS (PARTITION BY token_mint ORDER BY bucket);"
       returns: trade_history_candle_model
       root_field_name: token_trade_history_candles
   tables: "!include timescaledb/tables/tables.yaml"
