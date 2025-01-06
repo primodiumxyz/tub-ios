@@ -76,13 +76,14 @@ import { ConfigService } from "../src/services/ConfigService";
       console.log("User SOL ATA:", userSolAta.toBase58());
 
       // Check USDC balance
-      try {
-        const balance = await connection.getTokenAccountBalance(userUsdcAta, "processed");
-        if (!balance.value.uiAmount || balance.value.uiAmount < 1) {
-          throw new Error(`Test account needs at least 1 USDC. Current balance: ${balance.value.uiAmount ?? 0} USDC`);
-        }
-      } catch {
-        throw new Error("Test account needs a USDC token account with at least 1 USDC");
+      const balance = await connection.getTokenAccountBalance(userUsdcAta, "processed");
+      if (!balance.value.uiAmount) {
+        console.warn("⚠️  Warning: Test account missing USDC token account. Some tests may fail.");
+      }
+      if (!!balance.value.uiAmount && balance.value.uiAmount < 1) {
+        console.warn(
+          `⚠️  Warning: Test account has low USDC balance: ${balance.value.uiAmount ?? 0} USDC. Some tests may fail.`,
+        );
       }
     } catch (error) {
       console.error("Error in test setup:", error);
@@ -128,7 +129,7 @@ import { ConfigService } from "../src/services/ConfigService";
     });
   });
 
-  describe.skip("swap execution", () => {
+  describe("swap execution", () => {
     const executeTx = async (swapResponse: PrebuildSwapResponse) => {
       const handoff = Buffer.from(swapResponse.transactionMessageBase64, "base64");
       const message = VersionedMessage.deserialize(handoff);
@@ -174,7 +175,7 @@ import { ConfigService } from "../src/services/ConfigService";
     }, 11000);
 
     describe("MEMECOIN swaps", () => {
-      it("should complete a USDC to MEMECOIN swap", async () => {
+      it.skip("should complete a USDC to MEMECOIN swap", async () => {
         // Get swap instructions
         const swapResponse = await tubService.fetchSwap(mockJwtToken, {
           buyTokenId: MEMECOIN_MAINNET_PUBLIC_KEY.toString(),
