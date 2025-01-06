@@ -13,6 +13,7 @@ struct LoadingView: View {
     init(identifier: String = "", message: String? = nil) {
         self.identifier = identifier
         self.message = message
+        LoadingTracker.shared.startLoading(identifier)
     }
 
     var body: some View {
@@ -40,6 +41,9 @@ struct LoadingView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(UIColor.systemBackground))
         .foregroundStyle(.tubBuyPrimary)
+        .onDisappear {
+            LoadingTracker.shared.endLoading(identifier)
+        }
     }
 }
 
