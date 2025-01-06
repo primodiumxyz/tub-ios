@@ -46,7 +46,7 @@ struct TokenPurchaseInput: Codable {
     let errorDetails: String?
     let userAgent: String
     let buildVersion: String
-    let userWallet: String?
+    let userWallet: String
 }
 
 struct TokenSaleInput: Codable {
@@ -57,7 +57,58 @@ struct TokenSaleInput: Codable {
     let errorDetails: String?
     let userAgent: String
     let buildVersion: String
-    let userWallet: String?
+    let userWallet: String
+}
+
+struct TabSelectedInput: Codable {
+    let tabName: String
+    let source: String
+    let errorDetails: String?
+    let userAgent: String
+    let buildVersion: String
+    let userWallet: String
+}
+
+struct LoadingTimeInput: Codable {
+    let identifier: String
+    let timeElapsedMs: Int
+    let attemptNumber: Int
+    let totalTimeMs: Int
+    let averageTimeMs: Int
+    let source: String
+    let errorDetails: String?
+    let userAgent: String
+    let buildVersion: String
+    let userWallet: String
+}
+
+struct AppDwellTimeInput: Codable {
+    let dwellTimeMs: Int
+    let source: String
+    let errorDetails: String?
+    let userAgent: String
+    let buildVersion: String
+    let userWallet: String
+}
+
+struct TabDwellTimeInput: Codable {
+    let tabName: String
+    let dwellTimeMs: Int
+    let source: String
+    let errorDetails: String?
+    let userAgent: String
+    let buildVersion: String
+    let userWallet: String
+}
+
+struct TokenDwellTimeInput: Codable {
+    let tokenMint: String
+    let dwellTimeMs: Int
+    let source: String
+    let errorDetails: String?
+    let userAgent: String
+    let buildVersion: String
+    let userWallet: String
 }
 
 // MARK: - Response Types

@@ -11,9 +11,6 @@ const commonSchema = z.object({
   JWT_SECRET: z.string().default("secret"),
   COINBASE_CDP_API_KEY_NAME: z.string().default(""),
   COINBASE_CDP_API_KEY_PRIVATE_KEY: z.string().default(""),
-  OCTANE_BUY_FEE: z.coerce.number().default(100),
-  OCTANE_SELL_FEE: z.coerce.number().default(100),
-  OCTANE_MIN_TRADE_SIZE: z.coerce.number().default(15),
   CI: z.coerce.boolean().default(false),
   TEST_USER_PRIVATE_KEY: z.string().default("set TEST_USER_PRIVATE_KEY in .env before running server tests"),
 
@@ -21,7 +18,10 @@ const commonSchema = z.object({
   FEE_PAYER_PRIVATE_KEY: z.string(),
   PRIVY_APP_ID: z.string(),
   PRIVY_APP_SECRET: z.string(),
-  OCTANE_TRADE_FEE_RECIPIENT: z.string(),
+
+  REDIS_HOST: z.string().default("localhost"),
+  REDIS_PORT: z.coerce.number().default(6379),
+  REDIS_PASSWORD: z.string().optional(),
 });
 export function parseEnv<TSchema extends ZodTypeAny | undefined = undefined>(
   schema?: TSchema,
