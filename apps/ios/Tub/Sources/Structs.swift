@@ -76,6 +76,12 @@ struct CandleData: Equatable, Identifiable {
         self.low = low
         self.volume = volume
     }
+
+    var isEmptyCandle: Bool {
+        abs(open - close) < 0.000001 && 
+        abs(high - low) < 0.000001 && 
+        abs(open - high) < 0.000001
+    }
 }
 
 struct TransactionData: Identifiable, Equatable {
