@@ -2,10 +2,10 @@ import { Subject, interval, switchMap } from "rxjs";
 import { JupiterService } from "./JupiterService";
 import { TransactionService } from "./TransactionService";
 import { FeeService } from "../services/FeeService";
-import { ActiveSwapRequest, PrebuildSwapResponse, SwapSubscription } from "../types";
+import { ActiveSwapRequest, PrebuildSwapResponse, SwapSubscription, SwapType } from "../types";
 import { QuoteGetRequest } from "@jup-ag/api";
-import { PublicKey } from "@solana/web3.js";
-import { USDC_MAINNET_PUBLIC_KEY, USDC_DEV_PUBLIC_KEY } from "../constants/tokens";
+import { Connection, PublicKey, TransactionInstruction } from "@solana/web3.js";
+import { USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
 import { Config } from "./ConfigService";
 import { config } from "../utils/config";
 
@@ -16,6 +16,7 @@ export class SwapService {
     private jupiter: JupiterService,
     private transactionService: TransactionService,
     private feeService: FeeService,
+    private connection: Connection,
   ) {}
 
   async buildSwapResponse(request: ActiveSwapRequest, cfg: Config): Promise<PrebuildSwapResponse> {
@@ -27,33 +28,25 @@ export class SwapService {
       throw new Error("Slippage bps is too high");
     }
 
-    if (request.slippageBps && request.slippageBps <= cfg.MIN_SLIPPAGE_BPS) {
+    if (request.slippageBps && request.slippageBps < cfg.MIN_SLIPPAGE_BPS) {
       throw new Error("Slippage bps must be greater than " + cfg.MIN_SLIPPAGE_BPS);
     }
 
-    // Calculate fee if selling USDC
-    const feeAmount = await this.feeService.calculateFeeAmount(
-      request.sellTokenId,
-      request.sellQuantity,
-      [USDC_DEV_PUBLIC_KEY.toString(), USDC_MAINNET_PUBLIC_KEY.toString()],
-      cfg,
-    );
-    const swapAmount = request.sellQuantity - feeAmount;
+    // Determine swap type
+    const swapType = await this.determineSwapType(request);
 
-    // Create fee transfer instruction if needed
-    const feeTransferInstruction = this.feeService.createFeeTransferInstruction(
-      request.sellTokenAccount,
-      request.userPublicKey,
-      feeAmount,
-    );
+    // Calculate fee if swap type is buy
+    const buyFeeAmount =
+      SwapType.BUY === swapType ? this.feeService.calculateFeeAmount(request.sellQuantity, swapType, cfg) : 0;
+    const swapAmount = request.sellQuantity - buyFeeAmount;
 
-    // Create token account close instruction if fee amount is 0
+    // Create token account close instruction if swap type is sell_all (conditional occurs within function)
     const tokenCloseInstruction = await this.transactionService.createTokenCloseInstruction(
       request.userPublicKey,
       request.sellTokenAccount,
       new PublicKey(request.sellTokenId),
       request.sellQuantity,
-      feeAmount,
+      swapType,
     );
 
     // TODO: autoSlippageCollisionUsdValue should be based on the estimated value of the swap amount.
@@ -112,12 +105,34 @@ export class SwapService {
       throw new Error("No swap instruction received");
     }
 
-    // Combine fee transfer and swap instructions and token close instruction if needed
-    const someInstructions = feeTransferInstruction ? [feeTransferInstruction, ...swapInstructions] : swapInstructions;
-    const allInstructions = tokenCloseInstruction ? [...someInstructions, tokenCloseInstruction] : someInstructions;
+    let feeTransferInstruction: TransactionInstruction | null = null;
+
+    // Create fee transfer instruction
+    if (swapType === SwapType.BUY) {
+      feeTransferInstruction = this.feeService.createFeeTransferInstruction(
+        request.sellTokenAccount,
+        request.userPublicKey,
+        buyFeeAmount,
+      );
+    } else if (swapType === SwapType.SELL_ALL || swapType === SwapType.SELL_PARTIAL) {
+      const sellFeeAmount = this.feeService.calculateFeeAmount(Number(quote.outAmount), swapType, cfg);
+      feeTransferInstruction = this.feeService.createFeeTransferInstruction(
+        request.buyTokenAccount,
+        request.userPublicKey,
+        sellFeeAmount,
+      );
+    } else {
+      throw new Error("Invalid swap type");
+    }
+
+    const organizedInstructions = this.organizeInstructions(
+      swapInstructions,
+      feeTransferInstruction,
+      tokenCloseInstruction,
+    );
 
     // Reassign rent payer in instructions
-    const rentReassignedInstructions = this.transactionService.reassignRentInstructions(allInstructions);
+    const rentReassignedInstructions = this.transactionService.reassignRentInstructions(organizedInstructions);
 
     // Build transaction message
     const message = await this.transactionService.buildTransactionMessage(
@@ -131,11 +146,47 @@ export class SwapService {
     const response: PrebuildSwapResponse = {
       transactionMessageBase64: base64Message,
       ...request,
-      hasFee: feeAmount > 0,
+      hasFee: !!feeTransferInstruction,
       timestamp: Date.now(),
     };
 
     return response;
+  }
+
+  private async determineSwapType(request: ActiveSwapRequest): Promise<SwapType> {
+    if (request.buyTokenId === USDC_MAINNET_PUBLIC_KEY.toString()) {
+      const sellTokenBalance = await this.connection.getTokenAccountBalance(request.sellTokenAccount, "processed");
+      if (!sellTokenBalance.value.amount) {
+        throw new Error("Sell token balance is null");
+      }
+      // if balance is greater than sellQuantity, return SELL_PARTIAL
+      if (Number(sellTokenBalance.value.amount) > request.sellQuantity) {
+        return SwapType.SELL_PARTIAL;
+      }
+      // if balance is equal to sellQuantity, return SELL_ALL
+      if (Number(sellTokenBalance.value.amount) === request.sellQuantity) {
+        return SwapType.SELL_ALL;
+      }
+      // otherwise, throw error as not enough balance. show balance in thrown error.
+      throw new Error(`Not enough memecoin balance. Observed balance: ${Number(sellTokenBalance.value.uiAmount)}`);
+    } else {
+      return SwapType.BUY;
+    }
+  }
+
+  private organizeInstructions(
+    swapInstructions: TransactionInstruction[],
+    feeTransferInstruction: TransactionInstruction | null,
+    tokenCloseInstruction: TransactionInstruction | null,
+  ): TransactionInstruction[] {
+    const instructions = [...swapInstructions];
+    if (feeTransferInstruction) {
+      instructions.push(feeTransferInstruction);
+    }
+    if (tokenCloseInstruction) {
+      instructions.push(tokenCloseInstruction);
+    }
+    return instructions;
   }
 
   getMessageFromRegistry(transactionMessageBase64: string) {

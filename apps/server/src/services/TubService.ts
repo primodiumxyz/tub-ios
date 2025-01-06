@@ -81,7 +81,7 @@ export class TubService {
     this.feeService = new FeeService({
       tradeFeeRecipient: validatedTradeFeeRecipient,
     });
-    this.swapService = new SwapService(this.jupiterService, this.transactionService, this.feeService);
+    this.swapService = new SwapService(this.jupiterService, this.transactionService, this.feeService, this.connection);
     this.analyticsService = new AnalyticsService(this.gqlClient);
     this.transferService = new TransferService(this.connection, feePayerKeypair, this.transactionService);
   }
