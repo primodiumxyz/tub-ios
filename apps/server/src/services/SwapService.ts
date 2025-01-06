@@ -35,15 +35,10 @@ export class SwapService {
     // Determine swap type
     const swapType = await this.determineSwapType(request);
 
-    // Calculate fee if buying memecoin
-    const buyFeeAmount = this.feeService.calculateBuyFeeAmount(request.sellQuantity, swapType, cfg);
+    // Calculate fee if swap type is buy
+    const buyFeeAmount =
+      SwapType.BUY === swapType ? this.feeService.calculateFeeAmount(request.sellQuantity, swapType, cfg) : 0;
     const swapAmount = request.sellQuantity - buyFeeAmount;
-
-    // Create fee transfer instruction if swap type is buy
-    const buyFeeTransferInstruction =
-      swapType === SwapType.BUY
-        ? this.feeService.createFeeTransferInstruction(request.sellTokenAccount, request.userPublicKey, buyFeeAmount)
-        : null;
 
     // Create token account close instruction if swap type is sell_all (conditional occurs within function)
     const tokenCloseInstruction = await this.transactionService.createTokenCloseInstruction(
@@ -110,21 +105,29 @@ export class SwapService {
       throw new Error("No swap instruction received");
     }
 
-    let sellFeeTransferInstruction: TransactionInstruction | null = null;
+    let feeTransferInstruction: TransactionInstruction | null = null;
 
-    if (swapType === SwapType.SELL_ALL || swapType === SwapType.SELL_PARTIAL) {
-      const sellFeeAmount = this.feeService.calculateSellFeeAmount(Number(quote.outAmount), cfg);
-      sellFeeTransferInstruction = this.feeService.createFeeTransferInstruction(
+    // Create fee transfer instruction
+    if (swapType === SwapType.BUY) {
+      feeTransferInstruction = this.feeService.createFeeTransferInstruction(
+        request.sellTokenAccount,
+        request.userPublicKey,
+        buyFeeAmount,
+      );
+    } else if (swapType === SwapType.SELL_ALL || swapType === SwapType.SELL_PARTIAL) {
+      const sellFeeAmount = this.feeService.calculateFeeAmount(Number(quote.outAmount), swapType, cfg);
+      feeTransferInstruction = this.feeService.createFeeTransferInstruction(
         request.buyTokenAccount,
         request.userPublicKey,
         sellFeeAmount,
       );
+    } else {
+      throw new Error("Invalid swap type");
     }
 
     const organizedInstructions = this.organizeInstructions(
       swapInstructions,
-      buyFeeTransferInstruction,
-      sellFeeTransferInstruction,
+      feeTransferInstruction,
       tokenCloseInstruction,
     );
 
@@ -143,7 +146,7 @@ export class SwapService {
     const response: PrebuildSwapResponse = {
       transactionMessageBase64: base64Message,
       ...request,
-      hasFee: !!buyFeeTransferInstruction || !!sellFeeTransferInstruction,
+      hasFee: !!feeTransferInstruction,
       timestamp: Date.now(),
     };
 
@@ -165,7 +168,7 @@ export class SwapService {
         return SwapType.SELL_ALL;
       }
       // otherwise, throw error as not enough balance. show balance in thrown error.
-      throw new Error(`Not enough memecoin balance. Observed balance: ${Number(sellTokenBalance.value.amount)}`);
+      throw new Error(`Not enough memecoin balance. Observed balance: ${Number(sellTokenBalance.value.uiAmount)}`);
     } else {
       return SwapType.BUY;
     }
@@ -173,16 +176,12 @@ export class SwapService {
 
   private organizeInstructions(
     swapInstructions: TransactionInstruction[],
-    buyFeeInstruction: TransactionInstruction | null,
-    sellFeeInstruction: TransactionInstruction | null,
+    feeTransferInstruction: TransactionInstruction | null,
     tokenCloseInstruction: TransactionInstruction | null,
   ): TransactionInstruction[] {
     const instructions = [...swapInstructions];
-    if (buyFeeInstruction) {
-      instructions.push(buyFeeInstruction);
-    }
-    if (sellFeeInstruction) {
-      instructions.push(sellFeeInstruction);
+    if (feeTransferInstruction) {
+      instructions.push(feeTransferInstruction);
     }
     if (tokenCloseInstruction) {
       instructions.push(tokenCloseInstruction);

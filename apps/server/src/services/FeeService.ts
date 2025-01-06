@@ -18,32 +18,22 @@ export class FeeService {
   }
 
   /**
-   * Calculate fee amount for when buying any token with USDC
-   * @param sellQuantity - Amount being sold
-   * @param swapType - Type of swap
+   * Calculate fee amount for a swap
+   * @param usdcQuantity - Amount of USDC in the transaction
+   * @param swapType - Type of swap: buy, sell_all, sell_partial
    * @param cfg - Config object, should be read as constant after high-level API call
-   * @returns Fee amount in token's base units
+   * @returns Fee amount in token's base units (USDC is 1e6)
    */
-  calculateBuyFeeAmount(sellQuantity: number, swapType: SwapType, cfg: Config): number {
-    const isUsdcSell = swapType === SwapType.BUY;
-
-    if (isUsdcSell && cfg.MIN_TRADE_SIZE_USD * 1e6 > sellQuantity) {
-      throw new Error("USDC sell quantity is below minimum trade size");
+  calculateFeeAmount(usdcQuantity: number, swapType: SwapType, cfg: Config): number {
+    let feeAmount = BigInt(0);
+    if (swapType === SwapType.BUY) {
+      if (cfg.MIN_TRADE_SIZE_USD * 1e6 > usdcQuantity) {
+        throw new Error("USDC sell quantity is below minimum trade size");
+      }
+      feeAmount = (BigInt(cfg.BUY_FEE_BPS) * BigInt(usdcQuantity)) / 10000n;
+    } else if (swapType === SwapType.SELL_ALL || swapType === SwapType.SELL_PARTIAL) {
+      feeAmount = (BigInt(cfg.SELL_FEE_BPS) * BigInt(usdcQuantity)) / 10000n;
     }
-
-    const feeAmount = isUsdcSell ? (BigInt(cfg.BUY_FEE_BPS) * BigInt(sellQuantity)) / 10000n : 0;
-
-    return Number(feeAmount);
-  }
-
-  /**
-   * Calculate fee amount for when selling any token and receiving USDC
-   * @param receivedUSDC - Amount received in USDC
-   * @param cfg - Config object, should be read as constant after high-level API call
-   * @returns Fee amount in USDC
-   */
-  calculateSellFeeAmount(receivedUSDC: number, cfg: Config): number {
-    const feeAmount = (BigInt(cfg.SELL_FEE_BPS) * BigInt(receivedUSDC)) / 10000n;
     return Number(feeAmount);
   }
 
