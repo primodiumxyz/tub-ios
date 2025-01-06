@@ -28,10 +28,13 @@ export class FeeService {
     let feeAmount = BigInt(0);
     if (swapType === SwapType.BUY) {
       if (cfg.MIN_TRADE_SIZE_USD * 1e6 > usdcQuantity) {
-        throw new Error("USDC sell quantity is below minimum trade size");
+        throw new Error("USDC quantity is below minimum trade size");
       }
       feeAmount = (BigInt(cfg.BUY_FEE_BPS) * BigInt(usdcQuantity)) / 10000n;
     } else if (swapType === SwapType.SELL_ALL || swapType === SwapType.SELL_PARTIAL) {
+      if (swapType === SwapType.SELL_PARTIAL && cfg.MIN_TRADE_SIZE_USD * 1e6 >= usdcQuantity) {
+        throw new Error("Sell value below min partial sell size. Sell all instead.");
+      }
       feeAmount = (BigInt(cfg.SELL_FEE_BPS) * BigInt(usdcQuantity)) / 10000n;
     }
     return Number(feeAmount);
