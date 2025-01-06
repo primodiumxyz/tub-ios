@@ -146,7 +146,6 @@ private struct TokenHistoryPreview: View {
       }
     }
     .clipped()
-    .padding(.horizontal)
     .onAppear {
       handleRefreshTxs()
     }
@@ -214,20 +213,6 @@ private struct ActionButtons: View {
     HStack(spacing: 24) {
       Spacer()
 
-      // Add Transfer Button
-      VStack(spacing: 8) {
-        CircleButton(
-          icon: "arrow.left.arrow.right",
-          color: .tubAccent,
-          iconSize: 22,
-          action: { showWithdrawView.toggle() }
-        )
-
-        Text("Transfer")
-          .font(.sfRounded(size: .sm, weight: .medium))
-          .foregroundStyle(.tubAccent)
-          .multilineTextAlignment(.center)
-      }.frame(width: 90)
 
       // Add Funds Button
       VStack(spacing: 8) {
@@ -243,9 +228,26 @@ private struct ActionButtons: View {
           .multilineTextAlignment(.center)
       }.frame(width: 90)
 
+
+ // Add Transfer Button
+      VStack(spacing: 8) {
+        CircleButton(
+          icon: "arrow.left.arrow.right",
+          color: .tubAccent,
+          iconSize: 22,
+          action: { showWithdrawView.toggle() }
+        )
+
+        Text("Transfer")
+          .font(.sfRounded(size: .sm, weight: .medium))
+          .foregroundStyle(.tubAccent)
+          .multilineTextAlignment(.center)
+      }.frame(width: 90)
+
       Spacer()
     }
     .padding(.horizontal)
+
   }
 }
 
