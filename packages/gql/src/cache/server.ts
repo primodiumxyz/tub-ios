@@ -7,7 +7,7 @@ const fastify = Fastify({
 });
 
 const redis = createClient({
-  url: "redis://localhost:6379",
+  url: "redis://localhost:8091",
 });
 
 const HASURA_URL = "http://graphql-engine:8080";
