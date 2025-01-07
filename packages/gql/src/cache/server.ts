@@ -10,7 +10,7 @@ const redis = createClient({
   url: "redis://localhost:6379",
 });
 
-const HASURA_URL = "http://graphql-engine:8080/v1/graphql";
+const HASURA_URL = "http://graphql-engine:8080";
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 second
 
@@ -61,7 +61,7 @@ fastify.get("/healthz", async (request, reply) => {
   }
 
   reply.status(200).send({
-    status: "ok",
+    status: "OK",
   });
 });
 
@@ -71,7 +71,7 @@ fastify.post("/v1/graphql", async (request, reply) => {
 
   // If it's a mutation, bypass cache entirely
   if (parsedQuery.definitions.some((def) => def.kind === "OperationDefinition" && def.operation === "mutation")) {
-    const response = await fetchWithRetry(HASURA_URL, {
+    const response = await fetchWithRetry(`${HASURA_URL}/v1/graphql`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -101,7 +101,7 @@ fastify.post("/v1/graphql", async (request, reply) => {
     }
 
     const stringifiedBody = JSON.stringify(body);
-    const response = await fetchWithRetry(HASURA_URL, {
+    const response = await fetchWithRetry(`${HASURA_URL}/v1/graphql`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
