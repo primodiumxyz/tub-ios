@@ -54,7 +54,7 @@ extension Network {
         func fetch<Query: GraphQLQuery>(
             query: Query,
             cachePolicy: CachePolicy = .default,
-            cacheTime: String? = nil,
+            cacheTime: Interval? = nil,
             bypassCache: Bool = false,
             completion: @escaping (Result<GraphQLResult<Query.Data>, Error>) -> Void
         ) {
