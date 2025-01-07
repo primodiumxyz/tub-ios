@@ -18,7 +18,7 @@ export class FeeService {
   }
 
   /**
-   * Calculate fee amount for a swap
+   * Calculate fee amount for a swap, ensuring it is not below the minimum fee amount
    * @param usdcQuantity - Amount of USDC in the transaction
    * @param swapType - Type of swap: buy, sell_all, sell_partial
    * @param cfg - Config object, should be read as constant after high-level API call
@@ -37,6 +37,15 @@ export class FeeService {
       }
       feeAmount = (BigInt(cfg.SELL_FEE_BPS) * BigInt(usdcQuantity)) / 10000n;
     }
+
+    if (feeAmount < BigInt(cfg.MIN_FEE_CENTS) * BigInt(1e4)) {
+      feeAmount = BigInt(cfg.MIN_FEE_CENTS) * BigInt(1e4);
+    }
+
+    if (feeAmount > BigInt(usdcQuantity)) {
+      throw new Error("Fee is greater than the value being swapped");
+    }
+
     return Number(feeAmount);
   }
 
