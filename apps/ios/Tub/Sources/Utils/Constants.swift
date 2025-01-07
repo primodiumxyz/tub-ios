@@ -94,7 +94,6 @@ public let TOKEN_PROGRAM_ID: String = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5
 enum TubError: LocalizedError {
     case somethingWentWrong(reason: String)
     case networkFailure
-    case graphQLError(errors: [GraphQLError])
     case invalidInput(reason: String)
     case unknown
     case insufficientBalance
@@ -115,8 +114,6 @@ enum TubError: LocalizedError {
             return "Not logged in"
         case .networkFailure:
             return "Couldn't connect"
-        case .graphQLError(let errors):
-            return "Database error"
         case .invalidInput(let reason):
             return "Invalid input \(reason)"
         case .parsingError:
