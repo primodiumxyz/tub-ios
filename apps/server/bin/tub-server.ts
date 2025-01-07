@@ -12,6 +12,7 @@ import { applyWSSHandler } from "@trpc/server/adapters/ws";
 import { NodeHTTPCreateContextFnOptions } from "@trpc/server/adapters/node-http";
 import { createClient as createGqlClient } from "@tub/gql";
 import { config } from "dotenv";
+import { config as configUtils } from "../src/utils/config";
 import fastify from "fastify";
 import bs58 from "bs58";
 
@@ -61,8 +62,8 @@ export const start = async () => {
       throw new Error("Fee payer keypair not found");
     }
 
-    if (!env.OCTANE_TRADE_FEE_RECIPIENT) {
-      throw new Error("OCTANE_TRADE_FEE_RECIPIENT is not set");
+    if (!(await configUtils()).TRADE_FEE_RECIPIENT) {
+      throw new Error("TRADE_FEE_RECIPIENT is not set");
     }
 
     const jupiterConfig: ConfigurationParameters = {

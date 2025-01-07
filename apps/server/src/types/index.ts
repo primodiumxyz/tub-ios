@@ -1,6 +1,12 @@
 import { PublicKey } from "@solana/web3.js";
 import { Subject, Subscription } from "rxjs";
 
+export enum SwapType {
+  BUY = 1, // When buying any token with USDC
+  SELL_PARTIAL = 2, // When selling part of token balance for USDC
+  SELL_ALL = 3, // When selling entire token balance for USDC
+}
+
 // Base swap request types
 export type UserPrebuildSwapRequest = {
   buyTokenId: string;
@@ -35,16 +41,6 @@ export interface SwapSubscription {
   request: ActiveSwapRequest;
 }
 
-// Analytics types
-export interface ClientEvent {
-  userAgent: string;
-  eventName: string;
-  metadata?: string;
-  errorDetails?: string;
-  source?: string;
-  buildVersion?: string;
-}
-
 // Transfer types
 export interface TransferRequest {
   fromAddress: string;
@@ -64,3 +60,35 @@ export interface CodexTokenResponse {
   token: string;
   expiry: string;
 }
+
+// Analytics types
+export interface ClientEvent {
+  userAgent: string;
+  userWallet: string;
+  source?: string;
+  errorDetails?: string;
+  buildVersion?: string;
+}
+
+export type TokenPurchaseOrSaleEvent = ClientEvent & {
+  tokenMint: string;
+  tokenAmount: string;
+  tokenPriceUsd: string;
+};
+
+export type LoadingTimeEvent = ClientEvent & {
+  identifier: string;
+  timeElapsedMs: number;
+  attemptNumber: number;
+  totalTimeMs: number;
+  averageTimeMs: number;
+};
+
+export type AppDwellTimeEvent = ClientEvent & {
+  dwellTimeMs: number;
+};
+
+export type TokenDwellTimeEvent = ClientEvent & {
+  tokenMint: string;
+  dwellTimeMs: number;
+};

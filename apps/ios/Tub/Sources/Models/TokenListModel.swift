@@ -326,15 +326,11 @@ final class TokenListModel: ObservableObject {
         Task {
             let dwellTimeMs = Int(Date().timeIntervalSince(startTime) * 1000)  // Convert to milliseconds
             
-            try? await Network.shared.recordClientEvent(
-                event: Network.ClientEvent(
-                    eventName: "token_dwell_time",
-                    source: "token_list_model",
-                    metadata: [
-                        ["token_id": currentToken],
-                        ["dwell_time_ms": dwellTimeMs],
-                    ]
-                )
+            try? await Network.shared.recordTokenDwellTime(
+                tokenMint: currentToken,
+                dwellTimeMs: dwellTimeMs,
+                source: "token_list_model",
+                errorDetails: nil
             )
         }
     }

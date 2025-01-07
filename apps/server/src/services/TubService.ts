@@ -7,14 +7,24 @@ import { SwapService } from "./SwapService";
 import { TransactionService } from "./TransactionService";
 import { FeeService } from "./FeeService";
 import { AuthService } from "./AuthService";
-import { AnalyticsService, TokenPurchaseOrSaleEvent } from "./AnalyticsService";
+import { AnalyticsService } from "./AnalyticsService";
 import { TransferService } from "./TransferService";
 import { env } from "../../bin/tub-server";
-import { UserPrebuildSwapRequest, PrebuildSwapResponse, PrebuildSignedSwapResponse, ClientEvent } from "../types";
+import {
+  UserPrebuildSwapRequest,
+  PrebuildSwapResponse,
+  PrebuildSignedSwapResponse,
+  AppDwellTimeEvent,
+  LoadingTimeEvent,
+  TokenDwellTimeEvent,
+  TokenPurchaseOrSaleEvent,
+} from "../types";
 import { deriveTokenAccounts } from "../utils/tokenAccounts";
 import bs58 from "bs58";
 import { TOKEN_PROGRAM_PUBLIC_KEY } from "../constants/tokens";
 import { USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
+import { config } from "../utils/config";
+import { ConfigService } from "../services/ConfigService";
 
 /**
  * Service class handling token trading, swaps, and user operations
@@ -60,20 +70,18 @@ export class TubService {
     // validate trade fee recipient
     const validatedTradeFeeRecipient = await this.validateTradeFeeRecipient();
 
+    // initialize config service first since other services might need it
+    await ConfigService.getInstance();
+
     // Initialize fee payer
     const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY));
-    const feePayerPublicKey = feePayerKeypair.publicKey;
 
     this.authService = new AuthService(this.privy);
-    this.transactionService = new TransactionService(this.connection, feePayerKeypair, feePayerPublicKey);
+    this.transactionService = new TransactionService(this.connection, feePayerKeypair);
     this.feeService = new FeeService({
-      buyFee: env.OCTANE_BUY_FEE,
-      sellFee: env.OCTANE_SELL_FEE,
-      minTradeSize: env.OCTANE_MIN_TRADE_SIZE,
-      feePayerPublicKey: feePayerPublicKey,
       tradeFeeRecipient: validatedTradeFeeRecipient,
     });
-    this.swapService = new SwapService(this.jupiterService, this.transactionService, this.feeService);
+    this.swapService = new SwapService(this.jupiterService, this.transactionService, this.feeService, this.connection);
     this.analyticsService = new AnalyticsService(this.gqlClient);
     this.transferService = new TransferService(this.connection, feePayerKeypair, this.transactionService);
   }
@@ -86,7 +94,8 @@ export class TubService {
    * @throws Error if the trade fee recipient does not have a valid USDC ATA
    */
   private async validateTradeFeeRecipient(): Promise<PublicKey> {
-    let tradeFeeRecipientUsdcAtaAddress = new PublicKey(env.OCTANE_TRADE_FEE_RECIPIENT);
+    const cfg = await config();
+    let tradeFeeRecipientUsdcAtaAddress = new PublicKey(cfg.TRADE_FEE_RECIPIENT);
 
     try {
       // Check if env is a USDC ATA address
@@ -96,8 +105,8 @@ export class TubService {
       try {
         // Check if env is a pubkey address that has a valid USDC ATA
         tradeFeeRecipientUsdcAtaAddress = getAssociatedTokenAddressSync(
-          new PublicKey(USDC_MAINNET_PUBLIC_KEY),
-          new PublicKey(env.OCTANE_TRADE_FEE_RECIPIENT),
+          USDC_MAINNET_PUBLIC_KEY,
+          new PublicKey(cfg.TRADE_FEE_RECIPIENT),
         );
         await getAccount(this.connection, tradeFeeRecipientUsdcAtaAddress);
       } catch {
@@ -114,11 +123,6 @@ export class TubService {
   }
 
   // Analytics methods
-  async recordClientEvent(event: ClientEvent, jwtToken: string): Promise<string> {
-    const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
-    return this.analyticsService.recordClientEvent(event, walletPublicKey.toBase58());
-  }
-
   async recordTokenPurchase(event: TokenPurchaseOrSaleEvent, jwtToken: string): Promise<string> {
     const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
     return this.analyticsService.recordTokenPurchase(event, walletPublicKey.toBase58());
@@ -127,6 +131,21 @@ export class TubService {
   async recordTokenSale(event: TokenPurchaseOrSaleEvent, jwtToken: string): Promise<string> {
     const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
     return this.analyticsService.recordTokenSale(event, walletPublicKey.toBase58());
+  }
+
+  async recordLoadingTime(event: LoadingTimeEvent, jwtToken: string): Promise<string> {
+    const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
+    return this.analyticsService.recordLoadingTime(event, walletPublicKey.toBase58());
+  }
+
+  async recordAppDwellTime(event: AppDwellTimeEvent, jwtToken: string): Promise<string> {
+    const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
+    return this.analyticsService.recordAppDwellTime(event, walletPublicKey.toBase58());
+  }
+
+  async recordTokenDwellTime(event: TokenDwellTimeEvent, jwtToken: string): Promise<string> {
+    const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
+    return this.analyticsService.recordTokenDwellTime(event, walletPublicKey.toBase58());
   }
 
   // Price methods
@@ -177,7 +196,8 @@ export class TubService {
     };
 
     try {
-      const response = await this.swapService.buildSwapResponse(activeRequest);
+      const cfg = await config();
+      const response = await this.swapService.buildSwapResponse(activeRequest, cfg);
       return response;
     } catch (error) {
       throw new Error(`Failed to build swap response: ${error}`);
@@ -258,7 +278,13 @@ export class TubService {
 
   async signAndSendTransaction(jwtToken: string, userSignature: string, base64TransactionMessage: string) {
     const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
-    return this.transactionService.signAndSendTransaction(walletPublicKey, userSignature, base64TransactionMessage);
+    const cfg = await config();
+    return this.transactionService.signAndSendTransaction(
+      walletPublicKey,
+      userSignature,
+      base64TransactionMessage,
+      cfg,
+    );
   }
 
   /**

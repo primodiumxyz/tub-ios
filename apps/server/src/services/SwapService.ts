@@ -2,20 +2,12 @@ import { Subject, interval, switchMap } from "rxjs";
 import { JupiterService } from "./JupiterService";
 import { TransactionService } from "./TransactionService";
 import { FeeService } from "../services/FeeService";
-import { ActiveSwapRequest, PrebuildSwapResponse, SwapSubscription } from "../types";
-import { USDC_DEV_PUBLIC_KEY, USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
+import { ActiveSwapRequest, PrebuildSwapResponse, SwapSubscription, SwapType } from "../types";
 import { QuoteGetRequest } from "@jup-ag/api";
-import { PublicKey } from "@solana/web3.js";
-import {
-  MAX_ACCOUNTS,
-  MAX_DEFAULT_SLIPPAGE_BPS,
-  MAX_AUTO_SLIPPAGE_BPS,
-  AUTO_SLIPPAGE,
-  AUTO_SLIPPAGE_COLLISION_USD_VALUE,
-  AUTO_PRIORITY_FEE_MULTIPLIER,
-  USER_SLIPPAGE_BPS_MAX,
-  MIN_SLIPPAGE_BPS,
-} from "../constants/swap";
+import { Connection, PublicKey, TransactionInstruction } from "@solana/web3.js";
+import { USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
+import { Config } from "./ConfigService";
+import { config } from "../utils/config";
 
 export class SwapService {
   private swapSubscriptions: Map<string, SwapSubscription> = new Map();
@@ -24,44 +16,37 @@ export class SwapService {
     private jupiter: JupiterService,
     private transactionService: TransactionService,
     private feeService: FeeService,
+    private connection: Connection,
   ) {}
 
-  async buildSwapResponse(request: ActiveSwapRequest): Promise<PrebuildSwapResponse> {
+  async buildSwapResponse(request: ActiveSwapRequest, cfg: Config): Promise<PrebuildSwapResponse> {
     if (!request.sellTokenAccount) {
       throw new Error("Sell token account is required but was not provided");
     }
 
-    if (request.slippageBps && request.slippageBps > USER_SLIPPAGE_BPS_MAX) {
+    if (request.slippageBps && request.slippageBps > cfg.USER_SLIPPAGE_BPS_MAX) {
       throw new Error("Slippage bps is too high");
     }
 
-    if (request.slippageBps && request.slippageBps <= MIN_SLIPPAGE_BPS) {
-      throw new Error("Slippage bps must be greater than " + MIN_SLIPPAGE_BPS);
+    if (request.slippageBps && request.slippageBps < cfg.MIN_SLIPPAGE_BPS) {
+      throw new Error("Slippage bps must be greater than " + cfg.MIN_SLIPPAGE_BPS);
     }
 
-    // Calculate fee if selling USDC
-    const usdcDevPubKey = USDC_DEV_PUBLIC_KEY.toString();
-    const usdcMainPubKey = USDC_MAINNET_PUBLIC_KEY.toString();
-    const feeAmount = this.feeService.calculateFeeAmount(request.sellTokenId, request.sellQuantity, [
-      usdcDevPubKey,
-      usdcMainPubKey,
-    ]);
-    const swapAmount = request.sellQuantity - feeAmount;
+    // Determine swap type
+    const swapType = await this.determineSwapType(request);
 
-    // Create fee transfer instruction if needed
-    const feeTransferInstruction = this.feeService.createFeeTransferInstruction(
-      request.sellTokenAccount,
-      request.userPublicKey,
-      feeAmount,
-    );
+    // Calculate fee if swap type is buy
+    const buyFeeAmount =
+      SwapType.BUY === swapType ? this.feeService.calculateFeeAmount(request.sellQuantity, swapType, cfg) : 0;
+    const swapAmount = request.sellQuantity - buyFeeAmount;
 
-    // Create token account close instruction if fee amount is 0
+    // Create token account close instruction if swap type is sell_all (conditional occurs within function)
     const tokenCloseInstruction = await this.transactionService.createTokenCloseInstruction(
       request.userPublicKey,
       request.sellTokenAccount,
       new PublicKey(request.sellTokenId),
       request.sellQuantity,
-      feeAmount,
+      swapType,
     );
 
     // TODO: autoSlippageCollisionUsdValue should be based on the estimated value of the swap amount.
@@ -73,13 +58,17 @@ export class SwapService {
     // 3. auto slippage set to false, use MAX_DEFAULT_SLIPPAGE_BPS
 
     const slippageSettings = {
-      slippageBps: request.slippageBps ? request.slippageBps : AUTO_SLIPPAGE ? undefined : MAX_DEFAULT_SLIPPAGE_BPS,
-      autoSlippage: request.slippageBps ? false : AUTO_SLIPPAGE,
-      maxAutoSlippageBps: MAX_AUTO_SLIPPAGE_BPS,
+      slippageBps: request.slippageBps
+        ? request.slippageBps
+        : cfg.AUTO_SLIPPAGE
+          ? undefined
+          : cfg.MAX_DEFAULT_SLIPPAGE_BPS,
+      autoSlippage: request.slippageBps ? false : cfg.AUTO_SLIPPAGE,
+      maxAutoSlippageBps: cfg.MAX_AUTO_SLIPPAGE_BPS,
       autoSlippageCollisionUsdValue:
         request.sellTokenId === USDC_MAINNET_PUBLIC_KEY.toString()
           ? Math.ceil(swapAmount / 1e6)
-          : AUTO_SLIPPAGE_COLLISION_USD_VALUE,
+          : cfg.AUTO_SLIPPAGE_COLLISION_USD_VALUE,
     };
 
     // Get swap instructions from Jupiter
@@ -95,7 +84,7 @@ export class SwapService {
       autoSlippageCollisionUsdValue: slippageSettings.autoSlippageCollisionUsdValue,
       onlyDirectRoutes: false,
       restrictIntermediateTokens: true,
-      maxAccounts: MAX_ACCOUNTS,
+      maxAccounts: cfg.MAX_ACCOUNTS,
       asLegacyTransaction: false,
     };
 
@@ -106,7 +95,7 @@ export class SwapService {
     } = await this.jupiter.getSwapInstructions(
       swapInstructionRequest,
       request.userPublicKey,
-      AUTO_PRIORITY_FEE_MULTIPLIER,
+      cfg.AUTO_PRIORITY_FEE_MULTIPLIER,
     );
     console.log("Quoted auto slippage", quote.computedAutoSlippage);
     console.log("Quoted slippage bps", quote.slippageBps);
@@ -116,12 +105,34 @@ export class SwapService {
       throw new Error("No swap instruction received");
     }
 
-    // Combine fee transfer and swap instructions and token close instruction if needed
-    const someInstructions = feeTransferInstruction ? [feeTransferInstruction, ...swapInstructions] : swapInstructions;
-    const allInstructions = tokenCloseInstruction ? [...someInstructions, tokenCloseInstruction] : someInstructions;
+    let feeTransferInstruction: TransactionInstruction | null = null;
+
+    // Create fee transfer instruction
+    if (swapType === SwapType.BUY) {
+      feeTransferInstruction = this.feeService.createFeeTransferInstruction(
+        request.sellTokenAccount,
+        request.userPublicKey,
+        buyFeeAmount,
+      );
+    } else if (swapType === SwapType.SELL_ALL || swapType === SwapType.SELL_PARTIAL) {
+      const sellFeeAmount = this.feeService.calculateFeeAmount(Number(quote.outAmount), swapType, cfg);
+      feeTransferInstruction = this.feeService.createFeeTransferInstruction(
+        request.buyTokenAccount,
+        request.userPublicKey,
+        sellFeeAmount,
+      );
+    } else {
+      throw new Error("Invalid swap type");
+    }
+
+    const organizedInstructions = this.organizeInstructions(
+      swapInstructions,
+      feeTransferInstruction,
+      tokenCloseInstruction,
+    );
 
     // Reassign rent payer in instructions
-    const rentReassignedInstructions = this.transactionService.reassignRentInstructions(allInstructions);
+    const rentReassignedInstructions = this.transactionService.reassignRentInstructions(organizedInstructions);
 
     // Build transaction message
     const message = await this.transactionService.buildTransactionMessage(
@@ -135,11 +146,47 @@ export class SwapService {
     const response: PrebuildSwapResponse = {
       transactionMessageBase64: base64Message,
       ...request,
-      hasFee: feeAmount > 0,
+      hasFee: !!feeTransferInstruction,
       timestamp: Date.now(),
     };
 
     return response;
+  }
+
+  private async determineSwapType(request: ActiveSwapRequest): Promise<SwapType> {
+    if (request.buyTokenId === USDC_MAINNET_PUBLIC_KEY.toString()) {
+      const sellTokenBalance = await this.connection.getTokenAccountBalance(request.sellTokenAccount, "processed");
+      if (!sellTokenBalance.value.amount) {
+        throw new Error("Sell token balance is null");
+      }
+      // if balance is greater than sellQuantity, return SELL_PARTIAL
+      if (Number(sellTokenBalance.value.amount) > request.sellQuantity) {
+        return SwapType.SELL_PARTIAL;
+      }
+      // if balance is equal to sellQuantity, return SELL_ALL
+      if (Number(sellTokenBalance.value.amount) === request.sellQuantity) {
+        return SwapType.SELL_ALL;
+      }
+      // otherwise, throw error as not enough balance. show balance in thrown error.
+      throw new Error(`Not enough memecoin balance. Observed balance: ${Number(sellTokenBalance.value.uiAmount)}`);
+    } else {
+      return SwapType.BUY;
+    }
+  }
+
+  private organizeInstructions(
+    swapInstructions: TransactionInstruction[],
+    feeTransferInstruction: TransactionInstruction | null,
+    tokenCloseInstruction: TransactionInstruction | null,
+  ): TransactionInstruction[] {
+    const instructions = [...swapInstructions];
+    if (feeTransferInstruction) {
+      instructions.push(feeTransferInstruction);
+    }
+    if (tokenCloseInstruction) {
+      instructions.push(tokenCloseInstruction);
+    }
+    return instructions;
   }
 
   getMessageFromRegistry(transactionMessageBase64: string) {
@@ -176,7 +223,8 @@ export class SwapService {
           switchMap(async () => {
             const currentRequest = this.swapSubscriptions.get(userId)?.request;
             if (!currentRequest) return null;
-            return this.buildSwapResponse(currentRequest);
+            const cfg = await config();
+            return this.buildSwapResponse(currentRequest, cfg);
           }),
         )
         .subscribe((response: PrebuildSwapResponse | null) => {
