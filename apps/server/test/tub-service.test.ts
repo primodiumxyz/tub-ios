@@ -241,13 +241,16 @@ import { ConfigService } from "../src/services/ConfigService";
         };
         console.log("Memecoin swap:", swap);
         const swapResponse = await tubService.fetchSwap(mockJwtToken, swap);
-        // delay for 2 seconds
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        // delay for 1 second to emulate latency
+        await new Promise((resolve) => setTimeout(resolve, 1000));
 
         await executeTx(swapResponse);
 
-        // wait 5 extra seconds for the transaction to be processed by most nodes
-        await new Promise((resolve) => setTimeout(resolve, 5000));
+        // wait for 5 seconds to ensure the transaction is processed by most nodes
+        for (let i = 5; i > 0; i--) {
+          console.log(`Waiting for ${i} seconds...`);
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
 
         // get balance of SOL in the Memecoin account
         const memecoinSolBalanceLamports = await connection.getBalance(userMemecoinAta, "processed");
