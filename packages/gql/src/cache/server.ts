@@ -45,12 +45,50 @@ function parseCacheTime(str: string | undefined): number {
   return 30;
 }
 
+fastify.get("/healthz", async (request, reply) => {
+  // fetch healthz from hasura
+  const response = await fetchWithRetry(`${HASURA_URL}/healthz?strict=true`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    reply.status(500).send({
+      error: "Hasura service is not available",
+    });
+  }
+
+  reply.status(200).send({
+    status: "ok",
+  });
+});
+
 fastify.post("/v1/graphql", async (request, reply) => {
+  const body = request.body as { query: string; variables?: Record<string, unknown> };
+  const parsedQuery = parse(body.query);
+
+  // If it's a mutation, bypass cache entirely
+  if (parsedQuery.definitions.some((def) => def.kind === "OperationDefinition" && def.operation === "mutation")) {
+    const response = await fetchWithRetry(HASURA_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(request.headers as Record<string, string>),
+      },
+      body: JSON.stringify(body),
+    });
+
+    const data = await response.json();
+    reply.header("X-Cache-Status", "BYPASS");
+    return reply.status(response.status).send(data);
+  }
+
   const bypassCache = request.headers["x-cache-bypass"] === "1";
   const cacheTime = parseCacheTime(request.headers["x-cache-time"] as string);
 
   try {
-    const body = request.body as { query: string; variables?: Record<string, unknown> };
     const query = print(parse(body.query));
     const cacheKey = `gql:${query}:${JSON.stringify(body.variables)}`;
 
