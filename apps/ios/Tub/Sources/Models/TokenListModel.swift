@@ -185,13 +185,21 @@ final class TokenListModel: ObservableObject {
                     recentInterval: .some(FILTERING_INTERVAL),
                     minRecentTrades: .some(FILTERING_MIN_TRADES),
                     minRecentVolume: .some(FILTERING_MIN_VOLUME_USD)
-                )
+                ),
+                cachePolicy: .fetchIgnoringCacheData
             ) {
                 result in
                 switch result {
                 case .success(let graphQLResult):
                     if let tokens = graphQLResult.data?.token_stats_interval_comp {
-                        continuation.resume(returning: tokens.map { elem in elem.token_mint })
+                        let tokenIds = tokens.map { elem in elem.token_mint }
+                        continuation.resume(returning: tokenIds)
+                    } else {
+                        if let errors = graphQLResult.errors, errors.count > 0 {
+                            continuation.resume(throwing: TubError.somethingWentWrong(reason:  errors[0].description ))
+                        } else {
+                            continuation.resume(throwing: TubError.somethingWentWrong(reason:  "Could not fetch hot tokens" ) )
+                        }
                     }
                 case .failure(let error):
                     let end = Date()
@@ -203,6 +211,7 @@ final class TokenListModel: ObservableObject {
     }
     
     public func startTokenSubscription() async {
+        
         do {
             let hotTokens = try await getInitialHotTokens()
             await handleHotTokenFetch(hotTokens: hotTokens)
@@ -212,6 +221,7 @@ final class TokenListModel: ObservableObject {
             )
         }
         
+        self.stopTokenSubscription()
         self.hotTokensSubscription = Network.shared.apollo.subscribe(
             subscription: SubTopTokensByVolumeSubscription(
                 interval: .some(HOT_TOKENS_INTERVAL),
