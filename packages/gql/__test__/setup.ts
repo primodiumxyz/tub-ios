@@ -1,4 +1,4 @@
-import { beforeAll, afterAll, afterEach } from 'vitest';
+import { beforeAll, afterAll, afterEach } from "vitest";
 
 beforeAll(async () => {
   const maxAttempts = 20;
@@ -10,30 +10,30 @@ beforeAll(async () => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-      const response = await fetch('http://localhost:8080/healthz?strict=true', {
-        signal: controller.signal
+      const response = await fetch("http://localhost:8090/healthz?strict=true", {
+        signal: controller.signal,
       });
 
       clearTimeout(timeoutId);
 
       if (response.ok) {
-        console.log('Hasura service is healthy');
+        console.log("Hasura service is healthy");
         // wait for 5 seconds for seeding to complete if retry count is more than 1
         if (i > 0) {
-          await new Promise(resolve => setTimeout(resolve, 5000));
+          await new Promise((resolve) => setTimeout(resolve, 5000));
         }
         return;
       }
-    } catch (error) {
+    } catch {
       console.warn(`Attempt ${i + 1}/${maxAttempts}: Hasura service is not reachable yet. Retrying...`);
     }
 
     if (i < maxAttempts - 1) {
-      await new Promise(resolve => setTimeout(resolve, retryInterval));
+      await new Promise((resolve) => setTimeout(resolve, retryInterval));
     }
   }
 
-  throw new Error('Hasura service is not available. Please ensure it\'s running with `pnpm hasura-up` and try again.');
+  throw new Error("Hasura service is not available. Please ensure it's running with `pnpm hasura-up` and try again.");
 }, 1000 * 60);
 
 afterAll(() => {
@@ -43,4 +43,3 @@ afterAll(() => {
 afterEach(() => {
   // Clean up after each test
 });
-

@@ -9,7 +9,7 @@ describe("query tests", () => {
   let gql: GqlClient;
 
   beforeAll(async () => {
-    gql = await createClient({ url: "http://localhost:8080/v1/graphql", hasuraAdminSecret: "password" });
+    gql = await createClient({ url: "http://localhost:8090/v1/graphql", hasuraAdminSecret: "password" });
   });
 
   it("should be able to query the transactions of a wallet", async () => {
