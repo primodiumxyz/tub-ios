@@ -10,7 +10,7 @@ const redis = createClient({
   url: "redis://localhost:6379",
 });
 
-const HASURA_URL = "http://graphql-engine:8080";
+const HASURA_URL = "http://graphql-engine:8080"; // TODO: should it be localhost?
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 second
 
@@ -46,23 +46,27 @@ function parseCacheTime(str: string | undefined): number {
 }
 
 fastify.get("/healthz", async (request, reply) => {
-  // fetch healthz from hasura
-  const response = await fetchWithRetry(`${HASURA_URL}/healthz?strict=true`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  const strict = (request.query as Record<string, string>).strict === "true";
 
-  if (!response.ok) {
-    reply.status(500).send({
-      error: "Hasura service is not available",
+  try {
+    // Check Redis connection
+    await redis.ping();
+
+    if (strict) {
+      // Also check Hasura connection
+      const response = await fetch(`${HASURA_URL}/healthz`);
+      if (!response.ok) {
+        throw new Error("Hasura health check failed");
+      }
+    }
+
+    return reply.status(200).send({ status: "ok" });
+  } catch (error) {
+    return reply.status(503).send({
+      status: "error",
+      message: error instanceof Error ? error.message : "Unknown error",
     });
   }
-
-  reply.status(200).send({
-    status: "OK",
-  });
 });
 
 fastify.post("/v1/graphql", async (request, reply) => {
