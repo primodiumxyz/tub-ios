@@ -88,12 +88,12 @@ struct AppContent: View {
                 }
                 Task (priority: .userInitiated) {
                     tokenListModel.clearQueue()
-                    await tokenListModel.startTokenSubscription()
+                    await tokenListModel.startHotTokensPolling()
                 }
             case .disconnected, .notCreated, .needsRecovery:
                 Task (priority: .userInitiated) {
                     tokenListModel.clearQueue()
-                    await tokenListModel.startTokenSubscription()
+                    await tokenListModel.startHotTokensPolling()
                 }
             default:
                 break

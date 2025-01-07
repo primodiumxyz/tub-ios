@@ -27,7 +27,7 @@ final class TokenListModel: ObservableObject {
     @Published var currentTokenModel: TokenModel
     @Published var initialFetchComplete = false
     
-    private var hotTokensSubscription: Apollo.Cancellable?
+    private var hotTokensPollingTimer: Timer?
     
     private var currentTokenStartTime: Date?
     
@@ -175,7 +175,7 @@ final class TokenListModel: ObservableObject {
         }
     }
     
-    private func getInitialHotTokens() async throws -> [String] {
+    private func getCurrentHotTokens() async throws -> [String] {
         let start = Date()
         return try await withCheckedThrowingContinuation {
             (continuation: CheckedContinuation<[String], Error>) in
@@ -202,42 +202,21 @@ final class TokenListModel: ObservableObject {
         }
     }
     
-    public func startTokenSubscription() async {
-        do {
-            let hotTokens = try await getInitialHotTokens()
-            await handleHotTokenFetch(hotTokens: hotTokens)
-        } catch {
-            print(
-                "Error fetching initial hot tokens: \(error.localizedDescription). Proceeding with subscription."
-            )
-        }
-        
-        self.hotTokensSubscription = Network.shared.graphQL.subscribe(
-            subscription: SubTopTokensByVolumeSubscription(
-                interval: .some(HOT_TOKENS_INTERVAL),
-                recentInterval: .some(FILTERING_INTERVAL),
-                minRecentTrades: .some(FILTERING_MIN_TRADES),
-                minRecentVolume: .some(FILTERING_MIN_VOLUME_USD)
-            )
-        ) { [weak self] result in
-            guard let self = self else { return }
-            
-            // Prepare data in background
-            let hotTokens: [String] = {
-                switch result {
-                case .success(let graphQLResult):
-                    if let tokens = graphQLResult.data?.token_stats_interval_comp {
-                        return tokens.map { elem in elem.token_mint }
-                    }
-                    return []
-                case .failure(let error):
-                    print("Error fetching tokens: \(error.localizedDescription)")
-                    return []
-                }
-            }()
-            Task {
-                await self.handleHotTokenFetch(hotTokens: hotTokens)
+    private func pollHotTokens() {
+        Task {
+            do {
+                let hotTokens = try await getCurrentHotTokens()
+                await handleHotTokenFetch(hotTokens: hotTokens)
+            } catch {
+                print("Error polling hot tokens: \(error.localizedDescription)")
             }
+        }
+    }
+
+    public func startHotTokensPolling() {
+        pollHotTokens()
+        self.hotTokensPollingTimer = Timer.scheduledTimer(withTimeInterval: HOT_TOKENS_POLLING_INTERVAL, repeats: true) { [weak self] _ in
+            self?.pollHotTokens()
         }
     }
     
@@ -250,8 +229,9 @@ final class TokenListModel: ObservableObject {
         }
     }
     
-    func stopTokenSubscription() {
-        self.hotTokensSubscription?.cancel()
+    func stopHotTokensPolling() {
+        self.hotTokensPollingTimer?.invalidate()
+        self.hotTokensPollingTimer = nil
     }
     
     @MainActor
@@ -350,7 +330,7 @@ final class TokenListModel: ObservableObject {
         // Record final dwell time before cleanup
         recordTokenDwellTime()
         
-        stopTokenSubscription()
+        stopHotTokensPolling()
     }
 }
 
