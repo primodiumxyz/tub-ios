@@ -55,8 +55,9 @@ extension Network {
             query: Query,
             cachePolicy: CachePolicy = .default,
             cacheTime: String? = nil,
-            bypassCache: Bool = false
-        ) async throws -> Query.Data {
+            bypassCache: Bool = false,
+            completion: @escaping (Result<GraphQLResult<Query.Data>, Error>) -> Void
+        ) {
             var headers: [String: String] = [:]
             
             if bypassCache {
@@ -65,25 +66,23 @@ extension Network {
                 headers["X-Cache-Time"] = cacheTime
             }
             
-            return try await withCheckedThrowingContinuation { continuation in
-                client.fetch(
-                    query: query,
-                    cachePolicy: cachePolicy,
-                    context: ["headers": headers] as [String: Any] as? RequestContext
-                ) { result in
-                    switch result {
-                    case .success(let graphQLResult):
-                        if let data = graphQLResult.data {
-                            continuation.resume(returning: data)
-                        } else if let errors = graphQLResult.errors {
-                            continuation.resume(throwing: TubError.graphQLError(errors: errors))
-                        } else {
-                            continuation.resume(throwing: TubError.somethingWentWrong(reason: "No data or errors"))
-                        }
-                    case .failure(let error):
-                        continuation.resume(throwing: error)
-                    }
-                }
+            client.fetch(
+                query: query,
+                cachePolicy: cachePolicy,
+                context: ["headers": headers] as [String: Any] as? RequestContext
+            ) { result in
+                completion(result)
+            }
+        }
+        
+        func subscribe<Subscription: GraphQLSubscription>(
+            subscription: Subscription,
+            completion: @escaping (Result<GraphQLResult<Subscription.Data>, Error>) -> Void
+        ) -> Cancellable {
+            return client.subscribe(
+                subscription: subscription
+            ) { result in
+                completion(result)
             }
         }
     }

@@ -342,7 +342,7 @@ final class UserModel: ObservableObject {
         
         return try await withCheckedThrowingContinuation {
             (continuation: CheckedContinuation<TokenMetadata, Error>) in
-            Network.shared.apollo.fetch(query: query) { result in
+            Network.shared.graphQL.fetch(query: query) { result in
                 switch result {
                 case .success(let response):
                     if response.errors != nil {
@@ -393,7 +393,7 @@ final class UserModel: ObservableObject {
         if uncachedTokens.count > 0 {
             try await withCheckedThrowingContinuation {
                 (continuation: CheckedContinuation<Void, Error>) in
-                Network.shared.apollo.fetch(
+                Network.shared.graphQL.fetch(
                     query: GetBulkTokenMetadataQuery(tokens: uncachedTokens)
                 ) { result in
                     switch result {
@@ -436,7 +436,7 @@ final class UserModel: ObservableObject {
         
         return try await withCheckedThrowingContinuation {
             (continuation: CheckedContinuation<TokenLiveData, Error>) in
-            Network.shared.apollo.fetch(query: query) { result in
+            Network.shared.graphQL.fetch(query: query) { result in
                 switch result {
                 case .success(let response):
                     if response.errors != nil {
@@ -482,7 +482,7 @@ final class UserModel: ObservableObject {
         for mint in tokenMints {
             try await withCheckedThrowingContinuation {
                 (continuation: CheckedContinuation<Void, Error>) in
-                Network.shared.apollo.fetch(
+                Network.shared.graphQL.fetch(
                     query: GetBulkTokenLiveDataQuery(tokens: [mint])
                 ) { result in
                     switch result {
@@ -632,7 +632,7 @@ final class UserModel: ObservableObject {
         let query = GetWalletTransactionsQuery(wallet: walletAddress)
         do {
             let newTxs = try await withCheckedThrowingContinuation { continuation in
-                Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { result in
+                Network.shared.graphQL.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { result in
                     switch result {
                     case .success(let graphQLResult):
                         Task {

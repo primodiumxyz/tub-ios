@@ -179,7 +179,7 @@ final class TokenListModel: ObservableObject {
         let start = Date()
         return try await withCheckedThrowingContinuation {
             (continuation: CheckedContinuation<[String], Error>) in
-            Network.shared.apollo.fetch(
+            Network.shared.graphQL.fetch(
                 query: GetTopTokensByVolumeQuery(
                     interval: .some(HOT_TOKENS_INTERVAL),
                     recentInterval: .some(FILTERING_INTERVAL),
@@ -212,7 +212,7 @@ final class TokenListModel: ObservableObject {
             )
         }
         
-        self.hotTokensSubscription = Network.shared.apollo.subscribe(
+        self.hotTokensSubscription = Network.shared.graphQL.subscribe(
             subscription: SubTopTokensByVolumeSubscription(
                 interval: .some(HOT_TOKENS_INTERVAL),
                 recentInterval: .some(FILTERING_INTERVAL),

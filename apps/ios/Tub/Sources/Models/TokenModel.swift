@@ -37,7 +37,7 @@ class TokenModel: ObservableObject {
         
         let query = GetLatestTokenPurchaseQuery(wallet: walletAddress, mint: tokenId)
         let purchaseData = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<PurchaseData, Error>) in
-            Network.shared.apollo.fetch(query: query) {
+            Network.shared.graphQL.fetch(query: query) {
                 result in switch result {
                 case .success(let response):
                     if let err = response.errors?.first?.message {
@@ -145,7 +145,7 @@ class TokenModel: ObservableObject {
         let startTime = now.addingTimeInterval(-Timespan.live.seconds)
         
         return try await withCheckedThrowingContinuation { continuation in
-            Network.shared.apollo.fetch(query: GetTokenPricesSinceQuery(
+            Network.shared.graphQL.fetch(query: GetTokenPricesSinceQuery(
                 token: tokenId,
                 since: .some(iso8601Formatter.string(from: startTime))
             )) { result in
@@ -197,7 +197,7 @@ class TokenModel: ObservableObject {
         // subscribe to price updates
         DispatchQueue.main.async { [weak self] in
             guard let self else {return}
-            self.priceSubscription = Network.shared.apollo.subscribe(
+            self.priceSubscription = Network.shared.graphQL.subscribe(
                 subscription: SubTokenPricesSinceSubscription(
                     token: tokenId,
                     since: .some(iso8601Formatter.string(from: .now))
@@ -244,7 +244,7 @@ class TokenModel: ObservableObject {
 
     private func fetchInitialCandles(_ tokenId: String, since: Date, candleInterval: String) async throws -> [CandleData] {
         let candles = try await withCheckedThrowingContinuation { continuation in
-            Network.shared.apollo.fetch(query: GetTokenCandlesQuery(token: tokenId, since: .some(iso8601Formatter.string(from: since)), candle_interval: .some(candleInterval))) { result in
+            Network.shared.graphQL.fetch(query: GetTokenCandlesQuery(token: tokenId, since: .some(iso8601Formatter.string(from: since)), candle_interval: .some(candleInterval))) { result in
                 switch result {
                 case .success(let graphQLResult):
                     if let candles = graphQLResult.data?.token_trade_history_candles {
@@ -287,7 +287,7 @@ class TokenModel: ObservableObject {
             print("Error fetching initial candles: \(error), starting subscription")
         }
 
-        candleSubscription = Network.shared.apollo.subscribe(
+        candleSubscription = Network.shared.graphQL.subscribe(
             subscription: SubTokenCandlesSubscription(
                 token: tokenId,
                 since: .some(iso8601Formatter.string(from: since)),
@@ -324,7 +324,7 @@ class TokenModel: ObservableObject {
     private func subscribeToSingleTokenData(_ tokenId: String) async {
         singleTokenDataSubscription?.cancel()
         
-        singleTokenDataSubscription = Network.shared.apollo.subscribe(
+        singleTokenDataSubscription = Network.shared.graphQL.subscribe(
             subscription: SubSingleTokenDataSubscription(token: tokenId)
         ) { result in
             
