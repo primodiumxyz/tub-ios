@@ -32,7 +32,8 @@
     "db:remote:apply-metadata": "dotenvx run -f ./../../.env --quiet -- sh -c 'hasura metadata apply --endpoint \"$HASURA_URL\" --admin-secret \"$HASURA_ADMIN_SECRET\"'",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "start:cache": "tsx src/cache/server.ts"
   },
   "keywords": [],
   "author": "",
@@ -40,8 +41,12 @@
   "dependencies": {
     "@dotenvx/dotenvx": "^1.14.1",
     "@urql/core": "^5.0.6",
+    "fastify": "^4.21.0",
     "gql.tada": "^1.8.9",
+    "graphql": "^16.10.0",
     "graphql-ws": "^5.16.0",
+    "redis": "^4.7.0",
+    "tsx": "^3.12.6",
     "ws": "^8.18.0"
   },
   "devDependencies": {
