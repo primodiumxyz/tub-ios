@@ -33,6 +33,8 @@ RUN pnpm install --frozen-lockfile --filter @tub/gql
 
 WORKDIR /app/packages/gql
 
+ENV REDIS_PORT=8091
+
 # Create a script to wait for Redis to be ready
 RUN echo '#!/bin/sh\n\
 MAX_RETRIES=30\n\
@@ -52,7 +54,7 @@ exit 1' > /wait-for-redis.sh && chmod +x /wait-for-redis.sh
 
 # Create startup script
 RUN echo '#!/bin/sh\n\
-/opt/redis-stack/bin/redis-stack-server & \n\
+/opt/redis-stack/bin/redis-stack-server --port $REDIS_PORT & \n\
 /wait-for-redis.sh\n\
 if [ $? -eq 0 ]; then\n\
     exec pnpm start:cache\n\
