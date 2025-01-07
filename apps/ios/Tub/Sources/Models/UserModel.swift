@@ -192,7 +192,8 @@ final class UserModel: ObservableObject {
         }
         
         await MainActor.run {
-            self.tokenPortfolio = tokenMints
+            // if a token fails to be stored in the tokenData, something went wrong fetching its data so we exclude it from the user's portfolio
+            self.tokenPortfolio = tokenMints.filter{ mint in tokenData[mint] != nil }
         }
         
         async let metadataFetch = fetchBulkTokenMetadata(tokenMints: tokenMints)
