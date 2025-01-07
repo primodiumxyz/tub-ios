@@ -41,7 +41,7 @@ MAX_RETRIES=30\n\
 RETRY_INTERVAL=1\n\
 \n\
 for i in $(seq 1 $MAX_RETRIES); do\n\
-    if redis-cli ping > /dev/null 2>&1; then\n\
+    if redis-cli -p $REDIS_PORT ping > /dev/null 2>&1; then\n\
         echo "Redis is ready!"\n\
         exit 0\n\
     fi\n\
