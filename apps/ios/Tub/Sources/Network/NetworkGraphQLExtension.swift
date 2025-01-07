@@ -6,8 +6,10 @@
 //
 
 import Apollo
+import ApolloAPI
 import ApolloWebSocket
 import Foundation
+import TubAPI
 
 extension Network {
     // GraphQL configuration struct
@@ -36,13 +38,10 @@ extension Network {
             let httpURL = URL(string: graphqlHttpUrl)!
             let store = ApolloStore()
             
-            let requestBodyCreator = CachingRequestBodyCreator()
-            
             httpTransport = RequestChainNetworkTransport(
                 interceptorProvider: DefaultInterceptorProvider(store: store),
                 endpointURL: httpURL,
-                additionalHeaders: [:],
-                requestBodyCreator: requestBodyCreator
+                additionalHeaders: [:]
             )
             
             // Setup WebSocket transport (unchanged)
@@ -57,7 +56,7 @@ extension Network {
             cachePolicy: CachePolicy = .default,
             cacheTime: String? = nil,
             bypassCache: Bool = false
-        ) -> Promise<Query.Data> {
+        ) async throws -> Query.Data {
             var headers: [String: String] = [:]
             
             if bypassCache {
@@ -66,33 +65,26 @@ extension Network {
                 headers["X-Cache-Time"] = cacheTime
             }
             
-            return client.fetch(
-                query: query,
-                cachePolicy: cachePolicy,
-                context: RequestContext(headers: headers)
-            )
+            return try await withCheckedThrowingContinuation { continuation in
+                client.fetch(
+                    query: query,
+                    cachePolicy: cachePolicy,
+                    context: ["headers": headers] as [String: Any] as? RequestContext
+                ) { result in
+                    switch result {
+                    case .success(let graphQLResult):
+                        if let data = graphQLResult.data {
+                            continuation.resume(returning: data)
+                        } else if let errors = graphQLResult.errors {
+                            continuation.resume(throwing: TubError.graphQLError(errors: errors))
+                        } else {
+                            continuation.resume(throwing: TubError.somethingWentWrong(reason: "No data or errors"))
+                        }
+                    case .failure(let error):
+                        continuation.resume(throwing: error)
+                    }
+                }
+            }
         }
-    }
-}
-
-// Custom RequestBodyCreator to handle caching headers
-private class CachingRequestBodyCreator: RequestBodyCreator {
-    func requestBody<Operation: GraphQLOperation>(
-        for operation: Operation,
-        sendQueryDocument: Bool,
-        autoPersistQuery: Bool
-    ) -> JSONEncodableDictionary {
-        var body = super.requestBody(
-            for: operation,
-            sendQueryDocument: sendQueryDocument,
-            autoPersistQuery: autoPersistQuery
-        )
-        
-        // Add operation-specific cache hints
-        if let cacheHint = operation.cacheHint {
-            body["cacheHint"] = cacheHint
-        }
-        
-        return body
     }
 }
