@@ -7,7 +7,7 @@ public class GetTokenLiveDataQuery: GraphQLQuery {
   public static let operationName: String = "GetTokenLiveData"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetTokenLiveData($token: String!) { token_stats_interval_comp( where: { token_mint: { _eq: $token } } args: { interval: "30m", recent_interval: "2m" } ) { __typename token_mint latest_price_usd total_volume_usd total_trades price_change_pct recent_volume_usd recent_trades recent_price_change_pct token_metadata_supply token_metadata_decimals } }"#
+      #"query GetTokenLiveData($token: String!) { token_stats_interval_comp( where: { token_mint: { _eq: $token } } args: { interval: "30m", recent_interval: "2m" } ) { __typename token_mint latest_price_usd total_volume_usd total_trades price_change_pct recent_volume_usd recent_trades recent_price_change_pct token_metadata_supply } }"#
     ))
 
   public var token: String
@@ -54,7 +54,6 @@ public class GetTokenLiveDataQuery: GraphQLQuery {
         .field("recent_trades", TubAPI.Numeric.self),
         .field("recent_price_change_pct", TubAPI.Numeric.self),
         .field("token_metadata_supply", TubAPI.Numeric?.self),
-        .field("token_metadata_decimals", TubAPI.Numeric?.self),
       ] }
 
       public var token_mint: String { __data["token_mint"] }
@@ -66,7 +65,6 @@ public class GetTokenLiveDataQuery: GraphQLQuery {
       public var recent_trades: TubAPI.Numeric { __data["recent_trades"] }
       public var recent_price_change_pct: TubAPI.Numeric { __data["recent_price_change_pct"] }
       public var token_metadata_supply: TubAPI.Numeric? { __data["token_metadata_supply"] }
-      public var token_metadata_decimals: TubAPI.Numeric? { __data["token_metadata_decimals"] }
     }
   }
 }

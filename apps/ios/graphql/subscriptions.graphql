@@ -63,6 +63,5 @@ subscription SubSingleTokenData($token: String!) {
     recent_trades
     recent_price_change_pct
     token_metadata_supply
-    token_metadata_decimals
   }
 }
