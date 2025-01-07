@@ -10,7 +10,7 @@ const redis = createClient({
   url: "redis://localhost:6379",
 });
 
-const HASURA_URL = "http://graphql-engine:8080"; // TODO: should it be localhost?
+const HASURA_URL = "http://graphql-engine:8080";
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 second
 
