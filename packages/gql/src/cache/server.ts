@@ -97,10 +97,10 @@ fastify.post("/v1/graphql", async (request, reply) => {
     const cacheKey = `gql:${query}:${JSON.stringify(body.variables)}`;
 
     if (!bypassCache) {
-      const cached = await redis.get(cacheKey);
+      const cached = await redis.json.get(cacheKey);
       if (cached) {
         reply.header("X-Cache-Status", "HIT");
-        return JSON.parse(cached);
+        return cached;
       }
     }
 
@@ -118,9 +118,8 @@ fastify.post("/v1/graphql", async (request, reply) => {
     const data = await response.json();
 
     if (!bypassCache && response.ok && !data.errors) {
-      await redis.set(cacheKey, JSON.stringify(data), {
-        EX: cacheTime,
-      });
+      await redis.json.set(cacheKey, "$", data);
+      await redis.expire(cacheKey, cacheTime);
       reply.header("X-Cache-Status", "MISS");
     } else {
       reply.header("X-Cache-Status", "BYPASS");

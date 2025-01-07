@@ -1,10 +1,10 @@
+FROM redis/redis-stack-server:latest as redis
 FROM node:21.4.0-bookworm-slim
 ENV NODE_ENV=production
 
-# Install Redis
-RUN apt update \
-  && apt install --assume-yes --no-install-recommends \
-  redis-server
+# Copy Redis configuration and modules from Redis Stack image
+COPY --from=redis /opt/redis-stack /opt/redis-stack
+COPY --from=redis /usr/local/bin/redis* /usr/local/bin/
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
@@ -25,5 +25,5 @@ RUN pnpm install --frozen-lockfile --filter @tub/gql
 
 WORKDIR /app/packages/gql
 
-# Start Redis and the cache server
-CMD service redis-server start && pnpm start:cache
+# Start Redis Stack and the cache server
+CMD redis-stack-server & pnpm start:cache
