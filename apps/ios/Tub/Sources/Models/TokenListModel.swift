@@ -186,7 +186,7 @@ final class TokenListModel: ObservableObject {
                     minRecentTrades: .some(FILTERING_MIN_TRADES),
                     minRecentVolume: .some(FILTERING_MIN_VOLUME_USD)
                 ),
-                cacheTime: "30s"
+                cacheTime: "15s"
             ) {
                 result in
                 switch result {
