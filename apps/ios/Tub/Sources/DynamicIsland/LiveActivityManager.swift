@@ -22,8 +22,7 @@ import SwiftUI
         
         let attributes = TubActivityAttributes(
             name: tokenName,
-            symbol: symbol,
-            imageUrl: imageUrl
+            symbol: symbol
         )
         let contentState = TubActivityAttributes.ContentState(
             value: 0.0,

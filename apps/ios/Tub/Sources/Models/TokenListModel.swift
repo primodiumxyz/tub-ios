@@ -271,7 +271,7 @@ final class TokenListModel: ObservableObject {
     
     private func updatePendingTokens(_ newTokens: [String]) async {
         guard !newTokens.isEmpty else {
-            if !self.initialFetchComplete { self.initialFetchComplete = true }
+            if !self.initialFetchComplete { await MainActor.run {self.initialFetchComplete = true} }
             return
         }
         

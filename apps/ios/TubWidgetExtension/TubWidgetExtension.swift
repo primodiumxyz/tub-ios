@@ -15,7 +15,6 @@ struct Provider: AppIntentTimelineProvider {
             date: Date(),
             configuration: ConfigurationAppIntent(),
             symbol: "Loading...",
-            imageUrl: "",
             currentPrice: 0,
             priceChange: 0
         )
@@ -27,7 +26,6 @@ struct Provider: AppIntentTimelineProvider {
                 date: Date(),
                 configuration: configuration,
                 symbol: "No Data",
-                imageUrl: "",
                 currentPrice: 0,
                 priceChange: 0
             )
@@ -37,7 +35,6 @@ struct Provider: AppIntentTimelineProvider {
             date: Date(),
             configuration: configuration,
             symbol: activity.attributes.symbol,
-            imageUrl: activity.attributes.imageUrl,
             currentPrice: activity.content.state.currentPrice,
             priceChange: activity.content.state.value
         )
@@ -53,7 +50,6 @@ struct Provider: AppIntentTimelineProvider {
                     date: currentDate,
                     configuration: configuration,
                     symbol: "No Data",
-                    imageUrl: "",
                     currentPrice: 0,
                     priceChange: 0
                 )
@@ -64,7 +60,6 @@ struct Provider: AppIntentTimelineProvider {
             date: currentDate,
             configuration: configuration,
             symbol: activity.attributes.symbol,
-            imageUrl: activity.attributes.imageUrl,
             currentPrice: activity.content.state.currentPrice,
             priceChange: activity.content.state.value
         )
@@ -83,7 +78,6 @@ struct SimpleEntry: TimelineEntry {
     let date: Date
     let configuration: ConfigurationAppIntent
     let symbol: String
-    let imageUrl: String
     let currentPrice: Double
     let priceChange: Double
 }
@@ -94,18 +88,6 @@ struct TubWidgetExtensionEntryView : View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 8) {
-                AsyncImage(url: URL(string: entry.imageUrl)) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 32, height: 32)
-                } placeholder: {
-                    Image(systemName: "circle.fill")
-                        .foregroundStyle(.accent)
-                        .frame(width: 32, height: 32)
-                        .padding(.horizontal, -6)
-                }
-                
                 Text(entry.symbol)
                     .font(.system(.body, design: .rounded))
                     .bold()
@@ -148,6 +130,6 @@ struct TubWidgetExtension: Widget {
 #Preview(as: .systemSmall) {
     TubWidgetExtension()
 } timeline: {
-    SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), symbol: "", imageUrl: "", currentPrice: 0.5612, priceChange: 2.34)
-    SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), symbol: "", imageUrl: "", currentPrice: 0.5612, priceChange: -1.23)
+    SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), symbol: "MONK", currentPrice: 0.5612, priceChange: 2.34)
+    SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), symbol: "MONK", currentPrice: 0.5612, priceChange: -1.23)
 }
