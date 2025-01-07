@@ -38,7 +38,7 @@ class TokenModel: ObservableObject {
         guard let walletAddress = UserModel.shared.walletAddress else { return }
         
         let query = GetLatestTokenPurchaseQuery(wallet: walletAddress, mint: tokenId)
-        let purchaseData = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<PurchaseData, Error>) in
+        let purchaseData = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<PurchaseData?, Error>) in
             Network.shared.apollo.fetch(query: query) {
                 result in switch result {
                 case .success(let response):
@@ -47,7 +47,7 @@ class TokenModel: ObservableObject {
                         return
                     }
                     guard let tx = response.data?.transactions.first, let timestamp = iso8601Formatter.date(from: tx.created_at) else {
-                        continuation.resume(throwing: TubError.serverError(reason:"No purchases found"))
+                        continuation.resume(returning: nil)
                         return
                     }
                     let purchaseData = PurchaseData(tokenId: tx.token_mint, timestamp: timestamp, amountToken: Int(tx.token_amount), priceUsd: tx.token_price_usd)
@@ -274,9 +274,14 @@ class TokenModel: ObservableObject {
                             )
                         }
                         continuation.resume(returning: updatedCandles)
+                        return
+                    } else {
+                        continuation.resume(throwing: TubError.actionFailed(failureDescription: "No candles found"))
+                        return
                     }
                 case .failure(let error):
                     continuation.resume(throwing: error)
+                    return
                 }
             }
         }
@@ -429,6 +434,9 @@ class TokenModel: ObservableObject {
 
         if latestPrice == 0 || initialPriceUsd == 0 {
             print("Error: Cannot calculate price change. Prices are not available.")
+            DispatchQueue.main.async {
+                self.priceChange = (0, 0)
+            }
             return
         }
 

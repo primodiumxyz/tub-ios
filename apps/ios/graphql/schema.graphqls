@@ -53,6 +53,21 @@ input Boolean_comparison_exp {
 }
 
 """
+Boolean expression to compare columns of type "Int". All fields are combined with logical 'AND'.
+"""
+input Int_comparison_exp {
+  _eq: Int
+  _gt: Int
+  _gte: Int
+  _in: [Int!]
+  _is_null: Boolean
+  _lt: Int
+  _lte: Int
+  _neq: Int
+  _nin: [Int!]
+}
+
+"""
 Boolean expression to compare columns of type "String". All fields are combined with logical 'AND'.
 """
 input String_comparison_exp {
@@ -103,309 +118,6 @@ input String_comparison_exp {
 
   """does the column match the given SQL regular expression"""
   _similar: String
-}
-
-"""
-columns and relationships of "analytics_client_event"
-"""
-type analytics_client_event {
-  build: String
-  created_at: timestamptz!
-  error_details: String
-  id: uuid!
-  metadata(
-    """JSON select path"""
-    path: String
-  ): jsonb
-  name: String!
-  source: String
-  user: String!
-  user_agent: String!
-}
-
-"""
-aggregated selection of "analytics_client_event"
-"""
-type analytics_client_event_aggregate {
-  aggregate: analytics_client_event_aggregate_fields
-  nodes: [analytics_client_event!]!
-}
-
-"""
-aggregate fields of "analytics_client_event"
-"""
-type analytics_client_event_aggregate_fields {
-  count(columns: [analytics_client_event_select_column!], distinct: Boolean): Int!
-  max: analytics_client_event_max_fields
-  min: analytics_client_event_min_fields
-}
-
-"""append existing jsonb value of filtered columns with new jsonb value"""
-input analytics_client_event_append_input {
-  metadata: jsonb
-}
-
-"""
-Boolean expression to filter rows from the table "analytics_client_event". All fields are combined with a logical 'AND'.
-"""
-input analytics_client_event_bool_exp {
-  _and: [analytics_client_event_bool_exp!]
-  _not: analytics_client_event_bool_exp
-  _or: [analytics_client_event_bool_exp!]
-  build: String_comparison_exp
-  created_at: timestamptz_comparison_exp
-  error_details: String_comparison_exp
-  id: uuid_comparison_exp
-  metadata: jsonb_comparison_exp
-  name: String_comparison_exp
-  source: String_comparison_exp
-  user: String_comparison_exp
-  user_agent: String_comparison_exp
-}
-
-"""
-unique or primary key constraints on table "analytics_client_event"
-"""
-enum analytics_client_event_constraint {
-  """
-  unique or primary key constraint on columns "id"
-  """
-  analytics_client_events_pkey
-}
-
-"""
-delete the field or element with specified path (for JSON arrays, negative integers count from the end)
-"""
-input analytics_client_event_delete_at_path_input {
-  metadata: [String!]
-}
-
-"""
-delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
-"""
-input analytics_client_event_delete_elem_input {
-  metadata: Int
-}
-
-"""
-delete key/value pair or string element. key/value pairs are matched based on their key value
-"""
-input analytics_client_event_delete_key_input {
-  metadata: String
-}
-
-"""
-input type for inserting data into table "analytics_client_event"
-"""
-input analytics_client_event_insert_input {
-  build: String
-  created_at: timestamptz
-  error_details: String
-  id: uuid
-  metadata: jsonb
-  name: String
-  source: String
-  user: String
-  user_agent: String
-}
-
-"""aggregate max on columns"""
-type analytics_client_event_max_fields {
-  build: String
-  created_at: timestamptz
-  error_details: String
-  id: uuid
-  name: String
-  source: String
-  user: String
-  user_agent: String
-}
-
-"""aggregate min on columns"""
-type analytics_client_event_min_fields {
-  build: String
-  created_at: timestamptz
-  error_details: String
-  id: uuid
-  name: String
-  source: String
-  user: String
-  user_agent: String
-}
-
-"""
-response of any mutation on the table "analytics_client_event"
-"""
-type analytics_client_event_mutation_response {
-  """number of rows affected by the mutation"""
-  affected_rows: Int!
-
-  """data from the rows affected by the mutation"""
-  returning: [analytics_client_event!]!
-}
-
-"""
-on_conflict condition type for table "analytics_client_event"
-"""
-input analytics_client_event_on_conflict {
-  constraint: analytics_client_event_constraint!
-  update_columns: [analytics_client_event_update_column!]! = []
-  where: analytics_client_event_bool_exp
-}
-
-"""Ordering options when selecting data from "analytics_client_event"."""
-input analytics_client_event_order_by {
-  build: order_by
-  created_at: order_by
-  error_details: order_by
-  id: order_by
-  metadata: order_by
-  name: order_by
-  source: order_by
-  user: order_by
-  user_agent: order_by
-}
-
-"""primary key columns input for table: analytics_client_event"""
-input analytics_client_event_pk_columns_input {
-  id: uuid!
-}
-
-"""prepend existing jsonb value of filtered columns with new jsonb value"""
-input analytics_client_event_prepend_input {
-  metadata: jsonb
-}
-
-"""
-select columns of table "analytics_client_event"
-"""
-enum analytics_client_event_select_column {
-  """column name"""
-  build
-
-  """column name"""
-  created_at
-
-  """column name"""
-  error_details
-
-  """column name"""
-  id
-
-  """column name"""
-  metadata
-
-  """column name"""
-  name
-
-  """column name"""
-  source
-
-  """column name"""
-  user
-
-  """column name"""
-  user_agent
-}
-
-"""
-input type for updating data in table "analytics_client_event"
-"""
-input analytics_client_event_set_input {
-  build: String
-  created_at: timestamptz
-  error_details: String
-  id: uuid
-  metadata: jsonb
-  name: String
-  source: String
-  user: String
-  user_agent: String
-}
-
-"""
-Streaming cursor of the table "analytics_client_event"
-"""
-input analytics_client_event_stream_cursor_input {
-  """Stream column input with initial value"""
-  initial_value: analytics_client_event_stream_cursor_value_input!
-
-  """cursor ordering"""
-  ordering: cursor_ordering
-}
-
-"""Initial value of the column from where the streaming should start"""
-input analytics_client_event_stream_cursor_value_input {
-  build: String
-  created_at: timestamptz
-  error_details: String
-  id: uuid
-  metadata: jsonb
-  name: String
-  source: String
-  user: String
-  user_agent: String
-}
-
-"""
-update columns of table "analytics_client_event"
-"""
-enum analytics_client_event_update_column {
-  """column name"""
-  build
-
-  """column name"""
-  created_at
-
-  """column name"""
-  error_details
-
-  """column name"""
-  id
-
-  """column name"""
-  metadata
-
-  """column name"""
-  name
-
-  """column name"""
-  source
-
-  """column name"""
-  user
-
-  """column name"""
-  user_agent
-}
-
-input analytics_client_event_updates {
-  """append existing jsonb value of filtered columns with new jsonb value"""
-  _append: analytics_client_event_append_input
-
-  """
-  delete the field or element with specified path (for JSON arrays, negative integers count from the end)
-  """
-  _delete_at_path: analytics_client_event_delete_at_path_input
-
-  """
-  delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
-  """
-  _delete_elem: analytics_client_event_delete_elem_input
-
-  """
-  delete key/value pair or string element. key/value pairs are matched based on their key value
-  """
-  _delete_key: analytics_client_event_delete_key_input
-
-  """prepend existing jsonb value of filtered columns with new jsonb value"""
-  _prepend: analytics_client_event_prepend_input
-
-  """sets the columns of the filtered rows to the given values"""
-  _set: analytics_client_event_set_input
-
-  """filter the rows which have to be updated"""
-  where: analytics_client_event_bool_exp!
 }
 
 """History of trades on subscribed accounts from the indexer."""
@@ -951,6 +663,300 @@ type api_trade_history_variance_fields {
   volume_usd: Float
 }
 
+"""
+columns and relationships of "app_dwell_time"
+"""
+type app_dwell_time {
+  build: String
+  created_at: timestamptz!
+  dwell_time_ms: numeric!
+  error_details: String
+  id: uuid!
+  source: String
+  user_agent: String!
+  user_wallet: String!
+}
+
+"""
+aggregated selection of "app_dwell_time"
+"""
+type app_dwell_time_aggregate {
+  aggregate: app_dwell_time_aggregate_fields
+  nodes: [app_dwell_time!]!
+}
+
+"""
+aggregate fields of "app_dwell_time"
+"""
+type app_dwell_time_aggregate_fields {
+  avg: app_dwell_time_avg_fields
+  count(columns: [app_dwell_time_select_column!], distinct: Boolean): Int!
+  max: app_dwell_time_max_fields
+  min: app_dwell_time_min_fields
+  stddev: app_dwell_time_stddev_fields
+  stddev_pop: app_dwell_time_stddev_pop_fields
+  stddev_samp: app_dwell_time_stddev_samp_fields
+  sum: app_dwell_time_sum_fields
+  var_pop: app_dwell_time_var_pop_fields
+  var_samp: app_dwell_time_var_samp_fields
+  variance: app_dwell_time_variance_fields
+}
+
+"""aggregate avg on columns"""
+type app_dwell_time_avg_fields {
+  dwell_time_ms: Float
+}
+
+"""
+Boolean expression to filter rows from the table "app_dwell_time". All fields are combined with a logical 'AND'.
+"""
+input app_dwell_time_bool_exp {
+  _and: [app_dwell_time_bool_exp!]
+  _not: app_dwell_time_bool_exp
+  _or: [app_dwell_time_bool_exp!]
+  build: String_comparison_exp
+  created_at: timestamptz_comparison_exp
+  dwell_time_ms: numeric_comparison_exp
+  error_details: String_comparison_exp
+  id: uuid_comparison_exp
+  source: String_comparison_exp
+  user_agent: String_comparison_exp
+  user_wallet: String_comparison_exp
+}
+
+"""
+unique or primary key constraints on table "app_dwell_time"
+"""
+enum app_dwell_time_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  app_dwell_time_pkey
+}
+
+"""
+input type for incrementing numeric columns in table "app_dwell_time"
+"""
+input app_dwell_time_inc_input {
+  dwell_time_ms: numeric
+}
+
+"""
+input type for inserting data into table "app_dwell_time"
+"""
+input app_dwell_time_insert_input {
+  build: String
+  created_at: timestamptz
+  dwell_time_ms: numeric
+  error_details: String
+  id: uuid
+  source: String
+  user_agent: String
+  user_wallet: String
+}
+
+"""aggregate max on columns"""
+type app_dwell_time_max_fields {
+  build: String
+  created_at: timestamptz
+  dwell_time_ms: numeric
+  error_details: String
+  id: uuid
+  source: String
+  user_agent: String
+  user_wallet: String
+}
+
+"""aggregate min on columns"""
+type app_dwell_time_min_fields {
+  build: String
+  created_at: timestamptz
+  dwell_time_ms: numeric
+  error_details: String
+  id: uuid
+  source: String
+  user_agent: String
+  user_wallet: String
+}
+
+"""
+response of any mutation on the table "app_dwell_time"
+"""
+type app_dwell_time_mutation_response {
+  """number of rows affected by the mutation"""
+  affected_rows: Int!
+
+  """data from the rows affected by the mutation"""
+  returning: [app_dwell_time!]!
+}
+
+"""
+on_conflict condition type for table "app_dwell_time"
+"""
+input app_dwell_time_on_conflict {
+  constraint: app_dwell_time_constraint!
+  update_columns: [app_dwell_time_update_column!]! = []
+  where: app_dwell_time_bool_exp
+}
+
+"""Ordering options when selecting data from "app_dwell_time"."""
+input app_dwell_time_order_by {
+  build: order_by
+  created_at: order_by
+  dwell_time_ms: order_by
+  error_details: order_by
+  id: order_by
+  source: order_by
+  user_agent: order_by
+  user_wallet: order_by
+}
+
+"""primary key columns input for table: app_dwell_time"""
+input app_dwell_time_pk_columns_input {
+  id: uuid!
+}
+
+"""
+select columns of table "app_dwell_time"
+"""
+enum app_dwell_time_select_column {
+  """column name"""
+  build
+
+  """column name"""
+  created_at
+
+  """column name"""
+  dwell_time_ms
+
+  """column name"""
+  error_details
+
+  """column name"""
+  id
+
+  """column name"""
+  source
+
+  """column name"""
+  user_agent
+
+  """column name"""
+  user_wallet
+}
+
+"""
+input type for updating data in table "app_dwell_time"
+"""
+input app_dwell_time_set_input {
+  build: String
+  created_at: timestamptz
+  dwell_time_ms: numeric
+  error_details: String
+  id: uuid
+  source: String
+  user_agent: String
+  user_wallet: String
+}
+
+"""aggregate stddev on columns"""
+type app_dwell_time_stddev_fields {
+  dwell_time_ms: Float
+}
+
+"""aggregate stddev_pop on columns"""
+type app_dwell_time_stddev_pop_fields {
+  dwell_time_ms: Float
+}
+
+"""aggregate stddev_samp on columns"""
+type app_dwell_time_stddev_samp_fields {
+  dwell_time_ms: Float
+}
+
+"""
+Streaming cursor of the table "app_dwell_time"
+"""
+input app_dwell_time_stream_cursor_input {
+  """Stream column input with initial value"""
+  initial_value: app_dwell_time_stream_cursor_value_input!
+
+  """cursor ordering"""
+  ordering: cursor_ordering
+}
+
+"""Initial value of the column from where the streaming should start"""
+input app_dwell_time_stream_cursor_value_input {
+  build: String
+  created_at: timestamptz
+  dwell_time_ms: numeric
+  error_details: String
+  id: uuid
+  source: String
+  user_agent: String
+  user_wallet: String
+}
+
+"""aggregate sum on columns"""
+type app_dwell_time_sum_fields {
+  dwell_time_ms: numeric
+}
+
+"""
+update columns of table "app_dwell_time"
+"""
+enum app_dwell_time_update_column {
+  """column name"""
+  build
+
+  """column name"""
+  created_at
+
+  """column name"""
+  dwell_time_ms
+
+  """column name"""
+  error_details
+
+  """column name"""
+  id
+
+  """column name"""
+  source
+
+  """column name"""
+  user_agent
+
+  """column name"""
+  user_wallet
+}
+
+input app_dwell_time_updates {
+  """increments the numeric columns with given value of the filtered values"""
+  _inc: app_dwell_time_inc_input
+
+  """sets the columns of the filtered rows to the given values"""
+  _set: app_dwell_time_set_input
+
+  """filter the rows which have to be updated"""
+  where: app_dwell_time_bool_exp!
+}
+
+"""aggregate var_pop on columns"""
+type app_dwell_time_var_pop_fields {
+  dwell_time_ms: Float
+}
+
+"""aggregate var_samp on columns"""
+type app_dwell_time_var_samp_fields {
+  dwell_time_ms: Float
+}
+
+"""aggregate variance on columns"""
+type app_dwell_time_variance_fields {
+  dwell_time_ms: Float
+}
+
 scalar bigint
 
 """
@@ -979,58 +985,390 @@ enum cursor_ordering {
 
 scalar interval
 
-scalar jsonb
-
-input jsonb_cast_exp {
-  String: String_comparison_exp
+"""
+columns and relationships of "loading_time"
+"""
+type loading_time {
+  attempt_number: Int!
+  average_time_ms: numeric!
+  build: String
+  created_at: timestamptz!
+  error_details: String
+  id: uuid!
+  identifier: String!
+  source: String
+  time_elapsed_ms: numeric!
+  total_time_ms: numeric!
+  user_agent: String!
+  user_wallet: String!
 }
 
 """
-Boolean expression to compare columns of type "jsonb". All fields are combined with logical 'AND'.
+aggregated selection of "loading_time"
 """
-input jsonb_comparison_exp {
-  _cast: jsonb_cast_exp
+type loading_time_aggregate {
+  aggregate: loading_time_aggregate_fields
+  nodes: [loading_time!]!
+}
 
-  """is the column contained in the given json value"""
-  _contained_in: jsonb
+"""
+aggregate fields of "loading_time"
+"""
+type loading_time_aggregate_fields {
+  avg: loading_time_avg_fields
+  count(columns: [loading_time_select_column!], distinct: Boolean): Int!
+  max: loading_time_max_fields
+  min: loading_time_min_fields
+  stddev: loading_time_stddev_fields
+  stddev_pop: loading_time_stddev_pop_fields
+  stddev_samp: loading_time_stddev_samp_fields
+  sum: loading_time_sum_fields
+  var_pop: loading_time_var_pop_fields
+  var_samp: loading_time_var_samp_fields
+  variance: loading_time_variance_fields
+}
 
-  """does the column contain the given json value at the top level"""
-  _contains: jsonb
-  _eq: jsonb
-  _gt: jsonb
-  _gte: jsonb
+"""aggregate avg on columns"""
+type loading_time_avg_fields {
+  attempt_number: Float
+  average_time_ms: Float
+  time_elapsed_ms: Float
+  total_time_ms: Float
+}
 
-  """does the string exist as a top-level key in the column"""
-  _has_key: String
+"""
+Boolean expression to filter rows from the table "loading_time". All fields are combined with a logical 'AND'.
+"""
+input loading_time_bool_exp {
+  _and: [loading_time_bool_exp!]
+  _not: loading_time_bool_exp
+  _or: [loading_time_bool_exp!]
+  attempt_number: Int_comparison_exp
+  average_time_ms: numeric_comparison_exp
+  build: String_comparison_exp
+  created_at: timestamptz_comparison_exp
+  error_details: String_comparison_exp
+  id: uuid_comparison_exp
+  identifier: String_comparison_exp
+  source: String_comparison_exp
+  time_elapsed_ms: numeric_comparison_exp
+  total_time_ms: numeric_comparison_exp
+  user_agent: String_comparison_exp
+  user_wallet: String_comparison_exp
+}
 
-  """do all of these strings exist as top-level keys in the column"""
-  _has_keys_all: [String!]
+"""
+unique or primary key constraints on table "loading_time"
+"""
+enum loading_time_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  loading_time_id_key
 
-  """do any of these strings exist as top-level keys in the column"""
-  _has_keys_any: [String!]
-  _in: [jsonb!]
-  _is_null: Boolean
-  _lt: jsonb
-  _lte: jsonb
-  _neq: jsonb
-  _nin: [jsonb!]
+  """
+  unique or primary key constraint on columns "id"
+  """
+  loading_time_pkey
+}
+
+"""
+input type for incrementing numeric columns in table "loading_time"
+"""
+input loading_time_inc_input {
+  attempt_number: Int
+  average_time_ms: numeric
+  time_elapsed_ms: numeric
+  total_time_ms: numeric
+}
+
+"""
+input type for inserting data into table "loading_time"
+"""
+input loading_time_insert_input {
+  attempt_number: Int
+  average_time_ms: numeric
+  build: String
+  created_at: timestamptz
+  error_details: String
+  id: uuid
+  identifier: String
+  source: String
+  time_elapsed_ms: numeric
+  total_time_ms: numeric
+  user_agent: String
+  user_wallet: String
+}
+
+"""aggregate max on columns"""
+type loading_time_max_fields {
+  attempt_number: Int
+  average_time_ms: numeric
+  build: String
+  created_at: timestamptz
+  error_details: String
+  id: uuid
+  identifier: String
+  source: String
+  time_elapsed_ms: numeric
+  total_time_ms: numeric
+  user_agent: String
+  user_wallet: String
+}
+
+"""aggregate min on columns"""
+type loading_time_min_fields {
+  attempt_number: Int
+  average_time_ms: numeric
+  build: String
+  created_at: timestamptz
+  error_details: String
+  id: uuid
+  identifier: String
+  source: String
+  time_elapsed_ms: numeric
+  total_time_ms: numeric
+  user_agent: String
+  user_wallet: String
+}
+
+"""
+response of any mutation on the table "loading_time"
+"""
+type loading_time_mutation_response {
+  """number of rows affected by the mutation"""
+  affected_rows: Int!
+
+  """data from the rows affected by the mutation"""
+  returning: [loading_time!]!
+}
+
+"""
+on_conflict condition type for table "loading_time"
+"""
+input loading_time_on_conflict {
+  constraint: loading_time_constraint!
+  update_columns: [loading_time_update_column!]! = []
+  where: loading_time_bool_exp
+}
+
+"""Ordering options when selecting data from "loading_time"."""
+input loading_time_order_by {
+  attempt_number: order_by
+  average_time_ms: order_by
+  build: order_by
+  created_at: order_by
+  error_details: order_by
+  id: order_by
+  identifier: order_by
+  source: order_by
+  time_elapsed_ms: order_by
+  total_time_ms: order_by
+  user_agent: order_by
+  user_wallet: order_by
+}
+
+"""primary key columns input for table: loading_time"""
+input loading_time_pk_columns_input {
+  id: uuid!
+}
+
+"""
+select columns of table "loading_time"
+"""
+enum loading_time_select_column {
+  """column name"""
+  attempt_number
+
+  """column name"""
+  average_time_ms
+
+  """column name"""
+  build
+
+  """column name"""
+  created_at
+
+  """column name"""
+  error_details
+
+  """column name"""
+  id
+
+  """column name"""
+  identifier
+
+  """column name"""
+  source
+
+  """column name"""
+  time_elapsed_ms
+
+  """column name"""
+  total_time_ms
+
+  """column name"""
+  user_agent
+
+  """column name"""
+  user_wallet
+}
+
+"""
+input type for updating data in table "loading_time"
+"""
+input loading_time_set_input {
+  attempt_number: Int
+  average_time_ms: numeric
+  build: String
+  created_at: timestamptz
+  error_details: String
+  id: uuid
+  identifier: String
+  source: String
+  time_elapsed_ms: numeric
+  total_time_ms: numeric
+  user_agent: String
+  user_wallet: String
+}
+
+"""aggregate stddev on columns"""
+type loading_time_stddev_fields {
+  attempt_number: Float
+  average_time_ms: Float
+  time_elapsed_ms: Float
+  total_time_ms: Float
+}
+
+"""aggregate stddev_pop on columns"""
+type loading_time_stddev_pop_fields {
+  attempt_number: Float
+  average_time_ms: Float
+  time_elapsed_ms: Float
+  total_time_ms: Float
+}
+
+"""aggregate stddev_samp on columns"""
+type loading_time_stddev_samp_fields {
+  attempt_number: Float
+  average_time_ms: Float
+  time_elapsed_ms: Float
+  total_time_ms: Float
+}
+
+"""
+Streaming cursor of the table "loading_time"
+"""
+input loading_time_stream_cursor_input {
+  """Stream column input with initial value"""
+  initial_value: loading_time_stream_cursor_value_input!
+
+  """cursor ordering"""
+  ordering: cursor_ordering
+}
+
+"""Initial value of the column from where the streaming should start"""
+input loading_time_stream_cursor_value_input {
+  attempt_number: Int
+  average_time_ms: numeric
+  build: String
+  created_at: timestamptz
+  error_details: String
+  id: uuid
+  identifier: String
+  source: String
+  time_elapsed_ms: numeric
+  total_time_ms: numeric
+  user_agent: String
+  user_wallet: String
+}
+
+"""aggregate sum on columns"""
+type loading_time_sum_fields {
+  attempt_number: Int
+  average_time_ms: numeric
+  time_elapsed_ms: numeric
+  total_time_ms: numeric
+}
+
+"""
+update columns of table "loading_time"
+"""
+enum loading_time_update_column {
+  """column name"""
+  attempt_number
+
+  """column name"""
+  average_time_ms
+
+  """column name"""
+  build
+
+  """column name"""
+  created_at
+
+  """column name"""
+  error_details
+
+  """column name"""
+  id
+
+  """column name"""
+  identifier
+
+  """column name"""
+  source
+
+  """column name"""
+  time_elapsed_ms
+
+  """column name"""
+  total_time_ms
+
+  """column name"""
+  user_agent
+
+  """column name"""
+  user_wallet
+}
+
+input loading_time_updates {
+  """increments the numeric columns with given value of the filtered values"""
+  _inc: loading_time_inc_input
+
+  """sets the columns of the filtered rows to the given values"""
+  _set: loading_time_set_input
+
+  """filter the rows which have to be updated"""
+  where: loading_time_bool_exp!
+}
+
+"""aggregate var_pop on columns"""
+type loading_time_var_pop_fields {
+  attempt_number: Float
+  average_time_ms: Float
+  time_elapsed_ms: Float
+  total_time_ms: Float
+}
+
+"""aggregate var_samp on columns"""
+type loading_time_var_samp_fields {
+  attempt_number: Float
+  average_time_ms: Float
+  time_elapsed_ms: Float
+  total_time_ms: Float
+}
+
+"""aggregate variance on columns"""
+type loading_time_variance_fields {
+  attempt_number: Float
+  average_time_ms: Float
+  time_elapsed_ms: Float
+  total_time_ms: Float
 }
 
 """mutation root"""
 type mutation_root {
-  """
-  delete data from the table: "analytics_client_event"
-  """
-  delete_analytics_client_event(
-    """filter the rows which have to be deleted"""
-    where: analytics_client_event_bool_exp!
-  ): analytics_client_event_mutation_response
-
-  """
-  delete single row from the table: "analytics_client_event"
-  """
-  delete_analytics_client_event_by_pk(id: uuid!): analytics_client_event
-
   """
   delete data from the table: "api.trade_history"
   """
@@ -1051,6 +1389,45 @@ type mutation_root {
   delete single row from the table: "api.trade_history"
   """
   delete_api_trade_history_by_pk(created_at: timestamptz!, id: uuid!, token_mint: String!): api_trade_history
+
+  """
+  delete data from the table: "app_dwell_time"
+  """
+  delete_app_dwell_time(
+    """filter the rows which have to be deleted"""
+    where: app_dwell_time_bool_exp!
+  ): app_dwell_time_mutation_response
+
+  """
+  delete single row from the table: "app_dwell_time"
+  """
+  delete_app_dwell_time_by_pk(id: uuid!): app_dwell_time
+
+  """
+  delete data from the table: "loading_time"
+  """
+  delete_loading_time(
+    """filter the rows which have to be deleted"""
+    where: loading_time_bool_exp!
+  ): loading_time_mutation_response
+
+  """
+  delete single row from the table: "loading_time"
+  """
+  delete_loading_time_by_pk(id: uuid!): loading_time
+
+  """
+  delete data from the table: "token_dwell_time"
+  """
+  delete_token_dwell_time(
+    """filter the rows which have to be deleted"""
+    where: token_dwell_time_bool_exp!
+  ): token_dwell_time_mutation_response
+
+  """
+  delete single row from the table: "token_dwell_time"
+  """
+  delete_token_dwell_time_by_pk(id: uuid!): token_dwell_time
 
   """
   delete data from the table: "token_purchase"
@@ -1077,28 +1454,6 @@ type mutation_root {
   delete single row from the table: "token_sale"
   """
   delete_token_sale_by_pk(id: uuid!): token_sale
-
-  """
-  insert data into the table: "analytics_client_event"
-  """
-  insert_analytics_client_event(
-    """the rows to be inserted"""
-    objects: [analytics_client_event_insert_input!]!
-
-    """upsert condition"""
-    on_conflict: analytics_client_event_on_conflict
-  ): analytics_client_event_mutation_response
-
-  """
-  insert a single row into the table: "analytics_client_event"
-  """
-  insert_analytics_client_event_one(
-    """the row to be inserted"""
-    object: analytics_client_event_insert_input!
-
-    """upsert condition"""
-    on_conflict: analytics_client_event_on_conflict
-  ): analytics_client_event
 
   """
   insert data into the table: "api.trade_history"
@@ -1137,6 +1492,72 @@ type mutation_root {
     """upsert condition"""
     on_conflict: api_trade_history_on_conflict
   ): api_trade_history
+
+  """
+  insert data into the table: "app_dwell_time"
+  """
+  insert_app_dwell_time(
+    """the rows to be inserted"""
+    objects: [app_dwell_time_insert_input!]!
+
+    """upsert condition"""
+    on_conflict: app_dwell_time_on_conflict
+  ): app_dwell_time_mutation_response
+
+  """
+  insert a single row into the table: "app_dwell_time"
+  """
+  insert_app_dwell_time_one(
+    """the row to be inserted"""
+    object: app_dwell_time_insert_input!
+
+    """upsert condition"""
+    on_conflict: app_dwell_time_on_conflict
+  ): app_dwell_time
+
+  """
+  insert data into the table: "loading_time"
+  """
+  insert_loading_time(
+    """the rows to be inserted"""
+    objects: [loading_time_insert_input!]!
+
+    """upsert condition"""
+    on_conflict: loading_time_on_conflict
+  ): loading_time_mutation_response
+
+  """
+  insert a single row into the table: "loading_time"
+  """
+  insert_loading_time_one(
+    """the row to be inserted"""
+    object: loading_time_insert_input!
+
+    """upsert condition"""
+    on_conflict: loading_time_on_conflict
+  ): loading_time
+
+  """
+  insert data into the table: "token_dwell_time"
+  """
+  insert_token_dwell_time(
+    """the rows to be inserted"""
+    objects: [token_dwell_time_insert_input!]!
+
+    """upsert condition"""
+    on_conflict: token_dwell_time_on_conflict
+  ): token_dwell_time_mutation_response
+
+  """
+  insert a single row into the table: "token_dwell_time"
+  """
+  insert_token_dwell_time_one(
+    """the row to be inserted"""
+    object: token_dwell_time_insert_input!
+
+    """upsert condition"""
+    on_conflict: token_dwell_time_on_conflict
+  ): token_dwell_time
 
   """
   insert data into the table: "token_purchase"
@@ -1181,76 +1602,6 @@ type mutation_root {
     """upsert condition"""
     on_conflict: token_sale_on_conflict
   ): token_sale
-
-  """
-  update data of the table: "analytics_client_event"
-  """
-  update_analytics_client_event(
-    """append existing jsonb value of filtered columns with new jsonb value"""
-    _append: analytics_client_event_append_input
-
-    """
-    delete the field or element with specified path (for JSON arrays, negative integers count from the end)
-    """
-    _delete_at_path: analytics_client_event_delete_at_path_input
-
-    """
-    delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
-    """
-    _delete_elem: analytics_client_event_delete_elem_input
-
-    """
-    delete key/value pair or string element. key/value pairs are matched based on their key value
-    """
-    _delete_key: analytics_client_event_delete_key_input
-
-    """prepend existing jsonb value of filtered columns with new jsonb value"""
-    _prepend: analytics_client_event_prepend_input
-
-    """sets the columns of the filtered rows to the given values"""
-    _set: analytics_client_event_set_input
-
-    """filter the rows which have to be updated"""
-    where: analytics_client_event_bool_exp!
-  ): analytics_client_event_mutation_response
-
-  """
-  update single row of the table: "analytics_client_event"
-  """
-  update_analytics_client_event_by_pk(
-    """append existing jsonb value of filtered columns with new jsonb value"""
-    _append: analytics_client_event_append_input
-
-    """
-    delete the field or element with specified path (for JSON arrays, negative integers count from the end)
-    """
-    _delete_at_path: analytics_client_event_delete_at_path_input
-
-    """
-    delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
-    """
-    _delete_elem: analytics_client_event_delete_elem_input
-
-    """
-    delete key/value pair or string element. key/value pairs are matched based on their key value
-    """
-    _delete_key: analytics_client_event_delete_key_input
-
-    """prepend existing jsonb value of filtered columns with new jsonb value"""
-    _prepend: analytics_client_event_prepend_input
-
-    """sets the columns of the filtered rows to the given values"""
-    _set: analytics_client_event_set_input
-    pk_columns: analytics_client_event_pk_columns_input!
-  ): analytics_client_event
-
-  """
-  update multiples rows of table: "analytics_client_event"
-  """
-  update_analytics_client_event_many(
-    """updates to execute, in order"""
-    updates: [analytics_client_event_updates!]!
-  ): [analytics_client_event_mutation_response]
 
   """
   update data of the table: "api.trade_history"
@@ -1307,6 +1658,108 @@ type mutation_root {
     """updates to execute, in order"""
     updates: [api_trade_history_updates!]!
   ): [api_trade_history_mutation_response]
+
+  """
+  update data of the table: "app_dwell_time"
+  """
+  update_app_dwell_time(
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: app_dwell_time_inc_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: app_dwell_time_set_input
+
+    """filter the rows which have to be updated"""
+    where: app_dwell_time_bool_exp!
+  ): app_dwell_time_mutation_response
+
+  """
+  update single row of the table: "app_dwell_time"
+  """
+  update_app_dwell_time_by_pk(
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: app_dwell_time_inc_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: app_dwell_time_set_input
+    pk_columns: app_dwell_time_pk_columns_input!
+  ): app_dwell_time
+
+  """
+  update multiples rows of table: "app_dwell_time"
+  """
+  update_app_dwell_time_many(
+    """updates to execute, in order"""
+    updates: [app_dwell_time_updates!]!
+  ): [app_dwell_time_mutation_response]
+
+  """
+  update data of the table: "loading_time"
+  """
+  update_loading_time(
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: loading_time_inc_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: loading_time_set_input
+
+    """filter the rows which have to be updated"""
+    where: loading_time_bool_exp!
+  ): loading_time_mutation_response
+
+  """
+  update single row of the table: "loading_time"
+  """
+  update_loading_time_by_pk(
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: loading_time_inc_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: loading_time_set_input
+    pk_columns: loading_time_pk_columns_input!
+  ): loading_time
+
+  """
+  update multiples rows of table: "loading_time"
+  """
+  update_loading_time_many(
+    """updates to execute, in order"""
+    updates: [loading_time_updates!]!
+  ): [loading_time_mutation_response]
+
+  """
+  update data of the table: "token_dwell_time"
+  """
+  update_token_dwell_time(
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: token_dwell_time_inc_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: token_dwell_time_set_input
+
+    """filter the rows which have to be updated"""
+    where: token_dwell_time_bool_exp!
+  ): token_dwell_time_mutation_response
+
+  """
+  update single row of the table: "token_dwell_time"
+  """
+  update_token_dwell_time_by_pk(
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: token_dwell_time_inc_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: token_dwell_time_set_input
+    pk_columns: token_dwell_time_pk_columns_input!
+  ): token_dwell_time
+
+  """
+  update multiples rows of table: "token_dwell_time"
+  """
+  update_token_dwell_time_many(
+    """updates to execute, in order"""
+    updates: [token_dwell_time_updates!]!
+  ): [token_dwell_time_mutation_response]
 
   """
   update data of the table: "token_purchase"
@@ -1417,51 +1870,6 @@ enum order_by {
 
 type query_root {
   """
-  fetch data from the table: "analytics_client_event"
-  """
-  analytics_client_event(
-    """distinct select on columns"""
-    distinct_on: [analytics_client_event_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [analytics_client_event_order_by!]
-
-    """filter the rows returned"""
-    where: analytics_client_event_bool_exp
-  ): [analytics_client_event!]!
-
-  """
-  fetch aggregated fields from the table: "analytics_client_event"
-  """
-  analytics_client_event_aggregate(
-    """distinct select on columns"""
-    distinct_on: [analytics_client_event_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [analytics_client_event_order_by!]
-
-    """filter the rows returned"""
-    where: analytics_client_event_bool_exp
-  ): analytics_client_event_aggregate!
-
-  """
-  fetch data from the table: "analytics_client_event" using primary key columns
-  """
-  analytics_client_event_by_pk(id: uuid!): analytics_client_event
-
-  """
   fetch data from the table: "api.trade_history"
   """
   api_trade_history(
@@ -1545,6 +1953,137 @@ type query_root {
   fetch data from the table: "api.trade_history" using primary key columns
   """
   api_trade_history_by_pk(created_at: timestamptz!, id: uuid!, token_mint: String!): api_trade_history
+
+  """
+  fetch data from the table: "app_dwell_time"
+  """
+  app_dwell_time(
+    """distinct select on columns"""
+    distinct_on: [app_dwell_time_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [app_dwell_time_order_by!]
+
+    """filter the rows returned"""
+    where: app_dwell_time_bool_exp
+  ): [app_dwell_time!]!
+
+  """
+  fetch aggregated fields from the table: "app_dwell_time"
+  """
+  app_dwell_time_aggregate(
+    """distinct select on columns"""
+    distinct_on: [app_dwell_time_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [app_dwell_time_order_by!]
+
+    """filter the rows returned"""
+    where: app_dwell_time_bool_exp
+  ): app_dwell_time_aggregate!
+
+  """fetch data from the table: "app_dwell_time" using primary key columns"""
+  app_dwell_time_by_pk(id: uuid!): app_dwell_time
+
+  """
+  fetch data from the table: "loading_time"
+  """
+  loading_time(
+    """distinct select on columns"""
+    distinct_on: [loading_time_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [loading_time_order_by!]
+
+    """filter the rows returned"""
+    where: loading_time_bool_exp
+  ): [loading_time!]!
+
+  """
+  fetch aggregated fields from the table: "loading_time"
+  """
+  loading_time_aggregate(
+    """distinct select on columns"""
+    distinct_on: [loading_time_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [loading_time_order_by!]
+
+    """filter the rows returned"""
+    where: loading_time_bool_exp
+  ): loading_time_aggregate!
+
+  """fetch data from the table: "loading_time" using primary key columns"""
+  loading_time_by_pk(id: uuid!): loading_time
+
+  """
+  fetch data from the table: "token_dwell_time"
+  """
+  token_dwell_time(
+    """distinct select on columns"""
+    distinct_on: [token_dwell_time_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_dwell_time_order_by!]
+
+    """filter the rows returned"""
+    where: token_dwell_time_bool_exp
+  ): [token_dwell_time!]!
+
+  """
+  fetch aggregated fields from the table: "token_dwell_time"
+  """
+  token_dwell_time_aggregate(
+    """distinct select on columns"""
+    distinct_on: [token_dwell_time_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_dwell_time_order_by!]
+
+    """filter the rows returned"""
+    where: token_dwell_time_bool_exp
+  ): token_dwell_time_aggregate!
+
+  """
+  fetch data from the table: "token_dwell_time" using primary key columns
+  """
+  token_dwell_time_by_pk(id: uuid!): token_dwell_time
   token_metadata_formatted(
     """distinct select on columns"""
     distinct_on: [token_metadata_model_enum_name!]
@@ -1720,68 +2259,25 @@ type query_root {
     """filter the rows returned"""
     where: transaction_model_bool_exp_bool_exp
   ): [transaction_model!]!
+  transactions_value_aggregate(
+    """distinct select on columns"""
+    distinct_on: [wallet_token_pnl_model_enum_name!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [wallet_token_pnl_model_order_by!]
+
+    """filter the rows returned"""
+    where: wallet_token_pnl_model_bool_exp_bool_exp
+  ): [wallet_token_pnl_model!]!
 }
 
 type subscription_root {
-  """
-  fetch data from the table: "analytics_client_event"
-  """
-  analytics_client_event(
-    """distinct select on columns"""
-    distinct_on: [analytics_client_event_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [analytics_client_event_order_by!]
-
-    """filter the rows returned"""
-    where: analytics_client_event_bool_exp
-  ): [analytics_client_event!]!
-
-  """
-  fetch aggregated fields from the table: "analytics_client_event"
-  """
-  analytics_client_event_aggregate(
-    """distinct select on columns"""
-    distinct_on: [analytics_client_event_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [analytics_client_event_order_by!]
-
-    """filter the rows returned"""
-    where: analytics_client_event_bool_exp
-  ): analytics_client_event_aggregate!
-
-  """
-  fetch data from the table: "analytics_client_event" using primary key columns
-  """
-  analytics_client_event_by_pk(id: uuid!): analytics_client_event
-
-  """
-  fetch data from the table in a streaming manner: "analytics_client_event"
-  """
-  analytics_client_event_stream(
-    """maximum number of rows returned in a single batch"""
-    batch_size: Int!
-
-    """cursor to stream the results returned by the query"""
-    cursor: [analytics_client_event_stream_cursor_input]!
-
-    """filter the rows returned"""
-    where: analytics_client_event_bool_exp
-  ): [analytics_client_event!]!
-
   """
   fetch data from the table: "api.trade_history"
   """
@@ -1894,6 +2390,179 @@ type subscription_root {
     """filter the rows returned"""
     where: api_trade_history_bool_exp
   ): [api_trade_history!]!
+
+  """
+  fetch data from the table: "app_dwell_time"
+  """
+  app_dwell_time(
+    """distinct select on columns"""
+    distinct_on: [app_dwell_time_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [app_dwell_time_order_by!]
+
+    """filter the rows returned"""
+    where: app_dwell_time_bool_exp
+  ): [app_dwell_time!]!
+
+  """
+  fetch aggregated fields from the table: "app_dwell_time"
+  """
+  app_dwell_time_aggregate(
+    """distinct select on columns"""
+    distinct_on: [app_dwell_time_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [app_dwell_time_order_by!]
+
+    """filter the rows returned"""
+    where: app_dwell_time_bool_exp
+  ): app_dwell_time_aggregate!
+
+  """fetch data from the table: "app_dwell_time" using primary key columns"""
+  app_dwell_time_by_pk(id: uuid!): app_dwell_time
+
+  """
+  fetch data from the table in a streaming manner: "app_dwell_time"
+  """
+  app_dwell_time_stream(
+    """maximum number of rows returned in a single batch"""
+    batch_size: Int!
+
+    """cursor to stream the results returned by the query"""
+    cursor: [app_dwell_time_stream_cursor_input]!
+
+    """filter the rows returned"""
+    where: app_dwell_time_bool_exp
+  ): [app_dwell_time!]!
+
+  """
+  fetch data from the table: "loading_time"
+  """
+  loading_time(
+    """distinct select on columns"""
+    distinct_on: [loading_time_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [loading_time_order_by!]
+
+    """filter the rows returned"""
+    where: loading_time_bool_exp
+  ): [loading_time!]!
+
+  """
+  fetch aggregated fields from the table: "loading_time"
+  """
+  loading_time_aggregate(
+    """distinct select on columns"""
+    distinct_on: [loading_time_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [loading_time_order_by!]
+
+    """filter the rows returned"""
+    where: loading_time_bool_exp
+  ): loading_time_aggregate!
+
+  """fetch data from the table: "loading_time" using primary key columns"""
+  loading_time_by_pk(id: uuid!): loading_time
+
+  """
+  fetch data from the table in a streaming manner: "loading_time"
+  """
+  loading_time_stream(
+    """maximum number of rows returned in a single batch"""
+    batch_size: Int!
+
+    """cursor to stream the results returned by the query"""
+    cursor: [loading_time_stream_cursor_input]!
+
+    """filter the rows returned"""
+    where: loading_time_bool_exp
+  ): [loading_time!]!
+
+  """
+  fetch data from the table: "token_dwell_time"
+  """
+  token_dwell_time(
+    """distinct select on columns"""
+    distinct_on: [token_dwell_time_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_dwell_time_order_by!]
+
+    """filter the rows returned"""
+    where: token_dwell_time_bool_exp
+  ): [token_dwell_time!]!
+
+  """
+  fetch aggregated fields from the table: "token_dwell_time"
+  """
+  token_dwell_time_aggregate(
+    """distinct select on columns"""
+    distinct_on: [token_dwell_time_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_dwell_time_order_by!]
+
+    """filter the rows returned"""
+    where: token_dwell_time_bool_exp
+  ): token_dwell_time_aggregate!
+
+  """
+  fetch data from the table: "token_dwell_time" using primary key columns
+  """
+  token_dwell_time_by_pk(id: uuid!): token_dwell_time
+
+  """
+  fetch data from the table in a streaming manner: "token_dwell_time"
+  """
+  token_dwell_time_stream(
+    """maximum number of rows returned in a single batch"""
+    batch_size: Int!
+
+    """cursor to stream the results returned by the query"""
+    cursor: [token_dwell_time_stream_cursor_input]!
+
+    """filter the rows returned"""
+    where: token_dwell_time_bool_exp
+  ): [token_dwell_time!]!
   token_metadata_formatted(
     """distinct select on columns"""
     distinct_on: [token_metadata_model_enum_name!]
@@ -2097,6 +2766,22 @@ type subscription_root {
     """filter the rows returned"""
     where: transaction_model_bool_exp_bool_exp
   ): [transaction_model!]!
+  transactions_value_aggregate(
+    """distinct select on columns"""
+    distinct_on: [wallet_token_pnl_model_enum_name!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [wallet_token_pnl_model_order_by!]
+
+    """filter the rows returned"""
+    where: wallet_token_pnl_model_bool_exp_bool_exp
+  ): [wallet_token_pnl_model!]!
 }
 
 scalar timestamptz
@@ -2114,6 +2799,314 @@ input timestamptz_comparison_exp {
   _lte: timestamptz
   _neq: timestamptz
   _nin: [timestamptz!]
+}
+
+"""
+columns and relationships of "token_dwell_time"
+"""
+type token_dwell_time {
+  build: String
+  created_at: timestamptz!
+  dwell_time_ms: numeric!
+  error_details: String
+  id: uuid!
+  source: String
+  token_mint: String!
+  user_agent: String!
+  user_wallet: String!
+}
+
+"""
+aggregated selection of "token_dwell_time"
+"""
+type token_dwell_time_aggregate {
+  aggregate: token_dwell_time_aggregate_fields
+  nodes: [token_dwell_time!]!
+}
+
+"""
+aggregate fields of "token_dwell_time"
+"""
+type token_dwell_time_aggregate_fields {
+  avg: token_dwell_time_avg_fields
+  count(columns: [token_dwell_time_select_column!], distinct: Boolean): Int!
+  max: token_dwell_time_max_fields
+  min: token_dwell_time_min_fields
+  stddev: token_dwell_time_stddev_fields
+  stddev_pop: token_dwell_time_stddev_pop_fields
+  stddev_samp: token_dwell_time_stddev_samp_fields
+  sum: token_dwell_time_sum_fields
+  var_pop: token_dwell_time_var_pop_fields
+  var_samp: token_dwell_time_var_samp_fields
+  variance: token_dwell_time_variance_fields
+}
+
+"""aggregate avg on columns"""
+type token_dwell_time_avg_fields {
+  dwell_time_ms: Float
+}
+
+"""
+Boolean expression to filter rows from the table "token_dwell_time". All fields are combined with a logical 'AND'.
+"""
+input token_dwell_time_bool_exp {
+  _and: [token_dwell_time_bool_exp!]
+  _not: token_dwell_time_bool_exp
+  _or: [token_dwell_time_bool_exp!]
+  build: String_comparison_exp
+  created_at: timestamptz_comparison_exp
+  dwell_time_ms: numeric_comparison_exp
+  error_details: String_comparison_exp
+  id: uuid_comparison_exp
+  source: String_comparison_exp
+  token_mint: String_comparison_exp
+  user_agent: String_comparison_exp
+  user_wallet: String_comparison_exp
+}
+
+"""
+unique or primary key constraints on table "token_dwell_time"
+"""
+enum token_dwell_time_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  token_dwell_time_pkey
+}
+
+"""
+input type for incrementing numeric columns in table "token_dwell_time"
+"""
+input token_dwell_time_inc_input {
+  dwell_time_ms: numeric
+}
+
+"""
+input type for inserting data into table "token_dwell_time"
+"""
+input token_dwell_time_insert_input {
+  build: String
+  created_at: timestamptz
+  dwell_time_ms: numeric
+  error_details: String
+  id: uuid
+  source: String
+  token_mint: String
+  user_agent: String
+  user_wallet: String
+}
+
+"""aggregate max on columns"""
+type token_dwell_time_max_fields {
+  build: String
+  created_at: timestamptz
+  dwell_time_ms: numeric
+  error_details: String
+  id: uuid
+  source: String
+  token_mint: String
+  user_agent: String
+  user_wallet: String
+}
+
+"""aggregate min on columns"""
+type token_dwell_time_min_fields {
+  build: String
+  created_at: timestamptz
+  dwell_time_ms: numeric
+  error_details: String
+  id: uuid
+  source: String
+  token_mint: String
+  user_agent: String
+  user_wallet: String
+}
+
+"""
+response of any mutation on the table "token_dwell_time"
+"""
+type token_dwell_time_mutation_response {
+  """number of rows affected by the mutation"""
+  affected_rows: Int!
+
+  """data from the rows affected by the mutation"""
+  returning: [token_dwell_time!]!
+}
+
+"""
+on_conflict condition type for table "token_dwell_time"
+"""
+input token_dwell_time_on_conflict {
+  constraint: token_dwell_time_constraint!
+  update_columns: [token_dwell_time_update_column!]! = []
+  where: token_dwell_time_bool_exp
+}
+
+"""Ordering options when selecting data from "token_dwell_time"."""
+input token_dwell_time_order_by {
+  build: order_by
+  created_at: order_by
+  dwell_time_ms: order_by
+  error_details: order_by
+  id: order_by
+  source: order_by
+  token_mint: order_by
+  user_agent: order_by
+  user_wallet: order_by
+}
+
+"""primary key columns input for table: token_dwell_time"""
+input token_dwell_time_pk_columns_input {
+  id: uuid!
+}
+
+"""
+select columns of table "token_dwell_time"
+"""
+enum token_dwell_time_select_column {
+  """column name"""
+  build
+
+  """column name"""
+  created_at
+
+  """column name"""
+  dwell_time_ms
+
+  """column name"""
+  error_details
+
+  """column name"""
+  id
+
+  """column name"""
+  source
+
+  """column name"""
+  token_mint
+
+  """column name"""
+  user_agent
+
+  """column name"""
+  user_wallet
+}
+
+"""
+input type for updating data in table "token_dwell_time"
+"""
+input token_dwell_time_set_input {
+  build: String
+  created_at: timestamptz
+  dwell_time_ms: numeric
+  error_details: String
+  id: uuid
+  source: String
+  token_mint: String
+  user_agent: String
+  user_wallet: String
+}
+
+"""aggregate stddev on columns"""
+type token_dwell_time_stddev_fields {
+  dwell_time_ms: Float
+}
+
+"""aggregate stddev_pop on columns"""
+type token_dwell_time_stddev_pop_fields {
+  dwell_time_ms: Float
+}
+
+"""aggregate stddev_samp on columns"""
+type token_dwell_time_stddev_samp_fields {
+  dwell_time_ms: Float
+}
+
+"""
+Streaming cursor of the table "token_dwell_time"
+"""
+input token_dwell_time_stream_cursor_input {
+  """Stream column input with initial value"""
+  initial_value: token_dwell_time_stream_cursor_value_input!
+
+  """cursor ordering"""
+  ordering: cursor_ordering
+}
+
+"""Initial value of the column from where the streaming should start"""
+input token_dwell_time_stream_cursor_value_input {
+  build: String
+  created_at: timestamptz
+  dwell_time_ms: numeric
+  error_details: String
+  id: uuid
+  source: String
+  token_mint: String
+  user_agent: String
+  user_wallet: String
+}
+
+"""aggregate sum on columns"""
+type token_dwell_time_sum_fields {
+  dwell_time_ms: numeric
+}
+
+"""
+update columns of table "token_dwell_time"
+"""
+enum token_dwell_time_update_column {
+  """column name"""
+  build
+
+  """column name"""
+  created_at
+
+  """column name"""
+  dwell_time_ms
+
+  """column name"""
+  error_details
+
+  """column name"""
+  id
+
+  """column name"""
+  source
+
+  """column name"""
+  token_mint
+
+  """column name"""
+  user_agent
+
+  """column name"""
+  user_wallet
+}
+
+input token_dwell_time_updates {
+  """increments the numeric columns with given value of the filtered values"""
+  _inc: token_dwell_time_inc_input
+
+  """sets the columns of the filtered rows to the given values"""
+  _set: token_dwell_time_set_input
+
+  """filter the rows which have to be updated"""
+  where: token_dwell_time_bool_exp!
+}
+
+"""aggregate var_pop on columns"""
+type token_dwell_time_var_pop_fields {
+  dwell_time_ms: Float
+}
+
+"""aggregate var_samp on columns"""
+type token_dwell_time_var_samp_fields {
+  dwell_time_ms: Float
+}
+
+"""aggregate variance on columns"""
+type token_dwell_time_variance_fields {
+  dwell_time_ms: Float
 }
 
 type token_metadata_model {
@@ -2275,6 +3268,11 @@ input token_purchase_bool_exp {
 unique or primary key constraints on table "token_purchase"
 """
 enum token_purchase_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  token_purchase_id_key
+
   """
   unique or primary key constraint on columns "id"
   """
@@ -2606,6 +3604,11 @@ input token_sale_bool_exp {
 unique or primary key constraints on table "token_sale"
 """
 enum token_sale_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  token_sale_id_key
+
   """
   unique or primary key constraint on columns "id"
   """
@@ -3080,6 +4083,7 @@ type transaction_model {
   token_amount: numeric!
   token_mint: String!
   token_price_usd: numeric!
+  token_value_usd: numeric!
   user_wallet: String!
 }
 
@@ -3096,6 +4100,7 @@ input transaction_model_bool_exp_bool_exp {
   token_amount: numeric_comparison_exp
   token_mint: String_comparison_exp
   token_price_usd: numeric_comparison_exp
+  token_value_usd: numeric_comparison_exp
   user_wallet: String_comparison_exp
 }
 
@@ -3119,6 +4124,9 @@ enum transaction_model_enum_name {
   token_price_usd
 
   """column name"""
+  token_value_usd
+
+  """column name"""
   user_wallet
 }
 
@@ -3130,6 +4138,7 @@ input transaction_model_order_by {
   token_amount: order_by
   token_mint: order_by
   token_price_usd: order_by
+  token_value_usd: order_by
   user_wallet: order_by
 }
 
@@ -3148,4 +4157,40 @@ input uuid_comparison_exp {
   _lte: uuid
   _neq: uuid
   _nin: [uuid!]
+}
+
+type wallet_token_pnl_model {
+  token_mint: String!
+  total_value_usd: numeric!
+  user_wallet: String!
+}
+
+"""
+Boolean expression to filter rows from the logical model for "wallet_token_pnl_model". All fields are combined with a logical 'AND'.
+"""
+input wallet_token_pnl_model_bool_exp_bool_exp {
+  _and: [wallet_token_pnl_model_bool_exp_bool_exp!]
+  _not: wallet_token_pnl_model_bool_exp_bool_exp
+  _or: [wallet_token_pnl_model_bool_exp_bool_exp!]
+  token_mint: String_comparison_exp
+  total_value_usd: numeric_comparison_exp
+  user_wallet: String_comparison_exp
+}
+
+enum wallet_token_pnl_model_enum_name {
+  """column name"""
+  token_mint
+
+  """column name"""
+  total_value_usd
+
+  """column name"""
+  user_wallet
+}
+
+"""Ordering options when selecting data from "wallet_token_pnl_model"."""
+input wallet_token_pnl_model_order_by {
+  token_mint: order_by
+  total_value_usd: order_by
+  user_wallet: order_by
 }

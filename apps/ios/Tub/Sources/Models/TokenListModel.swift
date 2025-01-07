@@ -135,6 +135,14 @@ final class TokenListModel: ObservableObject {
     @MainActor
     func loadNextTokenIntoCurrentTokenPhaseOne() {
         self.recordTokenDwellTime()
+
+        // previous
+        //	Build up a new TokenModel so that we start from a
+        //	known state: no leftover timers and/or subscriptions.
+        let newPreviousTokenModel = TokenModel()
+        newPreviousTokenModel.preload(with: currentTokenModel.tokenId)
+        previousTokenModel = newPreviousTokenModel
+        
         // current
         currentTokenStartTime = Date()
         if let nextModel = nextTokenModel {
@@ -149,14 +157,6 @@ final class TokenListModel: ObservableObject {
                 removePendingToken(newToken)
             }
         }
-        // previous
-        //	Build up a new TokenModel so that we start from a
-        //	known state: no leftover timers and/or subscriptions.
-        let newPreviousTokenModel = TokenModel()
-        newPreviousTokenModel.preload(with: currentTokenModel.tokenId)
-        previousTokenModel = newPreviousTokenModel
-        
-
     }
     
     func loadNextTokenIntoCurrentTokenPhaseTwo() {
@@ -185,13 +185,21 @@ final class TokenListModel: ObservableObject {
                     recentInterval: .some(FILTERING_INTERVAL),
                     minRecentTrades: .some(FILTERING_MIN_TRADES),
                     minRecentVolume: .some(FILTERING_MIN_VOLUME_USD)
-                )
+                ),
+                cachePolicy: .fetchIgnoringCacheData
             ) {
                 result in
                 switch result {
                 case .success(let graphQLResult):
                     if let tokens = graphQLResult.data?.token_stats_interval_comp {
-                        continuation.resume(returning: tokens.map { elem in elem.token_mint })
+                        let tokenIds = tokens.map { elem in elem.token_mint }
+                        continuation.resume(returning: tokenIds)
+                    } else {
+                        if let errors = graphQLResult.errors, errors.count > 0 {
+                            continuation.resume(throwing: TubError.somethingWentWrong(reason:  errors[0].description ))
+                        } else {
+                            continuation.resume(throwing: TubError.somethingWentWrong(reason:  "Could not fetch hot tokens" ) )
+                        }
                     }
                 case .failure(let error):
                     let end = Date()
@@ -203,6 +211,7 @@ final class TokenListModel: ObservableObject {
     }
     
     public func startTokenSubscription() async {
+        
         do {
             let hotTokens = try await getInitialHotTokens()
             await handleHotTokenFetch(hotTokens: hotTokens)
@@ -212,6 +221,7 @@ final class TokenListModel: ObservableObject {
             )
         }
         
+        self.stopTokenSubscription()
         self.hotTokensSubscription = Network.shared.apollo.subscribe(
             subscription: SubTopTokensByVolumeSubscription(
                 interval: .some(HOT_TOKENS_INTERVAL),
@@ -260,7 +270,10 @@ final class TokenListModel: ObservableObject {
     }
     
     private func updatePendingTokens(_ newTokens: [String]) async {
-        guard !newTokens.isEmpty else { return }
+        guard !newTokens.isEmpty else {
+            if !self.initialFetchComplete { self.initialFetchComplete = true }
+            return
+        }
         
         // Filter out any tokens that are already in the queue
         let unqueuedNewTokens = newTokens.filter { newToken in
@@ -323,15 +336,11 @@ final class TokenListModel: ObservableObject {
         Task {
             let dwellTimeMs = Int(Date().timeIntervalSince(startTime) * 1000)  // Convert to milliseconds
             
-            try? await Network.shared.recordClientEvent(
-                event: Network.ClientEvent(
-                    eventName: "token_dwell_time",
-                    source: "token_list_model",
-                    metadata: [
-                        ["token_id": currentToken],
-                        ["dwell_time_ms": dwellTimeMs],
-                    ]
-                )
+            try? await Network.shared.recordTokenDwellTime(
+                tokenMint: currentToken,
+                dwellTimeMs: dwellTimeMs,
+                source: "token_list_model",
+                errorDetails: nil
             )
         }
     }

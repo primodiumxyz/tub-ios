@@ -9,6 +9,6 @@
       "@solana/spl-token": ["./node_modules/@solana/spl-token"]
     }
   },
-  "include": ["**/*.ts"],
+  "include": ["**/*.ts", "src/constants"],
   "exclude": ["node_modules", "dist"]
 }

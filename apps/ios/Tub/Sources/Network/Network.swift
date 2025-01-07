@@ -157,11 +157,6 @@ class Network {
     return response.status
   }
 
-  func recordClientEvent(event: ClientEvent) async throws {
-    let input = EventInput(event: event)
-    let _: EmptyResponse = try await callMutation("recordClientEvent", input: input)
-  }
-
   func getSolPrice() async throws -> Double {
     let url = baseURL.appendingPathComponent("getSolUsdPrice")
     var request = URLRequest(url: url)
