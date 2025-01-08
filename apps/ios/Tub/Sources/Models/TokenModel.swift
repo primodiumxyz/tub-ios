@@ -19,7 +19,7 @@ class TokenModel: ObservableObject {
 
     private var priceSubscription: Apollo.Cancellable?
     private var candleSubscription: Apollo.Cancellable?
-    private var singleTokenDataSubscription: Apollo.Cancellable?
+    private var tokenLiveDataPollingTimer: Timer?
 
     private var preloaded = false
     private var initialized = false
@@ -127,8 +127,8 @@ class TokenModel: ObservableObject {
         Task {
             do {
                 await startPollingTokenBalance()
+                await startTokenLiveDataPolling(tokenId)
                 try await retry(fetchCandles)
-                await subscribeToSingleTokenData(tokenId)
             }
             catch {
                 print("Error fetching candles: \(error)")
@@ -331,30 +331,75 @@ class TokenModel: ObservableObject {
         }
     }
 
-    private func subscribeToSingleTokenData(_ tokenId: String) async {
-        singleTokenDataSubscription?.cancel()
-        
-        singleTokenDataSubscription = Network.shared.graphQL.subscribe(
-            subscription: SubSingleTokenDataSubscription(token: tokenId)
-        ) { result in
-            
-            switch result {
-            case .success(let graphQLResult):
-                if let tokenData = graphQLResult.data?.token_stats_interval_comp.first {
-                    let liveData = TokenLiveData(
-                        supply: Int(tokenData.token_metadata_supply ?? 0),
-                        priceUsd: tokenData.latest_price_usd,
-                        stats: IntervalStats(volumeUsd: tokenData.total_volume_usd, trades: Int(tokenData.total_trades), priceChangePct: tokenData.price_change_pct),
-                        recentStats: IntervalStats(volumeUsd: tokenData.recent_volume_usd, trades: Int(tokenData.recent_trades), priceChangePct: tokenData.recent_price_change_pct)
-                    )
-                    Task {
-                        await UserModel.shared.updateTokenData(mint: tokenId, liveData: liveData)
+    /* -------------------------------------------------------------------------- */
+    /*                                  Live data                                 */
+    /* -------------------------------------------------------------------------- */
+
+    private func getTokenLiveData(_ tokenId: String) async throws -> TokenLiveData {
+        return try await withCheckedThrowingContinuation { 
+            (continuation: CheckedContinuation<TokenLiveData, Error>) in
+            Network.shared.graphQL.fetch(
+                query: GetTokenLiveDataQuery(token: tokenId),
+                cachePolicy: .fetchIgnoringCacheData,
+                cacheTime: QUERY_TOKEN_LIVE_DATA_CACHE_TIME
+            ) { result in
+                switch result {
+                case .success(let graphQLResult):
+                    if let tokenData = graphQLResult.data?.token_stats_interval_comp.first {
+                        let liveData = TokenLiveData(
+                            supply: Int(tokenData.token_metadata_supply ?? 0),
+                            priceUsd: tokenData.latest_price_usd,
+                            stats: IntervalStats(
+                                volumeUsd: tokenData.total_volume_usd,
+                                trades: Int(tokenData.total_trades),
+                                priceChangePct: tokenData.price_change_pct
+                            ),
+                            recentStats: IntervalStats(
+                                volumeUsd: tokenData.recent_volume_usd,
+                                trades: Int(tokenData.recent_trades),
+                                priceChangePct: tokenData.recent_price_change_pct
+                            )
+                        )
+                        continuation.resume(returning: liveData)
                     }
+                case .failure(let error):
+                    continuation.resume(throwing: error)
                 }
-            case .failure(let error):
-                print("Error in single token data subscription: \(error.localizedDescription)")
             }
         }
+    }
+
+    private func updateTokenLiveData() {
+        Task {
+            do {
+                let liveData = try await getTokenLiveData(tokenId)
+                await UserModel.shared.updateTokenData(mint: tokenId, liveData: liveData)
+            } catch {
+                print("Error in single token data fetch: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    private func startTokenLiveDataPolling(_ tokenId: String) async {
+        stopTokenLiveDataPolling()
+        
+        // Initial fetch
+        updateTokenLiveData()
+        
+        // Setup polling timer on main thread
+        await MainActor.run {
+            tokenLiveDataPollingTimer = Timer.scheduledTimer(
+                withTimeInterval: TOKEN_LIVE_DATA_POLLING_INTERVAL,
+                repeats: true
+            ) { [weak self] _ in
+                self?.updateTokenLiveData()
+            }
+        }
+    }
+
+    private func stopTokenLiveDataPolling() {
+        tokenLiveDataPollingTimer?.invalidate()
+        tokenLiveDataPollingTimer = nil
     }
 
     public func updateTokenDetails(_ tokenId: String) {
@@ -440,11 +485,10 @@ class TokenModel: ObservableObject {
     func cleanup() {
         stopPollingTokenBalance()
         unsubscribeFromTokenPrices()
-
+        stopTokenLiveDataPolling()
         
         // Clean up subscriptions when the object is deallocated
         candleSubscription?.cancel()
-        singleTokenDataSubscription?.cancel()
 
         isReady = false
         prices = []
