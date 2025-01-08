@@ -91,7 +91,7 @@ import { ConfigService } from "../src/services/ConfigService";
     }
   });
 
-  describe.skip("getBalance", () => {
+  describe("getBalance", () => {
     it("should get the user's balance", async () => {
       const balance = await tubService.getBalance(mockJwtToken);
       expect(balance).toBeDefined();
