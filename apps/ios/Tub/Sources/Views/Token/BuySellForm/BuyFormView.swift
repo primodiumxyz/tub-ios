@@ -55,7 +55,6 @@ struct BuyFormView: View {
                     try activityManager.startTrackingPurchase(
                         tokenName: tokenData.metadata.name,
                         symbol: tokenData.metadata.symbol,
-                        imageUrl: tokenData.metadata.imageUri,
                         purchasePrice: priceUsd
                     )
                 }

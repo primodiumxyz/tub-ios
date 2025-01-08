@@ -17,7 +17,7 @@ import SwiftUI
         activity != nil
     }
     
-    func startTrackingPurchase(tokenName: String, symbol: String, imageUrl: String, purchasePrice: Double) throws {
+    func startTrackingPurchase(tokenName: String, symbol: String, purchasePrice: Double) throws {
         stopActivity()
         
         let attributes = TubActivityAttributes(

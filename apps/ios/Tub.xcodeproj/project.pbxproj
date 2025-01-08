@@ -339,7 +339,7 @@
 				DB6D29042CA1C8F70099951A /* TubApp.swift */,
 				9979D2F02CB57B840040DF41 /* Utils */,
 				99856DA52CD27E27004B9D40 /* Privy.swift */,
-				DF6D28E12D108B5500810F8B /* Dynamic Island */,
+				DF6D28E12D108B5500810F8B /* DynamicIsland */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -493,12 +493,12 @@
 			path = Shared;
 			sourceTree = "<group>";
 		};
-		DF6D28E12D108B5500810F8B /* Dynamic Island */ = {
+		DF6D28E12D108B5500810F8B /* DynamicIsland */ = {
 			isa = PBXGroup;
 			children = (
 				DF6D28E32D108B8300810F8B /* LiveActivityManager.swift */,
 			);
-			path = "Dynamic Island";
+			path = DynamicIsland;
 			sourceTree = "<group>";
 		};
 		DFEBC3E72CE44D1100EA4C84 /* Settings */ = {
