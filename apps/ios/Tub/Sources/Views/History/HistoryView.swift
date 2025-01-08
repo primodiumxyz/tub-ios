@@ -20,51 +20,53 @@ struct HistoryView: View {
     }
     
     @State private var filterState = FilterState()
-
+    
     var body: some View {
-            VStack(spacing: 0) {
-                // Transaction List
-                if userModel.txs == nil {
-                    VStack {
-                        Spacer()
-                        ProgressView()
-                        Spacer()
-                    }.frame(maxWidth: .infinity, maxHeight: .infinity)
-                }
-                else if filteredTransactions().isEmpty {
-                    TransactionFilters(filterState: $filterState)
-                        .background(Color(UIColor.systemBackground))
-                    Text("No transactions found")
-                        .padding()
-                        .font(.sfRounded(size: .base, weight: .regular))
-                        .foregroundStyle(Color.gray)
-                } else {
-                    TransactionFilters(filterState: $filterState)
-                        .background(Color(UIColor.systemBackground))
-                    ScrollView {
-                        LazyVStack(spacing: 0) {
-                            ForEach(groupTransactions(filteredTransactions()), id: \.date) { group in
-                                TransactionGroupRow(group: group)
+        VStack(spacing: 0) {
+            TransactionFilters(filterState: $filterState)
+                .background(Color(UIColor.systemBackground))
+            // Transaction List
+            if userModel.txs == nil {
+                VStack {
+                    Spacer()
+                    ProgressView()
+                    Spacer()
+                }.frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            else if filteredTransactions().isEmpty {
+                
+                Text("No transactions found")
+                    .padding()
+                    .font(.sfRounded(size: .base, weight: .regular))
+                    .foregroundStyle(Color.gray)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 0) {
+                        ForEach(groupTransactions(filteredTransactions()), id: \.date) { group in
+                            TransactionGroupRow(group: group)
                         }
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .padding(.horizontal, 16)
-            }
                 }
-        }
-            .onAppear{
-                handleFetchTxs(hardRefresh: false)
             }
-            .refreshable(action: {handleFetchTxs(hardRefresh: true)})
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onAppear{
+            handleFetchTxs(hardRefresh: false)
+        }
+        .refreshable(action: {handleFetchTxs(hardRefresh: true)})
         
         .navigationTitle("All Trades")
         .navigationBarTitleDisplayMode(.inline)
     }
-
+    
     // Helper function to filter transactions
     func filteredTransactions() -> [TransactionData] {
         guard let txs = userModel.txs else { return [] }
         var filteredData = txs
-
+        
         // Filter by search text
         if !filterState.searchText.isEmpty {
             filteredData = filteredData.filter { transaction in
@@ -72,7 +74,7 @@ struct HistoryView: View {
                 return cleanedSymbol.hasPrefix(filterState.searchText.lowercased())
             }
         }
-
+        
         // Filter by Type (checkboxes)
         if filterState.selectedBuy && !filterState.selectedSell {
             filteredData = filteredData.filter { $0.isBuy }
@@ -83,7 +85,7 @@ struct HistoryView: View {
         else if !filterState.selectedBuy && !filterState.selectedSell {
             filteredData = []
         }
-
+        
         // Filter by Period
         if filterState.selectedPeriod != "All" {
             switch filterState.selectedPeriod {
@@ -105,7 +107,7 @@ struct HistoryView: View {
                 break
             }
         }
-
+        
         // Filter by Status (checkboxes)
         if filterState.selectedFilled && !filterState.selectedUnfilled {
             filteredData = filteredData.filter { _ in true }
@@ -116,7 +118,7 @@ struct HistoryView: View {
         else if !filterState.selectedFilled && !filterState.selectedUnfilled {
             filteredData = []
         }
-
+        
         // Filter by Amount
         if filterState.selectedAmountRange != "All" {
             switch filterState.selectedAmountRange {
@@ -128,35 +130,35 @@ struct HistoryView: View {
                 break
             }
         }
-
+        
         return filteredData
     }
-
+    
     // Helper function to group transactions
-func groupTransactions(_ transactions: [TransactionData]) -> [TransactionGroup] {
-    let grouped = Dictionary(grouping: transactions) { transaction in
-        let calendar = Calendar.current
-        let date = calendar.startOfDay(for: transaction.date)
-        return "\(transaction.mint)_\(date)"
-    }
-
-    return grouped.map { _, transactions in
-        let netProfit = transactions.reduce(0.0) { sum, tx in
-            sum + tx.valueUsd
+    func groupTransactions(_ transactions: [TransactionData]) -> [TransactionGroup] {
+        let grouped = Dictionary(grouping: transactions) { transaction in
+            let calendar = Calendar.current
+            let date = calendar.startOfDay(for: transaction.date)
+            return "\(transaction.mint)_\(date)"
         }
-
-        let firstTx = transactions.sorted { $0.date > $1.date }.first!
-
-        return TransactionGroup(
-            transactions: transactions.sorted { $0.date > $1.date },
-            netProfit: netProfit,
-            date: firstTx.date,
-            token: firstTx.mint,
-            symbol: firstTx.symbol,
-            imageUri: firstTx.imageUri
-        )
-    }.sorted { $0.date > $1.date }
-}
+        
+        return grouped.map { _, transactions in
+            let netProfit = transactions.reduce(0.0) { sum, tx in
+                sum + tx.valueUsd
+            }
+            
+            let firstTx = transactions.sorted { $0.date > $1.date }.first!
+            
+            return TransactionGroup(
+                transactions: transactions.sorted { $0.date > $1.date },
+                netProfit: netProfit,
+                date: firstTx.date,
+                token: firstTx.mint,
+                symbol: firstTx.symbol,
+                imageUri: firstTx.imageUri
+            )
+        }.sorted { $0.date > $1.date }
+    }
 }
 
 struct FilterState {
@@ -172,13 +174,13 @@ struct FilterState {
 
 struct TransactionFilters: View {
     @Binding var filterState: FilterState
-
+    
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 // Search Button and Field
                 SearchFilter(filterState: $filterState)
-
+                
                 // Type Filter
                 Menu {
                     Toggle(isOn: $filterState.selectedBuy) { Text("Buy") }
@@ -186,7 +188,7 @@ struct TransactionFilters: View {
                 } label: {
                     FilterButton(text: typeFilterLabel())
                 }
-
+                
                 // Period Filter
                 Menu {
                     ForEach(["All", "Today", "This Week", "This Month", "This Year"], id: \.self) { period in
@@ -197,7 +199,7 @@ struct TransactionFilters: View {
                 } label: {
                     FilterButton(text: "Period: \(filterState.selectedPeriod)")
                 }
-
+                
                 // Status Filter
                 Menu {
                     Toggle(isOn: $filterState.selectedFilled) { Text("Filled") }
@@ -205,7 +207,7 @@ struct TransactionFilters: View {
                 } label: {
                     FilterButton(text: statusFilterLabel())
                 }
-
+                
                 // Amount Filter
                 Menu {
                     ForEach(["All", "< $100", "> $100"], id: \.self) { amount in
@@ -222,7 +224,7 @@ struct TransactionFilters: View {
         }
         .frame(height: 44)
     }
-
+    
     func typeFilterLabel() -> String {
         if filterState.selectedBuy && filterState.selectedSell {
             return "Type: All"
@@ -237,7 +239,7 @@ struct TransactionFilters: View {
             return "Type: None"
         }
     }
-
+    
     func statusFilterLabel() -> String {
         if filterState.selectedFilled && filterState.selectedUnfilled {
             return "Status: All"
@@ -259,7 +261,7 @@ struct TransactionFilters: View {
 // Separate search filter component
 struct SearchFilter: View {
     @Binding var filterState: FilterState
-
+    
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: filterState.isSearching ? "xmark.circle.fill" : "magnifyingglass")
@@ -273,7 +275,7 @@ struct SearchFilter: View {
                         filterState.isSearching.toggle()
                     }
                 }
-
+            
             if filterState.isSearching {
                 ZStack(alignment: .leading) {
                     if filterState.searchText.isEmpty {
@@ -305,4 +307,3 @@ struct SearchFilter: View {
         }
     }
 }
-

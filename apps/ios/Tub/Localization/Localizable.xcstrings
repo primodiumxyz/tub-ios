@@ -60,9 +60,6 @@
     "Account Details" : {
 
     },
-    "Account Settings" : {
-
-    },
     "Add Funds" : {
 
     },
@@ -163,6 +160,9 @@
 
     },
     "Price: %lf" : {
+
+    },
+    "Profile" : {
 
     },
     "Purchase Price" : {
