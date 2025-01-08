@@ -49,9 +49,6 @@ export class SwapService {
       swapType,
     );
 
-    // TODO: autoSlippageCollisionUsdValue should be based on the estimated value of the swap amount.
-    // This is already accomplished when selling USDC, but need to query our internal price feed for other tokens.
-
     // there are 3 different forms of slippage settings, ordered by priority
     // 1. user provided slippage bps
     // 2. auto slippage set to true with a max slippage bps
@@ -65,7 +62,7 @@ export class SwapService {
           : cfg.MAX_DEFAULT_SLIPPAGE_BPS,
       autoSlippage: request.slippageBps ? false : cfg.AUTO_SLIPPAGE,
       maxAutoSlippageBps: cfg.MAX_AUTO_SLIPPAGE_BPS,
-      autoSlippageCollisionUsdValue: 1000,
+      autoSlippageCollisionUsdValue: cfg.AUTO_SLIPPAGE_COLLISION_USD_VALUE,
     };
 
     // Get swap instructions from Jupiter
