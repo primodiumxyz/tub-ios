@@ -7,7 +7,6 @@
 
 import Foundation
 import TubAPI
-import Apollo
 
 // Check the installation source of the app and always use remote if an external source (testFlight, appStore)
 
