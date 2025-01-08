@@ -8,6 +8,8 @@ import {
   VersionedTransaction,
   AddressLookupTableAccount,
   TransactionConfirmationStatus,
+  ComputeBudgetProgram,
+  ComputeBudgetInstruction,
 } from "@solana/web3.js";
 import bs58 from "bs58";
 import { config } from "../utils/config";
@@ -15,6 +17,7 @@ import { ATA_PROGRAM_PUBLIC_KEY, JUPITER_PROGRAM_PUBLIC_KEY, TOKEN_PROGRAM_PUBLI
 import { Config } from "./ConfigService";
 import { createCloseAccountInstruction } from "@solana/spl-token";
 import { SwapType } from "../types";
+// import { getSimulationComputeUnits } from "@solana-developers/helpers";
 
 export type TransactionRegistryEntry = {
   message: MessageV0;
@@ -145,9 +148,11 @@ export class TransactionService {
 
     const simulation = await this.connection.simulateTransaction(transaction, {
       commitment: "processed",
+      replaceRecentBlockhash: true,
     });
+
     if (simulation.value?.err) {
-      console.log("Simulation Error:", simulation.value);
+      console.log("Local Simulation Error:", simulation.value);
       if (simulation.value.err.toString().includes("InstructionError")) {
         const errorStr = JSON.stringify(simulation.value.err);
         const match = errorStr.match(/\{"InstructionError":\[(\d+)/);
@@ -286,6 +291,69 @@ export class TransactionService {
 
       return instruction;
     });
+  }
+
+  async optimizeComputeInstructions(
+    instructions: TransactionInstruction[],
+    addressLookupTableAccounts: AddressLookupTableAccount[],
+  ): Promise<TransactionInstruction[]> {
+    // const simulatedComputeUnits = await getSimulationComputeUnits(
+    //   this.connection,
+    //   instructions,
+    //   this.feePayerKeypair.publicKey,
+    //   addressLookupTableAccounts,
+    // );
+
+    const message = new TransactionMessage({
+      payerKey: this.feePayerKeypair.publicKey,
+      recentBlockhash: "11111111111111111111111111111111",
+      instructions,
+    }).compileToV0Message(addressLookupTableAccounts);
+
+    const transaction = new VersionedTransaction(message);
+
+    // try simulation and catch error if it fails
+    let simulation;
+    try {
+      simulation = await this.connection.simulateTransaction(transaction, {
+        commitment: "processed",
+        replaceRecentBlockhash: true,
+        sigVerify: false,
+      });
+    } catch (error) {
+      console.log("Error simulating transaction for compute optimization:", error);
+      throw new Error("Failed to simulate transaction for compute optimization");
+    }
+
+    const simulatedComputeUnits = simulation.value?.unitsConsumed;
+
+    if (!simulatedComputeUnits) {
+      throw new Error("Failed to estimate compute units");
+    }
+
+    const estimatedComputeUnits = simulatedComputeUnits * 1.2;
+    console.log("Simulated Compute Units:", simulatedComputeUnits);
+    console.log("Estimated Compute Units:", estimatedComputeUnits);
+
+    // default to 1e6 micro lamports per compute unit
+    const computePrice = 1e6;
+    console.log("Compute Price:", computePrice);
+
+    if (!instructions[0] || !instructions[1]) {
+      throw new Error("Invalid instructions");
+    }
+
+    // get current instructions compute budget and compute units. first instruction is compute unit limit, second is compute unit price
+    const initialComputeBudget = ComputeBudgetInstruction.decodeSetComputeUnitLimit(instructions[0]);
+    const initialComputeUnitPrice = ComputeBudgetInstruction.decodeSetComputeUnitPrice(instructions[1]);
+
+    console.log("Jupiter's Previous Compute Budget:", initialComputeBudget);
+    console.log("Jupiter's Previous Compute Unit Price:", initialComputeUnitPrice);
+
+    instructions[0] = ComputeBudgetProgram.setComputeUnitLimit({ units: estimatedComputeUnits });
+    instructions[1] = ComputeBudgetProgram.setComputeUnitPrice({ microLamports: computePrice });
+
+    return instructions;
   }
 
   /**

@@ -65,10 +65,7 @@ export class SwapService {
           : cfg.MAX_DEFAULT_SLIPPAGE_BPS,
       autoSlippage: request.slippageBps ? false : cfg.AUTO_SLIPPAGE,
       maxAutoSlippageBps: cfg.MAX_AUTO_SLIPPAGE_BPS,
-      autoSlippageCollisionUsdValue:
-        request.sellTokenId === USDC_MAINNET_PUBLIC_KEY.toString()
-          ? Math.ceil(swapAmount / 1e6)
-          : cfg.AUTO_SLIPPAGE_COLLISION_USD_VALUE,
+      autoSlippageCollisionUsdValue: 1000,
     };
 
     // Get swap instructions from Jupiter
@@ -92,11 +89,7 @@ export class SwapService {
       instructions: swapInstructions,
       addressLookupTableAccounts,
       quote,
-    } = await this.jupiter.getSwapInstructions(
-      swapInstructionRequest,
-      request.userPublicKey,
-      cfg.AUTO_PRIORITY_FEE_MULTIPLIER,
-    );
+    } = await this.jupiter.getSwapInstructions(swapInstructionRequest, request.userPublicKey);
     console.log("Quoted auto slippage", quote.computedAutoSlippage);
     console.log("Quoted slippage bps", quote.slippageBps);
     console.log("Quoted outAmount", quote.outAmount);
@@ -134,9 +127,15 @@ export class SwapService {
     // Reassign rent payer in instructions
     const rentReassignedInstructions = this.transactionService.reassignRentInstructions(organizedInstructions);
 
+    // estimate compute budget
+    const optimizedInstructions = await this.transactionService.optimizeComputeInstructions(
+      rentReassignedInstructions,
+      addressLookupTableAccounts,
+    );
+
     // Build transaction message
     const message = await this.transactionService.buildTransactionMessage(
-      rentReassignedInstructions,
+      optimizedInstructions,
       addressLookupTableAccounts,
     );
 
