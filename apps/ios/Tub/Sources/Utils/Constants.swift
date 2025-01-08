@@ -87,7 +87,7 @@ public let PRICE_UPDATE_INTERVAL: Double = 0.5  // Update price every half secon
 public let MAX_NUM_PRICES_TO_KEEP: Int = 100
 
 // Caching
-public let QUERY_HOT_TOKENS_CACHE_TIME: Interval = "15s"
+public let QUERY_HOT_TOKENS_CACHE_TIME: Interval = "10s"
 public let QUERY_TOKEN_METADATA_CACHE_TIME: Interval = "1h"
 public let QUERY_TOKEN_LIVE_DATA_CACHE_TIME: Interval = "1s"
 
