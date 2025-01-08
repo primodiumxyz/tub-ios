@@ -214,6 +214,7 @@ final class TokenListModel: ObservableObject {
         }
     }
 
+    @MainActor
     public func startHotTokensPolling() {
         pollHotTokens()
         self.hotTokensPollingTimer = Timer.scheduledTimer(withTimeInterval: HOT_TOKENS_POLLING_INTERVAL, repeats: true) { [weak self] _ in
