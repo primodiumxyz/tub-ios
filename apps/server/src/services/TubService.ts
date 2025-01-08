@@ -344,7 +344,9 @@ export class TubService {
   async getAllTokenBalances(
     jwtToken: string,
   ): Promise<{ tokenBalances: Array<{ mint: string; balanceToken: number }> }> {
+    console.log("getting context");
     const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
+    console.log("context");
 
     const tokenAccounts = await this.connection.getParsedTokenAccountsByOwner(
       walletPublicKey,

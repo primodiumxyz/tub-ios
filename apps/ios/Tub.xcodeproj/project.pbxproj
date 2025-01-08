@@ -63,7 +63,6 @@
 		DF3D43D22D00DEB1004DAE81 /* JustifiedText.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF3D43D12D00DEB1004DAE81 /* JustifiedText.swift */; };
 		DF5A2FC32CAF165D00508A56 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5A2FC22CAF165D00508A56 /* HistoryView.swift */; };
 		DF5AC8ED2D26E2A20054C187 /* TubActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5AC8EB2D26E2A20054C187 /* TubActivityAttributes.swift */; };
-		DF5AC8EE2D26E2A20054C187 /* TubActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF5AC8EB2D26E2A20054C187 /* TubActivityAttributes.swift */; };
 		DF6D28BF2D108A5900810F8B /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DF6D28BE2D108A5900810F8B /* WidgetKit.framework */; };
 		DF6D28C12D108A5900810F8B /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DF6D28C02D108A5900810F8B /* SwiftUI.framework */; };
 		DF6D28D22D108A5A00810F8B /* TubWidgetExtensionExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = DF6D28BD2D108A5900810F8B /* TubWidgetExtensionExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -728,6 +727,7 @@
 				99DBD8EE2CF781EA0098C296 /* spoofModelData.swift in Sources */,
 				466945ED2CDFDB1F008E8B99 /* LoadingTracker.swift in Sources */,
 				DF5AC8ED2D26E2A20054C187 /* TubActivityAttributes.swift in Sources */,
+				99BE72BB2CEBB279006BB157 /* SolPriceModel.swift in Sources */,
 				99856DA62CD27E2E004B9D40 /* Privy.swift in Sources */,
 				999F595B2CA754FB00E7AE9F /* ChartView.swift in Sources */,
 				DFDA13BC2CEF9ACA00057A29 /* OnboardingView.swift in Sources */,
