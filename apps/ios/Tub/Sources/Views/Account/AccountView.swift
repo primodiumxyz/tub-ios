@@ -213,6 +213,20 @@ private struct ActionButtons: View {
     HStack(spacing: 24) {
       Spacer()
 
+      // Add Transfer Button
+      VStack(spacing: 8) {
+        CircleButton(
+          icon: "arrow.left.arrow.right",
+          color: .tubAccent,
+          iconSize: 22,
+          action: { showWithdrawView.toggle() }
+        )
+
+        Text("Transfer")
+          .font(.sfRounded(size: .sm, weight: .medium))
+          .foregroundStyle(.tubAccent)
+          .multilineTextAlignment(.center)
+      }.frame(width: 90)
 
       // Add Funds Button
       VStack(spacing: 8) {
@@ -228,26 +242,9 @@ private struct ActionButtons: View {
           .multilineTextAlignment(.center)
       }.frame(width: 90)
 
-
- // Add Transfer Button
-      VStack(spacing: 8) {
-        CircleButton(
-          icon: "arrow.left.arrow.right",
-          color: .tubAccent,
-          iconSize: 22,
-          action: { showWithdrawView.toggle() }
-        )
-
-        Text("Transfer")
-          .font(.sfRounded(size: .sm, weight: .medium))
-          .foregroundStyle(.tubAccent)
-          .multilineTextAlignment(.center)
-      }.frame(width: 90)
-
       Spacer()
     }
     .padding(.horizontal)
-
   }
 }
 
@@ -257,6 +254,10 @@ private struct AccountSettingsView: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 24) {
+      Text("Account Settings")
+        .font(.sfRounded(size: .xl, weight: .medium))
+        .foregroundStyle(.primary)
+
       NavigationLink(destination: AccountDetailsView()) {
         HStack(spacing: 16) {
           Image(systemName: "person.circle")
