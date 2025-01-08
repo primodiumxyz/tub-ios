@@ -242,12 +242,12 @@ class TokenModel: ObservableObject {
     /*                                Token Candles                               */
     /* -------------------------------------------------------------------------- */
 
-    private func fetchInitialCandles(_ tokenId: String, since: Date, candleInterval: String) async throws -> [CandleData] {
+    private func fetchInitialCandles(_ tokenId: String, since: Date) async throws -> [CandleData] {
         let candles = try await withCheckedThrowingContinuation { continuation in
-            Network.shared.apollo.fetch(query: GetTokenCandlesQuery(token: tokenId, since: .some(iso8601Formatter.string(from: since)), candle_interval: .some(candleInterval))) { result in
+            Network.shared.apollo.fetch(query: GetTokenCandlesSinceQuery(token: tokenId, since: .some(iso8601Formatter.string(from: since)))) { result in
                 switch result {
                 case .success(let graphQLResult):
-                    if let candles = graphQLResult.data?.token_trade_history_candles {
+                    if let candles = graphQLResult.data?.token_candles_history_1min {
                         let now = Date()
                         let updatedCandles = candles.map { candle in
                             CandleData(
@@ -281,10 +281,9 @@ class TokenModel: ObservableObject {
 
         let now = Date()
         let since: Date = now.addingTimeInterval(-Timespan.candles.seconds)
-        let candleInterval = "1m"
 
         do {
-            let candles = try await fetchInitialCandles(tokenId, since: since, candleInterval: candleInterval)
+            let candles = try await fetchInitialCandles(tokenId, since: since)
             Task { @MainActor in
                 self.candles = candles
             }
@@ -293,17 +292,16 @@ class TokenModel: ObservableObject {
         }
 
         candleSubscription = Network.shared.apollo.subscribe(
-            subscription: SubTokenCandlesSubscription(
+            subscription: SubTokenCandlesSinceSubscription(
                 token: tokenId,
-                since: .some(iso8601Formatter.string(from: since)),
-                candle_interval: .some(candleInterval)
+                since: .some(iso8601Formatter.string(from: since))
             )
         ) { [weak self] result in
             guard let self = self else { return }
             
             switch result {
             case .success(let graphQLResult):
-                if let candles = graphQLResult.data?.token_trade_history_candles {
+                if let candles = graphQLResult.data?.token_candles_history_1min {
                     let updatedCandles = candles.map { candle in
                         CandleData(
                             start: iso8601FormatterNoFractional.date(from: candle.bucket) ?? now,

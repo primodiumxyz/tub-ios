@@ -3,58 +3,51 @@
 
 @_exported import ApolloAPI
 
-public class SubTokenCandlesSubscription: GraphQLSubscription {
-  public static let operationName: String = "SubTokenCandles"
+public class GetTokenCandlesSinceQuery: GraphQLQuery {
+  public static let operationName: String = "GetTokenCandlesSince"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"subscription SubTokenCandles($token: String!, $since: timestamptz = "now()", $candle_interval: interval = "1m") { token_trade_history_candles( args: { candle_interval: $candle_interval } where: { token_mint: { _eq: $token }, bucket: { _gte: $since } } ) { __typename bucket open_price_usd close_price_usd high_price_usd low_price_usd volume_usd } }"#
+      #"query GetTokenCandlesSince($token: String!, $since: timestamptz = "now()") { token_candles_history_1min(args: { token_mint: $token, start: $since }) { __typename bucket open_price_usd close_price_usd high_price_usd low_price_usd volume_usd } }"#
     ))
 
   public var token: String
   public var since: GraphQLNullable<Timestamptz>
-  public var candle_interval: GraphQLNullable<Interval>
 
   public init(
     token: String,
-    since: GraphQLNullable<Timestamptz> = "now()",
-    candle_interval: GraphQLNullable<Interval> = "1m"
+    since: GraphQLNullable<Timestamptz> = "now()"
   ) {
     self.token = token
     self.since = since
-    self.candle_interval = candle_interval
   }
 
   public var __variables: Variables? { [
     "token": token,
-    "since": since,
-    "candle_interval": candle_interval
+    "since": since
   ] }
 
   public struct Data: TubAPI.SelectionSet {
     public let __data: DataDict
     public init(_dataDict: DataDict) { __data = _dataDict }
 
-    public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Subscription_root }
+    public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Query_root }
     public static var __selections: [ApolloAPI.Selection] { [
-      .field("token_trade_history_candles", [Token_trade_history_candle].self, arguments: [
-        "args": ["candle_interval": .variable("candle_interval")],
-        "where": [
-          "token_mint": ["_eq": .variable("token")],
-          "bucket": ["_gte": .variable("since")]
-        ]
-      ]),
+      .field("token_candles_history_1min", [Token_candles_history_1min].self, arguments: ["args": [
+        "token_mint": .variable("token"),
+        "start": .variable("since")
+      ]]),
     ] }
 
-    public var token_trade_history_candles: [Token_trade_history_candle] { __data["token_trade_history_candles"] }
+    public var token_candles_history_1min: [Token_candles_history_1min] { __data["token_candles_history_1min"] }
 
-    /// Token_trade_history_candle
+    /// Token_candles_history_1min
     ///
-    /// Parent Type: `Trade_history_candle_model`
-    public struct Token_trade_history_candle: TubAPI.SelectionSet {
+    /// Parent Type: `Candles_history_model`
+    public struct Token_candles_history_1min: TubAPI.SelectionSet {
       public let __data: DataDict
       public init(_dataDict: DataDict) { __data = _dataDict }
 
-      public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Trade_history_candle_model }
+      public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Candles_history_model }
       public static var __selections: [ApolloAPI.Selection] { [
         .field("__typename", String.self),
         .field("bucket", TubAPI.Timestamptz.self),

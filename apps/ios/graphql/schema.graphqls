@@ -120,6 +120,222 @@ input String_comparison_exp {
   _similar: String
 }
 
+"""
+columns and relationships of "api.candles_history_1min"
+"""
+type api_candles_history_1min {
+  bucket: timestamptz
+  close_price_usd: numeric
+  high_price_usd: numeric
+  low_price_usd: numeric
+  open_price_usd: numeric
+  token_metadata: token_metadata_scalar
+  token_mint: String
+  volume_usd: numeric
+}
+
+"""
+aggregated selection of "api.candles_history_1min"
+"""
+type api_candles_history_1min_aggregate {
+  aggregate: api_candles_history_1min_aggregate_fields
+  nodes: [api_candles_history_1min!]!
+}
+
+"""
+aggregate fields of "api.candles_history_1min"
+"""
+type api_candles_history_1min_aggregate_fields {
+  avg: api_candles_history_1min_avg_fields
+  count(columns: [api_candles_history_1min_select_column!], distinct: Boolean): Int!
+  max: api_candles_history_1min_max_fields
+  min: api_candles_history_1min_min_fields
+  stddev: api_candles_history_1min_stddev_fields
+  stddev_pop: api_candles_history_1min_stddev_pop_fields
+  stddev_samp: api_candles_history_1min_stddev_samp_fields
+  sum: api_candles_history_1min_sum_fields
+  var_pop: api_candles_history_1min_var_pop_fields
+  var_samp: api_candles_history_1min_var_samp_fields
+  variance: api_candles_history_1min_variance_fields
+}
+
+"""aggregate avg on columns"""
+type api_candles_history_1min_avg_fields {
+  close_price_usd: Float
+  high_price_usd: Float
+  low_price_usd: Float
+  open_price_usd: Float
+  volume_usd: Float
+}
+
+"""
+Boolean expression to filter rows from the table "api.candles_history_1min". All fields are combined with a logical 'AND'.
+"""
+input api_candles_history_1min_bool_exp {
+  _and: [api_candles_history_1min_bool_exp!]
+  _not: api_candles_history_1min_bool_exp
+  _or: [api_candles_history_1min_bool_exp!]
+  bucket: timestamptz_comparison_exp
+  close_price_usd: numeric_comparison_exp
+  high_price_usd: numeric_comparison_exp
+  low_price_usd: numeric_comparison_exp
+  open_price_usd: numeric_comparison_exp
+  token_metadata: token_metadata_scalar_comparison_exp
+  token_mint: String_comparison_exp
+  volume_usd: numeric_comparison_exp
+}
+
+"""aggregate max on columns"""
+type api_candles_history_1min_max_fields {
+  bucket: timestamptz
+  close_price_usd: numeric
+  high_price_usd: numeric
+  low_price_usd: numeric
+  open_price_usd: numeric
+  token_metadata: token_metadata_scalar
+  token_mint: String
+  volume_usd: numeric
+}
+
+"""aggregate min on columns"""
+type api_candles_history_1min_min_fields {
+  bucket: timestamptz
+  close_price_usd: numeric
+  high_price_usd: numeric
+  low_price_usd: numeric
+  open_price_usd: numeric
+  token_metadata: token_metadata_scalar
+  token_mint: String
+  volume_usd: numeric
+}
+
+"""Ordering options when selecting data from "api.candles_history_1min"."""
+input api_candles_history_1min_order_by {
+  bucket: order_by
+  close_price_usd: order_by
+  high_price_usd: order_by
+  low_price_usd: order_by
+  open_price_usd: order_by
+  token_metadata: order_by
+  token_mint: order_by
+  volume_usd: order_by
+}
+
+"""
+select columns of table "api.candles_history_1min"
+"""
+enum api_candles_history_1min_select_column {
+  """column name"""
+  bucket
+
+  """column name"""
+  close_price_usd
+
+  """column name"""
+  high_price_usd
+
+  """column name"""
+  low_price_usd
+
+  """column name"""
+  open_price_usd
+
+  """column name"""
+  token_metadata
+
+  """column name"""
+  token_mint
+
+  """column name"""
+  volume_usd
+}
+
+"""aggregate stddev on columns"""
+type api_candles_history_1min_stddev_fields {
+  close_price_usd: Float
+  high_price_usd: Float
+  low_price_usd: Float
+  open_price_usd: Float
+  volume_usd: Float
+}
+
+"""aggregate stddev_pop on columns"""
+type api_candles_history_1min_stddev_pop_fields {
+  close_price_usd: Float
+  high_price_usd: Float
+  low_price_usd: Float
+  open_price_usd: Float
+  volume_usd: Float
+}
+
+"""aggregate stddev_samp on columns"""
+type api_candles_history_1min_stddev_samp_fields {
+  close_price_usd: Float
+  high_price_usd: Float
+  low_price_usd: Float
+  open_price_usd: Float
+  volume_usd: Float
+}
+
+"""
+Streaming cursor of the table "api_candles_history_1min"
+"""
+input api_candles_history_1min_stream_cursor_input {
+  """Stream column input with initial value"""
+  initial_value: api_candles_history_1min_stream_cursor_value_input!
+
+  """cursor ordering"""
+  ordering: cursor_ordering
+}
+
+"""Initial value of the column from where the streaming should start"""
+input api_candles_history_1min_stream_cursor_value_input {
+  bucket: timestamptz
+  close_price_usd: numeric
+  high_price_usd: numeric
+  low_price_usd: numeric
+  open_price_usd: numeric
+  token_metadata: token_metadata_scalar
+  token_mint: String
+  volume_usd: numeric
+}
+
+"""aggregate sum on columns"""
+type api_candles_history_1min_sum_fields {
+  close_price_usd: numeric
+  high_price_usd: numeric
+  low_price_usd: numeric
+  open_price_usd: numeric
+  volume_usd: numeric
+}
+
+"""aggregate var_pop on columns"""
+type api_candles_history_1min_var_pop_fields {
+  close_price_usd: Float
+  high_price_usd: Float
+  low_price_usd: Float
+  open_price_usd: Float
+  volume_usd: Float
+}
+
+"""aggregate var_samp on columns"""
+type api_candles_history_1min_var_samp_fields {
+  close_price_usd: Float
+  high_price_usd: Float
+  low_price_usd: Float
+  open_price_usd: Float
+  volume_usd: Float
+}
+
+"""aggregate variance on columns"""
+type api_candles_history_1min_variance_fields {
+  close_price_usd: Float
+  high_price_usd: Float
+  low_price_usd: Float
+  open_price_usd: Float
+  volume_usd: Float
+}
+
 """History of trades on subscribed accounts from the indexer."""
 type api_trade_history {
   created_at: timestamptz!
@@ -972,6 +1188,66 @@ input bigint_comparison_exp {
   _lte: bigint
   _neq: bigint
   _nin: [bigint!]
+}
+
+type candles_history_model {
+  bucket: timestamptz!
+  close_price_usd: numeric!
+  high_price_usd: numeric!
+  low_price_usd: numeric!
+  open_price_usd: numeric!
+  token_mint: String!
+  volume_usd: numeric!
+}
+
+"""
+Boolean expression to filter rows from the logical model for "candles_history_model". All fields are combined with a logical 'AND'.
+"""
+input candles_history_model_bool_exp_bool_exp {
+  _and: [candles_history_model_bool_exp_bool_exp!]
+  _not: candles_history_model_bool_exp_bool_exp
+  _or: [candles_history_model_bool_exp_bool_exp!]
+  bucket: timestamptz_comparison_exp
+  close_price_usd: numeric_comparison_exp
+  high_price_usd: numeric_comparison_exp
+  low_price_usd: numeric_comparison_exp
+  open_price_usd: numeric_comparison_exp
+  token_mint: String_comparison_exp
+  volume_usd: numeric_comparison_exp
+}
+
+enum candles_history_model_enum_name {
+  """column name"""
+  bucket
+
+  """column name"""
+  close_price_usd
+
+  """column name"""
+  high_price_usd
+
+  """column name"""
+  low_price_usd
+
+  """column name"""
+  open_price_usd
+
+  """column name"""
+  token_mint
+
+  """column name"""
+  volume_usd
+}
+
+"""Ordering options when selecting data from "candles_history_model"."""
+input candles_history_model_order_by {
+  bucket: order_by
+  close_price_usd: order_by
+  high_price_usd: order_by
+  low_price_usd: order_by
+  open_price_usd: order_by
+  token_mint: order_by
+  volume_usd: order_by
 }
 
 """ordering argument of a cursor"""
@@ -1870,6 +2146,46 @@ enum order_by {
 
 type query_root {
   """
+  fetch data from the table: "api.candles_history_1min"
+  """
+  api_candles_history_1min(
+    """distinct select on columns"""
+    distinct_on: [api_candles_history_1min_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [api_candles_history_1min_order_by!]
+
+    """filter the rows returned"""
+    where: api_candles_history_1min_bool_exp
+  ): [api_candles_history_1min!]!
+
+  """
+  fetch aggregated fields from the table: "api.candles_history_1min"
+  """
+  api_candles_history_1min_aggregate(
+    """distinct select on columns"""
+    distinct_on: [api_candles_history_1min_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [api_candles_history_1min_order_by!]
+
+    """filter the rows returned"""
+    where: api_candles_history_1min_bool_exp
+  ): api_candles_history_1min_aggregate!
+
+  """
   fetch data from the table: "api.trade_history"
   """
   api_trade_history(
@@ -2039,6 +2355,25 @@ type query_root {
 
   """fetch data from the table: "loading_time" using primary key columns"""
   loading_time_by_pk(id: uuid!): loading_time
+  token_candles_history_1min(
+    """token_candles_history_1minNative Query Arguments"""
+    args: token_candles_history_1min_arguments!
+
+    """distinct select on columns"""
+    distinct_on: [candles_history_model_enum_name!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [candles_history_model_order_by!]
+
+    """filter the rows returned"""
+    where: candles_history_model_bool_exp_bool_exp
+  ): [candles_history_model!]!
 
   """
   fetch data from the table: "token_dwell_time"
@@ -2224,25 +2559,6 @@ type query_root {
     """filter the rows returned"""
     where: token_stats_model_bool_exp_bool_exp
   ): [token_stats_model!]!
-  token_trade_history_candles(
-    """token_trade_history_candlesNative Query Arguments"""
-    args: token_trade_history_candles_arguments!
-
-    """distinct select on columns"""
-    distinct_on: [trade_history_candle_model_enum_name!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [trade_history_candle_model_order_by!]
-
-    """filter the rows returned"""
-    where: trade_history_candle_model_bool_exp_bool_exp
-  ): [trade_history_candle_model!]!
   transactions(
     """distinct select on columns"""
     distinct_on: [transaction_model_enum_name!]
@@ -2278,6 +2594,60 @@ type query_root {
 }
 
 type subscription_root {
+  """
+  fetch data from the table: "api.candles_history_1min"
+  """
+  api_candles_history_1min(
+    """distinct select on columns"""
+    distinct_on: [api_candles_history_1min_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [api_candles_history_1min_order_by!]
+
+    """filter the rows returned"""
+    where: api_candles_history_1min_bool_exp
+  ): [api_candles_history_1min!]!
+
+  """
+  fetch aggregated fields from the table: "api.candles_history_1min"
+  """
+  api_candles_history_1min_aggregate(
+    """distinct select on columns"""
+    distinct_on: [api_candles_history_1min_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [api_candles_history_1min_order_by!]
+
+    """filter the rows returned"""
+    where: api_candles_history_1min_bool_exp
+  ): api_candles_history_1min_aggregate!
+
+  """
+  fetch data from the table in a streaming manner: "api.candles_history_1min"
+  """
+  api_candles_history_1min_stream(
+    """maximum number of rows returned in a single batch"""
+    batch_size: Int!
+
+    """cursor to stream the results returned by the query"""
+    cursor: [api_candles_history_1min_stream_cursor_input]!
+
+    """filter the rows returned"""
+    where: api_candles_history_1min_bool_exp
+  ): [api_candles_history_1min!]!
+
   """
   fetch data from the table: "api.trade_history"
   """
@@ -2504,6 +2874,25 @@ type subscription_root {
     """filter the rows returned"""
     where: loading_time_bool_exp
   ): [loading_time!]!
+  token_candles_history_1min(
+    """token_candles_history_1minNative Query Arguments"""
+    args: token_candles_history_1min_arguments!
+
+    """distinct select on columns"""
+    distinct_on: [candles_history_model_enum_name!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [candles_history_model_order_by!]
+
+    """filter the rows returned"""
+    where: candles_history_model_bool_exp_bool_exp
+  ): [candles_history_model!]!
 
   """
   fetch data from the table: "token_dwell_time"
@@ -2731,25 +3120,6 @@ type subscription_root {
     """filter the rows returned"""
     where: token_stats_model_bool_exp_bool_exp
   ): [token_stats_model!]!
-  token_trade_history_candles(
-    """token_trade_history_candlesNative Query Arguments"""
-    args: token_trade_history_candles_arguments!
-
-    """distinct select on columns"""
-    distinct_on: [trade_history_candle_model_enum_name!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [trade_history_candle_model_order_by!]
-
-    """filter the rows returned"""
-    where: trade_history_candle_model_bool_exp_bool_exp
-  ): [trade_history_candle_model!]!
   transactions(
     """distinct select on columns"""
     distinct_on: [transaction_model_enum_name!]
@@ -2799,6 +3169,15 @@ input timestamptz_comparison_exp {
   _lte: timestamptz
   _neq: timestamptz
   _nin: [timestamptz!]
+}
+
+"""token_candles_history_1minNative Query Arguments"""
+input token_candles_history_1min_arguments {
+  """"""
+  start: timestamptz!
+
+  """"""
+  token_mint: String!
 }
 
 """
@@ -4006,74 +4385,6 @@ input token_stats_model_order_by {
   token_mint: order_by
   total_trades: order_by
   total_volume_usd: order_by
-}
-
-"""token_trade_history_candlesNative Query Arguments"""
-input token_trade_history_candles_arguments {
-  """"""
-  candle_interval: interval!
-}
-
-type trade_history_candle_model {
-  bucket: timestamptz!
-  close_price_usd: numeric!
-  high_price_usd: numeric!
-  low_price_usd: numeric!
-  open_price_usd: numeric!
-  token_mint: String!
-  volume_usd: numeric!
-}
-
-"""
-Boolean expression to filter rows from the logical model for "trade_history_candle_model". All fields are combined with a logical 'AND'.
-"""
-input trade_history_candle_model_bool_exp_bool_exp {
-  _and: [trade_history_candle_model_bool_exp_bool_exp!]
-  _not: trade_history_candle_model_bool_exp_bool_exp
-  _or: [trade_history_candle_model_bool_exp_bool_exp!]
-  bucket: timestamptz_comparison_exp
-  close_price_usd: numeric_comparison_exp
-  high_price_usd: numeric_comparison_exp
-  low_price_usd: numeric_comparison_exp
-  open_price_usd: numeric_comparison_exp
-  token_mint: String_comparison_exp
-  volume_usd: numeric_comparison_exp
-}
-
-enum trade_history_candle_model_enum_name {
-  """column name"""
-  bucket
-
-  """column name"""
-  close_price_usd
-
-  """column name"""
-  high_price_usd
-
-  """column name"""
-  low_price_usd
-
-  """column name"""
-  open_price_usd
-
-  """column name"""
-  token_mint
-
-  """column name"""
-  volume_usd
-}
-
-"""
-Ordering options when selecting data from "trade_history_candle_model".
-"""
-input trade_history_candle_model_order_by {
-  bucket: order_by
-  close_price_usd: order_by
-  high_price_usd: order_by
-  low_price_usd: order_by
-  open_price_usd: order_by
-  token_mint: order_by
-  volume_usd: order_by
 }
 
 type transaction_model {
