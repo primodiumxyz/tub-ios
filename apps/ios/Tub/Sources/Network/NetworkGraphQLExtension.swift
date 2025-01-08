@@ -15,11 +15,11 @@ extension Network {
     // GraphQL configuration struct
     struct GraphQLConfig {
         static let defaultCacheTime = "30s"
-        static let realtimeCacheTime = "5s"
-        static let longCacheTime = "30m"
     }
     
     class GraphQLManager {
+        private let store: ApolloStore = ApolloStore()
+        private let interceptorProvider: DynamicInterceptorProvider
         private let httpTransport: RequestChainNetworkTransport
         private let webSocketTransport: WebSocketTransport
         
@@ -28,29 +28,72 @@ extension Network {
                 uploadingNetworkTransport: httpTransport,
                 webSocketNetworkTransport: webSocketTransport
             )
-            
-            let store = ApolloStore()
-            return ApolloClient(networkTransport: splitNetworkTransport, store: store)
+            return ApolloClient(networkTransport: splitNetworkTransport, store: ApolloStore())
         }()
         
-        init() {
-            // Setup HTTP transport with Nginx caching headers
-            let httpURL = URL(string: graphqlHttpUrl)!
-            let store = ApolloStore()
+        // Custom interceptor to handle cache headers
+        private class CacheHeadersInterceptor: ApolloInterceptor {
+            let id = "CacheHeadersInterceptor"
+            let cacheTime: String?
+            let bypassCache: Bool
             
+            init(cacheTime: String?, bypassCache: Bool) {
+                self.cacheTime = cacheTime
+                self.bypassCache = bypassCache
+            }
+            
+            func interceptAsync<Operation: GraphQLOperation>(
+                chain: RequestChain,
+                request: HTTPRequest<Operation>,
+                response: HTTPResponse<Operation>?,
+                completion: @escaping (Result<GraphQLResult<Operation.Data>, Error>) -> Void
+            ) {
+                request.addHeader(name: "x-cache-time", value: cacheTime ?? GraphQLConfig.defaultCacheTime)
+                request.addHeader(name: "x-cache-bypass", value: bypassCache ? "1" : "0")
+                
+                chain.proceedAsync(
+                    request: request,
+                    response: response,
+                    completion: completion
+                )
+            }
+        }
+        
+        // Custom interceptor provider that can handle dynamic interceptors
+        private class DynamicInterceptorProvider: DefaultInterceptorProvider {
+            private var cacheInterceptor: CacheHeadersInterceptor?
+            
+            func set(_ interceptor: CacheHeadersInterceptor) {
+                self.cacheInterceptor = interceptor
+            }
+            
+            override func interceptors<Operation: GraphQLOperation>(for operation: Operation) -> [ApolloInterceptor] {
+                var interceptors = super.interceptors(for: operation)
+                if let cacheInterceptor = cacheInterceptor {
+                    interceptors.insert(cacheInterceptor, at: 0)
+                }
+                return interceptors
+            }
+        }
+        
+        init() {
+            let httpURL = URL(string: graphqlHttpUrl)!
+            
+            // Setup interceptor provider
+            interceptorProvider = DynamicInterceptorProvider(store: store)
+            
+            // Setup HTTP transport
             httpTransport = RequestChainNetworkTransport(
-                interceptorProvider: DefaultInterceptorProvider(store: store),
-                endpointURL: httpURL,
-                additionalHeaders: [:]
+                interceptorProvider: interceptorProvider,
+                endpointURL: httpURL
             )
             
-            // Setup WebSocket transport (unchanged)
+            // Setup WebSocket transport
             let webSocketURL = URL(string: graphqlWsUrl)!
             let websocket = WebSocket(url: webSocketURL, protocol: .graphql_ws)
             webSocketTransport = WebSocketTransport(websocket: websocket)
         }
         
-        // Helper methods for different caching strategies
         func fetch<Query: GraphQLQuery>(
             query: Query,
             cachePolicy: CachePolicy = .default,
@@ -58,18 +101,16 @@ extension Network {
             bypassCache: Bool = false,
             completion: @escaping (Result<GraphQLResult<Query.Data>, Error>) -> Void
         ) {
-            var headers: [String: String] = [:]
-            
-            if bypassCache {
-                headers["X-Cache-Bypass"] = "1"
-            } else if let cacheTime = cacheTime {
-                headers["X-Cache-Time"] = cacheTime
-            }
+            let cacheInterceptor = CacheHeadersInterceptor(
+                cacheTime: cacheTime ?? GraphQLConfig.defaultCacheTime,
+                bypassCache: bypassCache
+            )
+            interceptorProvider.set(cacheInterceptor)
             
             client.fetch(
                 query: query,
                 cachePolicy: cachePolicy,
-                context: ["headers": headers] as [String: Any] as? RequestContext
+                queue: .main
             ) { result in
                 completion(result)
             }
@@ -79,9 +120,7 @@ extension Network {
             subscription: Subscription,
             completion: @escaping (Result<GraphQLResult<Subscription.Data>, Error>) -> Void
         ) -> Cancellable {
-            return client.subscribe(
-                subscription: subscription
-            ) { result in
+            return client.subscribe(subscription: subscription) { result in
                 completion(result)
             }
         }
