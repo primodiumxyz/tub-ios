@@ -37,7 +37,7 @@ struct ShareView: View {
         let tokenTxs = transactions.filter { $0.mint == tokenMint }
         
         if let latestBuy = tokenTxs.first(where: { $0.isBuy }),
-           let latestSell = tokenTxs.first(where: { !$0.isBuy }) {
+           let latestSell = tokenTxs.first(where: { !$0.isBuy && $0.date > latestBuy.date }) {
             
             let buyValue = abs(latestBuy.valueUsd) 
             let sellValue = latestSell.valueUsd
