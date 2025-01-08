@@ -89,6 +89,7 @@ public let MAX_NUM_PRICES_TO_KEEP: Int = 100
 // Caching
 public let QUERY_HOT_TOKENS_CACHE_TIME: Interval = "15s"
 public let QUERY_TOKEN_METADATA_CACHE_TIME: Interval = "1h"
+public let QUERY_TOKEN_LIVE_DATA_CACHE_TIME: Interval = "1s"
 
 public let WSOL_ADDRESS: String = "So11111111111111111111111111111111111111112"
 public let USDC_MINT: String = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"

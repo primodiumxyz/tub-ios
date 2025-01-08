@@ -437,7 +437,7 @@ final class UserModel: ObservableObject {
         
         return try await withCheckedThrowingContinuation {
             (continuation: CheckedContinuation<TokenLiveData, Error>) in
-            Network.shared.graphQL.fetch(query: query) { result in
+            Network.shared.graphQL.fetch(query: query, cacheTime: QUERY_TOKEN_LIVE_DATA_CACHE_TIME) { result in
                 switch result {
                 case .success(let response):
                     if response.errors != nil {
@@ -484,7 +484,8 @@ final class UserModel: ObservableObject {
             try await withCheckedThrowingContinuation {
                 (continuation: CheckedContinuation<Void, Error>) in
                 Network.shared.graphQL.fetch(
-                    query: GetBulkTokenLiveDataQuery(tokens: [mint])
+                    query: GetBulkTokenLiveDataQuery(tokens: [mint]),
+                    cacheTime: QUERY_TOKEN_LIVE_DATA_CACHE_TIME
                 ) { result in
                     switch result {
                     case .success(let graphQLResult):
@@ -633,7 +634,7 @@ final class UserModel: ObservableObject {
         let query = GetWalletTransactionsQuery(wallet: walletAddress)
         do {
             let newTxs = try await withCheckedThrowingContinuation { continuation in
-                Network.shared.graphQL.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { result in
+                Network.shared.graphQL.fetch(query: query, cachePolicy: .fetchIgnoringCacheData, bypassCache: true) { result in
                     switch result {
                     case .success(let graphQLResult):
                         Task {

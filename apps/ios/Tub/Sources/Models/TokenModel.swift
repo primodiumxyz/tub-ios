@@ -37,7 +37,7 @@ class TokenModel: ObservableObject {
         
         let query = GetLatestTokenPurchaseQuery(wallet: walletAddress, mint: tokenId)
         let purchaseData = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<PurchaseData, Error>) in
-            Network.shared.graphQL.fetch(query: query) {
+            Network.shared.graphQL.fetch(query: query, bypassCache: true) {
                 result in switch result {
                 case .success(let response):
                     if let err = response.errors?.first?.message {
@@ -145,10 +145,13 @@ class TokenModel: ObservableObject {
         let startTime = now.addingTimeInterval(-Timespan.live.seconds)
         
         return try await withCheckedThrowingContinuation { continuation in
-            Network.shared.graphQL.fetch(query: GetTokenPricesSinceQuery(
-                token: tokenId,
-                since: .some(iso8601Formatter.string(from: startTime))
-            )) { result in
+            Network.shared.graphQL.fetch(
+                query: GetTokenPricesSinceQuery(
+                    token: tokenId,
+                    since: .some(iso8601Formatter.string(from: startTime))
+                ),
+                bypassCache: true
+            ) { result in
                 switch result {
                 case .success(let graphQLResult):
                     if let _ = graphQLResult.errors {
@@ -244,7 +247,14 @@ class TokenModel: ObservableObject {
 
     private func fetchInitialCandles(_ tokenId: String, since: Date, candleInterval: String) async throws -> [CandleData] {
         let candles = try await withCheckedThrowingContinuation { continuation in
-            Network.shared.graphQL.fetch(query: GetTokenCandlesQuery(token: tokenId, since: .some(iso8601Formatter.string(from: since)), candle_interval: .some(candleInterval))) { result in
+            Network.shared.graphQL.fetch(
+                query: GetTokenCandlesQuery(
+                    token: tokenId,
+                    since: .some(iso8601Formatter.string(from: since)),
+                    candle_interval: .some(candleInterval)
+                ),
+                bypassCache: true
+            ) { result in
                 switch result {
                 case .success(let graphQLResult):
                     if let candles = graphQLResult.data?.token_trade_history_candles {
