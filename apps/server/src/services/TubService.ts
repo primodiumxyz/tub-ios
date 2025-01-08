@@ -86,7 +86,7 @@ export class TubService {
     this.analyticsService = new AnalyticsService(this.gqlClient);
     this.transferService = new TransferService(this.connection, feePayerKeypair, this.transactionService);
 
-    this.pushService = new PushService();
+    this.pushService = new PushService({ gqlClient: this.gqlClient });
   }
 
   /**
