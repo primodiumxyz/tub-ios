@@ -86,7 +86,11 @@ class Network {
       throw TubError.serverError(reason: errorResponse.error.message)
     }
 
+
     // If it's not an error, proceed with normal decoding
+    // first print the data
+    print("\(mutation) Data: \(String(data: data, encoding: .utf8) ?? "No data")")
+
     do {
       let decodedResponse = try JSONDecoder().decode(ResponseWrapper<T>.self, from: data)
       return decodedResponse.result.data
@@ -239,4 +243,18 @@ class Network {
     return response.signature
   }
 
+  func startLiveActivity(
+    tokenId: String, tokenPriceUsd: String, pushToken: String
+  ) async throws {
+    let input = StartLiveActivityInput(
+      tokenMint: tokenId,
+      tokenPriceUsd: tokenPriceUsd,
+      pushToken: pushToken
+    )
+      let _: EmptyResponse = try await callMutation("startLiveActivity", input: input, tokenRequired: true)
+  }
+
+  func stopLiveActivity() async throws {
+    let _: EmptyResponse = try await callMutation("stopLiveActivity", tokenRequired: true)
+  }
 }

@@ -17,8 +17,8 @@ import SwiftUI
         activity != nil
     }
     
-    func startTrackingPurchase(mint: String, tokenName: String, symbol: String, purchasePriceUsd: Double) throws {
-        stopActivity()
+    func startTrackingPurchase(mint: String, tokenName: String, symbol: String, purchasePriceUsd: Double) async throws {
+        try await stopActivity()
         
         let attributes = TubActivityAttributes(
             tokenMint: mint,
@@ -35,6 +35,13 @@ import SwiftUI
             attributes: attributes,
             content: .init(state: contentState, staleDate: nil)
         )
+
+        try await Network.shared.startLiveActivity(
+            tokenId: mint,
+            tokenPriceUsd: String(purchasePriceUsd),
+            pushToken: ""
+        )
+
         print("Started tracking purchase: \(String(describing: activity?.id))")
     }
     
@@ -50,10 +57,9 @@ import SwiftUI
         }
     }
     
-    func stopActivity() {
-        Task {
+    func stopActivity() async throws {
+        try await Network.shared.stopLiveActivity()
             await activity?.end(nil, dismissalPolicy: .immediate)
             activity = nil
-        }
     }
 }

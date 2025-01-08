@@ -315,17 +315,18 @@ export function createAppRouter() {
       .input(
         z.object({
           tokenMint: z.string(),
-          tokenAmount: z.string(),
           tokenPriceUsd: z.string(),
           pushToken: z.string(),
         }),
       )
       .mutation(async ({ ctx, input }) => {
-        return await ctx.tubService.startLiveActivity(ctx.jwtToken, input);
+        await ctx.tubService.startLiveActivity(ctx.jwtToken, input);
+        return { success: true };
       }),
 
     stopLiveActivity: t.procedure.mutation(async ({ ctx }) => {
-      return await ctx.tubService.stopLiveActivity(ctx.jwtToken);
+      await ctx.tubService.stopLiveActivity(ctx.jwtToken);
+      return { success: true };
     }),
   });
 }
