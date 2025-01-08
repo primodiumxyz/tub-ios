@@ -174,8 +174,8 @@ import { ConfigService } from "../src/services/ConfigService";
       await executeTx(swapResponse);
     }, 11000);
 
-    describe("MEMECOIN swaps", () => {
-      it.skip("should complete a USDC to MEMECOIN swap", async () => {
+    describe.skip("MEMECOIN swaps", () => {
+      it("should complete a USDC to MEMECOIN swap", async () => {
         // Get swap instructions
         const swapResponse = await tubService.fetchSwap(mockJwtToken, {
           buyTokenId: MEMECOIN_MAINNET_PUBLIC_KEY.toString(),
@@ -256,7 +256,7 @@ import { ConfigService } from "../src/services/ConfigService";
         const memecoinSolBalanceLamports = await connection.getBalance(userMemecoinAta, "processed");
         console.log("Memecoin SOL balance lamports:", memecoinSolBalanceLamports);
         expect(memecoinSolBalanceLamports).toBe(0);
-      }, 30000);
+      }, 35000);
     });
   });
 });

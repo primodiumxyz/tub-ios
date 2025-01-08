@@ -17,7 +17,6 @@ import { ATA_PROGRAM_PUBLIC_KEY, JUPITER_PROGRAM_PUBLIC_KEY, TOKEN_PROGRAM_PUBLI
 import { Config } from "./ConfigService";
 import { createCloseAccountInstruction } from "@solana/spl-token";
 import { SwapType } from "../types";
-// import { getSimulationComputeUnits } from "@solana-developers/helpers";
 
 export type TransactionRegistryEntry = {
   message: MessageV0;
@@ -293,64 +292,37 @@ export class TransactionService {
     });
   }
 
+  /**
+   * Optimizes compute budget instructions by estimating the compute units and setting a reasonable compute unit price
+   * @param instructions - The instructions to optimize
+   * @param addressLookupTableAccounts - The address lookup table accounts
+   * @returns The optimized instructions
+   */
   async optimizeComputeInstructions(
     instructions: TransactionInstruction[],
     addressLookupTableAccounts: AddressLookupTableAccount[],
   ): Promise<TransactionInstruction[]> {
-    // const simulatedComputeUnits = await getSimulationComputeUnits(
-    //   this.connection,
-    //   instructions,
-    //   this.feePayerKeypair.publicKey,
-    //   addressLookupTableAccounts,
-    // );
+    // get current instructions compute unit price. first instruction is compute unit limit, second is compute unit price
+    const initialComputeUnitPrice = Number(
+      ComputeBudgetInstruction.decodeSetComputeUnitPrice(instructions[1]!).microLamports,
+    );
 
-    const message = new TransactionMessage({
-      payerKey: this.feePayerKeypair.publicKey,
-      recentBlockhash: "11111111111111111111111111111111",
-      instructions,
-    }).compileToV0Message(addressLookupTableAccounts);
-
-    const transaction = new VersionedTransaction(message);
-
-    // try simulation and catch error if it fails
-    let simulation;
-    try {
-      simulation = await this.connection.simulateTransaction(transaction, {
-        commitment: "processed",
-        replaceRecentBlockhash: true,
-        sigVerify: false,
-      });
-    } catch (error) {
-      console.log("Error simulating transaction for compute optimization:", error);
-      throw new Error("Failed to simulate transaction for compute optimization");
-    }
-
-    const simulatedComputeUnits = simulation.value?.unitsConsumed;
+    // remove the previous compute unit limit and price in the instructions array
+    const slicedInstructions = instructions.slice(2);
+    const simulatedComputeUnits = await this.getSimulationComputeUnits(slicedInstructions, addressLookupTableAccounts);
 
     if (!simulatedComputeUnits) {
       throw new Error("Failed to estimate compute units");
     }
 
-    const estimatedComputeUnits = simulatedComputeUnits * 1.2;
-    console.log("Simulated Compute Units:", simulatedComputeUnits);
-    console.log("Estimated Compute Units:", estimatedComputeUnits);
+    const estimatedComputeUnitLimit = Math.ceil(simulatedComputeUnits * 1.1);
 
-    // default to 1e6 micro lamports per compute unit
-    const computePrice = 1e6;
-    console.log("Compute Price:", computePrice);
+    // use the least expensive compute unit price, note microLamports is the price per compute unit
+    const MAX_COMPUTE_PRICE = 1e6;
+    const computePrice =
+      initialComputeUnitPrice * 2 < MAX_COMPUTE_PRICE ? initialComputeUnitPrice * 2 : MAX_COMPUTE_PRICE;
 
-    if (!instructions[0] || !instructions[1]) {
-      throw new Error("Invalid instructions");
-    }
-
-    // get current instructions compute budget and compute units. first instruction is compute unit limit, second is compute unit price
-    const initialComputeBudget = ComputeBudgetInstruction.decodeSetComputeUnitLimit(instructions[0]);
-    const initialComputeUnitPrice = ComputeBudgetInstruction.decodeSetComputeUnitPrice(instructions[1]);
-
-    console.log("Jupiter's Previous Compute Budget:", initialComputeBudget);
-    console.log("Jupiter's Previous Compute Unit Price:", initialComputeUnitPrice);
-
-    instructions[0] = ComputeBudgetProgram.setComputeUnitLimit({ units: estimatedComputeUnits });
+    instructions[0] = ComputeBudgetProgram.setComputeUnitLimit({ units: estimatedComputeUnitLimit });
     instructions[1] = ComputeBudgetProgram.setComputeUnitPrice({ microLamports: computePrice });
 
     return instructions;
@@ -396,5 +368,55 @@ export class TransactionService {
 
     const balance = Number(tokenAccounts.value[0].account.data.parsed.info.tokenAmount.amount);
     return balance;
+  }
+
+  private async getSimulationComputeUnits(
+    instructions: TransactionInstruction[],
+    addressLookupTableAccounts: AddressLookupTableAccount[],
+  ) {
+    const simulatedInstructions = [
+      // Set max limit in simulation so tx succeeds and limit can be calculated
+      ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 }),
+      ...instructions,
+    ];
+
+    const testTransaction = new VersionedTransaction(
+      new TransactionMessage({
+        instructions: simulatedInstructions,
+        payerKey: this.feePayerKeypair.publicKey,
+        recentBlockhash: PublicKey.default.toString(), // doesn't matter due to replaceRecentBlockhash
+      }).compileToV0Message(addressLookupTableAccounts),
+    );
+
+    // Try simulation with retries
+    let rpcResponse;
+    const MAX_RETRIES = 2;
+    let lastError;
+
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      try {
+        rpcResponse = await this.connection.simulateTransaction(testTransaction, {
+          replaceRecentBlockhash: true,
+          sigVerify: false,
+          commitment: "processed",
+        });
+        break; // Success - exit loop
+      } catch (error) {
+        lastError = error;
+        console.log(`Simulation attempt ${attempt + 1}/${MAX_RETRIES} failed:`, error);
+
+        if (attempt < MAX_RETRIES - 1) {
+          // Wait 100ms before retrying
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+      }
+    }
+
+    if (!rpcResponse) {
+      console.error("All simulation attempts failed");
+      throw new Error(`Failed to simulate transaction after ${MAX_RETRIES} attempts: ${lastError}`);
+    }
+
+    return rpcResponse.value.unitsConsumed;
   }
 }
