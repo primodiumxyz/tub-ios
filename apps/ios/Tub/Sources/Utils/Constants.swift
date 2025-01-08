@@ -87,6 +87,10 @@ public let CANDLES_INTERVAL: Double = 60 * 30  // candles 30m
 public let PRICE_UPDATE_INTERVAL: Double = 0.5  // Update price every half second
 public let MAX_NUM_PRICES_TO_KEEP: Int = 100
 
+// Caching
+public let QUERY_HOT_TOKENS_CACHE_TIME: Interval = "15s"
+public let QUERY_TOKEN_METADATA_CACHE_TIME: Interval = "1h"
+
 public let WSOL_ADDRESS: String = "So11111111111111111111111111111111111111112"
 public let USDC_MINT: String = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
 public let TOKEN_PROGRAM_ID: String = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
