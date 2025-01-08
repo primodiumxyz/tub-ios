@@ -7,6 +7,44 @@ type PushItem = {
   timestamp: number;
 };
 
+/**
+ * Potential issues in the PushService:
+ *
+ * Memory Leaks:
+ * - The tokenPrice Map isn't cleaned up when subscriptions are removed
+ * - No maximum limit on number of subscriptions/registrations
+ *
+ * Race Conditions:
+ * - Multiple concurrent calls to start/stop activities could cause inconsistent state
+ * - No locking mechanism for shared state modifications
+ *
+ * Error Handling:
+ * - No error handling for subscription failures
+ * - No retry mechanism for failed push notifications
+ *
+ * Scalability:
+ * - Single interval for all cleanup operations could become bottleneck
+ * - All state is kept in memory - won't work across multiple instances
+ *
+ * Edge Cases:
+ * - No handling of duplicate push tokens
+ * - No validation of input data
+ * - No handling of network disconnections/reconnections
+ *
+ * Testing Gaps:
+ * - Need tests for push notification sending logic
+ * - Need tests for subscription data handling
+ * - Need load testing for concurrent operations
+ *
+ * Configuration:
+ * - Hardcoded timeout values
+ * - No configurable limits or thresholds
+ *
+ * Monitoring:
+ * - No metrics for failed operations
+ * - No logging of important state changes
+ */
+
 export class PushService {
   private pushRegistry: Map<string, PushItem> = new Map();
   private REGISTRY_TIMEOUT = 1 * 60 * 60 * 1000; // 6 hours
