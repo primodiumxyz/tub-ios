@@ -36,15 +36,30 @@ struct ShareView: View {
         
         let tokenTxs = transactions.filter { $0.mint == tokenMint }
         
-        if let latestBuy = tokenTxs.first(where: { $0.isBuy }),
-           let latestSell = tokenTxs.first(where: { !$0.isBuy && $0.date > latestBuy.date }) {
-            
-            let buyValue = abs(latestBuy.valueUsd) 
-            let sellValue = latestSell.valueUsd
-
-            return ((sellValue - buyValue) / buyValue) * 100
+        // Find the most recent sell
+        guard let latestSell = tokenTxs.first(where: { !$0.isBuy }) else {
+            return 0
         }
-        return 0
+        
+        // Find the most recent buy that occurred before this sell
+        let previousTxs = tokenTxs.filter { $0.date < latestSell.date }
+        let validBuy = previousTxs.first { buyTx in
+            guard buyTx.isBuy else { return false }
+            // Check if there are any sells between this buy and our latest sell
+            let txsBetween = tokenTxs.filter { tx in 
+                tx.date > buyTx.date && tx.date < latestSell.date && !tx.isBuy
+            }
+            return txsBetween.isEmpty
+        }
+        
+        guard let latestBuy = validBuy else {
+            return 0
+        }
+        
+        let buyValue = abs(latestBuy.valueUsd) 
+        let sellValue = latestSell.valueUsd
+
+        return ((sellValue - buyValue) / buyValue) * 100
     }
     
     private func saveImage() {
