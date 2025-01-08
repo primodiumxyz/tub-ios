@@ -128,6 +128,7 @@ export class SwapService {
     const optimizedInstructions = await this.transactionService.optimizeComputeInstructions(
       rentReassignedInstructions,
       addressLookupTableAccounts,
+      cfg,
     );
 
     // Build transaction message

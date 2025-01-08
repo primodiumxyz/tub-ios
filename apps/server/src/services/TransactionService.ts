@@ -296,11 +296,13 @@ export class TransactionService {
    * Optimizes compute budget instructions by estimating the compute units and setting a reasonable compute unit price
    * @param instructions - The instructions to optimize
    * @param addressLookupTableAccounts - The address lookup table accounts
+   * @param cfg - Config
    * @returns The optimized instructions
    */
   async optimizeComputeInstructions(
     instructions: TransactionInstruction[],
     addressLookupTableAccounts: AddressLookupTableAccount[],
+    cfg: Config,
   ): Promise<TransactionInstruction[]> {
     // get current instructions compute unit price. first instruction is compute unit limit, second is compute unit price
     const initialComputeUnitPrice = Number(
@@ -318,9 +320,12 @@ export class TransactionService {
     const estimatedComputeUnitLimit = Math.ceil(simulatedComputeUnits * 1.1);
 
     // use the least expensive compute unit price, note microLamports is the price per compute unit
-    const MAX_COMPUTE_PRICE = 1e6;
+    const MAX_COMPUTE_PRICE = cfg.MAX_COMPUTE_PRICE;
+    const AUTO_PRIO_MULT = cfg.AUTO_PRIORITY_FEE_MULTIPLIER;
     const computePrice =
-      initialComputeUnitPrice * 2 < MAX_COMPUTE_PRICE ? initialComputeUnitPrice * 2 : MAX_COMPUTE_PRICE;
+      initialComputeUnitPrice * AUTO_PRIO_MULT < MAX_COMPUTE_PRICE
+        ? initialComputeUnitPrice * AUTO_PRIO_MULT
+        : MAX_COMPUTE_PRICE;
 
     instructions[0] = ComputeBudgetProgram.setComputeUnitLimit({ units: estimatedComputeUnitLimit });
     instructions[1] = ComputeBudgetProgram.setComputeUnitPrice({ microLamports: computePrice });
