@@ -10,14 +10,14 @@ import SwiftUI
 
 struct TubActivityAttributes: ActivityAttributes {
     public struct ContentState: Codable, Hashable {
-        var value: Double
-        var trend: String // "up" or "down"
+        var currentPriceUsd: Double
         var timestamp: Date
-        var currentPrice: Double
     }
     
+    var tokenMint: String
     var name: String
     var symbol: String
+    var initialPriceUsd: Double
 }
 
 public struct TubWidgetAttributes: ActivityAttributes {

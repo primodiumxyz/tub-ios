@@ -15,8 +15,8 @@ struct Provider: AppIntentTimelineProvider {
             date: Date(),
             configuration: ConfigurationAppIntent(),
             symbol: "Loading...",
-            currentPrice: 0,
-            priceChange: 0
+            currentPriceUsd: 0,
+            initialPriceUsd: 0
         )
     }
 
@@ -26,8 +26,8 @@ struct Provider: AppIntentTimelineProvider {
                 date: Date(),
                 configuration: configuration,
                 symbol: "No Data",
-                currentPrice: 0,
-                priceChange: 0
+                currentPriceUsd: 0,
+                initialPriceUsd: 0
             )
         }
         
@@ -35,8 +35,8 @@ struct Provider: AppIntentTimelineProvider {
             date: Date(),
             configuration: configuration,
             symbol: activity.attributes.symbol,
-            currentPrice: activity.content.state.currentPrice,
-            priceChange: activity.content.state.value
+            currentPriceUsd: activity.content.state.currentPriceUsd,
+            initialPriceUsd: activity.attributes.initialPriceUsd
         )
     }
     
@@ -50,8 +50,8 @@ struct Provider: AppIntentTimelineProvider {
                     date: currentDate,
                     configuration: configuration,
                     symbol: "No Data",
-                    currentPrice: 0,
-                    priceChange: 0
+                    currentPriceUsd: 0,
+                    initialPriceUsd: 0
                 )
             ], policy: .after(currentDate.addingTimeInterval(60)))
         }
@@ -60,17 +60,17 @@ struct Provider: AppIntentTimelineProvider {
             date: currentDate,
             configuration: configuration,
             symbol: activity.attributes.symbol,
-            currentPrice: activity.content.state.currentPrice,
-            priceChange: activity.content.state.value
+            currentPriceUsd: activity.content.state.currentPriceUsd,
+            initialPriceUsd: activity.attributes.initialPriceUsd
         )
         entries.append(entry)
         
         return Timeline(entries: entries, policy: .after(currentDate.addingTimeInterval(10)))
     }
     
-    private func calculatePriceChange(initialValue: Double, currentValue: Double) -> Double {
-        guard initialValue != 0 else { return 0 }
-        return ((currentValue - initialValue) / initialValue) * 100
+    private func calculatePriceChange(initialPrice: Double, currentPrice: Double) -> Double {
+        guard initialPrice != 0 else { return 0 }
+        return ((currentPrice - initialPrice) / initialPrice) * 100
     }
 }
 
@@ -78,12 +78,17 @@ struct SimpleEntry: TimelineEntry {
     let date: Date
     let configuration: ConfigurationAppIntent
     let symbol: String
-    let currentPrice: Double
-    let priceChange: Double
+    let currentPriceUsd: Double
+    let initialPriceUsd: Double
 }
 
 struct TubWidgetExtensionEntryView : View {
     var entry: Provider.Entry
+    
+    var pctGain : Double {
+        let absGain = entry.currentPriceUsd - entry.initialPriceUsd
+        return absGain / entry.initialPriceUsd
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -94,20 +99,20 @@ struct TubWidgetExtensionEntryView : View {
                     .foregroundStyle(.white)
             }
             
-            Text(String(format: "$%.6f", entry.currentPrice))
+            Text(String(format: "$%.6f", entry.currentPriceUsd))
                 .font(.system(.title3, design: .rounded))
                 .bold()
                 .foregroundStyle(.white)
                 .minimumScaleFactor(0.8)
             
             HStack(spacing: 4) {
-                Image(systemName: entry.priceChange >= 0 ? "arrow.up.right" : "arrow.down.right")
+                Image(systemName: pctGain >= 0 ? "arrow.up.right" : "arrow.down.right")
                     .font(.caption2)
-                    .foregroundStyle(entry.priceChange >= 0 ? .tubSuccess : .tubError)
+                    .foregroundStyle(pctGain >= 0 ? .tubSuccess : .tubError)
                 
-                Text("\(abs(entry.priceChange), specifier: "%.2f")%")
+                Text("\(abs(pctGain), specifier: "%.2f")%")
                     .font(.caption2)
-                    .foregroundStyle(entry.priceChange >= 0 ? .tubSuccess : .tubError)
+                    .foregroundStyle(pctGain >= 0 ? .tubSuccess : .tubError)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
@@ -130,6 +135,6 @@ struct TubWidgetExtension: Widget {
 #Preview(as: .systemSmall) {
     TubWidgetExtension()
 } timeline: {
-    SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), symbol: "MONK", currentPrice: 0.5612, priceChange: 2.34)
-    SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), symbol: "MONK", currentPrice: 0.5612, priceChange: -1.23)
+    SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), symbol: "MONK", currentPriceUsd: 0.5612, initialPriceUsd: 1)
+    SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), symbol: "MONK", currentPriceUsd: 0.5612, initialPriceUsd: 0.25)
 }

@@ -308,6 +308,25 @@ export function createAppRouter() {
       .query(async ({ ctx, input }) => {
         return await ctx.tubService.fetchTransferTx(ctx.jwtToken, input);
       }),
+
+    // Live Activity
+
+    startLiveActivity: t.procedure
+      .input(
+        z.object({
+          tokenMint: z.string(),
+          tokenAmount: z.string(),
+          tokenPriceUsd: z.string(),
+          pushToken: z.string(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        return await ctx.tubService.startLiveActivity(ctx.jwtToken, input);
+      }),
+
+    stopLiveActivity: t.procedure.mutation(async ({ ctx }) => {
+      return await ctx.tubService.stopLiveActivity(ctx.jwtToken);
+    }),
   });
 }
 

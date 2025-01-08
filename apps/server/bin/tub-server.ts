@@ -87,7 +87,7 @@ export const start = async () => {
 
     const privy = new PrivyClient(env.PRIVY_APP_ID, env.PRIVY_APP_SECRET);
 
-    const tubService = await TubService.create(gqlClient, privy, jupiterService);
+    const tubService = await new TubService(gqlClient, privy, jupiterService);
 
     // @see https://trpc.io/docs/server/adapters/fastify
     server.register(fastifyTRPCPlugin<AppRouter>, {

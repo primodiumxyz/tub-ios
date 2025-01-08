@@ -17,18 +17,18 @@ import SwiftUI
         activity != nil
     }
     
-    func startTrackingPurchase(tokenName: String, symbol: String, purchasePrice: Double) throws {
+    func startTrackingPurchase(mint: String, tokenName: String, symbol: String, purchasePriceUsd: Double) throws {
         stopActivity()
         
         let attributes = TubActivityAttributes(
+            tokenMint: mint,
             name: tokenName,
-            symbol: symbol
+            symbol: symbol,
+            initialPriceUsd: purchasePriceUsd
         )
         let contentState = TubActivityAttributes.ContentState(
-            value: 0.0,
-            trend: "up",
-            timestamp: Date(),
-            currentPrice: purchasePrice
+            currentPriceUsd: purchasePriceUsd,
+            timestamp: Date.now
         )
         
         activity = try Activity<TubActivityAttributes>.request(
@@ -38,14 +38,12 @@ import SwiftUI
         print("Started tracking purchase: \(String(describing: activity?.id))")
     }
     
-    func updatePriceChange(currentPrice: Double, gainsPercentage: Double) {
+    func updatePriceChange(currentPriceUsd: Double, gainsPercentage: Double) {
         Task {
             let formattedPercentage = String(format: "%.2f", abs(gainsPercentage))
             let contentState = TubActivityAttributes.ContentState(
-                value: gainsPercentage,
-                trend: gainsPercentage >= 0 ? "up" : "down",
-                timestamp: Date(),
-                currentPrice: currentPrice
+                currentPriceUsd: currentPriceUsd,
+                timestamp: Date()
             )
             print("Updating gains: \(formattedPercentage)%")
             await activity?.update(.init(state: contentState, staleDate: nil))

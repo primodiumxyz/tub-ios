@@ -77,7 +77,7 @@ class TokenModel: ObservableObject {
             let gainsPercentage = (gains / purchaseData.priceUsd) * 100
             Task {
                 LiveActivityManager.shared.updatePriceChange(
-                    currentPrice: priceUsd,
+                    currentPriceUsd: priceUsd,
                     gainsPercentage: gainsPercentage
                 )
             }

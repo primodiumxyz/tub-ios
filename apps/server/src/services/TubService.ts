@@ -25,6 +25,7 @@ import { TOKEN_PROGRAM_PUBLIC_KEY } from "../constants/tokens";
 import { USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
 import { config } from "../utils/config";
 import { ConfigService } from "../services/ConfigService";
+import { PushService } from "./ApplePushService";
 
 /**
  * Service class handling token trading, swaps, and user operations
@@ -37,7 +38,7 @@ export class TubService {
   private feeService!: FeeService;
   private analyticsService!: AnalyticsService;
   private transferService!: TransferService;
-
+  private pushService!: PushService;
   /**
    * Creates a new instance of TubService
    * @param gqlClient - GraphQL client for database operations
@@ -84,6 +85,8 @@ export class TubService {
     this.swapService = new SwapService(this.jupiterService, this.transactionService, this.feeService, this.connection);
     this.analyticsService = new AnalyticsService(this.gqlClient);
     this.transferService = new TransferService(this.connection, feePayerKeypair, this.transactionService);
+
+    this.pushService = new PushService();
   }
 
   /**
@@ -394,5 +397,22 @@ export class TubService {
 
     // Get the transfer transaction from the transfer service
     return await this.transferService.getTransfer(transferRequest);
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /*                             Push Notifications                             */
+  /* -------------------------------------------------------------------------- */
+
+  async startLiveActivity(
+    jwtToken: string,
+    input: { tokenMint: string; tokenAmount: string; tokenPriceUsd: string; pushToken: string },
+  ) {
+    const { userId } = await this.authService.getUserContext(jwtToken);
+    return this.pushService.startLiveActivity(userId, input);
+  }
+
+  async stopLiveActivity(jwtToken: string) {
+    const { userId } = await this.authService.getUserContext(jwtToken);
+    return this.pushService.stopLiveActivity(userId);
   }
 }
