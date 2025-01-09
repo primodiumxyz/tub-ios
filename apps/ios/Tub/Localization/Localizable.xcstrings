@@ -60,6 +60,9 @@
     "Account Details" : {
 
     },
+    "Account Settings" : {
+
+    },
     "Add Funds" : {
 
     },
@@ -178,9 +181,6 @@
 
     },
     "Set Default" : {
-
-    },
-    "Settings" : {
 
     },
     "Share %@" : {
