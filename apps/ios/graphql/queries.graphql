@@ -21,15 +21,8 @@ query GetTokenPricesSince($token: String!, $since: timestamptz = "now()") {
   }
 }
 
-query GetTokenCandles(
-  $token: String!
-  $since: timestamptz = "now()"
-  $candle_interval: interval = "1m"
-) {
-  token_trade_history_candles(
-    args: { candle_interval: $candle_interval }
-    where: { token_mint: { _eq: $token }, bucket: { _gte: $since } }
-  ) {
+query GetTokenCandlesSince($token: String!, $since: timestamptz = "now()") {
+  token_candles_history_1min(args: { token_mint: $token, start: $since }) {
     bucket
     open_price_usd
     close_price_usd
@@ -101,7 +94,6 @@ query GetTokenLiveData($token: String!) {
   }
 }
 
-
 query GetLatestTokenPurchase($wallet: String!, $mint: String!) {
   transactions(
     where: {
@@ -121,8 +113,22 @@ query GetLatestTokenPurchase($wallet: String!, $mint: String!) {
   }
 }
 
-query GetTopTokensByVolume($interval: interval = "30m", $recentInterval: interval = "20s", $minRecentTrades: numeric = 0, $minRecentVolume: numeric = 0) {
-  token_stats_interval_comp(args: {interval: $interval, recent_interval: $recentInterval}, where: {token_metadata_is_pump_token: {_eq: true}, recent_trades: {_gte: $minRecentTrades}, recent_volume_usd: {_gte: $minRecentVolume}}, order_by: {total_volume_usd: desc}, limit: 50) {
+query GetTopTokensByVolume(
+  $interval: interval = "30m"
+  $recentInterval: interval = "20s"
+  $minRecentTrades: numeric = 0
+  $minRecentVolume: numeric = 0
+) {
+  token_stats_interval_comp(
+    args: { interval: $interval, recent_interval: $recentInterval }
+    where: {
+      token_metadata_is_pump_token: { _eq: true }
+      recent_trades: { _gte: $minRecentTrades }
+      recent_volume_usd: { _gte: $minRecentVolume }
+    }
+    order_by: { total_volume_usd: desc }
+    limit: 50
+  ) {
     token_mint
   }
 }

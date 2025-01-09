@@ -166,7 +166,7 @@ export const fetchPriceAndMetadata = async (
               jsonrpc: "2.0",
               id: 1,
               method: "getAssets",
-              params: { ids: Array.from(uniqueMints) },
+              params: { ids: Array.from(uniqueMints), options: { showFungible: true } },
             }),
             headers: { "Content-Type": "application/json" },
           },
@@ -193,7 +193,7 @@ export const fetchPriceAndMetadata = async (
       priceMap.set(id, price);
     }
 
-    // TODO: remove when QuickNode DAS API is fixed (returns null for a lot of tokens)
+    // We need to handle `null` tokens as the DAS API will sometimes return it for tokens that are not yet indexed
     for (const asset of metadataData.result.filter((asset) => asset !== null)) {
       metadataMap.set(asset.id, asset);
     }
@@ -205,18 +205,7 @@ export const fetchPriceAndMetadata = async (
       .map((swap) => {
         const price = priceMap.get(swap.tokenMint);
         const metadata = metadataMap.get(swap.tokenMint);
-        // TODO: idem (remove when QuickNode DAS API is fixed)
-        if (price === undefined /* || metadata === undefined */) return;
-
-        // TODO: idem (remove when QuickNode DAS API is fixed)
-        const tokenMetadata = metadata
-          ? formatTokenMetadata(metadata)
-          : {
-              name: "",
-              symbol: "",
-              description: "",
-              isPumpToken: false,
-            };
+        if (price === undefined) return;
 
         return {
           vaultA: swap.vaultA,
@@ -226,7 +215,7 @@ export const fetchPriceAndMetadata = async (
           priceUsd: price,
           amount: swap.amount,
           tokenDecimals: swap.tokenDecimals,
-          metadata: tokenMetadata,
+          metadata: formatTokenMetadata(metadata),
         };
       })
       .filter((swap) => swap !== undefined),
@@ -235,7 +224,16 @@ export const fetchPriceAndMetadata = async (
   };
 };
 
-const formatTokenMetadata = (data: GetAssetsResponse["result"][number]): SwapTokenMetadata => {
+const formatTokenMetadata = (data: GetAssetsResponse["result"][number] | undefined): SwapTokenMetadata => {
+  // If this token was not yet indexed by QuickNode, return empty metadata
+  if (!data)
+    return {
+      name: "",
+      symbol: "",
+      description: "",
+      isPumpToken: false,
+    };
+
   const metadata = data.content.metadata;
   const files = data.content.files;
   const links = data.content.links;
@@ -246,7 +244,7 @@ const formatTokenMetadata = (data: GetAssetsResponse["result"][number]): SwapTok
     description: metadata.description,
     imageUri: links?.image ?? files.find((file) => file.mime.startsWith("image") && !!file.uri)?.uri,
     externalUrl: links?.external_url,
-    supply: data.supply?.print_current_supply,
+    supply: data.token_info?.supply,
     isPumpToken: data.authorities.some((authority) => authority.address === PUMP_FUN_AUTHORITY.toString()),
   };
 };

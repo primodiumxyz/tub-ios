@@ -103,6 +103,48 @@
       use_prepared_statements: true
   logical_models:
     - fields:
+        - name: bucket
+          type:
+            nullable: false
+            scalar: timestamptz
+        - name: token_mint
+          type:
+            nullable: false
+            scalar: text
+        - name: open_price_usd
+          type:
+            nullable: false
+            scalar: numeric
+        - name: close_price_usd
+          type:
+            nullable: false
+            scalar: numeric
+        - name: high_price_usd
+          type:
+            nullable: false
+            scalar: numeric
+        - name: low_price_usd
+          type:
+            nullable: false
+            scalar: numeric
+        - name: volume_usd
+          type:
+            nullable: false
+            scalar: numeric
+      name: candles_history_model
+      select_permissions:
+        - permission:
+            columns:
+              - bucket
+              - token_mint
+              - open_price_usd
+              - close_price_usd
+              - high_price_usd
+              - low_price_usd
+              - volume_usd
+            filter: {}
+          role: public
+    - fields:
         - name: mint
           type:
             nullable: false
@@ -246,49 +288,19 @@
               - token_metadata_is_pump_token
             filter: {}
           role: public
-    - fields:
-        - name: bucket
-          type:
-            nullable: false
-            scalar: timestamptz
-        - name: token_mint
-          type:
-            nullable: false
-            scalar: text
-        - name: open_price_usd
-          type:
-            nullable: false
-            scalar: numeric
-        - name: close_price_usd
-          type:
-            nullable: false
-            scalar: numeric
-        - name: high_price_usd
-          type:
-            nullable: false
-            scalar: numeric
-        - name: low_price_usd
-          type:
-            nullable: false
-            scalar: numeric
-        - name: volume_usd
-          type:
-            nullable: false
-            scalar: numeric
-      name: trade_history_candle_model
-      select_permissions:
-        - permission:
-            columns:
-              - bucket
-              - token_mint
-              - open_price_usd
-              - close_price_usd
-              - high_price_usd
-              - low_price_usd
-              - volume_usd
-            filter: {}
-          role: public
   native_queries:
+    - arguments:
+        start:
+          description: ""
+          nullable: false
+          type: timestamptz
+        token_mint:
+          description: ""
+          nullable: false
+          type: text
+      code: "WITH RECURSIVE filled_buckets AS (\n  -- Generate all minute buckets from start to now\n  SELECT \n    time_bucket('1 minute', gs) as bucket\n  FROM generate_series(\n    {{start}},\n    now(),\n    '1 minute'::interval\n  ) gs\n),\nraw_candles AS (\n  -- Get the actual candle data\n  SELECT \n    b.bucket,\n    c.token_mint,\n    c.close_price_usd,\n    c.high_price_usd,\n    c.low_price_usd,\n    COALESCE(c.volume_usd, 0) as volume_usd\n  FROM filled_buckets b\n  LEFT JOIN api.candles_history_1min c ON \n    c.bucket = b.bucket AND \n    c.token_mint = {{token_mint}}\n),\nfilled_prices AS (\n  -- First fill in missing close prices with last known price\n  SELECT \n    r.bucket,\n    r.close_price_usd as raw_close,\n    r.high_price_usd as raw_high,\n    r.low_price_usd as raw_low,\n    r.volume_usd,\n    COALESCE(\n      r.close_price_usd,\n      (\n        SELECT close_price_usd\n        FROM raw_candles r2\n        WHERE r2.close_price_usd IS NOT NULL\n          AND r2.bucket <= r.bucket\n        ORDER BY r2.bucket DESC\n        LIMIT 1\n      ),\n      0\n    ) as close_price_usd\n  FROM raw_candles r\n),\n-- Find the first bucket with actual trading data\nfirst_trade AS (\n  SELECT \n    bucket as first_bucket,\n    close_price_usd as first_price\n  FROM raw_candles\n  WHERE close_price_usd IS NOT NULL\n  ORDER BY bucket ASC\n  LIMIT 1\n)\nSELECT \n  f.bucket,\n  {{token_mint}} as token_mint,\n  CASE \n    WHEN f.bucket = (SELECT first_bucket FROM first_trade) THEN (SELECT first_price FROM first_trade)\n    ELSE LAG(f.close_price_usd, 1) OVER (ORDER BY f.bucket)\n  END as open_price_usd,\n  f.close_price_usd,\n  COALESCE(f.raw_high, f.close_price_usd) as high_price_usd,\n  COALESCE(f.raw_low, f.close_price_usd) as low_price_usd,\n  f.volume_usd\nFROM filled_prices f\n-- Only return candles from first trade onwards\nWHERE f.bucket >= (SELECT first_bucket FROM first_trade)\nORDER BY bucket DESC;"
+      returns: candles_history_model
+      root_field_name: token_candles_history_1min
     - arguments: {}
       code: "WITH latest_metadata AS (\n    SELECT DISTINCT ON (token_mint)\n        token_mint as mint,\n        (token_metadata).name as name,\n        (token_metadata).symbol as symbol,\n        (token_metadata).description as description,\n        (token_metadata).image_uri as image_uri,\n        (token_metadata).external_url as external_url,\n        (token_metadata).decimals as decimals,\n        (token_metadata).supply as supply,\n        (token_metadata).is_pump_token as is_pump_token\n    FROM api.trade_history\n    WHERE token_metadata::text != 'null'\n    ORDER BY token_mint, created_at DESC\n)\nSELECT \n    mint,\n    name,\n    symbol,\n    description,\n    image_uri,\n    external_url,\n    decimals,\n    supply,\n    is_pump_token\nFROM latest_metadata;"
       returns: token_metadata_model
@@ -317,12 +329,4 @@
       code: "WITH params AS (\n  SELECT \n    NOW() - {{interval}}::interval as start_time,\n    NOW() as end_time,\n    NOW() - {{recent_interval}}::interval as recent_start_time\n),\ntoken_stats AS (\n  SELECT \n    token_mint,\n    SUM(volume_usd) as total_volume_usd,\n    ((LAST(token_price_usd, created_at) - FIRST(token_price_usd, created_at)) / \n      NULLIF(FIRST(token_price_usd, created_at), 0) * 100) as price_change_pct,\n    AVG(token_price_usd) as avg_price_usd,\n    LAST(token_price_usd, created_at) as latest_price_usd,\n    COUNT(*)::numeric as total_trades,\n    SUM(CASE WHEN created_at >= recent_start_time THEN volume_usd ELSE 0 END) as recent_volume_usd,\n    COUNT(CASE WHEN created_at >= recent_start_time THEN 1 END)::numeric as recent_trades,\n    COALESCE(\n        ((LAST(token_price_usd, created_at) FILTER (WHERE created_at >= recent_start_time) - \n        FIRST(token_price_usd, created_at) FILTER (WHERE created_at >= recent_start_time)) / \n        NULLIF(FIRST(token_price_usd, created_at) FILTER (WHERE created_at >= recent_start_time), 0) * 100),\n        0\n    ) as recent_price_change_pct,\n    LAST(token_metadata, created_at) as latest_metadata\n  FROM api.trade_history, params\n  WHERE created_at >= start_time\n    AND created_at <= end_time\n  GROUP BY token_mint\n  HAVING SUM(volume_usd) > 0\n)\nSELECT \n  token_mint,\n  total_volume_usd,\n  price_change_pct,\n  avg_price_usd,\n  latest_price_usd,\n  total_trades,\n  recent_volume_usd,\n  recent_trades,\n  recent_price_change_pct,\n  (latest_metadata).name AS token_metadata_name,\n  (latest_metadata).symbol AS token_metadata_symbol,\n  (latest_metadata).description AS token_metadata_description,\n  (latest_metadata).image_uri AS token_metadata_image_uri,\n  (latest_metadata).external_url AS token_metadata_external_url,\n  (latest_metadata).decimals AS token_metadata_decimals,\n  (latest_metadata).supply AS token_metadata_supply,\n  (latest_metadata).is_pump_token AS token_metadata_is_pump_token\nFROM token_stats;"
       returns: token_stats_model
       root_field_name: token_stats_interval_comp
-    - arguments:
-        candle_interval:
-          description: ""
-          nullable: false
-          type: interval
-      code: "WITH base_candles AS (\n  SELECT \n    time_bucket({{candle_interval}}::interval, created_at) as bucket,\n    token_mint,\n    FIRST(token_price_usd, created_at) as first_price,\n    LAST(token_price_usd, created_at) as last_price,\n    MAX(token_price_usd) as high_price_usd,\n    MIN(token_price_usd) as low_price_usd,\n    SUM(volume_usd) as volume_usd\n  FROM api.trade_history\n  GROUP BY 1, 2\n),\ngaps AS (\n  SELECT \n    a.bucket,\n    a.token_mint,\n    a.last_price,\n    generate_series(\n      a.bucket + {{candle_interval}}::interval,\n      MIN(b.bucket) - {{candle_interval}}::interval,\n      {{candle_interval}}::interval\n    ) as gap_bucket\n  FROM base_candles a\n  LEFT JOIN base_candles b ON \n    b.token_mint = a.token_mint AND\n    b.bucket > a.bucket\n  GROUP BY a.bucket, a.token_mint, a.last_price\n  HAVING MIN(b.bucket) > a.bucket + {{candle_interval}}::interval\n),\nfilled_gaps AS (\n  SELECT * FROM base_candles\n  UNION ALL\n  SELECT\n    gap_bucket,\n    token_mint,\n    last_price as first_price,\n    last_price as last_price,\n    last_price as high_price_usd,\n    last_price as low_price_usd,\n    0 as volume_usd\n  FROM gaps\n)\nSELECT \n  bucket,\n  token_mint,\n  COALESCE(LAG(last_price) OVER w, first_price) as open_price_usd,\n  last_price as close_price_usd,\n  high_price_usd,\n  low_price_usd,\n  volume_usd\nFROM filled_gaps\nWINDOW w AS (PARTITION BY token_mint ORDER BY bucket);"
-      returns: trade_history_candle_model
-      root_field_name: token_trade_history_candles
   tables: "!include timescaledb/tables/tables.yaml"
