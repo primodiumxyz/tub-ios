@@ -201,7 +201,7 @@ export class PushService {
     });
 
     // Required configuration
-    notification.topic = `com.primodium.tub.push-type.liveactivity`;
+    notification.topic = `com.primodium.tub`;
     notification.pushType = "alert";
     notification.expiry = Math.floor(Date.now() / 1000) + 3600; // 1 hour
     notification.priority = 10; // Send immediately
@@ -213,7 +213,7 @@ export class PushService {
       // todo: group all devices with the same token
       const result = await this.apnProvider.send(notification, input.deviceToken);
       if (result.failed.length > 0) {
-        throw new Error(`Push failed: ${result.failed[0]?.response}`);
+        throw new Error(`Push failed: ${result.failed[0]?.response?.reason}`);
       }
     } catch (error) {
       console.error(error);
