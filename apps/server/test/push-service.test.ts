@@ -1,22 +1,31 @@
-import { GqlClient } from "@tub/gql";
+import { MEMECOIN_MAINNET_PUBLIC_KEY } from "@/constants/tokens";
+import { Config } from "@/services/ConfigService";
+import { GqlClient, createClient as createGqlClient } from "@tub/gql";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PushService } from "../src/services/ApplePushService";
+import { env } from "@bin/tub-server";
 
 describe("PushService", () => {
   let pushService: PushService;
-  let mockGqlClient: GqlClient["db"];
+  let gqlClient: GqlClient["db"];
+  const tokenMint = MEMECOIN_MAINNET_PUBLIC_KEY.toBase58();
 
-  beforeEach(() => {
-    // Mock subscription behavior
-    mockGqlClient = {
-      GetRecentTokenPriceSubscription: vi.fn().mockReturnValue({
-        subscribe: vi.fn().mockReturnValue({
-          unsubscribe: vi.fn(),
-        }),
-      }),
-    } as unknown as GqlClient["db"];
+  beforeEach(async () => {
+    gqlClient = (
+      await createGqlClient({
+        url: env.GRAPHQL_URL,
+        hasuraAdminSecret: env.HASURA_ADMIN_SECRET,
+      })
+    ).db;
 
-    pushService = new PushService({ gqlClient: mockGqlClient });
+    pushService = new PushService({
+      gqlClient,
+      config: {
+        PUSH_REGISTRY_TIMEOUT_MS: 6 * 60 * 60 * 1000, // six hours
+        PUSH_CLEANUP_INTERVAL_MS: 60000,
+        PUSH_SEND_INTERVAL_MS: 1000,
+      } as Config,
+    });
     vi.useFakeTimers();
   });
 
@@ -31,14 +40,14 @@ describe("PushService", () => {
     it("should remove expired items and clean subscriptions", async () => {
       // @ts-expect-error accessing private
       pushService.pushRegistry.set("user1", {
-        tokenMint: "mint1",
+        tokenMint,
         initialPriceUsd: "1.0",
         pushToken: "token1",
         timestamp: Date.now() - 7 * 60 * 60 * 1000, // 7 hours ago
       });
 
       // @ts-expect-error accessing private
-      pushService.subscriptions.set("mint1", {
+      pushService.subscriptions.set(tokenMint, {
         subscription: { unsubscribe: vi.fn() },
         subCount: 1,
       });
@@ -55,7 +64,6 @@ describe("PushService", () => {
 
   describe("beginTokenSubscription", () => {
     it("should increment subCount for existing subscription", () => {
-      const tokenMint = "mint1";
       const mockUnsubscribe = vi.fn();
 
       // @ts-expect-error accessing private
@@ -73,8 +81,6 @@ describe("PushService", () => {
     });
 
     it("should create new subscription for new token", () => {
-      const tokenMint = "mint1";
-
       // @ts-expect-error accessing private
       pushService.beginTokenSubscription(tokenMint);
 
@@ -87,7 +93,6 @@ describe("PushService", () => {
 
   describe("cleanSubscription", () => {
     it("should decrement subCount and cleanup when zero", async () => {
-      const tokenMint = "mint1";
       const mockUnsubscribe = vi.fn();
 
       // @ts-expect-error accessing private
@@ -111,7 +116,7 @@ describe("PushService", () => {
     it("should register new activity and start subscription", async () => {
       const userId = "user1";
       const input = {
-        tokenMint: "mint1",
+        tokenMint,
         tokenPriceUsd: "1.0",
         pushToken: "token1",
       };
@@ -127,7 +132,7 @@ describe("PushService", () => {
     it("should not duplicate existing activity", async () => {
       const userId = "user1";
       const input = {
-        tokenMint: "mint1",
+        tokenMint,
         tokenPriceUsd: "1.0",
         pushToken: "token1",
       };
@@ -145,7 +150,6 @@ describe("PushService", () => {
   describe("stopLiveActivity", () => {
     it("should remove activity and clean subscription", async () => {
       const userId = "user1";
-      const tokenMint = "mint1";
 
       // @ts-expect-error accessing private
       pushService.pushRegistry.set(userId, {
@@ -169,4 +173,30 @@ describe("PushService", () => {
       expect(pushService.subscriptions.has(tokenMint)).toBe(false);
     });
   });
+
+  it("should maintain activity for 10 seconds then clean up properly", async () => {
+    const userId = "user1";
+    const input = {
+      tokenMint,
+      tokenPriceUsd: "1.0",
+      pushToken: "token1",
+    };
+
+    await pushService.startLiveActivity(userId, input);
+
+    // @ts-expect-error accessing private
+    expect(pushService.pushRegistry.has(userId)).toBe(true);
+    // @ts-expect-error accessing private
+    expect(pushService.subscriptions.has(input.tokenMint)).toBe(true);
+
+    vi.useRealTimers();
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
+    await pushService.stopLiveActivity(userId);
+
+    // @ts-expect-error accessing private
+    expect(pushService.pushRegistry.has(userId)).toBe(false);
+    // @ts-expect-error accessing private
+    expect(pushService.subscriptions.has(input.tokenMint)).toBe(false);
+  }, 4000);
 });

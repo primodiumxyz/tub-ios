@@ -85,7 +85,10 @@ export class PushService {
         token: tokenMint,
       })
       .subscribe((data) => {
-        if (!data?.data?.api_trade_history[0]) return;
+        if (!data?.data?.api_trade_history[0]) {
+          return;
+        }
+        this.tokenPrice.set(tokenMint, data.data.api_trade_history[0].token_price_usd);
       });
     console.log("Subscribed to token", tokenMint);
 
@@ -93,13 +96,14 @@ export class PushService {
   }
 
   private async cleanSubscription(tokenMint: string) {
-    if (this.subscriptions.has(tokenMint)) {
-      this.subscriptions.get(tokenMint)!.subCount--;
-      if (this.subscriptions.get(tokenMint)!.subCount === 0) {
-        this.subscriptions.get(tokenMint)!.subscription.unsubscribe();
-        this.subscriptions.delete(tokenMint);
-        this.tokenPrice.delete(tokenMint);
-      }
+    const sub = this.subscriptions.get(tokenMint);
+    if (!sub) return;
+
+    sub.subCount--;
+    if (sub.subCount === 0) {
+      sub.subscription.unsubscribe();
+      this.subscriptions.delete(tokenMint);
+      this.tokenPrice.delete(tokenMint);
     }
   }
 
