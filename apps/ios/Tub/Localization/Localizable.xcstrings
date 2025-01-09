@@ -4,6 +4,9 @@
     "" : {
 
     },
+    "@tub" : {
+
+    },
     "%@" : {
 
     },
@@ -26,6 +29,9 @@
           }
         }
       }
+    },
+    "%@%%" : {
+
     },
     "%lld" : {
 
@@ -52,6 +58,9 @@
 
     },
     "Account Details" : {
+
+    },
+    "Account Settings" : {
 
     },
     "Add Funds" : {
@@ -106,6 +115,9 @@
 
     },
     "High" : {
+
+    },
+    "Image saved!" : {
 
     },
     "Join Telegram" : {
@@ -169,6 +181,12 @@
 
     },
     "Set Default" : {
+
+    },
+    "Share %@" : {
+
+    },
+    "Share Your Wins" : {
 
     },
     "Show Less" : {

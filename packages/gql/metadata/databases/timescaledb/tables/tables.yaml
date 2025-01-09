@@ -1,2 +1,3 @@
+- "!include api_candles_history_1min.yaml"
 - "!include api_trade_history.yaml"
 - "!include api_trade_history_1min.yaml"
