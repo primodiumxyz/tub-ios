@@ -244,12 +244,12 @@ class Network {
   }
 
   func startLiveActivity(
-    tokenId: String, tokenPriceUsd: String, pushToken: String
+    tokenId: String, tokenPriceUsd: String, deviceToken: String
   ) async throws {
     let input = StartLiveActivityInput(
       tokenMint: tokenId,
       tokenPriceUsd: tokenPriceUsd,
-      pushToken: pushToken
+      deviceToken: deviceToken
     )
       let _: EmptyResponse = try await callMutation("startLiveActivity", input: input, tokenRequired: true)
   }

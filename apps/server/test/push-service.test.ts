@@ -42,7 +42,7 @@ describe("PushService", () => {
       pushService.pushRegistry.set("user1", {
         tokenMint,
         initialPriceUsd: "1.0",
-        pushToken: "token1",
+        deviceToken: "token1",
         timestamp: Date.now() - 7 * 60 * 60 * 1000, // 7 hours ago
       });
 
@@ -118,7 +118,7 @@ describe("PushService", () => {
       const input = {
         tokenMint,
         tokenPriceUsd: "1.0",
-        pushToken: "token1",
+        deviceToken: "token1",
       };
 
       await pushService.startLiveActivity(userId, input);
@@ -134,7 +134,7 @@ describe("PushService", () => {
       const input = {
         tokenMint,
         tokenPriceUsd: "1.0",
-        pushToken: "token1",
+        deviceToken: "token1",
       };
 
       await pushService.startLiveActivity(userId, input);
@@ -155,7 +155,7 @@ describe("PushService", () => {
       pushService.pushRegistry.set(userId, {
         tokenMint,
         initialPriceUsd: "1.0",
-        pushToken: "token1",
+        deviceToken: "token1",
         timestamp: Date.now(),
       });
 
@@ -179,7 +179,7 @@ describe("PushService", () => {
     const input = {
       tokenMint,
       tokenPriceUsd: "1.0",
-      pushToken: "token1",
+      deviceToken: "token1",
     };
 
     await pushService.startLiveActivity(userId, input);

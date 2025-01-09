@@ -114,7 +114,7 @@ struct TokenDwellTimeInput: Codable {
 struct StartLiveActivityInput: Codable {
     let tokenMint: String
     let tokenPriceUsd: String
-    let pushToken: String
+    let deviceToken: String
 }
 
 // MARK: - Response Types

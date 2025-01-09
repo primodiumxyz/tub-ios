@@ -1,9 +1,13 @@
-import { GqlClient } from "@tub/gql";
-import apn from "apn";
-import { Mutex } from "async-mutex";
-import path from "path";
-import { Config } from "./ConfigService";
 import { env } from "@bin/tub-server";
+import apn from "@parse/node-apn";
+import { GqlClient } from "@tub/gql";
+import { Mutex } from "async-mutex";
+import path, { dirname } from "path";
+import { fileURLToPath } from "url";
+import { Config } from "./ConfigService";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 /**
  * Data structure for tracking push notification state
@@ -11,7 +15,7 @@ import { env } from "@bin/tub-server";
 type PushItem = {
   tokenMint: string; // Token mint address
   initialPriceUsd: string; // Initial price when tracking started
-  pushToken: string; // Device push token
+  deviceToken: string; // Device push token
   timestamp: number; // Registration timestamp
 };
 
@@ -112,9 +116,9 @@ export class PushService {
    * @param userId - User identifier
    * @param input.tokenMint - Token mint address to track
    * @param input.tokenPriceUsd - Initial token price in USD
-   * @param input.pushToken - Device push token
+   * @param input.deviceToken - Device push token
    */
-  async startLiveActivity(userId: string, input: { tokenMint: string; tokenPriceUsd: string; pushToken: string }) {
+  async startLiveActivity(userId: string, input: { tokenMint: string; tokenPriceUsd: string; deviceToken: string }) {
     const release = await this.activityMutex.acquire();
     try {
       if (this.pushRegistry.has(userId)) {
@@ -123,7 +127,7 @@ export class PushService {
       this.pushRegistry.set(userId, {
         tokenMint: input.tokenMint,
         initialPriceUsd: input.tokenPriceUsd,
-        pushToken: input.pushToken,
+        deviceToken: input.deviceToken,
         timestamp: Date.now(),
       });
       this.beginTokenSubscription(input.tokenMint);
@@ -171,21 +175,48 @@ export class PushService {
 
     for (let i = 0; i < entries.length; i += BATCH_SIZE) {
       const batch = entries.slice(i, i + BATCH_SIZE);
-      await Promise.all(batch.map(([key, value]) => this.sendPush(key, value)));
+      await Promise.all(batch.map(([, value]) => this.sendPush(value)));
     }
   }
 
   /**
    * Sends a push notification for a specific user
-   * @param userId - User identifier
    * @param input - Push notification data
    */
-  private async sendPush(userId: string, input: PushItem) {
+  private async sendPush(input: PushItem) {
     const tokenPrice = this.tokenPrice.get(input.tokenMint);
     if (!tokenPrice) return;
-    const payload = {
-      tokenPrice,
-    };
-    console.log("Sending push", userId, input, payload);
+
+    const notification = new apn.Notification({
+      payload: {
+        aps: {
+          "content-state": {
+            currentPriceUsd: parseFloat(tokenPrice),
+            timestamp: new Date().toISOString(),
+          },
+          timestamp: Date.now(),
+          event: "update",
+        },
+      },
+    });
+
+    // Required configuration
+    notification.topic = `com.primodium.tub.push-type.liveactivity`;
+    notification.pushType = "alert";
+    notification.expiry = Math.floor(Date.now() / 1000) + 3600; // 1 hour
+    notification.priority = 10; // Send immediately
+
+    // Optional: Add collapse ID to group similar notifications
+    notification.collapseId = `price_update_${input.tokenMint}`;
+
+    try {
+      // todo: group all devices with the same token
+      const result = await this.apnProvider.send(notification, input.deviceToken);
+      if (result.failed.length > 0) {
+        throw new Error(`Push failed: ${result.failed[0]?.response}`);
+      }
+    } catch (error) {
+      console.error(error);
+    }
   }
 }

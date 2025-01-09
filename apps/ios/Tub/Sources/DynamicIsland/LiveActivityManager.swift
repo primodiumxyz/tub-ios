@@ -12,6 +12,7 @@ import SwiftUI
     static let shared = LiveActivityManager()
     private var activity: Activity<TubActivityAttributes>?
     private var backgroundTask: Task<Void, Never>?
+    var deviceToken: String?
     
     var isActivityActive: Bool {
         activity != nil
@@ -36,11 +37,14 @@ import SwiftUI
             content: .init(state: contentState, staleDate: nil)
         )
 
-        try await Network.shared.startLiveActivity(
-            tokenId: mint,
-            tokenPriceUsd: String(purchasePriceUsd),
-            pushToken: ""
-        )
+        
+        if let deviceToken {
+            try await Network.shared.startLiveActivity(
+                tokenId: mint,
+                tokenPriceUsd: String(purchasePriceUsd),
+                deviceToken: deviceToken
+            )
+        }
 
         print("Started tracking purchase: \(String(describing: activity?.id))")
     }

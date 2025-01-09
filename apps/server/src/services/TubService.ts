@@ -405,7 +405,7 @@ export class TubService {
   /*                             Push Notifications                             */
   /* -------------------------------------------------------------------------- */
 
-  async startLiveActivity(jwtToken: string, input: { tokenMint: string; tokenPriceUsd: string; pushToken: string }) {
+  async startLiveActivity(jwtToken: string, input: { tokenMint: string; tokenPriceUsd: string; deviceToken: string }) {
     const { userId } = await this.authService.getUserContext(jwtToken);
     return this.pushService.startLiveActivity(userId, input);
   }

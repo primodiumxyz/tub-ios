@@ -6,12 +6,14 @@
 //
 
 import SwiftUI
+import UIKit
 
 @main
 struct TubApp: App {
     @Environment(\.scenePhase) private var scenePhase
     private let dwellTimeTracker = AppDwellTimeTracker.shared
     @StateObject private var userModel = UserModel.shared
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     
     init() {
         let appearance = UITabBarAppearance()
@@ -84,14 +86,17 @@ struct AppContent: View {
                 notificationHandler.show("Error connecting to wallet.", type: .error)
             case .connected:
                 Task(priority: .low) {
+                    if LiveActivityManager.shared.deviceToken == nil {
+                        await UIApplication.shared.registerForRemoteNotifications()
+                    }
                     try? await userModel.refreshTxs(hard: true)
                 }
-                Task (priority: .userInitiated) {
+                Task(priority: .userInitiated) {
                     tokenListModel.clearQueue()
                     await tokenListModel.startTokenSubscription()
                 }
             case .disconnected, .notCreated, .needsRecovery:
-                Task (priority: .userInitiated) {
+                Task(priority: .userInitiated) {
                     tokenListModel.clearQueue()
                     await tokenListModel.startTokenSubscription()
                 }
@@ -130,5 +135,14 @@ extension View {
         } else {
             self
         }
+    }
+}
+
+class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(
+        _ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
+    ) {
+        let tokenString = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
+        LiveActivityManager.shared.deviceToken = tokenString
     }
 }
