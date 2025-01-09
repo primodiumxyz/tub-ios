@@ -304,14 +304,25 @@ export class TransactionService {
     addressLookupTableAccounts: AddressLookupTableAccount[],
     cfg: Config,
   ): Promise<TransactionInstruction[]> {
-    // get current instructions compute unit price. first instruction is compute unit limit, second is compute unit price
-    const initialComputeUnitPrice = Number(
-      ComputeBudgetInstruction.decodeSetComputeUnitPrice(instructions[1]!).microLamports,
+    // check if instructions has an initial compute unit price instruction and/or a compute unit limit instruction. return their locations.
+    const computeUnitLimitIndex = instructions.findIndex(
+      (ix) => ix.programId.equals(ComputeBudgetProgram.programId) && ix.data[0] === 0x02, // setComputeUnitLimit identifier
+    );
+    const computeUnitPriceIndex = instructions.findIndex(
+      (ix) => ix.programId.equals(ComputeBudgetProgram.programId) && ix.data[0] === 0x03, // setComputeUnitPrice identifier
     );
 
-    // remove the previous compute unit limit and price in the instructions array
-    const slicedInstructions = instructions.slice(2);
-    const simulatedComputeUnits = await this.getSimulationComputeUnits(slicedInstructions, addressLookupTableAccounts);
+    const initComputeUnitPrice =
+      computeUnitPriceIndex >= 0
+        ? Number(ComputeBudgetInstruction.decodeSetComputeUnitPrice(instructions[computeUnitPriceIndex]!).microLamports)
+        : cfg.MAX_COMPUTE_PRICE; // the "!" is redundant, as we just found it above and `>= 0` check ensures it's exists. Just satisfies the linter.
+
+    // Remove the initial compute unit limit and price instructions, handling the case where removing the first affects the index of the second
+    const cleanInstructions = instructions.filter(
+      (_, index) => index !== computeUnitLimitIndex && index !== computeUnitPriceIndex,
+    );
+
+    const simulatedComputeUnits = await this.getSimulationComputeUnits(cleanInstructions, addressLookupTableAccounts);
 
     if (!simulatedComputeUnits) {
       throw new Error("Failed to estimate compute units");
@@ -323,14 +334,15 @@ export class TransactionService {
     const MAX_COMPUTE_PRICE = cfg.MAX_COMPUTE_PRICE;
     const AUTO_PRIO_MULT = cfg.AUTO_PRIORITY_FEE_MULTIPLIER;
     const computePrice =
-      initialComputeUnitPrice * AUTO_PRIO_MULT < MAX_COMPUTE_PRICE
-        ? initialComputeUnitPrice * AUTO_PRIO_MULT
+      initComputeUnitPrice * AUTO_PRIO_MULT < MAX_COMPUTE_PRICE
+        ? initComputeUnitPrice * AUTO_PRIO_MULT
         : MAX_COMPUTE_PRICE;
 
-    instructions[0] = ComputeBudgetProgram.setComputeUnitLimit({ units: estimatedComputeUnitLimit });
-    instructions[1] = ComputeBudgetProgram.setComputeUnitPrice({ microLamports: computePrice });
+    // Add the new compute unit limit and price instructions to the beginning of the instructions array
+    cleanInstructions.unshift(ComputeBudgetProgram.setComputeUnitPrice({ microLamports: computePrice }));
+    cleanInstructions.unshift(ComputeBudgetProgram.setComputeUnitLimit({ units: estimatedComputeUnitLimit }));
 
-    return instructions;
+    return cleanInstructions;
   }
 
   /**
