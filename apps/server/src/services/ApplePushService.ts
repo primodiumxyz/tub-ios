@@ -1,6 +1,9 @@
 import { GqlClient } from "@tub/gql";
+import apn from "apn";
 import { Mutex } from "async-mutex";
+import path from "path";
 import { Config } from "./ConfigService";
+import { env } from "@bin/tub-server";
 
 /**
  * Data structure for tracking push notification state
@@ -24,6 +27,16 @@ export class PushService {
   private subscriptions: Map<string, { subscription: { unsubscribe: () => void }; subCount: number }> = new Map();
   private tokenPrice: Map<string, string> = new Map();
   private activityMutex = new Mutex();
+  private options = {
+    token: {
+      key: path.resolve(__dirname, `../utils/AuthKey_${env.APPLE_PUSH_KEY_ID}.p8`),
+      keyId: env.APPLE_PUSH_KEY_ID,
+      teamId: env.APPLE_PUSH_TEAM_ID,
+    },
+    production: false,
+  };
+
+  private apnProvider = new apn.Provider(this.options);
 
   /**
    * Creates a new PushService instance

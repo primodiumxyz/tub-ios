@@ -22,6 +22,9 @@ const commonSchema = z.object({
   REDIS_HOST: z.string().default("localhost"),
   REDIS_PORT: z.coerce.number().default(6379),
   REDIS_PASSWORD: z.string().optional(),
+
+  APPLE_PUSH_KEY_ID: z.string(),
+  APPLE_PUSH_TEAM_ID: z.string(),
 });
 export function parseEnv<TSchema extends ZodTypeAny | undefined = undefined>(
   schema?: TSchema,
