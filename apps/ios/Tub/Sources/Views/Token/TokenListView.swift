@@ -156,7 +156,7 @@ struct TokenListView: View {
                         // Rest of the content
                         if tokenListModel.totalTokenCount == 0 && tokenListModel.initialFetchComplete {
                             ErrorView(
-                                errorMessage: "No tokens found.", retryAction: tokenListModel.startTokenSubscription
+                                errorMessage: "No tokens found.", retryAction: tokenListModel.startHotTokensPolling
                             )
                             .frame(maxHeight: .infinity)
                         }

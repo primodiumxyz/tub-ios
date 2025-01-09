@@ -27,13 +27,17 @@ final class TxManager: ObservableObject {
             Task {
                 let decimals = UserModel.shared.tokenData[tokenId]?.metadata.decimals ?? 9
                 let buyQuantityToken = (buyAmountUsdc / tokenPriceUsdc) * Int(pow(10.0,Double(decimals)))
-                try? await Network.shared.recordTokenPurchase(
-                    tokenMint: tokenId,
-                    tokenAmount: Double(buyQuantityToken),
-                    tokenPriceUsd: SolPriceModel.shared.usdcToUsd(usdc: tokenPriceUsdc),
-                    source: "user_model",
-                    errorDetails: err?.localizedDescription
-                )
+                do {
+                    try await Network.shared.recordTokenPurchase(
+                        tokenMint: tokenId,
+                        tokenAmount: Double(buyQuantityToken),
+                        tokenPriceUsd: SolPriceModel.shared.usdcToUsd(usdc: tokenPriceUsdc),
+                        source: "user_model",
+                        errorDetails: err?.localizedDescription
+                    )
+                } catch {
+                    print("failed to log token purchase: \(error)")
+                }
             }
         }
         
@@ -54,13 +58,17 @@ final class TxManager: ObservableObject {
         
         if let tokenPriceUsd {
             Task {
-                try? await Network.shared.recordTokenSale(
-                    tokenMint: tokenId,
-                    tokenAmount: Double(balanceToken),
-                    tokenPriceUsd: tokenPriceUsd,
-                    source: "user_model",
-                    errorDetails: err?.localizedDescription
-                )
+                do {
+                    try await Network.shared.recordTokenSale(
+                        tokenMint: tokenId,
+                        tokenAmount: Double(balanceToken),
+                        tokenPriceUsd: tokenPriceUsd,
+                        source: "user_model",
+                        errorDetails: err?.localizedDescription
+                    )
+                } catch {
+                    print("failed to log token sale: \(error)")
+                }
             }
         }
         if let err { throw err }

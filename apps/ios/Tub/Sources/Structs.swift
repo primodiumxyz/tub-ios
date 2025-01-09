@@ -190,26 +190,22 @@ struct TokenMetadata {
 extension TokenMetadata: Codable {}
 
 struct TokenLiveData {
-    var marketCapUsd: Double
-    var priceUsd: Double
-    var stats: IntervalStats
-    var recentStats: IntervalStats
-    
-    init(
-        supply: Int,
-        priceUsd: Double,
-        stats: IntervalStats,
-        recentStats: IntervalStats
-    ) {
-        // TODO: check if it's correct when QuickNode fixes their DAS API
-        // 1. Is this ok to use that supply? do we need to use the circulating supply (that we don't have)?
-        // 2. Does the supply need to be divided by 10 ** tokenDecimals?
-        self.marketCapUsd = Double(supply) * priceUsd
-        
-        self.priceUsd = priceUsd
-        self.stats = stats
-        self.recentStats = recentStats
-    }
+  var supply: Int
+  var priceUsd: Double
+  var stats: IntervalStats
+  var recentStats: IntervalStats
+
+  init(
+    supply: Int,
+    priceUsd: Double,
+    stats: IntervalStats,
+    recentStats: IntervalStats
+  ) {
+    self.supply = supply
+    self.priceUsd = priceUsd
+    self.stats = stats
+    self.recentStats = recentStats
+  }
 }
 
 enum PurchaseState {

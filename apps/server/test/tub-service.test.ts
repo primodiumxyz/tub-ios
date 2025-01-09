@@ -42,7 +42,7 @@ import { ConfigService } from "../src/services/ConfigService";
 
       const gqlClient = (
         await createGqlClient({
-          url: "http://localhost:8080/v1/graphql",
+          url: "http://localhost:8090/v1/graphql",
           hasuraAdminSecret: "password",
         })
       ).db;

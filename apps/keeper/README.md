@@ -27,25 +27,27 @@ pnpm start
 
 The Keeper service can be configured using the following environment variables:
 
-| Variable             | Description                                | Default                                |
-|----------------------|--------------------------------------------|----------------------------------------|
-| `NODE_ENV`           | Environment (dev, prod, test)              | `dev`                                  |
-| `SERVER_HOST`        | Host that the server listens on            | `0.0.0.0`                              |
-| `SERVER_PORT`        | Port that the server listens on            | `9999`                                 |
-| `HASURA_ADMIN_SECRET`| Admin secret for Hasura GraphQL engine     | `password`                             |
-| `GRAPHQL_URL`        | URL of the GraphQL endpoint                | `http://localhost:8080/v1/graphql`     |
-| `PRIVATE_KEY`        | Private key for authentication (if needed) | (a default key is provided)            |
+| Variable              | Description                                                    | Default                            |
+| --------------------- | -------------------------------------------------------------- | ---------------------------------- |
+| `NODE_ENV`            | Environment (dev, prod, test)                                  | `dev`                              |
+| `SERVER_HOST`         | Host that the server listens on                                | `0.0.0.0`                          |
+| `SERVER_PORT`         | Port that the server listens on                                | `9999`                             |
+| `HASURA_ADMIN_SECRET` | Admin secret for Hasura GraphQL engine                         | `password`                         |
+| `GRAPHQL_URL`         | URL of the Redis cache server pointing to the GraphQL endpoint | `http://localhost:8090/v1/graphql` |
+| `PRIVATE_KEY`         | Private key for authentication (if needed)                     | (a default key is provided)        |
 
 ## Development
 
 To set up the project for development:
 
 1. Install dependencies:
+
    ```
    pnpm install
    ```
 
 2. Run in development mode:
+
    ```
    pnpm start
    ```
