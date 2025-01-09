@@ -343,7 +343,7 @@ final class UserModel: ObservableObject {
         
         return try await withCheckedThrowingContinuation {
             (continuation: CheckedContinuation<TokenMetadata, Error>) in
-            Network.shared.apollo.fetch(query: query) { result in
+            Network.shared.graphQL.fetch(query: query, cacheTime: QUERY_TOKEN_METADATA_CACHE_TIME) { result in
                 switch result {
                 case .success(let response):
                     if response.errors != nil {
@@ -394,8 +394,9 @@ final class UserModel: ObservableObject {
         if uncachedTokens.count > 0 {
             try await withCheckedThrowingContinuation {
                 (continuation: CheckedContinuation<Void, Error>) in
-                Network.shared.apollo.fetch(
-                    query: GetBulkTokenMetadataQuery(tokens: uncachedTokens)
+                Network.shared.graphQL.fetch(
+                    query: GetBulkTokenMetadataQuery(tokens: uncachedTokens),
+                    cacheTime: QUERY_TOKEN_METADATA_CACHE_TIME
                 ) { result in
                     switch result {
                     case .success(let graphQLResult):
@@ -437,7 +438,7 @@ final class UserModel: ObservableObject {
         
         return try await withCheckedThrowingContinuation {
             (continuation: CheckedContinuation<TokenLiveData, Error>) in
-            Network.shared.apollo.fetch(query: query) { result in
+            Network.shared.graphQL.fetch(query: query, cacheTime: QUERY_TOKEN_LIVE_DATA_CACHE_TIME) { result in
                 switch result {
                 case .success(let response):
                     if response.errors != nil {
@@ -483,8 +484,9 @@ final class UserModel: ObservableObject {
         for mint in tokenMints {
             try await withCheckedThrowingContinuation {
                 (continuation: CheckedContinuation<Void, Error>) in
-                Network.shared.apollo.fetch(
-                    query: GetBulkTokenLiveDataQuery(tokens: [mint])
+                Network.shared.graphQL.fetch(
+                    query: GetBulkTokenLiveDataQuery(tokens: [mint]),
+                    cacheTime: QUERY_TOKEN_LIVE_DATA_CACHE_TIME
                 ) { result in
                     switch result {
                     case .success(let graphQLResult):
@@ -633,7 +635,7 @@ final class UserModel: ObservableObject {
         let query = GetWalletTransactionsQuery(wallet: walletAddress)
         do {
             let newTxs = try await withCheckedThrowingContinuation { continuation in
-                Network.shared.apollo.fetch(query: query, cachePolicy: .fetchIgnoringCacheData) { result in
+                Network.shared.graphQL.fetch(query: query, cachePolicy: .fetchIgnoringCacheData, bypassCache: true) { result in
                     switch result {
                     case .success(let graphQLResult):
                         Task {
