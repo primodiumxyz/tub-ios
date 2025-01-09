@@ -13,7 +13,12 @@ import {
 } from "@solana/web3.js";
 import bs58 from "bs58";
 import { config } from "../utils/config";
-import { ATA_PROGRAM_PUBLIC_KEY, JUPITER_PROGRAM_PUBLIC_KEY, TOKEN_PROGRAM_PUBLIC_KEY } from "../constants/tokens";
+import {
+  ATA_PROGRAM_PUBLIC_KEY,
+  JUPITER_PROGRAM_PUBLIC_KEY,
+  MAX_CHAIN_COMPUTE_UNITS,
+  TOKEN_PROGRAM_PUBLIC_KEY,
+} from "../constants/tokens";
 import { Config } from "./ConfigService";
 import { createCloseAccountInstruction } from "@solana/spl-token";
 import { SwapType } from "../types";
@@ -304,25 +309,12 @@ export class TransactionService {
     addressLookupTableAccounts: AddressLookupTableAccount[],
     cfg: Config,
   ): Promise<TransactionInstruction[]> {
-    // check if instructions has an initial compute unit price instruction and/or a compute unit limit instruction. return their locations.
-    const computeUnitLimitIndex = instructions.findIndex(
-      (ix) => ix.programId.equals(ComputeBudgetProgram.programId) && ix.data[0] === 0x02, // setComputeUnitLimit identifier
-    );
-    const computeUnitPriceIndex = instructions.findIndex(
-      (ix) => ix.programId.equals(ComputeBudgetProgram.programId) && ix.data[0] === 0x03, // setComputeUnitPrice identifier
-    );
+    const { initComputeUnitPrice, filteredInstructions } = this.filterComputeInstructions(instructions, cfg);
 
-    const initComputeUnitPrice =
-      computeUnitPriceIndex >= 0
-        ? Number(ComputeBudgetInstruction.decodeSetComputeUnitPrice(instructions[computeUnitPriceIndex]!).microLamports)
-        : cfg.MAX_COMPUTE_PRICE; // the "!" is redundant, as we just found it above and `>= 0` check ensures it's exists. Just satisfies the linter.
-
-    // Remove the initial compute unit limit and price instructions, handling the case where removing the first affects the index of the second
-    const cleanInstructions = instructions.filter(
-      (_, index) => index !== computeUnitLimitIndex && index !== computeUnitPriceIndex,
+    const simulatedComputeUnits = await this.getSimulationComputeUnits(
+      filteredInstructions,
+      addressLookupTableAccounts,
     );
-
-    const simulatedComputeUnits = await this.getSimulationComputeUnits(cleanInstructions, addressLookupTableAccounts);
 
     if (!simulatedComputeUnits) {
       throw new Error("Failed to estimate compute units");
@@ -339,10 +331,10 @@ export class TransactionService {
         : MAX_COMPUTE_PRICE;
 
     // Add the new compute unit limit and price instructions to the beginning of the instructions array
-    cleanInstructions.unshift(ComputeBudgetProgram.setComputeUnitPrice({ microLamports: computePrice }));
-    cleanInstructions.unshift(ComputeBudgetProgram.setComputeUnitLimit({ units: estimatedComputeUnitLimit }));
+    filteredInstructions.unshift(ComputeBudgetProgram.setComputeUnitPrice({ microLamports: computePrice }));
+    filteredInstructions.unshift(ComputeBudgetProgram.setComputeUnitLimit({ units: estimatedComputeUnitLimit }));
 
-    return cleanInstructions;
+    return filteredInstructions;
   }
 
   /**
@@ -392,8 +384,8 @@ export class TransactionService {
     addressLookupTableAccounts: AddressLookupTableAccount[],
   ) {
     const simulatedInstructions = [
-      // Set max limit in simulation so tx succeeds and limit can be calculated
-      ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 }),
+      // Set max limit in simulation so tx succeeds and the necessary compute unit limit can be calculated
+      ComputeBudgetProgram.setComputeUnitLimit({ units: MAX_CHAIN_COMPUTE_UNITS }),
       ...instructions,
     ];
 
@@ -435,5 +427,29 @@ export class TransactionService {
     }
 
     return rpcResponse.value.unitsConsumed;
+  }
+
+  private filterComputeInstructions(instructions: TransactionInstruction[], cfg: Config) {
+    const computeUnitLimitIndex = instructions.findIndex(
+      (ix) => ix.programId.equals(ComputeBudgetProgram.programId) && ix.data[0] === 0x02,
+    );
+    const computeUnitPriceIndex = instructions.findIndex(
+      (ix) => ix.programId.equals(ComputeBudgetProgram.programId) && ix.data[0] === 0x03,
+    );
+
+    const initComputeUnitPrice =
+      computeUnitPriceIndex >= 0
+        ? Number(ComputeBudgetInstruction.decodeSetComputeUnitPrice(instructions[computeUnitPriceIndex]!).microLamports)
+        : cfg.MAX_COMPUTE_PRICE; // the "!" is redundant, as we just found it above and `>= 0` check ensures it's exists. Just satisfies the linter.
+
+    // Remove the initial compute unit limit and price instructions, handling the case where removing the first affects the index of the second
+    const filteredInstructions = instructions.filter(
+      (_, index) => index !== computeUnitLimitIndex && index !== computeUnitPriceIndex,
+    );
+
+    return {
+      initComputeUnitPrice,
+      filteredInstructions,
+    };
   }
 }

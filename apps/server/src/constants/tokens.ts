@@ -7,3 +7,4 @@ export const MEMECOIN_MAINNET_PUBLIC_KEY = new PublicKey("FLhNk1NJVkngyJf7Stne2n
 export const ATA_PROGRAM_PUBLIC_KEY = new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
 export const TOKEN_PROGRAM_PUBLIC_KEY = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
 export const JUPITER_PROGRAM_PUBLIC_KEY = new PublicKey("JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4");
+export const MAX_CHAIN_COMPUTE_UNITS = 1_400_000;
