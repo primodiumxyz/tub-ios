@@ -57,7 +57,7 @@ struct AppContent: View {
                     }
                 )
             } else if userModel.walletState == .connecting || userModel.initializingUser {
-                LoadingView(identifier: "Logging in", message: "Logging in")
+                LoadingView(identifier: "Logging in")
             } else {
                 TokenListView().font(.sfRounded())
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
