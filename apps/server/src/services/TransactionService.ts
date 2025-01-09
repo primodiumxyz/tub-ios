@@ -14,6 +14,7 @@ import { config } from "../utils/config";
 import { ATA_PROGRAM_PUBLIC_KEY, JUPITER_PROGRAM_PUBLIC_KEY, TOKEN_PROGRAM_PUBLIC_KEY } from "../constants/tokens";
 import { Config } from "./ConfigService";
 import { createCloseAccountInstruction } from "@solana/spl-token";
+import { SwapType } from "../types";
 
 export type TransactionRegistryEntry = {
   message: MessageV0;
@@ -295,10 +296,10 @@ export class TransactionService {
     tokenAccount: PublicKey,
     sellTokenId: PublicKey,
     sellQuantity: number,
-    feeAmount: number,
+    swapType: SwapType,
   ): Promise<TransactionInstruction | null> {
-    // Skip if user is buying memecoins
-    if (feeAmount > 0) {
+    // Skip if user is not selling their entire memecoin stack
+    if (swapType !== SwapType.SELL_ALL) {
       return null;
     }
 

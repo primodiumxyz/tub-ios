@@ -1,6 +1,7 @@
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import { createTransferInstruction } from "@solana/spl-token";
 import { Config } from "./ConfigService";
+import { SwapType } from "../types";
 
 export type FeeSettings = {
   tradeFeeRecipient: PublicKey;
@@ -17,26 +18,33 @@ export class FeeService {
   }
 
   /**
-   * Calculate fee amount for a trade
-   * @param sellTokenId - Token being sold
-   * @param sellQuantity - Amount being sold
-   * @param usdcTokenIds - Array of USDC token IDs (mainnet and devnet)
+   * Calculate fee amount for a swap, ensuring it is not below the minimum fee amount
+   * @param usdcQuantity - Amount of USDC in the transaction
+   * @param swapType - Type of swap: buy, sell_all, sell_partial
    * @param cfg - Config object, should be read as constant after high-level API call
-   * @returns Fee amount in token's base units
+   * @returns Fee amount in token's base units (USDC is 1e6)
    */
-  async calculateFeeAmount(
-    sellTokenId: string,
-    sellQuantity: number,
-    usdcTokenIds: string[],
-    cfg: Config,
-  ): Promise<number> {
-    const isUsdcSell = usdcTokenIds.includes(sellTokenId);
-
-    if (isUsdcSell && cfg.MIN_TRADE_SIZE_USD * 1e6 > sellQuantity) {
-      throw new Error("USDC sell quantity is below minimum trade size");
+  calculateFeeAmount(usdcQuantity: number, swapType: SwapType, cfg: Config): number {
+    let feeAmount = BigInt(0);
+    if (swapType === SwapType.BUY) {
+      if (cfg.MIN_TRADE_SIZE_USD * 1e6 > usdcQuantity) {
+        throw new Error("USDC quantity is below minimum trade size");
+      }
+      feeAmount = (BigInt(cfg.BUY_FEE_BPS) * BigInt(usdcQuantity)) / 10000n;
+    } else if (swapType === SwapType.SELL_ALL || swapType === SwapType.SELL_PARTIAL) {
+      if (swapType === SwapType.SELL_PARTIAL && cfg.MIN_TRADE_SIZE_USD * 1e6 >= usdcQuantity) {
+        throw new Error("Sell value below min partial sell size. Sell all instead.");
+      }
+      feeAmount = (BigInt(cfg.SELL_FEE_BPS) * BigInt(usdcQuantity)) / 10000n;
     }
 
-    const feeAmount = isUsdcSell ? (BigInt(cfg.BUY_FEE_BPS) * BigInt(sellQuantity)) / 10000n : 0;
+    if (feeAmount < BigInt(cfg.MIN_FEE_CENTS) * BigInt(1e4)) {
+      feeAmount = BigInt(cfg.MIN_FEE_CENTS) * BigInt(1e4);
+    }
+
+    if (feeAmount > BigInt(usdcQuantity)) {
+      throw new Error("Fee is greater than the value being swapped");
+    }
 
     return Number(feeAmount);
   }

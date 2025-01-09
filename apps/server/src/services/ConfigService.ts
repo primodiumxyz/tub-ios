@@ -20,6 +20,7 @@ export const configSchema = z
     AUTO_PRIORITY_FEE_MULTIPLIER: z.number(),
     BUY_FEE_BPS: z.number(),
     SELL_FEE_BPS: z.number(),
+    MIN_FEE_CENTS: z.number(),
     MIN_TRADE_SIZE_USD: z.number(),
     TRADE_FEE_RECIPIENT: z.string(),
   })

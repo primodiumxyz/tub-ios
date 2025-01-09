@@ -57,7 +57,7 @@ struct AppContent: View {
                     }
                 )
             } else if userModel.walletState == .connecting || userModel.initializingUser {
-                LoadingView(identifier: "Logging in", message: "Logging in")
+                LoadingView(identifier: "Logging in")
             } else {
                 TokenListView().font(.sfRounded())
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -88,12 +88,12 @@ struct AppContent: View {
                 }
                 Task (priority: .userInitiated) {
                     tokenListModel.clearQueue()
-                    await tokenListModel.startTokenSubscription()
+                    await tokenListModel.startHotTokensPolling()
                 }
             case .disconnected, .notCreated, .needsRecovery:
                 Task (priority: .userInitiated) {
                     tokenListModel.clearQueue()
-                    await tokenListModel.startTokenSubscription()
+                    await tokenListModel.startHotTokensPolling()
                 }
             default:
                 break
