@@ -1,4 +1,6 @@
 import { GqlClient } from "@tub/gql";
+import { Mutex } from "async-mutex";
+import { Config } from "./ConfigService";
 
 type PushItem = {
   tokenMint: string;
@@ -46,14 +48,16 @@ type PushItem = {
  */
 
 export class PushService {
+  private config: Config;
   private pushRegistry: Map<string, PushItem> = new Map();
-  private REGISTRY_TIMEOUT = 1 * 60 * 60 * 1000; // 6 hours
   private gqlClient: GqlClient["db"];
 
   private subscriptions: Map<string, { subscription: { unsubscribe: () => void }; subCount: number }> = new Map();
   private tokenPrice: Map<string, string> = new Map();
+  private activityMutex = new Mutex();
 
-  constructor(args: { gqlClient: GqlClient["db"] }) {
+  constructor(args: { gqlClient: GqlClient["db"]; config: Config }) {
+    this.config = args.config;
     this.initializePushes();
     this.gqlClient = args.gqlClient;
   }
@@ -61,7 +65,7 @@ export class PushService {
   private async cleanupRegistry() {
     const now = Date.now();
     for (const [key, value] of this.pushRegistry.entries()) {
-      if (now - value.timestamp > this.REGISTRY_TIMEOUT) {
+      if (now - value.timestamp > this.config.PUSH_REGISTRY_TIMEOUT_MS) {
         this.pushRegistry.delete(key);
         this.cleanSubscription(value.tokenMint);
       }
@@ -71,9 +75,7 @@ export class PushService {
   /* ------------------------------ Subscriptions ----------------------------- */
 
   private beginTokenSubscription(tokenMint: string) {
-    console.log("Begin token subscription", tokenMint);
     if (this.subscriptions.has(tokenMint)) {
-      console.log("Already subscribed");
       this.subscriptions.get(tokenMint)!.subCount++;
       return;
     }
@@ -83,10 +85,7 @@ export class PushService {
         token: tokenMint,
       })
       .subscribe((data) => {
-        console.log("Token price changed", data);
         if (!data?.data?.api_trade_history[0]) return;
-        console.log("token price update", tokenMint, data.data.api_trade_history[0].token_price_usd);
-        this.tokenPrice.set(tokenMint, data.data.api_trade_history[0].token_price_usd);
       });
     console.log("Subscribed to token", tokenMint);
 
@@ -94,11 +93,9 @@ export class PushService {
   }
 
   private async cleanSubscription(tokenMint: string) {
-    console.log("Clean subscription", tokenMint);
     if (this.subscriptions.has(tokenMint)) {
       this.subscriptions.get(tokenMint)!.subCount--;
       if (this.subscriptions.get(tokenMint)!.subCount === 0) {
-        console.log("Unsubscribing from token", tokenMint);
         this.subscriptions.get(tokenMint)!.subscription.unsubscribe();
         this.subscriptions.delete(tokenMint);
         this.tokenPrice.delete(tokenMint);
@@ -109,41 +106,53 @@ export class PushService {
   /* --------------------------------- Live activity --------------------------------- */
 
   async startLiveActivity(userId: string, input: { tokenMint: string; tokenPriceUsd: string; pushToken: string }) {
-    if (this.pushRegistry.has(userId)) {
-      return;
+    const release = await this.activityMutex.acquire();
+    try {
+      if (this.pushRegistry.has(userId)) {
+        return;
+      }
+      this.pushRegistry.set(userId, {
+        tokenMint: input.tokenMint,
+        initialPriceUsd: input.tokenPriceUsd,
+        pushToken: input.pushToken,
+        timestamp: Date.now(),
+      });
+      this.beginTokenSubscription(input.tokenMint);
+    } finally {
+      release();
     }
-    this.pushRegistry.set(userId, {
-      tokenMint: input.tokenMint,
-      initialPriceUsd: input.tokenPriceUsd,
-      pushToken: input.pushToken,
-      timestamp: Date.now(),
-    });
-    this.beginTokenSubscription(input.tokenMint);
   }
 
   async stopLiveActivity(userId: string) {
-    console.log("Stop live activity", userId);
-    if (!this.pushRegistry.has(userId)) {
-      return;
+    const release = await this.activityMutex.acquire();
+    try {
+      if (!this.pushRegistry.has(userId)) {
+        return;
+      }
+      const tokenMint = this.pushRegistry.get(userId)!.tokenMint;
+      this.pushRegistry.delete(userId);
+      this.cleanSubscription(tokenMint);
+    } finally {
+      release();
     }
-
-    const tokenMint = this.pushRegistry.get(userId)!.tokenMint;
-    this.pushRegistry.delete(userId);
-    this.cleanSubscription(tokenMint);
   }
 
   /* --------------------------------- Pushes --------------------------------- */
 
   private initializePushes(): void {
     (async () => {
-      setInterval(() => this.cleanupRegistry(), 1 * 60 * 1000);
-      setInterval(() => this.sendAllPushes(), 5 * 1000);
+      setInterval(() => this.cleanupRegistry(), this.config.PUSH_CLEANUP_INTERVAL_MS);
+      setInterval(() => this.sendAllPushes(), this.config.PUSH_SEND_INTERVAL_MS);
     })();
   }
 
   private async sendAllPushes() {
-    for (const [key, value] of this.pushRegistry.entries()) {
-      await this.sendPush(key, value);
+    const BATCH_SIZE = 50;
+    const entries = Array.from(this.pushRegistry.entries());
+
+    for (let i = 0; i < entries.length; i += BATCH_SIZE) {
+      const batch = entries.slice(i, i + BATCH_SIZE);
+      await Promise.all(batch.map(([key, value]) => this.sendPush(key, value)));
     }
   }
 

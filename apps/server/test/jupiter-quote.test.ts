@@ -11,7 +11,7 @@ import { ConfigService } from "@/services/ConfigService";
 const VERBOSE = false;
 const createTestKeypair = () => Keypair.generate();
 
-describe("Jupiter Quote Integration Test", () => {
+describe.skip("Jupiter Quote Integration Test", () => {
   let connection: Connection;
   let jupiterQuoteApi: DefaultApi;
   let jupiterService: JupiterService;

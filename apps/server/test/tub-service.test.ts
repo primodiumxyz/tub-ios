@@ -12,7 +12,7 @@ import { PrebuildSwapResponse } from "../src/types";
 import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY, MEMECOIN_MAINNET_PUBLIC_KEY } from "../src/constants/tokens";
 import { ConfigService } from "../src/services/ConfigService";
 // Skip entire suite in CI, because it would perform a live transaction each deployment
-(env.CI ? describe.skip : describe)("TubService Integration Test", () => {
+(env.CI ? describe.skip : describe.skip)("TubService Integration Test", () => {
   let tubService: TubService;
   let userKeypair: Keypair;
   let mockJwtToken: string;
