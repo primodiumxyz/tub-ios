@@ -2,51 +2,20 @@ import { GqlClient } from "@tub/gql";
 import { Mutex } from "async-mutex";
 import { Config } from "./ConfigService";
 
+/**
+ * Data structure for tracking push notification state
+ */
 type PushItem = {
-  tokenMint: string;
-  initialPriceUsd: string;
-  pushToken: string;
-  timestamp: number;
+  tokenMint: string; // Token mint address
+  initialPriceUsd: string; // Initial price when tracking started
+  pushToken: string; // Device push token
+  timestamp: number; // Registration timestamp
 };
 
 /**
- * Potential issues in the PushService:
- *
- * Memory Leaks:
- * - The tokenPrice Map isn't cleaned up when subscriptions are removed
- * - No maximum limit on number of subscriptions/registrations
- *
- * Race Conditions:
- * - Multiple concurrent calls to start/stop activities could cause inconsistent state
- * - No locking mechanism for shared state modifications
- *
- * Error Handling:
- * - No error handling for subscription failures
- * - No retry mechanism for failed push notifications
- *
- * Scalability:
- * - Single interval for all cleanup operations could become bottleneck
- * - All state is kept in memory - won't work across multiple instances
- *
- * Edge Cases:
- * - No handling of duplicate push tokens
- * - No validation of input data
- * - No handling of network disconnections/reconnections
- *
- * Testing Gaps:
- * - Need tests for push notification sending logic
- * - Need tests for subscription data handling
- * - Need load testing for concurrent operations
- *
- * Configuration:
- * - Hardcoded timeout values
- * - No configurable limits or thresholds
- *
- * Monitoring:
- * - No metrics for failed operations
- * - No logging of important state changes
+ * Service that manages live price tracking and push notifications for tokens
+ * Handles subscription lifecycle and batched push notification delivery
  */
-
 export class PushService {
   private config: Config;
   private pushRegistry: Map<string, PushItem> = new Map();
@@ -56,12 +25,20 @@ export class PushService {
   private tokenPrice: Map<string, string> = new Map();
   private activityMutex = new Mutex();
 
+  /**
+   * Creates a new PushService instance
+   * @param args.gqlClient - GraphQL client for price subscriptions
+   * @param args.config - Service configuration
+   */
   constructor(args: { gqlClient: GqlClient["db"]; config: Config }) {
     this.config = args.config;
     this.initializePushes();
     this.gqlClient = args.gqlClient;
   }
 
+  /**
+   * Removes stale entries from the push registry based on configured timeout
+   */
   private async cleanupRegistry() {
     const now = Date.now();
     for (const [key, value] of this.pushRegistry.entries()) {
@@ -74,6 +51,10 @@ export class PushService {
 
   /* ------------------------------ Subscriptions ----------------------------- */
 
+  /**
+   * Starts or increments subscription count for a token's price updates
+   * @param tokenMint - Token mint address to subscribe to
+   */
   private beginTokenSubscription(tokenMint: string) {
     if (this.subscriptions.has(tokenMint)) {
       this.subscriptions.get(tokenMint)!.subCount++;
@@ -95,6 +76,10 @@ export class PushService {
     this.subscriptions.set(tokenMint, { subscription, subCount: 1 });
   }
 
+  /**
+   * Decrements subscription count and cleans up if no more subscribers
+   * @param tokenMint - Token mint address to unsubscribe from
+   */
   private async cleanSubscription(tokenMint: string) {
     const sub = this.subscriptions.get(tokenMint);
     if (!sub) return;
@@ -109,6 +94,13 @@ export class PushService {
 
   /* --------------------------------- Live activity --------------------------------- */
 
+  /**
+   * Registers a new live activity for price tracking
+   * @param userId - User identifier
+   * @param input.tokenMint - Token mint address to track
+   * @param input.tokenPriceUsd - Initial token price in USD
+   * @param input.pushToken - Device push token
+   */
   async startLiveActivity(userId: string, input: { tokenMint: string; tokenPriceUsd: string; pushToken: string }) {
     const release = await this.activityMutex.acquire();
     try {
@@ -127,6 +119,10 @@ export class PushService {
     }
   }
 
+  /**
+   * Stops live activity tracking for a user
+   * @param userId - User identifier to stop tracking
+   */
   async stopLiveActivity(userId: string) {
     const release = await this.activityMutex.acquire();
     try {
@@ -143,6 +139,9 @@ export class PushService {
 
   /* --------------------------------- Pushes --------------------------------- */
 
+  /**
+   * Initializes periodic cleanup and push notification tasks
+   */
   private initializePushes(): void {
     (async () => {
       setInterval(() => this.cleanupRegistry(), this.config.PUSH_CLEANUP_INTERVAL_MS);
@@ -150,6 +149,9 @@ export class PushService {
     })();
   }
 
+  /**
+   * Sends push notifications in batches to all registered users
+   */
   private async sendAllPushes() {
     const BATCH_SIZE = 50;
     const entries = Array.from(this.pushRegistry.entries());
@@ -160,6 +162,11 @@ export class PushService {
     }
   }
 
+  /**
+   * Sends a push notification for a specific user
+   * @param userId - User identifier
+   * @param input - Push notification data
+   */
   private async sendPush(userId: string, input: PushItem) {
     const tokenPrice = this.tokenPrice.get(input.tokenMint);
     if (!tokenPrice) return;
