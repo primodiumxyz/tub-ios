@@ -1,19 +1,15 @@
-import { afterAll, beforeAll, describe, it } from "vitest";
-import { BenchmarkEnvironment } from "./setup";
+import { beforeAll, describe, it } from "vitest";
+import { BenchmarkMockEnvironment, getGlobalEnv } from "./setup";
 
 describe("GetTokenMetadata benchmarks", () => {
-  let env: BenchmarkEnvironment;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  let env: BenchmarkMockEnvironment;
 
   beforeAll(async () => {
-    env = new BenchmarkEnvironment();
-    await env.setup();
+    env = await getGlobalEnv();
   });
 
   it("...", async () => {
     // ...
-  });
-
-  afterAll(async () => {
-    await env.cleanup();
   });
 });

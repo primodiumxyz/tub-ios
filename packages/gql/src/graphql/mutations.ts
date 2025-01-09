@@ -146,12 +146,3 @@ export const InsertTradeHistoryManyMutation = graphql(`
     }
   }
 `);
-
-// Testing
-export const DeleteTradeHistoryManyBeforeMutation = graphql(`
-  mutation DeleteTradeHistoryManyBefore($before: timestamptz = "now()") {
-    delete_api_trade_history(where: { created_at: { _lt: $before } }) {
-      affected_rows
-    }
-  }
-`);

@@ -1,24 +1,35 @@
 import { GqlClient, createClient } from "../../src/index";
 import { insertMockTradeHistory } from "../lib/mock";
 
+/* -------------------------------------------------------------------------- */
+/*                            GLOBAL ENVIRONMENT                              */
+/* -------------------------------------------------------------------------- */
+
 const DEFAULT_TRADES_AMOUNT = 700_000; // ~400 trades per second
 const DEFAULT_START_DATE = new Date(Date.now() - 30 * 60 * 1000); // 30 minutes ago
 
-interface BenchmarkSetupOptions {
-  tradesAmount?: number;
-  startDate?: Date;
-}
+let globalEnv: BenchmarkMockEnvironment | null = null;
 
-export class BenchmarkEnvironment {
+export const getGlobalEnv = async () => {
+  if (!globalEnv) {
+    globalEnv = new BenchmarkMockEnvironment();
+    await globalEnv.setup();
+  }
+  return globalEnv;
+};
+
+/* -------------------------------------------------------------------------- */
+/*                                    SETUP                                   */
+/* -------------------------------------------------------------------------- */
+
+export class BenchmarkMockEnvironment {
   public gqlCached: GqlClient;
   public gqlNoCache: GqlClient;
   private tokenMints: string[] = [];
 
   constructor() {}
 
-  async setup(options: BenchmarkSetupOptions = {}) {
-    const { tradesAmount = DEFAULT_TRADES_AMOUNT, startDate = DEFAULT_START_DATE } = options;
-
+  async setup() {
     this.gqlCached = await createClient({
       url: "http://localhost:8090/v1/graphql",
       hasuraAdminSecret: "password",
@@ -29,21 +40,14 @@ export class BenchmarkEnvironment {
     });
 
     this.tokenMints = await insertMockTradeHistory(this.gqlCached, {
-      count: tradesAmount,
-      from: startDate,
+      count: DEFAULT_TRADES_AMOUNT,
+      from: DEFAULT_START_DATE,
       onProgress: (inserted, total) => {
         console.log(`Inserting mock data: ${((inserted / total) * 100).toFixed(2)}%`);
       },
     });
 
     return this.tokenMints;
-  }
-
-  async cleanup() {
-    console.log("Cleaning up benchmark data...");
-    await this.gqlCached.db.DeleteTradeHistoryManyBeforeMutation({
-      before: new Date(),
-    });
   }
 
   getTokenMints() {
