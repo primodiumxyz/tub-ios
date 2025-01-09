@@ -28,7 +28,7 @@ To create a GraphQL client:
 import { createClient } from "@tub/gql";
 
 const gql = await createClient({
-  url: "http://localhost:8080/v1/graphql",
+  url: "http://localhost:8090/v1/graphql",
   hasuraAdminSecret: "your-admin-secret",
 });
 ```
