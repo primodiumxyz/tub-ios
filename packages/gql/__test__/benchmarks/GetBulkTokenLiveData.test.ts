@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, it } from "vitest";
 import { BenchmarkEnvironment } from "./setup";
 
-describe("GetTopTokensByVolume benchmarks", () => {
+describe("GetBulkTokenLiveData benchmarks", () => {
   let env: BenchmarkEnvironment;
 
   beforeAll(async () => {
