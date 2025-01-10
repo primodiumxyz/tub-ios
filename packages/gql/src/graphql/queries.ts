@@ -74,6 +74,28 @@ export const GetTopTokensByVolumeQuery = graphql(`
   }
 `);
 
+export const GetTopTokensByVolumeAggQuery = graphql(`
+  query GetTopTokensByVolumeAgg(
+    $interval: interval = "30m"
+    $recentInterval: interval = "20s"
+    $minRecentTrades: numeric = 0
+    $minRecentVolume: numeric = 0
+  ) {
+    token_stats_interval_agg(
+      args: { interval: $interval, recent_interval: $recentInterval }
+      where: {
+        token_metadata_is_pump_token: { _eq: true }
+        recent_trades: { _gte: $minRecentTrades }
+        recent_volume_usd: { _gte: $minRecentVolume }
+      }
+      order_by: { total_volume_usd: desc }
+      limit: 50
+    ) {
+      token_mint
+    }
+  }
+`);
+
 export const GetBulkTokenMetadataQuery = graphql(`
   query GetBulkTokenMetadata($tokens: [String!]!) {
     token_metadata_formatted(where: { mint: { _in: $tokens } }) {

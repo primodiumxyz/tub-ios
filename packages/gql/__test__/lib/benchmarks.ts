@@ -195,12 +195,12 @@ interface QuerySummary {
 
 const analyzeBenchmarks = () => {
   const outputDir = "__test__/benchmarks/output";
-  const jsonFiles = fs.readdirSync(outputDir).filter((f) => f.endsWith("_A.json"));
+  const jsonFiles = fs.readdirSync(outputDir).filter((f) => f.startsWith("Get") && f.endsWith(".json"));
   const summaries: QuerySummary[] = [];
 
   // Parse JSON files
   for (const file of jsonFiles) {
-    const queryName = file.replace("_A.json", "");
+    const queryName = file.replace(/_[A-Z]\.json$/, "");
     const content = fs.readFileSync(`${outputDir}/${file}`, "utf-8");
     const results = JSON.parse(content);
 

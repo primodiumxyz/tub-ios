@@ -32,11 +32,27 @@
     "improvement": 57.848899705681376
   },
   {
+    "queryName": "GetTopTokensByVolumeAgg",
+    "directHasura": 473.60473629999996,
+    "warmCache": 1.1971549900004903,
+    "coldCache": 474.33339502999945,
+    "bypassCache": 472.9129112900014,
+    "improvement": 99.74722486954984
+  },
+  {
     "queryName": "GetTopTokensByVolume",
     "directHasura": 896.6376978899998,
     "warmCache": 1.0753887199997552,
     "coldCache": 789.3761291900024,
     "bypassCache": 787.8672666599989,
     "improvement": 99.8800642977057
+  },
+  {
+    "queryName": "summary",
+    "directHasura": 0,
+    "warmCache": 0,
+    "coldCache": 0,
+    "bypassCache": 0,
+    "improvement": null
   }
 ]
