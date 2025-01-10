@@ -35,7 +35,7 @@ struct Provider: AppIntentTimelineProvider {
             date: Date(),
             configuration: configuration,
             symbol: activity.attributes.symbol,
-            currentPriceUsd: activity.content.state.currentPriceUsd,
+           currentPriceUsd: activity.content.state.currentPriceUsd,
             initialPriceUsd: activity.attributes.initialPriceUsd
         )
     }

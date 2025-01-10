@@ -46,7 +46,7 @@ struct TubWidgetExtensionLiveActivity: Widget {
                     }
                 }
             } compactLeading: {
-                Text(context.attributes.symbol)
+                Text("$\(context.attributes.symbol)")
                     .font(.system(size: 15))
             } compactTrailing: {
                 Text(String(format: "%+.1f%%", abs(pctGain)))

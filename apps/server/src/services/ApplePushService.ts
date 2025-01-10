@@ -2,6 +2,9 @@ import { env } from "@bin/tub-server";
 import apn from "@parse/node-apn";
 import { GqlClient } from "@tub/gql";
 import { Mutex } from "async-mutex";
+import fs from "fs";
+import http2 from "http2";
+import jwt from "jsonwebtoken";
 import path, { dirname } from "path";
 import { fileURLToPath } from "url";
 import { Config } from "./ConfigService";
@@ -16,6 +19,7 @@ type PushItem = {
   tokenMint: string; // Token mint address
   initialPriceUsd: string; // Initial price when tracking started
   deviceToken: string; // Device push token
+  pushToken: string; // Push token
   timestamp: number; // Registration timestamp
 };
 
@@ -118,7 +122,10 @@ export class PushService {
    * @param input.tokenPriceUsd - Initial token price in USD
    * @param input.deviceToken - Device push token
    */
-  async startLiveActivity(userId: string, input: { tokenMint: string; tokenPriceUsd: string; deviceToken: string }) {
+  async startLiveActivity(
+    userId: string,
+    input: { tokenMint: string; tokenPriceUsd: string; deviceToken: string; pushToken: string },
+  ) {
     const release = await this.activityMutex.acquire();
     try {
       if (this.pushRegistry.has(userId)) {
@@ -128,6 +135,7 @@ export class PushService {
         tokenMint: input.tokenMint,
         initialPriceUsd: input.tokenPriceUsd,
         deviceToken: input.deviceToken,
+        pushToken: input.pushToken,
         timestamp: Date.now(),
       });
       this.beginTokenSubscription(input.tokenMint);
@@ -183,42 +191,78 @@ export class PushService {
    * Sends a push notification for a specific user
    * @param input - Push notification data
    */
+
   private async sendPush(input: PushItem) {
     const tokenPrice = this.tokenPrice.get(input.tokenMint);
     if (!tokenPrice) return;
 
-    const notification = new apn.Notification();
-
-    notification.payload = {
+    const json = {
       aps: {
         "content-state": {
           currentPriceUsd: parseFloat(tokenPrice),
-          timestamp: new Date().toISOString(),
+          timestamp: Math.floor(Date.now() / 1000),
         },
-        timestamp: new Date().toISOString(),
+        event: "update",
+        timestamp: Math.floor(Date.now() / 1000),
+        "relevance-score": 100,
+        "stale-date": Math.floor(Date.now() / 1000 + 60 * 60 * 8),
       },
     };
-    // Required configuration
-    notification.topic = `com.primodium.tub`;
-    notification.badge = 3;
 
-    notification.expiry = Math.floor(Date.now() / 1000) + 3600; // 1 hour
-    notification.priority = 10; // Send immediately
-    notification.sound = "ping.aiff";
+    this.publishToApns(input.pushToken, json);
+  }
 
-    // Optional: Add collapse ID to group similar notifications
-    notification.collapseId = `price_update_${input.tokenMint}`;
+  private publishToApns(pushToken: string, json: object) {
+    console.log(`Token to push: ${pushToken}, payload: ${JSON.stringify(json)}`);
+
+    const privateKey = fs.readFileSync(this.options.token.key);
+    const secondsSinceEpoch = Math.round(Date.now() / 1000);
+    const payload = {
+      iss: this.options.token.teamId,
+      iat: secondsSinceEpoch,
+    };
+
+    const session = http2.connect("https://api.sandbox.push.apple.com:443");
+    session.on("error", (err) => {
+      console.log("Session Error", err);
+    });
+
+    const finalEncryptToken = jwt.sign(payload, privateKey, { algorithm: "ES256", keyid: this.options.token.keyId });
 
     try {
-      // todo: group all devices with the same token
-      const result = await this.apnProvider.send(notification, input.deviceToken);
-      console.log("Success", notification.payload, JSON.stringify(result));
+      const buffer = Buffer.from(JSON.stringify(json));
 
-      if (result.failed.length > 0) {
-        throw new Error(`Push failed: ${result.failed[0]?.response?.reason}`);
-      }
-    } catch (error) {
-      console.error(error);
+      const req = session.request({
+        ":method": "POST",
+        ":path": "/3/device/" + pushToken,
+        authorization: "bearer " + finalEncryptToken,
+        "apns-push-type": "liveactivity",
+        "apns-topic": `com.primodium.tub.push-type.liveactivity`,
+        "apns-priority": "10",
+        "Content-Type": "application/json",
+        "Content-Length": buffer.length,
+      });
+
+      req.end(buffer);
+
+      req.on("response", (headers) => {
+        console.log(headers[http2.constants.HTTP2_HEADER_STATUS]);
+      });
+
+      req.on("error", (err) => {
+        console.error("Request error:", err);
+      });
+
+      let data = "";
+      req.setEncoding("utf8");
+      req.on("data", (chunk) => (data += chunk));
+      req.on("end", () => {
+        console.log(`Response: ${data}`);
+        session.close();
+      });
+    } catch (err) {
+      console.error("Error sending token:", err);
+      session.close();
     }
   }
 }

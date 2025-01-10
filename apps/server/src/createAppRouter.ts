@@ -317,6 +317,7 @@ export function createAppRouter() {
           tokenMint: z.string(),
           tokenPriceUsd: z.string(),
           deviceToken: z.string(),
+          pushToken: z.string(),
         }),
       )
       .mutation(async ({ ctx, input }) => {
