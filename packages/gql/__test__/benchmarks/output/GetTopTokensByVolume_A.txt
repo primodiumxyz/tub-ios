@@ -1,0 +1,34 @@
+
+📊 Performance Comparison:
+================================================================================
+
+🔍 Warm cache hit
+----------------------------------------
+Average Response Time: 0.02ms
+95th Percentile:       0.03ms
+Min Response Time:     0.01ms
+Max Response Time:     0.03ms
+Standard Deviation:    0.01ms
+
+🔍 Direct Hasura hit
+----------------------------------------
+Average Response Time: 43.09ms
+95th Percentile:       429.77ms
+Min Response Time:     0.03ms
+Max Response Time:     429.77ms
+Standard Deviation:    128.89ms
+
+⚡ Performance Impact:
+--------------------------------------------------------------------------------
+Best performer: Warm cache hit
+
+Compared to Direct Hasura hit:
+--------------------------------------------------------------------------------
+Metric               │ Difference     │ Percentage
+--------------------------------------------------------------------------------
+Average Response    │ +43.07       │ +261120.2%
+95th Percentile     │ +429.74      │ +1424571.4%
+Min Response        │ +0.02        │ +247.2   %
+Max Response        │ +429.74      │ +1424571.4%
+Standard Deviation  │ +128.88      │ +1798481.8%
+

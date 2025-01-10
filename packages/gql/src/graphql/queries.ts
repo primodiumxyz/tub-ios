@@ -42,3 +42,26 @@ export const GetWalletTokenPnlQuery = graphql(`
     }
   }
 `);
+
+// Benchmarks
+export const GetTopTokensByVolumeQuery = graphql(`
+  query GetTopTokensByVolume(
+    $interval: interval = "30m"
+    $recentInterval: interval = "20s"
+    $minRecentTrades: numeric = 0
+    $minRecentVolume: numeric = 0
+  ) {
+    token_stats_interval_comp(
+      args: { interval: $interval, recent_interval: $recentInterval }
+      where: {
+        token_metadata_is_pump_token: { _eq: true }
+        recent_trades: { _gte: $minRecentTrades }
+        recent_volume_usd: { _gte: $minRecentVolume }
+      }
+      order_by: { total_volume_usd: desc }
+      limit: 50
+    ) {
+      token_mint
+    }
+  }
+`);
