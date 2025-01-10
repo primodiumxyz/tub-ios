@@ -6,6 +6,8 @@ const fastify = Fastify({
   logger: true,
 });
 
+const REDIS_PASSWORD = process.env.REDIS_PASSWORD || "password";
+
 const redis = createClient({
   url: "redis://localhost:8091",
 });
@@ -131,6 +133,20 @@ fastify.post("/v1/graphql", async (request, reply) => {
     reply.status(500).send({
       errors: [{ message: "Internal server error" }],
     });
+  }
+});
+
+// Authenticated flush endpoint
+fastify.post("/flush", async (request, reply) => {
+  const redisSecret = request.headers["x-redis-secret"];
+  if (redisSecret !== REDIS_PASSWORD) return reply.status(401).send({ error: "Invalid Redis secret" });
+
+  try {
+    await redis.flushAll();
+    return reply.status(200).send({ success: true });
+  } catch (error) {
+    fastify.log.error(error);
+    return reply.status(500).send({ error: "Failed to flush cache" });
   }
 });
 
