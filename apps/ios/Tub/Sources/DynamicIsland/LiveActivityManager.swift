@@ -20,8 +20,6 @@ import os.log
     }
     
     func startTrackingPurchase(mint: String, tokenName: String, symbol: String, purchasePriceUsd: Double) async throws {
-        try await stopActivity()
-        
         let attributes = TubActivityAttributes(
             tokenMint: mint,
             name: tokenName,
@@ -73,8 +71,8 @@ import os.log
     }
     
     func stopActivity() async throws {
+        await activity?.end(nil, dismissalPolicy: .immediate)
         try await Network.shared.stopLiveActivity()
-            await activity?.end(nil, dismissalPolicy: .immediate)
-            activity = nil
+        activity = nil
     }
 }

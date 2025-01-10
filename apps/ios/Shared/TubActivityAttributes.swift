@@ -11,7 +11,7 @@ import SwiftUI
 struct TubActivityAttributes: ActivityAttributes {
     public struct ContentState: Codable, Hashable {
         var currentPriceUsd: Double
-        var timestamp: Int
+        var timestamp: Double
     }
     
     var tokenMint: String

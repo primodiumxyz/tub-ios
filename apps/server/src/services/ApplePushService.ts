@@ -32,6 +32,7 @@ export class PushService {
   private pushRegistry: Map<string, PushItem> = new Map();
   private gqlClient: GqlClient["db"];
 
+  private session: http2.ClientHttp2Session | null = null;
   private subscriptions: Map<string, { subscription: { unsubscribe: () => void }; subCount: number }> = new Map();
   private tokenPrice: Map<string, string> = new Map();
   private activityMutex = new Mutex();
@@ -55,6 +56,13 @@ export class PushService {
     this.config = args.config;
     this.initializePushes();
     this.gqlClient = args.gqlClient;
+  }
+
+  stop() {
+    if (this.session) {
+      this.session.close();
+      this.session = null;
+    }
   }
 
   /**
@@ -122,14 +130,16 @@ export class PushService {
    * @param input.tokenPriceUsd - Initial token price in USD
    * @param input.deviceToken - Device push token
    */
-  async startLiveActivity(
+  async startOrUpdateLiveActivity(
     userId: string,
     input: { tokenMint: string; tokenPriceUsd: string; deviceToken: string; pushToken: string },
   ) {
     const release = await this.activityMutex.acquire();
+    const existing = this.pushRegistry.get(userId);
     try {
-      if (this.pushRegistry.has(userId)) {
-        return;
+      if (existing && existing.tokenMint !== input.tokenMint) {
+        this.cleanSubscription(existing.tokenMint);
+        this.beginTokenSubscription(input.tokenMint);
       }
       this.pushRegistry.set(userId, {
         tokenMint: input.tokenMint,
@@ -138,7 +148,6 @@ export class PushService {
         pushToken: input.pushToken,
         timestamp: Date.now(),
       });
-      this.beginTokenSubscription(input.tokenMint);
     } finally {
       release();
     }
@@ -150,13 +159,14 @@ export class PushService {
    */
   async stopLiveActivity(userId: string) {
     const release = await this.activityMutex.acquire();
+    const pushItem = this.pushRegistry.get(userId);
     try {
-      if (!this.pushRegistry.has(userId)) {
+      if (!pushItem) {
         return;
       }
-      const tokenMint = this.pushRegistry.get(userId)!.tokenMint;
       this.pushRegistry.delete(userId);
-      this.cleanSubscription(tokenMint);
+      this.cleanSubscription(pushItem.tokenMint);
+      this.sendEndPush(pushItem);
     } finally {
       release();
     }
@@ -183,7 +193,7 @@ export class PushService {
 
     for (let i = 0; i < entries.length; i += BATCH_SIZE) {
       const batch = entries.slice(i, i + BATCH_SIZE);
-      await Promise.all(batch.map(([, value]) => this.sendPush(value)));
+      await Promise.all(batch.map(([, value]) => this.sendUpdatePush(value)));
     }
   }
 
@@ -192,7 +202,7 @@ export class PushService {
    * @param input - Push notification data
    */
 
-  private async sendPush(input: PushItem) {
+  private async sendUpdatePush(input: PushItem) {
     const tokenPrice = this.tokenPrice.get(input.tokenMint);
     if (!tokenPrice) return;
 
@@ -212,6 +222,41 @@ export class PushService {
     this.publishToApns(input.pushToken, json);
   }
 
+  private async sendEndPush(input: PushItem) {
+    const tokenPrice = this.tokenPrice.get(input.tokenMint);
+    if (!tokenPrice) return;
+
+    const json = {
+      aps: {
+        "content-state": {
+          currentPriceUsd: parseFloat(tokenPrice),
+          timestamp: Math.floor(Date.now() / 1000),
+        },
+        event: "end",
+        timestamp: Math.floor(Date.now() / 1000),
+        "relevance-score": 100,
+        "stale-date": Math.floor(Date.now() / 1000 + 60 * 60 * 8),
+      },
+    };
+
+    this.publishToApns(input.pushToken, json);
+  }
+
+  private getSession(): http2.ClientHttp2Session {
+    if (!this.session || this.session.destroyed) {
+      this.session = http2.connect("https://api.sandbox.push.apple.com:443");
+      this.session.on("error", (err) => {
+        console.error("Session Error:", err);
+        this.session = null; // Allow reconnection on next request
+      });
+      this.session.on("goaway", () => {
+        console.log("Session received GOAWAY, will reconnect on next request");
+        this.session = null;
+      });
+    }
+    return this.session;
+  }
+
   private publishToApns(pushToken: string, json: object) {
     console.log(`Token to push: ${pushToken}, payload: ${JSON.stringify(json)}`);
 
@@ -222,15 +267,11 @@ export class PushService {
       iat: secondsSinceEpoch,
     };
 
-    const session = http2.connect("https://api.sandbox.push.apple.com:443");
-    session.on("error", (err) => {
-      console.log("Session Error", err);
-    });
-
     const finalEncryptToken = jwt.sign(payload, privateKey, { algorithm: "ES256", keyid: this.options.token.keyId });
 
     try {
       const buffer = Buffer.from(JSON.stringify(json));
+      const session = this.getSession();
 
       const req = session.request({
         ":method": "POST",
@@ -258,11 +299,10 @@ export class PushService {
       req.on("data", (chunk) => (data += chunk));
       req.on("end", () => {
         console.log(`Response: ${data}`);
-        session.close();
       });
     } catch (err) {
       console.error("Error sending token:", err);
-      session.close();
+      this.session?.destroy(); // Force reconnection on next request
     }
   }
 }
