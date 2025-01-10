@@ -1,23 +1,21 @@
 import { afterAll, beforeAll, describe, it } from "vitest";
-import { BenchmarkMockEnvironment, getGlobalEnv, ITERATIONS } from "./setup";
 import { benchmark, BenchmarkMetrics, logMetrics, writeMetricsToFile } from "../lib/benchmarks";
-import { createClientCacheBypass, createClientCached, createClientNoCache } from "../lib/common";
+import { clearCache, createClientCacheBypass, createClientCached, createClientNoCache } from "../lib/common";
+import { ITERATIONS } from "./config";
 
 describe("GetBulkTokenMetadata benchmarks", () => {
-  let env: BenchmarkMockEnvironment;
   const tokenBatches: string[][] = [];
   const metrics: BenchmarkMetrics[] = [];
 
   beforeAll(async () => {
-    env = await getGlobalEnv();
+    const client = await createClientNoCache();
+    const res = await client.db.GetAllTokensQuery();
+    if (res.error || !res.data?.token_metadata_formatted) throw new Error("No tokens found");
+    const tokens = res.data?.token_metadata_formatted.map((t) => t.mint) || [];
+
     // Create RANDOM batches of 20 tokens for each iteration
     for (let i = 0; i < ITERATIONS; i++) {
-      tokenBatches.push(
-        env
-          .getTokenMints()
-          .sort(() => Math.random() - 0.5)
-          .slice(i * 20, (i + 1) * 20),
-      );
+      tokenBatches.push(tokens.sort(() => Math.random() - 0.5).slice(i * 20, (i + 1) * 20));
     }
   });
 
@@ -42,7 +40,8 @@ describe("GetBulkTokenMetadata benchmarks", () => {
   it("should measure warm cache performance", async () => {
     // Cache warmup
     for (let i = 0; i < ITERATIONS; i++) {
-      await env.defaultClient.db.GetBulkTokenMetadataQuery({
+      const client = await createClientCached();
+      await client.db.GetBulkTokenMetadataQuery({
         tokens: tokenBatches[i],
       });
     }
@@ -76,7 +75,7 @@ describe("GetBulkTokenMetadata benchmarks", () => {
         });
       },
       iterations: ITERATIONS,
-      before: async () => await env.clearCache(),
+      before: async () => await clearCache(),
       after: (res) => {
         if (res.error || res.data?.token_metadata_formatted.length === 0) throw new Error("Error or no tokens found");
       },

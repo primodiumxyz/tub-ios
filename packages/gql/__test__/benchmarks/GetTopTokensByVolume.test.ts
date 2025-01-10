@@ -1,15 +1,10 @@
-import { afterAll, beforeAll, describe, it } from "vitest";
-import { BenchmarkMockEnvironment, getGlobalEnv, ITERATIONS } from "./setup";
+import { afterAll, describe, it } from "vitest";
 import { benchmark, BenchmarkMetrics, logMetrics, writeMetricsToFile } from "../lib/benchmarks";
-import { createClientCacheBypass, createClientCached, createClientNoCache } from "../lib/common";
+import { clearCache, createClientCacheBypass, createClientCached, createClientNoCache } from "../lib/common";
+import { ITERATIONS } from "./config";
 
 describe("GetTopTokensByVolume benchmarks", () => {
-  let env: BenchmarkMockEnvironment;
   const metrics: BenchmarkMetrics[] = [];
-
-  beforeAll(async () => {
-    env = await getGlobalEnv();
-  });
 
   it("should measure direct Hasura performance", async () => {
     const metric = await benchmark<"GetTopTokensByVolumeQuery">({
@@ -32,7 +27,8 @@ describe("GetTopTokensByVolume benchmarks", () => {
 
   it("should measure warm cache performance", async () => {
     // Cache warmup
-    await env.defaultClient.db.GetTopTokensByVolumeQuery({
+    const client = await createClientCached();
+    await client.db.GetTopTokensByVolumeQuery({
       interval: "30m",
       recentInterval: "20s",
     });
@@ -68,7 +64,7 @@ describe("GetTopTokensByVolume benchmarks", () => {
         });
       },
       iterations: ITERATIONS,
-      before: async () => await env.clearCache(),
+      before: async () => await clearCache(),
       after: (res) => {
         if (res.error || res.data?.token_stats_interval_comp.length === 0) throw new Error("Error or no tokens found");
       },

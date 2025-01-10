@@ -4,67 +4,67 @@
 
 🔍 Warm cache hit
 ----------------------------------------
-Average Response Time: 1.10ms
-95th Percentile:       1.81ms
-Min Response Time:     0.79ms
-Max Response Time:     2.22ms
-Standard Deviation:    0.28ms
-
-🔍 Bypassing cache
-----------------------------------------
-Average Response Time: 2.61ms
-95th Percentile:       3.18ms
-Min Response Time:     2.14ms
-Max Response Time:     3.48ms
-Standard Deviation:    0.26ms
+Average Response Time: 1.90ms
+95th Percentile:       2.61ms
+Min Response Time:     1.19ms
+Max Response Time:     5.33ms
+Standard Deviation:    0.54ms
 
 🔍 Direct Hasura hit
 ----------------------------------------
-Average Response Time: 2.61ms
-95th Percentile:       3.68ms
-Min Response Time:     1.64ms
-Max Response Time:     9.81ms
-Standard Deviation:    1.17ms
+Average Response Time: 4.51ms
+95th Percentile:       9.55ms
+Min Response Time:     1.56ms
+Max Response Time:     125.88ms
+Standard Deviation:    12.94ms
 
 🔍 Cold cache hit
 ----------------------------------------
-Average Response Time: 2.99ms
-95th Percentile:       3.60ms
-Min Response Time:     2.38ms
-Max Response Time:     3.95ms
-Standard Deviation:    0.34ms
+Average Response Time: 4.71ms
+95th Percentile:       8.53ms
+Min Response Time:     2.53ms
+Max Response Time:     13.25ms
+Standard Deviation:    1.95ms
+
+🔍 Bypassing cache
+----------------------------------------
+Average Response Time: 5.43ms
+95th Percentile:       13.25ms
+Min Response Time:     2.20ms
+Max Response Time:     19.39ms
+Standard Deviation:    3.92ms
 
 ⚡ Performance Impact:
 --------------------------------------------------------------------------------
 Best performer: Warm cache hit
 
-Compared to Bypassing cache:
---------------------------------------------------------------------------------
-Metric               │ Difference     │ Percentage
---------------------------------------------------------------------------------
-Average Response    │ +1.50        │ +136.3   %
-95th Percentile     │ +1.36        │ +75.2    %
-Min Response        │ +1.35        │ +170.9   %
-Max Response        │ +1.26        │ +56.7    %
-Standard Deviation  │ +-0.02       │ +-5.9    %
-
 Compared to Direct Hasura hit:
 --------------------------------------------------------------------------------
 Metric               │ Difference     │ Percentage
 --------------------------------------------------------------------------------
-Average Response    │ +1.50        │ +136.4   %
-95th Percentile     │ +1.87        │ +103.1   %
-Min Response        │ +0.85        │ +107.3   %
-Max Response        │ +7.59        │ +341.4   %
-Standard Deviation  │ +0.89        │ +317.0   %
+Average Response    │ +2.61        │ +137.2   %
+95th Percentile     │ +6.94        │ +265.8   %
+Min Response        │ +0.37        │ +30.7    %
+Max Response        │ +120.55      │ +2263.7  %
+Standard Deviation  │ +12.40       │ +2306.9  %
 
 Compared to Cold cache hit:
 --------------------------------------------------------------------------------
 Metric               │ Difference     │ Percentage
 --------------------------------------------------------------------------------
-Average Response    │ +1.89        │ +171.1   %
-95th Percentile     │ +1.79        │ +98.7    %
-Min Response        │ +1.59        │ +201.2   %
-Max Response        │ +1.72        │ +77.5    %
-Standard Deviation  │ +0.06        │ +21.1    %
+Average Response    │ +2.81        │ +147.5   %
+95th Percentile     │ +5.92        │ +226.8   %
+Min Response        │ +1.34        │ +112.3   %
+Max Response        │ +7.92        │ +148.8   %
+Standard Deviation  │ +1.41        │ +262.4   %
+
+Compared to Bypassing cache:
+--------------------------------------------------------------------------------
+Metric               │ Difference     │ Percentage
+--------------------------------------------------------------------------------
+Average Response    │ +3.53        │ +185.5   %
+95th Percentile     │ +10.64       │ +407.7   %
+Min Response        │ +1.00        │ +84.2    %
+Max Response        │ +14.06       │ +264.0   %
+Standard Deviation  │ +3.38        │ +629.3   %
 

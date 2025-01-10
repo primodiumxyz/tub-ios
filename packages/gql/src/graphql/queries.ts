@@ -44,6 +44,14 @@ export const GetWalletTokenPnlQuery = graphql(`
 `);
 
 // Benchmarks
+export const GetAllTokensQuery = graphql(`
+  query GetAllTokens {
+    token_metadata_formatted {
+      mint
+    }
+  }
+`);
+
 export const GetTopTokensByVolumeQuery = graphql(`
   query GetTopTokensByVolume(
     $interval: interval = "30m"

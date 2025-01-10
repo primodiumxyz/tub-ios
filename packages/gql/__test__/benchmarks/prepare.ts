@@ -1,5 +1,10 @@
 import { GqlClient } from "../../src/index";
-import { toPgComposite } from "./common";
+import { createClientNoCache, toPgComposite } from "../lib/common";
+import { DEFAULT_TRADES_AMOUNT, DEFAULT_START_DATE } from "./config";
+
+/* -------------------------------------------------------------------------- */
+/*                                    UTILS                                   */
+/* -------------------------------------------------------------------------- */
 
 interface InsertMockTradeHistoryOptions {
   count: number;
@@ -8,10 +13,7 @@ interface InsertMockTradeHistoryOptions {
   onProgress?: (inserted: number, total: number) => void;
 }
 
-export const insertMockTradeHistory = async (
-  gql: GqlClient,
-  options: InsertMockTradeHistoryOptions,
-): Promise<string[]> => {
+export const insertMockTradeHistory = async (gql: GqlClient, options: InsertMockTradeHistoryOptions): Promise<void> => {
   const { count, from, batchSize = 1000, onProgress } = options;
   const tokenMintCount = Math.ceil(count * 0.05);
   const tokens = Array.from({ length: tokenMintCount }, (_, i) => ({
@@ -62,8 +64,6 @@ export const insertMockTradeHistory = async (
     inserted += affectedRows;
     onProgress?.(inserted, count);
   }
-
-  return tokens.map((token) => token.mint);
 };
 
 const getRandomMint = () => {
@@ -93,3 +93,29 @@ const getLetterIndex = (index: number): string => {
 
   return columnName;
 };
+
+/* -------------------------------------------------------------------------- */
+/*                                   PREPARE                                  */
+/* -------------------------------------------------------------------------- */
+
+const prepare = async () => {
+  const client = await createClientNoCache();
+
+  await insertMockTradeHistory(client, {
+    count: DEFAULT_TRADES_AMOUNT,
+    from: DEFAULT_START_DATE,
+    onProgress: (inserted, total) => {
+      console.log(`Inserting mock data: ${((inserted / total) * 100).toFixed(2)}%`);
+    },
+  });
+};
+
+prepare()
+  .then(() => {
+    console.log("Mock data inserted");
+    process.exit(0);
+  })
+  .catch((e) => {
+    console.error("Error inserting mock data", e);
+    process.exit(1);
+  });

@@ -70,3 +70,17 @@ export const createClientCacheBypass = async () => {
     },
   });
 };
+
+export const clearCache = async () => {
+  try {
+    const response = await fetch("http://localhost:8090/flush", {
+      method: "POST",
+      headers: {
+        "x-redis-secret": "password",
+      },
+    });
+    if (!response.ok) throw new Error(response.statusText);
+  } catch (error) {
+    console.error("Failed to clear cache", error);
+  }
+};

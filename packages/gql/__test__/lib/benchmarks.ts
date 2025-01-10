@@ -167,22 +167,90 @@ export const writeMetricsToFile = (metrics: BenchmarkMetrics[], filename: string
     {} as Record<string, BenchmarkMetrics[]>,
   );
 
-  // Write raw CSV data for each group
+  // Write JSON data for each group
   for (const group in groupedMetrics) {
-    const csvContent = [
-      // Header
-      "name,avg,p95,min,max,stdDev",
-      // Data rows
-      ...groupedMetrics[group].map(
-        (metric) => `${metric.name},${metric.avg},${metric.p95},${metric.min},${metric.max},${metric.stdDev}`,
-      ),
-    ].join("\n");
-
     // Ensure directory exists
     fs.mkdirSync("__test__/benchmarks/output", { recursive: true });
 
     // Write files for this group
-    fs.writeFileSync(`__test__/benchmarks/output/${filename}_${group}.csv`, csvContent);
+    fs.writeFileSync(
+      `__test__/benchmarks/output/${filename}_${group}.json`,
+      JSON.stringify(groupedMetrics[group], null, 2),
+    );
     fs.writeFileSync(`__test__/benchmarks/output/${filename}_${group}.txt`, formatMetricsReport(groupedMetrics[group]));
+
+    // Print the summary
+    analyzeBenchmarks();
   }
+};
+
+interface QuerySummary {
+  queryName: string;
+  directHasura: number;
+  warmCache: number;
+  coldCache: number;
+  bypassCache: number;
+  improvement: number;
+}
+
+const analyzeBenchmarks = () => {
+  const outputDir = "__test__/benchmarks/output";
+  const jsonFiles = fs.readdirSync(outputDir).filter((f) => f.endsWith("_A.json"));
+  const summaries: QuerySummary[] = [];
+
+  // Parse JSON files
+  for (const file of jsonFiles) {
+    const queryName = file.replace("_A.json", "");
+    const content = fs.readFileSync(`${outputDir}/${file}`, "utf-8");
+    const results = JSON.parse(content);
+
+    const summary: QuerySummary = {
+      queryName,
+      directHasura: results.find((r) => r.name === "Direct Hasura hit")?.avg || 0,
+      warmCache: results.find((r) => r.name === "Warm cache hit")?.avg || 0,
+      coldCache: results.find((r) => r.name === "Cold cache hit")?.avg || 0,
+      bypassCache: results.find((r) => r.name === "Bypassing cache")?.avg || 0,
+      improvement: 0,
+    };
+
+    summary.improvement = ((summary.directHasura - summary.warmCache) / summary.directHasura) * 100;
+    summaries.push(summary);
+  }
+
+  // Generate report
+  const format = (num: number) => num.toFixed(2).padStart(8, " ");
+  const lines: string[] = [
+    "\n🚀 Query Performance Overview\n",
+    "│ Query Name │ Direct │ Warm Cache │ Cold Cache │ Bypass Cache │ Improvement │",
+    "│───────────│────────│────────────│────────────│──────────────│─────────────│",
+  ];
+
+  summaries.forEach((s) => {
+    lines.push(
+      `│ ${s.queryName.padEnd(9)} │` +
+        `${format(s.directHasura)}ms │` +
+        `${format(s.warmCache)}ms │` +
+        `${format(s.coldCache)}ms │` +
+        `${format(s.bypassCache)}ms │` +
+        `${format(s.improvement)}% │`,
+    );
+  });
+
+  // Add insights
+  const fastestQuery = summaries.reduce((a, b) => (a.warmCache < b.warmCache ? a : b));
+  const slowestQuery = summaries.reduce((a, b) => (a.directHasura > b.directHasura ? a : b));
+  const bestImprovement = summaries.reduce((a, b) => (a.improvement > b.improvement ? a : b));
+
+  lines.push(
+    "\n📊 Key Insights:",
+    `• Fastest query (warm cache): ${fastestQuery.queryName} (${fastestQuery.warmCache.toFixed(2)}ms)`,
+    `• Slowest query (direct): ${slowestQuery.queryName} (${slowestQuery.directHasura.toFixed(2)}ms)`,
+    `• Best cache improvement: ${bestImprovement.queryName} (${bestImprovement.improvement.toFixed(2)}%)`,
+  );
+
+  // Output report
+  const report = lines.join("\n");
+  console.log(report);
+  fs.writeFileSync(`${outputDir}/summary.txt`, report);
+  fs.writeFileSync(`${outputDir}/summary.json`, JSON.stringify(summaries, null, 2));
 };
