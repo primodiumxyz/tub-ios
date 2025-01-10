@@ -73,6 +73,7 @@ fastify.get("/healthz", async (request, reply) => {
 
 fastify.post("/v1/graphql", async (request, reply) => {
   const body = request.body as { query: string; variables?: Record<string, unknown> };
+  const start = performance.now();
   const parsedQuery = parse(body.query);
 
   // If it's a mutation, bypass cache entirely
@@ -100,6 +101,14 @@ fastify.post("/v1/graphql", async (request, reply) => {
 
     if (!bypassCache) {
       const cached = await redis.json.get(cacheKey);
+      const checkTime = performance.now();
+      fastify.log.info({
+        msg: cached ? "Cache HIT" : "Cache MISS",
+        cacheKey,
+        checkDuration: checkTime - start,
+        cached: !!cached,
+      });
+
       if (cached) {
         reply.header("X-Cache-Status", "HIT");
         return cached;
@@ -107,6 +116,7 @@ fastify.post("/v1/graphql", async (request, reply) => {
     }
 
     const stringifiedBody = JSON.stringify(body);
+    const fetchStart = performance.now();
     const response = await fetchWithRetry(`${HASURA_URL}/v1/graphql`, {
       method: "POST",
       headers: {
@@ -119,15 +129,25 @@ fastify.post("/v1/graphql", async (request, reply) => {
 
     const data = await response.json();
 
+    fastify.log.info({
+      msg: "Hasura fetch completed",
+      duration: performance.now() - fetchStart,
+    });
+
     if (!bypassCache && response.ok && !data.errors) {
+      const cacheStart = performance.now();
       await redis.json.set(cacheKey, "$", data);
       await redis.expire(cacheKey, cacheTime);
+      fastify.log.info({
+        msg: "Cache save completed",
+        duration: performance.now() - cacheStart,
+      });
       reply.header("X-Cache-Status", "MISS");
     } else {
       reply.header("X-Cache-Status", "BYPASS");
     }
 
-    reply.status(response.status).send(data);
+    return reply.status(response.status).send(data);
   } catch (error) {
     request.log.error(error);
     reply.status(500).send({
@@ -142,8 +162,11 @@ fastify.post("/flush", async (request, reply) => {
   if (redisSecret !== REDIS_PASSWORD) return reply.status(401).send({ error: "Invalid Redis secret" });
 
   try {
+    fastify.log.info("Starting cache flush");
     await redis.flushAll();
-    return reply.status(200).send({ success: true });
+
+    fastify.log.info("Cache flush completed and verified");
+    return reply.status(200).send({ success: true, keysRemaining: 0 });
   } catch (error) {
     fastify.log.error(error);
     return reply.status(500).send({ error: "Failed to flush cache" });
