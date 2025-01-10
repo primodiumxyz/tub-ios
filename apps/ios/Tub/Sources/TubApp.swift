@@ -80,15 +80,15 @@ struct AppContent: View {
                             .interactiveDismissDisabled()
                     }
             }
-        }.onChange(of: userModel.walletState, initial: true) { _, newState in
+        }
+        .onChange(of: userModel.walletState, initial: true) { _, newState in
             switch newState {
             case .error:
                 notificationHandler.show("Error connecting to wallet.", type: .error)
             case .connected:
+                
                 Task(priority: .low) {
-                    if LiveActivityManager.shared.deviceToken == nil {
-                        await UIApplication.shared.registerForRemoteNotifications()
-                    }
+                    
                     try? await userModel.refreshTxs(hard: true)
                 }
                 Task(priority: .userInitiated) {
@@ -135,14 +135,5 @@ extension View {
         } else {
             self
         }
-    }
-}
-
-class AppDelegate: NSObject, UIApplicationDelegate {
-    func application(
-        _ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
-    ) {
-        let tokenString = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
-        LiveActivityManager.shared.deviceToken = tokenString
     }
 }

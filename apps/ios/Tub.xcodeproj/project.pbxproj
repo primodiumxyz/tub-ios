@@ -50,6 +50,7 @@
 		99DDF62D2CB02816000234DA /* AccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99DDF62C2CB0280D000234DA /* AccountView.swift */; };
 		99DED2512CAF2A6B0055FC60 /* ApolloCombine in Frameworks */ = {isa = PBXBuildFile; productRef = 99DED2502CAF2A6B0055FC60 /* ApolloCombine */; };
 		99E789492CC147C000C3CEEB /* ImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E789482CC147BD00C3CEEB /* ImageView.swift */; };
+		99ED514A2D317EDF002E0A72 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99ED51492D317EDA002E0A72 /* AppDelegate.swift */; };
 		99F3D7A62CE6D937005B895C /* UserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99F3D7A52CE6D934005B895C /* UserModel.swift */; };
 		99FB68342CC003FC00070D2A /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FB68332CC003FC00070D2A /* LoadingView.swift */; };
 		DB10A95D2CA5AA1B00B1E4F3 /* TokenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB10A95C2CA5AA1B00B1E4F3 /* TokenView.swift */; };
@@ -157,6 +158,7 @@
 		99DBD8ED2CF781E50098C296 /* spoofModelData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = spoofModelData.swift; sourceTree = "<group>"; };
 		99DDF62C2CB0280D000234DA /* AccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountView.swift; sourceTree = "<group>"; };
 		99E789482CC147BD00C3CEEB /* ImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageView.swift; sourceTree = "<group>"; };
+		99ED51492D317EDA002E0A72 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		99F3D7A52CE6D934005B895C /* UserModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserModel.swift; sourceTree = "<group>"; };
 		99FB68332CC003FC00070D2A /* LoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingView.swift; sourceTree = "<group>"; };
 		DB10A95C2CA5AA1B00B1E4F3 /* TokenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenView.swift; sourceTree = "<group>"; };
@@ -338,6 +340,7 @@
 				DF1FE3C72CD568F700594C63 /* CountryCode.swift */,
 				DFF5292A2CC0121B007DC43F /* Gradients.swift */,
 				DB6D29042CA1C8F70099951A /* TubApp.swift */,
+				99ED51492D317EDA002E0A72 /* AppDelegate.swift */,
 				9979D2F02CB57B840040DF41 /* Utils */,
 				99856DA52CD27E27004B9D40 /* Privy.swift */,
 				DF6D28E12D108B5500810F8B /* DynamicIsland */,
@@ -703,6 +706,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				99ED514A2D317EDF002E0A72 /* AppDelegate.swift in Sources */,
 				46BC477C2D282C0200117602 /* DwebLink.swift in Sources */,
 				990FD5252D2EDFC30073CB7F /* TubActivityAttributes.swift in Sources */,
 				99F3D7A62CE6D937005B895C /* UserModel.swift in Sources */,

@@ -187,24 +187,24 @@ export class PushService {
     const tokenPrice = this.tokenPrice.get(input.tokenMint);
     if (!tokenPrice) return;
 
-    const notification = new apn.Notification({
-      payload: {
-        aps: {
-          "content-state": {
-            currentPriceUsd: parseFloat(tokenPrice),
-            timestamp: new Date().toISOString(),
-          },
-          timestamp: Date.now(),
-          event: "update",
-        },
-      },
-    });
+    const notification = new apn.Notification();
 
+    notification.payload = {
+      aps: {
+        "content-state": {
+          currentPriceUsd: parseFloat(tokenPrice),
+          timestamp: new Date().toISOString(),
+        },
+        timestamp: new Date().toISOString(),
+      },
+    };
     // Required configuration
     notification.topic = `com.primodium.tub`;
-    notification.pushType = "alert";
+    notification.badge = 3;
+
     notification.expiry = Math.floor(Date.now() / 1000) + 3600; // 1 hour
     notification.priority = 10; // Send immediately
+    notification.sound = "ping.aiff";
 
     // Optional: Add collapse ID to group similar notifications
     notification.collapseId = `price_update_${input.tokenMint}`;
@@ -212,6 +212,8 @@ export class PushService {
     try {
       // todo: group all devices with the same token
       const result = await this.apnProvider.send(notification, input.deviceToken);
+      console.log("Success", notification.payload, JSON.stringify(result));
+
       if (result.failed.length > 0) {
         throw new Error(`Push failed: ${result.failed[0]?.response?.reason}`);
       }
