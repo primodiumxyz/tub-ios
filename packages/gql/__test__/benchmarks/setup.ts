@@ -25,8 +25,7 @@ export const getGlobalEnv = async () => {
 /* -------------------------------------------------------------------------- */
 
 export class BenchmarkMockEnvironment {
-  public gqlCached: GqlClient;
-  public gqlNoCache: GqlClient;
+  public defaultClient: GqlClient;
   private tokenMints: string[] = [];
 
   constructor() {}
@@ -36,17 +35,15 @@ export class BenchmarkMockEnvironment {
   // To clean up the data, you can run this query on the database:
   // DELETE FROM api_trade_history
   async setup() {
-    this.gqlCached = await createClient({
+    this.defaultClient = await createClient({
       url: "http://localhost:8090/v1/graphql",
       hasuraAdminSecret: "password",
-      defaultCacheTime: "1h",
-    });
-    this.gqlNoCache = await createClient({
-      url: "http://localhost:8080/v1/graphql",
-      hasuraAdminSecret: "password",
+      headers: {
+        "x-cache-time": "1h",
+      },
     });
 
-    this.tokenMints = await insertMockTradeHistory(this.gqlCached, {
+    this.tokenMints = await insertMockTradeHistory(this.defaultClient, {
       count: DEFAULT_TRADES_AMOUNT,
       from: DEFAULT_START_DATE,
       onProgress: (inserted, total) => {

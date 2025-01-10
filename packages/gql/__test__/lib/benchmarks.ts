@@ -1,22 +1,19 @@
 import { GqlClient } from "../../src";
-import { OperationContext } from "@urql/core";
 import fs from "fs";
 type BeforeHook = () => Promise<void>;
 
 // Get all possible query functions from GqlClient
-type QueryFn = GqlClient["db"][keyof GqlClient["db"]];
+export type QueryFnName = keyof GqlClient["db"];
 
-// Helper to get the actual data type from the operation result
-type QueryData<T extends QueryFn> = NonNullable<Awaited<ReturnType<T>>["data"]>;
+// Helper to get the result from the operation
+type QueryResult<T extends QueryFnName> = Awaited<ReturnType<GqlClient["db"][T]>>;
 
-interface PerformanceTestOptions<T extends QueryFn> {
+export interface PerformanceTestOptions<T extends QueryFnName> {
   identifier: string;
-  query: T;
-  variables: Parameters<T>[0];
+  exec: () => Promise<QueryResult<T>>;
   iterations: number;
   before?: BeforeHook;
-  after?: (data: QueryData<T>) => void | Promise<void>;
-  options?: Partial<OperationContext>;
+  after?: (result: QueryResult<T>) => void | Promise<void>;
 }
 
 export interface BenchmarkMetrics {
@@ -33,14 +30,14 @@ export interface BenchmarkMetrics {
 /*                                BENCHMARKING                                */
 /* -------------------------------------------------------------------------- */
 
-export const benchmark = async <T extends QueryFn>({
+export const benchmark = async <T extends QueryFnName>({
   identifier,
-  query,
-  variables,
+  // We cannot pass the query function here directly, because we need to perform each query _with a separate client_
+  // Otherwise, it will consider all similar queries in the same test to be the same query, no matter how much we try to separate them, and cache them together
+  exec,
   iterations,
   before,
   after,
-  options: contextOptions,
 }: PerformanceTestOptions<T>): Promise<Omit<BenchmarkMetrics, "group">> => {
   const latencyMeasurements: number[] = [];
 
@@ -48,12 +45,11 @@ export const benchmark = async <T extends QueryFn>({
     if (before) await before();
 
     const start = performance.now();
-    // @ts-expect-error type misunderstanding that doesn't impact usage
-    const result = await query(variables, contextOptions);
+    const result = await exec();
     latencyMeasurements.push(performance.now() - start);
 
-    if (after && result.data) {
-      const afterResult = after(result.data);
+    if (after && result) {
+      const afterResult = after(result);
       if (afterResult instanceof Promise) await afterResult;
     }
   }

@@ -1,4 +1,5 @@
 import { Keypair } from "@solana/web3.js";
+import { createClient } from "../../src/index";
 
 export function createWallet() {
   const wallet = Keypair.generate();
@@ -40,4 +41,32 @@ export const toPgComposite = (obj: Record<string, unknown>): string => {
   });
 
   return `(${values.join(",")})`;
+};
+
+/* --------------------------------- CLIENTS -------------------------------- */
+export const createClientCached = async (cacheTime?: string) => {
+  return await createClient({
+    url: "http://localhost:8090/v1/graphql",
+    hasuraAdminSecret: "password",
+    headers: {
+      "x-cache-time": cacheTime ?? "1h",
+    },
+  });
+};
+
+export const createClientNoCache = async () => {
+  return await createClient({
+    url: "http://localhost:8080/v1/graphql",
+    hasuraAdminSecret: "password",
+  });
+};
+
+export const createClientCacheBypass = async () => {
+  return await createClient({
+    url: "http://localhost:8090/v1/graphql",
+    hasuraAdminSecret: "password",
+    headers: {
+      "x-cache-bypass": "1",
+    },
+  });
 };
