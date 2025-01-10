@@ -65,3 +65,73 @@ export const GetTopTokensByVolumeQuery = graphql(`
     }
   }
 `);
+
+export const GetBulkTokenMetadataQuery = graphql(`
+  query GetBulkTokenMetadata($tokens: [String!]!) {
+    token_metadata_formatted(where: { mint: { _in: $tokens } }) {
+      mint
+      name
+      symbol
+      image_uri
+      supply
+      decimals
+      description
+      external_url
+      is_pump_token
+    }
+  }
+`);
+
+export const GetTokenMetadataQuery = graphql(`
+  query GetTokenMetadata($token: String!) {
+    token_metadata_formatted(where: { mint: { _eq: $token } }) {
+      mint
+      name
+      symbol
+      image_uri
+      supply
+      decimals
+      description
+      external_url
+      is_pump_token
+    }
+  }
+`);
+
+export const GetBulkTokenLiveDataQuery = graphql(`
+  query GetBulkTokenLiveData($tokens: [String!]!) {
+    token_stats_interval_comp(
+      where: { token_mint: { _in: $tokens } }
+      args: { interval: "30m", recent_interval: "2m" }
+    ) {
+      token_mint
+      latest_price_usd
+      total_volume_usd
+      total_trades
+      price_change_pct
+      recent_volume_usd
+      recent_trades
+      recent_price_change_pct
+      token_metadata_supply
+    }
+  }
+`);
+
+export const GetTokenLiveDataQuery = graphql(`
+  query GetTokenLiveData($token: String!) {
+    token_stats_interval_comp(
+      where: { token_mint: { _eq: $token } }
+      args: { interval: "30m", recent_interval: "2m" }
+    ) {
+      token_mint
+      latest_price_usd
+      total_volume_usd
+      total_trades
+      price_change_pct
+      recent_volume_usd
+      recent_trades
+      recent_price_change_pct
+      token_metadata_supply
+    }
+  }
+`);

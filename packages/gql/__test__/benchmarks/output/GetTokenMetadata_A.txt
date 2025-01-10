@@ -1,0 +1,70 @@
+
+📊 Performance Comparison:
+================================================================================
+
+🔍 Warm cache hit
+----------------------------------------
+Average Response Time: 1.10ms
+95th Percentile:       1.81ms
+Min Response Time:     0.79ms
+Max Response Time:     2.22ms
+Standard Deviation:    0.28ms
+
+🔍 Bypassing cache
+----------------------------------------
+Average Response Time: 2.61ms
+95th Percentile:       3.18ms
+Min Response Time:     2.14ms
+Max Response Time:     3.48ms
+Standard Deviation:    0.26ms
+
+🔍 Direct Hasura hit
+----------------------------------------
+Average Response Time: 2.61ms
+95th Percentile:       3.68ms
+Min Response Time:     1.64ms
+Max Response Time:     9.81ms
+Standard Deviation:    1.17ms
+
+🔍 Cold cache hit
+----------------------------------------
+Average Response Time: 2.99ms
+95th Percentile:       3.60ms
+Min Response Time:     2.38ms
+Max Response Time:     3.95ms
+Standard Deviation:    0.34ms
+
+⚡ Performance Impact:
+--------------------------------------------------------------------------------
+Best performer: Warm cache hit
+
+Compared to Bypassing cache:
+--------------------------------------------------------------------------------
+Metric               │ Difference     │ Percentage
+--------------------------------------------------------------------------------
+Average Response    │ +1.50        │ +136.3   %
+95th Percentile     │ +1.36        │ +75.2    %
+Min Response        │ +1.35        │ +170.9   %
+Max Response        │ +1.26        │ +56.7    %
+Standard Deviation  │ +-0.02       │ +-5.9    %
+
+Compared to Direct Hasura hit:
+--------------------------------------------------------------------------------
+Metric               │ Difference     │ Percentage
+--------------------------------------------------------------------------------
+Average Response    │ +1.50        │ +136.4   %
+95th Percentile     │ +1.87        │ +103.1   %
+Min Response        │ +0.85        │ +107.3   %
+Max Response        │ +7.59        │ +341.4   %
+Standard Deviation  │ +0.89        │ +317.0   %
+
+Compared to Cold cache hit:
+--------------------------------------------------------------------------------
+Metric               │ Difference     │ Percentage
+--------------------------------------------------------------------------------
+Average Response    │ +1.89        │ +171.1   %
+95th Percentile     │ +1.79        │ +98.7    %
+Min Response        │ +1.59        │ +201.2   %
+Max Response        │ +1.72        │ +77.5    %
+Standard Deviation  │ +0.06        │ +21.1    %
+

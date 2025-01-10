@@ -10,7 +10,7 @@ type QueryResult<T extends QueryFnName> = Awaited<ReturnType<GqlClient["db"][T]>
 
 export interface PerformanceTestOptions<T extends QueryFnName> {
   identifier: string;
-  exec: () => Promise<QueryResult<T>>;
+  exec: (i: number) => Promise<QueryResult<T>>;
   iterations: number;
   before?: BeforeHook;
   after?: (result: QueryResult<T>) => void | Promise<void>;
@@ -45,7 +45,7 @@ export const benchmark = async <T extends QueryFnName>({
     if (before) await before();
 
     const start = performance.now();
-    const result = await exec();
+    const result = await exec(i);
     latencyMeasurements.push(performance.now() - start);
 
     if (after && result) {

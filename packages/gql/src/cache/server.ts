@@ -144,6 +144,10 @@ fastify.post("/v1/graphql", async (request, reply) => {
       });
       reply.header("X-Cache-Status", "MISS");
     } else {
+      fastify.log.info({
+        msg: "Cache BYPASS",
+        cacheKey,
+      });
       reply.header("X-Cache-Status", "BYPASS");
     }
 
