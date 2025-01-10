@@ -30,7 +30,7 @@ type OptionalArgs<T> = T extends Record<string, never> ? [] | [T] : [T];
 function createQueryWrapper<T extends TadaDocumentNode<any, any, any>>(
   client: Client,
   operation: T,
-  defaultCacheTime?: string,
+  headers?: Record<string, string>,
 ) {
   return (args: ExtractVariables<T>, options: Partial<OperationContext>): Promise<OperationResult<ExtractData<T>>> => {
     options = options ?? {};
@@ -38,14 +38,14 @@ function createQueryWrapper<T extends TadaDocumentNode<any, any, any>>(
       .query(
         operation,
         args ?? {},
-        defaultCacheTime
+        headers
           ? {
               ...options,
               fetchOptions: {
                 ...(options.fetchOptions ?? {}),
                 headers: {
                   ...(options.fetchOptions && "headers" in options.fetchOptions ? options.fetchOptions.headers : {}),
-                  "x-cache-time": defaultCacheTime,
+                  ...headers,
                 },
               },
             }
@@ -116,16 +116,17 @@ type CreateClientReturn<T extends "web" | "node"> = T extends "web" ? GqlClient 
 const createClient = <T extends "web" | "node" = "node">({
   url,
   hasuraAdminSecret,
-  defaultCacheTime,
+  headers,
 }: {
   url: string;
   hasuraAdminSecret?: string;
-  defaultCacheTime?: string;
+  headers?: Record<string, string>;
 }): CreateClientReturn<T> => {
   const fetchOptions = hasuraAdminSecret
     ? {
         headers: {
           "x-hasura-admin-secret": hasuraAdminSecret,
+          ...headers,
         },
       }
     : undefined;
@@ -159,7 +160,7 @@ const createClient = <T extends "web" | "node" = "node">({
     // Create the db object dynamically
     const _queries = Object.entries(queries).reduce((acc, [key, operation]) => {
       // @ts-ignore
-      acc[key as keyof Queries] = createQueryWrapper(client, operation, defaultCacheTime);
+      acc[key as keyof Queries] = createQueryWrapper(client, operation, headers);
       return acc;
     }, {} as Queries);
 
