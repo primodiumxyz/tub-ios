@@ -33,7 +33,6 @@
     "@jup-ag/api": "^6.0.30",
     "@orca-so/common-sdk": "^0.6.3",
     "@orca-so/whirlpools-sdk": "^0.13.8",
-    "@parse/node-apn": "^6.3.0",
     "@primodiumxyz/octane-core": "https://gitpkg.now.sh/primodiumxyz/octane/packages/core?303539d39fecd5fbc0b24712ba4fd47b70613371",
     "@privy-io/server-auth": "^1.16.2",
     "@solana/spl-token": "^0.4.8",

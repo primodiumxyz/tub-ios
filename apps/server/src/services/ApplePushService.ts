@@ -1,5 +1,4 @@
 import { env } from "@bin/tub-server";
-import apn from "@parse/node-apn";
 import { GqlClient } from "@tub/gql";
 import { Mutex } from "async-mutex";
 import fs from "fs";
@@ -45,8 +44,6 @@ export class PushService {
     production: false,
   };
 
-  private apnProvider = new apn.Provider(this.options);
-
   /**
    * Creates a new PushService instance
    * @param args.gqlClient - GraphQL client for price subscriptions
@@ -56,13 +53,6 @@ export class PushService {
     this.config = args.config;
     this.initializePushes();
     this.gqlClient = args.gqlClient;
-  }
-
-  stop() {
-    if (this.session) {
-      this.session.close();
-      this.session = null;
-    }
   }
 
   /**
