@@ -39,6 +39,7 @@ export class BenchmarkMockEnvironment {
     this.gqlCached = await createClient({
       url: "http://localhost:8090/v1/graphql",
       hasuraAdminSecret: "password",
+      defaultCacheTime: "1h",
     });
     this.gqlNoCache = await createClient({
       url: "http://localhost:8080/v1/graphql",

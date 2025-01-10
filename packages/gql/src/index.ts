@@ -27,9 +27,32 @@ type OptionalArgs<T> = T extends Record<string, never> ? [] | [T] : [T];
 //------------------------------------------------
 
 // Wrapper creator for both queries and mutations
-function createQueryWrapper<T extends TadaDocumentNode<any, any, any>>(client: Client, operation: T) {
-  return (args: ExtractVariables<T>, options: Partial<OperationContext>): Promise<OperationResult<ExtractData<T>>> =>
-    client.query(operation, args ?? {}, options).toPromise();
+function createQueryWrapper<T extends TadaDocumentNode<any, any, any>>(
+  client: Client,
+  operation: T,
+  defaultCacheTime?: string,
+) {
+  return (args: ExtractVariables<T>, options: Partial<OperationContext>): Promise<OperationResult<ExtractData<T>>> => {
+    options = options ?? {};
+    return client
+      .query(
+        operation,
+        args ?? {},
+        defaultCacheTime
+          ? {
+              ...options,
+              fetchOptions: {
+                ...(options.fetchOptions ?? {}),
+                headers: {
+                  ...(options.fetchOptions && "headers" in options.fetchOptions ? options.fetchOptions.headers : {}),
+                  "x-cache-time": defaultCacheTime,
+                },
+              },
+            }
+          : options,
+      )
+      .toPromise();
+  };
 }
 
 function createMutationWrapper<T extends TadaDocumentNode<any, any, any>>(client: Client, operation: T) {
@@ -93,9 +116,11 @@ type CreateClientReturn<T extends "web" | "node"> = T extends "web" ? GqlClient 
 const createClient = <T extends "web" | "node" = "node">({
   url,
   hasuraAdminSecret,
+  defaultCacheTime,
 }: {
   url: string;
   hasuraAdminSecret?: string;
+  defaultCacheTime?: string;
 }): CreateClientReturn<T> => {
   const fetchOptions = hasuraAdminSecret
     ? {
@@ -134,7 +159,7 @@ const createClient = <T extends "web" | "node" = "node">({
     // Create the db object dynamically
     const _queries = Object.entries(queries).reduce((acc, [key, operation]) => {
       // @ts-ignore
-      acc[key as keyof Queries] = createQueryWrapper(client, operation);
+      acc[key as keyof Queries] = createQueryWrapper(client, operation, defaultCacheTime);
       return acc;
     }, {} as Queries);
 
