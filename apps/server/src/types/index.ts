@@ -5,6 +5,7 @@ export enum SwapType {
   BUY = 1, // When buying any token with USDC
   SELL_PARTIAL = 2, // When selling part of token balance for USDC
   SELL_ALL = 3, // When selling entire token balance for USDC
+  TRANSFER = 4, // When transferring tokens to another user
 }
 
 // Base swap request types
