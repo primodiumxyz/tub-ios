@@ -10,15 +10,12 @@ import {
   TransactionConfirmationStatus,
   ComputeBudgetProgram,
   ComputeBudgetInstruction,
+  RpcResponseAndContext,
+  SimulatedTransactionResponse,
 } from "@solana/web3.js";
 import bs58 from "bs58";
 import { config } from "../utils/config";
-import {
-  ATA_PROGRAM_PUBLIC_KEY,
-  JUPITER_PROGRAM_PUBLIC_KEY,
-  MAX_CHAIN_COMPUTE_UNITS,
-  TOKEN_PROGRAM_PUBLIC_KEY,
-} from "../constants/tokens";
+import { ATA_PROGRAM_PUBLIC_KEY, MAX_CHAIN_COMPUTE_UNITS, TOKEN_PROGRAM_PUBLIC_KEY } from "../constants/tokens";
 import { Config } from "./ConfigService";
 import { createCloseAccountInstruction } from "@solana/spl-token";
 import { SwapType } from "../types";
@@ -26,6 +23,9 @@ import { SwapType } from "../types";
 export type TransactionRegistryEntry = {
   message: MessageV0;
   timestamp: number;
+  swapType: SwapType;
+  autoSlippage: boolean;
+  contextSlot: number;
 };
 
 /**
@@ -86,11 +86,14 @@ export class TransactionService {
   /**
    * Registers a transaction message in the registry
    */
-  registerTransaction(message: MessageV0): string {
+  registerTransaction(message: MessageV0, swapType: SwapType, autoSlippage: boolean, contextSlot: number): string {
     const base64Message = Buffer.from(message.serialize()).toString("base64");
     this.messageRegistry.set(base64Message, {
       message,
       timestamp: Date.now(),
+      swapType,
+      autoSlippage,
+      contextSlot,
     });
     return base64Message;
   }
@@ -150,51 +153,17 @@ export class TransactionService {
     const feePayerSignatureBytes = Buffer.from(bs58.decode(feePayerSignature));
     transaction.addSignature(this.feePayerKeypair.publicKey, feePayerSignatureBytes);
 
-    const simulation = await this.connection.simulateTransaction(transaction, {
-      commitment: "processed",
-      replaceRecentBlockhash: true,
-    });
-
-    if (simulation.value?.err) {
-      console.log("Local Simulation Error:", simulation.value);
-      if (simulation.value.err.toString().includes("InstructionError")) {
-        const errorStr = JSON.stringify(simulation.value.err);
-        const match = errorStr.match(/\{"InstructionError":\[(\d+)/);
-        const failedInstructionIndex = match?.[1] ? parseInt(match[1]) : -1;
-
-        if (failedInstructionIndex >= 0) {
-          const failedInstruction = entry.message.compiledInstructions[failedInstructionIndex];
-
-          if (failedInstruction) {
-            const programId = entry.message.staticAccountKeys[failedInstruction.programIdIndex];
-
-            console.log("Failed Instruction Details:", {
-              programId: programId!.toBase58(),
-              accounts: failedInstruction.accountKeyIndexes.map((index) =>
-                entry.message.staticAccountKeys[index]!.toBase58(),
-              ),
-              data: Buffer.from(failedInstruction.data).toString("hex"),
-            });
-
-            let errorMessage = `Tx sim failed: ${errorStr}`;
-
-            if (programId === TOKEN_PROGRAM_PUBLIC_KEY) {
-              errorMessage = `Sim failed, Token Program Error: ${errorStr}`; // This usually means there's an issue with token accounts or balances.
-            } else if (programId === ATA_PROGRAM_PUBLIC_KEY) {
-              errorMessage = `Sim failed, ATA Error: ${errorStr}`; // This usually means there's an issue creating or accessing a token account.
-            } else if (programId === JUPITER_PROGRAM_PUBLIC_KEY) {
-              if (errorStr.includes("6001")) {
-                errorMessage = `Sim failed, Slippage Tolerance Exceeded`;
-              } else {
-                errorMessage = `Sim failed, Jupiter Program Error: ${errorStr}`; // This usually indicates an issue with the swap parameters or market conditions.
-              }
-            }
-
-            throw new Error(errorMessage);
-          }
-        }
+    console.log("Signature Verification + Slippage Simulation");
+    let simulation: RpcResponseAndContext<SimulatedTransactionResponse>;
+    try {
+      simulation = await this.simulateAndRetryTransaction(transaction, entry.contextSlot, true, false);
+      if (simulation.value?.err) {
+        throw new Error(JSON.stringify(simulation.value.err));
       }
-      throw new Error(`Transaction simulation failed: ${JSON.stringify(simulation.value.err)}`);
+    } catch (error) {
+      console.log("Local tx sim failed: " + JSON.stringify(error));
+      // TODO: error handling and retry
+      throw new Error(JSON.stringify(error));
     }
 
     // Send and confirm transaction
@@ -202,6 +171,7 @@ export class TransactionService {
       skipPreflight: false,
       maxRetries: 3,
       preflightCommitment: "processed",
+      minContextSlot: entry.contextSlot,
     });
 
     let confirmation = null;
@@ -307,6 +277,7 @@ export class TransactionService {
   async optimizeComputeInstructions(
     instructions: TransactionInstruction[],
     addressLookupTableAccounts: AddressLookupTableAccount[],
+    contextSlot: number,
     cfg: Config,
   ): Promise<TransactionInstruction[]> {
     const { initComputeUnitPrice, filteredInstructions } = this.filterComputeInstructions(instructions, cfg);
@@ -314,11 +285,8 @@ export class TransactionService {
     const simulatedComputeUnits = await this.getSimulationComputeUnits(
       filteredInstructions,
       addressLookupTableAccounts,
+      contextSlot,
     );
-
-    if (!simulatedComputeUnits) {
-      throw new Error("Failed to estimate compute units");
-    }
 
     const estimatedComputeUnitLimit = Math.ceil(simulatedComputeUnits * 1.1);
 
@@ -365,6 +333,40 @@ export class TransactionService {
     return null;
   }
 
+  async simulateAndRetryTransaction(
+    transaction: VersionedTransaction,
+    contextSlot: number,
+    sigVerify: boolean,
+    replaceRecentBlockhash: boolean,
+  ): Promise<RpcResponseAndContext<SimulatedTransactionResponse>> {
+    // Try simulation multiple times
+    const MAX_ATTEMPTS = 2;
+
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+      try {
+        const response = await this.connection.simulateTransaction(transaction, {
+          replaceRecentBlockhash: replaceRecentBlockhash,
+          sigVerify: sigVerify,
+          commitment: "processed",
+          minContextSlot: contextSlot,
+        });
+        if (response.value.err) {
+          throw new Error(JSON.stringify(response.value.err));
+        }
+        return response;
+      } catch (error) {
+        console.log(`Simulation attempt ${attempt + 1}/${MAX_ATTEMPTS} failed:`, error);
+        if (attempt === MAX_ATTEMPTS - 1) {
+          throw new Error(JSON.stringify(error));
+        }
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        continue;
+      }
+    }
+    // this should never happen
+    throw new Error("Simulation failed after all attempts. No error was provided");
+  }
+
   async getTokenBalance(userPublicKey: PublicKey, tokenMint: PublicKey): Promise<number> {
     const tokenAccounts = await this.connection.getParsedTokenAccountsByOwner(
       userPublicKey,
@@ -382,7 +384,8 @@ export class TransactionService {
   private async getSimulationComputeUnits(
     instructions: TransactionInstruction[],
     addressLookupTableAccounts: AddressLookupTableAccount[],
-  ) {
+    contextSlot: number,
+  ): Promise<number> {
     const simulatedInstructions = [
       // Set max limit in simulation so tx succeeds and the necessary compute unit limit can be calculated
       ComputeBudgetProgram.setComputeUnitLimit({ units: MAX_CHAIN_COMPUTE_UNITS }),
@@ -397,33 +400,12 @@ export class TransactionService {
       }).compileToV0Message(addressLookupTableAccounts),
     );
 
-    // Try simulation with retries
-    let rpcResponse;
-    const MAX_RETRIES = 2;
-    let lastError;
+    console.log("Compute Unit Simulation");
 
-    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-      try {
-        rpcResponse = await this.connection.simulateTransaction(testTransaction, {
-          replaceRecentBlockhash: true,
-          sigVerify: false,
-          commitment: "processed",
-        });
-        break; // Success - exit loop
-      } catch (error) {
-        lastError = error;
-        console.log(`Simulation attempt ${attempt + 1}/${MAX_RETRIES} failed:`, error);
+    const rpcResponse = await this.simulateAndRetryTransaction(testTransaction, contextSlot, false, true);
 
-        if (attempt < MAX_RETRIES - 1) {
-          // Wait 100ms before retrying
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        }
-      }
-    }
-
-    if (!rpcResponse) {
-      console.error("All simulation attempts failed");
-      throw new Error(`Failed to simulate transaction after ${MAX_RETRIES} attempts: ${lastError}`);
+    if (!rpcResponse.value.unitsConsumed) {
+      throw new Error("Transaction sim returned undefined unitsConsumed");
     }
 
     return rpcResponse.value.unitsConsumed;

@@ -90,6 +90,7 @@ export class SwapService {
     console.log("Quoted auto slippage", quote.computedAutoSlippage);
     console.log("Quoted slippage bps", quote.slippageBps);
     console.log("Quoted outAmount", quote.outAmount);
+    console.log("Quote Slot Context", quote.contextSlot);
 
     if (!swapInstructions?.length) {
       throw new Error("No swap instruction received");
@@ -125,11 +126,19 @@ export class SwapService {
     const rentReassignedInstructions = this.transactionService.reassignRentInstructions(organizedInstructions);
 
     // estimate compute budget
-    const optimizedInstructions = await this.transactionService.optimizeComputeInstructions(
-      rentReassignedInstructions,
-      addressLookupTableAccounts,
-      cfg,
-    );
+    let optimizedInstructions: TransactionInstruction[];
+    try {
+      optimizedInstructions = await this.transactionService.optimizeComputeInstructions(
+        rentReassignedInstructions,
+        addressLookupTableAccounts,
+        quote.contextSlot ?? 0,
+        cfg,
+      );
+    } catch (error) {
+      console.log("Compute Unit Optimization failed: " + JSON.stringify(error));
+      // TODO: error handling and retry
+      throw new Error(JSON.stringify(error));
+    }
 
     // Build transaction message
     const message = await this.transactionService.buildTransactionMessage(
@@ -138,7 +147,12 @@ export class SwapService {
     );
 
     // Register transaction
-    const base64Message = this.transactionService.registerTransaction(message);
+    const base64Message = this.transactionService.registerTransaction(
+      message,
+      swapType,
+      slippageSettings.autoSlippage,
+      quote.contextSlot ?? 0,
+    );
 
     const response: PrebuildSwapResponse = {
       transactionMessageBase64: base64Message,
