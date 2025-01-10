@@ -6,9 +6,9 @@ import { insertMockTradeHistory } from "../lib/mock";
 /* -------------------------------------------------------------------------- */
 
 // const DEFAULT_TRADES_AMOUNT = 700_000; // ~400 trades per second
-const DEFAULT_TRADES_AMOUNT = 10_000;
+const DEFAULT_TRADES_AMOUNT = 100_000;
 const DEFAULT_START_DATE = new Date(Date.now() - 30 * 60 * 1000); // 30 minutes ago
-export const ITERATIONS = 10;
+export const ITERATIONS = 50;
 
 let globalEnv: BenchmarkMockEnvironment | null = null;
 
