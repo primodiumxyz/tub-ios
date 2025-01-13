@@ -319,6 +319,18 @@
       root_field_name: token_stats_interval_agg
     - arguments:
         interval:
+          description: Main interval for total stats (<=1h)
+          nullable: false
+          type: interval
+        recent_interval:
+          description: Additional interval for recent stats (<=interval)
+          nullable: false
+          type: interval
+      code: "WITH windowed_stats AS (\n    SELECT \n        token_mint,\n        latest_price_usd,\n        token_metadata,\n        ts_bucket,\n        SUM(total_volume_usd) as total_volume_usd,\n        SUM(total_trades) as total_trades,\n        AVG(latest_price_usd) as avg_price_usd,\n        -- Get first price in window for main interval\n        FIRST_VALUE(latest_price_usd) OVER (\n            PARTITION BY token_mint \n            ORDER BY ts_bucket\n        ) as first_price_main,\n        -- Use recent interval parameter for recent stats\n        SUM(CASE WHEN ts_bucket >= NOW() - {{recent_interval}}::interval \n            THEN total_volume_usd ELSE 0 END) as recent_volume_usd,\n        SUM(CASE WHEN ts_bucket >= NOW() - {{recent_interval}}::interval\n            THEN total_trades ELSE 0 END) as recent_trades,\n        -- Get first price in recent window\n        FIRST_VALUE(latest_price_usd) OVER (\n            PARTITION BY token_mint \n            ORDER BY ts_bucket DESC\n            RANGE BETWEEN {{recent_interval}}::interval PRECEDING AND CURRENT ROW\n        ) as first_price_recent\n    FROM api.token_stats_1h\n    WHERE ts_bucket >= NOW() - {{interval}}::interval\n    GROUP BY token_mint, latest_price_usd, token_metadata, ts_bucket\n)\nSELECT DISTINCT ON (token_mint)\n    token_mint,\n    latest_price_usd,\n    total_volume_usd,\n    total_trades,\n    avg_price_usd,\n    CASE \n        WHEN first_price_main = 0 OR first_price_main IS NULL THEN 0\n        ELSE 100.0 * (latest_price_usd - first_price_main) / first_price_main \n    END as price_change_pct,\n    recent_volume_usd,\n    recent_trades,\n    CASE \n        WHEN first_price_recent = 0 OR first_price_recent IS NULL THEN 0\n        ELSE 100.0 * (latest_price_usd - first_price_recent) / first_price_recent\n    END as recent_price_change_pct,\n    (token_metadata).name AS token_metadata_name,\n    (token_metadata).symbol AS token_metadata_symbol,\n    (token_metadata).description AS token_metadata_description,\n    (token_metadata).image_uri AS token_metadata_image_uri,\n    (token_metadata).external_url AS token_metadata_external_url,\n    (token_metadata).decimals AS token_metadata_decimals,\n    (token_metadata).supply AS token_metadata_supply,\n    (token_metadata).is_pump_token AS token_metadata_is_pump_token\nFROM windowed_stats\nWHERE total_volume_usd > 0\nORDER BY token_mint, ts_bucket DESC;"
+      returns: token_stats_model
+      root_field_name: token_stats_interval_cache
+    - arguments:
+        interval:
           description: Main interval for total stats
           nullable: false
           type: interval
