@@ -175,7 +175,7 @@ import { ConfigService } from "../src/services/ConfigService";
     }, 11000);
 
     describe.skip("MEMECOIN swaps", () => {
-      it.skip("should complete a USDC to MEMECOIN swap", async () => {
+      it("should complete a USDC to MEMECOIN swap", async () => {
         // Get swap instructions
         const swapResponse = await tubService.fetchSwap(mockJwtToken, {
           buyTokenId: MEMECOIN_MAINNET_PUBLIC_KEY.toString(),
@@ -202,7 +202,7 @@ import { ConfigService } from "../src/services/ConfigService";
           buyTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
           sellTokenId: MEMECOIN_MAINNET_PUBLIC_KEY.toString(),
           sellQuantity: Math.round(balanceToken / 2),
-          slippageBps: 100,
+          slippageBps: undefined,
         };
         console.log("MEMECOIN swap:", swap);
         const swapResponse = await tubService.fetchSwap(mockJwtToken, swap);
@@ -210,7 +210,7 @@ import { ConfigService } from "../src/services/ConfigService";
         await executeTx(swapResponse);
       }, 11000);
 
-      it.skip("should transfer all held MEMECOIN to USDC and close the MEMECOIN account", async () => {
+      it("should transfer all held MEMECOIN to USDC and close the MEMECOIN account", async () => {
         // wait for 10 seconds and console log the countdown
         for (let i = 10; i > 0; i--) {
           console.log(`Waiting for ${i} seconds...`);
@@ -256,7 +256,7 @@ import { ConfigService } from "../src/services/ConfigService";
         const memecoinSolBalanceLamports = await connection.getBalance(userMemecoinAta, "processed");
         console.log("Memecoin SOL balance lamports:", memecoinSolBalanceLamports);
         expect(memecoinSolBalanceLamports).toBe(0);
-      }, 30000);
+      }, 35000);
     });
   });
 });

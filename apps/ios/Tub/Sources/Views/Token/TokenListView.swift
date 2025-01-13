@@ -31,10 +31,10 @@ struct TokenListView: View {
     
     @State private var animateCurrentTokenModel = true
     @State private var isAutoScrolling = false
-    private let offsetThresholdToDragToAnotherToken = 125.0
-    private let autoScrollAnimationDuration = 0.35
-    private let autoScrollAnimationAbortedDuration = 0.15
-    private let autoScrollSpringAnimationBounce = 0.35  // [0,1] where 1 is very springy
+    private let offsetThresholdToDragToAnotherToken = 30.0
+    private let autoScrollAnimationDuration = 0.2
+    private let autoScrollAnimationAbortedDuration = 0.1
+    private let autoScrollSpringAnimationBounce = 0.15  // [0,1] where 1 is very springy
     private let moveToDragGestureOffsetAnimationDuration = 0.25
     
     var balanceToken: Int {
@@ -202,7 +202,7 @@ struct TokenListView: View {
                                         } else {
                                             // Allow a tug effect by limiting the drag offset
                                             draggingState = .cannotSwipe
-                                            dragGestureOffset = value.translation.height * 0.2  // Limit the tug effect
+                                            dragGestureOffset = value.translation.height * 0.3  // Limit the tug effect
                                         }
                                     }
                                     .onEnded { value in
