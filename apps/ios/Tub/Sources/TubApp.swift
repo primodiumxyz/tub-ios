@@ -58,7 +58,7 @@ struct AppContent: View {
                         }
                     }
                 )
-            } else if userModel.walletState == .connecting || userModel.initializingUser {
+            } else if privy.authState == .notReady || userModel.walletState == .connecting || userModel.initializingUser {
                 LoadingView(identifier: "Logging in")
             } else {
                 TokenListView().font(.sfRounded())
