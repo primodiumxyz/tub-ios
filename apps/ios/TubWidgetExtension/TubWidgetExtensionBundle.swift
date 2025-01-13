@@ -11,7 +11,6 @@ import SwiftUI
 @main
 struct TubWidgetExtensionBundle: WidgetBundle {
     var body: some Widget {
-        TubWidgetExtension()
         TubWidgetExtensionLiveActivity()
     }
 }
