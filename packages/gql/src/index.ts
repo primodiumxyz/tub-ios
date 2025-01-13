@@ -107,7 +107,7 @@ const createClient = <T extends "web" | "node" = "node">({
 
   const createClientInternal = (webSocketImpl?: typeof WebSocket): GqlClient => {
     const wsClient = createWSClient({
-      url: url.replace("https", "wss"),
+      url: url.replace("https", "wss").replace("8090", "8080"),
       webSocketImpl,
     });
 
