@@ -64,8 +64,9 @@ export class TransactionService {
   async buildTransactionMessage(
     instructions: TransactionInstruction[],
     addressLookupTableAccounts: AddressLookupTableAccount[],
+    minContextSlot: number,
   ): Promise<MessageV0> {
-    const { blockhash } = await this.connection.getLatestBlockhash();
+    const { blockhash } = await this.connection.getLatestBlockhash({ minContextSlot: minContextSlot });
 
     const message = new TransactionMessage({
       payerKey: this.feePayerKeypair.publicKey,
