@@ -63,7 +63,7 @@ struct CandleChartView: View {
         return startTime...endTime.addingTimeInterval(rightMargin)
     }
 
-    private var emptyTickSize: Double {
+    private var emptyTickHeight: Double {
         let range = yDomain.upperBound - yDomain.lowerBound
         return range * 0.002 // 0.2% of the total range
     }
@@ -75,8 +75,8 @@ struct CandleChartView: View {
                     // For empty candles, show a small horizontal line or tiny candle
                     RectangleMark(
                         x: .value("Time", candle.start),
-                        yStart: .value("Price", candle.close - emptyTickSize),
-                        yEnd: .value("Price", candle.close + emptyTickSize)
+                        yStart: .value("Price", candle.close - emptyTickHeight),
+                        yEnd: .value("Price", candle.close + emptyTickHeight)
                     )
                     .foregroundStyle(Color.green)
                 } else {
