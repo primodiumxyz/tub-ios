@@ -19,12 +19,13 @@ import os.log
         activity != nil
     }
     
-    func startTrackingPurchase(mint: String, tokenName: String, symbol: String, purchasePriceUsd: Double) async throws {
+    func startTrackingPurchase(mint: String, tokenName: String, symbol: String, purchasePriceUsd: Double, buyAmountUsdc: Int) async throws {
         let attributes = TubActivityAttributes(
             tokenMint: mint,
             name: tokenName,
             symbol: symbol,
-            initialPriceUsd: purchasePriceUsd
+            initialPriceUsd: purchasePriceUsd,
+            buyAmountUsdc: buyAmountUsdc
         )
         let contentState = TubActivityAttributes.ContentState(
             currentPriceUsd: purchasePriceUsd,

@@ -56,7 +56,8 @@ struct BuyFormView: View {
                         mint: tokenModel.tokenId,
                         tokenName: tokenData.metadata.name,
                         symbol: tokenData.metadata.symbol,
-                        purchasePriceUsd: priceUsd
+                        purchasePriceUsd: priceUsd,
+                        buyAmountUsdc: amountUsdc
                     )
                 }
                 

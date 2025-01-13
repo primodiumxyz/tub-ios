@@ -18,6 +18,7 @@ struct TubActivityAttributes: ActivityAttributes {
   var name: String
   var symbol: String
   var initialPriceUsd: Double
+  var buyAmountUsdc: Int
 }
 
 public struct TubWidgetAttributes: ActivityAttributes {
