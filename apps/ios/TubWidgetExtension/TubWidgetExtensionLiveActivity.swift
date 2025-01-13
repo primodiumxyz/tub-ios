@@ -17,63 +17,59 @@ struct TubWidgetExtensionLiveActivity: Widget {
             // Lock screen/banner UI
             LockScreenLiveActivityView(context: context)
         } dynamicIsland: { context in
-            var gain: Double {
-                let absGain = context.state.currentPriceUsd - context.attributes.initialPriceUsd
-                let buyAmountUsdc = context.attributes.buyAmountUsdc
+            var gain: (absGain: Double, pctGain: Double) {
+                let priceGain = context.state.currentPriceUsd - context.attributes.initialPriceUsd
                 let buyAmountUsd = Double(context.attributes.buyAmountUsdc) / 1e6
-                return buyAmountUsd * absGain / context.attributes.initialPriceUsd
+                let pctGain = 100 * priceGain / context.attributes.initialPriceUsd
+                let absGain = buyAmountUsd * pctGain
+                return (absGain, pctGain)
             }
             
             var gainType: String {
-                return gain >= 0.01 ? "up" : gain <=  -0.01  ? "down" : "right"
+                return gain.absGain >= 0.01 ? "up" : gain.absGain <= -0.01 ? "down" : "right"
             }
             return DynamicIsland {
                 DynamicIslandExpandedRegion(.leading, priority: 1) {
-                    HStack(spacing: 8) {
+                    VStack(alignment: .leading, spacing: 2) {
                         Text(context.attributes.name)
-                            .font(.system(size: 15))
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(context.attributes.symbol)
-                                .font(.system(size: 15))
-                                .foregroundStyle(.secondary)
-                            Text(String(format: "$%.6f", context.state.currentPriceUsd))
-                                .font(.title2)
-                                .fontWeight(.medium)
-                        }
-                    }
-                    .dynamicIsland(verticalPlacement: .belowIfTooWide)
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .opacity(0.7)
+                        
+                        Text(String(format: gain.absGain > 1000 ? "$%.0f" : "$%.2f", context.state.currentPriceUsd))
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                    }.padding(12)
+                        .frame(height: 60)
                 }
                 
                 DynamicIslandExpandedRegion(.trailing) {
-                    VStack {
-                        Spacer()
-                        Text(String(format: "%+.2f%%", abs(gain)))
-                            .font(.title)
-                            .fontWeight(.medium)
-                            .foregroundStyle(gainType == "up" ? .tubSuccess : gainType == "down" ? .tubError : .gray)
-                    }
+                    Text("\(gainType == "up" ? "+" : gainType == "down" ? "-" : "")\(String(format: gain.absGain > 1000 ? "$%.0f" : "$%.2f", abs(gain.absGain)))")
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(
+                            gainType == "up" ? .tubSuccess : gainType == "down" ? .tubError : .gray
+                        ).padding(12)
+                        .frame(height: 60)
                 }
+                
             } compactLeading: {
                 Text("$\(context.attributes.symbol)")
                     .font(.system(size: 12))
+                    .fontWeight(.semibold)
                     .padding(.leading, 8)
             } compactTrailing: {
-                HStack (spacing: 2){
-                    Image(
-                        systemName: gainType == "up"
-                        ? "arrow.up.circle.fill" : gainType == "down"  ? "arrow.down.circle.fill" : "arrow.right.circle.fill"
-                    )
-                    .resizable()
-                    .frame(width: 10, height: 10)
-                    .foregroundStyle(gainType == "up" ? .tubSuccess : gainType == "down" ? .tubError : .gray)
-                    Text(String(format: "$%.2f", abs(gain)))
-                        .font(.caption2)
-                        .foregroundStyle(gainType == "up" ? .tubSuccess : gainType == "down" ? .tubError : .gray)
-                }
+                Text("\(gainType == "up" ? "+" : gainType == "down" ? "-" : "")\(String(format: gain.absGain > 1000 ? "$%.0f" : "$%.2f", abs(gain.absGain)))")
+                    .font(.caption2)
+                    .foregroundStyle(
+                        gainType == "up" ? .tubSuccess : gainType == "down" ? .tubError : .gray)
             } minimal: {
-                Text(context.attributes.symbol)
-                    .font(.system(size: 15))
-                
+                Image(systemName: gainType == "up" ? "arrow.up" : gainType == "down" ? "arrow.down" : "arrow.right")
+                    .font(.caption2)
+                    .foregroundStyle(
+                        gainType == "up" ? .tubSuccess : gainType == "down" ? .tubError : .gray)
             }
         }
     }
@@ -85,13 +81,12 @@ struct LockScreenLiveActivityView: View {
     
     var gain: Double {
         let absGain = context.state.currentPriceUsd - context.attributes.initialPriceUsd
-        let buyAmountUsdc = context.attributes.buyAmountUsdc
         let buyAmountUsd = Double(context.attributes.buyAmountUsdc) / 1e6
         return buyAmountUsd * absGain / context.attributes.initialPriceUsd
     }
     
     var gainType: String {
-        return gain >= 0.01 ? "up" : gain <=  -0.01  ? "down" : "right"
+        return gain >= 0.01 ? "up" : gain <= -0.01 ? "down" : "right"
     }
     var body: some View {
         HStack {
@@ -112,7 +107,8 @@ struct LockScreenLiveActivityView: View {
             } icon: {
                 Image(
                     systemName: gainType == "up"
-                    ? "arrow.up.circle.fill" : gainType == "down"  ? "arrow.down.circle.fill" : "arrow.right.circle.fill"
+                    ? "arrow.up.circle.fill"
+                    : gainType == "down" ? "arrow.down.circle.fill" : "arrow.right.circle.fill"
                 )
                 .foregroundStyle(gainType == "up" ? .tubSuccess : gainType == "down" ? .tubError : .gray)
             }
@@ -143,7 +139,7 @@ extension TubActivityAttributes.ContentState {
     
     fileprivate static var second: TubActivityAttributes.ContentState {
         TubActivityAttributes.ContentState(
-            currentPriceUsd: 105.42,
+            currentPriceUsd: 3050.42,
             timestamp: Date().addingTimeInterval(3600).timeIntervalSince1970
         )
     }
