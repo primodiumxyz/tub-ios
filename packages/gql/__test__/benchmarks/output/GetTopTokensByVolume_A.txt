@@ -1,0 +1,70 @@
+
+📊 Performance Comparison:
+================================================================================
+
+🔍 Warm cache hit
+----------------------------------------
+Average Response Time: 1.08ms
+95th Percentile:       1.67ms
+Min Response Time:     0.65ms
+Max Response Time:     3.02ms
+Standard Deviation:    0.35ms
+
+🔍 Bypassing cache
+----------------------------------------
+Average Response Time: 787.87ms
+95th Percentile:       808.07ms
+Min Response Time:     767.00ms
+Max Response Time:     870.18ms
+Standard Deviation:    16.53ms
+
+🔍 Cold cache hit
+----------------------------------------
+Average Response Time: 789.38ms
+95th Percentile:       803.71ms
+Min Response Time:     768.27ms
+Max Response Time:     844.81ms
+Standard Deviation:    11.41ms
+
+🔍 Direct Hasura hit
+----------------------------------------
+Average Response Time: 896.64ms
+95th Percentile:       1380.90ms
+Min Response Time:     777.61ms
+Max Response Time:     2229.04ms
+Standard Deviation:    248.24ms
+
+⚡ Performance Impact:
+--------------------------------------------------------------------------------
+Best performer: Warm cache hit
+
+Compared to Bypassing cache:
+--------------------------------------------------------------------------------
+Metric               │ Difference     │ Percentage
+--------------------------------------------------------------------------------
+Average Response    │ +786.79      │ +73163.5 %
+95th Percentile     │ +806.40      │ +48364.7 %
+Min Response        │ +766.35      │ +117313.4%
+Max Response        │ +867.16      │ +28706.5 %
+Standard Deviation  │ +16.18       │ +4604.1  %
+
+Compared to Cold cache hit:
+--------------------------------------------------------------------------------
+Metric               │ Difference     │ Percentage
+--------------------------------------------------------------------------------
+Average Response    │ +788.30      │ +73303.8 %
+95th Percentile     │ +802.04      │ +48103.0 %
+Min Response        │ +767.62      │ +117507.1%
+Max Response        │ +841.79      │ +27866.5 %
+Standard Deviation  │ +11.06       │ +3146.5  %
+
+Compared to Direct Hasura hit:
+--------------------------------------------------------------------------------
+Metric               │ Difference     │ Percentage
+--------------------------------------------------------------------------------
+Average Response    │ +895.56      │ +83278.0 %
+95th Percentile     │ +1379.23     │ +82720.8 %
+Min Response        │ +776.95      │ +118936.8%
+Max Response        │ +2226.02     │ +73690.1 %
+Standard Deviation  │ +247.89      │ +70555.0 %
+

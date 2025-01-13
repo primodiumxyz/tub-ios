@@ -42,3 +42,126 @@ export const GetWalletTokenPnlQuery = graphql(`
     }
   }
 `);
+
+// Benchmarks
+export const GetAllTokensQuery = graphql(`
+  query GetAllTokens {
+    token_metadata_formatted {
+      mint
+    }
+  }
+`);
+
+export const GetTopTokensByVolumeQuery = graphql(`
+  query GetTopTokensByVolume(
+    $interval: interval = "30m"
+    $recentInterval: interval = "20s"
+    $minRecentTrades: numeric = 0
+    $minRecentVolume: numeric = 0
+  ) {
+    token_stats_interval_comp(
+      args: { interval: $interval, recent_interval: $recentInterval }
+      where: {
+        token_metadata_is_pump_token: { _eq: true }
+        recent_trades: { _gte: $minRecentTrades }
+        recent_volume_usd: { _gte: $minRecentVolume }
+      }
+      order_by: { total_volume_usd: desc }
+      limit: 50
+    ) {
+      token_mint
+    }
+  }
+`);
+
+export const GetTopTokensByVolumeAggQuery = graphql(`
+  query GetTopTokensByVolumeAgg(
+    $interval: interval = "30m"
+    $recentInterval: interval = "20s"
+    $minRecentTrades: numeric = 0
+    $minRecentVolume: numeric = 0
+  ) {
+    token_stats_interval_agg(
+      args: { interval: $interval, recent_interval: $recentInterval }
+      where: {
+        token_metadata_is_pump_token: { _eq: true }
+        recent_trades: { _gte: $minRecentTrades }
+        recent_volume_usd: { _gte: $minRecentVolume }
+      }
+      order_by: { total_volume_usd: desc }
+      limit: 50
+    ) {
+      token_mint
+    }
+  }
+`);
+
+export const GetBulkTokenMetadataQuery = graphql(`
+  query GetBulkTokenMetadata($tokens: [String!]!) {
+    token_metadata_formatted(where: { mint: { _in: $tokens } }) {
+      mint
+      name
+      symbol
+      image_uri
+      supply
+      decimals
+      description
+      external_url
+      is_pump_token
+    }
+  }
+`);
+
+export const GetTokenMetadataQuery = graphql(`
+  query GetTokenMetadata($token: String!) {
+    token_metadata_formatted(where: { mint: { _eq: $token } }) {
+      mint
+      name
+      symbol
+      image_uri
+      supply
+      decimals
+      description
+      external_url
+      is_pump_token
+    }
+  }
+`);
+
+export const GetBulkTokenLiveDataQuery = graphql(`
+  query GetBulkTokenLiveData($tokens: [String!]!) {
+    token_stats_interval_comp(
+      where: { token_mint: { _in: $tokens } }
+      args: { interval: "30m", recent_interval: "2m" }
+    ) {
+      token_mint
+      latest_price_usd
+      total_volume_usd
+      total_trades
+      price_change_pct
+      recent_volume_usd
+      recent_trades
+      recent_price_change_pct
+      token_metadata_supply
+    }
+  }
+`);
+
+export const GetTokenLiveDataQuery = graphql(`
+  query GetTokenLiveData($token: String!) {
+    token_stats_interval_comp(
+      where: { token_mint: { _eq: $token } }
+      args: { interval: "30m", recent_interval: "2m" }
+    ) {
+      token_mint
+      latest_price_usd
+      total_volume_usd
+      total_trades
+      price_change_pct
+      recent_volume_usd
+      recent_trades
+      recent_price_change_pct
+      token_metadata_supply
+    }
+  }
+`);

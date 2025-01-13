@@ -83,6 +83,8 @@ services:
       dockerfile: packages/gql/src/cache/Dockerfile
     ports:
       - "8090:8090"
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-password}
     depends_on:
       - graphql-engine
     logging:
