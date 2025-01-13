@@ -74,14 +74,14 @@ export const GetTopTokensByVolumeQuery = graphql(`
   }
 `);
 
-export const GetTopTokensByVolumeAggQuery = graphql(`
-  query GetTopTokensByVolumeAgg(
+export const GetTopTokensByVolumeCachedQuery = graphql(`
+  query GetTopTokensByVolumeCached(
     $interval: interval = "30m"
     $recentInterval: interval = "20s"
     $minRecentTrades: numeric = 0
     $minRecentVolume: numeric = 0
   ) {
-    token_stats_interval_agg(
+    token_stats_interval_cache(
       args: { interval: $interval, recent_interval: $recentInterval }
       where: {
         token_metadata_is_pump_token: { _eq: true }

@@ -2654,25 +2654,6 @@ type query_root {
 
   """fetch data from the table: "token_sale" using primary key columns"""
   token_sale_by_pk(id: uuid!): token_sale
-  token_stats_interval_agg(
-    """token_stats_interval_aggNative Query Arguments"""
-    args: token_stats_interval_agg_arguments!
-
-    """distinct select on columns"""
-    distinct_on: [token_stats_model_enum_name!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [token_stats_model_order_by!]
-
-    """filter the rows returned"""
-    where: token_stats_model_bool_exp_bool_exp
-  ): [token_stats_model!]!
   token_stats_interval_cache(
     """token_stats_interval_cacheNative Query Arguments"""
     args: token_stats_interval_cache_arguments!
@@ -3288,25 +3269,6 @@ type subscription_root {
     """filter the rows returned"""
     where: token_sale_bool_exp
   ): [token_sale!]!
-  token_stats_interval_agg(
-    """token_stats_interval_aggNative Query Arguments"""
-    args: token_stats_interval_agg_arguments!
-
-    """distinct select on columns"""
-    distinct_on: [token_stats_model_enum_name!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [token_stats_model_order_by!]
-
-    """filter the rows returned"""
-    where: token_stats_model_bool_exp_bool_exp
-  ): [token_stats_model!]!
   token_stats_interval_cache(
     """token_stats_interval_cacheNative Query Arguments"""
     args: token_stats_interval_cache_arguments!
@@ -4472,15 +4434,6 @@ type token_sale_var_samp_fields {
 type token_sale_variance_fields {
   token_amount: Float
   token_price_usd: Float
-}
-
-"""token_stats_interval_aggNative Query Arguments"""
-input token_stats_interval_agg_arguments {
-  """Main interval for total stats"""
-  interval: interval!
-
-  """Additional interval to get recent stats on a different timeframe"""
-  recent_interval: interval!
 }
 
 """token_stats_interval_cacheNative Query Arguments"""

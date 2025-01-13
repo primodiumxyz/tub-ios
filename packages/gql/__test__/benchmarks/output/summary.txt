@@ -3,14 +3,14 @@
 
 │ Query Name │ Direct │ Warm Cache │ Cold Cache │ Bypass Cache │ Improvement │
 │───────────│────────│────────────│────────────│──────────────│─────────────│
-│ GetBulkTokenLiveData │    7.02ms │    3.99ms │    6.06ms │    4.43ms │   43.15% │
-│ GetBulkTokenMetadata │    5.89ms │    2.97ms │    5.36ms │    3.61ms │   49.55% │
-│ GetTokenLiveData │    4.12ms │    1.94ms │    5.76ms │    5.66ms │   53.02% │
-│ GetTokenMetadata │    4.51ms │    1.90ms │    4.71ms │    5.43ms │   57.85% │
-│ GetTopTokensByVolumeAgg │  473.60ms │    1.20ms │  474.33ms │  472.91ms │   99.75% │
-│ GetTopTokensByVolume │  896.64ms │    1.08ms │  789.38ms │  787.87ms │   99.88% │
+│ GetBulkTokenLiveData │    4.49ms │    4.19ms │    5.32ms │    4.30ms │    6.75% │
+│ GetBulkTokenMetadata │    4.33ms │    4.22ms │    5.27ms │    4.34ms │    2.55% │
+│ GetTokenLiveData │    2.73ms │    2.27ms │    5.98ms │    3.45ms │   17.03% │
+│ GetTokenMetadata │    2.65ms │    1.64ms │    5.73ms │    3.47ms │   38.04% │
+│ GetTopTokensByVolumeCached │  580.56ms │    1.39ms │  514.87ms │  514.32ms │   99.76% │
+│ GetTopTokensByVolume │  681.58ms │    1.30ms │  682.49ms │  684.13ms │   99.81% │
 
 📊 Key Insights:
-• Fastest query (warm cache): GetTopTokensByVolume (1.08ms)
-• Slowest query (direct): GetTopTokensByVolume (896.64ms)
-• Best cache improvement: GetTopTokensByVolume (99.88%)
+• Fastest query (warm cache): GetTopTokensByVolume (1.30ms)
+• Slowest query (direct): GetTopTokensByVolume (681.58ms)
+• Best cache improvement: GetTopTokensByVolume (99.81%)

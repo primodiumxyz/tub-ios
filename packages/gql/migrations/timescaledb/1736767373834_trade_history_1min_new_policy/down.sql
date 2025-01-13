@@ -1,1 +1,0 @@
-DROP MATERIALIZED VIEW api.trade_history_1min CASCADE;
