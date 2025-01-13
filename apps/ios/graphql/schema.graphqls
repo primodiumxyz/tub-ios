@@ -1193,6 +1193,7 @@ input bigint_comparison_exp {
 type candles_history_model {
   bucket: timestamptz!
   close_price_usd: numeric!
+  has_trades: Boolean!
   high_price_usd: numeric!
   low_price_usd: numeric!
   open_price_usd: numeric!
@@ -1209,6 +1210,7 @@ input candles_history_model_bool_exp_bool_exp {
   _or: [candles_history_model_bool_exp_bool_exp!]
   bucket: timestamptz_comparison_exp
   close_price_usd: numeric_comparison_exp
+  has_trades: Boolean_comparison_exp
   high_price_usd: numeric_comparison_exp
   low_price_usd: numeric_comparison_exp
   open_price_usd: numeric_comparison_exp
@@ -1222,6 +1224,9 @@ enum candles_history_model_enum_name {
 
   """column name"""
   close_price_usd
+
+  """column name"""
+  has_trades
 
   """column name"""
   high_price_usd
@@ -1243,6 +1248,7 @@ enum candles_history_model_enum_name {
 input candles_history_model_order_by {
   bucket: order_by
   close_price_usd: order_by
+  has_trades: order_by
   high_price_usd: order_by
   low_price_usd: order_by
   open_price_usd: order_by

@@ -266,7 +266,8 @@ class TokenModel: ObservableObject {
                                 close: candle.close_price_usd,
                                 high: candle.high_price_usd,
                                 low: candle.low_price_usd,
-                                volume: candle.volume_usd
+                                volume: candle.volume_usd,
+                                hasTrades: candle.has_trades
                             )
                         }
                         continuation.resume(returning: updatedCandles)
@@ -319,7 +320,8 @@ class TokenModel: ObservableObject {
                             close: candle.close_price_usd,
                             high: candle.high_price_usd,
                             low: candle.low_price_usd,
-                            volume: candle.volume_usd
+                            volume: candle.volume_usd,
+                            hasTrades: candle.has_trades
                         )
                     }
                     

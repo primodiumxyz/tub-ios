@@ -131,6 +131,10 @@
           type:
             nullable: false
             scalar: numeric
+        - name: has_trades
+          type:
+            nullable: false
+            scalar: boolean
       name: candles_history_model
       select_permissions:
         - permission:
@@ -142,6 +146,7 @@
               - high_price_usd
               - low_price_usd
               - volume_usd
+              - has_trades
             filter: {}
           role: public
     - fields:
@@ -298,7 +303,7 @@
           description: ""
           nullable: false
           type: text
-      code: "WITH RECURSIVE filled_buckets AS (\n  -- Generate all minute buckets from start to now\n  SELECT \n    time_bucket('1 minute', gs) as bucket\n  FROM generate_series(\n    {{start}},\n    now(),\n    '1 minute'::interval\n  ) gs\n),\nraw_candles AS (\n  -- Get the actual candle data\n  SELECT \n    b.bucket,\n    c.token_mint,\n    c.close_price_usd,\n    c.high_price_usd,\n    c.low_price_usd,\n    COALESCE(c.volume_usd, 0) as volume_usd\n  FROM filled_buckets b\n  LEFT JOIN api.candles_history_1min c ON \n    c.bucket = b.bucket AND \n    c.token_mint = {{token_mint}}\n),\nfilled_prices AS (\n  -- First fill in missing close prices with last known price\n  SELECT \n    r.bucket,\n    r.close_price_usd as raw_close,\n    r.high_price_usd as raw_high,\n    r.low_price_usd as raw_low,\n    r.volume_usd,\n    COALESCE(\n      r.close_price_usd,\n      (\n        SELECT close_price_usd\n        FROM raw_candles r2\n        WHERE r2.close_price_usd IS NOT NULL\n          AND r2.bucket <= r.bucket\n        ORDER BY r2.bucket DESC\n        LIMIT 1\n      ),\n      0\n    ) as close_price_usd\n  FROM raw_candles r\n),\n-- Find the first bucket with actual trading data\nfirst_trade AS (\n  SELECT \n    bucket as first_bucket,\n    close_price_usd as first_price\n  FROM raw_candles\n  WHERE close_price_usd IS NOT NULL\n  ORDER BY bucket ASC\n  LIMIT 1\n)\nSELECT \n  f.bucket,\n  {{token_mint}} as token_mint,\n  CASE \n    WHEN f.bucket = (SELECT first_bucket FROM first_trade) THEN (SELECT first_price FROM first_trade)\n    ELSE LAG(f.close_price_usd, 1) OVER (ORDER BY f.bucket)\n  END as open_price_usd,\n  f.close_price_usd,\n  COALESCE(f.raw_high, f.close_price_usd) as high_price_usd,\n  COALESCE(f.raw_low, f.close_price_usd) as low_price_usd,\n  f.volume_usd\nFROM filled_prices f\n-- Only return candles from first trade onwards\nWHERE f.bucket >= (SELECT first_bucket FROM first_trade)\nORDER BY bucket DESC;"
+      code: "WITH RECURSIVE filled_buckets AS (\n  -- Generate all minute buckets from start to now\n  SELECT \n    time_bucket('1 minute', gs) as bucket\n  FROM generate_series(\n    {{start}},\n    now(),\n    '1 minute'::interval\n  ) gs\n),\nraw_candles AS (\n  -- Get the actual candle data\n  SELECT \n    b.bucket,\n    c.token_mint,\n    c.close_price_usd,\n    c.high_price_usd,\n    c.low_price_usd,\n    COALESCE(c.volume_usd, 0) as volume_usd,\n    c.close_price_usd IS NOT NULL as has_trades  -- Flag for actual trades\n  FROM filled_buckets b\n  LEFT JOIN api.candles_history_1min c ON \n    c.bucket = b.bucket AND \n    c.token_mint = {{token_mint}}\n),\nfilled_prices AS (\n  -- First fill in missing close prices with last known price\n  SELECT \n    r.bucket,\n    r.has_trades,\n    r.close_price_usd as raw_close,\n    r.high_price_usd as raw_high,\n    r.low_price_usd as raw_low,\n    r.volume_usd,\n    COALESCE(\n      r.close_price_usd,\n      (\n        SELECT close_price_usd\n        FROM raw_candles r2\n        WHERE r2.close_price_usd IS NOT NULL\n          AND r2.bucket <= r.bucket\n        ORDER BY r2.bucket DESC\n        LIMIT 1\n      ),\n      0\n    ) as close_price_usd\n  FROM raw_candles r\n),\n-- Find the first bucket with actual trading data\nfirst_trade AS (\n  SELECT \n    bucket as first_bucket,\n    close_price_usd as first_price\n  FROM raw_candles\n  WHERE close_price_usd IS NOT NULL\n  ORDER BY bucket ASC\n  LIMIT 1\n)\nSELECT \n  f.bucket,\n  {{token_mint}} as token_mint,\n  CASE \n    WHEN f.bucket = (SELECT first_bucket FROM first_trade) THEN (SELECT first_price FROM first_trade)\n    ELSE LAG(f.close_price_usd, 1) OVER (ORDER BY f.bucket)\n  END as open_price_usd,\n  f.close_price_usd,\n  COALESCE(f.raw_high, f.close_price_usd) as high_price_usd,\n  COALESCE(f.raw_low, f.close_price_usd) as low_price_usd,\n  f.volume_usd,\n  f.has_trades\nFROM filled_prices f\n-- Only return candles from first trade onwards\nWHERE f.bucket >= (SELECT first_bucket FROM first_trade)\nORDER BY bucket DESC;"
       returns: candles_history_model
       root_field_name: token_candles_history_1min
     - arguments: {}
