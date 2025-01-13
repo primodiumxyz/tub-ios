@@ -194,7 +194,6 @@ describe("Jupiter Quote Integration Test", () => {
       const message = await transactionService.buildTransactionMessage(
         swapInstructions.instructions,
         swapInstructions.addressLookupTableAccounts,
-        swapInstructions.quote.contextSlot ?? 0,
       );
       const transaction = new VersionedTransaction(message);
 
@@ -254,7 +253,6 @@ describe("Jupiter Quote Integration Test", () => {
       const message = await transactionService.buildTransactionMessage(
         swapInstructions.instructions,
         swapInstructions.addressLookupTableAccounts,
-        swapInstructions.quote.contextSlot ?? 0,
       );
       const transaction = new VersionedTransaction(message);
       console.log("📝 Built transaction message");

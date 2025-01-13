@@ -144,7 +144,6 @@ export class SwapService {
     const message = await this.transactionService.buildTransactionMessage(
       optimizedInstructions,
       addressLookupTableAccounts,
-      quote.contextSlot ?? 0,
     );
 
     // Register transaction
