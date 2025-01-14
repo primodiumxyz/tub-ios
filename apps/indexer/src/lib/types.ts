@@ -142,12 +142,12 @@ export type GetAssetsResponse = {
       total: number;
       use_method: "burn" | "multiple" | "single";
     };
-    supply?: {
-      edition_nonce: number;
-      print_current_supply: number;
-      print_max_supply: number;
-    };
     mutable: boolean;
     burnt: boolean;
+    token_info?: {
+      supply: number;
+      decimals: number;
+      token_program: string;
+    };
   }[];
 };

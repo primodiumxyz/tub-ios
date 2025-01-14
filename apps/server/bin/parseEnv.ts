@@ -7,7 +7,7 @@ const commonSchema = z.object({
   QUICKNODE_ENDPOINT: z.string().default("https://blue-hardworking-paper.solana-mainnet.quiknode.pro"),
   QUICKNODE_TOKEN: z.string(),
   HASURA_ADMIN_SECRET: z.string().default("password"),
-  GRAPHQL_URL: z.string().default("http://localhost:8080/v1/graphql"),
+  GRAPHQL_URL: z.string().default("http://localhost:8090/v1/graphql"),
   JWT_SECRET: z.string().default("secret"),
   COINBASE_CDP_API_KEY_NAME: z.string().default(""),
   COINBASE_CDP_API_KEY_PRIVATE_KEY: z.string().default(""),

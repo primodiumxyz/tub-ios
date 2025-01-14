@@ -71,7 +71,9 @@
 		DF6D28C12D108A5900810F8B /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DF6D28C02D108A5900810F8B /* SwiftUI.framework */; };
 		DF6D28D22D108A5A00810F8B /* TubWidgetExtensionExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = DF6D28BD2D108A5900810F8B /* TubWidgetExtensionExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		DF6D28E42D108B8300810F8B /* LiveActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF6D28E32D108B8300810F8B /* LiveActivityManager.swift */; };
+		DF74EC6C2D19CAEC0053E262 /* BackgroundBubbleEffect.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF74EC6B2D19CAEC0053E262 /* BackgroundBubbleEffect.swift */; };
 		DF8C84ED2CDFDCA700E8FA7B /* DismissKeyboardModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF8C84EC2CDFDCA700E8FA7B /* DismissKeyboardModifier.swift */; };
+		DF9D90602D15D82400DC4BCC /* ShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF9D905E2D15D82400DC4BCC /* ShareView.swift */; };
 		DFA4D6512CAC500B00AEDC73 /* Apollo in Frameworks */ = {isa = PBXBuildFile; productRef = DFA4D6502CAC500B00AEDC73 /* Apollo */; };
 		DFC723E32CB9A86C003A915C /* TokenInfoCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFC723E22CB9A86C003A915C /* TokenInfoCardView.swift */; };
 		DFDA138A2CEDF04000057A29 /* TransactionGroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFDA13892CEDF04000057A29 /* TransactionGroupView.swift */; };
@@ -183,8 +185,10 @@
 		DF6D28BE2D108A5900810F8B /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		DF6D28C02D108A5900810F8B /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		DF6D28E32D108B8300810F8B /* LiveActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityManager.swift; sourceTree = "<group>"; };
+		DF74EC6B2D19CAEC0053E262 /* BackgroundBubbleEffect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundBubbleEffect.swift; sourceTree = "<group>"; };
 		DF7C361B2CD941FD00A4B27A /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		DF8C84EC2CDFDCA700E8FA7B /* DismissKeyboardModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DismissKeyboardModifier.swift; sourceTree = "<group>"; };
+		DF9D905E2D15D82400DC4BCC /* ShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareView.swift; sourceTree = "<group>"; };
 		DFC723E22CB9A86C003A915C /* TokenInfoCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenInfoCardView.swift; sourceTree = "<group>"; };
 		DFDA13892CEDF04000057A29 /* TransactionGroupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionGroupView.swift; sourceTree = "<group>"; };
 		DFDA13BB2CEF9ACA00057A29 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
@@ -302,6 +306,7 @@
 			children = (
 				9995E9BE2D01025A005B9179 /* PortfolioView.swift */,
 				9971F29A2CFF835D00BA48C0 /* WithdrawView.swift */,
+				DF9D905F2D15D82400DC4BCC /* Socials */,
 				995DE48A2CE6A268001B3C3F /* Login */,
 				997DE8F32CDAC86000164366 /* NotificationBanner.swift */,
 				99DD66022CB80D5B00B56450 /* Common */,
@@ -383,6 +388,7 @@
 		99DD66022CB80D5B00B56450 /* Common */ = {
 			isa = PBXGroup;
 			children = (
+				DF74EC6B2D19CAEC0053E262 /* BackgroundBubbleEffect.swift */,
 				99BE72AE2CEBB223006BB157 /* BubbleEffect.swift */,
 				996772FD2CEB857C0029B298 /* LoadingBox.swift */,
 				99B147FD2CDFE5B200DFDB96 /* ShimmeringView.swift */,
@@ -504,6 +510,14 @@
 				DF6D28E32D108B8300810F8B /* LiveActivityManager.swift */,
 			);
 			path = DynamicIsland;
+			sourceTree = "<group>";
+		};
+		DF9D905F2D15D82400DC4BCC /* Socials */ = {
+			isa = PBXGroup;
+			children = (
+				DF9D905E2D15D82400DC4BCC /* ShareView.swift */,
+			);
+			path = Socials;
 			sourceTree = "<group>";
 		};
 		DFEBC3E72CE44D1100EA4C84 /* Settings */ = {
@@ -733,7 +747,10 @@
 				994AE5F72CD2AB3F00553A32 /* GoogleLogoView.swift in Sources */,
 				DF3D43D22D00DEB1004DAE81 /* JustifiedText.swift in Sources */,
 				99DBD8EE2CF781EA0098C296 /* spoofModelData.swift in Sources */,
+				DF9D90602D15D82400DC4BCC /* ShareView.swift in Sources */,
 				466945ED2CDFDB1F008E8B99 /* LoadingTracker.swift in Sources */,
+				DF74EC6C2D19CAEC0053E262 /* BackgroundBubbleEffect.swift in Sources */,
+				99BE72BB2CEBB279006BB157 /* SolPriceModel.swift in Sources */,
 				99856DA62CD27E2E004B9D40 /* Privy.swift in Sources */,
 				999F595B2CA754FB00E7AE9F /* ChartView.swift in Sources */,
 				DFDA13BC2CEF9ACA00057A29 /* OnboardingView.swift in Sources */,

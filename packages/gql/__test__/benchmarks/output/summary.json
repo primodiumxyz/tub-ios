@@ -1,0 +1,58 @@
+[
+  {
+    "queryName": "GetBulkTokenLiveData",
+    "directHasura": 4.489415380000009,
+    "warmCache": 4.186251679999959,
+    "coldCache": 5.318016220000027,
+    "bypassCache": 4.2988666699999705,
+    "improvement": 6.752854755891397
+  },
+  {
+    "queryName": "GetBulkTokenMetadata",
+    "directHasura": 4.334952549999985,
+    "warmCache": 4.2243266299999505,
+    "coldCache": 5.2662874900000585,
+    "bypassCache": 4.339089999999978,
+    "improvement": 2.55195226992818
+  },
+  {
+    "queryName": "GetTokenLiveData",
+    "directHasura": 2.7318779100000072,
+    "warmCache": 2.2665612900000225,
+    "coldCache": 5.98473293,
+    "bypassCache": 3.4528725400000075,
+    "improvement": 17.032848294453377
+  },
+  {
+    "queryName": "GetTokenMetadata",
+    "directHasura": 2.654477859999988,
+    "warmCache": 1.644811239999999,
+    "coldCache": 5.731250010000004,
+    "bypassCache": 3.467971670000006,
+    "improvement": 38.03635491614135
+  },
+  {
+    "queryName": "GetTopTokensByVolumeAgg",
+    "directHasura": 473.60473629999996,
+    "warmCache": 1.1971549900004903,
+    "coldCache": 474.33339502999945,
+    "bypassCache": 472.9129112900014,
+    "improvement": 99.74722486954984
+  },
+  {
+    "queryName": "GetTopTokensByVolumeCached",
+    "directHasura": 580.5573433600001,
+    "warmCache": 1.3851870300008158,
+    "coldCache": 514.8691221500002,
+    "bypassCache": 514.32022251,
+    "improvement": 99.76140392575452
+  },
+  {
+    "queryName": "GetTopTokensByVolume",
+    "directHasura": 681.5771391400001,
+    "warmCache": 1.295130049999425,
+    "coldCache": 682.49220963,
+    "bypassCache": 684.1264895699994,
+    "improvement": 99.80998041518329
+  }
+]

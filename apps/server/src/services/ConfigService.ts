@@ -18,6 +18,7 @@ export const configSchema = z
     AUTO_SLIPPAGE_COLLISION_USD_VALUE: z.number(),
     MIN_SLIPPAGE_BPS: z.number(),
     AUTO_PRIORITY_FEE_MULTIPLIER: z.number(),
+    MAX_COMPUTE_PRICE: z.number(),
     BUY_FEE_BPS: z.number(),
     SELL_FEE_BPS: z.number(),
     MIN_FEE_CENTS: z.number(),

@@ -34,5 +34,7 @@
 	<array>
 		<dict/>
 	</array>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Tub would like to save images to your photo library.</string>
 </dict>
 </plist>

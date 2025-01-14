@@ -3,7 +3,7 @@ import { graphql } from "./init";
 // Dashboard
 export const GetTopTokensByVolumeSubscription = graphql(`
   subscription SubTopTokensByVolume($interval: interval = "30m", $recentInterval: interval = "20s") {
-    token_stats_interval_comp(
+    token_stats_interval_cache(
       args: { interval: $interval, recent_interval: $recentInterval }
       where: { token_metadata_is_pump_token: { _eq: true } }
       order_by: { total_volume_usd: desc }
@@ -33,7 +33,6 @@ export const GetTokenPricesSinceSubscription = graphql(`
     }
   }
 `);
-
 export const GetRecentTokenPriceSubscription = graphql(`
   subscription SubRecentTokenPrice($token: String!) {
     api_trade_history(where: { token_mint: { _eq: $token } }, order_by: { created_at: desc }, limit: 1) {
@@ -43,12 +42,9 @@ export const GetRecentTokenPriceSubscription = graphql(`
   }
 `);
 
-export const GetTokenCandlesSubscription = graphql(`
-  subscription SubTokenCandles($token: String!, $since: timestamptz = "now()", $candle_interval: interval = "1m") {
-    token_trade_history_candles(
-      args: { candle_interval: $candle_interval }
-      where: { token_mint: { _eq: $token }, bucket: { _gte: $since } }
-    ) {
+export const GetTokenCandlesSinceSubscription = graphql(`
+  subscription SubTokenCandlesSince($token: String!, $since: timestamptz = "now()") {
+    token_candles_history_1min(args: { token_mint: $token, start: $since }) {
       bucket
       open_price_usd
       close_price_usd

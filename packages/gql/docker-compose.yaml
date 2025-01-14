@@ -77,6 +77,22 @@ services:
       retries: 5
       start_period: 5s
 
+  graphql-cache:
+    build:
+      context: ../../
+      dockerfile: packages/gql/src/cache/Dockerfile
+    ports:
+      - "8090:8090"
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-password}
+    depends_on:
+      - graphql-engine
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
 volumes:
   db_data:
   timescale_data:

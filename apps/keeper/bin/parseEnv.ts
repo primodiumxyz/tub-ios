@@ -5,7 +5,7 @@ const commonSchema = z.object({
   SERVER_HOST: z.string().default("0.0.0.0"),
   SERVER_PORT: z.coerce.number().positive().default(9999),
   HASURA_ADMIN_SECRET: z.string().default("password"),
-  GRAPHQL_URL: z.string().default("http://localhost:8080/v1/graphql"),
+  GRAPHQL_URL: z.string().default("http://localhost:8090/v1/graphql"),
   PRIVATE_KEY: z.string(),
 });
 

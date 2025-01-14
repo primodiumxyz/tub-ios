@@ -6,7 +6,6 @@
 //
 
 import Apollo
-import ApolloWebSocket
 import Foundation
 import Security
 
@@ -15,37 +14,14 @@ class Network {
   private var lastApiCallTime: Date = Date()
   private let tokenManager = TokenManager()
 
-  // graphql
-  private let httpTransport: RequestChainNetworkTransport
-  private let webSocketTransport: WebSocketTransport
-
-  private(set) lazy var apollo: ApolloClient = {
-    let splitNetworkTransport = SplitNetworkTransport(
-      uploadingNetworkTransport: httpTransport,
-      webSocketNetworkTransport: webSocketTransport
-    )
-
-    let store = ApolloStore()
-    return ApolloClient(networkTransport: splitNetworkTransport, store: store)
-  }()
+  // GraphQL
+  private(set) lazy var graphQL = GraphQLManager()
 
   // tRPC
   private let baseURL: URL
   private let session: URLSession
 
   init() {
-    // setup graphql
-    let httpURL = URL(string: graphqlHttpUrl)!
-    let store = ApolloStore()
-    httpTransport = RequestChainNetworkTransport(
-      interceptorProvider: DefaultInterceptorProvider(store: store),
-      endpointURL: httpURL
-    )
-
-    let webSocketURL = URL(string: graphqlWsUrl)!
-    let websocket = WebSocket(url: webSocketURL, protocol: .graphql_ws)
-    webSocketTransport = WebSocketTransport(websocket: websocket)
-
     // setup tRPC
     baseURL = URL(string: serverBaseUrl)!
     session = URLSession(configuration: .default)

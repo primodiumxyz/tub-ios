@@ -7,7 +7,7 @@ public class GetTopTokensByVolumeQuery: GraphQLQuery {
   public static let operationName: String = "GetTopTokensByVolume"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetTopTokensByVolume($interval: interval = "30m", $recentInterval: interval = "20s", $minRecentTrades: numeric = 0, $minRecentVolume: numeric = 0) { token_stats_interval_comp( args: { interval: $interval, recent_interval: $recentInterval } where: { token_metadata_is_pump_token: { _eq: true } recent_trades: { _gte: $minRecentTrades } recent_volume_usd: { _gte: $minRecentVolume } } order_by: { total_volume_usd: desc } limit: 50 ) { __typename token_mint } }"#
+      #"query GetTopTokensByVolume($interval: interval = "30m", $recentInterval: interval = "20s", $minRecentTrades: numeric = 0, $minRecentVolume: numeric = 0) { token_stats_interval_cache( args: { interval: $interval, recent_interval: $recentInterval } where: { token_metadata_is_pump_token: { _eq: true } recent_trades: { _gte: $minRecentTrades } recent_volume_usd: { _gte: $minRecentVolume } } order_by: { total_volume_usd: desc } limit: 50 ) { __typename token_mint } }"#
     ))
 
   public var interval: GraphQLNullable<Interval>
@@ -40,7 +40,7 @@ public class GetTopTokensByVolumeQuery: GraphQLQuery {
 
     public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Query_root }
     public static var __selections: [ApolloAPI.Selection] { [
-      .field("token_stats_interval_comp", [Token_stats_interval_comp].self, arguments: [
+      .field("token_stats_interval_cache", [Token_stats_interval_cache].self, arguments: [
         "args": [
           "interval": .variable("interval"),
           "recent_interval": .variable("recentInterval")
@@ -55,12 +55,12 @@ public class GetTopTokensByVolumeQuery: GraphQLQuery {
       ]),
     ] }
 
-    public var token_stats_interval_comp: [Token_stats_interval_comp] { __data["token_stats_interval_comp"] }
+    public var token_stats_interval_cache: [Token_stats_interval_cache] { __data["token_stats_interval_cache"] }
 
-    /// Token_stats_interval_comp
+    /// Token_stats_interval_cache
     ///
     /// Parent Type: `Token_stats_model`
-    public struct Token_stats_interval_comp: TubAPI.SelectionSet {
+    public struct Token_stats_interval_cache: TubAPI.SelectionSet {
       public let __data: DataDict
       public init(_dataDict: DataDict) { __data = _dataDict }
 

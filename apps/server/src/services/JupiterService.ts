@@ -102,7 +102,6 @@ export class JupiterService {
   async getSwapInstructions(
     quoteAndSwapParams: QuoteGetRequest,
     userPublicKey: PublicKey,
-    autoPriorityFeeMultiplier: number,
   ): Promise<{
     instructions: TransactionInstruction[];
     addressLookupTableAccounts: AddressLookupTableAccount[];
@@ -131,7 +130,13 @@ export class JupiterService {
           userPublicKey: userPublicKey.toBase58(),
           asLegacyTransaction: quoteAndSwapParams.asLegacyTransaction,
           wrapAndUnwrapSol: true,
-          prioritizationFeeLamports: { autoMultiplier: autoPriorityFeeMultiplier },
+          prioritizationFeeLamports: {
+            priorityLevelWithMaxLamports: {
+              maxLamports: 2000000,
+              global: false,
+              priorityLevel: "high",
+            },
+          },
           dynamicSlippage: dynamicSlippage,
         },
       };

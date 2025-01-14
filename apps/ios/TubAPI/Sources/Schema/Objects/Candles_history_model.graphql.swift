@@ -4,8 +4,8 @@
 import ApolloAPI
 
 public extension Objects {
-  static let Trade_history_candle_model = ApolloAPI.Object(
-    typename: "trade_history_candle_model",
+  static let Candles_history_model = ApolloAPI.Object(
+    typename: "candles_history_model",
     implementedInterfaces: []
   )
 }
