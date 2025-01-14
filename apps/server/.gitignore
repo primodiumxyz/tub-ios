@@ -3,4 +3,4 @@ node_modules
 dist
 .env*
 /tuls
-keys/AuthKey.p8
+src/keys/AuthKey.p8
