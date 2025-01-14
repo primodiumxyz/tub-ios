@@ -10,6 +10,8 @@ export const configSchema = z
     SOL_USD_PRICE_UPDATE_INTERVAL: z.number(),
     CONFIRM_ATTEMPTS: z.number(),
     CONFIRM_ATTEMPT_DELAY: z.number(),
+    MAX_BUILD_ATTEMPTS: z.number(),
+    MAX_SIM_ATTEMPTS: z.number(),
     USER_SLIPPAGE_BPS_MAX: z.number(),
     MAX_DEFAULT_SLIPPAGE_BPS: z.number(),
     AUTO_SLIPPAGE: z.boolean(),

@@ -177,7 +177,6 @@ export class TransactionService {
     transaction.addSignature(this.feePayerKeypair.publicKey, feePayerSignatureBytes);
 
     let txid: string = "";
-    const MAX_BUILD_ATTEMPTS = 3;
 
     try {
       console.log("Signature Verification + Slippage Simulation");
@@ -206,7 +205,7 @@ export class TransactionService {
       // TODO: error interpretation
 
       // don't rebuild if slippage is not auto
-      if (entry.buildAttempts + 1 >= MAX_BUILD_ATTEMPTS || !entry.autoSlippage) {
+      if (entry.buildAttempts + 1 >= cfg.MAX_BUILD_ATTEMPTS || !entry.autoSlippage) {
         throw new Error(JSON.stringify(error));
       }
 
@@ -394,9 +393,9 @@ export class TransactionService {
     replaceRecentBlockhash: boolean,
   ): Promise<RpcResponseAndContext<SimulatedTransactionResponse>> {
     // Try simulation multiple times
-    const MAX_ATTEMPTS = 2;
+    const cfg = await config();
 
-    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    for (let attempt = 0; attempt < cfg.MAX_SIM_ATTEMPTS; attempt++) {
       try {
         const response = await this.connection.simulateTransaction(transaction, {
           replaceRecentBlockhash: replaceRecentBlockhash,
@@ -409,8 +408,8 @@ export class TransactionService {
         }
         return response;
       } catch (error) {
-        console.log(`Simulation attempt ${attempt + 1}/${MAX_ATTEMPTS} failed:`, error);
-        if (attempt === MAX_ATTEMPTS - 1) {
+        console.log(`Simulation attempt ${attempt + 1}/${cfg.MAX_SIM_ATTEMPTS} failed:`, error);
+        if (attempt === cfg.MAX_SIM_ATTEMPTS - 1) {
           throw new Error(JSON.stringify(error));
         }
         await new Promise((resolve) => setTimeout(resolve, 100));

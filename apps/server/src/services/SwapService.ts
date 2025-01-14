@@ -89,11 +89,8 @@ export class SwapService {
       asLegacyTransaction: false,
     };
 
-    // TODO: config for max build attempts
-    const MAX_BUILD_ATTEMPTS = 3;
-
     // Where rebuilding occurs
-    for (let buildAttempt = priorBuildAttempts + 1; buildAttempt < MAX_BUILD_ATTEMPTS + 1; buildAttempt++) {
+    for (let buildAttempt = priorBuildAttempts + 1; buildAttempt < cfg.MAX_BUILD_ATTEMPTS + 1; buildAttempt++) {
       console.log("Building swap response attempt " + buildAttempt);
       try {
         const {
@@ -176,7 +173,7 @@ export class SwapService {
         console.log("Swap build attempt " + buildAttempt + " failed: " + JSON.stringify(error));
         // TODO: interpret error before rebuilding to validate if slippage issue
 
-        if (buildAttempt >= MAX_BUILD_ATTEMPTS || !slippageSettings.autoSlippage) {
+        if (buildAttempt >= cfg.MAX_BUILD_ATTEMPTS || !slippageSettings.autoSlippage) {
           throw new Error(error as string);
         }
         continue; // try again in next loop
@@ -184,7 +181,7 @@ export class SwapService {
     }
 
     // Should never reach here, just satisfying typescript linter
-    throw new Error("Swap build failed after " + MAX_BUILD_ATTEMPTS + " attempts");
+    throw new Error("Swap build failed after " + cfg.MAX_BUILD_ATTEMPTS + " attempts");
   }
 
   private async determineSwapType(request: ActiveSwapRequest): Promise<SwapType> {
