@@ -1,15 +1,9 @@
 import { env } from "@bin/tub-server";
 import { GqlClient } from "@tub/gql";
 import { Mutex } from "async-mutex";
-import fs from "fs";
 import http2 from "http2";
 import jwt from "jsonwebtoken";
-import path, { dirname } from "path";
-import { fileURLToPath } from "url";
 import { Config } from "./ConfigService";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 /**
  * Data structure for tracking push notification state
@@ -48,8 +42,13 @@ export class PushService {
    */
   constructor(args: { gqlClient: GqlClient["db"]; config: Config }) {
     this.config = args.config;
-    this.initializePushes();
     this.gqlClient = args.gqlClient;
+
+    if (!env.APPLE_AUTHKEY) {
+      console.warn("Apple Push Service: No auth key found. Not initializing.");
+      return;
+    }
+    this.initializePushes();
   }
 
   /**
@@ -281,9 +280,11 @@ export class PushService {
    * @returns Newly generated JWT token
    */
   private generateJWT() {
-    const keyPath = path.resolve(__dirname, `../keys/AuthKey.p8`);
     try {
-      const privateKey = fs.readFileSync(keyPath);
+      const privateKey = env.APPLE_AUTHKEY;
+      if (!privateKey) {
+        throw new Error("Apple Push Service: No auth key found. Not generating JWT.");
+      }
       const secondsSinceEpoch = Math.round(Date.now() / 1000);
       const payload = {
         iss: env.APPLE_PUSH_TEAM_ID,

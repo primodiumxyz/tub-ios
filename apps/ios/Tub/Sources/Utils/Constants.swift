@@ -22,30 +22,30 @@ let USDC_DECIMALS = 1e6
 let SOL_DECIMALS = 1e9
 
 private var installationSource: InstallationSource {
-    // Check if debugger is attached
-    var info = kinfo_proc()
-    var mib: [Int32] = [CTL_KERN, KERN_PROC, KERN_PROC_PID, getpid()]
-    var size = MemoryLayout<kinfo_proc>.stride
-    let jailbroken =
-    sysctl(&mib, u_int(mib.count), &info, &size, nil, 0) != -1
-    && (info.kp_proc.p_flag & P_TRACED) != 0
-    
-    if jailbroken {
-        return .xcode
-    }
-    
-    // Fall back to receipt check
+    var ret : InstallationSource? = nil
+#if DEBUG
+    ret = .xcode
+#endif
+    if let ret, ret == .xcode { return ret }
     if let receiptUrl = Bundle.main.appStoreReceiptURL {
         let path = receiptUrl.path
+        print("Receipt URL: \(receiptUrl)")
+        
         if path.contains("sandboxReceipt") {
             return .testFlight
-        } else if path.contains("StoreKit") {
+        }
+        else if path.contains("StoreKit") {
             return .appStore
         }
+        else {
+            return .xcode
+        }
     }
-    
-    return .invalid
+    else {
+        return .invalid
+    }
 }
+
 
 // If on a physical device, check if ngrok environment variable exists and use if it does. Otherwise, default to the remote resources.
 // If on a simulator, use the localhost URLs.

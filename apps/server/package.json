@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "lint": "eslint .",
-    "dev": "pnpm gen:authkey && pnpm dev:nodemon",
+    "dev": "pnpm dev:nodemon",
     "dev:standalone": "run-pty % pnpm dev:nodemon % pnpm dev:redis",
     "dev:nodemon": "nodemon",
     "dev:redis": "redis-server",
@@ -23,8 +23,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "gen:authkey": "bash ./genAuthKey.sh",
-    "prepare": "dotenvx run -f ./../../.env --quiet -- sh -c '[ \"$NODE_ENV\" != \"local\" ] && exit 0; [ $(uname) = 'Darwin' ] && brew install redis || apt-get install -y redis-server;' && pnpm gen:authkey"
+    "prepare": "dotenvx run -f ./../../.env --quiet -- sh -c '[ \"$NODE_ENV\" != \"local\" ] && exit 0; [ $(uname) = 'Darwin' ] && brew install redis || apt-get install -y redis-server;'"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.1",
