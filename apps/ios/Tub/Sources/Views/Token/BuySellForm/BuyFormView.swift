@@ -52,7 +52,7 @@ struct BuyFormView: View {
 //                )
 //                
                 if let tokenData = userModel.tokenData[tokenModel.tokenId] {
-                    try await activityManager.startTrackingPurchase(
+                    try await activityManager.startLiveActivity(
                         mint: tokenModel.tokenId,
                         tokenName: tokenData.metadata.name,
                         symbol: tokenData.metadata.symbol,

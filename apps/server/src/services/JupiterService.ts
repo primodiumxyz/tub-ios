@@ -198,8 +198,6 @@ export class JupiterService {
 
       this.solUsdPrice = Number(res.outAmount) / 1e6; // convert to USD from USDC (6 decimals)
       this.priceEmitter.emit("price", this.solUsdPrice);
-
-      console.log(`SOL/USD price updated: ${this.solUsdPrice?.toLocaleString("en-US", { maximumFractionDigits: 2 })}`);
     } catch (error) {
       console.error("Error updating SOL/USD price:", error);
     }

@@ -43,6 +43,8 @@ export class PushService {
     },
     production: false,
   };
+  private readonly JWT_REFRESH_INTERVAL = 15 * 60 * 1000; // 15 minutes in ms
+  private cachedJWT?: { token: string; timestamp: number };
 
   /**
    * Creates a new PushService instance
@@ -76,6 +78,7 @@ export class PushService {
    */
   private beginTokenSubscription(tokenMint: string) {
     if (this.subscriptions.has(tokenMint)) {
+      console.log(`Incrementing subscription count for token: ${tokenMint}`);
       this.subscriptions.get(tokenMint)!.subCount++;
       return;
     }
@@ -120,15 +123,17 @@ export class PushService {
    * @param input.tokenPriceUsd - Initial token price in USD
    * @param input.deviceToken - Device push token
    */
-  async startOrUpdateLiveActivity(
+  async startLiveActivity(
     userId: string,
     input: { tokenMint: string; tokenPriceUsd: string; deviceToken: string; pushToken: string },
   ) {
     const release = await this.activityMutex.acquire();
     const existing = this.pushRegistry.get(userId);
     try {
-      if (existing && existing.tokenMint !== input.tokenMint) {
-        this.cleanSubscription(existing.tokenMint);
+      if (existing?.tokenMint !== input.tokenMint) {
+        if (existing) {
+          this.cleanSubscription(existing.tokenMint);
+        }
         this.beginTokenSubscription(input.tokenMint);
       }
       this.pushRegistry.set(userId, {
@@ -181,6 +186,7 @@ export class PushService {
     const BATCH_SIZE = 50;
     const entries = Array.from(this.pushRegistry.entries());
 
+    console.log(`Pushing to: ${entries.length} users`);
     for (let i = 0; i < entries.length; i += BATCH_SIZE) {
       const batch = entries.slice(i, i + BATCH_SIZE);
       await Promise.all(batch.map(([, value]) => this.sendUpdatePush(value)));
@@ -194,6 +200,7 @@ export class PushService {
 
   private async sendUpdatePush(input: PushItem) {
     const tokenPrice = this.tokenPrice.get(input.tokenMint);
+    console.log(`token price: ${tokenPrice}`);
     if (!tokenPrice) return;
 
     const json = {
@@ -247,17 +254,29 @@ export class PushService {
     return this.session;
   }
 
-  private publishToApns(pushToken: string, json: object) {
-    console.log(`Token to push: ${pushToken}, payload: ${JSON.stringify(json)}`);
+  private async getJWTToken() {
+    const cachedJWT = this.cachedJWT;
+    if (cachedJWT && Date.now() - cachedJWT.timestamp < this.JWT_REFRESH_INTERVAL) {
+      return cachedJWT.token;
+    }
 
+    const jwt = this.generateJWT();
+    this.cachedJWT = { token: jwt, timestamp: Date.now() };
+    return jwt;
+  }
+
+  private generateJWT() {
     const privateKey = fs.readFileSync(this.options.token.key);
     const secondsSinceEpoch = Math.round(Date.now() / 1000);
     const payload = {
       iss: this.options.token.teamId,
       iat: secondsSinceEpoch,
     };
+    return jwt.sign(payload, privateKey, { algorithm: "ES256", keyid: this.options.token.keyId });
+  }
 
-    const finalEncryptToken = jwt.sign(payload, privateKey, { algorithm: "ES256", keyid: this.options.token.keyId });
+  private async publishToApns(pushToken: string, json: object) {
+    const jwt = await this.getJWTToken();
 
     try {
       const buffer = Buffer.from(JSON.stringify(json));
@@ -266,7 +285,7 @@ export class PushService {
       const req = session.request({
         ":method": "POST",
         ":path": "/3/device/" + pushToken,
-        authorization: "bearer " + finalEncryptToken,
+        authorization: "bearer " + jwt,
         "apns-push-type": "liveactivity",
         "apns-topic": `com.primodium.tub.push-type.liveactivity`,
         "apns-priority": "10",

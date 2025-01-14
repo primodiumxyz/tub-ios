@@ -53,7 +53,7 @@ struct ActionButtonsView: View {
 //                )
                                 
                 if let tokenData = userModel.tokenData[tokenModel.tokenId] {
-                    try await activityManager.startTrackingPurchase(
+                    try await activityManager.startLiveActivity(
                         mint: tokenModel.tokenId,
                         tokenName: tokenData.metadata.name,
                         symbol: tokenData.metadata.symbol,
@@ -96,7 +96,7 @@ struct ActionButtonsView: View {
 
         do {
             try await TxManager.shared.sellToken(tokenId: tokenModel.tokenId, tokenPriceUsd: tokenPriceUsd)
-            try await LiveActivityManager.shared.stopActivity()
+            try await LiveActivityManager.shared.stopLiveActivity()
             await MainActor.run {
                 BubbleManager.shared.trigger()
 

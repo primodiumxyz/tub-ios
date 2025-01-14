@@ -19,7 +19,8 @@ import os.log
         activity != nil
     }
     
-    func startTrackingPurchase(mint: String, tokenName: String, symbol: String, purchasePriceUsd: Double, buyAmountUsdc: Int) async throws {
+    func startLiveActivity(mint: String, tokenName: String, symbol: String, purchasePriceUsd: Double, buyAmountUsdc: Int) async throws {
+        try await stopLiveActivity()
         let attributes = TubActivityAttributes(
             tokenMint: mint,
             name: tokenName,
@@ -58,6 +59,12 @@ import os.log
         self.activity = activity
         print("Started tracking purchase: \(String(describing: activity.id))")
     }
+
+   func stopLiveActivity() async throws {
+        await activity?.end(nil, dismissalPolicy: .immediate)
+        try await Network.shared.stopLiveActivity()
+        activity = nil
+    }
     
     func updatePriceChange(currentPriceUsd: Double, gainsPercentage: Double) {
         Task {
@@ -66,14 +73,8 @@ import os.log
                currentPriceUsd: currentPriceUsd,
                timestamp: Date().timeIntervalSince1970
             )
-            print("Updating gains: \(formattedPercentage)%")
             await activity?.update(.init(state: contentState, staleDate: nil))
         }
     }
     
-    func stopActivity() async throws {
-        await activity?.end(nil, dismissalPolicy: .immediate)
-        try await Network.shared.stopLiveActivity()
-        activity = nil
-    }
 }
