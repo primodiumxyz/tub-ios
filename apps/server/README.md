@@ -64,8 +64,7 @@ The server can be configured with the following environment variables:
 
 To set up the project for development:
 
-1. Create a new file in `/src/keys/` called `AuthKey.p8`
-1. Copy the contents of the secret key `AuthKey.p8_CONTENT` found in AWS Secrets Manager into `src/keys/AuthKey.p8`
+1. Ensure all server-related env variables are set.
 1. If Redis is not installed, make sure that `NODE_ENV` is set to `local` in the root `.env` file for Redis to be installed in the `prepare` step of `pnpm install`. Refer to `prepare` script in `./package.json` for details.
 
 1. Install dependencies:
