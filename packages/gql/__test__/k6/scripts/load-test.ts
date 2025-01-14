@@ -54,7 +54,7 @@ const QUERIES = {
 export default function () {
   const headers = {
     "Content-Type": "application/json",
-    "x-hasura-admin-secret": __ENV.HASURA_ADMIN_SECRET || "password",
+    "x-hasura-admin-secret": __ENV.HASURA_ADMIN_SECRET ?? "password",
   };
 
   // Randomly select between queries
@@ -74,7 +74,7 @@ export default function () {
           },
   };
 
-  const response = http.post(__ENV.HASURA_URL || "http://localhost:8090/v1/graphql", JSON.stringify(payload), {
+  const response = http.post(__ENV.HASURA_URL ?? "http://localhost:8090/v1/graphql", JSON.stringify(payload), {
     headers,
   });
 
