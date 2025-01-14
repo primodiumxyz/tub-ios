@@ -20,6 +20,8 @@ type PushItem = {
   deviceToken: string; // Device push token
   pushToken: string; // Push token
   timestamp: number; // Registration timestamp
+
+  lastPriceUsd?: string; // Last price when tracking started
 };
 
 /**
@@ -189,7 +191,7 @@ export class PushService {
     console.log(`Pushing to: ${entries.length} users`);
     for (let i = 0; i < entries.length; i += BATCH_SIZE) {
       const batch = entries.slice(i, i + BATCH_SIZE);
-      await Promise.all(batch.map(([, value]) => this.sendUpdatePush(value)));
+      await Promise.all(batch.map(([userId, value]) => this.sendUpdatePush(userId, value)));
     }
   }
 
@@ -198,10 +200,13 @@ export class PushService {
    * @param input - Push notification data
    */
 
-  private async sendUpdatePush(input: PushItem) {
+  private async sendUpdatePush(userId: string, input: PushItem) {
     const tokenPrice = this.tokenPrice.get(input.tokenMint);
-    console.log(`token price: ${tokenPrice}`);
-    if (!tokenPrice) return;
+    if (!tokenPrice || tokenPrice === input.lastPriceUsd) {
+      return;
+    }
+    input.lastPriceUsd = tokenPrice;
+    this.pushRegistry.set(userId, input);
 
     const json = {
       aps: {
