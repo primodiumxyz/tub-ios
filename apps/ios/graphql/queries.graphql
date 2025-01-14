@@ -119,7 +119,7 @@ query GetTopTokensByVolume(
   $minRecentTrades: numeric = 0
   $minRecentVolume: numeric = 0
 ) {
-  token_stats_interval_comp(
+  token_stats_interval_cache(
     args: { interval: $interval, recent_interval: $recentInterval }
     where: {
       token_metadata_is_pump_token: { _eq: true }

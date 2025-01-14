@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
 
-import { createClient, GqlClient } from "../src/index";
-import { createWallet } from "./lib/common";
+import { createClient, GqlClient } from "../../src/index";
+import { createWallet } from "../lib/common";
 
 const tokenAddress = "EeP7gjHGjHTMEShEA8YgPXmYp6S3XvCDfQvkc8gy2kcL";
 

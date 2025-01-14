@@ -8,10 +8,17 @@ import {
   VersionedTransaction,
   AddressLookupTableAccount,
   TransactionConfirmationStatus,
+  ComputeBudgetProgram,
+  ComputeBudgetInstruction,
 } from "@solana/web3.js";
 import bs58 from "bs58";
 import { config } from "../utils/config";
-import { ATA_PROGRAM_PUBLIC_KEY, JUPITER_PROGRAM_PUBLIC_KEY, TOKEN_PROGRAM_PUBLIC_KEY } from "../constants/tokens";
+import {
+  ATA_PROGRAM_PUBLIC_KEY,
+  JUPITER_PROGRAM_PUBLIC_KEY,
+  MAX_CHAIN_COMPUTE_UNITS,
+  TOKEN_PROGRAM_PUBLIC_KEY,
+} from "../constants/tokens";
 import { Config } from "./ConfigService";
 import { createCloseAccountInstruction } from "@solana/spl-token";
 import { SwapType } from "../types";
@@ -145,9 +152,11 @@ export class TransactionService {
 
     const simulation = await this.connection.simulateTransaction(transaction, {
       commitment: "processed",
+      replaceRecentBlockhash: true,
     });
+
     if (simulation.value?.err) {
-      console.log("Simulation Error:", simulation.value);
+      console.log("Local Simulation Error:", simulation.value);
       if (simulation.value.err.toString().includes("InstructionError")) {
         const errorStr = JSON.stringify(simulation.value.err);
         const match = errorStr.match(/\{"InstructionError":\[(\d+)/);
@@ -289,6 +298,46 @@ export class TransactionService {
   }
 
   /**
+   * Optimizes compute budget instructions by estimating the compute units and setting a reasonable compute unit price
+   * @param instructions - The instructions to optimize
+   * @param addressLookupTableAccounts - The address lookup table accounts
+   * @param cfg - Config
+   * @returns The optimized instructions
+   */
+  async optimizeComputeInstructions(
+    instructions: TransactionInstruction[],
+    addressLookupTableAccounts: AddressLookupTableAccount[],
+    cfg: Config,
+  ): Promise<TransactionInstruction[]> {
+    const { initComputeUnitPrice, filteredInstructions } = this.filterComputeInstructions(instructions, cfg);
+
+    const simulatedComputeUnits = await this.getSimulationComputeUnits(
+      filteredInstructions,
+      addressLookupTableAccounts,
+    );
+
+    if (!simulatedComputeUnits) {
+      throw new Error("Failed to estimate compute units");
+    }
+
+    const estimatedComputeUnitLimit = Math.ceil(simulatedComputeUnits * 1.1);
+
+    // use the least expensive compute unit price, note microLamports is the price per compute unit
+    const MAX_COMPUTE_PRICE = cfg.MAX_COMPUTE_PRICE;
+    const AUTO_PRIO_MULT = cfg.AUTO_PRIORITY_FEE_MULTIPLIER;
+    const computePrice =
+      initComputeUnitPrice * AUTO_PRIO_MULT < MAX_COMPUTE_PRICE
+        ? initComputeUnitPrice * AUTO_PRIO_MULT
+        : MAX_COMPUTE_PRICE;
+
+    // Add the new compute unit limit and price instructions to the beginning of the instructions array
+    filteredInstructions.unshift(ComputeBudgetProgram.setComputeUnitPrice({ microLamports: computePrice }));
+    filteredInstructions.unshift(ComputeBudgetProgram.setComputeUnitLimit({ units: estimatedComputeUnitLimit }));
+
+    return filteredInstructions;
+  }
+
+  /**
    * Creates a token close instruction if needed
    */
   async createTokenCloseInstruction(
@@ -328,5 +377,79 @@ export class TransactionService {
 
     const balance = Number(tokenAccounts.value[0].account.data.parsed.info.tokenAmount.amount);
     return balance;
+  }
+
+  private async getSimulationComputeUnits(
+    instructions: TransactionInstruction[],
+    addressLookupTableAccounts: AddressLookupTableAccount[],
+  ) {
+    const simulatedInstructions = [
+      // Set max limit in simulation so tx succeeds and the necessary compute unit limit can be calculated
+      ComputeBudgetProgram.setComputeUnitLimit({ units: MAX_CHAIN_COMPUTE_UNITS }),
+      ...instructions,
+    ];
+
+    const testTransaction = new VersionedTransaction(
+      new TransactionMessage({
+        instructions: simulatedInstructions,
+        payerKey: this.feePayerKeypair.publicKey,
+        recentBlockhash: PublicKey.default.toString(), // doesn't matter due to replaceRecentBlockhash
+      }).compileToV0Message(addressLookupTableAccounts),
+    );
+
+    // Try simulation with retries
+    let rpcResponse;
+    const MAX_RETRIES = 2;
+    let lastError;
+
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      try {
+        rpcResponse = await this.connection.simulateTransaction(testTransaction, {
+          replaceRecentBlockhash: true,
+          sigVerify: false,
+          commitment: "processed",
+        });
+        break; // Success - exit loop
+      } catch (error) {
+        lastError = error;
+        console.log(`Simulation attempt ${attempt + 1}/${MAX_RETRIES} failed:`, error);
+
+        if (attempt < MAX_RETRIES - 1) {
+          // Wait 100ms before retrying
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+      }
+    }
+
+    if (!rpcResponse) {
+      console.error("All simulation attempts failed");
+      throw new Error(`Failed to simulate transaction after ${MAX_RETRIES} attempts: ${lastError}`);
+    }
+
+    return rpcResponse.value.unitsConsumed;
+  }
+
+  private filterComputeInstructions(instructions: TransactionInstruction[], cfg: Config) {
+    const computeUnitLimitIndex = instructions.findIndex(
+      (ix) => ix.programId.equals(ComputeBudgetProgram.programId) && ix.data[0] === 0x02,
+    );
+    const computeUnitPriceIndex = instructions.findIndex(
+      (ix) => ix.programId.equals(ComputeBudgetProgram.programId) && ix.data[0] === 0x03,
+    );
+
+    const initComputeUnitPrice =
+      computeUnitPriceIndex >= 0
+        ? Number(ComputeBudgetInstruction.decodeSetComputeUnitPrice(instructions[computeUnitPriceIndex]!).microLamports)
+        : cfg.MAX_COMPUTE_PRICE; // the "!" is redundant, as we just found it above and `>= 0` check ensures it's exists. Just satisfies the linter.
+
+    // Remove the initial compute unit limit and price instructions, handling the case where removing the first affects the index of the second
+    const filteredInstructions = instructions.filter(
+      (_, index) => index !== computeUnitLimitIndex && index !== computeUnitPriceIndex,
+    );
+
+    return {
+      initComputeUnitPrice,
+      filteredInstructions,
+    };
   }
 }

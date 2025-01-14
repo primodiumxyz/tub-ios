@@ -50,6 +50,11 @@ struct ActionButtonsView: View {
                 )
                 await MainActor.run {
                     showBuySheet = false
+                    // Only trigger haptic feedback if vibration is enabled
+                    if settingsManager.isVibrationEnabled {
+                        let generator = UINotificationFeedbackGenerator()
+                        generator.notificationOccurred(.success)
+                    }
                     if let tokenName = userModel.tokenData[tokenModel.tokenId]?.metadata.name  {
                         notificationHandler.show(
                             "Successfully bought \(tokenName)!",

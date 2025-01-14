@@ -1,0 +1,1 @@
+DROP MATERIALIZED VIEW api.token_stats_1h CASCADE;
