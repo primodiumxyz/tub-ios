@@ -39,7 +39,7 @@ export class PushService {
   private activityMutex = new Mutex();
   private options = {
     token: {
-      key: path.resolve(__dirname, `../utils/AuthKey.p8`),
+      key: path.resolve(__dirname, `../keys/AuthKey.p8`),
       keyId: env.APPLE_PUSH_KEY_ID,
       teamId: env.APPLE_PUSH_TEAM_ID,
     },

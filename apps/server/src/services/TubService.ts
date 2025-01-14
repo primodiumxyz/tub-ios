@@ -1,31 +1,30 @@
-import { Connection, Keypair, PublicKey, VersionedTransaction } from "@solana/web3.js";
-import { getAccount, getAssociatedTokenAddressSync } from "@solana/spl-token";
-import { GqlClient } from "@tub/gql";
 import { PrivyClient } from "@privy-io/server-auth";
+import { getAccount, getAssociatedTokenAddressSync } from "@solana/spl-token";
+import { Connection, Keypair, PublicKey, VersionedTransaction } from "@solana/web3.js";
+import { GqlClient } from "@tub/gql";
+import bs58 from "bs58";
+import { env } from "../../bin/tub-server";
+import { TOKEN_PROGRAM_PUBLIC_KEY, USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
+import { ConfigService } from "../services/ConfigService";
+import {
+  AppDwellTimeEvent,
+  LoadingTimeEvent,
+  PrebuildSignedSwapResponse,
+  PrebuildSwapResponse,
+  TokenDwellTimeEvent,
+  TokenPurchaseOrSaleEvent,
+  UserPrebuildSwapRequest,
+} from "../types";
+import { config } from "../utils/config";
+import { deriveTokenAccounts } from "../utils/tokenAccounts";
+import { AnalyticsService } from "./AnalyticsService";
+import { PushService } from "./ApplePushService";
+import { AuthService } from "./AuthService";
+import { FeeService } from "./FeeService";
 import { JupiterService } from "./JupiterService";
 import { SwapService } from "./SwapService";
 import { TransactionService } from "./TransactionService";
-import { FeeService } from "./FeeService";
-import { AuthService } from "./AuthService";
-import { AnalyticsService } from "./AnalyticsService";
 import { TransferService } from "./TransferService";
-import { env } from "../../bin/tub-server";
-import {
-  UserPrebuildSwapRequest,
-  PrebuildSwapResponse,
-  PrebuildSignedSwapResponse,
-  AppDwellTimeEvent,
-  LoadingTimeEvent,
-  TokenDwellTimeEvent,
-  TokenPurchaseOrSaleEvent,
-} from "../types";
-import { deriveTokenAccounts } from "../utils/tokenAccounts";
-import bs58 from "bs58";
-import { TOKEN_PROGRAM_PUBLIC_KEY } from "../constants/tokens";
-import { USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
-import { config } from "../utils/config";
-import { ConfigService } from "../services/ConfigService";
-import { PushService } from "./ApplePushService";
 
 /**
  * Service class handling token trading, swaps, and user operations

@@ -1,20 +1,20 @@
+import { createCloseAccountInstruction } from "@solana/spl-token";
 import {
+  AddressLookupTableAccount,
   Connection,
   Keypair,
   MessageV0,
   PublicKey,
+  TransactionConfirmationStatus,
   TransactionInstruction,
   TransactionMessage,
   VersionedTransaction,
-  AddressLookupTableAccount,
-  TransactionConfirmationStatus,
 } from "@solana/web3.js";
 import bs58 from "bs58";
-import { config } from "../utils/config";
 import { ATA_PROGRAM_PUBLIC_KEY, JUPITER_PROGRAM_PUBLIC_KEY, TOKEN_PROGRAM_PUBLIC_KEY } from "../constants/tokens";
-import { Config } from "./ConfigService";
-import { createCloseAccountInstruction } from "@solana/spl-token";
 import { SwapType } from "../types";
+import { config } from "../utils/config";
+import { Config } from "./ConfigService";
 
 export type TransactionRegistryEntry = {
   message: MessageV0;
