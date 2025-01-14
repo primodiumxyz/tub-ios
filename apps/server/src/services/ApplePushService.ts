@@ -37,14 +37,7 @@ export class PushService {
   private subscriptions: Map<string, { subscription: { unsubscribe: () => void }; subCount: number }> = new Map();
   private tokenPrice: Map<string, string> = new Map();
   private activityMutex = new Mutex();
-  private options = {
-    token: {
-      key: path.resolve(__dirname, `../keys/AuthKey.p8`),
-      keyId: env.APPLE_PUSH_KEY_ID,
-      teamId: env.APPLE_PUSH_TEAM_ID,
-    },
-    production: false,
-  };
+
   private readonly JWT_REFRESH_INTERVAL = 15 * 60 * 1000; // 15 minutes in ms
   private cachedJWT?: { token: string; timestamp: number };
 
@@ -278,7 +271,8 @@ export class PushService {
     }
 
     const jwt = this.generateJWT();
-    this.cachedJWT = { token: jwt, timestamp: Date.now() };
+
+    if (jwt) this.cachedJWT = { token: jwt, timestamp: Date.now() };
     return jwt;
   }
 
@@ -287,13 +281,18 @@ export class PushService {
    * @returns Newly generated JWT token
    */
   private generateJWT() {
-    const privateKey = fs.readFileSync(this.options.token.key);
-    const secondsSinceEpoch = Math.round(Date.now() / 1000);
-    const payload = {
-      iss: this.options.token.teamId,
-      iat: secondsSinceEpoch,
-    };
-    return jwt.sign(payload, privateKey, { algorithm: "ES256", keyid: this.options.token.keyId });
+    const keyPath = path.resolve(__dirname, `../keys/AuthKey.p8`);
+    try {
+      const privateKey = fs.readFileSync(keyPath);
+      const secondsSinceEpoch = Math.round(Date.now() / 1000);
+      const payload = {
+        iss: env.APPLE_PUSH_TEAM_ID,
+        iat: secondsSinceEpoch,
+      };
+      return jwt.sign(payload, privateKey, { algorithm: "ES256", keyid: env.APPLE_PUSH_KEY_ID });
+    } catch {
+      return undefined;
+    }
   }
 
   /**
@@ -303,6 +302,10 @@ export class PushService {
    */
   private async publishToApns(pushToken: string, json: object) {
     const jwt = await this.getJWTToken();
+    if (!jwt) {
+      console.error("Push Service: Failed to generate JWT token. Not pushing to APNS");
+      return;
+    }
 
     try {
       const buffer = Buffer.from(JSON.stringify(json));
