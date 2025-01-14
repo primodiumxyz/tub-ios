@@ -9,3 +9,8 @@ providers:
     editable: true
     options:
       path: /etc/grafana/provisioning/dashboards
+    allowUiUpdates: true
+
+dashboards:
+  - name: "k6-performance"
+    path: /etc/grafana/provisioning/dashboards/k6_dashboard.json

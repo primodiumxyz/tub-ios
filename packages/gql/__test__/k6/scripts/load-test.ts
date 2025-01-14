@@ -1,6 +1,6 @@
 import http from "k6/http";
 import { check, sleep } from "k6";
-import { Rate } from "k6/metrics";
+import { Rate, Trend } from "k6/metrics";
 import { SharedArray } from "k6/data";
 
 // Load test tokens
@@ -10,6 +10,8 @@ const tokens = new SharedArray("tokens", function () {
 
 // Custom metrics
 const errorRate = new Rate("errors");
+const queryTopTokens = new Trend("query_top_tokens");
+const queryTokenPrices = new Trend("query_token_prices");
 
 export const options = {
   stages: [
@@ -52,6 +54,7 @@ const QUERIES = {
 };
 
 export default function () {
+  const startTime = new Date().getTime();
   const headers = {
     "Content-Type": "application/json",
     "x-hasura-admin-secret": __ENV.HASURA_ADMIN_SECRET ?? "password",
@@ -77,6 +80,15 @@ export default function () {
   const response = http.post(__ENV.HASURA_URL ?? "http://localhost:8090/v1/graphql", JSON.stringify(payload), {
     headers,
   });
+
+  const duration = new Date().getTime() - startTime;
+
+  // Track query-specific metrics
+  if (queryType === "topTokens") {
+    queryTopTokens.add(duration);
+  } else {
+    queryTokenPrices.add(duration);
+  }
 
   // Check if request was successful
   const success = check(response, {
