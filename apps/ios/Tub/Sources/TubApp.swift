@@ -88,7 +88,6 @@ struct AppContent: View {
             case .connected:
                 
                 Task(priority: .low) {
-                    
                     try? await userModel.refreshTxs(hard: true)
                 }
                 Task(priority: .userInitiated) {

@@ -20,6 +20,11 @@ import os.log
     }
     
     func startLiveActivity(mint: String, tokenName: String, symbol: String, purchasePriceUsd: Double, buyAmountUsdc: Int) async throws {
+        guard ActivityAuthorizationInfo().areActivitiesEnabled else {
+            Logger().log("activities not enabled, skipping live activity")
+            return
+        }
+        
         try await stopLiveActivity()
         let attributes = TubActivityAttributes(
             tokenMint: mint,
@@ -46,8 +51,6 @@ import os.log
                     $0 + String(format: "%02x", $1)
                 }
                 
-                Logger().log("New push token: \(pushTokenString)")
-                
                 guard let deviceToken else { return }
                 
                 try await Network.shared.startLiveActivity(tokenId: mint, tokenPriceUsd: String(purchasePriceUsd), deviceToken: deviceToken, pushToken: pushTokenString)
@@ -57,7 +60,6 @@ import os.log
         }
 
         self.activity = activity
-        print("Started tracking purchase: \(String(describing: activity.id))")
     }
 
    func stopLiveActivity() async throws {

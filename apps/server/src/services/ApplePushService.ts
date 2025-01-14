@@ -196,10 +196,10 @@ export class PushService {
   }
 
   /**
-   * Sends a push notification for a specific user
-   * @param input - Push notification data
+   * Sends a push notification to update price information
+   * @param userId - User identifier
+   * @param input - Push notification data containing token and price information
    */
-
   private async sendUpdatePush(userId: string, input: PushItem) {
     const tokenPrice = this.tokenPrice.get(input.tokenMint);
     if (!tokenPrice || tokenPrice === input.lastPriceUsd) {
@@ -224,6 +224,10 @@ export class PushService {
     this.publishToApns(input.pushToken, json);
   }
 
+  /**
+   * Sends a final push notification when stopping live activity
+   * @param input - Push notification data containing token and price information
+   */
   private async sendEndPush(input: PushItem) {
     const tokenPrice = this.tokenPrice.get(input.tokenMint);
     if (!tokenPrice) return;
@@ -244,6 +248,10 @@ export class PushService {
     this.publishToApns(input.pushToken, json);
   }
 
+  /**
+   * Gets or creates an HTTP/2 session to Apple's push notification service
+   * @returns Active HTTP/2 client session
+   */
   private getSession(): http2.ClientHttp2Session {
     if (!this.session || this.session.destroyed) {
       this.session = http2.connect("https://api.sandbox.push.apple.com:443");
@@ -259,6 +267,10 @@ export class PushService {
     return this.session;
   }
 
+  /**
+   * Gets a cached JWT token or generates a new one if expired
+   * @returns Valid JWT token for APNS authentication
+   */
   private async getJWTToken() {
     const cachedJWT = this.cachedJWT;
     if (cachedJWT && Date.now() - cachedJWT.timestamp < this.JWT_REFRESH_INTERVAL) {
@@ -270,6 +282,10 @@ export class PushService {
     return jwt;
   }
 
+  /**
+   * Generates a new JWT token for APNS authentication
+   * @returns Newly generated JWT token
+   */
   private generateJWT() {
     const privateKey = fs.readFileSync(this.options.token.key);
     const secondsSinceEpoch = Math.round(Date.now() / 1000);
@@ -280,6 +296,11 @@ export class PushService {
     return jwt.sign(payload, privateKey, { algorithm: "ES256", keyid: this.options.token.keyId });
   }
 
+  /**
+   * Publishes a push notification to Apple's Push Notification Service (APNS)
+   * @param pushToken - Device-specific push token
+   * @param json - Payload to send in the push notification
+   */
   private async publishToApns(pushToken: string, json: object) {
     const jwt = await this.getJWTToken();
 

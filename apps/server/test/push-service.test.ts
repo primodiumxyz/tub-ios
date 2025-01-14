@@ -119,6 +119,7 @@ describe("PushService", () => {
         tokenMint,
         tokenPriceUsd: "1.0",
         deviceToken: "token1",
+        pushToken: "pushToken1",
       };
 
       await pushService.startLiveActivity(userId, input);
@@ -135,6 +136,7 @@ describe("PushService", () => {
         tokenMint,
         tokenPriceUsd: "1.0",
         deviceToken: "token1",
+        pushToken: "pushToken1",
       };
 
       await pushService.startLiveActivity(userId, input);
@@ -156,6 +158,7 @@ describe("PushService", () => {
         tokenMint,
         initialPriceUsd: "1.0",
         deviceToken: "token1",
+        pushToken: "pushToken1",
         timestamp: Date.now(),
       });
 
@@ -180,6 +183,7 @@ describe("PushService", () => {
       tokenMint,
       tokenPriceUsd: "1.0",
       deviceToken: "token1",
+      pushToken: "pushToken1",
     };
 
     await pushService.startLiveActivity(userId, input);

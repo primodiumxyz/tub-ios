@@ -45,12 +45,12 @@ struct BuyFormView: View {
         } 
         Task {
             do {
-//                try await TxManager.shared.buyToken(
-//                    tokenId: tokenModel.tokenId,
-//                    buyAmountUsdc: amountUsdc,
-//                    tokenPriceUsdc: priceUsdc
-//                )
-//                
+                try await TxManager.shared.buyToken(
+                    tokenId: tokenModel.tokenId,
+                    buyAmountUsdc: amountUsdc,
+                    tokenPriceUsdc: priceUsdc
+                )
+
                 if let tokenData = userModel.tokenData[tokenModel.tokenId] {
                     try await activityManager.startLiveActivity(
                         mint: tokenModel.tokenId,

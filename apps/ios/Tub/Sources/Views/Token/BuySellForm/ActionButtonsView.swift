@@ -15,7 +15,6 @@ struct ActionButtonsView: View {
     
     @State var showBuySheet = false
     @StateObject private var settingsManager = SettingsManager.shared
-    @State private var isLoginPresented = false
     @StateObject private var activityManager = LiveActivityManager.shared
 
 
@@ -48,9 +47,9 @@ struct ActionButtonsView: View {
 
         Task {
             do {
-//                try await TxManager.shared.buyToken(
-//                    tokenId: tokenModel.tokenId, buyAmountUsdc: buyAmountUsdc, tokenPriceUsdc: priceUsdc
-//                )
+                try await TxManager.shared.buyToken(
+                    tokenId: tokenModel.tokenId, buyAmountUsdc: buyAmountUsdc, tokenPriceUsdc: priceUsdc
+                )
                                 
                 if let tokenData = userModel.tokenData[tokenModel.tokenId] {
                     try await activityManager.startLiveActivity(

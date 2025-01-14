@@ -86,10 +86,7 @@ class Network {
       throw TubError.serverError(reason: errorResponse.error.message)
     }
 
-
     // If it's not an error, proceed with normal decoding
-    // first print the data
-    print("\(mutation) Data: \(String(data: data, encoding: .utf8) ?? "No data")")
 
     do {
       let decodedResponse = try JSONDecoder().decode(ResponseWrapper<T>.self, from: data)

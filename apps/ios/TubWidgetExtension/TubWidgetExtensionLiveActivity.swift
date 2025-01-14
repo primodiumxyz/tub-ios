@@ -9,12 +9,17 @@ import ActivityKit
 import SwiftUI
 import WidgetKit
 
+enum GainType {
+    case up
+    case down
+    case right
+}
+
 struct TubWidgetExtensionLiveActivity: Widget {
     
     var body: some WidgetConfiguration {
         
         ActivityConfiguration<TubActivityAttributes>(for: TubActivityAttributes.self) { context in
-            // Lock screen/banner UI
             LockScreenLiveActivityView(context: context)
         } dynamicIsland: { context in
             
@@ -25,9 +30,10 @@ struct TubWidgetExtensionLiveActivity: Widget {
                 return (absGain, pctGain * 100 - 100)
             }
             
-            var gainType: String {
-                return gain.absGain >= 0.01 ? "up" : gain.absGain <= -0.01 ? "down" : "right"
+            var gainType: GainType {
+                return gain.absGain >= 0.01 ? .up : gain.absGain <= -0.01 ? .down : .right
             }
+
             return DynamicIsland {
                 DynamicIslandExpandedRegion(.leading, priority: 1) {
                     VStack(alignment: .leading, spacing: 2) {
@@ -50,20 +56,20 @@ struct TubWidgetExtensionLiveActivity: Widget {
                 DynamicIslandExpandedRegion(.trailing) {
                     VStack(alignment: .trailing, spacing: 2) {
                         Text(
-                            "\(gainType == "up" ? "+" : gainType == "down" ? "-" : "")\(String(format: gain.absGain >= 100 ? "$%.0f" : "$%.2f", abs(gain.absGain)))"
+                            "\(gainType == .up ? "+" : gainType == .down ? "-" : "")\(String(format: gain.absGain >= 100 ? "$%.0f" : "$%.2f", abs(gain.absGain)))"
                         )
                         .font(.title3)
                         .fontWeight(.semibold)
                         .foregroundStyle(
-                            gainType == "up" ? .tubSuccess : gainType == "down" ? .tubError : .gray
+                            gainType == .up ? .tubSuccess : gainType == .down ? .tubError : .gray
                         )
                         Text(
-                            "\(gainType == "up" ? "+" : gainType == "down" ? "-" : "")\(String(format: "%.1f%%", abs(gain.pctGain)))"
+                            "\(gainType == .up ? "+" : gainType == .down ? "-" : "")\(String(format: "%.1f%%", abs(gain.pctGain)))"
                         )
                         .font(.caption)
                         .fontWeight(.semibold)
                         .foregroundStyle(
-                            gainType == "up" ? .tubSuccess : gainType == "down" ? .tubError : .gray
+                            gainType == .up ? .tubSuccess : gainType == .down ? .tubError : .gray
                         )
                             .opacity(0.7)
                     }.padding(12)
@@ -78,19 +84,19 @@ struct TubWidgetExtensionLiveActivity: Widget {
                     .padding(.leading, 8)
             } compactTrailing: {
                 Text(
-                    "\(gainType == "up" ? "+" : gainType == "down" ? "-" : "")\(String(format: gain.absGain >= 100 ? "$%.0f" : "$%.2f", abs(gain.absGain)))"
+                    "\(gainType == .up ? "+" : gainType == .down ? "-" : "")\(String(format: gain.absGain >= 100 ? "$%.0f" : "$%.2f", abs(gain.absGain)))"
                 )
                 .font(.caption2)
                 .foregroundStyle(
-                    gainType == "up" ? .tubSuccess : gainType == "down" ? .tubError : .gray)
+                    gainType == .up ? .tubSuccess : gainType == .down ? .tubError : .gray)
             } minimal: {
                 Image(
-                    systemName: gainType == "up"
-                    ? "arrow.up" : gainType == "down" ? "arrow.down" : "arrow.right"
+                    systemName: gainType == .up
+                    ? "arrow.up" : gainType == .down ? "arrow.down" : "arrow.right"
                 )
                 .font(.caption2)
                 .foregroundStyle(
-                    gainType == "up" ? .tubSuccess : gainType == "down" ? .tubError : .gray)
+                    gainType == .up ? .tubSuccess : gainType == .down ? .tubError : .gray)
             }
         }
     }
@@ -106,8 +112,8 @@ struct LockScreenLiveActivityView: View {
         return (pctGain * buyAmountUsd) - buyAmountUsd
     }
     
-    var gainType: String {
-        return gain >= 0.01 ? "up" : gain <= -0.01 ? "down" : "right"
+    var gainType: GainType {
+        return gain >= 0.01 ? .up : gain <= -0.01 ? .down : .right
     }
     var body: some View {
         HStack {
@@ -127,11 +133,11 @@ struct LockScreenLiveActivityView: View {
                     .bold()
             } icon: {
                 Image(
-                    systemName: gainType == "up"
+                    systemName: gainType == .up
                     ? "arrow.up.circle.fill"
-                    : gainType == "down" ? "arrow.down.circle.fill" : "arrow.right.circle.fill"
+                    : gainType == .down ? "arrow.down.circle.fill" : "arrow.right.circle.fill"
                 )
-                .foregroundStyle(gainType == "up" ? .tubSuccess : gainType == "down" ? .tubError : .gray)
+                .foregroundStyle(gainType == .up ? .tubSuccess : gainType == .down ? .tubError : .gray)
             }
         }
         .padding(.horizontal, 16)
