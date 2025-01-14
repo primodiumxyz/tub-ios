@@ -3,6 +3,19 @@ import { check, sleep } from "k6";
 import { Rate, Trend } from "k6/metrics";
 import { SharedArray } from "k6/data";
 
+// Stages for stress testing
+const STRESS_STAGES = [
+  { duration: "30s", target: 1000 }, // Ramp up to 1,000 users over 30 seconds
+  { duration: "1m", target: 1000 }, // Stay at 1,000 users
+  { duration: "30s", target: 0 }, // Ramp down to 0 users over 30 seconds
+];
+
+// Thresholds for stress testing
+const STRESS_THRESHOLDS = {
+  http_req_duration: ["p(95)<500"], // 95% of requests must complete below 500ms
+  errors: ["rate<0.1"], // Error rate must be less than 10%
+};
+
 // Load test tokens
 const tokens = new SharedArray("tokens", function () {
   return JSON.parse(open("../output/tokens.json"));
@@ -14,15 +27,8 @@ const queryTopTokens = new Trend("query_top_tokens");
 const queryTokenPrices = new Trend("query_token_prices");
 
 export const options = {
-  stages: [
-    { duration: "30s", target: 10 }, // Ramp up
-    { duration: "1m", target: 10 }, // Stay at 10 users
-    { duration: "30s", target: 0 }, // Ramp down
-  ],
-  thresholds: {
-    http_req_duration: ["p(95)<500"], // 95% of requests must complete below 500ms
-    errors: ["rate<0.1"], // Error rate must be less than 10%
-  },
+  stages: STRESS_STAGES,
+  thresholds: STRESS_THRESHOLDS,
 };
 
 const QUERIES = {

@@ -1,7 +1,7 @@
 import { insertMockTradeHistory } from "../../lib/mock";
 import { createClientNoCache } from "../../lib/common";
 import fs from "fs";
-import { DEFAULT_TRADES_AMOUNT, DEFAULT_START_DATE } from "../config";
+import { TRADES_AMOUNT, START_DATE } from "../config";
 
 const seed = async () => {
   console.log("Starting seed process...");
@@ -9,8 +9,8 @@ const seed = async () => {
 
   // Insert mock trade history
   await insertMockTradeHistory(client, {
-    count: DEFAULT_TRADES_AMOUNT,
-    from: DEFAULT_START_DATE,
+    count: TRADES_AMOUNT,
+    from: START_DATE,
     onProgress: (inserted, total) => {
       console.log(`Seeding progress: ${((inserted / total) * 100).toFixed(2)}%`);
     },
