@@ -7,7 +7,7 @@ services:
     environment:
       - INFLUXDB_DB=k6
     volumes:
-      - ./results/influxdb:/var/lib/influxdb
+      - ./output/influxdb:/var/lib/influxdb
 
   grafana:
     image: grafana/grafana:latest

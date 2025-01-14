@@ -1,19 +1,16 @@
-import { insertMockTradeHistory } from "../../lib/seed";
+import { insertMockTradeHistory } from "../../lib/mock";
 import { createClientNoCache } from "../../lib/common";
 import fs from "fs";
-import path from "path";
+import { DEFAULT_TRADES_AMOUNT, DEFAULT_START_DATE } from "../config";
 
-const MOCK_TRADES = 1_000_000;
-const HISTORY_WINDOW = 30 * 60 * 1000; // 30 minutes
-
-async function seed() {
+const seed = async () => {
   console.log("Starting seed process...");
   const client = await createClientNoCache();
 
   // Insert mock trade history
   await insertMockTradeHistory(client, {
-    count: MOCK_TRADES,
-    from: new Date(Date.now() - HISTORY_WINDOW),
+    count: DEFAULT_TRADES_AMOUNT,
+    from: DEFAULT_START_DATE,
     onProgress: (inserted, total) => {
       console.log(`Seeding progress: ${((inserted / total) * 100).toFixed(2)}%`);
     },
@@ -34,15 +31,19 @@ async function seed() {
   console.log(`Found ${tokens.length} tokens for testing`);
 
   // Save tokens for k6 tests
-  const outputPath = path.join(__dirname, "../results/tokens.json");
+  const outputPath = "./__test__/k6/output/tokens.json";
   fs.writeFileSync(outputPath, JSON.stringify(tokens, null, 2));
   console.log(`Tokens saved to ${outputPath}`);
 
   return tokens;
-}
+};
 
 seed()
   .then(() => {
-    console.log("Seed process completed successfully");
+    console.log("Mock data inserted & tokens saved");
+    process.exit(0);
   })
-  .catch(console.error);
+  .catch((e) => {
+    console.error("Error inserting mock data", e);
+    process.exit(1);
+  });

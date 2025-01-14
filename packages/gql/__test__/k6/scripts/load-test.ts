@@ -5,7 +5,7 @@ import { SharedArray } from "k6/data";
 
 // Load test tokens
 const tokens = new SharedArray("tokens", function () {
-  return JSON.parse(open("../results/tokens.json"));
+  return JSON.parse(open("../output/tokens.json"));
 });
 
 // Custom metrics
@@ -81,7 +81,8 @@ export default function () {
   // Check if request was successful
   const success = check(response, {
     "is status 200": (r) => r.status === 200,
-    "no errors": (r) => !r.json().errors,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    "no errors": (r) => !(r.json() as any).errors,
   });
 
   if (!success) {
