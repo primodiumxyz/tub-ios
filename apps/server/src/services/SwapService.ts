@@ -19,7 +19,11 @@ export class SwapService {
     private connection: Connection,
   ) {}
 
-  async buildSwapResponse(request: ActiveSwapRequest, cfg: Config): Promise<PrebuildSwapResponse> {
+  async buildSwapResponse(
+    request: ActiveSwapRequest,
+    cfg: Config,
+    priorBuildAttempts: number = 0,
+  ): Promise<PrebuildSwapResponse> {
     if (!request.sellTokenAccount) {
       throw new Error("Sell token account is required but was not provided");
     }
@@ -82,86 +86,98 @@ export class SwapService {
       asLegacyTransaction: false,
     };
 
-    const {
-      instructions: swapInstructions,
-      addressLookupTableAccounts,
-      quote,
-    } = await this.jupiter.getSwapInstructions(swapInstructionRequest, request.userPublicKey);
-    console.log("Quoted auto slippage", quote.computedAutoSlippage);
-    console.log("Quoted slippage bps", quote.slippageBps);
-    console.log("Quoted outAmount", quote.outAmount);
-    console.log("Quote Slot Context", quote.contextSlot);
+    // TODO: config for max build attempts
+    const MAX_BUILD_ATTEMPTS = 3;
 
-    if (!swapInstructions?.length) {
-      throw new Error("No swap instruction received");
+    // Where rebuilding occurs
+    for (let buildAttempt = priorBuildAttempts + 1; buildAttempt < MAX_BUILD_ATTEMPTS + 1; buildAttempt++) {
+      try {
+        const {
+          instructions: swapInstructions,
+          addressLookupTableAccounts,
+          quote,
+        } = await this.jupiter.getSwapInstructions(swapInstructionRequest, request.userPublicKey);
+        console.log("Quoted auto slippage", quote.computedAutoSlippage);
+        console.log("Quoted slippage bps", quote.slippageBps);
+        console.log("Quoted outAmount", quote.outAmount);
+        console.log("Quote Slot Context", quote.contextSlot);
+
+        if (!swapInstructions?.length) {
+          throw new Error("No swap instruction received");
+        }
+
+        let feeTransferInstruction: TransactionInstruction | null = null;
+
+        // Create fee transfer instruction
+        if (swapType === SwapType.BUY) {
+          feeTransferInstruction = this.feeService.createFeeTransferInstruction(
+            request.sellTokenAccount,
+            request.userPublicKey,
+            buyFeeAmount,
+          );
+        } else if (swapType === SwapType.SELL_ALL || swapType === SwapType.SELL_PARTIAL) {
+          const sellFeeAmount = this.feeService.calculateFeeAmount(Number(quote.outAmount), swapType, cfg);
+          feeTransferInstruction = this.feeService.createFeeTransferInstruction(
+            request.buyTokenAccount,
+            request.userPublicKey,
+            sellFeeAmount,
+          );
+        } else {
+          throw new Error("Invalid swap type");
+        }
+
+        const organizedInstructions = this.organizeInstructions(
+          swapInstructions,
+          feeTransferInstruction,
+          tokenCloseInstruction,
+        );
+
+        // Reassign rent payer in instructions
+        const rentReassignedInstructions = this.transactionService.reassignRentInstructions(organizedInstructions);
+
+        // estimate compute budget
+        const optimizedInstructions = await this.transactionService.optimizeComputeInstructions(
+          rentReassignedInstructions,
+          addressLookupTableAccounts,
+          quote.contextSlot ?? 0,
+          cfg,
+        );
+
+        // Build transaction message
+        const message = await this.transactionService.buildTransactionMessage(
+          optimizedInstructions,
+          addressLookupTableAccounts,
+        );
+
+        // Register transaction
+        const base64Message = this.transactionService.registerTransaction(
+          message,
+          swapType,
+          slippageSettings.autoSlippage,
+          quote.contextSlot ?? 0,
+        );
+
+        const response: PrebuildSwapResponse = {
+          transactionMessageBase64: base64Message,
+          ...request,
+          hasFee: !!feeTransferInstruction,
+          timestamp: Date.now(),
+        };
+
+        return response;
+      } catch (error) {
+        console.log("Swap build attempt" + buildAttempt + " failed: " + JSON.stringify(error));
+        // TODO: interpret error before retrying to validate if slippage issue
+
+        if (buildAttempt >= MAX_BUILD_ATTEMPTS || !slippageSettings.autoSlippage) {
+          throw new Error(JSON.stringify(error));
+        }
+        continue; // try again in next loop
+      }
     }
 
-    let feeTransferInstruction: TransactionInstruction | null = null;
-
-    // Create fee transfer instruction
-    if (swapType === SwapType.BUY) {
-      feeTransferInstruction = this.feeService.createFeeTransferInstruction(
-        request.sellTokenAccount,
-        request.userPublicKey,
-        buyFeeAmount,
-      );
-    } else if (swapType === SwapType.SELL_ALL || swapType === SwapType.SELL_PARTIAL) {
-      const sellFeeAmount = this.feeService.calculateFeeAmount(Number(quote.outAmount), swapType, cfg);
-      feeTransferInstruction = this.feeService.createFeeTransferInstruction(
-        request.buyTokenAccount,
-        request.userPublicKey,
-        sellFeeAmount,
-      );
-    } else {
-      throw new Error("Invalid swap type");
-    }
-
-    const organizedInstructions = this.organizeInstructions(
-      swapInstructions,
-      feeTransferInstruction,
-      tokenCloseInstruction,
-    );
-
-    // Reassign rent payer in instructions
-    const rentReassignedInstructions = this.transactionService.reassignRentInstructions(organizedInstructions);
-
-    // estimate compute budget
-    let optimizedInstructions: TransactionInstruction[];
-    try {
-      optimizedInstructions = await this.transactionService.optimizeComputeInstructions(
-        rentReassignedInstructions,
-        addressLookupTableAccounts,
-        quote.contextSlot ?? 0,
-        cfg,
-      );
-    } catch (error) {
-      console.log("Compute Unit Optimization failed: " + JSON.stringify(error));
-      // TODO: error handling and retry
-      throw new Error(JSON.stringify(error));
-    }
-
-    // Build transaction message
-    const message = await this.transactionService.buildTransactionMessage(
-      optimizedInstructions,
-      addressLookupTableAccounts,
-    );
-
-    // Register transaction
-    const base64Message = this.transactionService.registerTransaction(
-      message,
-      swapType,
-      slippageSettings.autoSlippage,
-      quote.contextSlot ?? 0,
-    );
-
-    const response: PrebuildSwapResponse = {
-      transactionMessageBase64: base64Message,
-      ...request,
-      hasFee: !!feeTransferInstruction,
-      timestamp: Date.now(),
-    };
-
-    return response;
+    // Should never reach here, just satisfying typescript linter
+    throw new Error("Swap build failed after " + MAX_BUILD_ATTEMPTS + " attempts");
   }
 
   private async determineSwapType(request: ActiveSwapRequest): Promise<SwapType> {
