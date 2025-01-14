@@ -29,7 +29,6 @@ private var installationSource: InstallationSource {
     if let ret, ret == .xcode { return ret }
     if let receiptUrl = Bundle.main.appStoreReceiptURL {
         let path = receiptUrl.path
-        print("Receipt URL: \(receiptUrl)")
         
         if path.contains("sandboxReceipt") {
             return .testFlight
