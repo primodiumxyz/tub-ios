@@ -31,7 +31,7 @@
     "db:remote:apply-migrations": "dotenvx run -f ./../../.env --quiet -- sh -c 'hasura migrate apply --endpoint \"$HASURA_URL\" --admin-secret \"$HASURA_ADMIN_SECRET\"'",
     "db:remote:apply-metadata": "dotenvx run -f ./../../.env --quiet -- sh -c 'hasura metadata apply --endpoint \"$HASURA_URL\" --admin-secret \"$HASURA_ADMIN_SECRET\"'",
     "test": "vitest run unit",
-    "benchmark": "pnpm tsx ./__test__/benchmarks/prepare.ts && vitest run benchmarks",
+    "benchmark": "pnpm tsx ./__test__/lib/seed.ts && vitest run benchmarks",
     "test:watch": "vitest unit",
     "test:coverage": "vitest run unit --coverage",
     "start:cache": "tsx src/cache/server.ts"

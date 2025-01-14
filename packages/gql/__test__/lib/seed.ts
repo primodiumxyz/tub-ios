@@ -1,6 +1,6 @@
 import { GqlClient } from "../../src/index";
-import { createClientNoCache, toPgComposite } from "../lib/common";
-import { DEFAULT_TRADES_AMOUNT, DEFAULT_START_DATE } from "./config";
+import { createClientNoCache, toPgComposite } from "./common";
+import { DEFAULT_TRADES_AMOUNT, DEFAULT_START_DATE } from "../benchmarks/config";
 
 /* -------------------------------------------------------------------------- */
 /*                                    UTILS                                   */
