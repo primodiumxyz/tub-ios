@@ -34,7 +34,13 @@
     "benchmark": "pnpm tsx ./__test__/lib/seed.ts && vitest run benchmarks",
     "test:watch": "vitest unit",
     "test:coverage": "vitest run unit --coverage",
-    "start:cache": "tsx src/cache/server.ts"
+    "start:cache": "tsx src/cache/server.ts",
+    "k6:seed": "tsx __test__/k6/scripts/seed.ts",
+    "k6:start": "cd __test__/k6 && docker-compose -f docker-compose.k6.yml up -d",
+    "k6:run": "k6 run __test__/k6/scripts/load-test.ts",
+    "k6:stop": "cd __test__/k6 && docker-compose -f docker-compose.k6.yml down --remove-orphans --volumes",
+    "k6:clean": "rm -rf __test__/k6/results/*",
+    "k6:analyze": "trap 'pnpm k6:stop && pnpm k6:clean' SIGINT; pnpm k6:seed && pnpm k6:start && pnpm k6:run"
   },
   "keywords": [],
   "author": "",
@@ -52,6 +58,7 @@
   },
   "devDependencies": {
     "@solana/web3.js": "^1.95.2",
+    "@types/k6": "^0.54.2",
     "@types/node": "^22.7.0",
     "@types/ws": "^8.5.12",
     "@vitest/coverage-v8": "^0.34.0",
