@@ -1,9 +1,9 @@
-import { env } from "@bin/tub-server";
 import { GqlClient } from "@tub/gql";
 import { Mutex } from "async-mutex";
 import http2 from "http2";
 import jwt from "jsonwebtoken";
 import { Config } from "./ConfigService";
+import { env } from "../../bin/tub-server";
 
 /**
  * Data structure for tracking push notification state
