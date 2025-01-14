@@ -21,7 +21,7 @@ export const useTokens = (
   return useMemo(
     () => ({
       tokens:
-        tokensRes.data?.token_stats_interval_comp.map((t) => ({
+        tokensRes.data?.token_stats_interval_cache.map((t) => ({
           mint: t.token_mint,
           name: t.token_metadata_name,
           symbol: t.token_metadata_symbol,

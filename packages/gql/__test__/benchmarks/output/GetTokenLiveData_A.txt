@@ -4,35 +4,35 @@
 
 🔍 Warm cache hit
 ----------------------------------------
-Average Response Time: 1.94ms
-95th Percentile:       2.92ms
-Min Response Time:     1.27ms
-Max Response Time:     5.33ms
-Standard Deviation:    0.59ms
+Average Response Time: 2.27ms
+95th Percentile:       5.48ms
+Min Response Time:     1.18ms
+Max Response Time:     20.86ms
+Standard Deviation:    2.66ms
 
 🔍 Direct Hasura hit
 ----------------------------------------
-Average Response Time: 4.12ms
-95th Percentile:       7.47ms
-Min Response Time:     1.45ms
-Max Response Time:     104.14ms
-Standard Deviation:    10.81ms
+Average Response Time: 2.73ms
+95th Percentile:       6.40ms
+Min Response Time:     1.54ms
+Max Response Time:     7.59ms
+Standard Deviation:    1.48ms
 
 🔍 Bypassing cache
 ----------------------------------------
-Average Response Time: 5.66ms
-95th Percentile:       13.46ms
-Min Response Time:     2.43ms
-Max Response Time:     16.79ms
-Standard Deviation:    3.81ms
+Average Response Time: 3.45ms
+95th Percentile:       6.44ms
+Min Response Time:     2.19ms
+Max Response Time:     8.02ms
+Standard Deviation:    1.29ms
 
 🔍 Cold cache hit
 ----------------------------------------
-Average Response Time: 5.76ms
-95th Percentile:       12.29ms
-Min Response Time:     2.62ms
-Max Response Time:     34.34ms
-Standard Deviation:    4.47ms
+Average Response Time: 5.98ms
+95th Percentile:       10.53ms
+Min Response Time:     3.49ms
+Max Response Time:     34.90ms
+Standard Deviation:    4.40ms
 
 ⚡ Performance Impact:
 --------------------------------------------------------------------------------
@@ -42,29 +42,29 @@ Compared to Direct Hasura hit:
 --------------------------------------------------------------------------------
 Metric               │ Difference     │ Percentage
 --------------------------------------------------------------------------------
-Average Response    │ +2.19        │ +112.9   %
-95th Percentile     │ +4.55        │ +155.7   %
-Min Response        │ +0.18        │ +13.7    %
-Max Response        │ +98.81       │ +1854.0  %
-Standard Deviation  │ +10.23       │ +1739.1  %
+Average Response    │ +0.47        │ +20.5    %
+95th Percentile     │ +0.92        │ +16.8    %
+Min Response        │ +0.36        │ +30.3    %
+Max Response        │ +-13.27      │ +-63.6   %
+Standard Deviation  │ +-1.18       │ +-44.5   %
 
 Compared to Bypassing cache:
 --------------------------------------------------------------------------------
 Metric               │ Difference     │ Percentage
 --------------------------------------------------------------------------------
-Average Response    │ +3.72        │ +192.2   %
-95th Percentile     │ +10.54       │ +360.7   %
-Min Response        │ +1.15        │ +90.7    %
-Max Response        │ +11.46       │ +215.0   %
-Standard Deviation  │ +3.22        │ +548.2   %
+Average Response    │ +1.19        │ +52.3    %
+95th Percentile     │ +0.96        │ +17.6    %
+Min Response        │ +1.01        │ +85.5    %
+Max Response        │ +-12.84      │ +-61.6   %
+Standard Deviation  │ +-1.37       │ +-51.6   %
 
 Compared to Cold cache hit:
 --------------------------------------------------------------------------------
 Metric               │ Difference     │ Percentage
 --------------------------------------------------------------------------------
-Average Response    │ +3.82        │ +197.4   %
-95th Percentile     │ +9.36        │ +320.5   %
-Min Response        │ +1.35        │ +106.0   %
-Max Response        │ +29.01       │ +544.4   %
-Standard Deviation  │ +3.89        │ +661.1   %
+Average Response    │ +3.72        │ +164.0   %
+95th Percentile     │ +5.05        │ +92.2    %
+Min Response        │ +2.31        │ +195.5   %
+Max Response        │ +14.03       │ +67.3    %
+Standard Deviation  │ +1.74        │ +65.3    %
 

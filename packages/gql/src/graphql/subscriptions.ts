@@ -3,7 +3,7 @@ import { graphql } from "./init";
 // Dashboard
 export const GetTopTokensByVolumeSubscription = graphql(`
   subscription SubTopTokensByVolume($interval: interval = "30m", $recentInterval: interval = "20s") {
-    token_stats_interval_comp(
+    token_stats_interval_cache(
       args: { interval: $interval, recent_interval: $recentInterval }
       where: { token_metadata_is_pump_token: { _eq: true } }
       order_by: { total_volume_usd: desc }

@@ -192,7 +192,7 @@ final class TokenListModel: ObservableObject {
                 result in
                 switch result {
                 case .success(let graphQLResult):
-                    if let tokens = graphQLResult.data?.token_stats_interval_comp {
+                    if let tokens = graphQLResult.data?.token_stats_interval_cache {
                         let tokenIds = tokens.map { elem in elem.token_mint }
                         continuation.resume(returning: tokenIds)
                     } else {
