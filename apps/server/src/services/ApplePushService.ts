@@ -2,9 +2,8 @@ import { GqlClient } from "@tub/gql";
 import { Mutex } from "async-mutex";
 import http2 from "http2";
 import jwt from "jsonwebtoken";
-import { Config } from "./ConfigService";
 import { env } from "../../bin/tub-server";
-
+import { config } from "../utils/config";
 /**
  * Data structure for tracking push notification state
  */
@@ -23,7 +22,6 @@ type PushItem = {
  * Handles subscription lifecycle and batched push notification delivery
  */
 export class PushService {
-  private config: Config;
   private pushRegistry: Map<string, PushItem> = new Map();
   private gqlClient: GqlClient["db"];
 
@@ -38,10 +36,8 @@ export class PushService {
   /**
    * Creates a new PushService instance
    * @param args.gqlClient - GraphQL client for price subscriptions
-   * @param args.config - Service configuration
    */
-  constructor(args: { gqlClient: GqlClient["db"]; config: Config }) {
-    this.config = args.config;
+  constructor(args: { gqlClient: GqlClient["db"] }) {
     this.gqlClient = args.gqlClient;
 
     if (!env.APPLE_AUTHKEY) {
@@ -56,8 +52,9 @@ export class PushService {
    */
   private async cleanupRegistry() {
     const now = Date.now();
+    const { PUSH_REGISTRY_TIMEOUT_MS } = await config();
     for (const [key, value] of this.pushRegistry.entries()) {
-      if (now - value.timestamp > this.config.PUSH_REGISTRY_TIMEOUT_MS) {
+      if (now - value.timestamp > PUSH_REGISTRY_TIMEOUT_MS) {
         this.pushRegistry.delete(key);
         this.cleanSubscription(value.tokenMint);
       }
@@ -168,8 +165,9 @@ export class PushService {
    */
   private initializePushes(): void {
     (async () => {
-      setInterval(() => this.cleanupRegistry(), this.config.PUSH_CLEANUP_INTERVAL_MS);
-      setInterval(() => this.sendAllPushes(), this.config.PUSH_SEND_INTERVAL_MS);
+      const { PUSH_CLEANUP_INTERVAL_MS, PUSH_SEND_INTERVAL_MS } = await config();
+      setInterval(() => this.cleanupRegistry(), PUSH_CLEANUP_INTERVAL_MS);
+      setInterval(() => this.sendAllPushes(), PUSH_SEND_INTERVAL_MS);
     })();
   }
 

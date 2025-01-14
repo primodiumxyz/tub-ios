@@ -71,7 +71,7 @@ export class TubService {
     const validatedTradeFeeRecipient = await this.validateTradeFeeRecipient();
 
     // initialize config service first since other services might need it
-    const config = await ConfigService.getInstance();
+    await ConfigService.getInstance();
 
     // Initialize fee payer
     const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY));
@@ -85,7 +85,7 @@ export class TubService {
     this.analyticsService = new AnalyticsService(this.gqlClient);
     this.transferService = new TransferService(this.connection, feePayerKeypair, this.transactionService);
 
-    this.pushService = new PushService({ gqlClient: this.gqlClient, config: config.getConfig() });
+    this.pushService = new PushService({ gqlClient: this.gqlClient });
   }
 
   /**
