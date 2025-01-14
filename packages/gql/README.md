@@ -128,6 +128,15 @@ For coverage:
 pnpm test:coverage
 ```
 
+### Benchmarking
+
+Results are stored in `__test__/benchmarks/output/`.
+
+```bash
+pnpm dev:ci
+pnpm benchmark # this will seed the database with `n` trades (see `__test__/benchmarks/config.ts`) and run the benchmarks
+```
+
 ### Working with Hasura
 
 Hasura migrations and metadata are two key components that work together to manage your Hasura project's state and schema. The local console, accessed through the Hasura CLI, provides a user-friendly interface to interact with these components. Here's how they work together:
