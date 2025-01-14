@@ -75,7 +75,7 @@ export default function () {
       queryType === "tokenPrices"
         ? {
             token: tokens[Math.floor(Math.random() * tokens.length)],
-            since: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // Last 30 minutes
+            since: new Date(Date.now() - 30 * 1000).toISOString(), // Last 30 seconds
           }
         : {
             interval: "30m",

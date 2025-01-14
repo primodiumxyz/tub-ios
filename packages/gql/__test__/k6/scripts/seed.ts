@@ -1,7 +1,11 @@
 import { insertMockTradeHistory } from "../../lib/mock";
 import { createClientNoCache } from "../../lib/common";
 import fs from "fs";
-import { TRADES_AMOUNT, START_DATE } from "../config";
+
+// Amount of trades to generate when seeding
+const TRADES_AMOUNT = 900_000; // ~500 trades per second
+// Period over which trades are generated
+const START_DATE = new Date(Date.now() - 30 * 60 * 1000); // 30 minutes ago
 
 const seed = async () => {
   console.log("Starting seed process...");
