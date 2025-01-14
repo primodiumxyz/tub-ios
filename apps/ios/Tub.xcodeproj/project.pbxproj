@@ -824,7 +824,7 @@
 				CODE_SIGN_ENTITLEMENTS = Tub/Tub.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1.5.0.3;
+				CURRENT_PROJECT_VERSION = 1.5.0.4;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Tub/Preview Content\"";
 				DEVELOPMENT_TEAM = YQ22J47VA8;
@@ -870,7 +870,7 @@
 				CODE_SIGN_ENTITLEMENTS = Tub/TubRelease.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1.5.0.3;
+				CURRENT_PROJECT_VERSION = 1.5.0.4;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Tub/Preview Content\"";
 				DEVELOPMENT_TEAM = YQ22J47VA8;
