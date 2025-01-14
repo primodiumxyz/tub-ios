@@ -181,18 +181,11 @@ export class TransactionService {
 
     try {
       console.log("Signature Verification + Slippage Simulation");
-      let simulation: RpcResponseAndContext<SimulatedTransactionResponse>;
 
-      // retrying, not rebuilding
-      try {
-        simulation = await this.simulateAndRetryTransaction(transaction, entry.contextSlot, true, false);
-        if (simulation.value?.err) {
-          throw new Error(JSON.stringify(simulation.value.err));
-        }
-      } catch (error) {
-        console.log("Local tx sim failed: " + JSON.stringify(error));
-        // TODO: error handling and retry
-        throw new Error(JSON.stringify(error));
+      // resimulating, not rebuilding
+      const simulation = await this.simulateTransactionWithResim(transaction, entry.contextSlot, true, false);
+      if (simulation.value?.err) {
+        throw new Error(JSON.stringify(simulation.value.err));
       }
 
       // Send and confirm transaction
@@ -236,8 +229,8 @@ export class TransactionService {
     }
 
     let confirmation = null;
-    for (let attempt = 0; attempt < cfg.RETRY_ATTEMPTS; attempt++) {
-      console.log(`Tx Confirmation Attempt ${attempt + 1} of ${cfg.RETRY_ATTEMPTS}`);
+    for (let attempt = 0; attempt < cfg.CONFIRM_ATTEMPTS; attempt++) {
+      console.log(`Tx Confirmation Attempt ${attempt + 1} of ${cfg.CONFIRM_ATTEMPTS}`);
       try {
         const status = await this.connection.getSignatureStatus(txid, {
           searchTransactionHistory: true,
@@ -251,10 +244,10 @@ export class TransactionService {
         }
       } catch (error) {
         console.log(`Attempt ${attempt + 1} failed:`, error);
-        if (attempt === cfg.RETRY_ATTEMPTS - 1)
-          throw new Error(`Failed to get transaction confirmation after ${cfg.RETRY_ATTEMPTS} attempts`);
+        if (attempt === cfg.CONFIRM_ATTEMPTS - 1)
+          throw new Error(`Failed to get transaction confirmation after ${cfg.CONFIRM_ATTEMPTS} attempts`);
       }
-      await new Promise((resolve) => setTimeout(resolve, cfg.RETRY_DELAY)); // Wait 1 second before retrying
+      await new Promise((resolve) => setTimeout(resolve, cfg.CONFIRM_ATTEMPT_DELAY)); // Wait 1 second before next attempt
     }
 
     if (!confirmation) {
@@ -394,7 +387,7 @@ export class TransactionService {
     return null;
   }
 
-  async simulateAndRetryTransaction(
+  async simulateTransactionWithResim(
     transaction: VersionedTransaction,
     contextSlot: number,
     sigVerify: boolean,
@@ -463,7 +456,7 @@ export class TransactionService {
 
     console.log("Compute Unit Simulation");
 
-    const rpcResponse = await this.simulateAndRetryTransaction(testTransaction, contextSlot, false, true);
+    const rpcResponse = await this.simulateTransactionWithResim(testTransaction, contextSlot, false, true);
 
     if (!rpcResponse.value.unitsConsumed) {
       throw new Error("Transaction sim returned undefined unitsConsumed");
