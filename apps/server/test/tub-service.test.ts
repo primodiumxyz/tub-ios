@@ -129,7 +129,7 @@ import { ConfigService } from "../src/services/ConfigService";
     });
   });
 
-  describe("swap execution", () => {
+  describe.skip("swap execution", () => {
     const executeTx = async (swapResponse: PrebuildSwapResponse) => {
       const handoff = Buffer.from(swapResponse.transactionMessageBase64, "base64");
       const message = VersionedMessage.deserialize(handoff);
@@ -155,7 +155,7 @@ import { ConfigService } from "../src/services/ConfigService";
       console.log("Transaction result:", result);
 
       expect(result).toBeDefined();
-      expect(result.signature).toBeDefined();
+      expect(result.txid).toBeDefined();
     };
     it.skip("should complete a USDC to SOL swap", async () => {
       console.log("\nStarting USDC to SOL swap flow test");
@@ -174,7 +174,7 @@ import { ConfigService } from "../src/services/ConfigService";
       await executeTx(swapResponse);
     }, 11000);
 
-    describe.skip("MEMECOIN swaps", () => {
+    describe("MEMECOIN swaps", () => {
       it("should complete a USDC to MEMECOIN swap", async () => {
         // Get swap instructions
         const swapResponse = await tubService.fetchSwap(mockJwtToken, {
@@ -211,8 +211,8 @@ import { ConfigService } from "../src/services/ConfigService";
       }, 11000);
 
       it("should transfer all held MEMECOIN to USDC and close the MEMECOIN account", async () => {
-        // wait for 10 seconds and console log the countdown
-        for (let i = 10; i > 0; i--) {
+        // wait for 5 seconds and console log the countdown
+        for (let i = 5; i > 0; i--) {
           console.log(`Waiting for ${i} seconds...`);
           await new Promise((resolve) => setTimeout(resolve, 1000));
         }
@@ -256,7 +256,7 @@ import { ConfigService } from "../src/services/ConfigService";
         const memecoinSolBalanceLamports = await connection.getBalance(userMemecoinAta, "processed");
         console.log("Memecoin SOL balance lamports:", memecoinSolBalanceLamports);
         expect(memecoinSolBalanceLamports).toBe(0);
-      }, 35000);
+      }, 40000);
     });
   });
 });

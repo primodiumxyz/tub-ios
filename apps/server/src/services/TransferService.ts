@@ -46,7 +46,7 @@ export class TransferService {
       instructions: [transferInstruction],
     }).compileToV0Message([]);
 
-    const base64Message = this.transactionService.registerTransaction(message, SwapType.TRANSFER, false, 0);
+    const base64Message = this.transactionService.registerTransaction(message, SwapType.TRANSFER, false, 0, 1);
 
     return {
       transactionMessageBase64: base64Message,

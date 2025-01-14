@@ -17,7 +17,10 @@ export class SwapService {
     private transactionService: TransactionService,
     private feeService: FeeService,
     private connection: Connection,
-  ) {}
+  ) {
+    // Tell TransactionService about this SwapService instance
+    this.transactionService.setSwapService(this);
+  }
 
   async buildSwapResponse(
     request: ActiveSwapRequest,
@@ -91,6 +94,7 @@ export class SwapService {
 
     // Where rebuilding occurs
     for (let buildAttempt = priorBuildAttempts + 1; buildAttempt < MAX_BUILD_ATTEMPTS + 1; buildAttempt++) {
+      console.log("Building swap response attempt " + buildAttempt);
       try {
         const {
           instructions: swapInstructions,
@@ -155,6 +159,9 @@ export class SwapService {
           swapType,
           slippageSettings.autoSlippage,
           quote.contextSlot ?? 0,
+          buildAttempt,
+          request,
+          cfg,
         );
 
         const response: PrebuildSwapResponse = {
@@ -166,11 +173,11 @@ export class SwapService {
 
         return response;
       } catch (error) {
-        console.log("Swap build attempt" + buildAttempt + " failed: " + JSON.stringify(error));
+        console.log("Swap build attempt " + buildAttempt + " failed: " + JSON.stringify(error));
         // TODO: interpret error before retrying to validate if slippage issue
 
         if (buildAttempt >= MAX_BUILD_ATTEMPTS || !slippageSettings.autoSlippage) {
-          throw new Error(JSON.stringify(error));
+          throw new Error(error as string);
         }
         continue; // try again in next loop
       }

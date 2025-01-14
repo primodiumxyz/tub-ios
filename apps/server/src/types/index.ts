@@ -8,6 +8,8 @@ export enum SwapType {
   TRANSFER = 4, // When transferring tokens to another user
 }
 
+export type ResponseType = "success" | "fail" | "rebuild";
+
 // Base swap request types
 export type UserPrebuildSwapRequest = {
   buyTokenId: string;
@@ -31,6 +33,14 @@ export type ActiveSwapRequest = UserPrebuildSwapRequest & {
   buyTokenAccount: PublicKey;
   sellTokenAccount: PublicKey;
   userPublicKey: PublicKey;
+};
+
+export type SubmitSignedTransactionResponse = {
+  responseType: ResponseType;
+  txid?: string;
+  timestamp?: number | null;
+  rebuild?: PrebuildSwapResponse;
+  error?: string;
 };
 
 export interface SwapSubscription {

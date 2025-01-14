@@ -18,7 +18,8 @@ import { config } from "../utils/config";
 import { ATA_PROGRAM_PUBLIC_KEY, MAX_CHAIN_COMPUTE_UNITS, TOKEN_PROGRAM_PUBLIC_KEY } from "../constants/tokens";
 import { Config } from "./ConfigService";
 import { createCloseAccountInstruction } from "@solana/spl-token";
-import { SwapType } from "../types";
+import { ActiveSwapRequest, SubmitSignedTransactionResponse, SwapType } from "../types";
+import { SwapService } from "./SwapService";
 
 export type TransactionRegistryEntry = {
   message: MessageV0;
@@ -26,6 +27,9 @@ export type TransactionRegistryEntry = {
   swapType: SwapType;
   autoSlippage: boolean;
   contextSlot: number;
+  buildAttempts: number;
+  activeSwapRequest?: ActiveSwapRequest;
+  cfg?: Config;
 };
 
 /**
@@ -33,12 +37,20 @@ export type TransactionRegistryEntry = {
  */
 export class TransactionService {
   private messageRegistry: Map<string, TransactionRegistryEntry> = new Map();
+  private swapService?: SwapService;
 
   constructor(
     private connection: Connection,
     private feePayerKeypair: Keypair,
   ) {
     this.initializeCleanup();
+  }
+
+  setSwapService(swapService: SwapService) {
+    if (this.swapService) {
+      throw new Error("SwapService can only be set once");
+    }
+    this.swapService = swapService;
   }
 
   private initializeCleanup(): void {
@@ -86,7 +98,15 @@ export class TransactionService {
   /**
    * Registers a transaction message in the registry
    */
-  registerTransaction(message: MessageV0, swapType: SwapType, autoSlippage: boolean, contextSlot: number): string {
+  registerTransaction(
+    message: MessageV0,
+    swapType: SwapType,
+    autoSlippage: boolean,
+    contextSlot: number,
+    buildAttempts: number,
+    activeSwapRequest?: ActiveSwapRequest,
+    cfg?: Config,
+  ): string {
     const base64Message = Buffer.from(message.serialize()).toString("base64");
     this.messageRegistry.set(base64Message, {
       message,
@@ -94,6 +114,9 @@ export class TransactionService {
       swapType,
       autoSlippage,
       contextSlot,
+      buildAttempts,
+      activeSwapRequest,
+      cfg,
     });
     return base64Message;
   }
@@ -137,7 +160,7 @@ export class TransactionService {
     userSignature: string,
     base64Message: string,
     cfg: Config,
-  ): Promise<{ signature: string; timestamp: number | null }> {
+  ): Promise<SubmitSignedTransactionResponse> {
     const entry = this.messageRegistry.get(base64Message);
     if (!entry) {
       throw new Error("Transaction not found in registry");
@@ -153,26 +176,64 @@ export class TransactionService {
     const feePayerSignatureBytes = Buffer.from(bs58.decode(feePayerSignature));
     transaction.addSignature(this.feePayerKeypair.publicKey, feePayerSignatureBytes);
 
-    console.log("Signature Verification + Slippage Simulation");
-    let simulation: RpcResponseAndContext<SimulatedTransactionResponse>;
-    try {
-      simulation = await this.simulateAndRetryTransaction(transaction, entry.contextSlot, true, false);
-      if (simulation.value?.err) {
-        throw new Error(JSON.stringify(simulation.value.err));
-      }
-    } catch (error) {
-      console.log("Local tx sim failed: " + JSON.stringify(error));
-      // TODO: error handling and retry
-      throw new Error(JSON.stringify(error));
-    }
+    let txid: string = "";
+    const MAX_BUILD_ATTEMPTS = 3;
 
-    // Send and confirm transaction
-    const txid = await this.connection.sendTransaction(transaction, {
-      skipPreflight: false,
-      maxRetries: 3,
-      preflightCommitment: "processed",
-      minContextSlot: entry.contextSlot,
-    });
+    try {
+      console.log("Signature Verification + Slippage Simulation");
+      let simulation: RpcResponseAndContext<SimulatedTransactionResponse>;
+
+      // retrying, not rebuilding
+      try {
+        simulation = await this.simulateAndRetryTransaction(transaction, entry.contextSlot, true, false);
+        if (simulation.value?.err) {
+          throw new Error(JSON.stringify(simulation.value.err));
+        }
+      } catch (error) {
+        console.log("Local tx sim failed: " + JSON.stringify(error));
+        // TODO: error handling and retry
+        throw new Error(JSON.stringify(error));
+      }
+
+      // Send and confirm transaction
+      txid = await this.connection.sendTransaction(transaction, {
+        skipPreflight: false,
+        maxRetries: 3,
+        preflightCommitment: "processed",
+        minContextSlot: entry.contextSlot,
+      });
+    } catch (error) {
+      console.log("Tx send failed: " + JSON.stringify(error));
+
+      // don't rebuild transfer swaps
+      if (entry.swapType === SwapType.TRANSFER) {
+        throw new Error(JSON.stringify(error));
+      }
+
+      // TODO: error interpretation
+
+      // don't rebuild if slippage is not auto
+      if (entry.buildAttempts + 1 >= MAX_BUILD_ATTEMPTS || !entry.autoSlippage) {
+        throw new Error(JSON.stringify(error));
+      }
+
+      // rebuild
+      if (!this.swapService) {
+        throw new Error("SwapService is not set");
+      }
+      if (!entry.activeSwapRequest) {
+        throw new Error("ActiveSwapRequest is not set");
+      }
+      if (!entry.cfg) {
+        throw new Error("Config is not set");
+      }
+      const rebuiltSwapResponse = await this.swapService.buildSwapResponse(
+        entry.activeSwapRequest,
+        entry.cfg,
+        entry.buildAttempts,
+      );
+      return { responseType: "rebuild", rebuild: rebuiltSwapResponse };
+    }
 
     let confirmation = null;
     for (let attempt = 0; attempt < cfg.RETRY_ATTEMPTS; attempt++) {
@@ -213,7 +274,7 @@ export class TransactionService {
       }
     }
 
-    return { signature: txid, timestamp };
+    return { responseType: "success", txid, timestamp };
   }
 
   /**
