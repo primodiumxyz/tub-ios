@@ -30,6 +30,7 @@
 		995FCA1F2CDA5ED70018A76D /* CoinbaseOnrampView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995FCA1E2CDA5ED20018A76D /* CoinbaseOnrampView.swift */; };
 		9965F7692D19E2D30063C773 /* JWTActor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9965F7682D19E2CE0063C773 /* JWTActor.swift */; };
 		996772FE2CEB85820029B298 /* LoadingBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996772FD2CEB857C0029B298 /* LoadingBox.swift */; };
+		996873252D36B9E5003C43E5 /* FormatPrice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9941CD6E2CCAA30B0009E5ED /* FormatPrice.swift */; };
 		9971F29B2CFF836700BA48C0 /* WithdrawView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9971F29A2CFF835D00BA48C0 /* WithdrawView.swift */; };
 		9979A6CD2D0B2CD100DFDBE5 /* ErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9979A6C62D0B2CD100DFDBE5 /* ErrorView.swift */; };
 		997DE8F42CDAC86500164366 /* NotificationBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 997DE8F32CDAC86000164366 /* NotificationBanner.swift */; };
@@ -289,7 +290,6 @@
 				466945EC2CDFDB1C008E8B99 /* LoadingTracker.swift */,
 				46442B942CDD737D009A6F0B /* Constants.swift */,
 				DF3D43D12D00DEB1004DAE81 /* JustifiedText.swift */,
-				9941CD6E2CCAA30B0009E5ED /* FormatPrice.swift */,
 				DF38C3C32D0212F3003A156B /* EnvironmentKeys.swift */,
 				DF8C84EC2CDFDCA700E8FA7B /* DismissKeyboardModifier.swift */,
 				99290EBF2CB7110C003E740A /* FormatDate.swift */,
@@ -492,6 +492,7 @@
 		DF5AC8EC2D26E2A20054C187 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				9941CD6E2CCAA30B0009E5ED /* FormatPrice.swift */,
 				990FD5232D2EDFC30073CB7F /* TubActivityAttributes.swift */,
 			);
 			path = Shared;
@@ -784,6 +785,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				996873252D36B9E5003C43E5 /* FormatPrice.swift in Sources */,
 				990FD5242D2EDFC30073CB7F /* TubActivityAttributes.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

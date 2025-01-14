@@ -17,12 +17,12 @@ struct TubWidgetExtensionLiveActivity: Widget {
             // Lock screen/banner UI
             LockScreenLiveActivityView(context: context)
         } dynamicIsland: { context in
+            
             var gain: (absGain: Double, pctGain: Double) {
-                let priceGain = context.state.currentPriceUsd - context.attributes.initialPriceUsd
                 let buyAmountUsd = Double(context.attributes.buyAmountUsdc) / 1e6
-                let pctGain = 100 * priceGain / context.attributes.initialPriceUsd
-                let absGain = buyAmountUsd * pctGain
-                return (absGain, pctGain)
+                let pctGain = context.state.currentPriceUsd / context.attributes.initialPriceUsd
+                let absGain = (pctGain * buyAmountUsd) - buyAmountUsd
+                return (absGain, pctGain * 100 - 100)
             }
             
             var gainType: String {
@@ -36,23 +36,39 @@ struct TubWidgetExtensionLiveActivity: Widget {
                             .fontWeight(.semibold)
                             .opacity(0.7)
                         
-                        Text(String(format: gain.absGain > 1000 ? "$%.0f" : "$%.2f", context.state.currentPriceUsd))
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.8)
+                        Text(
+                            formatPriceUsd(usd: context.state.currentPriceUsd)
+                        )
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
                     }.padding(12)
                         .frame(height: 60)
                 }
                 
                 DynamicIslandExpandedRegion(.trailing) {
-                    Text("\(gainType == "up" ? "+" : gainType == "down" ? "-" : "")\(String(format: gain.absGain > 1000 ? "$%.0f" : "$%.2f", abs(gain.absGain)))")
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text(
+                            "\(gainType == "up" ? "+" : gainType == "down" ? "-" : "")\(String(format: gain.absGain >= 100 ? "$%.0f" : "$%.2f", abs(gain.absGain)))"
+                        )
                         .font(.title3)
                         .fontWeight(.semibold)
                         .foregroundStyle(
                             gainType == "up" ? .tubSuccess : gainType == "down" ? .tubError : .gray
-                        ).padding(12)
-                        .frame(height: 60)
+                        )
+                        Text(
+                            "\(gainType == "up" ? "+" : gainType == "down" ? "-" : "")\(String(format: "%.1f%%", abs(gain.pctGain)))"
+                        )
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(
+                            gainType == "up" ? .tubSuccess : gainType == "down" ? .tubError : .gray
+                        )
+                            .opacity(0.7)
+                    }.padding(12)
+                    .frame(height: 60)
+                    
                 }
                 
             } compactLeading: {
@@ -61,15 +77,20 @@ struct TubWidgetExtensionLiveActivity: Widget {
                     .fontWeight(.semibold)
                     .padding(.leading, 8)
             } compactTrailing: {
-                Text("\(gainType == "up" ? "+" : gainType == "down" ? "-" : "")\(String(format: gain.absGain > 1000 ? "$%.0f" : "$%.2f", abs(gain.absGain)))")
-                    .font(.caption2)
-                    .foregroundStyle(
-                        gainType == "up" ? .tubSuccess : gainType == "down" ? .tubError : .gray)
+                Text(
+                    "\(gainType == "up" ? "+" : gainType == "down" ? "-" : "")\(String(format: gain.absGain >= 100 ? "$%.0f" : "$%.2f", abs(gain.absGain)))"
+                )
+                .font(.caption2)
+                .foregroundStyle(
+                    gainType == "up" ? .tubSuccess : gainType == "down" ? .tubError : .gray)
             } minimal: {
-                Image(systemName: gainType == "up" ? "arrow.up" : gainType == "down" ? "arrow.down" : "arrow.right")
-                    .font(.caption2)
-                    .foregroundStyle(
-                        gainType == "up" ? .tubSuccess : gainType == "down" ? .tubError : .gray)
+                Image(
+                    systemName: gainType == "up"
+                    ? "arrow.up" : gainType == "down" ? "arrow.down" : "arrow.right"
+                )
+                .font(.caption2)
+                .foregroundStyle(
+                    gainType == "up" ? .tubSuccess : gainType == "down" ? .tubError : .gray)
             }
         }
     }
@@ -80,9 +101,9 @@ struct LockScreenLiveActivityView: View {
     let context: ActivityViewContext<TubActivityAttributes>
     
     var gain: Double {
-        let absGain = context.state.currentPriceUsd - context.attributes.initialPriceUsd
         let buyAmountUsd = Double(context.attributes.buyAmountUsdc) / 1e6
-        return buyAmountUsd * absGain / context.attributes.initialPriceUsd
+        let pctGain = context.state.currentPriceUsd / context.attributes.initialPriceUsd
+        return (pctGain * buyAmountUsd) - buyAmountUsd
     }
     
     var gainType: String {
@@ -123,8 +144,8 @@ extension TubActivityAttributes {
             tokenMint: "So11111111111111111111111111111111111111112",
             name: "Solana",
             symbol: "SOL",
-            initialPriceUsd: 100.0,
-            buyAmountUsdc: 1 * Int(1e6)
+            initialPriceUsd: 50,
+            buyAmountUsdc: 10 * Int(1e6)
         )
     }
 }
@@ -132,7 +153,7 @@ extension TubActivityAttributes {
 extension TubActivityAttributes.ContentState {
     fileprivate static var first: TubActivityAttributes.ContentState {
         TubActivityAttributes.ContentState(
-            currentPriceUsd: 99.0,
+            currentPriceUsd: 45,
             timestamp: Date().timeIntervalSince1970
         )
     }
@@ -146,7 +167,7 @@ extension TubActivityAttributes.ContentState {
     
     fileprivate static var third: TubActivityAttributes.ContentState {
         TubActivityAttributes.ContentState(
-            currentPriceUsd: 100.0,
+            currentPriceUsd: 50.001,
             timestamp: Date().addingTimeInterval(3600).timeIntervalSince1970
         )
     }
