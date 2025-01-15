@@ -46,5 +46,5 @@ FROM recent_stats
 GROUP BY token_mint;
 
 -- Create indexes
-CREATE INDEX ON api.token_rolling_stats_30min (mint);
+CREATE UNIQUE INDEX ON api.token_rolling_stats_30min (mint);
 CREATE INDEX ON api.token_rolling_stats_30min (volume_usd_30m DESC);
