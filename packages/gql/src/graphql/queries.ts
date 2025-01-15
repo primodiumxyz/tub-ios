@@ -46,7 +46,7 @@ export const GetWalletTokenPnlQuery = graphql(`
 // Benchmarks
 export const GetAllTokensQuery = graphql(`
   query GetAllTokens {
-    token_metadata_formatted {
+    token_metadata_formatted(args: {}) {
       mint
     }
   }
