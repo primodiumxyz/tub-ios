@@ -18,6 +18,7 @@ import {
 import { config } from "../utils/config";
 import { deriveTokenAccounts } from "../utils/tokenAccounts";
 import { AnalyticsService } from "./AnalyticsService";
+import { CronService } from "./CronService";
 import { PushService } from "./ApplePushService";
 import { AuthService } from "./AuthService";
 import { FeeService } from "./FeeService";
@@ -48,7 +49,9 @@ export class TubService {
     private readonly gqlClient: GqlClient["db"],
     private readonly privy: PrivyClient,
     private readonly jupiterService: JupiterService,
-  ) {}
+  ) {
+    new CronService(this.gqlClient).startPeriodicTasks();
+  }
 
   /**
    * Factory method to create a fully initialized TubService

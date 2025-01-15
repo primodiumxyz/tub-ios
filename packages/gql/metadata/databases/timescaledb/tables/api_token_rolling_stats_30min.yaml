@@ -1,0 +1,17 @@
+table:
+  name: token_rolling_stats_30min
+  schema: api
+select_permissions:
+  - role: public
+    permission:
+      columns:
+        - price_change_pct_2m
+        - price_change_pct_30m
+        - trades_2m
+        - trades_30m
+        - volume_usd_2m
+        - volume_usd_30m
+        - mint
+      filter: {}
+      allow_aggregations: true
+    comment: ""

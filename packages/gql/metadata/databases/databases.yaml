@@ -334,3 +334,4 @@
       returns: token_stats_model
       root_field_name: token_stats_interval_comp
   tables: "!include timescaledb/tables/tables.yaml"
+  functions: "!include timescaledb/functions/functions.yaml"

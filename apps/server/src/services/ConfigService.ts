@@ -27,7 +27,6 @@ export const configSchema = z
     PUSH_REGISTRY_TIMEOUT_MS: z.number(),
     PUSH_CLEANUP_INTERVAL_MS: z.number(),
     PUSH_SEND_INTERVAL_MS: z.number(),
-    CRON_REFRESH_TOKEN_ROLLING_STATS_30MIN_INTERVAL_SECONDS: z.number(),
   })
   .strict();
 
