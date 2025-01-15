@@ -191,7 +191,7 @@ describe("Jupiter Quote Integration Test", () => {
         });
       }
 
-      const message = await transactionService.buildTransactionMessage(
+      const { message } = await transactionService.buildTransactionMessage(
         swapInstructions.instructions,
         swapInstructions.addressLookupTableAccounts,
       );
@@ -250,7 +250,7 @@ describe("Jupiter Quote Integration Test", () => {
       const swapInstructions = await jupiterService.getSwapInstructions(quoteRequest, userPublicKey);
       console.log("📨 Received swap instructions: USDC -> SOL");
 
-      const message = await transactionService.buildTransactionMessage(
+      const { message } = await transactionService.buildTransactionMessage(
         swapInstructions.instructions,
         swapInstructions.addressLookupTableAccounts,
       );

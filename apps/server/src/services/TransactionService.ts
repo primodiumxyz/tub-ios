@@ -18,19 +18,14 @@ import { config } from "../utils/config";
 import { ATA_PROGRAM_PUBLIC_KEY, MAX_CHAIN_COMPUTE_UNITS, TOKEN_PROGRAM_PUBLIC_KEY } from "../constants/tokens";
 import { Config } from "./ConfigService";
 import { createCloseAccountInstruction } from "@solana/spl-token";
-import { ActiveSwapRequest, SubmitSignedTransactionResponse, SwapType } from "../types";
+import {
+  ActiveSwapRequest,
+  SubmitSignedTransactionResponse,
+  SwapType,
+  TransactionRegistryEntry,
+  TransactionRegistryData,
+} from "../types";
 import { SwapService } from "./SwapService";
-
-export type TransactionRegistryEntry = {
-  message: MessageV0;
-  timestamp: number;
-  swapType: SwapType;
-  autoSlippage: boolean;
-  contextSlot: number;
-  buildAttempts: number;
-  activeSwapRequest?: ActiveSwapRequest;
-  cfg?: Config;
-};
 
 /**
  * Service for handling all transaction-related operations
@@ -73,11 +68,39 @@ export class TransactionService {
   /**
    * Builds a transaction message from instructions
    */
+  async buildAndRegisterTransactionMessage(
+    instructions: TransactionInstruction[],
+    addressLookupTableAccounts: AddressLookupTableAccount[],
+    txRegistryData: TransactionRegistryData,
+  ): Promise<string> {
+    const { message, lastValidBlockHeight } = await this.buildTransactionMessage(
+      instructions,
+      addressLookupTableAccounts,
+    );
+
+    // Register transaction
+    const base64Message = this.registerTransaction(
+      message,
+      lastValidBlockHeight,
+      txRegistryData.swapType,
+      txRegistryData.autoSlippage,
+      txRegistryData.contextSlot,
+      txRegistryData.buildAttempts,
+      txRegistryData.activeSwapRequest,
+      txRegistryData.cfg,
+    );
+
+    return base64Message;
+  }
+
+  /**
+   * Builds a transaction message from instructions
+   */
   async buildTransactionMessage(
     instructions: TransactionInstruction[],
     addressLookupTableAccounts: AddressLookupTableAccount[],
-  ): Promise<MessageV0> {
-    const { blockhash } = await this.connection.getLatestBlockhash();
+  ): Promise<{ message: MessageV0; blockhash: string; lastValidBlockHeight: number }> {
+    const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash();
 
     const message = new TransactionMessage({
       payerKey: this.feePayerKeypair.publicKey,
@@ -92,7 +115,7 @@ export class TransactionService {
       throw error;
     }
 
-    return message;
+    return { message, blockhash, lastValidBlockHeight };
   }
 
   /**
@@ -100,6 +123,7 @@ export class TransactionService {
    */
   registerTransaction(
     message: MessageV0,
+    lastValidBlockHeight: number,
     swapType: SwapType,
     autoSlippage: boolean,
     contextSlot: number,
@@ -110,6 +134,7 @@ export class TransactionService {
     const base64Message = Buffer.from(message.serialize()).toString("base64");
     this.messageRegistry.set(base64Message, {
       message,
+      lastValidBlockHeight,
       timestamp: Date.now(),
       swapType,
       autoSlippage,
@@ -190,7 +215,6 @@ export class TransactionService {
       // Send and confirm transaction
       txid = await this.connection.sendTransaction(transaction, {
         skipPreflight: false,
-        maxRetries: 3,
         preflightCommitment: "processed",
         minContextSlot: entry.contextSlot,
       });
@@ -219,6 +243,7 @@ export class TransactionService {
       if (!entry.cfg) {
         throw new Error("Config is not set");
       }
+      this.messageRegistry.delete(base64Message);
       const rebuiltSwapResponse = await this.swapService.buildSwapResponse(
         entry.activeSwapRequest,
         entry.cfg,
@@ -227,46 +252,64 @@ export class TransactionService {
       return { responseType: "rebuild", rebuild: rebuiltSwapResponse };
     }
 
-    let confirmation = null;
-    for (let attempt = 0; attempt < cfg.CONFIRM_ATTEMPTS; attempt++) {
-      console.log(`Tx Confirmation Attempt ${attempt + 1} of ${cfg.CONFIRM_ATTEMPTS}`);
-      try {
-        const status = await this.connection.getSignatureStatus(txid, {
-          searchTransactionHistory: true,
-        });
+    // tx confirmation and resend case
+    try {
+      let confirmation = null;
+      for (let attempt = 0; attempt < cfg.CONFIRM_ATTEMPTS; attempt++) {
+        console.log(`Tx Confirmation Attempt ${attempt + 1} of ${cfg.CONFIRM_ATTEMPTS}`);
+        try {
+          const status = await this.connection.getSignatureStatus(txid, {
+            searchTransactionHistory: true,
+          });
 
-        const acceptedStates: TransactionConfirmationStatus[] = ["confirmed", "finalized", "processed"];
+          const acceptedStates: TransactionConfirmationStatus[] = ["confirmed", "finalized", "processed"];
 
-        if (status.value?.confirmationStatus && acceptedStates.includes(status.value.confirmationStatus)) {
-          confirmation = status;
-          break; // Exit loop if successful
+          if (status.value?.confirmationStatus && acceptedStates.includes(status.value.confirmationStatus)) {
+            confirmation = status;
+            break; // Exit loop if successful
+          }
+        } catch (error) {
+          console.log(`Attempt ${attempt + 1} failed:`, error);
+          if (attempt === cfg.CONFIRM_ATTEMPTS - 1)
+            throw new Error(`Failed to get transaction confirmation after ${cfg.CONFIRM_ATTEMPTS} attempts`);
         }
-      } catch (error) {
-        console.log(`Attempt ${attempt + 1} failed:`, error);
-        if (attempt === cfg.CONFIRM_ATTEMPTS - 1)
-          throw new Error(`Failed to get transaction confirmation after ${cfg.CONFIRM_ATTEMPTS} attempts`);
+        await new Promise((resolve) => setTimeout(resolve, cfg.CONFIRM_ATTEMPT_DELAY)); // Wait 1 second before next attempt
       }
-      await new Promise((resolve) => setTimeout(resolve, cfg.CONFIRM_ATTEMPT_DELAY)); // Wait 1 second before next attempt
-    }
 
-    if (!confirmation) {
-      throw new Error(`Transaction timed out.`);
-    }
-    if (confirmation.value?.err) {
-      throw new Error(`Transaction failed: ${JSON.stringify(confirmation?.value?.err)}`);
-    }
-
-    this.messageRegistry.delete(base64Message);
-    let timestamp: number | null = null;
-    if (confirmation.value?.slot) {
-      try {
-        timestamp = await this.connection.getBlockTime(confirmation.value.slot);
-      } catch (error) {
-        console.error("[signAndSendTransaction] Error getting block time:", error);
+      if (!confirmation) {
+        throw new Error(`Transaction timed out.`);
       }
+      if (confirmation.value?.err) {
+        throw new Error(`Transaction failed: ${JSON.stringify(confirmation?.value?.err)}`);
+      }
+
+      this.messageRegistry.delete(base64Message);
+      let timestamp: number | null = null;
+      if (confirmation.value?.slot) {
+        for (let attempt = 0; attempt < cfg.CONFIRM_ATTEMPTS / 2 && !timestamp; attempt++) {
+          try {
+            timestamp = await this.connection.getBlockTime(confirmation.value.slot);
+          } catch (error) {
+            console.error("[signAndSendTransaction] Error getting block time:", error);
+            await new Promise((resolve) => setTimeout(resolve, cfg.CONFIRM_ATTEMPT_DELAY)); // Wait 1 second before next attempt
+          }
+        }
+      }
+
+      return { responseType: "success", txid, timestamp };
+    } catch (error) {
+      if (entry.swapType === SwapType.SELL_ALL) {
+        // Send and confirm transaction
+        txid = await this.connection.sendTransaction(transaction, {
+          skipPreflight: false,
+          preflightCommitment: "processed",
+          minContextSlot: entry.contextSlot,
+        });
+      }
+      console.error("[signAndSendTransaction] Error confirming transaction:", error);
     }
 
-    return { responseType: "success", txid, timestamp };
+    return { responseType: "fail", error: "unknown" };
   }
 
   /**

@@ -2,7 +2,7 @@ import { Subject, interval, switchMap } from "rxjs";
 import { JupiterService } from "./JupiterService";
 import { TransactionService } from "./TransactionService";
 import { FeeService } from "../services/FeeService";
-import { ActiveSwapRequest, PrebuildSwapResponse, SwapSubscription, SwapType } from "../types";
+import { ActiveSwapRequest, PrebuildSwapResponse, SwapSubscription, SwapType, TransactionRegistryData } from "../types";
 import { QuoteGetRequest } from "@jup-ag/api";
 import { Connection, PublicKey, TransactionInstruction } from "@solana/web3.js";
 import { USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
@@ -144,21 +144,21 @@ export class SwapService {
           cfg,
         );
 
+        const txRegistryData: TransactionRegistryData = {
+          timestamp: Date.now(),
+          swapType: swapType,
+          autoSlippage: slippageSettings.autoSlippage,
+          contextSlot: quote.contextSlot ?? 0,
+          buildAttempts: buildAttempt,
+          activeSwapRequest: request,
+          cfg: cfg,
+        };
+
         // Build transaction message
-        const message = await this.transactionService.buildTransactionMessage(
+        const base64Message = await this.transactionService.buildAndRegisterTransactionMessage(
           optimizedInstructions,
           addressLookupTableAccounts,
-        );
-
-        // Register transaction
-        const base64Message = this.transactionService.registerTransaction(
-          message,
-          swapType,
-          slippageSettings.autoSlippage,
-          quote.contextSlot ?? 0,
-          buildAttempt,
-          request,
-          cfg,
+          txRegistryData,
         );
 
         const response: PrebuildSwapResponse = {
