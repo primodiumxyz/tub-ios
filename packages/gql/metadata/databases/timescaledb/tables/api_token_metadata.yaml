@@ -1,0 +1,3 @@
+table:
+  name: token_metadata
+  schema: api

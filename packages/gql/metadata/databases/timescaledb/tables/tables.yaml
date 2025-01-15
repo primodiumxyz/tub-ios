@@ -1,5 +1,8 @@
 - "!include api_candles_history_1min.yaml"
+- "!include api_token_metadata.yaml"
 - "!include api_token_stats_1h.yaml"
+- "!include api_token_stats_2m.yaml"
+- "!include api_token_stats_30m.yaml"
 - "!include api_tokens.yaml"
 - "!include api_trade_history.yaml"
 - "!include api_trade_history_1min.yaml"
