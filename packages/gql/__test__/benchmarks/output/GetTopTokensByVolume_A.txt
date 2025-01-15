@@ -1,0 +1,70 @@
+
+📊 Performance Comparison:
+================================================================================
+
+🔍 Warm cache hit
+----------------------------------------
+Average Response Time: 1.30ms
+95th Percentile:       1.79ms
+Min Response Time:     0.96ms
+Max Response Time:     2.72ms
+Standard Deviation:    0.28ms
+
+🔍 Direct Hasura hit
+----------------------------------------
+Average Response Time: 681.58ms
+95th Percentile:       714.34ms
+Min Response Time:     633.62ms
+Max Response Time:     872.53ms
+Standard Deviation:    30.01ms
+
+🔍 Cold cache hit
+----------------------------------------
+Average Response Time: 682.49ms
+95th Percentile:       700.76ms
+Min Response Time:     634.86ms
+Max Response Time:     711.30ms
+Standard Deviation:    13.16ms
+
+🔍 Bypassing cache
+----------------------------------------
+Average Response Time: 684.13ms
+95th Percentile:       699.44ms
+Min Response Time:     666.28ms
+Max Response Time:     715.73ms
+Standard Deviation:    8.84ms
+
+⚡ Performance Impact:
+--------------------------------------------------------------------------------
+Best performer: Warm cache hit
+
+Compared to Direct Hasura hit:
+--------------------------------------------------------------------------------
+Metric               │ Difference     │ Percentage
+--------------------------------------------------------------------------------
+Average Response    │ +680.28      │ +52526.2 %
+95th Percentile     │ +712.55      │ +39784.2 %
+Min Response        │ +632.66      │ +65836.6 %
+Max Response        │ +869.81      │ +32031.5 %
+Standard Deviation  │ +29.73       │ +10631.5 %
+
+Compared to Cold cache hit:
+--------------------------------------------------------------------------------
+Metric               │ Difference     │ Percentage
+--------------------------------------------------------------------------------
+Average Response    │ +681.20      │ +52596.8 %
+95th Percentile     │ +698.97      │ +39026.1 %
+Min Response        │ +633.90      │ +65965.0 %
+Max Response        │ +708.58      │ +26094.0 %
+Standard Deviation  │ +12.88       │ +4606.5  %
+
+Compared to Bypassing cache:
+--------------------------------------------------------------------------------
+Metric               │ Difference     │ Percentage
+--------------------------------------------------------------------------------
+Average Response    │ +682.83      │ +52723.0 %
+95th Percentile     │ +697.65      │ +38951.9 %
+Min Response        │ +665.31      │ +69234.4 %
+Max Response        │ +713.02      │ +26257.3 %
+Standard Deviation  │ +8.56        │ +3061.4  %
+
