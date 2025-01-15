@@ -42,6 +42,8 @@ export class TransactionService {
     this.initializeCleanup();
   }
 
+  // ----------- Initialization ------------
+
   setSwapService(swapService: SwapService) {
     if (this.swapService) {
       throw new Error("SwapService can only be set once");
@@ -65,6 +67,52 @@ export class TransactionService {
       }
     }
   }
+
+  // ----------- Transaction Registry ------------
+
+  /**
+   * Gets a registered transaction from the registry
+   */
+  getRegisteredTransaction(base64Message: string): TransactionRegistryEntry | undefined {
+    return this.messageRegistry.get(base64Message);
+  }
+
+  /**
+   * Removes a transaction from the registry
+   */
+  deleteFromRegistry(base64Message: string): void {
+    this.messageRegistry.delete(base64Message);
+  }
+
+  /**
+   * Registers a transaction message in the registry
+   */
+  registerTransaction(
+    message: MessageV0,
+    lastValidBlockHeight: number,
+    swapType: SwapType,
+    autoSlippage: boolean,
+    contextSlot: number,
+    buildAttempts: number,
+    activeSwapRequest?: ActiveSwapRequest,
+    cfg?: Config,
+  ): string {
+    const base64Message = Buffer.from(message.serialize()).toString("base64");
+    this.messageRegistry.set(base64Message, {
+      message,
+      lastValidBlockHeight,
+      timestamp: Date.now(),
+      swapType,
+      autoSlippage,
+      contextSlot,
+      buildAttempts,
+      activeSwapRequest,
+      cfg,
+    });
+    return base64Message;
+  }
+
+  // ----------- Transaction Operations ------------
 
   /**
    * Builds a transaction message from instructions and registers it in the registry
@@ -117,48 +165,6 @@ export class TransactionService {
     }
 
     return { message, blockhash, lastValidBlockHeight };
-  }
-
-  /**
-   * Registers a transaction message in the registry
-   */
-  registerTransaction(
-    message: MessageV0,
-    lastValidBlockHeight: number,
-    swapType: SwapType,
-    autoSlippage: boolean,
-    contextSlot: number,
-    buildAttempts: number,
-    activeSwapRequest?: ActiveSwapRequest,
-    cfg?: Config,
-  ): string {
-    const base64Message = Buffer.from(message.serialize()).toString("base64");
-    this.messageRegistry.set(base64Message, {
-      message,
-      lastValidBlockHeight,
-      timestamp: Date.now(),
-      swapType,
-      autoSlippage,
-      contextSlot,
-      buildAttempts,
-      activeSwapRequest,
-      cfg,
-    });
-    return base64Message;
-  }
-
-  /**
-   * Gets a registered transaction from the registry
-   */
-  getRegisteredTransaction(base64Message: string): TransactionRegistryEntry | undefined {
-    return this.messageRegistry.get(base64Message);
-  }
-
-  /**
-   * Removes a transaction from the registry
-   */
-  deleteFromRegistry(base64Message: string): void {
-    this.messageRegistry.delete(base64Message);
   }
 
   /**
@@ -379,6 +385,8 @@ export class TransactionService {
 
     return rpcResponse.value.unitsConsumed;
   }
+
+  // ----------- Instruction Modification ------------
 
   private filterComputeInstructions(instructions: TransactionInstruction[], cfg: Config) {
     const computeUnitLimitIndex = instructions.findIndex(
