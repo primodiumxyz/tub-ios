@@ -134,6 +134,8 @@ struct TokenListView: View {
         }
     }
     
+    @Environment(\.scenePhase) private var scenePhase
+    
     var body: some View {
         NavigationStack {
             VStack {
@@ -235,6 +237,13 @@ struct TokenListView: View {
                         
                     }
                 }
+            }
+        }
+        .onChange(of: scenePhase) { phase in
+            if phase != .active {
+                // this prevents the screen from being half scrolled when reopening the app
+                activeOffset = 0
+                dragGestureOffset = 0
             }
         }
     }

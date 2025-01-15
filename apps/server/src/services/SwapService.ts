@@ -1,13 +1,13 @@
-import { Subject, interval, switchMap } from "rxjs";
-import { JupiterService } from "./JupiterService";
-import { TransactionService } from "./TransactionService";
-import { FeeService } from "../services/FeeService";
-import { ActiveSwapRequest, PrebuildSwapResponse, SwapSubscription, SwapType, TransactionRegistryData } from "../types";
 import { QuoteGetRequest } from "@jup-ag/api";
 import { Connection, PublicKey, TransactionInstruction } from "@solana/web3.js";
+import { Subject, interval, switchMap } from "rxjs";
 import { USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
-import { Config } from "./ConfigService";
+import { FeeService } from "../services/FeeService";
+import { ActiveSwapRequest, PrebuildSwapResponse, SwapSubscription, SwapType, TransactionRegistryData } from "../types";
 import { config } from "../utils/config";
+import { Config } from "./ConfigService";
+import { JupiterService } from "./JupiterService";
+import { TransactionService } from "./TransactionService";
 
 export class SwapService {
   private swapSubscriptions: Map<string, SwapSubscription> = new Map();

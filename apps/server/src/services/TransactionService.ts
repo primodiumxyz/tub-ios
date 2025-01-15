@@ -1,24 +1,23 @@
+import { createCloseAccountInstruction } from "@solana/spl-token";
 import {
+  AddressLookupTableAccount,
+  ComputeBudgetInstruction,
+  ComputeBudgetProgram,
   Connection,
   Keypair,
   MessageV0,
   PublicKey,
+  TransactionConfirmationStatus,
   TransactionInstruction,
   TransactionMessage,
   VersionedTransaction,
-  AddressLookupTableAccount,
-  TransactionConfirmationStatus,
-  ComputeBudgetProgram,
-  ComputeBudgetInstruction,
   RpcResponseAndContext,
   SimulatedTransactionResponse,
   SignatureStatus,
 } from "@solana/web3.js";
+
 import bs58 from "bs58";
-import { config } from "../utils/config";
 import { ATA_PROGRAM_PUBLIC_KEY, MAX_CHAIN_COMPUTE_UNITS, TOKEN_PROGRAM_PUBLIC_KEY } from "../constants/tokens";
-import { Config } from "./ConfigService";
-import { createCloseAccountInstruction } from "@solana/spl-token";
 import {
   ActiveSwapRequest,
   SubmitSignedTransactionResponse,
@@ -26,6 +25,8 @@ import {
   TransactionRegistryEntry,
   TransactionRegistryData,
 } from "../types";
+import { config } from "../utils/config";
+import { Config } from "./ConfigService";
 import { SwapService } from "./SwapService";
 
 /**
