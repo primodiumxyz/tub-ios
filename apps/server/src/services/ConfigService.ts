@@ -24,6 +24,9 @@ export const configSchema = z
     MIN_FEE_CENTS: z.number(),
     MIN_TRADE_SIZE_USD: z.number(),
     TRADE_FEE_RECIPIENT: z.string(),
+    PUSH_REGISTRY_TIMEOUT_MS: z.number(),
+    PUSH_CLEANUP_INTERVAL_MS: z.number(),
+    PUSH_SEND_INTERVAL_MS: z.number(),
   })
   .strict();
 

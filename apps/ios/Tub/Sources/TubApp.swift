@@ -6,12 +6,14 @@
 //
 
 import SwiftUI
+import UIKit
 
 @main
 struct TubApp: App {
     @Environment(\.scenePhase) private var scenePhase
     private let dwellTimeTracker = AppDwellTimeTracker.shared
     @StateObject private var userModel = UserModel.shared
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     
     init() {
         let appearance = UITabBarAppearance()
@@ -56,7 +58,7 @@ struct AppContent: View {
                         }
                     }
                 )
-            } else if userModel.walletState == .connecting || userModel.initializingUser {
+            } else if privy.authState == .notReady || userModel.walletState == .connecting || userModel.initializingUser {
                 LoadingView(identifier: "Logging in")
             } else {
                 TokenListView().font(.sfRounded())
@@ -78,20 +80,22 @@ struct AppContent: View {
                             .interactiveDismissDisabled()
                     }
             }
-        }.onChange(of: userModel.walletState, initial: true) { _, newState in
+        }
+        .onChange(of: userModel.walletState, initial: true) { _, newState in
             switch newState {
             case .error:
                 notificationHandler.show("Error connecting to wallet.", type: .error)
             case .connected:
+                
                 Task(priority: .low) {
                     try? await userModel.refreshTxs(hard: true)
                 }
-                Task (priority: .userInitiated) {
+                Task(priority: .userInitiated) {
                     tokenListModel.clearQueue()
                     await tokenListModel.startHotTokensPolling()
                 }
             case .disconnected, .notCreated, .needsRecovery:
-                Task (priority: .userInitiated) {
+                Task(priority: .userInitiated) {
                     tokenListModel.clearQueue()
                     await tokenListModel.startHotTokensPolling()
                 }
