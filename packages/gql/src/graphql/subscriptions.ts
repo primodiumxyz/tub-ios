@@ -33,6 +33,14 @@ export const GetTokenPricesSinceSubscription = graphql(`
     }
   }
 `);
+export const GetRecentTokenPriceSubscription = graphql(`
+  subscription SubRecentTokenPrice($token: String!) {
+    api_trade_history(where: { token_mint: { _eq: $token } }, order_by: { created_at: desc }, limit: 1) {
+      token_price_usd
+      created_at
+    }
+  }
+`);
 
 export const GetTokenCandlesSinceSubscription = graphql(`
   subscription SubTokenCandlesSince($token: String!, $since: timestamptz = "now()") {

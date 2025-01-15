@@ -7,6 +7,7 @@
 
 import Foundation
 import TubAPI
+import Darwin
 
 // Check the installation source of the app and always use remote if an external source (testFlight, appStore)
 
@@ -21,9 +22,14 @@ let USDC_DECIMALS = 1e6
 let SOL_DECIMALS = 1e9
 
 private var installationSource: InstallationSource {
+    var ret : InstallationSource? = nil
+#if DEBUG
+    ret = .xcode
+#endif
+    if let ret, ret == .xcode { return ret }
     if let receiptUrl = Bundle.main.appStoreReceiptURL {
         let path = receiptUrl.path
-
+        
         if path.contains("sandboxReceipt") {
             return .testFlight
         }
@@ -38,6 +44,7 @@ private var installationSource: InstallationSource {
         return .invalid
     }
 }
+
 
 // If on a physical device, check if ngrok environment variable exists and use if it does. Otherwise, default to the remote resources.
 // If on a simulator, use the localhost URLs.
@@ -54,30 +61,30 @@ public let graphqlWsUrl: String = "wss://\(graphqlUrlHost)/v1/graphql"
 
 // Server URLs
 private let serverUrlHost: String = {
-    if installationSource == .appStore || installationSource == .testFlight {
+    let src = installationSource
+    if src == .appStore || src == .testFlight {
         return "tub-server.primodium.ai"
     }
     if let ngrokUrl = ProcessInfo.processInfo.environment["NGROK_SERVER_URL_HOST"] {
         return ngrokUrl
-    }
-    else {
+    } else {
         return "tub-server.primodium.ai"
     }
 }()
 
 public let serverBaseUrl: String = {
-    #if targetEnvironment(simulator)
-        return "http://localhost:8888/trpc"
-    #else
-        return "https://\(serverUrlHost)/trpc"
-    #endif
+#if targetEnvironment(simulator)
+    return "http://localhost:8888/trpc"
+#else
+    return "https://\(serverUrlHost)/trpc"
+#endif
 }()
 
 // Filtering
-public let HOT_TOKENS_INTERVAL: Interval = "30m" // main interval to aggregate and sort by volume
-public let FILTERING_INTERVAL: Interval = "60s" // additional interval for filtering (min trades/volume)
-public let FILTERING_MIN_TRADES: Numeric = 3 // minimum amount of trades during the above interval to be included
-public let FILTERING_MIN_VOLUME_USD: Numeric = 0 // minimum volume during the above interval to be included
+public let HOT_TOKENS_INTERVAL: Interval = "30m"  // main interval to aggregate and sort by volume
+public let FILTERING_INTERVAL: Interval = "60s"  // additional interval for filtering (min trades/volume)
+public let FILTERING_MIN_TRADES: Numeric = 3  // minimum amount of trades during the above interval to be included
+public let FILTERING_MIN_VOLUME_USD: Numeric = 0  // minimum volume during the above interval to be included
 
 // Charts
 public let CHART_INTERVAL: Double = 60 * 2  // live 2m
@@ -110,7 +117,7 @@ enum TubError: LocalizedError {
     case actionFailed(failureDescription: String)
     case emptyTokenList
     case serverError(reason: String)
-
+    
     var errorDescription: String? {
         switch self {
         case .somethingWentWrong(let reason):
@@ -142,7 +149,7 @@ enum TubError: LocalizedError {
 enum Timespan: String, CaseIterable {
     case live = "LIVE"
     case candles = "30M"
-
+    
     public var seconds: Double {
         switch self {
         case .live: return CHART_INTERVAL
@@ -161,7 +168,7 @@ enum Layout {
         static let lg = 0.08  // 8%
         static let xl = 0.1  // 10%
     }
-
+    
     enum Size {
         static let quarter = 0.25  // 25%
         static let third = 0.33  // 33%
@@ -170,7 +177,7 @@ enum Layout {
         static let threeQuarters = 0.75  // 75%
         static let full = 1.0  // 100%
     }
-
+    
     // Fixed dimensions
     enum Fixed {
         static let buttonHeight: CGFloat = 50
@@ -179,4 +186,3 @@ enum Layout {
         static let borderWidth: CGFloat = 0.5
     }
 }
-

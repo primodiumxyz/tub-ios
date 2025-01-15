@@ -25,6 +25,8 @@ class TokenModel: ObservableObject {
     private var initialized = false
     
     @Published var purchaseData: PurchaseData? 
+    private let activityManager = LiveActivityManager.shared
+
 
     private var priceTimer: Timer? = nil
 
@@ -69,6 +71,17 @@ class TokenModel: ObservableObject {
         self.prices = self.prices.filter { $0.timestamp >= timestamp.addingTimeInterval(-timespan) }
 
         UserModel.shared.updateTokenPrice(mint: tokenId, priceUsd: priceUsd)
+        
+        if let purchaseData = self.purchaseData {
+            let gains = priceUsd - purchaseData.priceUsd
+            let gainsPercentage = (gains / purchaseData.priceUsd) * 100
+            Task {
+                LiveActivityManager.shared.updatePriceChange(
+                    currentPriceUsd: priceUsd,
+                    gainsPercentage: gainsPercentage
+                )
+            }
+        }
     }
 
     func getPrice(at timestamp: Date) -> Price? {

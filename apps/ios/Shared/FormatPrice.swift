@@ -76,3 +76,44 @@ func formatLargeNumber(_ value: Double) -> String {
         return String(value)
     }
 }
+
+    func formatPriceUsd(
+        usd: Double,
+        showSign: Bool = false,
+        showUnit: Bool = true,
+        maxDecimals: Int = 9,
+        minDecimals: Int = 2,
+        formatLarge: Bool = true
+    ) -> String {
+        if usd.isNaN || usd.isInfinite || usd == 0 {
+            return showUnit ? "$0.00" : "0.00"
+        }
+
+        // Handle large numbers
+        if usd >= 10_000 && formatLarge {
+            return
+                "\(showSign ? (usd >= 0 ? "+" : "") : "")\(showUnit ? "$" : "")\(formatLargeNumber(usd))"
+        }
+
+        let (minFractionDigits, maxFractionDigits) = getFormattingParameters(for: usd)
+        var result = formatInitial(
+            usd,
+            minFractionDigits: max(minFractionDigits, minDecimals),
+            maxFractionDigits: min(maxFractionDigits, maxDecimals)
+        )
+
+        result = cleanupFormattedString(result)
+
+        let isNegative = result.hasPrefix("-")
+        result = result.replacingOccurrences(of: "-", with: "")
+
+        var prefix = ""
+        if showSign {
+            prefix += isNegative ? "-" : "+"
+        }
+        if showUnit {
+            prefix += "$"
+        }
+
+        return prefix + result
+    }

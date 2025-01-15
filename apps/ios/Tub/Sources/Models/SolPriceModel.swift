@@ -57,7 +57,6 @@ final class SolPriceModel: ObservableObject {
         }
         RunLoop.main.add(timer!, forMode: .common)
     }
-    
     func formatPrice(
         usd: Double,
         showSign: Bool = false,
@@ -66,39 +65,16 @@ final class SolPriceModel: ObservableObject {
         minDecimals: Int = 2,
         formatLarge: Bool = true
     ) -> String {
-        if usd.isNaN || usd.isInfinite || usd == 0 {
-            return showUnit ? "$0.00" : "0.00"
-        }
-
-        // Handle large numbers
-        if usd >= 10_000 && formatLarge {
-            return
-                "\(showSign ? (usd >= 0 ? "+" : "") : "")\(showUnit ? "$" : "")\(formatLargeNumber(usd))"
-        }
-
-        let (minFractionDigits, maxFractionDigits) = getFormattingParameters(for: usd)
-        var result = formatInitial(
-            usd,
-            minFractionDigits: max(minFractionDigits, minDecimals),
-            maxFractionDigits: min(maxFractionDigits, maxDecimals)
+        return formatPriceUsd(
+            usd: usd,
+            showSign: showSign,
+            showUnit: showUnit,
+            maxDecimals: maxDecimals,
+            minDecimals: minDecimals,
+            formatLarge: formatLarge
         )
-
-        result = cleanupFormattedString(result)
-
-        let isNegative = result.hasPrefix("-")
-        result = result.replacingOccurrences(of: "-", with: "")
-
-        var prefix = ""
-        if showSign {
-            prefix += isNegative ? "-" : "+"
-        }
-        if showUnit {
-            prefix += "$"
-        }
-
-        return prefix + result
     }
-
+    
     func formatPrice(
         lamports: Int,
         showSign: Bool = false,
@@ -107,7 +83,7 @@ final class SolPriceModel: ObservableObject {
         minDecimals: Int = 2,
         formatLarge: Bool = true
     ) -> String {
-        return formatPrice(
+        return formatPriceUsd(
             usd: lamportsToUsd(lamports: lamports),
             showSign: showSign,
             showUnit: showUnit,
@@ -126,7 +102,7 @@ final class SolPriceModel: ObservableObject {
         formatLarge: Bool = true
     ) -> String {
         if let price = self.price, price > 0 {
-            return formatPrice(
+            return formatPriceUsd(
                 usd: sol * price,
                 showSign: showSign,
                 showUnit: showUnit,
@@ -148,7 +124,7 @@ final class SolPriceModel: ObservableObject {
         minDecimals: Int = 2,
         formatLarge: Bool = true
     ) -> String {
-            return formatPrice(
+            return formatPriceUsd(
                 usd: usdcToUsd(usdc: usdc),
                 showSign: showSign,
                 showUnit: showUnit,
