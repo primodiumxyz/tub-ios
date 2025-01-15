@@ -1,11 +1,11 @@
 [
   {
     "queryName": "GetBulkTokenLiveData",
-    "directHasura": 4.489415380000009,
-    "warmCache": 4.186251679999959,
-    "coldCache": 5.318016220000027,
-    "bypassCache": 4.2988666699999705,
-    "improvement": 6.752854755891397
+    "directHasura": 3.866586159999981,
+    "warmCache": 1.4337016900000163,
+    "coldCache": 4.9206924499999785,
+    "bypassCache": 4.61207124000005,
+    "improvement": 62.92073600139242
   },
   {
     "queryName": "GetBulkTokenMetadata",
@@ -17,11 +17,11 @@
   },
   {
     "queryName": "GetTokenLiveData",
-    "directHasura": 2.7318779100000072,
-    "warmCache": 2.2665612900000225,
-    "coldCache": 5.98473293,
-    "bypassCache": 3.4528725400000075,
-    "improvement": 17.032848294453377
+    "directHasura": 1.938905400000001,
+    "warmCache": 1.1847917399999914,
+    "coldCache": 3.48867206999998,
+    "bypassCache": 2.957699170000028,
+    "improvement": 38.89378305924617
   },
   {
     "queryName": "GetTokenMetadata",
@@ -30,14 +30,6 @@
     "coldCache": 5.731250010000004,
     "bypassCache": 3.467971670000006,
     "improvement": 38.03635491614135
-  },
-  {
-    "queryName": "GetTopTokensByVolumeAgg",
-    "directHasura": 473.60473629999996,
-    "warmCache": 1.1971549900004903,
-    "coldCache": 474.33339502999945,
-    "bypassCache": 472.9129112900014,
-    "improvement": 99.74722486954984
   },
   {
     "queryName": "GetTopTokensByVolumeCached",
