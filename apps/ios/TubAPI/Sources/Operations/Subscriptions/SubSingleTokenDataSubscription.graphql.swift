@@ -7,7 +7,7 @@ public class SubSingleTokenDataSubscription: GraphQLSubscription {
   public static let operationName: String = "SubSingleTokenData"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"subscription SubSingleTokenData($token: String!) { token_stats_interval_comp( args: { interval: "30m", recent_interval: "2m" } where: { token_mint: { _eq: $token } } ) { __typename token_mint latest_price_usd total_volume_usd total_trades price_change_pct recent_volume_usd recent_trades recent_price_change_pct token_metadata_supply } }"#
+      #"subscription SubSingleTokenData($token: String!) { token_stats_interval_cache( args: { interval: "30m", recent_interval: "2m" } where: { token_mint: { _eq: $token } } ) { __typename token_mint latest_price_usd total_volume_usd total_trades price_change_pct recent_volume_usd recent_trades recent_price_change_pct token_metadata_supply } }"#
     ))
 
   public var token: String
@@ -24,7 +24,7 @@ public class SubSingleTokenDataSubscription: GraphQLSubscription {
 
     public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Subscription_root }
     public static var __selections: [ApolloAPI.Selection] { [
-      .field("token_stats_interval_comp", [Token_stats_interval_comp].self, arguments: [
+      .field("token_stats_interval_cache", [Token_stats_interval_cache].self, arguments: [
         "args": [
           "interval": "30m",
           "recent_interval": "2m"
@@ -33,12 +33,12 @@ public class SubSingleTokenDataSubscription: GraphQLSubscription {
       ]),
     ] }
 
-    public var token_stats_interval_comp: [Token_stats_interval_comp] { __data["token_stats_interval_comp"] }
+    public var token_stats_interval_cache: [Token_stats_interval_cache] { __data["token_stats_interval_cache"] }
 
-    /// Token_stats_interval_comp
+    /// Token_stats_interval_cache
     ///
     /// Parent Type: `Token_stats_model`
-    public struct Token_stats_interval_comp: TubAPI.SelectionSet {
+    public struct Token_stats_interval_cache: TubAPI.SelectionSet {
       public let __data: DataDict
       public init(_dataDict: DataDict) { __data = _dataDict }
 

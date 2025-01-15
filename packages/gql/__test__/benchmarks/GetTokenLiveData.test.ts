@@ -25,7 +25,7 @@ describe("GetTokenLiveData benchmarks", () => {
       },
       iterations: ITERATIONS,
       after: (res) => {
-        if (res.error || res.data?.token_stats_interval_comp.length === 0) throw new Error("Error or no tokens found");
+        if (res.error || res.data?.token_stats_interval_cache.length === 0) throw new Error("Error or no tokens found");
       },
     });
 
@@ -52,7 +52,7 @@ describe("GetTokenLiveData benchmarks", () => {
       },
       iterations: ITERATIONS,
       after: (res) => {
-        if (res.error || res.data?.token_stats_interval_comp.length === 0) throw new Error("Error or no tokens found");
+        if (res.error || res.data?.token_stats_interval_cache.length === 0) throw new Error("Error or no tokens found");
       },
     });
 
@@ -72,7 +72,7 @@ describe("GetTokenLiveData benchmarks", () => {
       iterations: ITERATIONS,
       before: async () => await clearCache(),
       after: (res) => {
-        if (res.error || res.data?.token_stats_interval_comp.length === 0) throw new Error("Error or no tokens found");
+        if (res.error || res.data?.token_stats_interval_cache.length === 0) throw new Error("Error or no tokens found");
       },
     });
 
@@ -90,7 +90,7 @@ describe("GetTokenLiveData benchmarks", () => {
       },
       iterations: ITERATIONS,
       after: (res) => {
-        if (res.error || res.data?.token_stats_interval_comp.length === 0) throw new Error("Error or no tokens found");
+        if (res.error || res.data?.token_stats_interval_cache.length === 0) throw new Error("Error or no tokens found");
       },
     });
 

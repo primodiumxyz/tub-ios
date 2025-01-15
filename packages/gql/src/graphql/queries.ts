@@ -130,7 +130,7 @@ export const GetTokenMetadataQuery = graphql(`
 
 export const GetBulkTokenLiveDataQuery = graphql(`
   query GetBulkTokenLiveData($tokens: [String!]!) {
-    token_stats_interval_comp(
+    token_stats_interval_cache(
       where: { token_mint: { _in: $tokens } }
       args: { interval: "30m", recent_interval: "2m" }
     ) {
@@ -149,7 +149,7 @@ export const GetBulkTokenLiveDataQuery = graphql(`
 
 export const GetTokenLiveDataQuery = graphql(`
   query GetTokenLiveData($token: String!) {
-    token_stats_interval_comp(
+    token_stats_interval_cache(
       where: { token_mint: { _eq: $token } }
       args: { interval: "30m", recent_interval: "2m" }
     ) {

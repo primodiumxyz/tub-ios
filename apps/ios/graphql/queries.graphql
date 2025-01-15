@@ -61,7 +61,7 @@ query GetTokenMetadata($token: String!) {
 }
 
 query GetBulkTokenLiveData($tokens: [String!]!) {
-  token_stats_interval_comp(
+  token_stats_interval_cache(
     where: { token_mint: { _in: $tokens } }
     args: { interval: "30m", recent_interval: "2m" }
   ) {
@@ -78,7 +78,7 @@ query GetBulkTokenLiveData($tokens: [String!]!) {
 }
 
 query GetTokenLiveData($token: String!) {
-  token_stats_interval_comp(
+  token_stats_interval_cache(
     where: { token_mint: { _eq: $token } }
     args: { interval: "30m", recent_interval: "2m" }
   ) {

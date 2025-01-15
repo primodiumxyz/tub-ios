@@ -46,7 +46,7 @@ subscription SubTokenCandlesSince(
 }
 
 subscription SubSingleTokenData($token: String!) {
-  token_stats_interval_comp(
+  token_stats_interval_cache(
     args: { interval: "30m", recent_interval: "2m" }
     where: { token_mint: { _eq: $token } }
   ) {

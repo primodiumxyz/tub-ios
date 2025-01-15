@@ -347,7 +347,7 @@ class TokenModel: ObservableObject {
             ) { result in
                 switch result {
                 case .success(let graphQLResult):
-                    if let tokenData = graphQLResult.data?.token_stats_interval_comp.first {
+                    if let tokenData = graphQLResult.data?.token_stats_interval_cache.first {
                         let liveData = TokenLiveData(
                             supply: Int(tokenData.token_metadata_supply ?? 0),
                             priceUsd: tokenData.latest_price_usd,

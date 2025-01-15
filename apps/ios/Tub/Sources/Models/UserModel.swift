@@ -446,7 +446,7 @@ final class UserModel: ObservableObject {
                         return
                     }
                     
-                    if let token = response.data?.token_stats_interval_comp.first {
+                    if let token = response.data?.token_stats_interval_cache.first {
                         let liveData = TokenLiveData(
                             supply: Int(token.token_metadata_supply ?? 0),
                             priceUsd: token.latest_price_usd,
@@ -495,7 +495,7 @@ final class UserModel: ObservableObject {
                             return
                         }
                         
-                        if let tokens = graphQLResult.data?.token_stats_interval_comp {
+                        if let tokens = graphQLResult.data?.token_stats_interval_cache {
                             for token in tokens {
                                 ret[token.token_mint] = TokenLiveData(
                                     supply: Int(token.token_metadata_supply ?? 0),
