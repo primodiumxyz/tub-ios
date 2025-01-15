@@ -339,7 +339,7 @@ final class UserModel: ObservableObject {
             return cachedData
         }
 
-        let query = GetTokenMetadataQuery(token: tokenMint)
+        let query = GetBulkTokenMetadataQuery(tokens: "[\(tokenMint)]")
         
         return try await withCheckedThrowingContinuation {
             (continuation: CheckedContinuation<TokenMetadata, Error>) in
@@ -395,7 +395,7 @@ final class UserModel: ObservableObject {
             try await withCheckedThrowingContinuation {
                 (continuation: CheckedContinuation<Void, Error>) in
                 Network.shared.graphQL.fetch(
-                    query: GetBulkTokenMetadataQuery(tokens: uncachedTokens),
+                    query: GetBulkTokenMetadataQuery(tokens: uncachedTokens.joined(separator: ",")),
                     cacheTime: QUERY_TOKEN_METADATA_CACHE_TIME
                 ) { result in
                     switch result {

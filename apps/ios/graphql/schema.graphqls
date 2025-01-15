@@ -1477,6 +1477,8 @@ enum cursor_ordering {
 
 scalar interval
 
+scalar jsonb
+
 """
 columns and relationships of "loading_time"
 """
@@ -2676,6 +2678,9 @@ type query_root {
   """
   token_dwell_time_by_pk(id: uuid!): token_dwell_time
   token_metadata_formatted(
+    """token_metadata_formattedNative Query Arguments"""
+    args: token_metadata_formatted_arguments!
+
     """distinct select on columns"""
     distinct_on: [token_metadata_model_enum_name!]
 
@@ -3263,6 +3268,9 @@ type subscription_root {
     where: token_dwell_time_bool_exp
   ): [token_dwell_time!]!
   token_metadata_formatted(
+    """token_metadata_formattedNative Query Arguments"""
+    args: token_metadata_formatted_arguments!
+
     """distinct select on columns"""
     distinct_on: [token_metadata_model_enum_name!]
 
@@ -3796,6 +3804,14 @@ type token_dwell_time_var_samp_fields {
 """aggregate variance on columns"""
 type token_dwell_time_variance_fields {
   dwell_time_ms: Float
+}
+
+"""token_metadata_formattedNative Query Arguments"""
+input token_metadata_formatted_arguments {
+  """
+  Optional JSON array of token mints to fetch metadata for (e.g. '["mint1", "mint2"]')
+  """
+  tokens: jsonb
 }
 
 type token_metadata_model {

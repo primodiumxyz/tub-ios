@@ -97,24 +97,8 @@ export const GetTopTokensByVolumeCachedQuery = graphql(`
 `);
 
 export const GetBulkTokenMetadataQuery = graphql(`
-  query GetBulkTokenMetadata($tokens: [String!]!) {
-    token_metadata_formatted(where: { mint: { _in: $tokens } }) {
-      mint
-      name
-      symbol
-      image_uri
-      supply
-      decimals
-      description
-      external_url
-      is_pump_token
-    }
-  }
-`);
-
-export const GetTokenMetadataQuery = graphql(`
-  query GetTokenMetadata($token: String!) {
-    token_metadata_formatted(where: { mint: { _eq: $token } }) {
+  query GetBulkTokenMetadata($tokens: jsonb!) {
+    token_metadata_formatted(args: { tokens: $tokens }) {
       mint
       name
       symbol

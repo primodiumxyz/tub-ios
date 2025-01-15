@@ -7,12 +7,12 @@ public class GetBulkTokenMetadataQuery: GraphQLQuery {
   public static let operationName: String = "GetBulkTokenMetadata"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetBulkTokenMetadata($tokens: [String!]!) { token_metadata_formatted(where: { mint: { _in: $tokens } }) { __typename mint name symbol image_uri supply decimals description external_url is_pump_token } }"#
+      #"query GetBulkTokenMetadata($tokens: jsonb!) { token_metadata_formatted(args: { tokens: $tokens }) { __typename mint name symbol image_uri supply decimals description external_url is_pump_token } }"#
     ))
 
-  public var tokens: [String]
+  public var tokens: Jsonb
 
-  public init(tokens: [String]) {
+  public init(tokens: Jsonb) {
     self.tokens = tokens
   }
 
@@ -24,7 +24,7 @@ public class GetBulkTokenMetadataQuery: GraphQLQuery {
 
     public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Query_root }
     public static var __selections: [ApolloAPI.Selection] { [
-      .field("token_metadata_formatted", [Token_metadata_formatted].self, arguments: ["where": ["mint": ["_in": .variable("tokens")]]]),
+      .field("token_metadata_formatted", [Token_metadata_formatted].self, arguments: ["args": ["tokens": .variable("tokens")]]),
     ] }
 
     public var token_metadata_formatted: [Token_metadata_formatted] { __data["token_metadata_formatted"] }
