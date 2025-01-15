@@ -171,7 +171,7 @@ export class SwapService {
         return response;
       } catch (error) {
         console.log("Swap build attempt " + buildAttempt + " failed: " + JSON.stringify(error));
-        // TODO: interpret error before rebuilding to validate if slippage issue
+        // TODO: error interpretation
 
         if (buildAttempt >= cfg.MAX_BUILD_ATTEMPTS || !slippageSettings.autoSlippage) {
           throw new Error(error as string);

@@ -15,7 +15,6 @@ import {
   SimulatedTransactionResponse,
   SignatureStatus,
 } from "@solana/web3.js";
-
 import bs58 from "bs58";
 import { ATA_PROGRAM_PUBLIC_KEY, MAX_CHAIN_COMPUTE_UNITS, TOKEN_PROGRAM_PUBLIC_KEY } from "../constants/tokens";
 import {
@@ -68,7 +67,7 @@ export class TransactionService {
   }
 
   /**
-   * Builds a transaction message from instructions
+   * Builds a transaction message from instructions and registers it in the registry
    */
   async buildAndRegisterTransactionMessage(
     instructions: TransactionInstruction[],
@@ -317,123 +316,6 @@ export class TransactionService {
     throw new Error("Transaction expired");
   }
 
-  /**
-   * Reassigns rent payer in instructions to the fee payer
-   */
-  reassignRentInstructions(instructions: TransactionInstruction[]): TransactionInstruction[] {
-    return instructions.map((instruction) => {
-      // If this is an ATA creation instruction, modify it to make fee payer pay for rent
-      if (instruction.programId.equals(ATA_PROGRAM_PUBLIC_KEY)) {
-        return new TransactionInstruction({
-          programId: instruction.programId,
-          keys: [
-            {
-              pubkey: this.feePayerKeypair.publicKey,
-              isSigner: true,
-              isWritable: true,
-            },
-            ...instruction.keys.slice(1),
-          ],
-          data: instruction.data,
-        });
-      }
-
-      // This is a CloseAccount instruction, receive the residual funds as the FeePayer
-      if (
-        instruction.programId.equals(TOKEN_PROGRAM_PUBLIC_KEY) &&
-        instruction.data.length === 1 &&
-        instruction.data[0] === 9
-      ) {
-        const firstKey = instruction.keys[0];
-        if (!firstKey) {
-          throw new Error("Invalid instruction: missing account key at index 0");
-        }
-
-        return new TransactionInstruction({
-          programId: instruction.programId,
-          keys: [
-            firstKey,
-            {
-              pubkey: this.feePayerKeypair.publicKey,
-              isSigner: false,
-              isWritable: true,
-            },
-            ...instruction.keys.slice(2),
-          ],
-          data: instruction.data,
-        });
-      }
-
-      return instruction;
-    });
-  }
-
-  /**
-   * Optimizes compute budget instructions by estimating the compute units and setting a reasonable compute unit price
-   * @param instructions - The instructions to optimize
-   * @param addressLookupTableAccounts - The address lookup table accounts
-   * @param cfg - Config
-   * @returns The optimized instructions
-   */
-  async optimizeComputeInstructions(
-    instructions: TransactionInstruction[],
-    addressLookupTableAccounts: AddressLookupTableAccount[],
-    contextSlot: number,
-    cfg: Config,
-  ): Promise<TransactionInstruction[]> {
-    const { initComputeUnitPrice, filteredInstructions } = this.filterComputeInstructions(instructions, cfg);
-
-    const simulatedComputeUnits = await this.getSimulationComputeUnits(
-      filteredInstructions,
-      addressLookupTableAccounts,
-      contextSlot,
-    );
-
-    const estimatedComputeUnitLimit = Math.ceil(simulatedComputeUnits * 1.1);
-
-    // use the least expensive compute unit price, note microLamports is the price per compute unit
-    const MAX_COMPUTE_PRICE = cfg.MAX_COMPUTE_PRICE;
-    const AUTO_PRIO_MULT = cfg.AUTO_PRIORITY_FEE_MULTIPLIER;
-    const computePrice =
-      initComputeUnitPrice * AUTO_PRIO_MULT < MAX_COMPUTE_PRICE
-        ? initComputeUnitPrice * AUTO_PRIO_MULT
-        : MAX_COMPUTE_PRICE;
-
-    // Add the new compute unit limit and price instructions to the beginning of the instructions array
-    filteredInstructions.unshift(ComputeBudgetProgram.setComputeUnitPrice({ microLamports: computePrice }));
-    filteredInstructions.unshift(ComputeBudgetProgram.setComputeUnitLimit({ units: estimatedComputeUnitLimit }));
-
-    return filteredInstructions;
-  }
-
-  /**
-   * Creates a token close instruction if needed
-   */
-  async createTokenCloseInstruction(
-    userPublicKey: PublicKey,
-    tokenAccount: PublicKey,
-    sellTokenId: PublicKey,
-    sellQuantity: number,
-    swapType: SwapType,
-  ): Promise<TransactionInstruction | null> {
-    // Skip if user is not selling their entire memecoin stack
-    if (swapType !== SwapType.SELL_ALL) {
-      return null;
-    }
-
-    // Check if the sell quantity is equal to the token account balance
-    const balance = await this.getTokenBalance(userPublicKey, sellTokenId);
-    if (sellQuantity === balance) {
-      const closeInstruction = createCloseAccountInstruction(
-        tokenAccount,
-        this.feePayerKeypair.publicKey,
-        userPublicKey,
-      );
-      return closeInstruction;
-    }
-    return null;
-  }
-
   async simulateTransactionWithResim(
     transaction: VersionedTransaction,
     contextSlot: number,
@@ -466,20 +348,6 @@ export class TransactionService {
     }
     // this should never happen
     throw new Error("Simulation failed after all attempts. No error was provided");
-  }
-
-  async getTokenBalance(userPublicKey: PublicKey, tokenMint: PublicKey): Promise<number> {
-    const tokenAccounts = await this.connection.getParsedTokenAccountsByOwner(
-      userPublicKey,
-      { mint: new PublicKey(tokenMint) },
-      "processed",
-    );
-
-    if (tokenAccounts.value.length === 0 || !tokenAccounts.value[0]?.account.data.parsed.info.tokenAmount.amount)
-      return 0;
-
-    const balance = Number(tokenAccounts.value[0].account.data.parsed.info.tokenAmount.amount);
-    return balance;
   }
 
   private async getSimulationComputeUnits(
@@ -534,5 +402,136 @@ export class TransactionService {
       initComputeUnitPrice,
       filteredInstructions,
     };
+  }
+
+  /**
+   * Optimizes compute budget instructions by estimating the compute units and setting a reasonable compute unit price
+   * @param instructions - The instructions to optimize
+   * @param addressLookupTableAccounts - The address lookup table accounts
+   * @param cfg - Config
+   * @returns The optimized instructions
+   */
+  async optimizeComputeInstructions(
+    instructions: TransactionInstruction[],
+    addressLookupTableAccounts: AddressLookupTableAccount[],
+    contextSlot: number,
+    cfg: Config,
+  ): Promise<TransactionInstruction[]> {
+    const { initComputeUnitPrice, filteredInstructions } = this.filterComputeInstructions(instructions, cfg);
+
+    const simulatedComputeUnits = await this.getSimulationComputeUnits(
+      filteredInstructions,
+      addressLookupTableAccounts,
+      contextSlot,
+    );
+
+    const estimatedComputeUnitLimit = Math.ceil(simulatedComputeUnits * 1.1);
+
+    // use the least expensive compute unit price, note microLamports is the price per compute unit
+    const MAX_COMPUTE_PRICE = cfg.MAX_COMPUTE_PRICE;
+    const AUTO_PRIO_MULT = cfg.AUTO_PRIORITY_FEE_MULTIPLIER;
+    const computePrice =
+      initComputeUnitPrice * AUTO_PRIO_MULT < MAX_COMPUTE_PRICE
+        ? initComputeUnitPrice * AUTO_PRIO_MULT
+        : MAX_COMPUTE_PRICE;
+
+    // Add the new compute unit limit and price instructions to the beginning of the instructions array
+    filteredInstructions.unshift(ComputeBudgetProgram.setComputeUnitPrice({ microLamports: computePrice }));
+    filteredInstructions.unshift(ComputeBudgetProgram.setComputeUnitLimit({ units: estimatedComputeUnitLimit }));
+
+    return filteredInstructions;
+  }
+
+  /**
+   * Reassigns rent payer in instructions to the fee payer
+   */
+  reassignRentInstructions(instructions: TransactionInstruction[]): TransactionInstruction[] {
+    return instructions.map((instruction) => {
+      // If this is an ATA creation instruction, modify it to make fee payer pay for rent
+      if (instruction.programId.equals(ATA_PROGRAM_PUBLIC_KEY)) {
+        return new TransactionInstruction({
+          programId: instruction.programId,
+          keys: [
+            {
+              pubkey: this.feePayerKeypair.publicKey,
+              isSigner: true,
+              isWritable: true,
+            },
+            ...instruction.keys.slice(1),
+          ],
+          data: instruction.data,
+        });
+      }
+
+      // This is a CloseAccount instruction, receive the residual funds as the FeePayer
+      if (
+        instruction.programId.equals(TOKEN_PROGRAM_PUBLIC_KEY) &&
+        instruction.data.length === 1 &&
+        instruction.data[0] === 9
+      ) {
+        const firstKey = instruction.keys[0];
+        if (!firstKey) {
+          throw new Error("Invalid instruction: missing account key at index 0");
+        }
+
+        return new TransactionInstruction({
+          programId: instruction.programId,
+          keys: [
+            firstKey,
+            {
+              pubkey: this.feePayerKeypair.publicKey,
+              isSigner: false,
+              isWritable: true,
+            },
+            ...instruction.keys.slice(2),
+          ],
+          data: instruction.data,
+        });
+      }
+
+      return instruction;
+    });
+  }
+
+  /**
+   * Creates a token close instruction if needed
+   */
+  async createTokenCloseInstruction(
+    userPublicKey: PublicKey,
+    tokenAccount: PublicKey,
+    sellTokenId: PublicKey,
+    sellQuantity: number,
+    swapType: SwapType,
+  ): Promise<TransactionInstruction | null> {
+    // Skip if user is not selling their entire memecoin stack
+    if (swapType !== SwapType.SELL_ALL) {
+      return null;
+    }
+
+    // Check if the sell quantity is equal to the token account balance
+    const balance = await this.getTokenBalance(userPublicKey, sellTokenId);
+    if (sellQuantity === balance) {
+      const closeInstruction = createCloseAccountInstruction(
+        tokenAccount,
+        this.feePayerKeypair.publicKey,
+        userPublicKey,
+      );
+      return closeInstruction;
+    }
+    return null;
+  }
+
+  async getTokenBalance(userPublicKey: PublicKey, tokenMint: PublicKey): Promise<number> {
+    const tokenAccounts = await this.connection.getParsedTokenAccountsByOwner(
+      userPublicKey,
+      { mint: new PublicKey(tokenMint) },
+      "processed",
+    );
+
+    if (tokenAccounts.value.length === 0 || !tokenAccounts.value[0]?.account.data.parsed.info.tokenAmount.amount)
+      return 0;
+
+    const balance = Number(tokenAccounts.value[0].account.data.parsed.info.tokenAmount.amount);
+    return balance;
   }
 }
