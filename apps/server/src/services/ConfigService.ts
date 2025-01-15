@@ -24,6 +24,7 @@ export const configSchema = z
     MIN_FEE_CENTS: z.number(),
     MIN_TRADE_SIZE_USD: z.number(),
     TRADE_FEE_RECIPIENT: z.string(),
+    CRON_REFRESH_TOKEN_ROLLING_STATS_30MIN_INTERVAL_SECONDS: z.number(),
   })
   .strict();
 
