@@ -12,6 +12,7 @@ import {
   ComputeBudgetInstruction,
   RpcResponseAndContext,
   SimulatedTransactionResponse,
+  SignatureStatus,
 } from "@solana/web3.js";
 import bs58 from "bs58";
 import { config } from "../utils/config";
@@ -212,7 +213,7 @@ export class TransactionService {
         throw new Error(JSON.stringify(simulation.value.err));
       }
 
-      // Send and confirm transaction
+      // Send transaction
       txid = await this.connection.sendTransaction(transaction, {
         skipPreflight: false,
         preflightCommitment: "processed",
@@ -254,34 +255,7 @@ export class TransactionService {
 
     // tx confirmation and resend case
     try {
-      let confirmation = null;
-      for (let attempt = 0; attempt < cfg.CONFIRM_ATTEMPTS; attempt++) {
-        console.log(`Tx Confirmation Attempt ${attempt + 1} of ${cfg.CONFIRM_ATTEMPTS}`);
-        try {
-          const status = await this.connection.getSignatureStatus(txid, {
-            searchTransactionHistory: true,
-          });
-
-          const acceptedStates: TransactionConfirmationStatus[] = ["confirmed", "finalized", "processed"];
-
-          if (status.value?.confirmationStatus && acceptedStates.includes(status.value.confirmationStatus)) {
-            confirmation = status;
-            break; // Exit loop if successful
-          }
-        } catch (error) {
-          console.log(`Attempt ${attempt + 1} failed:`, error);
-          if (attempt === cfg.CONFIRM_ATTEMPTS - 1)
-            throw new Error(`Failed to get transaction confirmation after ${cfg.CONFIRM_ATTEMPTS} attempts`);
-        }
-        await new Promise((resolve) => setTimeout(resolve, cfg.CONFIRM_ATTEMPT_DELAY)); // Wait 1 second before next attempt
-      }
-
-      if (!confirmation) {
-        throw new Error(`Transaction timed out.`);
-      }
-      if (confirmation.value?.err) {
-        throw new Error(`Transaction failed: ${JSON.stringify(confirmation?.value?.err)}`);
-      }
+      const confirmation = await this.confirmTransaction(txid, entry.lastValidBlockHeight, cfg);
 
       this.messageRegistry.delete(base64Message);
       let timestamp: number | null = null;
@@ -295,21 +269,51 @@ export class TransactionService {
           }
         }
       }
-
       return { responseType: "success", txid, timestamp };
     } catch (error) {
-      if (entry.swapType === SwapType.SELL_ALL) {
-        // Send and confirm transaction
-        txid = await this.connection.sendTransaction(transaction, {
-          skipPreflight: false,
-          preflightCommitment: "processed",
-          minContextSlot: entry.contextSlot,
-        });
-      }
       console.error("[signAndSendTransaction] Error confirming transaction:", error);
+      return { responseType: "fail", error: JSON.stringify(error) };
     }
+  }
 
-    return { responseType: "fail", error: "unknown" };
+  async confirmTransaction(
+    txid: string,
+    lastValidBlockHeight: number,
+    cfg: Config,
+  ): Promise<RpcResponseAndContext<SignatureStatus>> {
+    const AVG_BLOCK_TIME = 400; // ms
+    let blockHeight: number = 0;
+    let attempt = 0;
+
+    do {
+      blockHeight = await this.connection.getBlockHeight({ commitment: "confirmed" });
+      const estimatedTimeTillExpiry = (lastValidBlockHeight - blockHeight) * AVG_BLOCK_TIME;
+      const timeToRecheckBlockHeight = Date.now() + estimatedTimeTillExpiry;
+      do {
+        console.log(`Tx Confirmation Attempt ${attempt + 1}`);
+        try {
+          const status = await this.connection.getSignatureStatus(txid, {
+            searchTransactionHistory: true,
+          });
+
+          const acceptedStates: TransactionConfirmationStatus[] = ["confirmed", "finalized"]; // processed is not accepted, 5% orphan chance
+
+          if (status.value?.confirmationStatus && acceptedStates.includes(status.value.confirmationStatus)) {
+            return status as RpcResponseAndContext<SignatureStatus>;
+          }
+
+          if (status.value?.err) {
+            console.error("[confirmTransaction] Error getting transaction confirmation:", status.value.err);
+          }
+        } catch (error) {
+          console.log(`Attempt ${attempt + 1} failed:`, error);
+        }
+        await new Promise((resolve) => setTimeout(resolve, cfg.CONFIRM_ATTEMPT_DELAY)); // Wait 1 second before next attempt
+        attempt++;
+      } while (Date.now() < timeToRecheckBlockHeight);
+    } while (blockHeight <= lastValidBlockHeight);
+
+    throw new Error("Transaction expired");
   }
 
   /**
