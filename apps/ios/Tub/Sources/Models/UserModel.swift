@@ -193,27 +193,20 @@ final class UserModel: ObservableObject {
         
         await MainActor.run {
             // if a token fails to be stored in the tokenData, something went wrong fetching its data so we exclude it from the user's portfolio
-            self.tokenPortfolio = tokenMints.filter{ mint in tokenData[mint] != nil }
+            self.tokenPortfolio = tokenMints.filter{ mint in self.tokenData[mint] != nil }
         }
         
-        async let metadataFetch = fetchBulkTokenMetadata(tokenMints: tokenMints)
-        async let liveDataFetch = fetchBulkTokenLiveData(tokenMints: tokenMints)
-        let (tokenMetadata, tokenLiveData) = try await (metadataFetch, liveDataFetch)
-        
+        let tokenData = try await fetchBulkTokenFullData(tokenMints: tokenMints)
         for mint in tokenMints + [USDC_MINT] {
-            await updateTokenData(
-                mint: mint, balance: tokenBalances[mint], metadata: tokenMetadata[mint],
-                liveData: tokenLiveData[mint])
+            await updateTokenData(mint: mint, balance: tokenBalances[mint], metadata: tokenData[mint]?.metadata, liveData: tokenData[mint]?.liveData)
         }
     }
     
     struct RefreshOptions {
         let withBalances: Bool
-        let withLiveData: Bool
         
-        init(withBalances: Bool? = nil, withLiveData: Bool? = nil) {
+        init(withBalances: Bool? = nil) {
             self.withBalances = withBalances ?? false
-            self.withLiveData = withLiveData ?? true
         }
     }
     
@@ -221,11 +214,10 @@ final class UserModel: ObservableObject {
     async throws
     {
         let withBalances = options?.withBalances ?? false
-        
         async let balances = withBalances ? Network.shared.getAllTokenBalances() : nil
-        async let tokenMetadata = fetchBulkTokenMetadata(tokenMints: tokenMints)
+        async let tokenData = fetchBulkTokenFullData(tokenMints: tokenMints)
         
-        let (fetchedBalances, fetchedTokenMetadata) = try await (balances, tokenMetadata)
+        let (fetchedBalances, fetchedTokenData) = try await (balances, tokenData)
         
         if withBalances, let fetchedBalances {
             let balancesMap = fetchedBalances.map { $0.key }
@@ -237,31 +229,18 @@ final class UserModel: ObservableObject {
         }
         
         for mint in tokenMints {
-            await updateTokenData(
-                mint: mint, balance: fetchedBalances?[mint], metadata: fetchedTokenMetadata[mint])
-        }
-        
-        let withLiveData = options?.withLiveData ?? true
-        if withLiveData {
-            Task {
-                let tokenLiveData = try await fetchBulkTokenLiveData(tokenMints: tokenMints)
-                for mint in tokenMints {
-                    await updateTokenData(mint: mint, liveData: tokenLiveData[mint])
-                }
-            }
+            await updateTokenData(mint: mint, balance: fetchedBalances?[mint], metadata: fetchedTokenData[mint]?.metadata, liveData: fetchedTokenData[mint]?.liveData)
         }
     }
     
     public func refreshTokenData(tokenMint: String) async {
         do {
             async let balanceData = Network.shared.getTokenBalance(tokenMint: tokenMint)
-            async let tokenMetadata = fetchTokenMetadata(tokenMint: tokenMint)
-            async let tokenLiveData = fetchTokenLiveData(tokenMint: tokenMint)
+            async let tokenData = fetchTokenFullData(tokenMint: tokenMint)
             
             do {
-                let (balance, metadata, liveData) = try await (balanceData, tokenMetadata, tokenLiveData)
-                await updateTokenData(
-                    mint: tokenMint, balance: balance, metadata: metadata, liveData: liveData)
+                let (balance, tokenData) = try await (balanceData, tokenData)
+                await updateTokenData(mint: tokenMint, balance: balance, metadata: tokenData.metadata, liveData: tokenData.liveData)
             } catch {
                 // Handle error
                 print("Error fetching token data: \(error.localizedDescription)")
@@ -281,10 +260,12 @@ final class UserModel: ObservableObject {
     }
     
     public func updateTokenData(
-        mint: String, balance: Int? = nil, metadata: TokenMetadata? = nil,
+        mint: String,
+        balance: Int? = nil,
+        metadata: TokenMetadata? = nil,
         liveData: TokenLiveData? = nil
     ) async {
-        
+        // Handle USDC separately
         if mint == USDC_MINT {
             guard let balance else { return }
             await MainActor.run {
@@ -294,66 +275,125 @@ final class UserModel: ObservableObject {
         }
         
         let portfolioContainsToken = self.tokenPortfolio.contains(mint)
-        if let tokenData = tokenData[mint] {
-            let newLiveData = liveData ?? tokenData.liveData
-            let newBalance = balance ?? tokenData.balanceToken
+        
+        // Case 1: We have existing data for this token
+        if let existingTokenData = self.tokenData[mint] {
+            let newBalance = balance ?? existingTokenData.balanceToken
+            let newMetadata = metadata ?? existingTokenData.metadata
+            let newLiveData = liveData ?? existingTokenData.liveData
+            
             await MainActor.run {
+                // Update portfolio membership based on balance
                 if newBalance == 0 && portfolioContainsToken {
                     self.tokenPortfolio = self.tokenPortfolio.filter { $0 != mint }
                 } else if newBalance > 0 && !portfolioContainsToken {
                     self.tokenPortfolio.append(mint)
                 }
+                
+                // Update token data
                 self.tokenData[mint] = TokenData(
-                    mint: mint, balanceToken: newBalance, metadata: metadata ?? tokenData.metadata,
-                    liveData: newLiveData)
+                    mint: mint,
+                    balanceToken: newBalance,
+                    metadata: newMetadata,
+                    liveData: newLiveData
+                )
             }
-        } else {
-            var newMetadata: TokenMetadata?
-            if let metadata {
-                newMetadata = metadata
-            } else {
-                do { newMetadata = try await fetchTokenMetadata(tokenMint: mint) } catch { return }
+        }
+        // Case 2: No existing data for this token
+        else {
+            var newMetadata = metadata
+            var newLiveData = liveData
+            
+            // If we don't have token metadata or live data, just fetch both
+            if metadata == nil || liveData == nil {
+                do {
+                    let fetchedData = try await fetchTokenFullData(tokenMint: mint)
+                    newMetadata = fetchedData.metadata
+                    newLiveData = fetchedData.liveData
+                } catch {
+                    return
+                }
             }
+        
+            let newTokenData = TokenData(
+                mint: mint,
+                balanceToken: balance ?? 0,
+                metadata: newMetadata!, // if we didn't provide it, it's been fetched
+                liveData: newLiveData!
+            )
             
-            guard let newMetadata else { return }
-            
-            let tokenData = TokenData(
-                mint: mint, balanceToken: balance ?? 0, metadata: newMetadata, liveData: liveData)
             await MainActor.run {
+                // Add to portfolio if balance > 0
                 if balance ?? 0 > 0 && !portfolioContainsToken {
                     self.tokenPortfolio.append(mint)
                 }
                 
-                self.tokenData[mint] = tokenData
+                // Store the token data
+                self.tokenData[mint] = newTokenData
             }
         }
     }
     
-    func fetchTokenMetadata(tokenMint: String) async throws -> TokenMetadata {
-        // Check local cache first
+    func fetchTokenFullData(tokenMint: String) async throws -> TokenData {
+        // Check cache first
         if let data = tokenData[tokenMint] {
-            return data.metadata
+            return data
         }
 
-        if let cachedData = TokenMetadata.loadFromCache(for: tokenMint) {
-            return cachedData
+        if let cachedMetadata = TokenMetadata.loadFromCache(for: tokenMint) {
+            // Only metadata is cached, still need live data
+            let query = GetTokenLiveDataQuery(token: tokenMint)
+            return try await withCheckedThrowingContinuation { continuation in
+                Network.shared.graphQL.fetch(
+                    query: query,
+                    cacheTime: QUERY_TOKEN_LIVE_DATA_CACHE_TIME
+                ) { result in
+                    switch result {
+                    case .success(let response):
+                        if let token = response.data?.token_rolling_stats_30min.first {
+                            let liveData = TokenLiveData(
+                                supply: Int(token.supply ?? 0),
+                                priceUsd: token.latest_price_usd,
+                                stats: IntervalStats(
+                                    volumeUsd: token.volume_usd_30m,
+                                    trades: Int(token.trades_30m),
+                                    priceChangePct: token.price_change_pct_30m
+                                ),
+                                recentStats: IntervalStats(
+                                    volumeUsd: token.volume_usd_1m,
+                                    trades: Int(token.trades_1m),
+                                    priceChangePct: token.price_change_pct_1m
+                                )
+                            )
+                    
+                            let tokenData = TokenData(
+                                mint: tokenMint,
+                                balanceToken: 0,
+                                metadata: cachedMetadata,
+                                liveData: liveData
+                            )
+
+                            continuation.resume(returning: tokenData)
+                        } else {
+                            continuation.resume(throwing: TubError.networkFailure)
+                        }
+                    case .failure(let error):
+                        continuation.resume(throwing: error)
+                    }
+                }
+            }
         }
 
-        let query = GetTokenMetadataQuery(token: tokenMint)
-        
-        return try await withCheckedThrowingContinuation {
-            (continuation: CheckedContinuation<TokenMetadata, Error>) in
-            Network.shared.graphQL.fetch(query: query, cacheTime: QUERY_TOKEN_METADATA_CACHE_TIME) { result in
+        // No cache, fetch everything
+        let query = GetTokenFullDataQuery(token: tokenMint)
+        return try await withCheckedThrowingContinuation { continuation in
+            Network.shared.graphQL.fetch(
+                query: query,
+                cacheTime: QUERY_TOKEN_LIVE_DATA_CACHE_TIME
+            ) { result in
                 switch result {
                 case .success(let response):
-                    if response.errors != nil {
-                        continuation.resume(throwing: TubError.unknown)
-                        return
-                    }
-                    
-                    if let token = response.data?.token_rolling_stats_30min.first(where: {
-                        $0.mint == tokenMint
-                    }) {
+                    if let token = response.data?.token_rolling_stats_30min.first {
                         let metadata = TokenMetadata(
                             name: token.name,
                             symbol: token.symbol,
@@ -361,18 +401,100 @@ final class UserModel: ObservableObject {
                             imageUri: convertToDwebLink(token.image_uri),
                             externalUrl: token.external_url,
                             decimals: Int(token.decimals),
-                            cachedAt: Date()  // Set cache timestamp
+                            cachedAt: Date()
                         )
-                        metadata.saveToCache(for: tokenMint)  // Save to cache
-                        continuation.resume(returning: metadata)
-                        return
+                        metadata.saveToCache(for: tokenMint)
+                    
+                        let liveData = TokenLiveData(
+                            supply: Int(token.supply ?? 0),
+                            priceUsd: token.latest_price_usd,
+                            stats: IntervalStats(
+                                volumeUsd: token.volume_usd_30m,
+                                trades: Int(token.trades_30m),
+                                priceChangePct: token.price_change_pct_30m
+                            ),
+                            recentStats: IntervalStats(
+                                volumeUsd: token.volume_usd_1m,
+                                trades: Int(token.trades_1m),
+                                priceChangePct: token.price_change_pct_1m
+                            )
+                        )
+                    
+                        let tokenData = TokenData(
+                            mint: tokenMint,
+                            balanceToken: 0,
+                            metadata: metadata,
+                            liveData: liveData
+                        )
+                        continuation.resume(returning: tokenData)
+                    } else {
+                        continuation.resume(throwing: TubError.networkFailure)
                     }
-                    continuation.resume(throwing: TubError.somethingWentWrong(reason: "Metadata not found"))
                 case .failure(let error):
                     continuation.resume(throwing: error)
                 }
             }
         }
+    }
+
+    func fetchBulkTokenFullData(tokenMints: [String]) async throws -> [String: TokenData] {
+        if tokenMints.isEmpty { return [:] }
+        var ret = [String: TokenData]()
+    
+        // Fetch for all tokens - we need fresh live data anyway
+        let query = GetBulkTokenFullDataQuery(tokens: tokenMints)
+        try await withCheckedThrowingContinuation { continuation in
+            Network.shared.graphQL.fetch(
+                query: query,
+                cacheTime: QUERY_TOKEN_LIVE_DATA_CACHE_TIME
+            ) { result in
+                switch result {
+                case .success(let response):
+                    if let tokens = response.data?.token_rolling_stats_30min {
+                        for token in tokens {
+                            let liveData = TokenLiveData(
+                                supply: Int(token.supply ?? 0),
+                                priceUsd: token.latest_price_usd,
+                                stats: IntervalStats(
+                                    volumeUsd: token.volume_usd_30m,
+                                    trades: Int(token.trades_30m),
+                                    priceChangePct: token.price_change_pct_30m
+                                ),
+                                recentStats: IntervalStats(
+                                    volumeUsd: token.volume_usd_1m,
+                                    trades: Int(token.trades_1m),
+                                    priceChangePct: token.price_change_pct_1m
+                                )
+                            )
+                            
+                            let metadata = TokenMetadata(
+                                name: token.name,
+                                symbol: token.symbol,
+                                description: token.description,
+                                imageUri: convertToDwebLink(token.image_uri),
+                                externalUrl: token.external_url,
+                                decimals: Int(token.decimals),
+                                cachedAt: Date()
+                            )
+                            metadata.saveToCache(for: token.mint)
+                        
+                            ret[token.mint] = TokenData(
+                                mint: token.mint,
+                                balanceToken: 0,
+                                metadata: metadata,
+                                liveData: liveData
+                            )
+                        }
+                        continuation.resume()
+                    } else {
+                        continuation.resume(throwing: TubError.networkFailure)
+                    }
+                case .failure(let error):
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+        return ret
     }
     
     func fetchBulkTokenMetadata(tokenMints: [String]) async throws -> [String: TokenMetadata] {
@@ -430,98 +552,6 @@ final class UserModel: ObservableObject {
             }
         }
         
-        return ret
-    }
-    
-    func fetchTokenLiveData(tokenMint: String) async throws -> TokenLiveData {
-        let query = GetTokenLiveDataQuery(token: tokenMint)
-        
-        return try await withCheckedThrowingContinuation {
-            (continuation: CheckedContinuation<TokenLiveData, Error>) in
-            Network.shared.graphQL.fetch(query: query, cacheTime: QUERY_TOKEN_LIVE_DATA_CACHE_TIME) { result in
-                switch result {
-                case .success(let response):
-                    if response.errors != nil {
-                        continuation.resume(throwing: TubError.unknown)
-                        return
-                    }
-                    
-                    if let token = response.data?.token_rolling_stats_30min.first {
-                        let liveData = TokenLiveData(
-                            supply: Int(token.supply ?? 0),
-                            priceUsd: token.latest_price_usd,
-                            stats: IntervalStats(
-                                volumeUsd: token.volume_usd_30m,
-                                trades: Int(token.trades_30m),
-                                priceChangePct: token.price_change_pct_30m
-                            ),
-                            recentStats: IntervalStats(
-                                volumeUsd: token.volume_usd_1m,
-                                trades: Int(token.trades_1m),
-                                priceChangePct: token.price_change_pct_1m
-                            )
-                        )
-                        continuation.resume(returning: liveData)
-                    } else {
-                        continuation.resume(
-                            throwing: TubError.somethingWentWrong(reason: "Live data not found"))
-                    }
-                case .failure(let error):
-                    continuation.resume(throwing: error)
-                }
-            }
-        }
-    }
-    
-    func fetchBulkTokenLiveData(tokenMints: [String]) async throws -> [String: TokenLiveData] {
-        if tokenMints.count == 0 {
-            return [:]
-        }
-        // note: no caching here because we want to fetch the latest data every time
-        
-        var ret = [String: TokenLiveData]()
-        
-        for mint in tokenMints {
-            try await withCheckedThrowingContinuation {
-                (continuation: CheckedContinuation<Void, Error>) in
-                Network.shared.graphQL.fetch(
-                    query: GetBulkTokenLiveDataQuery(tokens: [mint]),
-                    cacheTime: QUERY_TOKEN_LIVE_DATA_CACHE_TIME
-                ) { result in
-                    switch result {
-                    case .success(let graphQLResult):
-                        if graphQLResult.errors != nil {
-                            continuation.resume(throwing: TubError.unknown)
-                            return
-                        }
-                        
-                        if let tokens = graphQLResult.data?.token_rolling_stats_30min {
-                            for token in tokens {
-                                ret[token.mint] = TokenLiveData(
-                                    supply: Int(token.supply ?? 0),
-                                    priceUsd: token.latest_price_usd,
-                                    stats: IntervalStats(
-                                        volumeUsd: token.volume_usd_30m,
-                                        trades: Int(token.trades_30m),
-                                        priceChangePct: token.price_change_pct_30m
-                                    ),
-                                    recentStats: IntervalStats(
-                                        volumeUsd: token.volume_usd_1m,
-                                        trades: Int(token.trades_1m),
-                                        priceChangePct: token.price_change_pct_1m
-                                    )
-                                )
-                            }
-                            continuation.resume()
-                        } else {
-                            continuation.resume(throwing: TubError.networkFailure)
-                        }
-                    case .failure(let error):
-                        continuation.resume(throwing: error)
-                    }
-                }
-            }
-        }
         return ret
     }
     

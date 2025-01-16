@@ -7,7 +7,7 @@ public class GetTokenLiveDataQuery: GraphQLQuery {
   public static let operationName: String = "GetTokenLiveData"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetTokenLiveData($token: String!) { token_rolling_stats_30min(where: { mint: { _eq: $token } }) { __typename mint latest_price_usd volume_usd_30m trades_30m price_change_pct_30m volume_usd_1m trades_1m price_change_pct_1m supply } }"#
+      #"query GetTokenLiveData($token: String!) { token_rolling_stats_30min(where: { mint: { _eq: $token } }) { __typename mint supply latest_price_usd volume_usd_30m trades_30m price_change_pct_30m volume_usd_1m trades_1m price_change_pct_1m } }"#
     ))
 
   public var token: String
@@ -40,6 +40,7 @@ public class GetTokenLiveDataQuery: GraphQLQuery {
       public static var __selections: [ApolloAPI.Selection] { [
         .field("__typename", String.self),
         .field("mint", String.self),
+        .field("supply", TubAPI.Numeric?.self),
         .field("latest_price_usd", TubAPI.Numeric.self),
         .field("volume_usd_30m", TubAPI.Numeric.self),
         .field("trades_30m", TubAPI.Numeric.self),
@@ -47,10 +48,10 @@ public class GetTokenLiveDataQuery: GraphQLQuery {
         .field("volume_usd_1m", TubAPI.Numeric.self),
         .field("trades_1m", TubAPI.Numeric.self),
         .field("price_change_pct_1m", TubAPI.Numeric.self),
-        .field("supply", TubAPI.Numeric?.self),
       ] }
 
       public var mint: String { __data["mint"] }
+      public var supply: TubAPI.Numeric? { __data["supply"] }
       public var latest_price_usd: TubAPI.Numeric { __data["latest_price_usd"] }
       public var volume_usd_30m: TubAPI.Numeric { __data["volume_usd_30m"] }
       public var trades_30m: TubAPI.Numeric { __data["trades_30m"] }
@@ -58,7 +59,6 @@ public class GetTokenLiveDataQuery: GraphQLQuery {
       public var volume_usd_1m: TubAPI.Numeric { __data["volume_usd_1m"] }
       public var trades_1m: TubAPI.Numeric { __data["trades_1m"] }
       public var price_change_pct_1m: TubAPI.Numeric { __data["price_change_pct_1m"] }
-      public var supply: TubAPI.Numeric? { __data["supply"] }
     }
   }
 }

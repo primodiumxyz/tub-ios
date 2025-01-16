@@ -41,17 +41,3 @@ subscription SubTokenCandlesSince(
     volume_usd
   }
 }
-
-subscription SubSingleTokenData($token: String!) {
-  token_rolling_stats_30min(where: { mint: { _eq: $token } }) {
-    mint
-    latest_price_usd
-    volume_usd_30m
-    trades_30m
-    price_change_pct_30m
-    volume_usd_1m
-    trades_1m
-    price_change_pct_1m
-    supply
-  }
-}

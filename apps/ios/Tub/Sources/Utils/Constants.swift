@@ -55,30 +55,14 @@ private var installationSource: InstallationSource {
 private let graphqlUrlHost: String = "tub-graphql.primodium.ai"
 
 // We use a compiler directive so the condition is only run once, during compilation, instead of on every import
-public let graphqlHttpUrl: String = "https://\(graphqlUrlHost)/v1/graphql"
+public let graphqlHttpUrl: String = "http://localhost:8090/v1/graphql"
 
-public let graphqlWsUrl: String = "wss://\(graphqlUrlHost)/v1/graphql"
+public let graphqlWsUrl: String = "ws://localhost:8080/v1/graphql"
 
 // Server URLs
-private let serverUrlHost: String = {
-    let src = installationSource
-    if src == .appStore || src == .testFlight {
-        return "tub-server.primodium.ai"
-    }
-    if let ngrokUrl = ProcessInfo.processInfo.environment["NGROK_SERVER_URL_HOST"] {
-        return ngrokUrl
-    } else {
-        return "tub-server.primodium.ai"
-    }
-}()
+private let serverUrlHost: String = "localhost:8888"
 
-public let serverBaseUrl: String = {
-#if targetEnvironment(simulator)
-    return "http://localhost:8888/trpc"
-#else
-    return "https://\(serverUrlHost)/trpc"
-#endif
-}()
+public let serverBaseUrl: String = "http://localhost:8888/trpc" 
 
 // Filtering
 // Hot tokens interval: 30m; filtering interval: 1m
