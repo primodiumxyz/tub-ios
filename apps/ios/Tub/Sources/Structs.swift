@@ -62,10 +62,11 @@ struct CandleData: Equatable, Identifiable {
     var close: Double
     var high: Double
     var low: Double
-    var volume: Double?
+    var volume: Double
+    var hasTrades: Bool
     
     init(
-        start: Date, end: Date, open: Double, close: Double, high: Double, low: Double, volume: Double
+        start: Date, end: Date, open: Double, close: Double, high: Double, low: Double, volume: Double, hasTrades: Bool
     ) {
         self.id = start
         self.start = start
@@ -75,12 +76,7 @@ struct CandleData: Equatable, Identifiable {
         self.high = high
         self.low = low
         self.volume = volume
-    }
-
-    var isEmptyCandle: Bool {
-        abs(open - close) < 0.000001 && 
-        abs(high - low) < 0.000001 && 
-        abs(open - high) < 0.000001
+        self.hasTrades = hasTrades
     }
 }
 
