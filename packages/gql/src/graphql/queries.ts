@@ -116,7 +116,7 @@ export const GetBulkTokenLiveDataQuery = graphql(`
   query GetBulkTokenLiveData($tokens: [String!]!) {
     token_stats_interval_cache(
       where: { token_mint: { _in: $tokens } }
-      args: { interval: "30m", recent_interval: "2m" }
+      args: { interval: "30m", recent_interval: "1m" }
     ) {
       token_mint
       latest_price_usd
@@ -135,7 +135,7 @@ export const GetTokenLiveDataQuery = graphql(`
   query GetTokenLiveData($token: String!) {
     token_stats_interval_cache(
       where: { token_mint: { _eq: $token } }
-      args: { interval: "30m", recent_interval: "2m" }
+      args: { interval: "30m", recent_interval: "1m" }
     ) {
       token_mint
       latest_price_usd
@@ -146,6 +146,88 @@ export const GetTokenLiveDataQuery = graphql(`
       recent_trades
       recent_price_change_pct
       token_metadata_supply
+    }
+  }
+`);
+
+/* ----------------------------------- NEW ---------------------------------- */
+
+export const GetTopTokensByVolumeQuery_new = graphql(`
+  query GetTopTokensByVolumeQuery_new($minRecentTrades: numeric = 0, $minRecentVolume: numeric = 0) {
+    api_token_rolling_stats_30min(
+      where: {
+        is_pump_token: { _eq: true }
+        trades_1m: { _gte: $minRecentTrades }
+        volume_usd_1m: { _gte: $minRecentVolume }
+      }
+      order_by: { volume_usd_30m: desc }
+      limit: 50
+    ) {
+      mint
+    }
+  }
+`);
+
+export const GetTokenMetadataQuery_new = graphql(`
+  query GetTokenMetadataQuery_new($token: String!) {
+    api_token_rolling_stats_30min(where: { mint: { _eq: $token } }) {
+      mint
+      name
+      symbol
+      image_uri
+      supply
+      decimals
+      description
+      external_url
+      is_pump_token
+    }
+  }
+`);
+
+export const GetBulkTokenMetadataQuery_new = graphql(`
+  query GetBulkTokenMetadataQuery_new($tokens: [String!]!) {
+    api_token_rolling_stats_30min(where: { mint: { _in: $tokens } }) {
+      mint
+      name
+      symbol
+      image_uri
+      supply
+      decimals
+      description
+      external_url
+      is_pump_token
+    }
+  }
+`);
+
+export const GetTokenLiveDataQuery_new = graphql(`
+  query GetTokenLiveDataQuery_new($token: String!) {
+    api_token_rolling_stats_30min(where: { mint: { _eq: $token } }) {
+      mint
+      latest_price_usd
+      volume_usd_30m
+      trades_30m
+      price_change_pct_30m
+      volume_usd_1m
+      trades_1m
+      price_change_pct_1m
+      supply
+    }
+  }
+`);
+
+export const GetBulkTokenLiveDataQuery_new = graphql(`
+  query GetBulkTokenLiveDataQuery_new($tokens: [String!]!) {
+    api_token_rolling_stats_30min(where: { mint: { _in: $tokens } }) {
+      mint
+      latest_price_usd
+      volume_usd_30m
+      trades_30m
+      price_change_pct_30m
+      volume_usd_1m
+      trades_1m
+      price_change_pct_1m
+      supply
     }
   }
 `);

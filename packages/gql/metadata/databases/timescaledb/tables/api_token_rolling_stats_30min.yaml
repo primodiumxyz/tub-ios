@@ -5,12 +5,21 @@ select_permissions:
   - role: public
     permission:
       columns:
-        - price_change_pct_2m
+        - is_pump_token
+        - name
+        - symbol
+        - decimals
+        - latest_price_usd
+        - price_change_pct_1m
         - price_change_pct_30m
-        - trades_2m
+        - supply
+        - trades_1m
         - trades_30m
-        - volume_usd_2m
+        - volume_usd_1m
         - volume_usd_30m
+        - description
+        - external_url
+        - image_uri
         - mint
       filter: {}
       allow_aggregations: true
