@@ -76,9 +76,9 @@ struct TokenInfoPreview: View {
         , let liveData = token.liveData {
             return [
                 StatValue(title: "Market Cap", value: priceModel.formatPrice(usd: liveData.priceUsd * (Double(liveData.supply) / pow(10.0, Double(token.metadata.decimals))), formatLarge: true)),
-                StatValue(title: "Volume", caption: HOT_TOKENS_INTERVAL, value: priceModel.formatPrice(usd: liveData.stats.volumeUsd, formatLarge: true)),
-                StatValue(title: "Trades", caption: HOT_TOKENS_INTERVAL, value: liveData.stats.trades.formatted()),
-                StatValue(title: "Change", caption: HOT_TOKENS_INTERVAL, value: String(format: "%.2f%%", liveData.stats.priceChangePct)),
+                StatValue(title: "Volume", caption: "30m", value: priceModel.formatPrice(usd: liveData.stats.volumeUsd, formatLarge: true)),
+                StatValue(title: "Trades", caption: "30m", value: liveData.stats.trades.formatted()),
+                StatValue(title: "Change", caption: "30m", value: String(format: "%.2f%%", liveData.stats.priceChangePct)),
             ]
         }
         return nil
