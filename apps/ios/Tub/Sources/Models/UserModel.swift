@@ -265,7 +265,6 @@ final class UserModel: ObservableObject {
         metadata: TokenMetadata? = nil,
         liveData: TokenLiveData? = nil
     ) async {
-        // Handle USDC separately
         if mint == USDC_MINT {
             guard let balance else { return }
             await MainActor.run {
@@ -275,22 +274,17 @@ final class UserModel: ObservableObject {
         }
         
         let portfolioContainsToken = self.tokenPortfolio.contains(mint)
-        
-        // Case 1: We have existing data for this token
-        if let existingTokenData = self.tokenData[mint] {
-            let newBalance = balance ?? existingTokenData.balanceToken
-            let newMetadata = metadata ?? existingTokenData.metadata
-            let newLiveData = liveData ?? existingTokenData.liveData
+        if let tokenData = tokenData[mint] {
+            let newMetadata = metadata ?? tokenData.metadata
+            let newLiveData = liveData ?? tokenData.liveData
+            let newBalance = balance ?? tokenData.balanceToken
             
             await MainActor.run {
-                // Update portfolio membership based on balance
                 if newBalance == 0 && portfolioContainsToken {
                     self.tokenPortfolio = self.tokenPortfolio.filter { $0 != mint }
                 } else if newBalance > 0 && !portfolioContainsToken {
                     self.tokenPortfolio.append(mint)
                 }
-                
-                // Update token data
                 self.tokenData[mint] = TokenData(
                     mint: mint,
                     balanceToken: newBalance,
@@ -298,41 +292,41 @@ final class UserModel: ObservableObject {
                     liveData: newLiveData
                 )
             }
-        }
-        // Case 2: No existing data for this token
-        else {
-            var newMetadata = metadata
-            var newLiveData = liveData
+        } else {
+            var newMetadata: TokenMetadata?
+            var newLiveData: TokenLiveData?
             
-            // If we don't have token metadata or live data, just fetch both
-            if metadata == nil || liveData == nil {
+            if let metadata {
+                newMetadata = metadata
+            } else {
                 do {
-                    let fetchedData = try await fetchTokenFullData(tokenMint: mint)
-                    newMetadata = fetchedData.metadata
-                    newLiveData = fetchedData.liveData
+                    let newData = try await fetchTokenFullData(tokenMint: mint)
+                    newMetadata = newData.metadata
+                    newLiveData = newData.liveData
                 } catch {
                     return
                 }
             }
-        
-            let newTokenData = TokenData(
+            
+            guard let newMetadata else { return }
+            
+            let tokenData = TokenData(
                 mint: mint,
                 balanceToken: balance ?? 0,
-                metadata: newMetadata!, // if we didn't provide it, it's been fetched
-                liveData: newLiveData!
+                metadata: newMetadata,
+                liveData: newLiveData ?? liveData
             )
             
             await MainActor.run {
-                // Add to portfolio if balance > 0
                 if balance ?? 0 > 0 && !portfolioContainsToken {
                     self.tokenPortfolio.append(mint)
                 }
                 
-                // Store the token data
-                self.tokenData[mint] = newTokenData
+                self.tokenData[mint] = tokenData
             }
         }
     }
+    
     
     func fetchTokenFullData(tokenMint: String) async throws -> TokenData {
         // Check cache first
