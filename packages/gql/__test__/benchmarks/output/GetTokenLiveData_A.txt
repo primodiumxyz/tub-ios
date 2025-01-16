@@ -2,69 +2,69 @@
 📊 Performance Comparison:
 ================================================================================
 
-🔍 Warm cache hit
-----------------------------------------
-Average Response Time: 1.18ms
-95th Percentile:       1.68ms
-Min Response Time:     0.89ms
-Max Response Time:     2.43ms
-Standard Deviation:    0.25ms
-
 🔍 Direct Hasura hit
 ----------------------------------------
-Average Response Time: 1.94ms
-95th Percentile:       3.26ms
-Min Response Time:     1.31ms
-Max Response Time:     7.54ms
-Standard Deviation:    0.82ms
+Average Response Time: 1.74ms
+95th Percentile:       2.81ms
+Min Response Time:     1.11ms
+Max Response Time:     5.50ms
+Standard Deviation:    0.69ms
+
+🔍 Warm cache hit
+----------------------------------------
+Average Response Time: 1.84ms
+95th Percentile:       4.45ms
+Min Response Time:     0.90ms
+Max Response Time:     7.10ms
+Standard Deviation:    1.21ms
 
 🔍 Bypassing cache
 ----------------------------------------
-Average Response Time: 2.96ms
-95th Percentile:       3.91ms
-Min Response Time:     2.27ms
-Max Response Time:     4.87ms
-Standard Deviation:    0.48ms
+Average Response Time: 3.23ms
+95th Percentile:       4.75ms
+Min Response Time:     1.87ms
+Max Response Time:     24.36ms
+Standard Deviation:    2.28ms
 
 🔍 Cold cache hit
 ----------------------------------------
-Average Response Time: 3.49ms
-95th Percentile:       5.47ms
-Min Response Time:     2.67ms
-Max Response Time:     9.66ms
-Standard Deviation:    1.08ms
+Average Response Time: 3.85ms
+95th Percentile:       4.63ms
+Min Response Time:     2.76ms
+Max Response Time:     22.38ms
+Standard Deviation:    2.32ms
 
 ⚡ Performance Impact:
 --------------------------------------------------------------------------------
-Best performer: Warm cache hit
+Best performer: Direct Hasura hit
 
-Compared to Direct Hasura hit:
+Compared to Warm cache hit:
 --------------------------------------------------------------------------------
 Metric               │ Difference     │ Percentage
 --------------------------------------------------------------------------------
-Average Response    │ +0.75        │ +63.6    %
-95th Percentile     │ +1.58        │ +94.4    %
-Min Response        │ +0.42        │ +46.8    %
-Max Response        │ +5.10        │ +209.7   %
-Standard Deviation  │ +0.56        │ +223.3   %
+Average Response    │ +0.10        │ +6.0     %
+95th Percentile     │ +1.64        │ +58.3    %
+Min Response        │ +-0.21       │ +-19.0   %
+Max Response        │ +1.60        │ +29.1    %
+Standard Deviation  │ +0.52        │ +74.4    %
 
 Compared to Bypassing cache:
 --------------------------------------------------------------------------------
 Metric               │ Difference     │ Percentage
 --------------------------------------------------------------------------------
-Average Response    │ +1.77        │ +149.6   %
-95th Percentile     │ +2.23        │ +132.6   %
-Min Response        │ +1.38        │ +154.2   %
-Max Response        │ +2.44        │ +100.3   %
-Standard Deviation  │ +0.22        │ +88.5    %
+Average Response    │ +1.49        │ +85.4    %
+95th Percentile     │ +1.94        │ +68.9    %
+Min Response        │ +0.76        │ +68.1    %
+Max Response        │ +18.86       │ +342.8   %
+Standard Deviation  │ +1.58        │ +228.4   %
 
 Compared to Cold cache hit:
 --------------------------------------------------------------------------------
 Metric               │ Difference     │ Percentage
 --------------------------------------------------------------------------------
-Average Response    │ +2.30        │ +194.5   %
-95th Percentile     │ +3.79        │ +225.6   %
-Min Response        │ +1.78        │ +199.1   %
-Max Response        │ +7.23        │ +297.1   %
-Standard Deviation  │ +0.83        │ +327.9   %
+Average Response    │ +2.11        │ +121.1   %
+95th Percentile     │ +1.82        │ +64.7    %
+Min Response        │ +1.65        │ +148.5   %
+Max Response        │ +16.88       │ +306.8   %
+Standard Deviation  │ +1.63        │ +234.7   %
 

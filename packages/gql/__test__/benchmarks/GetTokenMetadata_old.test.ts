@@ -3,7 +3,7 @@ import { benchmark, BenchmarkMetrics, logMetrics, writeMetricsToFile } from "../
 import { clearCache, createClientCacheBypass, createClientCached, createClientNoCache } from "../lib/common";
 import { ITERATIONS } from "./config";
 
-describe("GetTokenMetadata benchmarks", () => {
+describe("GetBulkTokenMetadata (old, single token) benchmarks", () => {
   let tokens: string[] = [];
   const metrics: BenchmarkMetrics[] = [];
 
@@ -20,18 +20,17 @@ describe("GetTokenMetadata benchmarks", () => {
   });
 
   it("should measure direct Hasura performance", async () => {
-    const metric = await benchmark<"GetBulkTokenMetadataQuery">({
+    const metric = await benchmark<"GetBulkTokenMetadataQuery_old">({
       identifier: "Direct Hasura hit",
       exec: async (i) => {
         const client = await createClientNoCache();
-        return await client.db.GetBulkTokenMetadataQuery({
+        return await client.db.GetBulkTokenMetadataQuery_old({
           tokens: [tokens[i]],
         });
       },
       iterations: ITERATIONS,
       after: (res) => {
-        if (res.error || res.data?.api_token_rolling_stats_30min.length === 0)
-          throw new Error("Error or no tokens found");
+        if (res.error || res.data?.token_metadata_formatted.length === 0) throw new Error("Error or no tokens found");
       },
     });
 
@@ -42,24 +41,23 @@ describe("GetTokenMetadata benchmarks", () => {
     // Cache warmup
     for (let i = 0; i < ITERATIONS; i++) {
       const client = await createClientCached();
-      await client.db.GetBulkTokenMetadataQuery({
+      await client.db.GetBulkTokenMetadataQuery_old({
         tokens: [tokens[i]],
       });
     }
 
-    const metric = await benchmark<"GetBulkTokenMetadataQuery">({
+    const metric = await benchmark<"GetBulkTokenMetadataQuery_old">({
       identifier: "Warm cache hit",
       exec: async (i) => {
         const client = await createClientCached();
 
-        return await client.db.GetBulkTokenMetadataQuery({
+        return await client.db.GetBulkTokenMetadataQuery_old({
           tokens: [tokens[i]],
         });
       },
       iterations: ITERATIONS,
       after: (res) => {
-        if (res.error || res.data?.api_token_rolling_stats_30min.length === 0)
-          throw new Error("Error or no tokens found");
+        if (res.error || res.data?.token_metadata_formatted.length === 0) throw new Error("Error or no tokens found");
       },
     });
 
@@ -67,20 +65,19 @@ describe("GetTokenMetadata benchmarks", () => {
   });
 
   it("should measure cold cache performance", async () => {
-    const metric = await benchmark<"GetBulkTokenMetadataQuery">({
+    const metric = await benchmark<"GetBulkTokenMetadataQuery_old">({
       identifier: "Cold cache hit",
       exec: async (i) => {
         const client = await createClientCached();
 
-        return await client.db.GetBulkTokenMetadataQuery({
+        return await client.db.GetBulkTokenMetadataQuery_old({
           tokens: [tokens[i]],
         });
       },
       iterations: ITERATIONS,
       before: async () => await clearCache(),
       after: (res) => {
-        if (res.error || res.data?.api_token_rolling_stats_30min.length === 0)
-          throw new Error("Error or no tokens found");
+        if (res.error || res.data?.token_metadata_formatted.length === 0) throw new Error("Error or no tokens found");
       },
     });
 
@@ -88,18 +85,17 @@ describe("GetTokenMetadata benchmarks", () => {
   });
 
   it("should measure bypassing cache performance", async () => {
-    const metric = await benchmark<"GetBulkTokenMetadataQuery">({
+    const metric = await benchmark<"GetBulkTokenMetadataQuery_old">({
       identifier: "Bypassing cache",
       exec: async (i) => {
         const client = await createClientCacheBypass();
-        return await client.db.GetBulkTokenMetadataQuery({
+        return await client.db.GetBulkTokenMetadataQuery_old({
           tokens: [tokens[i]],
         });
       },
       iterations: ITERATIONS,
       after: (res) => {
-        if (res.error || res.data?.api_token_rolling_stats_30min.length === 0)
-          throw new Error("Error or no tokens found");
+        if (res.error || res.data?.token_metadata_formatted.length === 0) throw new Error("Error or no tokens found");
       },
     });
 
@@ -108,6 +104,6 @@ describe("GetTokenMetadata benchmarks", () => {
 
   afterAll(() => {
     logMetrics(metrics);
-    writeMetricsToFile(metrics, "GetTokenMetadata");
+    writeMetricsToFile(metrics, "GetBulkTokenMetadata_old_single_token");
   });
 });

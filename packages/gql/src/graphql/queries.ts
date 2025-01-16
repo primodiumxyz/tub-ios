@@ -46,35 +46,13 @@ export const GetWalletTokenPnlQuery = graphql(`
 // Benchmarks
 export const GetAllTokensQuery = graphql(`
   query GetAllTokens {
-    token_metadata_formatted(args: {}) {
+    api_token_rolling_stats_30min {
       mint
     }
   }
 `);
 
-export const GetTopTokensByVolumeQuery = graphql(`
-  query GetTopTokensByVolume(
-    $interval: interval = "30m"
-    $recentInterval: interval = "20s"
-    $minRecentTrades: numeric = 0
-    $minRecentVolume: numeric = 0
-  ) {
-    token_stats_interval_comp(
-      args: { interval: $interval, recent_interval: $recentInterval }
-      where: {
-        token_metadata_is_pump_token: { _eq: true }
-        recent_trades: { _gte: $minRecentTrades }
-        recent_volume_usd: { _gte: $minRecentVolume }
-      }
-      order_by: { total_volume_usd: desc }
-      limit: 50
-    ) {
-      token_mint
-    }
-  }
-`);
-
-export const GetTopTokensByVolumeCachedQuery = graphql(`
+export const GetTopTokensByVolumeQuery_old = graphql(`
   query GetTopTokensByVolumeCached(
     $interval: interval = "30m"
     $recentInterval: interval = "20s"
@@ -96,7 +74,7 @@ export const GetTopTokensByVolumeCachedQuery = graphql(`
   }
 `);
 
-export const GetBulkTokenMetadataQuery = graphql(`
+export const GetBulkTokenMetadataQuery_old = graphql(`
   query GetBulkTokenMetadata($tokens: jsonb!) {
     token_metadata_formatted(args: { tokens: $tokens }) {
       mint
@@ -112,7 +90,7 @@ export const GetBulkTokenMetadataQuery = graphql(`
   }
 `);
 
-export const GetBulkTokenLiveDataQuery = graphql(`
+export const GetBulkTokenLiveDataQuery_old = graphql(`
   query GetBulkTokenLiveData($tokens: [String!]!) {
     token_stats_interval_cache(
       where: { token_mint: { _in: $tokens } }
@@ -131,7 +109,7 @@ export const GetBulkTokenLiveDataQuery = graphql(`
   }
 `);
 
-export const GetTokenLiveDataQuery = graphql(`
+export const GetTokenLiveDataQuery_old = graphql(`
   query GetTokenLiveData($token: String!) {
     token_stats_interval_cache(
       where: { token_mint: { _eq: $token } }
@@ -152,7 +130,7 @@ export const GetTokenLiveDataQuery = graphql(`
 
 /* ----------------------------------- NEW ---------------------------------- */
 
-export const GetTopTokensByVolumeQuery_new = graphql(`
+export const GetTopTokensByVolumeQuery = graphql(`
   query GetTopTokensByVolumeQuery_new($minRecentTrades: numeric = 0, $minRecentVolume: numeric = 0) {
     api_token_rolling_stats_30min(
       where: {
@@ -168,7 +146,7 @@ export const GetTopTokensByVolumeQuery_new = graphql(`
   }
 `);
 
-export const GetTokenMetadataQuery_new = graphql(`
+export const GetTokenMetadataQuery = graphql(`
   query GetTokenMetadataQuery_new($token: String!) {
     api_token_rolling_stats_30min(where: { mint: { _eq: $token } }) {
       mint
@@ -184,7 +162,7 @@ export const GetTokenMetadataQuery_new = graphql(`
   }
 `);
 
-export const GetBulkTokenMetadataQuery_new = graphql(`
+export const GetBulkTokenMetadataQuery = graphql(`
   query GetBulkTokenMetadataQuery_new($tokens: [String!]!) {
     api_token_rolling_stats_30min(where: { mint: { _in: $tokens } }) {
       mint
@@ -200,7 +178,7 @@ export const GetBulkTokenMetadataQuery_new = graphql(`
   }
 `);
 
-export const GetTokenLiveDataQuery_new = graphql(`
+export const GetTokenLiveDataQuery = graphql(`
   query GetTokenLiveDataQuery_new($token: String!) {
     api_token_rolling_stats_30min(where: { mint: { _eq: $token } }) {
       mint
@@ -216,7 +194,7 @@ export const GetTokenLiveDataQuery_new = graphql(`
   }
 `);
 
-export const GetBulkTokenLiveDataQuery_new = graphql(`
+export const GetBulkTokenLiveDataQuery = graphql(`
   query GetBulkTokenLiveDataQuery_new($tokens: [String!]!) {
     api_token_rolling_stats_30min(where: { mint: { _in: $tokens } }) {
       mint

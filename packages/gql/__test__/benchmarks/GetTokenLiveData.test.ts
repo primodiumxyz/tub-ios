@@ -9,9 +9,14 @@ describe("GetTokenLiveData benchmarks", () => {
 
   beforeAll(async () => {
     const client = await createClientNoCache();
-    const res = await client.db.GetAllTokensQuery();
-    if (res.error || !res.data?.token_metadata_formatted) throw new Error("No tokens found");
-    tokens = res.data?.token_metadata_formatted.map((t) => t.mint) || [];
+
+    const refreshRes = await client.db.RefreshTokenRollingStats30MinMutation();
+    if (refreshRes.error || !refreshRes.data?.api_refresh_token_rolling_stats_30min?.success)
+      throw new Error("Error refreshing token rolling stats");
+
+    const allTokensRes = await client.db.GetAllTokensQuery();
+    if (allTokensRes.error || !allTokensRes.data?.api_token_rolling_stats_30min) throw new Error("No tokens found");
+    tokens = allTokensRes.data?.api_token_rolling_stats_30min.map((t) => t.mint).filter((t) => t !== null) || [];
   });
 
   it("should measure direct Hasura performance", async () => {
@@ -25,7 +30,8 @@ describe("GetTokenLiveData benchmarks", () => {
       },
       iterations: ITERATIONS,
       after: (res) => {
-        if (res.error || res.data?.token_stats_interval_cache.length === 0) throw new Error("Error or no tokens found");
+        if (res.error || res.data?.api_token_rolling_stats_30min.length === 0)
+          throw new Error("Error or no tokens found");
       },
     });
 
@@ -52,7 +58,8 @@ describe("GetTokenLiveData benchmarks", () => {
       },
       iterations: ITERATIONS,
       after: (res) => {
-        if (res.error || res.data?.token_stats_interval_cache.length === 0) throw new Error("Error or no tokens found");
+        if (res.error || res.data?.api_token_rolling_stats_30min.length === 0)
+          throw new Error("Error or no tokens found");
       },
     });
 
@@ -72,7 +79,8 @@ describe("GetTokenLiveData benchmarks", () => {
       iterations: ITERATIONS,
       before: async () => await clearCache(),
       after: (res) => {
-        if (res.error || res.data?.token_stats_interval_cache.length === 0) throw new Error("Error or no tokens found");
+        if (res.error || res.data?.api_token_rolling_stats_30min.length === 0)
+          throw new Error("Error or no tokens found");
       },
     });
 
@@ -90,7 +98,8 @@ describe("GetTokenLiveData benchmarks", () => {
       },
       iterations: ITERATIONS,
       after: (res) => {
-        if (res.error || res.data?.token_stats_interval_cache.length === 0) throw new Error("Error or no tokens found");
+        if (res.error || res.data?.api_token_rolling_stats_30min.length === 0)
+          throw new Error("Error or no tokens found");
       },
     });
 
