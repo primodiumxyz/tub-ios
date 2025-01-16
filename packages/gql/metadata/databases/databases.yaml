@@ -210,6 +210,27 @@
             nullable: false
             scalar: numeric
       name: token_rolling_stats_30min_model
+      select_permissions:
+        - permission:
+            columns:
+              - mint
+              - name
+              - symbol
+              - description
+              - decimals
+              - supply
+              - image_uri
+              - external_url
+              - is_pump_token
+              - volume_usd_30m
+              - trades_30m
+              - price_change_pct_30m
+              - volume_usd_1m
+              - trades_1m
+              - price_change_pct_1m
+              - latest_price_usd
+            filter: {}
+          role: public
   native_queries:
     - arguments:
         start:
