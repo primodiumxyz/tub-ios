@@ -200,6 +200,10 @@ describe("materialized view comparison tests", () => {
       url: "http://localhost:8090/v1/graphql",
       hasuraAdminSecret: "password",
     });
+
+    const refreshRes = await gql.db.RefreshTokenRollingStats30MinMutation();
+    if (refreshRes.error || !refreshRes.data?.api_refresh_token_rolling_stats_30min?.success)
+      throw new Error("Error refreshing token rolling stats");
   });
 
   it("should return same data for GetTopTokensByVolume", async () => {
