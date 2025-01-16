@@ -7,3 +7,5 @@ datasources:
     database: k6
     url: http://influxdb:8086
     isDefault: true
+    uid: k6
+    editable: true

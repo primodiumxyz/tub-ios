@@ -37,13 +37,13 @@
     "start:cache": "tsx src/cache/server.ts",
     "k6:local:seed": "HASURA_URL=http://localhost:8090/v1/graphql HASURA_ADMIN_SECRET=password tsx __test__/k6/scripts/seed.ts",
     "k6:start": "cd __test__/k6 && docker-compose -f docker-compose.k6.yml up -d && echo 'Waiting for Grafana to start...' && sleep 5 && open http://localhost:3001/d/k6-performance/k6-performance-dashboard?orgId=1&from=now-6h&to=now&timezone=browser",
-    "k6:local:run": "HASURA_URL=http://localhost:8090/v1/graphql HASURA_ADMIN_SECRET=password k6 run --compatibility-mode=experimental_enhanced --out influxdb=http://localhost:8086/k6 __test__/k6/scripts/load-test.ts",
-    "k6:remote:run": "dotenvx run -f ./../../.env --quiet -- k6 run --compatibility-mode=experimental_enhanced --out influxdb=http://localhost:8086/k6 __test__/k6/scripts/load-test.ts",
+    "k6:local:run": "HASURA_URL=http://localhost:8090/v1/graphql HASURA_ADMIN_SECRET=password k6 run --compatibility-mode=experimental_enhanced --out influxdb=http://localhost:8086/k6 __test__/k6/scripts/load-test.ts | tee __test__/k6/output/metrics/k6-output.txt",
+    "k6:remote:run": "dotenvx run -f ./../../.env --quiet -- k6 run --compatibility-mode=experimental_enhanced --out influxdb=http://localhost:8086/k6 __test__/k6/scripts/load-test.ts | tee __test__/k6/output/metrics/k6-output.txt",
     "k6:export": "tsx __test__/k6/scripts/export-results.ts",
     "k6:stop": "cd __test__/k6 && docker-compose -f docker-compose.k6.yml down --remove-orphans --volumes",
     "k6:clean": "rm -rf __test__/k6/output/tokens.json",
-    "k6:local:analyze": "trap 'pnpm k6:export && pnpm k6:stop && pnpm k6:clean' EXIT SIGINT; pnpm k6:local:seed && pnpm k6:start && pnpm k6:local:run",
-    "k6:remote:analyze": "trap 'pnpm k6:export && pnpm k6:stop && pnpm k6:clean' EXIT SIGINT; pnpm k6:start && pnpm k6:remote:run"
+    "k6:local:analyze": "mkdir -p __test__/k6/output/metrics && trap 'pnpm k6:stop && pnpm k6:clean' EXIT SIGINT; pnpm k6:local:seed && pnpm k6:start && pnpm k6:local:run",
+    "k6:remote:analyze": "mkdir -p __test__/k6/output/metrics && trap 'pnpm k6:stop && pnpm k6:clean' EXIT SIGINT; pnpm k6:start && pnpm k6:remote:run"
   },
   "keywords": [],
   "author": "",

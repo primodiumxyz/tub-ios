@@ -3,7 +3,7 @@ import { createClientNoCache } from "../../lib/common";
 import fs from "fs";
 
 // Amount of trades to generate when seeding
-const TRADES_AMOUNT = 900_000; // ~500 trades per second
+const TRADES_AMOUNT = 100; // ~500 trades per second
 // Period over which trades are generated
 const START_DATE = new Date(Date.now() - 30 * 60 * 1000); // 30 minutes ago
 
@@ -20,18 +20,21 @@ const seed = async () => {
     },
   });
 
-  // Get top tokens for testing
-  console.log("Fetching top tokens...");
-  const res = await client.db.GetTopTokensByVolumeQuery({
-    interval: "30m",
-    recentInterval: "20s",
-  });
-
-  if (!res.data?.token_stats_interval_comp.length) {
-    throw new Error("No tokens found after seeding");
+  // Refresh view
+  const refreshRes = await client.db.RefreshTokenRollingStats30MinMutation();
+  if (refreshRes.error || !refreshRes.data?.api_refresh_token_rolling_stats_30min?.success) {
+    throw new Error(`Failed to refresh token rolling stats: ${refreshRes.error?.message ?? "Unknown error"}`);
   }
 
-  const tokens = res.data.token_stats_interval_comp.map((t) => t.token_mint);
+  // Get top tokens for testing
+  console.log("Fetching top tokens...");
+  const tokensRes = await client.db.GetTopTokensByVolumeQuery({});
+
+  if (tokensRes.error || !tokensRes.data?.token_rolling_stats_30min.length) {
+    throw new Error(`No tokens found after seeding: ${tokensRes.error?.message ?? "Unknown error"}`);
+  }
+
+  const tokens = tokensRes.data.token_rolling_stats_30min.map((t) => t.mint);
   console.log(`Found ${tokens.length} tokens for testing`);
 
   // Save tokens for k6 tests
