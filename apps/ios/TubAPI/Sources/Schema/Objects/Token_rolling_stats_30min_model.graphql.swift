@@ -4,8 +4,8 @@
 import ApolloAPI
 
 public extension Objects {
-  static let Token_stats_model = ApolloAPI.Object(
-    typename: "token_stats_model",
+  static let Token_rolling_stats_30min_model = ApolloAPI.Object(
+    typename: "token_rolling_stats_30min_model",
     implementedInterfaces: []
   )
 }

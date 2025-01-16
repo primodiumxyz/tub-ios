@@ -2,22 +2,21 @@ import { graphql } from "./init";
 
 // Dashboard
 export const GetTopTokensByVolumeSubscription = graphql(`
-  subscription SubTopTokensByVolume($interval: interval = "30m", $recentInterval: interval = "20s") {
-    token_stats_interval_cache(
-      args: { interval: $interval, recent_interval: $recentInterval }
+  subscription SubTopTokensByVolume {
+    token_rolling_stats_30min(
       where: { token_metadata_is_pump_token: { _eq: true } }
       order_by: { total_volume_usd: desc }
       limit: 50
     ) {
-      token_mint
-      total_volume_usd
-      total_trades
-      price_change_pct
+      mint
+      volume_usd_30m
+      trades_30m
+      price_change_pct_30m
       latest_price_usd
-      token_metadata_name
-      token_metadata_image_uri
-      token_metadata_symbol
-      token_metadata_supply
+      name
+      image_uri
+      symbol
+      supply
     }
   }
 `);
@@ -28,6 +27,14 @@ export const GetTokenPricesSinceSubscription = graphql(`
       where: { token_mint: { _eq: $token }, created_at: { _gte: $since } }
       order_by: { created_at: asc }
     ) {
+      token_price_usd
+      created_at
+    }
+  }
+`);
+export const GetRecentTokenPriceSubscription = graphql(`
+  subscription SubRecentTokenPrice($token: String!) {
+    api_trade_history(where: { token_mint: { _eq: $token } }, order_by: { created_at: desc }, limit: 1) {
       token_price_usd
       created_at
     }

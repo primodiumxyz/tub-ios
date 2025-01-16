@@ -1,30 +1,31 @@
-import { Connection, Keypair, PublicKey, VersionedTransaction } from "@solana/web3.js";
-import { getAccount, getAssociatedTokenAddressSync } from "@solana/spl-token";
-import { GqlClient } from "@tub/gql";
 import { PrivyClient } from "@privy-io/server-auth";
+import { getAccount, getAssociatedTokenAddressSync } from "@solana/spl-token";
+import { Connection, Keypair, PublicKey, VersionedTransaction } from "@solana/web3.js";
+import { GqlClient } from "@tub/gql";
+import bs58 from "bs58";
+import { env } from "../../bin/tub-server";
+import { TOKEN_PROGRAM_PUBLIC_KEY, USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
+import { ConfigService } from "../services/ConfigService";
+import {
+  AppDwellTimeEvent,
+  LoadingTimeEvent,
+  PrebuildSignedSwapResponse,
+  PrebuildSwapResponse,
+  TokenDwellTimeEvent,
+  TokenPurchaseOrSaleEvent,
+  UserPrebuildSwapRequest,
+} from "../types";
+import { config } from "../utils/config";
+import { deriveTokenAccounts } from "../utils/tokenAccounts";
+import { AnalyticsService } from "./AnalyticsService";
+import { CronService } from "./CronService";
+import { PushService } from "./ApplePushService";
+import { AuthService } from "./AuthService";
+import { FeeService } from "./FeeService";
 import { JupiterService } from "./JupiterService";
 import { SwapService } from "./SwapService";
 import { TransactionService } from "./TransactionService";
-import { FeeService } from "./FeeService";
-import { AuthService } from "./AuthService";
-import { AnalyticsService } from "./AnalyticsService";
 import { TransferService } from "./TransferService";
-import { env } from "../../bin/tub-server";
-import {
-  UserPrebuildSwapRequest,
-  PrebuildSwapResponse,
-  PrebuildSignedSwapResponse,
-  AppDwellTimeEvent,
-  LoadingTimeEvent,
-  TokenDwellTimeEvent,
-  TokenPurchaseOrSaleEvent,
-} from "../types";
-import { deriveTokenAccounts } from "../utils/tokenAccounts";
-import bs58 from "bs58";
-import { TOKEN_PROGRAM_PUBLIC_KEY } from "../constants/tokens";
-import { USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
-import { config } from "../utils/config";
-import { ConfigService } from "../services/ConfigService";
 
 /**
  * Service class handling token trading, swaps, and user operations
@@ -37,7 +38,7 @@ export class TubService {
   private feeService!: FeeService;
   private analyticsService!: AnalyticsService;
   private transferService!: TransferService;
-
+  private pushService!: PushService;
   /**
    * Creates a new instance of TubService
    * @param gqlClient - GraphQL client for database operations
@@ -48,7 +49,9 @@ export class TubService {
     private readonly gqlClient: GqlClient["db"],
     private readonly privy: PrivyClient,
     private readonly jupiterService: JupiterService,
-  ) {}
+  ) {
+    new CronService(this.gqlClient).startPeriodicTasks();
+  }
 
   /**
    * Factory method to create a fully initialized TubService
@@ -84,6 +87,8 @@ export class TubService {
     this.swapService = new SwapService(this.jupiterService, this.transactionService, this.feeService, this.connection);
     this.analyticsService = new AnalyticsService(this.gqlClient);
     this.transferService = new TransferService(this.connection, feePayerKeypair, this.transactionService);
+
+    this.pushService = new PushService({ gqlClient: this.gqlClient });
   }
 
   /**
@@ -394,5 +399,22 @@ export class TubService {
 
     // Get the transfer transaction from the transfer service
     return await this.transferService.getTransfer(transferRequest);
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /*                             Push Notifications                             */
+  /* -------------------------------------------------------------------------- */
+
+  async startLiveActivity(
+    jwtToken: string,
+    input: { tokenMint: string; tokenPriceUsd: string; deviceToken: string; pushToken: string },
+  ) {
+    const { userId } = await this.authService.getUserContext(jwtToken);
+    return this.pushService.startLiveActivity(userId, input);
+  }
+
+  async stopLiveActivity(jwtToken: string) {
+    const { userId } = await this.authService.getUserContext(jwtToken);
+    return this.pushService.stopLiveActivity(userId);
   }
 }

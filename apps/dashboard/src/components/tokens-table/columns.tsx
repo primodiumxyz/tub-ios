@@ -2,10 +2,10 @@ import { ColumnDef } from "@tanstack/react-table";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Interval, Token } from "@/lib/types";
+import { Token } from "@/lib/types";
 import { formatLargeNumber } from "@/lib/utils";
 
-export const getColumns = (selectedInterval: Interval): ColumnDef<Token>[] => [
+export const getColumns = (selectedInterval = "30m"): ColumnDef<Token>[] => [
   {
     accessorKey: "mint",
     header: "Token",

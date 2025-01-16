@@ -1,0 +1,13 @@
+table:
+  name: refresh_history
+  schema: api
+select_permissions:
+  - role: public
+    permission:
+      columns:
+        - success
+        - created_at
+        - id
+      filter: {}
+      allow_aggregations: true
+    comment: ""

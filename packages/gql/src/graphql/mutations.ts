@@ -146,3 +146,13 @@ export const InsertTradeHistoryManyMutation = graphql(`
     }
   }
 `);
+
+// Cron
+export const RefreshTokenRollingStats30MinMutation = graphql(`
+  mutation RefreshTokenRollingStats30Min {
+    api_refresh_token_rolling_stats_30min {
+      id
+      success
+    }
+  }
+`);

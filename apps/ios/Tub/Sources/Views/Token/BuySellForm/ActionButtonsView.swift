@@ -15,6 +15,8 @@ struct ActionButtonsView: View {
     
     @State var showBuySheet = false
     @StateObject private var settingsManager = SettingsManager.shared
+    @StateObject private var activityManager = LiveActivityManager.shared
+
 
     init(
         tokenModel: TokenModel
@@ -48,8 +50,24 @@ struct ActionButtonsView: View {
                 try await TxManager.shared.buyToken(
                     tokenId: tokenModel.tokenId, buyAmountUsdc: buyAmountUsdc, tokenPriceUsdc: priceUsdc
                 )
+                                
+                if let tokenData = userModel.tokenData[tokenModel.tokenId] {
+                    try await activityManager.startLiveActivity(
+                        mint: tokenModel.tokenId,
+                        tokenName: tokenData.metadata.name,
+                        symbol: tokenData.metadata.symbol,
+                        purchasePriceUsd: priceUsd,
+                        buyAmountUsdc: buyAmountUsdc
+                    )
+                }
+                
                 await MainActor.run {
                     showBuySheet = false
+                    // Only trigger haptic feedback if vibration is enabled
+                    if settingsManager.isVibrationEnabled {
+                        let generator = UINotificationFeedbackGenerator()
+                        generator.notificationOccurred(.success)
+                    }
                     if let tokenName = userModel.tokenData[tokenModel.tokenId]?.metadata.name  {
                         notificationHandler.show(
                             "Successfully bought \(tokenName)!",
@@ -82,8 +100,10 @@ struct ActionButtonsView: View {
 
         do {
             try await TxManager.shared.sellToken(tokenId: tokenModel.tokenId, tokenPriceUsd: tokenPriceUsd)
+            try await LiveActivityManager.shared.stopLiveActivity()
             await MainActor.run {
                 BubbleManager.shared.trigger()
+
                 if let tokenName = userModel.tokenData[tokenModel.tokenId]?.metadata.name  {
                     notificationHandler.show("Successfully sold \(tokenName)!", type: .success)
                 }

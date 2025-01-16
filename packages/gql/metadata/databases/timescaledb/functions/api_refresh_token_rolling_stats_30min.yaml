@@ -1,0 +1,8 @@
+function:
+  name: refresh_token_rolling_stats_30min
+  schema: api
+configuration:
+  custom_root_fields: {}
+  exposed_as: mutation
+permissions:
+  - role: public

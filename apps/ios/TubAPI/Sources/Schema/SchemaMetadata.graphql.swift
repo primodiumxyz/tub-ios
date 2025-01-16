@@ -24,8 +24,7 @@ public enum SchemaMetadata: ApolloAPI.SchemaMetadata {
     case "candles_history_model": return TubAPI.Objects.Candles_history_model
     case "query_root": return TubAPI.Objects.Query_root
     case "subscription_root": return TubAPI.Objects.Subscription_root
-    case "token_metadata_model": return TubAPI.Objects.Token_metadata_model
-    case "token_stats_model": return TubAPI.Objects.Token_stats_model
+    case "token_rolling_stats_30min_model": return TubAPI.Objects.Token_rolling_stats_30min_model
     case "transaction_model": return TubAPI.Objects.Transaction_model
     default: return nil
     }
