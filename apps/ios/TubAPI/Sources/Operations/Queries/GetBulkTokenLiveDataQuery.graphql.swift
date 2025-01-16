@@ -7,7 +7,7 @@ public class GetBulkTokenLiveDataQuery: GraphQLQuery {
   public static let operationName: String = "GetBulkTokenLiveData"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetBulkTokenLiveData($tokens: [String!]!) { token_stats_interval_cache( where: { token_mint: { _in: $tokens } } args: { interval: "30m", recent_interval: "2m" } ) { __typename token_mint latest_price_usd total_volume_usd total_trades price_change_pct recent_volume_usd recent_trades recent_price_change_pct token_metadata_supply } }"#
+      #"query GetBulkTokenLiveData($tokens: [String!]!) { token_rolling_stats_30min(where: { mint: { _in: $tokens } }) { __typename mint latest_price_usd volume_usd_30m trades_30m price_change_pct_30m volume_usd_1m trades_1m price_change_pct_1m supply } }"#
     ))
 
   public var tokens: [String]
@@ -24,47 +24,41 @@ public class GetBulkTokenLiveDataQuery: GraphQLQuery {
 
     public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Query_root }
     public static var __selections: [ApolloAPI.Selection] { [
-      .field("token_stats_interval_cache", [Token_stats_interval_cache].self, arguments: [
-        "where": ["token_mint": ["_in": .variable("tokens")]],
-        "args": [
-          "interval": "30m",
-          "recent_interval": "2m"
-        ]
-      ]),
+      .field("token_rolling_stats_30min", [Token_rolling_stats_30min].self, arguments: ["where": ["mint": ["_in": .variable("tokens")]]]),
     ] }
 
-    public var token_stats_interval_cache: [Token_stats_interval_cache] { __data["token_stats_interval_cache"] }
+    public var token_rolling_stats_30min: [Token_rolling_stats_30min] { __data["token_rolling_stats_30min"] }
 
-    /// Token_stats_interval_cache
+    /// Token_rolling_stats_30min
     ///
-    /// Parent Type: `Token_stats_model`
-    public struct Token_stats_interval_cache: TubAPI.SelectionSet {
+    /// Parent Type: `Token_rolling_stats_30min_model`
+    public struct Token_rolling_stats_30min: TubAPI.SelectionSet {
       public let __data: DataDict
       public init(_dataDict: DataDict) { __data = _dataDict }
 
-      public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Token_stats_model }
+      public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Token_rolling_stats_30min_model }
       public static var __selections: [ApolloAPI.Selection] { [
         .field("__typename", String.self),
-        .field("token_mint", String.self),
+        .field("mint", String.self),
         .field("latest_price_usd", TubAPI.Numeric.self),
-        .field("total_volume_usd", TubAPI.Numeric.self),
-        .field("total_trades", TubAPI.Numeric.self),
-        .field("price_change_pct", TubAPI.Numeric.self),
-        .field("recent_volume_usd", TubAPI.Numeric.self),
-        .field("recent_trades", TubAPI.Numeric.self),
-        .field("recent_price_change_pct", TubAPI.Numeric.self),
-        .field("token_metadata_supply", TubAPI.Numeric?.self),
+        .field("volume_usd_30m", TubAPI.Numeric.self),
+        .field("trades_30m", TubAPI.Numeric.self),
+        .field("price_change_pct_30m", TubAPI.Numeric.self),
+        .field("volume_usd_1m", TubAPI.Numeric.self),
+        .field("trades_1m", TubAPI.Numeric.self),
+        .field("price_change_pct_1m", TubAPI.Numeric.self),
+        .field("supply", TubAPI.Numeric?.self),
       ] }
 
-      public var token_mint: String { __data["token_mint"] }
+      public var mint: String { __data["mint"] }
       public var latest_price_usd: TubAPI.Numeric { __data["latest_price_usd"] }
-      public var total_volume_usd: TubAPI.Numeric { __data["total_volume_usd"] }
-      public var total_trades: TubAPI.Numeric { __data["total_trades"] }
-      public var price_change_pct: TubAPI.Numeric { __data["price_change_pct"] }
-      public var recent_volume_usd: TubAPI.Numeric { __data["recent_volume_usd"] }
-      public var recent_trades: TubAPI.Numeric { __data["recent_trades"] }
-      public var recent_price_change_pct: TubAPI.Numeric { __data["recent_price_change_pct"] }
-      public var token_metadata_supply: TubAPI.Numeric? { __data["token_metadata_supply"] }
+      public var volume_usd_30m: TubAPI.Numeric { __data["volume_usd_30m"] }
+      public var trades_30m: TubAPI.Numeric { __data["trades_30m"] }
+      public var price_change_pct_30m: TubAPI.Numeric { __data["price_change_pct_30m"] }
+      public var volume_usd_1m: TubAPI.Numeric { __data["volume_usd_1m"] }
+      public var trades_1m: TubAPI.Numeric { __data["trades_1m"] }
+      public var price_change_pct_1m: TubAPI.Numeric { __data["price_change_pct_1m"] }
+      public var supply: TubAPI.Numeric? { __data["supply"] }
     }
   }
 }

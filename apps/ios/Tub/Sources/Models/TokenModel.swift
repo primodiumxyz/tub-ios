@@ -360,19 +360,19 @@ class TokenModel: ObservableObject {
             ) { result in
                 switch result {
                 case .success(let graphQLResult):
-                    if let tokenData = graphQLResult.data?.token_stats_interval_cache.first {
+                    if let tokenData = graphQLResult.data?.token_rolling_stats_30min.first {
                         let liveData = TokenLiveData(
-                            supply: Int(tokenData.token_metadata_supply ?? 0),
+                            supply: Int(tokenData.supply ?? 0),
                             priceUsd: tokenData.latest_price_usd,
                             stats: IntervalStats(
-                                volumeUsd: tokenData.total_volume_usd,
-                                trades: Int(tokenData.total_trades),
-                                priceChangePct: tokenData.price_change_pct
+                                volumeUsd: tokenData.volume_usd_30m,
+                                trades: Int(tokenData.trades_30m),
+                                priceChangePct: tokenData.price_change_pct_30m
                             ),
                             recentStats: IntervalStats(
-                                volumeUsd: tokenData.recent_volume_usd,
-                                trades: Int(tokenData.recent_trades),
-                                priceChangePct: tokenData.recent_price_change_pct
+                                volumeUsd: tokenData.volume_usd_1m,
+                                trades: Int(tokenData.trades_1m),
+                                priceChangePct: tokenData.price_change_pct_1m
                             )
                         )
                         continuation.resume(returning: liveData)

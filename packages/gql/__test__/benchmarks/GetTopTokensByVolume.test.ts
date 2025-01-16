@@ -23,8 +23,7 @@ describe("GetTopTokensByVolume benchmarks", () => {
       },
       iterations: ITERATIONS,
       after: (res) => {
-        if (res.error || res.data?.api_token_rolling_stats_30min.length === 0)
-          throw new Error("Error or no tokens found");
+        if (res.error || res.data?.token_rolling_stats_30min.length === 0) throw new Error("Error or no tokens found");
       },
     });
 
@@ -45,8 +44,7 @@ describe("GetTopTokensByVolume benchmarks", () => {
       },
       iterations: ITERATIONS,
       after: (res) => {
-        if (res.error || res.data?.api_token_rolling_stats_30min.length === 0)
-          throw new Error("Error or no tokens found");
+        if (res.error || res.data?.token_rolling_stats_30min.length === 0) throw new Error("Error or no tokens found");
       },
     });
 
@@ -64,8 +62,7 @@ describe("GetTopTokensByVolume benchmarks", () => {
       iterations: ITERATIONS,
       before: async () => await clearCache(),
       after: (res) => {
-        if (res.error || res.data?.api_token_rolling_stats_30min.length === 0)
-          throw new Error("Error or no tokens found");
+        if (res.error || res.data?.token_rolling_stats_30min.length === 0) throw new Error("Error or no tokens found");
       },
     });
 
@@ -81,8 +78,7 @@ describe("GetTopTokensByVolume benchmarks", () => {
       },
       iterations: ITERATIONS,
       after: (res) => {
-        if (res.error || res.data?.api_token_rolling_stats_30min.length === 0)
-          throw new Error("Error or no tokens found");
+        if (res.error || res.data?.token_rolling_stats_30min.length === 0) throw new Error("Error or no tokens found");
       },
     });
 

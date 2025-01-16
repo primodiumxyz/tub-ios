@@ -15,8 +15,8 @@ describe("GetTokenLiveData benchmarks", () => {
       throw new Error("Error refreshing token rolling stats");
 
     const allTokensRes = await client.db.GetAllTokensQuery();
-    if (allTokensRes.error || !allTokensRes.data?.api_token_rolling_stats_30min) throw new Error("No tokens found");
-    tokens = allTokensRes.data?.api_token_rolling_stats_30min.map((t) => t.mint).filter((t) => t !== null) || [];
+    if (allTokensRes.error || !allTokensRes.data?.token_rolling_stats_30min) throw new Error("No tokens found");
+    tokens = allTokensRes.data?.token_rolling_stats_30min.map((t) => t.mint).filter((t) => t !== null) || [];
   });
 
   it("should measure direct Hasura performance", async () => {
@@ -30,8 +30,7 @@ describe("GetTokenLiveData benchmarks", () => {
       },
       iterations: ITERATIONS,
       after: (res) => {
-        if (res.error || res.data?.api_token_rolling_stats_30min.length === 0)
-          throw new Error("Error or no tokens found");
+        if (res.error || res.data?.token_rolling_stats_30min.length === 0) throw new Error("Error or no tokens found");
       },
     });
 
@@ -58,8 +57,7 @@ describe("GetTokenLiveData benchmarks", () => {
       },
       iterations: ITERATIONS,
       after: (res) => {
-        if (res.error || res.data?.api_token_rolling_stats_30min.length === 0)
-          throw new Error("Error or no tokens found");
+        if (res.error || res.data?.token_rolling_stats_30min.length === 0) throw new Error("Error or no tokens found");
       },
     });
 
@@ -79,8 +77,7 @@ describe("GetTokenLiveData benchmarks", () => {
       iterations: ITERATIONS,
       before: async () => await clearCache(),
       after: (res) => {
-        if (res.error || res.data?.api_token_rolling_stats_30min.length === 0)
-          throw new Error("Error or no tokens found");
+        if (res.error || res.data?.token_rolling_stats_30min.length === 0) throw new Error("Error or no tokens found");
       },
     });
 
@@ -98,8 +95,7 @@ describe("GetTokenLiveData benchmarks", () => {
       },
       iterations: ITERATIONS,
       after: (res) => {
-        if (res.error || res.data?.api_token_rolling_stats_30min.length === 0)
-          throw new Error("Error or no tokens found");
+        if (res.error || res.data?.token_rolling_stats_30min.length === 0) throw new Error("Error or no tokens found");
       },
     });
 

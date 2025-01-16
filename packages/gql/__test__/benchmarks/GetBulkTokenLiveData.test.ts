@@ -15,8 +15,8 @@ describe("GetBulkTokenLiveData benchmarks", () => {
       throw new Error("Error refreshing token rolling stats");
 
     const allTokensRes = await client.db.GetAllTokensQuery();
-    if (allTokensRes.error || !allTokensRes.data?.api_token_rolling_stats_30min) throw new Error("No tokens found");
-    const tokens = allTokensRes.data?.api_token_rolling_stats_30min.map((t) => t.mint).filter((t) => t !== null) || [];
+    if (allTokensRes.error || !allTokensRes.data?.token_rolling_stats_30min) throw new Error("No tokens found");
+    const tokens = allTokensRes.data?.token_rolling_stats_30min.map((t) => t.mint).filter((t) => t !== null) || [];
 
     // Create RANDOM batches of 20 tokens for each iteration
     for (let i = 0; i < ITERATIONS; i++) {
@@ -35,8 +35,7 @@ describe("GetBulkTokenLiveData benchmarks", () => {
       },
       iterations: ITERATIONS,
       after: (res) => {
-        if (res.error || res.data?.api_token_rolling_stats_30min.length === 0)
-          throw new Error("Error or no tokens found");
+        if (res.error || res.data?.token_rolling_stats_30min.length === 0) throw new Error("Error or no tokens found");
       },
     });
 
@@ -63,8 +62,7 @@ describe("GetBulkTokenLiveData benchmarks", () => {
       },
       iterations: ITERATIONS,
       after: (res) => {
-        if (res.error || res.data?.api_token_rolling_stats_30min.length === 0)
-          throw new Error("Error or no tokens found");
+        if (res.error || res.data?.token_rolling_stats_30min.length === 0) throw new Error("Error or no tokens found");
       },
     });
 
@@ -84,8 +82,7 @@ describe("GetBulkTokenLiveData benchmarks", () => {
       iterations: ITERATIONS,
       before: async () => await clearCache(),
       after: (res) => {
-        if (res.error || res.data?.api_token_rolling_stats_30min.length === 0)
-          throw new Error("Error or no tokens found");
+        if (res.error || res.data?.token_rolling_stats_30min.length === 0) throw new Error("Error or no tokens found");
       },
     });
 
@@ -103,8 +100,7 @@ describe("GetBulkTokenLiveData benchmarks", () => {
       },
       iterations: ITERATIONS,
       after: (res) => {
-        if (res.error || res.data?.api_token_rolling_stats_30min.length === 0)
-          throw new Error("Error or no tokens found");
+        if (res.error || res.data?.token_rolling_stats_30min.length === 0) throw new Error("Error or no tokens found");
       },
     });
 

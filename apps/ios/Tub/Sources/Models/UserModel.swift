@@ -339,7 +339,7 @@ final class UserModel: ObservableObject {
             return cachedData
         }
 
-        let query = GetBulkTokenMetadataQuery(tokens: "[\(tokenMint)]")
+        let query = GetTokenMetadataQuery(token: tokenMint)
         
         return try await withCheckedThrowingContinuation {
             (continuation: CheckedContinuation<TokenMetadata, Error>) in
@@ -351,7 +351,7 @@ final class UserModel: ObservableObject {
                         return
                     }
                     
-                    if let token = response.data?.token_metadata_formatted.first(where: {
+                    if let token = response.data?.token_rolling_stats_30min.first(where: {
                         $0.mint == tokenMint
                     }) {
                         let metadata = TokenMetadata(
@@ -360,7 +360,7 @@ final class UserModel: ObservableObject {
                             description: token.description,
                             imageUri: convertToDwebLink(token.image_uri),
                             externalUrl: token.external_url,
-                            decimals: Int(token.decimals ?? 6),
+                            decimals: Int(token.decimals),
                             cachedAt: Date()  // Set cache timestamp
                         )
                         metadata.saveToCache(for: tokenMint)  // Save to cache
@@ -395,7 +395,7 @@ final class UserModel: ObservableObject {
             try await withCheckedThrowingContinuation {
                 (continuation: CheckedContinuation<Void, Error>) in
                 Network.shared.graphQL.fetch(
-                    query: GetBulkTokenMetadataQuery(tokens: uncachedTokens.joined(separator: ",")),
+                    query: GetBulkTokenMetadataQuery(tokens: uncachedTokens),
                     cacheTime: QUERY_TOKEN_METADATA_CACHE_TIME
                 ) { result in
                     switch result {
@@ -405,7 +405,7 @@ final class UserModel: ObservableObject {
                             return
                         }
                         
-                        if let tokens = graphQLResult.data?.token_metadata_formatted {
+                        if let tokens = graphQLResult.data?.token_rolling_stats_30min {
                             for metadata in tokens {
                                 let tokenMetadata = TokenMetadata(
                                     name: metadata.name,
@@ -413,7 +413,7 @@ final class UserModel: ObservableObject {
                                     description: metadata.symbol,
                                     imageUri: convertToDwebLink(metadata.image_uri),
                                     externalUrl: metadata.external_url,
-                                    decimals: Int(metadata.decimals ?? 6),
+                                    decimals: Int(metadata.decimals),
                                     cachedAt: Date()  // Set cache timestamp
                                 )
                                 ret[metadata.mint] = tokenMetadata
@@ -446,19 +446,19 @@ final class UserModel: ObservableObject {
                         return
                     }
                     
-                    if let token = response.data?.token_stats_interval_cache.first {
+                    if let token = response.data?.token_rolling_stats_30min.first {
                         let liveData = TokenLiveData(
-                            supply: Int(token.token_metadata_supply ?? 0),
+                            supply: Int(token.supply ?? 0),
                             priceUsd: token.latest_price_usd,
                             stats: IntervalStats(
-                                volumeUsd: token.total_volume_usd,
-                                trades: Int(token.total_trades),
-                                priceChangePct: token.price_change_pct
+                                volumeUsd: token.volume_usd_30m,
+                                trades: Int(token.trades_30m),
+                                priceChangePct: token.price_change_pct_30m
                             ),
                             recentStats: IntervalStats(
-                                volumeUsd: token.recent_volume_usd,
-                                trades: Int(token.recent_trades),
-                                priceChangePct: token.recent_price_change_pct
+                                volumeUsd: token.volume_usd_1m,
+                                trades: Int(token.trades_1m),
+                                priceChangePct: token.price_change_pct_1m
                             )
                         )
                         continuation.resume(returning: liveData)
@@ -495,17 +495,21 @@ final class UserModel: ObservableObject {
                             return
                         }
                         
-                        if let tokens = graphQLResult.data?.token_stats_interval_cache {
+                        if let tokens = graphQLResult.data?.token_rolling_stats_30min {
                             for token in tokens {
-                                ret[token.token_mint] = TokenLiveData(
-                                    supply: Int(token.token_metadata_supply ?? 0),
+                                ret[token.mint] = TokenLiveData(
+                                    supply: Int(token.supply ?? 0),
                                     priceUsd: token.latest_price_usd,
                                     stats: IntervalStats(
-                                        volumeUsd: token.total_volume_usd, trades: Int(token.total_trades),
-                                        priceChangePct: token.price_change_pct),
+                                        volumeUsd: token.volume_usd_30m,
+                                        trades: Int(token.trades_30m),
+                                        priceChangePct: token.price_change_pct_30m
+                                    ),
                                     recentStats: IntervalStats(
-                                        volumeUsd: token.recent_volume_usd, trades: Int(token.recent_trades),
-                                        priceChangePct: token.recent_price_change_pct)
+                                        volumeUsd: token.volume_usd_1m,
+                                        trades: Int(token.trades_1m),
+                                        priceChangePct: token.price_change_pct_1m
+                                    )
                                 )
                             }
                             continuation.resume()

@@ -1,5 +1,5 @@
 -- Create materialized view for rolling window stats
-CREATE MATERIALIZED VIEW api.token_rolling_stats_30min AS
+CREATE MATERIALIZED VIEW api.token_rolling_stats_30min AS 
 WITH recent_stats AS (
     SELECT 
         token_mint,
@@ -35,7 +35,7 @@ SELECT
     COALESCE(SUM(recent_stats.total_trades) FILTER (WHERE recent_stats.ts_bucket >= NOW() - INTERVAL '30 minutes'), 0) as trades_30m,
     COALESCE(SUM(recent_stats.total_volume_usd) FILTER (WHERE recent_stats.ts_bucket >= NOW() - INTERVAL '1 minutes'), 0) as volume_usd_1m,
     COALESCE(SUM(recent_stats.total_trades) FILTER (WHERE recent_stats.ts_bucket >= NOW() - INTERVAL '1 minutes'), 0) as trades_1m,
-    LAST(recent_stats.latest_price_usd, recent_stats.ts_bucket) as latest_price_usd,
+    COALESCE(LAST(recent_stats.latest_price_usd, recent_stats.ts_bucket), 0) as latest_price_usd,
     -- Price change calculations
     COALESCE(100.0 * (LAST(recent_stats.latest_price_usd, recent_stats.ts_bucket) - FIRST(recent_stats.first_price_usd, recent_stats.ts_bucket) FILTER (WHERE recent_stats.ts_bucket >= NOW() - INTERVAL '30 minutes'))
         / NULLIF(FIRST(recent_stats.first_price_usd, recent_stats.ts_bucket) FILTER (WHERE recent_stats.ts_bucket >= NOW() - INTERVAL '30 minutes'), 0), 0) as price_change_pct_30m,
