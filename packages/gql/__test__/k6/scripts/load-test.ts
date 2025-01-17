@@ -4,18 +4,16 @@ import { Gauge } from "k6/metrics";
 import { SharedArray } from "k6/data";
 import { Rate, Trend } from "k6/metrics";
 
-// Stages for stress testing
 const STRESS_STAGES = [
-  { duration: "1s", target: 10 }, // Ramp up to 1,000 users over 30 seconds
-  { duration: "3s", target: 10 }, // Stay at 1,000 users
-  { duration: "1s", target: 0 }, // Ramp down to 0 users over 30 seconds
+  { duration: "30s", target: 1000 }, // Ramp up to 1,000 users over 30 seconds
+  { duration: "1m", target: 1000 }, // Stay at 1,000 users
+  { duration: "30s", target: 0 }, // Ramp down to 0 users over 30 seconds
 ];
 
 // Thresholds for stress testing
 const STRESS_THRESHOLDS = {
   http_req_duration: ["p(95)<500"], // 95% of requests must complete below 500ms
   errors: ["rate<0.1"], // Error rate must be less than 10%
-  postgres_cache_hit_ratio: ["value>0"],
   timescale_cache_hit_ratio: ["value>0"],
 };
 
@@ -29,13 +27,18 @@ const errorRate = new Rate("errors");
 const queryTopTokens = new Trend("query_top_tokens");
 const queryTokenPrices = new Trend("query_token_prices");
 
-// Register database metrics (using Gauge for all)
-const pgCacheHitRatio = new Gauge("postgres_cache_hit_ratio");
-const pgBufferHits = new Gauge("postgres_buffer_hits");
-const pgDiskReads = new Gauge("postgres_disk_reads");
+// Hasura metrics
+const pgMemoryUsage = new Gauge("postgres_memory_usage");
+const pgCPUUsage = new Gauge("postgres_cpu_usage");
+const pgNetworkReceive = new Gauge("postgres_network_receive");
+const pgNetworkTransmit = new Gauge("postgres_network_transmit");
+
+// TimescaleDB metrics
 const tsCacheHitRatio = new Gauge("timescale_cache_hit_ratio");
-const tsBufferHits = new Gauge("timescale_buffer_hits");
-const tsDiskReads = new Gauge("timescale_disk_reads");
+const tsMemoryUsage = new Gauge("timescale_memory_usage");
+const tsCPUUsage = new Gauge("timescale_cpu_usage");
+const tsNetworkReceive = new Gauge("timescale_network_receive");
+const tsNetworkTransmit = new Gauge("timescale_network_transmit");
 
 export const options = {
   stages: STRESS_STAGES,
@@ -68,24 +71,43 @@ const QUERIES = {
 };
 
 function getPrometheusMetric(query: string): number {
-  console.log(`Querying Prometheus: ${query}`);
+  try {
+    const response = http.get(`http://localhost:9090/api/v1/query?query=${encodeURIComponent(query)}`, {
+      headers: { "Content-Type": "application/json" },
+    });
 
-  const response = http.post("http://localhost:9090/api/v1/query", JSON.stringify({ query }), {
-    headers: { "Content-Type": "application/json" },
-  });
+    const responseBody = response.json();
 
-  console.log(`Prometheus response status: ${response.status}`);
-  console.log(`Prometheus response body: ${response.body}`);
+    if (response.status === 200) {
+      const result = responseBody as {
+        status?: string;
+        data?: {
+          resultType?: string;
+          result?: Array<{
+            metric?: Record<string, string>;
+            value?: [number, string];
+          }>;
+        };
+      };
 
-  if (response.status === 200) {
-    const result = response.json() as { data?: { result?: Array<{ value?: [number, string] }> } };
-    const value = parseFloat(result?.data?.result?.[0]?.value?.[1] || "0");
-    console.log(`Extracted value: ${value}`);
-    return value;
+      if (result.status === "success" && result.data?.result?.[0]?.value) {
+        const value = parseFloat(result.data.result[0].value[1]);
+        return value;
+      } else {
+        return 0;
+      }
+    }
+
+    return 0;
+  } catch (error) {
+    if (error instanceof Error) {
+      console.log("Error message:", error.message);
+      console.log("Error stack:", error.stack);
+    } else {
+      console.log("Error in getPrometheusMetric:", error);
+    }
+    return 0;
   }
-
-  console.log("Failed to get metric");
-  return 0;
 }
 
 export default function () {
@@ -96,16 +118,15 @@ export default function () {
       "x-hasura-admin-secret": __ENV.HASURA_ADMIN_SECRET ?? "password",
     };
 
-    // Randomly select between queries
+    // Run GraphQL query first
     const queryType = Math.random() > 0.5 ? "topTokens" : "tokenPrices";
-
     const payload = {
       query: QUERIES[queryType],
       variables:
         queryType === "tokenPrices"
           ? {
               token: tokens[Math.floor(Math.random() * tokens.length)],
-              since: new Date(Date.now() - 30 * 1000).toISOString(), // Last 30 seconds
+              since: new Date(Date.now() - 30 * 1000).toISOString(),
             }
           : undefined,
     };
@@ -134,38 +155,52 @@ export default function () {
       errorRate.add(1);
     }
 
-    // Collect DB metrics
-    console.log("Collecting Postgres metrics...");
-    const pgHits = getPrometheusMetric('pg_stat_database_blks_hit{datname="postgres"}');
-    const pgReads = getPrometheusMetric('pg_stat_database_blks_read{datname="postgres"}');
+    // PostgreSQL (Hasura) metrics with correct job and instance labels
+    const pgMemory = getPrometheusMetric('process_resident_memory_bytes{job="postgres"}');
+    const pgCPU = getPrometheusMetric('rate(process_cpu_seconds_total{job="postgres"}[1m])');
+    const pgNetwork = {
+      receive: getPrometheusMetric('rate(pg_stat_database_tup_returned{datname="postgres",job="postgres"}[1m])'),
+      transmit: getPrometheusMetric('rate(pg_stat_database_tup_fetched{datname="postgres",job="postgres"}[1m])'),
+    };
 
-    console.log("Collecting TimescaleDB metrics...");
-    const tsHits = getPrometheusMetric('pg_stat_database_blks_hit{datname="indexer"}');
-    const tsReads = getPrometheusMetric('pg_stat_database_blks_read{datname="indexer"}');
+    // TimescaleDB metrics with correct job and instance labels
+    const tsMemory = getPrometheusMetric('process_resident_memory_bytes{job="timescaledb"}');
+    const tsCPU = getPrometheusMetric('rate(process_cpu_seconds_total{job="timescaledb"}[1m])');
+    const tsNetwork = {
+      receive: getPrometheusMetric('rate(pg_stat_database_tup_returned{datname="indexer",job="timescaledb"}[1m])'),
+      transmit: getPrometheusMetric('rate(pg_stat_database_tup_fetched{datname="indexer",job="timescaledb"}[1m])'),
+    };
 
-    console.log(`Postgres hits: ${pgHits}, reads: ${pgReads}`);
-    console.log(`TimescaleDB hits: ${tsHits}, reads: ${tsReads}`);
+    // Cache metrics for TimescaleDB
+    const tsHits = getPrometheusMetric('pg_stat_database_blks_hit{datname="indexer",job="timescaledb"}');
+    const tsReads = getPrometheusMetric('pg_stat_database_blks_read{datname="indexer",job="timescaledb"}');
 
-    // Update Postgres metrics
-    pgBufferHits.add(pgHits);
-    pgDiskReads.add(pgReads);
-    if (pgHits + pgReads > 0) {
-      const ratio = (pgHits / (pgHits + pgReads)) * 100;
-      console.log(`Postgres cache hit ratio: ${ratio}%`);
-      pgCacheHitRatio.add(ratio);
-    }
+    // Update gauges
+    pgMemoryUsage.add(pgMemory / (1024 * 1024)); // MB
+    pgCPUUsage.add(pgCPU * 100); // Percentage
+    pgNetworkReceive.add(pgNetwork.receive); // Tuples/s
+    pgNetworkTransmit.add(pgNetwork.transmit); // Tuples/s
 
-    // Update TimescaleDB metrics
-    tsBufferHits.add(tsHits);
-    tsDiskReads.add(tsReads);
+    tsMemoryUsage.add(tsMemory / (1024 * 1024)); // MB
+    tsCPUUsage.add(tsCPU * 100); // Percentage
+    tsNetworkReceive.add(tsNetwork.receive); // Tuples/s
+    tsNetworkTransmit.add(tsNetwork.transmit); // Tuples/s
+
+    // Cache hit ratio for TimescaleDB
     if (tsHits + tsReads > 0) {
       const ratio = (tsHits / (tsHits + tsReads)) * 100;
-      console.log(`TimescaleDB cache hit ratio: ${ratio}%`);
       tsCacheHitRatio.add(ratio);
     }
 
     sleep(1);
   } catch (error) {
-    console.error("Error in test:", error);
+    if (error instanceof Error) {
+      console.log("Error details:", {
+        message: error.message,
+        stack: error.stack,
+      });
+    } else {
+      console.error("Error in test:", error);
+    }
   }
 }
