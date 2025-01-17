@@ -88,21 +88,10 @@ struct AccountBalanceView: View {
                 if userModel.userId != nil {
                     HStack(spacing: 8) {
                         NavigationLink(destination: AccountView()) {
-                            ZStack {
-//                                Circle()
-//                                    .stroke(.tubNeutral, lineWidth: 0.5)
-//                                    .frame(width: 44, height: 44)
-//                                Image("Bubble")
-//                                    .resizable()
-//                                    .scaledToFit()
-//                                    .frame(width: 44, height: 44)
-//                                    .opacity(0.2)
-                                
-                                Image("Account")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 44, height: 44)
-                            }
+                            Image("Account")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 44, height: 44)
                         }
                         
                         // Only show share button if there are transactions
@@ -115,21 +104,10 @@ struct AccountBalanceView: View {
                                     tokenImageUrl: lastTx.imageUri,
                                     tokenMint: lastTx.mint
                                 )) {
-                                    ZStack {
-                                        Image("Bubble")
-                                            .resizable()
-                                            .scaledToFit()
-                                            .frame(width: 44, height: 44)
-                                            .opacity(0.2)
-//                                        Circle()
-//                                            .stroke(.tubNeutral, lineWidth: 0.5)
-//                                            .frame(width: 44, height: 44)
-                                        
-                                        Image("Share")
-                                            .resizable()
-                                            .scaledToFit()
-                                            .frame(width: 20, height: 20)
-                                    }
+                                    Image("Share")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 44, height: 44)
                                 }
                             }
                         }

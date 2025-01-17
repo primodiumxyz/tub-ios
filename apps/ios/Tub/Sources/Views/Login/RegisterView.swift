@@ -91,7 +91,7 @@ struct RegisterView: View {
                 PrimaryButton(
                     text: "Continue",
                     textColor: .white,
-                    backgroundColor: .tubSellPrimary,
+                    backgroundColor: .tubBuyPrimary,
                     strokeColor: .clear,
                     maxWidth: .infinity,
                     action: {
@@ -112,18 +112,18 @@ struct RegisterView: View {
                         .frame(width: UIScreen.width(Layout.Size.third), height: 1)
                         .overlay(
                             Rectangle()
-                                .stroke(.tubSellPrimary.opacity(0.5), lineWidth: Layout.Fixed.borderWidth)
+                                .stroke(.tubBuyPrimary.opacity(0.5), lineWidth: Layout.Fixed.borderWidth)
                         )
                     
                     Text("or")
                         .font(.sfRounded(size: .base, weight: .semibold))
-                        .foregroundStyle(.tubSellPrimary)
+                        .foregroundStyle(.tubBuyPrimary)
                     
                     Divider()
                         .frame(width: UIScreen.width(Layout.Size.third), height: 1)
                         .overlay(
                             Rectangle()
-                                .stroke(.tubSellPrimary.opacity(0.5), lineWidth: Layout.Fixed.borderWidth)
+                                .stroke(.tubBuyPrimary.opacity(0.5), lineWidth: Layout.Fixed.borderWidth)
                         )
                 }
             }
@@ -179,7 +179,8 @@ struct RegisterView: View {
                 
                 // Phone button
                 IconTextButton(
-                    icon: "phone.fill",
+                    icon: "phone",
+                    isSystemIcon: false,
                     text: "Continue with Phone",
                     textColor: .tubBuyPrimary,
                     action: { showPhoneModal = true }

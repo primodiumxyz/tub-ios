@@ -216,12 +216,11 @@ private struct ActionButtons: View {
       // Add Transfer Button
       VStack(spacing: 8) {
         CircleButton(
-//          icon: "arrow.left.arrow.right",
             icon: "Transfer",
             isSystemIcon: false,
-          color: .tubAccent,
-          iconSize: 44,
-          action: { showWithdrawView.toggle() }
+            color: .tubAccent,
+            iconSize: 44,
+            action: { showWithdrawView.toggle() }
         )
 
         Text("Transfer")
@@ -235,9 +234,9 @@ private struct ActionButtons: View {
         CircleButton(
             icon: "Add",
             isSystemIcon: false,
-          color: .tubAccent,
+            color: .tubAccent,
             iconSize: 44,
-          action: { showOnrampView = true }
+            action: { showOnrampView = true }
         )
 
         Text("Add Funds")
@@ -263,41 +262,44 @@ private struct AccountSettingsView: View {
         .foregroundStyle(.primary)
 
       NavigationLink(destination: AccountDetailsView()) {
-        HStack(spacing: 16) {
-          Image(systemName: "person.circle")
-            .resizable()
-            .frame(width: 24, height: 24, alignment: .center)
-          Text("Profile")
-            .font(.sfRounded(size: .lg, weight: .regular))
-          Spacer()
-          Image(systemName: "chevron.right")
-        }
+          HStack(spacing: 16) {
+              Image("Account")
+                  .resizable()
+                  .scaledToFit()
+                  .frame(width: 36, height: 36, alignment: .center)
+              Text("Profile")
+                  .font(.sfRounded(size: .lg, weight: .regular))
+              Spacer()
+              Image(systemName: "chevron.right")
+          }
         .foregroundStyle(Color.primary)
       }
 
       NavigationLink(destination: SettingsView()) {
-        HStack(spacing: 16) {
-          Image(systemName: "gear")
-            .resizable()
-            .frame(width: 24, height: 24, alignment: .center)
-          Text("Preferences")
-            .font(.sfRounded(size: .lg, weight: .regular))
-          Spacer()
-          Image(systemName: "chevron.right")
-        }
+          HStack(spacing: 16) {
+              Image("Settings")
+                  .resizable()
+                  .scaledToFit()
+                  .frame(width: 36, height: 36, alignment: .center)
+              Text("Preferences")
+                  .font(.sfRounded(size: .lg, weight: .regular))
+              Spacer()
+              Image(systemName: "chevron.right")
+          }
         .foregroundStyle(Color.primary)
       }
 
       Link(destination: URL(string: "https://t.me/tubalpha")!) {
-        HStack(spacing: 16) {
-          Image("Telegram")
-            .resizable()
-            .frame(width: 24, height: 24, alignment: .center)
-          Text("Join Telegram")
-            .font(.sfRounded(size: .lg, weight: .regular))
-          Spacer()
-          Image(systemName: "chevron.right")
-        }
+          HStack(spacing: 16) {
+              Image("Telegram")
+                  .resizable()
+                  .scaledToFit()
+                  .frame(width: 36, height: 36, alignment: .center)
+              Text("Join Telegram")
+                  .font(.sfRounded(size: .lg, weight: .regular))
+              Spacer()
+              Image(systemName: "chevron.right")
+          }
       }
       .foregroundStyle(.primary)
 

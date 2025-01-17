@@ -93,14 +93,6 @@ struct CircleButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Self.Configuration) -> some View {
         ZStack {
-            // Circle()
-            //     .stroke(color, lineWidth: 1.5)
-            //     .frame(width: size, height: size)
-//            Image("Bubble")
-//                .resizable()
-//                .scaledToFit()
-//                .frame(width: 44, height: 44)
-//                .opacity(0.2)
 
             if isSystemIcon {
                 Image(systemName: icon)
@@ -500,6 +492,7 @@ struct ContentButton<Content: View>: View {
 // MARK: - Pill Image Button - For interactive buttons
 struct PillImageButton: View {
     var icon: String
+    var isSystemIcon: Bool = true
     var color: Color
     var iconSize: CGFloat = 24
     var horizontalPadding: CGFloat = 24
@@ -511,9 +504,16 @@ struct PillImageButton: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 8) {
-                Image(systemName: icon)
-                    .foregroundStyle(color)
-                    .font(.system(size: iconSize))
+                if isSystemIcon {
+                    Image(systemName: icon)
+                        .foregroundStyle(color)
+                        .font(.system(size: iconSize))
+                } else {
+                    Image(icon)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: iconSize, height: iconSize)
+                }
                 
                 Text(text)
                     .font(.sfRounded(size: .base, weight: .semibold))
@@ -535,6 +535,7 @@ struct PillImageButton: View {
 // MARK: - Pill Image Label - For non-interactive styling Eg. Share button in ShareView
 struct PillImageLabel: View {
     var icon: String
+    var isSystemIcon: Bool = true
     var color: Color
     var iconSize: CGFloat = 24
     var horizontalPadding: CGFloat = 24
@@ -544,9 +545,16 @@ struct PillImageLabel: View {
     
     var body: some View {
         HStack(spacing: 8) {
-            Image(systemName: icon)
-                .foregroundStyle(color)
-                .font(.system(size: iconSize))
+            if isSystemIcon {
+                Image(systemName: icon)
+                    .foregroundStyle(color)
+                    .font(.system(size: iconSize))
+            } else {
+                Image(icon)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: iconSize, height: iconSize)
+            }
             
             Text(text)
                 .font(.sfRounded(size: .base, weight: .semibold))
