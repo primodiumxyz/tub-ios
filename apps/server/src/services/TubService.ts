@@ -49,9 +49,7 @@ export class TubService {
     private readonly gqlClient: GqlClient["db"],
     private readonly privy: PrivyClient,
     private readonly jupiterService: JupiterService,
-  ) {
-    new CronService(this.gqlClient).startPeriodicTasks();
-  }
+  ) {}
 
   /**
    * Factory method to create a fully initialized TubService
@@ -89,6 +87,9 @@ export class TubService {
     this.transferService = new TransferService(this.connection, feePayerKeypair, this.transactionService);
 
     this.pushService = new PushService({ gqlClient: this.gqlClient });
+
+    // Start periodic tasks
+    new CronService(this.gqlClient).startPeriodicTasks();
   }
 
   /**

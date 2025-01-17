@@ -2,9 +2,9 @@ FROM redis/redis-stack-server:latest as redis
 FROM node:21.4.0-bookworm-slim
 ENV NODE_ENV=production
 
-# Install SSL dependencies
+# Install SSL & Python dependencies
 RUN apt-get update && \
-    apt-get install -y openssl libssl3 && \
+    apt-get install -y openssl libssl3 python3 python3-pip && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy Redis configuration and modules from Redis Stack image
