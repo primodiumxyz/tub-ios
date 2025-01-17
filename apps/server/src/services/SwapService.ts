@@ -1,5 +1,5 @@
 import { QuoteGetRequest } from "@jup-ag/api";
-import { Connection, PublicKey, TransactionInstruction } from "@solana/web3.js";
+import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import { Subject, interval, switchMap } from "rxjs";
 import { FeeService } from "../services/FeeService";
 import {
@@ -21,7 +21,6 @@ export class SwapService {
     private jupiter: JupiterService,
     private transactionService: TransactionService,
     private feeService: FeeService,
-    private connection: Connection,
   ) {}
 
   async buildSwapResponse(
