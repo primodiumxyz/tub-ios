@@ -2,15 +2,24 @@ version: "3"
 services:
   influxdb:
     image: influxdb:1.8
+    networks:
+      - k6
     ports:
       - "8086:8086"
     environment:
       - INFLUXDB_DB=k6
     volumes:
       - ./output/influxdb:/var/lib/influxdb
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8086/ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
 
   grafana:
     image: grafana/grafana:latest
+    networks:
+      - k6
     ports:
       - "3001:3000"
     environment:
@@ -20,32 +29,55 @@ services:
     volumes:
       - ./grafana/provisioning:/etc/grafana/provisioning
     depends_on:
-      - influxdb
-      - prometheus
+      influxdb:
+        condition: service_healthy
+      prometheus:
+        condition: service_healthy
 
   prometheus:
-    image: prom/prometheus
+    image: prom/prometheus:latest
+    networks:
+      - k6
     ports:
       - "9090:9090"
     volumes:
       - ./prometheus:/etc/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--tries=1", "http://localhost:9090/-/healthy", "-O", "/dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
 
   postgres-exporter:
     image: prometheuscommunity/postgres-exporter
+    networks:
+      - k6
     ports:
       - "9187:9187"
     environment:
       - DATA_SOURCE_NAME=postgresql://postgres:postgrespassword@host.docker.internal:5432/postgres?sslmode=disable
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    depends_on:
+      prometheus:
+        condition: service_healthy
 
   timescale-exporter:
     image: prometheuscommunity/postgres-exporter
+    networks:
+      - k6
     ports:
       - "9188:9187"
     environment:
       - DATA_SOURCE_NAME=postgresql://tsdbadmin:password@host.docker.internal:5433/indexer?sslmode=disable
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    depends_on:
+      prometheus:
+        condition: service_healthy
+
+networks:
+  k6:
+    driver: bridge

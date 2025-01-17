@@ -1,13 +1,14 @@
 import http from "k6/http";
 import { check, sleep } from "k6";
-import { Rate, Trend } from "k6/metrics";
+import { Gauge } from "k6/metrics";
 import { SharedArray } from "k6/data";
+import { Rate, Trend } from "k6/metrics";
 
 // Stages for stress testing
 const STRESS_STAGES = [
-  { duration: "30s", target: 1000 }, // Ramp up to 1,000 users over 30 seconds
-  { duration: "1m", target: 1000 }, // Stay at 1,000 users
-  { duration: "30s", target: 0 }, // Ramp down to 0 users over 30 seconds
+  { duration: "1s", target: 10 }, // Ramp up to 1,000 users over 30 seconds
+  { duration: "3s", target: 10 }, // Stay at 1,000 users
+  { duration: "1s", target: 0 }, // Ramp down to 0 users over 30 seconds
 ];
 
 // Thresholds for stress testing
@@ -26,6 +27,24 @@ const errorRate = new Rate("errors");
 const queryTopTokens = new Trend("query_top_tokens");
 const queryTokenPrices = new Trend("query_token_prices");
 
+// Custom metrics for database using Counter
+// const dbMetrics = {
+//   postgres_cache_hits: new Counter("postgres_cache_hits"),
+//   postgres_disk_reads: new Counter("postgres_disk_reads"),
+//   postgres_cache_ratio: new Counter("postgres_cache_ratio"),
+//   timescale_cache_hits: new Counter("timescale_cache_hits"),
+//   timescale_disk_reads: new Counter("timescale_disk_reads"),
+//   timescale_cache_ratio: new Counter("timescale_cache_ratio"),
+// };
+
+// Register custom metrics
+const pgCacheHitRatio = new Gauge("postgres_cache_hit_ratio");
+const pgBufferHits = new Gauge("postgres_buffer_hits");
+const pgDiskReads = new Gauge("postgres_disk_reads");
+const tsCacheHitRatio = new Gauge("timescale_cache_hit_ratio");
+const tsBufferHits = new Gauge("timescale_buffer_hits");
+const tsDiskReads = new Gauge("timescale_disk_reads");
+
 export const options = {
   stages: STRESS_STAGES,
   thresholds: STRESS_THRESHOLDS,
@@ -33,16 +52,13 @@ export const options = {
 
 const QUERIES = {
   topTokens: `
-    query GetTopTokensByVolume($interval: interval = "30m", $recentInterval: interval = "20s") {
-      token_stats_interval_comp(
-        args: { interval: $interval, recent_interval: $recentInterval }
-        where: { token_metadata_is_pump_token: { _eq: true } }
-        order_by: { total_volume_usd: desc }
+    query GetTopTokensByVolume {
+      token_rolling_stats_30min(
+        where: { is_pump_token: { _eq: true } }
+        order_by: { volume_usd_30m: desc }
         limit: 50
       ) {
-        token_mint
-        total_volume_usd
-        total_trades
+        mint
       }
     }
   `,
@@ -59,53 +75,105 @@ const QUERIES = {
   `,
 };
 
+function getPrometheusMetric(query: string): number {
+  console.log(`Querying Prometheus: ${query}`);
+
+  const response = http.post("http://localhost:9090/api/v1/query", JSON.stringify({ query }), {
+    headers: { "Content-Type": "application/json" },
+  });
+
+  console.log(`Prometheus response status: ${response.status}`);
+  console.log(`Prometheus response body: ${response.body}`);
+
+  if (response.status === 200) {
+    const result = response.json() as { data?: { result?: Array<{ value?: [number, string] }> } };
+    const value = parseFloat(result?.data?.result?.[0]?.value?.[1] || "0");
+    console.log(`Extracted value: ${value}`);
+    return value;
+  }
+
+  console.log("Failed to get metric");
+  return 0;
+}
+
 export default function () {
-  const startTime = new Date().getTime();
-  const headers = {
-    "Content-Type": "application/json",
-    "x-hasura-admin-secret": __ENV.HASURA_ADMIN_SECRET ?? "password",
-  };
+  try {
+    const startTime = new Date().getTime();
+    const headers = {
+      "Content-Type": "application/json",
+      "x-hasura-admin-secret": __ENV.HASURA_ADMIN_SECRET ?? "password",
+    };
 
-  // Randomly select between queries
-  const queryType = Math.random() > 0.5 ? "topTokens" : "tokenPrices";
+    // Randomly select between queries
+    const queryType = Math.random() > 0.5 ? "topTokens" : "tokenPrices";
 
-  const payload = {
-    query: QUERIES[queryType],
-    variables:
-      queryType === "tokenPrices"
-        ? {
-            token: tokens[Math.floor(Math.random() * tokens.length)],
-            since: new Date(Date.now() - 30 * 1000).toISOString(), // Last 30 seconds
-          }
-        : {
-            interval: "30m",
-            recentInterval: "20s",
-          },
-  };
+    const payload = {
+      query: QUERIES[queryType],
+      variables:
+        queryType === "tokenPrices"
+          ? {
+              token: tokens[Math.floor(Math.random() * tokens.length)],
+              since: new Date(Date.now() - 30 * 1000).toISOString(), // Last 30 seconds
+            }
+          : undefined,
+    };
 
-  const response = http.post(__ENV.HASURA_URL ?? "http://localhost:8090/v1/graphql", JSON.stringify(payload), {
-    headers,
-  });
+    const response = http.post(__ENV.HASURA_URL ?? "http://localhost:8090/v1/graphql", JSON.stringify(payload), {
+      headers,
+    });
 
-  const duration = new Date().getTime() - startTime;
+    const duration = new Date().getTime() - startTime;
 
-  // Track query-specific metrics
-  if (queryType === "topTokens") {
-    queryTopTokens.add(duration);
-  } else {
-    queryTokenPrices.add(duration);
+    // Track query-specific metrics
+    if (queryType === "topTokens") {
+      queryTopTokens.add(duration);
+    } else {
+      queryTokenPrices.add(duration);
+    }
+
+    // Check if request was successful
+    const success = check(response, {
+      "is status 200": (r) => r.status === 200,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      "no errors": (r) => !(r.json() as any).errors,
+    });
+
+    if (!success) {
+      errorRate.add(1);
+    }
+
+    // Collect DB metrics
+    console.log("Collecting Postgres metrics...");
+    const pgHits = getPrometheusMetric('pg_stat_database_blks_hit{datname="postgres"}');
+    const pgReads = getPrometheusMetric('pg_stat_database_blks_read{datname="postgres"}');
+
+    console.log("Collecting TimescaleDB metrics...");
+    const tsHits = getPrometheusMetric('pg_stat_database_blks_hit{datname="indexer"}');
+    const tsReads = getPrometheusMetric('pg_stat_database_blks_read{datname="indexer"}');
+
+    console.log(`Postgres hits: ${pgHits}, reads: ${pgReads}`);
+    console.log(`TimescaleDB hits: ${tsHits}, reads: ${tsReads}`);
+
+    // Update Postgres metrics
+    pgBufferHits.add(pgHits);
+    pgDiskReads.add(pgReads);
+    if (pgHits + pgReads > 0) {
+      const ratio = (pgHits / (pgHits + pgReads)) * 100;
+      console.log(`Postgres cache hit ratio: ${ratio}%`);
+      pgCacheHitRatio.add(ratio);
+    }
+
+    // Update TimescaleDB metrics
+    tsBufferHits.add(tsHits);
+    tsDiskReads.add(tsReads);
+    if (tsHits + tsReads > 0) {
+      const ratio = (tsHits / (tsHits + tsReads)) * 100;
+      console.log(`TimescaleDB cache hit ratio: ${ratio}%`);
+      tsCacheHitRatio.add(ratio);
+    }
+
+    sleep(1);
+  } catch (error) {
+    console.error("Error in test:", error);
   }
-
-  // Check if request was successful
-  const success = check(response, {
-    "is status 200": (r) => r.status === 200,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    "no errors": (r) => !(r.json() as any).errors,
-  });
-
-  if (!success) {
-    errorRate.add(1);
-  }
-
-  sleep(1);
 }
