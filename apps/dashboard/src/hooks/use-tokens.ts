@@ -2,34 +2,29 @@ import { useMemo } from "react";
 import { useSubscription } from "urql";
 
 import { subscriptions } from "@tub/gql";
-import { Interval, Token } from "@/lib/types";
+import { Token } from "@/lib/types";
 
-export const useTokens = (
-  interval: Interval,
-): {
+export const useTokens = (): {
   tokens: Token[];
   fetching: boolean;
   error: string | undefined;
 } => {
   const [tokensRes] = useSubscription({
     query: subscriptions.GetTopTokensByVolumeSubscription,
-    variables: {
-      interval,
-    },
   });
 
   return useMemo(
     () => ({
       tokens:
-        tokensRes.data?.token_stats_interval_cache.map((t) => ({
-          mint: t.token_mint,
-          name: t.token_metadata_name,
-          symbol: t.token_metadata_symbol,
-          imageUri: t.token_metadata_image_uri ?? undefined,
-          volumeUsd: Number(t.total_volume_usd),
-          tradeCount: Number(t.total_trades),
-          priceChangePct: Number(t.price_change_pct),
-          supply: Number(t.token_metadata_supply),
+        tokensRes.data?.token_rolling_stats_30min.map((t) => ({
+          mint: t.mint,
+          name: t.name,
+          symbol: t.symbol,
+          imageUri: t.image_uri ?? undefined,
+          volumeUsd: Number(t.volume_usd_30m),
+          tradeCount: Number(t.trades_30m),
+          priceChangePct: Number(t.price_change_pct_30m),
+          supply: Number(t.supply),
           latestPriceUsd: Number(t.latest_price_usd),
         })) ?? [],
       fetching: tokensRes.fetching,

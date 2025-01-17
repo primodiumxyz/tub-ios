@@ -3,20 +3,20 @@
 
 @_exported import ApolloAPI
 
-public class GetTokenLiveDataQuery: GraphQLQuery {
-  public static let operationName: String = "GetTokenLiveData"
+public class GetBulkTokenFullDataQuery: GraphQLQuery {
+  public static let operationName: String = "GetBulkTokenFullData"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetTokenLiveData($token: String!) { token_rolling_stats_30min(where: { mint: { _eq: $token } }) { __typename mint supply latest_price_usd volume_usd_30m trades_30m price_change_pct_30m volume_usd_1m trades_1m price_change_pct_1m } }"#
+      #"query GetBulkTokenFullData($tokens: [String!]!) { token_rolling_stats_30min(where: { mint: { _in: $tokens } }) { __typename mint name symbol description image_uri external_url decimals supply latest_price_usd volume_usd_30m trades_30m price_change_pct_30m volume_usd_1m trades_1m price_change_pct_1m } }"#
     ))
 
-  public var token: String
+  public var tokens: [String]
 
-  public init(token: String) {
-    self.token = token
+  public init(tokens: [String]) {
+    self.tokens = tokens
   }
 
-  public var __variables: Variables? { ["token": token] }
+  public var __variables: Variables? { ["tokens": tokens] }
 
   public struct Data: TubAPI.SelectionSet {
     public let __data: DataDict
@@ -24,7 +24,7 @@ public class GetTokenLiveDataQuery: GraphQLQuery {
 
     public static var __parentType: any ApolloAPI.ParentType { TubAPI.Objects.Query_root }
     public static var __selections: [ApolloAPI.Selection] { [
-      .field("token_rolling_stats_30min", [Token_rolling_stats_30min].self, arguments: ["where": ["mint": ["_eq": .variable("token")]]]),
+      .field("token_rolling_stats_30min", [Token_rolling_stats_30min].self, arguments: ["where": ["mint": ["_in": .variable("tokens")]]]),
     ] }
 
     public var token_rolling_stats_30min: [Token_rolling_stats_30min] { __data["token_rolling_stats_30min"] }
@@ -40,6 +40,12 @@ public class GetTokenLiveDataQuery: GraphQLQuery {
       public static var __selections: [ApolloAPI.Selection] { [
         .field("__typename", String.self),
         .field("mint", String.self),
+        .field("name", String.self),
+        .field("symbol", String.self),
+        .field("description", String.self),
+        .field("image_uri", String?.self),
+        .field("external_url", String?.self),
+        .field("decimals", TubAPI.Numeric.self),
         .field("supply", TubAPI.Numeric?.self),
         .field("latest_price_usd", TubAPI.Numeric.self),
         .field("volume_usd_30m", TubAPI.Numeric.self),
@@ -51,6 +57,12 @@ public class GetTokenLiveDataQuery: GraphQLQuery {
       ] }
 
       public var mint: String { __data["mint"] }
+      public var name: String { __data["name"] }
+      public var symbol: String { __data["symbol"] }
+      public var description: String { __data["description"] }
+      public var image_uri: String? { __data["image_uri"] }
+      public var external_url: String? { __data["external_url"] }
+      public var decimals: TubAPI.Numeric { __data["decimals"] }
       public var supply: TubAPI.Numeric? { __data["supply"] }
       public var latest_price_usd: TubAPI.Numeric { __data["latest_price_usd"] }
       public var volume_usd_30m: TubAPI.Numeric { __data["volume_usd_30m"] }

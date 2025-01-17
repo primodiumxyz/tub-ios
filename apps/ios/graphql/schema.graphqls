@@ -337,6 +337,490 @@ type api_candles_history_1min_variance_fields {
 }
 
 """
+columns and relationships of "api.refresh_history"
+"""
+type api_refresh_history {
+  created_at: timestamptz!
+  id: uuid!
+  success: Boolean!
+}
+
+"""
+aggregated selection of "api.refresh_history"
+"""
+type api_refresh_history_aggregate {
+  aggregate: api_refresh_history_aggregate_fields
+  nodes: [api_refresh_history!]!
+}
+
+"""
+aggregate fields of "api.refresh_history"
+"""
+type api_refresh_history_aggregate_fields {
+  count(columns: [api_refresh_history_select_column!], distinct: Boolean): Int!
+  max: api_refresh_history_max_fields
+  min: api_refresh_history_min_fields
+}
+
+"""
+Boolean expression to filter rows from the table "api.refresh_history". All fields are combined with a logical 'AND'.
+"""
+input api_refresh_history_bool_exp {
+  _and: [api_refresh_history_bool_exp!]
+  _not: api_refresh_history_bool_exp
+  _or: [api_refresh_history_bool_exp!]
+  created_at: timestamptz_comparison_exp
+  id: uuid_comparison_exp
+  success: Boolean_comparison_exp
+}
+
+"""
+unique or primary key constraints on table "api.refresh_history"
+"""
+enum api_refresh_history_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  refresh_history_pkey
+}
+
+"""
+input type for inserting data into table "api.refresh_history"
+"""
+input api_refresh_history_insert_input {
+  created_at: timestamptz
+  id: uuid
+  success: Boolean
+}
+
+"""aggregate max on columns"""
+type api_refresh_history_max_fields {
+  created_at: timestamptz
+  id: uuid
+}
+
+"""aggregate min on columns"""
+type api_refresh_history_min_fields {
+  created_at: timestamptz
+  id: uuid
+}
+
+"""
+response of any mutation on the table "api.refresh_history"
+"""
+type api_refresh_history_mutation_response {
+  """number of rows affected by the mutation"""
+  affected_rows: Int!
+
+  """data from the rows affected by the mutation"""
+  returning: [api_refresh_history!]!
+}
+
+"""
+on_conflict condition type for table "api.refresh_history"
+"""
+input api_refresh_history_on_conflict {
+  constraint: api_refresh_history_constraint!
+  update_columns: [api_refresh_history_update_column!]! = []
+  where: api_refresh_history_bool_exp
+}
+
+"""Ordering options when selecting data from "api.refresh_history"."""
+input api_refresh_history_order_by {
+  created_at: order_by
+  id: order_by
+  success: order_by
+}
+
+"""primary key columns input for table: api.refresh_history"""
+input api_refresh_history_pk_columns_input {
+  id: uuid!
+}
+
+"""
+select columns of table "api.refresh_history"
+"""
+enum api_refresh_history_select_column {
+  """column name"""
+  created_at
+
+  """column name"""
+  id
+
+  """column name"""
+  success
+}
+
+"""
+input type for updating data in table "api.refresh_history"
+"""
+input api_refresh_history_set_input {
+  created_at: timestamptz
+  id: uuid
+  success: Boolean
+}
+
+"""
+Streaming cursor of the table "api_refresh_history"
+"""
+input api_refresh_history_stream_cursor_input {
+  """Stream column input with initial value"""
+  initial_value: api_refresh_history_stream_cursor_value_input!
+
+  """cursor ordering"""
+  ordering: cursor_ordering
+}
+
+"""Initial value of the column from where the streaming should start"""
+input api_refresh_history_stream_cursor_value_input {
+  created_at: timestamptz
+  id: uuid
+  success: Boolean
+}
+
+"""
+update columns of table "api.refresh_history"
+"""
+enum api_refresh_history_update_column {
+  """column name"""
+  created_at
+
+  """column name"""
+  id
+
+  """column name"""
+  success
+}
+
+input api_refresh_history_updates {
+  """sets the columns of the filtered rows to the given values"""
+  _set: api_refresh_history_set_input
+
+  """filter the rows which have to be updated"""
+  where: api_refresh_history_bool_exp!
+}
+
+"""
+columns and relationships of "api.token_rolling_stats_30min"
+"""
+type api_token_rolling_stats_30min {
+  decimals: numeric
+  description: String
+  external_url: String
+  image_uri: String
+  is_pump_token: Boolean
+  latest_price_usd: numeric
+  mint: String
+  name: String
+  price_change_pct_1m: numeric
+  price_change_pct_30m: numeric
+  supply: numeric
+  symbol: String
+  trades_1m: numeric
+  trades_30m: numeric
+  volume_usd_1m: numeric
+  volume_usd_30m: numeric
+}
+
+"""
+aggregated selection of "api.token_rolling_stats_30min"
+"""
+type api_token_rolling_stats_30min_aggregate {
+  aggregate: api_token_rolling_stats_30min_aggregate_fields
+  nodes: [api_token_rolling_stats_30min!]!
+}
+
+"""
+aggregate fields of "api.token_rolling_stats_30min"
+"""
+type api_token_rolling_stats_30min_aggregate_fields {
+  avg: api_token_rolling_stats_30min_avg_fields
+  count(columns: [api_token_rolling_stats_30min_select_column!], distinct: Boolean): Int!
+  max: api_token_rolling_stats_30min_max_fields
+  min: api_token_rolling_stats_30min_min_fields
+  stddev: api_token_rolling_stats_30min_stddev_fields
+  stddev_pop: api_token_rolling_stats_30min_stddev_pop_fields
+  stddev_samp: api_token_rolling_stats_30min_stddev_samp_fields
+  sum: api_token_rolling_stats_30min_sum_fields
+  var_pop: api_token_rolling_stats_30min_var_pop_fields
+  var_samp: api_token_rolling_stats_30min_var_samp_fields
+  variance: api_token_rolling_stats_30min_variance_fields
+}
+
+"""aggregate avg on columns"""
+type api_token_rolling_stats_30min_avg_fields {
+  decimals: Float
+  latest_price_usd: Float
+  price_change_pct_1m: Float
+  price_change_pct_30m: Float
+  supply: Float
+  trades_1m: Float
+  trades_30m: Float
+  volume_usd_1m: Float
+  volume_usd_30m: Float
+}
+
+"""
+Boolean expression to filter rows from the table "api.token_rolling_stats_30min". All fields are combined with a logical 'AND'.
+"""
+input api_token_rolling_stats_30min_bool_exp {
+  _and: [api_token_rolling_stats_30min_bool_exp!]
+  _not: api_token_rolling_stats_30min_bool_exp
+  _or: [api_token_rolling_stats_30min_bool_exp!]
+  decimals: numeric_comparison_exp
+  description: String_comparison_exp
+  external_url: String_comparison_exp
+  image_uri: String_comparison_exp
+  is_pump_token: Boolean_comparison_exp
+  latest_price_usd: numeric_comparison_exp
+  mint: String_comparison_exp
+  name: String_comparison_exp
+  price_change_pct_1m: numeric_comparison_exp
+  price_change_pct_30m: numeric_comparison_exp
+  supply: numeric_comparison_exp
+  symbol: String_comparison_exp
+  trades_1m: numeric_comparison_exp
+  trades_30m: numeric_comparison_exp
+  volume_usd_1m: numeric_comparison_exp
+  volume_usd_30m: numeric_comparison_exp
+}
+
+"""aggregate max on columns"""
+type api_token_rolling_stats_30min_max_fields {
+  decimals: numeric
+  description: String
+  external_url: String
+  image_uri: String
+  latest_price_usd: numeric
+  mint: String
+  name: String
+  price_change_pct_1m: numeric
+  price_change_pct_30m: numeric
+  supply: numeric
+  symbol: String
+  trades_1m: numeric
+  trades_30m: numeric
+  volume_usd_1m: numeric
+  volume_usd_30m: numeric
+}
+
+"""aggregate min on columns"""
+type api_token_rolling_stats_30min_min_fields {
+  decimals: numeric
+  description: String
+  external_url: String
+  image_uri: String
+  latest_price_usd: numeric
+  mint: String
+  name: String
+  price_change_pct_1m: numeric
+  price_change_pct_30m: numeric
+  supply: numeric
+  symbol: String
+  trades_1m: numeric
+  trades_30m: numeric
+  volume_usd_1m: numeric
+  volume_usd_30m: numeric
+}
+
+"""
+Ordering options when selecting data from "api.token_rolling_stats_30min".
+"""
+input api_token_rolling_stats_30min_order_by {
+  decimals: order_by
+  description: order_by
+  external_url: order_by
+  image_uri: order_by
+  is_pump_token: order_by
+  latest_price_usd: order_by
+  mint: order_by
+  name: order_by
+  price_change_pct_1m: order_by
+  price_change_pct_30m: order_by
+  supply: order_by
+  symbol: order_by
+  trades_1m: order_by
+  trades_30m: order_by
+  volume_usd_1m: order_by
+  volume_usd_30m: order_by
+}
+
+"""
+select columns of table "api.token_rolling_stats_30min"
+"""
+enum api_token_rolling_stats_30min_select_column {
+  """column name"""
+  decimals
+
+  """column name"""
+  description
+
+  """column name"""
+  external_url
+
+  """column name"""
+  image_uri
+
+  """column name"""
+  is_pump_token
+
+  """column name"""
+  latest_price_usd
+
+  """column name"""
+  mint
+
+  """column name"""
+  name
+
+  """column name"""
+  price_change_pct_1m
+
+  """column name"""
+  price_change_pct_30m
+
+  """column name"""
+  supply
+
+  """column name"""
+  symbol
+
+  """column name"""
+  trades_1m
+
+  """column name"""
+  trades_30m
+
+  """column name"""
+  volume_usd_1m
+
+  """column name"""
+  volume_usd_30m
+}
+
+"""aggregate stddev on columns"""
+type api_token_rolling_stats_30min_stddev_fields {
+  decimals: Float
+  latest_price_usd: Float
+  price_change_pct_1m: Float
+  price_change_pct_30m: Float
+  supply: Float
+  trades_1m: Float
+  trades_30m: Float
+  volume_usd_1m: Float
+  volume_usd_30m: Float
+}
+
+"""aggregate stddev_pop on columns"""
+type api_token_rolling_stats_30min_stddev_pop_fields {
+  decimals: Float
+  latest_price_usd: Float
+  price_change_pct_1m: Float
+  price_change_pct_30m: Float
+  supply: Float
+  trades_1m: Float
+  trades_30m: Float
+  volume_usd_1m: Float
+  volume_usd_30m: Float
+}
+
+"""aggregate stddev_samp on columns"""
+type api_token_rolling_stats_30min_stddev_samp_fields {
+  decimals: Float
+  latest_price_usd: Float
+  price_change_pct_1m: Float
+  price_change_pct_30m: Float
+  supply: Float
+  trades_1m: Float
+  trades_30m: Float
+  volume_usd_1m: Float
+  volume_usd_30m: Float
+}
+
+"""
+Streaming cursor of the table "api_token_rolling_stats_30min"
+"""
+input api_token_rolling_stats_30min_stream_cursor_input {
+  """Stream column input with initial value"""
+  initial_value: api_token_rolling_stats_30min_stream_cursor_value_input!
+
+  """cursor ordering"""
+  ordering: cursor_ordering
+}
+
+"""Initial value of the column from where the streaming should start"""
+input api_token_rolling_stats_30min_stream_cursor_value_input {
+  decimals: numeric
+  description: String
+  external_url: String
+  image_uri: String
+  is_pump_token: Boolean
+  latest_price_usd: numeric
+  mint: String
+  name: String
+  price_change_pct_1m: numeric
+  price_change_pct_30m: numeric
+  supply: numeric
+  symbol: String
+  trades_1m: numeric
+  trades_30m: numeric
+  volume_usd_1m: numeric
+  volume_usd_30m: numeric
+}
+
+"""aggregate sum on columns"""
+type api_token_rolling_stats_30min_sum_fields {
+  decimals: numeric
+  latest_price_usd: numeric
+  price_change_pct_1m: numeric
+  price_change_pct_30m: numeric
+  supply: numeric
+  trades_1m: numeric
+  trades_30m: numeric
+  volume_usd_1m: numeric
+  volume_usd_30m: numeric
+}
+
+"""aggregate var_pop on columns"""
+type api_token_rolling_stats_30min_var_pop_fields {
+  decimals: Float
+  latest_price_usd: Float
+  price_change_pct_1m: Float
+  price_change_pct_30m: Float
+  supply: Float
+  trades_1m: Float
+  trades_30m: Float
+  volume_usd_1m: Float
+  volume_usd_30m: Float
+}
+
+"""aggregate var_samp on columns"""
+type api_token_rolling_stats_30min_var_samp_fields {
+  decimals: Float
+  latest_price_usd: Float
+  price_change_pct_1m: Float
+  price_change_pct_30m: Float
+  supply: Float
+  trades_1m: Float
+  trades_30m: Float
+  volume_usd_1m: Float
+  volume_usd_30m: Float
+}
+
+"""aggregate variance on columns"""
+type api_token_rolling_stats_30min_variance_fields {
+  decimals: Float
+  latest_price_usd: Float
+  price_change_pct_1m: Float
+  price_change_pct_30m: Float
+  supply: Float
+  trades_1m: Float
+  trades_30m: Float
+  volume_usd_1m: Float
+  volume_usd_30m: Float
+}
+
+"""
 columns and relationships of "api.token_stats_1h"
 """
 type api_token_stats_1h {
@@ -1481,8 +1965,6 @@ enum cursor_ordering {
   DESC
 }
 
-scalar interval
-
 """
 columns and relationships of "loading_time"
 """
@@ -1868,6 +2350,39 @@ type loading_time_variance_fields {
 """mutation root"""
 type mutation_root {
   """
+  execute VOLATILE function "api.refresh_token_rolling_stats_30min" which returns "api.refresh_history"
+  """
+  api_refresh_token_rolling_stats_30min(
+    """distinct select on columns"""
+    distinct_on: [api_refresh_history_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [api_refresh_history_order_by!]
+
+    """filter the rows returned"""
+    where: api_refresh_history_bool_exp
+  ): api_refresh_history
+
+  """
+  delete data from the table: "api.refresh_history"
+  """
+  delete_api_refresh_history(
+    """filter the rows which have to be deleted"""
+    where: api_refresh_history_bool_exp!
+  ): api_refresh_history_mutation_response
+
+  """
+  delete single row from the table: "api.refresh_history"
+  """
+  delete_api_refresh_history_by_pk(id: uuid!): api_refresh_history
+
+  """
   delete data from the table: "api.trade_history"
   """
   delete_api_trade_history(
@@ -1952,6 +2467,28 @@ type mutation_root {
   delete single row from the table: "token_sale"
   """
   delete_token_sale_by_pk(id: uuid!): token_sale
+
+  """
+  insert data into the table: "api.refresh_history"
+  """
+  insert_api_refresh_history(
+    """the rows to be inserted"""
+    objects: [api_refresh_history_insert_input!]!
+
+    """upsert condition"""
+    on_conflict: api_refresh_history_on_conflict
+  ): api_refresh_history_mutation_response
+
+  """
+  insert a single row into the table: "api.refresh_history"
+  """
+  insert_api_refresh_history_one(
+    """the row to be inserted"""
+    object: api_refresh_history_insert_input!
+
+    """upsert condition"""
+    on_conflict: api_refresh_history_on_conflict
+  ): api_refresh_history
 
   """
   insert data into the table: "api.trade_history"
@@ -2100,6 +2637,34 @@ type mutation_root {
     """upsert condition"""
     on_conflict: token_sale_on_conflict
   ): token_sale
+
+  """
+  update data of the table: "api.refresh_history"
+  """
+  update_api_refresh_history(
+    """sets the columns of the filtered rows to the given values"""
+    _set: api_refresh_history_set_input
+
+    """filter the rows which have to be updated"""
+    where: api_refresh_history_bool_exp!
+  ): api_refresh_history_mutation_response
+
+  """
+  update single row of the table: "api.refresh_history"
+  """
+  update_api_refresh_history_by_pk(
+    """sets the columns of the filtered rows to the given values"""
+    _set: api_refresh_history_set_input
+    pk_columns: api_refresh_history_pk_columns_input!
+  ): api_refresh_history
+
+  """
+  update multiples rows of table: "api.refresh_history"
+  """
+  update_api_refresh_history_many(
+    """updates to execute, in order"""
+    updates: [api_refresh_history_updates!]!
+  ): [api_refresh_history_mutation_response]
 
   """
   update data of the table: "api.trade_history"
@@ -2408,6 +2973,91 @@ type query_root {
   ): api_candles_history_1min_aggregate!
 
   """
+  fetch data from the table: "api.refresh_history"
+  """
+  api_refresh_history(
+    """distinct select on columns"""
+    distinct_on: [api_refresh_history_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [api_refresh_history_order_by!]
+
+    """filter the rows returned"""
+    where: api_refresh_history_bool_exp
+  ): [api_refresh_history!]!
+
+  """
+  fetch aggregated fields from the table: "api.refresh_history"
+  """
+  api_refresh_history_aggregate(
+    """distinct select on columns"""
+    distinct_on: [api_refresh_history_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [api_refresh_history_order_by!]
+
+    """filter the rows returned"""
+    where: api_refresh_history_bool_exp
+  ): api_refresh_history_aggregate!
+
+  """
+  fetch data from the table: "api.refresh_history" using primary key columns
+  """
+  api_refresh_history_by_pk(id: uuid!): api_refresh_history
+
+  """
+  fetch data from the table: "api.token_rolling_stats_30min"
+  """
+  api_token_rolling_stats_30min(
+    """distinct select on columns"""
+    distinct_on: [api_token_rolling_stats_30min_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [api_token_rolling_stats_30min_order_by!]
+
+    """filter the rows returned"""
+    where: api_token_rolling_stats_30min_bool_exp
+  ): [api_token_rolling_stats_30min!]!
+
+  """
+  fetch aggregated fields from the table: "api.token_rolling_stats_30min"
+  """
+  api_token_rolling_stats_30min_aggregate(
+    """distinct select on columns"""
+    distinct_on: [api_token_rolling_stats_30min_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [api_token_rolling_stats_30min_order_by!]
+
+    """filter the rows returned"""
+    where: api_token_rolling_stats_30min_bool_exp
+  ): api_token_rolling_stats_30min_aggregate!
+
+  """
   fetch data from the table: "api.token_stats_1h"
   """
   api_token_stats_1h(
@@ -2681,22 +3331,6 @@ type query_root {
   fetch data from the table: "token_dwell_time" using primary key columns
   """
   token_dwell_time_by_pk(id: uuid!): token_dwell_time
-  token_metadata_formatted(
-    """distinct select on columns"""
-    distinct_on: [token_metadata_model_enum_name!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [token_metadata_model_order_by!]
-
-    """filter the rows returned"""
-    where: token_metadata_model_bool_exp_bool_exp
-  ): [token_metadata_model!]!
 
   """
   fetch data from the table: "token_purchase"
@@ -2740,6 +3374,22 @@ type query_root {
 
   """fetch data from the table: "token_purchase" using primary key columns"""
   token_purchase_by_pk(id: uuid!): token_purchase
+  token_rolling_stats_30min(
+    """distinct select on columns"""
+    distinct_on: [token_rolling_stats_30min_model_enum_name!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_rolling_stats_30min_model_order_by!]
+
+    """filter the rows returned"""
+    where: token_rolling_stats_30min_model_bool_exp_bool_exp
+  ): [token_rolling_stats_30min_model!]!
 
   """
   fetch data from the table: "token_sale"
@@ -2783,44 +3433,6 @@ type query_root {
 
   """fetch data from the table: "token_sale" using primary key columns"""
   token_sale_by_pk(id: uuid!): token_sale
-  token_stats_interval_cache(
-    """token_stats_interval_cacheNative Query Arguments"""
-    args: token_stats_interval_cache_arguments!
-
-    """distinct select on columns"""
-    distinct_on: [token_stats_model_enum_name!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [token_stats_model_order_by!]
-
-    """filter the rows returned"""
-    where: token_stats_model_bool_exp_bool_exp
-  ): [token_stats_model!]!
-  token_stats_interval_comp(
-    """token_stats_interval_compNative Query Arguments"""
-    args: token_stats_interval_comp_arguments!
-
-    """distinct select on columns"""
-    distinct_on: [token_stats_model_enum_name!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [token_stats_model_order_by!]
-
-    """filter the rows returned"""
-    where: token_stats_model_bool_exp_bool_exp
-  ): [token_stats_model!]!
   transactions(
     """distinct select on columns"""
     distinct_on: [transaction_model_enum_name!]
@@ -2909,6 +3521,119 @@ type subscription_root {
     """filter the rows returned"""
     where: api_candles_history_1min_bool_exp
   ): [api_candles_history_1min!]!
+
+  """
+  fetch data from the table: "api.refresh_history"
+  """
+  api_refresh_history(
+    """distinct select on columns"""
+    distinct_on: [api_refresh_history_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [api_refresh_history_order_by!]
+
+    """filter the rows returned"""
+    where: api_refresh_history_bool_exp
+  ): [api_refresh_history!]!
+
+  """
+  fetch aggregated fields from the table: "api.refresh_history"
+  """
+  api_refresh_history_aggregate(
+    """distinct select on columns"""
+    distinct_on: [api_refresh_history_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [api_refresh_history_order_by!]
+
+    """filter the rows returned"""
+    where: api_refresh_history_bool_exp
+  ): api_refresh_history_aggregate!
+
+  """
+  fetch data from the table: "api.refresh_history" using primary key columns
+  """
+  api_refresh_history_by_pk(id: uuid!): api_refresh_history
+
+  """
+  fetch data from the table in a streaming manner: "api.refresh_history"
+  """
+  api_refresh_history_stream(
+    """maximum number of rows returned in a single batch"""
+    batch_size: Int!
+
+    """cursor to stream the results returned by the query"""
+    cursor: [api_refresh_history_stream_cursor_input]!
+
+    """filter the rows returned"""
+    where: api_refresh_history_bool_exp
+  ): [api_refresh_history!]!
+
+  """
+  fetch data from the table: "api.token_rolling_stats_30min"
+  """
+  api_token_rolling_stats_30min(
+    """distinct select on columns"""
+    distinct_on: [api_token_rolling_stats_30min_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [api_token_rolling_stats_30min_order_by!]
+
+    """filter the rows returned"""
+    where: api_token_rolling_stats_30min_bool_exp
+  ): [api_token_rolling_stats_30min!]!
+
+  """
+  fetch aggregated fields from the table: "api.token_rolling_stats_30min"
+  """
+  api_token_rolling_stats_30min_aggregate(
+    """distinct select on columns"""
+    distinct_on: [api_token_rolling_stats_30min_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [api_token_rolling_stats_30min_order_by!]
+
+    """filter the rows returned"""
+    where: api_token_rolling_stats_30min_bool_exp
+  ): api_token_rolling_stats_30min_aggregate!
+
+  """
+  fetch data from the table in a streaming manner: "api.token_rolling_stats_30min"
+  """
+  api_token_rolling_stats_30min_stream(
+    """maximum number of rows returned in a single batch"""
+    batch_size: Int!
+
+    """cursor to stream the results returned by the query"""
+    cursor: [api_token_rolling_stats_30min_stream_cursor_input]!
+
+    """filter the rows returned"""
+    where: api_token_rolling_stats_30min_bool_exp
+  ): [api_token_rolling_stats_30min!]!
 
   """
   fetch data from the table: "api.token_stats_1h"
@@ -3268,22 +3993,6 @@ type subscription_root {
     """filter the rows returned"""
     where: token_dwell_time_bool_exp
   ): [token_dwell_time!]!
-  token_metadata_formatted(
-    """distinct select on columns"""
-    distinct_on: [token_metadata_model_enum_name!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [token_metadata_model_order_by!]
-
-    """filter the rows returned"""
-    where: token_metadata_model_bool_exp_bool_exp
-  ): [token_metadata_model!]!
 
   """
   fetch data from the table: "token_purchase"
@@ -3341,6 +4050,22 @@ type subscription_root {
     """filter the rows returned"""
     where: token_purchase_bool_exp
   ): [token_purchase!]!
+  token_rolling_stats_30min(
+    """distinct select on columns"""
+    distinct_on: [token_rolling_stats_30min_model_enum_name!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [token_rolling_stats_30min_model_order_by!]
+
+    """filter the rows returned"""
+    where: token_rolling_stats_30min_model_bool_exp_bool_exp
+  ): [token_rolling_stats_30min_model!]!
 
   """
   fetch data from the table: "token_sale"
@@ -3398,44 +4123,6 @@ type subscription_root {
     """filter the rows returned"""
     where: token_sale_bool_exp
   ): [token_sale!]!
-  token_stats_interval_cache(
-    """token_stats_interval_cacheNative Query Arguments"""
-    args: token_stats_interval_cache_arguments!
-
-    """distinct select on columns"""
-    distinct_on: [token_stats_model_enum_name!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [token_stats_model_order_by!]
-
-    """filter the rows returned"""
-    where: token_stats_model_bool_exp_bool_exp
-  ): [token_stats_model!]!
-  token_stats_interval_comp(
-    """token_stats_interval_compNative Query Arguments"""
-    args: token_stats_interval_comp_arguments!
-
-    """distinct select on columns"""
-    distinct_on: [token_stats_model_enum_name!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [token_stats_model_order_by!]
-
-    """filter the rows returned"""
-    where: token_stats_model_bool_exp_bool_exp
-  ): [token_stats_model!]!
   transactions(
     """distinct select on columns"""
     distinct_on: [transaction_model_enum_name!]
@@ -3804,78 +4491,6 @@ type token_dwell_time_variance_fields {
   dwell_time_ms: Float
 }
 
-type token_metadata_model {
-  decimals: numeric
-  description: String!
-  external_url: String
-  image_uri: String
-  is_pump_token: Boolean!
-  mint: String!
-  name: String!
-  supply: numeric
-  symbol: String!
-}
-
-"""
-Boolean expression to filter rows from the logical model for "token_metadata_model". All fields are combined with a logical 'AND'.
-"""
-input token_metadata_model_bool_exp_bool_exp {
-  _and: [token_metadata_model_bool_exp_bool_exp!]
-  _not: token_metadata_model_bool_exp_bool_exp
-  _or: [token_metadata_model_bool_exp_bool_exp!]
-  decimals: numeric_comparison_exp
-  description: String_comparison_exp
-  external_url: String_comparison_exp
-  image_uri: String_comparison_exp
-  is_pump_token: Boolean_comparison_exp
-  mint: String_comparison_exp
-  name: String_comparison_exp
-  supply: numeric_comparison_exp
-  symbol: String_comparison_exp
-}
-
-enum token_metadata_model_enum_name {
-  """column name"""
-  decimals
-
-  """column name"""
-  description
-
-  """column name"""
-  external_url
-
-  """column name"""
-  image_uri
-
-  """column name"""
-  is_pump_token
-
-  """column name"""
-  mint
-
-  """column name"""
-  name
-
-  """column name"""
-  supply
-
-  """column name"""
-  symbol
-}
-
-"""Ordering options when selecting data from "token_metadata_model"."""
-input token_metadata_model_order_by {
-  decimals: order_by
-  description: order_by
-  external_url: order_by
-  image_uri: order_by
-  is_pump_token: order_by
-  mint: order_by
-  name: order_by
-  supply: order_by
-  symbol: order_by
-}
-
 scalar token_metadata_scalar
 
 """
@@ -4229,6 +4844,122 @@ type token_purchase_variance_fields {
   token_price_usd: Float
 }
 
+type token_rolling_stats_30min_model {
+  decimals: numeric!
+  description: String!
+  external_url: String
+  image_uri: String
+  is_pump_token: Boolean!
+  latest_price_usd: numeric!
+  mint: String!
+  name: String!
+  price_change_pct_1m: numeric!
+  price_change_pct_30m: numeric!
+  supply: numeric
+  symbol: String!
+  trades_1m: numeric!
+  trades_30m: numeric!
+  volume_usd_1m: numeric!
+  volume_usd_30m: numeric!
+}
+
+"""
+Boolean expression to filter rows from the logical model for "token_rolling_stats_30min_model". All fields are combined with a logical 'AND'.
+"""
+input token_rolling_stats_30min_model_bool_exp_bool_exp {
+  _and: [token_rolling_stats_30min_model_bool_exp_bool_exp!]
+  _not: token_rolling_stats_30min_model_bool_exp_bool_exp
+  _or: [token_rolling_stats_30min_model_bool_exp_bool_exp!]
+  decimals: numeric_comparison_exp
+  description: String_comparison_exp
+  external_url: String_comparison_exp
+  image_uri: String_comparison_exp
+  is_pump_token: Boolean_comparison_exp
+  latest_price_usd: numeric_comparison_exp
+  mint: String_comparison_exp
+  name: String_comparison_exp
+  price_change_pct_1m: numeric_comparison_exp
+  price_change_pct_30m: numeric_comparison_exp
+  supply: numeric_comparison_exp
+  symbol: String_comparison_exp
+  trades_1m: numeric_comparison_exp
+  trades_30m: numeric_comparison_exp
+  volume_usd_1m: numeric_comparison_exp
+  volume_usd_30m: numeric_comparison_exp
+}
+
+enum token_rolling_stats_30min_model_enum_name {
+  """column name"""
+  decimals
+
+  """column name"""
+  description
+
+  """column name"""
+  external_url
+
+  """column name"""
+  image_uri
+
+  """column name"""
+  is_pump_token
+
+  """column name"""
+  latest_price_usd
+
+  """column name"""
+  mint
+
+  """column name"""
+  name
+
+  """column name"""
+  price_change_pct_1m
+
+  """column name"""
+  price_change_pct_30m
+
+  """column name"""
+  supply
+
+  """column name"""
+  symbol
+
+  """column name"""
+  trades_1m
+
+  """column name"""
+  trades_30m
+
+  """column name"""
+  volume_usd_1m
+
+  """column name"""
+  volume_usd_30m
+}
+
+"""
+Ordering options when selecting data from "token_rolling_stats_30min_model".
+"""
+input token_rolling_stats_30min_model_order_by {
+  decimals: order_by
+  description: order_by
+  external_url: order_by
+  image_uri: order_by
+  is_pump_token: order_by
+  latest_price_usd: order_by
+  mint: order_by
+  name: order_by
+  price_change_pct_1m: order_by
+  price_change_pct_30m: order_by
+  supply: order_by
+  symbol: order_by
+  trades_1m: order_by
+  trades_30m: order_by
+  volume_usd_1m: order_by
+  volume_usd_30m: order_by
+}
+
 """
 columns and relationships of "token_sale"
 """
@@ -4563,144 +5294,6 @@ type token_sale_var_samp_fields {
 type token_sale_variance_fields {
   token_amount: Float
   token_price_usd: Float
-}
-
-"""token_stats_interval_cacheNative Query Arguments"""
-input token_stats_interval_cache_arguments {
-  """Main interval for total stats (<=1h)"""
-  interval: interval!
-
-  """Additional interval for recent stats (<=interval)"""
-  recent_interval: interval!
-}
-
-"""token_stats_interval_compNative Query Arguments"""
-input token_stats_interval_comp_arguments {
-  """Main interval for total stats"""
-  interval: interval!
-
-  """Additional interval to get recent stats on a different timeframe"""
-  recent_interval: interval!
-}
-
-type token_stats_model {
-  avg_price_usd: numeric!
-  latest_price_usd: numeric!
-  price_change_pct: numeric!
-  recent_price_change_pct: numeric!
-  recent_trades: numeric!
-  recent_volume_usd: numeric!
-  token_metadata_decimals: numeric
-  token_metadata_description: String!
-  token_metadata_external_url: String
-  token_metadata_image_uri: String
-  token_metadata_is_pump_token: Boolean!
-  token_metadata_name: String!
-  token_metadata_supply: numeric
-  token_metadata_symbol: String!
-  token_mint: String!
-  total_trades: numeric!
-  total_volume_usd: numeric!
-}
-
-"""
-Boolean expression to filter rows from the logical model for "token_stats_model". All fields are combined with a logical 'AND'.
-"""
-input token_stats_model_bool_exp_bool_exp {
-  _and: [token_stats_model_bool_exp_bool_exp!]
-  _not: token_stats_model_bool_exp_bool_exp
-  _or: [token_stats_model_bool_exp_bool_exp!]
-  avg_price_usd: numeric_comparison_exp
-  latest_price_usd: numeric_comparison_exp
-  price_change_pct: numeric_comparison_exp
-  recent_price_change_pct: numeric_comparison_exp
-  recent_trades: numeric_comparison_exp
-  recent_volume_usd: numeric_comparison_exp
-  token_metadata_decimals: numeric_comparison_exp
-  token_metadata_description: String_comparison_exp
-  token_metadata_external_url: String_comparison_exp
-  token_metadata_image_uri: String_comparison_exp
-  token_metadata_is_pump_token: Boolean_comparison_exp
-  token_metadata_name: String_comparison_exp
-  token_metadata_supply: numeric_comparison_exp
-  token_metadata_symbol: String_comparison_exp
-  token_mint: String_comparison_exp
-  total_trades: numeric_comparison_exp
-  total_volume_usd: numeric_comparison_exp
-}
-
-enum token_stats_model_enum_name {
-  """column name"""
-  avg_price_usd
-
-  """column name"""
-  latest_price_usd
-
-  """column name"""
-  price_change_pct
-
-  """column name"""
-  recent_price_change_pct
-
-  """column name"""
-  recent_trades
-
-  """column name"""
-  recent_volume_usd
-
-  """column name"""
-  token_metadata_decimals
-
-  """column name"""
-  token_metadata_description
-
-  """column name"""
-  token_metadata_external_url
-
-  """column name"""
-  token_metadata_image_uri
-
-  """column name"""
-  token_metadata_is_pump_token
-
-  """column name"""
-  token_metadata_name
-
-  """column name"""
-  token_metadata_supply
-
-  """column name"""
-  token_metadata_symbol
-
-  """column name"""
-  token_mint
-
-  """column name"""
-  total_trades
-
-  """column name"""
-  total_volume_usd
-}
-
-"""Ordering options when selecting data from "token_stats_model"."""
-input token_stats_model_order_by {
-  avg_price_usd: order_by
-  latest_price_usd: order_by
-  price_change_pct: order_by
-  recent_price_change_pct: order_by
-  recent_trades: order_by
-  recent_volume_usd: order_by
-  token_metadata_decimals: order_by
-  token_metadata_description: order_by
-  token_metadata_external_url: order_by
-  token_metadata_image_uri: order_by
-  token_metadata_is_pump_token: order_by
-  token_metadata_name: order_by
-  token_metadata_supply: order_by
-  token_metadata_symbol: order_by
-  token_mint: order_by
-  total_trades: order_by
-  total_volume_usd: order_by
 }
 
 type transaction_model {

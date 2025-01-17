@@ -18,6 +18,7 @@ import {
 import { config } from "../utils/config";
 import { deriveTokenAccounts } from "../utils/tokenAccounts";
 import { AnalyticsService } from "./AnalyticsService";
+import { CronService } from "./CronService";
 import { PushService } from "./ApplePushService";
 import { AuthService } from "./AuthService";
 import { FeeService } from "./FeeService";
@@ -86,6 +87,9 @@ export class TubService {
     this.transferService = new TransferService(this.connection, feePayerKeypair, this.transactionService);
 
     this.pushService = new PushService({ gqlClient: this.gqlClient });
+
+    // Start periodic tasks
+    new CronService(this.gqlClient).startPeriodicTasks();
   }
 
   /**
