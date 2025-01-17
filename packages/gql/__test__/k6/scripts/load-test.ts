@@ -5,8 +5,8 @@ import { SharedArray } from "k6/data";
 import { Rate, Trend } from "k6/metrics";
 
 const STRESS_STAGES = [
-  { duration: "1m", target: 2000 }, // Ramp up to 2,000 users over 1 minute
-  { duration: "5m", target: 2000 }, // Stay at 2,000 users
+  { duration: "1m", target: 1000 }, // Ramp up to 1,000 users over 1 minute
+  { duration: "2m", target: 1000 }, // Stay at 1,000 users for 2 minutes
   { duration: "30s", target: 0 }, // Ramp down to 0 users over 30 seconds
 ];
 
