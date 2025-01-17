@@ -5,16 +5,15 @@ import { SharedArray } from "k6/data";
 import { Rate, Trend } from "k6/metrics";
 
 const STRESS_STAGES = [
-  { duration: "30s", target: 1000 }, // Ramp up to 1,000 users over 30 seconds
-  { duration: "1m", target: 1000 }, // Stay at 1,000 users
+  { duration: "1m", target: 2000 }, // Ramp up to 2,000 users over 1 minute
+  { duration: "5m", target: 2000 }, // Stay at 2,000 users
   { duration: "30s", target: 0 }, // Ramp down to 0 users over 30 seconds
 ];
 
 // Thresholds for stress testing
 const STRESS_THRESHOLDS = {
-  http_req_duration: ["p(95)<500"], // 95% of requests must complete below 500ms
+  http_req_duration: ["p(95)<600"], // 95% of requests must complete below 600ms
   errors: ["rate<0.1"], // Error rate must be less than 10%
-  timescale_cache_hit_ratio: ["value>0"],
 };
 
 // Load test tokens
@@ -159,41 +158,43 @@ export default function () {
       errorRate.add(1);
     }
 
-    // PostgreSQL (Hasura) metrics with correct job and instance labels
-    const pgMemory = getPrometheusMetric('process_resident_memory_bytes{job="postgres"}');
-    const pgCPU = getPrometheusMetric('rate(process_cpu_seconds_total{job="postgres"}[1m])');
-    const pgNetwork = {
-      receive: getPrometheusMetric('rate(pg_stat_database_tup_returned{datname="postgres",job="postgres"}[1m])'),
-      transmit: getPrometheusMetric('rate(pg_stat_database_tup_fetched{datname="postgres",job="postgres"}[1m])'),
-    };
+    if (__ENV.ENV === "local") {
+      // PostgreSQL (Hasura) metrics with correct job and instance labels
+      const pgMemory = getPrometheusMetric('process_resident_memory_bytes{job="postgres"}');
+      const pgCPU = getPrometheusMetric('rate(process_cpu_seconds_total{job="postgres"}[1m])');
+      const pgNetwork = {
+        receive: getPrometheusMetric('rate(pg_stat_database_tup_returned{datname="postgres",job="postgres"}[1m])'),
+        transmit: getPrometheusMetric('rate(pg_stat_database_tup_fetched{datname="postgres",job="postgres"}[1m])'),
+      };
 
-    // TimescaleDB metrics with correct job and instance labels
-    const tsMemory = getPrometheusMetric('process_resident_memory_bytes{job="timescaledb"}');
-    const tsCPU = getPrometheusMetric('rate(process_cpu_seconds_total{job="timescaledb"}[1m])');
-    const tsNetwork = {
-      receive: getPrometheusMetric('rate(pg_stat_database_tup_returned{datname="indexer",job="timescaledb"}[1m])'),
-      transmit: getPrometheusMetric('rate(pg_stat_database_tup_fetched{datname="indexer",job="timescaledb"}[1m])'),
-    };
+      // TimescaleDB metrics with correct job and instance labels
+      const tsMemory = getPrometheusMetric('process_resident_memory_bytes{job="timescaledb"}');
+      const tsCPU = getPrometheusMetric('rate(process_cpu_seconds_total{job="timescaledb"}[1m])');
+      const tsNetwork = {
+        receive: getPrometheusMetric('rate(pg_stat_database_tup_returned{datname="indexer",job="timescaledb"}[1m])'),
+        transmit: getPrometheusMetric('rate(pg_stat_database_tup_fetched{datname="indexer",job="timescaledb"}[1m])'),
+      };
 
-    // Cache metrics for TimescaleDB
-    const tsHits = getPrometheusMetric('pg_stat_database_blks_hit{datname="indexer",job="timescaledb"}');
-    const tsReads = getPrometheusMetric('pg_stat_database_blks_read{datname="indexer",job="timescaledb"}');
+      // Cache metrics for TimescaleDB
+      const tsHits = getPrometheusMetric('pg_stat_database_blks_hit{datname="indexer",job="timescaledb"}');
+      const tsReads = getPrometheusMetric('pg_stat_database_blks_read{datname="indexer",job="timescaledb"}');
 
-    // Update gauges
-    pgMemoryUsage.add(pgMemory / (1024 * 1024)); // MB
-    pgCPUUsage.add(pgCPU * 100); // Percentage
-    pgNetworkReceive.add(pgNetwork.receive); // Tuples/s
-    pgNetworkTransmit.add(pgNetwork.transmit); // Tuples/s
+      // Update gauges
+      pgMemoryUsage.add(pgMemory / (1024 * 1024)); // MB
+      pgCPUUsage.add(pgCPU * 100); // Percentage
+      pgNetworkReceive.add(pgNetwork.receive); // Tuples/s
+      pgNetworkTransmit.add(pgNetwork.transmit); // Tuples/s
 
-    tsMemoryUsage.add(tsMemory / (1024 * 1024)); // MB
-    tsCPUUsage.add(tsCPU * 100); // Percentage
-    tsNetworkReceive.add(tsNetwork.receive); // Tuples/s
-    tsNetworkTransmit.add(tsNetwork.transmit); // Tuples/s
+      tsMemoryUsage.add(tsMemory / (1024 * 1024)); // MB
+      tsCPUUsage.add(tsCPU * 100); // Percentage
+      tsNetworkReceive.add(tsNetwork.receive); // Tuples/s
+      tsNetworkTransmit.add(tsNetwork.transmit); // Tuples/s
 
-    // Cache hit ratio for TimescaleDB
-    if (tsHits + tsReads > 0) {
-      const ratio = (tsHits / (tsHits + tsReads)) * 100;
-      tsCacheHitRatio.add(ratio);
+      // Cache hit ratio for TimescaleDB
+      if (tsHits + tsReads > 0) {
+        const ratio = (tsHits / (tsHits + tsReads)) * 100;
+        tsCacheHitRatio.add(ratio);
+      }
     }
 
     sleep(1);
