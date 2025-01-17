@@ -39,5 +39,6 @@ subscription SubTokenCandlesSince(
     high_price_usd
     low_price_usd
     volume_usd
+    has_trades
   }
 }
