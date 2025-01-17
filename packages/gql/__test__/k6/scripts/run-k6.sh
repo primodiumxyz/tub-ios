@@ -50,9 +50,6 @@ check_grafana_health() {
   [ "$RESPONSE" -eq 200 ]
 }
 
-# Create metrics directory
-mkdir -p metrics
-
 # Wait for services to be healthy
 echo "Waiting for services to be healthy..."
 for ((i=1; i<=$RETRIES; i++)); do
@@ -96,9 +93,9 @@ for ((i=1; i<=$RETRIES; i++)); do
     # Run k6 tests based on environment
     echo "Running k6 tests for $ENV environment..."
     if [ "$ENV" = "local" ]; then
-      HASURA_URL=http://localhost:8090/v1/graphql HASURA_ADMIN_SECRET=password k6 run --compatibility-mode=experimental_enhanced --out influxdb=http://localhost:8086/k6 __test__/k6/scripts/load-test.ts | tee metrics/k6-output.txt
+      HASURA_URL=http://localhost:8090/v1/graphql HASURA_ADMIN_SECRET=password k6 run --compatibility-mode=experimental_enhanced --out influxdb=http://localhost:8086/k6 __test__/k6/scripts/load-test.ts | tee __test__/k6/metrics/k6-output.txt
     else
-      dotenvx run -f ./.env --quiet -- k6 run --compatibility-mode=experimental_enhanced --out influxdb=http://localhost:8086/k6 __test__/k6/scripts/load-test.ts | tee metrics/k6-output.txt
+      dotenvx run -f ./.env --quiet -- k6 run --compatibility-mode=experimental_enhanced --out influxdb=http://localhost:8086/k6 __test__/k6/scripts/load-test.ts | tee __test__/k6/metrics/k6-output.txt
     fi
 
     # Open Grafana dashboard

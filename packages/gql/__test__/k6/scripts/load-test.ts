@@ -15,6 +15,8 @@ const STRESS_STAGES = [
 const STRESS_THRESHOLDS = {
   http_req_duration: ["p(95)<500"], // 95% of requests must complete below 500ms
   errors: ["rate<0.1"], // Error rate must be less than 10%
+  postgres_cache_hit_ratio: ["value>0"],
+  timescale_cache_hit_ratio: ["value>0"],
 };
 
 // Load test tokens
@@ -27,17 +29,7 @@ const errorRate = new Rate("errors");
 const queryTopTokens = new Trend("query_top_tokens");
 const queryTokenPrices = new Trend("query_token_prices");
 
-// Custom metrics for database using Counter
-// const dbMetrics = {
-//   postgres_cache_hits: new Counter("postgres_cache_hits"),
-//   postgres_disk_reads: new Counter("postgres_disk_reads"),
-//   postgres_cache_ratio: new Counter("postgres_cache_ratio"),
-//   timescale_cache_hits: new Counter("timescale_cache_hits"),
-//   timescale_disk_reads: new Counter("timescale_disk_reads"),
-//   timescale_cache_ratio: new Counter("timescale_cache_ratio"),
-// };
-
-// Register custom metrics
+// Register database metrics (using Gauge for all)
 const pgCacheHitRatio = new Gauge("postgres_cache_hit_ratio");
 const pgBufferHits = new Gauge("postgres_buffer_hits");
 const pgDiskReads = new Gauge("postgres_disk_reads");
