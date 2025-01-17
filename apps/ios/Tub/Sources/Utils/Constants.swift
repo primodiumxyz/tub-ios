@@ -55,9 +55,9 @@ private var installationSource: InstallationSource {
 private let graphqlUrlHost: String = "tub-graphql.primodium.ai"
 
 // We use a compiler directive so the condition is only run once, during compilation, instead of on every import
-public let graphqlHttpUrl: String = "http://localhost:8090/v1/graphql"
+public let graphqlHttpUrl: String = "https://\(graphqlUrlHost)/v1/graphql"
 
-public let graphqlWsUrl: String = "ws://localhost:8080/v1/graphql"
+public let graphqlWsUrl: String = "wss://\(graphqlUrlHost)/v1/graphql"
 
 // Server URLs
 private let serverUrlHost: String = {
