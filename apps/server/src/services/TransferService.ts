@@ -1,7 +1,7 @@
 import { Connection, Keypair, PublicKey, TransactionMessage } from "@solana/web3.js";
 import { createTransferInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { TransactionService } from "./TransactionService";
-import { SwapType } from "../types";
+import { TransactionType } from "../types";
 
 export interface TransferRequest {
   fromAddress: string;
@@ -49,7 +49,7 @@ export class TransferService {
     const base64Message = this.transactionService.registerTransaction(
       message,
       lastValidBlockHeight,
-      SwapType.TRANSFER,
+      TransactionType.TRANSFER,
       false,
       0,
       1,

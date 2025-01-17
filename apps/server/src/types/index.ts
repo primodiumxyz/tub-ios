@@ -2,7 +2,7 @@ import { Config } from "../services/ConfigService";
 import { MessageV0, PublicKey } from "@solana/web3.js";
 import { Subject, Subscription } from "rxjs";
 
-export enum SwapType {
+export enum TransactionType {
   BUY = 1, // When buying any token with USDC
   SELL_PARTIAL = 2, // When selling part of token balance for USDC
   SELL_ALL = 3, // When selling entire token balance for USDC
@@ -11,7 +11,7 @@ export enum SwapType {
 
 export type TransactionRegistryData = {
   timestamp: number;
-  swapType: SwapType;
+  transactionType: TransactionType;
   autoSlippage: boolean;
   contextSlot: number;
   buildAttempts: number;

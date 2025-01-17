@@ -16,24 +16,27 @@ import {
   SignatureStatus,
 } from "@solana/web3.js";
 import bs58 from "bs58";
-import { ATA_PROGRAM_PUBLIC_KEY, MAX_CHAIN_COMPUTE_UNITS, TOKEN_PROGRAM_PUBLIC_KEY } from "../constants/tokens";
+import {
+  ATA_PROGRAM_PUBLIC_KEY,
+  MAX_CHAIN_COMPUTE_UNITS,
+  TOKEN_PROGRAM_PUBLIC_KEY,
+  USDC_MAINNET_PUBLIC_KEY,
+} from "../constants/tokens";
 import {
   ActiveSwapRequest,
   SubmitSignedTransactionResponse,
-  SwapType,
+  TransactionType,
   TransactionRegistryEntry,
   TransactionRegistryData,
 } from "../types";
 import { config } from "../utils/config";
 import { Config } from "./ConfigService";
-import { SwapService } from "./SwapService";
 
 /**
  * Service for handling all transaction-related operations
  */
 export class TransactionService {
   private messageRegistry: Map<string, TransactionRegistryEntry> = new Map();
-  private swapService?: SwapService;
 
   constructor(
     private connection: Connection,
@@ -43,13 +46,6 @@ export class TransactionService {
   }
 
   // ----------- Initialization ------------
-
-  setSwapService(swapService: SwapService) {
-    if (this.swapService) {
-      throw new Error("SwapService can only be set once");
-    }
-    this.swapService = swapService;
-  }
 
   private initializeCleanup(): void {
     (async () => {
@@ -90,7 +86,7 @@ export class TransactionService {
   registerTransaction(
     message: MessageV0,
     lastValidBlockHeight: number,
-    swapType: SwapType,
+    transactionType: TransactionType,
     autoSlippage: boolean,
     contextSlot: number,
     buildAttempts: number,
@@ -102,7 +98,7 @@ export class TransactionService {
       message,
       lastValidBlockHeight,
       timestamp: Date.now(),
-      swapType,
+      transactionType,
       autoSlippage,
       contextSlot,
       buildAttempts,
@@ -131,7 +127,7 @@ export class TransactionService {
     const base64Message = this.registerTransaction(
       message,
       lastValidBlockHeight,
-      txRegistryData.swapType,
+      txRegistryData.transactionType,
       txRegistryData.autoSlippage,
       txRegistryData.contextSlot,
       txRegistryData.buildAttempts,
@@ -190,13 +186,9 @@ export class TransactionService {
   async signAndSendTransaction(
     userPublicKey: PublicKey,
     userSignature: string,
-    base64Message: string,
+    entry: TransactionRegistryEntry,
     cfg: Config,
   ): Promise<SubmitSignedTransactionResponse> {
-    const entry = this.messageRegistry.get(base64Message);
-    if (!entry) {
-      throw new Error("Transaction not found in registry");
-    }
     const transaction = new VersionedTransaction(entry.message);
 
     // Add user signature
@@ -227,43 +219,14 @@ export class TransactionService {
       });
     } catch (error) {
       console.log("Tx send failed: " + JSON.stringify(error));
-
-      // don't rebuild transfer swaps
-      if (entry.swapType === SwapType.TRANSFER) {
-        throw new Error(JSON.stringify(error));
-      }
-
-      // TODO: error interpretation
-
-      // don't rebuild if slippage is not auto
-      if (entry.buildAttempts + 1 >= cfg.MAX_BUILD_ATTEMPTS || !entry.autoSlippage) {
-        throw new Error(JSON.stringify(error));
-      }
-
-      // rebuild
-      if (!this.swapService) {
-        throw new Error("SwapService is not set");
-      }
-      if (!entry.activeSwapRequest) {
-        throw new Error("ActiveSwapRequest is not set");
-      }
-      if (!entry.cfg) {
-        throw new Error("Config is not set");
-      }
-      this.messageRegistry.delete(base64Message);
-      const rebuiltSwapResponse = await this.swapService.buildSwapResponse(
-        entry.activeSwapRequest,
-        entry.cfg,
-        entry.buildAttempts,
-      );
-      return { responseType: "rebuild", rebuild: rebuiltSwapResponse };
+      throw new Error(JSON.stringify(error));
     }
 
     // tx confirmation and resend case
     try {
       const confirmation = await this.confirmTransaction(txid, entry.lastValidBlockHeight, cfg);
-
-      this.messageRegistry.delete(base64Message);
+      const base64Message = Buffer.from(entry.message.serialize()).toString("base64");
+      this.deleteFromRegistry(base64Message);
       let timestamp: number | null = null;
       if (confirmation.value?.slot) {
         for (let attempt = 0; attempt < cfg.CONFIRM_ATTEMPTS / 2 && !timestamp; attempt++) {
@@ -278,7 +241,8 @@ export class TransactionService {
       return { responseType: "success", txid, timestamp };
     } catch (error) {
       console.error("[signAndSendTransaction] Error confirming transaction:", error);
-      return { responseType: "fail", error: JSON.stringify(error) };
+      const response: SubmitSignedTransactionResponse = { responseType: "fail", error: JSON.stringify(error) };
+      return response;
     }
   }
 
@@ -509,10 +473,10 @@ export class TransactionService {
     tokenAccount: PublicKey,
     sellTokenId: PublicKey,
     sellQuantity: number,
-    swapType: SwapType,
+    transactionType: TransactionType,
   ): Promise<TransactionInstruction | null> {
     // Skip if user is not selling their entire memecoin stack
-    if (swapType !== SwapType.SELL_ALL) {
+    if (transactionType !== TransactionType.SELL_ALL) {
       return null;
     }
 
@@ -527,6 +491,27 @@ export class TransactionService {
       return closeInstruction;
     }
     return null;
+  }
+
+  async determineTransactionType(request: ActiveSwapRequest): Promise<TransactionType> {
+    if (request.buyTokenId === USDC_MAINNET_PUBLIC_KEY.toString()) {
+      const sellTokenBalance = await this.connection.getTokenAccountBalance(request.sellTokenAccount, "processed");
+      if (!sellTokenBalance.value.amount) {
+        throw new Error("Sell token balance is null");
+      }
+      // if balance is greater than sellQuantity, return SELL_PARTIAL
+      if (Number(sellTokenBalance.value.amount) > request.sellQuantity) {
+        return TransactionType.SELL_PARTIAL;
+      }
+      // if balance is equal to sellQuantity, return SELL_ALL
+      if (Number(sellTokenBalance.value.amount) === request.sellQuantity) {
+        return TransactionType.SELL_ALL;
+      }
+      // otherwise, throw error as not enough balance. show balance in thrown error.
+      throw new Error(`Not enough memecoin balance. Observed balance: ${Number(sellTokenBalance.value.uiAmount)}`);
+    } else {
+      return TransactionType.BUY;
+    }
   }
 
   async getTokenBalance(userPublicKey: PublicKey, tokenMint: PublicKey): Promise<number> {
