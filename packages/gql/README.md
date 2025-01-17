@@ -142,6 +142,15 @@ pnpm benchmark # this will seed the database with `n` trades (see `__test__/benc
 ```bash
 # Install k6
 brew install k6
+
+# Run the database
+cd packages/gql && pnpm dev:ci
+# Run local analysis (seeding, metrics with dashboard and output to file)
+pnpm k6:local
+# or without seeding first
+pnpm k6:local:skip-seed
+# or on the remote database
+pnpm k6:remote
 ```
 
 ### Working with Hasura
