@@ -97,8 +97,19 @@ struct TokenView: View {
                     )
                     Text(price)
                         .font(.sfRounded(size: .xl4, weight: .bold))
-                    Image(systemName: "info.circle.fill")
-                        .frame(width: 16, height: 16)
+//                    Image(systemName: "info.circle.fill")
+//                        .frame(width: 16, height: 16)
+                    ZStack {
+                        Image("Bubble")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 24, height: 24)
+                            .opacity(0.2)
+                        Image("Info")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 12, height: 12)
+                    }
                 }
                 
             } else {

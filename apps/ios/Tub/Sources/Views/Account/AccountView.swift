@@ -216,9 +216,11 @@ private struct ActionButtons: View {
       // Add Transfer Button
       VStack(spacing: 8) {
         CircleButton(
-          icon: "arrow.left.arrow.right",
+//          icon: "arrow.left.arrow.right",
+            icon: "Transfer",
+            isSystemIcon: false,
           color: .tubAccent,
-          iconSize: 22,
+          iconSize: 44,
           action: { showWithdrawView.toggle() }
         )
 
@@ -231,8 +233,10 @@ private struct ActionButtons: View {
       // Add Funds Button
       VStack(spacing: 8) {
         CircleButton(
-          icon: "plus",
+            icon: "Add",
+            isSystemIcon: false,
           color: .tubAccent,
+            iconSize: 44,
           action: { showOnrampView = true }
         )
 
@@ -299,9 +303,11 @@ private struct AccountSettingsView: View {
 
       // Logout Button
       IconTextButton(
-        icon: "rectangle.portrait.and.arrow.right",
+        icon: "Logout",
+        isSystemIcon: false,
         text: "Logout",
         textColor: Color.red,
+        iconSize: CGSize(width: 36, height: 36),
         action: { userModel.logout() }
       )
 

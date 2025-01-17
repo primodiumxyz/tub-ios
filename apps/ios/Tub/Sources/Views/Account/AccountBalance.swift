@@ -89,13 +89,19 @@ struct AccountBalanceView: View {
                     HStack(spacing: 8) {
                         NavigationLink(destination: AccountView()) {
                             ZStack {
-                                Circle()
-                                    .stroke(.tubNeutral, lineWidth: 0.5)
-                                    .frame(width: 44, height: 44)
+//                                Circle()
+//                                    .stroke(.tubNeutral, lineWidth: 0.5)
+//                                    .frame(width: 44, height: 44)
+//                                Image("Bubble")
+//                                    .resizable()
+//                                    .scaledToFit()
+//                                    .frame(width: 44, height: 44)
+//                                    .opacity(0.2)
                                 
-                                Image(systemName: "person.fill")
-                                    .foregroundStyle(.tubNeutral)
-                                    .font(.system(size: 18))
+                                Image("Account")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 44, height: 44)
                             }
                         }
                         
@@ -110,13 +116,19 @@ struct AccountBalanceView: View {
                                     tokenMint: lastTx.mint
                                 )) {
                                     ZStack {
-                                        Circle()
-                                            .stroke(.tubNeutral, lineWidth: 0.5)
+                                        Image("Bubble")
+                                            .resizable()
+                                            .scaledToFit()
                                             .frame(width: 44, height: 44)
+                                            .opacity(0.2)
+//                                        Circle()
+//                                            .stroke(.tubNeutral, lineWidth: 0.5)
+//                                            .frame(width: 44, height: 44)
                                         
-                                        Image(systemName: "square.and.arrow.up")
-                                            .foregroundStyle(.tubNeutral)
-                                            .font(.system(size: 18))
+                                        Image("Share")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 20, height: 20)
                                     }
                                 }
                             }

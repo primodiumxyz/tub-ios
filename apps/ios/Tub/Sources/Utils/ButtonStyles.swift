@@ -84,6 +84,7 @@ struct OutlineButton: View {
 // MARK: - Circle Button Style - Eg. Add Funds button in AccountView
 struct CircleButtonStyle: ButtonStyle {
     var icon: String
+    var isSystemIcon: Bool
     var color: Color
     var size: CGFloat = 50
     var iconSize: CGFloat = 24
@@ -92,13 +93,25 @@ struct CircleButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Self.Configuration) -> some View {
         ZStack {
-            Circle()
-                .stroke(color, lineWidth: 1.5)
-                .frame(width: size, height: size)
+            // Circle()
+            //     .stroke(color, lineWidth: 1.5)
+            //     .frame(width: size, height: size)
+//            Image("Bubble")
+//                .resizable()
+//                .scaledToFit()
+//                .frame(width: 44, height: 44)
+//                .opacity(0.2)
 
-            Image(systemName: icon)
-                .foregroundStyle(color)
-                .font(.system(size: iconSize, weight: iconWeight))
+            if isSystemIcon {
+                Image(systemName: icon)
+                    .foregroundStyle(color)
+                    .font(.system(size: iconSize, weight: iconWeight))
+            } else {
+                Image(icon)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: iconSize, height: iconSize)
+            }
         }
         .opacity(configuration.isPressed || disabled ? 0.5 : 1.0)
         .scaleEffect(configuration.isPressed && !disabled ? 0.95 : 1)
@@ -108,6 +121,7 @@ struct CircleButtonStyle: ButtonStyle {
 
 struct CircleButton: View {
     var icon: String
+    var isSystemIcon: Bool = true 
     var color: Color
     var size: CGFloat = 50
     var iconSize: CGFloat = 24
@@ -122,6 +136,7 @@ struct CircleButton: View {
         .buttonStyle(
             CircleButtonStyle(
                 icon: icon,
+                isSystemIcon: isSystemIcon,
                 color: color,
                 size: size,
                 iconSize: iconSize,
@@ -190,6 +205,7 @@ struct CapsuleButton: View {
 // MARK: - Icon Text Button Style - Eg. Logout button in AccountView
 struct IconTextButtonStyle: ButtonStyle {
     var icon: String
+    var isSystemIcon: Bool = true
     var text: String
     var textColor: Color
     var iconSize: CGSize = CGSize(width: 22, height: 22)
@@ -199,13 +215,24 @@ struct IconTextButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Self.Configuration) -> some View {
         HStack(spacing: spacing) {
-            Image(systemName: icon)
-                .resizable()
-                .frame(width: iconSize.width, height: iconSize.height, alignment: .center)
-                .foregroundStyle(textColor)
-                .padding(.bottom, bottomPadding)
-                .padding(.leading, 4)
-                .padding(.trailing, 2)
+            if isSystemIcon {
+                Image(systemName: icon)
+                    .resizable()
+                    .frame(width: iconSize.width, height: iconSize.height, alignment: .center)
+                    .foregroundStyle(textColor)
+                    .padding(.bottom, bottomPadding)
+                    .padding(.leading, 4)
+                    .padding(.trailing, 2)
+            }else{
+                Image(icon)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: iconSize.width, height: iconSize.height, alignment: .center)
+                    .foregroundStyle(textColor)
+                    .padding(.bottom, bottomPadding)
+                    .padding(.leading, 4)
+                    .padding(.trailing, 2)
+            }
 
             Text(text)
                 .font(font)
@@ -218,6 +245,7 @@ struct IconTextButtonStyle: ButtonStyle {
 
 struct IconTextButton: View {
     var icon: String
+    var isSystemIcon: Bool = true
     var text: String
     var textColor: Color
     var iconSize: CGSize = CGSize(width: 22, height: 22)
@@ -233,6 +261,7 @@ struct IconTextButton: View {
         .buttonStyle(
             IconTextButtonStyle(
                 icon: icon,
+                isSystemIcon: isSystemIcon,
                 text: text,
                 textColor: textColor,
                 iconSize: iconSize,
