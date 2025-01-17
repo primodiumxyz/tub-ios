@@ -17,6 +17,7 @@
     "dev:standalone": "run-pty % pnpm dev:nodemon % pnpm dev:redis",
     "dev:nodemon": "nodemon",
     "dev:redis": "redis-server",
+    "dev:flush": "redis-cli flushall",
     "start": "tsx bin/index",
     "types:dev": "tsc --watch",
     "types:test": "tsc --noEmit --skipLibCheck",
