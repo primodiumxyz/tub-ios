@@ -15,6 +15,9 @@ import * as mutations from "./graphql/mutations";
 import * as queries from "./graphql/queries";
 import * as subscriptions from "./graphql/subscriptions";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+
 // Helper type to extract variables from a query or mutation
 type ExtractVariables<T> = T extends TadaDocumentNode<any, infer V, any> ? V : never;
 

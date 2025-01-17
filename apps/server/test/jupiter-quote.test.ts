@@ -179,7 +179,7 @@ describe("Jupiter Quote Integration Test", () => {
         console.log("Quote Request:", quoteRequest);
       }
 
-      const swapInstructions = await jupiterService.getSwapInstructions(quoteRequest, userPublicKey, 1);
+      const swapInstructions = await jupiterService.getSwapInstructions(quoteRequest, userPublicKey);
       console.log("📨 Received swap instructions: SOL -> USDC");
 
       if (VERBOSE) {
@@ -191,7 +191,7 @@ describe("Jupiter Quote Integration Test", () => {
         });
       }
 
-      const message = await transactionService.buildTransactionMessage(
+      const { message } = await transactionService.buildTransactionMessage(
         swapInstructions.instructions,
         swapInstructions.addressLookupTableAccounts,
       );
@@ -247,10 +247,10 @@ describe("Jupiter Quote Integration Test", () => {
         console.log("Quote Request:", quoteRequest);
       }
 
-      const swapInstructions = await jupiterService.getSwapInstructions(quoteRequest, userPublicKey, 1);
+      const swapInstructions = await jupiterService.getSwapInstructions(quoteRequest, userPublicKey);
       console.log("📨 Received swap instructions: USDC -> SOL");
 
-      const message = await transactionService.buildTransactionMessage(
+      const { message } = await transactionService.buildTransactionMessage(
         swapInstructions.instructions,
         swapInstructions.addressLookupTableAccounts,
       );
@@ -305,7 +305,7 @@ describe("Jupiter Quote Integration Test", () => {
       asLegacyTransaction: false,
     };
 
-    const swapInstructions = await jupiterService.getSwapInstructions(quoteRequest, userPublicKey, 1);
+    const swapInstructions = await jupiterService.getSwapInstructions(quoteRequest, userPublicKey);
     console.log("📨 Received swap instructions: USDC -> MEMECOIN");
     if (VERBOSE) console.info("Instructions count:", swapInstructions.instructions?.length);
   });
