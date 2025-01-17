@@ -25,6 +25,8 @@ class TokenModel: ObservableObject {
     private var initialized = false
     
     @Published var purchaseData: PurchaseData? 
+    private let activityManager = LiveActivityManager.shared
+
 
     private var priceTimer: Timer? = nil
 
@@ -69,6 +71,17 @@ class TokenModel: ObservableObject {
         self.prices = self.prices.filter { $0.timestamp >= timestamp.addingTimeInterval(-timespan) }
 
         UserModel.shared.updateTokenPrice(mint: tokenId, priceUsd: priceUsd)
+        
+        if let purchaseData = self.purchaseData {
+            let gains = priceUsd - purchaseData.priceUsd
+            let gainsPercentage = (gains / purchaseData.priceUsd) * 100
+            Task {
+                LiveActivityManager.shared.updatePriceChange(
+                    currentPriceUsd: priceUsd,
+                    gainsPercentage: gainsPercentage
+                )
+            }
+        }
     }
 
     func getPrice(at timestamp: Date) -> Price? {
@@ -266,7 +279,8 @@ class TokenModel: ObservableObject {
                                 close: candle.close_price_usd,
                                 high: candle.high_price_usd,
                                 low: candle.low_price_usd,
-                                volume: candle.volume_usd
+                                volume: candle.volume_usd,
+                                hasTrades: candle.has_trades
                             )
                         }
                         continuation.resume(returning: updatedCandles)
@@ -319,7 +333,8 @@ class TokenModel: ObservableObject {
                             close: candle.close_price_usd,
                             high: candle.high_price_usd,
                             low: candle.low_price_usd,
-                            volume: candle.volume_usd
+                            volume: candle.volume_usd,
+                            hasTrades: candle.has_trades
                         )
                     }
                     
@@ -347,19 +362,19 @@ class TokenModel: ObservableObject {
             ) { result in
                 switch result {
                 case .success(let graphQLResult):
-                    if let tokenData = graphQLResult.data?.token_stats_interval_comp.first {
+                    if let tokenData = graphQLResult.data?.token_rolling_stats_30min.first {
                         let liveData = TokenLiveData(
-                            supply: Int(tokenData.token_metadata_supply ?? 0),
+                            supply: Int(tokenData.supply ?? 0),
                             priceUsd: tokenData.latest_price_usd,
                             stats: IntervalStats(
-                                volumeUsd: tokenData.total_volume_usd,
-                                trades: Int(tokenData.total_trades),
-                                priceChangePct: tokenData.price_change_pct
+                                volumeUsd: tokenData.volume_usd_30m,
+                                trades: Int(tokenData.trades_30m),
+                                priceChangePct: tokenData.price_change_pct_30m
                             ),
                             recentStats: IntervalStats(
-                                volumeUsd: tokenData.recent_volume_usd,
-                                trades: Int(tokenData.recent_trades),
-                                priceChangePct: tokenData.recent_price_change_pct
+                                volumeUsd: tokenData.volume_usd_1m,
+                                trades: Int(tokenData.trades_1m),
+                                priceChangePct: tokenData.price_change_pct_1m
                             )
                         )
                         continuation.resume(returning: liveData)

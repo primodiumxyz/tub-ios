@@ -1,32 +1,36 @@
+import { createCloseAccountInstruction } from "@solana/spl-token";
 import {
+  AddressLookupTableAccount,
+  ComputeBudgetInstruction,
+  ComputeBudgetProgram,
   Connection,
   Keypair,
   MessageV0,
   PublicKey,
+  TransactionConfirmationStatus,
   TransactionInstruction,
   TransactionMessage,
   VersionedTransaction,
-  AddressLookupTableAccount,
-  TransactionConfirmationStatus,
-  ComputeBudgetProgram,
-  ComputeBudgetInstruction,
+  RpcResponseAndContext,
+  SimulatedTransactionResponse,
+  SignatureStatus,
 } from "@solana/web3.js";
 import bs58 from "bs58";
-import { config } from "../utils/config";
 import {
   ATA_PROGRAM_PUBLIC_KEY,
-  JUPITER_PROGRAM_PUBLIC_KEY,
   MAX_CHAIN_COMPUTE_UNITS,
   TOKEN_PROGRAM_PUBLIC_KEY,
+  USDC_MAINNET_PUBLIC_KEY,
 } from "../constants/tokens";
+import {
+  ActiveSwapRequest,
+  SubmitSignedTransactionResponse,
+  TransactionType,
+  TransactionRegistryEntry,
+  TransactionRegistryData,
+} from "../types";
+import { config } from "../utils/config";
 import { Config } from "./ConfigService";
-import { createCloseAccountInstruction } from "@solana/spl-token";
-import { SwapType } from "../types";
-
-export type TransactionRegistryEntry = {
-  message: MessageV0;
-  timestamp: number;
-};
 
 /**
  * Service for handling all transaction-related operations
@@ -40,6 +44,8 @@ export class TransactionService {
   ) {
     this.initializeCleanup();
   }
+
+  // ----------- Initialization ------------
 
   private initializeCleanup(): void {
     (async () => {
@@ -58,14 +64,88 @@ export class TransactionService {
     }
   }
 
+  // ----------- Transaction Registry ------------
+
+  /**
+   * Gets a registered transaction from the registry
+   */
+  getRegisteredTransaction(base64Message: string): TransactionRegistryEntry | undefined {
+    return this.messageRegistry.get(base64Message);
+  }
+
+  /**
+   * Removes a transaction from the registry
+   */
+  deleteFromRegistry(base64Message: string): void {
+    this.messageRegistry.delete(base64Message);
+  }
+
+  /**
+   * Registers a transaction message in the registry
+   */
+  registerTransaction(
+    message: MessageV0,
+    lastValidBlockHeight: number,
+    transactionType: TransactionType,
+    autoSlippage: boolean,
+    contextSlot: number,
+    buildAttempts: number,
+    activeSwapRequest?: ActiveSwapRequest,
+    cfg?: Config,
+  ): string {
+    const base64Message = Buffer.from(message.serialize()).toString("base64");
+    this.messageRegistry.set(base64Message, {
+      message,
+      lastValidBlockHeight,
+      timestamp: Date.now(),
+      transactionType,
+      autoSlippage,
+      contextSlot,
+      buildAttempts,
+      activeSwapRequest,
+      cfg,
+    });
+    return base64Message;
+  }
+
+  // ----------- Transaction Operations ------------
+
+  /**
+   * Builds a transaction message from instructions and registers it in the registry
+   */
+  async buildAndRegisterTransactionMessage(
+    instructions: TransactionInstruction[],
+    addressLookupTableAccounts: AddressLookupTableAccount[],
+    txRegistryData: TransactionRegistryData,
+  ): Promise<string> {
+    const { message, lastValidBlockHeight } = await this.buildTransactionMessage(
+      instructions,
+      addressLookupTableAccounts,
+    );
+
+    // Register transaction
+    const base64Message = this.registerTransaction(
+      message,
+      lastValidBlockHeight,
+      txRegistryData.transactionType,
+      txRegistryData.autoSlippage,
+      txRegistryData.contextSlot,
+      txRegistryData.buildAttempts,
+      txRegistryData.activeSwapRequest,
+      txRegistryData.cfg,
+    );
+
+    return base64Message;
+  }
+
   /**
    * Builds a transaction message from instructions
    */
   async buildTransactionMessage(
     instructions: TransactionInstruction[],
     addressLookupTableAccounts: AddressLookupTableAccount[],
-  ): Promise<MessageV0> {
-    const { blockhash } = await this.connection.getLatestBlockhash();
+  ): Promise<{ message: MessageV0; blockhash: string; lastValidBlockHeight: number }> {
+    const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash();
 
     const message = new TransactionMessage({
       payerKey: this.feePayerKeypair.publicKey,
@@ -80,33 +160,7 @@ export class TransactionService {
       throw error;
     }
 
-    return message;
-  }
-
-  /**
-   * Registers a transaction message in the registry
-   */
-  registerTransaction(message: MessageV0): string {
-    const base64Message = Buffer.from(message.serialize()).toString("base64");
-    this.messageRegistry.set(base64Message, {
-      message,
-      timestamp: Date.now(),
-    });
-    return base64Message;
-  }
-
-  /**
-   * Gets a registered transaction from the registry
-   */
-  getRegisteredTransaction(base64Message: string): TransactionRegistryEntry | undefined {
-    return this.messageRegistry.get(base64Message);
-  }
-
-  /**
-   * Removes a transaction from the registry
-   */
-  deleteFromRegistry(base64Message: string): void {
-    this.messageRegistry.delete(base64Message);
+    return { message, blockhash, lastValidBlockHeight };
   }
 
   /**
@@ -132,13 +186,9 @@ export class TransactionService {
   async signAndSendTransaction(
     userPublicKey: PublicKey,
     userSignature: string,
-    base64Message: string,
+    entry: TransactionRegistryEntry,
     cfg: Config,
-  ): Promise<{ signature: string; timestamp: number | null }> {
-    const entry = this.messageRegistry.get(base64Message);
-    if (!entry) {
-      throw new Error("Transaction not found in registry");
-    }
+  ): Promise<SubmitSignedTransactionResponse> {
     const transaction = new VersionedTransaction(entry.message);
 
     // Add user signature
@@ -150,100 +200,218 @@ export class TransactionService {
     const feePayerSignatureBytes = Buffer.from(bs58.decode(feePayerSignature));
     transaction.addSignature(this.feePayerKeypair.publicKey, feePayerSignatureBytes);
 
-    const simulation = await this.connection.simulateTransaction(transaction, {
-      commitment: "processed",
-      replaceRecentBlockhash: true,
-    });
+    let txid: string = "";
 
-    if (simulation.value?.err) {
-      console.log("Local Simulation Error:", simulation.value);
-      if (simulation.value.err.toString().includes("InstructionError")) {
-        const errorStr = JSON.stringify(simulation.value.err);
-        const match = errorStr.match(/\{"InstructionError":\[(\d+)/);
-        const failedInstructionIndex = match?.[1] ? parseInt(match[1]) : -1;
+    try {
+      console.log("Signature Verification + Slippage Simulation");
 
-        if (failedInstructionIndex >= 0) {
-          const failedInstruction = entry.message.compiledInstructions[failedInstructionIndex];
+      // resimulating, not rebuilding
+      const simulation = await this.simulateTransactionWithResim(transaction, entry.contextSlot, true, false);
+      if (simulation.value?.err) {
+        throw new Error(JSON.stringify(simulation.value.err));
+      }
 
-          if (failedInstruction) {
-            const programId = entry.message.staticAccountKeys[failedInstruction.programIdIndex];
+      // Send transaction
+      txid = await this.connection.sendTransaction(transaction, {
+        skipPreflight: false,
+        preflightCommitment: "processed",
+        minContextSlot: entry.contextSlot,
+      });
+    } catch (error) {
+      console.log("Tx send failed: " + JSON.stringify(error));
+      throw new Error(JSON.stringify(error));
+    }
 
-            console.log("Failed Instruction Details:", {
-              programId: programId!.toBase58(),
-              accounts: failedInstruction.accountKeyIndexes.map((index) =>
-                entry.message.staticAccountKeys[index]!.toBase58(),
-              ),
-              data: Buffer.from(failedInstruction.data).toString("hex"),
-            });
-
-            let errorMessage = `Tx sim failed: ${errorStr}`;
-
-            if (programId === TOKEN_PROGRAM_PUBLIC_KEY) {
-              errorMessage = `Sim failed, Token Program Error: ${errorStr}`; // This usually means there's an issue with token accounts or balances.
-            } else if (programId === ATA_PROGRAM_PUBLIC_KEY) {
-              errorMessage = `Sim failed, ATA Error: ${errorStr}`; // This usually means there's an issue creating or accessing a token account.
-            } else if (programId === JUPITER_PROGRAM_PUBLIC_KEY) {
-              if (errorStr.includes("6001")) {
-                errorMessage = `Sim failed, Slippage Tolerance Exceeded`;
-              } else {
-                errorMessage = `Sim failed, Jupiter Program Error: ${errorStr}`; // This usually indicates an issue with the swap parameters or market conditions.
-              }
-            }
-
-            throw new Error(errorMessage);
+    // tx confirmation and resend case
+    try {
+      const confirmation = await this.confirmTransaction(txid, entry.lastValidBlockHeight, cfg);
+      const base64Message = Buffer.from(entry.message.serialize()).toString("base64");
+      this.deleteFromRegistry(base64Message);
+      let timestamp: number | null = null;
+      if (confirmation.value?.slot) {
+        for (let attempt = 0; attempt < cfg.CONFIRM_ATTEMPTS / 2 && !timestamp; attempt++) {
+          try {
+            timestamp = await this.connection.getBlockTime(confirmation.value.slot);
+          } catch (error) {
+            console.error("[signAndSendTransaction] Error getting block time:", error);
+            await new Promise((resolve) => setTimeout(resolve, cfg.CONFIRM_ATTEMPT_DELAY)); // Wait 1 second before next attempt
           }
         }
       }
-      throw new Error(`Transaction simulation failed: ${JSON.stringify(simulation.value.err)}`);
+      return { responseType: "success", txid, timestamp };
+    } catch (error) {
+      console.error("[signAndSendTransaction] Error confirming transaction:", error);
+      const response: SubmitSignedTransactionResponse = { responseType: "fail", error: JSON.stringify(error) };
+      return response;
     }
+  }
 
-    // Send and confirm transaction
-    const txid = await this.connection.sendTransaction(transaction, {
-      skipPreflight: false,
-      maxRetries: 3,
-      preflightCommitment: "processed",
-    });
+  async confirmTransaction(
+    txid: string,
+    lastValidBlockHeight: number,
+    cfg: Config,
+  ): Promise<RpcResponseAndContext<SignatureStatus>> {
+    const AVG_BLOCK_TIME = 400; // ms
+    let blockHeight: number = 0;
+    let attempt = 0;
 
-    let confirmation = null;
-    for (let attempt = 0; attempt < cfg.RETRY_ATTEMPTS; attempt++) {
-      console.log(`Tx Confirmation Attempt ${attempt + 1} of ${cfg.RETRY_ATTEMPTS}`);
-      try {
-        const status = await this.connection.getSignatureStatus(txid, {
-          searchTransactionHistory: true,
-        });
+    do {
+      blockHeight = await this.connection.getBlockHeight({ commitment: "confirmed" });
+      const estimatedTimeTillExpiry = (lastValidBlockHeight - blockHeight) * AVG_BLOCK_TIME;
+      const timeToRecheckBlockHeight = Date.now() + estimatedTimeTillExpiry;
+      do {
+        console.log(`Tx Confirmation Attempt ${attempt + 1}`);
+        try {
+          const status = await this.connection.getSignatureStatus(txid, {
+            searchTransactionHistory: true,
+          });
 
-        const acceptedStates: TransactionConfirmationStatus[] = ["confirmed", "finalized", "processed"];
+          const acceptedStates: TransactionConfirmationStatus[] = ["confirmed", "finalized"]; // processed is not accepted, 5% orphan chance
 
-        if (status.value?.confirmationStatus && acceptedStates.includes(status.value.confirmationStatus)) {
-          confirmation = status;
-          break; // Exit loop if successful
+          if (status.value?.confirmationStatus && acceptedStates.includes(status.value.confirmationStatus)) {
+            return status as RpcResponseAndContext<SignatureStatus>;
+          }
+
+          if (status.value?.err) {
+            console.error("[confirmTransaction] Error getting transaction confirmation:", status.value.err);
+          }
+        } catch (error) {
+          console.log(`Attempt ${attempt + 1} failed:`, error);
         }
-      } catch (error) {
-        console.log(`Attempt ${attempt + 1} failed:`, error);
-        if (attempt === cfg.RETRY_ATTEMPTS - 1)
-          throw new Error(`Failed to get transaction confirmation after ${cfg.RETRY_ATTEMPTS} attempts`);
-      }
-      await new Promise((resolve) => setTimeout(resolve, cfg.RETRY_DELAY)); // Wait 1 second before retrying
-    }
+        await new Promise((resolve) => setTimeout(resolve, cfg.CONFIRM_ATTEMPT_DELAY)); // Wait 1 second before next attempt
+        attempt++;
+      } while (Date.now() < timeToRecheckBlockHeight);
+    } while (blockHeight <= lastValidBlockHeight);
 
-    if (!confirmation) {
-      throw new Error(`Transaction timed out.`);
-    }
-    if (confirmation.value?.err) {
-      throw new Error(`Transaction failed: ${JSON.stringify(confirmation?.value?.err)}`);
-    }
+    throw new Error("Transaction expired");
+  }
 
-    this.messageRegistry.delete(base64Message);
-    let timestamp: number | null = null;
-    if (confirmation.value?.slot) {
+  async simulateTransactionWithResim(
+    transaction: VersionedTransaction,
+    contextSlot: number,
+    sigVerify: boolean,
+    replaceRecentBlockhash: boolean,
+  ): Promise<RpcResponseAndContext<SimulatedTransactionResponse>> {
+    // Try simulation multiple times
+    const cfg = await config();
+
+    for (let attempt = 0; attempt < cfg.MAX_SIM_ATTEMPTS; attempt++) {
       try {
-        timestamp = await this.connection.getBlockTime(confirmation.value.slot);
+        const response = await this.connection.simulateTransaction(transaction, {
+          replaceRecentBlockhash: replaceRecentBlockhash,
+          sigVerify: sigVerify,
+          commitment: "processed",
+          minContextSlot: contextSlot,
+        });
+        if (response.value.err) {
+          throw new Error(JSON.stringify(response.value.err));
+        }
+        return response;
       } catch (error) {
-        console.error("[signAndSendTransaction] Error getting block time:", error);
+        console.log(`Simulation attempt ${attempt + 1}/${cfg.MAX_SIM_ATTEMPTS} failed:`, error);
+        if (attempt === cfg.MAX_SIM_ATTEMPTS - 1) {
+          throw new Error(JSON.stringify(error));
+        }
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        continue;
       }
     }
+    // this should never happen
+    throw new Error("Simulation failed after all attempts. No error was provided");
+  }
 
-    return { signature: txid, timestamp };
+  private async getSimulationComputeUnits(
+    instructions: TransactionInstruction[],
+    addressLookupTableAccounts: AddressLookupTableAccount[],
+    contextSlot: number,
+  ): Promise<number> {
+    const simulatedInstructions = [
+      // Set max limit in simulation so tx succeeds and the necessary compute unit limit can be calculated
+      ComputeBudgetProgram.setComputeUnitLimit({ units: MAX_CHAIN_COMPUTE_UNITS }),
+      ...instructions,
+    ];
+
+    const testTransaction = new VersionedTransaction(
+      new TransactionMessage({
+        instructions: simulatedInstructions,
+        payerKey: this.feePayerKeypair.publicKey,
+        recentBlockhash: PublicKey.default.toString(), // doesn't matter due to replaceRecentBlockhash
+      }).compileToV0Message(addressLookupTableAccounts),
+    );
+
+    console.log("Compute Unit Simulation");
+
+    const rpcResponse = await this.simulateTransactionWithResim(testTransaction, contextSlot, false, true);
+
+    if (!rpcResponse.value.unitsConsumed) {
+      throw new Error("Transaction sim returned undefined unitsConsumed");
+    }
+
+    return rpcResponse.value.unitsConsumed;
+  }
+
+  // ----------- Instruction Modification ------------
+
+  private filterComputeInstructions(instructions: TransactionInstruction[], cfg: Config) {
+    const computeUnitLimitIndex = instructions.findIndex(
+      (ix) => ix.programId.equals(ComputeBudgetProgram.programId) && ix.data[0] === 0x02,
+    );
+    const computeUnitPriceIndex = instructions.findIndex(
+      (ix) => ix.programId.equals(ComputeBudgetProgram.programId) && ix.data[0] === 0x03,
+    );
+
+    const initComputeUnitPrice =
+      computeUnitPriceIndex >= 0
+        ? Number(ComputeBudgetInstruction.decodeSetComputeUnitPrice(instructions[computeUnitPriceIndex]!).microLamports)
+        : cfg.MAX_COMPUTE_PRICE; // the "!" is redundant, as we just found it above and `>= 0` check ensures it's exists. Just satisfies the linter.
+
+    // Remove the initial compute unit limit and price instructions, handling the case where removing the first affects the index of the second
+    const filteredInstructions = instructions.filter(
+      (_, index) => index !== computeUnitLimitIndex && index !== computeUnitPriceIndex,
+    );
+
+    return {
+      initComputeUnitPrice,
+      filteredInstructions,
+    };
+  }
+
+  /**
+   * Optimizes compute budget instructions by estimating the compute units and setting a reasonable compute unit price
+   * @param instructions - The instructions to optimize
+   * @param addressLookupTableAccounts - The address lookup table accounts
+   * @param cfg - Config
+   * @returns The optimized instructions
+   */
+  async optimizeComputeInstructions(
+    instructions: TransactionInstruction[],
+    addressLookupTableAccounts: AddressLookupTableAccount[],
+    contextSlot: number,
+    cfg: Config,
+  ): Promise<TransactionInstruction[]> {
+    const { initComputeUnitPrice, filteredInstructions } = this.filterComputeInstructions(instructions, cfg);
+
+    const simulatedComputeUnits = await this.getSimulationComputeUnits(
+      filteredInstructions,
+      addressLookupTableAccounts,
+      contextSlot,
+    );
+
+    const estimatedComputeUnitLimit = Math.ceil(simulatedComputeUnits * 1.1);
+
+    // use the least expensive compute unit price, note microLamports is the price per compute unit
+    const MAX_COMPUTE_PRICE = cfg.MAX_COMPUTE_PRICE;
+    const AUTO_PRIO_MULT = cfg.AUTO_PRIORITY_FEE_MULTIPLIER;
+    const computePrice =
+      initComputeUnitPrice * AUTO_PRIO_MULT < MAX_COMPUTE_PRICE
+        ? initComputeUnitPrice * AUTO_PRIO_MULT
+        : MAX_COMPUTE_PRICE;
+
+    // Add the new compute unit limit and price instructions to the beginning of the instructions array
+    filteredInstructions.unshift(ComputeBudgetProgram.setComputeUnitPrice({ microLamports: computePrice }));
+    filteredInstructions.unshift(ComputeBudgetProgram.setComputeUnitLimit({ units: estimatedComputeUnitLimit }));
+
+    return filteredInstructions;
   }
 
   /**
@@ -298,46 +466,6 @@ export class TransactionService {
   }
 
   /**
-   * Optimizes compute budget instructions by estimating the compute units and setting a reasonable compute unit price
-   * @param instructions - The instructions to optimize
-   * @param addressLookupTableAccounts - The address lookup table accounts
-   * @param cfg - Config
-   * @returns The optimized instructions
-   */
-  async optimizeComputeInstructions(
-    instructions: TransactionInstruction[],
-    addressLookupTableAccounts: AddressLookupTableAccount[],
-    cfg: Config,
-  ): Promise<TransactionInstruction[]> {
-    const { initComputeUnitPrice, filteredInstructions } = this.filterComputeInstructions(instructions, cfg);
-
-    const simulatedComputeUnits = await this.getSimulationComputeUnits(
-      filteredInstructions,
-      addressLookupTableAccounts,
-    );
-
-    if (!simulatedComputeUnits) {
-      throw new Error("Failed to estimate compute units");
-    }
-
-    const estimatedComputeUnitLimit = Math.ceil(simulatedComputeUnits * 1.1);
-
-    // use the least expensive compute unit price, note microLamports is the price per compute unit
-    const MAX_COMPUTE_PRICE = cfg.MAX_COMPUTE_PRICE;
-    const AUTO_PRIO_MULT = cfg.AUTO_PRIORITY_FEE_MULTIPLIER;
-    const computePrice =
-      initComputeUnitPrice * AUTO_PRIO_MULT < MAX_COMPUTE_PRICE
-        ? initComputeUnitPrice * AUTO_PRIO_MULT
-        : MAX_COMPUTE_PRICE;
-
-    // Add the new compute unit limit and price instructions to the beginning of the instructions array
-    filteredInstructions.unshift(ComputeBudgetProgram.setComputeUnitPrice({ microLamports: computePrice }));
-    filteredInstructions.unshift(ComputeBudgetProgram.setComputeUnitLimit({ units: estimatedComputeUnitLimit }));
-
-    return filteredInstructions;
-  }
-
-  /**
    * Creates a token close instruction if needed
    */
   async createTokenCloseInstruction(
@@ -345,10 +473,10 @@ export class TransactionService {
     tokenAccount: PublicKey,
     sellTokenId: PublicKey,
     sellQuantity: number,
-    swapType: SwapType,
+    transactionType: TransactionType,
   ): Promise<TransactionInstruction | null> {
     // Skip if user is not selling their entire memecoin stack
-    if (swapType !== SwapType.SELL_ALL) {
+    if (transactionType !== TransactionType.SELL_ALL) {
       return null;
     }
 
@@ -365,6 +493,27 @@ export class TransactionService {
     return null;
   }
 
+  async determineTransactionType(request: ActiveSwapRequest): Promise<TransactionType> {
+    if (request.buyTokenId === USDC_MAINNET_PUBLIC_KEY.toString()) {
+      const sellTokenBalance = await this.connection.getTokenAccountBalance(request.sellTokenAccount, "processed");
+      if (!sellTokenBalance.value.amount) {
+        throw new Error("Sell token balance is null");
+      }
+      // if balance is greater than sellQuantity, return SELL_PARTIAL
+      if (Number(sellTokenBalance.value.amount) > request.sellQuantity) {
+        return TransactionType.SELL_PARTIAL;
+      }
+      // if balance is equal to sellQuantity, return SELL_ALL
+      if (Number(sellTokenBalance.value.amount) === request.sellQuantity) {
+        return TransactionType.SELL_ALL;
+      }
+      // otherwise, throw error as not enough balance. show balance in thrown error.
+      throw new Error(`Not enough memecoin balance. Observed balance: ${Number(sellTokenBalance.value.uiAmount)}`);
+    } else {
+      return TransactionType.BUY;
+    }
+  }
+
   async getTokenBalance(userPublicKey: PublicKey, tokenMint: PublicKey): Promise<number> {
     const tokenAccounts = await this.connection.getParsedTokenAccountsByOwner(
       userPublicKey,
@@ -377,79 +526,5 @@ export class TransactionService {
 
     const balance = Number(tokenAccounts.value[0].account.data.parsed.info.tokenAmount.amount);
     return balance;
-  }
-
-  private async getSimulationComputeUnits(
-    instructions: TransactionInstruction[],
-    addressLookupTableAccounts: AddressLookupTableAccount[],
-  ) {
-    const simulatedInstructions = [
-      // Set max limit in simulation so tx succeeds and the necessary compute unit limit can be calculated
-      ComputeBudgetProgram.setComputeUnitLimit({ units: MAX_CHAIN_COMPUTE_UNITS }),
-      ...instructions,
-    ];
-
-    const testTransaction = new VersionedTransaction(
-      new TransactionMessage({
-        instructions: simulatedInstructions,
-        payerKey: this.feePayerKeypair.publicKey,
-        recentBlockhash: PublicKey.default.toString(), // doesn't matter due to replaceRecentBlockhash
-      }).compileToV0Message(addressLookupTableAccounts),
-    );
-
-    // Try simulation with retries
-    let rpcResponse;
-    const MAX_RETRIES = 2;
-    let lastError;
-
-    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-      try {
-        rpcResponse = await this.connection.simulateTransaction(testTransaction, {
-          replaceRecentBlockhash: true,
-          sigVerify: false,
-          commitment: "processed",
-        });
-        break; // Success - exit loop
-      } catch (error) {
-        lastError = error;
-        console.log(`Simulation attempt ${attempt + 1}/${MAX_RETRIES} failed:`, error);
-
-        if (attempt < MAX_RETRIES - 1) {
-          // Wait 100ms before retrying
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        }
-      }
-    }
-
-    if (!rpcResponse) {
-      console.error("All simulation attempts failed");
-      throw new Error(`Failed to simulate transaction after ${MAX_RETRIES} attempts: ${lastError}`);
-    }
-
-    return rpcResponse.value.unitsConsumed;
-  }
-
-  private filterComputeInstructions(instructions: TransactionInstruction[], cfg: Config) {
-    const computeUnitLimitIndex = instructions.findIndex(
-      (ix) => ix.programId.equals(ComputeBudgetProgram.programId) && ix.data[0] === 0x02,
-    );
-    const computeUnitPriceIndex = instructions.findIndex(
-      (ix) => ix.programId.equals(ComputeBudgetProgram.programId) && ix.data[0] === 0x03,
-    );
-
-    const initComputeUnitPrice =
-      computeUnitPriceIndex >= 0
-        ? Number(ComputeBudgetInstruction.decodeSetComputeUnitPrice(instructions[computeUnitPriceIndex]!).microLamports)
-        : cfg.MAX_COMPUTE_PRICE; // the "!" is redundant, as we just found it above and `>= 0` check ensures it's exists. Just satisfies the linter.
-
-    // Remove the initial compute unit limit and price instructions, handling the case where removing the first affects the index of the second
-    const filteredInstructions = instructions.filter(
-      (_, index) => index !== computeUnitLimitIndex && index !== computeUnitPriceIndex,
-    );
-
-    return {
-      initComputeUnitPrice,
-      filteredInstructions,
-    };
   }
 }

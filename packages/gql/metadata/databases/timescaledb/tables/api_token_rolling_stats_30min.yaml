@@ -1,0 +1,26 @@
+table:
+  name: token_rolling_stats_30min
+  schema: api
+select_permissions:
+  - role: public
+    permission:
+      columns:
+        - is_pump_token
+        - name
+        - symbol
+        - decimals
+        - latest_price_usd
+        - price_change_pct_1m
+        - price_change_pct_30m
+        - supply
+        - trades_1m
+        - trades_30m
+        - volume_usd_1m
+        - volume_usd_30m
+        - description
+        - external_url
+        - image_uri
+        - mint
+      filter: {}
+      allow_aggregations: true
+    comment: ""

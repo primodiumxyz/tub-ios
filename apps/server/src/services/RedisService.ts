@@ -14,10 +14,10 @@ export class RedisService {
   }
 
   public static getInstance(): RedisService {
-    if (!RedisService.instance) {
-      RedisService.instance = new RedisService();
+    if (!this.instance) {
+      this.instance = new RedisService();
     }
-    return RedisService.instance;
+    return this.instance;
   }
 
   public getClient(): Redis {

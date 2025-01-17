@@ -6,23 +6,14 @@ import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import { useTokens } from "@/hooks/use-tokens";
-import { INTERVALS } from "@/lib/constants";
-import { Interval, Token } from "@/lib/types";
+import { Token } from "@/lib/types";
 
-export const TokensTable = ({
-  onRowClick,
-  selectedInterval,
-  setSelectedInterval,
-}: {
-  onRowClick?: (row: Row<Token>) => void;
-  selectedInterval: Interval;
-  setSelectedInterval: (interval: Interval) => void;
-}) => {
+export const TokensTable = ({ onRowClick }: { onRowClick?: (row: Row<Token>) => void }) => {
   const [globalFilter, setGlobalFilter] = useState<string>("");
   const [frozen, setFrozen] = useState(false);
   const [frozenTokens, setFrozenTokens] = useState<Token[]>([]);
 
-  const { tokens, fetching, error } = useTokens(selectedInterval);
+  const { tokens, fetching, error } = useTokens();
 
   useEffect(() => {
     if (frozen) setFrozenTokens(tokens);
@@ -52,15 +43,6 @@ export const TokensTable = ({
           {tokens.length} tokens {frozen && `(frozen at ${frozenTokens.length})`}
         </span>
         <span className="grow" />
-        <select
-          value={selectedInterval}
-          onChange={(e) => setSelectedInterval(e.target.value as Interval)}
-          className="rounded-md border p-2"
-        >
-          {INTERVALS.map((interval) => (
-            <option value={interval}>{interval}</option>
-          ))}
-        </select>
         <Input
           placeholder="Search"
           value={globalFilter}
@@ -69,9 +51,9 @@ export const TokensTable = ({
         />
       </div>
       <DataTable
-        columns={getColumns(selectedInterval)}
+        columns={getColumns()}
         data={filteredTokens}
-        caption={`List of the first 50 trending tokens by volume during the last ${selectedInterval}.`}
+        caption={`List of the first 50 trending tokens by volume during the last 30 minutes.`}
         loading={fetching}
         pagination={true}
         onRowClick={onRowClick}

@@ -63,6 +63,7 @@ class Network {
     }
 
     // If it's not an error, proceed with normal decoding
+
     do {
       let decodedResponse = try JSONDecoder().decode(ResponseWrapper<T>.self, from: data)
       return decodedResponse.result.data
@@ -215,4 +216,19 @@ class Network {
     return response.signature
   }
 
+  func startLiveActivity(
+    tokenId: String, tokenPriceUsd: String, deviceToken: String, pushToken: String
+  ) async throws {
+    let input = StartLiveActivityInput(
+      tokenMint: tokenId,
+      tokenPriceUsd: tokenPriceUsd,
+      deviceToken: deviceToken,
+      pushToken: pushToken
+    )
+      let _: EmptyResponse = try await callMutation("startLiveActivity", input: input, tokenRequired: true)
+  }
+
+  func stopLiveActivity() async throws {
+    let _: EmptyResponse = try await callMutation("stopLiveActivity", tokenRequired: true)
+  }
 }

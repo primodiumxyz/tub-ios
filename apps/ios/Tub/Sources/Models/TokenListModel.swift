@@ -181,8 +181,6 @@ final class TokenListModel: ObservableObject {
             (continuation: CheckedContinuation<[String], Error>) in
             Network.shared.graphQL.fetch(
                 query: GetTopTokensByVolumeQuery(
-                    interval: .some(HOT_TOKENS_INTERVAL),
-                    recentInterval: .some(FILTERING_INTERVAL),
                     minRecentTrades: .some(FILTERING_MIN_TRADES),
                     minRecentVolume: .some(FILTERING_MIN_VOLUME_USD)
                 ),
@@ -192,8 +190,8 @@ final class TokenListModel: ObservableObject {
                 result in
                 switch result {
                 case .success(let graphQLResult):
-                    if let tokens = graphQLResult.data?.token_stats_interval_cache {
-                        let tokenIds = tokens.map { elem in elem.token_mint }
+                    if let tokens = graphQLResult.data?.token_rolling_stats_30min {
+                        let tokenIds = tokens.map { elem in elem.mint }
                         continuation.resume(returning: tokenIds)
                     } else {
                         if let errors = graphQLResult.errors, errors.count > 0 {
@@ -254,7 +252,7 @@ final class TokenListModel: ObservableObject {
     
     private func updatePendingTokens(_ newTokens: [String]) async {
         guard !newTokens.isEmpty else {
-            if !self.initialFetchComplete { self.initialFetchComplete = true }
+            if !self.initialFetchComplete { await MainActor.run {self.initialFetchComplete = true} }
             return
         }
         

@@ -8,8 +8,10 @@ export const configSchema = z
     REGISTRY_TIMEOUT: z.number(),
     CLEANUP_INTERVAL: z.number(),
     SOL_USD_PRICE_UPDATE_INTERVAL: z.number(),
-    RETRY_ATTEMPTS: z.number(),
-    RETRY_DELAY: z.number(),
+    CONFIRM_ATTEMPTS: z.number(),
+    CONFIRM_ATTEMPT_DELAY: z.number(),
+    MAX_BUILD_ATTEMPTS: z.number(),
+    MAX_SIM_ATTEMPTS: z.number(),
     USER_SLIPPAGE_BPS_MAX: z.number(),
     MAX_DEFAULT_SLIPPAGE_BPS: z.number(),
     AUTO_SLIPPAGE: z.boolean(),
@@ -24,6 +26,10 @@ export const configSchema = z
     MIN_FEE_CENTS: z.number(),
     MIN_TRADE_SIZE_USD: z.number(),
     TRADE_FEE_RECIPIENT: z.string(),
+    PUSH_REGISTRY_TIMEOUT_MS: z.number(),
+    PUSH_CLEANUP_INTERVAL_MS: z.number(),
+    PUSH_SEND_INTERVAL_MS: z.number(),
+    REFRESH_TOKEN_ROLLING_STATS_30MIN_INTERVAL_SECONDS: z.number(),
   })
   .strict();
 

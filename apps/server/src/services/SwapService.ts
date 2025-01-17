@@ -1,13 +1,18 @@
+import { QuoteGetRequest } from "@jup-ag/api";
+import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import { Subject, interval, switchMap } from "rxjs";
+import { FeeService } from "../services/FeeService";
+import {
+  ActiveSwapRequest,
+  PrebuildSwapResponse,
+  SwapSubscription,
+  TransactionType,
+  TransactionRegistryData,
+} from "../types";
+import { config } from "../utils/config";
+import { Config } from "./ConfigService";
 import { JupiterService } from "./JupiterService";
 import { TransactionService } from "./TransactionService";
-import { FeeService } from "../services/FeeService";
-import { ActiveSwapRequest, PrebuildSwapResponse, SwapSubscription, SwapType } from "../types";
-import { QuoteGetRequest } from "@jup-ag/api";
-import { Connection, PublicKey, TransactionInstruction } from "@solana/web3.js";
-import { USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
-import { Config } from "./ConfigService";
-import { config } from "../utils/config";
 
 export class SwapService {
   private swapSubscriptions: Map<string, SwapSubscription> = new Map();
@@ -16,10 +21,13 @@ export class SwapService {
     private jupiter: JupiterService,
     private transactionService: TransactionService,
     private feeService: FeeService,
-    private connection: Connection,
   ) {}
 
-  async buildSwapResponse(request: ActiveSwapRequest, cfg: Config): Promise<PrebuildSwapResponse> {
+  async buildSwapResponse(
+    request: ActiveSwapRequest,
+    cfg: Config,
+    buildAttempt: number,
+  ): Promise<PrebuildSwapResponse> {
     if (!request.sellTokenAccount) {
       throw new Error("Sell token account is required but was not provided");
     }
@@ -33,11 +41,13 @@ export class SwapService {
     }
 
     // Determine swap type
-    const swapType = await this.determineSwapType(request);
+    const transactionType = await this.transactionService.determineTransactionType(request);
 
     // Calculate fee if swap type is buy
     const buyFeeAmount =
-      SwapType.BUY === swapType ? this.feeService.calculateFeeAmount(request.sellQuantity, swapType, cfg) : 0;
+      TransactionType.BUY === transactionType
+        ? this.feeService.calculateFeeAmount(request.sellQuantity, transactionType, cfg)
+        : 0;
     const swapAmount = request.sellQuantity - buyFeeAmount;
 
     // Create token account close instruction if swap type is sell_all (conditional occurs within function)
@@ -46,7 +56,7 @@ export class SwapService {
       request.sellTokenAccount,
       new PublicKey(request.sellTokenId),
       request.sellQuantity,
-      swapType,
+      transactionType,
     );
 
     // there are 3 different forms of slippage settings, ordered by priority
@@ -87,9 +97,6 @@ export class SwapService {
       addressLookupTableAccounts,
       quote,
     } = await this.jupiter.getSwapInstructions(swapInstructionRequest, request.userPublicKey);
-    console.log("Quoted auto slippage", quote.computedAutoSlippage);
-    console.log("Quoted slippage bps", quote.slippageBps);
-    console.log("Quoted outAmount", quote.outAmount);
 
     if (!swapInstructions?.length) {
       throw new Error("No swap instruction received");
@@ -98,14 +105,14 @@ export class SwapService {
     let feeTransferInstruction: TransactionInstruction | null = null;
 
     // Create fee transfer instruction
-    if (swapType === SwapType.BUY) {
+    if (transactionType === TransactionType.BUY) {
       feeTransferInstruction = this.feeService.createFeeTransferInstruction(
         request.sellTokenAccount,
         request.userPublicKey,
         buyFeeAmount,
       );
-    } else if (swapType === SwapType.SELL_ALL || swapType === SwapType.SELL_PARTIAL) {
-      const sellFeeAmount = this.feeService.calculateFeeAmount(Number(quote.outAmount), swapType, cfg);
+    } else if (transactionType === TransactionType.SELL_ALL || transactionType === TransactionType.SELL_PARTIAL) {
+      const sellFeeAmount = this.feeService.calculateFeeAmount(Number(quote.outAmount), transactionType, cfg);
       feeTransferInstruction = this.feeService.createFeeTransferInstruction(
         request.buyTokenAccount,
         request.userPublicKey,
@@ -128,17 +135,26 @@ export class SwapService {
     const optimizedInstructions = await this.transactionService.optimizeComputeInstructions(
       rentReassignedInstructions,
       addressLookupTableAccounts,
+      quote.contextSlot ?? 0,
       cfg,
     );
 
+    const txRegistryData: TransactionRegistryData = {
+      timestamp: Date.now(),
+      transactionType: transactionType,
+      autoSlippage: slippageSettings.autoSlippage,
+      contextSlot: quote.contextSlot ?? 0,
+      buildAttempts: buildAttempt,
+      activeSwapRequest: request,
+      cfg: cfg,
+    };
+
     // Build transaction message
-    const message = await this.transactionService.buildTransactionMessage(
+    const base64Message = await this.transactionService.buildAndRegisterTransactionMessage(
       optimizedInstructions,
       addressLookupTableAccounts,
+      txRegistryData,
     );
-
-    // Register transaction
-    const base64Message = this.transactionService.registerTransaction(message);
 
     const response: PrebuildSwapResponse = {
       transactionMessageBase64: base64Message,
@@ -148,27 +164,6 @@ export class SwapService {
     };
 
     return response;
-  }
-
-  private async determineSwapType(request: ActiveSwapRequest): Promise<SwapType> {
-    if (request.buyTokenId === USDC_MAINNET_PUBLIC_KEY.toString()) {
-      const sellTokenBalance = await this.connection.getTokenAccountBalance(request.sellTokenAccount, "processed");
-      if (!sellTokenBalance.value.amount) {
-        throw new Error("Sell token balance is null");
-      }
-      // if balance is greater than sellQuantity, return SELL_PARTIAL
-      if (Number(sellTokenBalance.value.amount) > request.sellQuantity) {
-        return SwapType.SELL_PARTIAL;
-      }
-      // if balance is equal to sellQuantity, return SELL_ALL
-      if (Number(sellTokenBalance.value.amount) === request.sellQuantity) {
-        return SwapType.SELL_ALL;
-      }
-      // otherwise, throw error as not enough balance. show balance in thrown error.
-      throw new Error(`Not enough memecoin balance. Observed balance: ${Number(sellTokenBalance.value.uiAmount)}`);
-    } else {
-      return SwapType.BUY;
-    }
   }
 
   private organizeInstructions(
@@ -221,7 +216,7 @@ export class SwapService {
             const currentRequest = this.swapSubscriptions.get(userId)?.request;
             if (!currentRequest) return null;
             const cfg = await config();
-            return this.buildSwapResponse(currentRequest, cfg);
+            return this.buildSwapResponse(currentRequest, cfg, 0);
           }),
         )
         .subscribe((response: PrebuildSwapResponse | null) => {
