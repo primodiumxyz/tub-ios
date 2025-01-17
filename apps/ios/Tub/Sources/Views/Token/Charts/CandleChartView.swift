@@ -63,15 +63,20 @@ struct CandleChartView: View {
         return startTime...endTime.addingTimeInterval(rightMargin)
     }
 
+    private var emptyTickHeight: Double {
+        let range = yDomain.upperBound - yDomain.lowerBound
+        return range * 0.002 // 0.2% of the total range
+    }
+
     var body: some View {
         Chart {
             ForEach(candles) { candle in
-                if candle.isEmptyCandle {
+                if !candle.hasTrades {
                     // For empty candles, show a small horizontal line or tiny candle
                     RectangleMark(
                         x: .value("Time", candle.start),
-                        yStart: .value("Price", candle.close - 0.00002),
-                        yEnd: .value("Price", candle.close + 0.00002)
+                        yStart: .value("Price", candle.close - emptyTickHeight),
+                        yEnd: .value("Price", candle.close + emptyTickHeight)
                     )
                     .foregroundStyle(Color.green)
                 } else {
@@ -145,18 +150,18 @@ struct CandleChartView: View {
 
     let candles = [
         // add 10 more candles
-        CandleData(start: Date().addingTimeInterval(-120 * 60), end: Date().addingTimeInterval(-110 * 60), open: 100, close: 105, high: 110, low: 90, volume: 100),
-        CandleData(start: Date().addingTimeInterval(-110 * 60), end: Date().addingTimeInterval(-100 * 60), open: 105, close: 110, high: 115, low: 95, volume: 100),
-        CandleData(start: Date().addingTimeInterval(-100 * 60), end: Date().addingTimeInterval(-90 * 60), open: 110, close: 115, high: 120, low: 100, volume: 100),
-        CandleData(start: Date().addingTimeInterval(-90 * 60), end: Date().addingTimeInterval(-80 * 60), open: 115, close: 120, high: 125, low: 105, volume: 100),
-        CandleData(start: Date().addingTimeInterval(-80 * 60), end: Date().addingTimeInterval(-70 * 60), open: 120, close: 125, high: 130, low: 110, volume: 100),
-        CandleData(start: Date().addingTimeInterval(-70 * 60), end: Date().addingTimeInterval(-60 * 60), open: 125, close: 130, high: 135, low: 115, volume: 100),
-        CandleData(start: Date().addingTimeInterval(-60 * 60), end: Date().addingTimeInterval(-50 * 60), open: 130, close: 135, high: 140, low: 120, volume: 100),
-        CandleData(start: Date().addingTimeInterval(-50 * 60), end: Date().addingTimeInterval(-40 * 60), open: 135, close: 140, high: 145, low: 125, volume: 100),
-        CandleData(start: Date().addingTimeInterval(-40 * 60), end: Date().addingTimeInterval(-30 * 60), open: 140, close: 145, high: 150, low: 130, volume: 100),
-        CandleData(start: Date().addingTimeInterval(-30 * 60), end: Date().addingTimeInterval(-20 * 60), open: 145, close: 150, high: 155, low: 135, volume: 100),
-        CandleData(start: Date().addingTimeInterval(-20 * 60), end: Date().addingTimeInterval(-10 * 60), open: 105, close: 110, high: 115, low: 95, volume: 100),
-        CandleData(start: Date().addingTimeInterval(-10 * 60), end: Date().addingTimeInterval(-0 * 60), open: 110, close: 115, high: 120, low: 100, volume: 100),
+        CandleData(start: Date().addingTimeInterval(-120 * 60), end: Date().addingTimeInterval(-110 * 60), open: 100, close: 105, high: 110, low: 90, volume: 100, hasTrades: true),
+        CandleData(start: Date().addingTimeInterval(-110 * 60), end: Date().addingTimeInterval(-100 * 60), open: 105, close: 110, high: 115, low: 95, volume: 100, hasTrades: true),
+        CandleData(start: Date().addingTimeInterval(-100 * 60), end: Date().addingTimeInterval(-90 * 60), open: 110, close: 115, high: 120, low: 100, volume: 100, hasTrades: true),
+        CandleData(start: Date().addingTimeInterval(-90 * 60), end: Date().addingTimeInterval(-80 * 60), open: 115, close: 120, high: 125, low: 105, volume: 100, hasTrades: true),
+        CandleData(start: Date().addingTimeInterval(-80 * 60), end: Date().addingTimeInterval(-70 * 60), open: 120, close: 125, high: 130, low: 110, volume: 100, hasTrades: true),
+        CandleData(start: Date().addingTimeInterval(-70 * 60), end: Date().addingTimeInterval(-60 * 60), open: 125, close: 130, high: 135, low: 115, volume: 100, hasTrades: true),
+        CandleData(start: Date().addingTimeInterval(-60 * 60), end: Date().addingTimeInterval(-50 * 60), open: 130, close: 135, high: 140, low: 120, volume: 100, hasTrades: true),
+        CandleData(start: Date().addingTimeInterval(-50 * 60), end: Date().addingTimeInterval(-40 * 60), open: 135, close: 140, high: 145, low: 125, volume: 100, hasTrades: true),
+        CandleData(start: Date().addingTimeInterval(-40 * 60), end: Date().addingTimeInterval(-30 * 60), open: 140, close: 145, high: 150, low: 130, volume: 100, hasTrades: true),
+        CandleData(start: Date().addingTimeInterval(-30 * 60), end: Date().addingTimeInterval(-20 * 60), open: 145, close: 150, high: 155, low: 135, volume: 100, hasTrades: true),
+        CandleData(start: Date().addingTimeInterval(-20 * 60), end: Date().addingTimeInterval(-10 * 60), open: 105, close: 110, high: 115, low: 95, volume: 100, hasTrades: true),
+        CandleData(start: Date().addingTimeInterval(-10 * 60), end: Date().addingTimeInterval(-0 * 60), open: 110, close: 115, high: 120, low: 100, volume: 100, hasTrades: true),
     ]
     CandleChartView(candles: candles, animate: true, timeframeMins: 120)
         .environmentObject(priceModel)

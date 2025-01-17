@@ -7,7 +7,7 @@ public class SubTokenCandlesSinceSubscription: GraphQLSubscription {
   public static let operationName: String = "SubTokenCandlesSince"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"subscription SubTokenCandlesSince($token: String!, $since: timestamptz = "now()") { token_candles_history_1min(args: { token_mint: $token, start: $since }) { __typename bucket open_price_usd close_price_usd high_price_usd low_price_usd volume_usd } }"#
+      #"subscription SubTokenCandlesSince($token: String!, $since: timestamptz = "now()") { token_candles_history_1min(args: { token_mint: $token, start: $since }) { __typename bucket open_price_usd close_price_usd high_price_usd low_price_usd volume_usd has_trades } }"#
     ))
 
   public var token: String
@@ -56,6 +56,7 @@ public class SubTokenCandlesSinceSubscription: GraphQLSubscription {
         .field("high_price_usd", TubAPI.Numeric.self),
         .field("low_price_usd", TubAPI.Numeric.self),
         .field("volume_usd", TubAPI.Numeric.self),
+        .field("has_trades", Bool.self),
       ] }
 
       public var bucket: TubAPI.Timestamptz { __data["bucket"] }
@@ -64,6 +65,7 @@ public class SubTokenCandlesSinceSubscription: GraphQLSubscription {
       public var high_price_usd: TubAPI.Numeric { __data["high_price_usd"] }
       public var low_price_usd: TubAPI.Numeric { __data["low_price_usd"] }
       public var volume_usd: TubAPI.Numeric { __data["volume_usd"] }
+      public var has_trades: Bool { __data["has_trades"] }
     }
   }
 }
