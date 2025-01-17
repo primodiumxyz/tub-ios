@@ -8,7 +8,7 @@ import { createClient as createGqlClient } from "@tub/gql";
 import bs58 from "bs58";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
 import { env } from "../bin/tub-server";
-import { PrebuildSwapResponse } from "../src/types";
+import { PrebuildSwapResponse, SubmitSignedTransactionResponse } from "../src/types";
 import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY, MEMECOIN_MAINNET_PUBLIC_KEY } from "../src/constants/tokens";
 import { ConfigService } from "../src/services/ConfigService";
 // Skip entire suite in CI, because it would perform a live transaction each deployment
@@ -129,33 +129,43 @@ import { ConfigService } from "../src/services/ConfigService";
     });
   });
 
-  describe("swap execution", () => {
+  describe.skip("swap execution", () => {
     const executeTx = async (swapResponse: PrebuildSwapResponse) => {
-      const handoff = Buffer.from(swapResponse.transactionMessageBase64, "base64");
-      const message = VersionedMessage.deserialize(handoff);
-      const transaction = new VersionedTransaction(message);
+      let rebuild = false;
+      let result: SubmitSignedTransactionResponse;
+      do {
+        rebuild = false;
+        const handoff = Buffer.from(swapResponse.transactionMessageBase64, "base64");
+        const message = VersionedMessage.deserialize(handoff);
+        const transaction = new VersionedTransaction(message);
 
-      // User signs
-      transaction.sign([userKeypair]);
-      const userSignature = transaction.signatures![1];
-      expect(transaction.signatures).toHaveLength(2);
-      expect(userSignature).toBeDefined();
+        // User signs
+        transaction.sign([userKeypair]);
+        const userSignature = transaction.signatures![1];
+        expect(transaction.signatures).toHaveLength(2);
+        expect(userSignature).toBeDefined();
 
-      // Convert raw signature to base64
-      const base64Signature = Buffer.from(userSignature!).toString("base64");
+        // Convert raw signature to base64
+        const base64Signature = Buffer.from(userSignature!).toString("base64");
 
-      // --- End Simulating Mock Privy Interaction ---
+        result = await tubService.signAndSendTransaction(
+          mockJwtToken,
+          base64Signature,
+          swapResponse.transactionMessageBase64, // Send original unsigned transaction
+        );
 
-      const result = await tubService.signAndSendTransaction(
-        mockJwtToken,
-        base64Signature,
-        swapResponse.transactionMessageBase64, // Send original unsigned transaction
-      );
+        console.log("Transaction result:", result);
 
-      console.log("Transaction result:", result);
+        if (result.responseType === "rebuild" && result.rebuild) {
+          console.log("Transaction rebuilt, retrying...");
+          swapResponse = result.rebuild;
+          rebuild = true;
+          await executeTx(swapResponse);
+        }
+      } while (rebuild);
 
       expect(result).toBeDefined();
-      expect(result.signature).toBeDefined();
+      expect(result.txid).toBeDefined();
     };
     it.skip("should complete a USDC to SOL swap", async () => {
       console.log("\nStarting USDC to SOL swap flow test");
@@ -174,7 +184,7 @@ import { ConfigService } from "../src/services/ConfigService";
       await executeTx(swapResponse);
     }, 11000);
 
-    describe.skip("MEMECOIN swaps", () => {
+    describe("MEMECOIN swaps", () => {
       it("should complete a USDC to MEMECOIN swap", async () => {
         // Get swap instructions
         const swapResponse = await tubService.fetchSwap(mockJwtToken, {
@@ -185,7 +195,7 @@ import { ConfigService } from "../src/services/ConfigService";
         });
 
         await executeTx(swapResponse);
-      }, 13000);
+      }, 75000);
 
       it.skip("should transfer half of held MEMECOIN to USDC", async () => {
         const userMEMECOINAta = await getAssociatedTokenAddress(MEMECOIN_MAINNET_PUBLIC_KEY, userKeypair.publicKey);
@@ -211,9 +221,9 @@ import { ConfigService } from "../src/services/ConfigService";
       }, 11000);
 
       it("should transfer all held MEMECOIN to USDC and close the MEMECOIN account", async () => {
-        // wait for 10 seconds and console log the countdown
-        for (let i = 10; i > 0; i--) {
-          console.log(`Waiting for ${i} seconds...`);
+        // wait for 5 seconds and console log the countdown
+        for (let i = 5; i > 0; i--) {
+          console.log(`Let RPCs catch up for ${i} seconds...`);
           await new Promise((resolve) => setTimeout(resolve, 1000));
         }
         const userMemecoinAta = await getAssociatedTokenAddress(MEMECOIN_MAINNET_PUBLIC_KEY, userKeypair.publicKey);
@@ -248,7 +258,7 @@ import { ConfigService } from "../src/services/ConfigService";
 
         // wait for 5 seconds to ensure the transaction is processed by most nodes
         for (let i = 5; i > 0; i--) {
-          console.log(`Waiting for ${i} seconds...`);
+          console.log(`Validate balance change in ${i} seconds...`);
           await new Promise((resolve) => setTimeout(resolve, 1000));
         }
 
@@ -256,7 +266,7 @@ import { ConfigService } from "../src/services/ConfigService";
         const memecoinSolBalanceLamports = await connection.getBalance(userMemecoinAta, "processed");
         console.log("Memecoin SOL balance lamports:", memecoinSolBalanceLamports);
         expect(memecoinSolBalanceLamports).toBe(0);
-      }, 35000);
+      }, 80000);
     });
   });
 });
