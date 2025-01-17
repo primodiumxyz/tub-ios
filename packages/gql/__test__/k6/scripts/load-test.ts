@@ -131,9 +131,13 @@ export default function () {
           : undefined,
     };
 
-    const response = http.post(__ENV.HASURA_URL ?? "http://localhost:8090/v1/graphql", JSON.stringify(payload), {
-      headers,
-    });
+    const response = http.post(
+      __ENV.HASURA_URL ? `${__ENV.HASURA_URL}/v1/graphql` : "http://localhost:8090/v1/graphql",
+      JSON.stringify(payload),
+      {
+        headers,
+      },
+    );
 
     const duration = new Date().getTime() - startTime;
 

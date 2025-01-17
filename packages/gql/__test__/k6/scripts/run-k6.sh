@@ -90,12 +90,32 @@ for ((i=1; i<=$RETRIES; i++)); do
       echo "Skipping database seed..."
     fi
 
+    # Fetch top tokens to get an array of tokens to test
+    if [ "$ENV" = "remote" ]; then
+      echo "Fetching tokens..."
+      cd "$PROJECT_ROOT"
+      dotenvx run -f ../../.env --quiet -- pnpm tsx __test__/k6/scripts/fetch-tokens.ts 2>&1
+      FETCH_EXIT_CODE=$?
+      if [ $FETCH_EXIT_CODE -ne 0 ]; then
+        echo "Fetching tokens failed with exit code $FETCH_EXIT_CODE!"
+        exit 1
+      fi
+      echo "Fetching tokens completed successfully!"
+    fi
+
     # Run k6 tests based on environment
     echo "Running k6 tests for $ENV environment..."
     if [ "$ENV" = "local" ]; then
-      HASURA_URL=http://localhost:8090/v1/graphql HASURA_ADMIN_SECRET=password k6 run --compatibility-mode=experimental_enhanced --out influxdb=http://localhost:8086/k6 __test__/k6/scripts/load-test.ts | tee __test__/k6/metrics/k6-output-local.txt
+      export POSTGRES_DSN="postgresql://postgres:postgrespassword@host.docker.internal:5432/postgres?sslmode=disable"
+      export TIMESCALE_DSN="postgresql://tsdbadmin:password@host.docker.internal:5433/indexer?sslmode=disable"
+      
+      HASURA_URL=http://localhost:8090/v1/graphql HASURA_ADMIN_SECRET=password k6 run --compatibility-mode=experimental_enhanced --out influxdb=http://localhost:8086/k6 __test__/k6/scripts/load-test.ts
     else
-      dotenvx run -f ./.env --quiet -- k6 run --compatibility-mode=experimental_enhanced --out influxdb=http://localhost:8086/k6 __test__/k6/scripts/load-test.ts | tee __test__/k6/metrics/k6-output-remote.txt
+      # Load remote database connection strings from .env
+      export POSTGRES_DSN=$(dotenvx run -f ../../.env -- echo "\${REMOTE_POSTGRES_DSN}")
+      export TIMESCALE_DSN=$(dotenvx run -f ../../.env -- echo "\${REMOTE_TIMESCALE_DSN}")
+      
+      dotenvx run -f ../../.env --quiet -- k6 run --compatibility-mode=experimental_enhanced --out influxdb=http://localhost:8086/k6 __test__/k6/scripts/load-test.ts
     fi
 
     # Open Grafana dashboard

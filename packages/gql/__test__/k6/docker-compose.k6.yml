@@ -57,7 +57,7 @@ services:
     ports:
       - "9187:9187"
     environment:
-      - DATA_SOURCE_NAME=postgresql://postgres:postgrespassword@host.docker.internal:5432/postgres?sslmode=disable
+      - DATA_SOURCE_NAME=${POSTGRES_DSN:-postgresql://postgres:postgrespassword@host.docker.internal:5432/postgres?sslmode=disable}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -71,7 +71,7 @@ services:
     ports:
       - "9188:9187"
     environment:
-      - DATA_SOURCE_NAME=postgresql://tsdbadmin:password@host.docker.internal:5433/indexer?sslmode=disable
+      - DATA_SOURCE_NAME=${TIMESCALE_DSN:-postgresql://tsdbadmin:password@host.docker.internal:5433/indexer?sslmode=disable}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:

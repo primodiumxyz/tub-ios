@@ -37,7 +37,7 @@
     "start:cache": "tsx src/cache/server.ts",
     "k6:local": "./__test__/k6/scripts/run-k6.sh -e local",
     "k6:local:skip-seed": "./__test__/k6/scripts/run-k6.sh -e local -s",
-    "k6:remote": "./__test__/k6/scripts/run-k6.sh -e remote"
+    "k6:remote": "./__test__/k6/scripts/run-k6.sh -e remote -s"
   },
   "keywords": [],
   "author": "",
