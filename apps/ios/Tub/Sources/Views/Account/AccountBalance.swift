@@ -80,8 +80,9 @@ struct AccountBalanceView: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
                 .background(
-                    RoundedRectangle(cornerRadius: 30)
-                        .stroke(.tubNeutral, lineWidth: 0.5)
+                    Image("WideBubble")
+                        .resizable()
+//                        .scaledToFit()
                 )
                 .frame(maxWidth: .infinity)
                 

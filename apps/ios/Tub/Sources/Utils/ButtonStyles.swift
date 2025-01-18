@@ -503,7 +503,7 @@ struct PillImageButton: View {
     
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 8) {
+            HStack(spacing: 4) {
                 if isSystemIcon {
                     Image(systemName: icon)
                         .foregroundStyle(color)
@@ -544,7 +544,7 @@ struct PillImageLabel: View {
     var strokeColor: Color = .clear
     
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 4) {
             if isSystemIcon {
                 Image(systemName: icon)
                     .foregroundStyle(color)

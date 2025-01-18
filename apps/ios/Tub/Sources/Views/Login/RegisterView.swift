@@ -179,10 +179,12 @@ struct RegisterView: View {
                 
                 // Phone button
                 IconTextButton(
-                    icon: "phone",
+                    icon: "Phone",
                     isSystemIcon: false,
                     text: "Continue with Phone",
                     textColor: .tubBuyPrimary,
+                    iconSize: CGSize(width: 36, height: 36),
+                    spacing: Layout.Spacing.xs,
                     action: { showPhoneModal = true }
                 )
                 .frame(

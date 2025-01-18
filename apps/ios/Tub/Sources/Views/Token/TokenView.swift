@@ -101,7 +101,7 @@ struct TokenView: View {
                     Image("Info")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 12, height: 12)
+                        .frame(width: 20, height: 20)
                 }
                 
             } else {
