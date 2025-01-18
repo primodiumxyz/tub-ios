@@ -87,12 +87,12 @@
       <EnvironmentVariables>
          <EnvironmentVariable
             key = "NGROK_SERVER_URL_HOST"
-            value = "primodium-tub-server-hank.ngrok.app"
+            value = "primodium-tub-server-yi.ngrok.app"
             isEnabled = "YES">
          </EnvironmentVariable>
          <EnvironmentVariable
             key = "NGROK_GRAPHQL_URL_HOST"
-            value = "primodium-tub-gql-hank.ngrok.app"
+            value = "primodium-tub-gql-yi.ngrok.app"
             isEnabled = "YES">
          </EnvironmentVariable>
       </EnvironmentVariables>

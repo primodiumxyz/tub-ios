@@ -97,8 +97,11 @@ struct TokenView: View {
                     )
                     Text(price)
                         .font(.sfRounded(size: .xl4, weight: .bold))
-                    Image(systemName: "info.circle.fill")
-                        .frame(width: 16, height: 16)
+
+                    Image("Info")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20, height: 20)
                 }
                 
             } else {

@@ -1,7 +1,3 @@
-import { INTERVALS } from "@/lib/constants";
-
-export type Interval = (typeof INTERVALS)[number];
-
 export type Token = {
   mint: string;
   name: string;

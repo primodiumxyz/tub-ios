@@ -1,7 +1,7 @@
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import { createTransferInstruction } from "@solana/spl-token";
 import { Config } from "./ConfigService";
-import { SwapType } from "../types";
+import { TransactionType } from "../types";
 
 export type FeeSettings = {
   tradeFeeRecipient: PublicKey;
@@ -20,19 +20,19 @@ export class FeeService {
   /**
    * Calculate fee amount for a swap, ensuring it is not below the minimum fee amount
    * @param usdcQuantity - Amount of USDC in the transaction
-   * @param swapType - Type of swap: buy, sell_all, sell_partial
+   * @param transactionType - Type of swap: buy, sell_all, sell_partial
    * @param cfg - Config object, should be read as constant after high-level API call
    * @returns Fee amount in token's base units (USDC is 1e6)
    */
-  calculateFeeAmount(usdcQuantity: number, swapType: SwapType, cfg: Config): number {
+  calculateFeeAmount(usdcQuantity: number, transactionType: TransactionType, cfg: Config): number {
     let feeAmount = BigInt(0);
-    if (swapType === SwapType.BUY) {
+    if (transactionType === TransactionType.BUY) {
       if (cfg.MIN_TRADE_SIZE_USD * 1e6 > usdcQuantity) {
         throw new Error("USDC quantity is below minimum trade size");
       }
       feeAmount = (BigInt(cfg.BUY_FEE_BPS) * BigInt(usdcQuantity)) / 10000n;
-    } else if (swapType === SwapType.SELL_ALL || swapType === SwapType.SELL_PARTIAL) {
-      if (swapType === SwapType.SELL_PARTIAL && cfg.MIN_TRADE_SIZE_USD * 1e6 >= usdcQuantity) {
+    } else if (transactionType === TransactionType.SELL_ALL || transactionType === TransactionType.SELL_PARTIAL) {
+      if (transactionType === TransactionType.SELL_PARTIAL && cfg.MIN_TRADE_SIZE_USD * 1e6 >= usdcQuantity) {
         throw new Error("Sell value below min partial sell size. Sell all instead.");
       }
       feeAmount = (BigInt(cfg.SELL_FEE_BPS) * BigInt(usdcQuantity)) / 10000n;

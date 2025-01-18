@@ -3,14 +3,18 @@
 
 │ Query Name │ Direct │ Warm Cache │ Cold Cache │ Bypass Cache │ Improvement │
 │───────────│────────│────────────│────────────│──────────────│─────────────│
-│ GetBulkTokenLiveData │    4.49ms │    4.19ms │    5.32ms │    4.30ms │    6.75% │
-│ GetBulkTokenMetadata │    4.33ms │    4.22ms │    5.27ms │    4.34ms │    2.55% │
-│ GetTokenLiveData │    2.73ms │    2.27ms │    5.98ms │    3.45ms │   17.03% │
-│ GetTokenMetadata │    2.65ms │    1.64ms │    5.73ms │    3.47ms │   38.04% │
-│ GetTopTokensByVolumeCached │  580.56ms │    1.39ms │  514.87ms │  514.32ms │   99.76% │
-│ GetTopTokensByVolume │  681.58ms │    1.30ms │  682.49ms │  684.13ms │   99.81% │
+│ GetBulkTokenLiveData │    2.18ms │    2.05ms │    4.20ms │    3.39ms │    5.86% │
+│ GetBulkTokenLiveData_old │    3.38ms │    1.71ms │    5.70ms │    4.42ms │   49.34% │
+│ GetBulkTokenMetadata │    2.41ms │    4.20ms │    5.15ms │    3.66ms │  -74.41% │
+│ GetBulkTokenMetadata_old │  565.25ms │  543.85ms │  485.06ms │  811.21ms │    3.78% │
+│ GetBulkTokenMetadata_old_single_token │  562.09ms │  521.87ms │  473.19ms │  786.22ms │    7.15% │
+│ GetTokenLiveData │    1.74ms │    1.84ms │    3.85ms │    3.23ms │   -5.98% │
+│ GetTokenLiveData_old │    2.56ms │    4.48ms │    4.08ms │    2.66ms │  -75.20% │
+│ GetTokenMetadata │    2.64ms │    1.75ms │    3.54ms │    3.53ms │   33.96% │
+│ GetTopTokensByVolume │    2.41ms │    1.60ms │    4.84ms │    4.43ms │   33.72% │
+│ GetTopTokensByVolume_old │  620.23ms │    1.26ms │  541.69ms │  546.25ms │   99.80% │
 
 📊 Key Insights:
-• Fastest query (warm cache): GetTopTokensByVolume (1.30ms)
-• Slowest query (direct): GetTopTokensByVolume (681.58ms)
-• Best cache improvement: GetTopTokensByVolume (99.81%)
+• Fastest query (warm cache): GetTopTokensByVolume_old (1.26ms)
+• Slowest query (direct): GetTopTokensByVolume_old (620.23ms)
+• Best cache improvement: GetTopTokensByVolume_old (99.80%)

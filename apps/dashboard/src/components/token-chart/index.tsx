@@ -4,18 +4,10 @@ import { ArrowLeft, CandlestickChart, LineChart } from "lucide-react";
 import { TradingViewCandlesChart } from "@/components/token-chart/tradingview-candles";
 import { TradingViewChart } from "@/components/token-chart/tradingview-chart";
 import { Button } from "@/components/ui/button";
-import { Interval, Token } from "@/lib/types";
+import { Token } from "@/lib/types";
 import { formatLargeNumber } from "@/lib/utils";
 
-export const TokenChart = ({
-  token,
-  selectedInterval,
-  onBack,
-}: {
-  token: Token;
-  selectedInterval: Interval;
-  onBack: () => void;
-}) => {
+export const TokenChart = ({ token, onBack }: { token: Token; onBack: () => void }) => {
   const [chartType, setChartType] = useState<"line" | "candles">("line");
 
   return (
@@ -32,9 +24,7 @@ export const TokenChart = ({
                 {token.name} (${token.symbol})
               </h3>
               <div className="flex gap-4 text-sm text-muted-foreground">
-                <span>
-                  Volume ({selectedInterval}): ${formatLargeNumber(Number(token.volumeUsd))}
-                </span>
+                <span>Volume (30min): ${formatLargeNumber(Number(token.volumeUsd))}</span>
                 <span>MC: {formatLargeNumber(Number(token.supply * token.latestPriceUsd))}</span>
               </div>
             </div>

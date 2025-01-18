@@ -1,30 +1,34 @@
-import { Connection, Keypair, PublicKey, VersionedTransaction } from "@solana/web3.js";
-import { getAccount, getAssociatedTokenAddressSync } from "@solana/spl-token";
-import { GqlClient } from "@tub/gql";
 import { PrivyClient } from "@privy-io/server-auth";
+import { getAccount, getAssociatedTokenAddressSync } from "@solana/spl-token";
+import { Connection, Keypair, PublicKey, VersionedTransaction } from "@solana/web3.js";
+import { GqlClient } from "@tub/gql";
+import bs58 from "bs58";
+import { env } from "../../bin/tub-server";
+import { TOKEN_PROGRAM_PUBLIC_KEY, USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
+import { Config, ConfigService } from "../services/ConfigService";
+import {
+  AppDwellTimeEvent,
+  LoadingTimeEvent,
+  PrebuildSignedSwapResponse,
+  PrebuildSwapResponse,
+  SubmitSignedTransactionResponse,
+  TokenDwellTimeEvent,
+  TokenPurchaseOrSaleEvent,
+  UserPrebuildSwapRequest,
+  ActiveSwapRequest,
+  TransactionType,
+} from "../types";
+import { config } from "../utils/config";
+import { deriveTokenAccounts } from "../utils/tokenAccounts";
+import { AnalyticsService } from "./AnalyticsService";
+import { CronService } from "./CronService";
+import { PushService } from "./ApplePushService";
+import { AuthService } from "./AuthService";
+import { FeeService } from "./FeeService";
 import { JupiterService } from "./JupiterService";
 import { SwapService } from "./SwapService";
 import { TransactionService } from "./TransactionService";
-import { FeeService } from "./FeeService";
-import { AuthService } from "./AuthService";
-import { AnalyticsService } from "./AnalyticsService";
 import { TransferService } from "./TransferService";
-import { env } from "../../bin/tub-server";
-import {
-  UserPrebuildSwapRequest,
-  PrebuildSwapResponse,
-  PrebuildSignedSwapResponse,
-  AppDwellTimeEvent,
-  LoadingTimeEvent,
-  TokenDwellTimeEvent,
-  TokenPurchaseOrSaleEvent,
-} from "../types";
-import { deriveTokenAccounts } from "../utils/tokenAccounts";
-import bs58 from "bs58";
-import { TOKEN_PROGRAM_PUBLIC_KEY } from "../constants/tokens";
-import { USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
-import { config } from "../utils/config";
-import { ConfigService } from "../services/ConfigService";
 
 /**
  * Service class handling token trading, swaps, and user operations
@@ -37,7 +41,7 @@ export class TubService {
   private feeService!: FeeService;
   private analyticsService!: AnalyticsService;
   private transferService!: TransferService;
-
+  private pushService!: PushService;
   /**
    * Creates a new instance of TubService
    * @param gqlClient - GraphQL client for database operations
@@ -81,9 +85,14 @@ export class TubService {
     this.feeService = new FeeService({
       tradeFeeRecipient: validatedTradeFeeRecipient,
     });
-    this.swapService = new SwapService(this.jupiterService, this.transactionService, this.feeService, this.connection);
+    this.swapService = new SwapService(this.jupiterService, this.transactionService, this.feeService);
     this.analyticsService = new AnalyticsService(this.gqlClient);
     this.transferService = new TransferService(this.connection, feePayerKeypair, this.transactionService);
+
+    this.pushService = new PushService({ gqlClient: this.gqlClient });
+
+    // Start periodic tasks
+    new CronService(this.gqlClient).startPeriodicTasks();
   }
 
   /**
@@ -195,13 +204,30 @@ export class TubService {
       userPublicKey: walletPublicKey,
     };
 
-    try {
-      const cfg = await config();
-      const response = await this.swapService.buildSwapResponse(activeRequest, cfg);
-      return response;
-    } catch (error) {
-      throw new Error(`Failed to build swap response: ${error}`);
+    const cfg = await config();
+    const response = await this.buildSwapResponseWithRebuild(activeRequest, cfg, 0);
+    return response;
+  }
+
+  async buildSwapResponseWithRebuild(
+    activeRequest: ActiveSwapRequest,
+    cfg: Config,
+    priorBuildAttempts: number = 0,
+  ): Promise<PrebuildSwapResponse> {
+    for (let buildAttempt = priorBuildAttempts + 1; buildAttempt <= cfg.MAX_BUILD_ATTEMPTS; buildAttempt++) {
+      console.log("Building swap response attempt " + buildAttempt);
+      try {
+        const response = await this.swapService.buildSwapResponse(activeRequest, cfg, buildAttempt);
+        return response;
+      } catch (error) {
+        console.log("Failed to build swap response: ", error);
+        // if build attempt is maxed out or if user has set slippage, throw error
+        if (buildAttempt >= cfg.MAX_BUILD_ATTEMPTS || activeRequest.slippageBps !== undefined) {
+          throw new Error("Failed to build swap response: " + error);
+        }
+      }
     }
+    throw new Error("Failed to build swap response");
   }
 
   /**
@@ -276,15 +302,54 @@ export class TubService {
     await this.swapService.stopSwapStream(userId);
   }
 
-  async signAndSendTransaction(jwtToken: string, userSignature: string, base64TransactionMessage: string) {
+  async signAndSendTransaction(
+    jwtToken: string,
+    userSignature: string,
+    base64TransactionMessage: string,
+  ): Promise<SubmitSignedTransactionResponse> {
     const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
+    const entry = this.transactionService.getRegisteredTransaction(base64TransactionMessage);
+    if (!entry) {
+      throw new Error("Transaction not found in registry");
+    }
     const cfg = await config();
-    return this.transactionService.signAndSendTransaction(
-      walletPublicKey,
-      userSignature,
-      base64TransactionMessage,
-      cfg,
-    );
+
+    try {
+      const response = this.transactionService.signAndSendTransaction(walletPublicKey, userSignature, entry, cfg);
+      return response;
+    } catch (error) {
+      console.log("Tx send failed: " + JSON.stringify(error));
+
+      // don't rebuild transfer swaps
+      if (entry.transactionType === TransactionType.TRANSFER) {
+        throw new Error(JSON.stringify(error));
+      }
+
+      // TODO: error interpretation
+
+      // don't rebuild if slippage is not auto
+      if (entry.buildAttempts + 1 >= cfg.MAX_BUILD_ATTEMPTS || !entry.autoSlippage) {
+        throw new Error(JSON.stringify(error));
+      }
+
+      // rebuild
+      if (!this.swapService) {
+        throw new Error("SwapService is not set");
+      }
+      if (!entry.activeSwapRequest) {
+        throw new Error("ActiveSwapRequest is not set");
+      }
+      if (!entry.cfg) {
+        throw new Error("Config is not set");
+      }
+      this.swapService.deleteMessageFromRegistry(base64TransactionMessage);
+      const rebuiltSwapResponse = await this.buildSwapResponseWithRebuild(
+        entry.activeSwapRequest,
+        entry.cfg,
+        entry.buildAttempts,
+      );
+      return { responseType: "rebuild", rebuild: rebuiltSwapResponse };
+    }
   }
 
   /**
@@ -394,5 +459,22 @@ export class TubService {
 
     // Get the transfer transaction from the transfer service
     return await this.transferService.getTransfer(transferRequest);
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /*                             Push Notifications                             */
+  /* -------------------------------------------------------------------------- */
+
+  async startLiveActivity(
+    jwtToken: string,
+    input: { tokenMint: string; tokenPriceUsd: string; deviceToken: string; pushToken: string },
+  ) {
+    const { userId } = await this.authService.getUserContext(jwtToken);
+    return this.pushService.startLiveActivity(userId, input);
+  }
+
+  async stopLiveActivity(jwtToken: string) {
+    const { userId } = await this.authService.getUserContext(jwtToken);
+    return this.pushService.stopLiveActivity(userId);
   }
 }

@@ -18,12 +18,12 @@ struct OnboardingView: View {
         OnboardingPage(
             title: "Swipe to explore the hottest coins",
             subtitle: "Our AI finds the best coins to buy and sell.",
-            mediaTitle: "onboarding1"
+            mediaTitle: "Onboarding1"
         ),
         OnboardingPage(
             title: "Instant profits with one tap",
             subtitle: "Perfect your timing for maximum gains!",
-            mediaTitle: "onboarding1"
+            mediaTitle: "Onboarding2"
         ),
     ]
 
@@ -52,21 +52,22 @@ struct OnboardingView: View {
                                     .foregroundStyle(.tubSellPrimary)
                                     .multilineTextAlignment(.center)
                                     .padding(.horizontal, UIScreen.width(Layout.Spacing.md))
-                                    .padding(.bottom, UIScreen.height(Layout.Spacing.xs))
                             }
 
                             if let mediaTitle = onboardingData[index].mediaTitle {
-                                VideoPlayerView(videoName: mediaTitle)
-                                    .frame(
-                                        width: min(UIScreen.width(Layout.Size.half), 300),
-                                        height: min(UIScreen.height(Layout.Size.half), 400)
-                                    )
-                                    .padding(.top, UIScreen.height(Layout.Spacing.xs))
-                                    .padding(.horizontal, UIScreen.width(Layout.Spacing.sm))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: Layout.Fixed.cornerRadius)
-                                            .stroke(Color.gray, lineWidth: Layout.Fixed.borderWidth)
-                                    )
+                                ZStack{
+                                    Color(UIColor.systemBackground)
+                                        .backgroundBubbleEffect()
+                                        .zIndex(-1)
+                                    
+                                    VideoPlayerView(videoName: mediaTitle)
+                                        .frame(
+                                            width: min(UIScreen.width(Layout.Size.full) * 0.8, 250),
+                                            height: min(UIScreen.height(Layout.Size.full) * 0.6, 860)
+                                        )
+                                        
+                                        .padding(.horizontal, UIScreen.width(Layout.Spacing.sm))
+                                }
                             }
                             Spacer()
                         }
@@ -79,6 +80,7 @@ struct OnboardingView: View {
                     }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
+                
 
                 OutlineButton(
                     text: currentPage == onboardingData.count - 1 ? "Get Started" : "Continue",
@@ -131,11 +133,13 @@ struct VideoPlayerView: UIViewRepresentable {
     func makeUIView(context: Context) -> UIView {
         let containerView = UIView(frame: .zero)
         containerView.backgroundColor = .clear
+        containerView.layer.cornerRadius = 45
+        containerView.clipsToBounds = true
 
         if let url = Bundle.main.url(forResource: videoName, withExtension: "mp4") {
             let player = AVPlayer(url: url)
             let playerLayer = AVPlayerLayer(player: player)
-            playerLayer.videoGravity = .resizeAspect
+            playerLayer.videoGravity = .resizeAspectFill
             containerView.layer.addSublayer(playerLayer)
 
             // Store references

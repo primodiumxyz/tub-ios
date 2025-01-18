@@ -1,8 +1,8 @@
-import { Connection, PublicKey, TransactionInstruction, AddressLookupTableAccount } from "@solana/web3.js";
 import { DefaultApi, QuoteGetRequest, QuoteResponse, SwapInstructionsPostRequest } from "@jup-ag/api";
+import { AddressLookupTableAccount, Connection, PublicKey, TransactionInstruction } from "@solana/web3.js";
 import { EventEmitter } from "events";
-import { config } from "../utils/config";
 import { SOL_MAINNET_PUBLIC_KEY, USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
+import { config } from "../utils/config";
 
 export type JupiterSettings = {
   connection: Connection;
@@ -203,8 +203,6 @@ export class JupiterService {
 
       this.solUsdPrice = Number(res.outAmount) / 1e6; // convert to USD from USDC (6 decimals)
       this.priceEmitter.emit("price", this.solUsdPrice);
-
-      console.log(`SOL/USD price updated: ${this.solUsdPrice?.toLocaleString("en-US", { maximumFractionDigits: 2 })}`);
     } catch (error) {
       console.error("Error updating SOL/USD price:", error);
     }

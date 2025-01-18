@@ -65,7 +65,8 @@ func spoofTokenModelData(userModel: UserModel, tokenModel: TokenModel) {
             close: basePrice + variation + 1,
             high: basePrice + variation + 2,
             low: basePrice + variation - 1,
-            volume: Double(1000 + (i * 100))
+            volume: Double(1000 + (i * 100)),
+            hasTrades: true
         )
     }.reversed()
 }

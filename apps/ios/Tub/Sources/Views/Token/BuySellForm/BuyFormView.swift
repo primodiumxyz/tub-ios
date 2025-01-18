@@ -14,6 +14,7 @@ struct BuyFormView: View {
     @ObservedObject var tokenModel: TokenModel
 
     @StateObject var txManager = TxManager.shared
+    @StateObject var activityManager = LiveActivityManager.shared
 
     var buttonLoading: Bool {
         txManager.submittingTx
@@ -49,6 +50,17 @@ struct BuyFormView: View {
                     buyAmountUsdc: amountUsdc,
                     tokenPriceUsdc: priceUsdc
                 )
+
+                if let tokenData = userModel.tokenData[tokenModel.tokenId] {
+                    try await activityManager.startLiveActivity(
+                        mint: tokenModel.tokenId,
+                        tokenName: tokenData.metadata.name,
+                        symbol: tokenData.metadata.symbol,
+                        purchasePriceUsd: priceUsd,
+                        buyAmountUsdc: amountUsdc
+                    )
+                }
+                
                 await MainActor.run {
                     self.isVisible = false
                     notificationHandler.show(

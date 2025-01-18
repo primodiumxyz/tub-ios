@@ -1,4 +1,4 @@
-import { afterAll, describe, it } from "vitest";
+import { afterAll, beforeAll, describe, it } from "vitest";
 import { benchmark, BenchmarkMetrics, logMetrics, writeMetricsToFile } from "../lib/benchmarks";
 import { clearCache, createClientCacheBypass, createClientCached, createClientNoCache } from "../lib/common";
 import { ITERATIONS } from "./config";
@@ -6,19 +6,24 @@ import { ITERATIONS } from "./config";
 describe("GetTopTokensByVolume benchmarks", () => {
   const metrics: BenchmarkMetrics[] = [];
 
+  beforeAll(async () => {
+    const client = await createClientNoCache();
+
+    const refreshRes = await client.db.RefreshTokenRollingStats30MinMutation();
+    if (refreshRes.error || !refreshRes.data?.api_refresh_token_rolling_stats_30min?.success)
+      throw new Error("Error refreshing token rolling stats");
+  });
+
   it("should measure direct Hasura performance", async () => {
     const metric = await benchmark<"GetTopTokensByVolumeQuery">({
       identifier: "Direct Hasura hit",
       exec: async () => {
         const client = await createClientNoCache();
-        return await client.db.GetTopTokensByVolumeQuery({
-          interval: "30m",
-          recentInterval: "20s",
-        });
+        return await client.db.GetTopTokensByVolumeQuery({});
       },
       iterations: ITERATIONS,
       after: (res) => {
-        if (res.error || res.data?.token_stats_interval_comp.length === 0) throw new Error("Error or no tokens found");
+        if (res.error || res.data?.token_rolling_stats_30min.length === 0) throw new Error("Error or no tokens found");
       },
     });
 
@@ -28,24 +33,18 @@ describe("GetTopTokensByVolume benchmarks", () => {
   it("should measure warm cache performance", async () => {
     // Cache warmup
     const client = await createClientCached();
-    await client.db.GetTopTokensByVolumeQuery({
-      interval: "30m",
-      recentInterval: "20s",
-    });
+    await client.db.GetTopTokensByVolumeQuery({});
 
     const metric = await benchmark<"GetTopTokensByVolumeQuery">({
       identifier: "Warm cache hit",
       exec: async () => {
         const client = await createClientCached();
 
-        return await client.db.GetTopTokensByVolumeQuery({
-          interval: "30m",
-          recentInterval: "20s",
-        });
+        return await client.db.GetTopTokensByVolumeQuery({});
       },
       iterations: ITERATIONS,
       after: (res) => {
-        if (res.error || res.data?.token_stats_interval_comp.length === 0) throw new Error("Error or no tokens found");
+        if (res.error || res.data?.token_rolling_stats_30min.length === 0) throw new Error("Error or no tokens found");
       },
     });
 
@@ -58,15 +57,12 @@ describe("GetTopTokensByVolume benchmarks", () => {
       exec: async () => {
         const client = await createClientCached();
 
-        return await client.db.GetTopTokensByVolumeQuery({
-          interval: "30m",
-          recentInterval: "20s",
-        });
+        return await client.db.GetTopTokensByVolumeQuery({});
       },
       iterations: ITERATIONS,
       before: async () => await clearCache(),
       after: (res) => {
-        if (res.error || res.data?.token_stats_interval_comp.length === 0) throw new Error("Error or no tokens found");
+        if (res.error || res.data?.token_rolling_stats_30min.length === 0) throw new Error("Error or no tokens found");
       },
     });
 
@@ -78,14 +74,11 @@ describe("GetTopTokensByVolume benchmarks", () => {
       identifier: "Bypassing cache",
       exec: async () => {
         const client = await createClientCacheBypass();
-        return await client.db.GetTopTokensByVolumeQuery({
-          interval: "30m",
-          recentInterval: "20s",
-        });
+        return await client.db.GetTopTokensByVolumeQuery({});
       },
       iterations: ITERATIONS,
       after: (res) => {
-        if (res.error || res.data?.token_stats_interval_comp.length === 0) throw new Error("Error or no tokens found");
+        if (res.error || res.data?.token_rolling_stats_30min.length === 0) throw new Error("Error or no tokens found");
       },
     });
 

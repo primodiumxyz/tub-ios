@@ -9,23 +9,28 @@ describe("GetTokenMetadata benchmarks", () => {
 
   beforeAll(async () => {
     const client = await createClientNoCache();
-    const res = await client.db.GetAllTokensQuery();
-    if (res.error || !res.data?.token_metadata_formatted) throw new Error("No tokens found");
-    tokens = res.data?.token_metadata_formatted.map((t) => t.mint) || [];
+
+    const refreshRes = await client.db.RefreshTokenRollingStats30MinMutation();
+    if (refreshRes.error || !refreshRes.data?.api_refresh_token_rolling_stats_30min?.success)
+      throw new Error("Error refreshing token rolling stats");
+
+    const allTokensRes = await client.db.GetAllTokensQuery();
+    if (allTokensRes.error || !allTokensRes.data?.token_rolling_stats_30min) throw new Error("No tokens found");
+    tokens = allTokensRes.data?.token_rolling_stats_30min.map((t) => t.mint).filter((t) => t !== null) || [];
   });
 
   it("should measure direct Hasura performance", async () => {
-    const metric = await benchmark<"GetTokenMetadataQuery">({
+    const metric = await benchmark<"GetBulkTokenMetadataQuery">({
       identifier: "Direct Hasura hit",
       exec: async (i) => {
         const client = await createClientNoCache();
-        return await client.db.GetTokenMetadataQuery({
-          token: tokens[i],
+        return await client.db.GetBulkTokenMetadataQuery({
+          tokens: [tokens[i]],
         });
       },
       iterations: ITERATIONS,
       after: (res) => {
-        if (res.error || res.data?.token_metadata_formatted.length === 0) throw new Error("Error or no tokens found");
+        if (res.error || res.data?.token_rolling_stats_30min.length === 0) throw new Error("Error or no tokens found");
       },
     });
 
@@ -36,23 +41,23 @@ describe("GetTokenMetadata benchmarks", () => {
     // Cache warmup
     for (let i = 0; i < ITERATIONS; i++) {
       const client = await createClientCached();
-      await client.db.GetTokenMetadataQuery({
-        token: tokens[i],
+      await client.db.GetBulkTokenMetadataQuery({
+        tokens: [tokens[i]],
       });
     }
 
-    const metric = await benchmark<"GetTokenMetadataQuery">({
+    const metric = await benchmark<"GetBulkTokenMetadataQuery">({
       identifier: "Warm cache hit",
       exec: async (i) => {
         const client = await createClientCached();
 
-        return await client.db.GetTokenMetadataQuery({
-          token: tokens[i],
+        return await client.db.GetBulkTokenMetadataQuery({
+          tokens: [tokens[i]],
         });
       },
       iterations: ITERATIONS,
       after: (res) => {
-        if (res.error || res.data?.token_metadata_formatted.length === 0) throw new Error("Error or no tokens found");
+        if (res.error || res.data?.token_rolling_stats_30min.length === 0) throw new Error("Error or no tokens found");
       },
     });
 
@@ -60,19 +65,19 @@ describe("GetTokenMetadata benchmarks", () => {
   });
 
   it("should measure cold cache performance", async () => {
-    const metric = await benchmark<"GetTokenMetadataQuery">({
+    const metric = await benchmark<"GetBulkTokenMetadataQuery">({
       identifier: "Cold cache hit",
       exec: async (i) => {
         const client = await createClientCached();
 
-        return await client.db.GetTokenMetadataQuery({
-          token: tokens[i],
+        return await client.db.GetBulkTokenMetadataQuery({
+          tokens: [tokens[i]],
         });
       },
       iterations: ITERATIONS,
       before: async () => await clearCache(),
       after: (res) => {
-        if (res.error || res.data?.token_metadata_formatted.length === 0) throw new Error("Error or no tokens found");
+        if (res.error || res.data?.token_rolling_stats_30min.length === 0) throw new Error("Error or no tokens found");
       },
     });
 
@@ -80,17 +85,17 @@ describe("GetTokenMetadata benchmarks", () => {
   });
 
   it("should measure bypassing cache performance", async () => {
-    const metric = await benchmark<"GetTokenMetadataQuery">({
+    const metric = await benchmark<"GetBulkTokenMetadataQuery">({
       identifier: "Bypassing cache",
       exec: async (i) => {
         const client = await createClientCacheBypass();
-        return await client.db.GetTokenMetadataQuery({
-          token: tokens[i],
+        return await client.db.GetBulkTokenMetadataQuery({
+          tokens: [tokens[i]],
         });
       },
       iterations: ITERATIONS,
       after: (res) => {
-        if (res.error || res.data?.token_metadata_formatted.length === 0) throw new Error("Error or no tokens found");
+        if (res.error || res.data?.token_rolling_stats_30min.length === 0) throw new Error("Error or no tokens found");
       },
     });
 
