@@ -1,0 +1,10 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: "postgres"
+    static_configs:
+      - targets: ["postgres-exporter:9187"]
+  - job_name: "timescaledb"
+    static_configs:
+      - targets: ["timescale-exporter:9187"]
