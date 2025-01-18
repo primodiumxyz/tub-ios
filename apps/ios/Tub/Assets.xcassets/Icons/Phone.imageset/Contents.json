@@ -1,15 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "UI_Phone_NObubble.png",
+      "filename" : "ui_phone_noframe.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
+      "filename" : "ui_phone_noframe@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
+      "filename" : "ui_phone_noframe@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }
