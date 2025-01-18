@@ -133,10 +133,10 @@ struct ActionButtonsView: View {
                         else {
                             HStack(spacing: 16) {
                                 CircleButton(
-                                    icon: "pencil",
+                                    icon: "Edit",
+                                    isSystemIcon: false,
                                     color: .tubBuyPrimary,
-                                    iconSize: 20,
-                                    iconWeight: .bold,
+                                    iconSize: 44,
                                     disabled: !tokenModel.isReady,
                                     action: { showBuySheet = true }
                                 )

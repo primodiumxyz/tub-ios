@@ -750,7 +750,6 @@
 				DF9D90602D15D82400DC4BCC /* ShareView.swift in Sources */,
 				466945ED2CDFDB1F008E8B99 /* LoadingTracker.swift in Sources */,
 				DF74EC6C2D19CAEC0053E262 /* BackgroundBubbleEffect.swift in Sources */,
-				99BE72BB2CEBB279006BB157 /* SolPriceModel.swift in Sources */,
 				99856DA62CD27E2E004B9D40 /* Privy.swift in Sources */,
 				999F595B2CA754FB00E7AE9F /* ChartView.swift in Sources */,
 				DFDA13BC2CEF9ACA00057A29 /* OnboardingView.swift in Sources */,

@@ -176,9 +176,10 @@ struct ShareView: View {
                     
                     HStack {
                         PillImageButton(
-                            icon: "square.and.arrow.down",
+                            icon: "Save_NObubble",
+                            isSystemIcon: false,
                             color: .tubSellPrimary,
-                            iconSize: 20,
+                            iconSize: 36,
                             horizontalPadding: 16,
                             text: "Save",
                             backgroundColor: .white,
@@ -194,9 +195,10 @@ struct ShareView: View {
                             )
                         ) {
                             PillImageLabel(
-                                icon: "square.and.arrow.up",
+                                icon: "Share_NObubble",
+                                isSystemIcon: false,
                                 color: .white,
-                                iconSize: 20,
+                                iconSize: 36,
                                 horizontalPadding: 32,
                                 text: "Share",
                                 backgroundColor: .tubSellPrimary

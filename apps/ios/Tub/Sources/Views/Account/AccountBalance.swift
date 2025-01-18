@@ -80,23 +80,19 @@ struct AccountBalanceView: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
                 .background(
-                    RoundedRectangle(cornerRadius: 30)
-                        .stroke(.tubNeutral, lineWidth: 0.5)
+                    Image("WideBubble")
+                        .resizable()
+//                        .scaledToFit()
                 )
                 .frame(maxWidth: .infinity)
                 
                 if userModel.userId != nil {
                     HStack(spacing: 8) {
                         NavigationLink(destination: AccountView()) {
-                            ZStack {
-                                Circle()
-                                    .stroke(.tubNeutral, lineWidth: 0.5)
-                                    .frame(width: 44, height: 44)
-                                
-                                Image(systemName: "person.fill")
-                                    .foregroundStyle(.tubNeutral)
-                                    .font(.system(size: 18))
-                            }
+                            Image("Account")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 44, height: 44)
                         }
                         
                         // Only show share button if there are transactions
@@ -109,15 +105,10 @@ struct AccountBalanceView: View {
                                     tokenImageUrl: lastTx.imageUri,
                                     tokenMint: lastTx.mint
                                 )) {
-                                    ZStack {
-                                        Circle()
-                                            .stroke(.tubNeutral, lineWidth: 0.5)
-                                            .frame(width: 44, height: 44)
-                                        
-                                        Image(systemName: "square.and.arrow.up")
-                                            .foregroundStyle(.tubNeutral)
-                                            .font(.system(size: 18))
-                                    }
+                                    Image("Share")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 44, height: 44)
                                 }
                             }
                         }
