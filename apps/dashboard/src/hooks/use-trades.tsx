@@ -5,14 +5,20 @@ import { queries, subscriptions } from "@tub/gql";
 import { GroupedTrade, Trade, TradeFilters } from "@/lib/types";
 
 export const useTrades = (
-  filters: TradeFilters = { limit: 100 },
+  filters: TradeFilters = { limit: 1000 },
 ): {
   trades: GroupedTrade[];
   fetching: boolean;
   error: string | undefined;
 } => {
   const [tradesRes] = useSubscription({
-    query: subscriptions.GetTradesSubscription,
+    query: filters.userWalletOrTokenMint
+      ? subscriptions.GetTradesByUserWalletOrTokenMintSubscription
+      : subscriptions.GetTradesSubscription,
+    // @ts-expect-error unexpected variables
+    variables: filters.userWalletOrTokenMint
+      ? { userWalletOrTokenMint: filters.userWalletOrTokenMint, limit: filters.limit }
+      : { limit: filters.limit },
   });
 
   const [metadataRes] = useQuery({
@@ -101,22 +107,8 @@ export const useTrades = (
       };
     });
 
-    // Apply filters
-    const filteredTrades = groupedTrades.filter((group) => {
-      if (filters.status && filters.status !== "all") {
-        if (group.status !== filters.status) return false;
-      }
-
-      if (filters.type && filters.type !== "all") {
-        const hasMatchingType = group.trades.some((t) => t.type === filters.type);
-        if (!hasMatchingType) return false;
-      }
-
-      return true;
-    });
-
     // Sort groups by timestamp (most recent first)
-    const sortedGroupedTrades = filteredTrades.sort((a, b) => b.timestamp - a.timestamp);
+    const sortedGroupedTrades = groupedTrades.sort((a, b) => b.timestamp - a.timestamp);
 
     return {
       trades: sortedGroupedTrades,

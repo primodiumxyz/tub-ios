@@ -40,9 +40,6 @@ export type GroupedTrade = {
 };
 
 export type TradeFilters = {
-  userWallet?: string;
-  tokenMint?: string;
-  status?: "open" | "filled" | "error" | "all";
-  type?: "buy" | "sell" | "all";
+  userWalletOrTokenMint?: string;
   limit?: number;
 };

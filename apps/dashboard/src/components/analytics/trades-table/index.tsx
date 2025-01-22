@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import { useTrades } from "@/hooks/use-trades";
-import { GroupedTrade, TradeFilters } from "@/lib/types";
+import { GroupedTrade } from "@/lib/types";
 
 import { columns } from "./columns";
 
@@ -14,25 +14,14 @@ export const TradesTable = ({ onRowClick }: { onRowClick?: (row: Row<GroupedTrad
   const [frozen, setFrozen] = useState(false);
   const [frozenTrades, setFrozenTrades] = useState<GroupedTrade[]>([]);
 
-  // TODO: filters
-  const filters: TradeFilters = {
-    userWallet: undefined,
-    tokenMint: undefined,
-    status: undefined,
-    limit: 100,
-  };
-  const { trades, fetching, error } = useTrades(filters);
+  const { trades, fetching, error } = useTrades({
+    limit: 1000,
+    userWalletOrTokenMint: globalFilter || undefined,
+  });
 
   useEffect(() => {
     if (frozen) setFrozenTrades(trades);
   }, [frozen]);
-
-  // Filter trades based on global search
-  const filteredTrades = (frozen ? frozenTrades : trades).filter((trade) => {
-    if (!globalFilter) return true;
-    const searchTerm = globalFilter.toLowerCase();
-    return trade.token.toLowerCase().includes(searchTerm) || trade.userWallet.toLowerCase().includes(searchTerm);
-  });
 
   if (error) return <div>Error: {error}</div>;
 
@@ -45,11 +34,11 @@ export const TradesTable = ({ onRowClick }: { onRowClick?: (row: Row<GroupedTrad
           </Button>
         </div>
         <span className="text-sm text-muted-foreground">
-          {filteredTrades.length} trades {frozen && `(frozen at ${frozenTrades.length})`}
+          {trades.length} trades {frozen && `(frozen at ${frozenTrades.length})`}
         </span>
         <span className="grow" />
         <Input
-          placeholder="Search tokens..."
+          placeholder="Search user wallet or token mint..."
           value={globalFilter}
           onChange={(e) => setGlobalFilter(e.target.value)}
           className="self-end w-[400px]"
@@ -57,7 +46,7 @@ export const TradesTable = ({ onRowClick }: { onRowClick?: (row: Row<GroupedTrad
       </div>
       <DataTable
         columns={columns}
-        data={filteredTrades}
+        data={frozen ? frozenTrades : trades}
         loading={fetching}
         onRowClick={onRowClick}
         defaultSorting={[{ id: "sellInfo", desc: true }]}

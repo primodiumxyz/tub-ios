@@ -65,3 +65,25 @@ export const GetTradesSubscription = graphql(`
     }
   }
 `);
+
+export const GetTradesByUserWalletOrTokenMintSubscription = graphql(`
+  subscription SubTradesByUserWalletOrTokenMint($userWalletOrTokenMint: String!, $limit: Int = 1000) {
+    transactions(
+      where: {
+        _or: [{ user_wallet: { _eq: $userWalletOrTokenMint } }, { token_mint: { _eq: $userWalletOrTokenMint } }]
+      }
+      order_by: { created_at: desc }
+      limit: $limit
+    ) {
+      id
+      created_at
+      user_wallet
+      token_mint
+      token_amount
+      token_price_usd
+      token_value_usd
+      success
+      error_details
+    }
+  }
+`);
