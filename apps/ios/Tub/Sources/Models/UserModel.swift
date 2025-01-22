@@ -81,6 +81,7 @@ final class UserModel: ObservableObject {
     private func setupWalletStateListener() {
         privy.embeddedWallet.setEmbeddedWalletStateChangeCallback { [weak self] state in
             guard let self = self else { return }
+            
             Task {
                 switch state {
                 case .connected(let wallets):
@@ -113,9 +114,6 @@ final class UserModel: ObservableObject {
                         self.walletState = state
                     }
                 default:
-                    await MainActor.run {
-                        self.walletState = state
-                    }
                     self.logout(skipPrivy: true)
                 }
                 
@@ -610,7 +608,7 @@ final class UserModel: ObservableObject {
     func logout(skipPrivy: Bool = false) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self, self.userId != nil else { return }
-            self.walletState = .notCreated
+            self.walletState = .disconnected
             self.walletAddress = nil
             self.initialPortfolioBalance = nil
             self.elapsedSeconds = 0
