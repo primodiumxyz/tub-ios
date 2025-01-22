@@ -27,16 +27,19 @@ export const useTrades = (
   return useMemo(() => {
     const rawTrades: Trade[] =
       tradesRes.data?.transactions.map((t) => {
-        console.log(metadataRes);
+        const tokenMetadata = metadataRes.data?.token_rolling_stats_30min.find((m) => m.mint === t.token_mint);
+        const decimals = Number(tokenMetadata?.decimals ?? 6);
+        const tokenAmount = Number(t.token_amount) / 10 ** decimals;
+
         return {
           id: t.id,
           timestamp: new Date(t.created_at).getTime(),
           userWallet: t.user_wallet,
           token: t.token_mint,
           price: Number(t.token_price_usd),
-          amount: Math.abs(Number(t.token_amount)),
-          value: Number(t.token_value_usd),
-          type: Number(t.token_amount) > 0 ? "buy" : "sell",
+          amount: Math.abs(tokenAmount),
+          value: Number(t.token_value_usd) / 10 ** decimals,
+          type: tokenAmount > 0 ? "buy" : "sell",
           success: t.success,
           error: t.error_details,
         };
