@@ -5,7 +5,7 @@ export const AddTokenPurchaseMutation = graphql(`
     $token_mint: String!
     $token_amount: numeric!
     $token_price_usd: numeric!
-    $token_decimals: numeric!
+    $token_decimals: Int!
     $user_wallet: String!
     $user_agent: String!
     $source: String
@@ -35,7 +35,7 @@ export const AddTokenSaleMutation = graphql(`
     $token_mint: String!
     $token_amount: numeric!
     $token_price_usd: numeric!
-    $token_decimals: numeric!
+    $token_decimals: Int!
     $user_wallet: String!
     $user_agent: String!
     $source: String
