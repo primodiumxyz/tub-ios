@@ -15,7 +15,7 @@ struct OnrampView: View {
     TabView(selection: $selectedTab) {
       CoinbaseOnrampView()
         .tabItem {
-          Image("CoinbaseLogo")
+            Image(selectedTab == 0 ? "CoinbaseLogo" : "CoinbaseLogoGray")
             .opacity(selectedTab == 0 ? 0 : 1)
 
           Text("Coinbase")
@@ -25,7 +25,7 @@ struct OnrampView: View {
       NativeOnrampView()
         .tabItem {
           VStack {
-            Image(systemName: "creditcard.fill")
+            Image(systemName: "wallet.bifold.fill")
             Text("Transfer")
           }
         }
@@ -38,7 +38,7 @@ struct OnrampView: View {
           Text("Deposit")
             .font(.headline)
           Spacer()
-        }
+        }.padding(.top, 4)
 
         HStack {
           Button(action: { dismiss() }) {
