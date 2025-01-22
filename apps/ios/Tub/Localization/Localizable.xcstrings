@@ -84,6 +84,9 @@
     "Close" : {
 
     },
+    "Coinbase" : {
+
+    },
     "Connect a wallet to continue" : {
 
     },
@@ -126,6 +129,9 @@
     "Last Trade" : {
 
     },
+    "Login to continue" : {
+
+    },
     "Low" : {
 
     },
@@ -139,6 +145,9 @@
 
     },
     "No transactions found" : {
+
+    },
+    "Note: only send USDC." : {
 
     },
     "Open" : {
@@ -236,6 +245,9 @@
       }
     },
     "Your Balance" : {
+
+    },
+    "Your Balance " : {
 
     },
     "Your Balance %@" : {
