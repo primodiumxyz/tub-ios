@@ -51,7 +51,7 @@ export const GetTokenCandlesSinceSubscription = graphql(`
 `);
 
 export const GetTradesSubscription = graphql(`
-  subscription SubTrades($limit: Int = 100) {
+  subscription SubTrades($limit: Int = 1000) {
     transactions(order_by: { created_at: desc }, limit: $limit) {
       id
       created_at

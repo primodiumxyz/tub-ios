@@ -61,6 +61,7 @@ export const TradesTable = ({ onRowClick }: { onRowClick?: (row: Row<GroupedTrad
         loading={fetching}
         onRowClick={onRowClick}
         defaultSorting={[{ id: "sellInfo", desc: true }]}
+        pagination={true}
       />
     </div>
   );
