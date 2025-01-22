@@ -20,6 +20,7 @@ struct CoinbaseOnrampView: View {
     @State private var showWebView: Bool = false
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) var colorScheme
+    @State private var showNativeOnramp: Bool = false
     
     var body: some View {
         VStack {
@@ -44,7 +45,18 @@ struct CoinbaseOnrampView: View {
                     if amountString.isEmpty {
                         amountButtons
                     } else {
-                        continueButton
+                        VStack(spacing: -20) {
+                            IconTextButton(
+                                icon: "Wallet",
+                                isSystemIcon: false,
+                                text: "Transfer from wallet",
+                                textColor: .tubNeutral,
+                                iconSize: CGSize(width: 36, height: 36),
+                                spacing: Layout.Spacing.xs,
+                                action: { showNativeOnramp = true }
+                            )
+                            continueButton
+                        }
                     }
                     
                     if userModel.walletAddress == nil {
@@ -78,6 +90,9 @@ struct CoinbaseOnrampView: View {
                         .ignoresSafeArea()
                 }
             }
+        }
+        .sheet(isPresented: $showNativeOnramp) {
+            NativeOnrampView()
         }
     }
     
