@@ -146,6 +146,13 @@ struct signedTxInput: Codable {
 struct TxIdResponse: Codable {
     let signature: String
     let timestamp: Int?
+    let responseType: String
+    
+    private enum CodingKeys: String, CodingKey {
+        case signature = "txid"
+        case timestamp
+        case responseType
+    }
 }
 
 struct ErrorResponse: Codable {
