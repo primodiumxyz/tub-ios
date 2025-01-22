@@ -27,6 +27,7 @@ export const TradesTable = ({ onRowClick }: { onRowClick?: (row: Row<GroupedTrad
 
   return (
     <div className="flex flex-col gap-2 mt-2 w-full">
+      <h3 className="text-lg font-medium text-left">Latest trades</h3>
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <Button onClick={() => setFrozen(!frozen)} variant={frozen ? "destructive" : "ghost"}>

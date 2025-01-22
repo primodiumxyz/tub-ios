@@ -15,6 +15,7 @@ export const Stats = () => {
   return (
     <div className="flex flex-col gap-2 w-full">
       <div className="flex items-center justify-end gap-2">
+        <h3 className="text-lg font-medium flex-1 text-left">Stats</h3>
         <Input
           placeholder="Search user wallet..."
           value={walletFilter}
