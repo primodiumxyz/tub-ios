@@ -94,7 +94,7 @@ export const useTrades = (
         userWallet: firstTrade.userWallet,
         timestamp: firstTrade.timestamp,
         trades: sortedTrades,
-        netProfit: trades.reduce((sum, t) => sum + t.value, 0),
+        netProfit: trades.filter((t) => t.success).reduce((sum, t) => sum - t.value, 0),
         status,
         error: errorMessage,
         failedSellCount: failedSells.length, // Add this to help debug

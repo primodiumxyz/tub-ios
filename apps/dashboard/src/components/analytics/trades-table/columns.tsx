@@ -56,12 +56,12 @@ export const columns: ColumnDef<GroupedTrade>[] = [
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
             {successfulSell ? (
-              <>
+              <div className="flex flex-col">
                 <span>{formatUsd(Math.abs(successfulSell.value))}</span>
                 <span className="text-xs text-muted-foreground">
                   {new Date(successfulSell.timestamp).toLocaleString()}
                 </span>
-              </>
+              </div>
             ) : (
               <div className="flex items-center gap-2">
                 <span className="text-yellow-500">Open Position</span>
