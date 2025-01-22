@@ -5,6 +5,7 @@ import { Provider as UrqlProvider } from "urql";
 import { createClient as createGqlClient } from "@tub/gql";
 import { Analytics } from "@/components/analytics";
 import { Tracker } from "@/components/tracker";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { ServerProvider } from "@/providers/server-provider";
 
 import "@/App.css";
@@ -19,12 +20,14 @@ function App() {
     <BrowserRouter>
       <UrqlProvider value={client}>
         <ServerProvider>
-          <div className="flex flex-col w-full h-full">
-            <Routes>
-              <Route path="/" element={<Tracker />} />
-              <Route path="/analytics" element={<Analytics />} />
-            </Routes>
-          </div>
+          <TooltipProvider>
+            <div className="flex flex-col w-full h-full">
+              <Routes>
+                <Route path="/" element={<Tracker />} />
+                <Route path="/analytics" element={<Analytics />} />
+              </Routes>
+            </div>
+          </TooltipProvider>
         </ServerProvider>
       </UrqlProvider>
     </BrowserRouter>

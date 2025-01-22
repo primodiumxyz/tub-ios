@@ -1,6 +1,7 @@
 import { LineChart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+import { TradesTable } from "@/components/analytics/trades-table";
 import { Button } from "@/components/ui/button";
 
 export const Analytics = () => {
@@ -15,7 +16,7 @@ export const Analytics = () => {
           Pumping Tokens
         </Button>
       </div>
-      <p className="text-muted-foreground">Analytics dashboard coming soon...</p>
+      <TradesTable />
     </div>
   );
 };

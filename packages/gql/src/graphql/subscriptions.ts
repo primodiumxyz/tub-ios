@@ -49,3 +49,19 @@ export const GetTokenCandlesSinceSubscription = graphql(`
     }
   }
 `);
+
+export const GetTradesSubscription = graphql(`
+  subscription SubTrades($limit: Int = 100) {
+    transactions(order_by: { created_at: desc }, limit: $limit) {
+      id
+      created_at
+      user_wallet
+      token_mint
+      token_amount
+      token_price_usd
+      token_value_usd
+      success
+      error_details
+    }
+  }
+`);
