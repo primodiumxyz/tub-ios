@@ -89,3 +89,14 @@ export const GetTradesByUserWalletOrTokenMintSubscription = graphql(`
     }
   }
 `);
+
+export const GetStatsSubscription = graphql(`
+  subscription SubStats($userWallet: String, $tokenMint: String) {
+    transaction_analytics(args: { user_wallet: $userWallet, token_mint: $tokenMint }) {
+      total_pnl_usd
+      total_volume_usd
+      trade_count
+      success_rate
+    }
+  }
+`);

@@ -18,7 +18,7 @@ export const Tracker = () => {
         <h3 className="text-lg font-semibold">Pumping tokens</h3>
         <Button variant="ghost" className="gap-2" onClick={() => navigate("/analytics")}>
           <BarChart3 className="w-4 h-4" />
-          User Analytics
+          Trades Analytics
         </Button>
       </div>
       <TokensTable onRowClick={(row) => setSelectedToken(row.original as Token)} />

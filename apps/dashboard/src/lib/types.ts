@@ -43,3 +43,15 @@ export type TradeFilters = {
   userWalletOrTokenMint?: string;
   limit?: number;
 };
+
+export type Stats = {
+  pnlUsd: number;
+  volumeUsd: number;
+  tradeCount: number;
+  successRate: number;
+};
+
+export type StatsFilters = {
+  userWallet?: string;
+  tokenMint?: string;
+};
