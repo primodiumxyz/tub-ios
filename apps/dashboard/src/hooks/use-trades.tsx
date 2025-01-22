@@ -1,7 +1,7 @@
 import { useMemo } from "react";
-import { useQuery, useSubscription } from "urql";
+import { useSubscription } from "urql";
 
-import { queries, subscriptions } from "@tub/gql";
+import { subscriptions } from "@tub/gql";
 import { GroupedTrade, Trade, TradeFilters } from "@/lib/types";
 
 export const useTrades = (
@@ -21,21 +21,10 @@ export const useTrades = (
       : { limit: filters.limit },
   });
 
-  const [metadataRes] = useQuery({
-    query: queries.GetBulkTokenMetadataQuery,
-    variables: {
-      tokens: Array.from(new Set(tradesRes.data?.transactions.map((t) => t.token_mint) ?? [])),
-    },
-    pause: !tradesRes.data,
-    requestPolicy: "network-only",
-  });
-
   return useMemo(() => {
     const rawTrades: Trade[] =
       tradesRes.data?.transactions.map((t) => {
-        const tokenMetadata = metadataRes.data?.token_rolling_stats_30min.find((m) => m.mint === t.token_mint);
-        const decimals = Number(tokenMetadata?.decimals ?? 6);
-        const tokenAmount = Number(t.token_amount) / 10 ** decimals;
+        const tokenAmount = Number(t.token_amount) / 10 ** t.token_decimals;
 
         return {
           id: t.id,
@@ -44,7 +33,7 @@ export const useTrades = (
           token: t.token_mint,
           price: Number(t.token_price_usd),
           amount: Math.abs(tokenAmount),
-          value: Number(t.token_value_usd) / 10 ** decimals,
+          value: Number(t.token_value_usd) / 10 ** t.token_decimals,
           type: tokenAmount > 0 ? "buy" : "sell",
           success: t.success,
           error: t.error_details,
@@ -115,5 +104,5 @@ export const useTrades = (
       fetching: tradesRes.fetching,
       error: tradesRes.error?.message,
     };
-  }, [tradesRes.data, tradesRes.fetching, tradesRes.error, filters, metadataRes.data]);
+  }, [tradesRes.data, tradesRes.fetching, tradesRes.error, filters]);
 };

@@ -42,6 +42,10 @@
           type:
             nullable: false
             scalar: numeric
+        - name: token_decimals
+          type:
+            nullable: false
+            scalar: integer
         - name: error_details
           type:
             nullable: true
@@ -58,6 +62,7 @@
               - token_amount
               - success
               - token_value_usd
+              - token_decimals
               - error_details
             filter: {}
           role: public
@@ -85,7 +90,7 @@
           role: public
   native_queries:
     - arguments: {}
-      code: "SELECT \n    id,\n    created_at,\n    user_wallet,\n    token_mint,\n    token_price_usd,\n    token_amount,\n    token_amount * token_price_usd as token_value_usd,\n    error_details IS NULL as success,\n    error_details\nFROM token_purchase\n\nUNION ALL\n\nSELECT \n    id,\n    created_at,\n    user_wallet,\n    token_mint,\n    token_price_usd,\n    -token_amount as token_amount,  -- Negative amount for sales\n    -token_amount * token_price_usd as token_value_usd,\n\n    error_details IS NULL as success,\n    error_details\nFROM token_sale;"
+      code: "SELECT \n    id,\n    created_at,\n    user_wallet,\n    token_mint,\n    token_price_usd,\n    token_amount,\n    token_amount * token_price_usd as token_value_usd,\n    token_decimals,\n    error_details IS NULL as success,\n    error_details\nFROM token_purchase\n\nUNION ALL\n\nSELECT \n    id,\n    created_at,\n    user_wallet,\n    token_mint,\n    token_price_usd,\n    -token_amount as token_amount,  -- Negative amount for sales\n    -token_amount * token_price_usd as token_value_usd,\n    token_decimals,\n    error_details IS NULL as success,\n    error_details\nFROM token_sale;"
       returns: transaction_model
       root_field_name: transactions
     - arguments: {}

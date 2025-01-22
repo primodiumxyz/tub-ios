@@ -60,6 +60,7 @@ export const GetTradesSubscription = graphql(`
       token_amount
       token_price_usd
       token_value_usd
+      token_decimals
       success
       error_details
     }
@@ -82,6 +83,7 @@ export const GetTradesByUserWalletOrTokenMintSubscription = graphql(`
       token_amount
       token_price_usd
       token_value_usd
+      token_decimals
       success
       error_details
     }
