@@ -42,6 +42,7 @@ struct TokenPurchaseInput: Codable {
     let tokenMint: String
     let tokenAmount: String
     let tokenPriceUsd: String
+    let tokenDecimals: Int
     let source: String
     let errorDetails: String?
     let userAgent: String
@@ -53,6 +54,7 @@ struct TokenSaleInput: Codable {
     let tokenMint: String
     let tokenAmount: String
     let tokenPriceUsd: String
+    let tokenDecimals: Int
     let source: String
     let errorDetails: String?
     let userAgent: String

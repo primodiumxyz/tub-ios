@@ -101,6 +101,7 @@ export type TokenPurchaseOrSaleEvent = ClientEvent & {
   tokenMint: string;
   tokenAmount: string;
   tokenPriceUsd: string;
+  tokenDecimals: number;
 };
 
 export type LoadingTimeEvent = ClientEvent & {

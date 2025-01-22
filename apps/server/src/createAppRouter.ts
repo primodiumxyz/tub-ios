@@ -222,6 +222,7 @@ export function createAppRouter() {
           tokenMint: z.string(),
           tokenAmount: z.string(),
           tokenPriceUsd: z.string(),
+          tokenDecimals: z.number(),
         }),
       )
       .mutation(async ({ ctx, input }) => {
@@ -235,6 +236,7 @@ export function createAppRouter() {
           tokenMint: z.string(),
           tokenAmount: z.string(),
           tokenPriceUsd: z.string(),
+          tokenDecimals: z.number(),
         }),
       )
       .mutation(async ({ ctx, input }) => {

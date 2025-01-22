@@ -19,6 +19,7 @@ describe("mutation tests", () => {
       token_mint: tokenAddress,
       token_amount: "200",
       token_price_usd: "0.001",
+      token_decimals: "6",
       user_wallet: wallet,
       user_agent: "test",
     });
@@ -29,6 +30,7 @@ describe("mutation tests", () => {
       token_mint: tokenAddress,
       token_amount: "100",
       token_price_usd: "0.002",
+      token_decimals: "6",
       user_wallet: wallet,
       user_agent: "test",
     });
