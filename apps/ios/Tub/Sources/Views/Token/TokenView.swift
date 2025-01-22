@@ -14,9 +14,8 @@ struct TokenView: View {
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject private var userModel: UserModel
     @EnvironmentObject private var notificationHandler: NotificationHandler
-    
-    @State private var showInfoCard = false
     @State private var keyboardHeight: CGFloat = 0
+    @State private var showInfoOverlay = false
     
     let animate: Bool
     
@@ -98,10 +97,30 @@ struct TokenView: View {
                     Text(price)
                         .font(.sfRounded(size: .xl4, weight: .bold))
 
-                    Image("Info")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 20, height: 20)
+                    Button(action: {
+                        if let tokenData = tokenData, tokenData.liveData != nil {
+                            showInfoOverlay.toggle()
+                        }
+                    }) {
+                        Image("Info")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20, height: 20)
+                    }
+                    .sheet(isPresented: $showInfoOverlay) {
+                        if let tokenData = tokenData, let generalStats = self.generalStats {
+                            TokenInfoCardView(
+                                tokenData: tokenData,
+                                stats: generalStats,
+                                sellStats: sellStats
+                            )
+                            .presentationDetents([.height(400)])
+                            .presentationCornerRadius(30)
+                        } else {
+                            ErrorView(errorMessage: "Couldn't find token information.", retryAction: {})
+                                .presentationDetents([.height(400)])
+                        }
+                    }
                 }
                 
             } else {
@@ -149,11 +168,6 @@ struct TokenView: View {
             )
         }
         .padding(.horizontal)
-        .onTapGesture {
-            withAnimation(.easeInOut) {
-                showInfoCard.toggle()
-            }
-        }
     }
     
     let height = UIScreen.main.bounds.height * 0.4
@@ -229,5 +243,58 @@ struct TokenView: View {
                 Spacer().frame(height: 32)
             }
         }
+    }
+    
+    private var sellStats: [StatValue]? {
+        guard
+            let tokenData,
+            tokenModel.isReady,
+            let priceUsd = tokenModel.prices.last?.priceUsd,
+            priceUsd > 0,
+            activeTab == .sell
+        else {
+            return nil
+        }
+        var stats = [StatValue]()
+        
+        let decimals = pow(10.0, Double(tokenData.metadata.decimals))
+        if let purchaseData = tokenModel.purchaseData {
+            let tokenBalance = Double(purchaseData.amountToken) / decimals
+            let tokenBalanceUsd = tokenBalance * (tokenModel.prices.last?.priceUsd ?? 0)
+            let initialValueUsd = tokenBalance * purchaseData.priceUsd
+            let gains = tokenBalanceUsd - initialValueUsd
+            let percentageGain = gains / initialValueUsd * 100
+            stats.append(
+                StatValue(
+                    title: "Gains",
+                    value: "\(priceModel.formatPrice(usd: gains, showSign: true)) (\(String(format: "%.2f", percentageGain))%)",
+                    color: gains >= 0 ? Color.tubSuccess : Color.tubError
+                )
+            )
+        }
+
+        let tokenBalance = Double(balanceToken) / decimals
+        let tokenBalanceUsd = tokenBalance * (tokenModel.prices.last?.priceUsd ?? 0)
+
+        stats.append(
+            StatValue(
+                title: "You own",
+                value: "\(priceModel.formatPrice(usd: tokenBalanceUsd, maxDecimals: 2, minDecimals: 2)) (\(formatLargeNumber(tokenBalance)) \(tokenData.metadata.symbol))"
+            )
+        )
+        return stats
+    }
+
+    private var generalStats: [StatValue]? {
+        if let token = userModel.tokenData[tokenModel.tokenId]
+        , let liveData = token.liveData {
+            return [
+                StatValue(title: "Market Cap", value: priceModel.formatPrice(usd: liveData.priceUsd * (Double(liveData.supply) / pow(10.0, Double(token.metadata.decimals))), formatLarge: true)),
+                StatValue(title: "Volume", caption: "30m", value: priceModel.formatPrice(usd: liveData.stats.volumeUsd, formatLarge: true)),
+                StatValue(title: "Trades", caption: "30m", value: liveData.stats.trades.formatted()),
+                StatValue(title: "Change", caption: "30m", value: String(format: "%.2f%%", liveData.stats.priceChangePct)),
+            ]
+        }
+        return nil
     }
 }
