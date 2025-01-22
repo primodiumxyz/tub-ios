@@ -14,7 +14,7 @@ export const Stats = () => {
 
   return (
     <div className="flex flex-col gap-2 w-full">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-end gap-2">
         <Input
           placeholder="Search user wallet..."
           value={walletFilter}
