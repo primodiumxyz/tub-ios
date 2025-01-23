@@ -302,7 +302,8 @@ export function createAppRouter() {
         z.object({
           toAddress: z.string(),
           amount: z.string(),
-          tokenId: z.string(),
+          tokenId: z.string().optional(),
+          nativeSol: z.boolean().optional(),
         }),
       )
       .query(async ({ ctx, input }) => {
