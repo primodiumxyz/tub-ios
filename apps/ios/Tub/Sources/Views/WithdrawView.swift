@@ -9,24 +9,30 @@ import SwiftUI
 
 class WithdrawModel: ObservableObject {
     var walletAddress: String? = nil
-
+    
+    @Published var selectedToken: Token = .usdc
     @Published var buyAmountUsdString: String = ""
     @Published var buyAmountUsd: Double = 0
     @Published var recipient: String = ""
     @Published var continueDisabled: Bool = true
     @Published var sending: Bool = false
-
+    
+    enum Token: String, CaseIterable {
+        case usdc = "USDC"
+        case sol = "SOL"
+    }
+    
     func initialize(walletAddress: String) {
         self.walletAddress = walletAddress
     }
-
+    
     func validateAddress(_ address: String) -> Bool {
         // Check if address is empty
         guard !address.isEmpty else { return false }
-
+        
         // Check length (Solana addresses are 32-byte public keys encoded in base58, resulting in 44 characters)
         guard address.count == 44 else { return false }
-
+        
         // Check if address contains only valid base58 characters
         let base58Charset = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
         let addressCharSet = CharacterSet(charactersIn: address)
@@ -38,36 +44,38 @@ class WithdrawModel: ObservableObject {
         guard let walletAddress else {
             throw TubError.somethingWentWrong(reason: "Cannot transfer: not logged in")
         }
-
+        
         if !validateAddress(recipient) {
             throw TubError.somethingWentWrong(reason: "Invalid recipient address")
         }
-
-        let buyAmountUsdc = Int(buyAmountUsd * USDC_DECIMALS)
-
-        do {
-            await MainActor.run {
-            sending = true
-            }
+        
+        switch selectedToken {
+        case .usdc:
+            let buyAmountUsdc = Int(buyAmountUsd * USDC_DECIMALS)
+            await MainActor.run { sending = true }
             let txId = try await Network.shared.transferUsdc(
                 fromAddress: walletAddress,
                 toAddress: recipient,
                 amount: buyAmountUsdc
             )
-            await MainActor.run {
-                sending = false
-            }
+            await MainActor.run { sending = false }
             return txId
-        }
-
-        catch {
-            await MainActor.run {
-                sending = false
-            }
-            throw error
+            
+        case .sol:
+            print("selling sol")
+            //      let buyAmountSol = buyAmountUsd / priceModel.solPrice
+            //      await MainActor.run { sending = true }
+            //      let txId = try await Network.shared.transferSol(
+            //        fromAddress: walletAddress,
+            //        toAddress: recipient,
+            //        amount: buyAmountSol
+            //      )
+            await MainActor.run { sending = false }
+            return ""
+//            return txId
         }
     }
-
+    
 }
 
 struct WithdrawView: View {
@@ -76,20 +84,43 @@ struct WithdrawView: View {
     @EnvironmentObject var notificationHandler: NotificationHandler
     @StateObject private var vm = WithdrawModel()
     @Environment(\.dismiss) private var dismiss
-
+    
     func handleContinue() {
         Task {
             do {
                 let _ = try await vm.onComplete()
                 notificationHandler.show("Transfer successful!", type: .success)
-            }
-            catch {
+            } catch {
                 notificationHandler.show(error.localizedDescription, type: .error)
             }
         }
     }
-
+    
+    private var tokenSelector: some View {
+        HStack(spacing: 12) {
+            ForEach(WithdrawModel.Token.allCases, id: \.self) { token in
+                Button(action: { vm.selectedToken = token }) {
+                    Text(token.rawValue)
+                        .font(.sfRounded(size: .lg, weight: .medium))
+                        .foregroundStyle(vm.selectedToken == token ? .tubTextInverted : .tubText)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(vm.selectedToken == token ? .tubBuyPrimary : .clear)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.tubBuyPrimary, lineWidth: 1)
+                        )
+                }
+            }
+        }
+    }
+    
     private var numberInput: some View {
+        
+        
         VStack(alignment: .center, spacing: 4) {
             HStack(spacing: 4) {
                 Spacer()
@@ -106,7 +137,7 @@ struct WithdrawView: View {
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.leading)
                 .textFieldStyle(PlainTextFieldStyle())
-                .onChange(of: vm.buyAmountUsdString) { 
+                .onChange(of: vm.buyAmountUsdString) {
                     let text = vm.buyAmountUsdString
                     
                     // Validate decimal places
@@ -128,10 +159,7 @@ struct WithdrawView: View {
                 }
                 .font(.sfRounded(size: .xl5, weight: .semibold))
                 .foregroundStyle(
-                    vm.buyAmountUsd == 0 ||
-                    (userModel.usdcBalance ?? 0) < priceModel.usdToUsdc(usd: vm.buyAmountUsd)
-                    ? .tubError
-                    : .tubText
+                    .tubText
                 )
                 .frame(minWidth: 50)
                 .fixedSize()
@@ -141,16 +169,19 @@ struct WithdrawView: View {
             .padding(.horizontal)
         }
     }
-
+    
     var body: some View {
         NavigationStack {
             VStack(alignment: .center) {
                 Spacer().frame(height: UIScreen.height(Layout.Spacing.md))
+                tokenSelector
                 numberInput
                 
-                Text("Your Balance \(priceModel.formatPrice(usdc: userModel.usdcBalance ?? 0))")
-                    .font(.sfRounded(size: .lg, weight: .medium))
-                    .foregroundStyle(.tubBuyPrimary)
+                Text(
+                    "Your Balance \(vm.selectedToken == .usdc ? priceModel.formatPrice(usdc: userModel.usdcBalance ?? 0) : priceModel.formatPrice(lamports: userModel.solBalanceLamps))"
+                )
+                .font(.sfRounded(size: .lg, weight: .medium))
+                .foregroundStyle(.tubBuyPrimary)
                 
                 Spacer().frame(height: UIScreen.height(Layout.Spacing.lg))
                 RecipientSelectView(vm: vm)
@@ -160,9 +191,10 @@ struct WithdrawView: View {
                     text: "Confirm",
                     textColor: .tubTextInverted,
                     backgroundColor: .tubBuyPrimary,
-                    disabled: !vm.validateAddress(vm.recipient) ||
-                             vm.buyAmountUsd == 0 ||
-                             (userModel.usdcBalance ?? 0) < priceModel.usdToUsdc(usd: vm.buyAmountUsd),
+                    disabled: !vm.validateAddress(vm.recipient) || vm.buyAmountUsd == 0
+                    || (vm.selectedToken == .usdc
+                        ? (userModel.usdcBalance ?? 0) < priceModel.usdToUsdc(usd: vm.buyAmountUsd)
+                        : userModel.solBalanceLamps < priceModel.usdToLamports(usd: vm.buyAmountUsd)),
                     loading: vm.sending,
                     action: handleContinue
                 )
@@ -190,14 +222,14 @@ struct WithdrawView: View {
             }
         }
     }
-
+    
 }
 
 struct RecipientSelectView: View {
     @EnvironmentObject var priceModel: SolPriceModel
     @State var showError: Bool = false
     @ObservedObject var vm: WithdrawModel
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: UIScreen.height(Layout.Spacing.xs)) {
             Text("To")
@@ -258,9 +290,9 @@ struct RecipientSelectView: View {
         spoofPriceModelData(model)
         return model
     }()
-
+    
     @Previewable @StateObject var userModel = UserModel.shared
-
+    
     VStack {
         WithdrawView()
             .environmentObject(userModel)
