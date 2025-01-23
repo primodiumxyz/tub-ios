@@ -1,17 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "Usdc.png",
+      "filename" : "ui_usdc.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "Usdc 1.png",
+      "filename" : "ui_usdc@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "Usdc 2.png",
+      "filename" : "ui_usdc@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }

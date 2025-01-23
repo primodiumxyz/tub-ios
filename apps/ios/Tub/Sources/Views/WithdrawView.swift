@@ -120,7 +120,7 @@ struct WithdrawView: View {
             }
             .foregroundStyle(.tubText)
             .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.vertical, 11)
             .background(
                 RoundedRectangle(cornerRadius: 24)
                     .stroke(Color.tubBuyPrimary, lineWidth: 1)
