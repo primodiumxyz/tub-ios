@@ -396,7 +396,7 @@ export class TubService {
     return response;
   }
 
-  async getBalance(jwtToken: string): Promise<{ balance: number }> {
+  async getSolBalance(jwtToken: string): Promise<{ balance: number }> {
     const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
 
     const balance = await this.connection.getBalance(walletPublicKey, "processed");

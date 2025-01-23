@@ -11,15 +11,15 @@ import TubAPI
 final class SolPriceModel: ObservableObject {
     static let shared = SolPriceModel()
 
-    @Published var price: Double? = nil
+    @Published var solPrice: Double? = nil
     @Published var error: String?
+    @Published var ready: Bool = false
 
     private var timer: Timer?
     private var fetching = false
 
     init() {
-        // we dont need this because we use usdc as the base unit
-        // startPriceUpdates()
+        startPriceUpdates()
     }
 
     deinit {
@@ -34,7 +34,8 @@ final class SolPriceModel: ObservableObject {
         
         do {
             let price = try await Network.shared.getSolPrice()
-            self.price = price
+            self.solPrice = price
+            self.ready = true
             self.error = nil
         } catch {
             self.error = error.localizedDescription
@@ -94,16 +95,16 @@ final class SolPriceModel: ObservableObject {
     }
 
     func formatPrice(
-        sol: Double,
+        sol: Int,
         showSign: Bool = false,
         showUnit: Bool = true,
         maxDecimals: Int = 2,
         minDecimals: Int = 2,
         formatLarge: Bool = true
     ) -> String {
-        if let price = self.price, price > 0 {
+        if let price = self.solPrice, price > 0 {
             return formatPriceUsd(
-                usd: sol * price,
+                usd: Double(sol) * price,
                 showSign: showSign,
                 showUnit: showUnit,
                 maxDecimals: maxDecimals,
@@ -135,21 +136,17 @@ final class SolPriceModel: ObservableObject {
     }
 
     func usdToLamports(usd: Double) -> Int {
-        if let price = self.price, price > 0 {
-            return Int(usd * SOL_DECIMALS / price)
-        }
-        else {
+        guard let price = solPrice, price > 0 else {
             return 0
         }
+        return Int(usd * SOL_DECIMALS / price)
     }
 
     func lamportsToUsd(lamports: Int) -> Double {
-        if let price = self.price, price > 0 {
-            return Double(lamports) * price / SOL_DECIMALS
-        }
-        else {
+        guard let price = solPrice, price > 0 else {
             return 0
         }
+        return Double(lamports) * price / SOL_DECIMALS
     }
 
     func usdcToUsd(usdc: Int) -> Double {
