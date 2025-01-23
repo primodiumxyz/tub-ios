@@ -11,8 +11,8 @@ import { env } from "../bin/tub-server";
 import { PrebuildSwapResponse, SubmitSignedTransactionResponse } from "../src/types";
 import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY, MEMECOIN_MAINNET_PUBLIC_KEY } from "../src/constants/tokens";
 import { ConfigService } from "../src/services/ConfigService";
-import { TransferService } from "@/services/TransferService";
-import { TransactionService } from "@/services/TransactionService";
+import { TransferService } from "../src/services/TransferService";
+import { TransactionService } from "../src/services/TransactionService";
 // Skip entire suite in CI, because it would perform a live transaction each deployment
 (env.CI ? describe.skip : describe)("TubService Integration Test", () => {
   let tubService: TubService;
