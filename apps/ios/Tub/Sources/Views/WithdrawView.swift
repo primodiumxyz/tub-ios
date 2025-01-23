@@ -117,6 +117,7 @@ struct WithdrawView: View {
                     .font(.system(size: 14))
             }
             .foregroundStyle(.tubText)
+            .frame(width:100)
             .padding(.horizontal, 16)
             .padding(.vertical, 11)
             .background(
