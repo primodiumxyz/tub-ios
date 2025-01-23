@@ -95,24 +95,34 @@ struct WithdrawView: View {
     }
     
     private var tokenSelector: some View {
-        HStack(spacing: 12) {
+        Menu {
             ForEach(WithdrawModel.Token.allCases, id: \.self) { token in
                 Button(action: { vm.selectedToken = token }) {
-                    Text(token.rawValue)
-                        .font(.sfRounded(size: .lg, weight: .medium))
-                        .foregroundStyle(vm.selectedToken == token ? .tubTextInverted : .tubText)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(vm.selectedToken == token ? .tubBuyPrimary : .clear)
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color.tubBuyPrimary, lineWidth: 1)
-                        )
+                    HStack {
+                        Image(token == .usdc ? "USDC" : "Solana")
+                            .resizable()
+                            .frame(width: 20, height: 20)
+                        Text(token.rawValue)
+                    }
                 }
             }
+        } label: {
+            HStack {
+                Image(vm.selectedToken == .usdc ? "USDC" : "Solana")
+                    .resizable()
+                    .frame(width: 20, height: 20)
+                Text(vm.selectedToken.rawValue)
+                    .font(.sfRounded(size: .lg, weight: .medium))
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 14))
+            }
+            .foregroundStyle(.tubText)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 11)
+            .background(
+                RoundedRectangle(cornerRadius: 24)
+                    .stroke(Color.tubBuyPrimary, lineWidth: 1)
+            )
         }
     }
     
