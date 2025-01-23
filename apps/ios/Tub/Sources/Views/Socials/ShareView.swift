@@ -8,6 +8,11 @@
 import SwiftUI
 import Photos
 
+struct GainMetrics {
+    let usd: Double
+    let percentage: Double
+}
+
 struct ShareView: View {
     let tokenName: String
     let tokenSymbol: String
@@ -17,6 +22,7 @@ struct ShareView: View {
     @State private var showingSaveSuccess = false
     @State private var loadedImage: Image?
     @EnvironmentObject private var userModel: UserModel
+    @EnvironmentObject private var priceModel: SolPriceModel
     
     var shareText: String {
         """
@@ -28,17 +34,17 @@ struct ShareView: View {
         """
     }
     
-    var gainPercentage: Double {
+    var gains: GainMetrics {
         guard let transactions = userModel.txs else {
             print("DEBUG: No transactions found")
-            return 0 
+            return GainMetrics(usd: 0, percentage: 0)
         }
         
         let tokenTxs = transactions.filter { $0.mint == tokenMint }
         
         // Find the most recent sell
         guard let latestSell = tokenTxs.first(where: { !$0.isBuy }) else {
-            return 0
+            return GainMetrics(usd: 0, percentage: 0)
         }
         
         // Find the most recent buy that occurred before this sell
@@ -53,13 +59,13 @@ struct ShareView: View {
         }
         
         guard let latestBuy = validBuy else {
-            return 0
+            return GainMetrics(usd: 0, percentage: 0)
         }
         
         let buyValue = abs(latestBuy.valueUsd) 
         let sellValue = latestSell.valueUsd
 
-        return ((sellValue - buyValue) / buyValue) * 100
+        return GainMetrics(usd: sellValue - buyValue, percentage: ((sellValue - buyValue) / buyValue) * 100)
     }
     
     private func saveImage() {
@@ -121,11 +127,19 @@ struct ShareView: View {
                         .foregroundStyle(Color(uiColor: UIColor(named: "tubNeutral")!))
                                         
                     if tokenModel.isReady {
-                        Text("\(String(format: "%.2f", gainPercentage))%")
-                            .font(.sfRounded(size: .xl2, weight: .bold))
-                            .foregroundStyle(gainPercentage >= 0 ? 
-                                Color(uiColor: UIColor(named: "tubSuccess")!) :
-                                Color(uiColor: UIColor(named: "tubError")!))
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("\(priceModel.formatPrice(usd: gains.usd))")
+                                .font(.sfRounded(size: .xl2, weight: .bold))
+                                .foregroundStyle(gains.usd >= 0 ?
+                                    Color(uiColor: UIColor(named: "tubSuccess")!) :
+                                    Color(uiColor: UIColor(named: "tubError")!))
+
+                            Text("\(String(format: "%.2f", gains.percentage))%")
+                                .font(.sfRounded(size: .sm, weight: .bold))
+                                .foregroundStyle(gains.usd >= 0 ?
+                                    Color(uiColor: UIColor(named: "tubSuccess")!) :
+                                    Color(uiColor: UIColor(named: "tubError")!))
+                        }
                     }
                 }
                 .padding(.leading, 16)
