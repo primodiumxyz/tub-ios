@@ -1,4 +1,11 @@
-import { Connection, Keypair, PublicKey, TransactionMessage } from "@solana/web3.js";
+import {
+  Connection,
+  Keypair,
+  PublicKey,
+  SystemProgram,
+  TransactionInstruction,
+  TransactionMessage,
+} from "@solana/web3.js";
 import { createTransferInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { TransactionService } from "./TransactionService";
 import { TransactionType } from "../types";
@@ -7,7 +14,8 @@ export interface TransferRequest {
   fromAddress: string;
   toAddress: string;
   amount: bigint;
-  tokenId: string;
+  tokenId?: string;
+  nativeSol?: boolean;
 }
 
 export interface SignedTransfer {
@@ -24,19 +32,25 @@ export class TransferService {
   ) {}
 
   async getTransfer(request: TransferRequest): Promise<{ transactionMessageBase64: string }> {
-    const tokenMint = new PublicKey(request.tokenId);
-    const fromPublicKey = new PublicKey(request.fromAddress);
-    const toPublicKey = new PublicKey(request.toAddress);
+    let transferInstruction: TransactionInstruction;
+    if (request.nativeSol) {
+      transferInstruction = SystemProgram.transfer({
+        fromPubkey: new PublicKey(request.fromAddress),
+        toPubkey: new PublicKey(request.toAddress),
+        lamports: request.amount,
+      });
+    } else if (!request.nativeSol && request.tokenId) {
+      const tokenMint = new PublicKey(request.tokenId);
+      const fromPublicKey = new PublicKey(request.fromAddress);
+      const toPublicKey = new PublicKey(request.toAddress);
 
-    const fromTokenAccount = getAssociatedTokenAddressSync(tokenMint, fromPublicKey);
-    const toTokenAccount = getAssociatedTokenAddressSync(tokenMint, toPublicKey);
+      const fromTokenAccount = getAssociatedTokenAddressSync(tokenMint, fromPublicKey);
+      const toTokenAccount = getAssociatedTokenAddressSync(tokenMint, toPublicKey);
 
-    const transferInstruction = createTransferInstruction(
-      fromTokenAccount,
-      toTokenAccount,
-      fromPublicKey,
-      request.amount,
-    );
+      transferInstruction = createTransferInstruction(fromTokenAccount, toTokenAccount, fromPublicKey, request.amount);
+    } else {
+      throw new Error("Invalid transfer request");
+    }
 
     const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash();
 
