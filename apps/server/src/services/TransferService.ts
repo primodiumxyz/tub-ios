@@ -14,8 +14,7 @@ export interface TransferRequest {
   fromAddress: string;
   toAddress: string;
   amount: bigint;
-  tokenId?: string;
-  nativeSol?: boolean;
+  tokenId: string;
 }
 
 export interface SignedTransfer {
@@ -33,13 +32,13 @@ export class TransferService {
 
   async getTransfer(request: TransferRequest): Promise<{ transactionMessageBase64: string }> {
     let transferInstruction: TransactionInstruction;
-    if (request.nativeSol) {
+    if (request.tokenId === "SOLANA") {
       transferInstruction = SystemProgram.transfer({
         fromPubkey: new PublicKey(request.fromAddress),
         toPubkey: new PublicKey(request.toAddress),
         lamports: request.amount,
       });
-    } else if (!request.nativeSol && request.tokenId) {
+    } else if (request.tokenId) {
       const tokenMint = new PublicKey(request.tokenId);
       const fromPublicKey = new PublicKey(request.fromAddress);
       const toPublicKey = new PublicKey(request.toAddress);

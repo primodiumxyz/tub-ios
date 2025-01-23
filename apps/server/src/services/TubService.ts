@@ -445,8 +445,7 @@ export class TubService {
     request: {
       toAddress: string;
       amount: string;
-      tokenId?: string;
-      nativeSol?: boolean;
+      tokenId: string;
     },
   ): Promise<{ transactionMessageBase64: string }> {
     const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
@@ -456,7 +455,6 @@ export class TubService {
       toAddress: request.toAddress,
       amount: BigInt(request.amount),
       tokenId: request.tokenId,
-      nativeSol: request.nativeSol,
     };
 
     // Get the transfer transaction from the transfer service

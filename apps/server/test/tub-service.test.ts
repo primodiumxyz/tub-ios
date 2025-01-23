@@ -145,7 +145,7 @@ import { TransactionService } from "@/services/TransactionService";
         toAddress: destinationKeypair.publicKey.toString(),
         fromAddress: userKeypair.publicKey.toString(),
         amount: BigInt(1),
-        nativeSol: true,
+        tokenId: "SOLANA",
       });
       console.log("Transfer response:", transferResponse);
       // decode the transaction message
@@ -164,8 +164,8 @@ import { TransactionService } from "@/services/TransactionService";
       const txid = await connection.sendTransaction(transaction);
       console.log("Transaction sent with id:", txid);
 
-      // wait for 5 seconds and console log the countdown
-      for (let i = 5; i > 0; i--) {
+      // wait for 10 seconds and console log the countdown
+      for (let i = 10; i > 0; i--) {
         console.log(`Let RPCs catch up for ${i} seconds...`);
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
