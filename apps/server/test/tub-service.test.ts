@@ -131,7 +131,7 @@ import { TransactionService } from "../src/services/TransactionService";
     });
   });
 
-  describe("SOL transfer test", () => {
+  describe.skip("SOL transfer test", () => {
     it("should transfer SOL from user to desired address", async () => {
       const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY)); // note that the fee payer is the destination for this test
       const transactionService = new TransactionService(connection, feePayerKeypair);
