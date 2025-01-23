@@ -216,6 +216,33 @@ class Network {
     return response.signature
   }
 
+  func transferSol(fromAddress: String, toAddress: String, amount: Int) async throws -> String {
+    // 1. Get the pre-signed transaction from the server
+    let input = TransferInput(
+      toAddress: toAddress,
+      amount: String(amount),
+      tokenId: "SOLANA"
+    )
+    let transfer: TransferResponse = try await callQuery(
+      "fetchTransferTx", input: input, tokenRequired: true)
+
+    // 3. Sign using the Privy Embedded Wallet
+    let provider = try privy.embeddedWallet.getSolanaProvider(for: fromAddress)
+    let userSignature = try await provider.signMessage(message: transfer.transactionMessageBase64)
+
+    // 4. Submit the signed transaction
+    let response: TxIdResponse = try await callMutation(
+      "submitSignedTransaction",
+      input: signedTxInput(
+        signature: userSignature,
+        base64Transaction: transfer.transactionMessageBase64
+      ),
+      tokenRequired: true
+    )
+
+    return response.signature
+  }
+
   func startLiveActivity(
     tokenId: String, tokenPriceUsd: String, deviceToken: String, pushToken: String
   ) async throws {
