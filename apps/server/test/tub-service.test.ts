@@ -131,7 +131,7 @@ import { TransactionService } from "../src/services/TransactionService";
     });
   });
 
-  describe.skip("SOL transfer test", () => {
+  describe("SOL transfer test", () => {
     it("should transfer SOL from user to desired address", async () => {
       const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY)); // note that the fee payer is the destination for this test
       const transactionService = new TransactionService(connection, feePayerKeypair);
@@ -160,9 +160,19 @@ import { TransactionService } from "../src/services/TransactionService";
       expect(userSignature).toBeDefined();
       expect(feePayerSignature).toBeDefined();
 
+      // simulate the transaction
+      const simulation = await connection.simulateTransaction(transaction, { commitment: "finalized" });
+      console.log("Simulation:", simulation);
+
       // send the transaction
       const txid = await connection.sendTransaction(transaction);
       console.log("Transaction sent with id:", txid);
+
+      // confirm the transaction
+      const status = await connection.getSignatureStatus(txid, {
+        searchTransactionHistory: true,
+      });
+      console.log("Transaction status:", status);
 
       // wait for 10 seconds and console log the countdown
       for (let i = 10; i > 0; i--) {
@@ -170,12 +180,18 @@ import { TransactionService } from "../src/services/TransactionService";
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
 
+      // confirm transaction again
+      const status2 = await connection.getSignatureStatus(txid, {
+        searchTransactionHistory: true,
+      });
+      console.log("Transaction status:", status2);
+
       // get user's SOL balance
       const userSolBalance = await connection.getBalance(userKeypair.publicKey, "processed");
       console.log("User SOL balance:", userSolBalance);
       // expect the user's SOL balance to be equal to the initial balance minus 1 lamport
       expect(userSolBalance).toEqual(initUserSolBalance - 1);
-    });
+    }, 15000);
   });
 
   describe.skip("swap execution", () => {
