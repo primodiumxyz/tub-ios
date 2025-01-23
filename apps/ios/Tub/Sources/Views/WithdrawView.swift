@@ -62,17 +62,15 @@ class WithdrawModel: ObservableObject {
             return txId
             
         case .sol:
-            print("selling sol")
-            //      let buyAmountSol = buyAmountUsd / priceModel.solPrice
-            //      await MainActor.run { sending = true }
-            //      let txId = try await Network.shared.transferSol(
-            //        fromAddress: walletAddress,
-            //        toAddress: recipient,
-            //        amount: buyAmountSol
-            //      )
+            let buyAmountSol = SolPriceModel.shared.usdToLamports(usd: buyAmountUsd)
+                  await MainActor.run { sending = true }
+                  let txId = try await Network.shared.transferSol(
+                    fromAddress: walletAddress,
+                    toAddress: recipient,
+                    amount: buyAmountSol
+                  )
             await MainActor.run { sending = false }
-            return ""
-//            return txId
+            return txId
         }
     }
     
