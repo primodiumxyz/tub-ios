@@ -5,6 +5,7 @@ import {
   SystemProgram,
   TransactionInstruction,
   TransactionMessage,
+  ComputeBudgetProgram,
 } from "@solana/web3.js";
 import { createTransferInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { TransactionService } from "./TransactionService";
@@ -32,6 +33,8 @@ export class TransferService {
 
   async getTransfer(request: TransferRequest): Promise<{ transactionMessageBase64: string }> {
     let transferInstruction: TransactionInstruction;
+    let computeUnitLimitInstruction: TransactionInstruction | undefined;
+    let computeUnitPriceInstruction: TransactionInstruction | undefined;
     if (request.tokenId === "SOLANA") {
       transferInstruction = SystemProgram.transfer({
         fromPubkey: new PublicKey(request.fromAddress),
@@ -47,16 +50,29 @@ export class TransferService {
       const toTokenAccount = getAssociatedTokenAddressSync(tokenMint, toPublicKey);
 
       transferInstruction = createTransferInstruction(fromTokenAccount, toTokenAccount, fromPublicKey, request.amount);
+
+      computeUnitLimitInstruction = ComputeBudgetProgram.setComputeUnitLimit({
+        units: 5000,
+      });
+
+      computeUnitPriceInstruction = ComputeBudgetProgram.setComputeUnitPrice({
+        microLamports: 100000,
+      });
     } else {
       throw new Error("Invalid transfer request");
     }
 
-    const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash();
+    const slot = await this.connection.getSlot("finalized");
+    const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash("finalized");
+
+    const allInstructions = [computeUnitLimitInstruction, computeUnitPriceInstruction, transferInstruction].filter(
+      (instruction) => instruction !== undefined,
+    );
 
     const message = new TransactionMessage({
       payerKey: this.feePayerKeypair.publicKey,
       recentBlockhash: blockhash,
-      instructions: [transferInstruction],
+      instructions: allInstructions,
     }).compileToV0Message([]);
 
     const base64Message = this.transactionService.registerTransaction(
@@ -64,7 +80,7 @@ export class TransferService {
       lastValidBlockHeight,
       TransactionType.TRANSFER,
       false,
-      0,
+      slot,
       1,
     );
 
