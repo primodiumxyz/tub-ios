@@ -11,6 +11,8 @@ import { env } from "../bin/tub-server";
 import { PrebuildSwapResponse, SubmitSignedTransactionResponse } from "../src/types";
 import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY, MEMECOIN_MAINNET_PUBLIC_KEY } from "../src/constants/tokens";
 import { ConfigService } from "../src/services/ConfigService";
+import { TransferService } from "../src/services/TransferService";
+import { TransactionService } from "../src/services/TransactionService";
 // Skip entire suite in CI, because it would perform a live transaction each deployment
 (env.CI ? describe.skip : describe)("TubService Integration Test", () => {
   let tubService: TubService;
@@ -126,6 +128,53 @@ import { ConfigService } from "../src/services/ConfigService";
       const balance = await tubService.getTokenBalance(mockJwtToken, token);
       expect(balance).toBeDefined();
       expect(balance.balance).toEqual(tokenBalances[0]?.balanceToken);
+    });
+  });
+
+  describe.skip("SOL transfer test", () => {
+    it("should transfer SOL from user to desired address", async () => {
+      const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY)); // note that the fee payer is the destination for this test
+      const transactionService = new TransactionService(connection, feePayerKeypair);
+      const transferService = new TransferService(connection, feePayerKeypair, transactionService);
+
+      const destinationKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY)); // note that the fee payer is the destination for this test
+      // get user's SOL balance
+      const initUserSolBalance = await connection.getBalance(userKeypair.publicKey, "processed");
+      console.log("Initial user SOL balance:", initUserSolBalance);
+      const transferResponse = await transferService.getTransfer({
+        toAddress: destinationKeypair.publicKey.toString(),
+        fromAddress: userKeypair.publicKey.toString(),
+        amount: BigInt(1),
+        tokenId: "SOLANA",
+      });
+      console.log("Transfer response:", transferResponse);
+      // decode the transaction message
+      const handoff = Buffer.from(transferResponse.transactionMessageBase64, "base64");
+      const message = VersionedMessage.deserialize(handoff);
+      const transaction = new VersionedTransaction(message);
+      transaction.sign([userKeypair]);
+      transaction.sign([feePayerKeypair]);
+      const userSignature = transaction.signatures![1];
+      const feePayerSignature = transaction.signatures![0];
+      expect(transaction.signatures).toHaveLength(2);
+      expect(userSignature).toBeDefined();
+      expect(feePayerSignature).toBeDefined();
+
+      // send the transaction
+      const txid = await connection.sendTransaction(transaction);
+      console.log("Transaction sent with id:", txid);
+
+      // wait for 10 seconds and console log the countdown
+      for (let i = 10; i > 0; i--) {
+        console.log(`Let RPCs catch up for ${i} seconds...`);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+
+      // get user's SOL balance
+      const userSolBalance = await connection.getBalance(userKeypair.publicKey, "processed");
+      console.log("User SOL balance:", userSolBalance);
+      // expect the user's SOL balance to be equal to the initial balance minus 1 lamport
+      expect(userSolBalance).toEqual(initUserSolBalance - 1);
     });
   });
 
