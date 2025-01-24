@@ -27,8 +27,6 @@ struct ShareView: View {
     
     var shareText: String {
         """
-        You've Got to See This. 
-        
         I've been trading $\(tokenSymbol) and it's 🚀
         
         Download Tub: https://tub.app
