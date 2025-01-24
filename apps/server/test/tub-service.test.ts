@@ -13,23 +13,22 @@ import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY, MEMECOIN_MAINNET_PUBLI
 import { ConfigService } from "../src/services/ConfigService";
 import { TransferService } from "../src/services/TransferService";
 import { TransactionService } from "../src/services/TransactionService";
+import { FeeService } from "@/services/FeeService";
 // Skip entire suite in CI, because it would perform a live transaction each deployment
 (env.CI ? describe.skip : describe)("TubService Integration Test", () => {
   let tubService: TubService;
   let userKeypair: Keypair;
   let mockJwtToken: string;
   let connection: Connection;
+  const jupiterQuoteApi = createJupiterApiClient({
+    basePath: env.JUPITER_URL,
+  });
 
   beforeAll(async () => {
     try {
       // Setup connection to Solana mainnet
       connection = new Connection(`${env.QUICKNODE_ENDPOINT}/${env.QUICKNODE_TOKEN}`);
       await ConfigService.getInstance();
-
-      // Setup Jupiter API client
-      const jupiterQuoteApi = createJupiterApiClient({
-        basePath: env.JUPITER_URL,
-      });
 
       // Create test fee payer keypair
       const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY));
@@ -134,8 +133,13 @@ import { TransactionService } from "../src/services/TransactionService";
   describe.skip("SOL transfer test", () => {
     it("should transfer SOL from user to desired address", async () => {
       const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY)); // note that the fee payer is the destination for this test
+      const jupiterService = new JupiterService(connection, jupiterQuoteApi);
       const transactionService = new TransactionService(connection, feePayerKeypair);
-      const transferService = new TransferService(connection, feePayerKeypair, transactionService);
+
+      // get USDC ATA for fee payer
+      const feePayerUsdcAta = await getAssociatedTokenAddress(USDC_MAINNET_PUBLIC_KEY, feePayerKeypair.publicKey);
+      const feeService = new FeeService({ tradeFeeRecipient: feePayerUsdcAta }, jupiterService);
+      const transferService = new TransferService(connection, feePayerKeypair, transactionService, feeService);
 
       const destinationKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY)); // note that the fee payer is the destination for this test
       // get user's SOL balance

@@ -1,7 +1,9 @@
-import { PublicKey, TransactionInstruction } from "@solana/web3.js";
+import { LAMPORTS_PER_SOL, PublicKey, TransactionInstruction } from "@solana/web3.js";
 import { createTransferInstruction } from "@solana/spl-token";
 import { Config } from "./ConfigService";
 import { TransactionType } from "../types";
+import { JupiterService } from "./JupiterService";
+import { USDC_BASE_UNITS } from "@/constants/tokens";
 
 export type FeeSettings = {
   tradeFeeRecipient: PublicKey;
@@ -11,7 +13,10 @@ export type FeeSettings = {
  * Service for handling fee calculations and fee-related instructions
  */
 export class FeeService {
-  constructor(private settings: FeeSettings) {}
+  constructor(
+    private settings: FeeSettings,
+    private jupiterService: JupiterService,
+  ) {}
 
   getSettings(): FeeSettings {
     return this.settings;
@@ -65,6 +70,30 @@ export class FeeService {
       return null;
     }
 
-    return createTransferInstruction(sourceAccount, this.settings.tradeFeeRecipient, userPublicKey, feeAmount);
+    return createTransferInstruction(
+      sourceAccount, // ATA
+      this.settings.tradeFeeRecipient, // ATA
+      userPublicKey,
+      feeAmount,
+    );
+  }
+
+  /**
+   * Calculate the amount of base USDC required to cover the ATA rent exemption
+   * @param amountLamports - The amount of SOL to cover the ATA rent exemption
+   * @returns Amount of base USDC required to cover the ATA rent exemption
+   */
+  async calculateRentExemptionFeeAmount(amountLamports: number): Promise<number> {
+    const solUsdPrice = await this.jupiterService.getSolUsdPrice();
+    if (!solUsdPrice) {
+      throw new Error("Failed to fetch SOL USD price");
+    }
+    const usdcBaseUnitsPerLamport = (solUsdPrice * USDC_BASE_UNITS) / LAMPORTS_PER_SOL;
+    const usdcBaseUnitExemptionFee = amountLamports * usdcBaseUnitsPerLamport;
+
+    // add 1% to the fee to cover small price fluctuations
+    const userUsdcBaseUnitExemptionFee = Math.ceil(usdcBaseUnitExemptionFee * 1.01);
+
+    return userUsdcBaseUnitExemptionFee;
   }
 }
