@@ -41,12 +41,19 @@ export class ConfigService {
   private readonly REDIS_KEY = "app:config";
   private localConfig: Config | null = null;
   private initialized = false;
+  private startedInit = false;
 
   private constructor() {
     this.init();
   }
 
   private async init() {
+    if (this.startedInit) {
+      // delay 1 second to avoid race condition
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      return;
+    }
+    this.startedInit = true;
     console.log("Initializing ConfigService...");
 
     try {
@@ -69,8 +76,8 @@ export class ConfigService {
         await this.redis.set(this.REDIS_KEY, JSON.stringify(defaultConfig));
         console.log("Default config set. Attempting to sync again...");
         await this.syncWithRedis();
-      } catch (redisError) {
-        console.error("Redis connection error:", redisError);
+      } catch (error) {
+        console.error("Redis connection error:", error);
         throw new Error("Failed to initialize Redis connection");
       }
     }
@@ -111,8 +118,12 @@ export class ConfigService {
   }
 
   private startPeriodicSync() {
-    setInterval(() => {
-      this.syncWithRedis();
+    setInterval(async () => {
+      try {
+        await this.syncWithRedis();
+      } catch (e) {
+        console.error("Failed to periodic sync with Redis:", e);
+      }
     }, this.localConfig?.CONFIG_UPDATE_INTERVAL ?? 60_000);
   }
 }
