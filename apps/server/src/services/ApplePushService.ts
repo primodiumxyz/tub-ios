@@ -4,6 +4,7 @@ import http2 from "http2";
 import jwt from "jsonwebtoken";
 import { env } from "../../bin/tub-server";
 import { config } from "../utils/config";
+import { Config } from "./ConfigService";
 /**
  * Data structure for tracking push notification state
  */
@@ -37,24 +38,24 @@ export class PushService {
    * Creates a new PushService instance
    * @param args.gqlClient - GraphQL client for price subscriptions
    */
-  constructor(args: { gqlClient: GqlClient["db"] }) {
+  constructor(args: { gqlClient: GqlClient["db"]; overrides?: Partial<Config> }) {
     this.gqlClient = args.gqlClient;
 
     if (!env.APPLE_AUTHKEY) {
       console.warn("Apple Push Service: No auth key found. Not initializing.");
       return;
     }
-    this.initializePushes();
+    this.initializePushes(args.overrides);
   }
 
   /**
    * Removes stale entries from the push registry based on configured timeout
    */
-  private async cleanupRegistry() {
+  private async cleanupRegistry(cleanupTimeoutMs?: number) {
     const now = Date.now();
     const { PUSH_REGISTRY_TIMEOUT_MS } = await config();
     for (const [key, value] of this.pushRegistry.entries()) {
-      if (now - value.timestamp > PUSH_REGISTRY_TIMEOUT_MS) {
+      if (now - value.timestamp > (cleanupTimeoutMs ?? PUSH_REGISTRY_TIMEOUT_MS)) {
         this.pushRegistry.delete(key);
         this.cleanSubscription(value.tokenMint);
       }
@@ -163,11 +164,14 @@ export class PushService {
   /**
    * Initializes periodic cleanup and push notification tasks
    */
-  private initializePushes(): void {
+  private initializePushes(overrides?: Partial<Config>): void {
     (async () => {
       const { PUSH_CLEANUP_INTERVAL_MS, PUSH_SEND_INTERVAL_MS } = await config();
-      setInterval(() => this.cleanupRegistry(), PUSH_CLEANUP_INTERVAL_MS);
-      setInterval(() => this.sendAllPushes(), PUSH_SEND_INTERVAL_MS);
+      setInterval(
+        () => this.cleanupRegistry(overrides?.PUSH_REGISTRY_TIMEOUT_MS),
+        overrides?.PUSH_CLEANUP_INTERVAL_MS ?? PUSH_CLEANUP_INTERVAL_MS,
+      );
+      setInterval(() => this.sendAllPushes(), overrides?.PUSH_SEND_INTERVAL_MS ?? PUSH_SEND_INTERVAL_MS);
     })();
   }
 
