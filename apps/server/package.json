@@ -14,9 +14,9 @@
   "scripts": {
     "lint": "eslint .",
     "dev": "pnpm dev:nodemon",
-    "dev:standalone": "run-pty % pnpm dev:nodemon % pnpm dev:redis",
-    "dev:nodemon": "nodemon",
-    "dev:redis": "sh -c 'redis-server & sleep 2 && redis-cli ping > /dev/null 2>&1 && redis-cli flushall && wait'",
+    "dev:standalone": "run-pty % pnpm dev:redis % pnpm dev:nodemon",
+    "dev:nodemon": "sh -c 'read -r _ < /tmp/redis-ready && echo \"Starting server...\" && nodemon'",
+    "dev:redis": "sh -c 'mkfifo /tmp/redis-ready 2>/dev/null; redis-server & while ! redis-cli ping > /dev/null 2>&1; do echo \"Waiting for Redis...\" && sleep 0.1; done && echo \"Redis ready - flushing...\" && redis-cli flushall && echo \"Redis flushed!\" && echo \"ready\" > /tmp/redis-ready && wait'",
     "start": "tsx bin/index",
     "types:dev": "tsc --watch",
     "types:test": "tsc --noEmit --skipLibCheck",
