@@ -48,6 +48,10 @@ export class TransferService {
 
       const fromTokenAccount = getAssociatedTokenAddressSync(tokenMint, fromPublicKey);
       const toTokenAccount = getAssociatedTokenAddressSync(tokenMint, toPublicKey);
+      const toTokenAccountSolBalance = await this.connection.getBalance(toTokenAccount, "processed");
+      if (toTokenAccountSolBalance === 0) {
+        throw new Error("Recipient has no USDC ATA");
+      }
 
       transferInstruction = createTransferInstruction(fromTokenAccount, toTokenAccount, fromPublicKey, request.amount);
 
