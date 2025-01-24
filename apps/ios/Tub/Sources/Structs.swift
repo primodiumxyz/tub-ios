@@ -208,3 +208,13 @@ enum PurchaseState {
     case buy
     case sell
 }
+
+struct ShareItem: Transferable {
+    static var transferRepresentation: some TransferRepresentation {
+        ProxyRepresentation(exporting: \.image)
+    }
+
+
+    public var image: Image
+    public var caption: String
+}
