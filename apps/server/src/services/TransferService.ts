@@ -58,6 +58,7 @@ export class TransferService {
       const fromTokenAccount = getAssociatedTokenAddressSync(tokenMint, fromPublicKey);
       const toTokenAccount = getAssociatedTokenAddressSync(tokenMint, toPublicKey);
       const toTokenAccountSolBalance = await this.connection.getBalance(toTokenAccount, "processed");
+      const fromTokenAccountUsdcBalance = await this.connection.getTokenAccountBalance(fromTokenAccount);
       if (toTokenAccountSolBalance === 0) {
         createATAInstruction = createAssociatedTokenAccountInstruction(
           this.feePayerKeypair.publicKey, // fee payer
@@ -69,6 +70,10 @@ export class TransferService {
         const rentExemptionAmountLamports = await this.connection.getMinimumBalanceForRentExemption(TOKEN_ACCOUNT_SIZE);
         const rentExemptionFeeAmountUsdcBaseUnits =
           await this.feeService.calculateRentExemptionFeeAmount(rentExemptionAmountLamports);
+
+        if (Number(fromTokenAccountUsdcBalance.value.amount) < rentExemptionFeeAmountUsdcBaseUnits) {
+          throw new Error("Insufficient USDC balance to cover Solana rent exemption fee");
+        }
 
         createATAFeeInstruction = this.feeService.createFeeTransferInstruction(
           fromTokenAccount,
