@@ -3,7 +3,7 @@ import { createTransferInstruction } from "@solana/spl-token";
 import { Config } from "./ConfigService";
 import { TransactionType } from "../types";
 import { JupiterService } from "./JupiterService";
-import { USDC_BASE_UNITS } from "@/constants/tokens";
+import { USDC_BASE_UNITS } from "../constants/tokens";
 
 export type FeeSettings = {
   tradeFeeRecipient: PublicKey;

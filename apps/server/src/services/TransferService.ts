@@ -14,7 +14,7 @@ import {
 } from "@solana/spl-token";
 import { TransactionService } from "./TransactionService";
 import { TransactionType } from "../types";
-import { TOKEN_ACCOUNT_SIZE, USDC_MAINNET_PUBLIC_KEY } from "@/constants/tokens";
+import { TOKEN_ACCOUNT_SIZE, USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
 import { FeeService } from "./FeeService";
 
 export interface TransferRequest {
