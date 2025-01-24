@@ -23,6 +23,7 @@ struct ShareView: View {
     @State private var loadedImage: Image?
     @EnvironmentObject private var userModel: UserModel
     @EnvironmentObject private var priceModel: SolPriceModel
+
     
     var shareText: String {
         """
@@ -32,6 +33,14 @@ struct ShareView: View {
         
         Download Tub: https://tub.app
         """
+    }
+    
+    private var shareItem: ShareItem {
+        ShareItem(
+//            image: Image(uiImage: shareCardView.snapshot()),
+            image: Image("Logo"),
+            caption: shareText
+        )
     }
     
     var gains: GainMetrics {
@@ -202,10 +211,11 @@ struct ShareView: View {
                         )
                         
                         ShareLink(
-                            item: shareText,
+                            item: shareItem,
+                            message: Text(shareItem.caption),
                             preview: SharePreview(
-                                "Share \(tokenName)",
-                                image: Image("Logo")
+                                Text("Share \(tokenName)"),
+                                image: shareItem.image
                             )
                         ) {
                             PillImageLabel(
