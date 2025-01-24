@@ -165,7 +165,7 @@ struct ShareView: View {
             HStack {
                 Text("@tub")
                     .font(.sfRounded(size: .base, weight: .medium))
-                    .foregroundStyle(Color(uiColor: UIColor(named: "tubBuyPrimary")!))
+                    .foregroundStyle(Color(uiColor: .tubAccent))
                 
                 Image(uiImage: UIImage(named: "Logo") ?? UIImage())
                     .resizable()
@@ -176,7 +176,7 @@ struct ShareView: View {
             .padding(.horizontal, 16)
             .frame(maxWidth: .infinity, alignment: .trailing)
         }
-        .background(Color(uiColor: .systemGray6))
+        .background(Color(uiColor: .tubTextInverted))
         .cornerRadius(16)
         .frame(width: 300)
     }
