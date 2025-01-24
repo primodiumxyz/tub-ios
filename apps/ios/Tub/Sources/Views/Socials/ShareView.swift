@@ -76,6 +76,13 @@ struct ShareView: View {
 
         return GainMetrics(usd: sellValue - buyValue, percentage: ((sellValue - buyValue) / buyValue) * 100)
     }
+
+    func handleRefreshTxs() {
+        Task {
+            try? await userModel.refreshTxs()
+            loadedImage = nil
+        }
+    }
     
     private func saveImage() {
         let renderer = ImageRenderer(content: shareCardView)
@@ -250,6 +257,7 @@ struct ShareView: View {
         }
         .onAppear {
             tokenModel.initialize(with: tokenMint)
+            handleRefreshTxs()
         }
     }
 }
