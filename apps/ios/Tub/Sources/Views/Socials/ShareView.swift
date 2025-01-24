@@ -36,9 +36,11 @@ struct ShareView: View {
     }
     
     private var shareItem: ShareItem {
-        ShareItem(
-//            image: Image(uiImage: shareCardView.snapshot()),
-            image: Image("Logo"),
+        let renderer = ImageRenderer(content: shareCardView)
+        renderer.scale = UIScreen.main.scale
+        
+        return ShareItem(
+            image: Image(uiImage: renderer.uiImage ?? UIImage(named: "Logo")!),
             caption: shareText
         )
     }
