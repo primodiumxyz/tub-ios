@@ -99,7 +99,7 @@ struct WithdrawView: View {
             ForEach(WithdrawModel.Token.allCases, id: \.self) { token in
                 Button(action: { vm.selectedToken = token }) {
                     HStack {
-                        Image(token == .usdc ? "USDC" : "Solana")
+                        Image(token == .usdc ? "Usdc" : "Solana")
                             .resizable()
                             .frame(width: 20, height: 20)
                         Text(token.rawValue)
@@ -108,7 +108,7 @@ struct WithdrawView: View {
             }
         } label: {
             HStack {
-                Image(vm.selectedToken == .usdc ? "USDC" : "Solana")
+                Image(vm.selectedToken == .usdc ? "Usdc" : "Solana")
                     .resizable()
                     .frame(width: 20, height: 20)
                 Text(vm.selectedToken.rawValue)
