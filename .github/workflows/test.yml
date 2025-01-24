@@ -23,7 +23,7 @@ jobs:
         run: pnpm dev:db:ci
 
       - name: Run Tests
-        run: PRIVY_APP_ID=${{ secrets.PRIVY_APP_ID }} PRIVY_APP_SECRET=${{ secrets.PRIVY_APP_SECRET }} JUPITER_URL=${{ secrets.JUPITER_URL }} QUICKNODE_ENDPOINT=${{ secrets.QUICKNODE_ENDPOINT }} QUICKNODE_TOKEN=${{ secrets.QUICKNODE_TOKEN }} FEE_PAYER_PRIVATE_KEY=${{ secrets.FEE_PAYER_PRIVATE_KEY }} OCTANE_TRADE_FEE_RECIPIENT=${{ secrets.OCTANE_TRADE_FEE_RECIPIENT }} pnpm test
+        run: PRIVY_APP_ID=${{ secrets.PRIVY_APP_ID }} PRIVY_APP_SECRET=${{ secrets.PRIVY_APP_SECRET }} JUPITER_URL=${{ secrets.JUPITER_URL }} QUICKNODE_ENDPOINT=${{ secrets.QUICKNODE_ENDPOINT }} QUICKNODE_TOKEN=${{ secrets.QUICKNODE_TOKEN }} FEE_PAYER_PRIVATE_KEY=${{ secrets.FEE_PAYER_PRIVATE_KEY }} OCTANE_TRADE_FEE_RECIPIENT=${{ secrets.OCTANE_TRADE_FEE_RECIPIENT }} APPLE_PUSH_KEY_ID=${{ secrets.APPLE_PUSH_KEY_ID }} APPLE_PUSH_TEAM_ID=${{ secrets.APPLE_PUSH_TEAM_ID }} APPLE_AUTHKEY=${{ secrets.APPLE_AUTHKEY }} pnpm test
         env:
           PRIVY_APP_ID: ${{ secrets.PRIVY_APP_ID }}
           PRIVY_APP_SECRET: ${{ secrets.PRIVY_APP_SECRET }}
@@ -32,6 +32,9 @@ jobs:
           QUICKNODE_TOKEN: ${{ secrets.QUICKNODE_TOKEN }}
           FEE_PAYER_PRIVATE_KEY: ${{ secrets.FEE_PAYER_PRIVATE_KEY }}
           OCTANE_TRADE_FEE_RECIPIENT: ${{ secrets.OCTANE_TRADE_FEE_RECIPIENT }}
+          APPLE_PUSH_KEY_ID: ${{ secrets.APPLE_PUSH_KEY_ID }}
+          APPLE_PUSH_TEAM_ID: ${{ secrets.APPLE_PUSH_TEAM_ID }}
+          APPLE_AUTHKEY: ${{ secrets.APPLE_AUTHKEY }}
 
       - name: Teardown
         run: pnpm dev:teardown
