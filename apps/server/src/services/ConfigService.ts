@@ -118,9 +118,9 @@ export class ConfigService {
   }
 
   private startPeriodicSync() {
-    setInterval(() => {
+    setInterval(async () => {
       try {
-        this.syncWithRedis();
+        await this.syncWithRedis();
       } catch (e) {
         console.error("Failed to periodic sync with Redis:", e);
       }
