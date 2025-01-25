@@ -5,6 +5,7 @@ export const AddTokenPurchaseMutation = graphql(`
     $token_mint: String!
     $token_amount: numeric!
     $token_price_usd: numeric!
+    $token_decimals: Int!
     $user_wallet: String!
     $user_agent: String!
     $source: String
@@ -16,6 +17,7 @@ export const AddTokenPurchaseMutation = graphql(`
         token_mint: $token_mint
         token_amount: $token_amount
         token_price_usd: $token_price_usd
+        token_decimals: $token_decimals
         user_wallet: $user_wallet
         user_agent: $user_agent
         source: $source
@@ -33,6 +35,7 @@ export const AddTokenSaleMutation = graphql(`
     $token_mint: String!
     $token_amount: numeric!
     $token_price_usd: numeric!
+    $token_decimals: Int!
     $user_wallet: String!
     $user_agent: String!
     $source: String
@@ -44,6 +47,7 @@ export const AddTokenSaleMutation = graphql(`
         token_mint: $token_mint
         token_amount: $token_amount
         token_price_usd: $token_price_usd
+        token_decimals: $token_decimals
         user_wallet: $user_wallet
         user_agent: $user_agent
         source: $source

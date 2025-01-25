@@ -19,6 +19,7 @@ describe("query tests", () => {
       token_mint: tokenAddress,
       token_amount: "200",
       token_price_usd: "0.001",
+      token_decimals: 6,
       user_wallet: wallet,
       user_agent: "test",
     });
@@ -29,6 +30,7 @@ describe("query tests", () => {
       token_mint: tokenAddress,
       token_amount: "100",
       token_price_usd: "0.002",
+      token_decimals: 6,
       user_wallet: wallet,
       user_agent: "test",
     });
@@ -55,6 +57,7 @@ describe("query tests", () => {
       token_mint: tokenAddress,
       token_amount: "50",
       token_price_usd: "0.002",
+      token_decimals: 6,
       user_wallet: testWallet,
       user_agent: "test",
     });
@@ -63,6 +66,7 @@ describe("query tests", () => {
       token_mint: tokenAddress,
       token_amount: "100",
       token_price_usd: "0.001",
+      token_decimals: 6,
       user_wallet: testWallet,
       user_agent: "test",
     });
@@ -72,6 +76,7 @@ describe("query tests", () => {
       token_mint: tokenAddress,
       token_amount: "200",
       token_price_usd: "0.003",
+      token_decimals: 6,
       user_wallet: testWallet,
       user_agent: "test",
     });
@@ -97,6 +102,7 @@ describe("query tests", () => {
       token_mint: tokenAddress,
       token_amount: "100",
       token_price_usd: "1.00", // Buy 100 tokens at $1.00 each
+      token_decimals: 6,
       user_wallet: testWallet,
       user_agent: "test",
     });
@@ -106,6 +112,7 @@ describe("query tests", () => {
       token_mint: tokenAddress,
       token_amount: "50",
       token_price_usd: "2.00", // Sell 50 tokens at $2.00 each
+      token_decimals: 6,
       user_wallet: testWallet,
       user_agent: "test",
     });
@@ -130,6 +137,7 @@ describe("query tests", () => {
       token_mint: tokenAddress,
       token_amount: "100",
       token_price_usd: "1.00",
+      token_decimals: 6,
       user_wallet: testWallet,
       user_agent: "test",
     });
@@ -138,6 +146,7 @@ describe("query tests", () => {
       token_mint: tokenAddress,
       token_amount: "50",
       token_price_usd: "1.50",
+      token_decimals: 6,
       user_wallet: testWallet,
       user_agent: "test",
     });
@@ -146,6 +155,7 @@ describe("query tests", () => {
       token_mint: tokenAddress,
       token_amount: "75",
       token_price_usd: "2.00",
+      token_decimals: 6,
       user_wallet: testWallet,
       user_agent: "test",
     });
@@ -154,6 +164,7 @@ describe("query tests", () => {
       token_mint: "0x0000000000000000000000000000000000000000",
       token_amount: "75",
       token_price_usd: "2.00",
+      token_decimals: 6,
       user_wallet: testWallet,
       user_agent: "test",
     });
@@ -161,6 +172,7 @@ describe("query tests", () => {
       token_mint: tokenAddress,
       token_amount: "75",
       token_price_usd: "2.00",
+      token_decimals: 6,
       user_wallet: "0x0000000000000000000000000000000000000000",
       user_agent: "test",
     });

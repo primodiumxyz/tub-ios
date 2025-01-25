@@ -25,13 +25,14 @@ final class TxManager: ObservableObject {
         
         if let tokenPriceUsdc {
             Task {
-                let decimals = UserModel.shared.tokenData[tokenId]?.metadata.decimals ?? 9
+                let decimals = UserModel.shared.tokenData[tokenId]?.metadata.decimals ?? 6
                 let buyQuantityToken = (buyAmountUsdc / tokenPriceUsdc) * Int(pow(10.0,Double(decimals)))
                 do {
                     try await Network.shared.recordTokenPurchase(
                         tokenMint: tokenId,
                         tokenAmount: Double(buyQuantityToken),
                         tokenPriceUsd: SolPriceModel.shared.usdcToUsd(usdc: tokenPriceUsdc),
+                        tokenDecimals: decimals,
                         source: "user_model",
                         errorDetails: err?.localizedDescription
                     )
@@ -45,6 +46,7 @@ final class TxManager: ObservableObject {
     }
     
     func sellToken(tokenId: String, tokenPriceUsd: Double? = nil) async throws {
+        let decimals = UserModel.shared.tokenData[tokenId]?.metadata.decimals ?? 6
         guard let balanceToken = UserModel.shared.tokenData[tokenId]?.balanceToken, balanceToken > 0 else {
             throw TubError.insufficientBalance
         }
@@ -63,6 +65,7 @@ final class TxManager: ObservableObject {
                         tokenMint: tokenId,
                         tokenAmount: Double(balanceToken),
                         tokenPriceUsd: tokenPriceUsd,
+                        tokenDecimals: decimals,
                         source: "user_model",
                         errorDetails: err?.localizedDescription
                     )

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Row } from "@tanstack/react-table";
 
-import { getColumns } from "@/components/tokens-table/columns";
+import { getColumns } from "@/components/tracker/tokens-table/columns";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";

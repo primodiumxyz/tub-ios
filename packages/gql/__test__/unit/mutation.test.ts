@@ -19,16 +19,18 @@ describe("mutation tests", () => {
       token_mint: tokenAddress,
       token_amount: "200",
       token_price_usd: "0.001",
+      token_decimals: 6,
       user_wallet: wallet,
       user_agent: "test",
     });
-
+    console.log(purchase_result);
     expect(purchase_result.data?.insert_token_purchase_one?.id).toBeDefined();
 
     const sale_result = await gql.db.AddTokenSaleMutation({
       token_mint: tokenAddress,
       token_amount: "100",
       token_price_usd: "0.002",
+      token_decimals: 6,
       user_wallet: wallet,
       user_agent: "test",
     });

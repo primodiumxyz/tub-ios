@@ -11,6 +11,7 @@ extension Network {
         tokenMint: String,
         tokenAmount: Double,
         tokenPriceUsd: Double,
+        tokenDecimals: Int,
         source: String,
         errorDetails: String? = nil
     ) async throws {
@@ -19,6 +20,7 @@ extension Network {
             tokenMint: tokenMint,
             tokenAmount: String(tokenAmount),
             tokenPriceUsd: String(tokenPriceUsd),
+            tokenDecimals: tokenDecimals,
             source: source,
             errorDetails: errorDetails,
             userAgent: metadata["userAgent"] ?? "unknown",
@@ -33,6 +35,7 @@ extension Network {
         tokenMint: String,
         tokenAmount: Double,
         tokenPriceUsd: Double,
+        tokenDecimals: Int,
         source: String,
         errorDetails: String? = nil
     ) async throws {
@@ -41,6 +44,7 @@ extension Network {
             tokenMint: tokenMint,
             tokenAmount: String(tokenAmount),
             tokenPriceUsd: String(tokenPriceUsd),
+            tokenDecimals: tokenDecimals,
             source: source,
             errorDetails: errorDetails,
             userAgent: metadata["userAgent"] ?? "unknown",

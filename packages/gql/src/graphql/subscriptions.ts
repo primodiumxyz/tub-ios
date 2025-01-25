@@ -3,11 +3,7 @@ import { graphql } from "./init";
 // Dashboard
 export const GetTopTokensByVolumeSubscription = graphql(`
   subscription SubTopTokensByVolume {
-    token_rolling_stats_30min(
-      where: { token_metadata_is_pump_token: { _eq: true } }
-      order_by: { total_volume_usd: desc }
-      limit: 50
-    ) {
+    token_rolling_stats_30min(where: { is_pump_token: { _eq: true } }, order_by: { volume_usd_30m: desc }, limit: 50) {
       mint
       volume_usd_30m
       trades_30m
@@ -50,6 +46,57 @@ export const GetTokenCandlesSinceSubscription = graphql(`
       close_price_usd
       high_price_usd
       low_price_usd
+    }
+  }
+`);
+
+export const GetTradesSubscription = graphql(`
+  subscription SubTrades($limit: Int = 1000) {
+    transactions(order_by: { created_at: desc }, limit: $limit) {
+      id
+      created_at
+      user_wallet
+      token_mint
+      token_amount
+      token_price_usd
+      token_value_usd
+      token_decimals
+      success
+      error_details
+    }
+  }
+`);
+
+export const GetTradesByUserWalletOrTokenMintSubscription = graphql(`
+  subscription SubTradesByUserWalletOrTokenMint($userWalletOrTokenMint: String!, $limit: Int = 1000) {
+    transactions(
+      where: {
+        _or: [{ user_wallet: { _eq: $userWalletOrTokenMint } }, { token_mint: { _eq: $userWalletOrTokenMint } }]
+      }
+      order_by: { created_at: desc }
+      limit: $limit
+    ) {
+      id
+      created_at
+      user_wallet
+      token_mint
+      token_amount
+      token_price_usd
+      token_value_usd
+      token_decimals
+      success
+      error_details
+    }
+  }
+`);
+
+export const GetStatsSubscription = graphql(`
+  subscription SubStats($userWallet: String, $tokenMint: String) {
+    transaction_analytics(args: { user_wallet: $userWallet, token_mint: $tokenMint }) {
+      total_pnl_usd
+      total_volume_usd
+      trade_count
+      success_rate
     }
   }
 `);

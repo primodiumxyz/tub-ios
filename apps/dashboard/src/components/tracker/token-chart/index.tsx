@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { ArrowLeft, CandlestickChart, LineChart } from "lucide-react";
 
-import { TradingViewCandlesChart } from "@/components/token-chart/tradingview-candles";
-import { TradingViewChart } from "@/components/token-chart/tradingview-chart";
+import { TradingViewCandlesChart } from "@/components/tracker/token-chart/tradingview-candles";
+import { TradingViewChart } from "@/components/tracker/token-chart/tradingview-chart";
 import { Button } from "@/components/ui/button";
 import { Token } from "@/lib/types";
 import { formatLargeNumber } from "@/lib/utils";
