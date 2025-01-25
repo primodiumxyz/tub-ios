@@ -1,4 +1,12 @@
-import { Connection, Keypair, PublicKey, TransactionMessage } from "@solana/web3.js";
+import {
+  Connection,
+  Keypair,
+  PublicKey,
+  SystemProgram,
+  TransactionInstruction,
+  TransactionMessage,
+  ComputeBudgetProgram,
+} from "@solana/web3.js";
 import { createTransferInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { TransactionService } from "./TransactionService";
 import { TransactionType } from "../types";
@@ -24,26 +32,51 @@ export class TransferService {
   ) {}
 
   async getTransfer(request: TransferRequest): Promise<{ transactionMessageBase64: string }> {
-    const tokenMint = new PublicKey(request.tokenId);
-    const fromPublicKey = new PublicKey(request.fromAddress);
-    const toPublicKey = new PublicKey(request.toAddress);
+    let transferInstruction: TransactionInstruction;
+    let computeUnitLimitInstruction: TransactionInstruction | undefined;
+    let computeUnitPriceInstruction: TransactionInstruction | undefined;
+    if (request.tokenId === "SOLANA") {
+      transferInstruction = SystemProgram.transfer({
+        fromPubkey: new PublicKey(request.fromAddress),
+        toPubkey: new PublicKey(request.toAddress),
+        lamports: request.amount,
+      });
+    } else if (request.tokenId) {
+      const tokenMint = new PublicKey(request.tokenId);
+      const fromPublicKey = new PublicKey(request.fromAddress);
+      const toPublicKey = new PublicKey(request.toAddress);
 
-    const fromTokenAccount = getAssociatedTokenAddressSync(tokenMint, fromPublicKey);
-    const toTokenAccount = getAssociatedTokenAddressSync(tokenMint, toPublicKey);
+      const fromTokenAccount = getAssociatedTokenAddressSync(tokenMint, fromPublicKey);
+      const toTokenAccount = getAssociatedTokenAddressSync(tokenMint, toPublicKey);
+      const toTokenAccountSolBalance = await this.connection.getBalance(toTokenAccount, "processed");
+      if (toTokenAccountSolBalance === 0) {
+        throw new Error("Recipient has no USDC ATA");
+      }
 
-    const transferInstruction = createTransferInstruction(
-      fromTokenAccount,
-      toTokenAccount,
-      fromPublicKey,
-      request.amount,
+      transferInstruction = createTransferInstruction(fromTokenAccount, toTokenAccount, fromPublicKey, request.amount);
+
+      computeUnitLimitInstruction = ComputeBudgetProgram.setComputeUnitLimit({
+        units: 5000,
+      });
+
+      computeUnitPriceInstruction = ComputeBudgetProgram.setComputeUnitPrice({
+        microLamports: 100000,
+      });
+    } else {
+      throw new Error("Invalid transfer request");
+    }
+
+    const slot = await this.connection.getSlot("finalized");
+    const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash("finalized");
+
+    const allInstructions = [computeUnitLimitInstruction, computeUnitPriceInstruction, transferInstruction].filter(
+      (instruction) => instruction !== undefined,
     );
-
-    const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash();
 
     const message = new TransactionMessage({
       payerKey: this.feePayerKeypair.publicKey,
       recentBlockhash: blockhash,
-      instructions: [transferInstruction],
+      instructions: allInstructions,
     }).compileToV0Message([]);
 
     const base64Message = this.transactionService.registerTransaction(
@@ -51,7 +84,7 @@ export class TransferService {
       lastValidBlockHeight,
       TransactionType.TRANSFER,
       false,
-      0,
+      slot,
       1,
     );
 

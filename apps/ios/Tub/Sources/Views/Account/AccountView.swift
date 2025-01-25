@@ -45,7 +45,7 @@ struct AccountView: View {
         .withNotificationBanner()
     }
     .sheet(isPresented: $showOnrampView) {
-      CoinbaseOnrampView()
+      OnrampView()
         .withNotificationBanner()
     }
     .padding()
