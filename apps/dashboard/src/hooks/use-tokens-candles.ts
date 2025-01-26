@@ -27,13 +27,15 @@ export const useTokenCandles = (
       close_price_usd: string;
     }[],
   ) =>
-    candles.map((candle) => ({
-      time: new Date(candle.bucket).getTime() as Time,
-      open: Number(candle.open_price_usd),
-      high: Number(candle.high_price_usd),
-      low: Number(candle.low_price_usd),
-      close: Number(candle.close_price_usd),
-    }));
+    candles
+      .map((candle) => ({
+        time: new Date(candle.bucket).getTime() as Time,
+        open: Number(candle.open_price_usd),
+        high: Number(candle.high_price_usd),
+        low: Number(candle.low_price_usd),
+        close: Number(candle.close_price_usd),
+      }))
+      .sort((c1, c2) => Number(c1.time) - Number(c2.time));
 
   useEffect(() => {
     const candles = tokenCandlesRes.data?.token_candles_history_1min;
