@@ -82,12 +82,15 @@ export class TubService {
 
     this.authService = new AuthService(this.privy);
     this.transactionService = new TransactionService(this.connection, feePayerKeypair);
-    this.feeService = new FeeService({
-      tradeFeeRecipient: validatedTradeFeeRecipient,
-    });
+    this.feeService = new FeeService({ tradeFeeRecipient: validatedTradeFeeRecipient }, this.jupiterService);
     this.swapService = new SwapService(this.jupiterService, this.transactionService, this.feeService);
     this.analyticsService = new AnalyticsService(this.gqlClient);
-    this.transferService = new TransferService(this.connection, feePayerKeypair, this.transactionService);
+    this.transferService = new TransferService(
+      this.connection,
+      feePayerKeypair,
+      this.transactionService,
+      this.feeService,
+    );
 
     this.pushService = new PushService({ gqlClient: this.gqlClient });
 
