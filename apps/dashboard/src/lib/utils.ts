@@ -15,3 +15,11 @@ export const formatLargeNumber = (num: number) => {
   }
   return num.toFixed(2);
 };
+
+export const formatUsd = (value: number | null | undefined): string => {
+  if (value === null || value === undefined) return "$0.00";
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(value);
+};

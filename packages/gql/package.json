@@ -44,6 +44,7 @@
   "license": "ISC",
   "dependencies": {
     "@dotenvx/dotenvx": "^1.14.1",
+    "@fastify/cors": "^8.3.0",
     "@urql/core": "^5.0.6",
     "fastify": "^4.21.0",
     "gql.tada": "^1.8.9",
