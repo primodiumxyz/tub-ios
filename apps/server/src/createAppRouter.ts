@@ -299,6 +299,10 @@ export function createAppRouter() {
         return await ctx.tubService.getTokenBalance(ctx.jwtToken, input.tokenMint);
       }),
 
+    getEstimatedTransferFee: t.procedure.query(async ({ ctx }) => {
+      return await ctx.tubService.getEstimatedTransferFee(ctx.jwtToken);
+    }),
+
     fetchTransferTx: t.procedure
       .input(
         z.object({

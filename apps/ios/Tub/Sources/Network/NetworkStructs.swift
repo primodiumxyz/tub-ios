@@ -194,3 +194,7 @@ struct TokenBalanceItem: Codable {
 struct BulkTokenBalanceResponse: Codable {
     let tokenBalances: [TokenBalanceItem]
 }
+
+struct EstimatedTransferFeeResponse: Codable {
+    let estimatedFee: Int
+}

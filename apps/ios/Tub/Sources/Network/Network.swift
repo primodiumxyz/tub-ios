@@ -189,6 +189,11 @@ class Network {
     return res
   }
 
+  func getEstimatedTransferFee() async throws -> Int {
+    let res: EstimatedTransferFeeResponse = try await callQuery("getEstimatedTransferFee", tokenRequired: true)
+    return res.estimatedFee
+  }
+
   func transferUsdc(fromAddress: String, toAddress: String, amount: Int) async throws -> String {
     // 1. Get the pre-signed transaction from the server
     let input = TransferInput(
