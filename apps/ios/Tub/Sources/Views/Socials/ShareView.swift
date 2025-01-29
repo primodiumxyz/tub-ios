@@ -8,6 +8,11 @@
 import SwiftUI
 import Photos
 
+struct GainMetrics {
+    let usd: Double
+    let percentage: Double
+}
+
 struct ShareView: View {
     let tokenName: String
     let tokenSymbol: String
@@ -17,28 +22,38 @@ struct ShareView: View {
     @State private var showingSaveSuccess = false
     @State private var loadedImage: Image?
     @EnvironmentObject private var userModel: UserModel
+    @EnvironmentObject private var priceModel: SolPriceModel
+
     
     var shareText: String {
         """
-        You've Got to See This. 
-        
         I've been trading $\(tokenSymbol) and it's 🚀
         
         Download Tub: https://tub.app
         """
     }
     
-    var gainPercentage: Double {
+    private var shareItem: ShareItem {
+        let renderer = ImageRenderer(content: shareCardView)
+        renderer.scale = UIScreen.main.scale
+        
+        return ShareItem(
+            image: Image(uiImage: renderer.uiImage ?? UIImage(named: "Logo")!),
+            caption: shareText
+        )
+    }
+    
+    var gains: GainMetrics {
         guard let transactions = userModel.txs else {
             print("DEBUG: No transactions found")
-            return 0 
+            return GainMetrics(usd: 0, percentage: 0)
         }
         
         let tokenTxs = transactions.filter { $0.mint == tokenMint }
         
         // Find the most recent sell
         guard let latestSell = tokenTxs.first(where: { !$0.isBuy }) else {
-            return 0
+            return GainMetrics(usd: 0, percentage: 0)
         }
         
         // Find the most recent buy that occurred before this sell
@@ -53,13 +68,20 @@ struct ShareView: View {
         }
         
         guard let latestBuy = validBuy else {
-            return 0
+            return GainMetrics(usd: 0, percentage: 0)
         }
         
         let buyValue = abs(latestBuy.valueUsd) 
         let sellValue = latestSell.valueUsd
 
-        return ((sellValue - buyValue) / buyValue) * 100
+        return GainMetrics(usd: sellValue - buyValue, percentage: ((sellValue - buyValue) / buyValue) * 100)
+    }
+
+    func handleRefreshTxs() {
+        Task {
+            try? await userModel.refreshTxs()
+            loadedImage = nil
+        }
     }
     
     private func saveImage() {
@@ -121,11 +143,19 @@ struct ShareView: View {
                         .foregroundStyle(Color(uiColor: UIColor(named: "tubNeutral")!))
                                         
                     if tokenModel.isReady {
-                        Text("\(String(format: "%.2f", gainPercentage))%")
-                            .font(.sfRounded(size: .xl2, weight: .bold))
-                            .foregroundStyle(gainPercentage >= 0 ? 
-                                Color(uiColor: UIColor(named: "tubSuccess")!) :
-                                Color(uiColor: UIColor(named: "tubError")!))
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("\(priceModel.formatPrice(usd: gains.usd))")
+                                .font(.sfRounded(size: .xl2, weight: .bold))
+                                .foregroundStyle(gains.usd >= 0 ?
+                                    Color(uiColor: UIColor(named: "tubSuccess")!) :
+                                    Color(uiColor: UIColor(named: "tubError")!))
+
+                            Text("\(String(format: "%.2f", gains.percentage))%")
+                                .font(.sfRounded(size: .sm, weight: .bold))
+                                .foregroundStyle(gains.usd >= 0 ?
+                                    Color(uiColor: UIColor(named: "tubSuccess")!) :
+                                    Color(uiColor: UIColor(named: "tubError")!))
+                        }
                     }
                 }
                 .padding(.leading, 16)
@@ -140,7 +170,7 @@ struct ShareView: View {
             HStack {
                 Text("@tub")
                     .font(.sfRounded(size: .base, weight: .medium))
-                    .foregroundStyle(Color(uiColor: UIColor(named: "tubBuyPrimary")!))
+                    .foregroundStyle(Color(uiColor: .tubAccent))
                 
                 Image(uiImage: UIImage(named: "Logo") ?? UIImage())
                     .resizable()
@@ -151,7 +181,7 @@ struct ShareView: View {
             .padding(.horizontal, 16)
             .frame(maxWidth: .infinity, alignment: .trailing)
         }
-        .background(Color(uiColor: .systemGray6))
+        .background(Color(uiColor: .tubTextInverted))
         .cornerRadius(16)
         .frame(width: 300)
     }
@@ -188,10 +218,11 @@ struct ShareView: View {
                         )
                         
                         ShareLink(
-                            item: shareText,
+                            item: shareItem,
+                            message: Text(shareItem.caption),
                             preview: SharePreview(
-                                "Share \(tokenName)",
-                                image: Image("Logo")
+                                Text("Share \(tokenName)"),
+                                image: shareItem.image
                             )
                         ) {
                             PillImageLabel(
@@ -226,6 +257,7 @@ struct ShareView: View {
         }
         .onAppear {
             tokenModel.initialize(with: tokenMint)
+            handleRefreshTxs()
         }
     }
 }

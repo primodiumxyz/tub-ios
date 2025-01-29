@@ -1,5 +1,5 @@
-import { MEMECOIN_MAINNET_PUBLIC_KEY } from "@/constants/tokens";
-import { Config } from "@/services/ConfigService";
+import { MEMECOIN_MAINNET_PUBLIC_KEY } from "../src/constants/tokens";
+import { Config, ConfigService } from "../src/services/ConfigService";
 import { GqlClient, createClient as createGqlClient } from "@tub/gql";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PushService } from "../src/services/ApplePushService";
@@ -18,9 +18,11 @@ describe("PushService", () => {
       })
     ).db;
 
+    await ConfigService.getInstance();
+
     pushService = new PushService({
       gqlClient,
-      config: {
+      overrides: {
         PUSH_REGISTRY_TIMEOUT_MS: 6 * 60 * 60 * 1000, // six hours
         PUSH_CLEANUP_INTERVAL_MS: 60000,
         PUSH_SEND_INTERVAL_MS: 1000,

@@ -4,7 +4,7 @@ import { Connection, Keypair, PublicKey, VersionedTransaction } from "@solana/we
 import { GqlClient } from "@tub/gql";
 import bs58 from "bs58";
 import { env } from "../../bin/tub-server";
-import { TOKEN_PROGRAM_PUBLIC_KEY, USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
+import { TOKEN_ACCOUNT_SIZE, TOKEN_PROGRAM_PUBLIC_KEY, USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
 import { Config, ConfigService } from "../services/ConfigService";
 import {
   AppDwellTimeEvent,
@@ -82,12 +82,15 @@ export class TubService {
 
     this.authService = new AuthService(this.privy);
     this.transactionService = new TransactionService(this.connection, feePayerKeypair);
-    this.feeService = new FeeService({
-      tradeFeeRecipient: validatedTradeFeeRecipient,
-    });
+    this.feeService = new FeeService({ tradeFeeRecipient: validatedTradeFeeRecipient }, this.jupiterService);
     this.swapService = new SwapService(this.jupiterService, this.transactionService, this.feeService);
     this.analyticsService = new AnalyticsService(this.gqlClient);
-    this.transferService = new TransferService(this.connection, feePayerKeypair, this.transactionService);
+    this.transferService = new TransferService(
+      this.connection,
+      feePayerKeypair,
+      this.transactionService,
+      this.feeService,
+    );
 
     this.pushService = new PushService({ gqlClient: this.gqlClient });
 
@@ -396,7 +399,7 @@ export class TubService {
     return response;
   }
 
-  async getBalance(jwtToken: string): Promise<{ balance: number }> {
+  async getSolBalance(jwtToken: string): Promise<{ balance: number }> {
     const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
 
     const balance = await this.connection.getBalance(walletPublicKey, "processed");
@@ -435,6 +438,17 @@ export class TubService {
 
     const balance = Number(tokenAccounts.value[0].account.data.parsed.info.tokenAmount.amount);
     return { balance };
+  }
+
+  async getEstimatedTransferFee(jwtToken: string): Promise<{ estimatedFee: number }> {
+    // just auth check for spam mitigation
+    await this.authService.getUserContext(jwtToken);
+
+    const rentExemptionAmountLamports = await this.connection.getMinimumBalanceForRentExemption(TOKEN_ACCOUNT_SIZE);
+    const rentExemptionFeeAmountUsdcBaseUnits =
+      await this.feeService.calculateRentExemptionFeeAmount(rentExemptionAmountLamports);
+
+    return { estimatedFee: rentExemptionFeeAmountUsdcBaseUnits };
   }
 
   /**

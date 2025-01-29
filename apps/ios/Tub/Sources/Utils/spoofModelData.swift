@@ -8,7 +8,7 @@
 import Foundation
 
 func spoofPriceModelData(_ model: SolPriceModel) {
-    model.price = 100
+    model.solPrice = 100
 }
 
 func spoofTokenModelData(userModel: UserModel, tokenModel: TokenModel) {

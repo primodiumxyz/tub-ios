@@ -42,6 +42,7 @@ struct TokenPurchaseInput: Codable {
     let tokenMint: String
     let tokenAmount: String
     let tokenPriceUsd: String
+    let tokenDecimals: Int
     let source: String
     let errorDetails: String?
     let userAgent: String
@@ -53,6 +54,7 @@ struct TokenSaleInput: Codable {
     let tokenMint: String
     let tokenAmount: String
     let tokenPriceUsd: String
+    let tokenDecimals: Int
     let source: String
     let errorDetails: String?
     let userAgent: String
@@ -144,6 +146,13 @@ struct signedTxInput: Codable {
 struct TxIdResponse: Codable {
     let signature: String
     let timestamp: Int?
+    let responseType: String
+    
+    private enum CodingKeys: String, CodingKey {
+        case signature = "txid"
+        case timestamp
+        case responseType
+    }
 }
 
 struct ErrorResponse: Codable {
@@ -184,4 +193,8 @@ struct TokenBalanceItem: Codable {
 
 struct BulkTokenBalanceResponse: Codable {
     let tokenBalances: [TokenBalanceItem]
+}
+
+struct EstimatedTransferFeeResponse: Codable {
+    let estimatedFee: Int
 }

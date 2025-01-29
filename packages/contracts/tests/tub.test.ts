@@ -13,7 +13,7 @@ describe("Tub Token Creator", () => {
   // only initialize treasury account if it doesn't exist
   const [treasuryPDA] = PublicKey.findProgramAddressSync(
     [Buffer.from("treasury")],
-    program.programId
+    program.programId,
   );
 
   const metadata = {
@@ -27,7 +27,7 @@ describe("Tub Token Creator", () => {
   before(async () => {
     try {
       await program.account.treasuryAccount.fetch(treasuryPDA);
-    } catch (error) {
+    } catch {
       const txSignature = await program.methods
         .initialize()
         .accounts({
@@ -51,7 +51,7 @@ describe("Tub Token Creator", () => {
 
       const associatedTokenAccountAddress = getAssociatedTokenAddressSync(
         mintKeypair.publicKey,
-        payer.publicKey
+        payer.publicKey,
       );
 
       const _cost = 1e9;
@@ -69,27 +69,27 @@ describe("Tub Token Creator", () => {
       console.log(`   Transaction Signature: ${transactionSignature}`);
 
       const newPayerBalance = await provider.connection.getBalance(
-        payer.publicKey
+        payer.publicKey,
       );
       expect(newPayerBalance).to.be.lte(
         prevBalance - _cost,
-        "new payer balance incorrect"
+        "new payer balance incorrect",
       );
 
       const treasuryBalance = await provider.connection.getBalance(treasuryPDA);
 
       expect(treasuryBalance - prevTreasuryBalance).to.be.gte(
         _cost,
-        "new mint balance incorrect"
+        "new mint balance incorrect",
       );
 
       const associatedTokenBalance =
         await provider.connection.getTokenAccountBalance(
-          associatedTokenAccountAddress
+          associatedTokenAccountAddress,
         );
 
       expect(Number(associatedTokenBalance.value.amount)).to.be.eq(
-        _cost * 100_000
+        _cost * 100_000,
       );
     });
 
@@ -98,7 +98,7 @@ describe("Tub Token Creator", () => {
 
       const associatedTokenAccountAddress = getAssociatedTokenAddressSync(
         mintKeypair.publicKey,
-        payer.publicKey
+        payer.publicKey,
       );
 
       const _cost = 0;
@@ -117,11 +117,11 @@ describe("Tub Token Creator", () => {
       console.log(`   Transaction Signature: ${transactionSignature}`);
 
       const mintBalance = await provider.connection.getTokenAccountBalance(
-        associatedTokenAccountAddress
+        associatedTokenAccountAddress,
       );
       expect(Number(mintBalance.value.amount)).to.be.eq(
         0,
-        "mint balance incorrect"
+        "mint balance incorrect",
       );
     });
   });
@@ -147,7 +147,7 @@ describe("Tub Token Creator", () => {
       // Derive the associated token address account for the mint and payer.
       const associatedTokenAccountAddress = getAssociatedTokenAddressSync(
         mintKeypair.publicKey,
-        payer.publicKey
+        payer.publicKey,
       );
 
       // Amount of tokens to mint.
@@ -167,13 +167,16 @@ describe("Tub Token Creator", () => {
 
       console.log("Success!");
       console.log(
-        `Associated Token Account Address: ${associatedTokenAccountAddress}`
+        `Associated Token Account Address: ${associatedTokenAccountAddress}`,
       );
       console.log(`Transaction Signature: ${transactionSignature}`);
-      const associatedTokenBalance = await provider.connection.getTokenAccountBalance(
-        associatedTokenAccountAddress
+      const associatedTokenBalance =
+        await provider.connection.getTokenAccountBalance(
+          associatedTokenAccountAddress,
+        );
+      expect(Number(associatedTokenBalance.value.amount) / 1e9).to.be.eq(
+        _amount,
       );
-      expect(Number(associatedTokenBalance.value.amount) / 1e9).to.be.eq(_amount);
     });
   });
 });

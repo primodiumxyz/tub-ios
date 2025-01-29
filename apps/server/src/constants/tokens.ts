@@ -8,3 +8,6 @@ export const ATA_PROGRAM_PUBLIC_KEY = new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5
 export const TOKEN_PROGRAM_PUBLIC_KEY = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
 export const JUPITER_PROGRAM_PUBLIC_KEY = new PublicKey("JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4");
 export const MAX_CHAIN_COMPUTE_UNITS = 1_400_000;
+export const TOKEN_ACCOUNT_SIZE = 165;
+export const LAMPORTS_PER_SOL = 1_000_000_000;
+export const USDC_BASE_UNITS = 1_000_000;

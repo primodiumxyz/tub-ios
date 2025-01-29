@@ -11,23 +11,24 @@ import { env } from "../bin/tub-server";
 import { PrebuildSwapResponse, SubmitSignedTransactionResponse } from "../src/types";
 import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY, MEMECOIN_MAINNET_PUBLIC_KEY } from "../src/constants/tokens";
 import { ConfigService } from "../src/services/ConfigService";
+import { TransferService } from "../src/services/TransferService";
+import { TransactionService } from "../src/services/TransactionService";
+import { FeeService } from "@/services/FeeService";
 // Skip entire suite in CI, because it would perform a live transaction each deployment
 (env.CI ? describe.skip : describe)("TubService Integration Test", () => {
   let tubService: TubService;
   let userKeypair: Keypair;
   let mockJwtToken: string;
   let connection: Connection;
+  const jupiterQuoteApi = createJupiterApiClient({
+    basePath: env.JUPITER_URL,
+  });
 
   beforeAll(async () => {
     try {
       // Setup connection to Solana mainnet
       connection = new Connection(`${env.QUICKNODE_ENDPOINT}/${env.QUICKNODE_TOKEN}`);
       await ConfigService.getInstance();
-
-      // Setup Jupiter API client
-      const jupiterQuoteApi = createJupiterApiClient({
-        basePath: env.JUPITER_URL,
-      });
 
       // Create test fee payer keypair
       const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY));
@@ -91,9 +92,9 @@ import { ConfigService } from "../src/services/ConfigService";
     }
   });
 
-  describe("getBalance", () => {
+  describe("getSolBalance", () => {
     it("should get the user's balance", async () => {
-      const balance = await tubService.getBalance(mockJwtToken);
+      const balance = await tubService.getSolBalance(mockJwtToken);
       expect(balance).toBeDefined();
       expect(balance.balance).toBeGreaterThan(0);
     });
@@ -127,6 +128,74 @@ import { ConfigService } from "../src/services/ConfigService";
       expect(balance).toBeDefined();
       expect(balance.balance).toEqual(tokenBalances[0]?.balanceToken);
     });
+  });
+
+  describe.skip("SOL transfer test", () => {
+    it("should transfer SOL from user to desired address", async () => {
+      const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY)); // note that the fee payer is the destination for this test
+      const jupiterService = new JupiterService(connection, jupiterQuoteApi);
+      const transactionService = new TransactionService(connection, feePayerKeypair);
+
+      // get USDC ATA for fee payer
+      const feePayerUsdcAta = await getAssociatedTokenAddress(USDC_MAINNET_PUBLIC_KEY, feePayerKeypair.publicKey);
+      const feeService = new FeeService({ tradeFeeRecipient: feePayerUsdcAta }, jupiterService);
+      const transferService = new TransferService(connection, feePayerKeypair, transactionService, feeService);
+
+      const destinationKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY)); // note that the fee payer is the destination for this test
+      // get user's SOL balance
+      const initUserSolBalance = await connection.getBalance(userKeypair.publicKey, "processed");
+      console.log("Initial user SOL balance:", initUserSolBalance);
+      const transferResponse = await transferService.getTransfer({
+        toAddress: destinationKeypair.publicKey.toString(),
+        fromAddress: userKeypair.publicKey.toString(),
+        amount: BigInt(1),
+        tokenId: "SOLANA",
+      });
+      console.log("Transfer response:", transferResponse);
+      // decode the transaction message
+      const handoff = Buffer.from(transferResponse.transactionMessageBase64, "base64");
+      const message = VersionedMessage.deserialize(handoff);
+      const transaction = new VersionedTransaction(message);
+      transaction.sign([userKeypair]);
+      transaction.sign([feePayerKeypair]);
+      const userSignature = transaction.signatures![1];
+      const feePayerSignature = transaction.signatures![0];
+      expect(transaction.signatures).toHaveLength(2);
+      expect(userSignature).toBeDefined();
+      expect(feePayerSignature).toBeDefined();
+
+      // simulate the transaction
+      const simulation = await connection.simulateTransaction(transaction, { commitment: "finalized" });
+      console.log("Simulation:", simulation);
+
+      // send the transaction
+      const txid = await connection.sendTransaction(transaction);
+      console.log("Transaction sent with id:", txid);
+
+      // confirm the transaction
+      const status = await connection.getSignatureStatus(txid, {
+        searchTransactionHistory: true,
+      });
+      console.log("Transaction status:", status);
+
+      // wait for 10 seconds and console log the countdown
+      for (let i = 10; i > 0; i--) {
+        console.log(`Let RPCs catch up for ${i} seconds...`);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+
+      // confirm transaction again
+      const status2 = await connection.getSignatureStatus(txid, {
+        searchTransactionHistory: true,
+      });
+      console.log("Transaction status:", status2);
+
+      // get user's SOL balance
+      const userSolBalance = await connection.getBalance(userKeypair.publicKey, "processed");
+      console.log("User SOL balance:", userSolBalance);
+      // expect the user's SOL balance to be equal to the initial balance minus 1 lamport
+      expect(userSolBalance).toEqual(initUserSolBalance - 1);
+    }, 15000);
   });
 
   describe.skip("swap execution", () => {

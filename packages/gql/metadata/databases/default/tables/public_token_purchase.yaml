@@ -5,16 +5,17 @@ select_permissions:
   - role: public
     permission:
       columns:
-        - token_amount
-        - token_price_usd
         - build
+        - created_at
         - error_details
+        - id
         - source
+        - token_amount
+        - token_decimals
         - token_mint
+        - token_price_usd
         - user_agent
         - user_wallet
-        - created_at
-        - id
       filter: {}
       allow_aggregations: true
     comment: ""

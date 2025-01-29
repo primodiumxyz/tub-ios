@@ -21,6 +21,8 @@ final class UserModel: ObservableObject {
     @Published var initialTime = Date()
     @Published var elapsedSeconds: TimeInterval = 0
     
+    @Published var solBalanceLamps = 0
+    
     @Published var tokenPortfolio: [String] = []
     @Published var tokenData: [String: TokenData] = [:]
     
@@ -81,6 +83,7 @@ final class UserModel: ObservableObject {
     private func setupWalletStateListener() {
         privy.embeddedWallet.setEmbeddedWalletStateChangeCallback { [weak self] state in
             guard let self = self else { return }
+            
             Task {
                 switch state {
                 case .connected(let wallets):
@@ -113,9 +116,6 @@ final class UserModel: ObservableObject {
                         self.walletState = state
                     }
                 default:
-                    await MainActor.run {
-                        self.walletState = state
-                    }
                     self.logout(skipPrivy: true)
                 }
                 
@@ -181,7 +181,23 @@ final class UserModel: ObservableObject {
         }
     }
     
+    private func refreshSolBalance() async throws {
+        let solBalance = try await Network.shared.getSolBalance()
+        await MainActor.run {
+            self.solBalanceLamps = solBalance
+        }
+    }
+    
     public func refreshPortfolio() async throws {
+        Task {
+            do {
+                try await self.refreshSolBalance()
+            } catch {
+                print("error refreshing sol balance:", error.localizedDescription)
+            }
+            
+        }
+        
         let tokenBalances = try await Network.shared.getAllTokenBalances()
         
         let tokenMints = tokenBalances.filter { $0.value > 0 && $0.key != USDC_MINT }.map { $0.key }
@@ -200,6 +216,8 @@ final class UserModel: ObservableObject {
         for mint in tokenMints + [USDC_MINT] {
             await updateTokenData(mint: mint, balance: tokenBalances[mint], metadata: tokenData[mint]?.metadata, liveData: tokenData[mint]?.liveData)
         }
+        
+        
     }
     
     struct RefreshOptions {
@@ -610,7 +628,7 @@ final class UserModel: ObservableObject {
     func logout(skipPrivy: Bool = false) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self, self.userId != nil else { return }
-            self.walletState = .notCreated
+            self.walletState = .disconnected
             self.walletAddress = nil
             self.initialPortfolioBalance = nil
             self.elapsedSeconds = 0

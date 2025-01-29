@@ -26,6 +26,8 @@
 		993E5D942CAEF33B000E23A9 /* queries.graphql in Resources */ = {isa = PBXBuildFile; fileRef = 993E5D912CAEF33B000E23A9 /* queries.graphql */; };
 		9941CD6F2CCAA30D0009E5ED /* FormatPrice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9941CD6E2CCAA30B0009E5ED /* FormatPrice.swift */; };
 		994AE5F72CD2AB3F00553A32 /* GoogleLogoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994AE5F62CD2AB3F00553A32 /* GoogleLogoView.swift */; };
+		995217BB2D40754A00697D52 /* OnrampView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995217BA2D40754700697D52 /* OnrampView.swift */; };
+		995217BD2D40756800697D52 /* NativeOnrampView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995217BC2D40756200697D52 /* NativeOnrampView.swift */; };
 		995D05662CF3C7C900627E81 /* retry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995D05652CF3C7C800627E81 /* retry.swift */; };
 		995FCA1F2CDA5ED70018A76D /* CoinbaseOnrampView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995FCA1E2CDA5ED20018A76D /* CoinbaseOnrampView.swift */; };
 		9965F7692D19E2D30063C773 /* JWTActor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9965F7682D19E2CE0063C773 /* JWTActor.swift */; };
@@ -139,6 +141,8 @@
 		993E5D912CAEF33B000E23A9 /* queries.graphql */ = {isa = PBXFileReference; lastKnownFileType = text; path = queries.graphql; sourceTree = "<group>"; };
 		9941CD6E2CCAA30B0009E5ED /* FormatPrice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatPrice.swift; sourceTree = "<group>"; };
 		994AE5F62CD2AB3F00553A32 /* GoogleLogoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleLogoView.swift; sourceTree = "<group>"; };
+		995217BA2D40754700697D52 /* OnrampView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnrampView.swift; sourceTree = "<group>"; };
+		995217BC2D40756200697D52 /* NativeOnrampView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeOnrampView.swift; sourceTree = "<group>"; };
 		995D05652CF3C7C800627E81 /* retry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = retry.swift; sourceTree = "<group>"; };
 		995FCA1E2CDA5ED20018A76D /* CoinbaseOnrampView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoinbaseOnrampView.swift; sourceTree = "<group>"; };
 		9965F7682D19E2CE0063C773 /* JWTActor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JWTActor.swift; sourceTree = "<group>"; };
@@ -278,6 +282,8 @@
 		995FCA1D2CDA5ECB0018A76D /* Onramp */ = {
 			isa = PBXGroup;
 			children = (
+				995217BC2D40756200697D52 /* NativeOnrampView.swift */,
+				995217BA2D40754700697D52 /* OnrampView.swift */,
 				995FCA1E2CDA5ED20018A76D /* CoinbaseOnrampView.swift */,
 			);
 			path = Onramp;
@@ -746,6 +752,7 @@
 				DF5A2FC32CAF165D00508A56 /* HistoryView.swift in Sources */,
 				994AE5F72CD2AB3F00553A32 /* GoogleLogoView.swift in Sources */,
 				DF3D43D22D00DEB1004DAE81 /* JustifiedText.swift in Sources */,
+				995217BD2D40756800697D52 /* NativeOnrampView.swift in Sources */,
 				99DBD8EE2CF781EA0098C296 /* spoofModelData.swift in Sources */,
 				DF9D90602D15D82400DC4BCC /* ShareView.swift in Sources */,
 				466945ED2CDFDB1F008E8B99 /* LoadingTracker.swift in Sources */,
@@ -766,6 +773,7 @@
 				DB6D29052CA1C8F70099951A /* TubApp.swift in Sources */,
 				990337052CC94175002D3A25 /* AccountBalance.swift in Sources */,
 				9941CD6F2CCAA30D0009E5ED /* FormatPrice.swift in Sources */,
+				995217BB2D40754A00697D52 /* OnrampView.swift in Sources */,
 				9965F7692D19E2D30063C773 /* JWTActor.swift in Sources */,
 				99FB68342CC003FC00070D2A /* LoadingView.swift in Sources */,
 				990FD4582D2DD44F0073CB7F /* SolPriceModel.swift in Sources */,
