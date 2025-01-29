@@ -1,5 +1,5 @@
-import { MEMECOIN_MAINNET_PUBLIC_KEY } from "@/constants/tokens";
-import { Config, ConfigService } from "@/services/ConfigService";
+import { MEMECOIN_MAINNET_PUBLIC_KEY } from "../src/constants/tokens";
+import { Config, ConfigService } from "../src/services/ConfigService";
 import { GqlClient, createClient as createGqlClient } from "@tub/gql";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PushService } from "../src/services/ApplePushService";

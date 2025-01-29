@@ -281,8 +281,8 @@ export function createAppRouter() {
         return await ctx.tubService.recordTokenDwellTime(input, ctx.jwtToken);
       }),
 
-    getBalance: t.procedure.query(async ({ ctx }) => {
-      return await ctx.tubService.getBalance(ctx.jwtToken);
+    getSolBalance: t.procedure.query(async ({ ctx }) => {
+      return await ctx.tubService.getSolBalance(ctx.jwtToken);
     }),
 
     getAllTokenBalances: t.procedure.query(async ({ ctx }) => {
@@ -298,6 +298,10 @@ export function createAppRouter() {
       .query(async ({ ctx, input }) => {
         return await ctx.tubService.getTokenBalance(ctx.jwtToken, input.tokenMint);
       }),
+
+    getEstimatedTransferFee: t.procedure.query(async ({ ctx }) => {
+      return await ctx.tubService.getEstimatedTransferFee(ctx.jwtToken);
+    }),
 
     fetchTransferTx: t.procedure
       .input(

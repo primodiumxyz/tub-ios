@@ -152,8 +152,8 @@ class Network {
     return response.result.data
   }
 
-  func getBalance() async throws -> Int {
-    let res: BalanceResponse = try await callQuery("getBalance", tokenRequired: true)
+  func getSolBalance() async throws -> Int {
+    let res: BalanceResponse = try await callQuery("getSolBalance", tokenRequired: true)
     return res.balance
   }
 
@@ -187,6 +187,11 @@ class Network {
     let res: TxIdResponse = try await callMutation(
       "submitSignedTransaction", input: input, tokenRequired: true)
     return res
+  }
+
+  func getEstimatedTransferFee() async throws -> Int {
+    let res: EstimatedTransferFeeResponse = try await callQuery("getEstimatedTransferFee", tokenRequired: true)
+    return res.estimatedFee
   }
 
   func transferUsdc(fromAddress: String, toAddress: String, amount: Int) async throws -> String {
