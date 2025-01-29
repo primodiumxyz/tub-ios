@@ -152,8 +152,8 @@ class Network {
     return response.result.data
   }
 
-  func getBalance() async throws -> Int {
-    let res: BalanceResponse = try await callQuery("getBalance", tokenRequired: true)
+  func getSolBalance() async throws -> Int {
+    let res: BalanceResponse = try await callQuery("getSolBalance", tokenRequired: true)
     return res.balance
   }
 

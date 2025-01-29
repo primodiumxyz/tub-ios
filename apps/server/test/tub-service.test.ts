@@ -92,9 +92,9 @@ import { FeeService } from "@/services/FeeService";
     }
   });
 
-  describe("getBalance", () => {
+  describe("getSolBalance", () => {
     it("should get the user's balance", async () => {
-      const balance = await tubService.getBalance(mockJwtToken);
+      const balance = await tubService.getSolBalance(mockJwtToken);
       expect(balance).toBeDefined();
       expect(balance.balance).toBeGreaterThan(0);
     });
