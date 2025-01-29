@@ -27,7 +27,7 @@ final class TokenListModel: ObservableObject {
     @Published var currentTokenModel: TokenModel
     @Published var initialFetchComplete = false
     
-    private var hotTokensSubscription: Apollo.Cancellable?
+    private var hotTokensPollingTimer: Timer?
     
     private var currentTokenStartTime: Date?
     
@@ -175,23 +175,30 @@ final class TokenListModel: ObservableObject {
         }
     }
     
-    private func getInitialHotTokens() async throws -> [String] {
+    private func getCurrentHotTokens() async throws -> [String] {
         let start = Date()
         return try await withCheckedThrowingContinuation {
             (continuation: CheckedContinuation<[String], Error>) in
-            Network.shared.apollo.fetch(
+            Network.shared.graphQL.fetch(
                 query: GetTopTokensByVolumeQuery(
-                    interval: .some(HOT_TOKENS_INTERVAL),
-                    recentInterval: .some(FILTERING_INTERVAL),
                     minRecentTrades: .some(FILTERING_MIN_TRADES),
                     minRecentVolume: .some(FILTERING_MIN_VOLUME_USD)
-                )
+                ),
+                cachePolicy: .fetchIgnoringCacheData,
+                cacheTime: QUERY_HOT_TOKENS_CACHE_TIME
             ) {
                 result in
                 switch result {
                 case .success(let graphQLResult):
-                    if let tokens = graphQLResult.data?.token_stats_interval_comp {
-                        continuation.resume(returning: tokens.map { elem in elem.token_mint })
+                    if let tokens = graphQLResult.data?.token_rolling_stats_30min {
+                        let tokenIds = tokens.map { elem in elem.mint }
+                        continuation.resume(returning: tokenIds)
+                    } else {
+                        if let errors = graphQLResult.errors, errors.count > 0 {
+                            continuation.resume(throwing: TubError.somethingWentWrong(reason:  errors[0].description ))
+                        } else {
+                            continuation.resume(throwing: TubError.somethingWentWrong(reason:  "Could not fetch hot tokens" ) )
+                        }
                     }
                 case .failure(let error):
                     let end = Date()
@@ -202,41 +209,24 @@ final class TokenListModel: ObservableObject {
         }
     }
     
-    public func startTokenSubscription() async {
-        do {
-            let hotTokens = try await getInitialHotTokens()
-            await handleHotTokenFetch(hotTokens: hotTokens)
-        } catch {
-            print(
-                "Error fetching initial hot tokens: \(error.localizedDescription). Proceeding with subscription."
-            )
+    private func pollHotTokens() {
+        Task {
+            do {
+                let hotTokens = try await getCurrentHotTokens()
+                await handleHotTokenFetch(hotTokens: hotTokens)
+            } catch {
+                print("Error polling hot tokens: \(error.localizedDescription)")
+            }
         }
-        
-        self.hotTokensSubscription = Network.shared.apollo.subscribe(
-            subscription: SubTopTokensByVolumeSubscription(
-                interval: .some(HOT_TOKENS_INTERVAL),
-                recentInterval: .some(FILTERING_INTERVAL),
-                minRecentTrades: .some(FILTERING_MIN_TRADES),
-                minRecentVolume: .some(FILTERING_MIN_VOLUME_USD)
-            )
-        ) { [weak self] result in
-            guard let self = self else { return }
-            
-            // Prepare data in background
-            let hotTokens: [String] = {
-                switch result {
-                case .success(let graphQLResult):
-                    if let tokens = graphQLResult.data?.token_stats_interval_comp {
-                        return tokens.map { elem in elem.token_mint }
-                    }
-                    return []
-                case .failure(let error):
-                    print("Error fetching tokens: \(error.localizedDescription)")
-                    return []
-                }
-            }()
-            Task {
-                await self.handleHotTokenFetch(hotTokens: hotTokens)
+    }
+
+    public func startHotTokensPolling() async {
+        stopHotTokensPolling()
+        pollHotTokens()
+
+        await MainActor.run {
+            self.hotTokensPollingTimer = Timer.scheduledTimer(withTimeInterval: HOT_TOKENS_POLLING_INTERVAL, repeats: true) { [weak self] _ in
+                self?.pollHotTokens()
             }
         }
     }
@@ -250,8 +240,9 @@ final class TokenListModel: ObservableObject {
         }
     }
     
-    func stopTokenSubscription() {
-        self.hotTokensSubscription?.cancel()
+    func stopHotTokensPolling() {
+        self.hotTokensPollingTimer?.invalidate()
+        self.hotTokensPollingTimer = nil
     }
     
     @MainActor
@@ -261,7 +252,7 @@ final class TokenListModel: ObservableObject {
     
     private func updatePendingTokens(_ newTokens: [String]) async {
         guard !newTokens.isEmpty else {
-            if !self.initialFetchComplete { self.initialFetchComplete = true }
+            if !self.initialFetchComplete { await MainActor.run {self.initialFetchComplete = true} }
             return
         }
         
@@ -326,15 +317,11 @@ final class TokenListModel: ObservableObject {
         Task {
             let dwellTimeMs = Int(Date().timeIntervalSince(startTime) * 1000)  // Convert to milliseconds
             
-            try? await Network.shared.recordClientEvent(
-                event: Network.ClientEvent(
-                    eventName: "token_dwell_time",
-                    source: "token_list_model",
-                    metadata: [
-                        ["token_id": currentToken],
-                        ["dwell_time_ms": dwellTimeMs],
-                    ]
-                )
+            try? await Network.shared.recordTokenDwellTime(
+                tokenMint: currentToken,
+                dwellTimeMs: dwellTimeMs,
+                source: "token_list_model",
+                errorDetails: nil
             )
         }
     }
@@ -354,7 +341,7 @@ final class TokenListModel: ObservableObject {
         // Record final dwell time before cleanup
         recordTokenDwellTime()
         
-        stopTokenSubscription()
+        stopHotTokensPolling()
     }
 }
 

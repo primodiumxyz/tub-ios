@@ -14,8 +14,8 @@ export const useTokenCandles = (
   const lastCandleTimestamp = useRef(0);
 
   const [tokenCandlesRes] = useSubscription({
-    query: subscriptions.GetTokenCandlesSubscription,
-    variables: { token: token.mint, candle_interval: "1m", since: new Date(now - 60 * 60 * 1000) },
+    query: subscriptions.GetTokenCandlesSinceSubscription,
+    variables: { token: token.mint, since: new Date(now - 60 * 60 * 1000) },
   });
 
   const formatCandles = (
@@ -36,7 +36,7 @@ export const useTokenCandles = (
     }));
 
   useEffect(() => {
-    const candles = tokenCandlesRes.data?.token_trade_history_candles;
+    const candles = tokenCandlesRes.data?.token_candles_history_1min;
 
     if (candles && !initialCandles.current.length) {
       initialCandles.current = formatCandles(candles);

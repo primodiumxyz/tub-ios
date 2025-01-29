@@ -1,0 +1,166 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "title": "Response Time Overview",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "k6"
+      },
+      "targets": [
+        {
+          "query": "SELECT mean(\"value\") FROM \"http_req_duration\" WHERE $timeFilter GROUP BY time($__interval)",
+          "rawQuery": true,
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Query Performance by Type",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "k6"
+      },
+      "targets": [
+        {
+          "query": "SELECT mean(\"value\") FROM \"query_top_tokens\" WHERE $timeFilter GROUP BY time($__interval)",
+          "rawQuery": true,
+          "refId": "A"
+        },
+        {
+          "query": "SELECT mean(\"value\") FROM \"query_token_prices\" WHERE $timeFilter GROUP BY time($__interval)",
+          "rawQuery": true,
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "title": "Error Rate",
+      "type": "gauge",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 8 },
+      "datasource": {
+        "type": "influxdb",
+        "uid": "k6"
+      },
+      "targets": [
+        {
+          "query": "SELECT mean(\"value\") FROM \"errors\" WHERE $timeFilter",
+          "rawQuery": true,
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "minValue": 0,
+        "maxValue": 100,
+        "thresholds": [
+          { "value": 0, "color": "green" },
+          { "value": 5, "color": "orange" },
+          { "value": 10, "color": "red" }
+        ]
+      }
+    },
+    {
+      "title": "PostgreSQL Memory Usage",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "pg_stat_database_blks_hit{datname='postgres'}",
+          "legendFormat": "Buffer Hits",
+          "refId": "A"
+        },
+        {
+          "expr": "pg_stat_database_blks_read{datname='postgres'}",
+          "legendFormat": "Disk Reads",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "title": "TimescaleDB Memory Usage",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "pg_stat_database_blks_hit{datname='indexer'}",
+          "legendFormat": "Buffer Hits",
+          "refId": "A"
+        },
+        {
+          "expr": "pg_stat_database_blks_read{datname='indexer'}",
+          "legendFormat": "Disk Reads",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "title": "PostgreSQL CPU Usage",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "rate(pg_stat_database_xact_commit{datname='postgres'}[1m])",
+          "legendFormat": "Transactions/s",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "TimescaleDB CPU Usage",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "rate(pg_stat_database_xact_commit{datname='indexer'}[1m])",
+          "legendFormat": "Transactions/s",
+          "refId": "A"
+        }
+      ]
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["k6", "performance"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "K6 Performance Dashboard",
+  "uid": "k6-performance",
+  "version": 1,
+  "weekStart": ""
+}

@@ -1,5 +1,30 @@
-import { PublicKey } from "@solana/web3.js";
+import { Config } from "../services/ConfigService";
+import { MessageV0, PublicKey } from "@solana/web3.js";
 import { Subject, Subscription } from "rxjs";
+
+export enum TransactionType {
+  BUY = 1, // When buying any token with USDC
+  SELL_PARTIAL = 2, // When selling part of token balance for USDC
+  SELL_ALL = 3, // When selling entire token balance for USDC
+  TRANSFER = 4, // When transferring tokens to another user
+}
+
+export type TransactionRegistryData = {
+  timestamp: number;
+  transactionType: TransactionType;
+  autoSlippage: boolean;
+  contextSlot: number;
+  buildAttempts: number;
+  activeSwapRequest?: ActiveSwapRequest;
+  cfg?: Config;
+};
+
+export type TransactionRegistryEntry = {
+  message: MessageV0;
+  lastValidBlockHeight: number;
+} & TransactionRegistryData;
+
+export type ResponseType = "success" | "fail" | "rebuild";
 
 // Base swap request types
 export type UserPrebuildSwapRequest = {
@@ -26,6 +51,14 @@ export type ActiveSwapRequest = UserPrebuildSwapRequest & {
   userPublicKey: PublicKey;
 };
 
+export type SubmitSignedTransactionResponse = {
+  responseType: ResponseType;
+  txid?: string;
+  timestamp?: number | null;
+  rebuild?: PrebuildSwapResponse;
+  error?: string;
+};
+
 export interface SwapSubscription {
   /** Subject that emits new swap transactions */
   subject: Subject<PrebuildSwapResponse>;
@@ -33,16 +66,6 @@ export interface SwapSubscription {
   subscription: Subscription;
   /** Current active swap request */
   request: ActiveSwapRequest;
-}
-
-// Analytics types
-export interface ClientEvent {
-  userAgent: string;
-  eventName: string;
-  metadata?: string;
-  errorDetails?: string;
-  source?: string;
-  buildVersion?: string;
 }
 
 // Transfer types
@@ -64,3 +87,36 @@ export interface CodexTokenResponse {
   token: string;
   expiry: string;
 }
+
+// Analytics types
+export interface ClientEvent {
+  userAgent: string;
+  userWallet: string;
+  source?: string;
+  errorDetails?: string;
+  buildVersion?: string;
+}
+
+export type TokenPurchaseOrSaleEvent = ClientEvent & {
+  tokenMint: string;
+  tokenAmount: string;
+  tokenPriceUsd: string;
+  tokenDecimals: number;
+};
+
+export type LoadingTimeEvent = ClientEvent & {
+  identifier: string;
+  timeElapsedMs: number;
+  attemptNumber: number;
+  totalTimeMs: number;
+  averageTimeMs: number;
+};
+
+export type AppDwellTimeEvent = ClientEvent & {
+  dwellTimeMs: number;
+};
+
+export type TokenDwellTimeEvent = ClientEvent & {
+  tokenMint: string;
+  dwellTimeMs: number;
+};

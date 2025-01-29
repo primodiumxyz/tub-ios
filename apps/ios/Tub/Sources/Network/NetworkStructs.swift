@@ -42,22 +42,82 @@ struct TokenPurchaseInput: Codable {
     let tokenMint: String
     let tokenAmount: String
     let tokenPriceUsd: String
+    let tokenDecimals: Int
     let source: String
     let errorDetails: String?
     let userAgent: String
     let buildVersion: String
-    let userWallet: String?
+    let userWallet: String
 }
 
 struct TokenSaleInput: Codable {
     let tokenMint: String
     let tokenAmount: String
     let tokenPriceUsd: String
+    let tokenDecimals: Int
     let source: String
     let errorDetails: String?
     let userAgent: String
     let buildVersion: String
-    let userWallet: String?
+    let userWallet: String
+}
+
+struct TabSelectedInput: Codable {
+    let tabName: String
+    let source: String
+    let errorDetails: String?
+    let userAgent: String
+    let buildVersion: String
+    let userWallet: String
+}
+
+struct LoadingTimeInput: Codable {
+    let identifier: String
+    let timeElapsedMs: Int
+    let attemptNumber: Int
+    let totalTimeMs: Int
+    let averageTimeMs: Int
+    let source: String
+    let errorDetails: String?
+    let userAgent: String
+    let buildVersion: String
+    let userWallet: String
+}
+
+struct AppDwellTimeInput: Codable {
+    let dwellTimeMs: Int
+    let source: String
+    let errorDetails: String?
+    let userAgent: String
+    let buildVersion: String
+    let userWallet: String
+}
+
+struct TabDwellTimeInput: Codable {
+    let tabName: String
+    let dwellTimeMs: Int
+    let source: String
+    let errorDetails: String?
+    let userAgent: String
+    let buildVersion: String
+    let userWallet: String
+}
+
+struct TokenDwellTimeInput: Codable {
+    let tokenMint: String
+    let dwellTimeMs: Int
+    let source: String
+    let errorDetails: String?
+    let userAgent: String
+    let buildVersion: String
+    let userWallet: String
+}
+
+struct StartLiveActivityInput: Codable {
+    let tokenMint: String
+    let tokenPriceUsd: String
+    let deviceToken: String
+    let pushToken: String
 }
 
 // MARK: - Response Types
@@ -86,6 +146,13 @@ struct signedTxInput: Codable {
 struct TxIdResponse: Codable {
     let signature: String
     let timestamp: Int?
+    let responseType: String
+    
+    private enum CodingKeys: String, CodingKey {
+        case signature = "txid"
+        case timestamp
+        case responseType
+    }
 }
 
 struct ErrorResponse: Codable {
@@ -126,4 +193,8 @@ struct TokenBalanceItem: Codable {
 
 struct BulkTokenBalanceResponse: Codable {
     let tokenBalances: [TokenBalanceItem]
+}
+
+struct EstimatedTransferFeeResponse: Codable {
+    let estimatedFee: Int
 }

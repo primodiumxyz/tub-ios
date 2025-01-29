@@ -15,6 +15,9 @@ import * as mutations from "./graphql/mutations";
 import * as queries from "./graphql/queries";
 import * as subscriptions from "./graphql/subscriptions";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+
 // Helper type to extract variables from a query or mutation
 type ExtractVariables<T> = T extends TadaDocumentNode<any, infer V, any> ? V : never;
 
@@ -27,9 +30,32 @@ type OptionalArgs<T> = T extends Record<string, never> ? [] | [T] : [T];
 //------------------------------------------------
 
 // Wrapper creator for both queries and mutations
-function createQueryWrapper<T extends TadaDocumentNode<any, any, any>>(client: Client, operation: T) {
-  return (args: ExtractVariables<T>, options: Partial<OperationContext>): Promise<OperationResult<ExtractData<T>>> =>
-    client.query(operation, args ?? {}, options).toPromise();
+function createQueryWrapper<T extends TadaDocumentNode<any, any, any>>(
+  client: Client,
+  operation: T,
+  headers?: Record<string, string>,
+) {
+  return (args: ExtractVariables<T>, options: Partial<OperationContext>): Promise<OperationResult<ExtractData<T>>> => {
+    options = options ?? {};
+    return client
+      .query(
+        operation,
+        args ?? {},
+        headers
+          ? {
+              ...options,
+              fetchOptions: {
+                ...(options.fetchOptions ?? {}),
+                headers: {
+                  ...(options.fetchOptions && "headers" in options.fetchOptions ? options.fetchOptions.headers : {}),
+                  ...headers,
+                },
+              },
+            }
+          : options,
+      )
+      .toPromise();
+  };
 }
 
 function createMutationWrapper<T extends TadaDocumentNode<any, any, any>>(client: Client, operation: T) {
@@ -93,21 +119,24 @@ type CreateClientReturn<T extends "web" | "node"> = T extends "web" ? GqlClient 
 const createClient = <T extends "web" | "node" = "node">({
   url,
   hasuraAdminSecret,
+  headers,
 }: {
   url: string;
   hasuraAdminSecret?: string;
+  headers?: Record<string, string>;
 }): CreateClientReturn<T> => {
   const fetchOptions = hasuraAdminSecret
     ? {
         headers: {
           "x-hasura-admin-secret": hasuraAdminSecret,
+          ...headers,
         },
       }
     : undefined;
 
   const createClientInternal = (webSocketImpl?: typeof WebSocket): GqlClient => {
     const wsClient = createWSClient({
-      url: url.replace("https", "wss"),
+      url: url.replace("https", "wss").replace("8090", "8080"),
       webSocketImpl,
     });
 
@@ -134,7 +163,7 @@ const createClient = <T extends "web" | "node" = "node">({
     // Create the db object dynamically
     const _queries = Object.entries(queries).reduce((acc, [key, operation]) => {
       // @ts-ignore
-      acc[key as keyof Queries] = createQueryWrapper(client, operation);
+      acc[key as keyof Queries] = createQueryWrapper(client, operation, headers);
       return acc;
     }, {} as Queries);
 

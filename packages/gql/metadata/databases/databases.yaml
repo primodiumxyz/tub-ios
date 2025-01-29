@@ -10,6 +10,43 @@
     naming_convention: hasura-default
   logical_models:
     - fields:
+        - name: total_pnl_usd
+          type:
+            nullable: false
+            scalar: numeric
+        - name: total_volume_usd
+          type:
+            nullable: false
+            scalar: numeric
+        - name: trade_count
+          type:
+            nullable: false
+            scalar: bigint
+        - name: successful_trades
+          type:
+            nullable: false
+            scalar: bigint
+        - name: failed_trades
+          type:
+            nullable: false
+            scalar: bigint
+        - name: success_rate
+          type:
+            nullable: false
+            scalar: numeric
+      name: transaction_analytics_model
+      select_permissions:
+        - permission:
+            columns:
+              - total_pnl_usd
+              - total_volume_usd
+              - trade_count
+              - successful_trades
+              - failed_trades
+              - success_rate
+            filter: {}
+          role: public
+    - fields:
         - name: id
           type:
             nullable: false
@@ -42,6 +79,14 @@
           type:
             nullable: false
             scalar: numeric
+        - name: token_decimals
+          type:
+            nullable: false
+            scalar: integer
+        - name: error_details
+          type:
+            nullable: true
+            scalar: text
       name: transaction_model
       select_permissions:
         - permission:
@@ -54,6 +99,8 @@
               - token_amount
               - success
               - token_value_usd
+              - token_decimals
+              - error_details
             filter: {}
           role: public
     - fields:
@@ -79,8 +126,20 @@
             filter: {}
           role: public
   native_queries:
+    - arguments:
+        token_mint:
+          description: Optional token mint to filter by
+          nullable: true
+          type: text
+        user_wallet:
+          description: Optional wallet address to filter by
+          nullable: true
+          type: text
+      code: "WITH combined_transactions AS (\n  SELECT \n    user_wallet,\n    token_mint,\n    -token_amount as token_amount,\n    token_price_usd,\n    token_decimals,\n    error_details IS NULL as success\n  FROM token_purchase\n  \n  UNION ALL\n  \n  SELECT \n    user_wallet,\n    token_mint,\n    token_amount,\n    token_price_usd,\n    token_decimals,\n    error_details IS NULL as success\n  FROM token_sale\n),\ntransaction_stats AS (\n  SELECT \n    COALESCE(SUM(CASE \n      WHEN success THEN token_amount * token_price_usd / POW(10, token_decimals)\n      ELSE 0\n    END), 0)::numeric as total_pnl_usd,\n    COALESCE(SUM(CASE \n      WHEN success THEN ABS(token_amount * token_price_usd  / POW(10, token_decimals))\n      ELSE 0\n    END), 0)::numeric as total_volume_usd,\n    COUNT(*)::bigint as trade_count,\n    COUNT(*) FILTER (WHERE success)::bigint as successful_trades,\n    COUNT(*) FILTER (WHERE NOT success)::bigint as failed_trades,\n    ROUND(\n      (COUNT(*) FILTER (WHERE success))::numeric / \n      NULLIF(COUNT(*), 0) * 100,\n      2\n    )::numeric as success_rate\n  FROM combined_transactions\n  WHERE \n    ({{user_wallet}} IS NULL OR user_wallet = {{user_wallet}})\n    AND ({{token_mint}} IS NULL OR token_mint = {{token_mint}})\n)\nSELECT \n  total_pnl_usd,\n  total_volume_usd,\n  trade_count,\n  successful_trades,\n  failed_trades,\n  success_rate\nFROM transaction_stats;"
+      returns: transaction_analytics_model
+      root_field_name: transaction_analytics
     - arguments: {}
-      code: "SELECT \n    id,\n    created_at,\n    user_wallet,\n    token_mint,\n    token_price_usd,\n    token_amount,\n    token_amount * token_price_usd as token_value_usd,\n    error_details IS NULL as success\nFROM token_purchase\n\nUNION ALL\n\nSELECT \n    id,\n    created_at,\n    user_wallet,\n    token_mint,\n    token_price_usd,\n    -token_amount as token_amount,  -- Negative amount for sales\n    -token_amount * token_price_usd as token_value_usd,\n\n    error_details IS NULL as success\nFROM token_sale;"
+      code: "SELECT \n    id,\n    created_at,\n    user_wallet,\n    token_mint,\n    token_price_usd,\n    token_amount,\n    token_amount * token_price_usd as token_value_usd,\n    token_decimals,\n    error_details IS NULL as success,\n    error_details\nFROM token_purchase\n\nUNION ALL\n\nSELECT \n    id,\n    created_at,\n    user_wallet,\n    token_mint,\n    token_price_usd,\n    -token_amount as token_amount,  -- Negative amount for sales\n    -token_amount * token_price_usd as token_value_usd,\n    token_decimals,\n    error_details IS NULL as success,\n    error_details\nFROM token_sale;"
       returns: transaction_model
       root_field_name: transactions
     - arguments: {}
@@ -102,150 +161,6 @@
         retries: 3
       use_prepared_statements: true
   logical_models:
-    - fields:
-        - name: mint
-          type:
-            nullable: false
-            scalar: text
-        - name: name
-          type:
-            nullable: false
-            scalar: varchar
-        - name: symbol
-          type:
-            nullable: false
-            scalar: varchar
-        - name: description
-          type:
-            nullable: false
-            scalar: text
-        - name: image_uri
-          type:
-            nullable: true
-            scalar: text
-        - name: external_url
-          type:
-            nullable: true
-            scalar: text
-        - name: decimals
-          type:
-            nullable: true
-            scalar: numeric
-        - name: supply
-          type:
-            nullable: true
-            scalar: numeric
-        - name: is_pump_token
-          type:
-            nullable: false
-            scalar: boolean
-      name: token_metadata_model
-      select_permissions:
-        - permission:
-            columns:
-              - mint
-              - name
-              - symbol
-              - description
-              - image_uri
-              - external_url
-              - decimals
-              - supply
-              - is_pump_token
-            filter: {}
-          role: public
-    - fields:
-        - name: token_mint
-          type:
-            nullable: false
-            scalar: text
-        - name: total_volume_usd
-          type:
-            nullable: false
-            scalar: numeric
-        - name: price_change_pct
-          type:
-            nullable: false
-            scalar: numeric
-        - name: avg_price_usd
-          type:
-            nullable: false
-            scalar: numeric
-        - name: latest_price_usd
-          type:
-            nullable: false
-            scalar: numeric
-        - name: total_trades
-          type:
-            nullable: false
-            scalar: numeric
-        - name: recent_volume_usd
-          type:
-            nullable: false
-            scalar: numeric
-        - name: recent_trades
-          type:
-            nullable: false
-            scalar: numeric
-        - name: recent_price_change_pct
-          type:
-            nullable: false
-            scalar: numeric
-        - name: token_metadata_name
-          type:
-            nullable: false
-            scalar: varchar
-        - name: token_metadata_symbol
-          type:
-            nullable: false
-            scalar: varchar
-        - name: token_metadata_description
-          type:
-            nullable: false
-            scalar: text
-        - name: token_metadata_image_uri
-          type:
-            nullable: true
-            scalar: text
-        - name: token_metadata_external_url
-          type:
-            nullable: true
-            scalar: text
-        - name: token_metadata_decimals
-          type:
-            nullable: true
-            scalar: numeric
-        - name: token_metadata_supply
-          type:
-            nullable: true
-            scalar: numeric
-        - name: token_metadata_is_pump_token
-          type:
-            nullable: false
-            scalar: boolean
-      name: token_stats_model
-      select_permissions:
-        - permission:
-            columns:
-              - token_mint
-              - total_volume_usd
-              - price_change_pct
-              - avg_price_usd
-              - latest_price_usd
-              - total_trades
-              - recent_volume_usd
-              - recent_trades
-              - recent_price_change_pct
-              - token_metadata_name
-              - token_metadata_symbol
-              - token_metadata_description
-              - token_metadata_image_uri
-              - token_metadata_external_url
-              - token_metadata_decimals
-              - token_metadata_supply
-              - token_metadata_is_pump_token
-            filter: {}
-          role: public
     - fields:
         - name: bucket
           type:
@@ -275,7 +190,11 @@
           type:
             nullable: false
             scalar: numeric
-      name: trade_history_candle_model
+        - name: has_trades
+          type:
+            nullable: false
+            scalar: boolean
+      name: candles_history_model
       select_permissions:
         - permission:
             columns:
@@ -286,43 +205,112 @@
               - high_price_usd
               - low_price_usd
               - volume_usd
+              - has_trades
+            filter: {}
+          role: public
+    - fields:
+        - name: mint
+          type:
+            nullable: false
+            scalar: text
+        - name: name
+          type:
+            nullable: false
+            scalar: varchar
+        - name: symbol
+          type:
+            nullable: false
+            scalar: varchar
+        - name: description
+          type:
+            nullable: false
+            scalar: text
+        - name: decimals
+          type:
+            nullable: false
+            scalar: numeric
+        - name: supply
+          type:
+            nullable: true
+            scalar: numeric
+        - name: image_uri
+          type:
+            nullable: true
+            scalar: text
+        - name: external_url
+          type:
+            nullable: true
+            scalar: text
+        - name: is_pump_token
+          type:
+            nullable: false
+            scalar: boolean
+        - name: volume_usd_30m
+          type:
+            nullable: false
+            scalar: numeric
+        - name: trades_30m
+          type:
+            nullable: false
+            scalar: numeric
+        - name: price_change_pct_30m
+          type:
+            nullable: false
+            scalar: numeric
+        - name: volume_usd_1m
+          type:
+            nullable: false
+            scalar: numeric
+        - name: trades_1m
+          type:
+            nullable: false
+            scalar: numeric
+        - name: price_change_pct_1m
+          type:
+            nullable: false
+            scalar: numeric
+        - name: latest_price_usd
+          type:
+            nullable: false
+            scalar: numeric
+      name: token_rolling_stats_30min_model
+      select_permissions:
+        - permission:
+            columns:
+              - mint
+              - name
+              - symbol
+              - description
+              - decimals
+              - supply
+              - image_uri
+              - external_url
+              - is_pump_token
+              - volume_usd_30m
+              - trades_30m
+              - price_change_pct_30m
+              - volume_usd_1m
+              - trades_1m
+              - price_change_pct_1m
+              - latest_price_usd
             filter: {}
           role: public
   native_queries:
-    - arguments: {}
-      code: "WITH latest_metadata AS (\n    SELECT DISTINCT ON (token_mint)\n        token_mint as mint,\n        (token_metadata).name as name,\n        (token_metadata).symbol as symbol,\n        (token_metadata).description as description,\n        (token_metadata).image_uri as image_uri,\n        (token_metadata).external_url as external_url,\n        (token_metadata).decimals as decimals,\n        (token_metadata).supply as supply,\n        (token_metadata).is_pump_token as is_pump_token\n    FROM api.trade_history\n    WHERE token_metadata::text != 'null'\n    ORDER BY token_mint, created_at DESC\n)\nSELECT \n    mint,\n    name,\n    symbol,\n    description,\n    image_uri,\n    external_url,\n    decimals,\n    supply,\n    is_pump_token\nFROM latest_metadata;"
-      returns: token_metadata_model
-      root_field_name: token_metadata_formatted
     - arguments:
-        interval:
-          description: Main interval for total stats
-          nullable: false
-          type: interval
-        recent_interval:
-          description: Additional interval to get recent stats on a different timeframe
-          nullable: false
-          type: interval
-      code: "WITH params AS (\n  SELECT \n    date_trunc('minute', NOW() - {{interval}}::interval) as start_time,\n    date_trunc('minute', NOW()) as end_time,\n    date_trunc('minute', NOW() - {{recent_interval}}::interval) as recent_start_time\n),\ntoken_stats AS (\n  SELECT \n    token_mint,\n    SUM(total_volume_usd) as total_volume_usd,\n    ((LAST(avg_price_usd, bucket) - FIRST(avg_price_usd, bucket)) / \n      NULLIF(FIRST(avg_price_usd, bucket), 0) * 100) as price_change_pct,\n    AVG(avg_price_usd) as avg_price_usd,\n    LAST(latest_price_usd, bucket) as latest_price_usd,\n    SUM(trade_count) as total_trades,\n    SUM(CASE WHEN bucket >= recent_start_time THEN total_volume_usd ELSE 0 END) as recent_volume_usd,\n    SUM(CASE WHEN bucket >= recent_start_time THEN trade_count ELSE 0 END) as recent_trades,\n    COALESCE(\n        ((LAST(avg_price_usd, bucket) FILTER (WHERE bucket >= recent_start_time) - \n        FIRST(avg_price_usd, bucket) FILTER (WHERE bucket >= recent_start_time)) / \n        NULLIF(FIRST(avg_price_usd, bucket) FILTER (WHERE bucket >= recent_start_time), 0) * 100),\n        0\n    ) as recent_price_change_pct,\n    LAST(token_metadata, bucket) as latest_metadata\n  FROM api.trade_history_1min, params\n  WHERE bucket >= start_time\n    AND bucket <= end_time\n  GROUP BY token_mint\n  HAVING SUM(total_volume_usd) > 0\n)\nSELECT \n  token_mint,\n  total_volume_usd,\n  price_change_pct,\n  avg_price_usd,\n  latest_price_usd,\n  total_trades,\n  recent_volume_usd,\n  recent_trades,\n  recent_price_change_pct,\n  (latest_metadata).name AS token_metadata_name,\n  (latest_metadata).symbol AS token_metadata_symbol,\n  (latest_metadata).description AS token_metadata_description,\n  (latest_metadata).image_uri AS token_metadata_image_uri,\n  (latest_metadata).external_url AS token_metadata_external_url,\n  (latest_metadata).decimals AS token_metadata_decimals,\n  (latest_metadata).supply AS token_metadata_supply,\n  (latest_metadata).is_pump_token AS token_metadata_is_pump_token\nFROM token_stats;"
-      returns: token_stats_model
-      root_field_name: token_stats_interval_agg
-    - arguments:
-        interval:
-          description: Main interval for total stats
-          nullable: false
-          type: interval
-        recent_interval:
-          description: Additional interval to get recent stats on a different timeframe
-          nullable: false
-          type: interval
-      code: "WITH params AS (\n  SELECT \n    NOW() - {{interval}}::interval as start_time,\n    NOW() as end_time,\n    NOW() - {{recent_interval}}::interval as recent_start_time\n),\ntoken_stats AS (\n  SELECT \n    token_mint,\n    SUM(volume_usd) as total_volume_usd,\n    ((LAST(token_price_usd, created_at) - FIRST(token_price_usd, created_at)) / \n      NULLIF(FIRST(token_price_usd, created_at), 0) * 100) as price_change_pct,\n    AVG(token_price_usd) as avg_price_usd,\n    LAST(token_price_usd, created_at) as latest_price_usd,\n    COUNT(*)::numeric as total_trades,\n    SUM(CASE WHEN created_at >= recent_start_time THEN volume_usd ELSE 0 END) as recent_volume_usd,\n    COUNT(CASE WHEN created_at >= recent_start_time THEN 1 END)::numeric as recent_trades,\n    COALESCE(\n        ((LAST(token_price_usd, created_at) FILTER (WHERE created_at >= recent_start_time) - \n        FIRST(token_price_usd, created_at) FILTER (WHERE created_at >= recent_start_time)) / \n        NULLIF(FIRST(token_price_usd, created_at) FILTER (WHERE created_at >= recent_start_time), 0) * 100),\n        0\n    ) as recent_price_change_pct,\n    LAST(token_metadata, created_at) as latest_metadata\n  FROM api.trade_history, params\n  WHERE created_at >= start_time\n    AND created_at <= end_time\n  GROUP BY token_mint\n  HAVING SUM(volume_usd) > 0\n)\nSELECT \n  token_mint,\n  total_volume_usd,\n  price_change_pct,\n  avg_price_usd,\n  latest_price_usd,\n  total_trades,\n  recent_volume_usd,\n  recent_trades,\n  recent_price_change_pct,\n  (latest_metadata).name AS token_metadata_name,\n  (latest_metadata).symbol AS token_metadata_symbol,\n  (latest_metadata).description AS token_metadata_description,\n  (latest_metadata).image_uri AS token_metadata_image_uri,\n  (latest_metadata).external_url AS token_metadata_external_url,\n  (latest_metadata).decimals AS token_metadata_decimals,\n  (latest_metadata).supply AS token_metadata_supply,\n  (latest_metadata).is_pump_token AS token_metadata_is_pump_token\nFROM token_stats;"
-      returns: token_stats_model
-      root_field_name: token_stats_interval_comp
-    - arguments:
-        candle_interval:
+        start:
           description: ""
           nullable: false
-          type: interval
-      code: "SELECT \n  time_bucket({{candle_interval}}::interval, created_at) as bucket,\n  token_mint,\n  FIRST(token_price_usd, created_at) as open_price_usd,\n  LAST(token_price_usd, created_at) as close_price_usd,\n  MAX(token_price_usd) as high_price_usd,\n  MIN(token_price_usd) as low_price_usd,\n  SUM(volume_usd) as volume_usd\nFROM api.trade_history\nGROUP BY 1, 2;"
-      returns: trade_history_candle_model
-      root_field_name: token_trade_history_candles
+          type: timestamptz
+        token_mint:
+          description: ""
+          nullable: false
+          type: text
+      code: "WITH RECURSIVE filled_buckets AS (\n  -- Generate all minute buckets from start to now\n  SELECT \n    time_bucket('1 minute', gs) as bucket\n  FROM generate_series(\n    {{start}},\n    now(),\n    '1 minute'::interval\n  ) gs\n),\nraw_candles AS (\n  -- Get the actual candle data\n  SELECT \n    b.bucket,\n    c.token_mint,\n    c.close_price_usd,\n    c.high_price_usd,\n    c.low_price_usd,\n    COALESCE(c.volume_usd, 0) as volume_usd,\n    c.close_price_usd IS NOT NULL as has_trades  -- Flag for actual trades\n  FROM filled_buckets b\n  LEFT JOIN api.candles_history_1min c ON \n    c.bucket = b.bucket AND \n    c.token_mint = {{token_mint}}\n),\nfilled_prices AS (\n  -- First fill in missing close prices with last known price\n  SELECT \n    r.bucket,\n    r.has_trades,\n    r.close_price_usd as raw_close,\n    r.high_price_usd as raw_high,\n    r.low_price_usd as raw_low,\n    r.volume_usd,\n    COALESCE(\n      r.close_price_usd,\n      (\n        SELECT close_price_usd\n        FROM raw_candles r2\n        WHERE r2.close_price_usd IS NOT NULL\n          AND r2.bucket <= r.bucket\n        ORDER BY r2.bucket DESC\n        LIMIT 1\n      ),\n      0\n    ) as close_price_usd\n  FROM raw_candles r\n),\n-- Find the first bucket with actual trading data\nfirst_trade AS (\n  SELECT \n    bucket as first_bucket,\n    close_price_usd as first_price\n  FROM raw_candles\n  WHERE close_price_usd IS NOT NULL\n  ORDER BY bucket ASC\n  LIMIT 1\n)\nSELECT \n  f.bucket,\n  {{token_mint}} as token_mint,\n  CASE \n    WHEN f.bucket = (SELECT first_bucket FROM first_trade) THEN (SELECT first_price FROM first_trade)\n    ELSE LAG(f.close_price_usd, 1) OVER (ORDER BY f.bucket)\n  END as open_price_usd,\n  f.close_price_usd,\n  COALESCE(f.raw_high, f.close_price_usd) as high_price_usd,\n  COALESCE(f.raw_low, f.close_price_usd) as low_price_usd,\n  f.volume_usd,\n  f.has_trades\nFROM filled_prices f\n-- Only return candles from first trade onwards\nWHERE f.bucket >= (SELECT first_bucket FROM first_trade)\nORDER BY bucket DESC;"
+      returns: candles_history_model
+      root_field_name: token_candles_history_1min
+    - arguments: {}
+      code: SELECT * FROM api.token_rolling_stats_30min;
+      returns: token_rolling_stats_30min_model
+      root_field_name: token_rolling_stats_30min
   tables: "!include timescaledb/tables/tables.yaml"
+  functions: "!include timescaledb/functions/functions.yaml"

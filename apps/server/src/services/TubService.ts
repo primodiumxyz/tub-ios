@@ -1,20 +1,34 @@
-import { Connection, Keypair, PublicKey, VersionedTransaction } from "@solana/web3.js";
-import { getAccount, getAssociatedTokenAddressSync } from "@solana/spl-token";
-import { GqlClient } from "@tub/gql";
 import { PrivyClient } from "@privy-io/server-auth";
+import { getAccount, getAssociatedTokenAddressSync } from "@solana/spl-token";
+import { Connection, Keypair, PublicKey, VersionedTransaction } from "@solana/web3.js";
+import { GqlClient } from "@tub/gql";
+import bs58 from "bs58";
+import { env } from "../../bin/tub-server";
+import { TOKEN_ACCOUNT_SIZE, TOKEN_PROGRAM_PUBLIC_KEY, USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
+import { Config, ConfigService } from "../services/ConfigService";
+import {
+  AppDwellTimeEvent,
+  LoadingTimeEvent,
+  PrebuildSignedSwapResponse,
+  PrebuildSwapResponse,
+  SubmitSignedTransactionResponse,
+  TokenDwellTimeEvent,
+  TokenPurchaseOrSaleEvent,
+  UserPrebuildSwapRequest,
+  ActiveSwapRequest,
+  TransactionType,
+} from "../types";
+import { config } from "../utils/config";
+import { deriveTokenAccounts } from "../utils/tokenAccounts";
+import { AnalyticsService } from "./AnalyticsService";
+import { CronService } from "./CronService";
+import { PushService } from "./ApplePushService";
+import { AuthService } from "./AuthService";
+import { FeeService } from "./FeeService";
 import { JupiterService } from "./JupiterService";
 import { SwapService } from "./SwapService";
 import { TransactionService } from "./TransactionService";
-import { FeeService } from "./FeeService";
-import { AuthService } from "./AuthService";
-import { AnalyticsService, TokenPurchaseOrSaleEvent } from "./AnalyticsService";
 import { TransferService } from "./TransferService";
-import { env } from "../../bin/tub-server";
-import { UserPrebuildSwapRequest, PrebuildSwapResponse, PrebuildSignedSwapResponse, ClientEvent } from "../types";
-import { deriveTokenAccounts } from "../utils/tokenAccounts";
-import bs58 from "bs58";
-import { TOKEN_PROGRAM_PUBLIC_KEY } from "../constants/tokens";
-import { USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
 
 /**
  * Service class handling token trading, swaps, and user operations
@@ -27,7 +41,7 @@ export class TubService {
   private feeService!: FeeService;
   private analyticsService!: AnalyticsService;
   private transferService!: TransferService;
-
+  private pushService!: PushService;
   /**
    * Creates a new instance of TubService
    * @param gqlClient - GraphQL client for database operations
@@ -60,22 +74,28 @@ export class TubService {
     // validate trade fee recipient
     const validatedTradeFeeRecipient = await this.validateTradeFeeRecipient();
 
+    // initialize config service first since other services might need it
+    await ConfigService.getInstance();
+
     // Initialize fee payer
     const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY));
-    const feePayerPublicKey = feePayerKeypair.publicKey;
 
     this.authService = new AuthService(this.privy);
-    this.transactionService = new TransactionService(this.connection, feePayerKeypair, feePayerPublicKey);
-    this.feeService = new FeeService({
-      buyFee: env.OCTANE_BUY_FEE,
-      sellFee: env.OCTANE_SELL_FEE,
-      minTradeSize: env.OCTANE_MIN_TRADE_SIZE,
-      feePayerPublicKey: feePayerPublicKey,
-      tradeFeeRecipient: validatedTradeFeeRecipient,
-    });
+    this.transactionService = new TransactionService(this.connection, feePayerKeypair);
+    this.feeService = new FeeService({ tradeFeeRecipient: validatedTradeFeeRecipient }, this.jupiterService);
     this.swapService = new SwapService(this.jupiterService, this.transactionService, this.feeService);
     this.analyticsService = new AnalyticsService(this.gqlClient);
-    this.transferService = new TransferService(this.connection, feePayerKeypair, this.transactionService);
+    this.transferService = new TransferService(
+      this.connection,
+      feePayerKeypair,
+      this.transactionService,
+      this.feeService,
+    );
+
+    this.pushService = new PushService({ gqlClient: this.gqlClient });
+
+    // Start periodic tasks
+    new CronService(this.gqlClient).startPeriodicTasks();
   }
 
   /**
@@ -86,7 +106,8 @@ export class TubService {
    * @throws Error if the trade fee recipient does not have a valid USDC ATA
    */
   private async validateTradeFeeRecipient(): Promise<PublicKey> {
-    let tradeFeeRecipientUsdcAtaAddress = new PublicKey(env.OCTANE_TRADE_FEE_RECIPIENT);
+    const cfg = await config();
+    let tradeFeeRecipientUsdcAtaAddress = new PublicKey(cfg.TRADE_FEE_RECIPIENT);
 
     try {
       // Check if env is a USDC ATA address
@@ -96,8 +117,8 @@ export class TubService {
       try {
         // Check if env is a pubkey address that has a valid USDC ATA
         tradeFeeRecipientUsdcAtaAddress = getAssociatedTokenAddressSync(
-          new PublicKey(USDC_MAINNET_PUBLIC_KEY),
-          new PublicKey(env.OCTANE_TRADE_FEE_RECIPIENT),
+          USDC_MAINNET_PUBLIC_KEY,
+          new PublicKey(cfg.TRADE_FEE_RECIPIENT),
         );
         await getAccount(this.connection, tradeFeeRecipientUsdcAtaAddress);
       } catch {
@@ -114,11 +135,6 @@ export class TubService {
   }
 
   // Analytics methods
-  async recordClientEvent(event: ClientEvent, jwtToken: string): Promise<string> {
-    const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
-    return this.analyticsService.recordClientEvent(event, walletPublicKey.toBase58());
-  }
-
   async recordTokenPurchase(event: TokenPurchaseOrSaleEvent, jwtToken: string): Promise<string> {
     const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
     return this.analyticsService.recordTokenPurchase(event, walletPublicKey.toBase58());
@@ -127,6 +143,21 @@ export class TubService {
   async recordTokenSale(event: TokenPurchaseOrSaleEvent, jwtToken: string): Promise<string> {
     const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
     return this.analyticsService.recordTokenSale(event, walletPublicKey.toBase58());
+  }
+
+  async recordLoadingTime(event: LoadingTimeEvent, jwtToken: string): Promise<string> {
+    const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
+    return this.analyticsService.recordLoadingTime(event, walletPublicKey.toBase58());
+  }
+
+  async recordAppDwellTime(event: AppDwellTimeEvent, jwtToken: string): Promise<string> {
+    const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
+    return this.analyticsService.recordAppDwellTime(event, walletPublicKey.toBase58());
+  }
+
+  async recordTokenDwellTime(event: TokenDwellTimeEvent, jwtToken: string): Promise<string> {
+    const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
+    return this.analyticsService.recordTokenDwellTime(event, walletPublicKey.toBase58());
   }
 
   // Price methods
@@ -176,12 +207,30 @@ export class TubService {
       userPublicKey: walletPublicKey,
     };
 
-    try {
-      const response = await this.swapService.buildSwapResponse(activeRequest);
-      return response;
-    } catch (error) {
-      throw new Error(`Failed to build swap response: ${error}`);
+    const cfg = await config();
+    const response = await this.buildSwapResponseWithRebuild(activeRequest, cfg, 0);
+    return response;
+  }
+
+  async buildSwapResponseWithRebuild(
+    activeRequest: ActiveSwapRequest,
+    cfg: Config,
+    priorBuildAttempts: number = 0,
+  ): Promise<PrebuildSwapResponse> {
+    for (let buildAttempt = priorBuildAttempts + 1; buildAttempt <= cfg.MAX_BUILD_ATTEMPTS; buildAttempt++) {
+      console.log("Building swap response attempt " + buildAttempt);
+      try {
+        const response = await this.swapService.buildSwapResponse(activeRequest, cfg, buildAttempt);
+        return response;
+      } catch (error) {
+        console.log("Failed to build swap response: ", error);
+        // if build attempt is maxed out or if user has set slippage, throw error
+        if (buildAttempt >= cfg.MAX_BUILD_ATTEMPTS || activeRequest.slippageBps !== undefined) {
+          throw new Error("Failed to build swap response: " + error);
+        }
+      }
     }
+    throw new Error("Failed to build swap response");
   }
 
   /**
@@ -256,9 +305,54 @@ export class TubService {
     await this.swapService.stopSwapStream(userId);
   }
 
-  async signAndSendTransaction(jwtToken: string, userSignature: string, base64TransactionMessage: string) {
+  async signAndSendTransaction(
+    jwtToken: string,
+    userSignature: string,
+    base64TransactionMessage: string,
+  ): Promise<SubmitSignedTransactionResponse> {
     const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
-    return this.transactionService.signAndSendTransaction(walletPublicKey, userSignature, base64TransactionMessage);
+    const entry = this.transactionService.getRegisteredTransaction(base64TransactionMessage);
+    if (!entry) {
+      throw new Error("Transaction not found in registry");
+    }
+    const cfg = await config();
+
+    try {
+      const response = this.transactionService.signAndSendTransaction(walletPublicKey, userSignature, entry, cfg);
+      return response;
+    } catch (error) {
+      console.log("Tx send failed: " + JSON.stringify(error));
+
+      // don't rebuild transfer swaps
+      if (entry.transactionType === TransactionType.TRANSFER) {
+        throw new Error(JSON.stringify(error));
+      }
+
+      // TODO: error interpretation
+
+      // don't rebuild if slippage is not auto
+      if (entry.buildAttempts + 1 >= cfg.MAX_BUILD_ATTEMPTS || !entry.autoSlippage) {
+        throw new Error(JSON.stringify(error));
+      }
+
+      // rebuild
+      if (!this.swapService) {
+        throw new Error("SwapService is not set");
+      }
+      if (!entry.activeSwapRequest) {
+        throw new Error("ActiveSwapRequest is not set");
+      }
+      if (!entry.cfg) {
+        throw new Error("Config is not set");
+      }
+      this.swapService.deleteMessageFromRegistry(base64TransactionMessage);
+      const rebuiltSwapResponse = await this.buildSwapResponseWithRebuild(
+        entry.activeSwapRequest,
+        entry.cfg,
+        entry.buildAttempts,
+      );
+      return { responseType: "rebuild", rebuild: rebuiltSwapResponse };
+    }
   }
 
   /**
@@ -305,7 +399,7 @@ export class TubService {
     return response;
   }
 
-  async getBalance(jwtToken: string): Promise<{ balance: number }> {
+  async getSolBalance(jwtToken: string): Promise<{ balance: number }> {
     const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
 
     const balance = await this.connection.getBalance(walletPublicKey, "processed");
@@ -346,6 +440,17 @@ export class TubService {
     return { balance };
   }
 
+  async getEstimatedTransferFee(jwtToken: string): Promise<{ estimatedFee: number }> {
+    // just auth check for spam mitigation
+    await this.authService.getUserContext(jwtToken);
+
+    const rentExemptionAmountLamports = await this.connection.getMinimumBalanceForRentExemption(TOKEN_ACCOUNT_SIZE);
+    const rentExemptionFeeAmountUsdcBaseUnits =
+      await this.feeService.calculateRentExemptionFeeAmount(rentExemptionAmountLamports);
+
+    return { estimatedFee: rentExemptionFeeAmountUsdcBaseUnits };
+  }
+
   /**
    * Creates a transaction for transferring USDC
    */
@@ -368,5 +473,22 @@ export class TubService {
 
     // Get the transfer transaction from the transfer service
     return await this.transferService.getTransfer(transferRequest);
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /*                             Push Notifications                             */
+  /* -------------------------------------------------------------------------- */
+
+  async startLiveActivity(
+    jwtToken: string,
+    input: { tokenMint: string; tokenPriceUsd: string; deviceToken: string; pushToken: string },
+  ) {
+    const { userId } = await this.authService.getUserContext(jwtToken);
+    return this.pushService.startLiveActivity(userId, input);
+  }
+
+  async stopLiveActivity(jwtToken: string) {
+    const { userId } = await this.authService.getUserContext(jwtToken);
+    return this.pushService.stopLiveActivity(userId);
   }
 }

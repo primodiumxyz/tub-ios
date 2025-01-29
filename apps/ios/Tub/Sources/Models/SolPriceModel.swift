@@ -11,15 +11,15 @@ import TubAPI
 final class SolPriceModel: ObservableObject {
     static let shared = SolPriceModel()
 
-    @Published var price: Double? = nil
+    @Published var solPrice: Double? = nil
     @Published var error: String?
+    @Published var ready: Bool = false
 
     private var timer: Timer?
     private var fetching = false
 
     init() {
-        // we dont need this because we use usdc as the base unit
-        // startPriceUpdates()
+        startPriceUpdates()
     }
 
     deinit {
@@ -34,7 +34,8 @@ final class SolPriceModel: ObservableObject {
         
         do {
             let price = try await Network.shared.getSolPrice()
-            self.price = price
+            self.solPrice = price
+            self.ready = true
             self.error = nil
         } catch {
             self.error = error.localizedDescription
@@ -57,7 +58,6 @@ final class SolPriceModel: ObservableObject {
         }
         RunLoop.main.add(timer!, forMode: .common)
     }
-    
     func formatPrice(
         usd: Double,
         showSign: Bool = false,
@@ -66,39 +66,16 @@ final class SolPriceModel: ObservableObject {
         minDecimals: Int = 2,
         formatLarge: Bool = true
     ) -> String {
-        if usd.isNaN || usd.isInfinite || usd == 0 {
-            return showUnit ? "$0.00" : "0.00"
-        }
-
-        // Handle large numbers
-        if usd >= 10_000 && formatLarge {
-            return
-                "\(showSign ? (usd >= 0 ? "+" : "") : "")\(showUnit ? "$" : "")\(formatLargeNumber(usd))"
-        }
-
-        let (minFractionDigits, maxFractionDigits) = getFormattingParameters(for: usd)
-        var result = formatInitial(
-            usd,
-            minFractionDigits: max(minFractionDigits, minDecimals),
-            maxFractionDigits: min(maxFractionDigits, maxDecimals)
+        return formatPriceUsd(
+            usd: usd,
+            showSign: showSign,
+            showUnit: showUnit,
+            maxDecimals: maxDecimals,
+            minDecimals: minDecimals,
+            formatLarge: formatLarge
         )
-
-        result = cleanupFormattedString(result)
-
-        let isNegative = result.hasPrefix("-")
-        result = result.replacingOccurrences(of: "-", with: "")
-
-        var prefix = ""
-        if showSign {
-            prefix += isNegative ? "-" : "+"
-        }
-        if showUnit {
-            prefix += "$"
-        }
-
-        return prefix + result
     }
-
+    
     func formatPrice(
         lamports: Int,
         showSign: Bool = false,
@@ -107,7 +84,7 @@ final class SolPriceModel: ObservableObject {
         minDecimals: Int = 2,
         formatLarge: Bool = true
     ) -> String {
-        return formatPrice(
+        return formatPriceUsd(
             usd: lamportsToUsd(lamports: lamports),
             showSign: showSign,
             showUnit: showUnit,
@@ -118,16 +95,16 @@ final class SolPriceModel: ObservableObject {
     }
 
     func formatPrice(
-        sol: Double,
+        sol: Int,
         showSign: Bool = false,
         showUnit: Bool = true,
         maxDecimals: Int = 2,
         minDecimals: Int = 2,
         formatLarge: Bool = true
     ) -> String {
-        if let price = self.price, price > 0 {
-            return formatPrice(
-                usd: sol * price,
+        if let price = self.solPrice, price > 0 {
+            return formatPriceUsd(
+                usd: Double(sol) * price,
                 showSign: showSign,
                 showUnit: showUnit,
                 maxDecimals: maxDecimals,
@@ -148,7 +125,7 @@ final class SolPriceModel: ObservableObject {
         minDecimals: Int = 2,
         formatLarge: Bool = true
     ) -> String {
-            return formatPrice(
+            return formatPriceUsd(
                 usd: usdcToUsd(usdc: usdc),
                 showSign: showSign,
                 showUnit: showUnit,
@@ -159,21 +136,17 @@ final class SolPriceModel: ObservableObject {
     }
 
     func usdToLamports(usd: Double) -> Int {
-        if let price = self.price, price > 0 {
-            return Int(usd * SOL_DECIMALS / price)
-        }
-        else {
+        guard let price = solPrice, price > 0 else {
             return 0
         }
+        return Int(usd * SOL_DECIMALS / price)
     }
 
     func lamportsToUsd(lamports: Int) -> Double {
-        if let price = self.price, price > 0 {
-            return Double(lamports) * price / SOL_DECIMALS
-        }
-        else {
+        guard let price = solPrice, price > 0 else {
             return 0
         }
+        return Double(lamports) * price / SOL_DECIMALS
     }
 
     func usdcToUsd(usdc: Int) -> Double {

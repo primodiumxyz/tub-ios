@@ -139,7 +139,7 @@ struct SettingsView: View {
                 Spacer()
             }
             .navigationBarBackButtonHidden(false)
-            .navigationTitle("Settings")
+            .navigationTitle("Preferences")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 // Keep keyboard toolbar

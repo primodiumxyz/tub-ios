@@ -32,20 +32,6 @@ struct AccountDetailsView: View {
                 VStack {
                     // Account Information List
                     VStack(spacing: 24) {
-                        DetailRow(
-                            title: "Account ID",
-                            value: truncateString(userId)
-                        ) {
-                            IconButton(
-                                icon: "doc.on.doc",
-                                color: .tubText,
-                                size: 16,
-                                action: {
-                                    UIPasteboard.general.string = userId
-                                }
-                            )
-                        }
-
                         if let email = linkedAccounts.email {
                             DetailRow(title: "Email", value: email)
                         }

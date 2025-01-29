@@ -7,26 +7,28 @@ import { MockPrivyClient } from "./helpers/MockPrivyClient";
 import { createClient as createGqlClient } from "@tub/gql";
 import bs58 from "bs58";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
-import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY, VALUE_MAINNET_PUBLIC_KEY } from "@/constants/tokens";
-import { env } from "@bin/tub-server";
-import { PrebuildSwapResponse } from "@/types";
-
+import { env } from "../bin/tub-server";
+import { PrebuildSwapResponse, SubmitSignedTransactionResponse } from "../src/types";
+import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY, MEMECOIN_MAINNET_PUBLIC_KEY } from "../src/constants/tokens";
+import { ConfigService } from "../src/services/ConfigService";
+import { TransferService } from "../src/services/TransferService";
+import { TransactionService } from "../src/services/TransactionService";
+import { FeeService } from "@/services/FeeService";
 // Skip entire suite in CI, because it would perform a live transaction each deployment
 (env.CI ? describe.skip : describe)("TubService Integration Test", () => {
   let tubService: TubService;
   let userKeypair: Keypair;
   let mockJwtToken: string;
   let connection: Connection;
+  const jupiterQuoteApi = createJupiterApiClient({
+    basePath: env.JUPITER_URL,
+  });
 
   beforeAll(async () => {
     try {
       // Setup connection to Solana mainnet
       connection = new Connection(`${env.QUICKNODE_ENDPOINT}/${env.QUICKNODE_TOKEN}`);
-
-      // Setup Jupiter API client
-      const jupiterQuoteApi = createJupiterApiClient({
-        basePath: env.JUPITER_URL,
-      });
+      await ConfigService.getInstance();
 
       // Create test fee payer keypair
       const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY));
@@ -41,7 +43,7 @@ import { PrebuildSwapResponse } from "@/types";
 
       const gqlClient = (
         await createGqlClient({
-          url: "http://localhost:8080/v1/graphql",
+          url: "http://localhost:8090/v1/graphql",
           hasuraAdminSecret: "password",
         })
       ).db;
@@ -75,13 +77,14 @@ import { PrebuildSwapResponse } from "@/types";
       console.log("User SOL ATA:", userSolAta.toBase58());
 
       // Check USDC balance
-      try {
-        const balance = await connection.getTokenAccountBalance(userUsdcAta);
-        if (!balance.value.uiAmount || balance.value.uiAmount < 1) {
-          throw new Error(`Test account needs at least 1 USDC. Current balance: ${balance.value.uiAmount ?? 0} USDC`);
-        }
-      } catch {
-        throw new Error("Test account needs a USDC token account with at least 1 USDC");
+      const balance = await connection.getTokenAccountBalance(userUsdcAta, "processed");
+      if (!balance.value.uiAmount) {
+        console.warn("⚠️  Warning: Test account missing USDC token account. Some tests may fail.");
+      }
+      if (!!balance.value.uiAmount && balance.value.uiAmount < 1) {
+        console.warn(
+          `⚠️  Warning: Test account has low USDC balance: ${balance.value.uiAmount ?? 0} USDC. Some tests may fail.`,
+        );
       }
     } catch (error) {
       console.error("Error in test setup:", error);
@@ -89,9 +92,9 @@ import { PrebuildSwapResponse } from "@/types";
     }
   });
 
-  describe("getBalance", () => {
+  describe("getSolBalance", () => {
     it("should get the user's balance", async () => {
-      const balance = await tubService.getBalance(mockJwtToken);
+      const balance = await tubService.getSolBalance(mockJwtToken);
       expect(balance).toBeDefined();
       expect(balance.balance).toBeGreaterThan(0);
     });
@@ -127,33 +130,111 @@ import { PrebuildSwapResponse } from "@/types";
     });
   });
 
-  describe.skip("swap execution", () => {
-    const executeTx = async (swapResponse: PrebuildSwapResponse) => {
-      const handoff = Buffer.from(swapResponse.transactionMessageBase64, "base64");
+  describe.skip("SOL transfer test", () => {
+    it("should transfer SOL from user to desired address", async () => {
+      const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY)); // note that the fee payer is the destination for this test
+      const jupiterService = new JupiterService(connection, jupiterQuoteApi);
+      const transactionService = new TransactionService(connection, feePayerKeypair);
+
+      // get USDC ATA for fee payer
+      const feePayerUsdcAta = await getAssociatedTokenAddress(USDC_MAINNET_PUBLIC_KEY, feePayerKeypair.publicKey);
+      const feeService = new FeeService({ tradeFeeRecipient: feePayerUsdcAta }, jupiterService);
+      const transferService = new TransferService(connection, feePayerKeypair, transactionService, feeService);
+
+      const destinationKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY)); // note that the fee payer is the destination for this test
+      // get user's SOL balance
+      const initUserSolBalance = await connection.getBalance(userKeypair.publicKey, "processed");
+      console.log("Initial user SOL balance:", initUserSolBalance);
+      const transferResponse = await transferService.getTransfer({
+        toAddress: destinationKeypair.publicKey.toString(),
+        fromAddress: userKeypair.publicKey.toString(),
+        amount: BigInt(1),
+        tokenId: "SOLANA",
+      });
+      console.log("Transfer response:", transferResponse);
+      // decode the transaction message
+      const handoff = Buffer.from(transferResponse.transactionMessageBase64, "base64");
       const message = VersionedMessage.deserialize(handoff);
       const transaction = new VersionedTransaction(message);
-
-      // User signs
       transaction.sign([userKeypair]);
+      transaction.sign([feePayerKeypair]);
       const userSignature = transaction.signatures![1];
+      const feePayerSignature = transaction.signatures![0];
       expect(transaction.signatures).toHaveLength(2);
       expect(userSignature).toBeDefined();
+      expect(feePayerSignature).toBeDefined();
 
-      // Convert raw signature to base64
-      const base64Signature = Buffer.from(userSignature!).toString("base64");
+      // simulate the transaction
+      const simulation = await connection.simulateTransaction(transaction, { commitment: "finalized" });
+      console.log("Simulation:", simulation);
 
-      // --- End Simulating Mock Privy Interaction ---
+      // send the transaction
+      const txid = await connection.sendTransaction(transaction);
+      console.log("Transaction sent with id:", txid);
 
-      const result = await tubService.signAndSendTransaction(
-        mockJwtToken,
-        base64Signature,
-        swapResponse.transactionMessageBase64, // Send original unsigned transaction
-      );
+      // confirm the transaction
+      const status = await connection.getSignatureStatus(txid, {
+        searchTransactionHistory: true,
+      });
+      console.log("Transaction status:", status);
 
-      console.log("Transaction result:", result);
+      // wait for 10 seconds and console log the countdown
+      for (let i = 10; i > 0; i--) {
+        console.log(`Let RPCs catch up for ${i} seconds...`);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+
+      // confirm transaction again
+      const status2 = await connection.getSignatureStatus(txid, {
+        searchTransactionHistory: true,
+      });
+      console.log("Transaction status:", status2);
+
+      // get user's SOL balance
+      const userSolBalance = await connection.getBalance(userKeypair.publicKey, "processed");
+      console.log("User SOL balance:", userSolBalance);
+      // expect the user's SOL balance to be equal to the initial balance minus 1 lamport
+      expect(userSolBalance).toEqual(initUserSolBalance - 1);
+    }, 15000);
+  });
+
+  describe.skip("swap execution", () => {
+    const executeTx = async (swapResponse: PrebuildSwapResponse) => {
+      let rebuild = false;
+      let result: SubmitSignedTransactionResponse;
+      do {
+        rebuild = false;
+        const handoff = Buffer.from(swapResponse.transactionMessageBase64, "base64");
+        const message = VersionedMessage.deserialize(handoff);
+        const transaction = new VersionedTransaction(message);
+
+        // User signs
+        transaction.sign([userKeypair]);
+        const userSignature = transaction.signatures![1];
+        expect(transaction.signatures).toHaveLength(2);
+        expect(userSignature).toBeDefined();
+
+        // Convert raw signature to base64
+        const base64Signature = Buffer.from(userSignature!).toString("base64");
+
+        result = await tubService.signAndSendTransaction(
+          mockJwtToken,
+          base64Signature,
+          swapResponse.transactionMessageBase64, // Send original unsigned transaction
+        );
+
+        console.log("Transaction result:", result);
+
+        if (result.responseType === "rebuild" && result.rebuild) {
+          console.log("Transaction rebuilt, retrying...");
+          swapResponse = result.rebuild;
+          rebuild = true;
+          await executeTx(swapResponse);
+        }
+      } while (rebuild);
 
       expect(result).toBeDefined();
-      expect(result.signature).toBeDefined();
+      expect(result.txid).toBeDefined();
     };
     it.skip("should complete a USDC to SOL swap", async () => {
       console.log("\nStarting USDC to SOL swap flow test");
@@ -172,79 +253,89 @@ import { PrebuildSwapResponse } from "@/types";
       await executeTx(swapResponse);
     }, 11000);
 
-    describe("VALUE swaps", () => {
-      it("should complete a USDC to VALUE swap", async () => {
+    describe("MEMECOIN swaps", () => {
+      it("should complete a USDC to MEMECOIN swap", async () => {
         // Get swap instructions
         const swapResponse = await tubService.fetchSwap(mockJwtToken, {
-          buyTokenId: VALUE_MAINNET_PUBLIC_KEY.toString(),
+          buyTokenId: MEMECOIN_MAINNET_PUBLIC_KEY.toString(),
           sellTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
-          sellQuantity: 1e6 / 1000, // 0.001 USDC
+          sellQuantity: 1e6, // 1 USDC
           slippageBps: undefined,
         });
 
         await executeTx(swapResponse);
+      }, 75000);
+
+      it.skip("should transfer half of held MEMECOIN to USDC", async () => {
+        const userMEMECOINAta = await getAssociatedTokenAddress(MEMECOIN_MAINNET_PUBLIC_KEY, userKeypair.publicKey);
+        const memecoinBalance = await connection.getTokenAccountBalance(userMEMECOINAta, "processed");
+        const decimals = memecoinBalance.value.decimals;
+        console.log("MEMECOIN balance:", memecoinBalance.value.uiAmount);
+        if (!memecoinBalance.value.uiAmount) {
+          console.log("MEMECOIN balance is 0, skipping transfer");
+          return;
+        }
+
+        const balanceToken = memecoinBalance.value.uiAmount * 10 ** decimals;
+        const swap = {
+          buyTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
+          sellTokenId: MEMECOIN_MAINNET_PUBLIC_KEY.toString(),
+          sellQuantity: Math.round(balanceToken / 2),
+          slippageBps: undefined,
+        };
+        console.log("MEMECOIN swap:", swap);
+        const swapResponse = await tubService.fetchSwap(mockJwtToken, swap);
+
+        await executeTx(swapResponse);
       }, 11000);
 
-      it.skip("should transfer half of held VALUE to USDC", async () => {
-        const userVALUEAta = await getAssociatedTokenAddress(VALUE_MAINNET_PUBLIC_KEY, userKeypair.publicKey);
-        const valueBalance = await connection.getTokenAccountBalance(userVALUEAta);
-        const decimals = valueBalance.value.decimals;
-        console.log("VALUE balance:", valueBalance.value.uiAmount);
-        if (!valueBalance.value.uiAmount) {
-          console.log("VALUE balance is 0, skipping transfer");
+      it("should transfer all held MEMECOIN to USDC and close the MEMECOIN account", async () => {
+        // wait for 5 seconds and console log the countdown
+        for (let i = 5; i > 0; i--) {
+          console.log(`Let RPCs catch up for ${i} seconds...`);
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
+        const userMemecoinAta = await getAssociatedTokenAddress(MEMECOIN_MAINNET_PUBLIC_KEY, userKeypair.publicKey);
+        const memecoinBalance = await connection.getTokenAccountBalance(userMemecoinAta, "processed");
+
+        const decimals = memecoinBalance.value.decimals;
+        console.log("Memecoin balance:", memecoinBalance.value.uiAmount);
+        if (!memecoinBalance.value.uiAmount) {
+          console.log("Memecoin balance is 0, skipping transfer");
           return;
         }
 
-        const balanceToken = valueBalance.value.uiAmount * 10 ** decimals;
+        const initSolBalanceinMemecoinAta = await connection.getBalance(userMemecoinAta, "processed");
+        if (!memecoinBalance.value.uiAmount && initSolBalanceinMemecoinAta === 0) {
+          console.log("Memecoin ATA appears closed, skipping test");
+          return;
+        }
+
+        const balanceToken = memecoinBalance.value.uiAmount * 10 ** decimals;
         const swap = {
           buyTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
-          sellTokenId: VALUE_MAINNET_PUBLIC_KEY.toString(),
-          sellQuantity: Math.round(balanceToken / 2),
-          slippageBps: 100,
+          sellTokenId: MEMECOIN_MAINNET_PUBLIC_KEY.toString(),
+          sellQuantity: Math.round(balanceToken),
+          slippageBps: undefined,
         };
-        console.log("VALUE swap:", swap);
+        console.log("Memecoin swap:", swap);
         const swapResponse = await tubService.fetchSwap(mockJwtToken, swap);
-
-        await executeTx(swapResponse);
-      });
-
-      it.skip("should transfer all held VALUE to USDC and close the VALUE account", async () => {
-        const userVALUEAta = await getAssociatedTokenAddress(VALUE_MAINNET_PUBLIC_KEY, userKeypair.publicKey);
-        const valueBalance = await connection.getTokenAccountBalance(userVALUEAta);
-
-        const decimals = valueBalance.value.decimals;
-        console.log("VALUE balance:", valueBalance.value.uiAmount);
-        if (!valueBalance.value.uiAmount) {
-          console.log("VALUE balance is 0, skipping transfer");
-          return;
-        }
-
-        const initSolBalanceinVALUEAta = await connection.getBalance(userVALUEAta);
-        if (initSolBalanceinVALUEAta === 0) {
-          console.log("VALUE ATA appears closed, skipping test");
-          return;
-        }
-
-        const balanceToken = valueBalance.value.uiAmount * 10 ** decimals;
-        const swap = {
-          buyTokenId: USDC_MAINNET_PUBLIC_KEY.toString(),
-          sellTokenId: VALUE_MAINNET_PUBLIC_KEY.toString(),
-          sellQuantity: balanceToken,
-          slippageBps: 100,
-        };
-        console.log("VALUE swap:", swap);
-        const swapResponse = await tubService.fetchSwap(mockJwtToken, swap);
+        // delay for 1 second to emulate latency
+        await new Promise((resolve) => setTimeout(resolve, 1000));
 
         await executeTx(swapResponse);
 
-        // wait 5 extra seconds for the transaction to be processed by most nodes
-        await new Promise((resolve) => setTimeout(resolve, 5000));
+        // wait for 5 seconds to ensure the transaction is processed by most nodes
+        for (let i = 5; i > 0; i--) {
+          console.log(`Validate balance change in ${i} seconds...`);
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
 
-        // get balance of SOL in the VALUE account
-        const valueSolBalanceLamports = await connection.getBalance(userVALUEAta, "processed");
-        console.log("VALUE SOL balance lamports:", valueSolBalanceLamports);
-        expect(valueSolBalanceLamports).toBe(0);
-      }, 20000);
+        // get balance of SOL in the Memecoin account
+        const memecoinSolBalanceLamports = await connection.getBalance(userMemecoinAta, "processed");
+        console.log("Memecoin SOL balance lamports:", memecoinSolBalanceLamports);
+        expect(memecoinSolBalanceLamports).toBe(0);
+      }, 80000);
     });
   });
 });

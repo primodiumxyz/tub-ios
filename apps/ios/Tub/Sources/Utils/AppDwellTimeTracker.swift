@@ -35,14 +35,10 @@ class AppDwellTimeTracker: ObservableObject {
         let dwellTimeMs = Int(Date().timeIntervalSince(start) * 1000)
         
         Task {
-            try? await Network.shared.recordClientEvent(
-                event: Network.ClientEvent(
-                    eventName: "app_dwell_time",
-                    source: "app",
-                    metadata: [
-                        ["dwell_time_ms": dwellTimeMs]
-                    ]
-                )
+            try? await Network.shared.recordAppDwellTime(
+                dwellTimeMs: dwellTimeMs,
+                source: "app",
+                errorDetails: nil
             )
             print("✅ Recorded app dwell time: \(dwellTimeMs)ms")
         }

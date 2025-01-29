@@ -1,21 +1,18 @@
+import { QuoteGetRequest } from "@jup-ag/api";
+import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import { Subject, interval, switchMap } from "rxjs";
+import { FeeService } from "../services/FeeService";
+import {
+  ActiveSwapRequest,
+  PrebuildSwapResponse,
+  SwapSubscription,
+  TransactionType,
+  TransactionRegistryData,
+} from "../types";
+import { config } from "../utils/config";
+import { Config } from "./ConfigService";
 import { JupiterService } from "./JupiterService";
 import { TransactionService } from "./TransactionService";
-import { FeeService } from "../services/FeeService";
-import { ActiveSwapRequest, PrebuildSwapResponse, SwapSubscription } from "../types";
-import { USDC_DEV_PUBLIC_KEY, USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
-import { QuoteGetRequest } from "@jup-ag/api";
-import { PublicKey } from "@solana/web3.js";
-import {
-  MAX_ACCOUNTS,
-  MAX_DEFAULT_SLIPPAGE_BPS,
-  MAX_AUTO_SLIPPAGE_BPS,
-  AUTO_SLIPPAGE,
-  AUTO_SLIPPAGE_COLLISION_USD_VALUE,
-  AUTO_PRIORITY_FEE_MULTIPLIER,
-  USER_SLIPPAGE_BPS_MAX,
-  MIN_SLIPPAGE_BPS,
-} from "../constants/swap";
 
 export class SwapService {
   private swapSubscriptions: Map<string, SwapSubscription> = new Map();
@@ -26,46 +23,41 @@ export class SwapService {
     private feeService: FeeService,
   ) {}
 
-  async buildSwapResponse(request: ActiveSwapRequest): Promise<PrebuildSwapResponse> {
+  async buildSwapResponse(
+    request: ActiveSwapRequest,
+    cfg: Config,
+    buildAttempt: number,
+  ): Promise<PrebuildSwapResponse> {
     if (!request.sellTokenAccount) {
       throw new Error("Sell token account is required but was not provided");
     }
 
-    if (request.slippageBps && request.slippageBps > USER_SLIPPAGE_BPS_MAX) {
+    if (request.slippageBps && request.slippageBps > cfg.USER_SLIPPAGE_BPS_MAX) {
       throw new Error("Slippage bps is too high");
     }
 
-    if (request.slippageBps && request.slippageBps <= MIN_SLIPPAGE_BPS) {
-      throw new Error("Slippage bps must be greater than " + MIN_SLIPPAGE_BPS);
+    if (request.slippageBps && request.slippageBps < cfg.MIN_SLIPPAGE_BPS) {
+      throw new Error("Slippage bps must be greater than " + cfg.MIN_SLIPPAGE_BPS);
     }
 
-    // Calculate fee if selling USDC
-    const usdcDevPubKey = USDC_DEV_PUBLIC_KEY.toString();
-    const usdcMainPubKey = USDC_MAINNET_PUBLIC_KEY.toString();
-    const feeAmount = this.feeService.calculateFeeAmount(request.sellTokenId, request.sellQuantity, [
-      usdcDevPubKey,
-      usdcMainPubKey,
-    ]);
-    const swapAmount = request.sellQuantity - feeAmount;
+    // Determine swap type
+    const transactionType = await this.transactionService.determineTransactionType(request);
 
-    // Create fee transfer instruction if needed
-    const feeTransferInstruction = this.feeService.createFeeTransferInstruction(
-      request.sellTokenAccount,
-      request.userPublicKey,
-      feeAmount,
-    );
+    // Calculate fee if swap type is buy
+    const buyFeeAmount =
+      TransactionType.BUY === transactionType
+        ? this.feeService.calculateFeeAmount(request.sellQuantity, transactionType, cfg)
+        : 0;
+    const swapAmount = request.sellQuantity - buyFeeAmount;
 
-    // Create token account close instruction if fee amount is 0
+    // Create token account close instruction if swap type is sell_all (conditional occurs within function)
     const tokenCloseInstruction = await this.transactionService.createTokenCloseInstruction(
       request.userPublicKey,
       request.sellTokenAccount,
       new PublicKey(request.sellTokenId),
       request.sellQuantity,
-      feeAmount,
+      transactionType,
     );
-
-    // TODO: autoSlippageCollisionUsdValue should be based on the estimated value of the swap amount.
-    // This is already accomplished when selling USDC, but need to query our internal price feed for other tokens.
 
     // there are 3 different forms of slippage settings, ordered by priority
     // 1. user provided slippage bps
@@ -73,13 +65,14 @@ export class SwapService {
     // 3. auto slippage set to false, use MAX_DEFAULT_SLIPPAGE_BPS
 
     const slippageSettings = {
-      slippageBps: request.slippageBps ? request.slippageBps : AUTO_SLIPPAGE ? undefined : MAX_DEFAULT_SLIPPAGE_BPS,
-      autoSlippage: request.slippageBps ? false : AUTO_SLIPPAGE,
-      maxAutoSlippageBps: MAX_AUTO_SLIPPAGE_BPS,
-      autoSlippageCollisionUsdValue:
-        request.sellTokenId === USDC_MAINNET_PUBLIC_KEY.toString()
-          ? Math.ceil(swapAmount / 1e6)
-          : AUTO_SLIPPAGE_COLLISION_USD_VALUE,
+      slippageBps: request.slippageBps
+        ? request.slippageBps
+        : cfg.AUTO_SLIPPAGE
+          ? undefined
+          : cfg.MAX_DEFAULT_SLIPPAGE_BPS,
+      autoSlippage: request.slippageBps ? false : cfg.AUTO_SLIPPAGE,
+      maxAutoSlippageBps: cfg.MAX_AUTO_SLIPPAGE_BPS,
+      autoSlippageCollisionUsdValue: cfg.AUTO_SLIPPAGE_COLLISION_USD_VALUE,
     };
 
     // Get swap instructions from Jupiter
@@ -95,7 +88,7 @@ export class SwapService {
       autoSlippageCollisionUsdValue: slippageSettings.autoSlippageCollisionUsdValue,
       onlyDirectRoutes: false,
       restrictIntermediateTokens: true,
-      maxAccounts: MAX_ACCOUNTS,
+      maxAccounts: cfg.MAX_ACCOUNTS,
       asLegacyTransaction: false,
     };
 
@@ -103,43 +96,89 @@ export class SwapService {
       instructions: swapInstructions,
       addressLookupTableAccounts,
       quote,
-    } = await this.jupiter.getSwapInstructions(
-      swapInstructionRequest,
-      request.userPublicKey,
-      AUTO_PRIORITY_FEE_MULTIPLIER,
-    );
-    console.log("Quoted auto slippage", quote.computedAutoSlippage);
-    console.log("Quoted slippage bps", quote.slippageBps);
-    console.log("Quoted outAmount", quote.outAmount);
+    } = await this.jupiter.getSwapInstructions(swapInstructionRequest, request.userPublicKey);
 
     if (!swapInstructions?.length) {
       throw new Error("No swap instruction received");
     }
 
-    // Combine fee transfer and swap instructions and token close instruction if needed
-    const someInstructions = feeTransferInstruction ? [feeTransferInstruction, ...swapInstructions] : swapInstructions;
-    const allInstructions = tokenCloseInstruction ? [...someInstructions, tokenCloseInstruction] : someInstructions;
+    let feeTransferInstruction: TransactionInstruction | null = null;
 
-    // Reassign rent payer in instructions
-    const rentReassignedInstructions = this.transactionService.reassignRentInstructions(allInstructions);
+    // Create fee transfer instruction
+    if (transactionType === TransactionType.BUY) {
+      feeTransferInstruction = this.feeService.createFeeTransferInstruction(
+        request.sellTokenAccount,
+        request.userPublicKey,
+        buyFeeAmount,
+      );
+    } else if (transactionType === TransactionType.SELL_ALL || transactionType === TransactionType.SELL_PARTIAL) {
+      const sellFeeAmount = this.feeService.calculateFeeAmount(Number(quote.outAmount), transactionType, cfg);
+      feeTransferInstruction = this.feeService.createFeeTransferInstruction(
+        request.buyTokenAccount,
+        request.userPublicKey,
+        sellFeeAmount,
+      );
+    } else {
+      throw new Error("Invalid swap type");
+    }
 
-    // Build transaction message
-    const message = await this.transactionService.buildTransactionMessage(
-      rentReassignedInstructions,
-      addressLookupTableAccounts,
+    const organizedInstructions = this.organizeInstructions(
+      swapInstructions,
+      feeTransferInstruction,
+      tokenCloseInstruction,
     );
 
-    // Register transaction
-    const base64Message = this.transactionService.registerTransaction(message);
+    // Reassign rent payer in instructions
+    const rentReassignedInstructions = this.transactionService.reassignRentInstructions(organizedInstructions);
+
+    // estimate compute budget
+    const optimizedInstructions = await this.transactionService.optimizeComputeInstructions(
+      rentReassignedInstructions,
+      addressLookupTableAccounts,
+      quote.contextSlot ?? 0,
+      cfg,
+    );
+
+    const txRegistryData: TransactionRegistryData = {
+      timestamp: Date.now(),
+      transactionType: transactionType,
+      autoSlippage: slippageSettings.autoSlippage,
+      contextSlot: quote.contextSlot ?? 0,
+      buildAttempts: buildAttempt,
+      activeSwapRequest: request,
+      cfg: cfg,
+    };
+
+    // Build transaction message
+    const base64Message = await this.transactionService.buildAndRegisterTransactionMessage(
+      optimizedInstructions,
+      addressLookupTableAccounts,
+      txRegistryData,
+    );
 
     const response: PrebuildSwapResponse = {
       transactionMessageBase64: base64Message,
       ...request,
-      hasFee: feeAmount > 0,
+      hasFee: !!feeTransferInstruction,
       timestamp: Date.now(),
     };
 
     return response;
+  }
+
+  private organizeInstructions(
+    swapInstructions: TransactionInstruction[],
+    feeTransferInstruction: TransactionInstruction | null,
+    tokenCloseInstruction: TransactionInstruction | null,
+  ): TransactionInstruction[] {
+    const instructions = [...swapInstructions];
+    if (feeTransferInstruction) {
+      instructions.push(feeTransferInstruction);
+    }
+    if (tokenCloseInstruction) {
+      instructions.push(tokenCloseInstruction);
+    }
+    return instructions;
   }
 
   getMessageFromRegistry(transactionMessageBase64: string) {
@@ -176,7 +215,8 @@ export class SwapService {
           switchMap(async () => {
             const currentRequest = this.swapSubscriptions.get(userId)?.request;
             if (!currentRequest) return null;
-            return this.buildSwapResponse(currentRequest);
+            const cfg = await config();
+            return this.buildSwapResponse(currentRequest, cfg, 0);
           }),
         )
         .subscribe((response: PrebuildSwapResponse | null) => {

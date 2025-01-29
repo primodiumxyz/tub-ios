@@ -1,19 +1,20 @@
 #!/usr/bin/env node
+import fastifyWebsocket from "@fastify/websocket";
+import { ConfigurationParameters, createJupiterApiClient } from "@jup-ag/api";
+import { PrivyClient } from "@privy-io/server-auth";
+import { Connection, Keypair, PublicKey } from "@solana/web3.js";
+import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
+import { NodeHTTPCreateContextFnOptions } from "@trpc/server/adapters/node-http";
+import { applyWSSHandler } from "@trpc/server/adapters/ws";
+import { createClient as createGqlClient } from "@tub/gql";
+import bs58 from "bs58";
+import { config } from "dotenv";
+import fastify from "fastify";
+import { parseEnv } from "../bin/parseEnv";
 import { AppRouter, createAppRouter } from "../src/createAppRouter";
 import { JupiterService } from "../src/services/JupiterService";
 import { TubService } from "../src/services/TubService";
-import { parseEnv } from "../bin/parseEnv";
-import fastifyWebsocket from "@fastify/websocket";
-import { PrivyClient } from "@privy-io/server-auth";
-import { Connection, Keypair, PublicKey } from "@solana/web3.js";
-import { createJupiterApiClient, ConfigurationParameters } from "@jup-ag/api";
-import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
-import { applyWSSHandler } from "@trpc/server/adapters/ws";
-import { NodeHTTPCreateContextFnOptions } from "@trpc/server/adapters/node-http";
-import { createClient as createGqlClient } from "@tub/gql";
-import { config } from "dotenv";
-import fastify from "fastify";
-import bs58 from "bs58";
+import { config as configUtils } from "../src/utils/config";
 
 config({ path: "../../.env" });
 
@@ -61,8 +62,8 @@ export const start = async () => {
       throw new Error("Fee payer keypair not found");
     }
 
-    if (!env.OCTANE_TRADE_FEE_RECIPIENT) {
-      throw new Error("OCTANE_TRADE_FEE_RECIPIENT is not set");
+    if (!(await configUtils()).TRADE_FEE_RECIPIENT) {
+      throw new Error("TRADE_FEE_RECIPIENT is not set");
     }
 
     const jupiterConfig: ConfigurationParameters = {
@@ -79,7 +80,7 @@ export const start = async () => {
     }
     const gqlClient = (
       await createGqlClient({
-        url: env.NODE_ENV !== "production" ? "http://localhost:8080/v1/graphql" : env.GRAPHQL_URL,
+        url: env.NODE_ENV !== "production" ? "http://localhost:8090/v1/graphql" : env.GRAPHQL_URL,
         hasuraAdminSecret: env.NODE_ENV !== "production" ? "password" : env.HASURA_ADMIN_SECRET,
       })
     ).db;

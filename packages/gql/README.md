@@ -28,7 +28,7 @@ To create a GraphQL client:
 import { createClient } from "@tub/gql";
 
 const gql = await createClient({
-  url: "http://localhost:8080/v1/graphql",
+  url: "http://localhost:8090/v1/graphql",
   hasuraAdminSecret: "your-admin-secret",
 });
 ```
@@ -126,6 +126,31 @@ For coverage:
 
 ```bash
 pnpm test:coverage
+```
+
+### Benchmarking
+
+Results are stored in `__test__/benchmarks/output/`.
+
+```bash
+pnpm dev:ci
+pnpm benchmark # this will seed the database with `n` trades (see `__test__/benchmarks/config.ts`) and run the benchmarks
+```
+
+### Metrics/stress-testing
+
+```bash
+# Install k6
+brew install k6
+
+# Run the database
+cd packages/gql && pnpm dev:ci
+# Run local analysis (seeding, metrics with dashboard and output to file)
+pnpm k6:local
+# or without seeding first
+pnpm k6:local:skip-seed
+# or on the remote database
+pnpm k6:remote
 ```
 
 ### Working with Hasura

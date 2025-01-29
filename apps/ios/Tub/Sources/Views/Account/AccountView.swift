@@ -32,7 +32,6 @@ struct AccountView: View {
           TokenHistoryPreview()
 
           AccountSettingsView()
-            .padding(.top, -12)
           Spacer()
         }
       } else {
@@ -46,7 +45,7 @@ struct AccountView: View {
         .withNotificationBanner()
     }
     .sheet(isPresented: $showOnrampView) {
-      CoinbaseOnrampView()
+      OnrampView()
         .withNotificationBanner()
     }
     .padding()
@@ -147,7 +146,6 @@ private struct TokenHistoryPreview: View {
       }
     }
     .clipped()
-    .padding(.horizontal)
     .onAppear {
       handleRefreshTxs()
     }
@@ -218,10 +216,11 @@ private struct ActionButtons: View {
       // Add Transfer Button
       VStack(spacing: 8) {
         CircleButton(
-          icon: "arrow.left.arrow.right",
-          color: .tubAccent,
-          iconSize: 22,
-          action: { showWithdrawView.toggle() }
+            icon: "Transfer",
+            isSystemIcon: false,
+            color: .tubAccent,
+            iconSize: 44,
+            action: { showWithdrawView.toggle() }
         )
 
         Text("Transfer")
@@ -233,9 +232,11 @@ private struct ActionButtons: View {
       // Add Funds Button
       VStack(spacing: 8) {
         CircleButton(
-          icon: "plus",
-          color: .tubAccent,
-          action: { showOnrampView = true }
+            icon: "Add",
+            isSystemIcon: false,
+            color: .tubAccent,
+            iconSize: 44,
+            action: { showOnrampView = true }
         )
 
         Text("Add Funds")
@@ -261,62 +262,54 @@ private struct AccountSettingsView: View {
         .foregroundStyle(.primary)
 
       NavigationLink(destination: AccountDetailsView()) {
-        HStack(spacing: 16) {
-          Image(systemName: "person.circle")
-            .resizable()
-            .frame(width: 24, height: 24, alignment: .center)
-          Text("Account Details")
-            .font(.sfRounded(size: .lg, weight: .regular))
-          Spacer()
-          Image(systemName: "chevron.right")
-        }
-        .foregroundStyle(Color.primary)
-      }
-
-      NavigationLink(destination: PortfolioView()) {
-        HStack(spacing: 16) {
-          Image(systemName: "book.circle")
-            .resizable()
-            .frame(width: 24, height: 24, alignment: .center)
-          Text("Portfolio")
-            .font(.sfRounded(size: .lg, weight: .regular))
-          Spacer()
-          Image(systemName: "chevron.right")
-        }
+          HStack(spacing: 16) {
+              Image("Account")
+                  .resizable()
+                  .scaledToFit()
+                  .frame(width: 36, height: 36, alignment: .center)
+              Text("Profile")
+                  .font(.sfRounded(size: .lg, weight: .regular))
+              Spacer()
+              Image(systemName: "chevron.right")
+          }
         .foregroundStyle(Color.primary)
       }
 
       NavigationLink(destination: SettingsView()) {
-        HStack(spacing: 16) {
-          Image(systemName: "gear")
-            .resizable()
-            .frame(width: 24, height: 24, alignment: .center)
-          Text("Preferences")
-            .font(.sfRounded(size: .lg, weight: .regular))
-          Spacer()
-          Image(systemName: "chevron.right")
-        }
+          HStack(spacing: 16) {
+              Image("Settings")
+                  .resizable()
+                  .scaledToFit()
+                  .frame(width: 36, height: 36, alignment: .center)
+              Text("Preferences")
+                  .font(.sfRounded(size: .lg, weight: .regular))
+              Spacer()
+              Image(systemName: "chevron.right")
+          }
         .foregroundStyle(Color.primary)
       }
 
       Link(destination: URL(string: "https://t.me/tubalpha")!) {
-        HStack(spacing: 16) {
-          Image("Telegram")
-            .resizable()
-            .frame(width: 24, height: 24, alignment: .center)
-          Text("Join Telegram")
-            .font(.sfRounded(size: .lg, weight: .regular))
-          Spacer()
-          Image(systemName: "chevron.right")
-        }
+          HStack(spacing: 16) {
+              Image("Telegram")
+                  .resizable()
+                  .scaledToFit()
+                  .frame(width: 36, height: 36, alignment: .center)
+              Text("Join Telegram")
+                  .font(.sfRounded(size: .lg, weight: .regular))
+              Spacer()
+              Image(systemName: "chevron.right")
+          }
       }
       .foregroundStyle(.primary)
 
       // Logout Button
       IconTextButton(
-        icon: "rectangle.portrait.and.arrow.right",
+        icon: "Logout",
+        isSystemIcon: false,
         text: "Logout",
         textColor: Color.red,
+        iconSize: CGSize(width: 36, height: 36),
         action: { userModel.logout() }
       )
 

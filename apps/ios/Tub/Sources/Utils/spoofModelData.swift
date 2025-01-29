@@ -8,7 +8,7 @@
 import Foundation
 
 func spoofPriceModelData(_ model: SolPriceModel) {
-    model.price = 100
+    model.solPrice = 100
 }
 
 func spoofTokenModelData(userModel: UserModel, tokenModel: TokenModel) {
@@ -65,7 +65,8 @@ func spoofTokenModelData(userModel: UserModel, tokenModel: TokenModel) {
             close: basePrice + variation + 1,
             high: basePrice + variation + 2,
             low: basePrice + variation - 1,
-            volume: Double(1000 + (i * 100))
+            volume: Double(1000 + (i * 100)),
+            hasTrades: true
         )
     }.reversed()
 }

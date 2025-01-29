@@ -1,9 +1,8 @@
-import { Connection, PublicKey, TransactionInstruction, AddressLookupTableAccount } from "@solana/web3.js";
 import { DefaultApi, QuoteGetRequest, QuoteResponse, SwapInstructionsPostRequest } from "@jup-ag/api";
+import { AddressLookupTableAccount, Connection, PublicKey, TransactionInstruction } from "@solana/web3.js";
 import { EventEmitter } from "events";
-import { SOL_USD_PRICE_UPDATE_INTERVAL } from "../constants/registry";
 import { SOL_MAINNET_PUBLIC_KEY, USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
-import { MIN_SLIPPAGE_BPS } from "../constants/swap";
+import { config } from "../utils/config";
 
 export type JupiterSettings = {
   connection: Connection;
@@ -36,13 +35,21 @@ export class JupiterService {
     private connection: Connection,
     private jupiterQuoteApi: DefaultApi,
   ) {
-    // Update the SOL/USD price at every interval
-    const interval = setInterval(() => {
-      this.updateSolUsdPrice();
-    }, SOL_USD_PRICE_UPDATE_INTERVAL);
-    this.updateSolUsdPrice();
+    this.initializePriceUpdates();
+  }
 
-    interval.unref(); // allow Node.js to exit if only this interval is still running
+  private initializePriceUpdates(): void {
+    (async () => {
+      const interval = setInterval(
+        async () => {
+          await this.updateSolUsdPrice();
+        },
+        (await config()).SOL_USD_PRICE_UPDATE_INTERVAL,
+      );
+
+      this.updateSolUsdPrice();
+      interval.unref();
+    })();
   }
 
   getSettings(): JupiterSettings {
@@ -95,13 +102,14 @@ export class JupiterService {
   async getSwapInstructions(
     quoteAndSwapParams: QuoteGetRequest,
     userPublicKey: PublicKey,
-    autoPriorityFeeMultiplier: number,
   ): Promise<{
     instructions: TransactionInstruction[];
     addressLookupTableAccounts: AddressLookupTableAccount[];
     quote: QuoteResponse;
   }> {
     try {
+      const minSlippage = (await config()).MIN_SLIPPAGE_BPS;
+
       const quote = await this.getQuote(quoteAndSwapParams);
 
       if (!quote) {
@@ -109,11 +117,10 @@ export class JupiterService {
       }
 
       let dynamicSlippage: undefined | { minBps: number; maxBps: number } = undefined;
-
       // override computedAutoSlippage if it is less than MIN_SLIPPAGE_BPS
       if (quote.computedAutoSlippage) {
-        if (quote.computedAutoSlippage <= MIN_SLIPPAGE_BPS) {
-          dynamicSlippage = { minBps: MIN_SLIPPAGE_BPS, maxBps: MIN_SLIPPAGE_BPS };
+        if (quote.computedAutoSlippage <= minSlippage) {
+          dynamicSlippage = { minBps: minSlippage, maxBps: minSlippage };
         }
       }
 
@@ -123,7 +130,13 @@ export class JupiterService {
           userPublicKey: userPublicKey.toBase58(),
           asLegacyTransaction: quoteAndSwapParams.asLegacyTransaction,
           wrapAndUnwrapSol: true,
-          prioritizationFeeLamports: { autoMultiplier: autoPriorityFeeMultiplier },
+          prioritizationFeeLamports: {
+            priorityLevelWithMaxLamports: {
+              maxLamports: 2000000,
+              global: false,
+              priorityLevel: "high",
+            },
+          },
           dynamicSlippage: dynamicSlippage,
         },
       };
@@ -190,8 +203,6 @@ export class JupiterService {
 
       this.solUsdPrice = Number(res.outAmount) / 1e6; // convert to USD from USDC (6 decimals)
       this.priceEmitter.emit("price", this.solUsdPrice);
-
-      console.log(`SOL/USD price updated: ${this.solUsdPrice?.toLocaleString("en-US", { maximumFractionDigits: 2 })}`);
     } catch (error) {
       console.error("Error updating SOL/USD price:", error);
     }

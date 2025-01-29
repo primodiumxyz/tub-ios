@@ -6,7 +6,6 @@
 //
 
 import Apollo
-import ApolloWebSocket
 import Foundation
 import Security
 
@@ -15,37 +14,14 @@ class Network {
   private var lastApiCallTime: Date = Date()
   private let tokenManager = TokenManager()
 
-  // graphql
-  private let httpTransport: RequestChainNetworkTransport
-  private let webSocketTransport: WebSocketTransport
-
-  private(set) lazy var apollo: ApolloClient = {
-    let splitNetworkTransport = SplitNetworkTransport(
-      uploadingNetworkTransport: httpTransport,
-      webSocketNetworkTransport: webSocketTransport
-    )
-
-    let store = ApolloStore()
-    return ApolloClient(networkTransport: splitNetworkTransport, store: store)
-  }()
+  // GraphQL
+  private(set) lazy var graphQL = GraphQLManager()
 
   // tRPC
   private let baseURL: URL
   private let session: URLSession
 
   init() {
-    // setup graphql
-    let httpURL = URL(string: graphqlHttpUrl)!
-    let store = ApolloStore()
-    httpTransport = RequestChainNetworkTransport(
-      interceptorProvider: DefaultInterceptorProvider(store: store),
-      endpointURL: httpURL
-    )
-
-    let webSocketURL = URL(string: graphqlWsUrl)!
-    let websocket = WebSocket(url: webSocketURL, protocol: .graphql_ws)
-    webSocketTransport = WebSocketTransport(websocket: websocket)
-
     // setup tRPC
     baseURL = URL(string: serverBaseUrl)!
     session = URLSession(configuration: .default)
@@ -87,6 +63,7 @@ class Network {
     }
 
     // If it's not an error, proceed with normal decoding
+
     do {
       let decodedResponse = try JSONDecoder().decode(ResponseWrapper<T>.self, from: data)
       return decodedResponse.result.data
@@ -157,11 +134,6 @@ class Network {
     return response.status
   }
 
-  func recordClientEvent(event: ClientEvent) async throws {
-    let input = EventInput(event: event)
-    let _: EmptyResponse = try await callMutation("recordClientEvent", input: input)
-  }
-
   func getSolPrice() async throws -> Double {
     let url = baseURL.appendingPathComponent("getSolUsdPrice")
     var request = URLRequest(url: url)
@@ -180,8 +152,8 @@ class Network {
     return response.result.data
   }
 
-  func getBalance() async throws -> Int {
-    let res: BalanceResponse = try await callQuery("getBalance", tokenRequired: true)
+  func getSolBalance() async throws -> Int {
+    let res: BalanceResponse = try await callQuery("getSolBalance", tokenRequired: true)
     return res.balance
   }
 
@@ -217,6 +189,11 @@ class Network {
     return res
   }
 
+  func getEstimatedTransferFee() async throws -> Int {
+    let res: EstimatedTransferFeeResponse = try await callQuery("getEstimatedTransferFee", tokenRequired: true)
+    return res.estimatedFee
+  }
+
   func transferUsdc(fromAddress: String, toAddress: String, amount: Int) async throws -> String {
     // 1. Get the pre-signed transaction from the server
     let input = TransferInput(
@@ -244,4 +221,46 @@ class Network {
     return response.signature
   }
 
+  func transferSol(fromAddress: String, toAddress: String, amount: Int) async throws -> String {
+    // 1. Get the pre-signed transaction from the server
+    let input = TransferInput(
+      toAddress: toAddress,
+      amount: String(amount),
+      tokenId: "SOLANA"
+    )
+    let transfer: TransferResponse = try await callQuery(
+      "fetchTransferTx", input: input, tokenRequired: true)
+
+    // 3. Sign using the Privy Embedded Wallet
+    let provider = try privy.embeddedWallet.getSolanaProvider(for: fromAddress)
+    let userSignature = try await provider.signMessage(message: transfer.transactionMessageBase64)
+
+    // 4. Submit the signed transaction
+    let response: TxIdResponse = try await callMutation(
+      "submitSignedTransaction",
+      input: signedTxInput(
+        signature: userSignature,
+        base64Transaction: transfer.transactionMessageBase64
+      ),
+      tokenRequired: true
+    )
+
+    return response.signature
+  }
+
+  func startLiveActivity(
+    tokenId: String, tokenPriceUsd: String, deviceToken: String, pushToken: String
+  ) async throws {
+    let input = StartLiveActivityInput(
+      tokenMint: tokenId,
+      tokenPriceUsd: tokenPriceUsd,
+      deviceToken: deviceToken,
+      pushToken: pushToken
+    )
+      let _: EmptyResponse = try await callMutation("startLiveActivity", input: input, tokenRequired: true)
+  }
+
+  func stopLiveActivity() async throws {
+    let _: EmptyResponse = try await callMutation("stopLiveActivity", tokenRequired: true)
+  }
 }

@@ -25,9 +25,9 @@ function getRandomPriceChange(currentPrice: bigint): number {
   const dumpChance = BASE_DUMP_CHANCE * (currentPrice > MAX_PRICE_THRESHOLD ? 3 : 1);
 
   if (rand < pumpChance) {
-    changeFactor = Math.random() * 0.2 + 0.10;
+    changeFactor = Math.random() * 0.2 + 0.1;
   } else if (rand < pumpChance + dumpChance) {
-    changeFactor = -(Math.random() * 0.2 + 0.10);
+    changeFactor = -(Math.random() * 0.2 + 0.1);
   } else {
     changeFactor = (Math.random() - 0.5) * 2 * VOLATILITY;
   }
@@ -35,7 +35,7 @@ function getRandomPriceChange(currentPrice: bigint): number {
   return 1 + changeFactor;
 }
 
-const url = env.NODE_ENV === "production" ? env.GRAPHQL_URL : "http://localhost:8080/v1/graphql";
+const url = env.NODE_ENV === "production" ? env.GRAPHQL_URL : "http://localhost:8090/v1/graphql";
 const secret = env.NODE_ENV === "production" ? env.HASURA_ADMIN_SECRET : "password";
 
 export const _start = async () => {
@@ -51,11 +51,14 @@ export const _start = async () => {
       const updatePrices = async () => {
         const priceUpdates = data.data?.token?.map(async (token) => {
           const tokenId = token.id;
-          const _tokenPrice = await gql.GetLatestTokenPriceQuery({
-            tokenId
-          }, {
-            requestPolicy: "network-only",
-          });
+          const _tokenPrice = await gql.GetLatestTokenPriceQuery(
+            {
+              tokenId,
+            },
+            {
+              requestPolicy: "network-only",
+            },
+          );
 
           const currentPrice = BigInt(_tokenPrice.data?.token_price_history[0]?.price ?? parseEther("1", "gwei"));
           console.log("Current price:", currentPrice);
@@ -117,7 +120,7 @@ export const start = async () => {
         }
         return _start();
       }
-    } catch (error) {
+    } catch {
       console.warn(`Attempt ${i + 1}/${maxAttempts}: Hasura service is not reachable yet. Retrying...`);
     }
 
