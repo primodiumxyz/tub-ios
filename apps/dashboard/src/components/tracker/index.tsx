@@ -7,6 +7,11 @@ import { TokensTable } from "@/components/tracker/tokens-table";
 import { Button } from "@/components/ui/button";
 import { Token } from "@/lib/types";
 
+/**
+ * Component to display the tracker, which is the entire content of the dashboard
+ *
+ * @returns The tracker component
+ */
 export const Tracker = () => {
   const navigate = useNavigate();
   const [selectedToken, setSelectedToken] = useState<Token | null>(null);

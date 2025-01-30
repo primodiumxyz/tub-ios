@@ -5,7 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Token } from "@/lib/types";
 import { formatLargeNumber } from "@/lib/utils";
 
+/**
+ * Function to get the columns for the tokens table
+ *
+ * @param selectedInterval - The interval to display the data for
+ * @returns The columns for the tokens table {@link ColumnDef<Token>[]}
+ */
 export const getColumns = (selectedInterval = "30m"): ColumnDef<Token>[] => [
+  /* ---------------------------------- mint ---------------------------------- */
   {
     accessorKey: "mint",
     header: "Token",
@@ -25,6 +32,7 @@ export const getColumns = (selectedInterval = "30m"): ColumnDef<Token>[] => [
       );
     },
   },
+  /* ---------------------------------- name ---------------------------------- */
   {
     accessorKey: "name",
     header: "Name",
@@ -34,6 +42,7 @@ export const getColumns = (selectedInterval = "30m"): ColumnDef<Token>[] => [
       </div>
     ),
   },
+  /* --------------------------------- volume --------------------------------- */
   {
     accessorKey: "volume",
     header: ({ column }) => (
@@ -58,6 +67,7 @@ export const getColumns = (selectedInterval = "30m"): ColumnDef<Token>[] => [
     ),
     cell: ({ row }) => <div>${formatLargeNumber(row.original.volumeUsd)}</div>,
   },
+  /* ------------------------------ transactions ------------------------------ */
   {
     accessorKey: "transactions",
     header: ({ column }) => (
@@ -82,6 +92,7 @@ export const getColumns = (selectedInterval = "30m"): ColumnDef<Token>[] => [
     ),
     cell: ({ row }) => <div>{formatLargeNumber(row.original.tradeCount)}</div>,
   },
+  /* ------------------------------ price change ------------------------------ */
   {
     accessorKey: "priceChange",
     header: ({ column }) => (
