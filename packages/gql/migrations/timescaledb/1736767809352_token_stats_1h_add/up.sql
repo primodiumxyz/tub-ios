@@ -1,3 +1,4 @@
+-- Compute 1h stats from trade history
 CREATE MATERIALIZED VIEW api.token_stats_1h
 WITH (timescaledb.continuous, timescaledb.materialized_only = false) AS
 SELECT 
@@ -20,7 +21,7 @@ WITH NO DATA;
 CREATE INDEX ON api.token_stats_1h (token_mint, ts_bucket DESC);
 CREATE INDEX ON api.token_stats_1h (ts_bucket DESC);
 
--- Refresh policy with no gap
+-- Refresh every 5 seconds for the last hour with no gap
 SELECT add_continuous_aggregate_policy('api.token_stats_1h',
     start_offset => INTERVAL '1 hour',
     end_offset => INTERVAL '0', 

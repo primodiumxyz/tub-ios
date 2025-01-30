@@ -59,12 +59,12 @@ for ((i=1; i<=$RETRIES; i++)); do
     echo "All services are healthy!"
 
     echo "Applying Hasura metadata..."
-    pnpm db:local:seed-apply
+    pnpm local:seed
 
     # Start console only in non-CI mode
     if [ "$CI_MODE" = false ]; then
       echo "Starting Hasura console..."
-      pnpm db:local:console &
+      pnpm local:console &
     fi
 
     break
