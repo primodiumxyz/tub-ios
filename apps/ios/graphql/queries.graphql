@@ -1,13 +1,51 @@
 query GetWalletTransactions($wallet: String!) {
+  transactions(where: { user_wallet: { _eq: $wallet }, success: { _eq: true } }, order_by: { created_at: desc }) {
+    id
+    created_at
+    token_mint
+    token_amount
+    token_price_usd
+    token_value_usd
+  }
+}
+
+query GetLatestTokenPurchase($wallet: String!, $mint: String!) {
   transactions(
-    where: { user_wallet: { _eq: $wallet }, success: { _eq: true } }
+    where: {
+      user_wallet: { _eq: $wallet }
+      token_mint: { _eq: $mint }
+      success: { _eq: true }
+      token_amount: { _gt: 0 }
+    }
     order_by: { created_at: desc }
+    limit: 1
   ) {
     id
     created_at
     token_mint
     token_amount
     token_price_usd
+    token_value_usd
+  }
+}
+
+query GetWalletTokenPnl($wallet: String!, $token_mint: String!) {
+  transactions_value_aggregate(where: { user_wallet: { _eq: $wallet }, token_mint: { _eq: $token_mint } }) {
+    total_value_usd
+  }
+}
+
+query GetTopTokensByVolume($minRecentTrades: numeric = 0, $minRecentVolume: numeric = 0) {
+  token_rolling_stats_30min(
+    where: {
+      is_pump_token: { _eq: true }
+      trades_1m: { _gte: $minRecentTrades }
+      volume_usd_1m: { _gte: $minRecentVolume }
+    }
+    order_by: { volume_usd_30m: desc }
+    limit: 50
+  ) {
+    mint
   }
 }
 
@@ -48,14 +86,12 @@ query GetBulkTokenMetadata($tokens: [String!]!) {
 query GetTokenLiveData($token: String!) {
   token_rolling_stats_30min(where: { mint: { _eq: $token } }) {
     mint
-    supply
-    latest_price_usd
-    volume_usd_30m
-    trades_30m
-    price_change_pct_30m
-    volume_usd_1m
-    trades_1m
-    price_change_pct_1m
+    name
+    symbol
+    description
+    image_uri
+    external_url
+    decimals
   }
 }
 
@@ -100,41 +136,5 @@ query GetTokenFullData($token: String!) {
     volume_usd_1m
     trades_1m
     price_change_pct_1m
-  }
-}
-
-query GetLatestTokenPurchase($wallet: String!, $mint: String!) {
-  transactions(
-    where: {
-      user_wallet: { _eq: $wallet }
-      token_mint: { _eq: $mint }
-      success: { _eq: true }
-      token_amount: { _gt: 0 }
-    }
-    order_by: { created_at: desc }
-    limit: 1
-  ) {
-    id
-    created_at
-    token_mint
-    token_amount
-    token_price_usd
-  }
-}
-
-query GetTopTokensByVolume(
-  $minRecentTrades: numeric = 0
-  $minRecentVolume: numeric = 0
-) {
-  token_rolling_stats_30min(
-    where: {
-      is_pump_token: { _eq: true }
-      trades_1m: { _gte: $minRecentTrades }
-      volume_usd_1m: { _gte: $minRecentVolume }
-    }
-    order_by: { volume_usd_30m: desc }
-    limit: 50
-  ) {
-    mint
   }
 }
