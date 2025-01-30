@@ -7,6 +7,10 @@
 
 import SwiftUI
 
+/**
+ * This view is responsible for displaying the user's account information.
+ * It will display the user's balance, recent transactions, and account settings.
+*/
 struct AccountView: View {
   @EnvironmentObject private var notificationHandler: NotificationHandler
   @EnvironmentObject var priceModel: SolPriceModel

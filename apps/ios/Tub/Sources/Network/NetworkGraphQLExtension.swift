@@ -11,6 +11,11 @@ import ApolloWebSocket
 import Foundation
 import TubAPI
 
+/**
+ * This extension adds GraphQL-related functions to the Network class.
+ * It will handle the fetching and subscribing to GraphQL queries and subscriptions.
+ * It will also handle the caching of GraphQL queries (passing cache headers to the server).
+*/
 extension Network {
     // GraphQL configuration struct
     struct GraphQLConfig {

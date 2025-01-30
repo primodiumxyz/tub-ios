@@ -10,7 +10,6 @@ import TubAPI
 import Darwin
 
 // Check the installation source of the app and always use remote if an external source (testFlight, appStore)
-
 enum InstallationSource {
     case testFlight
     case appStore

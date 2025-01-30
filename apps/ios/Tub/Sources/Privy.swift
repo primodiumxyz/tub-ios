@@ -7,7 +7,7 @@
 import PrivySDK
 
 let config = PrivyConfig(
-    appId: "cm2o61kr7035budwy8903prg2",
-    appClientId: "client-WY5cjfUPLigBuoadxB8czcToGVLpPJQdBLFuFLVz5nHpM"
+    appId: "<your-app-id>",
+    appClientId: "<your-app-client-id>"
 )
 let privy: Privy = PrivySdk.initialize(config: config)

@@ -7,6 +7,10 @@
 
 import SwiftUI
 
+/**
+ * This class is responsible for managing the transaction submission process.
+ * It will handle the submission of buy and sell transactions to the server, as well as updating the token model with the purchase or sale data.
+*/
 final class TxManager: ObservableObject {
     static let shared = TxManager()
     

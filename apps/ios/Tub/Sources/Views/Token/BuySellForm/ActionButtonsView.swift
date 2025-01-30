@@ -17,7 +17,6 @@ struct ActionButtonsView: View {
     @StateObject private var settingsManager = SettingsManager.shared
     @StateObject private var activityManager = LiveActivityManager.shared
 
-
     init(
         tokenModel: TokenModel
     ) {

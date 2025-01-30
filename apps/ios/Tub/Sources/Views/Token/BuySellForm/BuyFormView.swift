@@ -7,6 +7,10 @@
 
 import SwiftUI
 
+/**
+ * This view is responsible for displaying the buy form.
+ * It will display the form and button, and handle the buy logic.
+*/
 struct BuyFormView: View {
     @Binding var isVisible: Bool
     @EnvironmentObject var priceModel: SolPriceModel

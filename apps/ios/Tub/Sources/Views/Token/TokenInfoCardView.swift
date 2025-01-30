@@ -6,6 +6,10 @@
 //
 import SwiftUI
 
+/**
+ * This view is responsible for displaying the token info card.
+ * It will display the token info (price change, trades, market cap, volume), and handle the token info logic.
+*/
 struct TokenInfoCardView: View {
     @EnvironmentObject var priceModel: SolPriceModel
     var stats: [StatValue]

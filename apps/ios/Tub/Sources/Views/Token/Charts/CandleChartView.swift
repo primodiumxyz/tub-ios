@@ -9,6 +9,9 @@ import Charts
 import Combine
 import SwiftUI
 
+/**
+ * This view is responsible for displaying the 30min candles chart (1min intervals).
+*/
 struct CandleChartView: View {
   @EnvironmentObject var priceModel: SolPriceModel
   let rawCandles: [CandleData]

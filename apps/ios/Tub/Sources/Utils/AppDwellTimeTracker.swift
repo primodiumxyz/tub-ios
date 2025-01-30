@@ -7,6 +7,11 @@
 
 import Foundation
 
+/**
+ * This class is responsible for tracking the app dwell time.
+ * It will start tracking when the app enters the foreground, and stop tracking when the app enters the background.
+ * It will also record the dwell time to the server.
+*/
 class AppDwellTimeTracker: ObservableObject {
     static let shared = AppDwellTimeTracker()
     

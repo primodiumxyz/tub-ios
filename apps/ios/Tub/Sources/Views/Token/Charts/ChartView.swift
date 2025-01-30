@@ -9,6 +9,10 @@ import Charts
 import Combine
 import SwiftUI
 
+/**
+ * This view is responsible for displaying the 1min line chart.
+ * It will display the chart, and handle the chart logic.
+*/
 struct ChartView: View {
     @EnvironmentObject var priceModel: SolPriceModel
 	let animate: Bool
