@@ -46,30 +46,25 @@ private var installationSource: InstallationSource {
 }
 
 
-// If on a physical device, check if ngrok environment variable exists and use if it does. Otherwise, default to the remote resources.
-// If on a simulator, use the localhost URLs.
-
-// GraphQL URLs
-// Accessing environment variables happens at runtime, so cannot use a compiler directive conditional for graphqlUrlHost
-// (See the next conditional, graphqlHttpUrl, for a compiler directive example.)
-private let graphqlUrlHost: String = "tub-graphql.primodium.ai"
+// Remote URLs
+private let graphqlUrlHost: String = "<your-hasura-instance-url>"
+private let serverUrlHost: String = "<your-server-instance-url>"
 
 // We use a compiler directive so the condition is only run once, during compilation, instead of on every import
-public let graphqlHttpUrl: String = "https://\(graphqlUrlHost)/v1/graphql"
+public let graphqlHttpUrl: String = {
+    #if targetEnvironment(simulator)
+        return "http://localhost:8090/v1/graphql"
+    #else
+        return "https://\(graphqlUrlHost)/v1/graphql"
+    #endif
+}()
 
-public let graphqlWsUrl: String = "wss://\(graphqlUrlHost)/v1/graphql"
-
-// Server URLs
-private let serverUrlHost: String = {
-    let src = installationSource
-    if src == .appStore || src == .testFlight {
-        return "tub-server.primodium.ai"
-    }
-    if let ngrokUrl = ProcessInfo.processInfo.environment["NGROK_SERVER_URL_HOST"] {
-        return ngrokUrl
-    } else {
-        return "tub-server.primodium.ai"
-    }
+public let graphqlWsUrl: String = {
+    #if targetEnvironment(simulator)
+        return "ws://localhost:8080/v1/graphql"
+    #else
+        return "wss://\(graphqlUrlHost)/v1/graphql"
+    #endif
 }()
 
 public let serverBaseUrl: String = {
