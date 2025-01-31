@@ -1,1 +1,11 @@
-{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/lib/bitquery.ts","./src/lib/types.ts","./src/lib/utils.ts"],"version":"5.6.2"}
+{
+  "root": [
+    "./src/app.tsx",
+    "./src/main.tsx",
+    "./src/vite-env.d.ts",
+    "./src/lib/bitquery.ts",
+    "./src/lib/types.ts",
+    "./src/lib/utils.ts"
+  ],
+  "version": "5.6.2"
+}

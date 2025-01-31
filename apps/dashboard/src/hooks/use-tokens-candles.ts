@@ -5,10 +5,20 @@ import { useSubscription } from "urql";
 import { subscriptions } from "@tub/gql";
 import { Token } from "@/lib/types";
 
-export const useTokenCandles = (
-  token: Token,
-  onUpdate: (candle: CandlestickData) => void,
-): { tokenCandles: CandlestickData[] | undefined; fetching: boolean; error?: string } => {
+type UseTokenCandlesResult = {
+  tokenCandles: CandlestickData[] | undefined;
+  fetching: boolean;
+  error?: string;
+};
+
+/**
+ * Hook to get the updated 1-minute candles for a token
+ *
+ * @param token - The token to get candles for
+ * @param onUpdate - The callback to call when a candle is updated
+ * @returns The token candles with loading & error state {@link UseTokenCandlesResult}
+ */
+export const useTokenCandles = (token: Token, onUpdate: (candle: CandlestickData) => void): UseTokenCandlesResult => {
   const now = useMemo(() => Date.now(), []);
   const initialCandles = useRef<CandlestickData[]>([]);
   const lastCandleTimestamp = useRef(0);

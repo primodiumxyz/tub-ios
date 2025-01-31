@@ -4,11 +4,18 @@ import { useSubscription } from "urql";
 import { subscriptions } from "@tub/gql";
 import { Token } from "@/lib/types";
 
-export const useTokens = (): {
+type UseTokensResult = {
   tokens: Token[];
   fetching: boolean;
   error: string | undefined;
-} => {
+};
+
+/**
+ * Hook to get the updated top-ranked tokens by 30min volume
+ *
+ * @returns The tokens with loading & error state {@link UseTokensResult}
+ */
+export const useTokens = (): UseTokensResult => {
   const [tokensRes] = useSubscription({
     query: subscriptions.GetTopTokensByVolumeSubscription,
   });

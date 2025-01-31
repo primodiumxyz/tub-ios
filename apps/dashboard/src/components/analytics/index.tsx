@@ -6,6 +6,11 @@ import { TradesTable } from "@/components/analytics/trades-table";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
+/**
+ * Component to display the analytics page
+ *
+ * @returns The analytics component
+ */
 export const Analytics = () => {
   const navigate = useNavigate();
 

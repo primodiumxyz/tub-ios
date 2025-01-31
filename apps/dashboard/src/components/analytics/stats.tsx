@@ -7,6 +7,17 @@ import { formatUsd } from "@/lib/utils";
 
 import { ExplorerLink } from "../explorer-link";
 
+/**
+ * Component to display the stats
+ *
+ * Stats will be either:
+ * - global (considering all trades)
+ * - user (considering all trades for a given wallet)
+ * - token (considering all trades for a given token)
+ * - user & token (considering all trades for a given wallet and token)
+ *
+ * @returns The stats component
+ */
 export const Stats = () => {
   const [walletFilter, setWalletFilter] = useState<string>("");
   const [tokenFilter, setTokenFilter] = useState<string>("");

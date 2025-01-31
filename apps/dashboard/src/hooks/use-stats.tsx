@@ -4,13 +4,19 @@ import { useSubscription } from "urql";
 import { subscriptions } from "@tub/gql";
 import { Stats, StatsFilters } from "@/lib/types";
 
-export const useStats = (
-  filters: StatsFilters,
-): {
+type UseStatsResult = {
   stats: Stats | undefined;
   fetching: boolean;
   error: string | undefined;
-} => {
+};
+
+/**
+ * Hook to get the updated stats for a given user wallet or token mint (or both, or all)
+ *
+ * @param filters - The filters to apply to the stats
+ * @returns The stats with loading & error state {@link UseStatsResult}
+ */
+export const useStats = (filters: StatsFilters): UseStatsResult => {
   const [statsRes] = useSubscription({
     query: subscriptions.GetStatsSubscription,
     variables: { userWallet: filters.userWallet || undefined, tokenMint: filters.tokenMint || undefined },

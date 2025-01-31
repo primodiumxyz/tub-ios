@@ -8,6 +8,11 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { GroupedTrade } from "@/lib/types";
 import { formatUsd } from "@/lib/utils";
 
+/**
+ * Columns for the trades table by aggregating associated buys and sells
+ *
+ * @returns The trades table columns
+ */
 export const columns: ColumnDef<GroupedTrade>[] = [
   {
     accessorKey: "token",

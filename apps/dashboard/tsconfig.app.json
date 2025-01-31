@@ -26,5 +26,5 @@
     }
   },
   "include": ["src"],
-  "exclude": ["../../packages/*", "../../apps/web", "../../apps/server", "../../apps/keeper", "../../apps/indexer"]
+  "exclude": ["../../packages/*", "../server"]
 }
