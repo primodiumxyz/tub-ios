@@ -15,18 +15,6 @@ struct NativeOnrampView: View {
     @EnvironmentObject private var notificationHandler: NotificationHandler
     @State private var qrCode : UIImage? = nil
     
-    // private func generateQRCode(from string: String) -> UIImage {
-    //     let context = CIContext()
-    //     let filter = CIFilter.qrCodeGenerator()
-    //     filter.message = Data(string.utf8)
-    
-    //     if let outputImage = filter.outputImage,
-    //        let cgImage = context.createCGImage(outputImage, from: outputImage.extent) {
-    //         return UIImage(cgImage: cgImage)
-    //     }
-    //     return UIImage()
-    // }
-    
     private func generateQRCode(from string: String) -> UIImage {
         let context = CIContext()
         let filter = CIFilter.qrCodeGenerator()

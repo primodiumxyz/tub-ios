@@ -7,6 +7,9 @@
 
 import SwiftUI
 
+/**
+ * This view modifier is responsible for dismissing the keyboard when the user taps on the screen.
+*/
 struct DismissKeyboardOnTap: ViewModifier {
     func body(content: Content) -> some View {
         content

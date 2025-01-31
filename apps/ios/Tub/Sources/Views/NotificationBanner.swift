@@ -7,6 +7,9 @@
 
 import SwiftUI
 
+/**
+ * This view modifier is responsible for displaying the banner notifications at the top of the screen.
+*/
 struct NotificationBanner: ViewModifier {
     @EnvironmentObject var notificationHandler: NotificationHandler
 

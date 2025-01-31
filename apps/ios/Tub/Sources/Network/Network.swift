@@ -9,6 +9,10 @@ import Apollo
 import Foundation
 import Security
 
+/**
+ * This class is responsible for managing the network requests to the server and the GraphQL API.
+ * It will handle the submission of buy and sell transactions to the server, as well as sending and receiving data to the GraphQL API through extensions.
+*/
 class Network {
   static let shared = Network()
   private var lastApiCallTime: Date = Date()
@@ -28,7 +32,6 @@ class Network {
   }
 
   // MARK: - API
-
   func callMutation<T: Codable, I: Codable>(
     _ mutation: String,
     input: I? = nil,
@@ -63,7 +66,6 @@ class Network {
     }
 
     // If it's not an error, proceed with normal decoding
-
     do {
       let decodedResponse = try JSONDecoder().decode(ResponseWrapper<T>.self, from: data)
       return decodedResponse.result.data
@@ -122,13 +124,11 @@ class Network {
   }
 
   // MARK: - JWT
-
   func getStoredToken(hardRefresh: Bool? = false) async -> String? {
     return await tokenManager.getStoredToken(hardRefresh: hardRefresh)
   }
 
   // MARK - Calls
-
   func getStatus() async throws -> Int {
     let response: StatusResponse = try await callQuery("getStatus")
     return response.status

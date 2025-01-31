@@ -7,6 +7,9 @@
 
 import SwiftUI
 
+/**
+ * This view is responsible for displaying the withdraw view, and all its internal logic.
+*/
 class WithdrawModel: ObservableObject {
     var walletAddress: String? = nil
     

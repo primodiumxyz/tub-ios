@@ -9,6 +9,9 @@ import Combine
 import SwiftUI
 import TubAPI
 
+/**
+ * This view is responsible for displaying a specific token's details and chart.
+*/
 struct TokenView: View {
     @ObservedObject var tokenModel: TokenModel
     @EnvironmentObject var priceModel: SolPriceModel

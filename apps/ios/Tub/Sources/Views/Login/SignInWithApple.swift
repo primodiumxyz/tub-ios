@@ -10,7 +10,6 @@ import PrivySDK
 import SwiftUI
 
 struct SIWA: UIViewRepresentable {
-
     typealias UIViewType = ASAuthorizationAppleIDButton
 
     func makeUIView(context: Context) -> ASAuthorizationAppleIDButton {
@@ -22,7 +21,6 @@ struct SIWA: UIViewRepresentable {
 }
 
 struct SignInWithApple: View {
-
     var body: some View {
         SIWA()
     }

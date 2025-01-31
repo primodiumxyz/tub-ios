@@ -9,6 +9,11 @@ import PrivySDK
 import SwiftUI
 import TubAPI
 
+/**
+ * This class is responsible for managing the user's data and state.
+ * It will keep track of the user's wallet address, portfolio, and other relevant data.
+ * It will also manage the token portfolio, and update the token data when the user buys or sells tokens.
+*/
 final class UserModel: ObservableObject {
     static let shared = UserModel()
     

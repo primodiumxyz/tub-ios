@@ -9,6 +9,10 @@ import Foundation
 import PrivySDK
 import SwiftUI
 
+/**
+ * This view is responsible for displaying the user's account details.
+ * It will display the user's email, phone number, and wallet address.
+*/
 struct AccountDetailsView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var userModel: UserModel

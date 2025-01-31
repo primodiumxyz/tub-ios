@@ -8,6 +8,9 @@
 import SwiftUI
 import UIKit
 
+/**
+ * This is the main entry point for the Tub iOS app.
+*/
 @main
 struct TubApp: App {
     @Environment(\.scenePhase) private var scenePhase

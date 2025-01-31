@@ -9,6 +9,10 @@ import ActivityKit
 import SwiftUI
 import os.log
 
+/**
+ * This class is responsible for managing the live activity for a token.
+ * It is used to start, stop, and update it.
+*/
 @Observable class LiveActivityManager: ObservableObject {
     static let shared = LiveActivityManager()
     private var activity: Activity<TubActivityAttributes>?

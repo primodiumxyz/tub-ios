@@ -8,6 +8,9 @@
 import SwiftUI
 import TubAPI
 
+/**
+ * This view is responsible for displaying the token info preview in a compact form.
+*/
 struct TokenInfoPreview: View {
     @EnvironmentObject var userModel: UserModel
     @ObservedObject var tokenModel: TokenModel

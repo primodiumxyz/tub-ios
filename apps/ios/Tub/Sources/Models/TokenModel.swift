@@ -3,8 +3,10 @@ import Combine
 import SwiftUI
 import TubAPI
 
-
-
+/**
+ * This class is responsible for fetching and storing token data, mostly for the current token that is being shown.
+ * It will keep its price and candles data up to date.
+*/
 class TokenModel: ObservableObject {
     @Published var tokenId: String = ""
     @Published var isReady = false
@@ -26,7 +28,6 @@ class TokenModel: ObservableObject {
     
     @Published var purchaseData: PurchaseData? 
     private let activityManager = LiveActivityManager.shared
-
 
     private var priceTimer: Timer? = nil
 
@@ -88,8 +89,6 @@ class TokenModel: ObservableObject {
         return prices.first(where: { $0.timestamp <= timestamp }) ?? prices.last
     }
 
-
-
     func preload(with tokenId: String, timeframeSecs: Double = CHART_INTERVAL) {
         cleanup()
         preloaded = true
@@ -123,7 +122,6 @@ class TokenModel: ObservableObject {
             }
 
         }
-
     }
 
     func initialize(with tokenId: String, timeframeSecs: Double = CHART_INTERVAL) {

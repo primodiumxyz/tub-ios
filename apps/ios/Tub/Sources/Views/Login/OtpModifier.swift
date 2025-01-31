@@ -5,18 +5,12 @@
 //  Created by Henry on 10/31/24.
 //
 
-//
-//  OtpTextFieldView.swift
-//  SchChat
-//
-//  Created by ifeanyichukwu  on 03/02/2023.
-//
+//  (Original code by ifeanyichukwu  on 03/02/2023)
 
 import Combine
 import SwiftUI
 
 struct OtpModifer: ViewModifier {
-
     @Binding var pin: String
 
     var isFocused: Bool  // Add this property

@@ -2,6 +2,10 @@ import AuthenticationServices
 import PrivySDK
 import SwiftUI
 
+/**
+ * This view is responsible for displaying the register screen.
+ * It will display the register form, and the social login buttons.
+*/
 struct RegisterView: View {
     @Environment(\.dismiss) var dismiss
     @State private var username = ""
