@@ -71,7 +71,7 @@ To set up the project for development:
 
 1. Install dependencies:
 
-   ```
+   ```bash
    pnpm install
    ```
 
@@ -79,12 +79,13 @@ To set up the project for development:
 
    To run this application in a standalone environment with Redis, run the following which starts both `redis-server` and the `server` application.
 
-   ```
+   ```bash
    pnpm dev:standalone
    ```
 
 1. For testing:
-   ```
+
+   ```bash
    pnpm test
    ```
 
