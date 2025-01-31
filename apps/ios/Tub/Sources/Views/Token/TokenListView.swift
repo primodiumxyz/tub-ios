@@ -15,6 +15,9 @@ enum DraggingState {
     case cannotSwipe
 }
 
+/**
+ * This view is responsible for displaying the token list that can be swiped up and down.
+*/
 struct TokenListView: View {
     @EnvironmentObject private var userModel: UserModel
     @EnvironmentObject private var notificationHandler: NotificationHandler

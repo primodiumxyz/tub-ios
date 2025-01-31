@@ -1,6 +1,16 @@
 import { useEffect, useState } from "react";
 
-export function useWindowDimensions() {
+type WindowDimensions = {
+  width: number;
+  height: number;
+};
+
+/**
+ * Hook to get the current window dimensions
+ *
+ * @returns The current {@link WindowDimensions}
+ */
+export function useWindowDimensions(): WindowDimensions {
   const [width, setWidth] = useState(window.innerWidth);
   const [height, setHeight] = useState(window.innerHeight);
 

@@ -7,6 +7,10 @@
 
 import SwiftUI
 
+/**
+ * This view is responsible for displaying the user's portfolio balance.
+ * It will display the balance, the change in balance, and the share button.
+*/
 struct AccountBalanceView: View {
     @EnvironmentObject var priceModel: SolPriceModel
     @EnvironmentObject var tokenListModel: TokenListModel

@@ -4,13 +4,19 @@ import { useSubscription } from "urql";
 import { subscriptions } from "@tub/gql";
 import { GroupedTrade, Trade, TradeFilters } from "@/lib/types";
 
-export const useTrades = (
-  filters: TradeFilters = { limit: 1000 },
-): {
+type UseTradesResult = {
   trades: GroupedTrade[];
   fetching: boolean;
   error: string | undefined;
-} => {
+};
+
+/**
+ * Hook to get the updated trades for a given user wallet or token mint
+ *
+ * @param filters - The filters to apply to the trades
+ * @returns The trades with loading & error state {@link UseTradesResult}
+ */
+export const useTrades = (filters: TradeFilters = { limit: 1000 }): UseTradesResult => {
   const [tradesRes] = useSubscription({
     query: filters.userWalletOrTokenMint
       ? subscriptions.GetTradesByUserWalletOrTokenMintSubscription

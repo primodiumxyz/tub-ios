@@ -8,6 +8,9 @@
 import Foundation
 import TubAPI
 
+/**
+ * This class is responsible for fetching the SOL price and storing it, as well as providing price values in different formats.
+*/
 final class SolPriceModel: ObservableObject {
     static let shared = SolPriceModel()
 

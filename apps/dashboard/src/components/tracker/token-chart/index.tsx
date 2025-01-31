@@ -7,6 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Token } from "@/lib/types";
 import { formatLargeNumber } from "@/lib/utils";
 
+/**
+ * Component to display the token chart depending on the selected chart type
+ *
+ * @param token - The token to display the chart for
+ * @param onBack - The callback to call when the back button is clicked
+ * @returns The token chart component
+ */
 export const TokenChart = ({ token, onBack }: { token: Token; onBack: () => void }) => {
   const [chartType, setChartType] = useState<"line" | "candles">("line");
 

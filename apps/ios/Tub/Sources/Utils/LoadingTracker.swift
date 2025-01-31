@@ -7,6 +7,9 @@
 
 import Foundation
 
+/**
+ * This class helps recording the loading times of various views.
+*/
 class LoadingTracker: ObservableObject {
     static let shared = LoadingTracker()
 

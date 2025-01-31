@@ -18,6 +18,7 @@ import * as subscriptions from "./graphql/subscriptions";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 
+/* ---------------------------------- TYPES --------------------------------- */
 // Helper type to extract variables from a query or mutation
 type ExtractVariables<T> = T extends TadaDocumentNode<any, infer V, any> ? V : never;
 
@@ -27,9 +28,17 @@ type ExtractData<T> = T extends TadaDocumentNode<infer D, any, any> ? D : never;
 // Helper type to make args optional if they're an empty object
 type OptionalArgs<T> = T extends Record<string, never> ? [] | [T] : [T];
 
-//------------------------------------------------
-
-// Wrapper creator for both queries and mutations
+/* ---------------------------------- WRAPPERS --------------------------------- */
+/**
+ * Wrapper creator for queries.
+ *
+ * Note: This wrapper allows for optional headers to be added to all requests.
+ *
+ * @param client - The GraphQL client instance
+ * @param operation - The operation to wrap
+ * @param headers - Optional headers to add to the request
+ * @returns A function that wraps the operation and returns a promise
+ */
 function createQueryWrapper<T extends TadaDocumentNode<any, any, any>>(
   client: Client,
   operation: T,
@@ -58,11 +67,25 @@ function createQueryWrapper<T extends TadaDocumentNode<any, any, any>>(
   };
 }
 
+/**
+ * Wrapper creator for mutations.
+ *
+ * @param client - The GraphQL client instance
+ * @param operation - The operation to wrap
+ * @returns A function that wraps the operation and returns a promise
+ */
 function createMutationWrapper<T extends TadaDocumentNode<any, any, any>>(client: Client, operation: T) {
   return (args: ExtractVariables<T>, options: Partial<OperationContext>): Promise<OperationResult<ExtractData<T>>> =>
     client.mutation(operation, args ?? {}, options).toPromise();
 }
 
+/**
+ * Wrapper creator for subscriptions.
+ *
+ * @param client - The GraphQL client instance
+ * @param operation - The operation to wrap
+ * @returns A function that wraps the operation and returns a promise
+ */
 function createSubscriptionWrapper<T extends TadaDocumentNode<any, any, any>>(client: Client, operation: T) {
   return (
     args: ExtractVariables<T>,
@@ -70,13 +93,10 @@ function createSubscriptionWrapper<T extends TadaDocumentNode<any, any, any>>(cl
   ): OperationResultSource<OperationResult<ExtractData<T>>> => client.subscription(operation, args ?? {}, options);
 }
 
-//------------------------------------------------
-
+/* ---------------------------------- TYPES --------------------------------- */
 type QueryOperations = typeof queries;
 type MutationOperations = typeof mutations;
 type SubscriptionOperations = typeof subscriptions;
-
-//------------------------------------------------
 
 type QueryWrapperReturnType<T extends keyof QueryOperations> = ReturnType<
   ReturnType<typeof createQueryWrapper<QueryOperations[T]>>
@@ -90,32 +110,67 @@ type SubscriptionWrapperReturnType<T extends keyof SubscriptionOperations> = Ret
   ReturnType<typeof createSubscriptionWrapper<SubscriptionOperations[T]>>
 >;
 
-//------------------------------------------------
-
-export type Queries = {
+/** The queries defined in `src/graphql/queries.ts` */
+type Queries = {
   [K in keyof QueryOperations]: (
     ...args: [...OptionalArgs<ExtractVariables<QueryOperations[K]>>, Partial<OperationContext>?]
   ) => QueryWrapperReturnType<K>;
 };
-export type Mutations = {
+
+/** The mutations defined in `src/graphql/mutations.ts` */
+type Mutations = {
   [K in keyof MutationOperations]: (
     ...args: [...OptionalArgs<ExtractVariables<MutationOperations[K]>>, Partial<OperationContext>?]
   ) => MutationWrapperReturnType<K>;
 };
-export type Subscriptions = {
+
+/** The subscriptions defined in `src/graphql/subscriptions.ts` */
+type Subscriptions = {
   [K in keyof SubscriptionOperations]: (
     ...args: [...OptionalArgs<ExtractVariables<SubscriptionOperations[K]>>, Partial<OperationContext>?]
   ) => SubscriptionWrapperReturnType<K>;
 };
 
-export type GqlClient = {
+/**
+ * An object containing a client instance and the database object.
+ *
+ * The database object allows for interacting with the database with full type-safety, according to the schema inferred
+ * from the GraphQL operations.
+ *
+ * @property {Client} instance - The GraphQL client instance
+ * @property {Queries & Mutations & Subscriptions} db - The database object that can be used to conveniently perform
+ *   queries, mutations and subscriptions
+ */
+type GqlClient = {
   instance: Client;
   db: Queries & Mutations & Subscriptions;
 };
 
-//------------------------------------------------
-
+/**
+ * Type of the return value of the `createClient` function.
+ *
+ * In a web environment, the client is returned synchronously. In a node environment, the client is returned
+ * asynchronously, as the `ws` package needs to be imported dynamically.
+ *
+ * @template T - The environment the client is running in ("web" or "node")
+ */
 type CreateClientReturn<T extends "web" | "node"> = T extends "web" ? GqlClient : Promise<GqlClient>;
+
+/* ---------------------------------- CLIENT --------------------------------- */
+
+/**
+ * Creates a GraphQL client instance.
+ *
+ * If the client is running in a node environment, the `ws` package needs to be imported dynamically so it will return a
+ * promise.
+ *
+ * @template T - The environment the client is running in ("web" or "node")
+ * @param options - The options for the client
+ * @param options.url - The URL of the GraphQL endpoint
+ * @param options.hasuraAdminSecret - The Hasura admin secret
+ * @param options.headers - Optional headers to add to queries requests
+ * @returns A {@link GqlClient} instance
+ */
 const createClient = <T extends "web" | "node" = "node">({
   url,
   hasuraAdminSecret,
@@ -125,6 +180,7 @@ const createClient = <T extends "web" | "node" = "node">({
   hasuraAdminSecret?: string;
   headers?: Record<string, string>;
 }): CreateClientReturn<T> => {
+  // Add the admin secret to the fetch options if it's provided
   const fetchOptions = hasuraAdminSecret
     ? {
         headers: {
@@ -134,6 +190,7 @@ const createClient = <T extends "web" | "node" = "node">({
       }
     : undefined;
 
+  // Create the client instance
   const createClientInternal = (webSocketImpl?: typeof WebSocket): GqlClient => {
     const wsClient = createWSClient({
       url: url.replace("https", "wss").replace("8090", "8080"),
@@ -160,14 +217,13 @@ const createClient = <T extends "web" | "node" = "node">({
       ],
     });
 
-    // Create the db object dynamically
+    // Create the db objects dynamically
     const _queries = Object.entries(queries).reduce((acc, [key, operation]) => {
       // @ts-ignore
       acc[key as keyof Queries] = createQueryWrapper(client, operation, headers);
       return acc;
     }, {} as Queries);
 
-    // Create the db object dynamically
     const _mutations = Object.entries(mutations).reduce((acc, [key, operation]) => {
       // @ts-ignore
       acc[key as keyof Mutations] = createMutationWrapper(client, operation);
@@ -190,8 +246,10 @@ const createClient = <T extends "web" | "node" = "node">({
     };
   };
 
+  // @ts-ignore
   if (typeof window !== "undefined") return createClientInternal() as CreateClientReturn<T>;
   return import("ws").then(({ WebSocket }) => createClientInternal(WebSocket)) as CreateClientReturn<T>;
 };
 
 export { createClient, queries, mutations, subscriptions };
+export type { GqlClient, Queries, Mutations, Subscriptions };

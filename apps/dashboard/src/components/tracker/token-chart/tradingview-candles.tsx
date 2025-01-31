@@ -4,6 +4,12 @@ import { createChart, IChartApi, ISeriesApi, Time } from "lightweight-charts";
 import { useTokenCandles } from "@/hooks/use-tokens-candles";
 import { Token } from "@/lib/types";
 
+/**
+ * Component to display the TradingView candles chart
+ *
+ * @param token - The token to display the chart for
+ * @returns The TradingView candles chart component
+ */
 export const TradingViewCandlesChart = ({ token }: { token: Token }) => {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);

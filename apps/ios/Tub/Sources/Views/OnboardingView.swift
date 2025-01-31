@@ -9,6 +9,9 @@ import AVKit
 import SwiftUI
 import WebKit
 
+/**
+ * This view is responsible for displaying the onboarding screen on the first launch of the app.
+*/
 struct OnboardingView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject private var userModel: UserModel

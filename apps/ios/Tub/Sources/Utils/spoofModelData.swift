@@ -7,6 +7,10 @@
 
 import Foundation
 
+/**
+ * This file contains functions for spoofing models with fake data.
+*/
+
 func spoofPriceModelData(_ model: SolPriceModel) {
     model.solPrice = 100
 }

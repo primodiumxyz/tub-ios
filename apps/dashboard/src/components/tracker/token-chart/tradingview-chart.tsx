@@ -4,6 +4,12 @@ import { createChart, IChartApi, ISeriesApi, LineData, Time } from "lightweight-
 import { useTokenPrices } from "@/hooks/use-token-prices";
 import { Token } from "@/lib/types";
 
+/**
+ * Component to display the TradingView line chart
+ *
+ * @param token - The token to display the chart for
+ * @returns The line chart component
+ */
 export const TradingViewChart = ({ token }: { token: Token }) => {
   const { tokenPrices, fetching, error } = useTokenPrices(token, 75, (newPrice) => {
     if (lineSeriesRef.current) {

@@ -10,6 +10,11 @@
 import Foundation
 import Security
 
+/**
+ * This class is responsible for managing the JWT token for the user.
+ * It is used to decode the JWT token and store it.
+ * This will be used for authentication with the server.
+*/
 actor TokenManager {
     private func decodeJWT(_ token: String) -> [String: Any]? {
         let segments = token.components(separatedBy: ".")

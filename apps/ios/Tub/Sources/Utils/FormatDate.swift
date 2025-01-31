@@ -58,5 +58,6 @@ func formatDuration(_ seconds: TimeInterval) -> String {
     if remainingMinutes == 0 {
         return String(format: "%.0fh", hours)
     }
+    
     return String(format: "%.0fh %.0fm", hours, remainingMinutes)
 }

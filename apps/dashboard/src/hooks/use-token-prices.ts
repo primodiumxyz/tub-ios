@@ -4,11 +4,25 @@ import { useSubscription } from "urql";
 import { subscriptions } from "@tub/gql";
 import { Token, TokenPrice } from "@/lib/types";
 
+type UseTokenPricesResult = {
+  tokenPrices: TokenPrice[];
+  fetching: boolean;
+  error?: string;
+};
+
+/**
+ * Hook to get the updated price for a token for a given interval
+ *
+ * @param token - The token to get prices for
+ * @param intervalSeconds - The interval in seconds to get prices for
+ * @param onUpdate - The callback to call when a price is updated
+ * @returns The token prices with loading & error state {@link UseTokenPricesResult}
+ */
 export const useTokenPrices = (
   token: Token,
   intervalSeconds: number = 75,
   onUpdate?: (price: TokenPrice) => void,
-): { tokenPrices: TokenPrice[]; fetching: boolean; error?: string } => {
+): UseTokenPricesResult => {
   const now = useMemo(() => Date.now(), []);
   const initialPrices = useRef<TokenPrice[]>([]);
   const lastPriceTimestamp = useRef(0);

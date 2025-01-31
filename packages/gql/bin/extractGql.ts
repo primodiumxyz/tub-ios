@@ -1,25 +1,31 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from "fs";
+import * as path from "path";
 
+/**
+ * Extracts GraphQL operations from a TypeScript file to a GraphQL file.
+ *
+ * @param filePath - The path to the TypeScript file.
+ * @returns An array of GraphQL operations.
+ */
 function extractGraphQLOperations(filePath: string): string[] {
-  const content = fs.readFileSync(filePath, 'utf-8');
+  const content = fs.readFileSync(filePath, "utf-8");
   const regex = /graphql\(`([\s\S]*?)`\)/g;
   const operations: string[] = [];
   let match;
 
   while ((match = regex.exec(content)) !== null) {
-    const operation = match[1]?.trim() ?? 'query';
-    const lines = operation.split('\n');
+    const operation = match[1]?.trim() ?? "query";
+    const lines = operation.split("\n");
     const firstLine = lines[0];
-    const restLines = lines.slice(1).map(line => line.replace(/^\s{2}/, '')); // Remove first two spaces
-    operations.push([firstLine, ...restLines].join('\n'));
+    const restLines = lines.slice(1).map((line) => line.replace(/^\s{2}/, "")); // Remove first two spaces
+    operations.push([firstLine, ...restLines].join("\n"));
   }
 
   return operations;
 }
 
 function writeGraphQLFile(operations: string[], outputPath: string): void {
-  const content = operations.join('\n\n');
+  const content = operations.join("\n\n");
   fs.writeFileSync(outputPath, content);
 }
 
@@ -32,7 +38,7 @@ function processFile(inputPath: string, outputPath?: string): void {
   }
 
   if (!outputPath) {
-    const baseName = path.basename(inputPath, '.ts');
+    const baseName = path.basename(inputPath, ".ts");
     outputPath = `${baseName}.graphql`;
   }
 
@@ -51,7 +57,7 @@ function processFile(inputPath: string, outputPath?: string): void {
 
 // Check if a file path is provided as a command-line argument
 if (process.argv.length < 3) {
-  console.error('Usage: node extract-graphql.js <input-file.ts> [output-file.graphql]');
+  console.error("Usage: node extract-graphql.js <input-file.ts> [output-file.graphql]");
   process.exit(1);
 }
 
@@ -66,8 +72,8 @@ if (!fs.existsSync(resolvedInputPath)) {
   process.exit(1);
 }
 
-if (!resolvedInputPath.endsWith('.ts')) {
-  console.error('The input file must be a .ts file.');
+if (!resolvedInputPath.endsWith(".ts")) {
+  console.error("The input file must be a .ts file.");
   process.exit(1);
 }
 

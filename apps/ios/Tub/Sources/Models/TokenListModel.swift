@@ -9,11 +9,10 @@ import Apollo
 import SwiftUI
 import TubAPI
 
-// Logic for keeping an array of tokens and enabling swiping up (to previously visited tokens) and down (new pumping tokens)
-// - The current index in the tokens array is always "last - 1", so we can update "last" to a new random token anytime the subscription is triggered (`updateTokens`)
-// - On init, add two random tokens to the array (see `updateTokens`)
-// - When swiping down, increase the current index, and push a new random token to the tokens array (that becomes the one that keeps being updated as the sub goes)
-// - When swiping up, get back to the previously visited token, pop the last item in the tokens array, so we're again at "last - 1" and "last" gets constantly updated
+/**
+ * This class is responsible for managing the token list and enabling swiping up and down to visit previously visited tokens and new pumping tokens.
+ * It will manage the token queue, initialization, updating the token list, and polling for hot tokens.
+*/
 final class TokenListModel: ObservableObject {
     static let shared = TokenListModel()
     

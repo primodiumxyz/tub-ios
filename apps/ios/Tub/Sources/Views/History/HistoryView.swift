@@ -8,7 +8,10 @@
 import SwiftUI
 import TubAPI
 
-
+/**
+ * This view is responsible for displaying the user's transaction history.
+ * It will display the user's transactions, grouped by date, and filtered by various criteria.
+*/
 struct HistoryView: View {
     @EnvironmentObject private var userModel: UserModel
     @EnvironmentObject private var priceModel: SolPriceModel

@@ -8,6 +8,12 @@ import { Input } from "@/components/ui/input";
 import { useTokens } from "@/hooks/use-tokens";
 import { Token } from "@/lib/types";
 
+/**
+ * Component to display the tokens table
+ *
+ * @param onRowClick - The callback to call when a row is clicked
+ * @returns The tokens table component
+ */
 export const TokensTable = ({ onRowClick }: { onRowClick?: (row: Row<Token>) => void }) => {
   const [globalFilter, setGlobalFilter] = useState<string>("");
   const [frozen, setFrozen] = useState(false);
@@ -19,6 +25,7 @@ export const TokensTable = ({ onRowClick }: { onRowClick?: (row: Row<Token>) => 
     if (frozen) setFrozenTokens(tokens);
   }, [frozen]);
 
+  // Filter the tokens based on the global filter and frozen state
   const filteredTokens = useMemo(() => {
     const tokenArray = frozen ? frozenTokens : tokens;
     if (globalFilter === "") return tokenArray;

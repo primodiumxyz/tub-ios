@@ -7,7 +7,7 @@ public class GetWalletTransactionsQuery: GraphQLQuery {
   public static let operationName: String = "GetWalletTransactions"
   public static let operationDocument: ApolloAPI.OperationDocument = .init(
     definition: .init(
-      #"query GetWalletTransactions($wallet: String!) { transactions( where: { user_wallet: { _eq: $wallet }, success: { _eq: true } } order_by: { created_at: desc } ) { __typename id created_at token_mint token_amount token_price_usd } }"#
+      #"query GetWalletTransactions($wallet: String!) { transactions( where: { user_wallet: { _eq: $wallet }, success: { _eq: true } } order_by: { created_at: desc } ) { __typename id created_at token_mint token_amount token_price_usd token_value_usd } }"#
     ))
 
   public var wallet: String
@@ -50,6 +50,7 @@ public class GetWalletTransactionsQuery: GraphQLQuery {
         .field("token_mint", String.self),
         .field("token_amount", TubAPI.Numeric.self),
         .field("token_price_usd", TubAPI.Numeric.self),
+        .field("token_value_usd", TubAPI.Numeric.self),
       ] }
 
       public var id: TubAPI.Uuid { __data["id"] }
@@ -57,6 +58,7 @@ public class GetWalletTransactionsQuery: GraphQLQuery {
       public var token_mint: String { __data["token_mint"] }
       public var token_amount: TubAPI.Numeric { __data["token_amount"] }
       public var token_price_usd: TubAPI.Numeric { __data["token_price_usd"] }
+      public var token_value_usd: TubAPI.Numeric { __data["token_value_usd"] }
     }
   }
 }

@@ -5,8 +5,9 @@
 //  Created by Henry on 12/12/24.
 //
 
-
-// MARK: - Input Types
+/**
+ * This file contains the structs for the input and response types for the network requests.
+*/
 
 struct EmptyInput: Codable {}
 

@@ -1,9 +1,16 @@
 import { graphql } from "./init";
 
-// Dashboard
 export const GetTopTokensByVolumeSubscription = graphql(`
-  subscription SubTopTokensByVolume {
-    token_rolling_stats_30min(where: { is_pump_token: { _eq: true } }, order_by: { volume_usd_30m: desc }, limit: 50) {
+  subscription SubTopTokensByVolume($minRecentTrades: numeric = 0, $minRecentVolume: numeric = 0) {
+    token_rolling_stats_30min(
+      where: {
+        is_pump_token: { _eq: true }
+        trades_1m: { _gte: $minRecentTrades }
+        volume_usd_1m: { _gte: $minRecentVolume }
+      }
+      order_by: { volume_usd_30m: desc }
+      limit: 50
+    ) {
       mint
       volume_usd_30m
       trades_30m
@@ -46,6 +53,8 @@ export const GetTokenCandlesSinceSubscription = graphql(`
       close_price_usd
       high_price_usd
       low_price_usd
+      volume_usd
+      has_trades
     }
   }
 `);

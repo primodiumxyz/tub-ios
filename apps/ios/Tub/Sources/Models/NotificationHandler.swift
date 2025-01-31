@@ -34,6 +34,9 @@ enum NotificationType {
     }
 }
 
+/**
+ * This class is responsible for showing banner notifications to the user.
+*/
 @MainActor
 class NotificationHandler: ObservableObject {
     @Published var message: String?

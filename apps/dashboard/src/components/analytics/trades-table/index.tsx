@@ -9,6 +9,12 @@ import { GroupedTrade } from "@/lib/types";
 
 import { columns } from "./columns";
 
+/**
+ * Component to display the trades table
+ *
+ * @param onRowClick - The callback to call when a row is clicked
+ * @returns The trades table component
+ */
 export const TradesTable = ({ onRowClick }: { onRowClick?: (row: Row<GroupedTrade>) => void }) => {
   const [globalFilter, setGlobalFilter] = useState<string>("");
   const [frozen, setFrozen] = useState(false);

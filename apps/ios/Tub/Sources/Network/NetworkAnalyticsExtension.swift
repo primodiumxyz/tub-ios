@@ -6,6 +6,10 @@
 //
 import UIKit
 
+/**
+ * This extension adds analytics-related functions to the Network class.
+ * It will handle the recording of token purchases, sales, loading times, app dwell times, and token dwell times.
+*/
 extension Network {
     func recordTokenPurchase(
         tokenMint: String,

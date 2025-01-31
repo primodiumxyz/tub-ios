@@ -6,6 +6,10 @@
 //
 import Foundation
 
+/**
+ * Various price formatting functions for SOL <-> USD, type or decimals conversion, etc.
+*/
+
 let formatter: NumberFormatter = {
     let formatter = NumberFormatter()
     formatter.numberStyle = .decimal

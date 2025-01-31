@@ -7,6 +7,11 @@
 
 import SwiftUI
 
+/**
+ * This file contains the button styles for the app.
+ * It will handle the styling of the buttons, as well as the logic for the buttons.
+*/
+
 struct PrimaryButton: View {
     var text: String
     var textColor: Color

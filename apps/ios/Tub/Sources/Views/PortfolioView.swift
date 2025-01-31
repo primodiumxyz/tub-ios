@@ -7,6 +7,9 @@
 
 import SwiftUI
 
+/**
+ * This view is responsible for displaying the user's portfolio.
+*/
 struct PortfolioView: View {
   @EnvironmentObject private var userModel: UserModel
   @EnvironmentObject private var priceModel: SolPriceModel
