@@ -3433,6 +3433,25 @@ type query_root {
 
   """fetch data from the table: "token_sale" using primary key columns"""
   token_sale_by_pk(id: uuid!): token_sale
+  transaction_analytics(
+    """transaction_analyticsNative Query Arguments"""
+    args: transaction_analytics_arguments!
+
+    """distinct select on columns"""
+    distinct_on: [transaction_analytics_model_enum_name!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [transaction_analytics_model_order_by!]
+
+    """filter the rows returned"""
+    where: transaction_analytics_model_bool_exp_bool_exp
+  ): [transaction_analytics_model!]!
   transactions(
     """distinct select on columns"""
     distinct_on: [transaction_model_enum_name!]
@@ -4123,6 +4142,25 @@ type subscription_root {
     """filter the rows returned"""
     where: token_sale_bool_exp
   ): [token_sale!]!
+  transaction_analytics(
+    """transaction_analyticsNative Query Arguments"""
+    args: transaction_analytics_arguments!
+
+    """distinct select on columns"""
+    distinct_on: [transaction_analytics_model_enum_name!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [transaction_analytics_model_order_by!]
+
+    """filter the rows returned"""
+    where: transaction_analytics_model_bool_exp_bool_exp
+  ): [transaction_analytics_model!]!
   transactions(
     """distinct select on columns"""
     distinct_on: [transaction_model_enum_name!]
@@ -4518,6 +4556,7 @@ type token_purchase {
   id: uuid!
   source: String
   token_amount: numeric!
+  token_decimals: Int
   token_mint: String!
   token_price_usd: numeric!
   user_agent: String!
@@ -4552,6 +4591,7 @@ type token_purchase_aggregate_fields {
 """aggregate avg on columns"""
 type token_purchase_avg_fields {
   token_amount: Float
+  token_decimals: Float
   token_price_usd: Float
 }
 
@@ -4568,6 +4608,7 @@ input token_purchase_bool_exp {
   id: uuid_comparison_exp
   source: String_comparison_exp
   token_amount: numeric_comparison_exp
+  token_decimals: Int_comparison_exp
   token_mint: String_comparison_exp
   token_price_usd: numeric_comparison_exp
   user_agent: String_comparison_exp
@@ -4594,6 +4635,7 @@ input type for incrementing numeric columns in table "token_purchase"
 """
 input token_purchase_inc_input {
   token_amount: numeric
+  token_decimals: Int
   token_price_usd: numeric
 }
 
@@ -4607,6 +4649,7 @@ input token_purchase_insert_input {
   id: uuid
   source: String
   token_amount: numeric
+  token_decimals: Int
   token_mint: String
   token_price_usd: numeric
   user_agent: String
@@ -4621,6 +4664,7 @@ type token_purchase_max_fields {
   id: uuid
   source: String
   token_amount: numeric
+  token_decimals: Int
   token_mint: String
   token_price_usd: numeric
   user_agent: String
@@ -4635,6 +4679,7 @@ type token_purchase_min_fields {
   id: uuid
   source: String
   token_amount: numeric
+  token_decimals: Int
   token_mint: String
   token_price_usd: numeric
   user_agent: String
@@ -4669,6 +4714,7 @@ input token_purchase_order_by {
   id: order_by
   source: order_by
   token_amount: order_by
+  token_decimals: order_by
   token_mint: order_by
   token_price_usd: order_by
   user_agent: order_by
@@ -4703,6 +4749,9 @@ enum token_purchase_select_column {
   token_amount
 
   """column name"""
+  token_decimals
+
+  """column name"""
   token_mint
 
   """column name"""
@@ -4725,6 +4774,7 @@ input token_purchase_set_input {
   id: uuid
   source: String
   token_amount: numeric
+  token_decimals: Int
   token_mint: String
   token_price_usd: numeric
   user_agent: String
@@ -4734,18 +4784,21 @@ input token_purchase_set_input {
 """aggregate stddev on columns"""
 type token_purchase_stddev_fields {
   token_amount: Float
+  token_decimals: Float
   token_price_usd: Float
 }
 
 """aggregate stddev_pop on columns"""
 type token_purchase_stddev_pop_fields {
   token_amount: Float
+  token_decimals: Float
   token_price_usd: Float
 }
 
 """aggregate stddev_samp on columns"""
 type token_purchase_stddev_samp_fields {
   token_amount: Float
+  token_decimals: Float
   token_price_usd: Float
 }
 
@@ -4768,6 +4821,7 @@ input token_purchase_stream_cursor_value_input {
   id: uuid
   source: String
   token_amount: numeric
+  token_decimals: Int
   token_mint: String
   token_price_usd: numeric
   user_agent: String
@@ -4777,6 +4831,7 @@ input token_purchase_stream_cursor_value_input {
 """aggregate sum on columns"""
 type token_purchase_sum_fields {
   token_amount: numeric
+  token_decimals: Int
   token_price_usd: numeric
 }
 
@@ -4801,6 +4856,9 @@ enum token_purchase_update_column {
 
   """column name"""
   token_amount
+
+  """column name"""
+  token_decimals
 
   """column name"""
   token_mint
@@ -4829,18 +4887,21 @@ input token_purchase_updates {
 """aggregate var_pop on columns"""
 type token_purchase_var_pop_fields {
   token_amount: Float
+  token_decimals: Float
   token_price_usd: Float
 }
 
 """aggregate var_samp on columns"""
 type token_purchase_var_samp_fields {
   token_amount: Float
+  token_decimals: Float
   token_price_usd: Float
 }
 
 """aggregate variance on columns"""
 type token_purchase_variance_fields {
   token_amount: Float
+  token_decimals: Float
   token_price_usd: Float
 }
 
@@ -4970,6 +5031,7 @@ type token_sale {
   id: uuid!
   source: String
   token_amount: numeric!
+  token_decimals: Int
   token_mint: String!
   token_price_usd: numeric!
   user_agent: String!
@@ -5004,6 +5066,7 @@ type token_sale_aggregate_fields {
 """aggregate avg on columns"""
 type token_sale_avg_fields {
   token_amount: Float
+  token_decimals: Float
   token_price_usd: Float
 }
 
@@ -5020,6 +5083,7 @@ input token_sale_bool_exp {
   id: uuid_comparison_exp
   source: String_comparison_exp
   token_amount: numeric_comparison_exp
+  token_decimals: Int_comparison_exp
   token_mint: String_comparison_exp
   token_price_usd: numeric_comparison_exp
   user_agent: String_comparison_exp
@@ -5046,6 +5110,7 @@ input type for incrementing numeric columns in table "token_sale"
 """
 input token_sale_inc_input {
   token_amount: numeric
+  token_decimals: Int
   token_price_usd: numeric
 }
 
@@ -5059,6 +5124,7 @@ input token_sale_insert_input {
   id: uuid
   source: String
   token_amount: numeric
+  token_decimals: Int
   token_mint: String
   token_price_usd: numeric
   user_agent: String
@@ -5073,6 +5139,7 @@ type token_sale_max_fields {
   id: uuid
   source: String
   token_amount: numeric
+  token_decimals: Int
   token_mint: String
   token_price_usd: numeric
   user_agent: String
@@ -5087,6 +5154,7 @@ type token_sale_min_fields {
   id: uuid
   source: String
   token_amount: numeric
+  token_decimals: Int
   token_mint: String
   token_price_usd: numeric
   user_agent: String
@@ -5121,6 +5189,7 @@ input token_sale_order_by {
   id: order_by
   source: order_by
   token_amount: order_by
+  token_decimals: order_by
   token_mint: order_by
   token_price_usd: order_by
   user_agent: order_by
@@ -5155,6 +5224,9 @@ enum token_sale_select_column {
   token_amount
 
   """column name"""
+  token_decimals
+
+  """column name"""
   token_mint
 
   """column name"""
@@ -5177,6 +5249,7 @@ input token_sale_set_input {
   id: uuid
   source: String
   token_amount: numeric
+  token_decimals: Int
   token_mint: String
   token_price_usd: numeric
   user_agent: String
@@ -5186,18 +5259,21 @@ input token_sale_set_input {
 """aggregate stddev on columns"""
 type token_sale_stddev_fields {
   token_amount: Float
+  token_decimals: Float
   token_price_usd: Float
 }
 
 """aggregate stddev_pop on columns"""
 type token_sale_stddev_pop_fields {
   token_amount: Float
+  token_decimals: Float
   token_price_usd: Float
 }
 
 """aggregate stddev_samp on columns"""
 type token_sale_stddev_samp_fields {
   token_amount: Float
+  token_decimals: Float
   token_price_usd: Float
 }
 
@@ -5220,6 +5296,7 @@ input token_sale_stream_cursor_value_input {
   id: uuid
   source: String
   token_amount: numeric
+  token_decimals: Int
   token_mint: String
   token_price_usd: numeric
   user_agent: String
@@ -5229,6 +5306,7 @@ input token_sale_stream_cursor_value_input {
 """aggregate sum on columns"""
 type token_sale_sum_fields {
   token_amount: numeric
+  token_decimals: Int
   token_price_usd: numeric
 }
 
@@ -5253,6 +5331,9 @@ enum token_sale_update_column {
 
   """column name"""
   token_amount
+
+  """column name"""
+  token_decimals
 
   """column name"""
   token_mint
@@ -5281,26 +5362,96 @@ input token_sale_updates {
 """aggregate var_pop on columns"""
 type token_sale_var_pop_fields {
   token_amount: Float
+  token_decimals: Float
   token_price_usd: Float
 }
 
 """aggregate var_samp on columns"""
 type token_sale_var_samp_fields {
   token_amount: Float
+  token_decimals: Float
   token_price_usd: Float
 }
 
 """aggregate variance on columns"""
 type token_sale_variance_fields {
   token_amount: Float
+  token_decimals: Float
   token_price_usd: Float
+}
+
+"""transaction_analyticsNative Query Arguments"""
+input transaction_analytics_arguments {
+  """Optional token mint to filter by"""
+  token_mint: String
+
+  """Optional wallet address to filter by"""
+  user_wallet: String
+}
+
+type transaction_analytics_model {
+  failed_trades: bigint!
+  success_rate: numeric!
+  successful_trades: bigint!
+  total_pnl_usd: numeric!
+  total_volume_usd: numeric!
+  trade_count: bigint!
+}
+
+"""
+Boolean expression to filter rows from the logical model for "transaction_analytics_model". All fields are combined with a logical 'AND'.
+"""
+input transaction_analytics_model_bool_exp_bool_exp {
+  _and: [transaction_analytics_model_bool_exp_bool_exp!]
+  _not: transaction_analytics_model_bool_exp_bool_exp
+  _or: [transaction_analytics_model_bool_exp_bool_exp!]
+  failed_trades: bigint_comparison_exp
+  success_rate: numeric_comparison_exp
+  successful_trades: bigint_comparison_exp
+  total_pnl_usd: numeric_comparison_exp
+  total_volume_usd: numeric_comparison_exp
+  trade_count: bigint_comparison_exp
+}
+
+enum transaction_analytics_model_enum_name {
+  """column name"""
+  failed_trades
+
+  """column name"""
+  success_rate
+
+  """column name"""
+  successful_trades
+
+  """column name"""
+  total_pnl_usd
+
+  """column name"""
+  total_volume_usd
+
+  """column name"""
+  trade_count
+}
+
+"""
+Ordering options when selecting data from "transaction_analytics_model".
+"""
+input transaction_analytics_model_order_by {
+  failed_trades: order_by
+  success_rate: order_by
+  successful_trades: order_by
+  total_pnl_usd: order_by
+  total_volume_usd: order_by
+  trade_count: order_by
 }
 
 type transaction_model {
   created_at: timestamptz!
+  error_details: String
   id: uuid!
   success: Boolean!
   token_amount: numeric!
+  token_decimals: Int!
   token_mint: String!
   token_price_usd: numeric!
   token_value_usd: numeric!
@@ -5315,9 +5466,11 @@ input transaction_model_bool_exp_bool_exp {
   _not: transaction_model_bool_exp_bool_exp
   _or: [transaction_model_bool_exp_bool_exp!]
   created_at: timestamptz_comparison_exp
+  error_details: String_comparison_exp
   id: uuid_comparison_exp
   success: Boolean_comparison_exp
   token_amount: numeric_comparison_exp
+  token_decimals: Int_comparison_exp
   token_mint: String_comparison_exp
   token_price_usd: numeric_comparison_exp
   token_value_usd: numeric_comparison_exp
@@ -5329,6 +5482,9 @@ enum transaction_model_enum_name {
   created_at
 
   """column name"""
+  error_details
+
+  """column name"""
   id
 
   """column name"""
@@ -5336,6 +5492,9 @@ enum transaction_model_enum_name {
 
   """column name"""
   token_amount
+
+  """column name"""
+  token_decimals
 
   """column name"""
   token_mint
@@ -5353,9 +5512,11 @@ enum transaction_model_enum_name {
 """Ordering options when selecting data from "transaction_model"."""
 input transaction_model_order_by {
   created_at: order_by
+  error_details: order_by
   id: order_by
   success: order_by
   token_amount: order_by
+  token_decimals: order_by
   token_mint: order_by
   token_price_usd: order_by
   token_value_usd: order_by

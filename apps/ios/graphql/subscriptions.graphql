@@ -1,7 +1,4 @@
-subscription SubTopTokensByVolume(
-  $minRecentTrades: numeric = 0
-  $minRecentVolume: numeric = 0
-) {
+subscription SubTopTokensByVolume($minRecentTrades: numeric = 0, $minRecentVolume: numeric = 0) {
   token_rolling_stats_30min(
     where: {
       is_pump_token: { _eq: true }
@@ -12,13 +9,18 @@ subscription SubTopTokensByVolume(
     limit: 50
   ) {
     mint
+    volume_usd_30m
+    trades_30m
+    price_change_pct_30m
+    latest_price_usd
+    name
+    image_uri
+    symbol
+    supply
   }
 }
 
-subscription SubTokenPricesSince(
-  $token: String!
-  $since: timestamptz = "now()"
-) {
+subscription SubTokenPricesSince($token: String!, $since: timestamptz = "now()") {
   api_trade_history(
     where: { token_mint: { _eq: $token }, created_at: { _gte: $since } }
     order_by: { created_at: asc }
@@ -28,10 +30,14 @@ subscription SubTokenPricesSince(
   }
 }
 
-subscription SubTokenCandlesSince(
-  $token: String!
-  $since: timestamptz = "now()"
-) {
+subscription SubRecentTokenPrice($token: String!) {
+  api_trade_history(where: { token_mint: { _eq: $token } }, order_by: { created_at: desc }, limit: 1) {
+    token_price_usd
+    created_at
+  }
+}
+
+subscription SubTokenCandlesSince($token: String!, $since: timestamptz = "now()") {
   token_candles_history_1min(args: { token_mint: $token, start: $since }) {
     bucket
     open_price_usd
@@ -40,5 +46,50 @@ subscription SubTokenCandlesSince(
     low_price_usd
     volume_usd
     has_trades
+  }
+}
+
+subscription SubTrades($limit: Int = 1000) {
+  transactions(order_by: { created_at: desc }, limit: $limit) {
+    id
+    created_at
+    user_wallet
+    token_mint
+    token_amount
+    token_price_usd
+    token_value_usd
+    token_decimals
+    success
+    error_details
+  }
+}
+
+subscription SubTradesByUserWalletOrTokenMint($userWalletOrTokenMint: String!, $limit: Int = 1000) {
+  transactions(
+    where: {
+      _or: [{ user_wallet: { _eq: $userWalletOrTokenMint } }, { token_mint: { _eq: $userWalletOrTokenMint } }]
+    }
+    order_by: { created_at: desc }
+    limit: $limit
+  ) {
+    id
+    created_at
+    user_wallet
+    token_mint
+    token_amount
+    token_price_usd
+    token_value_usd
+    token_decimals
+    success
+    error_details
+  }
+}
+
+subscription SubStats($userWallet: String, $tokenMint: String) {
+  transaction_analytics(args: { user_wallet: $userWallet, token_mint: $tokenMint }) {
+    total_pnl_usd
+    total_volume_usd
+    trade_count
+    success_rate
   }
 }

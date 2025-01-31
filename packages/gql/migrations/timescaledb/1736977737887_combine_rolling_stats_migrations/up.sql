@@ -1,5 +1,6 @@
 
 -- Create materialized view for rolling window stats
+-- This view needs to be refreshed frequently as it is the main entrypoint for retrieving token stats & metadata
 CREATE MATERIALIZED VIEW api.token_rolling_stats_30min AS 
 WITH recent_stats AS (
     SELECT 
@@ -49,9 +50,12 @@ GROUP BY recent_stats.token_mint, m.token_metadata;
 -- Create indexes
 CREATE UNIQUE INDEX ON api.token_rolling_stats_30min (mint);
 CREATE INDEX ON api.token_rolling_stats_30min (volume_usd_30m DESC);
+
+-- Create a table to track refresh history
 CREATE TABLE "api"."refresh_history" ("id" uuid NOT NULL DEFAULT gen_random_uuid(), "created_at" timestamptz NOT NULL DEFAULT now(), "success" boolean NOT NULL, PRIMARY KEY ("id") , UNIQUE ("id"));
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
+-- Create a function to refresh the materialized view
 CREATE OR REPLACE FUNCTION api.refresh_token_rolling_stats_30min()
 RETURNS api.refresh_history AS $$
 DECLARE

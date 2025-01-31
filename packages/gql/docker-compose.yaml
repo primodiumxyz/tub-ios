@@ -1,4 +1,5 @@
 services:
+  # Postgres instance for any additional data that can be conveniently stored and accessed from the Hasura console & GQL client
   postgres:
     image: postgres:15
     restart: always
@@ -9,6 +10,7 @@ services:
     environment:
       POSTGRES_PASSWORD: postgrespassword
 
+  # TimescaleDB instance for storing indexer data
   timescaledb:
     image: timescale/timescaledb:latest-pg15
     container_name: timescaledb
@@ -26,6 +28,7 @@ services:
       timeout: 5s
       retries: 5
 
+  # Hasura GraphQL engine instance
   graphql-engine:
     image: hasura/graphql-engine:v2.42.0.cli-migrations-v3
     ports:
@@ -60,6 +63,7 @@ services:
       data-connector-agent:
         condition: service_started
 
+  # Middleware between Hasura and the data sources
   data-connector-agent:
     image: hasura/graphql-data-connector:v2.42.0
     restart: always
@@ -77,6 +81,7 @@ services:
       retries: 5
       start_period: 5s
 
+  # Redis instance for caching GraphQL queries
   graphql-cache:
     build:
       context: ../../
@@ -84,8 +89,8 @@ services:
     ports:
       - "8090:8090"
     environment:
+      - CACHE_TIME=${CACHE_TIME:-30}
       - REDIS_PASSWORD=${REDIS_PASSWORD:-password}
-      - NODE_ENV=local
     depends_on:
       - graphql-engine
     logging:
