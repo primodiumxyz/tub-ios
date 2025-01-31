@@ -3,7 +3,7 @@ import { createClient } from "../../../src/index";
 
 const fetchTokens = async () => {
   const client = await createClient({
-    url: process.env.GRAPHQL_URL ?? "",
+    url: `${process.env.HASURA_URL ?? ""}/v1/graphql`,
     hasuraAdminSecret: process.env.HASURA_ADMIN_SECRET ?? "",
   });
 

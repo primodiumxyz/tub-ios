@@ -13,7 +13,7 @@
   "scripts": {
     "prepare": "dotenvx run -f ./../../.env --quiet -- sh -c '[ \"$NODE_ENV\" = production ] && exit 0; pnpm hasura update-cli --version v2.44.0-beta.1'",
     "dev": "./bin/start-db.sh",
-    "dev:ci": "./bin/start-db-ci.sh",
+    "dev:ci": "./bin/start-db.sh --ci",
     "teardown": "docker compose down --remove-orphans --volumes",
     "extract-mutations": "tsx ./bin/extractGql.ts ./src/graphql/analytics/mutations.ts",
     "extract-queries": "tsx ./bin/extractGql.ts ./src/graphql/analytics/queries.ts",

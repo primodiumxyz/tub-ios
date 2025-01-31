@@ -1,13 +1,28 @@
 #!/bin/bash
 
+# Parse command line arguments
+CI_MODE=false
+while [[ "$#" -gt 0 ]]; do
+  case $1 in
+    --ci) CI_MODE=true ;;
+    *) echo "Unknown parameter: $1"; exit 1 ;;
+  esac
+  shift
+done
+
 # Start services first
-docker-compose up &
+if [ "$CI_MODE" = true ]; then
+  docker-compose up -d &
+else
+  docker-compose up &
+fi
 
 # Store the process ID of the background docker-compose up command
 COMPOSE_PID=$!
 
 # Define the health check endpoints
-HASURA_HEALTH_CHECK_URL="http://localhost:8080/healthz?strict=true"
+# This url reaches Hasura through the cache server so it verifies both health
+HASURA_HEALTH_CHECK_URL="http://localhost:8090/healthz?strict=true"
 TIMESCALE_HEALTH_CHECK="docker exec timescaledb pg_isready -U tsdbadmin -d indexer"
 
 # Define the number of retries and delay between checks
@@ -19,7 +34,6 @@ check_hasura_health() {
   RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" $HASURA_HEALTH_CHECK_URL)
   [ "$RESPONSE" -eq 200 ]
 }
-
 # Function to check TimescaleDB health
 check_timescale_health() {
   $TIMESCALE_HEALTH_CHECK > /dev/null 2>&1
@@ -47,9 +61,11 @@ for ((i=1; i<=$RETRIES; i++)); do
     echo "Applying Hasura metadata..."
     pnpm db:local:seed-apply
 
-    # Start consoles after everything is set up
-    echo "Starting Hasura console..."
-    pnpm db:local:console &
+    # Start console only in non-CI mode
+    if [ "$CI_MODE" = false ]; then
+      echo "Starting Hasura console..."
+      pnpm db:local:console &
+    fi
 
     break
   else

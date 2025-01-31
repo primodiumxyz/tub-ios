@@ -142,7 +142,8 @@ fastify.post("/v1/graphql", async (request, reply) => {
       body: stringifiedBody,
     });
 
-    const data = await response.json();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data = (await response.json()) as { [key: string]: any };
 
     fastify.log.info({
       msg: "Hasura fetch completed",

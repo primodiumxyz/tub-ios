@@ -13,7 +13,7 @@ describe("PushService", () => {
   beforeEach(async () => {
     gqlClient = (
       await createGqlClient({
-        url: env.GRAPHQL_URL,
+        url: `${env.HASURA_URL}/v1/graphql`,
         hasuraAdminSecret: env.HASURA_ADMIN_SECRET,
       })
     ).db;
