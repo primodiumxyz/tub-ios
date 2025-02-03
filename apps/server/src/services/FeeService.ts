@@ -11,23 +11,34 @@ export type FeeSettings = {
 
 /**
  * Service for handling fee calculations and fee-related instructions
+ * Manages trade fees, minimum fees, and fee transfer instructions
  */
 export class FeeService {
+  /**
+   * Creates a new FeeService instance
+   * @param settings - Fee configuration settings
+   * @param jupiterService - Jupiter service instance for price calculations
+   */
   constructor(
     private settings: FeeSettings,
     private jupiterService: JupiterService,
   ) {}
 
+  /**
+   * Returns the current fee settings
+   * @returns Current fee configuration settings
+   */
   getSettings(): FeeSettings {
     return this.settings;
   }
 
   /**
    * Calculate fee amount for a swap, ensuring it is not below the minimum fee amount
-   * @param usdcQuantity - Amount of USDC in the transaction
+   * @param usdcQuantity - Amount of USDC in the transaction (in base units)
    * @param transactionType - Type of swap: buy, sell_all, sell_partial
-   * @param cfg - Config object, should be read as constant after high-level API call
-   * @returns Fee amount in token's base units (USDC is 1e6)
+   * @param cfg - Config object containing fee parameters
+   * @returns Fee amount in USDC base units (1e6)
+   * @throws Error if USDC quantity is below minimum trade size or fee exceeds swap value
    */
   calculateFeeAmount(usdcQuantity: number, transactionType: TransactionType, cfg: Config): number {
     let feeAmount = BigInt(0);
@@ -56,10 +67,10 @@ export class FeeService {
 
   /**
    * Creates a transfer instruction for the fee if needed
-   * @param sourceAccount - Account to transfer from
-   * @param userPublicKey - User's public key
-   * @param feeAmount - Amount to transfer
-   * @returns Transfer instruction or null if no fee
+   * @param sourceAccount - Token account to transfer from
+   * @param userPublicKey - User's public key for authority
+   * @param feeAmount - Amount of fee to transfer (in token base units)
+   * @returns Transfer instruction or null if fee amount is 0 or negative
    */
   createFeeTransferInstruction(
     sourceAccount: PublicKey,
@@ -71,8 +82,8 @@ export class FeeService {
     }
 
     return createTransferInstruction(
-      sourceAccount, // ATA
-      this.settings.tradeFeeRecipient, // ATA
+      sourceAccount, // source ATA
+      this.settings.tradeFeeRecipient, // destination ATA
       userPublicKey,
       feeAmount,
     );
@@ -81,7 +92,8 @@ export class FeeService {
   /**
    * Calculate the amount of base USDC required to cover the ATA rent exemption
    * @param amountLamports - The amount of SOL to cover the ATA rent exemption
-   * @returns Amount of base USDC required to cover the ATA rent exemption
+   * @returns Amount of USDC (in base units) required to cover the ATA rent exemption
+   * @throws Error if SOL USD price fetch fails
    */
   async calculateRentExemptionFeeAmount(amountLamports: number): Promise<number> {
     const solUsdPrice = await this.jupiterService.getSolUsdPrice();

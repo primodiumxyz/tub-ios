@@ -34,10 +34,17 @@ import { Config } from "./ConfigService";
 
 /**
  * Service for handling all transaction-related operations
+ * Manages transaction building, signing, simulation, and registry operations
  */
 export class TransactionService {
+  /** Registry to store transaction messages and their metadata */
   private messageRegistry: Map<string, TransactionRegistryEntry> = new Map();
 
+  /**
+   * Creates a new TransactionService instance
+   * @param connection - Solana RPC connection
+   * @param feePayerKeypair - Keypair used for paying transaction fees
+   */
   constructor(
     private connection: Connection,
     private feePayerKeypair: Keypair,
@@ -47,6 +54,10 @@ export class TransactionService {
 
   // ----------- Initialization ------------
 
+  /**
+   * Initializes periodic cleanup of the transaction registry
+   * @private
+   */
   private initializeCleanup(): void {
     (async () => {
       const cfg = await config();
@@ -54,6 +65,10 @@ export class TransactionService {
     })();
   }
 
+  /**
+   * Cleans up expired transactions from the registry
+   * @private
+   */
   private async cleanupRegistry() {
     const cfg = await config();
     const now = Date.now();
@@ -68,6 +83,8 @@ export class TransactionService {
 
   /**
    * Gets a registered transaction from the registry
+   * @param base64Message - Base64 encoded transaction message
+   * @returns Transaction registry entry if found, undefined otherwise
    */
   getRegisteredTransaction(base64Message: string): TransactionRegistryEntry | undefined {
     return this.messageRegistry.get(base64Message);
@@ -75,6 +92,7 @@ export class TransactionService {
 
   /**
    * Removes a transaction from the registry
+   * @param base64Message - Base64 encoded transaction message to delete
    */
   deleteFromRegistry(base64Message: string): void {
     this.messageRegistry.delete(base64Message);
@@ -82,6 +100,15 @@ export class TransactionService {
 
   /**
    * Registers a transaction message in the registry
+   * @param message - Transaction message to register
+   * @param lastValidBlockHeight - Last valid block height for the transaction
+   * @param transactionType - Type of transaction (BUY, SELL_ALL, SELL_PARTIAL, TRANSFER)
+   * @param autoSlippage - Whether auto slippage is enabled
+   * @param contextSlot - Current slot context
+   * @param buildAttempts - Number of build attempts made
+   * @param activeSwapRequest - Optional active swap request details
+   * @param cfg - Optional configuration settings
+   * @returns Base64 encoded transaction message
    */
   registerTransaction(
     message: MessageV0,
@@ -112,6 +139,10 @@ export class TransactionService {
 
   /**
    * Builds a transaction message from instructions and registers it in the registry
+   * @param instructions - Transaction instructions to build
+   * @param addressLookupTableAccounts - Address lookup table accounts
+   * @param txRegistryData - Transaction registry metadata
+   * @returns Base64 encoded transaction message
    */
   async buildAndRegisterTransactionMessage(
     instructions: TransactionInstruction[],
@@ -140,6 +171,10 @@ export class TransactionService {
 
   /**
    * Builds a transaction message from instructions
+   * @param instructions - Transaction instructions to build
+   * @param addressLookupTableAccounts - Address lookup table accounts
+   * @returns Transaction message, blockhash, and last valid block height
+   * @throws Error if message serialization fails
    */
   async buildTransactionMessage(
     instructions: TransactionInstruction[],
@@ -165,6 +200,9 @@ export class TransactionService {
 
   /**
    * Signs a transaction with the fee payer
+   * @param transaction - Transaction to sign
+   * @returns Base58 encoded signature
+   * @throws Error if signing fails or no signature is found
    */
   async signTransaction(transaction: VersionedTransaction): Promise<string> {
     try {
@@ -182,6 +220,12 @@ export class TransactionService {
 
   /**
    * Signs and sends a transaction
+   * @param userPublicKey - User's public key
+   * @param userSignature - User's transaction signature
+   * @param entry - Transaction registry entry
+   * @param cfg - Configuration settings
+   * @returns Transaction submission response
+   * @throws Error if transaction simulation or sending fails
    */
   async signAndSendTransaction(
     userPublicKey: PublicKey,
@@ -246,6 +290,14 @@ export class TransactionService {
     }
   }
 
+  /**
+   * Confirms a transaction
+   * @param txid - Transaction ID
+   * @param lastValidBlockHeight - Last valid block height
+   * @param cfg - Configuration settings
+   * @returns Transaction confirmation status
+   * @throws Error if transaction expires or confirmation fails
+   */
   async confirmTransaction(
     txid: string,
     lastValidBlockHeight: number,
@@ -286,6 +338,15 @@ export class TransactionService {
     throw new Error("Transaction expired");
   }
 
+  /**
+   * Simulates a transaction with retry logic
+   * @param transaction - Transaction to simulate
+   * @param contextSlot - Current slot context
+   * @param sigVerify - Whether to verify signatures
+   * @param replaceRecentBlockhash - Whether to replace recent blockhash
+   * @returns Simulation response
+   * @throws Error if simulation fails after all attempts
+   */
   async simulateTransactionWithResim(
     transaction: VersionedTransaction,
     contextSlot: number,
@@ -320,6 +381,15 @@ export class TransactionService {
     throw new Error("Simulation failed after all attempts. No error was provided");
   }
 
+  /**
+   * Gets simulation compute units for a transaction
+   * @param instructions - Transaction instructions
+   * @param addressLookupTableAccounts - Address lookup table accounts
+   * @param contextSlot - Current slot context
+   * @returns Number of compute units used
+   * @throws Error if simulation fails or returns undefined units
+   * @private
+   */
   private async getSimulationComputeUnits(
     instructions: TransactionInstruction[],
     addressLookupTableAccounts: AddressLookupTableAccount[],
@@ -352,6 +422,13 @@ export class TransactionService {
 
   // ----------- Instruction Modification ------------
 
+  /**
+   * Filters compute budget instructions from an instruction array
+   * @param instructions - Instructions to filter
+   * @param cfg - Configuration settings
+   * @returns Filtered instructions and initial compute unit price
+   * @private
+   */
   private filterComputeInstructions(instructions: TransactionInstruction[], cfg: Config) {
     const computeUnitLimitIndex = instructions.findIndex(
       (ix) => ix.programId.equals(ComputeBudgetProgram.programId) && ix.data[0] === 0x02,
@@ -378,10 +455,11 @@ export class TransactionService {
 
   /**
    * Optimizes compute budget instructions by estimating the compute units and setting a reasonable compute unit price
-   * @param instructions - The instructions to optimize
-   * @param addressLookupTableAccounts - The address lookup table accounts
-   * @param cfg - Config
-   * @returns The optimized instructions
+   * @param instructions - Instructions to optimize
+   * @param addressLookupTableAccounts - Address lookup table accounts
+   * @param contextSlot - Current slot context
+   * @param cfg - Configuration settings
+   * @returns Optimized instructions with compute budget
    */
   async optimizeComputeInstructions(
     instructions: TransactionInstruction[],
@@ -416,6 +494,8 @@ export class TransactionService {
 
   /**
    * Reassigns rent payer in instructions to the fee payer
+   * @param instructions - Instructions to modify
+   * @returns Modified instructions with reassigned rent payer
    */
   reassignRentInstructions(instructions: TransactionInstruction[]): TransactionInstruction[] {
     return instructions.map((instruction) => {
@@ -467,6 +547,12 @@ export class TransactionService {
 
   /**
    * Creates a token close instruction if needed
+   * @param userPublicKey - User's public key
+   * @param tokenAccount - Token account to close
+   * @param sellTokenId - Token being sold
+   * @param sellQuantity - Amount being sold
+   * @param transactionType - Type of transaction
+   * @returns Close instruction if needed, null otherwise
    */
   async createTokenCloseInstruction(
     userPublicKey: PublicKey,
@@ -493,6 +579,12 @@ export class TransactionService {
     return null;
   }
 
+  /**
+   * Determines the type of transaction based on the swap request
+   * @param request - Active swap request
+   * @returns Transaction type (BUY, SELL_ALL, SELL_PARTIAL)
+   * @throws Error if sell token balance is insufficient
+   */
   async determineTransactionType(request: ActiveSwapRequest): Promise<TransactionType> {
     if (request.buyTokenId === USDC_MAINNET_PUBLIC_KEY.toString()) {
       const sellTokenBalance = await this.connection.getTokenAccountBalance(request.sellTokenAccount, "processed");
@@ -514,6 +606,12 @@ export class TransactionService {
     }
   }
 
+  /**
+   * Gets the balance of a token account
+   * @param userPublicKey - User's public key
+   * @param tokenMint - Token mint address
+   * @returns Token balance in base units
+   */
   async getTokenBalance(userPublicKey: PublicKey, tokenMint: PublicKey): Promise<number> {
     const tokenAccounts = await this.connection.getParsedTokenAccountsByOwner(
       userPublicKey,

@@ -32,6 +32,13 @@ import { TransferService } from "./TransferService";
 
 /**
  * Service class handling token trading, swaps, and user operations
+ * Acts as the main coordinator between various services including:
+ * - Swap operations and streaming
+ * - Transaction handling
+ * - Fee calculations
+ * - Analytics tracking
+ * - Push notifications
+ * - User authentication
  */
 export class TubService {
   private connection!: Connection;
@@ -42,11 +49,13 @@ export class TubService {
   private analyticsService!: AnalyticsService;
   private transferService!: TransferService;
   private pushService!: PushService;
+
   /**
    * Creates a new instance of TubService
    * @param gqlClient - GraphQL client for database operations
    * @param privy - Privy client for authentication
    * @param jupiterService - JupiterService instance for transaction handling
+   * @private
    */
   private constructor(
     private readonly gqlClient: GqlClient["db"],
@@ -56,6 +65,10 @@ export class TubService {
 
   /**
    * Factory method to create a fully initialized TubService
+   * @param gqlClient - GraphQL client for database operations
+   * @param privy - Privy client for authentication
+   * @param jupiterService - JupiterService instance for transaction handling
+   * @returns Promise resolving to initialized TubService instance
    */
   static async create(
     gqlClient: GqlClient["db"],
@@ -67,17 +80,17 @@ export class TubService {
     return service;
   }
 
+  /**
+   * Initializes all required services and connections
+   * @private
+   */
   private async initialize(): Promise<void> {
-    // initialize connection
     this.connection = new Connection(`${env.QUICKNODE_ENDPOINT}/${env.QUICKNODE_TOKEN}`);
-
-    // validate trade fee recipient
     const validatedTradeFeeRecipient = await this.validateTradeFeeRecipient();
 
     // initialize config service first since other services might need it
     await ConfigService.getInstance();
 
-    // Initialize fee payer
     const feePayerKeypair = Keypair.fromSecretKey(bs58.decode(env.FEE_PAYER_PRIVATE_KEY));
 
     this.authService = new AuthService(this.privy);
@@ -91,19 +104,19 @@ export class TubService {
       this.transactionService,
       this.feeService,
     );
-
     this.pushService = new PushService({ gqlClient: this.gqlClient });
 
-    // Start periodic tasks
     new CronService(this.gqlClient).startPeriodicTasks();
   }
 
   /**
    * Validates that the trade fee recipient has a valid USDC ATA
    * @remarks
-   * This method checks if the trade fee recipient is an initialized USDC ATA address. If not, checks that if the trade fee recipient is a pubkey address that has a valid USDC ATA.
+   * This method checks if the trade fee recipient is an initialized USDC ATA address.
+   * If not, checks that if the trade fee recipient is a pubkey address that has a valid USDC ATA.
    * @returns The public key of the trade fee recipient USDC ATA
    * @throws Error if the trade fee recipient does not have a valid USDC ATA
+   * @private
    */
   private async validateTradeFeeRecipient(): Promise<PublicKey> {
     const cfg = await config();
@@ -129,45 +142,97 @@ export class TubService {
     return tradeFeeRecipientUsdcAtaAddress;
   }
 
-  // Status endpoint
+  /**
+   * Returns service health status
+   * @returns Object containing status code
+   */
   getStatus(): { status: number } {
     return { status: 200 };
   }
 
-  // Analytics methods
+  /* -------------------------------------------------------------------------- */
+  /*                              Analytics Methods                               */
+  /* -------------------------------------------------------------------------- */
+
+  /**
+   * Records a token purchase event
+   * @param event - Token purchase event details
+   * @param jwtToken - User's JWT token
+   * @returns Promise resolving to event ID
+   */
   async recordTokenPurchase(event: TokenPurchaseOrSaleEvent, jwtToken: string): Promise<string> {
     const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
     return this.analyticsService.recordTokenPurchase(event, walletPublicKey.toBase58());
   }
 
+  /**
+   * Records a token sale event
+   * @param event - Token sale event details
+   * @param jwtToken - User's JWT token
+   * @returns Promise resolving to event ID
+   */
   async recordTokenSale(event: TokenPurchaseOrSaleEvent, jwtToken: string): Promise<string> {
     const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
     return this.analyticsService.recordTokenSale(event, walletPublicKey.toBase58());
   }
 
+  /**
+   * Records app loading time metrics
+   * @param event - Loading time event details
+   * @param jwtToken - User's JWT token
+   * @returns Promise resolving to event ID
+   */
   async recordLoadingTime(event: LoadingTimeEvent, jwtToken: string): Promise<string> {
     const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
     return this.analyticsService.recordLoadingTime(event, walletPublicKey.toBase58());
   }
 
+  /**
+   * Records app dwell time metrics
+   * @param event - App dwell time event details
+   * @param jwtToken - User's JWT token
+   * @returns Promise resolving to event ID
+   */
   async recordAppDwellTime(event: AppDwellTimeEvent, jwtToken: string): Promise<string> {
     const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
     return this.analyticsService.recordAppDwellTime(event, walletPublicKey.toBase58());
   }
 
+  /**
+   * Records token dwell time metrics
+   * @param event - Token dwell time event details
+   * @param jwtToken - User's JWT token
+   * @returns Promise resolving to event ID
+   */
   async recordTokenDwellTime(event: TokenDwellTimeEvent, jwtToken: string): Promise<string> {
     const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
     return this.analyticsService.recordTokenDwellTime(event, walletPublicKey.toBase58());
   }
 
-  // Price methods
+  /* -------------------------------------------------------------------------- */
+  /*                               Price Methods                                  */
+  /* -------------------------------------------------------------------------- */
+
+  /**
+   * Gets current SOL/USD price
+   * @returns Promise resolving to current price or undefined if unavailable
+   */
   async getSolUsdPrice(): Promise<number | undefined> {
     return this.jupiterService.getSolUsdPrice();
   }
 
+  /**
+   * Subscribes to SOL price updates
+   * @param callback - Function to call on price updates
+   * @returns Cleanup function to unsubscribe
+   */
   subscribeSolPrice(callback: (price: number) => void): () => void {
     return this.jupiterService.subscribeSolPrice(callback);
   }
+
+  /* -------------------------------------------------------------------------- */
+  /*                               Swap Methods                                   */
+  /* -------------------------------------------------------------------------- */
 
   /**
    * Builds a swap transaction for exchanging tokens that enables a server-side fee payer
@@ -212,18 +277,24 @@ export class TubService {
     return response;
   }
 
+  /**
+   * Attempts to build a swap response with retry logic
+   * @param activeRequest - Active swap request details
+   * @param cfg - Configuration settings
+   * @param priorBuildAttempts - Number of previous build attempts for a given swap request
+   * @returns Promise resolving to prebuild swap response
+   * @throws Error if all build attempts fail
+   */
   async buildSwapResponseWithRebuild(
     activeRequest: ActiveSwapRequest,
     cfg: Config,
     priorBuildAttempts: number = 0,
   ): Promise<PrebuildSwapResponse> {
     for (let buildAttempt = priorBuildAttempts + 1; buildAttempt <= cfg.MAX_BUILD_ATTEMPTS; buildAttempt++) {
-      console.log("Building swap response attempt " + buildAttempt);
       try {
         const response = await this.swapService.buildSwapResponse(activeRequest, cfg, buildAttempt);
         return response;
       } catch (error) {
-        console.log("Failed to build swap response: ", error);
         // if build attempt is maxed out or if user has set slippage, throw error
         if (buildAttempt >= cfg.MAX_BUILD_ATTEMPTS || activeRequest.slippageBps !== undefined) {
           throw new Error("Failed to build swap response: " + error);
@@ -236,8 +307,8 @@ export class TubService {
   /**
    * Builds a swap transaction for exchanging tokens and signs it with the fee payer.
    * @dev Once user signs, the transaction is complete and can be directly submitted to Solana RPC by the user.
-   * @param jwtToken - The JWT token for user authentication
-   * @param request - The swap request parameters
+   * @param jwtToken - JWT token for user authentication
+   * @param request - Swap request parameters
    * @param request.buyTokenId - Public key of the token to receive
    * @param request.sellTokenId - Public key of the token to sell
    * @param request.sellQuantity - Amount of tokens to sell (in token's base units)
@@ -253,16 +324,13 @@ export class TubService {
    */
   async fetchPresignedSwap(jwtToken: string, request: UserPrebuildSwapRequest): Promise<PrebuildSignedSwapResponse> {
     const fetchSwapResponse = await this.fetchSwap(jwtToken, request);
-    // fetch transaction from registry
     const registryEntry = this.swapService.getMessageFromRegistry(fetchSwapResponse.transactionMessageBase64);
+
     if (!registryEntry) {
       throw new Error("Transaction not found in registry");
     }
-    const message = registryEntry.message;
 
-    const transaction = new VersionedTransaction(message);
-
-    // remove transaction from registry
+    const transaction = new VersionedTransaction(registryEntry.message);
     this.swapService.deleteMessageFromRegistry(fetchSwapResponse.transactionMessageBase64);
 
     const feePayerSignature = await this.transactionService.signTransaction(transaction);
@@ -277,9 +345,9 @@ export class TubService {
 
   /**
    * Starts a stream of built swap transactions for a user to sign
-   * @param jwtToken - The user's JWT token
-   * @param request - The swap request parameters
-   * @returns A Subject that emits base64-encoded transactions
+   * @param jwtToken - User's JWT token
+   * @param request - Swap request parameters
+   * @returns Subject that emits swap responses
    */
   async startSwapStream(jwtToken: string, request: UserPrebuildSwapRequest) {
     const { userId, walletPublicKey } = await this.authService.getUserContext(jwtToken);
@@ -300,11 +368,23 @@ export class TubService {
     return this.swapService.startSwapStream(userId, activeRequest);
   }
 
+  /**
+   * Stops an active swap stream for a user
+   * @param jwtToken - User's JWT token
+   */
   async stopSwapStream(jwtToken: string) {
     const { userId } = await this.authService.getUserContext(jwtToken);
     await this.swapService.stopSwapStream(userId);
   }
 
+  /**
+   * Signs and sends a transaction to the Solana RPC
+   * @param jwtToken - JWT token for user authentication
+   * @param userSignature - User's transaction signature
+   * @param base64TransactionMessage - Base64 encoded transaction message
+   * @returns Promise resolving to transaction submission response
+   * @throws Error if transaction not found or submission fails
+   */
   async signAndSendTransaction(
     jwtToken: string,
     userSignature: string,
@@ -315,14 +395,13 @@ export class TubService {
     if (!entry) {
       throw new Error("Transaction not found in registry");
     }
+
     const cfg = await config();
 
     try {
       const response = this.transactionService.signAndSendTransaction(walletPublicKey, userSignature, entry, cfg);
       return response;
     } catch (error) {
-      console.log("Tx send failed: " + JSON.stringify(error));
-
       // don't rebuild transfer swaps
       if (entry.transactionType === TransactionType.TRANSFER) {
         throw new Error(JSON.stringify(error));
@@ -354,6 +433,10 @@ export class TubService {
       return { responseType: "rebuild", rebuild: rebuiltSwapResponse };
     }
   }
+
+  /* -------------------------------------------------------------------------- */
+  /*                             Balance Methods                                  */
+  /* -------------------------------------------------------------------------- */
 
   /**
    * Updates parameters for an active swap request and returns a new transaction
@@ -399,13 +482,22 @@ export class TubService {
     return response;
   }
 
+  /**
+   * Gets SOL balance for a user
+   * @param jwtToken - User's JWT token
+   * @returns Promise resolving to balance in lamports
+   */
   async getSolBalance(jwtToken: string): Promise<{ balance: number }> {
     const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
-
     const balance = await this.connection.getBalance(walletPublicKey, "processed");
     return { balance };
   }
 
+  /**
+   * Gets all token balances for a user
+   * @param jwtToken - User's JWT token
+   * @returns Promise resolving to array of token balances
+   */
   async getAllTokenBalances(
     jwtToken: string,
   ): Promise<{ tokenBalances: Array<{ mint: string; balanceToken: number }> }> {
@@ -424,6 +516,12 @@ export class TubService {
     return { tokenBalances };
   }
 
+  /**
+   * Gets balance for a specific token
+   * @param jwtToken - User's JWT token
+   * @param tokenMint - Token mint address
+   * @returns Promise resolving to token balance
+   */
   async getTokenBalance(jwtToken: string, tokenMint: string): Promise<{ balance: number }> {
     const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
 
@@ -440,19 +538,28 @@ export class TubService {
     return { balance };
   }
 
-  async getEstimatedTransferFee(jwtToken: string): Promise<{ estimatedFee: number }> {
-    // just auth check for spam mitigation
-    await this.authService.getUserContext(jwtToken);
+  /* -------------------------------------------------------------------------- */
+  /*                             Transfer Methods                                 */
+  /* -------------------------------------------------------------------------- */
 
+  /**
+   * Gets estimated fee for a transfer
+   * @param jwtToken - User's JWT token
+   * @returns Promise resolving to estimated fee amount
+   */
+  async getEstimatedTransferFee(jwtToken: string): Promise<{ estimatedFee: number }> {
+    await this.authService.getUserContext(jwtToken);
     const rentExemptionAmountLamports = await this.connection.getMinimumBalanceForRentExemption(TOKEN_ACCOUNT_SIZE);
     const rentExemptionFeeAmountUsdcBaseUnits =
       await this.feeService.calculateRentExemptionFeeAmount(rentExemptionAmountLamports);
-
     return { estimatedFee: rentExemptionFeeAmountUsdcBaseUnits };
   }
 
   /**
    * Creates a transaction for transferring USDC
+   * @param jwtToken - User's JWT token
+   * @param request - Transfer request parameters
+   * @returns Promise resolving to transaction message
    */
   async fetchTransferTx(
     jwtToken: string,
@@ -476,9 +583,15 @@ export class TubService {
   }
 
   /* -------------------------------------------------------------------------- */
-  /*                             Push Notifications                             */
+  /*                           Push Notification Methods                        */
   /* -------------------------------------------------------------------------- */
 
+  /**
+   * Starts a live activity push notification
+   * @param jwtToken - User's JWT token
+   * @param input - Live activity parameters
+   * @returns Promise resolving to activity start result
+   */
   async startLiveActivity(
     jwtToken: string,
     input: { tokenMint: string; tokenPriceUsd: string; deviceToken: string; pushToken: string },
@@ -487,6 +600,11 @@ export class TubService {
     return this.pushService.startLiveActivity(userId, input);
   }
 
+  /**
+   * Stops a live activity push notification
+   * @param jwtToken - User's JWT token
+   * @returns Promise resolving to activity stop result
+   */
   async stopLiveActivity(jwtToken: string) {
     const { userId } = await this.authService.getUserContext(jwtToken);
     return this.pushService.stopLiveActivity(userId);

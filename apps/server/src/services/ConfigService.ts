@@ -2,6 +2,10 @@ import { z } from "zod";
 import { RedisService } from "./RedisService";
 import defaultConfig from "../../default-redis-config.json";
 
+/**
+ * Zod schema for validating configuration
+ * Defines and enforces types for all configuration values
+ */
 export const configSchema = z
   .object({
     CONFIG_UPDATE_INTERVAL: z.number(),
@@ -33,8 +37,13 @@ export const configSchema = z
   })
   .strict();
 
+/** Type definition for configuration object */
 export type Config = z.infer<typeof configSchema>;
 
+/**
+ * Service for managing application configuration
+ * Handles configuration validation, Redis synchronization, and provides access to config values
+ */
 export class ConfigService {
   private static instance: ConfigService;
   private redis = RedisService.getInstance().getClient();
@@ -43,10 +52,20 @@ export class ConfigService {
   private initialized = false;
   private startedInit = false;
 
+  /**
+   * Creates a new ConfigService instance
+   * @private
+   */
   private constructor() {
     this.init();
   }
 
+  /**
+   * Initializes the configuration service
+   * Syncs with Redis and sets up periodic updates
+   * @private
+   * @throws Error if Redis connection or config initialization fails
+   */
   private async init() {
     if (this.startedInit) {
       // delay 1 second to avoid race condition
@@ -71,7 +90,7 @@ export class ConfigService {
           throw new Error("Redis is not running");
         }
 
-        // If we get here, Redis is running but config doesn't exist
+        // If Redis is running but config doesn't exist, set default configuration
         console.log("Redis is running but config not found. Setting default configuration...");
         await this.redis.set(this.REDIS_KEY, JSON.stringify(defaultConfig));
         console.log("Default config set. Attempting to sync again...");
@@ -86,6 +105,10 @@ export class ConfigService {
     this.initialized = true;
   }
 
+  /**
+   * Gets the singleton instance of ConfigService
+   * @returns Promise resolving to ConfigService instance
+   */
   public static async getInstance(): Promise<ConfigService> {
     if (!ConfigService.instance) {
       ConfigService.instance = new ConfigService();
@@ -94,6 +117,11 @@ export class ConfigService {
     return ConfigService.instance;
   }
 
+  /**
+   * Gets the current configuration
+   * @returns Current configuration object
+   * @throws Error if config is not initialized
+   */
   public getConfig(): Config {
     if (!this.initialized || !this.localConfig) {
       throw new Error("Config not initialized");
@@ -101,6 +129,11 @@ export class ConfigService {
     return this.localConfig;
   }
 
+  /**
+   * Synchronizes local configuration with Redis
+   * @private
+   * @throws Error if Redis config is missing or invalid
+   */
   private async syncWithRedis() {
     const config = await this.redis.get(this.REDIS_KEY);
     if (!config) {
@@ -117,6 +150,11 @@ export class ConfigService {
     }
   }
 
+  /**
+   * Starts periodic synchronization with Redis
+   * Updates local config at intervals specified in CONFIG_UPDATE_INTERVAL
+   * @private
+   */
   private startPeriodicSync() {
     setInterval(async () => {
       try {
