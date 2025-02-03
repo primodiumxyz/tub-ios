@@ -409,10 +409,6 @@ export class TransactionService {
       }).compileToV0Message(addressLookupTableAccounts),
     );
 
-    // log the instructions
-    console.log(simulatedInstructions);
-    console.log("Compute Unit Simulation");
-
     const rpcResponse = await this.simulateTransactionWithResim(testTransaction, contextSlot, false, true);
 
     if (!rpcResponse.value.unitsConsumed) {
@@ -471,18 +467,11 @@ export class TransactionService {
   ): Promise<TransactionInstruction[]> {
     const { initComputeUnitPrice, filteredInstructions } = this.filterComputeInstructions(instructions, cfg);
 
-    console.log({
-      initComputeUnitPrice,
-      filteredInstructions,
-    });
-
     const simulatedComputeUnits = await this.getSimulationComputeUnits(
       filteredInstructions,
       addressLookupTableAccounts,
       contextSlot,
     );
-
-    console.log("first simulation done");
 
     const estimatedComputeUnitLimit = Math.ceil(simulatedComputeUnits * 1.1);
 
@@ -493,13 +482,6 @@ export class TransactionService {
       initComputeUnitPrice * AUTO_PRIO_MULT < MAX_COMPUTE_PRICE
         ? initComputeUnitPrice * AUTO_PRIO_MULT
         : MAX_COMPUTE_PRICE;
-
-    console.log({
-      initComputeUnitPrice,
-      AUTO_PRIO_MULT,
-      MAX_COMPUTE_PRICE,
-      computePrice,
-    });
 
     // Add the new compute unit limit and price instructions to the beginning of the instructions array
     filteredInstructions.unshift(ComputeBudgetProgram.setComputeUnitPrice({ microLamports: computePrice }));
