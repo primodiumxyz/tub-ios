@@ -8,12 +8,22 @@ A TypeScript-based tRPC server for the Tub ecosystem, providing protected API en
 
 The Tub Server offers a set of tRPC endpoints for various operations centered around building user transactions and sponsoring the SOL required for chain execution fees. It uses Fastify as the underlying web server and integrates with a GraphQL backend for data management.
 
+The server provides comprehensive token trading functionality including real-time price tracking, automated fee calculations, and transaction sponsorship. It features WebSocket-based streaming for live price updates, iOS push notifications for price tracking, and extensive analytics collection. The system is built with configurability in mind, using Redis for live configuration updates and supporting automated background tasks for maintenance operations.
+
 ## Features
 
+- Transaction building and sponsorship
+- Fee calculation and management system
+- Solana wallet integration and balance tracking
+- JWT-based authentication
 - tRPC-based API for type-safe client-server communication
 - WebSocket support for real-time updates
 - Integration with Hasura GraphQL backend
-- JWT-based authentication
+- Comprehensive analytics tracking system
+- Redis-based configuration management with live updates
+- Automated background tasks via CronService
+- Real-time token price tracking
+- Apple Push Notification Service (APNS) integration for iOS live activities
 
 ## Usage
 
