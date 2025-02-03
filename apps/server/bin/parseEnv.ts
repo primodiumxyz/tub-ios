@@ -4,7 +4,7 @@ const commonSchema = z.object({
   NODE_ENV: z.enum(["local", "dev", "test", "production"]).default("local"),
   SERVER_HOST: z.string().default("0.0.0.0"),
   SERVER_PORT: z.coerce.number().positive().default(8888),
-  QUICKNODE_ENDPOINT: z.string().default("https://blue-hardworking-paper.solana-mainnet.quiknode.pro"),
+  QUICKNODE_ENDPOINT: z.string(),
   QUICKNODE_TOKEN: z.string(),
   HASURA_URL: z.string().default("http://localhost:8090"),
   HASURA_ADMIN_SECRET: z.string().default("password"),
