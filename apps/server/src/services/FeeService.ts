@@ -11,8 +11,9 @@ export type FeeSettings = {
 };
 
 /**
- * Service for handling fee calculations and fee-related instructions Manages trade fees, minimum fees, and fee transfer
- * instructions
+ * Service for handling fee calculations and fee-related instructions
+ *
+ * Manages trade fees, minimum fees, and fee transfer instructions
  */
 export class FeeService {
   /**

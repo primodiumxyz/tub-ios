@@ -32,8 +32,9 @@ import { config } from "@/utils/config";
 import { deriveTokenAccounts } from "@/utils/tokenAccounts";
 
 /**
- * Service class handling token trading, swaps, and user operations Acts as the main coordinator between various
- * services including:
+ * Service class handling token trading, swaps, and user operations
+ *
+ * Acts as the main coordinator between various services including:
  *
  * - Swap operations and streaming
  * - Transaction handling
@@ -118,8 +119,9 @@ export class TubService {
    * Validates that the trade fee recipient has a valid USDC ATA
    *
    * @remarks
-   *   This method checks if the trade fee recipient is an initialized USDC ATA address. If not, checks that if the trade
-   *   fee recipient is a pubkey address that has a valid USDC ATA.
+   *   This method checks if the trade fee recipient is an initialized USDC ATA address.
+   *
+   *   If not, checks that if the trade fee recipient is a pubkey address that has a valid USDC ATA.
    * @private
    * @returns The public key of the trade fee recipient USDC ATA
    * @throws Error if the trade fee recipient does not have a valid USDC ATA

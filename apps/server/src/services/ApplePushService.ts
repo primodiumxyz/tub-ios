@@ -7,7 +7,9 @@ import { env } from "@bin/tub-server";
 import { Config } from "@/services/ConfigService";
 import { config } from "@/utils/config";
 
-/** Data structure for tracking push notification state */
+/**
+ * Data structure for tracking push notification state
+ */
 type PushItem = {
   tokenMint: string; // Token mint address
   initialPriceUsd: string; // Initial price when tracking started
@@ -19,8 +21,9 @@ type PushItem = {
 };
 
 /**
- * Service that manages live price tracking and push notifications for tokens Handles subscription lifecycle and batched
- * push notification delivery to Apple devices
+ * Service that manages live price tracking and push notifications for tokens
+ *
+ * Handles subscription lifecycle and batched push notification delivery to Apple devices
  */
 export class PushService {
   private pushRegistry: Map<string, PushItem> = new Map();

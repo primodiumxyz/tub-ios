@@ -4,7 +4,11 @@ import { RedisService } from "@/services/RedisService";
 
 import defaultConfig from "../../default-redis-config.json";
 
-/** Zod schema for validating configuration Defines and enforces types for all configuration values */
+/**
+ * Zod schema for validating configuration
+ *
+ * Defines and enforces types for all configuration values
+ */
 export const configSchema = z
   .object({
     CONFIG_UPDATE_INTERVAL: z.number(),
@@ -40,8 +44,9 @@ export const configSchema = z
 export type Config = z.infer<typeof configSchema>;
 
 /**
- * Service for managing application configuration Handles configuration validation, Redis synchronization, and provides
- * access to config values
+ * Service for managing application configuration
+ *
+ * Handles configuration validation, Redis synchronization, and provides access to config values
  */
 export class ConfigService {
   private static instance: ConfigService;
@@ -154,7 +159,9 @@ export class ConfigService {
   }
 
   /**
-   * Starts periodic synchronization with Redis Updates local config at intervals specified in CONFIG_UPDATE_INTERVAL
+   * Starts periodic synchronization with Redis
+   *
+   * Updates local config at intervals specified in CONFIG_UPDATE_INTERVAL
    *
    * @private
    */

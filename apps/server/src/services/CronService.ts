@@ -2,7 +2,11 @@ import { GqlClient } from "@tub/gql";
 
 import { config } from "@/utils/config";
 
-/** Service for managing periodic background tasks Handles scheduled operations like token statistics updates */
+/**
+ * Service for managing periodic background tasks
+ *
+ * Handles scheduled operations like token statistics updates
+ */
 export class CronService {
   /**
    * Creates a new CronService instance

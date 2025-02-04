@@ -32,8 +32,9 @@ export interface SignedTransfer {
 }
 
 /**
- * Service for handling token transfer operations Manages SOL and SPL token transfers, including ATA creation and fee
- * calculations
+ * Service for handling token transfer operations
+ *
+ * Manages SOL and SPL token transfers, including ATA creation and fee calculations
  */
 export class TransferService {
   /**

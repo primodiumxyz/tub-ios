@@ -486,5 +486,9 @@ export function createAppRouter() {
   });
 }
 
-/** Type definition for the complete tRPC router Generated from createAppRouter function */
+/**
+ * Type definition for the complete tRPC router
+ *
+ * Generated from createAppRouter function
+ */
 export type AppRouter = ReturnType<typeof createAppRouter>;

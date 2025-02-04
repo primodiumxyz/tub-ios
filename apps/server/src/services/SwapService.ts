@@ -16,8 +16,9 @@ import {
 import { config } from "@/utils/config";
 
 /**
- * Service for managing token swap operations and subscriptions Coordinates between Jupiter swap quotes, transaction
- * building, and fee calculations
+ * Service for managing token swap operations and subscriptions
+ *
+ * Coordinates between Jupiter swap quotes, transaction building, and fee calculations
  */
 export class SwapService {
   private swapSubscriptions: Map<string, SwapSubscription> = new Map();

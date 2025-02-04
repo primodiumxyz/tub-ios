@@ -7,8 +7,9 @@ export type UserContext = {
 };
 
 /**
- * Service for handling user authentication and wallet verification Manages JWT token verification and user context
- * retrieval
+ * Service for handling user authentication and wallet verification
+ *
+ * Manages JWT token verification and user context retrieval
  */
 export class AuthService {
   /**

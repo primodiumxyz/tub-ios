@@ -3,8 +3,9 @@ import { GqlClient } from "@tub/gql";
 import { AppDwellTimeEvent, LoadingTimeEvent, TokenDwellTimeEvent, TokenPurchaseOrSaleEvent } from "@/types";
 
 /**
- * Service for tracking and recording various analytics events Handles token transactions, loading times, and user
- * engagement metrics
+ * Service for tracking and recording various analytics events
+ *
+ * Handles token transactions, loading times, and user engagement metrics
  */
 export class AnalyticsService {
   /**

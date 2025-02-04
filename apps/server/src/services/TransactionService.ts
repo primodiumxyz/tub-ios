@@ -34,8 +34,9 @@ import {
 import { config } from "@/utils/config";
 
 /**
- * Service for handling all transaction-related operations Manages transaction building, signing, simulation, and
- * registry operations
+ * Service for handling all transaction-related operations
+ *
+ * Manages transaction building, signing, simulation, and registry operations
  */
 export class TransactionService {
   /** Registry to store transaction messages and their metadata */

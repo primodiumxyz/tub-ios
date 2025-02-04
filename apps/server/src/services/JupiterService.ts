@@ -20,7 +20,11 @@ interface JupiterInstruction {
   data: string;
 }
 
-/** Service for interacting with Jupiter API Handles token swap quotes, price updates, and swap instruction generation */
+/**
+ * Service for interacting with Jupiter API
+ *
+ * Handles token swap quotes, price updates, and swap instruction generation
+ */
 export class JupiterService {
   private solUsdPrice: number | undefined;
   private priceEmitter = new EventEmitter();
