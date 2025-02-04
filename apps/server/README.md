@@ -90,15 +90,14 @@ The server can be further configured with the following Redis variables in `defa
 To set up the project for development:
 
 1. Ensure all server-related env variables are set.
-1. If Redis is not installed, make sure that `NODE_ENV` is set to `local` in the root `.env` file for Redis to be installed in the `prepare` step of `pnpm install`. Refer to `prepare` script in `./package.json` for details.
-
-1. Install dependencies:
+2. If Redis is not installed, make sure that `NODE_ENV` is set to `local` in the root `.env` file for Redis to be installed in the `prepare` step of `pnpm install`. Refer to `prepare` script in `./package.json` for details.
+3. Install dependencies:
 
    ```bash
    pnpm install
    ```
 
-1. This `server` application depends on `redis-server`. In development, this `server` application is typically run via `pnpm run dev` or `pnpm run dev:fullstack` in the parent repository, which also starts a `redis-server`. The root `package.json` runs `pnpm dev`, which only starts the `nodemon` without Redis.
+4. This `server` application depends on `redis-server`. In development, this `server` application is typically run via `pnpm run dev` or `pnpm run dev:fullstack` in the parent repository, which also starts a `redis-server`. The root `package.json` runs `pnpm dev`, which only starts the `nodemon` without Redis.
 
    To run this application in a standalone environment with Redis, run the following which starts both `redis-server` and the `server` application.
 
@@ -106,7 +105,7 @@ To set up the project for development:
    pnpm dev:standalone
    ```
 
-1. For testing:
+5. For testing:
 
    ```bash
    pnpm test
@@ -123,42 +122,42 @@ The server exposes the following tRPC endpoints:
    - Description: Returns the current status of the server
    - Response: `{ status: number }`
 
-1. `getSolUsdPrice`
+2. `getSolUsdPrice`
 
    - Description: Returns the current SOL/USD price
    - Response: `number`
 
-1. `getSolBalance`
+3. `getSolBalance`
 
    - Description: Gets user's SOL balance
    - Response: `number`
 
-1. `getAllTokenBalances`
+4. `getAllTokenBalances`
 
    - Description: Gets all token balances for user
    - Response: Array of token balances
 
-1. `getTokenBalance`
+5. `getTokenBalance`
 
    - Description: Gets balance for specific token
    - Input: `{ tokenMint: string }`
 
-1. `fetchSwap`
+6. `fetchSwap`
 
    - Description: Fetches a constructed swap transaction for the user. This transaction will need to be signed by the user, then sent to the server via `submitSignedTransaction`.
    - Input: `{ buyTokenId: string, sellTokenId: string, sellQuantity: number, slippageBps?: number }`
 
-1. `fetchPresignedSwap`
+7. `fetchPresignedSwap`
 
    - Description: Fetches swap transaction pre-signed by the server's fee payer. This transaction will need to be signed by the user but can be submitted to any Solana node.
    - Input: `{ buyTokenId: string, sellTokenId: string, sellQuantity: number }`
 
-1. `getEstimatedTransferFee`
+8. `getEstimatedTransferFee`
 
    - Description: Gets estimated fee for transferring USDC to a different address
    - Response: Fee estimate in USDC base units
 
-1. `fetchTransferTx`
+9. `fetchTransferTx`
    - Description: Fetches a constructed transfer transaction for the user. This transaction will need to be signed by the user, then sent to the server via `submitSignedTransaction`.
    - Input: `{ toAddress: string, amount: string, tokenId: string }`
 
@@ -169,7 +168,7 @@ The server exposes the following tRPC endpoints:
    - Description: Real-time SOL price updates
    - Response: Stream of price updates
 
-1. `swapStream` [deprecated]
+2. `swapStream` [deprecated]
    - Description: Real-time swap quote updates. Currently deprecated and unused, but could be used in the future for real-time updates.
    - Input: `{ request: { buyTokenId: string, sellTokenId: string, sellQuantity: number } }`
 
@@ -234,7 +233,7 @@ Before running tests on the server, first create a `.env.test` file with the app
    pnpm dev
    ```
 
-1. Then navigate to `apps/server` and use the following command to run tests:
+2. Then navigate to `apps/server` and use the following command to run tests:
 
    ```bash
    pnpm test
@@ -245,10 +244,10 @@ Before running tests on the server, first create a `.env.test` file with the app
 You can test transactions by running the `tub-service.test.ts` file.
 
 1. You may need to manually remove any `.skip` flags from the tests you want to run. These are placed there to prevent the tests from being run on every commit.
-1. Ensure that your `FEE_PAYER` has a few dollars worth of SOL in it to pay for the chain fees. If this is not met, the test transactions will fail.
-1. Ensure that your `FEE_PAYER` has an existing USDC ATA that has a rent-exempt balance (currently 0.002039 SOL). If this is not met, the test transactions will fail.
-1. Optionally, you can change the token being traded in the tests by editing `MEMECOIN_MAINNET_PUBLIC_KEY` in `src/constants/tokens.ts`.
-1. Check that `pnpm dev` is still running, then run the test file in `apps/server` with the following command:
+2. Ensure that your `FEE_PAYER` has a few dollars worth of SOL in it to pay for the chain fees. If this is not met, the test transactions will fail.
+3. Ensure that your `FEE_PAYER` has an existing USDC ATA that has a rent-exempt balance (currently 0.002039 SOL). If this is not met, the test transactions will fail.
+4. Optionally, you can change the token being traded in the tests by editing `MEMECOIN_MAINNET_PUBLIC_KEY` in `src/constants/tokens.ts`.
+5. Check that `pnpm dev` is still running, then run the test file in `apps/server` with the following command:
 
    ```bash
    pnpm test tub-service.test.ts
