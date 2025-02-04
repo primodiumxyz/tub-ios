@@ -1,3 +1,3 @@
-import { start } from "./tub-server";
+import { start } from "@bin/tub-server";
 
 start();

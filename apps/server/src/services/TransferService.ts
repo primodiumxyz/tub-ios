@@ -1,21 +1,22 @@
 import {
+  createAssociatedTokenAccountInstruction,
+  createTransferInstruction,
+  getAssociatedTokenAddressSync,
+} from "@solana/spl-token";
+import {
+  ComputeBudgetProgram,
   Connection,
   Keypair,
   PublicKey,
   SystemProgram,
   TransactionInstruction,
   TransactionMessage,
-  ComputeBudgetProgram,
 } from "@solana/web3.js";
-import {
-  createAssociatedTokenAccountInstruction,
-  createTransferInstruction,
-  getAssociatedTokenAddressSync,
-} from "@solana/spl-token";
-import { TransactionService } from "./TransactionService";
-import { TransactionType } from "../types";
-import { TOKEN_ACCOUNT_SIZE, USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
-import { FeeService } from "./FeeService";
+
+import { TOKEN_ACCOUNT_SIZE, USDC_MAINNET_PUBLIC_KEY } from "@/constants/tokens";
+import { FeeService } from "@/services/FeeService";
+import { TransactionService } from "@/services/TransactionService";
+import { TransactionType } from "@/types";
 
 export interface TransferRequest {
   fromAddress: string;
@@ -32,11 +33,13 @@ export interface SignedTransfer {
 
 /**
  * Service for handling token transfer operations
+ *
  * Manages SOL and SPL token transfers, including ATA creation and fee calculations
  */
 export class TransferService {
   /**
    * Creates a new TransferService instance
+   *
    * @param connection - Solana RPC connection
    * @param feePayerKeypair - Keypair used for paying transaction fees
    * @param transactionService - Service for transaction operations
@@ -51,6 +54,7 @@ export class TransferService {
 
   /**
    * Builds and registers a transfer transaction
+   *
    * @param request - Transfer request containing from/to addresses and amount
    * @returns Promise resolving to base64 encoded transaction message
    * @throws Error if transfer request is invalid, insufficient balance, or ATA creation fails

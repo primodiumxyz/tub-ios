@@ -1,7 +1,12 @@
 {
   "name": "@tub/server",
   "version": "0.0.1",
-  "description": "Keeper API for Primodium games",
+  "description": "A TypeScript-based tRPC server, providing protected API endpoints for building and sponsoring user transactions on Solana, and recording user analytics.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/primodiumxyz/tub",
+    "directory": "./apps/server"
+  },
   "license": "MIT",
   "type": "module",
   "exports": {

@@ -1,19 +1,23 @@
 import { GqlClient } from "@tub/gql";
-import { config } from "../utils/config";
+
+import { config } from "@/utils/config";
 
 /**
  * Service for managing periodic background tasks
+ *
  * Handles scheduled operations like token statistics updates
  */
 export class CronService {
   /**
    * Creates a new CronService instance
+   *
    * @param gql - GraphQL client for database operations
    */
   constructor(private gql: GqlClient["db"]) {}
 
   /**
    * Updates rolling statistics for token refresh operations
+   *
    * @throws Error if statistics update fails
    */
   async refreshTokenRollingStats30Min(): Promise<void> {
@@ -25,6 +29,7 @@ export class CronService {
 
   /**
    * Starts all periodic background tasks
+   *
    * Currently manages token rolling statistics updates
    */
   async startPeriodicTasks(): Promise<void> {

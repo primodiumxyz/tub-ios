@@ -1,9 +1,10 @@
 import Redis from "ioredis";
-import { env } from "../../bin/tub-server";
+
+import { env } from "@bin/tub-server";
 
 /**
- * Service for managing Redis connection and operations
- * Implements singleton pattern to ensure single Redis connection across the application
+ * Service for managing Redis connection and operations Implements singleton pattern to ensure single Redis connection
+ * across the application
  */
 export class RedisService {
   private static instance: RedisService;
@@ -11,6 +12,7 @@ export class RedisService {
 
   /**
    * Creates a new RedisService instance with configured connection
+   *
    * @private
    */
   private constructor() {
@@ -23,6 +25,7 @@ export class RedisService {
 
   /**
    * Gets the singleton instance of RedisService
+   *
    * @returns RedisService instance
    */
   public static getInstance(): RedisService {
@@ -34,6 +37,7 @@ export class RedisService {
 
   /**
    * Gets the Redis client instance
+   *
    * @returns Redis client
    */
   public getClient(): Redis {

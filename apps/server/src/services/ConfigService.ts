@@ -1,9 +1,12 @@
 import { z } from "zod";
-import { RedisService } from "./RedisService";
+
+import { RedisService } from "@/services/RedisService";
+
 import defaultConfig from "../../default-redis-config.json";
 
 /**
  * Zod schema for validating configuration
+ *
  * Defines and enforces types for all configuration values
  */
 export const configSchema = z
@@ -42,6 +45,7 @@ export type Config = z.infer<typeof configSchema>;
 
 /**
  * Service for managing application configuration
+ *
  * Handles configuration validation, Redis synchronization, and provides access to config values
  */
 export class ConfigService {
@@ -54,6 +58,7 @@ export class ConfigService {
 
   /**
    * Creates a new ConfigService instance
+   *
    * @private
    */
   private constructor() {
@@ -61,8 +66,8 @@ export class ConfigService {
   }
 
   /**
-   * Initializes the configuration service
-   * Syncs with Redis and sets up periodic updates
+   * Initializes the configuration service Syncs with Redis and sets up periodic updates
+   *
    * @private
    * @throws Error if Redis connection or config initialization fails
    */
@@ -107,6 +112,7 @@ export class ConfigService {
 
   /**
    * Gets the singleton instance of ConfigService
+   *
    * @returns Promise resolving to ConfigService instance
    */
   public static async getInstance(): Promise<ConfigService> {
@@ -119,6 +125,7 @@ export class ConfigService {
 
   /**
    * Gets the current configuration
+   *
    * @returns Current configuration object
    * @throws Error if config is not initialized
    */
@@ -131,6 +138,7 @@ export class ConfigService {
 
   /**
    * Synchronizes local configuration with Redis
+   *
    * @private
    * @throws Error if Redis config is missing or invalid
    */
@@ -152,7 +160,9 @@ export class ConfigService {
 
   /**
    * Starts periodic synchronization with Redis
+   *
    * Updates local config at intervals specified in CONFIG_UPDATE_INTERVAL
+   *
    * @private
    */
   private startPeriodicSync() {

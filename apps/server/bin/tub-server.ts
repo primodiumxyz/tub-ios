@@ -10,11 +10,12 @@ import { createClient as createGqlClient } from "@tub/gql";
 import bs58 from "bs58";
 import { config } from "dotenv";
 import fastify from "fastify";
-import { parseEnv } from "../bin/parseEnv";
-import { AppRouter, createAppRouter } from "../src/createAppRouter";
-import { JupiterService } from "../src/services/JupiterService";
-import { TubService } from "../src/services/TubService";
-import { config as configUtils } from "../src/utils/config";
+
+import { parseEnv } from "@bin/parseEnv";
+import { AppRouter, createAppRouter } from "@/createAppRouter";
+import { JupiterService } from "@/services/JupiterService";
+import { TubService } from "@/services/TubService";
+import { config as configUtils } from "@/utils/config";
 
 config({ path: "../../.env" });
 

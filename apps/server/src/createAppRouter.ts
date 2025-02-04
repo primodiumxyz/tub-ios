@@ -1,9 +1,10 @@
 import { initTRPC } from "@trpc/server";
 import { observable } from "@trpc/server/observable";
-import { z } from "zod";
-import { TubService } from "./services/TubService";
-import { ClientEvent, PrebuildSwapResponse, UserPrebuildSwapRequest } from "./types";
 import { Subject } from "rxjs";
+import { z } from "zod";
+
+import { TubService } from "@/services/TubService";
+import { ClientEvent, PrebuildSwapResponse, UserPrebuildSwapRequest } from "@/types";
 
 /**
  * Context type for the tRPC router containing required services and auth
@@ -15,6 +16,7 @@ export type AppContext = {
 
 /**
  * Zod schema for validating swap requests
+ *
  * @see UserPrebuildSwapRequest
  */
 const swapRequestSchema = z.object({
@@ -25,6 +27,7 @@ const swapRequestSchema = z.object({
 
 /**
  * Zod schema for validating client events
+ *
  * @see ClientEvent
  */
 const clientEventSchema = z.object({
@@ -37,6 +40,7 @@ const clientEventSchema = z.object({
 
 /**
  * Creates and configures the main tRPC router with all API endpoints.
+ *
  * @returns A configured tRPC router with all procedures
  */
 export function createAppRouter() {
@@ -44,6 +48,7 @@ export function createAppRouter() {
   return t.router({
     /**
      * Health check endpoint that returns server status
+     *
      * @returns {Promise<{ status: number }>} Object containing status code 200 if server is healthy
      */
     getStatus: t.procedure.query(({ ctx }) => {
@@ -52,6 +57,7 @@ export function createAppRouter() {
 
     /**
      * Gets the current SOL/USD price
+     *
      * @returns {Promise<number>} Current SOL price in USD
      */
     getSolUsdPrice: t.procedure.query(async ({ ctx }) => {
@@ -60,6 +66,7 @@ export function createAppRouter() {
 
     /**
      * Creates a real-time subscription to SOL/USD price updates
+     *
      * @returns {Observable<number>} Stream of SOL/USD price updates
      */
     subscribeSolPrice: t.procedure.subscription(({ ctx }) => {
@@ -76,6 +83,7 @@ export function createAppRouter() {
 
     /**
      * Creates a subscription stream for swap quotes
+     *
      * @deprecated Use fetchSwap instead for one-time quotes
      * @param request - Swap request parameters
      * @param request.buyTokenId - Token mint address to buy
@@ -126,6 +134,7 @@ export function createAppRouter() {
 
     /**
      * Creates a subscription stream for token swaps
+     *
      * @param buyTokenId - The token ID to buy
      * @param sellTokenId - The token ID to sell
      * @param sellQuantity - The amount of tokens to sell
@@ -178,6 +187,7 @@ export function createAppRouter() {
 
     /**
      * Updates an existing swap request with new parameters
+     *
      * @param buyTokenId - Optional new token ID to buy
      * @param sellTokenId - Optional new token ID to sell
      * @param sellQuantity - Optional new quantity to sell
@@ -196,6 +206,7 @@ export function createAppRouter() {
 
     /**
      * Submits a signed transaction for processing
+     *
      * @param signature - The user's signature for the transaction
      * @param base64Transaction - The base64-encoded transaction (before signing) to submit. Came from swapStream
      * @returns Object containing the transaction signature if successful
@@ -214,6 +225,7 @@ export function createAppRouter() {
 
     /**
      * Fetches a one-time swap quote and transaction
+     *
      * @param buyTokenId - Token mint address to buy
      * @param sellTokenId - Token mint address to sell
      * @param sellQuantity - Amount to sell in base units
@@ -235,6 +247,7 @@ export function createAppRouter() {
 
     /**
      * Fetches a pre-signed swap transaction
+     *
      * @param buyTokenId - Token mint address to buy
      * @param sellTokenId - Token mint address to sell
      * @param sellQuantity - Amount to sell in base units
@@ -254,6 +267,7 @@ export function createAppRouter() {
 
     /**
      * Stops an active swap stream for the current user
+     *
      * @returns {Promise<void>}
      */
     stopSwapStream: t.procedure.mutation(async ({ ctx }) => {
@@ -262,6 +276,7 @@ export function createAppRouter() {
 
     /**
      * Records analytics for a token purchase
+     *
      * @param tokenMint - Token mint address
      * @param tokenAmount - Amount purchased in base units
      * @param tokenPriceUsd - Token price in USD at time of purchase
@@ -287,6 +302,7 @@ export function createAppRouter() {
 
     /**
      * Records analytics for a token sale
+     *
      * @param tokenMint - Token mint address
      * @param tokenAmount - Amount sold in base units
      * @param tokenPriceUsd - Token price in USD at time of sale
@@ -312,6 +328,7 @@ export function createAppRouter() {
 
     /**
      * Records loading time metrics for analytics
+     *
      * @param identifier - The identifier for what was loaded
      * @param timeElapsedMs - Time taken for this attempt
      * @param attemptNumber - Which attempt number this was
@@ -337,6 +354,7 @@ export function createAppRouter() {
 
     /**
      * Records app dwell time for analytics
+     *
      * @param dwellTimeMs - Time spent in the app in milliseconds
      * @param userWallet - User's wallet address
      * @param userAgent - User's browser/device info
@@ -354,6 +372,7 @@ export function createAppRouter() {
 
     /**
      * Records token dwell time for analytics
+     *
      * @param tokenMint - Token being viewed
      * @param dwellTimeMs - Time spent viewing the token
      * @param userWallet - User's wallet address
@@ -373,6 +392,7 @@ export function createAppRouter() {
 
     /**
      * Gets the user's SOL balance
+     *
      * @returns {Promise<number>} Balance in lamports
      */
     getSolBalance: t.procedure.query(async ({ ctx }) => {
@@ -381,7 +401,8 @@ export function createAppRouter() {
 
     /**
      * Gets balances for all tokens in user's wallet
-     * @returns {Promise<Array<{mint: string, amount: string}>>} Array of token balances
+     *
+     * @returns {Promise<{ mint: string; amount: string }[]>} Array of token balances
      */
     getAllTokenBalances: t.procedure.query(async ({ ctx }) => {
       return await ctx.tubService.getAllTokenBalances(ctx.jwtToken);
@@ -389,6 +410,7 @@ export function createAppRouter() {
 
     /**
      * Gets balance for a specific token
+     *
      * @param tokenMint - Token mint address to check
      * @returns {Promise<string>} Token balance in base units
      */
@@ -404,6 +426,7 @@ export function createAppRouter() {
 
     /**
      * Gets the estimated fee for a token transfer
+     *
      * @returns {Promise<number>} Estimated fee in lamports
      */
     getEstimatedTransferFee: t.procedure.query(async ({ ctx }) => {
@@ -412,6 +435,7 @@ export function createAppRouter() {
 
     /**
      * Fetches a transfer transaction for signing
+     *
      * @param toAddress - Recipient address
      * @param amount - Amount to transfer in base units
      * @param tokenId - Token mint address
@@ -431,11 +455,12 @@ export function createAppRouter() {
 
     /**
      * Starts price tracking live activity for iOS
+     *
      * @param tokenMint - Token to track
      * @param tokenPriceUsd - Initial token price
      * @param deviceToken - iOS device token
      * @param pushToken - APNS push token
-     * @returns {Promise<{success: boolean}>} Success status
+     * @returns {Promise<{ success: boolean }>} Success status
      */
     startLiveActivity: t.procedure
       .input(
@@ -453,7 +478,8 @@ export function createAppRouter() {
 
     /**
      * Stops price tracking live activity for iOS
-     * @returns {Promise<{success: boolean}>} Success status
+     *
+     * @returns {Promise<{ success: boolean }>} Success status
      */
     stopLiveActivity: t.procedure.mutation(async ({ ctx }) => {
       await ctx.tubService.stopLiveActivity(ctx.jwtToken);
@@ -464,6 +490,7 @@ export function createAppRouter() {
 
 /**
  * Type definition for the complete tRPC router
+ *
  * Generated from createAppRouter function
  */
 export type AppRouter = ReturnType<typeof createAppRouter>;

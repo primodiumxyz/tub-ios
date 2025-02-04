@@ -1,19 +1,23 @@
-import { AppDwellTimeEvent, LoadingTimeEvent, TokenDwellTimeEvent, TokenPurchaseOrSaleEvent } from "../types";
 import { GqlClient } from "@tub/gql";
+
+import { AppDwellTimeEvent, LoadingTimeEvent, TokenDwellTimeEvent, TokenPurchaseOrSaleEvent } from "@/types";
 
 /**
  * Service for tracking and recording various analytics events
+ *
  * Handles token transactions, loading times, and user engagement metrics
  */
 export class AnalyticsService {
   /**
    * Creates a new AnalyticsService instance
+   *
    * @param gql - GraphQL client for database operations
    */
   constructor(private gql: GqlClient["db"]) {}
 
   /**
    * Records a token purchase event
+   *
    * @param event - Token purchase event details
    * @param userWallet - User's wallet address
    * @returns Promise resolving to event ID
@@ -42,6 +46,7 @@ export class AnalyticsService {
 
   /**
    * Records a token sale event
+   *
    * @param event - Token sale event details
    * @param userWallet - User's wallet address
    * @returns Promise resolving to event ID
@@ -70,6 +75,7 @@ export class AnalyticsService {
 
   /**
    * Records application loading time metrics
+   *
    * @param event - Loading time event details
    * @param userWallet - User's wallet address
    * @returns Promise resolving to event ID
@@ -99,6 +105,7 @@ export class AnalyticsService {
 
   /**
    * Records application dwell time metrics
+   *
    * @param event - App dwell time event details
    * @param userWallet - User's wallet address
    * @returns Promise resolving to event ID
@@ -124,6 +131,7 @@ export class AnalyticsService {
 
   /**
    * Records token-specific dwell time metrics
+   *
    * @param event - Token dwell time event details
    * @param userWallet - User's wallet address
    * @returns Promise resolving to event ID
