@@ -5,7 +5,6 @@
     "paths": {
       "@/*": ["./src/*"],
       "@bin/*": ["./bin/*"],
-      "@core/*": ["../../packages/core/src/*"],
       "@solana/spl-token": ["./node_modules/@solana/spl-token"]
     }
   },
