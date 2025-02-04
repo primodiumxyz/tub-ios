@@ -3,10 +3,21 @@ import { getAccount, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { Connection, Keypair, PublicKey, VersionedTransaction } from "@solana/web3.js";
 import { GqlClient } from "@tub/gql";
 import bs58 from "bs58";
-import { env } from "../../bin/tub-server";
-import { TOKEN_ACCOUNT_SIZE, TOKEN_PROGRAM_PUBLIC_KEY, USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
-import { Config, ConfigService } from "../services/ConfigService";
+
+import { env } from "@bin/tub-server";
+import { TOKEN_ACCOUNT_SIZE, TOKEN_PROGRAM_PUBLIC_KEY, USDC_MAINNET_PUBLIC_KEY } from "@/constants/tokens";
+import { AnalyticsService } from "@/services/AnalyticsService";
+import { PushService } from "@/services/ApplePushService";
+import { AuthService } from "@/services/AuthService";
+import { Config, ConfigService } from "@/services/ConfigService";
+import { CronService } from "@/services/CronService";
+import { FeeService } from "@/services/FeeService";
+import { JupiterService } from "@/services/JupiterService";
+import { SwapService } from "@/services/SwapService";
+import { TransactionService } from "@/services/TransactionService";
+import { TransferService } from "@/services/TransferService";
 import {
+  ActiveSwapRequest,
   AppDwellTimeEvent,
   LoadingTimeEvent,
   PrebuildSignedSwapResponse,
@@ -14,25 +25,16 @@ import {
   SubmitSignedTransactionResponse,
   TokenDwellTimeEvent,
   TokenPurchaseOrSaleEvent,
-  UserPrebuildSwapRequest,
-  ActiveSwapRequest,
   TransactionType,
-} from "../types";
-import { config } from "../utils/config";
-import { deriveTokenAccounts } from "../utils/tokenAccounts";
-import { AnalyticsService } from "./AnalyticsService";
-import { CronService } from "./CronService";
-import { PushService } from "./ApplePushService";
-import { AuthService } from "./AuthService";
-import { FeeService } from "./FeeService";
-import { JupiterService } from "./JupiterService";
-import { SwapService } from "./SwapService";
-import { TransactionService } from "./TransactionService";
-import { TransferService } from "./TransferService";
+  UserPrebuildSwapRequest,
+} from "@/types";
+import { config } from "@/utils/config";
+import { deriveTokenAccounts } from "@/utils/tokenAccounts";
 
 /**
- * Service class handling token trading, swaps, and user operations
- * Acts as the main coordinator between various services including:
+ * Service class handling token trading, swaps, and user operations Acts as the main coordinator between various
+ * services including:
+ *
  * - Swap operations and streaming
  * - Transaction handling
  * - Fee calculations
@@ -52,10 +54,11 @@ export class TubService {
 
   /**
    * Creates a new instance of TubService
+   *
+   * @private
    * @param gqlClient - GraphQL client for database operations
    * @param privy - Privy client for authentication
    * @param jupiterService - JupiterService instance for transaction handling
-   * @private
    */
   private constructor(
     private readonly gqlClient: GqlClient["db"],
@@ -65,6 +68,7 @@ export class TubService {
 
   /**
    * Factory method to create a fully initialized TubService
+   *
    * @param gqlClient - GraphQL client for database operations
    * @param privy - Privy client for authentication
    * @param jupiterService - JupiterService instance for transaction handling
@@ -82,6 +86,7 @@ export class TubService {
 
   /**
    * Initializes all required services and connections
+   *
    * @private
    */
   private async initialize(): Promise<void> {
@@ -111,12 +116,13 @@ export class TubService {
 
   /**
    * Validates that the trade fee recipient has a valid USDC ATA
+   *
    * @remarks
-   * This method checks if the trade fee recipient is an initialized USDC ATA address.
-   * If not, checks that if the trade fee recipient is a pubkey address that has a valid USDC ATA.
+   *   This method checks if the trade fee recipient is an initialized USDC ATA address. If not, checks that if the trade
+   *   fee recipient is a pubkey address that has a valid USDC ATA.
+   * @private
    * @returns The public key of the trade fee recipient USDC ATA
    * @throws Error if the trade fee recipient does not have a valid USDC ATA
-   * @private
    */
   private async validateTradeFeeRecipient(): Promise<PublicKey> {
     const cfg = await config();
@@ -144,6 +150,7 @@ export class TubService {
 
   /**
    * Returns service health status
+   *
    * @returns Object containing status code
    */
   getStatus(): { status: number } {
@@ -156,6 +163,7 @@ export class TubService {
 
   /**
    * Records a token purchase event
+   *
    * @param event - Token purchase event details
    * @param jwtToken - User's JWT token
    * @returns Promise resolving to event ID
@@ -167,6 +175,7 @@ export class TubService {
 
   /**
    * Records a token sale event
+   *
    * @param event - Token sale event details
    * @param jwtToken - User's JWT token
    * @returns Promise resolving to event ID
@@ -178,6 +187,7 @@ export class TubService {
 
   /**
    * Records app loading time metrics
+   *
    * @param event - Loading time event details
    * @param jwtToken - User's JWT token
    * @returns Promise resolving to event ID
@@ -189,6 +199,7 @@ export class TubService {
 
   /**
    * Records app dwell time metrics
+   *
    * @param event - App dwell time event details
    * @param jwtToken - User's JWT token
    * @returns Promise resolving to event ID
@@ -200,6 +211,7 @@ export class TubService {
 
   /**
    * Records token dwell time metrics
+   *
    * @param event - Token dwell time event details
    * @param jwtToken - User's JWT token
    * @returns Promise resolving to event ID
@@ -215,6 +227,7 @@ export class TubService {
 
   /**
    * Gets current SOL/USD price
+   *
    * @returns Promise resolving to current price or undefined if unavailable
    */
   async getSolUsdPrice(): Promise<number | undefined> {
@@ -223,6 +236,7 @@ export class TubService {
 
   /**
    * Subscribes to SOL price updates
+   *
    * @param callback - Function to call on price updates
    * @returns Cleanup function to unsubscribe
    */
@@ -236,6 +250,18 @@ export class TubService {
 
   /**
    * Builds a swap transaction for exchanging tokens that enables a server-side fee payer
+   *
+   * @remarks
+   *   The returned transaction will be stored in the registry for 5 minutes. After signing, the user should submit the
+   *   transaction and signature to `signAndSendTransaction`.
+   * @example
+   *   // Get transaction to swap 1 USDC for SOL
+   *   const response = await tubService.fetchSwap(jwt, {
+   *     buyTokenId: "So11111111111111111111111111111111111111112", // SOL
+   *     sellTokenId: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
+   *     sellQuantity: 1e6, // 1 USDC. Other tokens may be 1e9 standard
+   *   });
+   *
    * @param jwtToken - The JWT token for user authentication
    * @param request - The swap request parameters
    * @param request.buyTokenId - Public key of the token to receive
@@ -243,18 +269,6 @@ export class TubService {
    * @param request.sellQuantity - Amount of tokens to sell (in token's base units)
    * @returns {Promise<PrebuildSwapResponse>} Object containing the base64-encoded transaction and metadata
    * @throws {Error} If user has no wallet or if swap building fails
-   *
-   * @remarks
-   * The returned transaction will be stored in the registry for 5 minutes. After signing,
-   * the user should submit the transaction and signature to `signAndSendTransaction`.
-   *
-   * @example
-   * // Get transaction to swap 1 USDC for SOL
-   * const response = await tubService.fetchSwap(jwt, {
-   *   buyTokenId: "So11111111111111111111111111111111111111112",  // SOL
-   *   sellTokenId: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
-   *   sellQuantity: 1e6 // 1 USDC. Other tokens may be 1e9 standard
-   * });
    */
   async fetchSwap(jwtToken: string, request: UserPrebuildSwapRequest): Promise<PrebuildSwapResponse> {
     const { walletPublicKey } = await this.authService.getUserContext(jwtToken);
@@ -279,6 +293,7 @@ export class TubService {
 
   /**
    * Attempts to build a swap response with retry logic
+   *
    * @param activeRequest - Active swap request details
    * @param cfg - Configuration settings
    * @param priorBuildAttempts - Number of previous build attempts for a given swap request
@@ -306,7 +321,14 @@ export class TubService {
 
   /**
    * Builds a swap transaction for exchanging tokens and signs it with the fee payer.
-   * @dev Once user signs, the transaction is complete and can be directly submitted to Solana RPC by the user.
+   *
+   * @example
+   *   const response = await tubService.fetchSwap(jwt, {
+   *     buyTokenId: "So11111111111111111111111111111111111111112", // SOL
+   *     sellTokenId: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
+   *     sellQuantity: 1e6, // 1 USDC. Other tokens may be 1e9 standard
+   *   });
+   *
    * @param jwtToken - JWT token for user authentication
    * @param request - Swap request parameters
    * @param request.buyTokenId - Public key of the token to receive
@@ -314,13 +336,7 @@ export class TubService {
    * @param request.sellQuantity - Amount of tokens to sell (in token's base units)
    * @returns {Promise<PrebuildSwapResponse>} Object containing the base64-encoded transaction and metadata
    * @throws {Error} If user has no wallet or if swap building fails
-   *
-   * @example
-   * const response = await tubService.fetchSwap(jwt, {
-   *   buyTokenId: "So11111111111111111111111111111111111111112",  // SOL
-   *   sellTokenId: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
-   *   sellQuantity: 1e6 // 1 USDC. Other tokens may be 1e9 standard
-   * });
+   * @dev Once user signs, the transaction is complete and can be directly submitted to Solana RPC by the user.
    */
   async fetchPresignedSwap(jwtToken: string, request: UserPrebuildSwapRequest): Promise<PrebuildSignedSwapResponse> {
     const fetchSwapResponse = await this.fetchSwap(jwtToken, request);
@@ -345,6 +361,7 @@ export class TubService {
 
   /**
    * Starts a stream of built swap transactions for a user to sign
+   *
    * @param jwtToken - User's JWT token
    * @param request - Swap request parameters
    * @returns Subject that emits swap responses
@@ -370,6 +387,7 @@ export class TubService {
 
   /**
    * Stops an active swap stream for a user
+   *
    * @param jwtToken - User's JWT token
    */
   async stopSwapStream(jwtToken: string) {
@@ -379,6 +397,7 @@ export class TubService {
 
   /**
    * Signs and sends a transaction to the Solana RPC
+   *
    * @param jwtToken - JWT token for user authentication
    * @param userSignature - User's transaction signature
    * @param base64TransactionMessage - Base64 encoded transaction message
@@ -440,19 +459,19 @@ export class TubService {
 
   /**
    * Updates parameters for an active swap request and returns a new transaction
+   *
+   * @remarks
+   *   The new transaction will be stored in the registry for 5 minutes.
+   * @example
+   *   // Update sell quantity to 2 USDC
+   *   const response = await tubService.updateSwapRequest(jwt, {
+   *     sellQuantity: 2e6, // Other tokens may have 1e9 standard
+   *   });
+   *
    * @param jwtToken - The user's JWT token
    * @param request - The swap request parameters
    * @returns New swap transaction with updated parameters
    * @throws Error If no active request exists or if building new transaction fails
-   *
-   * @remarks
-   * The new transaction will be stored in the registry for 5 minutes.
-   *
-   * @example
-   * // Update sell quantity to 2 USDC
-   * const response = await tubService.updateSwapRequest(jwt, {
-   *   sellQuantity: 2e6 // Other tokens may have 1e9 standard
-   * });
    */
   async updateSwapRequest(jwtToken: string, request: UserPrebuildSwapRequest) {
     const { userId, walletPublicKey } = await this.authService.getUserContext(jwtToken);
@@ -484,6 +503,7 @@ export class TubService {
 
   /**
    * Gets SOL balance for a user
+   *
    * @param jwtToken - User's JWT token
    * @returns Promise resolving to balance in lamports
    */
@@ -495,6 +515,7 @@ export class TubService {
 
   /**
    * Gets all token balances for a user
+   *
    * @param jwtToken - User's JWT token
    * @returns Promise resolving to array of token balances
    */
@@ -518,6 +539,7 @@ export class TubService {
 
   /**
    * Gets balance for a specific token
+   *
    * @param jwtToken - User's JWT token
    * @param tokenMint - Token mint address
    * @returns Promise resolving to token balance
@@ -544,6 +566,7 @@ export class TubService {
 
   /**
    * Gets estimated fee for a transfer
+   *
    * @param jwtToken - User's JWT token
    * @returns Promise resolving to estimated fee amount
    */
@@ -557,6 +580,7 @@ export class TubService {
 
   /**
    * Creates a transaction for transferring USDC
+   *
    * @param jwtToken - User's JWT token
    * @param request - Transfer request parameters
    * @returns Promise resolving to transaction message
@@ -588,6 +612,7 @@ export class TubService {
 
   /**
    * Starts a live activity push notification
+   *
    * @param jwtToken - User's JWT token
    * @param input - Live activity parameters
    * @returns Promise resolving to activity start result
@@ -602,6 +627,7 @@ export class TubService {
 
   /**
    * Stops a live activity push notification
+   *
    * @param jwtToken - User's JWT token
    * @returns Promise resolving to activity stop result
    */

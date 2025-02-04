@@ -7,18 +7,20 @@ export type UserContext = {
 };
 
 /**
- * Service for handling user authentication and wallet verification
- * Manages JWT token verification and user context retrieval
+ * Service for handling user authentication and wallet verification Manages JWT token verification and user context
+ * retrieval
  */
 export class AuthService {
   /**
    * Creates a new AuthService instance
+   *
    * @param privy - Privy client for authentication operations
    */
   constructor(private privy: PrivyClient) {}
 
   /**
    * Verifies a JWT token and returns the associated user context
+   *
    * @param token - JWT token to verify
    * @returns The verified user context including wallet
    * @throws Error if JWT is invalid, user not registered, or no wallet found

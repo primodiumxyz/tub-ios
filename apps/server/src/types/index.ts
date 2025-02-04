@@ -1,6 +1,7 @@
-import { Config } from "../services/ConfigService";
 import { MessageV0, PublicKey } from "@solana/web3.js";
 import { Subject, Subscription } from "rxjs";
+
+import { Config } from "@/services/ConfigService";
 
 export enum TransactionType {
   BUY = 1, // When buying any token with USDC

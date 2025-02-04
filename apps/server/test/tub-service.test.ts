@@ -1,19 +1,22 @@
-import { describe, it, expect, beforeAll } from "vitest";
-import { TubService } from "../src/services/TubService";
-import { JupiterService } from "../src/services/JupiterService";
-import { Connection, Keypair, VersionedTransaction, VersionedMessage } from "@solana/web3.js";
 import { createJupiterApiClient } from "@jup-ag/api";
-import { MockPrivyClient } from "./helpers/MockPrivyClient";
+import { getAssociatedTokenAddress } from "@solana/spl-token";
+import { Connection, Keypair, VersionedMessage, VersionedTransaction } from "@solana/web3.js";
 import { createClient as createGqlClient } from "@tub/gql";
 import bs58 from "bs58";
-import { getAssociatedTokenAddress } from "@solana/spl-token";
-import { env } from "../bin/tub-server";
-import { PrebuildSwapResponse, SubmitSignedTransactionResponse } from "../src/types";
-import { USDC_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY, MEMECOIN_MAINNET_PUBLIC_KEY } from "../src/constants/tokens";
-import { ConfigService } from "../src/services/ConfigService";
-import { TransferService } from "../src/services/TransferService";
-import { TransactionService } from "../src/services/TransactionService";
+import { beforeAll, describe, expect, it } from "vitest";
+
+import { env } from "@bin/tub-server";
+import { MEMECOIN_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY, USDC_MAINNET_PUBLIC_KEY } from "@/constants/tokens";
+import { ConfigService } from "@/services/ConfigService";
 import { FeeService } from "@/services/FeeService";
+import { JupiterService } from "@/services/JupiterService";
+import { TransactionService } from "@/services/TransactionService";
+import { TransferService } from "@/services/TransferService";
+import { TubService } from "@/services/TubService";
+import { PrebuildSwapResponse, SubmitSignedTransactionResponse } from "@/types";
+
+import { MockPrivyClient } from "./helpers/MockPrivyClient";
+
 // Skip entire suite in CI, because it would perform a live transaction each deployment
 (env.CI ? describe.skip : describe)("TubService Integration Test", () => {
   let tubService: TubService;

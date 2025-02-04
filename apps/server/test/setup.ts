@@ -1,5 +1,6 @@
-import { config } from "dotenv";
 import { resolve } from "path";
+import { config } from "dotenv";
+
 import { env } from "@bin/tub-server";
 
 declare module "vitest" {

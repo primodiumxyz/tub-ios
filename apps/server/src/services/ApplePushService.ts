@@ -1,13 +1,13 @@
+import http2 from "http2";
 import { GqlClient } from "@tub/gql";
 import { Mutex } from "async-mutex";
-import http2 from "http2";
 import jwt from "jsonwebtoken";
-import { env } from "../../bin/tub-server";
-import { config } from "../utils/config";
-import { Config } from "./ConfigService";
-/**
- * Data structure for tracking push notification state
- */
+
+import { env } from "@bin/tub-server";
+import { Config } from "@/services/ConfigService";
+import { config } from "@/utils/config";
+
+/** Data structure for tracking push notification state */
 type PushItem = {
   tokenMint: string; // Token mint address
   initialPriceUsd: string; // Initial price when tracking started
@@ -19,8 +19,8 @@ type PushItem = {
 };
 
 /**
- * Service that manages live price tracking and push notifications for tokens
- * Handles subscription lifecycle and batched push notification delivery to Apple devices
+ * Service that manages live price tracking and push notifications for tokens Handles subscription lifecycle and batched
+ * push notification delivery to Apple devices
  */
 export class PushService {
   private pushRegistry: Map<string, PushItem> = new Map();
@@ -36,6 +36,7 @@ export class PushService {
 
   /**
    * Creates a new PushService instance
+   *
    * @param args.gqlClient - GraphQL client for price subscriptions
    * @param args.overrides - Optional configuration overrides
    */
@@ -49,9 +50,7 @@ export class PushService {
     this.initializePushes(args.overrides);
   }
 
-  /**
-   * Removes stale entries from the push registry based on configured timeout
-   */
+  /** Removes stale entries from the push registry based on configured timeout */
   private async cleanupRegistry(cleanupTimeoutMs?: number) {
     const now = Date.now();
     const { PUSH_REGISTRY_TIMEOUT_MS } = await config();
@@ -67,6 +66,7 @@ export class PushService {
 
   /**
    * Starts or increments subscription count for a token's price updates
+   *
    * @param tokenMint - Token mint address to subscribe to
    */
   private beginTokenSubscription(tokenMint: string) {
@@ -93,6 +93,7 @@ export class PushService {
 
   /**
    * Decrements subscription count and cleans up if no more subscribers
+   *
    * @param tokenMint - Token mint address to unsubscribe from
    */
   private async cleanSubscription(tokenMint: string) {
@@ -111,6 +112,7 @@ export class PushService {
 
   /**
    * Registers a new live activity for price tracking
+   *
    * @param userId - User identifier
    * @param input.tokenMint - Token mint address to track
    * @param input.tokenPriceUsd - Initial token price in USD
@@ -143,6 +145,7 @@ export class PushService {
 
   /**
    * Stops live activity tracking for a user
+   *
    * @param userId - User identifier to stop tracking
    */
   async stopLiveActivity(userId: string) {
@@ -162,9 +165,7 @@ export class PushService {
 
   /* --------------------------------- Pushes --------------------------------- */
 
-  /**
-   * Initializes periodic cleanup and push notification tasks
-   */
+  /** Initializes periodic cleanup and push notification tasks */
   private initializePushes(overrides?: Partial<Config>): void {
     (async () => {
       const { PUSH_CLEANUP_INTERVAL_MS, PUSH_SEND_INTERVAL_MS } = await config();
@@ -176,9 +177,7 @@ export class PushService {
     })();
   }
 
-  /**
-   * Sends push notifications in batches to all registered users
-   */
+  /** Sends push notifications in batches to all registered users */
   private async sendAllPushes() {
     const BATCH_SIZE = 50;
     const entries = Array.from(this.pushRegistry.entries());
@@ -192,6 +191,7 @@ export class PushService {
 
   /**
    * Sends a push notification to update price information
+   *
    * @param userId - User identifier
    * @param input - Push notification data containing token and price information
    */
@@ -221,6 +221,7 @@ export class PushService {
 
   /**
    * Sends a final push notification when stopping live activity
+   *
    * @param input - Push notification data containing token and price information
    */
   private async sendEndPush(input: PushItem) {
@@ -245,6 +246,7 @@ export class PushService {
 
   /**
    * Gets or creates an HTTP/2 session to Apple's push notification service
+   *
    * @returns Active HTTP/2 client session
    */
   private getSession(): http2.ClientHttp2Session {
@@ -264,6 +266,7 @@ export class PushService {
 
   /**
    * Gets a cached JWT token or generates a new one if expired
+   *
    * @returns Valid JWT token for APNS authentication
    */
   private async getJWTToken() {
@@ -280,6 +283,7 @@ export class PushService {
 
   /**
    * Generates a new JWT token for APNS authentication
+   *
    * @returns Newly generated JWT token
    */
   private generateJWT() {
@@ -301,6 +305,7 @@ export class PushService {
 
   /**
    * Publishes a push notification to Apple's Push Notification Service (APNS)
+   *
    * @param pushToken - Device-specific push token
    * @param json - Payload to send in the push notification
    */

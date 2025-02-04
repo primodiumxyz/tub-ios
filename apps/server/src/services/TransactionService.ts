@@ -7,34 +7,35 @@ import {
   Keypair,
   MessageV0,
   PublicKey,
+  RpcResponseAndContext,
+  SignatureStatus,
+  SimulatedTransactionResponse,
   TransactionConfirmationStatus,
   TransactionInstruction,
   TransactionMessage,
   VersionedTransaction,
-  RpcResponseAndContext,
-  SimulatedTransactionResponse,
-  SignatureStatus,
 } from "@solana/web3.js";
 import bs58 from "bs58";
+
 import {
   ATA_PROGRAM_PUBLIC_KEY,
   MAX_CHAIN_COMPUTE_UNITS,
   TOKEN_PROGRAM_PUBLIC_KEY,
   USDC_MAINNET_PUBLIC_KEY,
-} from "../constants/tokens";
+} from "@/constants/tokens";
+import { Config } from "@/services/ConfigService";
 import {
   ActiveSwapRequest,
   SubmitSignedTransactionResponse,
-  TransactionType,
-  TransactionRegistryEntry,
   TransactionRegistryData,
-} from "../types";
-import { config } from "../utils/config";
-import { Config } from "./ConfigService";
+  TransactionRegistryEntry,
+  TransactionType,
+} from "@/types";
+import { config } from "@/utils/config";
 
 /**
- * Service for handling all transaction-related operations
- * Manages transaction building, signing, simulation, and registry operations
+ * Service for handling all transaction-related operations Manages transaction building, signing, simulation, and
+ * registry operations
  */
 export class TransactionService {
   /** Registry to store transaction messages and their metadata */
@@ -42,6 +43,7 @@ export class TransactionService {
 
   /**
    * Creates a new TransactionService instance
+   *
    * @param connection - Solana RPC connection
    * @param feePayerKeypair - Keypair used for paying transaction fees
    */
@@ -56,6 +58,7 @@ export class TransactionService {
 
   /**
    * Initializes periodic cleanup of the transaction registry
+   *
    * @private
    */
   private initializeCleanup(): void {
@@ -67,6 +70,7 @@ export class TransactionService {
 
   /**
    * Cleans up expired transactions from the registry
+   *
    * @private
    */
   private async cleanupRegistry() {
@@ -83,6 +87,7 @@ export class TransactionService {
 
   /**
    * Gets a registered transaction from the registry
+   *
    * @param base64Message - Base64 encoded transaction message
    * @returns Transaction registry entry if found, undefined otherwise
    */
@@ -92,6 +97,7 @@ export class TransactionService {
 
   /**
    * Removes a transaction from the registry
+   *
    * @param base64Message - Base64 encoded transaction message to delete
    */
   deleteFromRegistry(base64Message: string): void {
@@ -100,6 +106,7 @@ export class TransactionService {
 
   /**
    * Registers a transaction message in the registry
+   *
    * @param message - Transaction message to register
    * @param lastValidBlockHeight - Last valid block height for the transaction
    * @param transactionType - Type of transaction (BUY, SELL_ALL, SELL_PARTIAL, TRANSFER)
@@ -139,6 +146,7 @@ export class TransactionService {
 
   /**
    * Builds a transaction message from instructions and registers it in the registry
+   *
    * @param instructions - Transaction instructions to build
    * @param addressLookupTableAccounts - Address lookup table accounts
    * @param txRegistryData - Transaction registry metadata
@@ -171,6 +179,7 @@ export class TransactionService {
 
   /**
    * Builds a transaction message from instructions
+   *
    * @param instructions - Transaction instructions to build
    * @param addressLookupTableAccounts - Address lookup table accounts
    * @returns Transaction message, blockhash, and last valid block height
@@ -200,6 +209,7 @@ export class TransactionService {
 
   /**
    * Signs a transaction with the fee payer
+   *
    * @param transaction - Transaction to sign
    * @returns Base58 encoded signature
    * @throws Error if signing fails or no signature is found
@@ -220,6 +230,7 @@ export class TransactionService {
 
   /**
    * Signs and sends a transaction
+   *
    * @param userPublicKey - User's public key
    * @param userSignature - User's transaction signature
    * @param entry - Transaction registry entry
@@ -292,6 +303,7 @@ export class TransactionService {
 
   /**
    * Confirms a transaction
+   *
    * @param txid - Transaction ID
    * @param lastValidBlockHeight - Last valid block height
    * @param cfg - Configuration settings
@@ -340,6 +352,7 @@ export class TransactionService {
 
   /**
    * Simulates a transaction with retry logic
+   *
    * @param transaction - Transaction to simulate
    * @param contextSlot - Current slot context
    * @param sigVerify - Whether to verify signatures
@@ -383,12 +396,13 @@ export class TransactionService {
 
   /**
    * Gets simulation compute units for a transaction
+   *
+   * @private
    * @param instructions - Transaction instructions
    * @param addressLookupTableAccounts - Address lookup table accounts
    * @param contextSlot - Current slot context
    * @returns Number of compute units used
    * @throws Error if simulation fails or returns undefined units
-   * @private
    */
   private async getSimulationComputeUnits(
     instructions: TransactionInstruction[],
@@ -422,10 +436,11 @@ export class TransactionService {
 
   /**
    * Filters compute budget instructions from an instruction array
+   *
+   * @private
    * @param instructions - Instructions to filter
    * @param cfg - Configuration settings
    * @returns Filtered instructions and initial compute unit price
-   * @private
    */
   private filterComputeInstructions(instructions: TransactionInstruction[], cfg: Config) {
     const computeUnitLimitIndex = instructions.findIndex(
@@ -453,6 +468,7 @@ export class TransactionService {
 
   /**
    * Optimizes compute budget instructions by estimating the compute units and setting a reasonable compute unit price
+   *
    * @param instructions - Instructions to optimize
    * @param addressLookupTableAccounts - Address lookup table accounts
    * @param contextSlot - Current slot context
@@ -492,6 +508,7 @@ export class TransactionService {
 
   /**
    * Reassigns rent payer in instructions to the fee payer
+   *
    * @param instructions - Instructions to modify
    * @returns Modified instructions with reassigned rent payer
    */
@@ -545,6 +562,7 @@ export class TransactionService {
 
   /**
    * Creates a token close instruction if needed
+   *
    * @param userPublicKey - User's public key
    * @param tokenAccount - Token account to close
    * @param sellTokenId - Token being sold
@@ -579,6 +597,7 @@ export class TransactionService {
 
   /**
    * Determines the type of transaction based on the swap request
+   *
    * @param request - Active swap request
    * @returns Transaction type (BUY, SELL_ALL, SELL_PARTIAL)
    * @throws Error if sell token balance is insufficient
@@ -606,6 +625,7 @@ export class TransactionService {
 
   /**
    * Gets the balance of a token account
+   *
    * @param userPublicKey - User's public key
    * @param tokenMint - Token mint address
    * @returns Token balance in base units

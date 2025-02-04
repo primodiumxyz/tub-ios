@@ -1,22 +1,23 @@
 import { QuoteGetRequest } from "@jup-ag/api";
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
-import { Subject, interval, switchMap } from "rxjs";
-import { FeeService } from "../services/FeeService";
+import { interval, Subject, switchMap } from "rxjs";
+
+import { Config } from "@/services/ConfigService";
+import { FeeService } from "@/services/FeeService";
+import { JupiterService } from "@/services/JupiterService";
+import { TransactionService } from "@/services/TransactionService";
 import {
   ActiveSwapRequest,
   PrebuildSwapResponse,
   SwapSubscription,
-  TransactionType,
   TransactionRegistryData,
-} from "../types";
-import { config } from "../utils/config";
-import { Config } from "./ConfigService";
-import { JupiterService } from "./JupiterService";
-import { TransactionService } from "./TransactionService";
+  TransactionType,
+} from "@/types";
+import { config } from "@/utils/config";
 
 /**
- * Service for managing token swap operations and subscriptions
- * Coordinates between Jupiter swap quotes, transaction building, and fee calculations
+ * Service for managing token swap operations and subscriptions Coordinates between Jupiter swap quotes, transaction
+ * building, and fee calculations
  */
 export class SwapService {
   private swapSubscriptions: Map<string, SwapSubscription> = new Map();
@@ -29,6 +30,7 @@ export class SwapService {
 
   /**
    * Builds a swap response for a given request
+   *
    * @param request - Active swap request containing token and user details
    * @param cfg - Configuration settings for the swap
    * @param buildAttempt - Number of attempts made to build this swap
@@ -180,11 +182,12 @@ export class SwapService {
 
   /**
    * Organizes transaction instructions in the correct order
+   *
+   * @private
    * @param swapInstructions - Core swap instructions from Jupiter
    * @param feeTransferInstruction - Optional fee transfer instruction
    * @param tokenCloseInstruction - Optional token account close instruction
    * @returns Array of organized transaction instructions
-   * @private
    */
   private organizeInstructions(
     swapInstructions: TransactionInstruction[],
@@ -203,6 +206,7 @@ export class SwapService {
 
   /**
    * Retrieves a transaction message from the registry
+   *
    * @param transactionMessageBase64 - Base64 encoded transaction message
    * @returns Registered transaction data
    */
@@ -212,6 +216,7 @@ export class SwapService {
 
   /**
    * Removes a transaction message from the registry
+   *
    * @param transactionMessageBase64 - Base64 encoded transaction message to delete
    */
   deleteMessageFromRegistry(transactionMessageBase64: string) {
@@ -220,6 +225,7 @@ export class SwapService {
 
   /**
    * Checks if a user has an active swap stream
+   *
    * @param userId - User identifier
    * @returns True if user has active stream, false otherwise
    */
@@ -229,6 +235,7 @@ export class SwapService {
 
   /**
    * Gets the active swap request for a user, relevant for swap stream
+   *
    * @param userId - User identifier
    * @returns Active swap request if exists, undefined otherwise
    */
@@ -238,6 +245,7 @@ export class SwapService {
 
   /**
    * Updates the active swap request for a user, relevant for swap stream
+   *
    * @param userId - User identifier
    * @param request - New swap request
    * @throws Error if no active swap stream exists
@@ -252,7 +260,8 @@ export class SwapService {
 
   /**
    * Starts a swap stream for a user that emits swap responses every second
-   * @deprecated needs updating because of how swaps are now built and submitted
+   *
+   * @deprecated Needs updating because of how swaps are now built and submitted
    * @param userId - User identifier
    * @param request - Initial swap request
    * @returns Subject that emits prebuild swap responses
@@ -285,6 +294,7 @@ export class SwapService {
 
   /**
    * Stops and cleans up a user's swap stream
+   *
    * @param userId - User identifier
    */
   async stopSwapStream(userId: string) {

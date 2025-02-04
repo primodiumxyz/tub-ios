@@ -1,21 +1,23 @@
-import { LAMPORTS_PER_SOL, PublicKey, TransactionInstruction } from "@solana/web3.js";
 import { createTransferInstruction } from "@solana/spl-token";
-import { Config } from "./ConfigService";
-import { TransactionType } from "../types";
-import { JupiterService } from "./JupiterService";
-import { USDC_BASE_UNITS } from "../constants/tokens";
+import { LAMPORTS_PER_SOL, PublicKey, TransactionInstruction } from "@solana/web3.js";
+
+import { USDC_BASE_UNITS } from "@/constants/tokens";
+import { Config } from "@/services/ConfigService";
+import { JupiterService } from "@/services/JupiterService";
+import { TransactionType } from "@/types";
 
 export type FeeSettings = {
   tradeFeeRecipient: PublicKey;
 };
 
 /**
- * Service for handling fee calculations and fee-related instructions
- * Manages trade fees, minimum fees, and fee transfer instructions
+ * Service for handling fee calculations and fee-related instructions Manages trade fees, minimum fees, and fee transfer
+ * instructions
  */
 export class FeeService {
   /**
    * Creates a new FeeService instance
+   *
    * @param settings - Fee configuration settings
    * @param jupiterService - Jupiter service instance for price calculations
    */
@@ -26,6 +28,7 @@ export class FeeService {
 
   /**
    * Returns the current fee settings
+   *
    * @returns Current fee configuration settings
    */
   getSettings(): FeeSettings {
@@ -34,6 +37,7 @@ export class FeeService {
 
   /**
    * Calculate fee amount for a swap, ensuring it is not below the minimum fee amount
+   *
    * @param usdcQuantity - Amount of USDC in the transaction (in base units)
    * @param transactionType - Type of swap: buy, sell_all, sell_partial
    * @param cfg - Config object containing fee parameters
@@ -67,6 +71,7 @@ export class FeeService {
 
   /**
    * Creates a transfer instruction for the fee if needed
+   *
    * @param sourceAccount - Token account to transfer from
    * @param userPublicKey - User's public key for authority
    * @param feeAmount - Amount of fee to transfer (in token base units)
@@ -91,6 +96,7 @@ export class FeeService {
 
   /**
    * Calculate the amount of base USDC required to cover the ATA rent exemption
+   *
    * @param amountLamports - The amount of SOL to cover the ATA rent exemption
    * @returns Amount of USDC (in base units) required to cover the ATA rent exemption
    * @throws Error if SOL USD price fetch fails

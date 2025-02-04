@@ -1,12 +1,13 @@
-import { Connection, TransactionMessage, VersionedTransaction, Keypair, PublicKey } from "@solana/web3.js";
-import { DefaultApi, Configuration } from "@jup-ag/api";
-import { JupiterService } from "../src/services/JupiterService";
-import { TransactionService } from "../src/services/TransactionService";
-import { describe, it, expect, beforeAll } from "vitest";
+import { Configuration, DefaultApi } from "@jup-ag/api";
+import { Connection, Keypair, PublicKey, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 import { AxiosError } from "axios";
-import { env } from "../bin/tub-server";
-import { MEMECOIN_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY, USDC_MAINNET_PUBLIC_KEY } from "../src/constants/tokens";
-import { ConfigService } from "../src/services/ConfigService";
+import { beforeAll, describe, expect, it } from "vitest";
+
+import { env } from "@bin/tub-server";
+import { MEMECOIN_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY, USDC_MAINNET_PUBLIC_KEY } from "@/constants/tokens";
+import { ConfigService } from "@/services/ConfigService";
+import { JupiterService } from "@/services/JupiterService";
+import { TransactionService } from "@/services/TransactionService";
 
 const VERBOSE = false;
 const createTestKeypair = () => Keypair.generate();

@@ -1,9 +1,10 @@
-import { MEMECOIN_MAINNET_PUBLIC_KEY } from "../src/constants/tokens";
-import { Config, ConfigService } from "../src/services/ConfigService";
-import { GqlClient, createClient as createGqlClient } from "@tub/gql";
+import { createClient as createGqlClient, GqlClient } from "@tub/gql";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { PushService } from "../src/services/ApplePushService";
+
 import { env } from "@bin/tub-server";
+import { MEMECOIN_MAINNET_PUBLIC_KEY } from "@/constants/tokens";
+import { PushService } from "@/services/ApplePushService";
+import { Config, ConfigService } from "@/services/ConfigService";
 
 describe("PushService", () => {
   let pushService: PushService;

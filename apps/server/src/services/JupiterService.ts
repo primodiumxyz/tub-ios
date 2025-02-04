@@ -1,8 +1,9 @@
+import { EventEmitter } from "events";
 import { DefaultApi, QuoteGetRequest, QuoteResponse, SwapInstructionsPostRequest } from "@jup-ag/api";
 import { AddressLookupTableAccount, Connection, PublicKey, TransactionInstruction } from "@solana/web3.js";
-import { EventEmitter } from "events";
-import { SOL_MAINNET_PUBLIC_KEY, USDC_MAINNET_PUBLIC_KEY } from "../constants/tokens";
-import { config } from "../utils/config";
+
+import { SOL_MAINNET_PUBLIC_KEY, USDC_MAINNET_PUBLIC_KEY } from "@/constants/tokens";
+import { config } from "@/utils/config";
 
 export type JupiterSettings = {
   connection: Connection;
@@ -19,16 +20,14 @@ interface JupiterInstruction {
   data: string;
 }
 
-/**
- * Service for interacting with Jupiter API
- * Handles token swap quotes, price updates, and swap instruction generation
- */
+/** Service for interacting with Jupiter API Handles token swap quotes, price updates, and swap instruction generation */
 export class JupiterService {
   private solUsdPrice: number | undefined;
   private priceEmitter = new EventEmitter();
 
   /**
    * Creates a new instance of JupiterService
+   *
    * @param connection - Solana RPC connection for blockchain interaction
    * @param jupiterQuoteApi - Jupiter API client for quote fetching
    */
@@ -55,6 +54,7 @@ export class JupiterService {
 
   /**
    * Returns the current service settings
+   *
    * @returns {JupiterSettings} Current connection and API settings
    */
   getSettings(): JupiterSettings {
@@ -66,6 +66,7 @@ export class JupiterService {
 
   /**
    * Gets a quote for a token swap from Jupiter
+   *
    * @param params - Quote request parameters
    * @returns Quote response from Jupiter
    * @throws Error if quote cannot be obtained
@@ -99,6 +100,7 @@ export class JupiterService {
 
   /**
    * Gets swap instructions for a quoted trade
+   *
    * @param quoteAndSwapParams - Parameters for quote and swap
    * @param userPublicKey - User's public key
    * @param autoPriorityFeeMultiplier - Auto priority fee multiplier
@@ -184,6 +186,7 @@ export class JupiterService {
 
   /**
    * Gets the current SOL/USD price
+   *
    * @returns {Promise<number | undefined>} Current SOL price in USD, undefined if not available
    */
   async getSolUsdPrice(): Promise<number | undefined> {
@@ -193,6 +196,7 @@ export class JupiterService {
 
   /**
    * Subscribes to SOL price updates
+   *
    * @param callback - Function to call when price updates
    * @returns {Function} Cleanup function to unsubscribe
    */
