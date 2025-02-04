@@ -458,7 +458,7 @@ export function createAppRouter() {
      *
      * @param tokenMint - Token to track
      * @param tokenPriceUsd - Initial token price
-     * @param deviceToken - IOS device token
+     * @param deviceToken - iOS device token
      * @param pushToken - APNS push token
      * @returns {Promise<{ success: boolean }>} Success status
      */
