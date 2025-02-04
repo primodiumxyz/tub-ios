@@ -27,7 +27,11 @@ export class CronService {
       throw new Error("Failed to refresh token rolling stats 30min");
   }
 
-  /** Starts all periodic background tasks Currently manages token rolling statistics updates */
+  /**
+   * Starts all periodic background tasks
+   *
+   * Currently manages token rolling statistics updates
+   */
   async startPeriodicTasks(): Promise<void> {
     const { REFRESH_TOKEN_ROLLING_STATS_30MIN_INTERVAL_SECONDS } = await config();
 

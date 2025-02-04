@@ -168,7 +168,9 @@ export class PushService {
 
   /* --------------------------------- Pushes --------------------------------- */
 
-  /** Initializes periodic cleanup and push notification tasks */
+  /**
+   * Initializes periodic cleanup and push notification tasks
+   */
   private initializePushes(overrides?: Partial<Config>): void {
     (async () => {
       const { PUSH_CLEANUP_INTERVAL_MS, PUSH_SEND_INTERVAL_MS } = await config();
@@ -180,7 +182,9 @@ export class PushService {
     })();
   }
 
-  /** Sends push notifications in batches to all registered users */
+  /**
+   * Sends push notifications in batches to all registered users
+   */
   private async sendAllPushes() {
     const BATCH_SIZE = 50;
     const entries = Array.from(this.pushRegistry.entries());
