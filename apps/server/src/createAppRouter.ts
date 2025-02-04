@@ -6,7 +6,9 @@ import { z } from "zod";
 import { TubService } from "@/services/TubService";
 import { ClientEvent, PrebuildSwapResponse, UserPrebuildSwapRequest } from "@/types";
 
-/** Context type for the tRPC router containing required services and auth */
+/**
+ * Context type for the tRPC router containing required services and auth
+ */
 export type AppContext = {
   tubService: TubService;
   jwtToken: string;
