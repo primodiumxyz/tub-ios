@@ -1,0 +1,44 @@
+{
+  "name": "@primodiumxyz/tub",
+  "description": "A mobile trading app for memecoins on Solana with a full backend stack.",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/primodiumxyz/dex-indexer-stack"
+  },
+  "license": "MIT",
+  "scripts": {
+    "build": "pnpm recursive run build",
+    "dev": "NODE_ENV=local pnpm run dev:teardown && run-pty % pnpm dev:server % pnpm dev:redis % pnpm dev:indexer % pnpm dev:db && pnpm dev:dashboard",
+    "dev:server": "pnpm --filter 'server' run dev",
+    "dev:redis": "pnpm --filter 'server' run dev:redis",
+    "dev:db": "pnpm --filter 'gql' run dev",
+    "dev:db:ci": "pnpm --filter 'gql' run dev:ci",
+    "dev:teardown": "pnpm --filter 'gql' run teardown",
+    "dev:dashboard": "pnpm --filter 'dashboard' run dev",
+    "dev:indexer": "dotenvx run -f .env --quiet -- pnpm local-dex-indexer",
+    "format-swift": "swift-format --recursive -i 'apps/ios/Tub/Sources/**/*.swift'",
+    "test": "pnpm recursive run test",
+    "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
+    "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
+    "sync:gql:ios": "pnpm --filter 'gql' run extract-mutations ../../apps/ios/graphql/mutations.graphql && pnpm --filter 'gql' run extract-queries ../../apps/ios/graphql/queries.graphql && pnpm --filter 'gql' run extract-subscriptions ../../apps/ios/graphql/subscriptions.graphql",
+    "prepare": "dotenvx run -f .env --quiet -- sh -c '[ \"$NODE_ENV\" = production ] || { [ $(uname) = 'Darwin' ] && brew install swift-format; husky install; }'"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": "eslint --cache",
+    "*.{ts,tsx,css,md,mdx,sol}": "prettier --write",
+    "*.swift": "bash -c '[ \"$(uname)\" = \"Darwin\" ] && pnpm format-swift'"
+  },
+  "devDependencies": {
+    "@primodiumxyz/dex-indexer": "^1.0.2",
+    "husky": "^9.0.11",
+    "prettier": "^3.3.3",
+    "typescript": "^5.5.0"
+  },
+  "dependencies": {
+    "@dotenvx/dotenvx": "^1.14.1",
+    "run-pty": "^5.0.0",
+    "tsx": "^3.12.6"
+  },
+  "packageManager": "pnpm@8.15.9+sha512.499434c9d8fdd1a2794ebf4552b3b25c0a633abcee5bb15e7b5de90f32f47b513aca98cd5cfd001c31f0db454bc3804edccd578501e4ca293a6816166bbd9f81"
+}

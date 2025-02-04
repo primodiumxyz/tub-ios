@@ -1,0 +1,8 @@
+.DS_Store
+node_modules
+.yarn
+.env
+.vercel
+temp.json
+.eslintcache
+*.rdb
