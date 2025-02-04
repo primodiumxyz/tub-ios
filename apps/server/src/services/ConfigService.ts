@@ -8,32 +8,32 @@ import defaultConfig from "../../default-redis-config.json";
  */
 export const configSchema = z
   .object({
-    CONFIG_UPDATE_INTERVAL: z.number(),
-    REGISTRY_TIMEOUT: z.number(),
-    CLEANUP_INTERVAL: z.number(),
-    SOL_USD_PRICE_UPDATE_INTERVAL: z.number(),
-    CONFIRM_ATTEMPTS: z.number(),
-    CONFIRM_ATTEMPT_DELAY: z.number(),
-    MAX_BUILD_ATTEMPTS: z.number(),
-    MAX_SIM_ATTEMPTS: z.number(),
-    USER_SLIPPAGE_BPS_MAX: z.number(),
-    MAX_DEFAULT_SLIPPAGE_BPS: z.number(),
-    AUTO_SLIPPAGE: z.boolean(),
-    MAX_AUTO_SLIPPAGE_BPS: z.number(),
-    MAX_ACCOUNTS: z.number(),
-    AUTO_SLIPPAGE_COLLISION_USD_VALUE: z.number(),
-    MIN_SLIPPAGE_BPS: z.number(),
-    AUTO_PRIORITY_FEE_MULTIPLIER: z.number(),
-    MAX_COMPUTE_PRICE: z.number(),
-    BUY_FEE_BPS: z.number(),
-    SELL_FEE_BPS: z.number(),
-    MIN_FEE_CENTS: z.number(),
-    MIN_TRADE_SIZE_USD: z.number(),
-    TRADE_FEE_RECIPIENT: z.string(),
-    PUSH_REGISTRY_TIMEOUT_MS: z.number(),
-    PUSH_CLEANUP_INTERVAL_MS: z.number(),
-    PUSH_SEND_INTERVAL_MS: z.number(),
-    REFRESH_TOKEN_ROLLING_STATS_30MIN_INTERVAL_SECONDS: z.number(),
+    CONFIG_UPDATE_INTERVAL: z.number(), // How often to refresh config from Redis (ms)
+    REGISTRY_TIMEOUT: z.number(), // How long until registry entries expire (ms)
+    CLEANUP_INTERVAL: z.number(), // How often to clean up expired entries (ms)
+    SOL_USD_PRICE_UPDATE_INTERVAL: z.number(), // How often to fetch new SOL/USD price (ms)
+    CONFIRM_ATTEMPTS: z.number(), // Max attempts to confirm a transaction
+    CONFIRM_ATTEMPT_DELAY: z.number(), // Delay between confirmation attempts (ms)
+    MAX_BUILD_ATTEMPTS: z.number(), // Max attempts per request to build a transactions
+    MAX_SIM_ATTEMPTS: z.number(), // Max attempts per built transaction to simulate a transaction
+    USER_SLIPPAGE_BPS_MAX: z.number(), // Maximum user-configurable slippage in basis points
+    MAX_DEFAULT_SLIPPAGE_BPS: z.number(), // Default maximum slippage in basis points
+    AUTO_SLIPPAGE: z.boolean(), // Whether to use automatic slippage adjustment
+    MAX_AUTO_SLIPPAGE_BPS: z.number(), // Maximum auto-adjusted slippage in basis points
+    MAX_ACCOUNTS: z.number(), // Maximum number of accounts to track per user
+    AUTO_SLIPPAGE_COLLISION_USD_VALUE: z.number(), // USD threshold for slippage collision detection
+    MIN_SLIPPAGE_BPS: z.number(), // Minimum slippage in basis points
+    AUTO_PRIORITY_FEE_MULTIPLIER: z.number(), // Multiplier for automatic priority fee calculation
+    MAX_COMPUTE_PRICE: z.number(), // Maximum compute units price allowed
+    BUY_FEE_BPS: z.number(), // Fee for buy transactions in basis points
+    SELL_FEE_BPS: z.number(), // Fee for sell transactions in basis points
+    MIN_FEE_CENTS: z.number(), // Minimum fee in cents
+    MIN_TRADE_SIZE_USD: z.number(), // Minimum trade size in USD
+    TRADE_FEE_RECIPIENT: z.string(), // Pubkey to receive trading fees
+    PUSH_REGISTRY_TIMEOUT_MS: z.number(), // How long until push registry entries expire (ms)
+    PUSH_CLEANUP_INTERVAL_MS: z.number(), // How often to clean up push registry (ms)
+    PUSH_SEND_INTERVAL_MS: z.number(), // How often to send push notifications (ms)
+    REFRESH_TOKEN_ROLLING_STATS_30MIN_INTERVAL_SECONDS: z.number(), // How often to refresh token stats (seconds)
   })
   .strict();
 
