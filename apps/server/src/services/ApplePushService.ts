@@ -20,7 +20,7 @@ type PushItem = {
 
 /**
  * Service that manages live price tracking and push notifications for tokens
- * Handles subscription lifecycle and batched push notification delivery
+ * Handles subscription lifecycle and batched push notification delivery to Apple devices
  */
 export class PushService {
   private pushRegistry: Map<string, PushItem> = new Map();
@@ -37,6 +37,7 @@ export class PushService {
   /**
    * Creates a new PushService instance
    * @param args.gqlClient - GraphQL client for price subscriptions
+   * @param args.overrides - Optional configuration overrides
    */
   constructor(args: { gqlClient: GqlClient["db"]; overrides?: Partial<Config> }) {
     this.gqlClient = args.gqlClient;

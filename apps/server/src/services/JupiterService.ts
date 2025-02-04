@@ -21,6 +21,7 @@ interface JupiterInstruction {
 
 /**
  * Service for interacting with Jupiter API
+ * Handles token swap quotes, price updates, and swap instruction generation
  */
 export class JupiterService {
   private solUsdPrice: number | undefined;
@@ -28,8 +29,8 @@ export class JupiterService {
 
   /**
    * Creates a new instance of JupiterService
-   * @param connection - Solana RPC connection
-   * @param jupiterQuoteApi - Jupiter API client
+   * @param connection - Solana RPC connection for blockchain interaction
+   * @param jupiterQuoteApi - Jupiter API client for quote fetching
    */
   constructor(
     private connection: Connection,
@@ -52,6 +53,10 @@ export class JupiterService {
     })();
   }
 
+  /**
+   * Returns the current service settings
+   * @returns {JupiterSettings} Current connection and API settings
+   */
   getSettings(): JupiterSettings {
     return {
       connection: this.connection,
@@ -177,11 +182,20 @@ export class JupiterService {
     }
   }
 
+  /**
+   * Gets the current SOL/USD price
+   * @returns {Promise<number | undefined>} Current SOL price in USD, undefined if not available
+   */
   async getSolUsdPrice(): Promise<number | undefined> {
     if (!this.solUsdPrice) await this.updateSolUsdPrice();
     return this.solUsdPrice;
   }
 
+  /**
+   * Subscribes to SOL price updates
+   * @param callback - Function to call when price updates
+   * @returns {Function} Cleanup function to unsubscribe
+   */
   subscribeSolPrice(callback: (price: number) => void): () => void {
     this.priceEmitter.on("price", callback);
     // Send current price immediately if available

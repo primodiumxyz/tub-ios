@@ -14,6 +14,10 @@ import { Config } from "./ConfigService";
 import { JupiterService } from "./JupiterService";
 import { TransactionService } from "./TransactionService";
 
+/**
+ * Service for managing token swap operations and subscriptions
+ * Coordinates between Jupiter swap quotes, transaction building, and fee calculations
+ */
 export class SwapService {
   private swapSubscriptions: Map<string, SwapSubscription> = new Map();
 
@@ -23,6 +27,14 @@ export class SwapService {
     private feeService: FeeService,
   ) {}
 
+  /**
+   * Builds a swap response for a given request
+   * @param request - Active swap request containing token and user details
+   * @param cfg - Configuration settings for the swap
+   * @param buildAttempt - Number of attempts made to build this swap
+   * @returns Promise resolving to prebuild swap response with transaction message
+   * @throws Error if sell token account is missing, slippage is invalid, or swap instructions fail
+   */
   async buildSwapResponse(
     request: ActiveSwapRequest,
     cfg: Config,
@@ -166,6 +178,14 @@ export class SwapService {
     return response;
   }
 
+  /**
+   * Organizes transaction instructions in the correct order
+   * @param swapInstructions - Core swap instructions from Jupiter
+   * @param feeTransferInstruction - Optional fee transfer instruction
+   * @param tokenCloseInstruction - Optional token account close instruction
+   * @returns Array of organized transaction instructions
+   * @private
+   */
   private organizeInstructions(
     swapInstructions: TransactionInstruction[],
     feeTransferInstruction: TransactionInstruction | null,
@@ -181,22 +201,47 @@ export class SwapService {
     return instructions;
   }
 
+  /**
+   * Retrieves a transaction message from the registry
+   * @param transactionMessageBase64 - Base64 encoded transaction message
+   * @returns Registered transaction data
+   */
   getMessageFromRegistry(transactionMessageBase64: string) {
     return this.transactionService.getRegisteredTransaction(transactionMessageBase64);
   }
 
+  /**
+   * Removes a transaction message from the registry
+   * @param transactionMessageBase64 - Base64 encoded transaction message to delete
+   */
   deleteMessageFromRegistry(transactionMessageBase64: string) {
     this.transactionService.deleteFromRegistry(transactionMessageBase64);
   }
 
+  /**
+   * Checks if a user has an active swap stream
+   * @param userId - User identifier
+   * @returns True if user has active stream, false otherwise
+   */
   hasActiveStream(userId: string): boolean {
     return this.swapSubscriptions.has(userId);
   }
 
+  /**
+   * Gets the active swap request for a user, relevant for swap stream
+   * @param userId - User identifier
+   * @returns Active swap request if exists, undefined otherwise
+   */
   getActiveRequest(userId: string): ActiveSwapRequest | undefined {
     return this.swapSubscriptions.get(userId)?.request;
   }
 
+  /**
+   * Updates the active swap request for a user, relevant for swap stream
+   * @param userId - User identifier
+   * @param request - New swap request
+   * @throws Error if no active swap stream exists
+   */
   updateActiveRequest(userId: string, request: ActiveSwapRequest): void {
     const subscription = this.swapSubscriptions.get(userId);
     if (!subscription) {
@@ -205,6 +250,13 @@ export class SwapService {
     subscription.request = request;
   }
 
+  /**
+   * Starts a swap stream for a user that emits swap responses every second
+   * @deprecated needs updating because of how swaps are now built and submitted
+   * @param userId - User identifier
+   * @param request - Initial swap request
+   * @returns Subject that emits prebuild swap responses
+   */
   async startSwapStream(userId: string, request: ActiveSwapRequest) {
     if (!this.swapSubscriptions.has(userId)) {
       const subject = new Subject<PrebuildSwapResponse>();
@@ -231,6 +283,10 @@ export class SwapService {
     return this.swapSubscriptions.get(userId)?.subject;
   }
 
+  /**
+   * Stops and cleans up a user's swap stream
+   * @param userId - User identifier
+   */
   async stopSwapStream(userId: string) {
     const subscription = this.swapSubscriptions.get(userId);
     if (subscription) {

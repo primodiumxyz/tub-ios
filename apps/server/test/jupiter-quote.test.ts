@@ -4,9 +4,9 @@ import { JupiterService } from "../src/services/JupiterService";
 import { TransactionService } from "../src/services/TransactionService";
 import { describe, it, expect, beforeAll } from "vitest";
 import { AxiosError } from "axios";
-import { env } from "@bin/tub-server";
+import { env } from "../bin/tub-server";
 import { MEMECOIN_MAINNET_PUBLIC_KEY, SOL_MAINNET_PUBLIC_KEY, USDC_MAINNET_PUBLIC_KEY } from "../src/constants/tokens";
-import { ConfigService } from "@/services/ConfigService";
+import { ConfigService } from "../src/services/ConfigService";
 
 const VERBOSE = false;
 const createTestKeypair = () => Keypair.generate();
