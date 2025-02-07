@@ -12,6 +12,9 @@ This monorepo is composed of an `ios` package for the Swift iOS app, and a few c
   - [Environment](#environment)
   - [Dependencies](#dependencies)
 - [Development](#development)
+- [Details](#details)
+  - [Indexing and database](#indexing-and-database)
+  - [Structure](#structure)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -24,17 +27,6 @@ The [iOS app](./apps/ios/) is a SwiftUI app that allows users to trade memecoins
 They can onramp to an embedded Solana wallet with [Privy](https://www.privy.io/) using the [Coinbase onramp SDK](https://help.coinbase.com/en/developer-platform/coinbase-onramp-sdk).
 
 Trades are constructed and submitted using our [server](./apps/server/), which handles priority fees that are sponsored by a provided wallet.
-
-The codebase is structured as a `pnpm` monorepo with the following packages:
-
-```ml
-apps - "Applications that compose the entire stack"
-├── dashboard - "A React dashboard for visualizing top-ranked tokens and analytics data from the app"
-├── ios - "The Swift iOS app"
-└── server - "A modified version of the published `@primodiumxyz/dex-server` package"
-packages - "Libraries that compose the stack"
-└── gql - "A modified version of the published `@primodiumxyz/dex-graphql` package"
-```
 
 ### Installation
 
@@ -101,6 +93,27 @@ pnpm dev:dashboard
 If you would like to test the app on a physical device and point to the local instances, you will need to set up a tool such as [ngrok](https://ngrok.com/) to tunnel the local development URLs to a public endpoint. This would be done for both the local server and database instances. And then, update the [`Constants.swift`](./apps/ios/Tub/Sources/Utils/Constants.swift) file to read the ngrok environment variables. Note that this might be tricky to configure for the GraphQL URLs.
 
 Refer to the README in [`/apps/ios`](/apps/ios/README.md) to test the latest user-facing features, such as launching the app in Xcode.
+
+## Details
+
+### Indexing and database
+
+The entire flow for writing indexed trades to the database, and interacting with the database from the client, can be illustrated in the following diagram:
+
+![Indexing and database](./resources/indexing-database-diagram.png)
+
+### Structure
+
+The codebase is structured as a `pnpm` monorepo with the following packages:
+
+```ml
+apps - "Applications that compose the entire stack"
+├── dashboard - "A React dashboard for visualizing top-ranked tokens and analytics data from the app"
+├── ios - "The Swift iOS app"
+└── server - "A modified version of the published `@primodiumxyz/dex-server` package"
+packages - "Libraries that compose the stack"
+└── gql - "A modified version of the published `@primodiumxyz/dex-graphql` package"
+```
 
 ## Contributing
 
